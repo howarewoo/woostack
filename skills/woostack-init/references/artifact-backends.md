@@ -42,10 +42,13 @@ When it is "plane":
 
 - Build resolves one exact caller-supplied Plane project (by exact URL or UUID) or creates exactly one project from validated
   `artifacts.plane` baseUrl, workspace, repository, and nonempty `projectLabels` defaults;
+- Fix reaches proved root cause before resolving or creating one canonical Fix Plane project;
+- an exact Fix `--issue` is preserved source context, not the Fix plan or permission to work;
 - standalone Plan writes only to the exact selected Plane project when persistence is requested;
-- delegated Plan mirrors the execution plan during Build;
-- Fix, direct Execute provider modes (`--project`/`--issue`), and optional provider writers do not support Plane in this increment and fail closed before provider access with an explicit error explaining that Plane support is available for Build and Plan only; and
-- local artifacts may be mirrored once after Build/Plan completion.
+- delegated Plan mirrors the execution plan during Build and Fix;
+- Execute supports Plane in project mode (`--project`), issue mode (`--issue`), and local run mode (`--run`), resolving configured `artifacts.plane.issueStates` (executing, inReview, done, blocked) by exact native UUID or exact case-sensitive name in exact scope, validating allowable group semantics, and mutating and reading back only work-item states without mutating or synthesizing Plane project status;
+- optional provider writers (Bootstrap and Commit) do not support Plane in this increment; and
+- local artifacts may be mirrored once after Build/Fix/Plan completion.
 
 Init may perform narrow authenticated read-only discovery of non-secret repository, workspace, team,
 and native-name defaults through the official Linear MCP only. It does not choose persistence, read development
@@ -347,7 +350,7 @@ for explicitly selected direct persistence.
 
 ## Active Execute project-start synchronization
 
-When mirroring is enabled, Execute has one narrow status exception in both `--project` and `--issue`
+When `artifacts.provider: "linear"`, Execute has one narrow status exception in both `--project` and `--issue`
 modes. Completely paginate the direct issues and resolve `artifacts.linear.issueStates.executing` and
 `artifacts.linear.issueStates.inReview` to unique same-team native states whose category is `started`. Resolve
 `artifacts.linear.projectStatuses.started` to exactly one native project status whose category is `started`. Missing,
@@ -363,22 +366,24 @@ Immediately before a needed project mutation, re-read the exact project and reta
 identity. An exact existing started status is an idempotent no-op. Otherwise update only the native
 status field and independently read back project identity, status ID/name/category, revision, and the
 stable mutation identity. A completed or canceled project is a terminal conflict and blocks without
-reopening. Failure or unknown read-back blocks without retrying or continuing. When mirroring is
-disabled, skip this synchronization.
+reopening. Failure or unknown read-back blocks without retrying or continuing.
+
+For Plane, project status is never mutated, synthesized, or gated; Execute mutates and reads back only configured work-item states (`artifacts.plane.issueStates`). Resolve all four configured mappings (executing, inReview, done, blocked) by exact native UUID or exact case-sensitive name within the canonical `baseUrl`, `workspace`, and `project` scope; reject missing, ambiguous, duplicate, foreign-scope, or group-mismatched states before mutation; independently read back native ID, name, and group; and validate allowable group semantics (executing and inReview require group `started`, done requires group `completed`, and blocked requires group `started`). When mirroring is disabled or local run mode is used, skip this synchronization.
 
 ## Project-backed workflow closure
 
 Explicit abandonment is terminal and distinct from handoff, replanning, or a blocker. Build and
 project-backed Fix first atomically record `status: "abandoned"` in the local manifest, retain the run,
 stop repository work, and leave any mirrored project unchanged (for Plane, do not synthesize project status or archive the project).
-A provider-backed standalone Plan or Execute closure uses only the retained exact project. If none
+A Linear provider-backed standalone Plan or Linear Execute closure uses only the retained exact project. If none
 exists, report nothing to close and create nothing. Otherwise resolve the configured canceled-category
 status, re-read exact project identity/status/revision, update only status with one stable mutation
 identity, and independently read back identity, canceled status ID/name/category, revision, and
 operation identity. Never archive or delete the project, bulk-change issues, or create a project to
-cancel it. Failure retains the same retry boundary and never resumes repository work. With mirroring
-disabled, make no provider closure call.
-
+cancel it. For Plane, project status is never mutated, synthesized, or archived on handoff, abandonment,
+blockage, or completion; every Plane Execute closure retains the exact project unchanged and records only
+work-item and local recovery state. Failure retains the same retry boundary and never resumes repository
+work. With mirroring disabled, make no provider closure call.
 ## Retention and reporting
 
 Retain `manifest.json`, `project-spec.md`, `execution-plan.md`, and `.lock` on completion, explicit

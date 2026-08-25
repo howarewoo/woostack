@@ -5,9 +5,8 @@ description: Install woostack in a coding harness, initialize local support, and
 
 <Callout type="info">
   Local run authority in `.woostack/tmp/runs/<run-id>/` owns product scope and execution contracts for
-  builds (with optional Linear or Plane mirroring: `artifacts.provider: "linear"` or `artifacts.provider: "plane"`)
-  and post-diagnosis fixes (with optional Linear mirroring: `artifacts.provider: "linear"`, while Plane Fix arrives
-  in a later increment). Git and GitHub own code, branches, pull requests, reviews, and merges.
+  builds and post-diagnosis fixes (with optional Linear or Plane mirroring: `artifacts.provider: "linear"` or
+  `artifacts.provider: "plane"`). Git and GitHub own code, branches, pull requests, reviews, and merges.
 </Callout>
 
 ## Dependencies
@@ -52,7 +51,7 @@ by Git).
 
 Read [Configuration](/docs/configuration) for policy. Every build and project-backed Fix allocates
 or resumes an exact local run store under `.woostack/tmp/runs/<run-id>/`. When
-`artifacts.provider: "linear"` or `artifacts.provider: "plane"`, Build (and Linear Fix) also resolves or creates one provider project mirror.
+`artifacts.provider: "linear"` or `artifacts.provider: "plane"`, Build and Fix also resolve or create one provider project mirror.
 ## 3. Choose the workflow
 
 | Goal | Command |
@@ -89,8 +88,8 @@ provider-free. Supplying `--project` when `artifacts.provider` is not configured
 closed immediately with an error stating that `--project` requires configured provider mirroring.
 
 When `artifacts.provider: "linear"` or `artifacts.provider: "plane"` is configured, the provider configuration supplies validated
-defaults for canonical project creation when no exact project was supplied. Build (for both Linear and Plane) and
-project-backed Fix (for Linear only; Plane Fix is unsupported and fails closed before provider access or run creation) write plain Markdown
+defaults for canonical project creation when no exact project was supplied. Build and
+project-backed Fix write plain Markdown
 `project-spec.md` and `execution-plan.md` files directly under `.woostack/tmp/runs/<run-id>/`, followed by one bounded mirror
 synchronization cycle when mirroring is enabled. Mirror failure is recorded in the manifest and is nonblocking for local authority.
 All run artifacts in `.woostack/tmp/runs/<run-id>/` are retained upon completion and explicit abandonment. Build/Fix present the verified

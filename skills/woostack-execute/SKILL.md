@@ -1,31 +1,33 @@
 ---
 name: woostack-execute
-description: Execute one approved Linear project increment, one exact Linear issue, or an approved local run manifest as a resumable sequential Graphite PR workflow. Never reviews or merges.
+description: Execute one approved Linear or Plane project increment, one exact Linear issue or Plane work item, or an approved local run manifest as a resumable sequential Graphite PR workflow. Never reviews or merges.
 ---
 
 # woostack-execute
 
 Execute approved work through one strict sequential controller. The controller is the source of
 allocation, admission, ancestry, worktree, persistence, and delivery boundaries. Git, Graphite,
-and canonical GitHub reads prove repository delivery; Linear or the local run manifest records the
+and canonical GitHub reads prove repository delivery; Linear, Plane, or the local run manifest records the
 approved contract and resume evidence but never proves source-control state.
 
 ## Commands
 
 ```text
-/woostack-execute --project <exact Linear URL-or-UUID>
-/woostack-execute <approved plan> --issue <exact canonical Linear issue reference>
+/woostack-execute --project <exact Linear or Plane URL-or-UUID>
+/woostack-execute <approved plan> --issue <exact canonical Linear issue or Plane work-item reference>
 /woostack-execute --run <exact-run-id> [--recheck]
 ```
 
 `--project`, `--issue`, and `--run` are mutually exclusive; exactly one is required. `--recheck` is
-valid only with `--run`. Execute accepts either exact Linear resources (`--project`/`--issue`) or an
-exact local run manifest (`--run`), with no implicit or fuzzy discovery. Direct provider execution
-via `--project` or `--issue` supports Linear only in this increment. When `artifacts.provider: "plane"`,
-direct provider execution via `--project` or `--issue` is unsupported in this increment and fails closed;
-execution of Plane builds proceeds through an approved local run manifest (`/woostack-execute --run <exact-run-id>`).
-Every cycle admits one task or direct issue, one isolated worktree, and one PR. Execute does not perform
-review or merge operations. The `--project` form is the resumable handoff from Linear Build/Fix when mirroring
+valid only with `--run`. Execute accepts either exact provider resources (`--project`/`--issue`) or an
+exact local run manifest (`--run`), with no implicit or fuzzy discovery. When `artifacts.provider: "local"` or
+omitted, direct provider execution via `--project` or `--issue` fails closed before any provider access.
+When `artifacts.provider: "linear"`, `--project` and `--issue` accept exact Linear resources. When `artifacts.provider: "plane"`,
+`--project` accepts an exact Plane project URL or UUID in the configured instance `baseUrl` and `workspace`;
+`--issue` accepts an exact Plane work-item URL or readable ID (such as `ENG-42`), resolving and independently reading
+back its native UUID.
+Every cycle admits one task or direct issue/work item, one isolated worktree, and one PR. Execute does not perform
+review or merge operations. The `--project` form is the resumable handoff from Linear or Plane Build/Fix when mirroring
 is enabled; `--run` is the resumable handoff from a local run manifest. Both are sufficient without chat
 memory or fuzzy plan discovery.
 ## Admission
@@ -33,11 +35,12 @@ memory or fuzzy plan discovery.
 ### Provider admission: one exact resource
 
 In project mode (`--project`), require one exact project supplied by URL or UUID and reconstruct
-authority from fresh official Linear reads of that project's complete specification, current
-direct-issue graph, native dependency relations, and canonical repository association. In issue mode
-(`--issue`), require one exact direct issue and the same complete reads for its owning project. Never
+authority from fresh official provider reads (Linear or Plane) of that project's complete specification, current
+direct-issue/work-item graph, native dependency relations, and canonical repository association. In issue mode
+(`--issue`), require one exact direct issue/work item and the same complete reads for its owning project. Never
 infer either resource or its records from chat memory, local files, titles, branch names, recent
-activity, or prior transcript.
+activity, or prior transcript. For Plane, require direct parentless membership (`parent = null`), exact instance
+`baseUrl` and `workspace` scope, and complete built-in blocking relations (`blocks`).
 
 Independently read the selected resource, the complete project specification, every current direct
 issue, all admitted native dependency relations, and the canonical repository association. In issue
@@ -98,7 +101,7 @@ retained start/head into worktree discovery; it does not duplicate the shared de
 never advances a sibling. `--run` is **local run mode** and executes the approved local manifest tasks
 sequentially. All modes share the same repository ancestry admission and worker delivery loop.
 
-### Active project status gate (provider modes only)
+### Active project status gate (Linear provider mode only)
 
 Before any worktree or source mutation in both `--project` and `--issue` modes, apply the shared
 [active Execute project-start synchronization](../woostack-init/references/artifact-backends.md#active-execute-project-start-synchronization)
@@ -118,16 +121,23 @@ independent of the issue lifecycle receipt and resume-checkpoint evidence.
 
 The gate mutates only the project's native status with one stable mutation identity and independently
 reads back project identity, status ID/name/category, revision, and operation identity. An exact
-started match is idempotent. Local run mode (`--run`) bypasses provider status synchronization.
+started match is idempotent. For Plane, project status is never mutated, synthesized, or gated; Execute mutates and reads back only configured work-item states (`artifacts.plane.issueStates`). Local run mode (`--run`) bypasses provider status synchronization.
 
 ## Execution controller
 
 1. Read the complete approved task or direct-issue graph and classify every task/issue by its immutable
-   positive ordinal.
+   positive ordinal. In Plane provider mode, resolve each of the four configured `artifacts.plane.issueStates`
+   mappings (executing, inReview, done, blocked) by exact native UUID or exact case-sensitive name in the
+   canonical `baseUrl`, `workspace`, and `project` scope, reject missing, ambiguous, duplicate, foreign-scope,
+   or group-mismatched states before mutation, independently read back the resolved native state ID, name,
+   and group, and validate allowable group semantics before transition (requiring group `started` for
+   executing/inReview, group `completed` for done, and group `started` for blocked).
 2. Select the lowest-ordinal unfinished task or issue:
-   - In provider modes, an issue is unfinished until its canonical state matches the resolved
-     `artifacts.linear.issueStates.inReview` mapping and the full delivery checkpoint is independently read
-     back; never select by activity, assignment, title, or status alone.
+   - In Linear provider mode, an issue is unfinished until its canonical state matches the resolved
+     `artifacts.linear.issueStates.inReview` mapping and the full delivery checkpoint is independently read back.
+   - In Plane provider mode, a work item is unfinished until its canonical state matches either the resolved
+     `artifacts.plane.issueStates.inReview` or `artifacts.plane.issueStates.done` mapping and the full delivery
+     checkpoint is independently read back; never select by activity, assignment, title, or status alone.
    - In local run mode, a task is unfinished unless its `taskExecutions[stableTaskKey].status` is
      `delivered` and its complete delivery checkpoint is independently read back.
 3. For a non-root task/issue, read its immediate predecessor's complete delivery checkpoint, canonical
@@ -135,11 +145,13 @@ started match is idempotent. Local run mode (`--run`) bypasses provider status s
    read the canonical integration parent branch and last admitted tip. Apply the shared repository
    advancement contract and carry its admitted result into worktree discovery. No other task or issue is
    admitted in the same cycle.
-4. In provider modes, apply the active project status gate. When all direct issues are `Backlog`/`Todo`,
+4. In Linear provider mode, apply the active project status gate. When all direct issues are `Backlog`/`Todo`,
    persist and independently read back the selected issue's transition to the resolved
    `artifacts.linear.issueStates.executing` mapping first, then synchronize and independently read back the
    project's configured started status. Keep the project-status receipt distinct from the issue
-   lifecycle receipt and project resume checkpoint. Local run mode bypasses this provider gate.
+   lifecycle receipt and project resume checkpoint. For Plane provider mode, transition the selected
+   work item to the resolved `artifacts.plane.issueStates.executing` mapping and independently read back its native
+   ID, name, and group; do not mutate Plane project status. Local run mode bypasses this provider gate.
 5. In local run mode, before worktree or source mutation, CAS-update
    `taskExecutions[stableTaskKey]` from `pending`/`blocked` to `active` with the exact intended task,
    worktree, branch, parent, and start tip; increment `manifestRevision` and independently reopen and
@@ -150,28 +162,37 @@ started match is idempotent. Local run mode (`--run`) bypasses provider status s
    worktree ownership.
 6. After the worker returns, run one focused verification and changed-path smoke scenario, then one
    bounded spec-compliance validator against the approved contract. When validation produces
-   screenshots in provider mode, apply [Controller-owned screenshot evidence](references/controller.md#controller-owned-screenshot-evidence)
-   before commit.
+   screenshots in Linear provider mode, apply [Controller-owned screenshot evidence](references/controller.md#controller-owned-screenshot-evidence)
+   before commit. For Plane provider mode, screenshot attachment and comment evidence are Linear-only and
+   explicitly skipped until Plane writer support is introduced; continue repository delivery.
 7. Commit and PR submission:
-   - In provider modes, invoke [`woostack-commit`](../woostack-commit/SKILL.md) with `--issue` and the
-     exact selected issue to commit and submit exactly one Graphite PR. Independently read back branch,
+   - In Linear provider mode, invoke [`woostack-commit`](../woostack-commit/SKILL.md) with `--issue` and the
+     exact selected Linear issue to commit and submit exactly one Graphite PR. Independently read back branch,
      commit, PR URL/head/base, the exact `Resolves <issue identifier>` body line, verification receipt,
      and Graphite parent.
+   - In Plane provider mode, invoke [`woostack-commit`](../woostack-commit/SKILL.md) without `--issue`
+     (Commit does not support Plane in this increment; no `Resolves` line). Independently read back branch,
+     commit, PR URL/head/base, verification receipt, and Graphite parent, and persist/read back the PR delivery
+     checkpoint through Execute's Plane work-item path.
    - In local run mode, invoke [`woostack-commit`](../woostack-commit/SKILL.md) without `--issue` and
      without a `Resolves` line. Independently read back branch, commit, PR URL/head/base, verification
      receipt, and Graphite parent.
 8. Persist the complete delivery checkpoint:
-   - In provider modes, persist the delivery checkpoint to Linear and independently read back every
-     field. Only after that full read-back succeeds, resolve and independently read back the
-     configured `artifacts.linear.issueStates.inReview` mapping and transition the issue from the resolved
-     executing mapping to it, or read back an idempotent no-op when executing and inReview share one
-     native status.
+   - In Linear provider mode, persist the delivery checkpoint to Linear and independently read back every field.
+     Only after that full read-back succeeds, resolve and independently read back the configured inReview mapping
+     (`artifacts.linear.issueStates.inReview`) and transition the issue from the resolved executing mapping to it,
+     or read back an idempotent no-op when executing and inReview share one native status.
+   - In Plane provider mode, persist the delivery checkpoint to Plane and independently read back every field.
+     Only after that full read-back succeeds, resolve and independently read back the configured inReview mapping
+     (`artifacts.plane.issueStates.inReview`) by exact native UUID or exact case-sensitive name with group `started`,
+     and transition the work item from the resolved executing mapping to it, reading back its native state ID, name,
+     and group, or read back an idempotent no-op when executing and inReview share one native status.
    - In local run mode, CAS-update `taskExecutions[stableTaskKey]` from `active` to `delivered` only
      with the complete delivery checkpoint (`{ stableTaskKey, ordinal, branch, commitSha, prUrl,
      prHead, prBase, graphiteParent, verificationReceipt, deliveredAt }`). Increment
      `manifestRevision`, reopen the manifest and plain artifacts no-follow, and verify every persisted
      field before worktree teardown or advancing to the next sibling.
-   - If Linear mirror writes are configured in local run mode, they are best effort only: failure
+   - If Linear or Plane mirror writes are configured in local run mode, they are best effort only: failure
      emits a warning and never invalidates, blocks, or overwrites the authoritative local checkpoint.
    Neither transition result can authorize teardown, resume, or sibling progression without the completed
    checkpoint read-back. The checkpoint must distinguish active from delivered work. Remove the worktree
@@ -181,29 +202,34 @@ started match is idempotent. Local run mode (`--run`) bypasses provider status s
    project/run open with exact resume evidence.
 
 A successful cycle has no orphan worktree. At a failed, blocked, interrupted, colliding, or unknown
-local boundary, CAS-update the active task to `blocked` with the first unknown boundary, branch,
-commit/PR if any, dirty state, Graphite parent, verification receipt, delivery read-back, and exact
-safe resume action; increment and independently read back the manifest revision. Retain the
-worktree. Resume only after fresh independent evidence proves the same run and state and the shared
-repository ancestry contract admits that evidence. Rediscover existing commits or PRs before
-retrying and never create a duplicate.
-Provider-mode failures retain the same evidence at their canonical project/issue boundary.
+boundary, retain the worktree and record the first unknown boundary, branch, commit/PR if any, dirty state,
+Graphite parent, verification receipt, delivery read-back, and exact safe resume action.
+In Plane provider mode, transition and independently read back the selected work item to the configured
+`artifacts.plane.issueStates.blocked` mapping (resolved by exact native UUID or exact case-sensitive name with
+group `started`, reading back its native state ID, name, and group) with recovery evidence before a failed Plane cycle can resume.
+In local run mode, CAS-update the active task to `blocked` with that recovery evidence, increment and independently
+read back the manifest revision. Retain the worktree. Resume only after fresh independent evidence proves the
+same run and state and the shared repository ancestry contract admits that evidence. Rediscover existing commits
+or PRs before retrying and never create a duplicate.
+Linear provider-mode failures retain the same recovery evidence at their canonical project/issue boundary.
 
-Issue mode performs exactly the selected issue's cycle once: admit its matching project context,
+Issue mode performs exactly the selected issue or work item's cycle once: admit its matching project context,
 prove its predecessor's canonical parent branch and compatible current head (or the integration
 parent branch for a root) under the repository ancestry contract, apply the active project status
-gate (including the selected issue's transition to the resolved
-`artifacts.linear.issueStates.executing` mapping when all direct issues are `Backlog`/`Todo`), then dispatch
-one fast-model subagent in its isolated worktree.
-The gate's project-status receipt stays separate from issue lifecycle and resume-checkpoint
-evidence. Verify and validate the one issue, submit and read back one PR, then persist and
-independently read back every field of the complete delivery checkpoint. Only after that full
-read-back succeeds, move and read back the configured `artifacts.linear.issueStates.inReview` mapping. If
-executing and inReview resolve to one native status, independently read the idempotent no-op instead
-of issuing a second mutation. The lifecycle result authorizes removal of the clean worktree only
-with the completed checkpoint read-back and all other required evidence. Issue mode never advances
-siblings, even when the selected issue succeeds. Failures retain exact recovery evidence.
-
+gate for Linear (including the selected issue's transition to the resolved
+`artifacts.linear.issueStates.executing` mapping when all direct issues are `Backlog`/`Todo`) or transition the selected
+Plane work item to `artifacts.plane.issueStates.executing` (resolving configured issueStates by exact native UUID
+or case-sensitive name in exact scope, validating allowable group semantics, and reading back native state ID, name, and group)
+and read back without project mutation, then dispatch one fast-model subagent in its isolated worktree.
+For Linear, the gate's project-status receipt stays separate from issue lifecycle and resume-checkpoint
+evidence. Verify and validate the one issue/work item, submit and read back one PR (with `--issue` for Linear;
+without `--issue` for Plane), then persist and independently read back every field of the complete delivery checkpoint.
+Only after that full read-back succeeds, move and read back the configured inReview mapping
+(`artifacts.linear.issueStates.inReview` for Linear; `artifacts.plane.issueStates.inReview` for Plane). If executing and inReview resolve to one native status, independently read
+the idempotent no-op instead of issuing a second mutation. The lifecycle result authorizes removal of the clean
+worktree only with the completed checkpoint read-back and all other required evidence. Issue mode never advances
+siblings, even when the selected issue succeeds. Failures retain exact recovery evidence (transitioning to
+`artifacts.plane.issueStates.blocked` in Plane provider mode).
 ## Worker and verification boundary
 
 Every implementation is delegated to the configured fast-model subagent; the controller must not

@@ -69,8 +69,9 @@ independently reads the complete graph back, and owns no execution authorization
 Build run manifest.
 ## Delivery notes
 
-Plane delivery notes, comment writers, and execution status updates are unsupported in this increment
-(supported for Linear in commit/execute; Plane writers arrive in later increments). Repository execution
+Plane delivery notes, comments, and Commit writer are unsupported in this increment
+(supported for Linear in commit/execute; Plane writers arrive in later increments), while Execute
+supports work-item state transitions and delivery checkpoints. Repository execution
 delivers via Graphite/GitHub PRs and local run manifest checkpoints.
 A note records evidence; it does not establish the fact it records. Read the exact work item/project
 back after writing when writers are enabled, and report artifact and repository outcomes separately.
