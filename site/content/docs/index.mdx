@@ -1,6 +1,6 @@
 ---
 title: What is woostack?
-description: Evidence-driven delivery with local run authority, optional Linear mirror records, and repository truth.
+description: Evidence-driven delivery with local run authority, optional Linear and Plane mirror records, and repository truth.
 ---
 
 woostack is a model-agnostic collection of gated software-development skills for planning,
@@ -11,12 +11,12 @@ pnpx skills add howarewoo/woostack
 ```
 
 - **Split canonical truth:** Local runs in `.woostack/tmp/runs/<run-id>/` own build/fix specifications,
-  plans, and manifest state, with optional Linear mirroring (`artifacts.provider: "linear"`); Git
-  and GitHub prove source, branches, pull requests, reviews, and merge state.
+  plans, and manifest state, with optional Linear or Plane mirroring (`artifacts.provider: "linear"` or
+  `artifacts.provider: "plane"`); Git and GitHub prove source, branches, pull requests, reviews, and merge state.
 - **Simple durable shape:** every build manages one high-level specification (`project-spec.md`)
   plus direct increment contracts with dependency relations in its plain execution plan
   (`execution-plan.md`) and retained local run manifest. In the optional mirror flow, these map to
-  one Linear project and direct issues.
+  one Linear or Plane project and direct work items.
 - **Plain readable artifacts:** specifications and plans are plain Markdown working documents;
   Build and Fix hand off directly to user-controlled execution (`Stop here`, `Execute`, `Abandon`).
 - **External-engineer boundary:** Hermes is documented at the
@@ -39,13 +39,13 @@ The collection keeps the whole delivery loop coherent without requiring an exter
 - sequential execution within each local run, with safe concurrency across disjoint run IDs;
 - external engineers can review harness evidence without receiving implementation authority;
 - portable execution across supported coding harnesses;
-- canonical local run authority for fix/build with optional Linear mirroring, and optional artifacts elsewhere.
+- canonical local run authority for fix/build with optional Linear/Plane mirroring, and optional artifacts elsewhere.
 
 Build and project-backed Fix allocate or resume a canonical local run store under
-`.woostack/tmp/runs/<run-id>/` by default. When `artifacts.provider: "linear"`, local artifacts mirror
-to Linear in one bounded cycle; mirror failure is nonblocking. Retained run artifacts enable exact
+`.woostack/tmp/runs/<run-id>/` by default. When `artifacts.provider: "linear"` or `artifacts.provider: "plane"`, local artifacts mirror
+to the configured provider in one bounded cycle; mirror failure is nonblocking. Retained run artifacts enable exact
 resume with `/woostack-execute --run <exact-run-id> [--recheck]`. Tracked policy supplies validated
-defaults only when Linear mirroring is enabled.
+defaults only when provider mirroring is enabled.
 ## Where to go next
 
 <Cards>

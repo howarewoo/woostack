@@ -81,7 +81,7 @@ specification, `N` parentless direct work items (`parent = null`), and `N-1` str
 Project admission requires mandatory official Plane MCP project-label capabilities when `artifacts.plane.projectLabels`
 is configured, flattens completely paginated workspace project labels with null terminal cursors, and unions
 configured labels with existing project labels (preserving unrelated labels). If the official Plane MCP lacks
-project-label operations, persistence fails closed before project mutation. Optional provider writers (Bootstrap and Commit) are unsupported in this increment and fail closed.
+project-label operations, persistence fails closed before project mutation. Optional provider writers (Bootstrap and Commit) require explicit opt-in, post-gate timing, exact identities, official MCP capabilities, and independent read-back, leaving repository authority on Git/GitHub.
 
 The manifest is the canonical local run authority. Standalone Plan remains distinct: it keeps its direct
 project-graph synchronization and independent read-back unchanged for Linear or Plane, without either Build/Fix approval

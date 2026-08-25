@@ -25,32 +25,34 @@ Review config and explicitly non-authoritative diagnostic output may remain unde
 review metrics `.woostack/metrics.json` are gitignored. None determine development scope, phase,
 approval, assignment, dependencies, or acceptance.
 
-## Linear product records
+## Artifact provider records
 
-Linear is canonical product authority for builds and post-diagnosis fixes. Git, Graphite, and
-canonical GitHub evidence remain authoritative for repository execution and delivery:
+Canonical persistent local run manifests under `.woostack/tmp/runs/<run-id>/` own product scope and
+execution contracts for builds and post-diagnosis fixes, with optional Linear or Plane mirroring
+(`artifacts.provider: "linear"` or `artifacts.provider: "plane"`). Git, Graphite, and canonical
+GitHub evidence remain authoritative for repository execution and delivery:
 
 - a build project stores the evolving high-level specification;
-- one direct project issue per build increment stores the complete executor-ready plan and native
-  dependency edges encode the DAG; and
-- one fix issue stores the proved diagnosis and complete executor-ready fix plan.
+- one direct project issue or parentless work item per build increment stores the complete
+  executor-ready plan and native dependency/blocking edges encode the DAG; and
+- one fix issue or work item stores the proved diagnosis and complete executor-ready fix plan.
 
-The responsible user's exact native Linear approval event clears only its matching content
-revision. It does not assign a worker, prove source-control state, or replace review or acceptance.
-Every mutation uses stable operation identity and independent read-back under the canonical
+The responsible user's exact native approval event clears only its matching content revision. It
+does not assign a worker, prove source-control state, or replace review or acceptance. Every mutation
+uses stable operation identity and independent read-back under the canonical
 [artifact contract](../../woostack-init/references/artifact-backends.md).
 
-Linear documents and local spec, plan, fix, progress, or overnight files are not build/fix product
-authority. Effective repository configuration (`.woostack/config.json` plus optional local override) is non-secret policy; its `linear` object may provide
-validated repository/workspace/team/native-name defaults but never credentials, write permission,
-or approval. Provider authentication stays in the host's official Linear MCP/OAuth connection.
-Missing required capability blocks build or a proved fix at its retained boundary. Woostack does
-not issue custom Linear HTTP/GraphQL requests or consume repository credentials. GitHub GraphQL
-remains valid only for GitHub source-control operations such as review-thread handling.
+Provider documents, unconfigured backends, and local spec, plan, fix, progress, or overnight files
+are not build/fix product authority. Effective repository configuration (`.woostack/config.json` plus
+optional local override) is non-secret policy; its `artifacts.linear` or `artifacts.plane` object may
+provide validated repository/workspace/team/native-name defaults but never credentials, write
+permission, or approval. Provider authentication stays in the host's official Linear or Plane
+MCP/OAuth connection. Missing required capability blocks build or a proved fix at its retained
+boundary. Woostack does not issue custom HTTP/GraphQL requests or consume repository credentials.
+GitHub GraphQL remains valid only for GitHub source-control operations such as review-thread handling.
 
 Artifact-optional workflows retain their documented selection boundary. Missing optional artifact
-access blocks only that artifact operation. `woostack-change` never contacts Linear.
-
+access blocks only that artifact operation. `woostack-change` never contacts a provider.
 [`woostack-build`](../../woostack-build/SKILL.md) uses two approvals: the exact project
 specification revision, then the exact complete direct-issue graph. Material edits invalidate the
 matching approval and return to specification hardening or graph hardening.
@@ -76,7 +78,7 @@ Git/Graphite/GitHub identity and may include an ordinary optional artifact link.
 GitHub remain the source of truth for commits, branches, PRs, reviews, and merges.
 
 Every `/woostack-status` run derives rows from current repository/Graphite/GitHub evidence. Exact
-caller-supplied Linear context may enrich a row with linked specification, plan, or fix-artifact
+caller-supplied provider context may enrich a row with linked specification, plan, or fix-artifact
 notes; missing artifact access affects only that enrichment. The
 [feature-state conventions](../../woostack-status/references/conventions.md) define rendering,
 reconciliation, and failure behavior.

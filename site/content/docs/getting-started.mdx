@@ -95,6 +95,14 @@ synchronization cycle when mirroring is enabled. Mirror failure is recorded in t
 All run artifacts in `.woostack/tmp/runs/<run-id>/` are retained upon completion and explicit abandonment. Build/Fix present the verified
 `/woostack-execute --run <exact-run-id>` handoff and ask exactly `Stop here`, `Execute`, or `Abandon`. A mirrored project identity is evidence,
 not an alternate handoff command. `woostack-change` never contacts a provider.
+### Optional Bootstrap and Commit provider writers
+
+Optional provider writers (Bootstrap and Commit) follow the canonical
+[artifact contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-backends.md):
+
+- **Bootstrap design persistence:** Opt-in only when the caller explicitly requests provider persistence or supplies an exact project URL/UUID. Persistence executes strictly after the explicit design-approval gate and before target filesystem scaffolding. It resolves or creates one canonical feature project using configured `artifacts.linear` or `artifacts.plane` defaults (with required Plane `projectLabels`), writes `designApproved`, and reads back the complete project state. Provider capability or synchronization failure blocks only requested synchronization without breaking local authority or releasing the filesystem barrier.
+- **Commit PR attribution and delivery notes:** Opt-in only when the caller supplies an exact canonical issue (`--issue <id>`). Commit verifies the repository boundary through the configured provider's official MCP (`artifacts.provider: "linear"` or `"plane"`), appends `Resolves <id>` to the PR body, and optionally writes a concise delivery note with independent read-back. Commit and PR merge authority remains human-only on GitHub; provider synchronization failure is nonblocking for verified repository delivery.
+
 
 ## 5. Use an external engineer (optional)
 
@@ -113,11 +121,11 @@ those files automatically.
 ## Setup references
 
 <Cards>
-  <Card title="Configuration" href="/docs/configuration" description="Non-secret repository policy, local run authority, and optional safe Linear defaults." />
+  <Card title="Configuration" href="/docs/configuration" description="Non-secret repository policy, local run authority, and optional safe Linear and Plane defaults." />
   <Card title="Building rules" href="/docs/concepts/building-rules" description="Workflow routing, gates, execution, and authority boundaries." />
   <Card title="Hermes as an external engineer" href="/docs/hermes" description="Drive one persistent OMP process without installing woostack in Hermes." />
   <Card title="OMP" href="/docs/harnesses/omp" description="Host-owned project workers and native OMP routing." />
-  <Card title="Official Linear MCP" href="https://mcp.linear.app/mcp" description="Optional Linear mirror projects, direct-issue plans, and issue contracts." />
+  <Card title="Artifact backends" href="/docs/configuration" description="Optional Linear and Plane mirror projects, work-item plans, and attribution." />
 </Cards>
 ## Recommended companions
 

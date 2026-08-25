@@ -228,6 +228,13 @@ mutation identity, and independently reads the transition back. The workflow nev
 solely to cancel it. Local Build and project-backed Fix record `status: "abandoned"` in the run
 manifest and retain run artifacts without mutating a mirrored Linear project. Source issues, handoff,
 replanning, and blockers are not abandonment and leave projects open.
+### Optional Bootstrap and Commit provider writers
+
+Optional provider writers require explicit opt-in and operate strictly through official host-exposed MCPs:
+
+- **`woostack-bootstrap` (design persistence):** When the caller explicitly requests provider persistence or supplies an exact project URL/UUID, Bootstrap verifies the configured provider (`artifacts.provider: "linear"` or `"plane"`), waits for explicit design approval, resolves or creates one canonical feature project (applying required `artifacts.plane.projectLabels` for Plane), appends `designApproved`, and reads back the complete project state. Capability or sync failure blocks only the optional persistence operation without breaking local authority or releasing the filesystem barrier.
+- **`woostack-commit` (PR attribution and delivery notes):** When invoked with `--issue <id>`, Commit verifies the exact canonical issue/work-item reference against the repository boundary via the configured official MCP (`linear` or `plane`), appends `Resolves <id>` to the PR body, and optionally writes a concise delivery note with independent read-back. PR and merge authority remains human-only on GitHub; provider sync failure is nonblocking for commit/PR delivery.
+
 The canonical
 [Local run artifact and provider mirror contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-backends.md)
 owns identity, untrusted-data handling, hierarchy, failure boundaries, and synchronization receipts.

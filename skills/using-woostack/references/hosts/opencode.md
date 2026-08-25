@@ -3,6 +3,10 @@
 ## Detection
 
 The OpenCode runtime; subagent dispatch via `@subagent` with per-call model selection.
+Discover official Linear or Plane MCP tools exposed via OpenCode runtime MCP configuration, selected strictly by
+`artifacts.provider`. Never use custom HTTP/REST/GraphQL transport or
+fallback tokens. Artifact operations follow the canonical
+[artifact backends contract](../../../woostack-init/references/artifact-backends.md).
 
 ## Subagent spawn
 
@@ -48,3 +52,6 @@ host — no spawn-time auth probe exists; switch manually by promoting an entry 
 
 A spawn that cannot carry the resolved model → session model + say so (degraded), per the
 inline law of the dispatching skill.
+When the configured provider's official MCP or a required capability is absent on this host, fail
+closed for required provider boundaries or report the missing capability for optional operations per
+canonical artifact law.

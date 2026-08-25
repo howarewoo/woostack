@@ -7,13 +7,13 @@ import re, sys
 from pathlib import Path
 root=Path(sys.argv[1])
 skill=(root/"skills/woostack-commit/SKILL.md").read_text()
-refs={name:(root/"skills/woostack-commit/references"/name).read_text() for name in ("graphite.md","pr-body.md","linear-attribution.md")}
+refs={name:(root/"skills/woostack-commit/references"/name).read_text() for name in ("graphite.md","pr-body.md","provider-attribution.md")}
 text=re.sub(r"\s+"," ",skill)
 corpus=re.sub(r"\s+"," ",skill+"\n"+"\n".join(refs.values()))
 checks={
  "artifact-free command":r"/woostack-commit \[<message>\]",
- "optional issue flag":r"--issue <exact canonical Linear issue reference>",
- "no issue prerequisite":r"Linear is optional: no issue, project",
+ "optional issue flag":r"--issue <exact canonical issue or work-item reference>",
+ "no issue prerequisite":r"Artifact providers \(Linear or Plane\) are optional: no issue, work item, project",
  "bounded input":r"approved bounded task contract.*direct repository evidence",
  "no inferred scope":r"Do not reconstruct scope from a branch name, commit message, PR, artifact, or prior session",
  "inspect":r"### 1\. Inspect repository state",
@@ -35,8 +35,8 @@ failures=[name for name,pat in checks.items() if not re.search(pat,text,re.I|re.
 for name in refs:
  if f"references/{name}" not in skill: failures.append(f"missing dispatch {name}")
 reference_checks={
- "Graphite authority":r"Linear is not required.*never selects the branch, worktree, parent, commit, PR, or submission authority",
- "artifact-free PR":r"Artifact-free PRs have no Linear reference requirement",
+ "Graphite authority":r"(?:Linear|Plane|provider) (?:is not required|artifact may be carried).*never selects the branch, worktree, parent, commit, PR, or submission authority",
+ "artifact-free PR":r"Artifact-free PRs have no provider reference requirement",
  "issue close reference":r"`Resolves <issue identifier>` line",
  "merge lifecycle boundary":r"only after the PR merges",
  "no project close reference":r"Do not add a project reference",

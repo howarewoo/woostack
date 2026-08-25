@@ -30,6 +30,10 @@ for host in $allowlisted_hosts; do
   for heading in "## Detection" "## Subagent spawn" "## Tier routing" "## Host-level fallback" "## Per-skill notes" "## Degradation"; do
     assert_eq "$([[ "$body" == *"$heading"* ]] && echo y)" "y" "hosts: $host.md has '$heading'"
   done
+  assert_contains "$body" "artifact-backends.md" "hosts: $host links canonical artifact contract"
+  assert_contains "$body" "artifacts.provider" "hosts: $host selects MCP strictly by artifacts.provider"
+  assert_contains "$body" "Linear" "hosts: $host covers official Linear MCP mechanics"
+  assert_contains "$body" "Plane" "hosts: $host covers official Plane MCP mechanics"
 done
 host_index="$(cat "$H/README.md")"
 assert_contains "$host_index" '[`omp`](omp.md)' "hosts: OMP is dispatchable"
@@ -55,7 +59,6 @@ assert_contains "$init" 'bash <wi>/scripts/provision-omp-session-name.sh <canoni
 assert_not_contains "$init" 'bash skills/woostack-init/scripts/provision-omp-session-name.sh' \
   "init does not assume the source repository layout for session naming"
 
-
 omp="$(cat "$H/omp.md")"
 for row in \
   '| `deep -> slow` | `@slow` | `agent: woostack-deep` |' \
@@ -66,10 +69,9 @@ done
 assert_not_contains "$omp" 'agent: quick_task' "OMP never routes to the unavailable quick selector"
 assert_not_contains "$omp" 'agent: oracle' "OMP never routes to the unavailable deep selector"
 assert_contains "$omp" "Never generate or repair project workers during review" "OMP forbids review-time generation"
-assert_contains "$omp" "Every build resolves or creates one canonical project before ideation" "OMP requires the canonical build project"
-assert_contains "$omp" "policy supplies validated non-secret defaults but never authorizes" "OMP limits policy authority"
-assert_contains "$omp" "Before fix root-cause proof, make no Linear call" "OMP preserves pre-proof fix isolation"
-assert_contains "$omp" "Required provider failure blocks the fix/build" "OMP fails closed for required records"
+assert_contains "$omp" "exact worktree and branch/head identity" "OMP requires exact worktree identity in worker handback"
+assert_contains "$omp" "stop at the last verified boundary" "OMP stops on incomplete worker evidence"
+assert_contains "$omp" "optional artifact operations separately from repository results" "OMP separates artifact operations in handback"
 
 assert_contains "$omp" "woostack_rename_session" "OMP requires the exact session rename tool"
 assert_contains "$omp" "preserves explicit user titles" "OMP preserves explicit user titles"

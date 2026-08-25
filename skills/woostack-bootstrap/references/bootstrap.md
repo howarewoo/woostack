@@ -1,7 +1,7 @@
 # Bootstrap procedure
 
 This reference owns the collision-safe greenfield filesystem procedure. The design-approval gate in
-[`../SKILL.md`](../SKILL.md) is the authority boundary. Optional Linear persistence records the
+[`../SKILL.md`](../SKILL.md) is the authority boundary. Optional Linear or Plane persistence records the
 approved design; it never releases a write barrier.
 
 ## Inputs retained before target access
@@ -18,7 +18,7 @@ Keep only in active run context:
 8. deterministic stable run/project identity.
 
 Before design approval, do not stat, list, canonicalize, create, or write the target and do not
-invoke Git against it. Create no local specification/plan, Linear resource, branch, commit, or PR.
+invoke Git against it. Create no local specification/plan, provider resource, branch, commit, or PR.
 
 ## Optional design artifact
 
@@ -26,16 +26,16 @@ Only after explicit design approval, and only when the caller requested persiste
 exact project URL/UUID, follow the
 [optional artifact contract](../../woostack-init/references/artifact-backends.md):
 
-- discover official host-exposed MCP capabilities;
-- resolve the exact supplied project or create one feature project only when creation was requested;
+- discover official host-exposed MCP capabilities for the configured provider (`artifacts.provider: "linear"` or `artifacts.provider: "plane"`);
+- resolve the exact supplied project or create one feature project only when creation was requested; for Plane, verify mandatory project-label capabilities when `projectLabels` is configured, compute configured-label union preserving unrelated labels, attach only missing labels, and scope to the configured instance/workspace;
 - write the approved goal, architecture, scope, decisions, and repository/base intent;
 - use a stable operation identity;
 - preserve unrelated human content; and
 - independently read the exact resource and content back.
 
 Missing, partial, ambiguous, or unknown artifact outcomes block that requested synchronization only
-unless persistence was explicitly part of the deliverable. Without artifact mode make no Linear
-call. Never create a Linear document or increment issue during bootstrap.
+unless persistence was explicitly part of the deliverable. Without artifact mode make no provider
+call. Never create a provider document or increment issue/work-item during bootstrap.
 
 ## Filesystem write barrier
 
@@ -147,8 +147,8 @@ the explicit gap.
 ## Optional artifact delivery note
 
 When selected, append the verified repository URL, branch, resolved stack/versions, created
-surfaces, and observed checks to the exact project artifact and independently read it back. Do not
-create issues, assign owners, transition lifecycle, accept work, or claim source state from Linear.
+surfaces, and observed checks to the exact project artifact in the configured provider and independently read it back. Do not
+create issues/work-items, assign owners, transition lifecycle, accept work, or claim source state from the provider.
 Artifact failure remains separate from scaffold verification.
 
 ## Handoff

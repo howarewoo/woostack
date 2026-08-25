@@ -4,6 +4,10 @@
 
 Codex CLI locally (subagent spawns accept a `model` override); Codex Action in CI
 (single-session, no subagent model overrides).
+Discover official Linear or Plane MCP tools exposed via Codex MCP configuration, selected strictly by
+`artifacts.provider`. Never use custom HTTP/REST/GraphQL transport or
+fallback tokens. Artifact operations follow the canonical
+[artifact backends contract](../../../woostack-init/references/artifact-backends.md).
 
 ## Subagent spawn
 
@@ -52,3 +56,6 @@ host — no spawn-time auth probe exists; switch manually by promoting an entry 
 Single-session context (Codex Action) is not a degradation — it is the documented
 one-run-model collapse. A local spawn that cannot carry `model` → session model + say so
 (degraded), per the inline law of the dispatching skill.
+When the configured provider's official MCP or a required capability is absent on this host, fail
+closed for required provider boundaries or report the missing capability for optional operations per
+canonical artifact law.
