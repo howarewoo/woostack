@@ -4,16 +4,15 @@ description: The plain-artifact local-authority build loop, optional Linear/Plan
 ---
 
 Woostack separates product authority from repository delivery evidence. Local run manifests under
-`.woostack/tmp/runs/<run-id>/` own the current specification and execution contracts for builds (with
-optional Linear or Plane mirroring: `artifacts.provider: "linear"` or `artifacts.provider: "plane"`) and
-post-diagnosis fixes (with optional Linear mirroring: `artifacts.provider: "linear"`, while Plane Fix arrives
-in a later increment). Git and GitHub own source, branches, commits, pull requests, reviews, and merge evidence.
+`.woostack/tmp/runs/<run-id>/` own the current specification and execution contracts for builds and
+post-diagnosis fixes (with optional Linear or Plane mirroring: `artifacts.provider: "linear"` or `artifacts.provider: "plane"`).
+Git and GitHub own source, branches, commits, pull requests, reviews, and merge evidence.
 
 ## Choose the smallest workflow
 
 | Shape | Commands | Active contract | Provider mirror behavior |
 | --- | --- | --- | --- |
-| Bounded bug or regression | [woostack-fix](/docs/skills/woostack-fix) | proved root cause plus plain specification and direct-issue plan | local run manifest, direct increment contracts, dependencies (optional Linear mirror; Plane Fix unsupported in this increment) |
+| Bounded bug or regression | [woostack-fix](/docs/skills/woostack-fix) | proved root cause plus plain specification and direct-issue plan | local run manifest, direct increment contracts, dependencies (optional Linear or Plane mirror) |
 | Bounded non-bug change | [woostack-change](/docs/skills/woostack-change) | one explicit goal/contract | none |
 | Multi-increment feature | [woostack-build](/docs/skills/woostack-build) | plain specification plus direct-issue graph | local run manifest, direct increment contracts, dependencies (optional Linear or Plane mirror) |
 | Greenfield codebase | [woostack-bootstrap](/docs/skills/woostack-bootstrap) | complete approved design | exact artifact or explicit persistence request only |
@@ -38,8 +37,7 @@ present verified run handoff
 Build and project-backed Fix write plain Markdown `project-spec.md` and `execution-plan.md` working
 documents directly under `.woostack/tmp/runs/<run-id>/`. During each drafting phase there are no
 intermediate provider cycles. When `artifacts.provider: "linear"` or `artifacts.provider: "plane"`, one
-bounded cycle mirrors Build artifacts to the configured provider (for Fix, Linear mirroring is supported
-while Plane Fix fails closed until its increment); mirror failure is recorded in the manifest and is nonblocking
+bounded cycle mirrors Build and Fix artifacts to the configured provider; mirror failure is recorded in the manifest and is nonblocking
 for local authority.
 After both files are written, Build/Fix display the exact run ID, readable artifact paths, stable task
 mappings, dependencies, planning parent branch, planning parent tip, and
@@ -78,13 +76,12 @@ When `artifacts.provider: "linear"`, local artifacts mirror to one Linear projec
 complete specification, direct increment issues, and native issue dependencies. There is no parent plan
 issue or child containment. `woostack-change` never contacts Linear.
 
-When `artifacts.provider: "plane"`, Build mirrors artifacts to one Plane project containing the complete
+When `artifacts.provider: "plane"`, Build and Fix mirror artifacts to one Plane project containing the complete
 specification, `N` parentless direct work items (`parent = null`), and `N-1` strict blocking relations.
 Project admission requires mandatory official Plane MCP project-label capabilities when `artifacts.plane.projectLabels`
 is configured, flattens completely paginated workspace project labels with null terminal cursors, and unions
 configured labels with existing project labels (preserving unrelated labels). If the official Plane MCP lacks
-project-label operations, persistence fails closed before project mutation. Plane Fix, direct Execute provider modes
-(`--project`/`--issue`), and optional provider writers are unsupported in this increment and fail closed.
+project-label operations, persistence fails closed before project mutation. Optional provider writers (Bootstrap and Commit) are unsupported in this increment and fail closed.
 
 The manifest is the canonical local run authority. Standalone Plan remains distinct: it keeps its direct
 project-graph synchronization and independent read-back unchanged for Linear or Plane, without either Build/Fix approval

@@ -5,7 +5,7 @@
 `woostack` packages opinionated workflows into twenty-one public installable skills that work
 across coding harnesses. Canonical persistent run artifacts in `.woostack/tmp/runs/<run-id>/` own
 current build and post-diagnosis fix product scope and execution plans, with optional Linear or Plane
-mirroring (`artifacts.provider: "linear"` or `artifacts.provider: "plane"`, with Plane Fix arriving in a later increment). Git and GitHub own source, branches, pull requests,
+mirroring (`artifacts.provider: "linear"` or `artifacts.provider: "plane"`). Git and GitHub own source, branches, pull requests,
 reviews, and merge evidence. Provider mirrors record workflow context; Git and GitHub remain the sole
 authority for source control and delivery truth.
 
@@ -100,7 +100,7 @@ The [using-woostack](skills/using-woostack/SKILL.md) skill reads project rules a
 ### 4. Repository Policy
 
 Customize non-secret repository policy in `.woostack/config.json`, including review behavior,
-status staleness, pre-commit hooks, and optional `artifacts.linear` workspace/team defaults. Build uses
+status staleness, pre-commit hooks, and optional `artifacts.linear` or `artifacts.plane` defaults. Build uses
 those defaults to create its canonical project when mirroring is enabled and the caller supplies no
 exact project. A new Fix uses them only after root-cause proof to create its canonical project and strict
 direct-issue chain. Policy cannot authorize provider writes or repository work. Provider
@@ -126,8 +126,8 @@ For the full policy surface, see the authored
 
 The canonical persistent artifact store for `woostack-build` and project-backed `woostack-fix` is local
 in `.woostack/tmp/runs/<run-id>/`. Workflows operate with default zero-provider local authority
-(`artifacts.provider: "local"`). When `artifacts.provider: "linear"` or `artifacts.provider: "plane"`, local Build artifacts mirror to the configured provider
-(with Linear mirroring for Fix, while Plane Fix arrives in a later increment) in bounded post-drafting cycles; mirror failure is recorded in the manifest and is nonblocking for
+(`artifacts.provider: "local"`). When `artifacts.provider: "linear"` or `artifacts.provider: "plane"`, local Build and Fix artifacts mirror to the configured provider
+in bounded post-drafting cycles; mirror failure is recorded in the manifest and is nonblocking for
 local authority.
 When mirroring is enabled, Build resolves one exact project or creates one from validated defaults
 before ideation. After an exact baseline read, Ideate, Harden, and delegated Plan keep gated work in one

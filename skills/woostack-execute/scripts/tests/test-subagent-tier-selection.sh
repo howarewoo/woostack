@@ -13,7 +13,7 @@ checks = {
     "fresh isolation": r"fresh process/session",
     "one worktree": r"exactly one worktree and branch",
     "provider credential": r"only the provider credential needed",
-    "no controller secrets": r"no controller, GitHub-write, Graphite-submit, Linear/MCP",
+    "no controller secrets": r"no controller, GitHub-write, Graphite-submit, (?:Linear/MCP|provider MCP|Linear or Plane MCP)",
     "same route repair": r"same configured fast-model route",
 }
 failures = [name for name, pattern in checks.items() if not re.search(pattern, text, re.I | re.S)]

@@ -87,7 +87,7 @@ There are eight top-level settings:
 
 | Setting | Read by | Tunes |
 | --- | --- | --- |
-| `artifacts` | Automatic read-only setup in [woostack-init](/docs/skills/woostack-init), optional Linear/Plane mirroring in Build/Plan and Linear mirroring in post-proof Fix (`artifacts.provider: "linear"` or `"plane"`), and selected standalone artifacts | `provider` selects `"local"` (default), `"linear"`, or `"plane"`; `linear` and `plane` store validated non-secret repository, workspace, team/baseUrl, `projectLabels`, and native-name defaults; never authorizes a provider write or content approval |
+| `artifacts` | Automatic read-only setup in [woostack-init](/docs/skills/woostack-init), optional Linear/Plane mirroring in Build, Fix, and Plan (`artifacts.provider: "linear"` or `"plane"`), and selected standalone artifacts | `provider` selects `"local"` (default), `"linear"`, or `"plane"`; `linear` and `plane` store validated non-secret repository, workspace, team/baseUrl, `projectLabels`, and native-name defaults; never authorizes a provider write or content approval |
 | `review` | [woostack-review](/docs/skills/woostack-review) | the PR review engine: angles, noise, validation |
 | `models` | [woostack-review](/docs/skills/woostack-review), [woostack-audit](/docs/skills/woostack-audit), and host subagent drivers | shared model selection and tier parameters for hosts that consume repository model configuration; ignored by OMP |
 | `audit` | [woostack-audit](/docs/skills/woostack-audit) | standing-code audit angles, filtering, chunking, and output |
@@ -192,7 +192,7 @@ boundary.
 
 Build and post-proof Fix manage local runs in `.woostack/tmp/runs/<run-id>/`. Both write plain
 `project-spec.md` and `execution-plan.md` artifacts, and perform one bounded mirror synchronization cycle
-when `artifacts.provider: "linear"` (for Build and Fix) or `artifacts.provider: "plane"` (for Build; Plane Fix arrives in a later increment).
+when `artifacts.provider: "linear"` or `artifacts.provider: "plane"`.
 Mirror failure is recorded in the manifest and is nonblocking for
 local authority. All run artifacts are retained upon completion and explicit abandonment to preserve
 the audit trail. A nonterminal run can resume exactly with
@@ -468,7 +468,7 @@ worktrees are cut from.
   Init scaffolds `models`, `review`, and `status`, then automatically adds validated
   Linear defaults when safe authenticated discovery succeeds. Missing connectivity never blocks
   local initialization. Build and Fix operate with default local run authority under
-  `.woostack/tmp/runs/<run-id>/`; setting `artifacts.provider: "linear"` or `"plane"` enables optional provider mirroring (Build/Plan for Plane; Fix Plane support arrives in a later increment).
+  `.woostack/tmp/runs/<run-id>/`; setting `artifacts.provider: "linear"` or `"plane"` enables optional provider mirroring (Build, Fix, and Plan).
   [woostack-doctor](/docs/skills/woostack-doctor) validates effective runtime policy; explicit live checks
   prove optional artifact connectivity.
 </Callout>

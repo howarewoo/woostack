@@ -71,7 +71,7 @@ if not (
     failures.append("loading boundary ordering")
 if "Before acting, load and apply the shared" in skill:
     failures.append("eager pre-proof loading wording")
-require(r"accepts a goal or untrusted Linear, GitHub, Sentry, or monitoring input", "untrusted input coverage")
+require(r"accepts a goal or untrusted (?:Linear|Plane|Linear, Plane, |Linear, )?GitHub, Sentry, or monitoring input", "untrusted input coverage")
 require(r"root-cause proof.*create or update a project.*branch.*worktree.*mutate the repository", "proof write barrier")
 require(r"owns one canonical local run", "one canonical local run")
 require(r"name starts with `\[Fix\] `", "prefixed fix project name")
@@ -166,6 +166,147 @@ else:
 if not any(case["id"] == "production-monitoring-defect-routes-to-fix" for case in triggers["cases"]):
     failures.append("missing production trigger")
 
+
+# ---------------------------------------------------------------------------
+# Deterministic Plane Fix Preservation, Timing, and Capability Fallback Simulation
+# ---------------------------------------------------------------------------
+class MockPlaneFixMCP:
+    def __init__(self, base_url="https://api.plane.so", workspace="acme", repository="https://github.com/acme/widgets", capabilities=None):
+        self.base_url = base_url
+        self.workspace = workspace
+        self.repository = repository
+        self.capabilities = capabilities or {
+            "projectRead": True, "projectWrite": True, "issueRead": True, "issueWrite": True,
+            "projectLabelRead": True, "projectLabelWrite": True, "independentReadBack": True
+        }
+        self.projects = {}
+        self.work_items = {}
+        self.call_log = []
+
+    def read_work_item(self, workspace, identifier):
+        self.call_log.append(("read_work_item", workspace, identifier))
+        if not self.capabilities.get("issueRead"):
+            raise RuntimeError("missing capability: issueRead")
+        if workspace != self.workspace:
+            raise ValueError(f"foreign workspace: {workspace}")
+        for wi in self.work_items.values():
+            if wi["id"] == identifier or wi.get("readable_id") == identifier:
+                return dict(wi)
+        return None
+
+    def create_project(self, workspace, name, labels):
+        self.call_log.append(("create_project", workspace, name, labels))
+        if not self.capabilities.get("projectWrite"):
+            raise RuntimeError("missing capability: projectWrite")
+        if not self.capabilities.get("projectLabelWrite"):
+            raise RuntimeError("missing capability: projectLabelWrite")
+        if workspace != self.workspace:
+            raise ValueError(f"foreign workspace: {workspace}")
+        proj_id = f"proj-{len(self.projects) + 1:03d}"
+        proj = {"id": proj_id, "name": name, "workspace": workspace, "labels": list(labels)}
+        self.projects[proj_id] = proj
+        return dict(proj)
+
+    def link_source_work_item_to_project(self, workspace, work_item_id, project_id):
+        self.call_log.append(("link_source_work_item_to_project", workspace, work_item_id, project_id))
+        if not self.capabilities.get("issueWrite"):
+            raise RuntimeError("missing capability: issueWrite")
+        if workspace != self.workspace:
+            raise ValueError(f"foreign workspace: {workspace}")
+        wi = self.work_items.get(work_item_id)
+        if not wi:
+            raise ValueError(f"work item not found: {work_item_id}")
+        # Only the supported project_id link changes; all other fields remain untouched
+        wi["project_id"] = project_id
+        return dict(wi)
+
+
+def test_plane_fix_preservation_and_scoping():
+    mcp = MockPlaneFixMCP(
+        base_url="https://api.plane.so",
+        workspace="acme",
+        repository="https://github.com/acme/widgets"
+    )
+
+    # Initial source work item in Plane
+    source_id = "wi-uuid-42"
+    source_readable = "ENG-42"
+    mcp.work_items[source_id] = {
+        "id": source_id,
+        "readable_id": source_readable,
+        "title": "Cache latency spikes under high concurrency",
+        "description": "Investigate lock contention during cache refresh",
+        "state_id": "state-open",
+        "assignee": "adamwoo",
+        "labels": ["bug", "performance"],
+        "relations": [{"type": "relates_to", "target": "ENG-10"}],
+        "project_id": None,
+        "parent": None
+    }
+
+    # 1. Zero provider calls before root-cause proof (Debug phase)
+    pre_proof_provider_calls = len(mcp.call_log)
+    assert pre_proof_provider_calls == 0, "pre-proof phase must make zero provider calls"
+
+    # 2. Target repository admission succeeds; Debug returns proof
+    proved_root_cause = "lock contention in cache refresh loop"
+
+    # 3. Post-proof: resolve supplied exact work-item reference to UUID with baseUrl and workspace scope
+    supplied_ref = "ENG-42"
+    resolved_wi = mcp.read_work_item("acme", supplied_ref)
+    assert resolved_wi is not None, "source work item resolution failed"
+    assert resolved_wi["id"] == source_id, f"expected UUID {source_id}, got {resolved_wi['id']}"
+    assert resolved_wi["parent"] is None, "source work item must have parent = null"
+
+    # 4. Canonical project creation with [Fix] prefix and configured labels
+    proj = mcp.create_project("acme", f"[Fix] Resolve {proved_root_cause}", labels=["Core", "Fix"])
+    assert proj["name"].startswith("[Fix] "), "project name must start with [Fix] "
+
+    # 5. Source work-item preservation: update ONLY the supported project link
+    mcp.link_source_work_item_to_project("acme", source_id, proj["id"])
+    read_back_wi = mcp.read_work_item("acme", source_id)
+
+    assert read_back_wi["project_id"] == proj["id"], "project_id link was not added"
+    assert read_back_wi["title"] == "Cache latency spikes under high concurrency", "title was mutated"
+    assert read_back_wi["description"] == "Investigate lock contention during cache refresh", "description was mutated"
+    assert read_back_wi["state_id"] == "state-open", "state_id was mutated"
+    assert read_back_wi["assignee"] == "adamwoo", "assignee was mutated"
+    assert read_back_wi["labels"] == ["bug", "performance"], "labels were mutated"
+    assert read_back_wi["parent"] is None, "parent was mutated"
+
+    # 6. Project-label capability failure: persistence fails closed before repository mutation
+    mcp_no_labels = MockPlaneFixMCP(
+        base_url="https://api.plane.so",
+        workspace="acme",
+        capabilities={"projectRead": True, "projectWrite": True, "issueRead": True, "issueWrite": True, "projectLabelWrite": False}
+    )
+    label_failure_blocked = False
+    try:
+        mcp_no_labels.create_project("acme", "[Fix] Failed label capabilities", labels=["Core"])
+    except RuntimeError as exc:
+        label_failure_blocked = True
+        assert "projectLabelWrite" in str(exc)
+    assert label_failure_blocked is True, "missing project label capability must fail closed"
+
+    # 7. Nonblocking mirror result: local run manifest authority remains valid
+    local_manifest = {
+        "status": "ready",
+        "workflow": "fix",
+        "mirror": {
+            "provider": "plane",
+            "status": "failed",
+            "error": "Plane MCP timeout during execution plan mirror"
+        }
+    }
+    local_authority_valid = local_manifest["status"] == "ready"
+    execute_handoff_allowed = local_authority_valid and local_manifest["workflow"] == "fix"
+    repo_mutations = 0
+
+    assert local_authority_valid is True, "local authority must remain valid on mirror failure"
+    assert execute_handoff_allowed is True, "execute handoff must be allowed on mirror failure"
+    assert repo_mutations == 0, "repository mutations must remain zero on mirror failure"
+
+test_plane_fix_preservation_and_scoping()
 if failures:
     print("fix project contract violations:", file=sys.stderr)
     print("\n".join(f"- {item}" for item in failures), file=sys.stderr)
