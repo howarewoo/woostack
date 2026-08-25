@@ -21,24 +21,23 @@ must_fail() { # $1=target, $2=expected_err_substring, $3=desc
 
 # 1. Base-only policy & 2. Recursive merge with local addition and sibling preservation
 cat >"$repo/.woostack/config.json" <<'JSON'
-{"linear":{"repository":"https://github.com/a/b","workspace":"acme","team":"DEFAULT","saveArtifacts":false},"review":{"severity_floor":"high","nits":true,"angles":{"skip":["seo"]}},"models":{"standard":"gpt-5.5"}}
+{"artifacts":{"provider":"local","linear":{"repository":"https://github.com/a/b","workspace":"acme","team":"DEFAULT"}},"review":{"severity_floor":"high","nits":true,"angles":{"skip":["seo"]}},"models":{"standard":"gpt-5.5"}}
 JSON
 git -C "$repo" add .woostack/config.json && git -C "$repo" commit -qm "init config"
 actual="$(bash "$RESOLVER" "$repo")"
-assert_eq "$(jq -r '.linear.team' <<<"$actual")" "DEFAULT" "committed team is used"
+assert_eq "$(jq -r '.artifacts.linear.team' <<<"$actual")" "DEFAULT" "committed team is used"
 
 cat >"$repo/.woostack/config.local.json" <<'JSON'
-{"linear":{"team":"LOCAL"},"review":{"severity_floor":"low","custom":"opt"},"status":{"staleDays":7}}
+{"artifacts":{"linear":{"team":"LOCAL"}},"review":{"severity_floor":"low","custom":"opt"},"status":{"staleDays":7}}
 JSON
 actual="$(bash "$RESOLVER" "$repo")"
-assert_eq "$(jq -r '.linear.team' <<<"$actual")" "LOCAL" "local team overrides"
-assert_eq "$(jq -r '.linear.workspace' <<<"$actual")" "acme" "sibling linear keys preserved"
+assert_eq "$(jq -r '.artifacts.linear.team' <<<"$actual")" "LOCAL" "local team overrides"
+assert_eq "$(jq -r '.artifacts.linear.workspace' <<<"$actual")" "acme" "sibling linear keys preserved"
 assert_eq "$(jq -r '.review.severity_floor' <<<"$actual")" "low" "nested setting overridden"
 assert_eq "$(jq -r '.review.nits' <<<"$actual")" "true" "sibling review keys preserved"
 assert_eq "$(jq -r '.review.custom' <<<"$actual")" "opt" "local additions preserved"
 assert_eq "$(jq -r '.status.staleDays' <<<"$actual")" "7" "top additions preserved"
 assert_eq "$(jq -r '.models.standard' <<<"$actual")" "gpt-5.5" "base objects preserved"
-
 # 3. Scalar/array/null replacement & 4. Linked worktrees
 cat >"$repo/.woostack/config.local.json" <<'JSON'
 {"review":{"angles":{"skip":["database"]}},"models":null}
@@ -53,7 +52,7 @@ assert_eq "$(jq -c '.review.angles.skip' <<<"$actual")" '["database"]' "worktree
 # 5. Both absent & 6. Orphaned local & 7. Empty base config
 mkdir -p "$TMP/empty_repo" "$TMP/orphan/.woostack" "$TMP/empty_base/.woostack"
 assert_eq "$(bash "$RESOLVER" "$TMP/empty_repo")" "{}" "both absent yields empty object"
-printf '{"linear":{"team":"O"}}\n' >"$TMP/orphan/.woostack/config.local.json"
+printf '{"artifacts":{"linear":{"team":"O"}}}\n' >"$TMP/orphan/.woostack/config.local.json"
 must_fail "$TMP/orphan" ".woostack/config.json is missing" "orphaned local fails"
 : >"$TMP/empty_base/.woostack/config.json"
 must_fail "$TMP/empty_base" ".woostack/config.json must not be empty" "empty base fails"
@@ -76,17 +75,63 @@ rm -f "$TMP/sym/.woostack/config.json"; echo '{}' >"$TMP/sym/.woostack/config.js
 ln -s "$TMP/st/t.json" "$TMP/sym/.woostack/config.local.json"; must_fail "$TMP/sym" ".woostack/config.local.json must not be a symlink" "symlink local fails"
 
 # 13. Credentials & 14. Linear validation (base/local/effective)
-printf '{"linear":{"apiKey":"s"}}\n' >"$repo/.woostack/config.json"; rm -f "$repo/.woostack/config.local.json"
-must_fail "$repo" ".woostack/config.json contains credential-like key: linear.apiKey" "credential base fails"
-printf '{"linear":{"team":"D"}}\n' >"$repo/.woostack/config.json"; printf '{"models":{"apiKey":"s"}}\n' >"$repo/.woostack/config.local.json"
+printf '{"artifacts":{"linear":{"apiKey":"s"}}}\n' >"$repo/.woostack/config.json"; rm -f "$repo/.woostack/config.local.json"
+must_fail "$repo" ".woostack/config.json contains credential-like key: artifacts.linear.apiKey" "credential base fails"
+printf '{"artifacts":{"linear":{"team":"D"}}}\n' >"$repo/.woostack/config.json"; printf '{"models":{"apiKey":"s"}}\n' >"$repo/.woostack/config.local.json"
 must_fail "$repo" ".woostack/config.local.json contains credential-like key: models.apiKey" "credential local fails"
 
-printf '{"linear":{"saveArtifacts":"x"}}\n' >"$repo/.woostack/config.json"; rm -f "$repo/.woostack/config.local.json"
-must_fail "$repo" ".woostack/config.json linear.saveArtifacts must be a boolean" "invalid base saveArtifacts fails"
-printf '{"linear":{"saveArtifacts":false}}\n' >"$repo/.woostack/config.json"; printf '{"linear":{"saveArtifacts":1}}\n' >"$repo/.woostack/config.local.json"
-must_fail "$repo" ".woostack/config.local.json linear.saveArtifacts must be a boolean" "invalid local saveArtifacts fails"
+printf '{"linear":{"saveArtifacts":false}}\n' >"$repo/.woostack/config.json"; rm -f "$repo/.woostack/config.local.json"
+must_fail "$repo" ".woostack/config.json linear.saveArtifacts is deprecated; migrate to artifacts.provider and artifacts.linear" "legacy base saveArtifacts fails"
+printf '{"artifacts":{"provider":"local"}}\n' >"$repo/.woostack/config.json"; printf '{"linear":{"saveArtifacts":true}}\n' >"$repo/.woostack/config.local.json"
+must_fail "$repo" ".woostack/config.local.json linear.saveArtifacts is deprecated; migrate to artifacts.provider and artifacts.linear" "legacy local saveArtifacts fails"
+printf '{"linear":{"saveArtifacts":false}}\n' >"$repo/.woostack/config.json"; printf '{"artifacts":{"provider":"local"}}\n' >"$repo/.woostack/config.local.json"
+must_fail "$repo" ".woostack/config.json linear.saveArtifacts is deprecated; migrate to artifacts.provider and artifacts.linear" "base legacy key shadowed by local config fails"
+printf '{"linear":{"saveArtifacts":false}}\n' >"$repo/.woostack/config.json"; printf '{"linear":null}\n' >"$repo/.woostack/config.local.json"
+must_fail "$repo" ".woostack/config.json linear.saveArtifacts is deprecated; migrate to artifacts.provider and artifacts.linear" "base legacy key shadowed by local null fails"
+printf '{"artifacts":{"provider":"invalid"}}\n' >"$repo/.woostack/config.json"; rm -f "$repo/.woostack/config.local.json"
+must_fail "$repo" ".woostack/config.json artifacts.provider must be \"local\" or \"linear\"" "invalid provider fails"
 
-printf '{"linear":{"saveArtifacts":true}}\n' >"$repo/.woostack/config.json"; rm -f "$repo/.woostack/config.local.json"
-assert_eq "$(jq -r '.linear.saveArtifacts' <<<"$(bash "$RESOLVER" "$repo")")" "true" "boolean saveArtifacts preserved"
+printf '{"artifacts":{"provider":"plane"}}\n' >"$repo/.woostack/config.json"; rm -f "$repo/.woostack/config.local.json"
+must_fail "$repo" ".woostack/config.json artifacts.provider \"plane\" is not supported in this version" "plane provider fails"
 
+# 15. Selected-provider only validation
+printf '{"artifacts":{"provider":"local","linear":{"workspace":"only-workspace"}}}\n' >"$repo/.woostack/config.json"; rm -f "$repo/.woostack/config.local.json"
+actual="$(bash "$RESOLVER" "$repo")"
+assert_eq "$(jq -r '.artifacts.provider' <<<"$actual")" "local" "local provider with partial linear config succeeds"
+
+printf '{"artifacts":{"provider":"linear","linear":{"workspace":"only-workspace"}}}\n' >"$repo/.woostack/config.json"; rm -f "$repo/.woostack/config.local.json"
+must_fail "$repo" ".woostack/config.json linear policy requires repository, workspace, team, projectLabels, projectStatuses, and issueStates only" "linear provider with partial linear config fails"
+
+cat >"$repo/.woostack/config.json" <<'JSON'
+{"artifacts":{"provider":"linear","linear":{"repository":"https://github.com/a/b","workspace":"acme","team":"ENG","projectLabels":["Core"],"projectStatuses":{"backlog":"Backlog","planned":"Planned","started":"Started","completed":"Completed","canceled":"Canceled"},"issueStates":{"planned":"Backlog","executing":"In Progress","inReview":"In Progress","done":"Done","blocked":"In Progress"}}}}
+JSON
+rm -f "$repo/.woostack/config.local.json"
+actual="$(bash "$RESOLVER" "$repo")"
+assert_eq "$(jq -r '.artifacts.provider' <<<"$actual")" "linear" "valid linear provider with projectLabels succeeds"
+assert_eq "$(jq -r '.artifacts.linear.projectLabels[0]' <<<"$actual")" "Core" "projectLabels preserved"
+
+cat >"$repo/.woostack/config.json" <<'JSON'
+{"artifacts":{"provider":"linear","linear":{"repository":"https://github.com/a/b","workspace":"acme","team":"ENG","projectLabels":[],"projectStatuses":{"backlog":"Backlog","planned":"Planned","started":"Started","completed":"Completed","canceled":"Canceled"},"issueStates":{"planned":"Backlog","executing":"In Progress","inReview":"In Progress","done":"Done","blocked":"In Progress"}}}}
+JSON
+actual="$(bash "$RESOLVER" "$repo")"
+assert_eq "$(jq -r '.artifacts.provider' <<<"$actual")" "linear" "valid linear provider with empty projectLabels succeeds"
+assert_eq "$(jq -c '.artifacts.linear.projectLabels' <<<"$actual")" "[]" "empty projectLabels preserved"
+
+cat >"$repo/.woostack/config.json" <<'JSON'
+{"artifacts":{"provider":"linear","linear":{"repository":"https://github.com/a/b","workspace":"acme","team":"ENG","projectLabels":[""],"projectStatuses":{"backlog":"Backlog","planned":"Planned","started":"Started","completed":"Completed","canceled":"Canceled"},"issueStates":{"planned":"Backlog","executing":"In Progress","inReview":"In Progress","done":"Done","blocked":"In Progress"}}}}
+JSON
+must_fail "$repo" ".woostack/config.json projectLabels must be an array of non-empty strings" "empty string in projectLabels fails"
+
+# 16. Layered invalid overrides attribution
+cat >"$repo/.woostack/config.json" <<'JSON'
+{"artifacts":{"provider":"linear","linear":{"repository":"https://github.com/a/b","workspace":"acme","team":"ENG","projectLabels":["Core"],"projectStatuses":{"backlog":"Backlog","planned":"Planned","started":"Started","completed":"Completed","canceled":"Canceled"},"issueStates":{"planned":"Backlog","executing":"In Progress","inReview":"In Progress","done":"Done","blocked":"In Progress"}}}}
+JSON
+printf '{"artifacts":{"linear":{"workspace":""}}}\n' >"$repo/.woostack/config.local.json"
+must_fail "$repo" ".woostack/config.local.json linear policy requires repository, workspace, team, projectLabels, projectStatuses, and issueStates only" "invalid local workspace override attributes to local config"
+
+printf '{"artifacts":{"linear":{"projectLabels":[""]}}}\n' >"$repo/.woostack/config.local.json"
+must_fail "$repo" ".woostack/config.local.json projectLabels must be an array of non-empty strings" "invalid local projectLabels override attributes to local config"
+
+printf '{"artifacts":{"linear":{"issueStates":{"planned":""}}}}\n' >"$repo/.woostack/config.local.json"
+must_fail "$repo" ".woostack/config.local.json issueStates mapping is incomplete or contains invalid values" "invalid local issueStates override attributes to local config"
 finish

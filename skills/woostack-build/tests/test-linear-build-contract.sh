@@ -60,7 +60,7 @@ for name in ("build", "context", "procedure", "ideate", "harden", "plan", "fix",
 # The shared contract owns local safety, one-time plain writes, recovery, and explicit base choice.
 artifact_requirements = (
     r"Local run artifact and provider mirror contract",
-    r"linear\.saveArtifacts.*gates every provider call",
+    r"artifacts\.provider.*gates every provider call",
     r"zero provider reads or writes",
     r"\.woostack/config\.local\.json",
     r"no-follow semantics",
@@ -105,7 +105,26 @@ require("artifact", r"Never replace an existing full description")
 require("artifact", r"completed or canceled project.*terminal conflict")
 require("artifact", r"update only the native status field")
 
-# The simplified source must not restore content-identity or receipt machinery.
+
+# Configured project label preservation contracts
+require("artifact", r"projectLabels.*array of non-empty strings")
+require("artifact", r"completely paginate.*workspace project labels.*flatten.*null terminal cursor.*resolves each configured label")
+require("artifact", r"exact.*native ID.*or.*exact.*case-sensitive name")
+require("artifact", r"union of existing project labels and configured labels")
+require("artifact", r"preserving all unrelated existing labels")
+require("artifact", r"Preflight label discovery")
+require("artifact", r"at most one write alongside project creation or admission")
+require("artifact", r"independently read back the complete label set")
+require("artifact", r"fails closed before mutating the project")
+require("context", r"projectLabels")
+require("context", r"completely paginate all workspace project labels.*flatten every page.*require null terminal cursors.*resolve.*before any project creation or admission mutation")
+require("context", r"exact native ID.*or exact case-sensitive name")
+require("context", r"union.*configured labels with existing project labels")
+require("context", r"preserving unrelated.*existing labels")
+require("context", r"at most one write alongside admission|applying the union of resolved configured labels in the creation write")
+require("context", r"independently read the project and complete label set back")
+require("context", r"Reject missing, ambiguous, duplicate, or incomplete matches before mutation")
+require("fix", r"completely paginate all workspace project labels.*flatten every page.*require null terminal cursors.*resolve.*before mutation")
 source_names = tuple(paths)
 for obsolete in (
     r"canonicalProjectSpecFingerprint",

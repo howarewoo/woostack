@@ -7,7 +7,8 @@ canonical GitHub reads prove source, ancestry, pull-request, review, and merge f
 
 The canonical persistent store for `woostack-build` and project-backed `woostack-fix` is
 `.woostack/tmp/runs/<run-id>/`. It contains ordinary Markdown artifacts and a small recovery manifest.
-Linear is an optional mirror gated by `linear.saveArtifacts: true`; the local run remains canonical.
+Workflows operate with default zero-provider local authority (`artifacts.provider: "local"` or omitted).
+When `artifacts.provider: "linear"`, local artifacts may be mirrored to Linear; the local run remains canonical.
 
 ## Selection and provider gating
 
@@ -15,20 +16,22 @@ Every Build and project-backed Fix allocates or resumes exactly one local run. A
 exact run only by its run ID; fuzzy names, recent history, titles, branch names, and search ranking are
 never selection mechanisms.
 
-`linear.saveArtifacts` gates every provider call made for development artifacts.
+`artifacts.provider` gates every provider call made for development artifacts.
 
-When it is false or absent:
+When it is "local" or omitted:
 
 - Build and project-backed Fix make zero provider reads or writes;
-- `--project` fails closed before provider access and explains that it requires
-  `linear.saveArtifacts: true`;
+- `--project` fails closed before provider access and explains that `--project` requires configured provider mirroring;
 - standalone Plan without requested persistence makes no provider call; and
 - `woostack-change` never contacts Linear.
 
-When it is true:
+Legacy `linear.saveArtifacts` configurations are rejected with explicit migration guidance to
+`artifacts.provider` and `artifacts.linear`.
+
+When it is "linear":
 
 - Build resolves one exact caller-supplied project or creates exactly one project from validated
-  repository, workspace, and team defaults;
+  `artifacts.linear` repository, workspace, and team defaults;
 - Fix reaches proved root cause before resolving or creating one canonical Fix project;
 - an exact Fix `--issue` is preserved source context, not the Fix plan or permission to work;
 - standalone Plan writes only to the exact selected project when persistence is requested; and
@@ -81,7 +84,14 @@ otherwise block without another identity or create. Preserve the suffix and its 
 For either fallback, independently verify the complete intended resource, repository association,
 workspace, team, native identity, and recovery marker after creation. A timeout, partial response, or
 unknown result retains the same identity and stops at that boundary.
+## Configured Linear project labels and label preservation
 
+When `artifacts.provider: "linear"`, `artifacts.linear.projectLabels` is required as an array of non-empty strings (an empty array represents no configured labels). Project admission completely paginates all workspace project labels through official Linear MCP discovery, flattens every page, requires a null terminal cursor, and resolves each configured label string by exact native ID (e.g. UUID) or exact case-sensitive name. Reject ambiguous, duplicate, or incomplete matches before mutation. The project's effective label set is the union of existing project labels and configured labels, preserving all unrelated existing labels.
+Preflight label discovery, resolution, and capabilities before any project creation or admission
+mutation. Apply project label updates in at most one write alongside project creation or admission, and
+independently read back the complete label set to verify identity and inclusion. If project label
+capability or resolution is missing, ambiguous, or incomplete, the operation fails closed before mutating
+the project.
 ## Canonical issue references and graph safety
 
 The official Linear MCP's stable human-facing identifier, such as `WOO-144`, is the canonical issue
@@ -212,7 +222,7 @@ or create a blocker by themselves.
 
 ## Optional mirror synchronization
 
-When `linear.saveArtifacts: true`, a completed local artifact may be mirrored in one bounded cycle.
+When `artifacts.provider: "linear"`, a completed local artifact may be mirrored in one bounded cycle.
 Immediately re-read the exact project, all retained issues, complete memberships and relations, and
 all fields that will change. Abort before the first write on drift, foreign scope, incomplete
 pagination, unknown parent state, or unsupported mutation capability.
@@ -296,9 +306,9 @@ for explicitly selected direct persistence.
 ## Active Execute project-start synchronization
 
 When mirroring is enabled, Execute has one narrow status exception in both `--project` and `--issue`
-modes. Completely paginate the direct issues and resolve `linear.issueStates.executing` and
-`linear.issueStates.inReview` to unique same-team native states whose category is `started`. Resolve
-`projectStatuses.started` to exactly one native project status whose category is `started`. Missing,
+modes. Completely paginate the direct issues and resolve `artifacts.linear.issueStates.executing` and
+`artifacts.linear.issueStates.inReview` to unique same-team native states whose category is `started`. Resolve
+`artifacts.linear.projectStatuses.started` to exactly one native project status whose category is `started`. Missing,
 ambiguous, foreign, incomplete, or category-mismatched resolution blocks before lifecycle, worktree,
 or source mutation.
 

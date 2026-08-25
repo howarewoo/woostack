@@ -50,8 +50,8 @@ while IFS= read -r key; do
   fi
 done < <(jq -r 'keys[]' "$TEMPLATE")
 
-if jq -e 'has("artifacts")' "$EFFECTIVE_CFG" >/dev/null; then
-  emit error linear-policy report ".woostack/config.json" "development backend selectors are not supported"
+if jq -e 'has("linear") and (.linear | type == "object") and (.linear | has("saveArtifacts")) or (has("artifacts") and (.artifacts | type == "object") and ((.artifacts | has("saveArtifacts")) or (.artifacts.linear? | type == "object" and has("saveArtifacts"))))' "$EFFECTIVE_CFG" >/dev/null 2>&1; then
+  emit error linear-policy report ".woostack/config.json" "linear.saveArtifacts is deprecated; migrate to artifacts.provider and artifacts.linear"
 fi
 credential_path="$(jq -r '
   paths as $p
@@ -62,50 +62,64 @@ credential_path="$(jq -r '
 if [ -n "$credential_path" ]; then
   emit error linear-policy report ".woostack/config.json" "credential-like configuration key: $credential_path"
 fi
-allowed='["saveArtifacts","repository","workspace","team","projectStatuses","issueStates"]'
+
+if jq -e 'has("artifacts")' "$EFFECTIVE_CFG" >/dev/null 2>&1; then
+  if ! jq -e '
+    .artifacts | type == "object" and ((keys - ["provider", "linear", "plane"]) | length == 0)
+  ' "$EFFECTIVE_CFG" >/dev/null 2>&1; then
+    emit error linear-policy report ".woostack/config.json" "artifacts configuration requires provider and supported provider objects only"
+  fi
+
+  if jq -e '.artifacts | has("provider")' "$EFFECTIVE_CFG" >/dev/null 2>&1; then
+    if jq -e '.artifacts.provider == "plane"' "$EFFECTIVE_CFG" >/dev/null 2>&1; then
+      emit error linear-policy report ".woostack/config.json" "artifacts.provider \"plane\" is not supported in this version"
+    elif ! jq -e '.artifacts.provider | type == "string" and (. == "local" or . == "linear")' "$EFFECTIVE_CFG" >/dev/null 2>&1; then
+      emit error linear-policy report ".woostack/config.json" "artifacts.provider must be \"local\" or \"linear\""
+    fi
+  fi
+fi
+
+provider="$(jq -r '.artifacts.provider // "local"' "$EFFECTIVE_CFG")"
 project_keys='["backlog","planned","started","completed","canceled"]'
 issue_keys='["planned","executing","inReview","done","blocked"]'
 issue_categories='{"planned":"backlog","executing":"started","inReview":"started","done":"completed","blocked":"started"}'
-if jq -e 'has("linear")' "$EFFECTIVE_CFG" >/dev/null 2>&1; then
-  if ! jq -e --argjson allowed "$allowed" '
-    .linear | type == "object" and ((keys - $allowed) | length == 0)
+linear_allowed='["repository","workspace","team","projectLabels","projectStatuses","issueStates"]'
+
+if [ "$provider" = "linear" ]; then
+  if ! jq -e 'has("artifacts") and (.artifacts | type == "object") and (.artifacts | has("linear")) and (.artifacts.linear | type == "object")' "$EFFECTIVE_CFG" >/dev/null 2>&1; then
+    emit error linear-policy report ".woostack/config.json" "linear policy requires repository, workspace, team, projectLabels, projectStatuses, and issueStates only"
+  elif ! jq -e --argjson allowed "$linear_allowed" '
+    .artifacts.linear | type == "object" and ((keys - $allowed) | length == 0)
   ' "$EFFECTIVE_CFG" >/dev/null 2>&1; then
-    emit error linear-policy report ".woostack/config.json" "linear policy requires saveArtifacts, repository, workspace, team, projectStatuses, and issueStates only"
-  fi
-
-  if jq -e '.linear | has("saveArtifacts")' "$EFFECTIVE_CFG" >/dev/null 2>&1; then
-    if ! jq -e '.linear.saveArtifacts | type == "boolean"' "$EFFECTIVE_CFG" >/dev/null 2>&1; then
-      emit error linear-policy report ".woostack/config.json" "linear.saveArtifacts must be a boolean"
-    fi
-  fi
-
-  save_artifacts="$(jq -r '.linear.saveArtifacts // false' "$EFFECTIVE_CFG")"
-  has_provider_fields="$(jq -e '(.linear | keys - ["saveArtifacts"]) | length > 0' "$EFFECTIVE_CFG" >/dev/null 2>&1 && echo yes || echo no)"
-
-  if [ "$save_artifacts" = "true" ] || [ "$has_provider_fields" = "yes" ]; then
-    if ! jq -e '
-      .linear
-      and (.linear.repository | type == "string"
-        and test("^https://github\\.com/[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?/[A-Za-z0-9](?:[A-Za-z0-9._-]*[A-Za-z0-9])?$"))
-      and (.linear.workspace | type == "string" and test("\\S"))
-      and (.linear.team | type == "string" and test("\\S"))
-      and (.linear.projectStatuses | type == "object")
-      and (.linear.issueStates | type == "object")
+    emit error linear-policy report ".woostack/config.json" "linear policy requires repository, workspace, team, projectLabels, projectStatuses, and issueStates only"
+  elif ! jq -e '
+    .artifacts.linear
+    and (.artifacts.linear.repository | type == "string"
+      and test("^https://github\\.com/[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?/[A-Za-z0-9](?:[A-Za-z0-9._-]*[A-Za-z0-9])?$"))
+    and (.artifacts.linear.workspace | type == "string" and test("\\S"))
+    and (.artifacts.linear.team | type == "string" and test("\\S"))
+    and (.artifacts.linear | has("projectLabels"))
+    and (.artifacts.linear.projectStatuses | type == "object")
+    and (.artifacts.linear.issueStates | type == "object")
+  ' "$EFFECTIVE_CFG" >/dev/null 2>&1; then
+    emit error linear-policy report ".woostack/config.json" "linear policy requires repository, workspace, team, projectLabels, projectStatuses, and issueStates only"
+  else
+    if ! jq -e --argjson keys "$project_keys" '
+      (.artifacts.linear.projectStatuses | keys | sort) == ($keys | sort)
+      and all(.artifacts.linear.projectStatuses[]; type == "string" and test("\\S"))
     ' "$EFFECTIVE_CFG" >/dev/null 2>&1; then
-      emit error linear-policy report ".woostack/config.json" "linear policy requires repository, workspace, team, projectStatuses, and issueStates only"
-    else
-      if ! jq -e --argjson keys "$project_keys" '
-        (.linear.projectStatuses | keys | sort) == ($keys | sort)
-        and all(.linear.projectStatuses[]; type == "string" and test("\\S"))
-      ' "$EFFECTIVE_CFG" >/dev/null 2>&1; then
-        emit error linear-policy report ".woostack/config.json" "projectStatuses mapping is incomplete or contains invalid values"
-      fi
-      if ! jq -e --argjson keys "$issue_keys" '
-        (.linear.issueStates | keys | sort) == ($keys | sort)
-        and all(.linear.issueStates[]; type == "string" and test("\\S"))
-      ' "$EFFECTIVE_CFG" >/dev/null 2>&1; then
-        emit error linear-policy report ".woostack/config.json" "issueStates mapping is incomplete or contains invalid values"
-      fi
+      emit error linear-policy report ".woostack/config.json" "projectStatuses mapping is incomplete or contains invalid values"
+    fi
+    if ! jq -e --argjson keys "$issue_keys" '
+      (.artifacts.linear.issueStates | keys | sort) == ($keys | sort)
+      and all(.artifacts.linear.issueStates[]; type == "string" and test("\\S"))
+    ' "$EFFECTIVE_CFG" >/dev/null 2>&1; then
+      emit error linear-policy report ".woostack/config.json" "issueStates mapping is incomplete or contains invalid values"
+    fi
+    if ! jq -e '
+      .artifacts.linear.projectLabels | type == "array" and all(.[]; type == "string" and test("\\S"))
+    ' "$EFFECTIVE_CFG" >/dev/null 2>&1; then
+      emit error linear-policy report ".woostack/config.json" "projectLabels must be an array of non-empty strings"
     fi
   fi
 fi
@@ -124,8 +138,7 @@ for name in specs plans fixes overnight; do
 done
 
 [ "${WOOSTACK_DOCTOR_LIVE:-0}" = 1 ] || exit 0
-save_artifacts_live="$(jq -r '.linear.saveArtifacts // false' "$EFFECTIVE_CFG")"
-[ "$save_artifacts_live" = "true" ] || exit 0
+[ "$provider" = "linear" ] || exit 0
 receipt="${WOOSTACK_DOCTOR_LIVE_CONTEXT:-}"
 if [ ! -r "$receipt" ] || ! jq -e \
   --argjson project_keys "$project_keys" \
@@ -150,13 +163,13 @@ if [ ! -r "$receipt" ] || ! jq -e \
       and all($project_keys[];
         . as $key
         | ($receipt.projectStatuses.resolved[$key]
-          | .name == $config[0].linear.projectStatuses[$key] and .category == $key))
+          | .name == $config[0].artifacts.linear.projectStatuses[$key] and .category == $key))
       and .issueStates.complete == true
       and (.issueStates.resolved | keys | sort) == ($issue_keys | sort)
       and all($issue_keys[];
         . as $key
         | ($receipt.issueStates.resolved[$key]
-          | .name == $config[0].linear.issueStates[$key]
+          | .name == $config[0].artifacts.linear.issueStates[$key]
             and .category == $issue_categories[$key]))
       and .readBack.status == "verified"
       and .readBack.complete == true
@@ -167,7 +180,7 @@ if [ ! -r "$receipt" ] || ! jq -e \
 fi
 
 for field in workspace team repository; do
-  expected="$(jq -r --arg field "$field" '.linear[$field]' "$EFFECTIVE_CFG")"
+  expected="$(jq -r --arg field "$field" '.artifacts.linear[$field]' "$EFFECTIVE_CFG")"
   actual="$(jq -r --arg field "$field" '.[$field] // empty' "$receipt")"
   if [ "$actual" != "$expected" ]; then
     emit error linear-live report ".woostack/config.json" "receipt $field does not match configured Linear policy"
@@ -184,3 +197,12 @@ for capability in "${required_capabilities[@]}"; do
     emit error linear-live report ".woostack/config.json" "missing Linear MCP capability: $capability"
   fi
 done
+
+if jq -e '.artifacts.linear.projectLabels? | type == "array" and length > 0' "$EFFECTIVE_CFG" >/dev/null 2>&1; then
+  label_capabilities=(projectLabelRead projectLabelWrite)
+  for capability in "${label_capabilities[@]}"; do
+    if ! jq -e --arg capability "$capability" '.capabilities[$capability] == true' "$receipt" >/dev/null 2>&1; then
+      emit error linear-live report ".woostack/config.json" "missing Linear MCP capability: $capability"
+    fi
+  done
+fi

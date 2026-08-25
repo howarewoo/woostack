@@ -1,21 +1,25 @@
 {
-  "linear": {
-    "repository": "https://github.com/howarewoo/woostack",
-    "workspace": "woostack",
-    "team": "WOO",
-    "projectStatuses": {
-      "backlog": "Backlog",
-      "planned": "Planned",
-      "started": "In Progress",
-      "completed": "Completed",
-      "canceled": "Canceled"
-    },
-    "issueStates": {
-      "planned": "Backlog",
-      "executing": "In Progress",
-      "inReview": "In Review",
-      "done": "Done",
-      "blocked": "In Progress"
+  "artifacts": {
+    "provider": "local",
+    "linear": {
+      "repository": "https://github.com/howarewoo/woostack",
+      "workspace": "woostack",
+      "team": "WOO",
+      "projectLabels": [],
+      "projectStatuses": {
+        "backlog": "Backlog",
+        "planned": "Planned",
+        "started": "In Progress",
+        "completed": "Completed",
+        "canceled": "Canceled"
+      },
+      "issueStates": {
+        "planned": "Backlog",
+        "executing": "In Progress",
+        "inReview": "In Review",
+        "done": "Done",
+        "blocked": "In Progress"
+      }
     }
   },
   "models": {},

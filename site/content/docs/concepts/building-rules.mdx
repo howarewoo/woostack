@@ -5,7 +5,7 @@ description: The plain-artifact local-authority build loop, optional Linear mirr
 
 Woostack separates product authority from repository delivery evidence. Local run manifests under
 `.woostack/tmp/runs/<run-id>/` own the current specification and execution contracts for builds and
-post-diagnosis fixes, with optional Linear mirroring (`linear.saveArtifacts: true`). Git and GitHub own
+post-diagnosis fixes, with optional Linear mirroring (`artifacts.provider: "linear"`). Git and GitHub own
 source, branches, commits, pull requests, reviews, and merge evidence.
 
 ## Choose the smallest workflow
@@ -36,7 +36,7 @@ present verified run handoff
 
 Build and project-backed Fix write plain Markdown `project-spec.md` and `execution-plan.md` working
 documents directly under `.woostack/tmp/runs/<run-id>/`. During each drafting phase there are no
-intermediate provider cycles. When `linear.saveArtifacts: true`, one bounded cycle mirrors artifacts
+intermediate provider cycles. When `artifacts.provider: "linear"`, one bounded cycle mirrors artifacts
 to Linear; mirror failure is recorded in the manifest and is nonblocking for local authority.
 
 After both files are written, Build/Fix display the exact run ID, readable artifact paths, stable task
@@ -69,10 +69,10 @@ retention, and unchanged Execute reads.
 ## Canonical local records and optional Linear mirroring
 
 Build and project-backed Fix operate with canonical persistent local run authority under
-`.woostack/tmp/runs/<run-id>/` by default (`linear.saveArtifacts: false`). Supplying `--project` when
-`linear.saveArtifacts` is false or absent fails closed immediately.
+`.woostack/tmp/runs/<run-id>/` by default (`artifacts.provider: "local"` or omitted). Supplying `--project` when
+`artifacts.provider` is not configured for mirroring fails closed immediately.
 
-When `linear.saveArtifacts: true`, local artifacts mirror to one Linear project containing the
+When `artifacts.provider: "linear"`, local artifacts mirror to one Linear project containing the
 complete specification, direct increment issues, and native issue dependencies. There is no parent plan
 issue or child containment. `woostack-change` never contacts Linear.
 
@@ -90,7 +90,7 @@ project open.
 | Surface | Authority |
 | --- | --- |
 | User request and decisions | initiates the selected workflow and authorizes decisions |
-| Local run manifest (`.woostack/tmp/runs/<run-id>/`) | current fix/build product scope, plans, contracts, and execution state (mirrored to Linear when `linear.saveArtifacts: true`) |
+| Local run manifest (`.woostack/tmp/runs/<run-id>/`) | current fix/build product scope, plans, contracts, and execution state (mirrored to Linear when `artifacts.provider: "linear"`) |
 | Git and GitHub | source, ancestry, commits, PRs, checks, reviews, merge evidence |
 | Graphite | stack and branch operations |
 | Audit, QA, response reports | sanitized non-authoritative diagnostic evidence |

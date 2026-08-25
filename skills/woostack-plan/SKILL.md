@@ -18,13 +18,18 @@ owning workflow's run-scoped manifest with zero provider calls and returns befor
 /woostack-plan --project <exact existing Linear URL-or-UUID>
 ```
 
-For standalone use, `--project` is mandatory. Resolve only that exact project under the
+For standalone use, `--project` is mandatory and requires `artifacts.provider: "linear"` in effective
+repository configuration. When `artifacts.provider` is "local" or omitted, standalone Plan fails closed
+before any provider access with an error stating that provider operations require `artifacts.provider: "linear"`.
+When `artifacts.provider: "plane"`, it fails closed stating Plane artifact persistence is not supported in
+this version. There is no CLI provider override.
+
+When `artifacts.provider: "linear"`, resolve only that exact project under the
 [Linear artifact contract](../woostack-init/references/artifact-backends.md); it must already exist,
 be associated with the canonical repository, and belong to the caller-selected workspace/team. A
 direct specification is reconciled against that project and never creates or selects an implicit
 project. A wrong resource type, missing project, foreign repository, incomplete read, or conflicting
 content blocks before mutation. There is no project-creation, fuzzy-discovery, or alternate-provider path.
-
 Standalone Plan reads the repository, canonical parent branch and last admitted tip, existing
 patterns, relevant tests, and the
 [Linear synchronization procedure](../woostack-build/references/linear-procedure.md) before
@@ -131,7 +136,7 @@ unchanged, owns no approval gate, and does not use the Build/Fix run manifest.
 When delegated by Build or Fix, stop before every provider read or synchronization. Return the
 complete manifest-backed candidate contracts and strict chain to the wrapper. The wrapper hardens
 the manifest, writes `execution-plan.md`, displays every concise stable task and dependency mapping,
-and owns optional post-drafting mirror synchronization (when `linear.saveArtifacts: true`) and exact
+and owns optional post-drafting mirror synchronization (when `artifacts.provider: "linear"`) and exact
 read-back.
 
 ## Return

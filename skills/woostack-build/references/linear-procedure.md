@@ -1,7 +1,7 @@
 # Linear project synchronization procedure
 
 This procedure applies provider mutations for Build/Fix optional mirror synchronization (when
-`linear.saveArtifacts: true`) or one standalone Plan graph. It owns no workflow gate, assignment,
+`artifacts.provider: "linear"`) or one standalone Plan graph. It owns no workflow gate, assignment,
 execution, acceptance, or repository authority. The
 [Linear artifact contract](../../woostack-init/references/artifact-backends.md) is the single
 authority for manifest state, plain Markdown artifact files, optional mirror synchronization,
@@ -15,7 +15,7 @@ baseline before ideation when mirroring is enabled. Ideate and specification Har
 permission-restricted run manifest and make zero provider calls. This procedure is not invoked until
 `project-spec.md` is written.
 
-When `linear.saveArtifacts: true`, perform only the shared immediate pre-save drift read and one
+When `artifacts.provider: "linear"`, perform only the shared immediate pre-save drift read and one
 bounded synchronization after `project-spec.md` is written. Write the specification under the
 existing-record invariant, independently read the content back, and update `mirror.status = "synced"`
 in the manifest; mirror failure is recorded as `mirror.status = "failed"` and is nonblocking. Do not
@@ -25,7 +25,7 @@ save intermediate decisions, question replies, or hardening corrections.
 
 Build/Fix-delegated `woostack-plan` and Harden populate only the manifest with a complete candidate
 graph. They make zero provider calls. Build writes `execution-plan.md` directly under the run directory.
-This procedure runs after `execution-plan.md` is written when `linear.saveArtifacts: true`.
+This procedure runs after `execution-plan.md` is written when `artifacts.provider: "linear"`.
 
 After the immediate baseline drift read matches, run the shared
 [graph-write preflight](../../woostack-init/references/artifact-backends.md#canonical-issue-references-nullable-parents-and-graph-write-preflight).

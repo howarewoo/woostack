@@ -18,19 +18,19 @@ never contains credentials or grants permission to perform repository work.
 
 Local run manifests in `.woostack/tmp/runs/<run-id>/` own current Build/Fix product scope and execution
 plans. Git and GitHub own code, branches, commits, pull requests, reviews, and merge truth. Init's
-discovery calls authorize no later access. `linear.saveArtifacts: false` is the default: workflows
-operate with default zero-provider local authority. When `linear.saveArtifacts: true`, a validated
-`linear` object supplies defaults for optional Linear mirroring. Policy cannot authorize a write.
+discovery calls authorize no later access. `artifacts.provider: "local"` is the default: workflows
+operate with default zero-provider local authority. When `artifacts.provider: "linear"`, a validated
+`artifacts.linear` object supplies defaults for optional Linear mirroring. Policy cannot authorize a write.
 
 Tracked legacy records remain local unless the user explicitly invokes the guarded
 `/woostack-init --migrate-legacy` route. The
 [woostack-init migration contract](/docs/skills/woostack-init#optional-guarded-legacy-migration)
 owns its import, preservation, recovery, and deletion boundaries.
 
-The init template ships four top-level keys: `linear`, `models`, `review`, and `status`, with
-`linear.saveArtifacts` set to `false`. Other supported settings use built-in defaults.
+The init template ships four top-level keys: `artifacts`, `models`, `review`, and `status`, with
+`artifacts.provider` set to `"local"`. Other supported settings use built-in defaults.
 [woostack-doctor](/docs/skills/woostack-doctor) checks static policy; Build and post-proof Fix manage
-local runs, while provider mirror connectivity is checked when `linear.saveArtifacts: true`.
+local runs, while provider mirror connectivity is checked when `artifacts.provider: "linear"`.
 
 
 ### Layered merge rules
@@ -52,10 +52,13 @@ Given a tracked base `.woostack/config.json`:
 
 ```json
 {
-  "linear": {
-    "repository": "https://github.com/acme/widgets",
-    "workspace": "acme",
-    "team": "ENG"
+  "artifacts": {
+    "provider": "local",
+    "linear": {
+      "repository": "https://github.com/acme/widgets",
+      "workspace": "acme",
+      "team": "ENG"
+    }
   }
 }
 ```
@@ -64,8 +67,10 @@ And a primary-checkout `.woostack/config.local.json`:
 
 ```json
 {
-  "linear": {
-    "team": "LOCAL-ENG"
+  "artifacts": {
+    "linear": {
+      "team": "LOCAL-ENG"
+    }
   }
 }
 ```
@@ -82,7 +87,7 @@ There are eight top-level settings:
 
 | Setting | Read by | Tunes |
 | --- | --- | --- |
-| `linear` | Automatic read-only setup in [woostack-init](/docs/skills/woostack-init), optional Linear mirroring in Build/post-proof Fix (`linear.saveArtifacts: true`), and selected standalone artifacts | stores validated non-secret repository, workspace, team, and native-name defaults; `saveArtifacts` gates provider calls (default `false`); never authorizes a provider write or content approval |
+| `artifacts` | Automatic read-only setup in [woostack-init](/docs/skills/woostack-init), optional Linear mirroring in Build/post-proof Fix (`artifacts.provider: "linear"`), and selected standalone artifacts | `provider` selects `"local"` (default) or `"linear"`; `linear` stores validated non-secret repository, workspace, team, `projectLabels`, and native-name defaults; never authorizes a provider write or content approval |
 | `review` | [woostack-review](/docs/skills/woostack-review) | the PR review engine: angles, noise, validation |
 | `models` | [woostack-review](/docs/skills/woostack-review), [woostack-audit](/docs/skills/woostack-audit), and host subagent drivers | shared model selection and tier parameters for hosts that consume repository model configuration; ignored by OMP |
 | `audit` | [woostack-audit](/docs/skills/woostack-audit) | standing-code audit angles, filtering, chunking, and output |
@@ -94,13 +99,13 @@ There are eight top-level settings:
 
 The example keeps the shipped provider-free default. Authenticated read-only discovery may add
 validated non-secret Linear defaults, but their presence does not authorize access; only explicit
-workflow selection plus `linear.saveArtifacts: true` admits mirroring. JSON has no comments, so each
+workflow selection plus `artifacts.provider: "linear"` admits mirroring. JSON has no comments, so each
 key is explained below.
 
 ```json
 {
-  "linear": {
-    "saveArtifacts": false
+  "artifacts": {
+    "provider": "local"
   },
   "review": {
     "severity_floor": "high",
@@ -139,7 +144,7 @@ key is explained below.
 }
 ```
 
-## Linear configuration
+## Artifacts and Linear configuration
 
 Optional Linear mirroring connects to the official endpoint:
 
@@ -151,19 +156,26 @@ Authentication stays in the host's MCP/OAuth secret store. No API key, credentia
 value, or credential-file path belongs in repository configuration, prompts, logs, generated files,
 or artifacts. Workflows prove capability without reading the secret.
 
-`linear.saveArtifacts` (boolean, default `false`) gates all development-artifact and mirror calls.
+`artifacts.provider` (string, default `"local"`) gates all development-artifact and mirror calls.
 The automatic authenticated read-only Init discovery described above is the sole setup exception.
-When `false` or absent, development workflows operate with default zero-provider local authority.
-Supplying `--project` when `linear.saveArtifacts` is false or absent fails closed immediately with
-an error stating that `--project` requires `linear.saveArtifacts: true`.
+When `"local"` or omitted, development workflows operate with default zero-provider local authority.
+Supplying `--project` when `artifacts.provider` is not configured for mirroring fails closed
+immediately with an error stating that `--project` requires configured provider mirroring.
+Legacy `linear.saveArtifacts` is rejected with explicit migration guidance to `artifacts.provider`
+and `artifacts.linear`.
 
-When `linear.saveArtifacts: true` is configured, the `linear` object provides repository/workspace/team
-and native-name defaults. Build uses them when creating its canonical project if no exact project was
-supplied. After root-cause proof, Fix resolves a supplied canonical project or uses the same defaults
-to create one. Default init may populate missing fields from authenticated read-only discovery and
-independently validates any local config write. That narrow setup neither selects artifact persistence
-nor authorizes later provider access.
+When `artifacts.provider: "linear"` is configured, the `artifacts.linear` object provides
+repository/workspace/team, `projectLabels`, and native-name defaults. Build uses them when creating
+its canonical project if no exact project was supplied. After root-cause proof, Fix resolves a supplied
+canonical project or uses the same defaults to create one. Default init may populate missing fields from
+authenticated read-only discovery and independently validates any local config write. That narrow setup
+neither selects artifact persistence nor authorizes later provider access.
 
+`artifacts.linear.projectLabels` (array of strings, required when `artifacts.provider: "linear"`, empty array allowed) configures workspace project labels to
+attach to every admitted or created Linear project. Project admission completely paginates workspace project labels through the
+official Linear MCP, flattens every page, requires a null terminal cursor, resolves each label by exact native ID or exact
+case-sensitive name, unions configured labels with existing labels (preserving unrelated labels), writes once, and independently
+reads the complete label set back.
 Before configured or explicitly selected provider access, the workflow verifies the canonical
 repository association and workspace/team, then preflights every complete project, issue, relation,
 comment/decision, mutation, pagination, and independent read-back capability needed at that
@@ -171,42 +183,41 @@ boundary.
 
 Build and post-proof Fix manage local runs in `.woostack/tmp/runs/<run-id>/`. Both write plain
 `project-spec.md` and `execution-plan.md` artifacts, and perform one bounded mirror synchronization cycle
-when `linear.saveArtifacts: true`. Mirror failure is recorded in the manifest and is nonblocking for
+when `artifacts.provider: "linear"`. Mirror failure is recorded in the manifest and is nonblocking for
 local authority. All run artifacts are retained upon completion and explicit abandonment to preserve
 the audit trail. A nonterminal run can resume exactly with
 `/woostack-execute --run <exact-run-id> [--recheck]`. Before root-cause proof, Fix makes no provider
-call. `woostack-change` ignores the `linear` object.
+call. `woostack-change` ignores the `artifacts` object.
 
-`linear.projectStatuses.started` names the native project status used when Execute in provider mode
-observes any direct issue matching the configured `linear.issueStates.executing` or
-`linear.issueStates.inReview` mapping by stable native identity and category. It resolves to exactly
+`artifacts.linear.projectStatuses.started` names the native project status used when Execute in provider mode
+observes any direct issue matching the configured `artifacts.linear.issueStates.executing` or
+`artifacts.linear.issueStates.inReview` mapping by stable native identity and category. It resolves to exactly
 one status in the selected workspace/team and must have native category `started`. Execute updates only
 the exact project's status, with a stable mutation identity and independent read-back; an exact match
 is an idempotent no-op. If all direct issues are `Backlog`/`Todo`, synchronization waits until the
 selected issue transitions to the resolved executing mapping and reads back before repository
 mutation. Local run mode (`--run`) bypasses provider status synchronization.
 
-`linear.issueStates.executing` and `linear.issueStates.inReview` name the native issue states used by
+`artifacts.linear.issueStates.executing` and `artifacts.linear.issueStates.inReview` name the native issue states used by
 Execute for active and delivered lifecycle evidence in provider modes. Execute resolves both mappings
 to exactly one native state in the selected workspace/team and compares stable ID, name, and category
 rather than using a literal native status name as authority. The resolved `inReview` mapping must have
 native category `started`. The full independently read delivery checkpoint, not state alone, proves a
 delivered issue and gates teardown, resume, and sibling progression.
 
-Default-only teams without a custom review status should set `linear.issueStates.inReview` to
+Default-only teams without a custom review status should set `artifacts.linear.issueStates.inReview` to
 `In Progress`, which may be the same native state as `executing`. Existing teams may keep a valid
 custom `In Review` mapping. Manual migration changes only the mapped value in the repository
 configuration; workflows never create, rename, or substitute Linear statuses, and no automatic
 provider or configuration migration occurs.
 
-`linear.projectStatuses.canceled` names the native status used to close an existing project-backed
+`artifacts.linear.projectStatuses.canceled` names the native status used to close an existing project-backed
 standalone Plan workflow after explicit abandonment. It must resolve to exactly one native status with
 category `canceled`; the workflow pre-reads the exact project, updates only its status with a stable
 mutation identity, and independently reads the transition back. The workflow never creates a project
 solely to cancel it. Local Build and project-backed Fix record `status: "abandoned"` in the run
 manifest and retain run artifacts without mutating a mirrored Linear project. Source issues, handoff,
 replanning, and blockers are not abandonment and leave projects open.
-
 The canonical
 [Local run artifact and provider mirror contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-backends.md)
 owns identity, untrusted-data handling, hierarchy, failure boundaries, and synchronization receipts.
@@ -447,7 +458,7 @@ worktrees are cut from.
   Init scaffolds `models`, `review`, and `status`, then automatically adds validated
   Linear defaults when safe authenticated discovery succeeds. Missing connectivity never blocks
   local initialization. Build and Fix operate with default local run authority under
-  `.woostack/tmp/runs/<run-id>/`; setting `linear.saveArtifacts: true` enables optional Linear mirroring.
+  `.woostack/tmp/runs/<run-id>/`; setting `artifacts.provider: "linear"` enables optional Linear mirroring.
   [woostack-doctor](/docs/skills/woostack-doctor) validates effective runtime policy; explicit live checks
   prove optional artifact connectivity.
 </Callout>

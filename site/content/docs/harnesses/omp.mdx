@@ -52,8 +52,8 @@ Session naming uses an in-process project extension:
 ## Local run artifacts and optional Linear mirroring
 
 Build and project-backed Fix operate with canonical persistent local authority under
-`.woostack/tmp/runs/<run-id>/` by default (`linear.saveArtifacts: false`). When
-`linear.saveArtifacts: true`, local artifacts mirror to Linear. OMP credentials stay in its
+`.woostack/tmp/runs/<run-id>/` by default (`artifacts.provider: "local"` or omitted). When
+`artifacts.provider: "linear"`, local artifacts mirror to Linear. OMP credentials stay in its
 host-owned MCP/OAuth secret environment and never enter repository config, prompts, logs, or
 generated output. Follow the
 [Local run artifact and provider mirror contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-backends.md).

@@ -43,7 +43,12 @@ checks = [
     (driver, r"configured fast-model subagent", "driver fast model missing"),
     (skill, r"active Execute project-start synchronization", "project-status contract link missing"),
     (skill, r"both `--project` and `--issue` modes", "both Execute provider modes missing"),
-    (skill, r"issueStates\.executing.*issueStates\.inReview.*native category.*started", "configured issue-state resolution missing"),
+    (skill, r"artifacts\.linear\.issueStates\.executing.*artifacts\.linear\.issueStates\.inReview.*native category.*started", "configured issue-state resolution missing"),
+    (skill, r"artifacts\.linear\.projectStatuses\.started", "configured project-status resolution missing"),
+    (controller, r"artifacts\.linear\.issueStates\.executing.*artifacts\.linear\.issueStates\.inReview.*native category.*started", "controller issue-state resolution missing"),
+    (controller, r"artifacts\.linear\.projectStatuses\.started", "controller project-status resolution missing"),
+    (artifact, r"artifacts\.linear\.issueStates\.executing.*artifacts\.linear\.issueStates\.inReview", "artifact backend issue-state resolution missing"),
+    (artifact, r"artifacts\.linear\.projectStatuses\.started", "artifact backend project-status resolution missing"),
     (skill, r"persisted checkpoint.*teardown.*resume.*sibling", "checkpoint-gated delivery missing"),
     (controller, r"full delivery checkpoint.*teardown.*resume.*sibling", "controller checkpoint gate missing"),
     (artifact, r"Write `project-spec\.md` exactly once", "plain specification write contract missing"),
@@ -71,6 +76,8 @@ if re.search(r"(direct issue|issue lifecycle|issue status).{0,100}`In (Progress|
     raise SystemExit("literal issue status name remains lifecycle authority")
 if re.search(r"reviews/checks/threads", worktrees + artifact + controller, re.I):
     raise SystemExit("combined mandatory reviews/checks/threads contract remains")
+if re.search(r"(?<!artifacts\.)linear\.(?:issueStates|projectStatuses)", skill + controller + artifact):
+    raise SystemExit("legacy linear.issueStates or linear.projectStatuses path remains in Execute or shared contract")
 
 # These identifiers may appear here as negative assertions, but not in current source.
 for obsolete in (

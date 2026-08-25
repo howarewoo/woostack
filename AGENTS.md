@@ -60,15 +60,15 @@ framing pages are committed. Deploy notes live in [`site/README.md`](site/README
 ## Consumer development artifacts
 
 The canonical persistent artifact store for `woostack-build` and project-backed `woostack-fix` is
-local in `.woostack/tmp/runs/<run-id>/`. Linear is an optional mirror flow gated by
-`linear.saveArtifacts: true` in `.woostack/config.json`. By default (`linear.saveArtifacts: false` or
-omitted), Build and Fix operate with default zero-provider local authority. Supplying `--project`
-when `linear.saveArtifacts` is false or absent fails closed immediately.
+local in `.woostack/tmp/runs/<run-id>/`. Workflows operate with default zero-provider local authority
+(`artifacts.provider: "local"` or omitted). When `artifacts.provider: "linear"`, local artifacts mirror
+to Linear in bounded post-drafting cycles. Supplying `--project` when `artifacts.provider` is not
+configured for provider mirroring fails closed immediately.
 
 Gated Ideate, Harden, and delegated Plan work is managed in one permission-restricted run manifest
 with zero provider cycles. Build and Fix write plain `project-spec.md` and `execution-plan.md`
 directly under `.woostack/tmp/runs/<run-id>/` and proceed directly to a user-controlled handoff
-(`Stop here`, `Execute`, `Abandon`). When `linear.saveArtifacts: true`, local artifacts mirror to
+(`Stop here`, `Execute`, `Abandon`). When `artifacts.provider: "linear"`, local artifacts mirror to
 Linear in bounded post-drafting cycles; mirror failure is recorded in the manifest and is
 nonblocking for local authority. Resuming work uses `/woostack-execute --run <exact-run-id> [--recheck]`,
 `/woostack-build --run <exact-run-id>`, or `/woostack-fix --run <exact-run-id>`. All run artifacts in
@@ -79,7 +79,7 @@ shared
 [Local run artifact and provider mirror contract](skills/woostack-init/references/artifact-backends.md#minimal-resumable-manifest-schema)
 owns the detailed manifest, ordering, recovery, identity mapping, retention, and Execute read
 contract.
-The user's request and each workflow's explicit approval gates authorize repository work; artifacts
+The user's request and explicit conversation choices authorize repository work; artifacts
 record that work and never grant permission, assignment, ownership, acceptance, or source-control
 authority. Git and GitHub own source, branches, commits, pull requests, reviews, and merge evidence.
 

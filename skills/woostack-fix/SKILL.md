@@ -8,7 +8,7 @@ description: Use for bugs, regressions, hotfixes, and production signals that re
 Fix is a bounded bug-fix workflow that owns one canonical local run under `.woostack/tmp/runs/<run-id>/`.
 It accepts a goal or untrusted Linear, GitHub, Sentry, or monitoring input, proves the causal root,
 manages plain specification and direct-issue planning, retains artifacts, and hands off to Execute.
-Local run authority is unconditional; Linear is an optional mirror flow gated by `linear.saveArtifacts: true`.
+Local run authority is unconditional; Linear is an optional mirror flow gated by `artifacts.provider: "linear"`.
 Git, Graphite, and canonical GitHub reads remain the authority for repository delivery. Fix never merges.
 
 ```text
@@ -37,12 +37,12 @@ When `--run <exact-run-id>` is supplied, Fix resumes only that exact run directo
 `.woostack/tmp/runs/<run-id>/` under the shared artifact contract. When omitted, post-diagnosis Fix
 creates a new persistent local run under `.woostack/tmp/runs/<run-id>/`.
 
-Local run creation is unconditional. Default local mode makes zero provider calls. When `linear.saveArtifacts`
-is false or absent in effective repository configuration, an explicit `--project` or Linear `--issue`
+Local run creation is unconditional. Default local mode makes zero provider calls. When `artifacts.provider`
+is "local" or omitted in effective repository configuration, an explicit `--project` or Linear `--issue`
 flag fails closed before any provider access with an error stating that provider arguments require
-`linear.saveArtifacts: true`.
+configured provider mirroring (`artifacts.provider: "linear"`).
 
-When `linear.saveArtifacts: true`, `--project` is optional: when supplied it is one exact canonical
+When `artifacts.provider: "linear"`, `--project` is optional: when supplied it is one exact canonical
 project URL or stable UUID and retains its existing name. When omitted, Fix creates exactly one
 project after root-cause proof whose name starts with `[Fix] ` and otherwise derives from the proved
 correction, using validated repository, workspace, and team defaults. `--issue` is optional source
@@ -97,15 +97,20 @@ separately governs parent-branch intent and base-change detection; Fix does not 
 ### 2. Allocate or resume canonical run, then Ideate and Harden
 
 After Debug returns root-cause proof, allocate or resume the canonical run store under
-`.woostack/tmp/runs/<run-id>/`. When `linear.saveArtifacts: true`, resolve the exact supplied project
-or create exactly one canonical project whose name starts with `[Fix] ` from validated
-repository/workspace/team defaults. Verify the canonical repository association and independently read
-back the project. If an exact canonical issue reference was supplied, independently verify it through
-the official MCP, including selectable identity, workspace/team/project scope, complete pagination,
-exact endpoint round trip, and nullable-parent state, then add only the supported project link;
-preserve its title, description, status, assignment, labels, relations, comments, and lifecycle.
-Reject an ambiguous, foreign, archived, incompatible, unknown-parent, or incompletely read source
-without changing it.
+`.woostack/tmp/runs/<run-id>/`. When `artifacts.provider: "linear"`, preflight official Linear MCP
+capabilities (including workspace project label capabilities when labels are configured). When
+`artifacts.linear.projectLabels` is configured, completely paginate all workspace project labels through official Linear
+MCP, flatten every page, require null terminal cursors, resolve each configured label string by exact native ID or exact
+case-sensitive name (rejecting missing, ambiguous, duplicate, or incomplete matches before mutation), and union configured labels with
+existing project labels (preserving unrelated labels). Resolve the exact supplied project or create
+exactly one canonical project whose name starts with `[Fix] ` from validated repository/workspace/team
+defaults, applying the union of labels in at most one write alongside admission/creation, and
+independently read back the complete label set and project. Verify the canonical repository association.
+If an exact canonical issue reference was supplied, independently verify it through the official MCP,
+including selectable identity, workspace/team/project scope, complete pagination, exact endpoint round trip,
+and nullable-parent state, then add only the supported project link; preserve its title, description,
+status, assignment, labels, relations, comments, and lifecycle. Reject an ambiguous, foreign, archived,
+incompatible, unknown-parent, or incompletely read source without changing it.
 
 Admit the baseline and manifest, then invoke [`woostack-ideate`](../woostack-ideate/SKILL.md) with the
 proved diagnosis. Ideate and [`woostack-harden`](../woostack-harden/SKILL.md) work only in that manifest,
@@ -130,7 +135,7 @@ safety redundancy.
 
 Fix writes plain Markdown `project-spec.md` and `execution-plan.md` directly under `.woostack/tmp/runs/<run-id>/`.
 Obey the shared [plain artifact contract](../woostack-init/references/artifact-backends.md#readable-plain-artifact-writing).
-When `linear.saveArtifacts: true`, Fix performs the immediate pre-save drift read, runs one bounded
+When `artifacts.provider: "linear"`, Fix performs the immediate pre-save drift read, runs one bounded
 synchronization, and independently reads back the exact content before recording mirror status in the manifest.
 Mirror failure is recorded in the manifest and is nonblocking.
 No draft provider cycle occurs while drafting. Abandon records `status: "abandoned"` in the manifest,
@@ -153,7 +158,7 @@ No provider or repository mutation occurs during planning or hardening.
 ### 5. Execution-plan writing
 
 Fix writes plain Markdown `execution-plan.md` directly under `.woostack/tmp/runs/<run-id>/`, containing every ordered
-increment contract and dependency tuple. When `linear.saveArtifacts: true`, Fix performs the immediate
+increment contract and dependency tuple. When `artifacts.provider: "linear"`, Fix performs the immediate
 pre-save drift read, shared
 [graph-write preflight](../woostack-init/references/artifact-backends.md#canonical-issue-references-nullable-parents-and-graph-write-preflight),
 and one bounded synchronization. Atomically bind stable task keys to canonical issue references,

@@ -8,7 +8,7 @@ description: Prepare a multi-increment feature with plain retained artifacts and
 Build is a thin controller wrapper around the internal decision and planning phases. It always owns
 persistent local runs under `.woostack/tmp/runs/<run-id>/`, supports exact `--run`, retains
 success/Stop/Abandon artifacts, and hands off with `/woostack-execute --run <exact-run-id>`. Local run
-authority is unconditional; Linear is an optional mirror flow gated by `linear.saveArtifacts: true`.
+authority is unconditional; Linear is an optional mirror flow gated by `artifacts.provider: "linear"`.
 Git, Graphite, and canonical GitHub reads remain the authority for repository delivery. Merge authority
 is human-only: never auto-merge, never enqueue, never merge.
 ## Commands
@@ -23,10 +23,10 @@ When `--run <exact-run-id>` is supplied, Build resumes only that exact run direc
 `.woostack/tmp/runs/<run-id>/` under the shared artifact contract. When omitted, Build creates a new
 persistent local run under `.woostack/tmp/runs/<run-id>/`.
 
-Local run creation is unconditional. Default local mode makes zero provider calls. When `linear.saveArtifacts`
-is false or absent in effective repository configuration, an explicit `--project` flag fails closed before
-any provider access with an error stating that `--project` requires `linear.saveArtifacts: true`. When
-`linear.saveArtifacts: true`, `--project` is optional. Build resolves the exact caller-supplied Linear project
+Local run creation is unconditional. Default local mode makes zero provider calls. When `artifacts.provider`
+is "local" or omitted in effective repository configuration, an explicit `--project` flag fails closed before
+any provider access with an error stating that `--project` requires configured provider mirroring (`artifacts.provider: "linear"`).
+When `artifacts.provider: "linear"`, `--project` is optional. Build resolves the exact caller-supplied Linear project
 or creates exactly one canonical project prefixed with `[Build] ` and otherwise derived from the accepted
 goal. Supplied projects retain their existing names. Each independently shippable increment is one direct
 issue in that project. Do not create a parent plan issue. Build verifies the canonical repository association,
@@ -62,7 +62,7 @@ failure), invoke [`woostack-plan`](../woostack-plan/SKILL.md) with the readable 
 identity, and verified run manifest. When delegated by Build, Plan returns only a candidate strict
 sequential direct-issue chain and performs no provider read or mutation. Harden admits the candidate
 into the manifest and reconciles it with repository evidence. Build writes `execution-plan.md` directly
-under the run directory and performs optional bounded mirror synchronization when `linear.saveArtifacts: true`.
+under the run directory and performs optional bounded mirror synchronization when `artifacts.provider: "linear"`.
 
 At both specification and planning boundaries, Build requires a safe removal/simplification analysis
 before additive work. Ideate records viable removal opportunities before additive proposals, and Harden
@@ -81,10 +81,10 @@ Build writes plain Markdown `project-spec.md` and `execution-plan.md` directly u
 shared [plain artifact contract](../woostack-init/references/artifact-backends.md#readable-plain-artifact-writing):
 
 1. **Project specification.** Write `project-spec.md` containing the complete user-verified specification.
-   When `linear.saveArtifacts: true`, one bounded mirror synchronization writes the specification and
+   When `artifacts.provider: "linear"`, one bounded mirror synchronization writes the specification and
    records mirror status in the manifest; mirror failures are nonblocking.
 2. **Execution plan.** Write `execution-plan.md` containing every ordered increment contract and
-   dependency tuple. When `linear.saveArtifacts: true`, one bounded mirror synchronization binds stable
+   dependency tuple. When `artifacts.provider: "linear"`, one bounded mirror synchronization binds stable
    local task keys to canonical issue references and records mirror status in the manifest; mirror failures
    are nonblocking.
 

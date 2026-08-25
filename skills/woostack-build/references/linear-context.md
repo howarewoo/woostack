@@ -1,8 +1,8 @@
 # Linear project context
 
-When optional Linear mirroring is enabled (`linear.saveArtifacts: true`), this procedure resolves the
+When optional Linear mirroring is enabled (`artifacts.provider: "linear"`), this procedure resolves the
 one canonical Linear project for [`woostack-build`](../SKILL.md) and admits each exact pre-draft
-baseline. When `linear.saveArtifacts` is false or absent, default local mode makes zero provider calls,
+baseline. When `artifacts.provider` is "local" or omitted, default local mode makes zero provider calls,
 `--project` fails closed before any provider access, and local run authority in
 `.woostack/tmp/runs/<run-id>/` operates with no provider context. Repository policy supplies validated
 defaults only after Linear mirroring is selected and enabled; policy never authorizes provider access
@@ -17,36 +17,38 @@ separately governs parent-branch intent and base-change detection; use the
 [Linear synchronization procedure](linear-procedure.md) only for the bounded mirror save or standalone Plan.
 
 ## Resolution
-
 1. Resolve the canonical repository URL from trusted Git/GitHub evidence.
 2. Resolve the caller-selected workspace/team. Use validated effective repository configuration values only as
    post-selection defaults.
-3. If `--project` supplied an exact URL/stable UUID, read only that project and verify its identity,
+3. Preflight official Linear MCP capabilities for complete project reads, selectable direct-issue
+   identity/project/team/parent fields, complete paginated issue and relation reads, canonical
+   issue-reference endpoint round trips, project/issue writes, relation writes, independent read-back,
+   and workspace project label discovery/updates when labels are configured.
+4. When `artifacts.linear.projectLabels` is configured, completely paginate all workspace project labels through the
+   official Linear MCP, flatten every page, require null terminal cursors, and resolve each configured label string by exact
+   native ID (e.g. UUID) or exact case-sensitive name before any project creation or admission mutation. Reject missing,
+   ambiguous, duplicate, or incomplete matches before mutation.
+5. If `--project` supplied an exact URL/stable UUID, read only that project and verify its identity,
    workspace/team, and canonical repository association. Supplied-project selection never performs
    fallback marker discovery or creates a replacement project; it preserves the supplied project's
-   existing name and native project identity without requiring a native mutation-operation identity.
-4. Otherwise prefer the provider's native project mutation identity. When native operation-ID support
+   existing name and native project identity. Union resolved configured labels with existing project labels
+   (preserving unrelated existing labels), apply in at most one write alongside admission, and independently
+   read back the complete label set and project.
+6. Otherwise prefer the provider's native project mutation identity. When native operation-ID support
    is unavailable, preallocate one UUID and reserve the exact summary marker
    `Woostack project mutation ID: <UUID>`. Immediately before the one create attempt, completely
    paginate all active and archived projects in the resolved workspace/team, flatten every page,
    require null terminal cursors, and prove zero exact marker matches. A partial, duplicate, foreign,
    malformed, ambiguous, or nonzero match blocks before creation. Create exactly one project whose
-   name starts with `[Build] ` and whose summary contains that marker; an unknown outcome is
-   recovered only by repeating the
+   name starts with `[Build] ` and whose summary contains that marker, applying the union of resolved
+   configured labels in the creation write. An unknown outcome is recovered only by repeating the
    complete active-and-archived discovery for the same marker, never with a replacement UUID or
    create replay. Exactly one ownership-valid candidate may proceed to an independent native-project-
-   ID read-back, which must verify name, marker, workspace/team, canonical repository, complete
-   intended specification, and native identity. Marker metadata is excluded from the project
-   specification and must survive summary-omitting updates.
-5. Independently read the project back, verify the exact name, and retain its native identity.
-6. Preflight official Linear MCP capabilities for complete project reads, selectable direct-issue
-   identity/project/team/parent fields, complete paginated issue and relation reads, canonical
-   issue-reference endpoint round trips, project/issue writes, relation writes, and independent read-back.
-
-Do not use names, slugs, recent activity, issue titles, branch names, or PR text as identity.
-Canonical issue references are the sole issue endpoint representation; project and team identity
-remains provider-native. Unknown create outcomes retain the same operation identity and stop for
-recovery; never create a replacement.
+   ID and complete label set read-back, which must verify name, marker, workspace/team, canonical
+   repository, complete label set, complete intended specification, and native identity. Marker metadata
+   is excluded from the project specification and must survive summary-omitting updates.
+7. Independently read the project and complete label set back, verify the exact name and label inclusion,
+   and retain native identity in the run manifest.
 
 ## Project specification baseline
 
@@ -57,7 +59,7 @@ repository association, provider revision/timestamp when available, pagination c
 and source in the run manifest.
 
 That exact snapshot is the baseline when mirroring is enabled. Ideate and Harden make zero provider
-reads and writes while drafting. After `project-spec.md` is written, when `linear.saveArtifacts: true`,
+reads and writes while drafting. After `project-spec.md` is written, when `artifacts.provider: "linear"`,
 the shared contract performs immediate pre-save comparison, one bounded synchronization, and exact
 content read-back. Mirror failures are recorded in the manifest and are nonblocking.
 
@@ -102,7 +104,7 @@ Historical parent plan issues and their children are noncanonical history. Prese
 them from the baseline, and never detach, migrate, archive, delete, or reconcile them. Store the
 complete exact project, current direct-issue identities/revisions/content, and dependencies in the
 manifest. Delegated Plan and Harden then make zero provider reads and writes while drafting. After
-`execution-plan.md` is written, when `linear.saveArtifacts: true`, the shared contract performs drift
+`execution-plan.md` is written, when `artifacts.provider: "linear"`, the shared contract performs drift
 comparison, one bounded synchronization, stable-key mapping, and exact graph read-back; mirror failures
 are nonblocking.
 
@@ -122,4 +124,4 @@ immediately before commit, and before selecting another increment in Execute, re
 - missing capability, incomplete pagination, or unknown provider outcomes in mirror mode are recorded
   as mirror status and do not block local authority or handoff.
 
-When `linear.saveArtifacts: false`, provider baseline and drift reads are omitted entirely.
+When `artifacts.provider: "local"` (or omitted), provider baseline and drift reads are omitted entirely.

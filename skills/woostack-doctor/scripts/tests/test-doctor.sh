@@ -12,7 +12,7 @@ repo="$TMP/repo"
 mkdir -p "$repo/.woostack"
 git -C "$repo" init -q
 cat >"$repo/.woostack/config.json" <<'JSON'
-{"linear":{"repository":"https://github.com/acme/widgets","workspace":"acme","team":"ENG","projectStatuses":{"backlog":"Backlog","planned":"Planned","started":"Started","completed":"Completed","canceled":"Canceled"},"issueStates":{"planned":"Backlog","executing":"In Progress","inReview":"In Progress","done":"Done","blocked":"In Progress"}},"models":{},"review":{},"status":{"staleDays":14}}
+{"artifacts":{"provider":"local","linear":{"repository":"https://github.com/acme/widgets","workspace":"acme","team":"ENG","projectLabels":[],"projectStatuses":{"backlog":"Backlog","planned":"Planned","started":"Started","completed":"Completed","canceled":"Canceled"},"issueStates":{"planned":"Backlog","executing":"In Progress","inReview":"In Progress","done":"Done","blocked":"In Progress"}}},"models":{},"review":{},"status":{"staleDays":14}}
 JSON
 
 run_doctor() {

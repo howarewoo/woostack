@@ -101,11 +101,11 @@ sequentially. All modes share the same repository ancestry admission and worker 
 Before any worktree or source mutation in both `--project` and `--issue` modes, apply the shared
 [active Execute project-start synchronization](../woostack-init/references/artifact-backends.md#active-execute-project-start-synchronization)
 contract to the exact canonical nonterminal project. Independently read the complete, paginated
-direct-issue set and project status, then resolve `linear.issueStates.executing` and
-`linear.issueStates.inReview` to exactly one native issue state each and require both resolved
+direct-issue set and project status, then resolve `artifacts.linear.issueStates.executing` and
+`artifacts.linear.issueStates.inReview` to exactly one native issue state each and require both resolved
 mappings to have native category `started` before any issue-lifecycle, worktree, or source mutation.
 If any direct issue matches either resolved mapping by stable native identity and category, resolve
-`linear.projectStatuses.started`, require its native category `started`, and make the exact project
+`artifacts.linear.projectStatuses.started`, require its native category `started`, and make the exact project
 started (or record an exact started no-op) before continuing. Do not use a literal native status
 name as authority. If all direct issues are
 `Backlog`/`Todo`, defer the gate until the selected issue transitions to the resolved executing
@@ -124,7 +124,7 @@ started match is idempotent. Local run mode (`--run`) bypasses provider status s
    positive ordinal.
 2. Select the lowest-ordinal unfinished task or issue:
    - In provider modes, an issue is unfinished until its canonical state matches the resolved
-     `linear.issueStates.inReview` mapping and the full delivery checkpoint is independently read
+     `artifacts.linear.issueStates.inReview` mapping and the full delivery checkpoint is independently read
      back; never select by activity, assignment, title, or status alone.
    - In local run mode, a task is unfinished unless its `taskExecutions[stableTaskKey].status` is
      `delivered` and its complete delivery checkpoint is independently read back.
@@ -135,7 +135,7 @@ started match is idempotent. Local run mode (`--run`) bypasses provider status s
    admitted in the same cycle.
 4. In provider modes, apply the active project status gate. When all direct issues are `Backlog`/`Todo`,
    persist and independently read back the selected issue's transition to the resolved
-   `linear.issueStates.executing` mapping first, then synchronize and independently read back the
+   `artifacts.linear.issueStates.executing` mapping first, then synchronize and independently read back the
    project's configured started status. Keep the project-status receipt distinct from the issue
    lifecycle receipt and project resume checkpoint. Local run mode bypasses this provider gate.
 5. In local run mode, before worktree or source mutation, CAS-update
@@ -161,7 +161,7 @@ started match is idempotent. Local run mode (`--run`) bypasses provider status s
 8. Persist the complete delivery checkpoint:
    - In provider modes, persist the delivery checkpoint to Linear and independently read back every
      field. Only after that full read-back succeeds, resolve and independently read back the
-     configured `linear.issueStates.inReview` mapping and transition the issue from the resolved
+     configured `artifacts.linear.issueStates.inReview` mapping and transition the issue from the resolved
      executing mapping to it, or read back an idempotent no-op when executing and inReview share one
      native status.
    - In local run mode, CAS-update `taskExecutions[stableTaskKey]` from `active` to `delivered` only
@@ -191,12 +191,12 @@ Issue mode performs exactly the selected issue's cycle once: admit its matching 
 prove its predecessor's canonical parent branch and compatible current head (or the integration
 parent branch for a root) under the repository ancestry contract, apply the active project status
 gate (including the selected issue's transition to the resolved
-`linear.issueStates.executing` mapping when all direct issues are `Backlog`/`Todo`), then dispatch
+`artifacts.linear.issueStates.executing` mapping when all direct issues are `Backlog`/`Todo`), then dispatch
 one fast-model subagent in its isolated worktree.
 The gate's project-status receipt stays separate from issue lifecycle and resume-checkpoint
 evidence. Verify and validate the one issue, submit and read back one PR, then persist and
 independently read back every field of the complete delivery checkpoint. Only after that full
-read-back succeeds, move and read back the configured `linear.issueStates.inReview` mapping. If
+read-back succeeds, move and read back the configured `artifacts.linear.issueStates.inReview` mapping. If
 executing and inReview resolve to one native status, independently read the idempotent no-op instead
 of issuing a second mutation. The lifecycle result authorizes removal of the clean worktree only
 with the completed checkpoint read-back and all other required evidence. Issue mode never advances

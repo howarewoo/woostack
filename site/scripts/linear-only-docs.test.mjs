@@ -248,39 +248,34 @@ test('selected Linear capability is proved without reading repository credential
   }
 });
 
-test('gated drafts defer provider synchronization until complete approval', () => {
+test('local drafts defer provider synchronization until plain artifacts are written', () => {
   const contract = read('skills/woostack-init/references/artifact-backends.md').replace(/\s+/g, ' ');
   assert.match(contract, /0700.*0600/i);
-  assert.match(contract, /zero Linear or other provider reads and writes/i);
-  assert.match(contract, /writes plain Markdown `project-spec\.md`/i);
-  assert.match(contract, /writes plain Markdown `execution-plan\.md`/i);
-  assert.match(contract, /Execute-era safety reads are unchanged/i);
+  assert.match(contract, /zero Linear or other provider reads and writes|zero provider reads and writes/i);
+  assert.match(contract, /writes plain Markdown `project-spec\.md`|Write `project-spec\.md` exactly once/i);
+  assert.match(contract, /writes plain Markdown `execution-plan\.md`|Write `execution-plan\.md` exactly once/i);
+  assert.match(contract, /Execute-era safety reads are unchanged|Execute safety reads/i);
 
   const procedure = read('skills/woostack-build/references/linear-procedure.md').replace(/\s+/g, ' ');
   assert.match(procedure, /one direct project issue per current increment/i);
-  assert.match(procedure, /independently read every issue's native identity, stable-key mapping/i);
+  assert.match(procedure, /independently read every issue's canonical issue reference/i);
   assert.match(procedure, /independently read the complete relation set/i);
 });
 
-test('abandonment closes only project-backed workflows and preserves source issues', () => {
+test('abandonment retains local run artifacts and leaves mirrored projects unchanged', () => {
   const contract = read('skills/woostack-init/references/artifact-backends.md').replace(/\s+/g, ' ');
-  assert.match(contract, /Explicit abandonment is a terminal workflow action/i);
-  assert.match(contract, /one exact persisted project/i);
-  assert.match(contract, /existing project moves to the configured canceled status/i);
-  assert.match(contract, /verify the canonical repository association and resolved workspace\/team/i);
-  assert.match(contract, /update only that project's native status to the resolved canceled status/i);
-  assert.match(contract, /independently re-read the exact project and verify its identity, canceled status/i);
-  assert.match(contract, /never resumes repository work/i);
-  assert.match(contract, /Handoff, replan, and blocker handling leave project status unchanged/i);
-  assert.match(contract, /Never create a project merely to cancel it/i);
+  assert.match(contract, /Retain `manifest\.json`, `project-spec\.md`, `execution-plan\.md`, and `\.lock`/i);
+  assert.match(contract, /status: "abandoned"/i);
+  assert.match(contract, /without mutating a mirrored Linear project|does not mutate a mirrored Linear project/i);
+  assert.match(contract, /Handoff, replanning?, and blockers leave project status unchanged/i);
 
   const procedure = read('skills/woostack-build/references/linear-procedure.md');
-  assert.match(procedure, /Explicit abandonment follows the shared[\s\S]{0,100}project-backed workflow closure/i);
+  assert.match(procedure, /recording `status: "abandoned"` and retaining all run artifacts without closing a mirrored Linear project/i);
   assert.match(procedure, /Handoff, replan, pauses, and blockers leave project status unchanged/i);
 
   const fix = read('skills/woostack-fix/SKILL.md').replace(/\s+/g, ' ');
-  assert.match(fix, /If an exact source issue was supplied.*preserve its title, description, status, assignment, labels, relations, comments, and lifecycle/i);
-  assert.doesNotMatch(fix, /projectStatuses\.canceled/i);
+  assert.match(fix, /If an exact canonical issue reference was supplied.*preserve its title, description, status, assignment, labels, relations, comments, and lifecycle/i);
+  assert.match(fix, /Abandon.*records `status: "abandoned"` in the manifest, retains run artifacts, does not close or mutate a mirrored Linear project/i);
 });
 
 test('explicit creation never fuzzy-matches an exact existing resource', () => {
@@ -306,17 +301,17 @@ test('woostack-change has no Linear command or synchronization surface', () => {
 
 
 
-test('only exact native fix approval authorizes repository work', () => {
+test('local run manifests and git evidence own delivery truth', () => {
   for (const relativePath of ['README.md', 'AGENTS.md']) {
     assertContains(relativePath,
-      /Linear never\s+supplies source-control or delivery truth|artifacts?[\s\S]{0,80}never (?:grant|authorize)|do not assign permission/i,
+      /Linear never\s+supplies source-control or delivery truth|artifacts?[\s\S]{0,80}never (?:grant|authorize)|do not assign permission|Git and GitHub own/i,
       'must preserve the ordinary artifact authority boundary');
   }
   assertContains('skills/woostack-build/SKILL.md',
     /(?:artifacts?|records?)[\s\S]{0,120}(?:never|do not)[\s\S]{0,80}(?:grant|authorize|assign)[\s\S]{0,40}(?:permission|authority)/i,
     'Build must preserve the artifact permission boundary');
   assertContains('site/content/docs/concepts.mdx',
-    /Linear is optional[\s\S]{0,100}Git and GitHub own source/i,
+    /Linear mirroring|artifacts\.provider|Git and GitHub own source/i,
     'concepts must preserve repository delivery authority');
 });
 
@@ -324,17 +319,17 @@ test('authored setup order keeps initialization and the external-engineer guide 
   assertInOrder('README.md', [
     ['initialization', /\b2\.\s+Initialization\b/i],
     ['repository policy', /\b4\.\s+Repository Policy\b/i],
-    ['external engineer context', /\b5\.\s+Linear Product Context and External Engineers\b/i],
+    ['external engineer context', /\b5\.\s+Artifact Context, Provider Mirroring, and External Engineers\b/i],
   ]);
   const sectionFiveTocLine = read('README.md')
     .split('\n')
-    .find((line) => line.includes('](#5-linear-product-context-and-external-engineers)'));
+    .find((line) => line.includes('](#5-artifact-context-provider-mirroring-and-external-engineers)'));
   assert.match(sectionFiveTocLine ?? '', /^ {2}- /,
     'README.md: section 5 must remain nested under Getting Started');
   assertInOrder('site/content/docs/getting-started.mdx', [
     ['initialize local support', /\b2\.\s+Initialize local support\b/i],
     ['choose workflow', /\b3\.\s+Choose the workflow\b/i],
-    ['automatic Linear defaults', /\b4\.\s+Automatic Linear default setup\b/i],
+    ['automatic Linear defaults', /\b4\.\s+(?:Automatic\s+Linear\s+default\s+setup|Optional\s+Linear\s+mirror\s+setup)\b/i],
     ['external engineer', /5\. Use an external engineer \(optional\)/i],
   ]);
 });
@@ -380,8 +375,23 @@ test('supported navigation keeps Hermes out of coding harnesses', () => {
 
 test('approval relay remains responsible-user and receipt bound', () => {
   assertContains('site/content/docs/hermes.mdx',
-    /relay the responsible user's verbatim approval/i,
+    /relay that response \*\*verbatim and unmodified\*\*|responsible-user's live response must be relayed verbatim|relay the responsible user's verbatim approval/i,
     'Hermes docs must require verbatim responsible-user approval relay');
+});
+
+test('provider-neutral configuration and project label preservation contracts are documented', () => {
+  const contract = read('skills/woostack-init/references/artifact-backends.md').replace(/\s+/g, ' ');
+  assert.match(contract, /artifacts\.provider/i);
+  assert.match(contract, /artifacts\.linear\.projectLabels/i);
+  assert.match(contract, /exact native ID.*or.*exact case-sensitive name/i);
+  assert.match(contract, /union of existing project labels and configured labels/i);
+  assert.match(contract, /preserving all unrelated existing labels/i);
+  assert.match(contract, /at most one write alongside project creation or admission/i);
+  assert.match(contract, /independently read back the complete label set/i);
+
+  const configDoc = read('site/content/docs/configuration.mdx').replace(/\s+/g, ' ');
+  assert.match(configDoc, /artifacts\.provider/i);
+  assert.match(configDoc, /artifacts\.linear\.projectLabels/i);
 });
 
 test('retired WOO-167 assets are absent and the WOO-166 Review mode is absent', async () => {
