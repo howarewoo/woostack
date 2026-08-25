@@ -63,9 +63,9 @@ user explicitly asks for that behavior or the loaded task-specific skill require
 of an approved workflow.
 
 **Artifact invariant:** The canonical persistent product record for builds and, after root-cause
-proof, project-backed fixes is local in `.woostack/tmp/runs/<run-id>/`. Provider mirroring (Linear)
-is an optional mirror flow gated by `artifacts.provider: "linear"` (default `"local"`). Each workflow uses
-one exact run store under `.woostack/tmp/runs/<run-id>/`, owner-only `0700`/`0600` permissions, monotonic
+proof, project-backed fixes is local in `.woostack/tmp/runs/<run-id>/`. Provider mirroring (Linear or Plane)
+is an optional mirror flow gated by `artifacts.provider: "linear"` or `artifacts.provider: "plane"` (default `"local"`).
+Each workflow uses one exact run store under `.woostack/tmp/runs/<run-id>/`, owner-only `0700`/`0600` permissions, monotonic
 revision compare-and-swap updates, and retained plain Markdown artifacts (`project-spec.md` and
 `execution-plan.md`).
 
@@ -77,14 +77,14 @@ Standalone Plan keeps its direct synchronization unchanged. Follow the
 [`Local run artifact and provider mirror contract`](../woostack-init/references/artifact-backends.md#minimal-resumable-manifest-schema)
 for the detailed contract.
 
-Linear assignment, status, labels, content, or metadata never authorizes work, and development
+Linear or Plane assignment, status, labels, content, or metadata never authorizes work, and development
 artifacts never replace direct Git/Graphite/GitHub source-control evidence. Other workflows remain
 artifact-optional. `/woostack-init` may make authenticated read-only setup calls through the official
 Linear MCP to validate non-secret defaults; it cannot select persistence, read development artifact
-content, or write. `woostack-change` never contacts Linear. Explicit Build or project-backed Fix
+content, or write. `woostack-change` never contacts a provider. Explicit Build or project-backed Fix
 abandonment retains all local run artifacts in `.woostack/tmp/runs/<run-id>/` and records terminal
-`status: "abandoned"` in the manifest; it does not close or mutate a mirrored Linear project. Source
-issues are preserved. Handoff, replanning, and blockers leave project status unchanged.
+`status: "abandoned"` in the manifest; it does not close or mutate a mirrored Linear or Plane project. Source
+issues/work items are preserved. Handoff, replanning, and blockers leave project status unchanged.
 
 ## Command Routing
 
@@ -92,23 +92,23 @@ issues are preserved. Handoff, replanning, and blockers leave project status unc
 |---|---|
 | `/woostack-init [path] [--migrate-legacy]`, initialize or repair the `.woostack/` workspace, or explicitly migrate tracked legacy development records | `woostack-init` |
 | `/woostack-bootstrap <goal>`, scaffold a new web/mobile/API project | `woostack-bootstrap` |
-| `/woostack-build <goal> [--project <exact Linear URL-or-UUID>]`, prepare one canonical project and execution plan, then hand off with `Stop here`, `Execute`, or `Abandon` | `woostack-build` |
-| `/woostack-fix <prompt> [--project <exact Linear URL-or-UUID>] [--issue <exact canonical Linear issue reference>] [--inline\|--subagent]`, diagnose a free-form defect, resolve/create its project and direct-issue plan after root-cause proof, then hand off with `Stop here`, `Execute`, or `Abandon` | `woostack-fix` |
+| `/woostack-build <goal> [--project <exact Linear or Plane URL-or-UUID>]`, prepare one canonical project and execution plan, then hand off with `Stop here`, `Execute`, or `Abandon` | `woostack-build` |
+| `/woostack-fix <prompt> [--project <exact Linear or Plane URL-or-UUID>] [--issue <exact canonical Linear issue or Plane work-item reference>] [--inline\|--subagent]`, diagnose a free-form defect, resolve/create its project and direct-issue plan after root-cause proof, then hand off with `Stop here`, `Execute`, or `Abandon` | `woostack-fix` |
 | `/woostack-change <goal>`, implement a small bounded non-bug enhancement or refactor directly in one isolated worktree and one reviewable PR | `woostack-change` |
-| `/woostack-plan <approved specification> [--project <exact Linear URL-or-UUID>]`, produce a PR-sized dependency-aware direct-issue plan; standalone persistence is optional | `woostack-plan` |
-| `/woostack-execute <approved plan-or-task> [--project <exact Linear URL-or-UUID>] [--issue <exact canonical Linear issue reference>] [--run <exact-run-id>] [--recheck]`, execute approved work from fresh exact Linear project/graph reads or an exact local run manifest, and Git/Graphite/GitHub ancestry evidence | `woostack-execute` |
+| `/woostack-plan <approved specification> [--project <exact Linear or Plane URL-or-UUID>]`, produce a PR-sized dependency-aware direct-issue plan; standalone persistence is optional | `woostack-plan` |
+| `/woostack-execute <approved plan-or-task> [--project <exact Linear or Plane URL-or-UUID>] [--issue <exact canonical Linear issue or Plane work-item reference>] [--run <exact-run-id>] [--recheck]`, execute approved work from fresh exact Linear or Plane project/graph reads or an exact local run manifest, and Git/Graphite/GitHub ancestry evidence | `woostack-execute` |
 | `/woostack-sweep [PR#|branch] [--base R]`, drive one Graphite stack bottom-up: address pre-existing threads, run one multi-angle review per current head, address new findings, restack affected descendants, and halt unchanged recurring blockers | `woostack-sweep` |
-| `/woostack-commit [--issue <exact canonical Linear issue reference>]`, commit session-relevant changes and update PR fields; artifact synchronization is optional | `woostack-commit` |
+| `/woostack-commit [--issue <exact canonical Linear issue or Plane work-item reference>]`, commit session-relevant changes and update PR fields; artifact synchronization is optional | `woostack-commit` |
 | `/woostack-review <PR#>`, review one exact existing PR through one detected multi-angle swarm and one evidence adjudicator, then post one batched native GitHub Review; report-only, never edits or merges | `woostack-review` |
 | `/woostack-audit <target> [--all] [--simplify\|--prod-only]`, audit standing code (a file/dir/repo at rest) for simplification + production-readiness, report-only | `woostack-audit` |
 | `/woostack-qa <url> [focus…] [--stop-first]`, exploratory-QA a running app in a real browser, report-only findings under `.woostack/qa/` | `woostack-qa` |
 | `/woostack-eval <skill-path> [--behavior\|--triggers\|--all] [--runs <1..10>] [--baseline-ref <git-ref>\|--baseline-path <skill-dir>]`, evaluate an approved skill corpus without editing the target skill | `woostack-eval` |
 | `/woostack-reflect`, review the current active conversation through this invocation for concrete durable instruction suggestions; report-only initially and never recursive | `woostack-reflect` |
 | `/woostack-address-comments <PR#>`, address every unresolved thread on one exact existing PR with the smallest in-contract fix or evidence-backed pushback, verified replies, and resolution reads | `woostack-address-comments` |
-| `/woostack-status [branch|PR#|exact Linear project URL-or-UUID|exact canonical Linear issue reference]`, show the read-only repository-derived work board | `woostack-status` |
+| `/woostack-status [branch|PR#|exact Linear or Plane project URL-or-UUID|exact canonical Linear issue or Plane work-item reference]`, show the read-only repository-derived work board | `woostack-status` |
 | `/woostack-visualize <source> [for <audience>]`, render a source as audience-tailored HTML | `woostack-visualize` |
 | `/woostack-debug <target>`, run an autonomous root-cause analysis before fixing (investigative only — hands back the root cause and a proposed fix) | `woostack-debug` |
-| `/woostack-tdd <target> [--issue <exact canonical Linear issue reference>]`, add appropriate tests to a bounded code/PR target with optional artifact context (gate-light; TDD doctrine home) | `woostack-tdd` |
+| `/woostack-tdd <target> [--issue <exact canonical Linear issue or Plane work-item reference>]`, add appropriate tests to a bounded code, PR, or artifact target with optional artifact context (gate-light; TDD doctrine home) | `woostack-tdd` |
 | `/woostack-doctor [path] [--check]`, diagnose + gated-repair `.woostack/` workspace health (policy + conventions; `--check` is CI-friendly exit-coded) | `woostack-doctor` |
 
 
@@ -133,8 +133,8 @@ These thoughts mean stop and load the relevant rules:
 | "I'll initialize `.woostack/` to be helpful." | This skill is adoption-only; mutate project state only when requested or required by the task skill. |
 | "This is only a review comment." | Review and address flows have posting and validation rules. |
 | "I'll write another plan for this project." | Reconcile the approved specification and any exact caller-supplied plan artifact instead of silently creating competing scope. |
-| "A Linear issue gives me permission to edit." | Artifacts record specs, plans, or fixes; the user request and workflow gates authorize work. |
-| "I'll infer an existing Linear artifact from the branch." | Never fuzzy-match artifacts. Use an exact caller-supplied resource or an explicitly requested creation with a retained stable identity. |
+| "A Linear or Plane issue gives me permission to edit." | Artifacts record specs, plans, or fixes; the user request and workflow gates authorize work. |
+| "I'll infer an existing Linear or Plane artifact from the branch." | Never fuzzy-match artifacts. Use an exact caller-supplied resource or an explicitly requested creation with a retained stable identity. |
 
 ## AGENTS.md Usage
 

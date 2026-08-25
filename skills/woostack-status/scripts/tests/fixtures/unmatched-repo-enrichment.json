@@ -1,0 +1,23 @@
+{
+  "provider": "plane",
+  "instance": {
+    "baseUrl": "https://plane.example.com",
+    "workspace": "acme"
+  },
+  "workItem": {
+    "id": "44444444-4444-4444-8444-444444444444",
+    "sequenceId": "ENG-99",
+    "title": "Other repo work",
+    "url": "https://plane.example.com/acme/projects/55555555-5555-4555-8555-555555555555/work-items/44444444-4444-4444-8444-444444444444",
+    "canonicalRepository": "other-org/other-repo",
+    "pullRequestNumber": 99,
+    "pullRequestUrl": "https://github.com/other-org/other-repo/pull/99",
+    "project": {
+      "id": "55555555-5555-4555-8555-555555555555",
+      "name": "[Build] Other subsystem"
+    },
+    "state": {
+      "name": "Done"
+    }
+  }
+}

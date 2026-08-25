@@ -1,0 +1,22 @@
+{
+  "canonicalRepository": "howarewoo/woostack",
+  "integrationBranch": "main",
+  "branches": [
+    {
+      "name": "adamwoo/auth-subsystem",
+      "headSha": "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2",
+      "parent": "main",
+      "worktree": null,
+      "pullRequest": {
+        "number": 42,
+        "url": "https://github.com/howarewoo/woostack/pull/42",
+        "headSha": "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2",
+        "baseRef": "main",
+        "draft": false,
+        "reviewState": "clean",
+        "unresolvedThreads": 0,
+        "merged": false
+      }
+    }
+  ]
+}

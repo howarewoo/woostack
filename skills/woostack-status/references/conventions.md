@@ -2,7 +2,7 @@
 
 These rules define `/woostack-status` derivation and output. Status is read-only. Git, Graphite, and
 canonical GitHub reads own repository identity, ancestry, commits, PR, review, checks, threads, and
-merge state. Exact caller-supplied Linear resources may enrich rows under the
+merge state. Exact caller-supplied Linear or Plane resources may enrich rows under the
 [optional artifact contract](../../woostack-init/references/artifact-backends.md), but never define
 or override repository status.
 
@@ -55,7 +55,7 @@ Derive one state from current direct evidence:
   unstable.
 
 `review-clean` is evidence, not product acceptance. `merged` is repository history, not artifact
-completion. No row state comes from a Linear native status, assignment, delegate, comment, event,
+completion. No row state comes from a Linear or Plane native status, assignment, delegate, comment, event,
 relation, or project phase.
 
 ## Reviews, checks, and threads
@@ -84,8 +84,8 @@ Never repair, remove, clean, reset, stash, reassign, attach, or create from stat
 
 ## Optional artifact columns
 
-Artifact mode starts only from an exact caller-supplied Linear project URL/stable UUID or canonical
-issue reference. Read that resource through official host-exposed MCP capabilities, complete
+Artifact mode starts only from an exact caller-supplied Linear or Plane project URL/stable UUID or canonical
+issue/work-item reference. Read that resource through official host-exposed MCP capabilities for the configured provider, complete
 relevant pagination, verify its identity and claimed canonical repository, and retain the revision
 used.
 

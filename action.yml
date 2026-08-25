@@ -1,5 +1,5 @@
 name: 'woostack-review (CI extension)'
-description: 'CI-only, diff-only advisory extension of woostack-review. Runs detect → parallel angle workers → one evidence adjudicator → deterministic finalization and one batched GitHub Review without Linear MCP access, Linear read-back claims, or issue-acceptance authority.'
+description: 'CI-only, diff-only advisory extension of woostack-review. Runs detect → parallel angle workers → one evidence adjudicator → deterministic finalization and one batched GitHub Review without configured-provider MCP access, remote artifact read-back claims, or issue-acceptance authority.'
 author: 'woostack-review'
 
 branding:

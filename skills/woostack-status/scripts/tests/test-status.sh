@@ -10,13 +10,13 @@ skill=re.sub(r"\s+"," ",(root/"skills/woostack-status/SKILL.md").read_text())
 conv=re.sub(r"\s+"," ",(root/"skills/woostack-status/references/conventions.md").read_text())
 checks=[
  (skill,r"Always read-only","description is not read-only"),
- (skill,r"no issue, project, trailer, owner, assignment, lifecycle receipt, or artifact mutation is required|projects/issues may supply optional","artifact optionality missing"),
+ (skill,r"no issue, project, trailer, owner, assignment, lifecycle receipt, or artifact mutation is required|projects/issues may supply optional|projects/issues/work items\s*may supply optional","artifact optionality missing"),
  (skill,r"Status makes no artifact write","artifact mutation still allowed"),
  (skill,r"Git, Graphite, and canonical GitHub evidence define","repository authority missing"),
  (skill,r"A PR needs no Linear attribution|never infer an artifact","implicit artifact discovery possible"),
  (skill,r"review-clean.*not product acceptance","review/acceptance boundary missing"),
  (skill,r"\| `review-clean` \| current head has full review evidence and no unresolved blocking thread \|","skill review-clean check independence missing"),
- (conv,r"No row state comes from a Linear","artifact state can define repository state"),
+ (conv,r"No row state comes from a (?:Linear|Linear or Plane)","artifact state can define repository state"),
  (conv,r"Status performs no artifact mutation","conventions allow artifact writes"),
  (conv,r"Missing.*artifact data.*omits the artifact columns only","artifact failure blocks board"),
  (conv,r"Check outcomes and check-read completeness are observable-only and do not alter row state","conventions observable-only check contract missing"),
