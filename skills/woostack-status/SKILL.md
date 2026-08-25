@@ -1,29 +1,28 @@
 ---
 name: woostack-status
-description: Show a fresh repository work board from Git, Graphite, canonical GitHub evidence, and optional exact Linear artifacts. Always read-only.
+description: Show a fresh repository work board from Git, Graphite, canonical GitHub evidence, and optional exact Linear or Plane artifacts. Always read-only.
 ---
 
 # woostack-status
 
 Render a fresh read-only work board. Git, Graphite, and canonical GitHub evidence define branches,
-ancestry, commits, PRs, reviews, checks, threads, and merge state. Exact Linear projects/issues may
-supply optional specification, plan, or fix labels; they never define repository state.
+ancestry, commits, PRs, reviews, checks, threads, and merge state. Exact Linear or Plane projects/issues/work items
+may supply optional specification, plan, or fix labels; they never define repository state.
 
-Status never edits source, Git, GitHub, Linear, local plans, or lifecycle state. It does not
+Status never edits source, Git, GitHub, Linear, Plane, local plans, or lifecycle state. It does not
 reconcile, assign, transition, comment, accept, merge, or repair.
 
 ## Commands
 
 ```text
 /woostack-status
-/woostack-status <branch|PR#|exact Linear project URL-or-UUID|exact canonical Linear issue reference>
+/woostack-status <branch|PR#|exact Linear or Plane project URL-or-UUID|exact canonical Linear issue or Plane work-item reference>
 ```
 
 With no target, inspect the canonical repository's current Graphite work surface. A branch or PR
-narrows the repository view. An exact Linear project URL/UUID or exact caller-supplied canonical
-issue reference opts into artifact enrichment; it is not a work prerequisite. Never infer an
+narrows the repository view. An exact Linear or Plane project URL/UUID or exact caller-supplied canonical
+issue/work-item reference opts into artifact enrichment; it is not a work prerequisite. Never infer an
 artifact from a title, issue key, branch, trailer, recent activity, current user, or search ranking.
-
 ## Repository snapshot
 
 1. Resolve the physical repository root and canonical remote.
@@ -47,11 +46,11 @@ review, thread, or merge state as success.
 
 ## Optional artifact enrichment
 
-Only for an exact caller-supplied Linear project URL/UUID or canonical issue reference, follow the
+Only for an exact caller-supplied Linear or Plane project URL/UUID or canonical issue/work-item reference, follow the
 [optional artifact contract](../woostack-init/references/artifact-backends.md):
 
-- discover official host-exposed MCP read capabilities;
-- resolve the exact project/issue identity;
+- discover official host-exposed MCP read capabilities for the configured provider (`artifacts.provider: "linear"` or `artifacts.provider: "plane"`);
+- resolve the exact project or issue/work-item identity (for Plane: project URL/UUID or work-item URL/readable ID such as `ENG-42` resolved to UUID in the configured instance `baseUrl` and `workspace`);
 - fully paginate only relevant descriptions, updates, comments, and relations;
 - verify canonical repository association when claimed;
 - extract the goal, specification, fix record, implementation plan, decisions, and canonical
@@ -82,7 +81,7 @@ Derive coarse state only from direct facts:
 | `unknown` | required repository evidence is missing, conflicting, incomplete, or unstable |
 
 `review-clean` is not product acceptance. `merged` is repository history, not proof that an optional
-artifact was updated. A native Linear status is displayed only as artifact metadata and never used
+artifact was updated. A native Linear or Plane status is displayed only as artifact metadata and never used
 to derive the row state.
 
 ## Dependencies and next action

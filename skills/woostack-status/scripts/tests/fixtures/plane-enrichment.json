@@ -1,0 +1,23 @@
+{
+  "provider": "plane",
+  "instance": {
+    "baseUrl": "https://plane.example.com",
+    "workspace": "acme"
+  },
+  "workItem": {
+    "id": "22222222-2222-4222-8222-222222222222",
+    "sequenceId": "ENG-42",
+    "title": "Auth subsystem implementation",
+    "url": "https://plane.example.com/acme/projects/33333333-3333-4333-8333-333333333333/work-items/22222222-2222-4222-8222-222222222222",
+    "canonicalRepository": "howarewoo/woostack",
+    "pullRequestNumber": 42,
+    "pullRequestUrl": "https://github.com/howarewoo/woostack/pull/42",
+    "project": {
+      "id": "33333333-3333-4333-8333-333333333333",
+      "name": "[Build] Auth subsystem"
+    },
+    "state": {
+      "name": "In Review"
+    }
+  }
+}

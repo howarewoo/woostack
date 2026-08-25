@@ -98,7 +98,7 @@ jobs:
           incremental: ${{ inputs.incremental }}
           force_tier: ${{ inputs.force_tier }}
       # The uploaded tree is deliberately diff-only advisory evidence. It contains
-      # the exact PR trailer candidate, but no authoritative Linear issue context.
+      # the exact PR trailer candidate, but no authoritative remote artifact or provider issue context.
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: review-artifacts
