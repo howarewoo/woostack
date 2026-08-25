@@ -3,57 +3,17 @@
   "receiptId": "branch-receipt-02",
   "invocation": {
     "kind": "workflow-handoff",
-    "issueArgument": "https://linear.app/acme/issue/APP-62/cache-refresh",
+    "taskId": "task-cache-refresh",
+    "runId": "run-62",
     "projectArgument": null,
     "branchHandoff": {
       "workflow": "woostack-change",
-      "nativeIssueId": "linear-issue-62",
-      "branch": "change/app-62",
-      "worktreePath": "/repo/.woostack/worktrees/tasks/linear-issue-62",
-      "startCommit": "b62",
-      "graphiteParent": "staging",
-      "ownerPrincipal": "engineer-7",
+      "stableTaskId": "task-cache-refresh",
       "runId": "run-62",
-      "assignmentNativeId": "comment-assignment-62"
-    }
-  },
-  "officialLinearMcp": {
-    "endpoint": "https://mcp.linear.app/mcp",
-    "readsComplete": true,
-    "issue": {
-      "clientId": "62626262-6262-4262-8262-626262626262",
-      "nativeId": "linear-issue-62",
-      "identifier": "APP-62",
-      "title": "Cache refresh",
-      "role": "work-item",
-      "state": "executing",
-      "projectId": null,
-      "repository": "https://github.com/acme/widgets",
-      "owner": {
-        "kind": "app",
-        "principal": "engineer-7"
-      },
-      "assignmentAccepted": {
-        "nativeId": "comment-assignment-62",
-        "stableEventId": "62626262-aaaa-4262-8262-626262626262",
-        "runId": "run-62",
-        "engineer": "engineer-7",
-        "readBackVerified": true
-      },
-      "verification": {
-        "nativeId": "comment-verification-62",
-        "verdict": "PASS",
-        "readBackVerified": true
-      },
-      "precommitReview": {
-        "nativeId": "comment-precommit-review-62",
-        "verdict": "PASS",
-        "readBackVerified": true
-      }
-    },
-    "authenticatedController": {
-      "kind": "app",
-      "principal": "engineer-7"
+      "branch": "change/cache-refresh",
+      "worktreePath": "/repo/.woostack/worktrees/tasks/task-cache-refresh",
+      "startCommit": "b62",
+      "graphiteParent": "staging"
     }
   },
   "sourceControl": {
@@ -62,8 +22,8 @@
       "complete": true
     },
     "primaryRoot": "/repo",
-    "currentRoot": "/repo/.woostack/worktrees/tasks/linear-issue-62",
-    "currentBranch": "change/app-62",
+    "currentRoot": "/repo/.woostack/worktrees/tasks/task-cache-refresh",
+    "currentBranch": "change/cache-refresh",
     "head": "b62",
     "retainedStartCommit": "b62",
     "graphiteParent": "staging",
@@ -80,32 +40,29 @@
     }
   },
   "taskContract": {
-    "stableTaskId": "linear-issue-62",
+    "stableTaskId": "task-cache-refresh",
+    "runId": "run-62",
     "repository": "https://github.com/acme/widgets",
-    "controller": {
-      "principal": "engineer-7",
-      "runId": "run-62"
-    },
-    "branch": "change/app-62",
-    "worktreePath": "/repo/.woostack/worktrees/tasks/linear-issue-62",
+    "branch": "change/cache-refresh",
+    "worktreePath": "/repo/.woostack/worktrees/tasks/task-cache-refresh",
     "startCommit": "b62",
     "graphiteParent": "staging"
   },
   "git": {
     "complete": true,
-    "deterministicTaskWorktreePath": "/repo/.woostack/worktrees/tasks/linear-issue-62",
+    "deterministicTaskWorktreePath": "/repo/.woostack/worktrees/tasks/task-cache-refresh",
     "worktrees": [
       {
-        "path": "/repo/.woostack/worktrees/tasks/linear-issue-62",
-        "branch": "change/app-62",
+        "path": "/repo/.woostack/worktrees/tasks/task-cache-refresh",
+        "branch": "change/cache-refresh",
         "head": "b62"
       }
     ],
     "localBranches": [
       {
-        "name": "change/app-62",
+        "name": "change/cache-refresh",
         "head": "b62",
-        "checkedOutAt": "/repo/.woostack/worktrees/tasks/linear-issue-62"
+        "checkedOutAt": "/repo/.woostack/worktrees/tasks/task-cache-refresh"
       }
     ],
     "issueCommits": []
@@ -114,7 +71,7 @@
     "complete": true,
     "branches": [
       {
-        "name": "change/app-62",
+        "name": "change/cache-refresh",
         "head": "b62",
         "parent": "staging"
       }
@@ -128,9 +85,5 @@
   "github": {
     "complete": true,
     "pullRequests": []
-  },
-  "linearRelations": {
-    "complete": true,
-    "branchOrPr": []
   }
 }

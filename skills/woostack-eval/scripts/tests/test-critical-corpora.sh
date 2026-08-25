@@ -32,8 +32,8 @@ packages=(
   skills/woostack-init
   skills/woostack-doctor
   skills/woostack-status
+  skills/woostack-bootstrap
 )
-
 for index in "${!packages[@]}"; do
   package=${packages[$index]}
   result="$TMP_ROOT/$index.json"
@@ -71,6 +71,7 @@ const expectedPackages = [
   'skills/woostack-init',
   'skills/woostack-doctor',
   'skills/woostack-status',
+  'skills/woostack-bootstrap',
 ];
 const same = (left, right) => JSON.stringify(left) === JSON.stringify(right);
 if (!same(packages, expectedPackages) || new Set(packages).size !== 16) {
@@ -88,37 +89,54 @@ const requiredContractProofs = {
     'missing receipt blocks': [['missing-receipt-reported'], ['aggregation-blocked'], ['clean-comparison-denied']],
   },
   'woostack-build': {
-    'canonical project admission through official Linear MCP': [
+    'canonical project admission through official MCP': [
       ['build-official-mcp'],
       ['build-project-created'],
       ['build-operation-identity-preserved'],
       ['build-project-readback'],
     ],
-    'exactly two ordered approval gates': [
-      ['build-linear-product-authority'],
-      ['build-gate-order'],
+    'nonblocking provider mirror failure preserves local authority': [
+      ['build-local-ready'],
+      ['build-mirror-failed'],
+      ['build-local-authority-preserved'],
+      ['build-handoff-preserved'],
+      ['build-provider-zero-repository-mutation'],
     ],
-    'required provider and authority failures block safely': [
-      ['build-provider-blocked'],
+    'noncanonical authority inputs block safely': [
       ['build-authority-blocked'],
-      ['build-provider-zero-repository-mutation', 'build-authority-zero-repository-mutation'],
+      ['build-authority-decisions'],
+      ['build-authority-provider-artifacts-non-authorizing'],
+      ['build-authority-retained-local-artifacts-required'],
+      ['build-authority-no-native-linear-approval-reason'],
+      ['build-authority-zero-provider-mutation'],
+      ['build-authority-zero-dispatch'],
+      ['build-authority-zero-repository-mutation'],
     ],
-    'material drift invalidates approval': [
-      ['build-drift-results'],
-      ['build-replan-invalidates-plan-approval'],
+    'local run artifacts are retained upon completion': [
+      ['retention-ready'],
+      ['retention-verified'],
+      ['retention-next-skill'],
+      ['retention-execute-allowed'],
     ],
-    'bounded work routes away before project creation': [
-      ['build-bounded-route'],
-      ['build-bounded-no-project'],
+    'canonical issue reference validation precedes graph writes': [
+      ['build-read-shapes-blocked'],
+      ['build-read-shapes-two-creates'],
+      ['build-read-shapes-one-membership-mutation'],
+      ['build-read-shapes-one-relation-mutation'],
+      ['build-read-shapes-four-provider-mutations'],
+      ['build-read-shapes-zero-repository-mutation'],
     ],
-    'approved work routes to normal execution': [
-      ['approved-build-ready'],
-      ['approved-build-normal-execute'],
+    'verified build routes to user handoff': [
+      ['handoff-options'],
+      ['handoff-command'],
+      ['handoff-details-complete'],
+      ['execute-dispatched-once'],
+      ['abandon-retains-artifacts-without-dispatch'],
     ],
-    'no merge': [['approved-build-never-merges']],
+    'no merge': [['never-merges']],
   },
   'woostack-plan': {
-    'existing exact project receives a strict direct-issue chain': [
+    'Linear exact project receives a strict direct-issue chain': [
       ['plan-existing-project-required'],
       ['plan-project-reused'],
       ['plan-two-direct-issues'],
@@ -126,6 +144,42 @@ const requiredContractProofs = {
       ['plan-contiguous-ordinals'],
       ['plan-strict-dependency'],
       ['plan-readback'],
+    ],
+    'Plane provider and exact project repository identity are required': [
+      ['plan-plane-provider'],
+      ['plan-plane-base-url'],
+      ['plan-plane-workspace'],
+      ['plan-plane-project-id'],
+      ['plan-plane-repository'],
+    ],
+    'Plane native and readable work-item IDs are both required': [
+      ['plan-plane-native-ids'],
+      ['plan-plane-readable-work-item-ids'],
+    ],
+    'Plane project memberships are required': [
+      ['plan-plane-project-memberships'],
+    ],
+    'Plane native-to-external mapping and external source are required': [
+      ['plan-plane-native-external-mapping'],
+      ['plan-plane-external-source'],
+    ],
+    'Plane read-back is required': [
+      ['plan-plane-readback'],
+    ],
+    'Plane terminal zero-match discovery is required': [
+      ['plan-plane-zero-match-discovery'],
+    ],
+    'Plane exact five provider writes are required': [
+      ['plan-plane-provider-write-count'],
+    ],
+    'Plane operation scope is required on provider operations': [
+      ['plan-plane-operation-base-url'],
+      ['plan-plane-operation-workspace'],
+      ['plan-plane-operation-project-id'],
+    ],
+    'Plane relation endpoints are required': [
+      ['plan-plane-relation-endpoints'],
+      ['plan-plane-native-relation-id'],
     ],
     'direct specification requires an existing exact project': [
       ['plan-exact-project-blocked'],
@@ -136,10 +190,10 @@ const requiredContractProofs = {
       ['plan-invalid-no-provider-mutation'],
     ],
     'standalone graph preflight validates canonical provider shapes': [
-      ['plan-provider-shape-status'],
-      ['plan-provider-shape-decisions'],
-      ['plan-provider-shape-zero-provider-mutation'],
-      ['plan-provider-shape-zero-repository-mutation'],
+      ['plan-linear-shape-status'],
+      ['plan-linear-shape-decisions'],
+      ['plan-linear-shape-zero-provider-mutation'],
+      ['plan-linear-shape-zero-repository-mutation'],
     ],
     'build delegation returns a provider-free candidate': [
       ['plan-delegated-candidate'],
@@ -155,6 +209,15 @@ const requiredContractProofs = {
     ],
   },
   'woostack-fix': {
+    'target repository boundary precedes provider admission': [
+      ['foreign-target-blocked'],
+      ['unwritable-target-blocked'],
+      ['writable-target-continues'],
+    ],
+    'debug defers untrusted source identity': [
+      ['no-provider-call'],
+      ['source-is-untrusted'],
+    ],
     'root cause proof precedes project and repository mutation': [
       ['blocked'],
       ['no-project'],
@@ -167,17 +230,19 @@ const requiredContractProofs = {
       ['source-only-link'],
       ['source-preserved'],
     ],
-    'two exact approvals precede execution': [
-      ['project-approval-before-save'],
-      ['project-readback-before-receipt'],
-      ['project-record'],
-      ['plan-approval-before-save'],
-      ['plan-readback-before-receipt'],
-      ['execution-record'],
-      ['normal-execute'],
+    'provider mirror failure is nonblocking for local authority': [
+      ['local-ready'],
+      ['mirror-failed'],
+      ['local-authority-valid'],
+      ['handoff-allowed'],
+      ['no-repository-mutation'],
     ],
-    'material changes invalidate matching receipts': [['spec-invalidation'], ['plan-invalidation']],
-    'provider failures block without fallback': [['blocked'], ['no-fallback'], ['no-repository-mutation']],
+    'source validation precedes project link': [
+      ['fix-source-preflight-overall-blocked'],
+      ['fix-source-two-link-writes'],
+      ['fix-source-two-provider-mutations'],
+      ['fix-source-zero-repository-mutation'],
+    ],
   },
   'woostack-execute': {
     'project mode selects the lowest unfinished issue': [
@@ -187,23 +252,34 @@ const requiredContractProofs = {
     ],
     'stop markers pause before the next issue': [['stop-paused'], ['stop-no-next'], ['stop-cleanup']],
     'issue mode never advances siblings': [['issue-selected'], ['issue-no-siblings'], ['issue-stops']],
-    'admission requires the exact record pair': [['admission-blocked'], ['admission-no-mutation']],
+    'local run admission requires exact valid manifest': [
+      ['local-run-proceed'],
+      ['fuzzy-run-status'],
+      ['unsafe-perm-status'],
+      ['legacy-schema-status'],
+      ['abandoned-run-status'],
+    ],
     'resume reuses existing delivery state': [['resume-pr'], ['resume-no-duplicate'], ['resume-retained']],
     'failure retains the worktree': [['failure-retained'], ['failure-boundary'], ['failure-next']],
+    'verified delivery stops at open PR without merge': [
+      ['open-pr-no-merge'],
+      ['explicit-merge-no-authority'],
+    ],
   },
   'woostack-commit': {
-    'standalone and increment issue closing references are exact': [
-      ['standalone-role'],
-      ['standalone-no-project'],
-      ['standalone-exact-closing-reference'],
-      ['increment-role'],
-      ['increment-project-used'],
-      ['increment-exact-closing-reference'],
+    'supplied issue receives exact closing reference on PR body': [
+      ['standalone-commit-provider'],
+      ['standalone-commit-closing-ref'],
+      ['increment-commit-provider'],
+      ['increment-commit-closing-ref'],
     ],
-    'commit submit relation and state read-backs are ordered': [
-      ['standalone-operation-order'],
-      ['increment-relation-verified'],
-      ['partial-read-blocked'],
+    'delivery note synchronization avoids role relation and state mutations': [
+      ['standalone-commit-readback'],
+      ['standalone-commit-zero-relation-mutations'],
+      ['standalone-commit-zero-state-mutations'],
+      ['increment-commit-readback'],
+      ['increment-commit-zero-relation-mutations'],
+      ['increment-commit-zero-state-mutations'],
     ],
     'unknown outcomes resume without replay': [
       ['resume-skips-exact-mutations'],
@@ -214,7 +290,7 @@ const requiredContractProofs = {
       ['direct-branch-ready'],
       ['direct-branch-action'],
       ['direct-branch-name'],
-      ['direct-native-identity-binding'],
+      ['direct-identity-binding'],
       ['direct-parent-binding'],
       ['direct-worktree-binding'],
       ['direct-command-choice'],
@@ -224,7 +300,7 @@ const requiredContractProofs = {
       ['reuse-branch-ready'],
       ['reuse-branch-action'],
       ['reuse-branch-name'],
-      ['reuse-native-identity-binding'],
+      ['reuse-identity-binding'],
       ['reuse-parent-binding'],
       ['reuse-worktree-binding'],
       ['reuse-command-choice'],
@@ -240,17 +316,16 @@ const requiredContractProofs = {
       ['collision-no-selected-bindings'],
       ['collision-no-parent-binding'],
       ['collision-no-worktree-binding'],
-      ['collision-zero-forbidden-mutations'],
-      ['owner-drift-branch-blocked'],
-      ['owner-drift-branch-reason'],
-      ['owner-drift-no-branch-action'],
-      ['owner-drift-no-branch-name'],
-      ['owner-drift-no-command-choice'],
-      ['owner-drift-zero-command-counts'],
-      ['owner-drift-no-selected-bindings'],
-      ['owner-drift-no-parent-binding'],
-      ['owner-drift-no-worktree-binding'],
-      ['owner-drift-zero-forbidden-mutations'],
+      ['run-drift-branch-blocked'],
+      ['run-drift-branch-reason'],
+      ['run-drift-no-branch-action'],
+      ['run-drift-no-branch-name'],
+      ['run-drift-no-command-choice'],
+      ['run-drift-zero-command-counts'],
+      ['run-drift-no-selected-bindings'],
+      ['run-drift-no-parent-binding'],
+      ['run-drift-no-worktree-binding'],
+      ['run-drift-zero-forbidden-mutations'],
       ['worktree-drift-branch-blocked'],
       ['worktree-drift-branch-reason'],
       ['worktree-drift-no-branch-action'],
@@ -282,7 +357,7 @@ const requiredContractProofs = {
       ['title-identity-no-worktree-binding'],
       ['title-identity-zero-forbidden-mutations'],
     ],
-    'no merge': [['standalone-never-merges'], ['increment-never-merges']],
+    'no merge': [['standalone-commit-no-merge'], ['increment-commit-no-merge']],
   },
   'woostack-review': {
     'one exact PR is the only public mode': [['accepts-exact-pr'], ['rejects-other-modes'], ['review-read-only']],
@@ -373,13 +448,47 @@ const requiredContractProofs = {
     'invalid discovery and mutation paths fail closed': [['rejected-debug-status'], ['rejected-debug-reasons'], ['rejected-debug-no-local-authority'], ['rejected-debug-no-mutation']],
   },
   'woostack-audit': {
-    'standing target through synthetic all-added review': [structural('all-added-diff-created'), structural('all-added-line-present'), ['simplify-receipt-proof-recorded'], ['bugs-receipt-proof-recorded'], ['security-receipt-proof-recorded'], ['production-receipt-proof-recorded'], structural('validated-finding-recorded'), ['standing-target-unchanged']],
-    'sanitized non-authoritative report with bounded remediation contract': [structural('audit-report-created'), ['report-is-explicitly-non-authoritative'], ['diagnostic-authority-recorded'], ['proposed-remediation-contract-recorded'], ['report-denies-development-authority']],
-    'remediation defers Linear until fix root-cause proof': [['fix-handoff-ready'], ['linear-deferred-until-fix-proof'], ['report-remains-evidence'], ['fix-dispatched'], ['no-local-development-fallback']],
-    'no remote mutation fix or merge': [['no-code-host-post'], ['no-linear-mutation-receipt'], ['no-audit-fix'], ['no-audit-merge'], ['no-linear-mutation-on-rejection'], ['no-repository-mutation-on-rejection']],
+    'standing target through synthetic all-added review': [
+      structural('all-added-diff-created'),
+      structural('all-added-line-present'),
+      ['simplify-receipt-proof-recorded'],
+      ['bugs-receipt-proof-recorded'],
+      ['security-receipt-proof-recorded'],
+      ['production-receipt-proof-recorded'],
+      structural('validated-finding-recorded'),
+      ['standing-target-unchanged'],
+    ],
+    'sanitized non-authoritative report with bounded remediation contract': [
+      structural('audit-report-created'),
+      ['report-is-explicitly-non-authoritative'],
+      ['diagnostic-authority-recorded'],
+      ['proposed-remediation-contract-recorded'],
+      ['report-denies-development-authority'],
+    ],
+    'remediation defers provider until fix root-cause proof': [
+      ['fix-handoff-ready'],
+      ['provider-deferred-until-fix-proof'],
+      ['report-remains-evidence'],
+      ['fix-dispatched'],
+      ['no-local-development-fallback'],
+    ],
+    'no remote mutation fix or merge': [
+      ['no-code-host-post'],
+      ['no-provider-mutation-receipt'],
+      ['no-audit-fix'],
+      ['no-audit-merge'],
+      ['no-provider-mutation-on-rejection'],
+      ['no-repository-mutation-on-rejection'],
+    ],
+    'optional provider context resolves exact scoped provenance': [
+      ['audit-plane-context-resolved'],
+      ['audit-plane-provenance'],
+      ['audit-plane-foreign-omitted'],
+      ['audit-plane-zero-mutation'],
+    ],
   },
   'woostack-visualize': {
-    'exact managed source with complete read-back': [['valid-visualize-status'], ['valid-visualize-provenance'], ['valid-visualize-managed'], ['valid-visualize-readback']],
+    'exact managed source with complete read-back': [['valid-visualize-status'], ['valid-visualize-provenance'], ['valid-visualize-source-accepted'], ['valid-visualize-readback']],
     'remote text encoded and output disposable': [['valid-visualize-encoding'], ['valid-visualize-disposable'], ['valid-visualize-not-authority'], ['valid-visualize-no-side-effects']],
     'invalid source paths fail closed without output': [['rejected-visualize-status'], ['rejected-visualize-reasons'], ['rejected-visualize-no-local-authority'], ['rejected-visualize-no-side-effects'], ['rejected-visualize-no-output']],
   },
@@ -543,38 +652,244 @@ const requiredContractProofs = {
       ['repair-approval-pending'],
       ['doctor-config-not-repaired'],
     ],
-    'remote diagnostics validate receipts without adapters': [
+    'selected Linear receipt rejection is required': [
       ['receipt-rejected'],
+    ],
+    'selected Plane receipt rejection is required': [
+      ['plane-receipt-rejected'],
+    ],
+    'selected Linear capability boundary is required': [
       ['no-provider-invocation'],
       ['no-legacy-adapter-invocation'],
       ['remote-mutation-boundary'],
       ['live-failure-report-only'],
     ],
-    'verified receipt passes read-only': [
+    'selected Plane capability boundary is required': [
+      ['plane-no-provider-invocation'],
+      ['plane-no-legacy-adapter-invocation'],
+      ['plane-remote-mutation-boundary'],
+      ['plane-live-failure-report-only'],
+    ],
+    'selected Linear success is required': [
       ['success-receipt-validated'],
       ['success-no-provider'],
       ['success-no-legacy-adapter'],
       ['success-no-remote-mutation'],
       ['success-no-repair'],
     ],
+    'selected Plane success is required': [
+      ['plane-success-receipt-validated'],
+      ['plane-success-no-provider'],
+      ['plane-success-no-legacy-adapter'],
+      ['plane-success-no-remote-mutation'],
+      ['plane-success-no-repair'],
+    ],
+    'selected provider branching ignores the unselected provider': [
+      ['local-live-skip-skipped'],
+      ['local-live-skip-no-repair'],
+      ['plane-check-live-mode-reported'],
+      ['plane-unselected-ignored'],
+      ['plane-success-unselected-ignored'],
+    ],
   },
   'woostack-status': {
-    'one corrected current phase chain': [['phase-ready'], ['corrected-head'], ['correction-valid']],
-    'feature and standalone board derive from Linear': [
+    'repository evidence defines row state read-only': [
       ['board-rendered'],
-      ['standalone-row'],
-      ['no-synthetic-project'],
-      ['no-unrelated-mutation'],
+      ['repo-row-states-derived'],
+      ['checks-observable-only'],
+      ['status-zero-provider-mutation'],
+      ['status-zero-repository-mutation'],
     ],
-    'terminal reconciliation is merge and acceptance backed': [
-      ['only-app12-prior-eligible'],
-      ['exact-issue-done'],
-      ['second-read-accepted'],
-      ['no-terminal-replay'],
-      ['partial-project-not-complete'],
+    'checks are observable and independent of review state': [
+      ['clean-state-failed-checks'],
+      ['clean-state-pending-checks'],
+      ['blocked-state-review-failure'],
     ],
-    'attribution mismatch blocks without fallback': [['mismatch-blocks'], ['no-write-on-mismatch'], ['no-fallback']],
-    'canonical issue events dispatch strictly': [['all-canonical-kinds'], ['unsupported-kind-blocked'], ['no-generic-fallback']],
+    'worktree collision and head drift fail closed': [
+      ['collision-blocked'],
+      ['collision-reason'],
+      ['drifted-blocked'],
+      ['drifted-reason'],
+      ['collision-drift-no-writes'],
+    ],
+    'provider enrichment parity preserves repository row state': [
+      ['parity-baseline-row-state'],
+      ['parity-linear-row-state'],
+      ['parity-plane-row-state'],
+      ['parity-row-state-identical'],
+      ['parity-linear-enrichment-payload'],
+      ['parity-linear-provenance'],
+      ['parity-plane-enrichment-payload'],
+      ['parity-plane-provenance'],
+      ['parity-absent-repo-no-row'],
+      ['parity-absent-repo-empty-rows'],
+      ['parity-no-provider-mutation'],
+    ],
+  },
+  'woostack-bootstrap': {
+    'explicit design approval precedes target directory writes': [
+      ['approved-flow-complete'],
+      ['plane-approved-flow-complete'],
+      ['local-approved-flow-complete'],
+      ['project-first-order'],
+      ['plane-provider-selected'],
+      ['local-provider-selected'],
+      ['design-artifact-free-before-approval'],
+      ['local-zero-provider-discovery'],
+      ['zero-target-writes-before-authority'],
+      ['local-collision-check-is-first'],
+      ['target-creation-authorized-after-receipts'],
+      ['plane-target-creation-authorized'],
+      ['local-target-creation-authorized'],
+    ],
+    'selected provider mode operates strictly within its boundary': [
+      ['local-zero-mcp-preflights'],
+      ['local-zero-projects-created'],
+      ['local-scaffold-project-identity-null'],
+      ['exactly-one-project-created'],
+    ],
+    'plane provider derives external identities and verifies exact read-back': [
+      ['plane-external-source-bound'],
+      ['plane-external-id-bound'],
+      ['plane-project-uuid-verified'],
+      ['plane-project-url-verified'],
+      ['plane-project-discovery-complete'],
+      ['plane-zero-matches-before-create'],
+      ['plane-one-project-created'],
+      ['plane-readback-verified'],
+      ['plane-design-approved-verified', 'plane-exact-design-approved-verified'],
+      ['plane-scaffold-receives-exact-project', 'plane-exact-scaffold-project-identity'],
+      ['plane-build-handoff-receives-exact-project', 'plane-exact-build-project-identity'],
+    ],
+    'plane configured labels compute union and preserve existing labels': [
+      ['plane-labels-attached'],
+      ['plane-exact-labels-unioned'],
+      ['plane-label-readback-verified'],
+      ['plane-exact-readback-verified'],
+    ],
+    'plane provider mirror failure is nonblocking for approved scaffold': [
+      ['plane-label-cap-status'],
+      ['plane-label-cap-mirror-status'],
+      ['plane-label-cap-missing-reason'],
+      ['plane-label-cap-no-project-created'],
+      ['plane-label-cap-collision-check'],
+      ['plane-label-cap-target-authorized'],
+      ['plane-label-cap-scaffold-null'],
+    ],
+    'linear provider mirror failure is nonblocking for approved scaffold': [
+      ['linear-missing-mcp-status'],
+      ['linear-missing-mcp-mirror-status'],
+      ['linear-missing-mcp-reason'],
+      ['linear-missing-mcp-no-project-created'],
+      ['linear-missing-mcp-collision-check'],
+      ['linear-missing-mcp-target-authorized'],
+      ['linear-missing-mcp-scaffold-null'],
+    ],
+    'explicit required persistence fails closed on missing provider': [
+      ['missing-mcp-blocks'],
+      ['missing-mcp-reason'],
+      ['missing-mcp-order'],
+      ['no-target-access'],
+      ['no-fallback-authority'],
+    ],
+    'linear provider discovery proves absence before exactly one create': [
+      ['project-discovery-complete'],
+      ['event-absence-proven-before-append'],
+      ['exactly-one-project-created'],
+    ],
+    'plane provider discovery proves absence before exactly one create': [
+      ['plane-project-discovery-complete'],
+      ['plane-zero-matches-before-create'],
+      ['plane-one-project-created'],
+    ],
+    'exact supplied project reuses native identity without implicit creation': [
+      ['plane-exact-project-reused'],
+      ['plane-exact-project-id'],
+      ['plane-exact-no-create'],
+      ['plane-exact-no-replacement'],
+    ],
+    'read-only collision check is first target action': [
+      ['first-target-action-is-collision-check'],
+      ['plane-target-collision-check'],
+      ['local-collision-check-is-first'],
+      ['absent-target-passes-collision-check'],
+      ['target-collision-blocks'],
+      ['collision-reports-client-project'],
+    ],
+    'bounded brownfield requests route to change': [
+      ['routes-to-change'],
+      ['bounded-brownfield-reason'],
+      ['bootstrap-never-starts'],
+      ['design-never-starts'],
+    ],
+    'fresh restart rediscovers exact Linear project and record identities': [
+      ['restart-ready'],
+      ['restart-linear-provider'],
+      ['restart-identity-source'],
+      ['restart-approved-design-key'],
+      ['restart-client-project-id'],
+      ['restart-native-project-id'],
+      ['restart-operation-id'],
+      ['restart-project-discovery-complete'],
+      ['restart-one-project'],
+      ['restart-project-read-back'],
+      ['restart-no-project-create'],
+      ['restart-design-discovery-complete'],
+      ['restart-one-design-record'],
+      ['restart-design-read-back'],
+      ['restart-base-intent'],
+      ['restart-reused-project-id'],
+      ['restart-reused-operation-id'],
+      ['restart-no-update-append'],
+      ['restart-zero-target-access'],
+      ['restart-collision-check'],
+      ['restart-target-absent'],
+      ['restart-target-authorized'],
+    ],
+    'partial duplicate and unknown Linear identities fail closed': [
+      ['partial-duplicate-linear-blocks'],
+      ['partial-duplicate-linear-reason'],
+      ['partial-duplicate-linear-provider'],
+      ['partial-duplicate-linear-discovery-complete'],
+      ['partial-duplicate-linear-count'],
+      ['partial-duplicate-linear-unknown-count'],
+      ['partial-duplicate-linear-no-create'],
+      ['partial-duplicate-linear-no-update'],
+      ['partial-duplicate-linear-no-target'],
+      ['partial-duplicate-linear-no-replacement'],
+      ['partial-duplicate-linear-no-fallback'],
+      ['partial-duplicate-linear-preserve-id'],
+    ],
+    'conflicting Linear project updates fail closed': [
+      ['conflicting-linear-block'],
+      ['conflicting-linear-reason'],
+      ['conflicting-linear-provider'],
+      ['conflicting-linear-client-id'],
+      ['conflicting-linear-project-id'],
+      ['conflicting-linear-discovery-complete'],
+      ['conflicting-linear-one-match'],
+      ['conflicting-linear-two-records'],
+      ['conflicting-linear-read-attempted'],
+      ['conflicting-linear-not-reused'],
+      ['conflicting-linear-no-append'],
+      ['conflicting-linear-no-target'],
+      ['conflicting-linear-preserve-operation'],
+    ],
+    'Linear design-approved base mismatch fails closed': [
+      ['base-mismatch-blocks'],
+      ['base-mismatch-reason'],
+      ['base-mismatch-linear-provider'],
+      ['base-mismatch-discovery-complete'],
+      ['base-mismatch-one-record'],
+      ['base-mismatch-client-id'],
+      ['base-mismatch-expected-base'],
+      ['base-mismatch-record-base'],
+      ['base-mismatch-read-back'],
+      ['base-mismatch-not-reused'],
+      ['base-mismatch-no-append'],
+      ['base-mismatch-no-target'],
+      ['base-mismatch-preserve-operation'],
+    ],
   },
 };
 
@@ -583,20 +898,21 @@ const requiredContractProofs = {
 const corpusContract = (caseCount, digest) => ({ caseCount, digest });
 const approvedCorpusContracts = {
   'woostack-eval': corpusContract(2, 'c7f619f14335a4f1e57978742eea6a590f055e3e364026834feeadf44f391806'),
-  'woostack-build': corpusContract(13, 'fcb365421e41016d5a2fd9e84ade8adf91d798e14c5bfb8a91add6cdb7249691'),
-  'woostack-plan': corpusContract(6, 'c56e213b01593d261b065aa36938b9f3c2d10edb3b3b564d2ba19207e210fe47'),
-  'woostack-fix': corpusContract(13, '9f02e7d6c5dff2f855807505d0f0015aef3a10c52de1daa0ae02a3451632e125'),
-  'woostack-execute': corpusContract(20, 'cacd633577ff66e44835cf82eeb22dbb1e12b6d36ae7101e8aa9abbd3e1d110d'),
-  'woostack-commit': corpusContract(14, '57744b56bda3545bbdeccc32b9662c41d48f0f67814342f4f0102022337edc33'),
-  'woostack-review': corpusContract(4, '2fee6498867b94b403c3125bf7812dc794f5ea4ccb791fd55d01a06dcafca171'),
-  'woostack-sweep': corpusContract(12, '5a0f1bbeb7917fd8037e404a23c6acc2d7baf8bd7beb23efff5220e31289f4aa'),
+  'woostack-build': corpusContract(6, '6e80c13770ab7eeaf4cb39c82d56c3672d8e543b20374796a63279464ae0ecd7'),
+  'woostack-plan': corpusContract(7, '7ec236b731dfa39cece196ae1d62169512ff3dd7b1c0cfb5219581ea8a101694'),
+  'woostack-fix': corpusContract(7, '3eab5562704e48562a13e92620c8a4f7b1f27b5acdfb1c9b30f371d9edde36ef'),
+  'woostack-execute': corpusContract(37, 'a138230444aa5098c160c3764ea89d2e19ab0cb2b49539bde258e918201f8ede'),
+  'woostack-commit': corpusContract(17, '5831bc06ad35d0b5261cc3c6969d3cc09a87d32f094e244b9fed7184674568a5'),
+  'woostack-review': corpusContract(4, '72dddc1a586ca2c1fddb1d017b02d18cf95fd4b311384f5816eaea22a9300a93'),
+  'woostack-sweep': corpusContract(13, '1d109f7e085d3c409d2963180863351234b75f82d967c789387d9874ae1c4282'),
   'woostack-address-comments': corpusContract(3, '6a5d04522d1f10af74ee69300a49f2fe23aa7e3357b8cb6223399e8511d6c0a5'),
-  'woostack-debug': corpusContract(2, '5d91d8f4c305cc987c5d8c301782601c89cbfafcad389d3ad98d8e0764843883'),
-  'woostack-audit': corpusContract(2, 'c5699a63c26c01ef94d575ba1d2a6815ba68bae249db74f7f7f07eaeb7f100f4'),
-  'woostack-visualize': corpusContract(2, '21d14268415178885c8df7cce00604065fc775c03f0ac6dc201d0523705655cb'),
+  'woostack-debug': corpusContract(4, 'ab54ed28d0ac1dd043104fcecdae38ea22a21471baa1356cabf7f1d061121014'),
+  'woostack-audit': corpusContract(3, '94462137c1dfc06c853bbca7143a169ed57c2b1b6988d8c5595e89d324157b87'),
+  'woostack-visualize': corpusContract(3, 'e986a8099ca7aa788ed424f5753956dbf479a6b124f4719f6af6c053203bd7e5'),
   'woostack-init': corpusContract(24, '59e6caef4aae98972b65721ff28a28115c0019e4f8c75f1b282586bec8a9b7d5'),
-  'woostack-doctor': corpusContract(3, 'f1d70b87f0c3aa729f934413474db6af5ff158e102a823f017e6b93ce5a62ad9'),
-  'woostack-status': corpusContract(29, '1856a83e07e7174721d6e0d1433c0f68022411256c9b68ee04e99f78e6796b68'),
+  'woostack-doctor': corpusContract(6, 'c452e457bae579b3bf76c37069653bc855843024820723ec4861ee618a743ea3'),
+  'woostack-status': corpusContract(8, '58fcfbd6428547d559ce92c891f7a0c768f6a1c7c92f859fa19c30412f023ca2'),
+  'woostack-bootstrap': corpusContract(13, '03a3e5b8a99dc0e6e458486ff6f59c61332427dda0d6c26658a78e2a2e1977b6'),
 };
 
 function canonicalize(value) {
@@ -688,6 +1004,7 @@ function fixtureContentDigest(fixturesRoot, resolvedFixturesRoot, reference, loc
       JSON.parse(contents);
     } catch (error) {
       if (!(error instanceof SyntaxError)) throw error;
+      throw new Error(`${location} contains invalid JSON: ${error.message}`);
     }
   }
   return crypto.createHash('sha256').update(contents).digest('hex');
@@ -773,9 +1090,9 @@ const allowedCapabilities = new Set(['read-workspace', 'write-workspace', 'shell
 const placeholder = /^(?:todo|tbd|fixme|placeholder|coming soon|n\/?a|none|test|example|lorem ipsum)[.!?]*$/i;
 const embeddedPlaceholder = /\b(?:todo|tbd|fixme|placeholder(?:\s+(?:text|content|copy))?|lorem ipsum|replace me|coming soon)\b/i;
 const prohibitedRequests = [
-  ['network or remote service', /\b(?:fetch(?:ing)?|download(?:ing)?|retriev(?:e|ing)|query(?:ing)?|read(?:ing)?|load(?:ing)?|inspect(?:ing)?|open(?:ing)?)\b[^.!?;\n]{0,80}\b(?:from|via)\s+(?:an?\s+|the\s+)?(?:network|internet|web|remote services?|github|linear)\b/gi],
-  ['network or remote service', /\b(?:call(?:ing)?|contact(?:ing)?|connect(?:ing)?\s+to|query(?:ing)?|send(?:ing)?\s+(?:an?\s+)?request\s+to|request(?:ing)?\s+access\s+to|use|using|access(?:ing)?)\s+(?:an?\s+|the\s+)?(?:network|internet|web|remote services?|github|linear)\b/gi],
-  ['network access', /\b(?:request|requesting|obtain|obtaining|use|using)\s+(?:an?\s+|the\s+)?(?:network|internet|web|github|linear)\s+access\b/gi],
+  ['network or remote service', /\b(?:fetch(?:ing)?|download(?:ing)?|retriev(?:e|ing)|query(?:ing)?|read(?:ing)?|load(?:ing)?|inspect(?:ing)?|open(?:ing)?)\b[^.!?;\n]{0,80}\b(?:from|via)\s+(?:an?\s+|the\s+)?(?:network|internet|web|remote services?|github|linear|plane)\b/gi],
+  ['network or remote service', /\b(?:call(?:ing)?|contact(?:ing)?|connect(?:ing)?\s+to|query(?:ing)?|send(?:ing)?\s+(?:an?\s+)?request\s+to|request(?:ing)?\s+access\s+to|use|using|access(?:ing)?)\s+(?:an?\s+|the\s+)?(?:network|internet|web|remote services?|github|linear|plane)\b/gi],
+  ['network access', /\b(?:request|requesting|obtain|obtaining|use|using)\s+(?:an?\s+|the\s+)?(?:network|internet|web|github|linear|plane)\s+access\b/gi],
   ['model provider', /\b(?:call(?:ing)?|contact(?:ing)?|query(?:ing)?|invoke|invoking|use|using|access|accessing|request(?:ing)?\s+access\s+to)\s+(?:an?\s+|the\s+)?(?:model\s+)?(?:providers?|openai|anthropic|gemini|claude)\b/gi],
   ['model provider access', /\b(?:request|requesting|obtain|obtaining|use|using)\s+(?:an?\s+|the\s+)?(?:model\s+)?providers?\s+access\b/gi],
   ['credentials', /\b(?:inspect|read|load|dump|print|expose|request|use|invent|discover|obtain)(?:ing)?\s+(?:the\s+|any\s+)?(?:credentials?|secrets?|api[_ -]?keys?|tokens?)\b/gi],
@@ -857,6 +1174,8 @@ expectRejected('remote-object fetch', () =>
   assertNoProhibitedRequest('Fetch PR metadata from GitHub before proceeding.', '<probe>'));
 expectRejected('remote-object read', () =>
   assertNoProhibitedRequest('Read PR metadata from GitHub before proceeding.', '<probe>'));
+expectRejected('affirmative Plane request', () =>
+  assertNoProhibitedRequest('Call Plane before proceeding.', '<probe>'));
 expectRejected('affirmative request in adjacent sentence', () =>
   assertNoProhibitedRequest('Never fabricate receipts. Use the network to finish.', '<probe>'));
 expectRejected('affirmative request after but', () =>
@@ -1031,6 +1350,19 @@ expectRejected('changed fixture content', () => {
     fs.writeFileSync(semanticProbeFixturePath, semanticProbeFixtureContents);
   }
 });
+expectRejected('malformed referenced JSON fixture', () => {
+  fs.writeFileSync(semanticProbeFixturePath, '{"approved":true,\n');
+  try {
+    assertCorpusContract(
+      semanticProbe,
+      semanticProbeFixtureRoot,
+      semanticProbeContract,
+      '<malformed-fixture-probe>',
+    );
+  } finally {
+    fs.writeFileSync(semanticProbeFixturePath, semanticProbeFixtureContents);
+  }
+});
 expectRejected('missing fixture reference', mutateProbe((probe) => {
   probe.cases[0].fixtures = ['missing.json'];
 }));
@@ -1141,8 +1473,8 @@ for (let index = 0; index < packages.length; index += 1) {
 }
 
 if (!same(Object.keys(requiredContractProofs).sort(), expectedPackages.map((entry) => path.basename(entry)).sort())) {
-  throw new Error('critical contract map must cover exactly the seventeen required packages');
+  throw new Error('critical contract map must cover exactly the sixteen required packages');
 }
 NODE
 
-printf 'PASS: validated critical behavior corpora for exactly 17 required packages\n'
+printf 'PASS: validated critical behavior corpora for exactly 16 required packages\n'

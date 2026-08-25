@@ -1,22 +1,28 @@
 {
   "scenarios": [
     {
-      "id": "local-spec-only",
+      "id": "loose-legacy-spec-path",
       "localSpecification": ".woostack/specs/cache.md",
-      "exactProject": null,
-      "validatedDefaults": null
+      "retainedLocalRun": null,
+      "providerArtifact": null,
+      "conversationApproval": null
     },
     {
-      "id": "linear-document-only",
-      "linearDocumentId": "document-cache-plan",
-      "exactProject": null,
-      "validatedDefaults": null
+      "id": "provider-document-alone",
+      "localSpecification": null,
+      "retainedLocalRun": null,
+      "providerArtifact": {
+        "kind": "document",
+        "id": "document-cache-plan"
+      },
+      "conversationApproval": null
     },
     {
-      "id": "conversation-only-approval",
-      "nativeProjectRef": "project-build-45",
-      "conversationApproval": "looks good",
-      "nativeApprovalEvent": null
+      "id": "conversation-approval-without-retained-run",
+      "localSpecification": null,
+      "retainedLocalRun": null,
+      "providerArtifact": null,
+      "conversationApproval": "looks good"
     }
   ]
 }

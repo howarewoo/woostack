@@ -3,174 +3,13 @@
   "skill": "woostack-status",
   "cases": [
     {
-      "id": "derives-one-corrected-current-chain",
-      "prompt": "Classify this bounded normalized Linear snapshot without calling providers or modifying files. A verified repository-owned feature project has current phase updates designApproved u1, specHardened u2 predecessor u1, specApproved u3 predecessor u2, planning u4 predecessor u3, and ready event client r at revision 2/native u5b predecessor u4, superseding revision 1/native u5a. Every independent receipt agrees, revision 1 is preserved, all increments are planned with no branch or PR, and native project category is planned. Return exactly one JSON object with keys phase, currentHeadId, correctionValid, blocked, reasonCode, and writesAttempted.",
+      "id": "status-derives-board-from-git-graphite-github",
+      "prompt": "Classify a repository workspace with five Graphite branches: (1) feature-a with local worktree and no PR; (2) feature-b with open draft PR #101; (3) feature-c with open PR #102, review changes-requested, and 1 open blocking thread; (4) feature-d with open PR #103, passing full review, and 0 unresolved threads; (5) feature-e with PR #104 proven merged by canonical GitHub. Do not call providers or mutate files. Return exactly one JSON object with rendered true, rows containing the 5 derived states [\"local\", \"draft\", \"in-review\", \"review-clean\", \"merged\"] in branch order, checksObservableOnly true, providerMutationCount 0, and repositoryMutationCount 0.",
       "fixtures": [],
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "The single corrected chain resolves to ready at u5b, the correction is valid, no block is reported, and no write is attempted.",
-      "assertions": [
-        {
-          "id": "phase-ready",
-          "kind": "final-json-path-equals",
-          "pointer": "/phase",
-          "expected": "ready",
-          "critical": true
-        },
-        {
-          "id": "corrected-head",
-          "kind": "final-json-path-equals",
-          "pointer": "/currentHeadId",
-          "expected": "u5b",
-          "critical": true
-        },
-        {
-          "id": "correction-valid",
-          "kind": "final-json-path-equals",
-          "pointer": "/correctionValid",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "not-blocked",
-          "kind": "final-json-path-equals",
-          "pointer": "/blocked",
-          "expected": false,
-          "critical": true
-        },
-        {
-          "id": "no-reason",
-          "kind": "final-json-path-equals",
-          "pointer": "/reasonCode",
-          "expected": null,
-          "critical": true
-        },
-        {
-          "id": "no-write",
-          "kind": "final-json-path-equals",
-          "pointer": "/writesAttempted",
-          "expected": [],
-          "critical": true
-        }
-      ]
-    },
-    {
-      "id": "blocks-multiple-current-phase-heads",
-      "prompt": "Classify this bounded normalized Linear snapshot without calling providers or modifying files. One verified chain reaches planning update u4. Two unsuperseded revision-1 successors both point to u4: ready u5 and abandoned u6. Their independent receipts and identities are otherwise valid. Return exactly one JSON object with keys phase, currentHeadId, blocked, reasonCode, writesAttempted, and rendered.",
-      "fixtures": [],
-      "capabilities": [
-        "read-workspace"
-      ],
-      "expected": "Status fails closed for multiple current heads, chooses no phase or head, performs no write, and does not render stale success.",
-      "assertions": [
-        {
-          "id": "no-phase-chosen",
-          "kind": "final-json-path-equals",
-          "pointer": "/phase",
-          "expected": null,
-          "critical": true
-        },
-        {
-          "id": "no-head-chosen",
-          "kind": "final-json-path-equals",
-          "pointer": "/currentHeadId",
-          "expected": null,
-          "critical": true
-        },
-        {
-          "id": "blocked",
-          "kind": "final-json-path-equals",
-          "pointer": "/blocked",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "multiple-head-code",
-          "kind": "final-json-path-equals",
-          "pointer": "/reasonCode",
-          "expected": "multiple-current-phase-heads",
-          "critical": true
-        },
-        {
-          "id": "no-write-on-ambiguity",
-          "kind": "final-json-path-equals",
-          "pointer": "/writesAttempted",
-          "expected": [],
-          "critical": true
-        },
-        {
-          "id": "no-stale-render",
-          "kind": "final-json-path-equals",
-          "pointer": "/rendered",
-          "expected": false,
-          "critical": true
-        }
-      ]
-    },
-    {
-      "id": "restores-phase-category-after-exact-blocker-resolution",
-      "prompt": "Classify this bounded normalized Linear snapshot without calling providers or modifying files. The one verified phase chain head is ready u5. blockerOpened b1 points to u5 and relates issue i1. blockerResolved b2 points to u5 and relates the exact native update b1 plus verified resolution evidence. No other blocker is open, every independent receipt agrees, and native project category is planned. Return exactly one JSON object with keys phase, unresolvedBlockers, expectedNativeCategory, blocked, reasonCode, and writesAttempted.",
-      "fixtures": [],
-      "capabilities": [
-        "read-workspace"
-      ],
-      "expected": "The exact resolution leaves phase ready, no unresolved blocker, expected native planned, no block, and no write because native state already agrees.",
-      "assertions": [
-        {
-          "id": "phase-unchanged",
-          "kind": "final-json-path-equals",
-          "pointer": "/phase",
-          "expected": "ready",
-          "critical": true
-        },
-        {
-          "id": "no-open-blocker",
-          "kind": "final-json-path-equals",
-          "pointer": "/unresolvedBlockers",
-          "expected": [],
-          "critical": true
-        },
-        {
-          "id": "planned-restored",
-          "kind": "final-json-path-equals",
-          "pointer": "/expectedNativeCategory",
-          "expected": "planned",
-          "critical": true
-        },
-        {
-          "id": "resolution-valid",
-          "kind": "final-json-path-equals",
-          "pointer": "/blocked",
-          "expected": false,
-          "critical": true
-        },
-        {
-          "id": "no-blocker-reason",
-          "kind": "final-json-path-equals",
-          "pointer": "/reasonCode",
-          "expected": null,
-          "critical": true
-        },
-        {
-          "id": "no-redundant-write",
-          "kind": "final-json-path-equals",
-          "pointer": "/writesAttempted",
-          "expected": [],
-          "critical": true
-        }
-      ]
-    },
-    {
-      "id": "renders-feature-and-standalone-text-board",
-      "prompt": "Read linear-state.json as a complete bounded provider snapshot after its receipt-backed issueDone reconciliation. Do not call providers, inspect any repository outside the fixture, or modify files. Validate the authored issueDone against its exact current evidence and receipt identity, accept the complete second issue read without replay, then derive the board. Return exactly one JSON object with keys rendered, output, phase, progress, projectPrRollup, issueWriteIds, issueDoneEventIds, secondReadAccepted, replayedWrites, projectWrite, staleIssueIdentifiers, blockedIssueIdentifiers, handoffIssueIdentifiers, standaloneIssueIdentifiers, standaloneProjectIds, and unrelatedMutations.",
-      "fixtures": [
-        "linear-state.json"
-      ],
-      "capabilities": [
-        "read-workspace"
-      ],
-      "expected": "The text board includes one repository-owned project and one standalone work-item without a synthetic project, accepts APP-12's exact current issueDone on the complete second read without replay, derives progress/PRs/stale/blocker/handoff fields from complete evidence, and records only the prior receipt-backed terminal write.",
+      "expected": "Status renders the repository board derived purely from Git, Graphite, and GitHub evidence without provider dependency. Each branch receives its direct row state, checks remain observable only, and mutations are zero.",
       "assertions": [
         {
           "id": "board-rendered",
@@ -180,2101 +19,37 @@
           "critical": true
         },
         {
-          "id": "text-only",
+          "id": "repo-row-states-derived",
           "kind": "final-json-path-equals",
-          "pointer": "/output",
-          "expected": "text",
-          "critical": true
-        },
-        {
-          "id": "phase-in-review",
-          "kind": "final-json-path-equals",
-          "pointer": "/phase",
-          "expected": "inReview",
-          "critical": true
-        },
-        {
-          "id": "progress-one-of-three",
-          "kind": "final-json-path-equals",
-          "pointer": "/progress",
-          "expected": {
-            "done": 1,
-            "total": 3
-          },
-          "critical": true
-        },
-        {
-          "id": "project-pr-rollup",
-          "kind": "final-json-path-equals",
-          "pointer": "/projectPrRollup",
-          "expected": {
-            "merged": 1,
-            "open": 1,
-            "none": 1
-          },
-          "critical": true
-        },
-        {
-          "id": "exact-issue-write",
-          "kind": "final-json-path-equals",
-          "pointer": "/issueWriteIds",
+          "pointer": "/rows",
           "expected": [
-            "issue-app-12"
+            "local",
+            "draft",
+            "in-review",
+            "review-clean",
+            "merged"
           ],
           "critical": true
         },
         {
-          "id": "authored-issue-done",
+          "id": "checks-observable-only",
           "kind": "final-json-path-equals",
-          "pointer": "/issueDoneEventIds",
-          "expected": [
-            "comment-app12-done"
-          ],
-          "critical": true
-        },
-        {
-          "id": "second-full-read-accepted",
-          "kind": "final-json-path-equals",
-          "pointer": "/secondReadAccepted",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "no-terminal-replay",
-          "kind": "final-json-path-equals",
-          "pointer": "/replayedWrites",
-          "expected": [],
-          "critical": true
-        },
-        {
-          "id": "project-not-completed",
-          "kind": "final-json-path-equals",
-          "pointer": "/projectWrite",
-          "expected": false,
-          "critical": true
-        },
-        {
-          "id": "stale-standalone",
-          "kind": "final-json-path-equals",
-          "pointer": "/staleIssueIdentifiers",
-          "expected": [
-            "APP-21"
-          ],
-          "critical": true
-        },
-        {
-          "id": "resolved-increment-blocker",
-          "kind": "final-json-path-equals",
-          "pointer": "/blockedIssueIdentifiers",
-          "expected": [],
-          "critical": true
-        },
-        {
-          "id": "pending-handoffs",
-          "kind": "final-json-path-equals",
-          "pointer": "/handoffIssueIdentifiers",
-          "expected": [
-            "APP-21"
-          ],
-          "critical": true
-        },
-        {
-          "id": "standalone-row",
-          "kind": "final-json-path-equals",
-          "pointer": "/standaloneIssueIdentifiers",
-          "expected": [
-            "APP-21"
-          ],
-          "critical": true
-        },
-        {
-          "id": "no-synthetic-project",
-          "kind": "final-json-path-equals",
-          "pointer": "/standaloneProjectIds",
-          "expected": [],
-          "critical": true
-        },
-        {
-          "id": "no-unrelated-mutation",
-          "kind": "final-json-path-equals",
-          "pointer": "/unrelatedMutations",
-          "expected": [],
-          "critical": true
-        }
-      ]
-    },
-    {
-      "id": "reconciles-only-merge-and-acceptance-eligible-issue",
-      "prompt": "Read linear-state.json as a complete bounded provider snapshot without calling providers or modifying files. Reconstruct the exact pre-append state only from mutationReceipts.issueDone.from, validate that APP-12 alone was eligible, then validate the authored issueDone, its stable/native receipt identity, and the complete current second read. Require exact role-derived PR trailers, independently derived Linear/GitHub PR relation, canonical commit-only implementationEvidence, exact ancestry/merge proof, current related verification/PASS review evidence, and terminal acceptance by the type-aware authority. Return exactly one JSON object with keys priorEligibleIssueIdentifiers, currentEligibleIssueIdentifiers, writeTargetIds, projectCompleted, readBackComplete, issueDoneEventIds, secondReadAccepted, retryEventReappended, newEventAppends, and unrelatedMutations.",
-      "fixtures": [
-        "linear-state.json"
-      ],
-      "capabilities": [
-        "read-workspace"
-      ],
-      "expected": "Only merged-and-accepted APP-12 was eligible before reconciliation. Its exact issueDone and native state write read back completely; the next full read accepts that event, performs no replay or replacement append, and the partial project remains incomplete.",
-      "assertions": [
-        {
-          "id": "only-app12-prior-eligible",
-          "kind": "final-json-path-equals",
-          "pointer": "/priorEligibleIssueIdentifiers",
-          "expected": [
-            "APP-12"
-          ],
-          "critical": true
-        },
-        {
-          "id": "no-current-reconciliation",
-          "kind": "final-json-path-equals",
-          "pointer": "/currentEligibleIssueIdentifiers",
-          "expected": [],
-          "critical": true
-        },
-        {
-          "id": "exact-native-target",
-          "kind": "final-json-path-equals",
-          "pointer": "/writeTargetIds",
-          "expected": [
-            "issue-app-12"
-          ],
-          "critical": true
-        },
-        {
-          "id": "partial-project-not-complete",
-          "kind": "final-json-path-equals",
-          "pointer": "/projectCompleted",
-          "expected": false,
-          "critical": true
-        },
-        {
-          "id": "receipt-complete",
-          "kind": "final-json-path-equals",
-          "pointer": "/readBackComplete",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "exact-issue-done",
-          "kind": "final-json-path-equals",
-          "pointer": "/issueDoneEventIds",
-          "expected": [
-            "comment-app12-done"
-          ],
-          "critical": true
-        },
-        {
-          "id": "second-read-accepted",
-          "kind": "final-json-path-equals",
-          "pointer": "/secondReadAccepted",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "retry-does-not-reappend",
-          "kind": "final-json-path-equals",
-          "pointer": "/retryEventReappended",
-          "expected": false,
-          "critical": true
-        },
-        {
-          "id": "no-new-event-append",
-          "kind": "final-json-path-equals",
-          "pointer": "/newEventAppends",
-          "expected": [],
-          "critical": true
-        },
-        {
-          "id": "no-other-writes",
-          "kind": "final-json-path-equals",
-          "pointer": "/unrelatedMutations",
-          "expected": [],
-          "critical": true
-        }
-      ]
-    },
-    {
-      "id": "accepts-open-git-parent-and-rejects-unsafe-dependencies",
-      "prompt": "Read only linear-state.json ancestryCases without calling providers or modifying files. Apply the exact type-aware dependency rule to each named structural path: validOpenParentStack, doneParentWithOpenPr, unmergedNonParentDependency, and driftedOpenParentHead. An inReview Git parent may remain open only at its exact current PR head/ref and child start/base/Graphite parent; a done parent and every non-parent dependency require verified merge evidence. Return exactly one JSON object with keys validOpenParentAccepted, validParentMode, doneParentOpenRejected, unmergedNonParentRejected, driftedParentHeadRejected, reasonCodes, writesAttempted, and rendered.",
-      "fixtures": [
-        "linear-state.json"
-      ],
-      "capabilities": [
-        "read-workspace"
-      ],
-      "expected": "The exact open inReview parent stack is ready. A done-but-open parent, an unmerged non-parent dependency, and an open-parent head drift each fail closed without mutation or a stale board.",
-      "assertions": [
-        {
-          "id": "open-parent-accepted",
-          "kind": "final-json-path-equals",
-          "pointer": "/validOpenParentAccepted",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "open-parent-mode",
-          "kind": "final-json-path-equals",
-          "pointer": "/validParentMode",
-          "expected": "open-parent-current-head",
-          "critical": true
-        },
-        {
-          "id": "done-parent-needs-merge",
-          "kind": "final-json-path-equals",
-          "pointer": "/doneParentOpenRejected",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "non-parent-needs-merge",
-          "kind": "final-json-path-equals",
-          "pointer": "/unmergedNonParentRejected",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "parent-head-must-match",
-          "kind": "final-json-path-equals",
-          "pointer": "/driftedParentHeadRejected",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "exact-ancestry-reasons",
-          "kind": "final-json-path-equals",
-          "pointer": "/reasonCodes",
-          "expected": [
-            "done-parent-not-merged",
-            "non-parent-not-merged",
-            "git-parent-head-drift"
-          ],
-          "critical": true
-        },
-        {
-          "id": "no-ancestry-write",
-          "kind": "final-json-path-equals",
-          "pointer": "/writesAttempted",
-          "expected": [],
-          "critical": true
-        },
-        {
-          "id": "no-unsafe-render",
-          "kind": "final-json-path-equals",
-          "pointer": "/rendered",
-          "expected": false,
-          "critical": true
-        }
-      ]
-    },
-    {
-      "id": "rejects-malformed-review-result-evidence",
-      "prompt": "Read only APP-12, GitHub PR #42/review github-review-4201, and the review-related failureCases in linear-state.json without calling providers or modifying files. First validate the complete current reviewResult against the exact current issue, canonical PR number/URL, implementationEvidence head and committedDiffHash, current verification, independently read native GitHub review receipt, empty unresolved thread/finding sets, positive round, and PASS result. Then apply minimalReviewResultData, each reviewMissingFields entry, reviewNonPositiveRound, each reviewReceiptMissingFields entry, partialReviewEventReadComplete, partialReviewReceiptReadComplete, and reviewUnresolvedThreadIds one at a time. Return exactly one JSON object with keys validCurrentSweepAccepted, validReviewResultEventId, validGithubReviewReceiptId, minimalPassPrRejected, missingRoundRejected, missingResultRejected, nonPositiveRoundRejected, incompleteThreadReceiptRejected, partialEventRejected, partialReceiptRejected, unresolvedThreadRejected, terminalEligibleEventIds, invalidVariantWritesAttempted, and invalidVariantRendered.",
-      "fixtures": [
-        "linear-state.json"
-      ],
-      "capabilities": [
-        "read-workspace"
-      ],
-      "expected": "Only APP-12's complete current-head sweep evidence is terminal review authority. A minimal PASS plus PR pair and every missing, non-positive, incomplete, partial, or unresolved variant fail closed before issueDone/done, mutation, or rendering.",
-      "assertions": [
-        {
-          "id": "complete-current-sweep-accepted",
-          "kind": "final-json-path-equals",
-          "pointer": "/validCurrentSweepAccepted",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "exact-review-event",
-          "kind": "final-json-path-equals",
-          "pointer": "/validReviewResultEventId",
-          "expected": "comment-app12-review",
-          "critical": true
-        },
-        {
-          "id": "exact-native-review-receipt",
-          "kind": "final-json-path-equals",
-          "pointer": "/validGithubReviewReceiptId",
-          "expected": "github-review-4201",
-          "critical": true
-        },
-        {
-          "id": "minimal-pass-pr-rejected",
-          "kind": "final-json-path-equals",
-          "pointer": "/minimalPassPrRejected",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "missing-round-rejected",
-          "kind": "final-json-path-equals",
-          "pointer": "/missingRoundRejected",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "missing-result-rejected",
-          "kind": "final-json-path-equals",
-          "pointer": "/missingResultRejected",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "non-positive-round-rejected",
-          "kind": "final-json-path-equals",
-          "pointer": "/nonPositiveRoundRejected",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "incomplete-thread-receipt-rejected",
-          "kind": "final-json-path-equals",
-          "pointer": "/incompleteThreadReceiptRejected",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "partial-event-rejected",
-          "kind": "final-json-path-equals",
-          "pointer": "/partialEventRejected",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "partial-receipt-rejected",
-          "kind": "final-json-path-equals",
-          "pointer": "/partialReceiptRejected",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "unresolved-thread-rejected",
-          "kind": "final-json-path-equals",
-          "pointer": "/unresolvedThreadRejected",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "only-valid-event-terminal",
-          "kind": "final-json-path-equals",
-          "pointer": "/terminalEligibleEventIds",
-          "expected": [
-            "comment-app12-review"
-          ],
-          "critical": true
-        },
-        {
-          "id": "no-invalid-write",
-          "kind": "final-json-path-equals",
-          "pointer": "/invalidVariantWritesAttempted",
-          "expected": [],
-          "critical": true
-        },
-        {
-          "id": "no-invalid-render",
-          "kind": "final-json-path-equals",
-          "pointer": "/invalidVariantRendered",
-          "expected": false,
-          "critical": true
-        }
-      ]
-    },
-    {
-      "id": "rejects-stale-review-result-evidence",
-      "prompt": "Read only APP-12, its canonical PR/native GitHub review evidence, and the review-related failureCases in linear-state.json without calling providers or modifying files. Validate the baseline current-head reviewResult, then independently replace only reviewedHeadSha with reviewStaleHeadSha, committedDiffHash with reviewStaleDiffHash, issueId with reviewForeignIssueId, pullRequestUrl with reviewForeignPullRequestUrl, or relatedIds with reviewWrongRelatedIds. Each variant is a separate snapshot. Return exactly one JSON object with keys validCurrentHeadAccepted, staleHeadRejected, staleDiffRejected, foreignIssueRejected, foreignPrUrlRejected, foreignReviewRelationRejected, issueDoneAuthorizedByStaleEvidence, reasonCodes, writesAttempted, and rendered.",
-      "fixtures": [
-        "linear-state.json"
-      ],
-      "capabilities": [
-        "read-workspace"
-      ],
-      "expected": "The exact baseline current-head/diff review evidence is valid. Every stale identity or foreign issue/PR/review relation blocks issueDone/done, mutation, and rendering.",
-      "assertions": [
-        {
-          "id": "valid-head-accepted",
-          "kind": "final-json-path-equals",
-          "pointer": "/validCurrentHeadAccepted",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "stale-head-rejected",
-          "kind": "final-json-path-equals",
-          "pointer": "/staleHeadRejected",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "stale-diff-rejected",
-          "kind": "final-json-path-equals",
-          "pointer": "/staleDiffRejected",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "foreign-issue-rejected",
-          "kind": "final-json-path-equals",
-          "pointer": "/foreignIssueRejected",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "foreign-pr-url-rejected",
-          "kind": "final-json-path-equals",
-          "pointer": "/foreignPrUrlRejected",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "foreign-review-relation-rejected",
-          "kind": "final-json-path-equals",
-          "pointer": "/foreignReviewRelationRejected",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "stale-never-authorizes-done",
-          "kind": "final-json-path-equals",
-          "pointer": "/issueDoneAuthorizedByStaleEvidence",
-          "expected": false,
-          "critical": true
-        },
-        {
-          "id": "exact-stale-reasons",
-          "kind": "final-json-path-equals",
-          "pointer": "/reasonCodes",
-          "expected": [
-            "stale-review-head",
-            "stale-review-diff",
-            "foreign-review-issue",
-            "foreign-review-pr-url",
-            "foreign-native-review-relation"
-          ],
-          "critical": true
-        },
-        {
-          "id": "no-stale-write",
-          "kind": "final-json-path-equals",
-          "pointer": "/writesAttempted",
-          "expected": [],
-          "critical": true
-        },
-        {
-          "id": "stale-review-no-render",
-          "kind": "final-json-path-equals",
-          "pointer": "/rendered",
-          "expected": false,
-          "critical": true
-        }
-      ]
-    },
-    {
-      "id": "rejects-non-full-review-receipt",
-      "prompt": "Read only APP-12's current reviewResult, canonical PR #42, native GitHub review github-review-4201, and failureCases.nonFullReviewReceipt from linear-state.json without calling providers or modifying files. Validate the baseline receipt, then set only its fullReview field to nonFullReviewReceipt. Return exactly one JSON object with keys baselineFullReviewAccepted, nonFullReviewRejected, issueDoneAllowedWithNonFullReview, writesAttempted, and rendered.",
-      "fixtures": [
-        "linear-state.json"
-      ],
-      "capabilities": [
-        "read-workspace"
-      ],
-      "expected": "The current full-review receipt validates; the otherwise identical non-full receipt cannot authorize issueDone/done, mutation, or rendering.",
-      "assertions": [
-        {
-          "id": "baseline-full-review",
-          "kind": "final-json-path-equals",
-          "pointer": "/baselineFullReviewAccepted",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "non-full-rejected",
-          "kind": "final-json-path-equals",
-          "pointer": "/nonFullReviewRejected",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "non-full-no-done",
-          "kind": "final-json-path-equals",
-          "pointer": "/issueDoneAllowedWithNonFullReview",
-          "expected": false,
-          "critical": true
-        },
-        {
-          "id": "non-full-no-write",
-          "kind": "final-json-path-equals",
-          "pointer": "/writesAttempted",
-          "expected": [],
-          "critical": true
-        },
-        {
-          "id": "non-full-no-render",
-          "kind": "final-json-path-equals",
-          "pointer": "/rendered",
-          "expected": false,
-          "critical": true
-        }
-      ]
-    },
-    {
-      "id": "rejects-malformed-terminal-event-payload",
-      "prompt": "Read linear-state.json without calling providers or modifying files. Validate the canonical APP-12 implementationEvidence data and independently joined Linear/GitHub PR, then apply failureCases.malformedImplementationEvidenceData, malformedIssueDoneData, issueDoneWrongRelatedIds, and issueDoneWrongReceiptClientId one at a time to their exact event/receipt fields. Return exactly one JSON object with keys canonicalImplementationFields, prRelationDerivedIndependently, malformedImplementationRejected, malformedIssueDoneRejected, wrongRelatedEvidenceRejected, wrongReceiptIdentityRejected, writesAttempted, and rendered.",
-      "fixtures": [
-        "linear-state.json"
-      ],
-      "capabilities": [
-        "read-workspace"
-      ],
-      "expected": "Canonical implementation evidence contains only the three commit fields and does not own PR identity. Extra event payload fields, incomplete terminal relations, and a foreign receipt UUID each fail closed before mutation or rendering.",
-      "assertions": [
-        {
-          "id": "canonical-commit-payload",
-          "kind": "final-json-path-equals",
-          "pointer": "/canonicalImplementationFields",
-          "expected": [
-            "baseCommitSha",
-            "committedDiffHash",
-            "headCommitSha"
-          ],
-          "critical": true
-        },
-        {
-          "id": "independent-pr-relation",
-          "kind": "final-json-path-equals",
-          "pointer": "/prRelationDerivedIndependently",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "malformed-implementation-rejected",
-          "kind": "final-json-path-equals",
-          "pointer": "/malformedImplementationRejected",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "malformed-done-rejected",
-          "kind": "final-json-path-equals",
-          "pointer": "/malformedIssueDoneRejected",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "wrong-related-evidence-rejected",
-          "kind": "final-json-path-equals",
-          "pointer": "/wrongRelatedEvidenceRejected",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "wrong-receipt-rejected",
-          "kind": "final-json-path-equals",
-          "pointer": "/wrongReceiptIdentityRejected",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "no-malformed-write",
-          "kind": "final-json-path-equals",
-          "pointer": "/writesAttempted",
-          "expected": [],
-          "critical": true
-        },
-        {
-          "id": "no-malformed-render",
-          "kind": "final-json-path-equals",
-          "pointer": "/rendered",
-          "expected": false,
-          "critical": true
-        }
-      ]
-    },
-    {
-      "id": "blocks-git-linear-attribution-mismatch",
-      "prompt": "Read linear-state.json without calling providers or modifying files, replace only GitHub PR #42's body with failureCases.gitMismatchBody, and classify status before any reconciliation. Return exactly one JSON object with keys blocked, reasonCode, writeTargetIds, rendered, and syntheticFallbackUsed.",
-      "fixtures": [
-        "linear-state.json"
-      ],
-      "capabilities": [
-        "read-workspace"
-      ],
-      "expected": "The exact APP-99 trailer conflicts with the APP-12 Linear evidence, so status fails closed before mutation, withholds the board, and uses no fuzzy or local fallback.",
-      "assertions": [
-        {
-          "id": "mismatch-blocks",
-          "kind": "final-json-path-equals",
-          "pointer": "/blocked",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "mismatch-code",
-          "kind": "final-json-path-equals",
-          "pointer": "/reasonCode",
-          "expected": "git-linear-attribution-mismatch",
-          "critical": true
-        },
-        {
-          "id": "no-write-on-mismatch",
-          "kind": "final-json-path-equals",
-          "pointer": "/writeTargetIds",
-          "expected": [],
-          "critical": true
-        },
-        {
-          "id": "no-board-on-mismatch",
-          "kind": "final-json-path-equals",
-          "pointer": "/rendered",
-          "expected": false,
-          "critical": true
-        },
-        {
-          "id": "no-fallback",
-          "kind": "final-json-path-equals",
-          "pointer": "/syntheticFallbackUsed",
-          "expected": false,
-          "critical": true
-        }
-      ]
-    },
-    {
-      "id": "blocks-wrong-principal-before-issue-done",
-      "fixturePassthroughAssertions": [
-        {"assertionId": "no-uuid-before-authority","fixture": "linear-state.json","pointer": "/failureCases/wrongIssueDonePrincipalScenario/eventUuidAllocated"}
-      ],
-      "prompt": "Read only APP-12, mutationReceipts.issueDone[0].principalGate, and failureCases.wrongIssueDonePrincipalScenario from linear-state.json without calling providers or modifying files. Independently compare the authenticated invoking MCP principal's exact kind/native ID with the freshly read type-aware acceptanceAuthority before any event UUID allocation or mutation. Return exactly one JSON object with keys baselinePrincipalAccepted, wrongPrincipalRejected, wrongPrincipalReasonCode, eventUuidAllocated, eventAppended, stateMutationAttempted, and writesAttempted.",
-      "fixtures": [
-        "linear-state.json"
-      ],
-      "capabilities": [
-        "read-workspace"
-      ],
-      "expected": "The exact app acceptance authority passes the pre-mutation gate. The foreign human principal is rejected before allocating an issueDone UUID, appending an event, or mutating issue state.",
-      "assertions": [
-        {
-          "id": "baseline-principal-exact",
-          "kind": "final-json-path-equals",
-          "pointer": "/baselinePrincipalAccepted",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "wrong-principal-rejected",
-          "kind": "final-json-path-equals",
-          "pointer": "/wrongPrincipalRejected",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "wrong-principal-code",
-          "kind": "final-json-path-equals",
-          "pointer": "/wrongPrincipalReasonCode",
-          "expected": "authenticated-principal-mismatch",
-          "critical": true
-        },
-        {
-          "id": "no-uuid-before-authority",
-          "kind": "final-json-path-equals",
-          "pointer": "/eventUuidAllocated",
-          "expected": false,
-          "critical": true
-        },
-        {
-          "id": "no-event-before-authority",
-          "kind": "final-json-path-equals",
-          "pointer": "/eventAppended",
-          "expected": false,
-          "critical": true
-        },
-        {
-          "id": "no-state-before-authority",
-          "kind": "final-json-path-equals",
-          "pointer": "/stateMutationAttempted",
-          "expected": false,
-          "critical": true
-        },
-        {
-          "id": "no-wrong-principal-write",
-          "kind": "final-json-path-equals",
-          "pointer": "/writesAttempted",
-          "expected": [],
-          "critical": true
-        }
-      ]
-    },
-    {
-      "id": "rejects-malformed-foreign-precommit-verification",
-      "prompt": "Read only APP-12 and the verification-related failureCases in linear-state.json without calling providers or modifying files. Validate that the baseline verification is producible precommit: its exact data keys are issueId, actor, commands, observedResults, smokeObservations, changedPaths, and status; it relates the current assignment plus exact native project ID for this increment and contains no future head/diff. Then validate the current implementationEvidence reverse relation to assignment, verification, precommitReview, and project, using independent PR/Git evidence for current head, committed diff, and exact committed changed paths. reviewResult remains exclusively post-PR evidence and is not an implementation relation. Apply minimalVerificationData, verificationFutureImplementationFields, verificationForeignIssueId, verificationWrongActor, verificationWrongRelatedIds, implementationMissingVerificationRelatedIds, and partialVerificationReadComplete separately. Return exactly one JSON object with keys canonicalVerificationAccepted, canonicalVerificationEventId, precommitSchemaAccepted, assignmentAndProjectRelationsAccepted, futureImplementationFieldsRejected, implementationReverseBindingAccepted, missingReverseBindingRejected, gitChangedPathsProven, minimalRejected, foreignIssueRejected, foreignActorRejected, wrongVerificationRelationsRejected, partialReceiptRejected, invalidAuthorizesIssueDone, writesAttempted, and rendered.",
-      "fixtures": [
-        "linear-state.json"
-      ],
-      "capabilities": [
-        "read-workspace"
-      ],
-      "expected": "The producible precommit verification has no future implementation identity and binds only assignment/project context. Current implementation reverse-binds it and Git proves the eventual head/diff/paths. Minimal, future-field, foreign, missing-relation, or partial variants fail closed.",
-      "assertions": [
-        {
-          "id": "canonical-verification-accepted",
-          "kind": "final-json-path-equals",
-          "pointer": "/canonicalVerificationAccepted",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "canonical-verification-id",
-          "kind": "final-json-path-equals",
-          "pointer": "/canonicalVerificationEventId",
-          "expected": "comment-app12-verification",
-          "critical": true
-        },
-        {
-          "id": "precommit-schema",
-          "kind": "final-json-path-equals",
-          "pointer": "/precommitSchemaAccepted",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "assignment-project-relations",
-          "kind": "final-json-path-equals",
-          "pointer": "/assignmentAndProjectRelationsAccepted",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "future-fields-rejected",
-          "kind": "final-json-path-equals",
-          "pointer": "/futureImplementationFieldsRejected",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "reverse-binding-accepted",
-          "kind": "final-json-path-equals",
-          "pointer": "/implementationReverseBindingAccepted",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "missing-reverse-binding-rejected",
-          "kind": "final-json-path-equals",
-          "pointer": "/missingReverseBindingRejected",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "git-proves-paths",
-          "kind": "final-json-path-equals",
-          "pointer": "/gitChangedPathsProven",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "minimal-verification-rejected",
-          "kind": "final-json-path-equals",
-          "pointer": "/minimalRejected",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "foreign-verification-issue",
-          "kind": "final-json-path-equals",
-          "pointer": "/foreignIssueRejected",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "foreign-verification-actor",
-          "kind": "final-json-path-equals",
-          "pointer": "/foreignActorRejected",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "exact-verification-relations",
-          "kind": "final-json-path-equals",
-          "pointer": "/wrongVerificationRelationsRejected",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "complete-verification-receipt",
-          "kind": "final-json-path-equals",
-          "pointer": "/partialReceiptRejected",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "invalid-never-authorizes-done",
-          "kind": "final-json-path-equals",
-          "pointer": "/invalidAuthorizesIssueDone",
-          "expected": false,
-          "critical": true
-        },
-        {
-          "id": "no-invalid-verification-write",
-          "kind": "final-json-path-equals",
-          "pointer": "/writesAttempted",
-          "expected": [],
-          "critical": true
-        },
-        {
-          "id": "no-invalid-verification-render",
-          "kind": "final-json-path-equals",
-          "pointer": "/rendered",
-          "expected": false,
-          "critical": true
-        }
-      ]
-    },
-    {
-      "id": "validates-consumed-restack-authorization-temporally",
-      "fixturePassthroughAssertions": [
-        {"assertionId": "bounded-restack-operation","fixture": "linear-state.json","pointer": "/project/events/10/data/operationId"},
-        {"assertionId": "bounded-restack-operation","fixture": "linear-state.json","pointer": "/project/issues/1/events/6/data/operationId"},
-        {"assertionId": "bounded-restack-operation","fixture": "linear-state.json","pointer": "/failureCases/malformedProjectDecisionData/operationId"}
-      ],
-      "prompt": "Read only APP-13, PR #43, github.historicalHeads, and the restack-related failureCases in linear-state.json without calling providers or modifying files. Validate the owner-authored restackAuthorized at its own instant against immutable historical implementation/head A, canonical paths, affected relations, unexpired boundary, exact controller, and an RFC 4122 operationId. Because the authorization is consumed, separately validate current resulting implementation/head B against current PR/Git and require the authorization as exactly the added implementation relation while owner/assignment remain unchanged. Apply restackWrongRelatedIds, malformedRestackOperationId, restackHistoricalHeadMismatch, restackCurrentHeadMismatch, and restackMissingConsumptionRelatedIds separately. Return exactly one JSON object with keys eventAccepted, eventId, operationId, operationIdRfc4122, consumed, historicalImplementationId, historicalHeadValidated, resultingImplementationId, resultingHeadSha, currentHeadValidated, ownerBefore, ownerAfter, assignmentEventId, wrongRelationsRejected, malformedOperationIdRejected, historicalMismatchRejected, currentMismatchRejected, missingConsumptionRelationRejected, terminalEvidence, issueDoneAuthorized, writesAttempted.",
-      "fixtures": [
-        "linear-state.json"
-      ],
-      "capabilities": [
-        "read-workspace"
-      ],
-      "expected": "The consumed authorization validates immutable historical A before separately validating resulting current B and its authorization relation. Its operation ID is RFC 4122, ownership is unchanged, and every malformed temporal, relation, or UUID variant fails closed.",
-      "assertions": [
-        {
-          "id": "canonical-restack-accepted",
-          "kind": "final-json-path-equals",
-          "pointer": "/eventAccepted",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "canonical-restack-id",
-          "kind": "final-json-path-equals",
-          "pointer": "/eventId",
-          "expected": "comment-app13-restack-authorized",
-          "critical": true
-        },
-        {
-          "id": "bounded-restack-operation",
-          "kind": "final-json-path-equals",
-          "pointer": "/operationId",
-          "expected": "13131313-aaaa-4aaa-8aaa-131313131313",
-          "critical": true
-        },
-        {
-          "id": "rfc4122-operation",
-          "kind": "final-json-path-equals",
-          "pointer": "/operationIdRfc4122",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "authorization-consumed",
-          "kind": "final-json-path-equals",
-          "pointer": "/consumed",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "historical-evidence-a",
-          "kind": "final-json-path-equals",
-          "pointer": "/historicalImplementationId",
-          "expected": "comment-app13-implementation-original",
-          "critical": true
-        },
-        {
-          "id": "historical-head-a",
-          "kind": "final-json-path-equals",
-          "pointer": "/historicalHeadValidated",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "resulting-evidence-b",
-          "kind": "final-json-path-equals",
-          "pointer": "/resultingImplementationId",
-          "expected": "comment-app13-implementation-restacked",
-          "critical": true
-        },
-        {
-          "id": "resulting-head-b",
-          "kind": "final-json-path-equals",
-          "pointer": "/resultingHeadSha",
-          "expected": "2323232323232323232323232323232323232323",
-          "critical": true
-        },
-        {
-          "id": "current-head-b-validated",
-          "kind": "final-json-path-equals",
-          "pointer": "/currentHeadValidated",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "owner-before",
-          "kind": "final-json-path-equals",
-          "pointer": "/ownerBefore",
-          "expected": {
-            "kind": "app",
-            "principalId": "app-engineer-13"
-          },
-          "critical": true
-        },
-        {
-          "id": "owner-unchanged",
-          "kind": "final-json-path-equals",
-          "pointer": "/ownerAfter",
-          "expected": {
-            "kind": "app",
-            "principalId": "app-engineer-13"
-          },
-          "critical": true
-        },
-        {
-          "id": "assignment-unchanged",
-          "kind": "final-json-path-equals",
-          "pointer": "/assignmentEventId",
-          "expected": "comment-app13-assignment",
-          "critical": true
-        },
-        {
-          "id": "wrong-restack-relations-rejected",
-          "kind": "final-json-path-equals",
-          "pointer": "/wrongRelationsRejected",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "malformed-operation-rejected",
-          "kind": "final-json-path-equals",
-          "pointer": "/malformedOperationIdRejected",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "historical-mismatch-rejected",
-          "kind": "final-json-path-equals",
-          "pointer": "/historicalMismatchRejected",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "current-mismatch-rejected",
-          "kind": "final-json-path-equals",
-          "pointer": "/currentMismatchRejected",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "consumption-relation-required",
-          "kind": "final-json-path-equals",
-          "pointer": "/missingConsumptionRelationRejected",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "not-terminal-evidence",
-          "kind": "final-json-path-equals",
-          "pointer": "/terminalEvidence",
-          "expected": false,
-          "critical": true
-        },
-        {
-          "id": "cannot-authorize-done",
-          "kind": "final-json-path-equals",
-          "pointer": "/issueDoneAuthorized",
-          "expected": false,
-          "critical": true
-        },
-        {
-          "id": "no-restack-read-write",
-          "kind": "final-json-path-equals",
-          "pointer": "/writesAttempted",
-          "expected": [],
-          "critical": true
-        }
-      ]
-    },
-    {
-      "id": "validates-complete-project-event-dispatch",
-      "prompt": "Read project.events, the current managed increment events, and project-event failureCases in linear-state.json without calling providers or modifying files. Rebuild the one current phase chain, validate each design phase actor against phaseAuthorities, and require the freshly re-resolved exact pinned lead for executionApproved/executing/inReview plus every current progress, blockerOpened, blockerResolved, handoff, and restack decision. Require each non-phase predecessor to be the phase current when authored and every native record to be a complete exact read-back. Dispatch exact relations: progress affected issue/current evidence; blockerOpened affected issue plus current blocked/failure evidence; blockerResolved the exact open blocker plus verified resolution evidence only, deriving the affected issue from the opener; handoff exact current issue handoff; and restack decision exact canonical payload/issue authorization/issue/relation set. Only the restack decision may use the defined data payload. Reject foreign actors/resources, stale predecessors, partial read-backs, payload mismatches, and every missing or extra producer-specific relation, including the all-done completion scenario with malformed resolution. Return exactly one JSON object with keys validDispatchAccepted, eventKinds, freshLeadEventKinds, designAuthoritiesAccepted, progressRelationsAccepted, blockerOpenRelationsAccepted, blockerResolutionAccepted, handoffRelationsAccepted, restackDecisionAccepted, foreignEventRejected, unauthorizedLeadRejected, unauthorizedDesignActorRejected, inventedProgressDataRejected, wrongProgressRelationsRejected, malformedResolutionRejected, malformedResolutionAllowsCompletion, wrongHandoffRelationsRejected, wrongDecisionRelationsRejected, malformedDecisionPayloadRejected, writesAttempted, and rendered.",
-      "fixtures": [
-        "linear-state.json"
-      ],
-      "capabilities": [
-        "read-workspace"
-      ],
-      "expected": "The complete canonical dispatch is accepted. Every foreign actor/resource, stale predecessor, partial read-back, payload mismatch, or missing/extra event-specific relation blocks the whole board; malformed blocker resolution also blocks project completion.",
-      "assertions": [
-        {
-          "id": "valid-project-dispatch",
-          "kind": "final-json-path-equals",
-          "pointer": "/validDispatchAccepted",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "all-current-kinds-dispatched",
-          "kind": "final-json-path-equals",
-          "pointer": "/eventKinds",
-          "expected": [
-            "blockerOpened",
-            "blockerResolved",
-            "decision",
-            "designApproved",
-            "executing",
-            "executionApproved",
-            "handoff",
-            "inReview",
-            "planning",
-            "progress",
-            "ready",
-            "specApproved",
-            "specHardened"
-          ],
-          "critical": true
-        },
-        {
-          "id": "fresh-lead-events",
-          "kind": "final-json-path-equals",
-          "pointer": "/freshLeadEventKinds",
-          "expected": [
-            "blockerOpened",
-            "blockerResolved",
-            "decision",
-            "executing",
-            "executionApproved",
-            "handoff",
-            "inReview",
-            "progress"
-          ],
-          "critical": true
-        },
-        {
-          "id": "design-authorities",
-          "kind": "final-json-path-equals",
-          "pointer": "/designAuthoritiesAccepted",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "progress-relations",
-          "kind": "final-json-path-equals",
-          "pointer": "/progressRelationsAccepted",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "blocker-open-relations",
-          "kind": "final-json-path-equals",
-          "pointer": "/blockerOpenRelationsAccepted",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "blocker-resolution-relations",
-          "kind": "final-json-path-equals",
-          "pointer": "/blockerResolutionAccepted",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "handoff-relations",
-          "kind": "final-json-path-equals",
-          "pointer": "/handoffRelationsAccepted",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "restack-decision-relations",
-          "kind": "final-json-path-equals",
-          "pointer": "/restackDecisionAccepted",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "foreign-project-event",
-          "kind": "final-json-path-equals",
-          "pointer": "/foreignEventRejected",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "unauthorized-lead-event",
-          "kind": "final-json-path-equals",
-          "pointer": "/unauthorizedLeadRejected",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "unauthorized-design-actor",
-          "kind": "final-json-path-equals",
-          "pointer": "/unauthorizedDesignActorRejected",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "no-invented-progress-data",
-          "kind": "final-json-path-equals",
-          "pointer": "/inventedProgressDataRejected",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "exact-progress-relations",
-          "kind": "final-json-path-equals",
-          "pointer": "/wrongProgressRelationsRejected",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "malformed-resolution-rejected",
-          "kind": "final-json-path-equals",
-          "pointer": "/malformedResolutionRejected",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "malformed-resolution-no-completion",
-          "kind": "final-json-path-equals",
-          "pointer": "/malformedResolutionAllowsCompletion",
-          "expected": false,
-          "critical": true
-        },
-        {
-          "id": "exact-handoff-relations",
-          "kind": "final-json-path-equals",
-          "pointer": "/wrongHandoffRelationsRejected",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "exact-decision-relations",
-          "kind": "final-json-path-equals",
-          "pointer": "/wrongDecisionRelationsRejected",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "decision-payload-closed",
-          "kind": "final-json-path-equals",
-          "pointer": "/malformedDecisionPayloadRejected",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "no-project-event-write",
-          "kind": "final-json-path-equals",
-          "pointer": "/writesAttempted",
-          "expected": [],
-          "critical": true
-        },
-        {
-          "id": "no-malformed-project-render",
-          "kind": "final-json-path-equals",
-          "pointer": "/rendered",
-          "expected": false,
-          "critical": true
-        }
-      ]
-    },
-    {
-      "id": "completes-project-only-after-all-increments-done",
-      "prompt": "Read linear-state.json without calling providers or modifying files. Compare the baseline with mutationReceipts.allDoneProjectScenario by rebuilding and validating the complete actual phase chain from project.events plus donePhaseEvent. Validate every phase actor and require the exact pinned lead for executionApproved, executing, inReview, done, and the project status mutation. Then apply a different mutationPrincipal, failureCases.unauthorizedProjectDoneEvent, and omission of failureCases.missingProjectDoneEventId as separate snapshots. Return exactly one JSON object with keys baselineCompletes, allDoneCompletes, donePhaseChainValidated, donePhaseActor, pinnedLeadReverified, wrongLeadRejected, unauthorizedDoneRejected, missingDoneRejected, projectWriteTargetId, projectReadBackComplete, standaloneIncluded, phaseEventAppendedByStatus, and reasonCode.",
-      "fixtures": [
-        "linear-state.json"
-      ],
-      "capabilities": [
-        "read-workspace"
-      ],
-      "expected": "The baseline remains incomplete. Only the actual complete all-issues-done chain with a current lead-authored done event and exact freshly authenticated pinned lead permits the existing project status write. Wrong mutation lead, unauthorized done actor, and missing done event each fail closed; status invents no phase event and excludes the standalone.",
-      "assertions": [
-        {
-          "id": "baseline-incomplete",
-          "kind": "final-json-path-equals",
-          "pointer": "/baselineCompletes",
-          "expected": false,
-          "critical": true
-        },
-        {
-          "id": "all-done-completes",
-          "kind": "final-json-path-equals",
-          "pointer": "/allDoneCompletes",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "actual-done-chain-validated",
-          "kind": "final-json-path-equals",
-          "pointer": "/donePhaseChainValidated",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "done-authored-by-lead",
-          "kind": "final-json-path-equals",
-          "pointer": "/donePhaseActor",
-          "expected": {
-            "kind": "human",
-            "principalId": "user-lead"
-          },
-          "critical": true
-        },
-        {
-          "id": "pinned-lead-reverified",
-          "kind": "final-json-path-equals",
-          "pointer": "/pinnedLeadReverified",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "wrong-lead-rejected",
-          "kind": "final-json-path-equals",
-          "pointer": "/wrongLeadRejected",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "unauthorized-done-rejected",
-          "kind": "final-json-path-equals",
-          "pointer": "/unauthorizedDoneRejected",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "missing-done-rejected",
-          "kind": "final-json-path-equals",
-          "pointer": "/missingDoneRejected",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "exact-project-target",
-          "kind": "final-json-path-equals",
-          "pointer": "/projectWriteTargetId",
-          "expected": "project-native-launch",
-          "critical": true
-        },
-        {
-          "id": "project-receipt-complete",
-          "kind": "final-json-path-equals",
-          "pointer": "/projectReadBackComplete",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "standalone-excluded",
-          "kind": "final-json-path-equals",
-          "pointer": "/standaloneIncluded",
-          "expected": false,
-          "critical": true
-        },
-        {
-          "id": "status-appends-no-phase",
-          "kind": "final-json-path-equals",
-          "pointer": "/phaseEventAppendedByStatus",
-          "expected": false,
-          "critical": true
-        },
-        {
-          "id": "all-done-reason",
-          "kind": "final-json-path-equals",
-          "pointer": "/reasonCode",
-          "expected": "actual-lead-authored-done-chain",
-          "critical": true
-        }
-      ]
-    },
-    {
-      "id": "validates-precommit-review-before-first-implementation",
-      "prompt": "Read APP-12 and its exact Git/PR evidence in linear-state.json without calling providers or modifying files. Validate the first-execution event order and the current precommitReview payload, ordered reviewer receipts, authenticated owner actor, uncommitted diff hash, changed paths, exact assignment/verification/project relations, and implementationEvidence reverse binding. Apply every precommitReview failure case independently. Return exactly one JSON object with keys orderAccepted, precommitReviewEventId, reverseBindingAccepted, foreignIssueRejected, wrongActorRejected, codingWorkerRejected, futureFieldsRejected, wrongRelationsRejected, receiptHashMismatchRejected, writesAttempted, and rendered.",
-      "fixtures": [
-        "linear-state.json"
-      ],
-      "capabilities": [
-        "read-workspace"
-      ],
-      "expected": "The owner-authored spec-then-quality precommit review is accepted before implementation evidence; malformed, foreign, future, inexact, or coding-worker variants fail closed.",
-      "assertions": [
-        {
-          "id": "first-execution-order",
-          "kind": "final-json-path-equals",
-          "pointer": "/orderAccepted",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "precommit-review-id",
-          "kind": "final-json-path-equals",
-          "pointer": "/precommitReviewEventId",
-          "expected": "comment-app12-precommit-review",
-          "critical": true
-        },
-        {
-          "id": "implementation-reverse-binding",
-          "kind": "final-json-path-equals",
-          "pointer": "/reverseBindingAccepted",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "foreign-issue-blocked",
-          "kind": "final-json-path-equals",
-          "pointer": "/foreignIssueRejected",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "wrong-actor-blocked",
-          "kind": "final-json-path-equals",
-          "pointer": "/wrongActorRejected",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "coding-worker-blocked",
-          "kind": "final-json-path-equals",
-          "pointer": "/codingWorkerRejected",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "future-fields-blocked",
-          "kind": "final-json-path-equals",
-          "pointer": "/futureFieldsRejected",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "wrong-relations-blocked",
-          "kind": "final-json-path-equals",
-          "pointer": "/wrongRelationsRejected",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "receipt-hash-blocked",
-          "kind": "final-json-path-equals",
-          "pointer": "/receiptHashMismatchRejected",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "precommit-review-no-write",
-          "kind": "final-json-path-equals",
-          "pointer": "/writesAttempted",
-          "expected": [],
-          "critical": true
-        },
-        {
-          "id": "precommit-review-no-invalid-render",
-          "kind": "final-json-path-equals",
-          "pointer": "/rendered",
-          "expected": false,
-          "critical": true
-        }
-      ]
-    },
-    {
-      "id": "validates-historical-native-revision-at-authorization-time",
-      "prompt": "Read APP-13, PR #43, historicalHeads, and restack failure cases in linear-state.json without calling providers or modifying files. Resolve every authorization relation to the exact native revision current at the authorization timestamp: historical implementation A and historical precommitReview V1, then separately validate current implementation B and precommitReview V2. Accept completion exactly at expiresAt, and reject latest-by-kind substitution, completion at authorization time, and completion after expiry. Return exactly one JSON object with keys historicalImplementationId, historicalPrecommitReviewId, currentImplementationId, currentPrecommitReviewId, latestByKindRejected, completionAtAuthorizationRejected, completionAtExpiryAccepted, completionAfterExpiryRejected, writesAttempted, and rendered.",
-      "fixtures": [
-        "linear-state.json"
-      ],
-      "capabilities": [
-        "read-workspace"
-      ],
-      "expected": "Historical A/V1 and current B/V2 validate independently; completion exactly at expiry is valid, while latest-by-kind substitution and out-of-window consumption fail closed.",
-      "assertions": [
-        {
-          "id": "historical-implementation",
-          "kind": "final-json-path-equals",
-          "pointer": "/historicalImplementationId",
-          "expected": "comment-app13-implementation-original",
-          "critical": true
-        },
-        {
-          "id": "historical-precommit",
-          "kind": "final-json-path-equals",
-          "pointer": "/historicalPrecommitReviewId",
-          "expected": "comment-app13-precommit-review-original",
-          "critical": true
-        },
-        {
-          "id": "current-implementation",
-          "kind": "final-json-path-equals",
-          "pointer": "/currentImplementationId",
-          "expected": "comment-app13-implementation-restacked",
-          "critical": true
-        },
-        {
-          "id": "current-precommit",
-          "kind": "final-json-path-equals",
-          "pointer": "/currentPrecommitReviewId",
-          "expected": "comment-app13-precommit-review-restacked",
-          "critical": true
-        },
-        {
-          "id": "latest-substitution-blocked",
-          "kind": "final-json-path-equals",
-          "pointer": "/latestByKindRejected",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "strict-lower-bound",
-          "kind": "final-json-path-equals",
-          "pointer": "/completionAtAuthorizationRejected",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "inclusive-expiry-accepted",
-          "kind": "final-json-path-equals",
-          "pointer": "/completionAtExpiryAccepted",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "inclusive-expiry-upper-bound",
-          "kind": "final-json-path-equals",
-          "pointer": "/completionAfterExpiryRejected",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "historical-revision-no-write",
-          "kind": "final-json-path-equals",
-          "pointer": "/writesAttempted",
-          "expected": [],
-          "critical": true
-        },
-        {
-          "id": "historical-revision-no-invalid-render",
-          "kind": "final-json-path-equals",
-          "pointer": "/rendered",
-          "expected": false,
-          "critical": true
-        }
-      ]
-    },
-    {
-      "id": "treats-expired-unused-restack-records-as-inactive",
-      "prompt": "Read APP-13 and its project events in linear-state.json without calling providers or modifying files. Validate the expired unconsumed issue authorization and matching project decision as historical records, exclude both from admission and active-operation uniqueness, and preserve the valid consumed operation. Return exactly one JSON object with keys inactiveAuthorizationEventIds, inactiveDecisionEventIds, activeCompetition, historicalRecordsAccepted, mutationAuthorizedByExpired, consumedAuthorizationEventIds, writesAttempted, and rendered.",
-      "fixtures": [
-        "linear-state.json"
-      ],
-      "capabilities": [
-        "read-workspace"
-      ],
-      "expected": "Expired unused records remain valid inactive history, authorize no mutation, and do not poison the consumed operation or complete read.",
-      "assertions": [
-        {
-          "id": "inactive-authorizations",
-          "kind": "final-json-path-equals",
-          "pointer": "/inactiveAuthorizationEventIds",
-          "expected": [
-            "comment-app13-address-authorized-expired"
-          ],
-          "critical": true
-        },
-        {
-          "id": "inactive-decisions",
-          "kind": "final-json-path-equals",
-          "pointer": "/inactiveDecisionEventIds",
-          "expected": [
-            "update-address-decision-expired"
-          ],
-          "critical": true
-        },
-        {
-          "id": "no-active-competition",
-          "kind": "final-json-path-equals",
-          "pointer": "/activeCompetition",
-          "expected": false,
-          "critical": true
-        },
-        {
-          "id": "history-valid",
-          "kind": "final-json-path-equals",
-          "pointer": "/historicalRecordsAccepted",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "expired-cannot-authorize",
-          "kind": "final-json-path-equals",
-          "pointer": "/mutationAuthorizedByExpired",
-          "expected": false,
-          "critical": true
-        },
-        {
-          "id": "consumed-preserved",
-          "kind": "final-json-path-equals",
-          "pointer": "/consumedAuthorizationEventIds",
-          "expected": [
-            "comment-app13-restack-authorized"
-          ],
-          "critical": true
-        },
-        {
-          "id": "expired-restack-no-write",
-          "kind": "final-json-path-equals",
-          "pointer": "/writesAttempted",
-          "expected": [],
-          "critical": true
-        },
-        {
-          "id": "board-remains-renderable",
-          "kind": "final-json-path-equals",
-          "pointer": "/rendered",
-          "expected": true,
-          "critical": true
-        }
-      ]
-    },
-    {
-      "id": "allows-empty-local-affected-relations-only",
-      "prompt": "Read APP-13's expired issue-local authorization, its matching project decision, and failureCases.crossIssueDecisionEmptyAffectedRelations in linear-state.json without calling providers or modifying files. Validate that empty affectedRelationIds is exact for an issue-local/root/standalone review with no relation rewrite and requires no project decision; reject empty affectedRelationIds for either a one-issue relation rewrite or a cross-issue rewrite. Return exactly one JSON object with keys localEmptyAccepted, localProjectDecisionRequired, expiredLocalRecordStillHistorical, localRewriteEmptyRejected, crossIssueEmptyRejected, reasonCode, writesAttempted, and rendered.",
-      "fixtures": [
-        "linear-state.json"
-      ],
-      "capabilities": [
-        "read-workspace"
-      ],
-      "expected": "An empty relation scope is valid only for a no-relation local operation; an actual relation rewrite or cross-issue authorization must name a nonempty exact relation set.",
-      "assertions": [
-        {
-          "id": "local-empty-valid",
-          "kind": "final-json-path-equals",
-          "pointer": "/localEmptyAccepted",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "no-local-project-decision",
-          "kind": "final-json-path-equals",
-          "pointer": "/localProjectDecisionRequired",
-          "expected": false,
-          "critical": true
-        },
-        {
-          "id": "expired-history-valid",
-          "kind": "final-json-path-equals",
-          "pointer": "/expiredLocalRecordStillHistorical",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "local-rewrite-empty-invalid",
-          "kind": "final-json-path-equals",
-          "pointer": "/localRewriteEmptyRejected",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "cross-issue-empty-invalid",
-          "kind": "final-json-path-equals",
-          "pointer": "/crossIssueEmptyRejected",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "scope-reason",
-          "kind": "final-json-path-equals",
-          "pointer": "/reasonCode",
-          "expected": "cross-issue-empty-affected-relations",
-          "critical": true
-        },
-        {
-          "id": "affected-relations-no-write",
-          "kind": "final-json-path-equals",
-          "pointer": "/writesAttempted",
-          "expected": [],
-          "critical": true
-        },
-        {
-          "id": "affected-relations-no-invalid-render",
-          "kind": "final-json-path-equals",
-          "pointer": "/rendered",
-          "expected": false,
-          "critical": true
-        }
-      ]
-    },
-    {
-      "id": "dispatches-every-canonical-issue-event-strictly",
-      "prompt": "Read all managed issue comments and issue-event failure cases in linear-state.json without calling providers or modifying files. Dispatch every canonical issueEvent kind through its exact payload, actor, temporal, and relation validator. Reject the unsupported kind, malformed payloads, foreign actors, foreign relations, coding-worker implementation authors, and generic fallthrough. Return exactly one JSON object with keys canonicalKindsAccepted, unsupportedKindRejected, genericFallbackUsed, malformedPayloadsRejected, foreignActorsRejected, foreignRelationsRejected, codingWorkerImplementationRejected, writesAttempted, and rendered.",
-      "fixtures": [
-        "linear-state.json"
-      ],
-      "capabilities": [
-        "read-workspace"
-      ],
-      "expected": "Every canonical issue event is explicitly validated; unsupported, malformed, foreign-actor, foreign-relation, or coding-worker-authored evidence fails closed with no generic fallback.",
-      "assertions": [
-        {
-          "id": "all-canonical-kinds",
-          "kind": "final-json-path-equals",
-          "pointer": "/canonicalKindsAccepted",
-          "expected": [
-            "acceptance",
-            "assignmentAccepted",
-            "blocked",
-            "decisionRequest",
-            "decisionResponse",
-            "failure",
-            "handoff",
-            "implementationEvidence",
-            "issueDone",
-            "precommitReview",
-            "restackAuthorized",
-            "reviewResult",
-            "unblocked",
-            "verification"
-          ],
-          "critical": true
-        },
-        {
-          "id": "unsupported-kind-blocked",
-          "kind": "final-json-path-equals",
-          "pointer": "/unsupportedKindRejected",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "no-generic-fallback",
-          "kind": "final-json-path-equals",
-          "pointer": "/genericFallbackUsed",
-          "expected": false,
-          "critical": true
-        },
-        {
-          "id": "malformed-payloads-blocked",
-          "kind": "final-json-path-equals",
-          "pointer": "/malformedPayloadsRejected",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "foreign-actors-blocked",
-          "kind": "final-json-path-equals",
-          "pointer": "/foreignActorsRejected",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "foreign-relations-blocked",
-          "kind": "final-json-path-equals",
-          "pointer": "/foreignRelationsRejected",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "coding-worker-implementation-blocked",
-          "kind": "final-json-path-equals",
-          "pointer": "/codingWorkerImplementationRejected",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "issue-dispatch-no-write",
-          "kind": "final-json-path-equals",
-          "pointer": "/writesAttempted",
-          "expected": [],
-          "critical": true
-        },
-        {
-          "id": "issue-dispatch-no-invalid-render",
-          "kind": "final-json-path-equals",
-          "pointer": "/rendered",
-          "expected": false,
-          "critical": true
-        }
-      ]
-    },
-    {
-      "id": "validates-principal-kind-verification-actor",
-      "prompt": "Read only APP-12 and verification actor failure cases in linear-state.json. Compare canonical payload actor {principalKind,principalId} to native author {kind,principalId} only after normalization, and classify the obsolete kind payload. Return exactly JSON with canonicalAccepted, obsoleteKindRejected, writesAttempted.",
-      "fixtures": [
-        "linear-state.json"
-      ],
-      "capabilities": [
-        "read-workspace"
-      ],
-      "expected": "Canonical principalKind is accepted and obsolete kind fails closed.",
-      "assertions": [
-        {
-          "id": "canonical",
-          "kind": "final-json-path-equals",
-          "pointer": "/canonicalAccepted",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "obsolete",
-          "kind": "final-json-path-equals",
-          "pointer": "/obsoleteKindRejected",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "writes",
-          "kind": "final-json-path-equals",
-          "pointer": "/writesAttempted",
-          "expected": [],
-          "critical": true
-        }
-      ]
-    },
-    {
-      "id": "resolves-independent-native-linear-pr-relation",
-      "prompt": "Read only linearPullRequestRelations plus its failure cases in linear-state.json. Validate complete pagination/read-back and resolve exactly one native relation for APP-12. Return exactly JSON with canonicalRelationId, missingRejected, partialRejected, duplicateRejected, foreignRejected, staleRejected, writesAttempted.",
-      "fixtures": [
-        "linear-state.json"
-      ],
-      "capabilities": [
-        "read-workspace"
-      ],
-      "expected": "Exactly the raw native APP-12 relation resolves and all malformed universes fail closed.",
-      "assertions": [
-        {
-          "id": "relation",
-          "kind": "final-json-path-equals",
-          "pointer": "/canonicalRelationId",
-          "expected": "linear-relation-app12-pr42",
-          "critical": true
-        },
-        {
-          "id": "missing",
-          "kind": "final-json-path-equals",
-          "pointer": "/missingRejected",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "partial",
-          "kind": "final-json-path-equals",
-          "pointer": "/partialRejected",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "duplicate",
-          "kind": "final-json-path-equals",
-          "pointer": "/duplicateRejected",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "foreign",
-          "kind": "final-json-path-equals",
-          "pointer": "/foreignRejected",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "stale",
-          "kind": "final-json-path-equals",
-          "pointer": "/staleRejected",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "native-pr-relation-no-write",
-          "kind": "final-json-path-equals",
-          "pointer": "/writesAttempted",
-          "expected": [],
-          "critical": true
-        }
-      ]
-    },
-    {
-      "id": "validates-sweep-authorized-verification-revision",
-      "prompt": "Read only APP-13 canonical sweep verification and related failure cases in linear-state.json. Validate controller, authorization window, extended relations, and current rewrite binding. Return exactly JSON with canonicalAccepted, wrongControllerRejected, missingAuthorizationRejected, outsideWindowRejected, staleBindingRejected, writesAttempted.",
-      "fixtures": [
-        "linear-state.json"
-      ],
-      "capabilities": [
-        "read-workspace"
-      ],
-      "expected": "The controller-authored authorized verification is valid only for the bound rewrite.",
-      "assertions": [
-        {
-          "id": "sweep-verification-canonical",
-          "kind": "final-json-path-equals",
-          "pointer": "/canonicalAccepted",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "controller",
-          "kind": "final-json-path-equals",
-          "pointer": "/wrongControllerRejected",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "sweep-verification-authorization-relation",
-          "kind": "final-json-path-equals",
-          "pointer": "/missingAuthorizationRejected",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "window",
-          "kind": "final-json-path-equals",
-          "pointer": "/outsideWindowRejected",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "binding",
-          "kind": "final-json-path-equals",
-          "pointer": "/staleBindingRejected",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "sweep-verification-no-write",
-          "kind": "final-json-path-equals",
-          "pointer": "/writesAttempted",
-          "expected": [],
-          "critical": true
-        }
-      ]
-    },
-    {
-      "id": "selects-latest-valid-current-head-review-family",
-      "prompt": "Read only APP-13 reviewResult rounds and review round failure cases in linear-state.json. Treat one client family per full-review round, enforce globally monotonic unique rounds, and select the latest valid current-head round. Return exactly JSON with familyCount, selectedId, selectedRound, duplicateRoundRejected, nonMonotonicRejected, writesAttempted.",
-      "fixtures": [
-        "linear-state.json"
-      ],
-      "capabilities": [
-        "read-workspace"
-      ],
-      "expected": "Three review families are valid and round 3 is selected; ambiguous/nonmonotonic rounds fail.",
-      "assertions": [
-        {
-          "id": "families",
-          "kind": "final-json-path-equals",
-          "pointer": "/familyCount",
-          "expected": 3,
-          "critical": true
-        },
-        {
-          "id": "id",
-          "kind": "final-json-path-equals",
-          "pointer": "/selectedId",
-          "expected": "comment-app13-review-addressed",
-          "critical": true
-        },
-        {
-          "id": "round",
-          "kind": "final-json-path-equals",
-          "pointer": "/selectedRound",
-          "expected": 3,
-          "critical": true
-        },
-        {
-          "id": "review-family-duplicate-round",
-          "kind": "final-json-path-equals",
-          "pointer": "/duplicateRoundRejected",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "monotonic",
-          "kind": "final-json-path-equals",
-          "pointer": "/nonMonotonicRejected",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "review-family-no-write",
-          "kind": "final-json-path-equals",
-          "pointer": "/writesAttempted",
-          "expected": [],
-          "critical": true
-        }
-      ]
-    },
-    {
-      "id": "resolves-unique-temporal-restack-consumers",
-      "prompt": "Read only APP-13 two restack authorizations and all implementation revisions in linear-state.json. Resolve each authorization consumer over history and validate current head separately. Return exactly JSON with firstConsumerId, secondConsumerId, duplicateConsumerRejected, staleCurrentHeadRejected, writesAttempted.",
-      "fixtures": [
-        "linear-state.json"
-      ],
-      "capabilities": [
-        "read-workspace"
-      ],
-      "expected": "Each authorization has one temporal consumer and malformed duplicate/current-head states fail closed.",
-      "assertions": [
-        {
-          "id": "first",
-          "kind": "final-json-path-equals",
-          "pointer": "/firstConsumerId",
-          "expected": "comment-app13-implementation-restacked",
-          "critical": true
-        },
-        {
-          "id": "second",
-          "kind": "final-json-path-equals",
-          "pointer": "/secondConsumerId",
-          "expected": "comment-app13-implementation-addressed",
-          "critical": true
-        },
-        {
-          "id": "restack-consumer-duplicate",
-          "kind": "final-json-path-equals",
-          "pointer": "/duplicateConsumerRejected",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "head",
-          "kind": "final-json-path-equals",
-          "pointer": "/staleCurrentHeadRejected",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "restack-consumer-no-write",
-          "kind": "final-json-path-equals",
-          "pointer": "/writesAttempted",
-          "expected": [],
-          "critical": true
-        }
-      ]
-    },
-    {
-      "id": "validates-historical-authorization-owner-at-time",
-      "prompt": "Read only APP-13 authorization and owner-handoff history in linear-state.json. Resolve authorization authorship at each authorization timestamp, not from present owner. Return exactly JSON with firstAuthorizationOwnerId, currentOwnerId, presentOwnerSubstitutionRejected, writesAttempted.",
-      "fixtures": [
-        "linear-state.json"
-      ],
-      "capabilities": [
-        "read-workspace"
-      ],
-      "expected": "The first authorization belongs to the historical owner while current ownership is independently valid.",
-      "assertions": [
-        {
-          "id": "historical-owner-first",
-          "kind": "final-json-path-equals",
-          "pointer": "/firstAuthorizationOwnerId",
-          "expected": "app-engineer-13",
-          "critical": true
-        },
-        {
-          "id": "current",
-          "kind": "final-json-path-equals",
-          "pointer": "/currentOwnerId",
-          "expected": "app-engineer-13b",
-          "critical": true
-        },
-        {
-          "id": "rejected",
-          "kind": "final-json-path-equals",
-          "pointer": "/presentOwnerSubstitutionRejected",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "historical-owner-no-write",
-          "kind": "final-json-path-equals",
-          "pointer": "/writesAttempted",
-          "expected": [],
-          "critical": true
-        }
-      ]
-    },
-    {
-      "id": "preserves-implementation-evidence-through-owner-handoff",
-      "prompt": "Read only APP-13 implementationEvidence and assignment handoff history in linear-state.json. Resolve each producer relation at its implementation timestamp and current owner separately. Return exactly JSON with historicalEvidenceValid, currentOwnerId, presentAssignmentSubstitutionRejected, writesAttempted.",
-      "fixtures": [
-        "linear-state.json"
-      ],
-      "capabilities": [
-        "read-workspace"
-      ],
-      "expected": "Historical evidence remains valid after handoff while substituting present assignment fails.",
-      "assertions": [
-        {
-          "id": "historical",
-          "kind": "final-json-path-equals",
-          "pointer": "/historicalEvidenceValid",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "owner",
-          "kind": "final-json-path-equals",
-          "pointer": "/currentOwnerId",
-          "expected": "app-engineer-13b",
-          "critical": true
-        },
-        {
-          "id": "implementation-handoff-rejected",
-          "kind": "final-json-path-equals",
-          "pointer": "/presentAssignmentSubstitutionRejected",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "implementation-handoff-no-write",
-          "kind": "final-json-path-equals",
-          "pointer": "/writesAttempted",
-          "expected": [],
-          "critical": true
-        }
-      ]
-    },
-    {
-      "id": "derives-blocker-issue-and-preserves-terminal-reconciliation",
-      "prompt": "Read only project blockerResolved, APP-12 issueDone, relation receipt, and all-done project receipt in linear-state.json. Derive the affected issue through blockerOpened; require resolution evidence only on blockerResolved; validate terminal native relation and project completion. Return exactly JSON with blockerResolutionValid, affectedIssueRepeated, issueDoneValid, projectDoneProducible, writesAttempted.",
-      "fixtures": [
-        "linear-state.json"
-      ],
-      "capabilities": [
-        "read-workspace"
-      ],
-      "expected": "Resolution derives its issue without repeating it; terminal issue and project reconciliation remain producible.",
-      "assertions": [
-        {
-          "id": "blocker",
-          "kind": "final-json-path-equals",
-          "pointer": "/blockerResolutionValid",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "repeat",
-          "kind": "final-json-path-equals",
-          "pointer": "/affectedIssueRepeated",
-          "expected": false,
-          "critical": true
-        },
-        {
-          "id": "issue",
-          "kind": "final-json-path-equals",
-          "pointer": "/issueDoneValid",
+          "pointer": "/checksObservableOnly",
           "expected": true,
           "critical": true
         },
         {
-          "id": "project",
+          "id": "status-zero-provider-mutation",
           "kind": "final-json-path-equals",
-          "pointer": "/projectDoneProducible",
-          "expected": true,
+          "pointer": "/providerMutationCount",
+          "expected": 0,
           "critical": true
         },
         {
-          "id": "terminal-reconciliation-no-write",
+          "id": "status-zero-repository-mutation",
           "kind": "final-json-path-equals",
-          "pointer": "/writesAttempted",
-          "expected": [],
+          "pointer": "/repositoryMutationCount",
+          "expected": 0,
           "critical": true
         }
       ]
@@ -2282,7 +57,10 @@
     {
       "id": "status-derives-review-clean-with-failed-checks",
       "prompt": "A repository PR row has open non-draft status on canonical GitHub with head matching the current branch commit, approved full review evidence, zero unresolved blocking threads, no worktree collision, but failed GitHub Actions checks. Return exactly one JSON object with keys state, observedChecks, checkCausedBlockers, reviewClean, and nextAction. Set observedChecks to [\"failed\"], checkCausedBlockers to [], reviewClean to true, state to \"review-clean\", and nextAction to \"merge through the repository's normal process\".",
-      "capabilities": ["read-workspace"],
+      "fixtures": [],
+      "capabilities": [
+        "read-workspace"
+      ],
       "expected": "Status derives review-clean when full review evidence passes with no unresolved blocking threads, regardless of failed check outcomes. Available checks are reported separately.",
       "assertions": [
         {"id": "clean-state-failed-checks", "kind": "final-json-path-equals", "pointer": "/state", "expected": "review-clean", "critical": true},
@@ -2295,7 +73,10 @@
     {
       "id": "status-derives-review-clean-with-pending-checks",
       "prompt": "A repository PR row has open non-draft status on canonical GitHub with head matching the current branch commit, approved full review evidence, zero unresolved blocking threads, no worktree collision, but pending GitHub Actions checks. Return exactly one JSON object with keys state, observedChecks, checkCausedBlockers, reviewClean, and nextAction. Set observedChecks to [\"pending\"], checkCausedBlockers to [], reviewClean to true, state to \"review-clean\", and nextAction to \"merge through the repository's normal process\".",
-      "capabilities": ["read-workspace"],
+      "fixtures": [],
+      "capabilities": [
+        "read-workspace"
+      ],
       "expected": "Status derives review-clean when full review evidence passes with no unresolved blocking threads, regardless of pending check outcomes. Available checks are reported separately.",
       "assertions": [
         {"id": "clean-state-pending-checks", "kind": "final-json-path-equals", "pointer": "/state", "expected": "review-clean", "critical": true},
@@ -2308,7 +89,10 @@
     {
       "id": "status-independent-failure-blocks-despite-checks",
       "prompt": "A repository PR row has open non-draft status on canonical GitHub with passing GitHub Actions checks, but an unresolved changes-requested review and blocking review thread. Return exactly one JSON object with keys state, observedChecks, checkCausedBlockers, reviewClean, and nextAction. Set observedChecks to [\"passed\"], checkCausedBlockers to [], reviewClean to false, state to \"blocked\", and nextAction to \"address blocking findings or threads\".",
-      "capabilities": ["read-workspace"],
+      "fixtures": [],
+      "capabilities": [
+        "read-workspace"
+      ],
       "expected": "Status correctly blocks on independent review and thread failures even when all GitHub checks pass.",
       "assertions": [
         {"id": "blocked-state-review-failure", "kind": "final-json-path-equals", "pointer": "/state", "expected": "blocked", "critical": true},
@@ -2316,6 +100,166 @@
         {"id": "blocked-no-check-blockers", "kind": "final-json-path-equals", "pointer": "/checkCausedBlockers", "expected": [], "critical": true},
         {"id": "blocked-review-clean-false", "kind": "final-json-path-equals", "pointer": "/reviewClean", "expected": false, "critical": true},
         {"id": "blocked-next-action", "kind": "final-json-path-equals", "pointer": "/nextAction", "expected": "address blocking findings or threads", "critical": true}
+      ]
+    },
+    {
+      "id": "status-blocks-on-worktree-collision-or-head-drift",
+      "prompt": "Classify two repository anomaly scenarios without calling providers or mutating files: (1) worktree collision where branch feature-x checkout is dirty and overlaps another active worktree; (2) head drift where open PR #105 head SHA does not match current branch commit. Return exactly one JSON object with keys collisionState \"blocked\", collisionReason \"worktree-collision\", driftedState \"blocked\", driftedReason \"pr-head-drift\", and writesAttempted [].",
+      "fixtures": [],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "Worktree collisions and drifted PR heads derive blocked state with exact reason codes without smoothing over drift, performing zero writes.",
+      "assertions": [
+        {"id": "collision-blocked", "kind": "final-json-path-equals", "pointer": "/collisionState", "expected": "blocked", "critical": true},
+        {"id": "collision-reason", "kind": "final-json-path-equals", "pointer": "/collisionReason", "expected": "worktree-collision", "critical": true},
+        {"id": "drifted-blocked", "kind": "final-json-path-equals", "pointer": "/driftedState", "expected": "blocked", "critical": true},
+        {"id": "drifted-reason", "kind": "final-json-path-equals", "pointer": "/driftedReason", "expected": "pr-head-drift", "critical": true},
+        {"id": "collision-drift-no-writes", "kind": "final-json-path-equals", "pointer": "/writesAttempted", "expected": [], "critical": true}
+      ]
+    },
+    {
+      "id": "status-derives-unknown-on-missing-required-repository-evidence",
+      "prompt": "Classify a repository candidate branch where required canonical GitHub PR pagination failed mid-stream or PR metadata returned conflicting head SHAs between endpoints. Separately, available GitHub Actions check pages were missing or incomplete. Do not call providers or mutate files. Return exactly one JSON object with rowState \"unknown\", reasonCode \"incomplete-required-pr-evidence\", checksIncompletenessIgnored true, writesAttempted [], providerMutationCount 0, and repositoryMutationCount 0.",
+      "fixtures": [],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "Missing or conflicting required repository evidence derives unknown state, while incomplete check data cannot cause unknown, and zero writes are attempted.",
+      "assertions": [
+        {"id": "unknown-row-state", "kind": "final-json-path-equals", "pointer": "/rowState", "expected": "unknown", "critical": true},
+        {"id": "unknown-reason", "kind": "final-json-path-equals", "pointer": "/reasonCode", "expected": "incomplete-required-pr-evidence", "critical": true},
+        {"id": "checks-incompleteness-ignored", "kind": "final-json-path-equals", "pointer": "/checksIncompletenessIgnored", "expected": true, "critical": true},
+        {"id": "unknown-state-no-writes", "kind": "final-json-path-equals", "pointer": "/writesAttempted", "expected": [], "critical": true},
+        {"id": "unknown-state-no-provider-mutation", "kind": "final-json-path-equals", "pointer": "/providerMutationCount", "expected": 0, "critical": true},
+        {"id": "unknown-state-no-repo-mutation", "kind": "final-json-path-equals", "pointer": "/repositoryMutationCount", "expected": 0, "critical": true}
+      ]
+    },
+    {
+      "id": "status-derives-provider-enrichment-parity-with-identical-row-state",
+      "prompt": "A repository PR row #42 on canonical GitHub is open with passing full review and zero unresolved blocking threads. Classify status under three independent contexts without calling providers or mutating files: (1) baseline repository-only context; (2) Linear context with verified workspace acme, native UUID 22222222-2222-4222-8222-222222222222, readable ID ENG-42, title 'Cache timeout', canonical PR link 'https://github.com/acme/widgets/pull/42', and repository https://github.com/acme/widgets; (3) Plane context with normalized baseUrl https://api.plane.so, workspace acme, native UUID 66666666-6666-4666-8666-666666666666, readable ID ENG-42, title 'Cache timeout', canonical PR link 'https://github.com/acme/widgets/pull/42', and repository https://github.com/acme/widgets. Also evaluate a fourth scenario where provider issue ENG-42 exists but canonical GitHub has no repository PR. Return exactly one JSON object with baselineRow, linearRow, planeRow, rowStateIdentical, absentRepo, and providerMutationCount.",
+      "fixtures": [],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "Repo-derived row state remains review-clean across baseline, Linear, and Plane contexts. Linear and Plane enrichment payloads and provenances are displayed separately with exact baseUrl, workspace, native UUID, readable ID, and canonical PR link resolution. An absent repository PR produces no row despite provider issue presence, and provider mutations remain zero.",
+      "assertions": [
+        {
+          "id": "parity-baseline-row-state",
+          "kind": "final-json-path-equals",
+          "pointer": "/baselineRow/state",
+          "expected": "review-clean",
+          "critical": true
+        },
+        {
+          "id": "parity-linear-row-state",
+          "kind": "final-json-path-equals",
+          "pointer": "/linearRow/state",
+          "expected": "review-clean",
+          "critical": true
+        },
+        {
+          "id": "parity-plane-row-state",
+          "kind": "final-json-path-equals",
+          "pointer": "/planeRow/state",
+          "expected": "review-clean",
+          "critical": true
+        },
+        {
+          "id": "parity-row-state-identical",
+          "kind": "final-json-path-equals",
+          "pointer": "/rowStateIdentical",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "parity-linear-enrichment-payload",
+          "kind": "final-json-path-equals",
+          "pointer": "/linearRow/enrichment",
+          "expected": {
+            "canonicalPrUrl": "https://github.com/acme/widgets/pull/42",
+            "issueId": "22222222-2222-4222-8222-222222222222",
+            "readableIdentifier": "ENG-42",
+            "title": "Cache timeout"
+          },
+          "critical": true
+        },
+        {
+          "id": "parity-linear-provenance",
+          "kind": "final-json-path-equals",
+          "pointer": "/linearRow/provenance",
+          "expected": {
+            "nativeUuid": "22222222-2222-4222-8222-222222222222",
+            "provider": "linear",
+            "readableIdentifier": "ENG-42",
+            "repository": "https://github.com/acme/widgets",
+            "workspace": "acme"
+          },
+          "critical": true
+        },
+        {
+          "id": "parity-plane-enrichment-payload",
+          "kind": "final-json-path-equals",
+          "pointer": "/planeRow/enrichment",
+          "expected": {
+            "canonicalPrUrl": "https://github.com/acme/widgets/pull/42",
+            "readableIdentifier": "ENG-42",
+            "title": "Cache timeout",
+            "workItemId": "66666666-6666-4666-8666-666666666666"
+          },
+          "critical": true
+        },
+        {
+          "id": "parity-plane-provenance",
+          "kind": "final-json-path-equals",
+          "pointer": "/planeRow/provenance",
+          "expected": {
+            "baseUrl": "https://api.plane.so",
+            "nativeUuid": "66666666-6666-4666-8666-666666666666",
+            "provider": "plane",
+            "readableIdentifier": "ENG-42",
+            "repository": "https://github.com/acme/widgets",
+            "workspace": "acme"
+          },
+          "critical": true
+        },
+        {
+          "id": "parity-absent-repo-no-row",
+          "kind": "final-json-path-equals",
+          "pointer": "/absentRepo/prRowCreated",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "parity-absent-repo-empty-rows",
+          "kind": "final-json-path-equals",
+          "pointer": "/absentRepo/renderedRows",
+          "expected": [],
+          "critical": true
+        },
+        {
+          "id": "parity-no-provider-mutation",
+          "kind": "final-json-path-equals",
+          "pointer": "/providerMutationCount",
+          "expected": 0,
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "status-rejects-unobserved-or-foreign-artifact-enrichment",
+      "prompt": "Classify status when an optional artifact reference is supplied but belongs to a foreign repository https://github.com/foreign/repo, or when the artifact provider read is missing or unauthenticated. The underlying repository PR #42 remains valid on canonical GitHub with passing full review. Do not call providers or mutate files. Return exactly one JSON object with rowState, foreignArtifactOmitted, boardUnalteredOnMissingArtifact, providerMutationCount, and repositoryMutationCount.",
+      "fixtures": [],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "Foreign or unavailable artifact data omits enrichment only, leaving the repository row state unaltered as review-clean and performing zero provider or repository mutations.",
+      "assertions": [
+        {"id": "foreign-artifact-row-state", "kind": "final-json-path-equals", "pointer": "/rowState", "expected": "review-clean", "critical": true},
+        {"id": "foreign-artifact-omitted", "kind": "final-json-path-equals", "pointer": "/foreignArtifactOmitted", "expected": true, "critical": true},
+        {"id": "board-unaltered-on-missing-artifact", "kind": "final-json-path-equals", "pointer": "/boardUnalteredOnMissingArtifact", "expected": true, "critical": true},
+        {"id": "artifact-omission-no-mutation", "kind": "final-json-path-equals", "pointer": "/providerMutationCount", "expected": 0, "critical": true},
+        {"id": "artifact-omission-no-repo-mutation", "kind": "final-json-path-equals", "pointer": "/repositoryMutationCount", "expected": 0, "critical": true}
       ]
     }
   ]

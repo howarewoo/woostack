@@ -4,7 +4,7 @@
   "cases": [
     {
       "id": "approved-design-project-first-order",
-      "prompt": "Apply the packaged woostack-bootstrap contract to this deterministic dry run. Do not call a provider, use the network, invoke Git, or write the workspace. Facts: this is a genuinely greenfield field-service codebase; the target path has remained an opaque unaccessed string; the complete architecture and scope received explicit approval; the intended repository is https://github.com/acme/field-service and the intended initial base is main; the normalized official-MCP/config preflight is complete; canonical normalization yields approved-design key sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa and deterministic feature client UUID 11111111-1111-5111-8111-111111111111; complete paginated repository-owned project discovery found zero candidates before one create; an independent read verifies native project ID 22222222-2222-4222-8222-222222222222 and canonical URL https://linear.app/acme/project/field-service-22222222 with the full managed feature identity in backlog; deterministic event UUID 33333333-3333-5333-8333-333333333333 was derived; complete pre-append project-update pagination found zero matching events and no phase head; that UUID was appended once as designApproved revision 1 with null predecessor and supersession; an independent direct read plus a fresh complete update listing verifies that event, the exact initial base intent main, and the one-head chain. After all authority receipts, the first target-filesystem action is a read-only collision check that proves the target absent. Return exactly one JSON object with keys status, workflowOrder, approvedDesignKey, projectDiscoveryComplete, projectsCreated, designArtifactsBeforeApproval, projectReceiptVerified, projectUpdatesPaginationComplete, matchingDesignApprovedBeforeAppend, projectEventsAppended, designApprovedVerified, designApprovedBaseIntent, targetDirectoryWritesBeforeAuthority, firstTargetFilesystemAction, targetCollisionState, targetDirectoryCreationAuthorized, scaffoldProjectIdentity, buildProjectIdentity, localSpecsCreated, localPlansCreated, customLinearCalls, and credentialsRequested.",
+      "prompt": "Apply the packaged woostack-bootstrap contract to this deterministic dry run when optional Linear mirroring is enabled (`artifacts.provider: \"linear\"`). Do not call a provider, use the network, invoke Git, or write the workspace. Facts: this is a genuinely greenfield field-service codebase; the target path has remained an opaque unaccessed string; the complete architecture and scope received explicit approval; the intended repository is https://github.com/acme/field-service and the intended initial base is main; the normalized official-MCP/config preflight is complete; canonical normalization yields approved-design key sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa and deterministic feature client UUID 11111111-1111-5111-8111-111111111111; complete paginated repository-owned project discovery found zero candidates before one create; an independent read verifies native project ID 22222222-2222-4222-8222-222222222222 and canonical URL https://linear.app/acme/project/field-service-22222222 with the full managed feature identity in backlog; deterministic event UUID 33333333-3333-5333-8333-333333333333 was derived; complete pre-append project-update pagination found zero matching events and no phase head; that UUID was appended once as designApproved revision 1 with null predecessor and supersession; an independent direct read plus a fresh complete update listing verifies that event, the exact initial base intent main, and the one-head chain. After all authority receipts, the first target-filesystem action is a read-only collision check that proves the target absent. Return exactly one JSON object with keys status, workflowOrder, approvedDesignKey, projectDiscoveryComplete, projectsCreated, designArtifactsBeforeApproval, projectReceiptVerified, projectUpdatesPaginationComplete, matchingDesignApprovedBeforeAppend, projectEventsAppended, designApprovedVerified, designApprovedBaseIntent, targetDirectoryWritesBeforeAuthority, firstTargetFilesystemAction, targetCollisionState, targetDirectoryCreationAuthorized, scaffoldProjectIdentity, buildProjectIdentity, localSpecsCreated, localPlansCreated, customLinearCalls, and credentialsRequested.",
       "capabilities": [
         "read-workspace"
       ],
@@ -193,8 +193,458 @@
       ]
     },
     {
+      "id": "approved-design-plane-provider",
+      "prompt": "Apply the packaged woostack-bootstrap contract to this deterministic dry run when optional Plane mirroring is enabled (`artifacts.provider: \"plane\"`). Do not call a provider, use the network, invoke Git, or write the workspace. Facts: this is a greenfield logistics dashboard; the target path is an unaccessed opaque string; the complete architecture and scope received explicit approval; the canonical repository is https://github.com/acme/field-service and the intended initial base is main; configured Plane baseUrl is https://api.plane.so, workspace is acme, and projectLabels is [\"bootstrap\", \"core\"]; official Plane MCP preflight verifies projectRead, projectWrite, projectLabelRead, projectLabelWrite, and independentReadBack capabilities; execute complete active and archived pagination to prove zero exact (`external_source: \"woostack\"`, external_id) pair matches before one project create; derive externalSource \"woostack\" and deterministic UUID externalId 11111111-1111-5111-8111-111111111111; attach configured labels [\"bootstrap\", \"core\"]; write one approved design record (designApproved) with goal, architecture, scope, decisions, repository, and base; independently read back project identity, unioned label set, and designApproved record verifying exact initial base \"main\"; verify target absence via read-only collision check; authorize target creation; and hand off the identical exact Plane project identity to both scaffolding and woostack-build handoff without requesting credentials. Return exactly one JSON object with keys status, selectedProvider, externalSource, externalId, nativeProjectId, projectUrl, effectiveProjectLabels, projectDiscoveryComplete, matchingProjectsBeforeCreate, projectsCreated, designApprovedWritten, designApprovedVerified, designApprovedBaseIntent, projectReadBackVerified, projectLabelsReadBackVerified, firstTargetFilesystemAction, targetDirectoryCreationAuthorized, scaffoldProjectIdentity, buildProjectIdentity, and credentialsRequested.",
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "Plane bootstrap verifies capabilities, proves zero existing matches via complete active and archived pagination, creates one project with external_source/external_id and configured labels [\"bootstrap\", \"core\"], appends designApproved with exact base intent, independently reads back project, labels, and designApproved record, verifies target absence, and hands off the exact Plane identity to both scaffold and build without credentials.",
+      "assertions": [
+        {
+          "id": "plane-approved-flow-complete",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "ready-to-scaffold",
+          "critical": true
+        },
+        {
+          "id": "plane-provider-selected",
+          "kind": "final-json-path-equals",
+          "pointer": "/selectedProvider",
+          "expected": "plane",
+          "critical": true
+        },
+        {
+          "id": "plane-external-source-bound",
+          "kind": "final-json-path-equals",
+          "pointer": "/externalSource",
+          "expected": "woostack",
+          "critical": true
+        },
+        {
+          "id": "plane-external-id-bound",
+          "kind": "final-json-path-equals",
+          "pointer": "/externalId",
+          "expected": "11111111-1111-5111-8111-111111111111",
+          "critical": true
+        },
+        {
+          "id": "plane-project-uuid-verified",
+          "kind": "final-json-path-equals",
+          "pointer": "/nativeProjectId",
+          "expected": "22222222-2222-4222-8222-222222222222",
+          "critical": true
+        },
+        {
+          "id": "plane-project-url-verified",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectUrl",
+          "expected": "https://app.plane.so/acme/projects/22222222-2222-4222-8222-222222222222",
+          "critical": true
+        },
+        {
+          "id": "plane-labels-attached",
+          "kind": "final-json-path-equals",
+          "pointer": "/effectiveProjectLabels",
+          "expected": [
+            "bootstrap",
+            "core"
+          ],
+          "critical": true
+        },
+        {
+          "id": "plane-project-discovery-complete",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectDiscoveryComplete",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "plane-zero-matches-before-create",
+          "kind": "final-json-path-equals",
+          "pointer": "/matchingProjectsBeforeCreate",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "plane-one-project-created",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectsCreated",
+          "expected": 1,
+          "critical": true
+        },
+        {
+          "id": "plane-design-approved-written",
+          "kind": "final-json-path-equals",
+          "pointer": "/designApprovedWritten",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "plane-design-approved-verified",
+          "kind": "final-json-path-equals",
+          "pointer": "/designApprovedVerified",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "plane-design-approved-base-intent",
+          "kind": "final-json-path-equals",
+          "pointer": "/designApprovedBaseIntent",
+          "expected": "main",
+          "critical": true
+        },
+        {
+          "id": "plane-readback-verified",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectReadBackVerified",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "plane-label-readback-verified",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectLabelsReadBackVerified",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "plane-target-collision-check",
+          "kind": "final-json-path-equals",
+          "pointer": "/firstTargetFilesystemAction",
+          "expected": "read-only-collision-check",
+          "critical": true
+        },
+        {
+          "id": "plane-target-creation-authorized",
+          "kind": "final-json-path-equals",
+          "pointer": "/targetDirectoryCreationAuthorized",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "plane-scaffold-receives-exact-project",
+          "kind": "final-json-path-equals",
+          "pointer": "/scaffoldProjectIdentity",
+          "expected": {
+            "externalSource": "woostack",
+            "externalId": "11111111-1111-5111-8111-111111111111",
+            "nativeId": "22222222-2222-4222-8222-222222222222",
+            "url": "https://app.plane.so/acme/projects/22222222-2222-4222-8222-222222222222"
+          },
+          "critical": true
+        },
+        {
+          "id": "plane-build-handoff-receives-exact-project",
+          "kind": "final-json-path-equals",
+          "pointer": "/buildProjectIdentity",
+          "expected": {
+            "externalSource": "woostack",
+            "externalId": "11111111-1111-5111-8111-111111111111",
+            "nativeId": "22222222-2222-4222-8222-222222222222",
+            "url": "https://app.plane.so/acme/projects/22222222-2222-4222-8222-222222222222"
+          },
+          "critical": true
+        },
+        {
+          "id": "plane-no-credentials-requested",
+          "kind": "final-json-path-equals",
+          "pointer": "/credentialsRequested",
+          "expected": false,
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "approved-design-local-provider-no-provider-calls",
+      "prompt": "Apply the packaged woostack-bootstrap contract to this deterministic dry run in default local mode (`artifacts.provider: \"local\"`). Do not call a provider, use the network, invoke Git, or write the workspace. Facts: this is a greenfield internal analytics tool; the target path is an unaccessed opaque string; the complete architecture and scope received explicit approval; the canonical repository is https://github.com/acme/field-service and the intended initial base is main; provider mirroring is not enabled. Return exactly one JSON object with keys status, selectedProvider, mcpPreflightCount, providerDiscoveryCalls, projectsCreated, projectEventsAppended, firstTargetFilesystemAction, targetDirectoryCreationAuthorized, scaffoldProjectIdentity, buildProjectIdentity, and credentialsRequested.",
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "In default local mode, design approval authorizes collision check and scaffolding without making any provider preflights, discovery, project creation, or update append calls; project identity is null.",
+      "assertions": [
+        {
+          "id": "local-approved-flow-complete",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "ready-to-scaffold",
+          "critical": true
+        },
+        {
+          "id": "local-provider-selected",
+          "kind": "final-json-path-equals",
+          "pointer": "/selectedProvider",
+          "expected": "local",
+          "critical": true
+        },
+        {
+          "id": "local-zero-mcp-preflights",
+          "kind": "final-json-path-equals",
+          "pointer": "/mcpPreflightCount",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "local-zero-provider-discovery",
+          "kind": "final-json-path-equals",
+          "pointer": "/providerDiscoveryCalls",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "local-zero-projects-created",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectsCreated",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "local-zero-events-appended",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectEventsAppended",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "local-collision-check-is-first",
+          "kind": "final-json-path-equals",
+          "pointer": "/firstTargetFilesystemAction",
+          "expected": "read-only-collision-check",
+          "critical": true
+        },
+        {
+          "id": "local-target-creation-authorized",
+          "kind": "final-json-path-equals",
+          "pointer": "/targetDirectoryCreationAuthorized",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "local-scaffold-project-identity-null",
+          "kind": "final-json-path-equals",
+          "pointer": "/scaffoldProjectIdentity",
+          "expected": null,
+          "critical": true
+        },
+        {
+          "id": "local-build-project-identity-null",
+          "kind": "final-json-path-equals",
+          "pointer": "/buildProjectIdentity",
+          "expected": null,
+          "critical": true
+        },
+        {
+          "id": "local-zero-credentials-requested",
+          "kind": "final-json-path-equals",
+          "pointer": "/credentialsRequested",
+          "expected": false,
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "plane-missing-label-capability-nonblocking",
+      "prompt": "Apply the packaged woostack-bootstrap contract to this deterministic dry run when optional Plane mirroring is enabled (`artifacts.provider: \"plane\"`). The complete design received approval; repository is https://github.com/acme/field-service on main; projectLabels is configured as [\"bootstrap\"]; official Plane MCP is available but lacks projectLabelRead and projectLabelWrite capabilities; provider persistence was not requested as a mandatory deliverable. Return exactly one JSON object with keys status, mirrorStatus, reasonCode, projectsCreated, firstTargetFilesystemAction, targetDirectoryCreationAuthorized, and scaffoldProjectIdentity.",
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "Missing project-label capability on Plane records mirror failure without blocking the approved artifact-free scaffold; project creation is zero, collision check is authorized, and scaffold receives null project identity.",
+      "assertions": [
+        {
+          "id": "plane-label-cap-status",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "ready-to-scaffold",
+          "critical": true
+        },
+        {
+          "id": "plane-label-cap-mirror-status",
+          "kind": "final-json-path-equals",
+          "pointer": "/mirrorStatus",
+          "expected": "failed",
+          "critical": true
+        },
+        {
+          "id": "plane-label-cap-missing-reason",
+          "kind": "final-json-path-equals",
+          "pointer": "/reasonCode",
+          "expected": "plane-project-label-capability-missing",
+          "critical": true
+        },
+        {
+          "id": "plane-label-cap-no-project-created",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectsCreated",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "plane-label-cap-collision-check",
+          "kind": "final-json-path-equals",
+          "pointer": "/firstTargetFilesystemAction",
+          "expected": "read-only-collision-check",
+          "critical": true
+        },
+        {
+          "id": "plane-label-cap-target-authorized",
+          "kind": "final-json-path-equals",
+          "pointer": "/targetDirectoryCreationAuthorized",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "plane-label-cap-scaffold-null",
+          "kind": "final-json-path-equals",
+          "pointer": "/scaffoldProjectIdentity",
+          "expected": null,
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "linear-missing-mcp-nonblocking",
+      "prompt": "Apply the packaged woostack-bootstrap contract to this deterministic dry run when optional Linear mirroring is enabled (`artifacts.provider: \"linear\"`). The complete design received explicit approval; repository is https://github.com/acme/field-service on main; official host-exposed Linear MCP is unavailable at preflight; provider persistence was not requested as a mandatory deliverable. Return exactly one JSON object with keys status, mirrorStatus, reasonCode, projectsCreated, firstTargetFilesystemAction, targetDirectoryCreationAuthorized, and scaffoldProjectIdentity.",
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "Missing official Linear MCP records mirror failure without blocking the approved artifact-free scaffold; project creation is zero, collision check is authorized, and scaffold receives null project identity.",
+      "assertions": [
+        {
+          "id": "linear-missing-mcp-status",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "ready-to-scaffold",
+          "critical": true
+        },
+        {
+          "id": "linear-missing-mcp-mirror-status",
+          "kind": "final-json-path-equals",
+          "pointer": "/mirrorStatus",
+          "expected": "failed",
+          "critical": true
+        },
+        {
+          "id": "linear-missing-mcp-reason",
+          "kind": "final-json-path-equals",
+          "pointer": "/reasonCode",
+          "expected": "official-linear-mcp-unavailable",
+          "critical": true
+        },
+        {
+          "id": "linear-missing-mcp-no-project-created",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectsCreated",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "linear-missing-mcp-collision-check",
+          "kind": "final-json-path-equals",
+          "pointer": "/firstTargetFilesystemAction",
+          "expected": "read-only-collision-check",
+          "critical": true
+        },
+        {
+          "id": "linear-missing-mcp-target-authorized",
+          "kind": "final-json-path-equals",
+          "pointer": "/targetDirectoryCreationAuthorized",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "linear-missing-mcp-scaffold-null",
+          "kind": "final-json-path-equals",
+          "pointer": "/scaffoldProjectIdentity",
+          "expected": null,
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "plane-exact-project-no-implicit-creation",
+      "prompt": "Apply the packaged woostack-bootstrap contract to this deterministic dry run when an exact Plane project URL is supplied (`--project https://app.plane.so/acme/projects/22222222-2222-4222-8222-222222222222`). The design received explicit approval; the exact project is verified on instance https://api.plane.so and workspace acme with existing label \"backend\"; configured projectLabels is [\"bootstrap\"]; label union [\"backend\", \"bootstrap\"] is applied in at most one write; an independent read-back verifies native UUID 22222222-2222-4222-8222-222222222222, unioned labels, and designApproved record verifying exact initial base \"main\"; the exact Plane identity is handed off to both scaffold and build. Return exactly one JSON object with keys existingProjectReused, reusedProjectId, projectsCreated, replacementProjectCreated, effectiveProjectLabels, designApprovedVerified, projectReadBackVerified, scaffoldProjectIdentity, and buildProjectIdentity.",
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "An exact supplied Plane project is reused without marker search, replacement project creation, or implicit project synthesis; configured labels are unioned with existing labels, designApproved is verified by read-back, and exact identity is passed to scaffold and build.",
+      "assertions": [
+        {
+          "id": "plane-exact-project-reused",
+          "kind": "final-json-path-equals",
+          "pointer": "/existingProjectReused",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "plane-exact-project-id",
+          "kind": "final-json-path-equals",
+          "pointer": "/reusedProjectId",
+          "expected": "22222222-2222-4222-8222-222222222222",
+          "critical": true
+        },
+        {
+          "id": "plane-exact-no-create",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectsCreated",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "plane-exact-no-replacement",
+          "kind": "final-json-path-equals",
+          "pointer": "/replacementProjectCreated",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "plane-exact-labels-unioned",
+          "kind": "final-json-path-equals",
+          "pointer": "/effectiveProjectLabels",
+          "expected": [
+            "backend",
+            "bootstrap"
+          ],
+          "critical": true
+        },
+        {
+          "id": "plane-exact-design-approved-verified",
+          "kind": "final-json-path-equals",
+          "pointer": "/designApprovedVerified",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "plane-exact-readback-verified",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectReadBackVerified",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "plane-exact-scaffold-project-identity",
+          "kind": "final-json-path-equals",
+          "pointer": "/scaffoldProjectIdentity",
+          "expected": {
+            "nativeId": "22222222-2222-4222-8222-222222222222",
+            "url": "https://app.plane.so/acme/projects/22222222-2222-4222-8222-222222222222"
+          },
+          "critical": true
+        },
+        {
+          "id": "plane-exact-build-project-identity",
+          "kind": "final-json-path-equals",
+          "pointer": "/buildProjectIdentity",
+          "expected": {
+            "nativeId": "22222222-2222-4222-8222-222222222222",
+            "url": "https://app.plane.so/acme/projects/22222222-2222-4222-8222-222222222222"
+          },
+          "critical": true
+        }
+      ]
+    },
+    {
       "id": "missing-mcp-blocks-before-target-directory",
-      "prompt": "Apply the packaged woostack-bootstrap contract to this deterministic dry run. Do not call a provider, use the network, invoke Git, or access/write the workspace. Facts: this is genuinely greenfield; the complete design received explicit approval; the intended repository is https://github.com/acme/field-service and the intended initial base is main; the requested target path is only an opaque string and does not exist; official host-exposed Linear MCP is unavailable at the required post-approval preflight. Return exactly one JSON object with keys status, reasonCode, workflowOrder, targetDirectoryAccesses, targetDirectoryCreated, filesystemWritesStarted, gitInvocations, projectsCreated, projectEventsCreated, localSpecsCreated, localPlansCreated, customLinearCalls, credentialsRequested, and fallbackAuthority.",
+      "prompt": "Apply the packaged woostack-bootstrap contract to this deterministic dry run when Linear mirroring is enabled (`artifacts.provider: \"linear\"`) and the caller explicitly requires remote provider persistence as a mandatory deliverable. Do not call a provider, use the network, invoke Git, or access/write the workspace. Facts: this is genuinely greenfield; the complete design received explicit approval; the intended repository is https://github.com/acme/field-service and the intended initial base is main; the requested target path is only an opaque string and does not exist; official host-exposed Linear MCP is unavailable at the required post-approval preflight. Return exactly one JSON object with keys status, reasonCode, workflowOrder, targetDirectoryAccesses, targetDirectoryCreated, filesystemWritesStarted, gitInvocations, projectsCreated, projectEventsCreated, localSpecsCreated, localPlansCreated, customLinearCalls, credentialsRequested, and fallbackAuthority.",
       "capabilities": [
         "read-workspace"
       ],
@@ -375,11 +825,11 @@
     },
     {
       "id": "fresh-restart-rediscovers-project-and-event",
-      "prompt": "Apply the packaged woostack-bootstrap restart contract to this deterministic dry run. Do not call a provider, use the network, invoke Git, or access/write the workspace. A prior invocation received explicit design approval, successfully created the project and appended designApproved, then terminated before retaining either mutation receipt; this fresh invocation has no in-memory client IDs. The same canonical repository and normalized approved goal/scope recompute approved-design key sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa, deterministic feature client UUID 11111111-1111-5111-8111-111111111111, and deterministic designApproved event UUID 33333333-3333-5333-8333-333333333333. Complete repository-owned project pagination finds exactly one valid project with native ID 22222222-2222-4222-8222-222222222222; a direct independent read verifies it. Complete project-update pagination finds exactly one valid stable event identity with native update ID 44444444-4444-4444-8444-444444444444 and one current revision; a direct independent read verifies its approved content, exact initial base intent main, and unique chain. After those receipts, the first target-filesystem action is a read-only collision check that proves the target absent. Return exactly one JSON object with keys status, identitySource, workflowOrder, approvedDesignKey, featureClientId, projectDiscoveryComplete, matchingProjects, projectsCreated, projectReadBackVerified, eventDiscoveryComplete, matchingDesignApprovedEvents, projectEventsAppended, eventReadBackVerified, designApprovedBaseIntent, reusedProjectId, reusedDesignApprovedUpdateId, targetDirectoryAccessesBeforeReceipts, firstTargetFilesystemAction, targetCollisionState, and targetDirectoryCreationAuthorized.",
+      "prompt": "Apply the packaged woostack-bootstrap restart contract to this deterministic dry run with explicit Linear persistence (`artifacts.provider: \"linear\"`). Do not call a provider, use the network, invoke Git, or access/write the workspace. A prior invocation received explicit design approval, created one exact Linear project and one designApproved record, then terminated before retaining mutation receipts. This fresh invocation has no in-memory IDs. The canonical repository is https://github.com/acme/field-service on main; recompute approved-design key sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa, exact client project ID 11111111-1111-5111-8111-111111111111, native project ID 22222222-2222-4222-8222-222222222222, canonical project URL https://linear.app/acme/project/field-service-22222222, and stable designApproved operation ID 33333333-3333-5333-8333-333333333333. Complete active and archived project discovery finds exactly one exact project record; an independent project read verifies the client/native IDs and repository/base association. Complete update discovery finds exactly one designApproved record with native update ID 44444444-4444-4444-8444-444444444444; independent content and record reads verify the approved design and exact initial base main. After those receipts, the first target-filesystem action is a read-only collision check proving the target absent. Return exactly one JSON object with keys status, selectedProvider, identitySource, approvedDesignKey, clientProjectId, nativeProjectId, operationId, projectDiscoveryComplete, matchingProjects, projectsCreated, projectReadBackVerified, designApprovedDiscoveryComplete, matchingDesignApprovedRecords, designApprovedReadBackVerified, designApprovedBaseIntent, projectUpdatesAppended, reusedProjectId, reusedOperationId, targetDirectoryAccessesBeforeReceipts, firstTargetFilesystemAction, targetCollisionState, and targetDirectoryCreationAuthorized.",
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "A fresh invocation recomputes the same managed identities, completely rediscovers and directly reads the one project and one designApproved event with matching initial base intent, creates/appends nothing, then performs a passing read-only collision check before target creation.",
+      "expected": "A fresh Linear invocation recomputes exact client/native project and stable operation identities, completely rediscovers and independently reads the one project and one designApproved record with matching content and base intent, creates/appends nothing, then performs a passing collision check before target creation.",
       "assertions": [
         {
           "id": "restart-ready",
@@ -389,40 +839,45 @@
           "critical": true
         },
         {
+          "id": "restart-linear-provider",
+          "kind": "final-json-path-equals",
+          "pointer": "/selectedProvider",
+          "expected": "linear",
+          "critical": true
+        },
+        {
           "id": "restart-identity-source",
           "kind": "final-json-path-equals",
           "pointer": "/identitySource",
-          "expected": "recomputed-approved-design-key",
+          "expected": "deterministic-recomputed",
           "critical": true
         },
         {
-          "id": "restart-order",
-          "kind": "final-json-path-equals",
-          "pointer": "/workflowOrder",
-          "expected": [
-            "derive-approved-design-key",
-            "complete-feature-project-discovery",
-            "feature-project-read-back",
-            "derive-designApproved-event-id",
-            "complete-project-update-read",
-            "designApproved-direct-read-back",
-            "read-only-target-collision-check",
-            "target-directory-create"
-          ],
-          "critical": true
-        },
-        {
-          "id": "restart-key-stable",
+          "id": "restart-approved-design-key",
           "kind": "final-json-path-equals",
           "pointer": "/approvedDesignKey",
           "expected": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "critical": true
         },
         {
-          "id": "restart-client-id-stable",
+          "id": "restart-client-project-id",
           "kind": "final-json-path-equals",
-          "pointer": "/featureClientId",
+          "pointer": "/clientProjectId",
           "expected": "11111111-1111-5111-8111-111111111111",
+          "critical": true
+        },
+        {
+          "id": "restart-native-project-id",
+          "kind": "final-json-path-equals",
+          "pointer": "/nativeProjectId",
+          "expected": "22222222-2222-4222-8222-222222222222",
+          "critical": true
+        },
+        {
+          "id": "restart-operation-id",
+          "kind": "final-json-path-equals",
+          "pointer": "/operationId",
+          "expected": "33333333-3333-5333-8333-333333333333",
           "critical": true
         },
         {
@@ -454,42 +909,63 @@
           "critical": true
         },
         {
-          "id": "restart-event-discovery-complete",
+          "id": "restart-design-discovery-complete",
           "kind": "final-json-path-equals",
-          "pointer": "/eventDiscoveryComplete",
+          "pointer": "/designApprovedDiscoveryComplete",
           "expected": true,
           "critical": true
         },
         {
-          "id": "restart-one-event",
+          "id": "restart-one-design-record",
           "kind": "final-json-path-equals",
-          "pointer": "/matchingDesignApprovedEvents",
+          "pointer": "/matchingDesignApprovedRecords",
           "expected": 1,
           "critical": true
         },
         {
-          "id": "restart-no-event-append",
+          "id": "restart-no-update-append",
           "kind": "final-json-path-equals",
-          "pointer": "/projectEventsAppended",
+          "pointer": "/projectUpdatesAppended",
           "expected": 0,
           "critical": true
         },
         {
-          "id": "restart-event-read-back",
+          "id": "restart-design-read-back",
           "kind": "final-json-path-equals",
-          "pointer": "/eventReadBackVerified",
+          "pointer": "/designApprovedReadBackVerified",
           "expected": true,
           "critical": true
         },
         {
-          "id": "restart-base-intent-matches",
+          "id": "restart-base-intent",
           "kind": "final-json-path-equals",
           "pointer": "/designApprovedBaseIntent",
           "expected": "main",
           "critical": true
         },
         {
-          "id": "restart-first-target-action-is-check",
+          "id": "restart-reused-project-id",
+          "kind": "final-json-path-equals",
+          "pointer": "/reusedProjectId",
+          "expected": "22222222-2222-4222-8222-222222222222",
+          "critical": true
+        },
+        {
+          "id": "restart-reused-operation-id",
+          "kind": "final-json-path-equals",
+          "pointer": "/reusedOperationId",
+          "expected": "33333333-3333-5333-8333-333333333333",
+          "critical": true
+        },
+        {
+          "id": "restart-zero-target-access",
+          "kind": "final-json-path-equals",
+          "pointer": "/targetDirectoryAccessesBeforeReceipts",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "restart-collision-check",
           "kind": "final-json-path-equals",
           "pointer": "/firstTargetFilesystemAction",
           "expected": "read-only-collision-check",
@@ -503,27 +979,6 @@
           "critical": true
         },
         {
-          "id": "restart-project-reused",
-          "kind": "final-json-path-equals",
-          "pointer": "/reusedProjectId",
-          "expected": "22222222-2222-4222-8222-222222222222",
-          "critical": true
-        },
-        {
-          "id": "restart-update-reused",
-          "kind": "final-json-path-equals",
-          "pointer": "/reusedDesignApprovedUpdateId",
-          "expected": "44444444-4444-4444-8444-444444444444",
-          "critical": true
-        },
-        {
-          "id": "restart-zero-target-access-before-receipts",
-          "kind": "final-json-path-equals",
-          "pointer": "/targetDirectoryAccessesBeforeReceipts",
-          "expected": 0,
-          "critical": true
-        },
-        {
           "id": "restart-target-authorized",
           "kind": "final-json-path-equals",
           "pointer": "/targetDirectoryCreationAuthorized",
@@ -534,159 +989,194 @@
     },
     {
       "id": "restart-blocks-partial-duplicate-project-identity",
-      "prompt": "Apply the packaged woostack-bootstrap restart contract to this deterministic dry run. Do not call a provider, use the network, invoke Git, or access/write the workspace. The fresh invocation recomputes approved-design key sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa and deterministic feature client UUID 11111111-1111-5111-8111-111111111111. Proven-complete repository-owned project pagination returns two candidates: one fully valid project with that managed UUID and tuple, and one malformed managed overview that contains the same UUID but lacks a verifiable role and workspace/team. Return exactly one JSON object with keys status, reasonCode, projectDiscoveryComplete, candidateCount, projectsCreated, projectEventsAppended, targetDirectoryAccesses, replacementClientIdAllocated, titleOrFilesystemIdentityUsed, and preservedClientId.",
+      "prompt": "Apply the packaged woostack-bootstrap restart contract to this deterministic dry run with explicit Linear persistence (`artifacts.provider: \"linear\"`). Do not call a provider, use the network, invoke Git, or access/write the workspace. Recompute approved-design key sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa and exact client project ID 11111111-1111-5111-8111-111111111111. Complete active and archived project discovery returns three records: one exact project with client ID 11111111-1111-5111-8111-111111111111, native ID 22222222-2222-4222-8222-222222222222, repository https://github.com/acme/field-service, and workspace acme; a second record repeats the client ID but has no verifiable native ID or repository association; a third record is an unknown provider shape without a verifiable client ID. Return exactly one JSON object with keys status, reasonCode, selectedProvider, projectDiscoveryComplete, candidateCount, unknownCandidateCount, projectsCreated, projectUpdatesAppended, targetDirectoryAccesses, replacementClientIdAllocated, titleOrFilesystemIdentityUsed, and preservedClientProjectId.",
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "A valid candidate plus a partial duplicate is ambiguous: bootstrap preserves the deterministic client UUID and blocks before create, update reconciliation, target access, or any replacement/title/filesystem identity fallback.",
+      "expected": "Complete Linear discovery containing an exact record plus a partial duplicate and an unknown record is ambiguous; bootstrap preserves the deterministic client ID and fails closed before project/update mutation or target access, with no title or filesystem fallback.",
       "assertions": [
         {
-          "id": "partial-duplicate-blocks",
+          "id": "partial-duplicate-linear-blocks",
           "kind": "final-json-path-equals",
           "pointer": "/status",
           "expected": "blocked",
           "critical": true
         },
         {
-          "id": "partial-duplicate-reason",
+          "id": "partial-duplicate-linear-reason",
           "kind": "final-json-path-equals",
           "pointer": "/reasonCode",
-          "expected": "ambiguous-or-partial-bootstrap-project",
+          "expected": "ambiguous-or-partial-linear-project",
           "critical": true
         },
         {
-          "id": "partial-duplicate-discovery-complete",
+          "id": "partial-duplicate-linear-provider",
+          "kind": "final-json-path-equals",
+          "pointer": "/selectedProvider",
+          "expected": "linear",
+          "critical": true
+        },
+        {
+          "id": "partial-duplicate-linear-discovery-complete",
           "kind": "final-json-path-equals",
           "pointer": "/projectDiscoveryComplete",
           "expected": true,
           "critical": true
         },
         {
-          "id": "partial-duplicate-counted",
+          "id": "partial-duplicate-linear-count",
           "kind": "final-json-path-equals",
           "pointer": "/candidateCount",
-          "expected": 2,
+          "expected": 3,
           "critical": true
         },
         {
-          "id": "partial-duplicate-no-create",
+          "id": "partial-duplicate-linear-unknown-count",
+          "kind": "final-json-path-equals",
+          "pointer": "/unknownCandidateCount",
+          "expected": 1,
+          "critical": true
+        },
+        {
+          "id": "partial-duplicate-linear-no-create",
           "kind": "final-json-path-equals",
           "pointer": "/projectsCreated",
           "expected": 0,
           "critical": true
         },
         {
-          "id": "partial-duplicate-no-event",
+          "id": "partial-duplicate-linear-no-update",
           "kind": "final-json-path-equals",
-          "pointer": "/projectEventsAppended",
+          "pointer": "/projectUpdatesAppended",
           "expected": 0,
           "critical": true
         },
         {
-          "id": "partial-duplicate-no-target",
+          "id": "partial-duplicate-linear-no-target",
           "kind": "final-json-path-equals",
           "pointer": "/targetDirectoryAccesses",
           "expected": 0,
           "critical": true
         },
         {
-          "id": "partial-duplicate-no-replacement-id",
+          "id": "partial-duplicate-linear-no-replacement",
           "kind": "final-json-path-equals",
           "pointer": "/replacementClientIdAllocated",
           "expected": false,
           "critical": true
         },
         {
-          "id": "partial-duplicate-no-title-or-filesystem-key",
+          "id": "partial-duplicate-linear-no-fallback",
           "kind": "final-json-path-equals",
           "pointer": "/titleOrFilesystemIdentityUsed",
           "expected": false,
           "critical": true
         },
         {
-          "id": "partial-duplicate-preserves-id",
+          "id": "partial-duplicate-linear-preserve-id",
           "kind": "final-json-path-equals",
-          "pointer": "/preservedClientId",
+          "pointer": "/preservedClientProjectId",
           "expected": "11111111-1111-5111-8111-111111111111",
           "critical": true
         }
       ]
     },
     {
-      "id": "conflicting-project-update-heads-block-append",
-      "prompt": "Apply the packaged woostack-bootstrap event-reconciliation contract to this deterministic dry run. Do not call a provider, use the network, invoke Git, or access/write the workspace. The deterministic feature project is independently verified. Complete project-update pagination returns two unsuperseded current phase heads: one valid designApproved revision 1 with the recomputed stable event UUID and matching approved content, plus another designApproved event with a different stable UUID. Return exactly one JSON object with keys status, reasonCode, projectUpdatesPaginationComplete, matchingStableEvents, currentPhaseHeads, matchingEventReadBackAttempted, existingEventReused, projectEventsAppended, targetDirectoryAccesses, and preservedEventId.",
+      "id": "conflicting-project-updates-block-append",
+      "prompt": "Apply the packaged woostack-bootstrap Linear update-reconciliation contract to this deterministic dry run. Do not call a provider, use the network, invoke Git, or access/write the workspace. Explicit Linear persistence is selected with exact project client ID 11111111-1111-5111-8111-111111111111 and native project ID 22222222-2222-4222-8222-222222222222. Complete update discovery returns two current designApproved records: one has the recomputed stable operation ID 33333333-3333-5333-8333-333333333333, revision 1, and approved content; the other has a different stable operation ID 55555555-5555-5555-8555-555555555555. An independent read of the expected operation confirms its content, but the second current record is conflicting authority. Return exactly one JSON object with keys status, reasonCode, selectedProvider, clientProjectId, nativeProjectId, expectedOperationId, projectUpdatesDiscoveryComplete, matchingOperationRecords, currentDesignApprovedRecords, designApprovedReadBackAttempted, existingRecordReused, projectUpdatesAppended, targetDirectoryAccesses, and preservedOperationId.",
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "Even one matching event cannot be reused when another current phase head conflicts; complete reconciliation blocks without append or target access and preserves the deterministic event identity.",
+      "expected": "Complete Linear update discovery finds conflicting current designApproved records; bootstrap preserves the expected operation ID and fails closed without reusing or appending a record or accessing the target.",
       "assertions": [
         {
-          "id": "conflicting-heads-block",
+          "id": "conflicting-linear-block",
           "kind": "final-json-path-equals",
           "pointer": "/status",
           "expected": "blocked",
           "critical": true
         },
         {
-          "id": "conflicting-heads-reason",
+          "id": "conflicting-linear-reason",
           "kind": "final-json-path-equals",
           "pointer": "/reasonCode",
-          "expected": "conflicting-or-duplicate-project-update-head",
+          "expected": "conflicting-or-duplicate-linear-project-update",
           "critical": true
         },
         {
-          "id": "conflicting-heads-pagination-complete",
+          "id": "conflicting-linear-provider",
           "kind": "final-json-path-equals",
-          "pointer": "/projectUpdatesPaginationComplete",
+          "pointer": "/selectedProvider",
+          "expected": "linear",
+          "critical": true
+        },
+        {
+          "id": "conflicting-linear-project-id",
+          "kind": "final-json-path-equals",
+          "pointer": "/nativeProjectId",
+          "expected": "22222222-2222-4222-8222-222222222222",
+          "critical": true
+        },
+        {
+          "id": "conflicting-linear-client-id",
+          "kind": "final-json-path-equals",
+          "pointer": "/clientProjectId",
+          "expected": "11111111-1111-5111-8111-111111111111",
+          "critical": true
+        },
+        {
+          "id": "conflicting-linear-discovery-complete",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectUpdatesDiscoveryComplete",
           "expected": true,
           "critical": true
         },
         {
-          "id": "conflicting-heads-one-matching-event",
+          "id": "conflicting-linear-one-match",
           "kind": "final-json-path-equals",
-          "pointer": "/matchingStableEvents",
+          "pointer": "/matchingOperationRecords",
           "expected": 1,
           "critical": true
         },
         {
-          "id": "conflicting-heads-two-heads",
+          "id": "conflicting-linear-two-records",
           "kind": "final-json-path-equals",
-          "pointer": "/currentPhaseHeads",
+          "pointer": "/currentDesignApprovedRecords",
           "expected": 2,
           "critical": true
         },
         {
-          "id": "conflicting-heads-direct-read-attempted",
+          "id": "conflicting-linear-read-attempted",
           "kind": "final-json-path-equals",
-          "pointer": "/matchingEventReadBackAttempted",
+          "pointer": "/designApprovedReadBackAttempted",
           "expected": true,
           "critical": true
         },
         {
-          "id": "conflicting-heads-not-reused",
+          "id": "conflicting-linear-not-reused",
           "kind": "final-json-path-equals",
-          "pointer": "/existingEventReused",
+          "pointer": "/existingRecordReused",
           "expected": false,
           "critical": true
         },
         {
-          "id": "conflicting-heads-no-append",
+          "id": "conflicting-linear-no-append",
           "kind": "final-json-path-equals",
-          "pointer": "/projectEventsAppended",
+          "pointer": "/projectUpdatesAppended",
           "expected": 0,
           "critical": true
         },
         {
-          "id": "conflicting-heads-no-target",
+          "id": "conflicting-linear-no-target",
           "kind": "final-json-path-equals",
           "pointer": "/targetDirectoryAccesses",
           "expected": 0,
           "critical": true
         },
         {
-          "id": "conflicting-heads-preserve-event-id",
+          "id": "conflicting-linear-preserve-operation",
           "kind": "final-json-path-equals",
-          "pointer": "/preservedEventId",
+          "pointer": "/preservedOperationId",
           "expected": "33333333-3333-5333-8333-333333333333",
           "critical": true
         }
@@ -694,11 +1184,11 @@
     },
     {
       "id": "target-collision-blocks-before-local-mutation",
-      "prompt": "Apply the packaged woostack-bootstrap post-authority barrier to this deterministic dry run. Do not call a provider, use the network, invoke Git, or write the workspace. Official-MCP preflight, project, and matching designApproved receipts are complete and verified for project 22222222-2222-4222-8222-222222222222 and event 33333333-3333-5333-8333-333333333333. The first target-filesystem action is a read-only collision check; it finds an existing populated directory with a .git entry, proving an existing Git checkout. Return exactly one JSON object with keys status, reasonCode, firstTargetFilesystemAction, targetCollisionState, authorityReceiptsVerified, authorityReceiptsPreserved, mkdirStarted, filesystemWritesStarted, scaffoldStarted, gitInvocations, reportedProjectId, and reportedEventId.",
+      "prompt": "Apply the packaged woostack-bootstrap post-authority filesystem boundary to this deterministic dry run with explicit Linear persistence (`artifacts.provider: \"linear\"`). Do not call a provider, use the network, invoke Git, or write the workspace. Official Linear MCP preflight, complete project/update discovery, project read-back, and designApproved content/record read-back are complete and verified for exact client project ID 11111111-1111-5111-8111-111111111111 and native project ID 22222222-2222-4222-8222-222222222222 and stable operation ID 33333333-3333-5333-8333-333333333333. The first target-filesystem action is a read-only collision check; it finds an existing populated directory with a .git entry, proving an existing Git checkout. Return exactly one JSON object with keys status, reasonCode, selectedProvider, clientProjectId, nativeProjectId, firstTargetFilesystemAction, targetCollisionState, synchronizationReceiptsVerified, synchronizationReceiptsPreserved, providerLifecycleAuthority, mkdirStarted, filesystemWritesStarted, scaffoldStarted, gitInvocations, reportedNativeProjectId, and reportedOperationId.",
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "The mandatory first read-only target check detects an existing Git checkout and blocks every mkdir/write/scaffold/Git action while preserving and reporting the already verified remote authority receipts.",
+      "expected": "The mandatory first read-only target check detects an existing Git checkout and blocks mkdir/write/scaffold/Git actions while preserving verified Linear synchronization receipts without granting provider lifecycle authority.",
       "assertions": [
         {
           "id": "target-collision-blocks",
@@ -712,6 +1202,20 @@
           "kind": "final-json-path-equals",
           "pointer": "/reasonCode",
           "expected": "target-collision-existing-git-checkout",
+          "critical": true
+        },
+        {
+          "id": "target-collision-linear-provider",
+          "kind": "final-json-path-equals",
+          "pointer": "/selectedProvider",
+          "expected": "linear",
+          "critical": true
+        },
+        {
+          "id": "collision-reports-client-project",
+          "kind": "final-json-path-equals",
+          "pointer": "/clientProjectId",
+          "expected": "11111111-1111-5111-8111-111111111111",
           "critical": true
         },
         {
@@ -729,17 +1233,24 @@
           "critical": true
         },
         {
-          "id": "collision-authority-was-verified",
+          "id": "collision-sync-receipts-verified",
           "kind": "final-json-path-equals",
-          "pointer": "/authorityReceiptsVerified",
+          "pointer": "/synchronizationReceiptsVerified",
           "expected": true,
           "critical": true
         },
         {
-          "id": "collision-authority-preserved",
+          "id": "collision-sync-receipts-preserved",
           "kind": "final-json-path-equals",
-          "pointer": "/authorityReceiptsPreserved",
+          "pointer": "/synchronizationReceiptsPreserved",
           "expected": true,
+          "critical": true
+        },
+        {
+          "id": "collision-no-lifecycle-authority",
+          "kind": "final-json-path-equals",
+          "pointer": "/providerLifecycleAuthority",
+          "expected": false,
           "critical": true
         },
         {
@@ -773,14 +1284,14 @@
         {
           "id": "collision-reports-project",
           "kind": "final-json-path-equals",
-          "pointer": "/reportedProjectId",
+          "pointer": "/reportedNativeProjectId",
           "expected": "22222222-2222-4222-8222-222222222222",
           "critical": true
         },
         {
-          "id": "collision-reports-event",
+          "id": "collision-reports-operation",
           "kind": "final-json-path-equals",
-          "pointer": "/reportedEventId",
+          "pointer": "/reportedOperationId",
           "expected": "33333333-3333-5333-8333-333333333333",
           "critical": true
         }
@@ -788,11 +1299,11 @@
     },
     {
       "id": "existing-design-approved-base-mismatch-blocks",
-      "prompt": "Apply the packaged woostack-bootstrap event-reuse contract to this deterministic dry run. Do not call a provider, use the network, invoke Git, or access/write the workspace. Current approved repository/base intent is https://github.com/acme/field-service on main. The project is independently verified. Complete update pagination finds exactly one stable designApproved event with the deterministic UUID and otherwise one valid chain, but its readable approval record names initial base staging. Return exactly one JSON object with keys status, reasonCode, projectUpdatesPaginationComplete, matchingStableEvents, expectedInitialBase, eventInitialBase, existingEventReused, projectEventsAppended, targetDirectoryAccesses, and preservedEventId.",
+      "prompt": "Apply the packaged woostack-bootstrap Linear update-reuse contract to this deterministic dry run. Do not call a provider, use the network, invoke Git, or access/write the workspace. Explicit Linear persistence is selected for repository https://github.com/acme/field-service on main, with exact client project ID 11111111-1111-5111-8111-111111111111 and native project ID 22222222-2222-4222-8222-222222222222 and stable operation ID 33333333-3333-5333-8333-333333333333. Complete update discovery finds exactly one designApproved record with that operation ID; independent content and record reads verify the record but show initial base staging instead of the approved base main. Return exactly one JSON object with keys status, reasonCode, selectedProvider, clientProjectId, nativeProjectId, projectUpdatesDiscoveryComplete, matchingOperationRecords, expectedInitialBase, recordInitialBase, designApprovedReadBackVerified, existingRecordReused, projectUpdatesAppended, targetDirectoryAccesses, and preservedOperationId.",
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "An otherwise unique matching designApproved event with changed initial base intent is conflicting authority and blocks reuse, append, and target access while preserving the stable event ID.",
+      "expected": "A unique Linear designApproved record whose independently read content and record base intent differ from the current approved base is conflicting authority; bootstrap preserves the operation ID and fails closed without reuse, append, or target access.",
       "assertions": [
         {
           "id": "base-mismatch-blocks",
@@ -809,16 +1320,30 @@
           "critical": true
         },
         {
-          "id": "base-mismatch-pagination-complete",
+          "id": "base-mismatch-linear-provider",
           "kind": "final-json-path-equals",
-          "pointer": "/projectUpdatesPaginationComplete",
+          "pointer": "/selectedProvider",
+          "expected": "linear",
+          "critical": true
+        },
+        {
+          "id": "base-mismatch-client-id",
+          "kind": "final-json-path-equals",
+          "pointer": "/clientProjectId",
+          "expected": "11111111-1111-5111-8111-111111111111",
+          "critical": true
+        },
+        {
+          "id": "base-mismatch-discovery-complete",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectUpdatesDiscoveryComplete",
           "expected": true,
           "critical": true
         },
         {
-          "id": "base-mismatch-one-event",
+          "id": "base-mismatch-one-record",
           "kind": "final-json-path-equals",
-          "pointer": "/matchingStableEvents",
+          "pointer": "/matchingOperationRecords",
           "expected": 1,
           "critical": true
         },
@@ -830,23 +1355,30 @@
           "critical": true
         },
         {
-          "id": "base-mismatch-event-base",
+          "id": "base-mismatch-record-base",
           "kind": "final-json-path-equals",
-          "pointer": "/eventInitialBase",
+          "pointer": "/recordInitialBase",
           "expected": "staging",
+          "critical": true
+        },
+        {
+          "id": "base-mismatch-read-back",
+          "kind": "final-json-path-equals",
+          "pointer": "/designApprovedReadBackVerified",
+          "expected": true,
           "critical": true
         },
         {
           "id": "base-mismatch-not-reused",
           "kind": "final-json-path-equals",
-          "pointer": "/existingEventReused",
+          "pointer": "/existingRecordReused",
           "expected": false,
           "critical": true
         },
         {
           "id": "base-mismatch-no-append",
           "kind": "final-json-path-equals",
-          "pointer": "/projectEventsAppended",
+          "pointer": "/projectUpdatesAppended",
           "expected": 0,
           "critical": true
         },
@@ -858,9 +1390,9 @@
           "critical": true
         },
         {
-          "id": "base-mismatch-preserves-event-id",
+          "id": "base-mismatch-preserve-operation",
           "kind": "final-json-path-equals",
-          "pointer": "/preservedEventId",
+          "pointer": "/preservedOperationId",
           "expected": "33333333-3333-5333-8333-333333333333",
           "critical": true
         }

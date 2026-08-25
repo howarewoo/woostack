@@ -1,12 +1,12 @@
 {
   "artifacts": {
-    "provider": "linear",
-    "linear": {
-      "repository": "https://github.com/acme/widgets",
+    "provider": "plane",
+    "plane": {
+      "baseUrl": "https://api.plane.so",
       "workspace": "acme",
-      "team": "ENG",
+      "repository": "https://github.com/acme/widgets",
       "projectLabels": [
-        "feature"
+        "Core"
       ],
       "projectStatuses": {
         "backlog": "Backlog",

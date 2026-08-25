@@ -3,57 +3,17 @@
   "receiptId": "branch-receipt-05",
   "invocation": {
     "kind": "workflow-handoff",
-    "issueArgument": "https://linear.app/acme/issue/APP-65/cache-locking",
+    "taskId": "task-cache-locking",
+    "runId": "run-65",
     "projectArgument": null,
     "branchHandoff": {
       "workflow": "woostack-change",
-      "nativeIssueId": "linear-issue-65",
-      "branch": "change/app-65",
-      "worktreePath": "/repo/.woostack/worktrees/tasks/linear-issue-65",
-      "startCommit": "b65",
-      "graphiteParent": "staging",
-      "ownerPrincipal": "engineer-7",
+      "stableTaskId": "task-cache-locking",
       "runId": "run-65",
-      "assignmentNativeId": "comment-assignment-65"
-    }
-  },
-  "officialLinearMcp": {
-    "endpoint": "https://mcp.linear.app/mcp",
-    "readsComplete": true,
-    "issue": {
-      "clientId": "65656565-6565-4565-8565-656565656565",
-      "nativeId": "linear-issue-65",
-      "identifier": "APP-65",
-      "title": "Cache locking",
-      "role": "work-item",
-      "state": "executing",
-      "projectId": null,
-      "repository": "https://github.com/acme/widgets",
-      "owner": {
-        "kind": "app",
-        "principal": "engineer-7"
-      },
-      "assignmentAccepted": {
-        "nativeId": "comment-assignment-65",
-        "stableEventId": "65656565-aaaa-4565-8565-656565656565",
-        "runId": "run-65",
-        "engineer": "engineer-7",
-        "readBackVerified": true
-      },
-      "verification": {
-        "nativeId": "comment-verification-65",
-        "verdict": "PASS",
-        "readBackVerified": true
-      },
-      "precommitReview": {
-        "nativeId": "comment-precommit-review-65",
-        "verdict": "PASS",
-        "readBackVerified": true
-      }
-    },
-    "authenticatedController": {
-      "kind": "app",
-      "principal": "engineer-7"
+      "branch": "change/cache-locking",
+      "worktreePath": "/repo/.woostack/worktrees/tasks/task-cache-locking",
+      "startCommit": "b65",
+      "graphiteParent": "staging"
     }
   },
   "sourceControl": {
@@ -62,8 +22,8 @@
       "complete": true
     },
     "primaryRoot": "/repo",
-    "currentRoot": "/repo/.woostack/worktrees/manual/app-65",
-    "currentBranch": "change/app-65",
+    "currentRoot": "/repo/.woostack/worktrees/manual/locking",
+    "currentBranch": "change/cache-locking",
     "head": "b65",
     "retainedStartCommit": "b65",
     "graphiteParent": "staging",
@@ -79,21 +39,30 @@
       "unrelatedPaths": []
     }
   },
+  "taskContract": {
+    "stableTaskId": "task-cache-locking",
+    "runId": "run-65",
+    "repository": "https://github.com/acme/widgets",
+    "branch": "change/cache-locking",
+    "worktreePath": "/repo/.woostack/worktrees/tasks/task-cache-locking",
+    "startCommit": "b65",
+    "graphiteParent": "staging"
+  },
   "git": {
     "complete": true,
-    "deterministicTaskWorktreePath": "/repo/.woostack/worktrees/tasks/linear-issue-65",
+    "deterministicTaskWorktreePath": "/repo/.woostack/worktrees/tasks/task-cache-locking",
     "worktrees": [
       {
-        "path": "/repo/.woostack/worktrees/manual/app-65",
-        "branch": "change/app-65",
+        "path": "/repo/.woostack/worktrees/manual/locking",
+        "branch": "change/cache-locking",
         "head": "b65"
       }
     ],
     "localBranches": [
       {
-        "name": "change/app-65",
+        "name": "change/cache-locking",
         "head": "b65",
-        "checkedOutAt": "/repo/.woostack/worktrees/manual/app-65"
+        "checkedOutAt": "/repo/.woostack/worktrees/manual/locking"
       }
     ],
     "issueCommits": []
@@ -102,7 +71,7 @@
     "complete": true,
     "branches": [
       {
-        "name": "change/app-65",
+        "name": "change/cache-locking",
         "head": "b65",
         "parent": "staging"
       }
@@ -116,9 +85,5 @@
   "github": {
     "complete": true,
     "pullRequests": []
-  },
-  "linearRelations": {
-    "complete": true,
-    "branchOrPr": []
   }
 }

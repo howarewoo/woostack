@@ -1,0 +1,80 @@
+{
+  "schemaVersion": 1,
+  "provider": "official-plane-mcp",
+  "mcpAvailable": true,
+  "authenticated": true,
+  "ready": true,
+  "baseUrl": "https://api.plane.so",
+  "repository": "https://github.com/acme/widgets",
+  "workspace": "acme",
+  "workspaceResolution": {
+    "status": "unique",
+    "name": "acme"
+  },
+  "projectStatuses": {
+    "complete": true,
+    "resolved": {
+      "backlog": {
+        "name": "Backlog",
+        "category": "backlog"
+      },
+      "planned": {
+        "name": "Planned",
+        "category": "planned"
+      },
+      "started": {
+        "name": "Started",
+        "category": "started"
+      },
+      "completed": {
+        "name": "Completed",
+        "category": "completed"
+      },
+      "canceled": {
+        "name": "Canceled",
+        "category": "canceled"
+      }
+    }
+  },
+  "issueStates": {
+    "complete": true,
+    "resolved": {
+      "planned": {
+        "name": "Backlog",
+        "category": "backlog"
+      },
+      "executing": {
+        "name": "In Progress",
+        "category": "started"
+      },
+      "inReview": {
+        "name": "In Progress",
+        "category": "started"
+      },
+      "done": {
+        "name": "Done",
+        "category": "completed"
+      },
+      "blocked": {
+        "name": "In Progress",
+        "category": "started"
+      }
+    }
+  },
+  "capabilities": {
+    "projectRead": true,
+    "projectWrite": true,
+    "issueRead": true,
+    "issueWrite": true,
+    "relationRead": true,
+    "relationWrite": true,
+    "projectLabelRead": true,
+    "projectLabelWrite": true,
+    "independentReadBack": true
+  },
+  "readBack": {
+    "status": "verified",
+    "complete": true,
+    "independent": true
+  }
+}

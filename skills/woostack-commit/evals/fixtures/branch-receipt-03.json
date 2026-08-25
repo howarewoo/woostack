@@ -3,48 +3,10 @@
   "receiptId": "branch-receipt-03",
   "invocation": {
     "kind": "direct",
-    "issueArgument": "https://linear.app/acme/issue/APP-63/cache-telemetry",
+    "taskId": "task-cache-telemetry",
+    "runId": "run-63",
     "projectArgument": null,
     "branchHandoff": null
-  },
-  "officialLinearMcp": {
-    "endpoint": "https://mcp.linear.app/mcp",
-    "readsComplete": true,
-    "issue": {
-      "clientId": "63636363-6363-4363-8363-636363636363",
-      "nativeId": "linear-issue-63",
-      "identifier": "APP-63",
-      "title": "Cache telemetry",
-      "role": "work-item",
-      "state": "executing",
-      "projectId": null,
-      "repository": "https://github.com/acme/widgets",
-      "owner": {
-        "kind": "app",
-        "principal": "engineer-7"
-      },
-      "assignmentAccepted": {
-        "nativeId": "comment-assignment-63",
-        "stableEventId": "63636363-aaaa-4363-8363-636363636363",
-        "runId": "run-63",
-        "engineer": "engineer-7",
-        "readBackVerified": true
-      },
-      "verification": {
-        "nativeId": "comment-verification-63",
-        "verdict": "PASS",
-        "readBackVerified": true
-      },
-      "precommitReview": {
-        "nativeId": "comment-precommit-review-63",
-        "verdict": "PASS",
-        "readBackVerified": true
-      }
-    },
-    "authenticatedController": {
-      "kind": "app",
-      "principal": "engineer-7"
-    }
   },
   "sourceControl": {
     "repositoryRead": {
@@ -69,25 +31,34 @@
       "unrelatedPaths": []
     },
     "proposedDisplayBranch": {
-      "name": "change/app-63",
-      "source": "verified-issue-identifier"
+      "name": "change/cache-telemetry",
+      "source": "task-contract"
     }
+  },
+  "taskContract": {
+    "stableTaskId": "task-cache-telemetry",
+    "runId": "run-63",
+    "repository": "https://github.com/acme/widgets",
+    "branch": "change/cache-telemetry",
+    "worktreePath": "/repo/.woostack/worktrees/tasks/task-cache-telemetry",
+    "startCommit": "b63",
+    "graphiteParent": "staging"
   },
   "git": {
     "complete": true,
-    "deterministicTaskWorktreePath": "/repo/.woostack/worktrees/tasks/linear-issue-63",
+    "deterministicTaskWorktreePath": "/repo/.woostack/worktrees/tasks/task-cache-telemetry",
     "worktrees": [
       {
-        "path": "/repo/.woostack/worktrees/tasks/linear-issue-963",
-        "branch": "change/app-63",
+        "path": "/repo/.woostack/worktrees/tasks/task-963",
+        "branch": "change/cache-telemetry",
         "head": "x63"
       }
     ],
     "localBranches": [
       {
-        "name": "change/app-63",
+        "name": "change/cache-telemetry",
         "head": "x63",
-        "checkedOutAt": "/repo/.woostack/worktrees/tasks/linear-issue-963"
+        "checkedOutAt": "/repo/.woostack/worktrees/tasks/task-963"
       }
     ],
     "issueCommits": []
@@ -96,7 +67,7 @@
     "complete": true,
     "branches": [
       {
-        "name": "change/app-63",
+        "name": "change/cache-telemetry",
         "head": "x63",
         "parent": "staging"
       }
@@ -110,9 +81,5 @@
   "github": {
     "complete": true,
     "pullRequests": []
-  },
-  "linearRelations": {
-    "complete": true,
-    "branchOrPr": []
   }
 }

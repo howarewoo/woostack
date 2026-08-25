@@ -1,24 +1,32 @@
 {
-  "linear": {
-    "repository": "https://github.com/acme/widgets",
-    "workspace": "acme",
-    "team": "ENG",
-    "projectStatuses": {
-      "backlog": "Backlog",
-      "planned": "Planned",
-      "started": "Started",
-      "completed": "Completed",
-      "canceled": "Canceled"
-    },
-    "issueStates": {
-      "planned": "Backlog",
-      "executing": "In Progress",
-      "inReview": "In Progress",
-      "done": "Done",
-      "blocked": "In Progress"
+  "artifacts": {
+    "provider": "linear",
+    "linear": {
+      "repository": "https://github.com/acme/widgets",
+      "workspace": "acme",
+      "team": "ENG",
+      "projectLabels": [
+        "feature"
+      ],
+      "projectStatuses": {
+        "backlog": "Backlog",
+        "planned": "Planned",
+        "started": "Started",
+        "completed": "Completed",
+        "canceled": "Canceled"
+      },
+      "issueStates": {
+        "planned": "Backlog",
+        "executing": "In Progress",
+        "inReview": "In Progress",
+        "done": "Done",
+        "blocked": "In Progress"
+      }
     }
   },
   "models": {},
   "review": {},
-  "status": {"staleDays": 14}
+  "status": {
+    "staleDays": 14
+  }
 }

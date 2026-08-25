@@ -3,58 +3,17 @@
   "receiptId": "branch-receipt-04",
   "invocation": {
     "kind": "workflow-handoff",
-    "issueArgument": "https://linear.app/acme/issue/APP-64/cache-invalidation",
+    "taskId": "task-cache-invalidation",
+    "runId": "run-64-new",
     "projectArgument": null,
     "branchHandoff": {
       "workflow": "woostack-execute",
-      "nativeIssueId": "linear-issue-64",
-      "branch": "change/app-64",
-      "worktreePath": "/repo/.woostack/worktrees/tasks/linear-issue-64",
-      "startCommit": "b64",
-      "graphiteParent": "staging",
-      "ownerPrincipal": "engineer-7",
+      "stableTaskId": "task-cache-invalidation",
       "runId": "run-64-old",
-      "assignmentNativeId": "comment-assignment-64-old"
-    }
-  },
-  "officialLinearMcp": {
-    "endpoint": "https://mcp.linear.app/mcp",
-    "readsComplete": true,
-    "issue": {
-      "clientId": "64646464-6464-4464-8464-646464646464",
-      "nativeId": "linear-issue-64",
-      "identifier": "APP-64",
-      "title": "Cache invalidation",
-      "role": "work-item",
-      "state": "executing",
-      "projectId": null,
-      "repository": "https://github.com/acme/widgets",
-      "owner": {
-        "kind": "app",
-        "principal": "engineer-8"
-      },
-      "assignmentAccepted": {
-        "nativeId": "comment-assignment-64-new",
-        "stableEventId": "64646464-bbbb-4464-8464-646464646464",
-        "runId": "run-64-new",
-        "engineer": "engineer-8",
-        "readBackVerified": true
-      },
-      "verification": {
-        "nativeId": "comment-verification-64",
-        "verdict": "PASS",
-        "readBackVerified": true
-      },
-      "precommitReview": {
-        "nativeId": "comment-precommit-review-64",
-        "verdict": "PASS",
-        "readBackVerified": true
-      },
-      "handoffEvents": []
-    },
-    "authenticatedController": {
-      "kind": "app",
-      "principal": "engineer-8"
+      "branch": "change/cache-invalidation",
+      "worktreePath": "/repo/.woostack/worktrees/tasks/task-cache-invalidation",
+      "startCommit": "b64",
+      "graphiteParent": "staging"
     }
   },
   "sourceControl": {
@@ -63,8 +22,8 @@
       "complete": true
     },
     "primaryRoot": "/repo",
-    "currentRoot": "/repo/.woostack/worktrees/tasks/linear-issue-64",
-    "currentBranch": "change/app-64",
+    "currentRoot": "/repo/.woostack/worktrees/tasks/task-cache-invalidation",
+    "currentBranch": "change/cache-invalidation",
     "head": "b64",
     "retainedStartCommit": "b64",
     "graphiteParent": "staging",
@@ -81,32 +40,29 @@
     }
   },
   "taskContract": {
-    "stableTaskId": "linear-issue-64",
+    "stableTaskId": "task-cache-invalidation",
+    "runId": "run-64-new",
     "repository": "https://github.com/acme/widgets",
-    "controller": {
-      "principal": "engineer-7",
-      "runId": "run-64-old"
-    },
-    "branch": "change/app-64",
-    "worktreePath": "/repo/.woostack/worktrees/tasks/linear-issue-64",
+    "branch": "change/cache-invalidation",
+    "worktreePath": "/repo/.woostack/worktrees/tasks/task-cache-invalidation",
     "startCommit": "b64",
     "graphiteParent": "staging"
   },
   "git": {
     "complete": true,
-    "deterministicTaskWorktreePath": "/repo/.woostack/worktrees/tasks/linear-issue-64",
+    "deterministicTaskWorktreePath": "/repo/.woostack/worktrees/tasks/task-cache-invalidation",
     "worktrees": [
       {
-        "path": "/repo/.woostack/worktrees/tasks/linear-issue-64",
-        "branch": "change/app-64",
+        "path": "/repo/.woostack/worktrees/tasks/task-cache-invalidation",
+        "branch": "change/cache-invalidation",
         "head": "b64"
       }
     ],
     "localBranches": [
       {
-        "name": "change/app-64",
+        "name": "change/cache-invalidation",
         "head": "b64",
-        "checkedOutAt": "/repo/.woostack/worktrees/tasks/linear-issue-64"
+        "checkedOutAt": "/repo/.woostack/worktrees/tasks/task-cache-invalidation"
       }
     ],
     "issueCommits": []
@@ -115,7 +71,7 @@
     "complete": true,
     "branches": [
       {
-        "name": "change/app-64",
+        "name": "change/cache-invalidation",
         "head": "b64",
         "parent": "staging"
       }
@@ -129,9 +85,5 @@
   "github": {
     "complete": true,
     "pullRequests": []
-  },
-  "linearRelations": {
-    "complete": true,
-    "branchOrPr": []
   }
 }

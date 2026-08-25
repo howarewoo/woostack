@@ -3,48 +3,10 @@
   "receiptId": "branch-receipt-01",
   "invocation": {
     "kind": "direct",
-    "issueArgument": "https://linear.app/acme/issue/APP-61/cache-guard",
+    "taskId": "task-cache-guard",
+    "runId": "run-61",
     "projectArgument": null,
     "branchHandoff": null
-  },
-  "officialLinearMcp": {
-    "endpoint": "https://mcp.linear.app/mcp",
-    "readsComplete": true,
-    "issue": {
-      "clientId": "61616161-6161-4161-8161-616161616161",
-      "nativeId": "linear-issue-61",
-      "identifier": "APP-61",
-      "title": "Cache guard",
-      "role": "work-item",
-      "state": "executing",
-      "projectId": null,
-      "repository": "https://github.com/acme/widgets",
-      "owner": {
-        "kind": "app",
-        "principal": "engineer-7"
-      },
-      "assignmentAccepted": {
-        "nativeId": "comment-assignment-61",
-        "stableEventId": "61616161-aaaa-4161-8161-616161616161",
-        "runId": "run-61",
-        "engineer": "engineer-7",
-        "readBackVerified": true
-      },
-      "verification": {
-        "nativeId": "comment-verification-61",
-        "verdict": "PASS",
-        "readBackVerified": true
-      },
-      "precommitReview": {
-        "nativeId": "comment-precommit-review-61",
-        "verdict": "PASS",
-        "readBackVerified": true
-      }
-    },
-    "authenticatedController": {
-      "kind": "app",
-      "principal": "engineer-7"
-    }
   },
   "sourceControl": {
     "repositoryRead": {
@@ -69,13 +31,22 @@
       "unrelatedPaths": []
     },
     "proposedDisplayBranch": {
-      "name": "change/app-61",
-      "source": "verified-issue-identifier"
+      "name": "change/cache-guard",
+      "source": "task-contract"
     }
+  },
+  "taskContract": {
+    "stableTaskId": "task-cache-guard",
+    "runId": "run-61",
+    "repository": "https://github.com/acme/widgets",
+    "branch": "change/cache-guard",
+    "worktreePath": "/repo/.woostack/worktrees/tasks/task-cache-guard",
+    "startCommit": "b61",
+    "graphiteParent": "staging"
   },
   "git": {
     "complete": true,
-    "deterministicTaskWorktreePath": "/repo/.woostack/worktrees/tasks/linear-issue-61",
+    "deterministicTaskWorktreePath": "/repo/.woostack/worktrees/tasks/task-cache-guard",
     "worktrees": [],
     "localBranches": [],
     "issueCommits": []
@@ -92,9 +63,5 @@
   "github": {
     "complete": true,
     "pullRequests": []
-  },
-  "linearRelations": {
-    "complete": true,
-    "branchOrPr": []
   }
 }
