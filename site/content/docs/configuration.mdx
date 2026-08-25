@@ -1,6 +1,6 @@
 ---
 title: Configuration
-description: Non-secret repository policy, local run authority, and optional safe Linear defaults.
+description: Non-secret repository policy, local run authority, and optional safe Linear/Plane defaults.
 ---
 
 woostack resolves non-secret repository policy by layering tracked base configuration with an
@@ -19,8 +19,8 @@ never contains credentials or grants permission to perform repository work.
 Local run manifests in `.woostack/tmp/runs/<run-id>/` own current Build/Fix product scope and execution
 plans. Git and GitHub own code, branches, commits, pull requests, reviews, and merge truth. Init's
 discovery calls authorize no later access. `artifacts.provider: "local"` is the default: workflows
-operate with default zero-provider local authority. When `artifacts.provider: "linear"`, a validated
-`artifacts.linear` object supplies defaults for optional Linear mirroring. Policy cannot authorize a write.
+operate with default zero-provider local authority. When `artifacts.provider: "linear"` or `artifacts.provider: "plane"`, a validated
+`artifacts.linear` or `artifacts.plane` object supplies defaults for optional provider mirroring. Policy cannot authorize a write.
 
 Tracked legacy records remain local unless the user explicitly invokes the guarded
 `/woostack-init --migrate-legacy` route. The
@@ -30,7 +30,7 @@ owns its import, preservation, recovery, and deletion boundaries.
 The init template ships four top-level keys: `artifacts`, `models`, `review`, and `status`, with
 `artifacts.provider` set to `"local"`. Other supported settings use built-in defaults.
 [woostack-doctor](/docs/skills/woostack-doctor) checks static policy; Build and post-proof Fix manage
-local runs, while provider mirror connectivity is checked when `artifacts.provider: "linear"`.
+local runs, while provider mirror connectivity is checked when `artifacts.provider` is `"linear"` or `"plane"`.
 
 
 ### Layered merge rules
@@ -87,7 +87,7 @@ There are eight top-level settings:
 
 | Setting | Read by | Tunes |
 | --- | --- | --- |
-| `artifacts` | Automatic read-only setup in [woostack-init](/docs/skills/woostack-init), optional Linear mirroring in Build/post-proof Fix (`artifacts.provider: "linear"`), and selected standalone artifacts | `provider` selects `"local"` (default) or `"linear"`; `linear` stores validated non-secret repository, workspace, team, `projectLabels`, and native-name defaults; never authorizes a provider write or content approval |
+| `artifacts` | Automatic read-only setup in [woostack-init](/docs/skills/woostack-init), optional Linear/Plane mirroring in Build/Plan and Linear mirroring in post-proof Fix (`artifacts.provider: "linear"` or `"plane"`), and selected standalone artifacts | `provider` selects `"local"` (default), `"linear"`, or `"plane"`; `linear` and `plane` store validated non-secret repository, workspace, team/baseUrl, `projectLabels`, and native-name defaults; never authorizes a provider write or content approval |
 | `review` | [woostack-review](/docs/skills/woostack-review) | the PR review engine: angles, noise, validation |
 | `models` | [woostack-review](/docs/skills/woostack-review), [woostack-audit](/docs/skills/woostack-audit), and host subagent drivers | shared model selection and tier parameters for hosts that consume repository model configuration; ignored by OMP |
 | `audit` | [woostack-audit](/docs/skills/woostack-audit) | standing-code audit angles, filtering, chunking, and output |
@@ -97,10 +97,11 @@ There are eight top-level settings:
 | `base_branch` | [woostack-init](/docs/skills/woostack-init) | the trunk branch for PRs and worktrees |
 ## A complete repository-policy example
 
-The example keeps the shipped provider-free default. Authenticated read-only discovery may add
-validated non-secret Linear defaults, but their presence does not authorize access; only explicit
-workflow selection plus `artifacts.provider: "linear"` admits mirroring. JSON has no comments, so each
-key is explained below.
+The example keeps the shipped provider-free default. Authenticated read-only discovery through the official
+Linear MCP may add validated non-secret Linear defaults; Plane `baseUrl`, workspace, repository, labels,
+and native-name defaults are manually configured non-secret policy. Provider defaults do not authorize access;
+only explicit workflow selection plus `artifacts.provider: "linear"` or `artifacts.provider: "plane"` admits mirroring.
+JSON has no comments, so each key is explained below.
 
 ```json
 {
@@ -144,13 +145,17 @@ key is explained below.
 }
 ```
 
-## Artifacts and Linear configuration
+## Artifacts, Linear, and Plane configuration
 
-Optional Linear mirroring connects to the official endpoint:
+Optional provider mirroring connects through the host's authenticated official Linear or Plane MCP.
+Linear connects to the official endpoint:
 
 ```text
 https://mcp.linear.app/mcp
 ```
+
+Plane connects to the official Plane MCP for Plane Cloud (`https://api.plane.so` / `https://app.plane.so`)
+or a self-hosted instance configured with `baseUrl` and `workspace`.
 
 Authentication stays in the host's MCP/OAuth secret store. No API key, credential, authorization
 value, or credential-file path belongs in repository configuration, prompts, logs, generated files,
@@ -171,11 +176,15 @@ canonical project or uses the same defaults to create one. Default init may popu
 authenticated read-only discovery and independently validates any local config write. That narrow setup
 neither selects artifact persistence nor authorizes later provider access.
 
-`artifacts.linear.projectLabels` (array of strings, required when `artifacts.provider: "linear"`, empty array allowed) configures workspace project labels to
-attach to every admitted or created Linear project. Project admission completely paginates workspace project labels through the
-official Linear MCP, flattens every page, requires a null terminal cursor, resolves each label by exact native ID or exact
+When `artifacts.provider: "plane"` is configured, the `artifacts.plane` object provides
+`baseUrl`, `workspace`, canonical `repository`, `projectLabels`, and native-name defaults.
+Build uses them to resolve an exact supplied project or create one canonical project named `[Build] <goal>`.
+`artifacts.linear.projectLabels` (array of strings, required when `artifacts.provider: "linear"`, empty array allowed) and
+`artifacts.plane.projectLabels` (array of strings, required non-empty array when `artifacts.provider: "plane"`) configure
+workspace project labels to attach to every admitted or created project. Project admission completely paginates workspace project labels through the
+official provider MCP, flattens every page, requires a null terminal cursor, resolves each label by exact native ID or exact
 case-sensitive name, unions configured labels with existing labels (preserving unrelated labels), writes once, and independently
-reads the complete label set back.
+reads the complete label set back. If the official Plane MCP lacks project-label operations, Plane persistence fails closed at the provider boundary.
 Before configured or explicitly selected provider access, the workflow verifies the canonical
 repository association and workspace/team, then preflights every complete project, issue, relation,
 comment/decision, mutation, pagination, and independent read-back capability needed at that
@@ -183,7 +192,8 @@ boundary.
 
 Build and post-proof Fix manage local runs in `.woostack/tmp/runs/<run-id>/`. Both write plain
 `project-spec.md` and `execution-plan.md` artifacts, and perform one bounded mirror synchronization cycle
-when `artifacts.provider: "linear"`. Mirror failure is recorded in the manifest and is nonblocking for
+when `artifacts.provider: "linear"` (for Build and Fix) or `artifacts.provider: "plane"` (for Build; Plane Fix arrives in a later increment).
+Mirror failure is recorded in the manifest and is nonblocking for
 local authority. All run artifacts are retained upon completion and explicit abandonment to preserve
 the audit trail. A nonterminal run can resume exactly with
 `/woostack-execute --run <exact-run-id> [--recheck]`. Before root-cause proof, Fix makes no provider
@@ -458,7 +468,7 @@ worktrees are cut from.
   Init scaffolds `models`, `review`, and `status`, then automatically adds validated
   Linear defaults when safe authenticated discovery succeeds. Missing connectivity never blocks
   local initialization. Build and Fix operate with default local run authority under
-  `.woostack/tmp/runs/<run-id>/`; setting `artifacts.provider: "linear"` enables optional Linear mirroring.
+  `.woostack/tmp/runs/<run-id>/`; setting `artifacts.provider: "linear"` or `"plane"` enables optional provider mirroring (Build/Plan for Plane; Fix Plane support arrives in a later increment).
   [woostack-doctor](/docs/skills/woostack-doctor) validates effective runtime policy; explicit live checks
   prove optional artifact connectivity.
 </Callout>

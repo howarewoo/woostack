@@ -4,9 +4,9 @@
 
 `woostack` packages opinionated workflows into twenty-one public installable skills that work
 across coding harnesses. Canonical persistent run artifacts in `.woostack/tmp/runs/<run-id>/` own
-current build and post-diagnosis fix product scope and execution plans, with optional Linear
-mirroring (`artifacts.provider: "linear"`). Git and GitHub own source, branches, pull requests,
-reviews, and merge evidence. Linear mirrors record workflow context; Git and GitHub remain the sole
+current build and post-diagnosis fix product scope and execution plans, with optional Linear or Plane
+mirroring (`artifacts.provider: "linear"` or `artifacts.provider: "plane"`, with Plane Fix arriving in a later increment). Git and GitHub own source, branches, pull requests,
+reviews, and merge evidence. Provider mirrors record workflow context; Git and GitHub remain the sole
 authority for source control and delivery truth.
 
 - **Multiperson by design:** Explicit task boundaries, dependency relations, handoffs, and verified
@@ -39,7 +39,7 @@ authority for source control and delivery truth.
 ## Getting Started
 
 Follow this sequence to install the skills, initialize local repository support, and optionally configure
-validated Linear defaults for development-artifact mirroring.
+validated Linear or Plane defaults for development-artifact mirroring.
 
 ### 1. Installation
 
@@ -126,10 +126,9 @@ For the full policy surface, see the authored
 
 The canonical persistent artifact store for `woostack-build` and project-backed `woostack-fix` is local
 in `.woostack/tmp/runs/<run-id>/`. Workflows operate with default zero-provider local authority
-(`artifacts.provider: "local"`). When `artifacts.provider: "linear"`, local artifacts mirror to Linear
-in bounded post-drafting cycles; mirror failure is recorded in the manifest and is nonblocking for
+(`artifacts.provider: "local"`). When `artifacts.provider: "linear"` or `artifacts.provider: "plane"`, local Build artifacts mirror to the configured provider
+(with Linear mirroring for Fix, while Plane Fix arrives in a later increment) in bounded post-drafting cycles; mirror failure is recorded in the manifest and is nonblocking for
 local authority.
-
 When mirroring is enabled, Build resolves one exact project or creates one from validated defaults
 before ideation. After an exact baseline read, Ideate, Harden, and delegated Plan keep gated work in one
 permission-restricted run manifest and make no intermediate provider calls. The responsible user
@@ -151,15 +150,15 @@ Standalone Plan keeps its direct synchronization and independent read-back uncha
 resources take precedence over creation, and skills never read or expose API credentials.
 
 Explicit abandonment retains all run artifacts in `.woostack/tmp/runs/<run-id>/` with `status: "abandoned"`
-in the manifest and does not mutate a mirrored Linear project. Handoff, replan, and blockers leave
+in the manifest and does not mutate a mirrored provider project. Handoff, replan, and blockers leave
 project status unchanged.
 The authority boundary:
 
 - **The user's request** selects the workflow and authorizes decisions.
 - **Local run manifests (`.woostack/tmp/runs/<run-id>/`)** own current fix/build product scope, plans,
-  contracts, and execution state (mirrored to Linear when `artifacts.provider: "linear"`).
+  contracts, and execution state (mirrored to Linear or Plane when configured).
 - **Git and GitHub** own source, branches, commits, pull requests, reviews, and merge truth.
-- **Linear delivery notes** record observed source-control evidence but cannot create it.
+- **Provider delivery notes** record observed source-control evidence but cannot create it.
 - **Local diagnostic reports** are non-authoritative evidence.
 Hermes is an external engineer, not an installed woostack host or runtime. It may drive one
 persistent OMP session for in-contract decisions, evidence review, escalation, and redispatch, but
@@ -172,7 +171,7 @@ and fail-closed restart boundary; it does not grant Hermes implementation author
 ## The Core Development & Review Loop
 
 `woostack` applies gated, repository-first delivery with canonical local product records (and optional
-Linear mirroring) for builds and proved fixes.
+Linear or Plane mirroring) for builds and proved fixes.
 
 ### Writing and Modifying Code
 

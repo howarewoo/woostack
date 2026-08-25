@@ -49,7 +49,7 @@ for pattern, message in (
     (r"Woostack project mutation ID: <UUID>", "project mutation identity fallback marker missing"),
     (r"\[woostack-mutation:<UUID>\]", "issue mutation identity fallback suffix missing"),
     (r"official Linear MCP's stable human-facing identifier, such as `WOO-144`, is the canonical issue reference", "canonical issue-reference definition missing"),
-    (r"stableTaskMappings.*maps every local stable task key to one canonical issue reference", "stable task mapping definition missing"),
+    (r"stableTaskMappings.*maps each stable task key to one canonical issue/work-item reference", "stable task mapping definition missing"),
     (r"parentId.*Normalize an explicitly returned null parent to `null`|parent state is unknown and blocks", "nullable-parent validation missing"),
     (r"no-follow semantics", "no-follow semantics missing"),
     (r"directory mode is exactly `0700`", "directory 0700 mode missing"),

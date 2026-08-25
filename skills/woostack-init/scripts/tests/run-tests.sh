@@ -10,8 +10,8 @@ for t in test-*.sh; do
   if bash "$t"; then :; else rc=1; fi
 done
 for contract in \
-  "$ROOT/skills/woostack-build/tests/test-linear-build-contract.sh" \
-  "$ROOT/skills/woostack-build/tests/test-linear-plan-contract.sh"
+  "$ROOT/skills/woostack-build/tests/test-provider-build-contract.sh" \
+  "$ROOT/skills/woostack-build/tests/test-provider-plan-contract.sh"
 do
   echo "== ${contract#"$ROOT"/} =="
   if bash "$contract"; then :; else rc=1; fi

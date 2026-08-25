@@ -8,15 +8,16 @@ source "$ROOT/skills/woostack-init/scripts/tests/assert.sh"
 SKILL="$ROOT/skills/woostack-build/SKILL.md"
 PROCEDURE="$ROOT/skills/woostack-build/references/linear-procedure.md"
 CONTEXT="$ROOT/skills/woostack-build/references/linear-context.md"
+PLANE_PROCEDURE="$ROOT/skills/woostack-build/references/plane-procedure.md"
+PLANE_CONTEXT="$ROOT/skills/woostack-build/references/plane-context.md"
 AUTHORITY="$ROOT/skills/woostack-init/references/artifact-backends.md"
-
 assert_literal() { # file literal message
   local text
   text="$(cat "$1")"
   if [[ "$text" == *"$2"* ]]; then pass; else fail "$3"; fi
 }
 
-for file in "$SKILL" "$PROCEDURE" "$CONTEXT" "$AUTHORITY"; do
+for file in "$SKILL" "$PROCEDURE" "$CONTEXT" "$PLANE_PROCEDURE" "$PLANE_CONTEXT" "$AUTHORITY"; do
   if [ -f "$file" ]; then pass; else fail "required workflow reference exists: ${file#"$ROOT/"}"; fi
 done
 
@@ -36,6 +37,12 @@ assert_literal "$SKILL" \
 assert_literal "$SKILL" \
   '[`Linear synchronization procedure`](references/linear-procedure.md)' \
   'root links the provider synchronization procedure'
+assert_literal "$SKILL" \
+  '[Plane project context procedure](references/plane-context.md)' \
+  'root links the plane context procedure'
+assert_literal "$SKILL" \
+  '[`Plane synchronization procedure`](references/plane-procedure.md)' \
+  'root links the plane synchronization procedure'
 assert_literal "$SKILL" \
   'normal [`woostack-execute`]' \
   'root has one normal Execute transition'
@@ -62,6 +69,26 @@ for heading in \
   '## Drift and failure'; do
   assert_literal "$CONTEXT" "$heading" "Linear context retains section: $heading"
 done
+for heading in \
+  '## Build project lifecycle' \
+  '## Increment graph synchronization' \
+  '## Standalone plan' \
+  '## Delivery notes'; do
+  assert_literal "$PLANE_PROCEDURE" "$heading" "Plane procedure retains section: $heading"
+done
+for heading in \
+  '## Resolution' \
+  '## Project specification baseline' \
+  '## Direct increment graph baseline' \
+  '## Drift and failure'; do
+  assert_literal "$PLANE_CONTEXT" "$heading" "Plane context retains section: $heading"
+done
+assert_literal "$PLANE_PROCEDURE" \
+  'It owns no workflow gate' \
+  'plane synchronization procedure owns no workflow gate'
+assert_literal "$PLANE_CONTEXT" \
+  'nonblocking for local' \
+  'plane optional mirror failure does not block local authority'
 
 assert_literal "$PROCEDURE" \
   'It owns no workflow gate' \

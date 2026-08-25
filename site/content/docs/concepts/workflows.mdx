@@ -1,12 +1,13 @@
 ---
 title: Workflow maps
-description: "Bootstrap, Build, Fix, and Change under local run authority, optional Linear mirroring, and repository delivery truth."
+description: "Bootstrap, Build, Fix, and Change under local run authority, optional Linear/Plane mirroring, and repository delivery truth."
 ---
 
 Every repository-changing woostack workflow starts from an explicit user goal. Local run manifests
 under `.woostack/tmp/runs/<run-id>/` own current product specifications, increment contracts, and
-manifest state for builds and post-diagnosis fixes, with optional Linear mirroring
-(`artifacts.provider: "linear"`). Git and GitHub own implementation and delivery truth. Bootstrap,
+manifest state for builds (with optional Linear or Plane mirroring: `artifacts.provider: "linear"` or
+`artifacts.provider: "plane"`) and post-diagnosis fixes (with optional Linear mirroring: `artifacts.provider: "linear"`,
+while Plane Fix arrives in a later increment). Git and GitHub own implementation and delivery truth. Bootstrap,
 change, standalone planning, and other artifact use retain their documented optional boundaries.
 
 ## Route by work shape
@@ -46,12 +47,14 @@ write `execution-plan.md` (and optional bounded mirror sync) → retain run arti
 verified `Stop here`/`Execute`/`Abandon` handoff
 ```
 
-Build writes plain `project-spec.md` and `execution-plan.md` Markdown files. Its execution plan orders
-independently shippable increments, each with at most one PR. Execute processes one increment at a time
-in ordinal order within a run; distinct run IDs may execute concurrently only through disjoint branches,
-worktrees, and responsibility surfaces. Every build manages one high-level specification and direct
-increment contracts in its retained local run manifest.
-
+Build writes plain `project-spec.md` and `execution-plan.md` Markdown files. When `artifacts.provider: "linear"`
+or `artifacts.provider: "plane"`, one bounded cycle mirrors Build artifacts to the configured provider (for Linear:
+one project, direct increment issues, native dependencies; for Plane: one project, `N` parentless direct work items
+with `parent = null`, `N-1` strict blocking relations, and project-label discovery/unioning preserving unrelated
+labels). Its execution plan orders independently shippable increments, each with at most one PR. Execute processes
+one increment at a time in ordinal order within a run; distinct run IDs may execute concurrently only through
+disjoint branches, worktrees, and responsibility surfaces. Every build manages one high-level specification and
+direct increment contracts in its retained local run manifest.
 ## Fix
 
 ```text
@@ -62,11 +65,11 @@ present the verified `Stop here`/`Execute`/`Abandon` handoff
 
 Fix requires root-cause proof before any project or plan creation and never substitutes a symptom patch.
 After proof, a canonical local run is allocated or resumed (and when `artifacts.provider: "linear"`, an
-exact `--project` is reused or one project is created from validated defaults). An exact source
+exact `--project` is reused or one project is created from validated defaults; when `artifacts.provider: "plane"`,
+Fix fails closed before provider access as Plane Fix is unsupported in this increment). An exact source
 `--issue` remains source context and is preserved apart from its supported project link; it is not
 repurposed as a plan issue. The complete diagnosis and specification live on the local run manifest,
 with executor-ready contracts on direct increments and dependencies between them.
-
 Build and Fix obey the shared
 [Local run artifact and provider mirror contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-backends.md#minimal-resumable-manifest-schema).
 It defines local run store allocation and resume, provider-free drafting, plain Markdown artifact files,
@@ -110,33 +113,32 @@ Build/Fix do not execute automatically. The user may choose `Stop here` and invo
 the exact command (`/woostack-execute --run <exact-run-id> [--recheck]`), choose `Execute` for one
 same-session dispatch, or choose `Abandon` for canonical closure.
 
-## Local run and optional Linear fix/build paths
+## Local run and optional Linear and Plane fix/build paths
 
 ```text
 build
   → allocate/resume local run in .woostack/tmp/runs/<run-id>/ (admit baseline if mirroring)
   → draft and harden locally with zero provider calls
-  → write `project-spec.md` (drift-check, mirror once, and read back if mirroring)
-  → draft/harden execution plan and write `execution-plan.md`
+  → write `project-spec.md` (drift-check, mirror once, and read back if mirroring to Linear or Plane)
+  → draft/harden execution plan and write `execution-plan.md` (mirror graph if mirroring)
   → retain all run artifacts in .woostack/tmp/runs/<run-id>/
   → present verified run handoff: Stop here, Execute, or Abandon
 
 fix
   → diagnose and admit the writable target without provider access
-  → after proof, allocate/resume local run store and use the same plain-artifact path
+  → after proof, allocate/resume local run store and use the same plain-artifact path (optional Linear mirror only)
   → preserve any source issue as context rather than a plan or approval record
   → retain all run artifacts in .woostack/tmp/runs/<run-id>/
   → present verified run handoff: Stop here, Execute, or Abandon
 ```
 
 The linked artifact contract owns every detail and failure boundary. Artifact-optional workflows
-make no Linear call unless their own contract explicitly selects provider artifact access.
+make no provider call unless their own contract explicitly selects provider artifact access.
 
 If a local build/Fix workflow is explicitly abandoned, repository work stops, `status: "abandoned"` is
 recorded in the run manifest, and all run artifacts in `.woostack/tmp/runs/<run-id>/` are retained
-without mutating a mirrored Linear project. Standalone Plan closes its existing project as canceled
+without mutating a mirrored Linear or Plane project. Standalone Plan closes its existing project as canceled
 after independent read-back. A normal handoff, replan, or blocker leaves project status unchanged.
-
 ## Terminal outcomes
 
 Every route returns one of:
