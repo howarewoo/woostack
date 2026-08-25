@@ -148,11 +148,8 @@ if jq -e 'has("artifacts")' <<<"$effective" >/dev/null 2>&1; then
     fail "$(target_file 'has("artifacts") and (.artifacts | type != "object")') artifacts must be a JSON object"
   fi
   if jq -e '.artifacts | has("provider")' <<<"$effective" >/dev/null 2>&1; then
-    if jq -e '.artifacts.provider == "plane"' <<<"$effective" >/dev/null 2>&1; then
-      fail "$(target_file 'has("artifacts") and .artifacts.provider == "plane"') artifacts.provider \"plane\" is not supported in this version"
-    fi
-    if ! jq -e '.artifacts.provider | type == "string" and (. == "local" or . == "linear")' <<<"$effective" >/dev/null 2>&1; then
-      fail "$(target_file 'has("artifacts") and (.artifacts | has("provider")) and ((.artifacts.provider | type != "string") or (.artifacts.provider != "local" and .artifacts.provider != "linear"))') artifacts.provider must be \"local\" or \"linear\""
+    if ! jq -e '.artifacts.provider | type == "string" and (. == "local" or . == "linear" or . == "plane")' <<<"$effective" >/dev/null 2>&1; then
+      fail "$(target_file 'has("artifacts") and (.artifacts | has("provider")) and ((.artifacts.provider | type != "string") or (.artifacts.provider != "local" and .artifacts.provider != "linear" and .artifacts.provider != "plane"))') artifacts.provider must be \"local\", \"linear\", or \"plane\""
     fi
   fi
 fi
@@ -161,7 +158,7 @@ provider="$(jq -r '.artifacts.provider // "local"' <<<"$effective")"
 project_keys='["backlog","planned","started","completed","canceled"]'
 issue_keys='["planned","executing","inReview","done","blocked"]'
 linear_allowed='["repository","workspace","team","projectLabels","projectStatuses","issueStates"]'
-
+plane_allowed='["baseUrl","workspace","repository","projectLabels","projectStatuses","issueStates"]'
 if [ "$provider" = "linear" ]; then
   if ! jq -e 'has("artifacts") and (.artifacts | type == "object") and (.artifacts | has("linear")) and (.artifacts.linear | type == "object")' <<<"$effective" >/dev/null 2>&1; then
     fail "$(target_file 'has("artifacts") and ((.artifacts | has("linear") and (.artifacts.linear | type != "object")) or (.artifacts.provider? == "linear" and (.artifacts.linear? | type != "object")))') linear policy requires repository, workspace, team, projectLabels, projectStatuses, and issueStates only"
@@ -200,5 +197,53 @@ if [ "$provider" = "linear" ]; then
   ' <<<"$effective" >/dev/null 2>&1; then
     fail "$(target_file 'has("artifacts") and (.artifacts.linear? | has("projectLabels"))') projectLabels must be an array of non-empty strings"
   fi
+elif [ "$provider" = "plane" ]; then
+  if ! jq -e 'has("artifacts") and (.artifacts | type == "object") and (.artifacts | has("plane")) and (.artifacts.plane | type == "object")' <<<"$effective" >/dev/null 2>&1; then
+    fail "$(target_file 'has("artifacts") and ((.artifacts | has("plane") and (.artifacts.plane | type != "object")) or (.artifacts.provider? == "plane" and (.artifacts.plane? | type != "object")))') plane policy requires baseUrl, workspace, repository, projectLabels, projectStatuses, and issueStates only"
+  fi
+  if ! jq -e --argjson allowed "$plane_allowed" '
+    .artifacts.plane | type == "object" and ((keys - $allowed) | length == 0)
+  ' <<<"$effective" >/dev/null 2>&1; then
+    fail "$(target_file 'has("artifacts") and (.artifacts.plane? | type == "object" and ((keys - ["baseUrl","workspace","repository","projectLabels","projectStatuses","issueStates"]) | length > 0))') plane policy requires baseUrl, workspace, repository, projectLabels, projectStatuses, and issueStates only"
+  fi
+  if ! jq -e '
+    .artifacts.plane
+    and (.artifacts.plane.baseUrl | type == "string" and test("^https?://[^?#\\s]+$"))
+    and (.artifacts.plane.workspace | type == "string" and test("\\S"))
+    and (.artifacts.plane.repository | type == "string"
+      and test("^https://github\\.com/[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?/[A-Za-z0-9](?:[A-Za-z0-9._-]*[A-Za-z0-9])?$"))
+    and (.artifacts.plane | has("projectLabels"))
+    and (.artifacts.plane.projectStatuses | type == "object")
+    and (.artifacts.plane.issueStates | type == "object")
+  ' <<<"$effective" >/dev/null 2>&1; then
+    fail "$(target_file 'has("artifacts") and ((.artifacts.plane? | type == "object" and ((has("baseUrl") and ((.baseUrl | type != "string") or (.baseUrl | test("^https?://[^?#\\s]+$") | not))) or (has("workspace") and ((.workspace | type != "string") or (.workspace | test("\\S") | not))) or (has("repository") and ((.repository | type != "string") or (.repository | test("^https://github\\.com/[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?/[A-Za-z0-9](?:[A-Za-z0-9._-]*[A-Za-z0-9])?$") | not))) or (has("projectStatuses") and (.projectStatuses | type != "object")) or (has("issueStates") and (.issueStates | type != "object")))) or (.artifacts.provider? == "plane" and ((.artifacts.plane? | type != "object") or (.artifacts.plane.baseUrl? | (type != "string") or (test("^https?://[^?#\\s]+$") | not)) or (.artifacts.plane.workspace? | (type != "string") or (test("\\S") | not)) or (.artifacts.plane.repository? | (type != "string") or (test("^https://github\\.com/[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?/[A-Za-z0-9](?:[A-Za-z0-9._-]*[A-Za-z0-9])?$") | not)) or (.artifacts.plane.projectStatuses? | type != "object") or (.artifacts.plane.issueStates? | type != "object"))))') plane policy requires baseUrl, workspace, repository, projectLabels, projectStatuses, and issueStates only"
+  fi
+  if ! jq -e --argjson keys "$project_keys" '
+    (.artifacts.plane.projectStatuses | keys | sort) == ($keys | sort)
+    and all(.artifacts.plane.projectStatuses[]; type == "string" and test("\\S"))
+  ' <<<"$effective" >/dev/null 2>&1; then
+    fail "$(target_file 'has("artifacts") and (.artifacts.plane? | has("projectStatuses"))') projectStatuses mapping is incomplete or contains invalid values"
+  fi
+  if ! jq -e --argjson keys "$issue_keys" '
+    (.artifacts.plane.issueStates | keys | sort) == ($keys | sort)
+    and all(.artifacts.plane.issueStates[]; type == "string" and test("\\S"))
+  ' <<<"$effective" >/dev/null 2>&1; then
+    fail "$(target_file 'has("artifacts") and (.artifacts.plane? | has("issueStates"))') issueStates mapping is incomplete or contains invalid values"
+  fi
+  if ! jq -e '
+    .artifacts.plane.projectLabels | type == "array" and length > 0 and all(.[]; type == "string" and test("\\S"))
+  ' <<<"$effective" >/dev/null 2>&1; then
+    fail "$(target_file 'has("artifacts") and (.artifacts.plane? | has("projectLabels"))') projectLabels must be an array of non-empty strings"
+  fi
+  effective="$(jq '
+    .artifacts.plane.baseUrl |= (
+      sub("/+$"; "")
+      | if test("^https?://(api|app)\\.plane\\.so$"; "i") then
+          "https://api.plane.so"
+        else
+          .
+        end
+    )
+  ' <<<"$effective")"
 fi
 printf '%s\n' "$effective"

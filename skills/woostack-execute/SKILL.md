@@ -20,12 +20,14 @@ approved contract and resume evidence but never proves source-control state.
 
 `--project`, `--issue`, and `--run` are mutually exclusive; exactly one is required. `--recheck` is
 valid only with `--run`. Execute accepts either exact Linear resources (`--project`/`--issue`) or an
-exact local run manifest (`--run`), with no implicit or fuzzy discovery. Every cycle admits one
-task or direct issue, one isolated worktree, and one PR. Execute does not perform review or merge
-operations. The `--project` form is the resumable handoff from Build/Fix when mirroring is enabled;
-`--run` is the resumable handoff from a local run manifest. Both are sufficient without chat memory
-or fuzzy plan discovery.
-
+exact local run manifest (`--run`), with no implicit or fuzzy discovery. Direct provider execution
+via `--project` or `--issue` supports Linear only in this increment. When `artifacts.provider: "plane"`,
+direct provider execution via `--project` or `--issue` is unsupported in this increment and fails closed;
+execution of Plane builds proceeds through an approved local run manifest (`/woostack-execute --run <exact-run-id>`).
+Every cycle admits one task or direct issue, one isolated worktree, and one PR. Execute does not perform
+review or merge operations. The `--project` form is the resumable handoff from Linear Build/Fix when mirroring
+is enabled; `--run` is the resumable handoff from a local run manifest. Both are sufficient without chat
+memory or fuzzy plan discovery.
 ## Admission
 
 ### Provider admission: one exact resource

@@ -1,6 +1,6 @@
 ---
 name: woostack-doctor
-description: Diagnose and, after approval, repair a repo's `.woostack/` workspace health—static config checks, guarded legacy-record checks, and optional live Linear artifact connectivity. Remote content is never auto-repaired. Includes exit-coded CI mode and an interactive local repair gate.
+description: Diagnose and, after approval, repair a repo's `.woostack/` workspace health—static config checks, guarded legacy-record checks, and optional live Linear/Plane artifact connectivity. Remote content is never auto-repaired. Includes exit-coded CI mode and an interactive local repair gate.
 ---
 
 # woostack-doctor
@@ -18,7 +18,7 @@ It has two layers:
   `--live-receipt <path>`; the script never calls MCP, HTTP, GraphQL, or a hard-coded provider tool.
 - An **interactive repair layer** — proposes local auto-fixes, mutates nothing before approval,
   routes approved tracked repairs through [`woostack-change`](../woostack-change/SKILL.md) before
-  any file mutation, and runs filesystem-only repairs directly. Linear resources and legacy
+  any file mutation, and runs filesystem-only repairs directly. Remote provider resources and legacy
   development records are report-only; doctor never merges.
 
 ## Commands
@@ -28,15 +28,18 @@ It has two layers:
 - `/woostack-doctor [path] --check` — **CI mode**: diagnose only. Prints GitHub-style annotations
   and sets the exit code (nonzero iff any `error`); suppresses the machine-readable findings dump.
   Mutates nothing.
-- `/woostack-doctor [path] --live` — before touching the target, discover the host's official
-  Linear MCP tools, authenticate through the host connection, and verify provider availability
-  plus required read/mutation capabilities. Then resolve the target and its effective layered
-  policy, verify the OAuth-scoped workspace slug, native team ID/key, native mappings, and
-  independent read-back, write only the normalized non-secret result to a mode-0600 temporary
-  receipt, invoke
+- `/woostack-doctor [path] --live` — resolve the target and its effective layered policy first.
+  When `artifacts.provider` is `"local"` or omitted, provider preflight is skipped.
+  When `artifacts.provider: "linear"`, discover the host's official Linear MCP tools, authenticate,
+  and verify Linear availability plus required project/update/issue/comment/relation/owner read and
+  mutation capabilities (and label capabilities when `projectLabels` is configured), then verify
+  the OAuth workspace slug, native team ID/key, native mappings, and independent read-back.
+  When `artifacts.provider: "plane"`, discover the host's official Plane MCP tools, authenticate,
+  and verify Plane availability plus required project/issue/relation/label read and mutation capabilities,
+  then verify canonical instance `baseUrl`, workspace, native mappings, and independent read-back.
+  Write only the normalized non-secret result to a mode-0600 temporary receipt, invoke
   `doctor.sh --live-receipt <path> [path]`, and delete the receipt. Missing MCP, authentication,
-  capability, identity, mapping, or read-back blocks at its phase; provider-only failures occur
-  before target filesystem or Git access.
+  capability, identity, mapping, or read-back blocks at its phase.
 - `/woostack-doctor [path] --check --live` — the same controller-owned live preflight with
   CI-style annotations and exit behavior.
 
@@ -47,18 +50,25 @@ the `templates/` shipped there; the woostack collection installs both as sibling
 
 1. **Capture the target.** Retain the requested path without statting, reading, canonicalizing, or
    invoking Git.
-2. **Preflight the provider first in live mode.** For explicit `--live`, discover and authenticate
-   official host MCP before target access. Verify provider availability and required
-   project/update/issue/comment/relation/owner read and mutation capabilities. A provider-only
-   failure stops with zero target filesystem or Git access.
-3. **Resolve policy and diagnose once.** Resolve the target and primary checkout, then load the
-   effective committed plus primary-checkout local team policy. In live mode, verify the configured
-   OAuth-scoped workspace slug, native team ID/key, native mappings, and independent read-back,
-   write the normalized non-secret mode-0600 receipt, and run
-   `doctor.sh --live-receipt <path> [path]`. Otherwise run
-   `doctor.sh [path]`. The engine validates policy, diagnostics, managed project OMP role-agent
-   definitions, and local worktree hygiene. OMP diagnosis is read-only; only the approved,
-   auto-fixable doctor path may invoke the init provisioner.
+2. **Resolve effective policy first.** Resolve the target and primary checkout, then load the
+   effective committed plus primary-checkout local policy to determine the selected `artifacts.provider`.
+3. **Preflight the configured provider in live mode.** For explicit `--live`:
+   - When `artifacts.provider: "linear"`, discover and authenticate official Linear MCP (`official-linear-mcp`).
+     Verify Linear availability and required `projectRead`, `projectWrite`, `projectUpdateRead`,
+     `projectUpdateWrite`, `issueRead`, `issueWrite`, `commentRead`, `commentWrite`, `relationRead`,
+     `relationWrite`, `ownerRead`, `ownerWrite`, and `independentReadBack` capabilities (plus
+     `projectLabelRead`/`projectLabelWrite` if `projectLabels` is configured). Verify the OAuth workspace slug,
+     unique native team ID/key, native project status and issue state mappings, and independent read-back.
+   - When `artifacts.provider: "plane"`, discover and authenticate official Plane MCP (`official-plane-mcp`).
+     Verify Plane availability and required `projectRead`, `projectWrite`, `issueRead`, `issueWrite`,
+     `relationRead`, `relationWrite`, `projectLabelRead`, `projectLabelWrite`, and `independentReadBack`
+     capabilities. Verify canonical instance `baseUrl` and workspace, native project status and issue state
+     mappings, and independent read-back.
+   - When `artifacts.provider: "local"` or omitted, live provider preflight is skipped.
+   Write the normalized non-secret mode-0600 receipt matching the resolved provider schema, and run
+   `doctor.sh --live-receipt <path> [path]`. Otherwise run `doctor.sh [path]`. The engine validates policy,
+   diagnostics, managed project OMP role-agent definitions, and local worktree hygiene. OMP diagnosis is
+   read-only; only the approved, auto-fixable doctor path may invoke the init provisioner.
    Legacy `.woostack/specs/`, `.woostack/plans/`, `.woostack/fixes/`, or
    `.woostack/overnight/` sets produce one blocking migration finding per active or ambiguous set;
    doctor does not run normal lifecycle lint on them and points at the explicit
@@ -67,7 +77,7 @@ the `templates/` shipped there; the woostack collection installs both as sibling
    run [`woostack-init`](../woostack-init/SKILL.md). Doctor never scaffolds.
 5. **Propose a changeset.** Group the local `fixable=auto` findings into a proposed repair set —
    one line per repair: the `code`, the `path`, and exactly what will change. List `report`-only
-   findings separately as "manual / judgment" items. Linear findings are always report-only.
+   findings separately as "manual / judgment" items. Provider findings are always report-only.
 6. **HARD GATE — approval.** Mutate nothing until the user approves. Silence is not a yes. The user
    may approve all, a subset, or none. `report`-only findings are never auto-applied.
 7. **Route tracked repairs before mutation.** If the approved set includes a file repair, hand its
@@ -79,7 +89,7 @@ the `templates/` shipped there; the woostack collection installs both as sibling
    its repository-first delivery path. Doctor never hands tracked repairs directly to
    `woostack-commit`. If every approved repair is filesystem-only, run `orphan-worktree --fix` (a
    safe `git worktree prune`) directly after the gate; it needs no issue or commit. No repair shell
-   command calls Linear or mutates remote content.
+   command calls a provider or mutates remote content.
 8. **Confirm.** Require the change workflow's retained re-run result for tracked repairs, or re-run
    the same static or explicitly live engine mode after a filesystem-only repair, and report
    residual findings.
@@ -94,7 +104,7 @@ the `templates/` shipped there; the woostack collection installs both as sibling
   Doctor never creates, repairs, adopts, or deletes them.
 - **Provider access belongs to skill controllers.** Diagnosis and every doctor shell repair remain
   provider-free. Approved tracked repairs run through artifact-free `woostack-change` unless the
-  caller explicitly selected an exact Linear artifact. Explicit `--live` may validate official
+  caller explicitly selected an exact artifact. Explicit `--live` may validate official
   host MCP connectivity for optional artifact use and passes only a normalized non-secret receipt
   to the shell engine. The temporary receipt is mode 0600 and deleted after consumption. The shell
   never reads a provider credential or invokes HTTP, GraphQL, an API-key adapter, or a hard-coded

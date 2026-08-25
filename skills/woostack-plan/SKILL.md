@@ -1,28 +1,25 @@
 ---
 name: woostack-plan
-description: Turn one approved specification into a strict sequential chain of PR-sized direct Linear project issues. Never approves, executes, commits, reviews, or merges.
+description: Turn one approved specification into a strict sequential chain of PR-sized direct Linear or Plane project issues. Never approves, executes, commits, reviews, or merges.
 ---
 
 # woostack-plan
 
 Turn one approved specification into one complete execution plan. Standalone Plan reads one exact
-existing Linear project, derives and hardens a candidate chain, synchronizes the complete
+existing Linear or Plane project, derives and hardens a candidate chain, synchronizes the complete
 direct-issue graph, independently reads that graph back, and returns the verified result. When
 delegated by Build or project-backed Fix, Plan instead drafts the same complete candidate into the
 owning workflow's run-scoped manifest with zero provider calls and returns before synchronization.
-
 ## Command
 
 ```text
-/woostack-plan <approved specification> --project <exact existing Linear URL-or-UUID>
-/woostack-plan --project <exact existing Linear URL-or-UUID>
+/woostack-plan <approved specification> --project <exact existing Linear or Plane URL-or-UUID>
+/woostack-plan --project <exact existing Linear or Plane URL-or-UUID>
 ```
-
-For standalone use, `--project` is mandatory and requires `artifacts.provider: "linear"` in effective
-repository configuration. When `artifacts.provider` is "local" or omitted, standalone Plan fails closed
-before any provider access with an error stating that provider operations require `artifacts.provider: "linear"`.
-When `artifacts.provider: "plane"`, it fails closed stating Plane artifact persistence is not supported in
-this version. There is no CLI provider override.
+For standalone use, `--project` is mandatory and requires `artifacts.provider: "linear"` or
+`artifacts.provider: "plane"` in effective repository configuration. When `artifacts.provider` is "local"
+or omitted, standalone Plan fails closed before any provider access with an error stating that provider
+operations require `artifacts.provider: "linear"` or `artifacts.provider: "plane"`. There is no CLI provider override.
 
 When `artifacts.provider: "linear"`, resolve only that exact project under the
 [Linear artifact contract](../woostack-init/references/artifact-backends.md); it must already exist,
@@ -33,7 +30,14 @@ content blocks before mutation. There is no project-creation, fuzzy-discovery, o
 Standalone Plan reads the repository, canonical parent branch and last admitted tip, existing
 patterns, relevant tests, and the
 [Linear synchronization procedure](../woostack-build/references/linear-procedure.md) before
-planning. Build/Fix-delegated Plan instead obeys the shared
+planning.
+When `artifacts.provider: "plane"`, resolve only that exact project under the
+[Plane artifact contract](../woostack-init/references/artifact-backends.md); it must already exist,
+be associated with the canonical repository, and belong to the caller-selected instance `baseUrl` and
+`workspace`. Standalone Plan reads the repository, canonical parent branch and last admitted tip,
+existing patterns, relevant tests, and the
+[`Plane synchronization procedure`](../woostack-build/references/plane-procedure.md) before planning.
+Build/Fix-delegated Plan instead obeys the shared
 [manifest contract](../woostack-init/references/artifact-backends.md#minimal-resumable-manifest-schema);
 it reads no provider context or synchronization procedure during the delegated phase.
 Repository parent-tip admission follows the shared
@@ -94,7 +98,7 @@ exception rationale in the issue. Otherwise split or reject an increment that ex
 ## Chain invariants
 
 The plan is a strict sequential chain. If there are `N` increments, ordinals are exactly the
-positive integers `1..N`, each ordinal and task ID is unique, and each native Linear dependency is
+positive integers `1..N`, each ordinal and task ID is unique, and each native Linear/Plane dependency is
 exactly the matching predecessor edge:
 
 ```text
@@ -115,16 +119,17 @@ Prefer the fewest increments that remain independently reviewable and fit the si
 split by file or layer merely to manufacture issues. Use Red → Green → Refactor for behavior changes
 only as a structure around concrete steps, never as a substitute for those steps.
 
-## Linear synchronization
+## Provider synchronization
 
 In standalone use only, after the chain is complete and valid, verify the canonical repository
-association and selected workspace/team, then apply the
+association and selected workspace/team or instance/workspace, then apply the
 [existing-description mutation invariant](../woostack-init/references/artifact-backends.md#existing-description-mutation-invariant)
-while synchronizing one exact project graph through the
-[Linear synchronization procedure](../woostack-build/references/linear-procedure.md):
+while synchronizing one exact project graph through the matching provider synchronization procedure
+([Linear](../woostack-build/references/linear-procedure.md) or
+[Plane](../woostack-build/references/plane-procedure.md)):
 
 1. Reconcile the complete current project context without creating a project.
-2. Create or reconcile exactly one direct project issue per increment with its full contract.
+2. Create or reconcile exactly one direct project issue/work item per increment with its full contract.
 3. Create or reconcile only the strict predecessor dependency chain.
 4. Independently read every project, issue, membership, description, and dependency edge back; accept
    the plan only when the complete graph matches the candidate.
@@ -136,14 +141,13 @@ unchanged, owns no approval gate, and does not use the Build/Fix run manifest.
 When delegated by Build or Fix, stop before every provider read or synchronization. Return the
 complete manifest-backed candidate contracts and strict chain to the wrapper. The wrapper hardens
 the manifest, writes `execution-plan.md`, displays every concise stable task and dependency mapping,
-and owns optional post-drafting mirror synchronization (when `artifacts.provider: "linear"`) and exact
-read-back.
+and owns optional post-drafting mirror synchronization (when `artifacts.provider: "linear"` or
+`artifacts.provider: "plane"`) and exact read-back.
 
 ## Return
 
 Return the complete ordered task contracts, exact project or baseline identity, strict predecessor
 and Graphite parent edges, repository assumptions/effects, focused verification strategy,
-risks/blockers, stop markers, and invocation mode. Standalone Plan also returns independent Linear
 read-back evidence, provider mutation/read counts, and stable mutation identities. Delegated Plan
 returns its run/process/manifest identity and makes no provider claim. Do not return a parent-plan
 identity or an execution claim.

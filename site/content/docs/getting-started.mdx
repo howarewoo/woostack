@@ -1,12 +1,13 @@
 ---
 title: Getting started
-description: Install woostack in a coding harness, initialize local support, and optionally configure Linear mirroring or an external engineer.
+description: Install woostack in a coding harness, initialize local support, and optionally configure Linear/Plane mirroring or an external engineer.
 ---
 
 <Callout type="info">
   Local run authority in `.woostack/tmp/runs/<run-id>/` owns product scope and execution contracts for
-  builds and post-diagnosis fixes, with optional Linear mirroring (`artifacts.provider: "linear"`). Git
-  and GitHub own code, branches, pull requests, reviews, and merges.
+  builds (with optional Linear or Plane mirroring: `artifacts.provider: "linear"` or `artifacts.provider: "plane"`)
+  and post-diagnosis fixes (with optional Linear mirroring: `artifacts.provider: "linear"`, while Plane Fix arrives
+  in a later increment). Git and GitHub own code, branches, pull requests, reviews, and merges.
 </Callout>
 
 ## Dependencies
@@ -17,9 +18,9 @@ Prepare these tools before installing woostack:
 - Node.js and pnpm. The installation command below uses `pnpx`.
 - Bash, Git, the GitHub CLI (`gh`), the Graphite CLI (`gt`), and `jq`. Authenticate both CLIs
   and initialize Graphite for the target repository before running a workflow that delivers a PR.
-- An authenticated official Linear MCP connection only when optional Linear mirroring is enabled
-  (`artifacts.provider: "linear"`). Local initialization, default local run authority, and
-  Linear-free workflows such as `/woostack-change` do not require it.
+- An authenticated official Linear or Plane MCP connection only when optional provider mirroring is enabled
+  (`artifacts.provider: "linear"` or `artifacts.provider: "plane"`). Local initialization, default local run authority, and
+  provider-free workflows such as `/woostack-change` do not require it.
 
 ## 1. Install the skills
 
@@ -51,8 +52,7 @@ by Git).
 
 Read [Configuration](/docs/configuration) for policy. Every build and project-backed Fix allocates
 or resumes an exact local run store under `.woostack/tmp/runs/<run-id>/`. When
-`artifacts.provider: "linear"`, Build and post-proof Fix also resolve or create one Linear project mirror.
-
+`artifacts.provider: "linear"` or `artifacts.provider: "plane"`, Build (and Linear Fix) also resolves or creates one provider project mirror.
 ## 3. Choose the workflow
 
 | Goal | Command |
@@ -68,7 +68,7 @@ or resumes an exact local run store under `.woostack/tmp/runs/<run-id>/`. When
 The user's request and each workflow's explicit contract authorize work. Retained local run manifests
 record build/fix product authority and enable exact resume for approved nonterminal runs
 (`/woostack-execute --run <exact-run-id>`), but do not replace repository-delivery evidence.
-## 4. Optional Linear mirror setup
+## 4. Optional Linear and Plane mirror setup
 
 The default `/woostack-init` run discovers only the host-exposed official Linear MCP endpoint:
 
@@ -88,15 +88,14 @@ tokens, or authorization headers in repository config, prompts, logs, or generat
 provider-free. Supplying `--project` when `artifacts.provider` is not configured for mirroring fails
 closed immediately with an error stating that `--project` requires configured provider mirroring.
 
-When `artifacts.provider: "linear"` is configured, the `artifacts.linear` configuration supplies validated
-defaults for canonical project creation when no exact project was supplied. Build and
-project-backed Fix write plain Markdown `project-spec.md` and `execution-plan.md` files directly
-under `.woostack/tmp/runs/<run-id>/`, followed by one bounded mirror synchronization cycle. Mirror
-failure is recorded in the manifest and is nonblocking for local authority. All run artifacts in
-`.woostack/tmp/runs/<run-id>/` are retained upon completion and explicit abandonment. Build/Fix
-present the verified `/woostack-execute --run <exact-run-id>` handoff and ask exactly `Stop here`,
-`Execute`, or `Abandon`. A mirrored project identity is evidence, not an alternate handoff command.
-`woostack-change` never contacts Linear.
+When `artifacts.provider: "linear"` or `artifacts.provider: "plane"` is configured, the provider configuration supplies validated
+defaults for canonical project creation when no exact project was supplied. Build (for both Linear and Plane) and
+project-backed Fix (for Linear only; Plane Fix is unsupported and fails closed before provider access or run creation) write plain Markdown
+`project-spec.md` and `execution-plan.md` files directly under `.woostack/tmp/runs/<run-id>/`, followed by one bounded mirror
+synchronization cycle when mirroring is enabled. Mirror failure is recorded in the manifest and is nonblocking for local authority.
+All run artifacts in `.woostack/tmp/runs/<run-id>/` are retained upon completion and explicit abandonment. Build/Fix present the verified
+`/woostack-execute --run <exact-run-id>` handoff and ask exactly `Stop here`, `Execute`, or `Abandon`. A mirrored project identity is evidence,
+not an alternate handoff command. `woostack-change` never contacts a provider.
 
 ## 5. Use an external engineer (optional)
 

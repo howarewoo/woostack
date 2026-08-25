@@ -329,7 +329,7 @@ test('authored setup order keeps initialization and the external-engineer guide 
   assertInOrder('site/content/docs/getting-started.mdx', [
     ['initialize local support', /\b2\.\s+Initialize local support\b/i],
     ['choose workflow', /\b3\.\s+Choose the workflow\b/i],
-    ['automatic Linear defaults', /\b4\.\s+(?:Automatic\s+Linear\s+default\s+setup|Optional\s+Linear\s+mirror\s+setup)\b/i],
+    ['automatic Linear defaults', /\b4\.\s+(?:Automatic\s+Linear\s+default\s+setup|Optional\s+(?:Linear\s+and\s+Plane|Linear)\s+mirror\s+setup)\b/i],
     ['external engineer', /5\. Use an external engineer \(optional\)/i],
   ]);
 });

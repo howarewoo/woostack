@@ -1,14 +1,15 @@
 ---
 title: Core concepts
-description: Repository delivery evidence, local run authority with optional Linear mirroring, and plain artifact project loops.
+description: Repository delivery evidence, local run authority with optional Linear/Plane mirroring, and plain artifact project loops.
 ---
 
 import { ContextEconomy } from '@/components/concepts/context-economy';
 
 woostack is a multiperson development workflow with two distinct truth domains. Local run manifests
 in `.woostack/tmp/runs/<run-id>/` own current product specifications, increment contracts, and
-manifest state for builds and post-diagnosis fixes, with optional Linear mirroring
-(`artifacts.provider: "linear"`). Git and GitHub own source, branches, commits, pull requests, reviews,
+manifest state for builds (with optional Linear or Plane mirroring: `artifacts.provider: "linear"` or
+`artifacts.provider: "plane"`) and post-diagnosis fixes (with optional Linear mirroring: `artifacts.provider: "linear"`,
+while Plane Fix arrives in a later increment). Git and GitHub own source, branches, commits, pull requests, reviews,
 and merge evidence. A build always manages one high-level specification plus direct increment
 contracts with dependency relations in its retained local run manifest. After proof, a Fix uses the
 same local run structure for its complete specification plus a strict direct-issue chain. Other
@@ -33,10 +34,10 @@ Bounded one-PR work takes a smaller route. [woostack-fix](/docs/skills/woostack-
 cause, allocates or resumes its local run store for the complete fix specification, synchronizes its
 strict direct-issue chain after writing both plain artifacts, then presents the same
 user-controlled handoff. [woostack-change](/docs/skills/woostack-change) executes one explicit bounded
-enhancement/refactor without contacting Linear.
+enhancement/refactor without contacting a provider.
 
 Explicit build or project-backed Fix abandonment stops repository work, sets `status: "abandoned"` in
-the run manifest, and retains all run artifacts without mutating a mirrored Linear project. Standalone
+the run manifest, and retains all run artifacts without mutating a mirrored provider project. Standalone
 Plan closes its existing project as canceled after independent read-back. Normal handoff, replanning,
 and blockers leave project status unchanged.
 
@@ -46,12 +47,11 @@ Build and project-backed Fix write plain Markdown working documents directly und
 `.woostack/tmp/runs/<run-id>/`:
 
 1. **`project-spec.md`** contains the complete user-verified high-level specification. When
-   `artifacts.provider: "linear"`, one bounded mirror synchronization writes the specification to
-   Linear; mirror failures are nonblocking.
+   `artifacts.provider: "linear"` or `artifacts.provider: "plane"` (for Build; Linear only for Fix in this increment),
+   one bounded mirror synchronization writes the specification to the configured provider; mirror failures are nonblocking.
 2. **`execution-plan.md`** contains every ordered increment contract and dependency tuple. When
-   `artifacts.provider: "linear"`, one bounded mirror synchronization binds stable task keys to
-   canonical issue references; mirror failures are nonblocking.
-
+   `artifacts.provider: "linear"` or `artifacts.provider: "plane"` (for Build; Linear only for Fix in this increment),
+   one bounded mirror synchronization binds stable task keys to canonical provider references; mirror failures are nonblocking.
 After both files are written, Build/Fix display the exact run ID, readable artifact paths, stable task
 mappings, dependencies, planning parent branch, planning parent tip, and
 `/woostack-execute --run <exact-run-id>`. When mirroring is enabled, they also display the project
@@ -108,12 +108,12 @@ once for independent analysis. Local Build/Fix runs retain only their verified m
 repository delivery evidence. Provider-mode workflows retain only the verified MCP identities and
 synchronization receipts required for the current decision.
 
-Automatic init setup and optional artifact access use the host's authenticated official Linear MCP
-connection. Init needs only read capability and validates local config writes independently; it
-never reads a development artifact or probes a provider write. When `artifacts.provider: "linear"`,
-Fix/Build mirroring verifies the canonical repository association and resolved workspace/team,
+Automatic init setup uses the host's authenticated official Linear MCP connection. Init needs only read
+capability and validates local config writes independently; it never reads a development artifact or
+probes a provider write. When `artifacts.provider: "linear"` or `artifacts.provider: "plane"`,
+Build (and Linear Fix) mirroring verifies the canonical repository association and resolved workspace/team or instance/workspace,
 proves the exact capabilities it needs without reading credentials, and independently reads
-mutations back. Tracked policy supplies validated defaults only after a workflow selects Linear and
+mutations back. Tracked policy supplies validated defaults only after a workflow selects a provider and
 cannot authorize unrelated provider writes.
 
 ### External engineers and coding harnesses
@@ -133,7 +133,7 @@ fail-closed approval relay.
 ## Where to go next
 
 <Cards>
-  <Card title="Getting started" href="/docs/getting-started" description="Initialize local support and optionally configure Linear mirroring for fix/build workflows." />
+  <Card title="Getting started" href="/docs/getting-started" description="Initialize local support and optionally configure Linear or Plane mirroring for fix/build workflows." />
   <Card title="Building rules" href="/docs/concepts/building-rules" description="Follow the build lifecycle and choose the smallest workflow for the work." />
   <Card title="Status tracking" href="/docs/concepts/status-tracking" description="Derive a fresh board from Git, Graphite, and GitHub with optional artifacts." />
   <Card title="Workflow maps" href="/docs/concepts/workflows" description="Compare Bootstrap, Build, Fix, and Change under one authority model." />

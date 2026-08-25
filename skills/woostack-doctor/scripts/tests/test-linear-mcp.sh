@@ -26,6 +26,55 @@ complete_config() {
     }
   }'
 }
+complete_plane_config() {
+  jq -cn '{
+    models:{},review:{},status:{staleDays:14},
+    artifacts:{
+      provider:"plane",
+      plane:{
+        baseUrl:"https://api.plane.so",
+        repository:"https://github.com/acme/widgets",workspace:"acme",
+        projectLabels:["Core"],
+        projectStatuses:{
+          backlog:"Backlog",planned:"Planned",started:"Started",
+          completed:"Completed",canceled:"Canceled"
+        },
+        issueStates:{planned:"Backlog",executing:"In Progress",inReview:"In Progress",done:"Done",blocked:"In Progress"}
+      }
+    }
+  }'
+}
+
+complete_plane_receipt() {
+  jq -cn '{
+    schemaVersion:1,provider:"official-plane-mcp",mcpAvailable:true,authenticated:true,ready:true,
+    baseUrl:"https://api.plane.so",
+    repository:"https://github.com/acme/widgets",workspace:"acme",
+    workspaceResolution:{status:"unique",name:"acme"},
+    projectStatuses:{complete:true,resolved:{
+      backlog:{name:"Backlog",category:"backlog"},
+      planned:{name:"Planned",category:"planned"},
+      started:{name:"Started",category:"started"},
+      completed:{name:"Completed",category:"completed"},
+      canceled:{name:"Canceled",category:"canceled"}
+    }},
+    issueStates:{complete:true,resolved:{
+      planned:{name:"Backlog",category:"backlog"},
+      executing:{name:"In Progress",category:"started"},
+      inReview:{name:"In Progress",category:"started"},
+      done:{name:"Done",category:"completed"},
+      blocked:{name:"In Progress",category:"started"}
+    }},
+    capabilities:{
+      projectRead:true,projectWrite:true,
+      issueRead:true,issueWrite:true,
+      relationRead:true,relationWrite:true,
+      projectLabelRead:true,projectLabelWrite:true,
+      independentReadBack:true
+    },
+    readBack:{status:"verified",complete:true,independent:true}
+  }'
+}
 
 complete_receipt() {
   jq -cn '{
@@ -107,14 +156,12 @@ jq '.artifacts={provider:"invalid"}' "$bad_provider/.woostack/config.json" >"$ba
 mv "$bad_provider/config.tmp" "$bad_provider/.woostack/config.json"
 run_doctor "$bad_provider"
 assert_exit 1 "$RC" "invalid artifacts provider fails static diagnosis"
-assert_contains "$OUTPUT" "artifacts.provider must be \"local\" or \"linear\"" "provider finding is actionable"
+assert_contains "$OUTPUT" "artifacts.provider must be \"local\", \"linear\", or \"plane\"" "provider finding is actionable"
 
-plane_provider="$(make_repo plane-provider)"
-jq '.artifacts={provider:"plane"}' "$plane_provider/.woostack/config.json" >"$plane_provider/config.tmp"
-mv "$plane_provider/config.tmp" "$plane_provider/.woostack/config.json"
-run_doctor "$plane_provider"
-assert_exit 1 "$RC" "plane artifacts provider fails static diagnosis as unsupported"
-assert_contains "$OUTPUT" "artifacts.provider \"plane\" is not supported in this version" "plane finding is actionable"
+plane_repo="$(make_repo plane-static)"
+complete_plane_config >"$plane_repo/.woostack/config.json"
+run_doctor "$plane_repo"
+assert_exit 0 "$RC" "valid non-secret Plane policy passes static diagnosis"
 
 local_with_partial_linear="$(make_repo local-partial-linear)"
 jq '.artifacts={provider:"local",linear:{workspace:"only-workspace"}}' "$local_with_partial_linear/.woostack/config.json" >"$local_with_partial_linear/config.tmp"
@@ -257,5 +304,41 @@ run_doctor "$repo" --live-receipt "$TMP/missing.json"
 assert_exit 1 "$RC" "missing live receipt fails closed"
 assert_contains "$OUTPUT" "receipt is missing or unreadable" "missing receipt is actionable"
 
+plane_receipt="$TMP/plane-receipt.json"
+complete_plane_receipt >"$plane_receipt"
+chmod 600 "$plane_receipt"
+run_doctor "$plane_repo" --live-receipt "$plane_receipt"
+assert_exit 0 "$RC" "complete normalized Plane live receipt passes"
+
+missing_label_cap="$TMP/plane-no-label-cap.json"
+jq '.capabilities.projectLabelRead=false' "$plane_receipt" >"$missing_label_cap"
+chmod 600 "$missing_label_cap"
+run_doctor "$plane_repo" --live-receipt "$missing_label_cap"
+assert_exit 1 "$RC" "missing Plane projectLabelRead capability fails live diagnosis"
+assert_contains "$OUTPUT" "missing Plane MCP capability: projectLabelRead" "missing projectLabelRead is actionable"
+
+plane_url_mismatch="$TMP/plane-url-mismatch.json"
+jq '.baseUrl="https://other.plane.so"' "$plane_receipt" >"$plane_url_mismatch"
+chmod 600 "$plane_url_mismatch"
+run_doctor "$plane_repo" --live-receipt "$plane_url_mismatch"
+assert_exit 1 "$RC" "plane baseUrl mismatch fails live diagnosis"
+assert_contains "$OUTPUT" "receipt baseUrl does not match configured Plane policy" "baseUrl mismatch is actionable"
+
+# Plane Cloud app.plane.so config with api.plane.so receipt passes
+plane_cloud_app_repo="$(make_repo plane-cloud-app)"
+complete_plane_config >"$plane_cloud_app_repo/.woostack/config.json"
+jq '.artifacts.plane.baseUrl="https://app.plane.so"' "$plane_cloud_app_repo/.woostack/config.json" >"$plane_cloud_app_repo/.woostack/config.json.tmp" && mv "$plane_cloud_app_repo/.woostack/config.json.tmp" "$plane_cloud_app_repo/.woostack/config.json"
+run_doctor "$plane_cloud_app_repo" --live-receipt "$plane_receipt"
+assert_exit 0 "$RC" "plane app.plane.so config matches api.plane.so receipt"
+
+# Self-hosted trailing slash config with stripped receipt passes
+plane_selfhosted_repo="$(make_repo plane-selfhosted)"
+complete_plane_config >"$plane_selfhosted_repo/.woostack/config.json"
+jq '.artifacts.plane.baseUrl="https://plane.internal/"' "$plane_selfhosted_repo/.woostack/config.json" >"$plane_selfhosted_repo/.woostack/config.json.tmp" && mv "$plane_selfhosted_repo/.woostack/config.json.tmp" "$plane_selfhosted_repo/.woostack/config.json"
+plane_selfhosted_receipt="$TMP/plane-selfhosted-receipt.json"
+jq '.baseUrl="https://plane.internal"' "$plane_receipt" >"$plane_selfhosted_receipt"
+chmod 600 "$plane_selfhosted_receipt"
+run_doctor "$plane_selfhosted_repo" --live-receipt "$plane_selfhosted_receipt"
+assert_exit 0 "$RC" "self-hosted plane trailing slash config matches receipt"
 
 finish

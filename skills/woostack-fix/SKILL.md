@@ -42,6 +42,11 @@ is "local" or omitted in effective repository configuration, an explicit `--proj
 flag fails closed before any provider access with an error stating that provider arguments require
 configured provider mirroring (`artifacts.provider: "linear"`).
 
+When `artifacts.provider: "plane"`, Fix fails closed before any provider access or post-diagnosis run
+with an error stating that Plane mirroring is unsupported for Fix in this increment (supported for Build
+and Plan only). Any supplied `--project` or `--issue` under `artifacts.provider: "plane"` fails closed
+immediately.
+
 When `artifacts.provider: "linear"`, `--project` is optional: when supplied it is one exact canonical
 project URL or stable UUID and retains its existing name. When omitted, Fix creates exactly one
 project after root-cause proof whose name starts with `[Fix] ` and otherwise derives from the proved

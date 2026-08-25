@@ -8,8 +8,7 @@ canonical GitHub reads prove source, ancestry, pull-request, review, and merge f
 The canonical persistent store for `woostack-build` and project-backed `woostack-fix` is
 `.woostack/tmp/runs/<run-id>/`. It contains ordinary Markdown artifacts and a small recovery manifest.
 Workflows operate with default zero-provider local authority (`artifacts.provider: "local"` or omitted).
-When `artifacts.provider: "linear"`, local artifacts may be mirrored to Linear; the local run remains canonical.
-
+When `artifacts.provider: "linear"` or `artifacts.provider: "plane"`, local artifacts may be mirrored to the configured provider; the local run remains canonical.
 ## Selection and provider gating
 
 Every Build and project-backed Fix allocates or resumes exactly one local run. A caller may select an
@@ -21,9 +20,9 @@ never selection mechanisms.
 When it is "local" or omitted:
 
 - Build and project-backed Fix make zero provider reads or writes;
-- `--project` fails closed before provider access and explains that `--project` requires configured provider mirroring;
+- `--project` fails closed before provider access and explains that `--project` requires configured provider mirroring (`artifacts.provider: "linear"` or `artifacts.provider: "plane"`);
 - standalone Plan without requested persistence makes no provider call; and
-- `woostack-change` never contacts Linear.
+- `woostack-change` never contacts a provider.
 
 Legacy `linear.saveArtifacts` configurations are rejected with explicit migration guidance to
 `artifacts.provider` and `artifacts.linear`.
@@ -39,10 +38,19 @@ When it is "linear":
 
 A mirror failure is recorded in the manifest and is nonblocking for local workflow authority.
 Supplying a project never relaxes repository, workspace, team, pagination, or read-back checks.
+When it is "plane":
+
+- Build resolves one exact caller-supplied Plane project (by exact URL or UUID) or creates exactly one project from validated
+  `artifacts.plane` baseUrl, workspace, repository, and nonempty `projectLabels` defaults;
+- standalone Plan writes only to the exact selected Plane project when persistence is requested;
+- delegated Plan mirrors the execution plan during Build;
+- Fix, direct Execute provider modes (`--project`/`--issue`), and optional provider writers do not support Plane in this increment and fail closed before provider access with an explicit error explaining that Plane support is available for Build and Plan only; and
+- local artifacts may be mirrored once after Build/Plan completion.
 
 Init may perform narrow authenticated read-only discovery of non-secret repository, workspace, team,
-and native-name defaults. It does not choose persistence, read development artifacts, authorize later
-provider access, or mutate the provider.
+and native-name defaults through the official Linear MCP only. It does not choose persistence, read development
+artifacts, authorize later provider access, or mutate the provider. Plane `baseUrl`, workspace, repository,
+labels, and native-name defaults are manually configured non-secret policy.
 
 ## Effective repository configuration and precedence
 
@@ -80,28 +88,38 @@ exact title suffix `[woostack-mutation:<UUID>]`. Prove zero exact suffix matches
 and archived issue pagination before one create attempt. Recover an unknown result only with that
 same suffix. Exactly one ownership-valid issue may proceed after an exact canonical-reference read;
 otherwise block without another identity or create. Preserve the suffix and its stable task mapping.
-
+For Plane project, work item, and relation creation, use Plane native `external_source: "woostack"` and `external_id: <UUID>`. Preallocate
+one UUID per entity before any creation attempt, persist it in the manifest's `mirror` mappings via manifest CAS, and bind it to that external ID pair. Completely paginate active and archived projects, work items, or relations in the selected
+workspace and prove zero exact external ID matches before one create attempt. Recover an unknown result only by repeating complete
+discovery for that same external ID pair. Exactly one ownership-valid match may proceed to an exact native UUID read; zero,
+duplicate, foreign, partial, or ambiguous matches block. Never allocate another UUID or replay the create.
 For either fallback, independently verify the complete intended resource, repository association,
-workspace, team, native identity, and recovery marker after creation. A timeout, partial response, or
+workspace, instance/team, native identity, and recovery marker or external ID after creation. A timeout, partial response, or
 unknown result retains the same identity and stops at that boundary.
-## Configured Linear project labels and label preservation
+## Configured project labels and label preservation
 
-When `artifacts.provider: "linear"`, `artifacts.linear.projectLabels` is required as an array of non-empty strings (an empty array represents no configured labels). Project admission completely paginates all workspace project labels through official Linear MCP discovery, flattens every page, requires a null terminal cursor, and resolves each configured label string by exact native ID (e.g. UUID) or exact case-sensitive name. Reject ambiguous, duplicate, or incomplete matches before mutation. The project's effective label set is the union of existing project labels and configured labels, preserving all unrelated existing labels.
+When `artifacts.provider: "linear"`, `artifacts.linear.projectLabels` is required as an array of non-empty strings (an empty array represents no configured labels).
+When `artifacts.provider: "plane"`, `artifacts.plane.projectLabels` is required as a non-empty array of non-empty strings.
+Project admission completely paginates all workspace project labels through official provider MCP discovery (Linear or Plane), flattens every page, requires a null terminal cursor, and resolves each configured label string by exact native ID (e.g. UUID) or exact case-sensitive name. Reject ambiguous, duplicate, or incomplete matches before mutation. The project's effective label set is the union of existing project labels and configured labels, preserving all unrelated existing labels.
 Preflight label discovery, resolution, and capabilities before any project creation or admission
 mutation. Apply project label updates in at most one write alongside project creation or admission, and
 independently read back the complete label set to verify identity and inclusion. If project label
 capability or resolution is missing, ambiguous, or incomplete, the operation fails closed before mutating
-the project.
+the project. For Plane, if the official Plane MCP lacks project-label operations (list, attach, read-back),
+persistence fails closed at that provider boundary.
 ## Canonical issue references and graph safety
 
-The official Linear MCP's stable human-facing identifier, such as `WOO-144`, is the canonical issue
+For Linear, the official Linear MCP's stable human-facing identifier, such as `WOO-144`, is the canonical issue
 reference. It is a resource identifier only: it selects and names one provider issue, not a version of
 its contents. Use it for caller selection, displayed task mappings, exact issue reads, membership, and
 relation endpoints. A provider UUID may support one bounded mutation but never replaces the canonical
 reference.
 
-`stableTaskMappings` maps every local stable task key to one canonical issue reference, or to `null`
-only while the task is explicitly new. Once a new issue is independently read back, bind the mapping
+For Plane, projects accept exact URLs or UUIDs; work items accept exact URLs or readable identifiers, such as
+`ENG-42`, which resolve to native UUIDs in the configured instance `baseUrl` and `workspace`.
+
+`stableTaskMappings` maps each stable task key to one canonical issue/work-item reference, or to `null`
+only while the task is explicitly new. Once a new issue or work item is independently read back, bind the mapping
 exactly once. Never remap it, infer it from prose, or mix canonical references and native UUIDs in one
 graph.
 
@@ -160,11 +178,35 @@ or rewrite either final artifact in that run.
 
 The manifest records only what recovery and strict sequential execution need: schema version, exact
 run ID, status, canonical repository, planning parent branch and tip, artifact paths, ordered stable
-task keys, dependencies, `stableTaskMappings`, `taskExecutions`, mirror state, and manifest revision.
+task keys, dependencies, `stableTaskMappings`, `taskExecutions`, `mirror`, and manifest revision.
 It does not duplicate artifact prose. Create it through the same owner-only atomic sequence. Later
 checkpoint updates use exclusive temporary creation, file flush, atomic replacement, directory flush,
 and a compare-and-swap on the independently reopened manifest revision.
 
+The `mirror` structure persists provider-neutral mirror mappings and mutation state:
+- `provider` — `"local"`, `"linear"`, or `"plane"`;
+- `status` — `"unstarted"`, `"synced"`, or `"failed"`;
+- `error` — failure detail string or null;
+- `project` — `{ canonicalRef, nativeId, name, externalId, baseUrl, workspace }` recording the canonical project reference, native UUID, name, preallocated client mutation UUID (`externalId`), canonical instance `baseUrl`, and `workspace`;
+- `tasks` — dictionary keyed by `stableTaskKey`:
+  - `canonicalRef` — canonical issue/work-item reference (e.g. `ENG-42` or `LIN-101`), matching `stableTaskMappings[stableTaskKey]`;
+  - `nativeId` — provider-native UUID (e.g. Plane native work item UUID);
+  - `externalId` — preallocated client mutation UUID (`external_id`) with `external_source: "woostack"`;
+  - `boundAt` — manifest revision when bound;
+- `relations` — list of mirrored relation records:
+  - `sourceKey` — predecessor stable task key;
+  - `targetKey` — successor stable task key;
+  - `nativeId` — provider-native relation UUID;
+  - `externalId` — preallocated client mutation UUID for the relation;
+  - `relationType` — `"blocks"`.
+
+Bind-once and recovery rules:
+1. Preallocate project, work item, and relation `externalId` UUIDs, canonical `baseUrl`, and `workspace` into `mirror.project`, `mirror.tasks`, and `mirror.relations` before any provider mutation attempt, committed via manifest CAS.
+2. If process loss or an unknown network outcome occurs, resume does not allocate a new UUID or re-issue the create blindly; it queries the provider workspace/project by `(external_source: "woostack", external_id: "<UUID>")` to recover the existing project, work item, or relation native UUID.
+3. Once a new project is created and independently read back, bind its canonical reference (`canonicalRef`) and native UUID (`nativeId`) atomically into `mirror.project` via manifest CAS; projects never enter `stableTaskMappings` and assume no readable ID.
+4. Once a new issue or work item is created and independently read back, bind its canonical reference (`canonicalRef`), native UUID (`nativeId`), and readable ID atomically into `stableTaskMappings` and `mirror.tasks[taskKey]` via manifest CAS. Never remap, overwrite, or mix canonical references and native UUIDs.
+5. Project membership and relation writes proceed only after native work item read-back and binding are persisted.
+6. Once relation creation succeeds and is independently read back, bind `relation.nativeId` into `mirror.relations` via manifest CAS.
 Hold `.lock` for every manifest change. Before use and after each replacement, independently reopen the
 run directory, manifest, lock, and referenced artifact files no-follow and revalidate owner, mode,
 regular-file type, repository containment, run identity, and internal task/dependency references.
@@ -222,7 +264,7 @@ or create a blocker by themselves.
 
 ## Optional mirror synchronization
 
-When `artifacts.provider: "linear"`, a completed local artifact may be mirrored in one bounded cycle.
+When `artifacts.provider: "linear"` or `artifacts.provider: "plane"`, a completed local artifact may be mirrored in one bounded cycle.
 Immediately re-read the exact project, all retained issues, complete memberships and relations, and
 all fields that will change. Abort before the first write on drift, foreign scope, incomplete
 pagination, unknown parent state, or unsupported mutation capability.
@@ -249,10 +291,10 @@ Merge authority remains human-only and outside every woostack workflow.
 
 ## Provider and credential boundary
 
-Use only the host's authenticated official Linear MCP when mirroring is enabled. Discover available
-capabilities from the host. Never request API keys, read repository credentials, use custom
-HTTP/GraphQL transport, or copy host tokens into a worker, subprocess, prompt, report, or file.
-
+Use only the host's authenticated official Linear or Plane MCP when mirroring is enabled. Discover available
+capabilities from the host. For Plane, Cloud (`https://api.plane.so` / `https://app.plane.so`) and self-hosted
+instances are scoped strictly to the configured `baseUrl` and `workspace`. Never request API keys, read repository
+credentials, use custom HTTP/GraphQL/REST transport, or copy host tokens into a worker, subprocess, prompt, report, or file.
 Prove the minimum exact-read, pagination, requested-mutation, and independent read-back capabilities
 before an operation. Missing capability blocks only the selected mirror operation. Init discovery
 needs read capability only and never probes writes.
@@ -272,10 +314,10 @@ anything copied into a local report or prompt.
 For a caller-supplied resource:
 
 1. resolve the exact project URL/native ID or canonical issue reference without fuzzy discovery;
-2. independently read its canonical reference, native identity, workspace, team, type, current fields,
+2. independently read its canonical reference, native identity, scope (for Linear: workspace and team; for Plane: canonical baseUrl and workspace), type, current fields,
    and relevant paginated updates, comments, memberships, and relations;
 3. verify canonical repository association from trusted Git/GitHub evidence;
-4. compare workspace and team with the caller's selection, using repository configuration only for
+4. compare scope with the caller's selection (Linear workspace and team; Plane canonical baseUrl and workspace), using repository configuration only for
    post-selection defaults; and
 5. compare extracted scope with the active workflow contract.
 
@@ -328,8 +370,7 @@ disabled, skip this synchronization.
 
 Explicit abandonment is terminal and distinct from handoff, replanning, or a blocker. Build and
 project-backed Fix first atomically record `status: "abandoned"` in the local manifest, retain the run,
-stop repository work, and leave any mirrored project unchanged.
-
+stop repository work, and leave any mirrored project unchanged (for Plane, do not synthesize project status or archive the project).
 A provider-backed standalone Plan or Execute closure uses only the retained exact project. If none
 exists, report nothing to close and create nothing. Otherwise resolve the configured canceled-category
 status, re-read exact project identity/status/revision, update only status with one stable mutation

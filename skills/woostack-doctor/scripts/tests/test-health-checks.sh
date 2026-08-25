@@ -27,12 +27,39 @@ if command -v jq >/dev/null 2>&1; then
   assert_contains "$(bash "$C/config-keys.sh" "$r2")" "linear.saveArtifacts is deprecated; migrate to artifacts.provider and artifacts.linear" "legacy saveArtifacts rejected"
   jq 'del(.linear)' "$r2/.woostack/config.json" >"$tmp" && mv "$tmp" "$r2/.woostack/config.json"
 
-  jq '.artifacts = {provider: "plane"}' "$r2/.woostack/config.json" >"$tmp" && mv "$tmp" "$r2/.woostack/config.json"
-  assert_contains "$(bash "$C/config-keys.sh" "$r2")" "artifacts.provider \"plane\" is not supported in this version" "plane provider fails as unsupported"
-
   jq '.artifacts = {provider: "invalid"}' "$r2/.woostack/config.json" >"$tmp" && mv "$tmp" "$r2/.woostack/config.json"
-  assert_contains "$(bash "$C/config-keys.sh" "$r2")" "artifacts.provider must be \"local\" or \"linear\"" "invalid provider rejected"
+  assert_contains "$(bash "$C/config-keys.sh" "$r2")" "artifacts.provider must be \"local\", \"linear\", or \"plane\"" "invalid provider rejected"
 
+  jq '.artifacts = {
+    provider: "plane",
+    plane: {
+      baseUrl: "https://api.plane.so",
+      workspace: "Acme",
+      repository: "https://github.com/acme/widgets",
+      projectLabels: ["woostack", "backend"],
+      projectStatuses: {
+        backlog: "Backlog",
+        planned: "Planned",
+        started: "Started",
+        completed: "Completed",
+        canceled: "Canceled"
+      },
+      issueStates: {
+        planned: "Backlog",
+        executing: "In Progress",
+        inReview: "In Progress",
+        done: "Done",
+        blocked: "In Progress"
+      }
+    }
+  }' "$r2/.woostack/config.json" >"$tmp" && mv "$tmp" "$r2/.woostack/config.json"
+  assert_eq "$(bash "$C/config-keys.sh" "$r2")" "" "after configuring full provider fields with provider plane and projectLabels, clean"
+
+  jq '.artifacts.plane.projectLabels = []' "$r2/.woostack/config.json" >"$tmp" && mv "$tmp" "$r2/.woostack/config.json"
+  assert_contains "$(bash "$C/config-keys.sh" "$r2")" "projectLabels must be an array of non-empty strings" "empty projectLabels under plane fails"
+
+  jq 'del(.artifacts.plane.baseUrl)' "$r2/.woostack/config.json" >"$tmp" && mv "$tmp" "$r2/.woostack/config.json"
+  assert_contains "$(bash "$C/config-keys.sh" "$r2")" "plane policy requires baseUrl, workspace, repository, projectLabels, projectStatuses, and issueStates only" "missing baseUrl under plane fails"
   jq '.artifacts = {provider: "linear"}' "$r2/.woostack/config.json" >"$tmp" && mv "$tmp" "$r2/.woostack/config.json"
   assert_contains "$(bash "$C/config-keys.sh" "$r2")" "linear policy requires repository, workspace, team, projectLabels, projectStatuses, and issueStates only" "provider linear requires full provider fields"
   jq '.artifacts = {
