@@ -12,14 +12,17 @@ trap 'rm -rf "$TMP"' EXIT
 complete_config() {
   jq -cn '{
     models:{},review:{},status:{staleDays:14},
-    linear:{
-      saveArtifacts:true,
-      repository:"https://github.com/acme/widgets",workspace:"acme",team:"ENG",
-      projectStatuses:{
-        backlog:"Backlog",planned:"Planned",started:"Started",
-        completed:"Completed",canceled:"Canceled"
-      },
-      issueStates:{planned:"Backlog",executing:"In Progress",inReview:"In Progress",done:"Done",blocked:"In Progress"}
+    artifacts:{
+      provider:"linear",
+      linear:{
+        repository:"https://github.com/acme/widgets",workspace:"acme",team:"ENG",
+        projectLabels:[],
+        projectStatuses:{
+          backlog:"Backlog",planned:"Planned",started:"Started",
+          completed:"Completed",canceled:"Canceled"
+        },
+        issueStates:{planned:"Backlog",executing:"In Progress",inReview:"In Progress",done:"Done",blocked:"In Progress"}
+      }
     }
   }'
 }
@@ -75,63 +78,90 @@ assert_exit 0 "$RC" "valid non-secret Linear policy passes static diagnosis"
 assert_not_contains "$OUTPUT" "linear-live" "static diagnosis performs no live-provider check"
 
 local_team="$(make_repo local-team)"
-jq '.linear.team="DEFAULT"' "$local_team/.woostack/config.json" >"$local_team/config.tmp"
+jq '.artifacts.linear.team="DEFAULT"' "$local_team/.woostack/config.json" >"$local_team/config.tmp"
 mv "$local_team/config.tmp" "$local_team/.woostack/config.json"
-printf '%s\n' '{"linear":{"team":"ENG"}}' >"$local_team/.woostack/config.local.json"
+printf '%s\n' '{"artifacts":{"linear":{"team":"ENG"}}}' >"$local_team/.woostack/config.local.json"
 run_doctor "$local_team"
 assert_exit 0 "$RC" "valid primary-checkout local team override passes static diagnosis"
 
 invalid_local="$(make_repo invalid-local)"
-printf '%s\n' '{"linear":{"team":"ENG","apiKey":"forbidden"}}' >"$invalid_local/.woostack/config.local.json"
+printf '%s\n' '{"artifacts":{"linear":{"team":"ENG","apiKey":"forbidden"}}}' >"$invalid_local/.woostack/config.local.json"
 run_doctor "$invalid_local"
 assert_exit 1 "$RC" "credential-like local policy keys fail static diagnosis"
-assert_contains "$OUTPUT" ".woostack/config.local.json contains credential-like key: linear.apiKey" "invalid local override is actionable"
+assert_contains "$OUTPUT" ".woostack/config.local.json contains credential-like key: artifacts.linear.apiKey" "invalid local override is actionable"
 
 blank_policy="$(make_repo blank-policy)"
-jq '.linear.workspace="   "' "$blank_policy/.woostack/config.json" >"$blank_policy/config.tmp"
+jq '.artifacts.linear.workspace="   "' "$blank_policy/.woostack/config.json" >"$blank_policy/config.tmp"
 mv "$blank_policy/config.tmp" "$blank_policy/.woostack/config.json"
 run_doctor "$blank_policy"
 assert_exit 1 "$RC" "blank policy values fail static diagnosis"
 
 noncanonical_repository="$(make_repo repository-query)"
-jq '.linear.repository="https://github.com/acme/widgets?ref=main"' "$noncanonical_repository/.woostack/config.json" >"$noncanonical_repository/config.tmp"
+jq '.artifacts.linear.repository="https://github.com/acme/widgets?ref=main"' "$noncanonical_repository/.woostack/config.json" >"$noncanonical_repository/config.tmp"
 mv "$noncanonical_repository/config.tmp" "$noncanonical_repository/.woostack/config.json"
 run_doctor "$noncanonical_repository"
 assert_exit 1 "$RC" "repository URLs with query text fail static diagnosis"
 
-bad_selector="$(make_repo selector)"
-jq '.artifacts={specPlan:"markdown"}' "$bad_selector/.woostack/config.json" >"$bad_selector/config.tmp"
-mv "$bad_selector/config.tmp" "$bad_selector/.woostack/config.json"
-run_doctor "$bad_selector"
-assert_exit 1 "$RC" "backend selector fails static diagnosis"
-assert_contains "$OUTPUT" "development backend selectors are not supported" "selector finding is actionable"
-bad_selector_local="$(make_repo selector-local)"
-printf '%s\n' '{"artifacts":{"specPlan":"markdown"}}' >"$bad_selector_local/.woostack/config.local.json"
-run_doctor "$bad_selector_local"
-assert_exit 1 "$RC" "local backend selector fails static diagnosis"
-assert_contains "$OUTPUT" "development backend selectors are not supported" "local selector finding is actionable"
+bad_provider="$(make_repo bad-provider)"
+jq '.artifacts={provider:"invalid"}' "$bad_provider/.woostack/config.json" >"$bad_provider/config.tmp"
+mv "$bad_provider/config.tmp" "$bad_provider/.woostack/config.json"
+run_doctor "$bad_provider"
+assert_exit 1 "$RC" "invalid artifacts provider fails static diagnosis"
+assert_contains "$OUTPUT" "artifacts.provider must be \"local\" or \"linear\"" "provider finding is actionable"
+
+plane_provider="$(make_repo plane-provider)"
+jq '.artifacts={provider:"plane"}' "$plane_provider/.woostack/config.json" >"$plane_provider/config.tmp"
+mv "$plane_provider/config.tmp" "$plane_provider/.woostack/config.json"
+run_doctor "$plane_provider"
+assert_exit 1 "$RC" "plane artifacts provider fails static diagnosis as unsupported"
+assert_contains "$OUTPUT" "artifacts.provider \"plane\" is not supported in this version" "plane finding is actionable"
+
+local_with_partial_linear="$(make_repo local-partial-linear)"
+jq '.artifacts={provider:"local",linear:{workspace:"only-workspace"}}' "$local_with_partial_linear/.woostack/config.json" >"$local_with_partial_linear/config.tmp"
+mv "$local_with_partial_linear/config.tmp" "$local_with_partial_linear/.woostack/config.json"
+run_doctor "$local_with_partial_linear"
+assert_exit 0 "$RC" "local provider with partial linear block passes static diagnosis (selected-provider isolation)"
+
+valid_labels="$(make_repo valid-labels)"
+jq '.artifacts.linear.projectLabels=["Core","Infrastructure"]' "$valid_labels/.woostack/config.json" >"$valid_labels/config.tmp"
+mv "$valid_labels/config.tmp" "$valid_labels/.woostack/config.json"
+run_doctor "$valid_labels"
+assert_exit 0 "$RC" "valid projectLabels passes static diagnosis"
+
+invalid_labels="$(make_repo invalid-labels)"
+jq '.artifacts.linear.projectLabels=[""]' "$invalid_labels/.woostack/config.json" >"$invalid_labels/config.tmp"
+mv "$invalid_labels/config.tmp" "$invalid_labels/.woostack/config.json"
+run_doctor "$invalid_labels"
+assert_exit 1 "$RC" "empty string in projectLabels fails static diagnosis"
+assert_contains "$OUTPUT" "projectLabels must be an array of non-empty strings" "invalid projectLabels finding is actionable"
+
+legacy_save_artifacts="$(make_repo legacy-save-artifacts)"
+jq '.linear={saveArtifacts:true}' "$legacy_save_artifacts/.woostack/config.json" >"$legacy_save_artifacts/config.tmp"
+mv "$legacy_save_artifacts/config.tmp" "$legacy_save_artifacts/.woostack/config.json"
+run_doctor "$legacy_save_artifacts"
+assert_exit 1 "$RC" "legacy saveArtifacts fails static diagnosis"
+assert_contains "$OUTPUT" "linear.saveArtifacts is deprecated; migrate to artifacts.provider and artifacts.linear" "legacy rejection finding is actionable"
 
 bad_secret="$(make_repo secret)"
-jq '.linear.apiKey="secret"' "$bad_secret/.woostack/config.json" >"$bad_secret/config.tmp"
+jq '.artifacts.linear.apiKey="secret"' "$bad_secret/.woostack/config.json" >"$bad_secret/config.tmp"
 mv "$bad_secret/config.tmp" "$bad_secret/.woostack/config.json"
 run_doctor "$bad_secret"
 assert_exit 1 "$RC" "credential-like Linear key fails static diagnosis"
-assert_contains "$OUTPUT" ".woostack/config.json contains credential-like key: linear.apiKey" "credential finding names the violated boundary"
+assert_contains "$OUTPUT" ".woostack/config.json contains credential-like key: artifacts.linear.apiKey" "credential finding names the violated boundary"
 
 bad_mapping="$(make_repo mapping)"
-jq 'del(.linear.issueStates.blocked)' "$bad_mapping/.woostack/config.json" >"$bad_mapping/config.tmp"
+jq 'del(.artifacts.linear.issueStates.blocked)' "$bad_mapping/.woostack/config.json" >"$bad_mapping/config.tmp"
 mv "$bad_mapping/config.tmp" "$bad_mapping/.woostack/config.json"
 run_doctor "$bad_mapping"
 assert_exit 1 "$RC" "incomplete state mapping fails static diagnosis"
 assert_contains "$OUTPUT" "issueStates mapping is incomplete" "mapping finding is actionable"
 
 legacy_paused_mapping="$(make_repo legacy-paused-mapping)"
-jq '.linear.projectStatuses.paused="Paused"' "$legacy_paused_mapping/.woostack/config.json" >"$legacy_paused_mapping/config.tmp"
+jq '.artifacts.linear.projectStatuses.paused="Paused"' "$legacy_paused_mapping/.woostack/config.json" >"$legacy_paused_mapping/config.tmp"
 mv "$legacy_paused_mapping/config.tmp" "$legacy_paused_mapping/.woostack/config.json"
 run_doctor "$legacy_paused_mapping"
 assert_exit 1 "$RC" "obsolete paused project mapping fails static diagnosis"
 assert_contains "$OUTPUT" "projectStatuses mapping is incomplete" "obsolete paused mapping is actionable"
-
 legacy="$(make_repo legacy)"
 mkdir -p "$legacy/.woostack/specs" "$legacy/.woostack/plans"
 printf x >"$legacy/.woostack/specs/one.md"

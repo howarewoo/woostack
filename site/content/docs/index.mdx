@@ -11,7 +11,7 @@ pnpx skills add howarewoo/woostack
 ```
 
 - **Split canonical truth:** Local runs in `.woostack/tmp/runs/<run-id>/` own build/fix specifications,
-  plans, and manifest state, with optional Linear mirroring (`linear.saveArtifacts: true`); Git
+  plans, and manifest state, with optional Linear mirroring (`artifacts.provider: "linear"`); Git
   and GitHub prove source, branches, pull requests, reviews, and merge state.
 - **Simple durable shape:** every build manages one high-level specification (`project-spec.md`)
   plus direct increment contracts with dependency relations in its plain execution plan
@@ -42,7 +42,7 @@ The collection keeps the whole delivery loop coherent without requiring an exter
 - canonical local run authority for fix/build with optional Linear mirroring, and optional artifacts elsewhere.
 
 Build and project-backed Fix allocate or resume a canonical local run store under
-`.woostack/tmp/runs/<run-id>/` by default. When `linear.saveArtifacts: true`, local artifacts mirror
+`.woostack/tmp/runs/<run-id>/` by default. When `artifacts.provider: "linear"`, local artifacts mirror
 to Linear in one bounded cycle; mirror failure is nonblocking. Retained run artifacts enable exact
 resume with `/woostack-execute --run <exact-run-id> [--recheck]`. Tracked policy supplies validated
 defaults only when Linear mirroring is enabled.

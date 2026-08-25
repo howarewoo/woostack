@@ -63,7 +63,7 @@ store.
 Preserve every valid existing tracked `.woostack/config.json` value under the
 [effective configuration contract](references/artifact-backends.md#effective-repository-configuration-and-precedence).
 Semantically add only missing,
-validated, non-secret `linear` repository/workspace/team/native-name defaults; never replace a
+validated, non-secret `artifacts.linear` repository/workspace/team/native-name defaults; never replace a
 valid value merely because discovery differs. After a local config write, independently reopen and
 parse the file, compare the intended fields and preserved siblings, and report the write configured
 only when that read-back succeeds.

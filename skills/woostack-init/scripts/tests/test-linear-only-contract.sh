@@ -42,7 +42,7 @@ contract = flat(root / "skills/woostack-init/references/artifact-backends.md")
 for pattern, message in (
     (r"canonical persistent store for `woostack-build` and project-backed `woostack-fix` is `\.woostack/tmp/runs/<run-id>/`", "canonical fix/build local authority missing"),
     (r"Do not create a parent plan issue", "retired build wrapper is not forbidden"),
-    (r"linear\.saveArtifacts.*gates every provider call", "linear.saveArtifacts provider gating missing"),
+    (r"artifacts\.provider.*gates every provider call", "artifacts.provider gating missing"),
     (r"zero provider reads or writes", "zero provider reads or writes when gating disabled missing"),
     (r"Merge authority remains human-only and outside every woostack workflow", "merge authority boundary missing"),
     (r"prefer provider-native operation identities|stable mutation identities", "stable mutation identities missing"),

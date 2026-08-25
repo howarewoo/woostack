@@ -51,7 +51,7 @@ question outside the approved task to the responsible user. Do not turn a user q
 implicit approval. Stop OMP at the last verified boundary while waiting.
 
 Build and project-backed Fix workflows write plain Markdown `project-spec.md` and `execution-plan.md`
-files, with optional matching Linear mirroring when enabled (`linear.saveArtifacts: true`). When Hermes
+files, with optional matching Linear mirroring when enabled (`artifacts.provider: "linear"`). When Hermes
 presents an Ask in an active conversation, only the responsible user's response may decide it. Relay that
 response **verbatim and unmodified** through the same persistent OMP process that presented the Ask. Hermes
 may transmit the response but may not author, summarize, rewrite, splice, or replay it. A Linear

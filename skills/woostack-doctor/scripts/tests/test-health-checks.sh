@@ -20,38 +20,60 @@ if command -v jq >/dev/null 2>&1; then
   for k in $(jq -r 'keys[]' "$HERE/../../../woostack-init/templates/config.json"); do
     bash "$C/config-keys.sh" --fix "$r2" "$k"
   done
-  assert_eq "$(bash "$C/config-keys.sh" "$r2")" "" "after fixing all template keys with default saveArtifacts false, clean"
+  assert_eq "$(bash "$C/config-keys.sh" "$r2")" "" "after fixing all template keys with default local provider, clean"
 
   tmp="$(mktemp)"
   jq '.linear = {saveArtifacts: true}' "$r2/.woostack/config.json" >"$tmp" && mv "$tmp" "$r2/.woostack/config.json"
-  assert_contains "$(bash "$C/config-keys.sh" "$r2")" "linear-policy" "saveArtifacts true requires full provider fields"
+  assert_contains "$(bash "$C/config-keys.sh" "$r2")" "linear.saveArtifacts is deprecated; migrate to artifacts.provider and artifacts.linear" "legacy saveArtifacts rejected"
+  jq 'del(.linear)' "$r2/.woostack/config.json" >"$tmp" && mv "$tmp" "$r2/.woostack/config.json"
 
-  jq '.linear = {saveArtifacts: false, workspace: "Acme"}' "$r2/.woostack/config.json" >"$tmp" && mv "$tmp" "$r2/.woostack/config.json"
-  assert_contains "$(bash "$C/config-keys.sh" "$r2")" "linear-policy" "partial provider fields in false mode fail closed"
+  jq '.artifacts = {provider: "plane"}' "$r2/.woostack/config.json" >"$tmp" && mv "$tmp" "$r2/.woostack/config.json"
+  assert_contains "$(bash "$C/config-keys.sh" "$r2")" "artifacts.provider \"plane\" is not supported in this version" "plane provider fails as unsupported"
 
-  jq '.linear = {
-    saveArtifacts: true,
-    repository: "https://github.com/acme/widgets",
-    workspace: "Acme",
-    team: "ENG",
-    projectStatuses: {
-      backlog: "Backlog",
-      planned: "Planned",
-      started: "Started",
-      completed: "Completed",
-      canceled: "Canceled"
-    },
-    issueStates: {
-      planned: "Backlog",
-      executing: "In Progress",
-      inReview: "In Progress",
-      done: "Done",
-      blocked: "In Progress"
+  jq '.artifacts = {provider: "invalid"}' "$r2/.woostack/config.json" >"$tmp" && mv "$tmp" "$r2/.woostack/config.json"
+  assert_contains "$(bash "$C/config-keys.sh" "$r2")" "artifacts.provider must be \"local\" or \"linear\"" "invalid provider rejected"
+
+  jq '.artifacts = {provider: "linear"}' "$r2/.woostack/config.json" >"$tmp" && mv "$tmp" "$r2/.woostack/config.json"
+  assert_contains "$(bash "$C/config-keys.sh" "$r2")" "linear policy requires repository, workspace, team, projectLabels, projectStatuses, and issueStates only" "provider linear requires full provider fields"
+  jq '.artifacts = {
+    provider: "linear",
+    linear: {
+      repository: "https://github.com/acme/widgets",
+      workspace: "Acme",
+      team: "ENG",
+      projectLabels: ["woostack", "backend"],
+      projectStatuses: {
+        backlog: "Backlog",
+        planned: "Planned",
+        started: "Started",
+        completed: "Completed",
+        canceled: "Canceled"
+      },
+      issueStates: {
+        planned: "Backlog",
+        executing: "In Progress",
+        inReview: "In Progress",
+        done: "Done",
+        blocked: "In Progress"
+      }
     }
   }' "$r2/.woostack/config.json" >"$tmp"
   mv "$tmp" "$r2/.woostack/config.json"
-  assert_eq "$(bash "$C/config-keys.sh" "$r2")" "" "after configuring full provider fields with saveArtifacts true, clean"
+  assert_eq "$(bash "$C/config-keys.sh" "$r2")" "" "after configuring full provider fields with provider linear and projectLabels, clean"
 
+  jq '.artifacts.linear.projectLabels = []' "$r2/.woostack/config.json" >"$tmp" && mv "$tmp" "$r2/.woostack/config.json"
+  assert_eq "$(bash "$C/config-keys.sh" "$r2")" "" "empty array projectLabels is clean"
+
+  jq 'del(.artifacts.linear.projectLabels)' "$r2/.woostack/config.json" >"$tmp" && mv "$tmp" "$r2/.woostack/config.json"
+  assert_contains "$(bash "$C/config-keys.sh" "$r2")" "linear policy requires repository, workspace, team, projectLabels, projectStatuses, and issueStates only" "missing projectLabels under provider linear fails"
+
+  jq '.artifacts.linear.projectLabels = "not-an-array"' "$r2/.woostack/config.json" >"$tmp" && mv "$tmp" "$r2/.woostack/config.json"
+  assert_contains "$(bash "$C/config-keys.sh" "$r2")" "projectLabels must be an array of non-empty strings" "non-array projectLabels fails"
+
+  jq '.artifacts.linear.projectLabels = [""]' "$r2/.woostack/config.json" >"$tmp" && mv "$tmp" "$r2/.woostack/config.json"
+  assert_contains "$(bash "$C/config-keys.sh" "$r2")" "projectLabels must be an array of non-empty strings" "empty string projectLabels fails"
+  jq '.artifacts = {provider: "local", linear: {workspace: "only-workspace", projectLabels: "not-an-array"}}' "$r2/.woostack/config.json" >"$tmp" && mv "$tmp" "$r2/.woostack/config.json"
+  assert_eq "$(bash "$C/config-keys.sh" "$r2")" "" "local provider with invalid inactive linear block is clean"
   # --fix with no key arg must refuse, not write a bogus "" entry into config.
   r2b="$(mktemp -d)"; mkdir -p "$r2b/.woostack"; echo '{}' > "$r2b/.woostack/config.json"
   bash "$C/config-keys.sh" --fix "$r2b" >/dev/null 2>&1; assert_exit 2 "$?" "config-keys --fix without a key arg refuses"

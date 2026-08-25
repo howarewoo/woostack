@@ -100,10 +100,20 @@ read_and_validate_file() {
   printf '%s\n' "$content"
 }
 
+check_legacy() {
+  local cfg="$1"
+  local file_label="$2"
+  if jq -e 'has("linear") and (.linear | type == "object") and (.linear | has("saveArtifacts")) or (has("artifacts") and (.artifacts | type == "object") and ((.artifacts | has("saveArtifacts")) or (.artifacts.linear? | type == "object" and has("saveArtifacts"))))' <<<"$cfg" >/dev/null 2>&1; then
+    fail "$file_label linear.saveArtifacts is deprecated; migrate to artifacts.provider and artifacts.linear"
+  fi
+}
+
 base_config="$(read_and_validate_file "$config_path" ".woostack/config.json")"
+check_legacy "$base_config" ".woostack/config.json"
 
 if [ "$has_local" -eq 1 ]; then
   local_config="$(read_and_validate_file "$local_path" ".woostack/config.local.json")"
+  check_legacy "$local_config" ".woostack/config.local.json"
   effective="$(jq -n --argjson base "$base_config" --argjson local "$local_config" '
     def deep_merge(base; local):
       if (base | type) == "object" and (local | type) == "object" then
@@ -124,14 +134,71 @@ else
   effective="$base_config"
 fi
 
-if jq -e 'has("linear") and (.linear | type == "object") and (.linear | has("saveArtifacts"))' <<<"$effective" >/dev/null 2>&1; then
-  if ! jq -e '.linear.saveArtifacts | type == "boolean"' <<<"$effective" >/dev/null 2>&1; then
-    if [ "$has_local" -eq 1 ] && jq -e 'has("linear") and (.linear | type == "object") and (.linear | has("saveArtifacts"))' <<<"$local_config" >/dev/null 2>&1; then
-      fail ".woostack/config.local.json linear.saveArtifacts must be a boolean"
-    else
-      fail ".woostack/config.json linear.saveArtifacts must be a boolean"
+target_file() {
+  local filter="$1"
+  if [ "$has_local" -eq 1 ] && jq -e "$filter" <<<"$local_config" >/dev/null 2>&1; then
+    printf '%s' ".woostack/config.local.json"
+  else
+    printf '%s' ".woostack/config.json"
+  fi
+}
+
+if jq -e 'has("artifacts")' <<<"$effective" >/dev/null 2>&1; then
+  if ! jq -e '.artifacts | type == "object"' <<<"$effective" >/dev/null 2>&1; then
+    fail "$(target_file 'has("artifacts") and (.artifacts | type != "object")') artifacts must be a JSON object"
+  fi
+  if jq -e '.artifacts | has("provider")' <<<"$effective" >/dev/null 2>&1; then
+    if jq -e '.artifacts.provider == "plane"' <<<"$effective" >/dev/null 2>&1; then
+      fail "$(target_file 'has("artifacts") and .artifacts.provider == "plane"') artifacts.provider \"plane\" is not supported in this version"
+    fi
+    if ! jq -e '.artifacts.provider | type == "string" and (. == "local" or . == "linear")' <<<"$effective" >/dev/null 2>&1; then
+      fail "$(target_file 'has("artifacts") and (.artifacts | has("provider")) and ((.artifacts.provider | type != "string") or (.artifacts.provider != "local" and .artifacts.provider != "linear"))') artifacts.provider must be \"local\" or \"linear\""
     fi
   fi
 fi
 
+provider="$(jq -r '.artifacts.provider // "local"' <<<"$effective")"
+project_keys='["backlog","planned","started","completed","canceled"]'
+issue_keys='["planned","executing","inReview","done","blocked"]'
+linear_allowed='["repository","workspace","team","projectLabels","projectStatuses","issueStates"]'
+
+if [ "$provider" = "linear" ]; then
+  if ! jq -e 'has("artifacts") and (.artifacts | type == "object") and (.artifacts | has("linear")) and (.artifacts.linear | type == "object")' <<<"$effective" >/dev/null 2>&1; then
+    fail "$(target_file 'has("artifacts") and ((.artifacts | has("linear") and (.artifacts.linear | type != "object")) or (.artifacts.provider? == "linear" and (.artifacts.linear? | type != "object")))') linear policy requires repository, workspace, team, projectLabels, projectStatuses, and issueStates only"
+  fi
+  if ! jq -e --argjson allowed "$linear_allowed" '
+    .artifacts.linear | type == "object" and ((keys - $allowed) | length == 0)
+  ' <<<"$effective" >/dev/null 2>&1; then
+    fail "$(target_file 'has("artifacts") and (.artifacts.linear? | type == "object" and ((keys - ["repository","workspace","team","projectLabels","projectStatuses","issueStates"]) | length > 0))') linear policy requires repository, workspace, team, projectLabels, projectStatuses, and issueStates only"
+  fi
+  if ! jq -e '
+    .artifacts.linear
+    and (.artifacts.linear.repository | type == "string"
+      and test("^https://github\\.com/[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?/[A-Za-z0-9](?:[A-Za-z0-9._-]*[A-Za-z0-9])?$"))
+    and (.artifacts.linear.workspace | type == "string" and test("\\S"))
+    and (.artifacts.linear.team | type == "string" and test("\\S"))
+    and (.artifacts.linear | has("projectLabels"))
+    and (.artifacts.linear.projectStatuses | type == "object")
+    and (.artifacts.linear.issueStates | type == "object")
+  ' <<<"$effective" >/dev/null 2>&1; then
+    fail "$(target_file 'has("artifacts") and ((.artifacts.linear? | type == "object" and ((has("repository") and ((.repository | type != "string") or (.repository | test("^https://github\\.com/[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?/[A-Za-z0-9](?:[A-Za-z0-9._-]*[A-Za-z0-9])?$") | not))) or (has("workspace") and ((.workspace | type != "string") or (.workspace | test("\\S") | not))) or (has("team") and ((.team | type != "string") or (.team | test("\\S") | not))) or (has("projectStatuses") and (.projectStatuses | type != "object")) or (has("issueStates") and (.issueStates | type != "object")))) or (.artifacts.provider? == "linear" and ((.artifacts.linear? | type != "object") or (.artifacts.linear.repository? | (type != "string") or (test("^https://github\\.com/[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?/[A-Za-z0-9](?:[A-Za-z0-9._-]*[A-Za-z0-9])?$") | not)) or (.artifacts.linear.workspace? | (type != "string") or (test("\\S") | not)) or (.artifacts.linear.team? | (type != "string") or (test("\\S") | not)) or (.artifacts.linear.projectStatuses? | type != "object") or (.artifacts.linear.issueStates? | type != "object"))))') linear policy requires repository, workspace, team, projectLabels, projectStatuses, and issueStates only"
+  fi
+  if ! jq -e --argjson keys "$project_keys" '
+    (.artifacts.linear.projectStatuses | keys | sort) == ($keys | sort)
+    and all(.artifacts.linear.projectStatuses[]; type == "string" and test("\\S"))
+  ' <<<"$effective" >/dev/null 2>&1; then
+    fail "$(target_file 'has("artifacts") and (.artifacts.linear? | has("projectStatuses"))') projectStatuses mapping is incomplete or contains invalid values"
+  fi
+  if ! jq -e --argjson keys "$issue_keys" '
+    (.artifacts.linear.issueStates | keys | sort) == ($keys | sort)
+    and all(.artifacts.linear.issueStates[]; type == "string" and test("\\S"))
+  ' <<<"$effective" >/dev/null 2>&1; then
+    fail "$(target_file 'has("artifacts") and (.artifacts.linear? | has("issueStates"))') issueStates mapping is incomplete or contains invalid values"
+  fi
+  if ! jq -e '
+    .artifacts.linear.projectLabels | type == "array" and all(.[]; type == "string" and test("\\S"))
+  ' <<<"$effective" >/dev/null 2>&1; then
+    fail "$(target_file 'has("artifacts") and (.artifacts.linear? | has("projectLabels"))') projectLabels must be an array of non-empty strings"
+  fi
+fi
 printf '%s\n' "$effective"

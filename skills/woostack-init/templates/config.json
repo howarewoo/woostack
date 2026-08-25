@@ -1,6 +1,6 @@
 {
-  "linear": {
-    "saveArtifacts": false
+  "artifacts": {
+    "provider": "local"
   },
   "models": {},
   "review": {},

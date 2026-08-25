@@ -8,7 +8,7 @@ import { ContextEconomy } from '@/components/concepts/context-economy';
 woostack is a multiperson development workflow with two distinct truth domains. Local run manifests
 in `.woostack/tmp/runs/<run-id>/` own current product specifications, increment contracts, and
 manifest state for builds and post-diagnosis fixes, with optional Linear mirroring
-(`linear.saveArtifacts: true`). Git and GitHub own source, branches, commits, pull requests, reviews,
+(`artifacts.provider: "linear"`). Git and GitHub own source, branches, commits, pull requests, reviews,
 and merge evidence. A build always manages one high-level specification plus direct increment
 contracts with dependency relations in its retained local run manifest. After proof, a Fix uses the
 same local run structure for its complete specification plus a strict direct-issue chain. Other
@@ -46,10 +46,10 @@ Build and project-backed Fix write plain Markdown working documents directly und
 `.woostack/tmp/runs/<run-id>/`:
 
 1. **`project-spec.md`** contains the complete user-verified high-level specification. When
-   `linear.saveArtifacts: true`, one bounded mirror synchronization writes the specification to
+   `artifacts.provider: "linear"`, one bounded mirror synchronization writes the specification to
    Linear; mirror failures are nonblocking.
 2. **`execution-plan.md`** contains every ordered increment contract and dependency tuple. When
-   `linear.saveArtifacts: true`, one bounded mirror synchronization binds stable task keys to
+   `artifacts.provider: "linear"`, one bounded mirror synchronization binds stable task keys to
    canonical issue references; mirror failures are nonblocking.
 
 After both files are written, Build/Fix display the exact run ID, readable artifact paths, stable task
@@ -98,7 +98,7 @@ pass, while a reply with no candidate emits no reflection headings.
 
 Diagnostic outputs from audit, QA, or production-response workflows are similarly
 non-authoritative. They may support a decision; remediation enters the appropriate fix, change, or
-build workflow and obtains its own approval contract.
+build workflow under its own contract.
 
 ### Tools compute, agents read compact results
 
@@ -110,7 +110,7 @@ synchronization receipts required for the current decision.
 
 Automatic init setup and optional artifact access use the host's authenticated official Linear MCP
 connection. Init needs only read capability and validates local config writes independently; it
-never reads a development artifact or probes a provider write. When `linear.saveArtifacts: true`,
+never reads a development artifact or probes a provider write. When `artifacts.provider: "linear"`,
 Fix/Build mirroring verifies the canonical repository association and resolved workspace/team,
 proves the exact capabilities it needs without reading credentials, and independently reads
 mutations back. Tracked policy supplies validated defaults only after a workflow selects Linear and

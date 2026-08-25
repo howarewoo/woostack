@@ -78,11 +78,11 @@ run mode repeatedly runs one cycle for each unfinished task in the approved mani
 ```text
 admit (Linear project/issue or local run manifest)
   → read exact task/issue graph
-  → [provider only] resolve/read back configured `linear.issueStates.executing` and `linear.issueStates.inReview`
+  → [provider only] resolve/read back configured `artifacts.linear.issueStates.executing` and `artifacts.linear.issueStates.inReview`
   → select lowest unfinished ordinal → prove parent branch/current tip
-  → [provider only] active issue? resolve/read back projectStatuses.started
+  → [provider only] active issue? resolve/read back artifacts.linear.projectStatuses.started
   → [provider only] all direct issues Backlog/Todo? persist/read back selected issue executing mapping
-  → [provider only] all direct issues Backlog/Todo? resolve/read back projectStatuses.started
+  → [provider only] all direct issues Backlog/Todo? resolve/read back artifacts.linear.projectStatuses.started
   → persist task/issue intent + resume checkpoint
   → create or resume one worktree → dispatch fast-model worker
   → focused verification/smoke → bounded spec validator
@@ -98,11 +98,11 @@ admit (Linear project/issue or local run manifest)
 Provider modes apply the shared [active Execute project-start synchronization](../../woostack-init/references/artifact-backends.md#active-execute-project-start-synchronization)
 contract to the exact canonical nonterminal project before any worktree or source mutation.
 Independently read the exact project and complete, paginated direct-issue set. Resolve the configured
-`linear.issueStates.executing` and `linear.issueStates.inReview` mappings to exactly one native
+`artifacts.linear.issueStates.executing` and `artifacts.linear.issueStates.inReview` mappings to exactly one native
 issue state each, compare stable native identity and category rather than literal names, and require
 both resolved mappings to have native category `started` before any issue-lifecycle, worktree, or
 source mutation. If any direct issue matches either resolved mapping, resolve
-`projectStatuses.started`, require native category `started`, and
+`artifacts.linear.projectStatuses.started`, require native category `started`, and
 synchronize the project before issue lifecycle work. If all direct issues are `Backlog`/`Todo`,
 first transition only the selected issue to the resolved executing mapping and independently read
 that issue transition back, then synchronize the project before repository mutation. An exact
@@ -117,7 +117,7 @@ reopening or continuing. Keep the project-status receipt separate from issue lif
 resume-checkpoint evidence. Local run mode bypasses provider status synchronization.
 
 A task or issue is unfinished until:
-- in provider modes, its canonical Linear state matches the resolved `linear.issueStates.inReview`
+- in provider modes, its canonical Linear state matches the resolved `artifacts.linear.issueStates.inReview`
   mapping and the complete delivery checkpoint is independently read back;
 - in local run mode, `taskExecutions[stableTaskKey].status` is `delivered` and its complete delivery
   checkpoint is independently read back via no-follow manifest CAS reopen.

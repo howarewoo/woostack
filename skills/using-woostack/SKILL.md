@@ -64,7 +64,7 @@ of an approved workflow.
 
 **Artifact invariant:** The canonical persistent product record for builds and, after root-cause
 proof, project-backed fixes is local in `.woostack/tmp/runs/<run-id>/`. Provider mirroring (Linear)
-is an optional mirror flow gated by `linear.saveArtifacts: true` (default `false`). Each workflow uses
+is an optional mirror flow gated by `artifacts.provider: "linear"` (default `"local"`). Each workflow uses
 one exact run store under `.woostack/tmp/runs/<run-id>/`, owner-only `0700`/`0600` permissions, monotonic
 revision compare-and-swap updates, and retained plain Markdown artifacts (`project-spec.md` and
 `execution-plan.md`).

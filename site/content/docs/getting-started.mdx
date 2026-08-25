@@ -5,7 +5,7 @@ description: Install woostack in a coding harness, initialize local support, and
 
 <Callout type="info">
   Local run authority in `.woostack/tmp/runs/<run-id>/` owns product scope and execution contracts for
-  builds and post-diagnosis fixes, with optional Linear mirroring (`linear.saveArtifacts: true`). Git
+  builds and post-diagnosis fixes, with optional Linear mirroring (`artifacts.provider: "linear"`). Git
   and GitHub own code, branches, pull requests, reviews, and merges.
 </Callout>
 
@@ -18,7 +18,7 @@ Prepare these tools before installing woostack:
 - Bash, Git, the GitHub CLI (`gh`), the Graphite CLI (`gt`), and `jq`. Authenticate both CLIs
   and initialize Graphite for the target repository before running a workflow that delivers a PR.
 - An authenticated official Linear MCP connection only when optional Linear mirroring is enabled
-  (`linear.saveArtifacts: true`). Local initialization, default local run authority, and
+  (`artifacts.provider: "linear"`). Local initialization, default local run authority, and
   Linear-free workflows such as `/woostack-change` do not require it.
 
 ## 1. Install the skills
@@ -51,7 +51,7 @@ by Git).
 
 Read [Configuration](/docs/configuration) for policy. Every build and project-backed Fix allocates
 or resumes an exact local run store under `.woostack/tmp/runs/<run-id>/`. When
-`linear.saveArtifacts: true`, Build and post-proof Fix also resolve or create one Linear project mirror.
+`artifacts.provider: "linear"`, Build and post-proof Fix also resolve or create one Linear project mirror.
 
 ## 3. Choose the workflow
 
@@ -65,10 +65,9 @@ or resumes an exact local run store under `.woostack/tmp/runs/<run-id>/`. When
 | Address unresolved PR threads | `/woostack-address-comments` |
 | Show current repository work state | `/woostack-status` |
 
-The selected workflow's contract and approval gates authorize work. Retained local run manifests
+The user's request and each workflow's explicit contract authorize work. Retained local run manifests
 record build/fix product authority and enable exact resume for approved nonterminal runs
 (`/woostack-execute --run <exact-run-id>`), but do not replace repository-delivery evidence.
-
 ## 4. Optional Linear mirror setup
 
 The default `/woostack-init` run discovers only the host-exposed official Linear MCP endpoint:
@@ -85,11 +84,11 @@ is a separately reported setup skip/blocker and does not fail ordinary local ini
 Authentication stays in the host's MCP/OAuth secret store. Never place API keys, credentials,
 tokens, or authorization headers in repository config, prompts, logs, or generated files.
 
-`linear.saveArtifacts: false` is the default in `.woostack/config.json`, keeping workflows
-provider-free. Supplying `--project` when `linear.saveArtifacts` is false or absent fails closed
-immediately with an error stating that `--project` requires `linear.saveArtifacts: true`.
+`artifacts.provider: "local"` is the default in `.woostack/config.json`, keeping workflows
+provider-free. Supplying `--project` when `artifacts.provider` is not configured for mirroring fails
+closed immediately with an error stating that `--project` requires configured provider mirroring.
 
-When `linear.saveArtifacts: true` is configured, the `linear` configuration supplies validated
+When `artifacts.provider: "linear"` is configured, the `artifacts.linear` configuration supplies validated
 defaults for canonical project creation when no exact project was supplied. Build and
 project-backed Fix write plain Markdown `project-spec.md` and `execution-plan.md` files directly
 under `.woostack/tmp/runs/<run-id>/`, followed by one bounded mirror synchronization cycle. Mirror
