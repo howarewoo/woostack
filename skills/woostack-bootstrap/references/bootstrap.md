@@ -23,15 +23,17 @@ invoke Git against it. Create no local specification/plan, provider resource, br
 ## Optional design artifact
 
 Only after explicit design approval, and only when the caller requested persistence or supplied an
-exact project URL/UUID, follow the
-[optional artifact contract](../../woostack-init/references/artifact-backends.md):
+exact project URL/UUID, follow the shared
+[artifact contract](../../woostack-init/references/artifact-backends.md) and load only the configured
+[Linear](../../woostack-init/references/artifact-providers/linear.md) or
+[Plane](../../woostack-init/references/artifact-providers/plane.md) profile:
 
-- discover official host-exposed MCP capabilities for the configured provider (`artifacts.provider: "linear"` or `artifacts.provider: "plane"`);
-- resolve the exact supplied project or create one feature project only when creation was requested; for Plane, verify mandatory project-label capabilities when `projectLabels` is configured, compute configured-label union preserving unrelated labels, attach only missing labels, and scope to the configured instance/workspace;
+- prove the selected profile's official-MCP capabilities and exact scope;
+- resolve the exact supplied project or create one only when requested;
 - write the approved goal, architecture, scope, decisions, and repository/base intent;
-- use a stable operation identity;
+- use the profile's stable operation identity;
 - preserve unrelated human content; and
-- independently read the exact resource and content back.
+- independently read the exact resource, labels, identity, scope, and content back.
 
 Missing, partial, ambiguous, or unknown artifact outcomes block that requested synchronization only
 unless persistence was explicitly part of the deliverable. Without artifact mode make no provider

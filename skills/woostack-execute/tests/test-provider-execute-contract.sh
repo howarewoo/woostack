@@ -16,6 +16,8 @@ paths = {
     "driver": root / "skills/woostack-execute/references/subagent-driver.md",
     "fix": root / "skills/woostack-fix/SKILL.md",
     "artifact": root / "skills/woostack-init/references/artifact-backends.md",
+    "linear_profile": root / "skills/woostack-init/references/artifact-providers/linear.md",
+    "plane_profile": root / "skills/woostack-init/references/artifact-providers/plane.md",
     "plane_procedure": root / "skills/woostack-build/references/plane-procedure.md",
     "repo_rules": root / "AGENTS.md",
 }
@@ -37,7 +39,7 @@ def forbid(names, pattern, message=None):
 
 # 1. Structural assertions on Execute, Controller, Driver, and Shared Artifacts
 require("skill", r"`--project`, `--issue`, and `--run` are mutually exclusive; exactly one is required")
-require("skill", r"lowest-ordinal unfinished (?:task or issue|issue or work item|task)")
+require("skill", r"lowest-ordinal unfinished (?:task or issue|issue or work item|task|entry)")
 require("skill", r"stop marker")
 require("skill", r"issue mode.*never advances siblings")
 require("skill", r"configured fast-model subagent")
@@ -61,18 +63,18 @@ require("driver", r"configured fast-model subagent")
 require("driver", r"prohibitions on changing scope, dependencies, records, provider state, source-control")
 
 # Linear-specific and Plane-specific state mappings
-require("skill", r"artifacts\.linear\.issueStates\.executing.*artifacts\.linear\.issueStates\.inReview.*native category.*started")
-require("skill", r"artifacts\.linear\.projectStatuses\.started")
+require("linear_profile", r"artifacts\.linear.*issueStates.*executing.*inReview")
+require("linear_profile", r"projectStatuses\.started")
 require("controller", r"artifacts\.linear\.issueStates\.executing.*artifacts\.linear\.issueStates\.inReview")
 require("controller", r"artifacts\.plane\.issueStates")
 require("controller", r"artifacts\.linear\.projectStatuses\.started")
 
 # Plane-specific state resolution: exact UUID or case-sensitive name, scoping, rejection, read-back, group semantics
-require("skill", r"resolve each of the four configured `artifacts\.plane\.issueStates` mappings \(executing, inReview, done, blocked\) by exact native UUID or exact case-sensitive name")
-require("skill", r"canonical `baseUrl`, `workspace`, and `project` scope")
-require("skill", r"reject missing, ambiguous, duplicate, foreign-scope, or group-mismatched states")
-require("skill", r"independently read back the resolved native state ID, name, and group")
-require("skill", r"validate allowable group semantics before transition")
+require("plane_profile", r"issueStates\.executing.*inReview.*done.*blocked.*by exact native UUID or exact case-sensitive name")
+require("plane_profile", r"canonical baseUrl/workspace/project scope")
+require("plane_profile", r"Reject missing, ambiguous, duplicate, foreign-scope, or group-mismatched states")
+require("plane_profile", r"Read back native ID, name, and group")
+require("plane_profile", r"Allowable groups are")
 
 require("controller", r"resolve.*configured `artifacts\.plane\.issueStates`.*executing, inReview, done, blocked.*by exact UUID or case-sensitive name in exact scope, validate allowable group semantics")
 require("controller", r"canonical `baseUrl`, `workspace`, and `project` scope")
@@ -80,19 +82,19 @@ require("controller", r"reject missing, ambiguous, duplicate, foreign-scope, or 
 require("controller", r"independently read back native ID, name, and group")
 require("controller", r"validate allowable group semantics")
 
-require("artifact", r"resolve all four configured mappings \(executing, inReview, done, blocked\) by exact native UUID or exact case-sensitive name (?:in|within) the canonical `baseUrl`, `workspace`, and `project` scope")
-require("artifact", r"reject missing, ambiguous, duplicate, foreign-scope, or group-mismatched states")
-require("artifact", r"independently read back native ID, name, and group")
-require("artifact", r"validate allowable group semantics")
+require("plane_profile", r"issueStates\.executing.*inReview.*done.*blocked.*by exact native UUID or exact case-sensitive name")
+require("plane_profile", r"reject missing, ambiguous, duplicate, foreign-scope, or group-mismatched states")
+require("plane_profile", r"Read back native ID, name, and group")
+require("plane_profile", r"Allowable groups are")
 
 # Plane procedure reflects Execute support while delivery notes/comments/Commit writer remain deferred
 require("plane_procedure", r"Plane delivery notes, comments, and Commit writer are unsupported in this increment")
 require("plane_procedure", r"Execute supports work-item state transitions and delivery checkpoints")
 
 # Plane project status immutability: never synthesize or mutate project status for Plane
-require("skill", r"For Plane, project status is never mutated, synthesized, or gated; Execute mutates and reads back only configured work-item states")
+require("skill", r"Unsupported project lifecycle is a required no-op")
 require("controller", r"For Plane, project status is never mutated, synthesized, or gated; Execute mutates and reads back only configured work-item states")
-require("artifact", r"For Plane, project status is never mutated, synthesized, or gated; Execute mutates and reads back only configured work-item states")
+require("plane_profile", r"Never mutate, synthesize, archive, or gate on Plane project status")
 
 # Delivery checkpoints and mirror failure nonblocking separation
 require("skill", r"persisted checkpoint.*teardown.*resume.*sibling")

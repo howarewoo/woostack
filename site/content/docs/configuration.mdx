@@ -169,6 +169,13 @@ immediately with an error stating that `--project` requires configured provider 
 Legacy `linear.saveArtifacts` is rejected with explicit migration guidance to `artifacts.provider`
 and `artifacts.linear`.
 
+Woostack applies one provider-neutral artifact contract, then loads only the selected provider
+profile. The shared layer owns local authority, persistence, mutation ordering, failure handling, and
+independent read-back. Linear and Plane profiles independently define configuration, scope,
+capabilities, identities, labels, graph operations, and lifecycle support. A future provider is added
+as another profile with deterministic contract coverage rather than another branch in the shared
+authority model.
+
 When `artifacts.provider: "linear"` is configured, the `artifacts.linear` object provides
 repository/workspace/team, `projectLabels`, and native-name defaults. Build uses them when creating
 its canonical project if no exact project was supplied. After root-cause proof, Fix resolves a supplied

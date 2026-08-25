@@ -73,9 +73,11 @@ Gated Ideate, Harden, and Build/Fix-delegated Plan work uses the permission-rest
 manifest and performs zero intermediate provider cycles. After plain `project-spec.md` and
 `execution-plan.md` are written, Build/Fix display the verified project handoff and ask `Stop here`,
 `Execute`, or `Abandon`; Execute is separately invoked or dispatched only for the selected choice.
-Standalone Plan keeps its direct synchronization unchanged. Follow the
+Standalone Plan keeps its direct synchronization unchanged. Follow the shared
 [`Local run artifact and provider mirror contract`](../woostack-init/references/artifact-backends.md#minimal-resumable-manifest-schema)
-for the detailed contract.
+and load only the selected
+[Linear](../woostack-init/references/artifact-providers/linear.md) or
+[Plane](../woostack-init/references/artifact-providers/plane.md) profile for provider-specific behavior.
 
 Linear or Plane assignment, status, labels, content, or metadata never authorizes work, and development
 artifacts never replace direct Git/Graphite/GitHub source-control evidence. Other workflows remain

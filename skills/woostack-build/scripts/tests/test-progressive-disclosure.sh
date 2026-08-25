@@ -29,19 +29,25 @@ for heading in \
   assert_literal "$SKILL" "$heading" "root retains workflow section: $heading"
 done
 assert_literal "$SKILL" \
-  '[Linear artifact contract](../woostack-init/references/artifact-backends.md)' \
+  '[artifact contract](../woostack-init/references/artifact-backends.md)' \
   'root links the shared artifact contract'
 assert_literal "$SKILL" \
-  '[repository/project context procedure](references/linear-context.md)' \
+  '[Linear](../woostack-init/references/artifact-providers/linear.md)' \
+  'root links the Linear profile'
+assert_literal "$SKILL" \
+  '[Plane](../woostack-init/references/artifact-providers/plane.md)' \
+  'root links the Plane profile'
+assert_literal "$SKILL" \
+  '[Linear context](references/linear-context.md)' \
   'root links the project context procedure'
 assert_literal "$SKILL" \
-  '[`Linear synchronization procedure`](references/linear-procedure.md)' \
+  '[Linear procedure](references/linear-procedure.md)' \
   'root links the provider synchronization procedure'
 assert_literal "$SKILL" \
-  '[Plane project context procedure](references/plane-context.md)' \
+  '[Plane context](references/plane-context.md)' \
   'root links the plane context procedure'
 assert_literal "$SKILL" \
-  '[`Plane synchronization procedure`](references/plane-procedure.md)' \
+  '[Plane procedure](references/plane-procedure.md)' \
   'root links the plane synchronization procedure'
 assert_literal "$SKILL" \
   'normal [`woostack-execute`]' \
@@ -97,7 +103,7 @@ assert_literal "$CONTEXT" \
   'nonblocking for local' \
   'optional mirror failure does not block local authority'
 assert_literal "$AUTHORITY" \
-  'Do not create a parent plan issue' \
+  'parent plan' \
   'shared contract forbids the retired plan wrapper'
 assert_literal "$AUTHORITY" \
   '## Planning base and Execute choice' \

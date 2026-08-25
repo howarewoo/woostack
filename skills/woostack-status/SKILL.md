@@ -46,11 +46,13 @@ review, thread, or merge state as success.
 
 ## Optional artifact enrichment
 
-Only for an exact caller-supplied Linear or Plane project URL/UUID or canonical issue/work-item reference, follow the
-[optional artifact contract](../woostack-init/references/artifact-backends.md):
+Only for an exact caller-supplied provider project or direct-resource reference, follow the shared
+[artifact contract](../woostack-init/references/artifact-backends.md) and only the selected
+[Linear](../woostack-init/references/artifact-providers/linear.md) or
+[Plane](../woostack-init/references/artifact-providers/plane.md) profile:
 
-- discover official host-exposed MCP read capabilities for the configured provider (`artifacts.provider: "linear"` or `artifacts.provider: "plane"`);
-- resolve the exact project or issue/work-item identity (for Plane: project URL/UUID or work-item URL/readable ID such as `ENG-42` resolved to UUID in the configured instance `baseUrl` and `workspace`);
+- discover the selected profile's official-MCP read capabilities;
+- resolve the exact project or direct-resource identity in complete profile-defined scope;
 - fully paginate only relevant descriptions, updates, comments, and relations;
 - verify canonical repository association when claimed;
 - extract the goal, specification, fix record, implementation plan, decisions, and canonical

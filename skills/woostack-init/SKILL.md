@@ -68,8 +68,9 @@ valid value merely because discovery differs. After a local config write, indepe
 parse the file, compare the intended fields and preserved siblings, and report the write configured
 only when that read-back succeeds.
 
-This setup is the narrow read-only exception defined by the
-[optional artifact contract](references/artifact-backends.md). It never selects artifact mode,
+This setup is the narrow read-only exception defined by the shared
+[artifact contract](references/artifact-backends.md) and
+[Linear provider profile](references/artifact-providers/linear.md). It never selects artifact mode,
 reads an issue/project, creates or mutates a provider resource, or authorizes later provider access.
 If the official MCP is absent, report Linear setup as skipped. If it is unauthenticated,
 insufficient, partial, ambiguous, or conflicts with a preserved value, report setup-blocked. In

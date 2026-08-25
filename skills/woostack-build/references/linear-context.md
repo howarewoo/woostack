@@ -8,10 +8,10 @@ baseline. When `artifacts.provider` is "local" or omitted, default local mode ma
 defaults only after Linear mirroring is selected and enabled; policy never authorizes provider access
 by itself.
 
-The [Linear artifact contract](../../woostack-init/references/artifact-backends.md) is the single
-authority for the run manifest, plain Markdown artifact files, optional mirror synchronization,
-stable-key/canonical-issue-reference mapping, nullable-parent validation, drift and process-loss
-recovery, artifact retention, independent read-back, and unchanged Execute safety reads. The shared
+The shared [artifact contract](../../woostack-init/references/artifact-backends.md) owns the run
+manifest, plain artifacts, mutation ordering, failure handling, and read-back invariants. The
+[Linear provider profile](../../woostack-init/references/artifact-providers/linear.md) owns Linear
+scope, capabilities, identities, labels, graph endpoints, and lifecycle mappings. The shared
 [repository ancestry contract](../../woostack-init/references/artifact-backends.md#repository-ancestry-and-base-change-detection)
 separately governs parent-branch intent and base-change detection; use the
 [Linear synchronization procedure](linear-procedure.md) only for the bounded mirror save or standalone Plan.

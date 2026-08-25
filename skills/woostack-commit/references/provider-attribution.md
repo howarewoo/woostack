@@ -3,8 +3,10 @@
 Load this reference only when the caller supplied one exact canonical Linear issue or Plane
 work-item reference. The normal commit/PR path is artifact-free and does not read this file.
 
-Follow the canonical
-[optional artifact contract](../../woostack-init/references/artifact-backends.md). Git, Graphite, and
+Follow the shared
+[artifact contract](../../woostack-init/references/artifact-backends.md), then load only the selected
+[Linear](../../woostack-init/references/artifact-providers/linear.md) or
+[Plane](../../woostack-init/references/artifact-providers/plane.md) profile. Git, Graphite, and
 canonical GitHub reads remain authoritative for repositories, branches, commits, ancestry, PRs,
 reviews, and merge state.
 

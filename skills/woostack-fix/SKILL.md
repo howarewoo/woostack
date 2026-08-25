@@ -96,46 +96,35 @@ inline only when safe.
 
 After Debug proves the root cause, compare the proved causal target repository with the invocation repository using trusted Git/GitHub evidence, then non-mutatingly verify that the active checkout is the exact writable owning checkout. Missing, ambiguous, foreign, read-only, unwritable, absent, or wrong checkout blocks before every provider, artifact, or repository effect. A supplied `--project` or `--issue` cannot bypass this guard. Preserve the matching writable path and offer only `retarget-reinvoke-in-exact-writable-owning-repository` or `diagnosis-only`; never clone, switch, mutate, or invent a workaround.
 Immediately after Debug returns root-cause proof and exact writable target-repository admission
-succeeds, load the [Linear artifact contract](../woostack-init/references/artifact-backends.md), the
+succeeds, load the shared [artifact contract](../woostack-init/references/artifact-backends.md), only
+the selected [Linear](../woostack-init/references/artifact-providers/linear.md) or
+[Plane](../woostack-init/references/artifact-providers/plane.md) profile, the
 [Build project wrapper](../woostack-build/SKILL.md), and the internal
 [`woostack-ideate`](../woostack-ideate/SKILL.md) and
 [`woostack-harden`](../woostack-harden/SKILL.md) contracts. This downstream loading occurs before
-canonical run allocation/resolution and before any provider effect. The shared artifact contract is
-the single authority for run allocation and resume, the permission-restricted run manifest,
-readable plain Markdown artifacts, optional mirror synchronization, canonical issue-reference/nullable-parent
-preflight, stable-key/canonical-reference mapping, drift/recovery, artifact retention, and unchanged
-Execute reads.
+canonical run allocation or provider effect. The shared contract owns local persistence, ordering,
+failure, and read-back invariants; the selected profile owns provider scope, identities, capabilities,
+labels, membership, relations, and lifecycle support.
 The shared [repository advancement contract](../woostack-init/references/artifact-backends.md#repository-ancestry-and-base-change-detection)
 separately governs parent-branch intent and base-change detection; Fix does not restate or weaken it.
 ### 2. Allocate or resume canonical run, then Ideate and Harden
 
 After Debug returns root-cause proof, allocate or resume the canonical run store under
-`.woostack/tmp/runs/<run-id>/`. When `artifacts.provider: "linear"`, preflight official Linear MCP
-capabilities (including workspace project label capabilities when labels are configured). When
-`artifacts.linear.projectLabels` is configured, completely paginate all workspace project labels through official Linear
-MCP, flatten every page, require null terminal cursors, resolve each configured label string by exact native ID or exact
-case-sensitive name (rejecting missing, ambiguous, duplicate, or incomplete matches before mutation), and union configured labels with
-existing project labels (preserving unrelated labels). Resolve the exact supplied project or create
-exactly one canonical project whose name starts with `[Fix] ` from validated repository/workspace/team
-defaults, applying the union of labels in at most one write alongside admission/creation, and
-independently read back the complete label set and project. Verify the canonical repository association.
-If an exact canonical issue reference was supplied, independently verify it through the official MCP,
-including selectable identity, workspace/team/project scope, complete pagination, exact endpoint round trip,
-and nullable-parent state, then add only the supported project link; preserve its title, description,
-status, assignment, labels, relations, comments, and lifecycle. Reject an ambiguous, foreign, archived,
-incompatible, unknown-parent, or incompletely read source without changing it.
+`.woostack/tmp/runs/<run-id>/`. In local mode, make no provider call.
 
-When `artifacts.provider: "plane"`, preflight official Plane MCP capabilities (including workspace project label
-capabilities). Completely paginate all workspace project labels through official Plane MCP, flatten every page,
-require null terminal cursors, resolve each configured label string by exact native UUID or exact case-sensitive name,
-and union configured labels with existing project labels (preserving unrelated labels). Resolve the exact supplied
-Plane project or create exactly one canonical Plane project whose name starts with `[Fix] ` from validated
-`artifacts.plane` defaults, applying the union of labels in at most one write alongside admission/creation, and
-independently read back the complete label set and project. Verify canonical repository association. If an exact
-Plane work-item reference was supplied (by URL or readable ID), independently verify it through the official Plane MCP,
-resolve its native UUID, verify scope and nullable-parent state (`parent = null`), and add only the supported project
-link; preserve its title, description, state, assignment, labels, relations, comments, and lifecycle. Reject an
-ambiguous, foreign, archived, incompatible, unknown-parent, or incompletely read source without changing it.
+In provider mode, apply only the selected profile. Preflight its official-MCP capabilities and exact
+scope; completely discover and resolve configured project labels; resolve the exact supplied project
+or create one canonical `[Fix] ` project from validated profile defaults; apply missing labels at most
+once; and independently read back the complete project identity, repository, scope, labels, and
+content. Missing, ambiguous, duplicate, foreign, incomplete, unsupported, or unknown results block
+that provider boundary.
+
+If an exact source issue/work-item was supplied, resolve it through the selected profile's canonical
+reference, independently read its canonical/readable and native identities, complete scope,
+membership, parent, content, comments, and relations, then add only the supported direct project link
+and read it back. Preserve every unrelated title, description, lifecycle state, assignment, label,
+relation, comment, and membership. Reject incompatible, archived, foreign, unknown-parent, or
+incompletely read sources without changing them.
 
 Admit the baseline and manifest, then invoke [`woostack-ideate`](../woostack-ideate/SKILL.md) with the
 proved diagnosis. Ideate and [`woostack-harden`](../woostack-harden/SKILL.md) work only in that manifest,

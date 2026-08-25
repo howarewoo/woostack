@@ -21,22 +21,20 @@ For standalone use, `--project` is mandatory and requires `artifacts.provider: "
 or omitted, standalone Plan fails closed before any provider access with an error stating that provider
 operations require `artifacts.provider: "linear"` or `artifacts.provider: "plane"`. There is no CLI provider override.
 
-When `artifacts.provider: "linear"`, resolve only that exact project under the
-[Linear artifact contract](../woostack-init/references/artifact-backends.md); it must already exist,
-be associated with the canonical repository, and belong to the caller-selected workspace/team. A
-direct specification is reconciled against that project and never creates or selects an implicit
-project. A wrong resource type, missing project, foreign repository, incomplete read, or conflicting
-content blocks before mutation. There is no project-creation, fuzzy-discovery, or alternate-provider path.
-Standalone Plan reads the repository, canonical parent branch and last admitted tip, existing
-patterns, relevant tests, and the
-[Linear synchronization procedure](../woostack-build/references/linear-procedure.md) before
-planning.
-When `artifacts.provider: "plane"`, resolve only that exact project under the
-[Plane artifact contract](../woostack-init/references/artifact-backends.md); it must already exist,
-be associated with the canonical repository, and belong to the caller-selected instance `baseUrl` and
-`workspace`. Standalone Plan reads the repository, canonical parent branch and last admitted tip,
-existing patterns, relevant tests, and the
-[`Plane synchronization procedure`](../woostack-build/references/plane-procedure.md) before planning.
+Standalone Plan loads the shared
+[artifact contract](../woostack-init/references/artifact-backends.md), then only the selected row:
+
+| `artifacts.provider` | Provider profile | Synchronization |
+| --- | --- | --- |
+| `"linear"` | [Linear](../woostack-init/references/artifact-providers/linear.md) | [Linear procedure](../woostack-build/references/linear-procedure.md) |
+| `"plane"` | [Plane](../woostack-init/references/artifact-providers/plane.md) | [Plane procedure](../woostack-build/references/plane-procedure.md) |
+
+Resolve only the exact selected project under that profile. It must already exist, match the canonical
+repository, and belong to the caller-selected complete provider scope. A direct specification is
+reconciled against that project and never creates or selects an implicit project. Wrong resource type,
+missing project, foreign scope, incomplete read, or conflicting content blocks before mutation. There
+is no project-creation, fuzzy-discovery, or alternate-provider path. Standalone Plan also reads the
+repository, canonical parent branch and last admitted tip, existing patterns, and relevant tests.
 Build/Fix-delegated Plan instead obeys the shared
 [manifest contract](../woostack-init/references/artifact-backends.md#minimal-resumable-manifest-schema);
 it reads no provider context or synchronization procedure during the delegated phase.

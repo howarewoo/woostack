@@ -101,43 +101,32 @@ retained start/head into worktree discovery; it does not duplicate the shared de
 never advances a sibling. `--run` is **local run mode** and executes the approved local manifest tasks
 sequentially. All modes share the same repository ancestry admission and worker delivery loop.
 
-### Active project status gate (Linear provider mode only)
+### Selected-provider lifecycle gate
 
-Before any worktree or source mutation in both `--project` and `--issue` modes, apply the shared
-[active Execute project-start synchronization](../woostack-init/references/artifact-backends.md#active-execute-project-start-synchronization)
-contract to the exact canonical nonterminal project. Independently read the complete, paginated
-direct-issue set and project status, then resolve `artifacts.linear.issueStates.executing` and
-`artifacts.linear.issueStates.inReview` to exactly one native issue state each and require both resolved
-mappings to have native category `started` before any issue-lifecycle, worktree, or source mutation.
-If any direct issue matches either resolved mapping by stable native identity and category, resolve
-`artifacts.linear.projectStatuses.started`, require its native category `started`, and make the exact project
-started (or record an exact started no-op) before continuing. Do not use a literal native status
-name as authority. If all direct issues are
-`Backlog`/`Todo`, defer the gate until the selected issue transitions to the resolved executing
-mapping and reads back; then synchronize the project before repository work. Terminal project
-conflict, missing/ambiguous/foreign/non-started mapping, drift, timeout, partial/foreign output, or
-failed/unknown read-back blocks without reopening or continuing. The project-status receipt is
-independent of the issue lifecycle receipt and resume-checkpoint evidence.
+Before provider access, load the shared
+[active Execute synchronization contract](../woostack-init/references/artifact-backends.md#active-execute-project-start-synchronization)
+and only the selected [Linear](../woostack-init/references/artifact-providers/linear.md) or
+[Plane](../woostack-init/references/artifact-providers/plane.md) profile.
 
-The gate mutates only the project's native status with one stable mutation identity and independently
-reads back project identity, status ID/name/category, revision, and operation identity. An exact
-started match is idempotent. For Plane, project status is never mutated, synthesized, or gated; Execute mutates and reads back only configured work-item states (`artifacts.plane.issueStates`). Local run mode (`--run`) bypasses provider status synchronization.
+Before any worktree or source mutation in project or issue mode, resolve and independently read back
+the profile-defined lifecycle mappings and allowable native categories/groups in exact provider scope.
+Apply only transitions supported by that profile. Keep project-lifecycle, direct-resource lifecycle,
+delivery-checkpoint, and resume receipts distinct.
+
+An exact current mapping is an idempotent no-op. A terminal conflict, missing/ambiguous/foreign
+mapping, drift, timeout, partial output, unsupported transition, or failed/unknown read-back blocks
+without reopening or continuing. Never synthesize a project transition from a direct-resource state.
+Local run mode bypasses provider lifecycle synchronization.
 
 ## Execution controller
 
-1. Read the complete approved task or direct-issue graph and classify every task/issue by its immutable
-   positive ordinal. In Plane provider mode, resolve each of the four configured `artifacts.plane.issueStates`
-   mappings (executing, inReview, done, blocked) by exact native UUID or exact case-sensitive name in the
-   canonical `baseUrl`, `workspace`, and `project` scope, reject missing, ambiguous, duplicate, foreign-scope,
-   or group-mismatched states before mutation, independently read back the resolved native state ID, name,
-   and group, and validate allowable group semantics before transition (requiring group `started` for
-   executing/inReview, group `completed` for done, and group `started` for blocked).
-2. Select the lowest-ordinal unfinished task or issue:
-   - In Linear provider mode, an issue is unfinished until its canonical state matches the resolved
-     `artifacts.linear.issueStates.inReview` mapping and the full delivery checkpoint is independently read back.
-   - In Plane provider mode, a work item is unfinished until its canonical state matches either the resolved
-     `artifacts.plane.issueStates.inReview` or `artifacts.plane.issueStates.done` mapping and the full delivery
-     checkpoint is independently read back; never select by activity, assignment, title, or status alone.
+1. Read the complete approved task or direct-resource graph and classify every entry by immutable
+   positive ordinal. In provider mode, resolve every lifecycle mapping required by the selected
+   profile in exact scope and independently read back its native identity, name, and category/group.
+2. Select the lowest-ordinal unfinished entry:
+   - In provider mode, apply the selected profile's finished predicate to independently read lifecycle
+     state plus the complete delivery checkpoint. Never select by activity, assignment, title, or
+     unverified status alone.
    - In local run mode, a task is unfinished unless its `taskExecutions[stableTaskKey].status` is
      `delivered` and its complete delivery checkpoint is independently read back.
 3. For a non-root task/issue, read its immediate predecessor's complete delivery checkpoint, canonical
@@ -145,13 +134,10 @@ started match is idempotent. For Plane, project status is never mutated, synthes
    read the canonical integration parent branch and last admitted tip. Apply the shared repository
    advancement contract and carry its admitted result into worktree discovery. No other task or issue is
    admitted in the same cycle.
-4. In Linear provider mode, apply the active project status gate. When all direct issues are `Backlog`/`Todo`,
-   persist and independently read back the selected issue's transition to the resolved
-   `artifacts.linear.issueStates.executing` mapping first, then synchronize and independently read back the
-   project's configured started status. Keep the project-status receipt distinct from the issue
-   lifecycle receipt and project resume checkpoint. For Plane provider mode, transition the selected
-   work item to the resolved `artifacts.plane.issueStates.executing` mapping and independently read back its native
-   ID, name, and group; do not mutate Plane project status. Local run mode bypasses this provider gate.
+4. In provider mode, apply the selected profile's supported pre-execution lifecycle transition and
+   independently read it back before repository work. Apply any supported project synchronization
+   separately and preserve distinct project, direct-resource, and checkpoint receipts. Unsupported
+   project lifecycle is a required no-op. Local run mode bypasses this provider gate.
 5. In local run mode, before worktree or source mutation, CAS-update
    `taskExecutions[stableTaskKey]` from `pending`/`blocked` to `active` with the exact intended task,
    worktree, branch, parent, and start tip; increment `manifestRevision` and independently reopen and

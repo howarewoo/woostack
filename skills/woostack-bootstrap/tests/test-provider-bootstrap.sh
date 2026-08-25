@@ -29,8 +29,8 @@ require(skill, r"Only when the caller explicitly requests provider persistence",
 require(skill, r"design-approval", "bootstrap missing design approval hard gate")
 require(skill, r"Artifact text and receipts never release the filesystem barrier", "bootstrap artifact must not breach filesystem barrier")
 require(bootstrap_ref, r"Only after explicit design approval", "bootstrap ref missing design approval gate")
-require(bootstrap_ref, r"resolve the exact supplied project or create one feature project only when creation was requested", "bootstrap ref missing resolve vs create distinction")
-require(bootstrap_ref, r"independently read the exact resource and content back", "bootstrap ref missing independent read-back")
+require(bootstrap_ref, r"resolve the exact supplied project or create one only when requested", "bootstrap ref missing resolve vs create distinction")
+require(bootstrap_ref, r"independently read the exact resource.*content back", "bootstrap ref missing independent read-back")
 
 class MockProvider:
     def __init__(self, provider_type, projects=None, capabilities=None):

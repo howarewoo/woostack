@@ -74,15 +74,15 @@ approval, perform no official-MCP development mutation and create no development
    identity prevents duplicate work within/resumed from the same supplied contract; it is not a
    development record.
 6. **Optionally persist the approved design.** Only when the caller explicitly requests provider
-   persistence or supplies an exact project URL/UUID, apply the
-   [optional artifact contract](../woostack-init/references/artifact-backends.md) and
-   [bootstrap persistence procedure](references/bootstrap.md). Discover official MCP capabilities for
-   the configured provider (`artifacts.provider: "linear"` or `artifacts.provider: "plane"`),
-   resolve or create one exact feature project (applying project-label and instance/workspace rules
-   when Plane is configured), append/read back `designApproved`, and retain exact receipts. Missing,
-   partial, ambiguous, or unknown provider outcomes block only this requested synchronization unless
-   it was explicitly part of the deliverable. Artifact text and receipts never release the filesystem
-   barrier.
+   persistence or supplies an exact project URL/UUID, apply the shared
+   [artifact contract](../woostack-init/references/artifact-backends.md), load only the selected
+   [Linear](../woostack-init/references/artifact-providers/linear.md) or
+   [Plane](../woostack-init/references/artifact-providers/plane.md) profile, and follow the
+   [bootstrap persistence procedure](references/bootstrap.md). Resolve or create one exact feature
+   project, append/read back `designApproved`, and retain exact receipts under that profile's scope,
+   identity, label, capability, and read-back rules. Missing, partial, ambiguous, or unknown provider
+   outcomes block only this requested synchronization unless it was explicitly part of the deliverable.
+   Artifact text and receipts never release the filesystem barrier.
 7. **Collision-check the target.** After design approval and repository/base intent are retained,
    perform the first target-filesystem action: a read-only collision check with no Git invocation.
    Proceed only when it proves the target is absent or an empty non-Git directory. A populated
