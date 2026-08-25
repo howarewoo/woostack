@@ -2,11 +2,12 @@
 
 This procedure applies provider mutations for Build optional mirror synchronization (when
 `artifacts.provider: "plane"`) or one standalone Plan graph. It owns no workflow gate, assignment,
-execution, acceptance, or repository authority. The
-[Plane artifact contract](../../woostack-init/references/artifact-backends.md) is the single
-authority for manifest state, plain Markdown artifact files, optional mirror synchronization,
-native work-item-identity/nullable-parent preflight, drift/recovery, identity mapping, artifact
-retention, and read-back. The [project context procedure](plane-context.md) owns baseline admission.
+execution, acceptance, or repository authority. The shared
+[artifact contract](../../woostack-init/references/artifact-backends.md) owns manifest state, mutation
+ordering, failure handling, retention, and read-back invariants. The
+[Plane provider profile](../../woostack-init/references/artifact-providers/plane.md) owns Plane
+identity, scope, capabilities, membership, relations, and lifecycle behavior. The
+[project context procedure](plane-context.md) owns baseline admission.
 
 ## Build project lifecycle
 

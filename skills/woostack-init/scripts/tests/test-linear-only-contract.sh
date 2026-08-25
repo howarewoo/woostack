@@ -41,15 +41,14 @@ for pattern, message in (
 contract = flat(root / "skills/woostack-init/references/artifact-backends.md")
 for pattern, message in (
     (r"canonical persistent store for `woostack-build` and project-backed `woostack-fix` is `\.woostack/tmp/runs/<run-id>/`", "canonical fix/build local authority missing"),
-    (r"Do not create a parent plan issue", "retired build wrapper is not forbidden"),
+    (r"Do not create a parent plan resource", "retired build wrapper is not forbidden"),
     (r"artifacts\.provider.*gates every provider call", "artifacts.provider gating missing"),
     (r"zero provider reads or writes", "zero provider reads or writes when gating disabled missing"),
     (r"Merge authority remains human-only and outside every woostack workflow", "merge authority boundary missing"),
     (r"prefer provider-native operation identities|stable mutation identities", "stable mutation identities missing"),
-    (r"Woostack project mutation ID: <UUID>", "project mutation identity fallback marker missing"),
-    (r"\[woostack-mutation:<UUID>\]", "issue mutation identity fallback suffix missing"),
-    (r"official Linear MCP's stable human-facing identifier, such as `WOO-144`, is the canonical issue reference", "canonical issue-reference definition missing"),
-    (r"stableTaskMappings.*maps each stable task key to one canonical issue/work-item reference", "stable task mapping definition missing"),
+    (r"stable external-mutation identity", "external mutation identity missing"),
+    (r"separate canonical caller-facing, readable, native, and external identities", "provider identity boundary missing"),
+    (r"stableTaskMappings.*maps each stable task key to one canonical direct-resource reference", "stable task mapping definition missing"),
     (r"parentId.*Normalize an explicitly returned null parent to `null`|parent state is unknown and blocks", "nullable-parent validation missing"),
     (r"no-follow semantics", "no-follow semantics missing"),
     (r"directory mode is exactly `0700`", "directory 0700 mode missing"),
@@ -65,12 +64,20 @@ for pattern, message in (
     (r"If the same branch has a different tip, make zero mutations", "different base tip mutation rule missing"),
     (r"`Continue`.*`Revise spec/plan`.*`Stop`", "Execute base choice options missing"),
     (r"independently read back", "independent read-back missing"),
-    (r"full project fields.*complete direct membership set.*complete dependency graph", "mirror sync read-back fields missing"),
+    (r"full project fields.*complete membership set.*complete dependency graph", "mirror sync read-back fields missing"),
     (r"existing-description mutation invariant", "existing-description mutation invariant missing"),
     (r"Never replace an existing full description", "existing description replacement prohibition missing"),
     (r"Retain `manifest\.json`, `project-spec\.md`, `execution-plan\.md`, and `\.lock`", "retained run artifacts missing"),
 ):
     require("artifact-backends.md", contract, pattern, message)
+
+linear_profile = flat(root / "skills/woostack-init/references/artifact-providers/linear.md")
+for pattern, message in (
+    (r"Woostack project mutation ID: <UUID>", "project mutation identity fallback marker missing"),
+    (r"\[woostack-mutation:<UUID>\]", "issue mutation identity fallback suffix missing"),
+    (r"stable human-facing identifier.*canonical issue reference", "canonical issue-reference definition missing"),
+):
+    require("artifact-providers/linear.md", linear_profile, pattern, message)
 
 for obsolete in (
     r"gate 1 displays only the",

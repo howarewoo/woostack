@@ -40,12 +40,12 @@ Resolve the explicit source once:
    composition. For a directory, state selection criteria and omissions.
 2. **Canonical PR.** Independently read the exact repository, PR URL/number, head/base, diff, and
    relevant review facts. A PR needs no provider attribution.
-3. **Optional Linear or Plane artifact.** Accept only an exact project URL/stable UUID or canonical
-   issue/work-item reference. Load the
-   [optional artifact contract](../woostack-init/references/artifact-backends.md), use official
-   host-exposed MCP read capabilities for the configured provider, resolve only that resource (for
-   Plane: project URL/UUID or work-item URL/readable ID in the configured instance `baseUrl` and
-   `workspace`), and completely read the specification/fix/plan fields needed by the render.
+3. **Optional provider artifact.** Accept only an exact project or direct-resource reference. Load the
+   shared [artifact contract](../woostack-init/references/artifact-backends.md) and only the selected
+   [Linear](../woostack-init/references/artifact-providers/linear.md) or
+   [Plane](../woostack-init/references/artifact-providers/plane.md) profile. Use that profile's
+   host-exposed official-MCP read capabilities, resolve only the exact resource in complete scope, and
+   completely read the specification/fix/plan fields needed by the render.
 4. **Concept.** Ground every material claim in the pinned repository/PR/artifact sources explicitly
    supplied for it. Never infer a current project, issue, PR, or nearby source.
 

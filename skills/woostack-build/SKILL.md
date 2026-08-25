@@ -35,16 +35,20 @@ When `artifacts.provider: "plane"`, `--project` is optional. Build resolves the 
 or creates exactly one canonical project prefixed with `[Build] ` from validated instance `baseUrl`, workspace,
 repository, and nonempty `projectLabels` defaults. Each independently shippable increment is one direct work item
 in that project with `parent = null`.
-Before acting, load and apply the shared
-[Linear artifact contract](../woostack-init/references/artifact-backends.md), the
-[repository/project context procedure](references/linear-context.md), the
-[`Linear synchronization procedure`](references/linear-procedure.md), the
-[Plane project context procedure](references/plane-context.md), and the
-[`Plane synchronization procedure`](references/plane-procedure.md). The shared artifact contract is
-the single authority for run allocation and resume, the permission-restricted run manifest,
-readable plain Markdown artifact files, optional mirror synchronization, canonical
-resource-reference/nullable-parent preflight, native identity, drift/failure recovery, artifact
-retention, and unchanged Execute safety reads.
+Before acting, load the shared
+[artifact contract](../woostack-init/references/artifact-backends.md), then load only the selected
+provider row:
+
+| `artifacts.provider` | Provider profile | Build context | Synchronization |
+| --- | --- | --- | --- |
+| `"linear"` | [Linear](../woostack-init/references/artifact-providers/linear.md) | [Linear context](references/linear-context.md) | [Linear procedure](references/linear-procedure.md) |
+| `"plane"` | [Plane](../woostack-init/references/artifact-providers/plane.md) | [Plane context](references/plane-context.md) | [Plane procedure](references/plane-procedure.md) |
+
+Local mode loads no provider profile or provider procedure. The shared contract is the single
+authority for run allocation and resume, the permission-restricted manifest, readable plain Markdown
+artifacts, optional mirror synchronization, graph ordering, drift/failure recovery, retention, and
+unchanged Execute safety reads. The selected profile and Build references supply only provider-specific
+scope, identities, capabilities, mutations, and read-back.
 The shared [repository ancestry contract](../woostack-init/references/artifact-backends.md#repository-ancestry-and-base-change-detection)
 governs parent-branch intent and base movement detection; this wrapper does not restate those rules.
 ## Fixed chain

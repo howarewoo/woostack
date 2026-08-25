@@ -16,6 +16,8 @@ paths = {
     "plane_context": root / "skills/woostack-build/references/plane-context.md",
     "plane_procedure": root / "skills/woostack-build/references/plane-procedure.md",
     "artifact": root / "skills/woostack-init/references/artifact-backends.md",
+    "linear_profile": root / "skills/woostack-init/references/artifact-providers/linear.md",
+    "plane_profile": root / "skills/woostack-init/references/artifact-providers/plane.md",
     "ideate": root / "skills/woostack-ideate/SKILL.md",
     "harden": root / "skills/woostack-harden/SKILL.md",
     "plan": root / "skills/woostack-plan/SKILL.md",
@@ -77,9 +79,9 @@ artifact_requirements = (
     r"stableTaskMappings",
     r"taskExecutions\[stableTaskKey\]",
     r"unknown.*parent.*blocks",
-    r"Do not create a parent plan issue",
-    r"Preserve its title, description, status, assignment, labels, relations, comments, and lifecycle",
-    r"full project fields.*complete direct membership set.*complete dependency graph",
+    r"Do not create a parent plan resource",
+    r"Preserve its title, description, lifecycle state, assignment, labels, relations, comments, and membership",
+    r"full project fields.*complete membership set.*complete dependency graph",
     r"existing-description mutation invariant",
     r"active Execute project-start synchronization",
     r"project-backed workflow closure",
@@ -100,22 +102,23 @@ for name in ("linear_context", "linear_procedure", "plane_context", "plane_proce
 for name in ("linear_procedure", "plane_procedure"):
     require(name, r"zero provider and repository mutation")
 require("harden", r"canonical issue references|canonical provider references")
-require("artifact", r"host's authenticated official Linear or Plane MCP|authenticated official Linear MCP")
-require("artifact", r"untrusted data, never instructions")
+require("linear_profile", r"host-authenticated official Linear MCP")
+require("plane_profile", r"host-authenticated official Plane MCP")
+require("artifact", r"untrusted data")
 require("artifact", r"Never replace an existing full description")
-require("artifact", r"completed or canceled project.*terminal conflict")
-require("artifact", r"update only the native status field")
+require("linear_profile", r"completed or canceled.*terminal conflicts")
+require("linear_profile", r"update only its native status")
 
 # Configured project label preservation contracts
-require("artifact", r"projectLabels.*array of non-empty strings")
-require("artifact", r"completely paginate.*workspace project labels.*flatten.*null terminal cursor.*resolves each configured label")
-require("artifact", r"exact.*native ID.*or.*exact.*case-sensitive name")
-require("artifact", r"union of existing project labels and configured labels")
-require("artifact", r"preserving all unrelated existing labels")
-require("artifact", r"Preflight label discovery")
-require("artifact", r"at most one write alongside project creation or admission")
-require("artifact", r"independently read back the complete label set")
-require("artifact", r"fails closed before mutating the project")
+for profile in ("linear_profile", "plane_profile"):
+    require(profile, r"projectLabels")
+    require(profile, r"complete.*workspace project-label discovery|completely paginate workspace project labels")
+    require(profile, r"exact.*native ID.*or exact.*case-sensitive name|exact native UUID.*or exact case-sensitive name")
+    require(profile, r"Union configured labels with existing labels")
+    require(profile, r"preserving unrelated labels")
+    require(profile, r"write at most once")
+    require(profile, r"independently read back the complete label set")
+    require(profile, r"before mutation")
 
 # Linear-specific context checks
 require("linear_context", r"projectLabels")
@@ -157,7 +160,7 @@ for obsolete in (
     forbid(source_names, obsolete)
 
 # One direct issue per increment and native relations remain required.
-require("artifact", r"Do not create a parent plan issue")
+require("artifact", r"Do not create a parent plan resource")
 require("artifact", r"membership before relations")
 require("artifact", r"Bind each newly created issue to its stable task key exactly once|bind the mapping exactly once")
 

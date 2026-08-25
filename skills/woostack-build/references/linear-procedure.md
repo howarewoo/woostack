@@ -2,11 +2,12 @@
 
 This procedure applies provider mutations for Build/Fix optional mirror synchronization (when
 `artifacts.provider: "linear"`) or one standalone Plan graph. It owns no workflow gate, assignment,
-execution, acceptance, or repository authority. The
-[Linear artifact contract](../../woostack-init/references/artifact-backends.md) is the single
-authority for manifest state, plain Markdown artifact files, optional mirror synchronization,
-canonical issue-reference/nullable-parent preflight, drift/recovery, identity mapping, artifact
-retention, and read-back. The [project context procedure](linear-context.md) owns baseline admission.
+execution, acceptance, or repository authority. The shared
+[artifact contract](../../woostack-init/references/artifact-backends.md) owns manifest state, mutation
+ordering, failure handling, retention, and read-back invariants. The
+[Linear provider profile](../../woostack-init/references/artifact-providers/linear.md) owns Linear
+identity, scope, capabilities, and lifecycle behavior. The [project context procedure](linear-context.md)
+owns baseline admission.
 
 ## Build project lifecycle
 

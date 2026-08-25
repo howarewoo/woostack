@@ -68,17 +68,19 @@ configured for provider mirroring fails closed immediately.
 Gated Ideate, Harden, and delegated Plan work is managed in one permission-restricted run manifest
 with zero provider cycles. Build and Fix write plain `project-spec.md` and `execution-plan.md`
 directly under `.woostack/tmp/runs/<run-id>/` and proceed directly to a user-controlled handoff
-(`Stop here`, `Execute`, `Abandon`). When `artifacts.provider: "linear"`, local artifacts mirror to
-Linear in bounded post-drafting cycles; mirror failure is recorded in the manifest and is
+(`Stop here`, `Execute`, `Abandon`). When `artifacts.provider` selects a configured provider, local
+artifacts mirror in bounded post-drafting cycles; mirror failure is recorded in the manifest and is
 nonblocking for local authority. Resuming work uses `/woostack-execute --run <exact-run-id> [--recheck]`,
 `/woostack-build --run <exact-run-id>`, or `/woostack-fix --run <exact-run-id>`. All run artifacts in
 `.woostack/tmp/runs/<run-id>/` are retained upon completion and upon explicit abandonment to preserve
 an unbroken audit trail. Explicit abandonment sets `status: "abandoned"` in the manifest and does not
-mutate a mirrored Linear project. Standalone Plan synchronization remains direct and unchanged. The
+mutate a mirrored provider project. Standalone Plan synchronization remains direct and unchanged. The
 shared
-[Local run artifact and provider mirror contract](skills/woostack-init/references/artifact-backends.md#minimal-resumable-manifest-schema)
-owns the detailed manifest, ordering, recovery, identity mapping, retention, and Execute read
-contract.
+[local run artifact and provider mirror contract](skills/woostack-init/references/artifact-backends.md#minimal-resumable-manifest-schema)
+owns local authority, manifest, ordering, recovery, retention, and Execute reads. The selected
+[Linear](skills/woostack-init/references/artifact-providers/linear.md) or
+[Plane](skills/woostack-init/references/artifact-providers/plane.md) profile owns provider-specific
+configuration, capabilities, identities, labels, graph operations, and lifecycle semantics.
 The user's request and explicit conversation choices authorize repository work; artifacts
 record that work and never grant permission, assignment, ownership, acceptance, or source-control
 authority. Git and GitHub own source, branches, commits, pull requests, reviews, and merge evidence.

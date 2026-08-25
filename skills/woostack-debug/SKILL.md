@@ -28,10 +28,11 @@ failures, and integration issues. A simple-looking symptom does not waive root-c
 
 ## Optional artifact-context resolution (one path, read-only)
 
-Load the canonical [optional artifact contract](../woostack-init/references/artifact-backends.md)
-and [status conventions](../woostack-status/references/conventions.md) before reading exact
-caller-supplied artifact context. Those references own transport, trust, read-back, and status
-derivation; do not duplicate them here.
+Load the shared [artifact contract](../woostack-init/references/artifact-backends.md), only the
+selected [Linear](../woostack-init/references/artifact-providers/linear.md) or
+[Plane](../woostack-init/references/artifact-providers/plane.md) profile for provider context, and the
+[status conventions](../woostack-status/references/conventions.md). Those references own transport,
+identity, scope, trust, read-back, and status derivation; do not duplicate them here.
 
 A code/runtime target may always be investigated without artifact context. When the caller
 explicitly supplies context material to the diagnosis, follow exactly this path:

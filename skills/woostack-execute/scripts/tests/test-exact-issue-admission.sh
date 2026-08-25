@@ -18,13 +18,14 @@ root = Path(sys.argv[1])
 skill = re.sub(r"\s+", " ", (root / "skills/woostack-execute/SKILL.md").read_text(encoding="utf-8"))
 controller = re.sub(r"\s+", " ", (root / "skills/woostack-execute/references/controller.md").read_text(encoding="utf-8"))
 artifact = re.sub(r"\s+", " ", (root / "skills/woostack-init/references/artifact-backends.md").read_text(encoding="utf-8"))
+linear_profile = re.sub(r"\s+", " ", (root / "skills/woostack-init/references/artifact-providers/linear.md").read_text(encoding="utf-8"))
 worktrees = re.sub(r"\s+", " ", (root / "skills/woostack-init/references/worktrees.md").read_text(encoding="utf-8"))
 driver = re.sub(r"\s+", " ", (root / "skills/woostack-execute/references/subagent-driver.md").read_text(encoding="utf-8"))
 repo_rules = re.sub(r"\s+", " ", (root / "AGENTS.md").read_text(encoding="utf-8"))
 
 checks = [
     (skill, r"`--project`, `--issue`, and `--run` are mutually exclusive; exactly one is required", "exact resource admission missing"),
-    (skill, r"lowest-ordinal unfinished (?:task or issue|issue|task)", "lowest unfinished selection missing"),
+    (skill, r"lowest-ordinal unfinished (?:task or issue|issue|task|entry)", "lowest unfinished selection missing"),
     (skill, r"stop marker", "stop-marker behavior missing"),
     (skill, r"issue mode.*never advances siblings", "issue mode may advance siblings"),
     (skill, r"configured fast-model subagent", "fast-model dispatch missing"),
@@ -41,14 +42,14 @@ checks = [
     (controller, r"Successful submission requires branch, commit, PR", "controller PR gate missing"),
     (controller, r"fresh independent evidence", "resume evidence missing"),
     (driver, r"configured fast-model subagent", "driver fast model missing"),
-    (skill, r"active Execute project-start synchronization", "project-status contract link missing"),
-    (skill, r"both `--project` and `--issue` modes", "both Execute provider modes missing"),
-    (skill, r"artifacts\.linear\.issueStates\.executing.*artifacts\.linear\.issueStates\.inReview.*native category.*started", "configured issue-state resolution missing"),
-    (skill, r"artifacts\.linear\.projectStatuses\.started", "configured project-status resolution missing"),
+    (skill, r"active-execute-project-start-synchronization", "project-status contract link missing"),
+    (skill, r"project or issue mode", "both Execute provider modes missing"),
+    (linear_profile, r"issueStates.*executing.*inReview.*started", "configured issue-state resolution missing"),
+    (linear_profile, r"projectStatuses\.started", "configured project-status resolution missing"),
     (controller, r"artifacts\.linear\.issueStates\.executing.*artifacts\.linear\.issueStates\.inReview.*native category.*started", "controller issue-state resolution missing"),
     (controller, r"artifacts\.linear\.projectStatuses\.started", "controller project-status resolution missing"),
-    (artifact, r"artifacts\.linear\.issueStates\.executing.*artifacts\.linear\.issueStates\.inReview", "artifact backend issue-state resolution missing"),
-    (artifact, r"artifacts\.linear\.projectStatuses\.started", "artifact backend project-status resolution missing"),
+    (linear_profile, r"issueStates.*executing.*inReview", "provider profile issue-state resolution missing"),
+    (linear_profile, r"projectStatuses\.started", "provider profile project-status resolution missing"),
     (skill, r"persisted checkpoint.*teardown.*resume.*sibling", "checkpoint-gated delivery missing"),
     (controller, r"full delivery checkpoint.*teardown.*resume.*sibling", "controller checkpoint gate missing"),
     (artifact, r"Write `project-spec\.md` exactly once", "plain specification write contract missing"),
@@ -59,9 +60,9 @@ checks = [
     (artifact, r"`Continue`.*`Revise spec/plan`.*`Stop`", "base-change choices missing"),
     (artifact, r"This is never automatic", "automatic base admission remains possible"),
     (artifact, r"checks.*for observation only", "observation-only checks contract missing"),
-    (artifact, r"exact existing started status is an idempotent no-op", "project status idempotency missing"),
-    (artifact, r"completed or canceled project.*terminal conflict.*blocks", "terminal project conflict missing"),
-    (artifact, r"update only the native status field", "one-field project mutation missing"),
+    (linear_profile, r"exact started status is an idempotent no-op", "project status idempotency missing"),
+    (linear_profile, r"completed or canceled.*terminal conflicts", "terminal project conflict missing"),
+    (linear_profile, r"update only its native status", "one-field project mutation missing"),
     (repo_rules, r"Merge authority is human-only.*never mark a PR ready.*auto-merge.*enqueue.*merge", "human-only merge boundary missing"),
     (skill, r"stop at that verified open-PR boundary.*No user wording overrides", "Execute terminal no-merge boundary missing"),
     (controller, r"terminal repository mutation is Graphite PR submission or update.*never marks a PR ready.*auto-merge.*merge queue.*merges", "controller terminal no-merge boundary missing"),
