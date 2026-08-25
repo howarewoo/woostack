@@ -186,11 +186,10 @@ No repository mutation starts ad hoc. An explicit goal and workflow contract com
    Diagnoses a free-form prompt, proves root cause, allocates the local run and direct increment plan,
    and delivers one reviewed PR.
 4. **Bounded Non-Bug Changes** → [/woostack-change](skills/woostack-change/SKILL.md)
-   Ships a bounded enhancement or refactor through one PR without contacting Linear.
+   Ships a bounded enhancement or refactor through one PR without contacting an artifact provider.
 
 Build resolves or creates its project before ideation. Fix remains provider-free until root-cause
-proof. `woostack-change` never reads or writes Linear.
-
+proof. `woostack-change` never reads or writes an artifact provider.
 ### Review and Iterate Flow
 
 After writing code, use the verification and iteration loop:

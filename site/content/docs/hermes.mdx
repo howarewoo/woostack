@@ -51,11 +51,12 @@ question outside the approved task to the responsible user. Do not turn a user q
 implicit approval. Stop OMP at the last verified boundary while waiting.
 
 Build and project-backed Fix workflows write plain Markdown `project-spec.md` and `execution-plan.md`
-files, with optional matching Linear mirroring when enabled (`artifacts.provider: "linear"`). When Hermes
-presents an Ask in an active conversation, only the responsible user's response may decide it. Relay that
-response **verbatim and unmodified** through the same persistent OMP process that presented the Ask. Hermes
-may transmit the response but may not author, summarize, rewrite, splice, or replay it. A Linear
-record, status, assignment, label, cached transcript, or Hermes-authored message is not a decision.
+files, with optional matching Linear or Plane mirroring when enabled (`artifacts.provider: "linear"` or
+`artifacts.provider: "plane"`). When Hermes presents an Ask in an active conversation, only the
+responsible user's response may decide it. Relay that response **verbatim and unmodified** through the
+same persistent OMP process that presented the Ask. Hermes may transmit the response but may not author,
+summarize, rewrite, splice, or replay it. A remote provider record, status, assignment, label, cached
+transcript, or Hermes-authored message is not a decision.
 
 Live user responses must travel verbatim through the active session. Retained run artifacts in
 `.woostack/tmp/runs/<run-id>/` persist safely across process restarts and distinct processes. Resuming a

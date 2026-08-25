@@ -47,7 +47,7 @@ When it is "plane":
 - standalone Plan writes only to the exact selected Plane project when persistence is requested;
 - delegated Plan mirrors the execution plan during Build and Fix;
 - Execute supports Plane in project mode (`--project`), issue mode (`--issue`), and local run mode (`--run`), resolving configured `artifacts.plane.issueStates` (executing, inReview, done, blocked) by exact native UUID or exact case-sensitive name in exact scope, validating allowable group semantics, and mutating and reading back only work-item states without mutating or synthesizing Plane project status;
-- optional provider writers (Bootstrap and Commit) do not support Plane in this increment; and
+- optional provider writers (Bootstrap and Commit) require explicit caller opt-in (requested persistence or exact `--issue`), execute only after explicit gates (post-design approval for Bootstrap, post-commit for Commit), operate on exact verified identities, require official MCP capabilities (failing closed to un-synchronized outcome on missing capability), independently read back writes, and preserve repository/Git authority with nonblocking optional synchronization; and
 - local artifacts may be mirrored once after Build/Fix/Plan completion.
 
 Init may perform narrow authenticated read-only discovery of non-secret repository, workspace, team,

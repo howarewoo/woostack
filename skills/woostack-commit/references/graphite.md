@@ -65,8 +65,8 @@ fields owned by `woostack-commit`.
 
 ## Optional artifact context
 
-An exact caller-selected Linear artifact may be carried as descriptive context or receive a delivery
-note under [linear-attribution.md](linear-attribution.md). It never selects the branch, worktree,
+An exact caller-selected Linear or Plane artifact may be carried as descriptive context or receive a delivery
+note under [provider-attribution.md](provider-attribution.md). It never selects the branch, worktree,
 parent, commit, PR, or submission authority.
 
 ## Return

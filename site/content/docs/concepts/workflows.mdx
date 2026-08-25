@@ -34,8 +34,8 @@ approve design → collision-check target → scaffold → run and verify
 ```
 
 Bootstrap is greenfield-only. No target write occurs before explicit design approval and a clean
-collision check. A Linear project may persist the approved design/plan after approval, but is not a
-write barrier or repository authority.
+collision check. An exact Linear or Plane project may persist the approved design/plan after approval,
+but is not a write barrier or repository authority.
 
 ## Build
 
@@ -94,8 +94,7 @@ classify → scope → repository preflight → execute → verify → review �
 
 Change handles one bounded non-bug enhancement/refactor and has no hard approval gate. It still
 requires an explicit goal, one coherent PR boundary, verification, smoke testing, and review. It
-never reads or writes Linear.
-
+never reads or writes an artifact provider.
 ## Shared execution boundary
 
 Build and Fix prepare approved work for the separately invoked [woostack-execute](/docs/skills/woostack-execute):
