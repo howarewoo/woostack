@@ -3,48 +3,10 @@
   "receiptId": "branch-receipt-06",
   "invocation": {
     "kind": "direct",
-    "issueArgument": "https://linear.app/acme/issue/APP-66/cache-metrics",
+    "taskId": "task-cache-metrics",
+    "runId": "run-66",
     "projectArgument": null,
     "branchHandoff": null
-  },
-  "officialLinearMcp": {
-    "endpoint": "https://mcp.linear.app/mcp",
-    "readsComplete": true,
-    "issue": {
-      "clientId": "66666666-6666-4666-8666-666666666666",
-      "nativeId": "linear-issue-66",
-      "identifier": "APP-66",
-      "title": "Cache metrics",
-      "role": "work-item",
-      "state": "executing",
-      "projectId": null,
-      "repository": "https://github.com/acme/widgets",
-      "owner": {
-        "kind": "app",
-        "principal": "engineer-7"
-      },
-      "assignmentAccepted": {
-        "nativeId": "comment-assignment-66",
-        "stableEventId": "66666666-aaaa-4666-8666-666666666666",
-        "runId": "run-66",
-        "engineer": "engineer-7",
-        "readBackVerified": true
-      },
-      "verification": {
-        "nativeId": "comment-verification-66",
-        "verdict": "PASS",
-        "readBackVerified": true
-      },
-      "precommitReview": {
-        "nativeId": "comment-precommit-review-66",
-        "verdict": "PASS",
-        "readBackVerified": true
-      }
-    },
-    "authenticatedController": {
-      "kind": "app",
-      "principal": "engineer-7"
-    }
   },
   "sourceControl": {
     "repositoryRead": {
@@ -69,13 +31,22 @@
       "unrelatedPaths": []
     },
     "proposedDisplayBranch": {
-      "name": "change/app-66",
-      "source": "verified-issue-identifier"
+      "name": "change/cache-metrics",
+      "source": "task-contract"
     }
+  },
+  "taskContract": {
+    "stableTaskId": "task-cache-metrics",
+    "runId": "run-66",
+    "repository": "https://github.com/acme/widgets",
+    "branch": "change/cache-metrics",
+    "worktreePath": "/repo/.woostack/worktrees/tasks/task-cache-metrics",
+    "startCommit": "b66",
+    "graphiteParent": "staging"
   },
   "git": {
     "complete": true,
-    "deterministicTaskWorktreePath": "/repo/.woostack/worktrees/tasks/linear-issue-66",
+    "deterministicTaskWorktreePath": "/repo/.woostack/worktrees/tasks/task-cache-metrics",
     "worktrees": [],
     "localBranches": [],
     "issueCommits": []
@@ -85,7 +56,7 @@
     "branches": [],
     "submissions": [
       {
-        "branch": "change/app-66",
+        "branch": "change/cache-metrics",
         "head": "c66",
         "parent": "staging"
       }
@@ -95,7 +66,7 @@
     "complete": true,
     "branches": [
       {
-        "name": "change/app-66",
+        "name": "change/cache-metrics",
         "head": "c66"
       }
     ]
@@ -106,23 +77,10 @@
       {
         "number": 66,
         "repository": "https://github.com/acme/widgets",
-        "headBranch": "change/app-66",
+        "headBranch": "change/cache-metrics",
         "headCommit": "c66",
         "baseBranch": "staging",
         "url": "https://github.com/acme/widgets/pull/66"
-      }
-    ]
-  },
-  "linearRelations": {
-    "complete": true,
-    "branchOrPr": [
-      {
-        "nativeId": "relation-66",
-        "issueNativeId": "linear-issue-66",
-        "branch": "change/app-66",
-        "headCommit": "c66",
-        "prUrl": "https://github.com/acme/widgets/pull/66",
-        "readBackVerified": true
       }
     ]
   }

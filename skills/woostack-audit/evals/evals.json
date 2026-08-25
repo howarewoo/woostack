@@ -4,7 +4,7 @@
   "cases": [
     {
       "id": "audits-standing-file-through-all-added-report-only-path",
-      "prompt": "Run a bounded offline report-only audit of the standing target fixtures/repo/src/cache.js. Do not call a provider, network, GitHub, or Linear, and do not edit the target. Treat fixtures/review/receipts.json and fixtures/review/findings.json as host-produced synthetic swarm evidence. Build an all-added diff at audit-out/diff.txt, verify every expected synthetic angle receipt, and render the ranked report at the fixed date/path .woostack/audits/2026-07-16-cache-js.md. The report must open with `Non-authoritative diagnostic evidence — report only`, visibly state `Authority: non-authoritative diagnostic evidence`, record the receipt IDs and validated finding, and include a `Proposed bounded remediation contract` with repository, proved problem, bounded scope, evidence, and acceptance criteria. Do not create or bind an issue, mutate Linear, edit the target, write `.woostack/fixes/`, post to a code host, dispatch remediation, or merge.",
+      "prompt": "Run a bounded offline report-only audit of the standing target fixtures/repo/src/cache.js. Do not call a provider, network, GitHub, Linear, or Plane, and do not edit the target. Treat fixtures/review/receipts.json and fixtures/review/findings.json as host-produced synthetic swarm evidence. Build an all-added diff at audit-out/diff.txt, verify every expected synthetic angle receipt, and render the ranked report at the fixed date/path .woostack/audits/2026-07-16-cache-js.md. The report must open with `Non-authoritative diagnostic evidence — report only`, visibly state `Authority: non-authoritative diagnostic evidence`, record the receipt IDs and validated finding, and include a `Proposed bounded remediation contract` with repository, proved problem, non-goals, and verification contract. It must conclude with `Diagnostic report only — not scope or acceptance authority`. Write no provider mutation, code-host post, or merge record. Return exactly one JSON object with keys status, diffCreated, reportCreated, diagnosticAuthority, reportNonAuthoritative, standingTargetModified, codeHostPosted, providerMutated, and merged.",
       "fixtures": [
         "repo/src/cache.js",
         "review/receipts.json",
@@ -14,7 +14,7 @@
         "read-workspace",
         "write-workspace"
       ],
-      "expected": "The standing target becomes an all-added diff; all expected receipts and the validated finding appear in a sanitized local report labeled non-authoritative with a proposed bounded remediation contract; the report never becomes development authority; the target, Linear, local development records, posting, remediation, and merge remain untouched.",
+      "expected": "The standing target becomes an all-added diff; all expected receipts and the validated finding appear in a sanitized local report labeled non-authoritative with a proposed bounded remediation contract; the report never becomes development authority; the target, providers, local development records, posting, remediation, and merge remain untouched.",
       "assertions": [
         {
           "id": "all-added-diff-created",
@@ -114,9 +114,9 @@
           "critical": true
         },
         {
-          "id": "no-linear-mutation-receipt",
+          "id": "no-provider-mutation-receipt",
           "kind": "path-absent",
-          "path": "audit-out/linear-mutation.json",
+          "path": "audit-out/provider-mutation.json",
           "critical": true
         },
         {
@@ -141,12 +141,12 @@
     },
     {
       "id": "routes-remediation-to-fix-diagnosis",
-      "prompt": "Classify this bounded audit follow-up without calling a provider, network, GitHub, Git, or Linear and without modifying files. Facts: the sanitized audit report is valid but explicitly non-authoritative; it proposes one bounded remediation contract; the user asks to implement it now; no Linear issue was supplied and Linear MCP is unavailable. Return exactly one JSON object with keys status, reasonCode, reportAuthority, linearMutationCount, repositoryMutationCount, fixDispatched, and localDevelopmentArtifactCreated.",
+      "prompt": "Classify this bounded audit follow-up without calling a provider, network, GitHub, or Git and without modifying files. Facts: the sanitized audit report is valid but explicitly non-authoritative; it proposes one bounded remediation contract; the user asks to implement it now; no provider context was supplied. Return exactly one JSON object with keys status, reasonCode, reportAuthority, providerMutationCount, repositoryMutationCount, fixDispatched, and localDevelopmentArtifactCreated.",
       "fixtures": [],
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "The report remains non-authoritative evidence and routes to woostack-fix read-only diagnosis without a Linear call at this classification boundary. After root-cause proof, fix must bind or create its canonical issue and obtain native issue approval before repository execution. No Linear or repository mutation and no local development artifact occurs during this classification.",
+      "expected": "The report remains non-authoritative evidence and routes to woostack-fix read-only diagnosis under default local authority without provider calls at this classification boundary. After root-cause proof, fix proceeds with local run artifacts and explicit user approval gates, with optional provider mirroring only if configured. No provider or repository mutation and no legacy development artifact occurs during this classification.",
       "assertions": [
         {
           "id": "fix-handoff-ready",
@@ -156,10 +156,10 @@
           "critical": true
         },
         {
-          "id": "linear-deferred-until-fix-proof",
+          "id": "provider-deferred-until-fix-proof",
           "kind": "final-json-path-equals",
           "pointer": "/reasonCode",
-          "expected": "linear-deferred-until-fix-root-cause-proof",
+          "expected": "provider-deferred-until-fix-root-cause-proof",
           "critical": true
         },
         {
@@ -170,9 +170,9 @@
           "critical": true
         },
         {
-          "id": "no-linear-mutation-on-rejection",
+          "id": "no-provider-mutation-on-rejection",
           "kind": "final-json-path-equals",
-          "pointer": "/linearMutationCount",
+          "pointer": "/providerMutationCount",
           "expected": 0,
           "critical": true
         },
@@ -195,6 +195,80 @@
           "kind": "final-json-path-equals",
           "pointer": "/localDevelopmentArtifactCreated",
           "expected": false,
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "audit-plane-context-is-optional-and-non-authoritative",
+      "prompt": "Classify an audit invocation where optional Plane context (baseUrl: https://api.plane.so, workspace: acme, workItem: ENG-88, UUID: 33333333-3333-4333-8333-333333333388, canonicalRepository: https://github.com/acme/widgets) is supplied alongside standing target src/cache.js. A foreign association from another repository https://github.com/other-org/other-repo is also present and must be omitted. Verify that Plane context is optional and read-only, foreign association is omitted, scoped Plane provenance (baseUrl, workspace, sequenceId, workItemId, canonicalRepository) is captured, read-back is complete, diagnostic report is rendered with Authority: non-authoritative diagnostic evidence, and zero Plane or repository writes occur. Return exactly one JSON object with keys status, planeContextResolved, planeProvenance, readBackComplete, foreignAssociationOmitted, reportAuthority, planeMutationCount, and repositoryMutationCount.",
+      "fixtures": [],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "Plane context is optional and read-only; scoped Plane provenance (baseUrl, workspace, sequenceId, native UUID, canonical repository) and read-back are verified; foreign repository associations are omitted; the audit report remains non-authoritative evidence with zero provider or repository mutation.",
+      "assertions": [
+        {
+          "id": "audit-plane-status",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "completed",
+          "critical": true
+        },
+        {
+          "id": "audit-plane-context-resolved",
+          "kind": "final-json-path-equals",
+          "pointer": "/planeContextResolved",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "audit-plane-provenance",
+          "kind": "final-json-path-equals",
+          "pointer": "/planeProvenance",
+          "expected": {
+            "provider": "plane",
+            "baseUrl": "https://api.plane.so",
+            "workspace": "acme",
+            "sequenceId": "ENG-88",
+            "workItemId": "33333333-3333-4333-8333-333333333388",
+            "canonicalRepository": "https://github.com/acme/widgets"
+          },
+          "critical": true
+        },
+        {
+          "id": "audit-plane-readback",
+          "kind": "final-json-path-equals",
+          "pointer": "/readBackComplete",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "audit-plane-foreign-omitted",
+          "kind": "final-json-path-equals",
+          "pointer": "/foreignAssociationOmitted",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "audit-plane-report-authority",
+          "kind": "final-json-path-equals",
+          "pointer": "/reportAuthority",
+          "expected": "non-authoritative",
+          "critical": true
+        },
+        {
+          "id": "audit-plane-zero-mutation",
+          "kind": "final-json-path-equals",
+          "pointer": "/planeMutationCount",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "audit-plane-zero-repo-mutation",
+          "kind": "final-json-path-equals",
+          "pointer": "/repositoryMutationCount",
+          "expected": 0,
           "critical": true
         }
       ]

@@ -3,48 +3,10 @@
   "receiptId": "branch-receipt-07",
   "invocation": {
     "kind": "direct",
-    "issueArgument": "https://linear.app/acme/issue/APP-67/cache-hardening",
+    "taskId": "task-cache-hardening",
+    "runId": "run-67",
     "projectArgument": null,
     "branchHandoff": null
-  },
-  "officialLinearMcp": {
-    "endpoint": "https://mcp.linear.app/mcp",
-    "readsComplete": true,
-    "issue": {
-      "clientId": "67676767-6767-4767-8767-676767676767",
-      "nativeId": "linear-issue-67",
-      "identifier": "APP-67",
-      "title": "Cache hardening",
-      "role": "work-item",
-      "state": "executing",
-      "projectId": null,
-      "repository": "https://github.com/acme/widgets",
-      "owner": {
-        "kind": "app",
-        "principal": "engineer-7"
-      },
-      "assignmentAccepted": {
-        "nativeId": "comment-assignment-67",
-        "stableEventId": "67676767-aaaa-4767-8767-676767676767",
-        "runId": "run-67",
-        "engineer": "engineer-7",
-        "readBackVerified": true
-      },
-      "verification": {
-        "nativeId": "comment-verification-67",
-        "verdict": "PASS",
-        "readBackVerified": true
-      },
-      "precommitReview": {
-        "nativeId": "comment-precommit-review-67",
-        "verdict": "PASS",
-        "readBackVerified": true
-      }
-    },
-    "authenticatedController": {
-      "kind": "app",
-      "principal": "engineer-7"
-    }
   },
   "sourceControl": {
     "repositoryRead": {
@@ -70,13 +32,22 @@
     },
     "proposedDisplayBranch": {
       "name": "change/cache-hardening",
-      "source": "issue-title",
+      "source": "title-text",
       "sourceValue": "Cache hardening"
     }
   },
+  "taskContract": {
+    "stableTaskId": "task-cache-hardening",
+    "runId": "run-67",
+    "repository": "https://github.com/acme/widgets",
+    "branch": "change/cache-hardening",
+    "worktreePath": "/repo/.woostack/worktrees/tasks/task-cache-hardening",
+    "startCommit": "b67",
+    "graphiteParent": "staging"
+  },
   "git": {
     "complete": true,
-    "deterministicTaskWorktreePath": "/repo/.woostack/worktrees/tasks/linear-issue-67",
+    "deterministicTaskWorktreePath": "/repo/.woostack/worktrees/tasks/task-cache-hardening",
     "worktrees": [],
     "localBranches": [],
     "issueCommits": []
@@ -93,9 +64,5 @@
   "github": {
     "complete": true,
     "pullRequests": []
-  },
-  "linearRelations": {
-    "complete": true,
-    "branchOrPr": []
   }
 }

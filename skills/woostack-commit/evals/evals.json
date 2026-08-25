@@ -4,70 +4,96 @@
   "cases": [
     {
       "id": "submits-standalone-work-item-with-merge-closing-reference",
-      "prompt": "Classify this bounded normalized /woostack-commit receipt without running Git, Graphite, GitHub, Linear, network, or provider commands. The caller supplied exact canonical issue reference APP-41. Independent official-MCP reads verify one managed role-work-item issue in executing, canonical repository https://github.com/acme/widgets, no project membership, app delegate engineer-7 matching the authenticated controller, current assignment and passing verification, and a canonical precommitReview whose two ordered reviewer receipts/PASS verdicts, sorted changed paths, and reviewed byte-safe precommit diff hash match repository truth. No reviewResult exists because no PR/full review exists yet. Git verifies change/cache-guard at the resolved main base with valid ancestry and Graphite registration. The proposed body has one final raw Resolves APP-41 line and no project or Spec mention. The finalized local commit is c41. Its owner-authored typed implementationEvidence contains only baseCommitSha b41, headCommitSha c41, and committedDiffHash d41; its related IDs are exactly current assignment, verification, and precommitReview; and it reads back exactly before gt submit. The canonical PR then reads back with the same head/base/body, its issue relation reads back exactly, and the issue state reads back inReview. Return exactly one JSON object using keys status, issueRole, projectIdentityUsed, closingReferences, operationOrder, finalIssueState, and mergeAllowed.",
+      "prompt": "Classify a bounded /woostack-commit invocation with exact Linear issue reference APP-41 (--issue APP-41). Configuration selects artifacts.provider: \"linear\" on workspace acme and repository https://github.com/acme/widgets. Official Linear MCP resolves APP-41 to native UUID 11111111-1111-4111-8111-111111111141, verifies work-item state in started, repository ownership, requires only exact work-item read, delivery note read, and delivery note write/read-back capabilities (issueRead, commentRead, commentWrite), while unrelated capabilities (relationWrite, projectLabelRead, projectLabelWrite) are absent and do not block. It appends Resolves APP-41 to the PR body, executes delivery note with independent read-back, preserves started work-item state without state mutation, forbids relation/label mutation, and leaves merge authority with GitHub. Return exactly one JSON object with keys status, provider, workItemSequenceId, workItemUuid, closingReference, requiredCapabilitiesVerified, unrelatedCapabilitiesIgnored, readBackComplete, finalWorkItemState, stateMutations, relationMutations, and mergeAllowed.",
       "fixtures": [],
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "The standalone issue remains project-free, records finalized implementation evidence before submission, has one verified merge-closing issue reference, verifies PR/relation/state in order, and never merges.",
+      "expected": "Exact Linear issue attribution proves minimum exact capabilities (issueRead, commentRead, commentWrite), ignores absent unrelated capabilities, writes closing reference to PR body, executes delivery note with read-back, preserves started state with zero state and relation mutations, and leaves merge ungranted.",
       "assertions": [
         {
-          "id": "standalone-success",
+          "id": "standalone-commit-status",
           "kind": "final-json-path-equals",
           "pointer": "/status",
-          "expected": "verified",
+          "expected": "committed",
           "critical": true
         },
         {
-          "id": "standalone-role",
+          "id": "standalone-commit-provider",
           "kind": "final-json-path-equals",
-          "pointer": "/issueRole",
-          "expected": "work-item",
+          "pointer": "/provider",
+          "expected": "linear",
           "critical": true
         },
         {
-          "id": "standalone-no-project",
+          "id": "standalone-commit-sequence-id",
           "kind": "final-json-path-equals",
-          "pointer": "/projectIdentityUsed",
-          "expected": false,
+          "pointer": "/workItemSequenceId",
+          "expected": "APP-41",
           "critical": true
         },
         {
-          "id": "standalone-exact-closing-reference",
+          "id": "standalone-commit-uuid",
           "kind": "final-json-path-equals",
-          "pointer": "/closingReferences",
+          "pointer": "/workItemUuid",
+          "expected": "11111111-1111-4111-8111-111111111141",
+          "critical": true
+        },
+        {
+          "id": "standalone-commit-closing-ref",
+          "kind": "final-json-path-equals",
+          "pointer": "/closingReference",
+          "expected": "Resolves APP-41",
+          "critical": true
+        },
+        {
+          "id": "standalone-commit-capabilities",
+          "kind": "final-json-path-equals",
+          "pointer": "/requiredCapabilitiesVerified",
           "expected": [
-            "Resolves APP-41"
+            "issueRead",
+            "commentRead",
+            "commentWrite"
           ],
           "critical": true
         },
         {
-          "id": "standalone-operation-order",
+          "id": "standalone-commit-unrelated-caps-ignored",
           "kind": "final-json-path-equals",
-          "pointer": "/operationOrder",
-          "expected": [
-            "commit",
-            "implementationEvidence:append",
-            "implementationEvidence:read-back",
-            "gt submit",
-            "canonical-pr:update",
-            "canonical-pr:read-back",
-            "issue-pr-relation:write",
-            "issue-pr-relation:read-back",
-            "issue-state:inReview",
-            "issue-state:read-back"
-          ],
+          "pointer": "/unrelatedCapabilitiesIgnored",
+          "expected": true,
           "critical": true
         },
         {
-          "id": "standalone-in-review",
+          "id": "standalone-commit-readback",
           "kind": "final-json-path-equals",
-          "pointer": "/finalIssueState",
-          "expected": "inReview",
+          "pointer": "/readBackComplete",
+          "expected": true,
           "critical": true
         },
         {
-          "id": "standalone-never-merges",
+          "id": "standalone-commit-final-state",
+          "kind": "final-json-path-equals",
+          "pointer": "/finalWorkItemState",
+          "expected": "started",
+          "critical": true
+        },
+        {
+          "id": "standalone-commit-zero-state-mutations",
+          "kind": "final-json-path-equals",
+          "pointer": "/stateMutations",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "standalone-commit-zero-relation-mutations",
+          "kind": "final-json-path-equals",
+          "pointer": "/relationMutations",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "standalone-commit-no-merge",
           "kind": "final-json-path-equals",
           "pointer": "/mergeAllowed",
           "expected": false,
@@ -76,67 +102,93 @@
       ]
     },
     {
-      "id": "submits-project-increment-with-issue-closing-reference",
-      "prompt": "Classify this bounded normalized /woostack-commit receipt without running commands or mutating anything. The caller supplied exact canonical issue reference APP-42 and exact project UUID 11111111-1111-4111-8111-111111111111. Complete independent official-MCP reads return provider-native issue UUID 22222222-2222-4222-8222-222222222222 and verify a managed role-increment issue APP-42 in executing, one managed role-feature project, matching native project membership, canonical repository https://github.com/acme/widgets, matching human assignee/authenticated controller, current assignment, passing verification, and canonical passing precommitReview for the exact reviewed uncommitted diff; post-PR reviewResult is absent and not a commit input. Git and Graphite verify feature/app-42 descends from and targets its declared parent feature/app-41 and all additional dependencies are reachable. Finalized commit c42 receives an exact typed implementationEvidence read-back containing only baseCommitSha, headCommitSha, and committedDiffHash with related IDs exactly assignment, verification, precommitReview, and native project ID before submission. The canonical PR and exact Resolves APP-42 body line, relation evidence, and inReview state all read back independently. Return exactly one JSON object using keys status, issueRole, projectIdentityUsed, closingReferences, ancestryVerified, relationVerified, finalIssueState, and mergeAllowed.",
+      "id": "submits-increment-work-item-and-verifies-relation-without-project-mutation",
+      "prompt": "Classify a bounded /woostack-commit invocation with exact Linear increment issue reference APP-42 (--issue APP-42) and exact project UUID 11111111-1111-4111-8111-111111111111. Official Linear MCP resolves APP-42 to native UUID 22222222-2222-4222-8222-222222222222 in workspace acme for repository https://github.com/acme/widgets. It verifies project association read-only without project mutation, appends Resolves APP-42 to the PR body, executes delivery note with read-back, preserves started state with zero state and zero relation mutations, and leaves merge authority with GitHub. Return exactly one JSON object with keys status, provider, workItemSequenceId, workItemUuid, projectId, projectMutationCount, closingReference, readBackComplete, finalWorkItemState, stateMutations, relationMutations, and mergeAllowed.",
       "fixtures": [],
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "The increment uses exactly its verified feature project, preserves declared Git ancestry, carries one merge-closing issue reference and no project reference, verifies relation/state, and never merges.",
+      "expected": "Exact Linear increment attribution verifies existing project membership without project mutation, writes closing reference to PR body, executes delivery note with read-back, preserves started state with zero state and relation mutations, and leaves merge ungranted.",
       "assertions": [
         {
-          "id": "increment-success",
+          "id": "increment-commit-status",
           "kind": "final-json-path-equals",
           "pointer": "/status",
-          "expected": "verified",
+          "expected": "committed",
           "critical": true
         },
         {
-          "id": "increment-role",
+          "id": "increment-commit-provider",
           "kind": "final-json-path-equals",
-          "pointer": "/issueRole",
-          "expected": "increment",
+          "pointer": "/provider",
+          "expected": "linear",
           "critical": true
         },
         {
-          "id": "increment-project-used",
+          "id": "increment-commit-sequence-id",
           "kind": "final-json-path-equals",
-          "pointer": "/projectIdentityUsed",
+          "pointer": "/workItemSequenceId",
+          "expected": "APP-42",
+          "critical": true
+        },
+        {
+          "id": "increment-commit-uuid",
+          "kind": "final-json-path-equals",
+          "pointer": "/workItemUuid",
+          "expected": "22222222-2222-4222-8222-222222222222",
+          "critical": true
+        },
+        {
+          "id": "increment-commit-project-id",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectId",
+          "expected": "11111111-1111-4111-8111-111111111111",
+          "critical": true
+        },
+        {
+          "id": "increment-commit-no-project-mutation",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectMutationCount",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "increment-commit-closing-ref",
+          "kind": "final-json-path-equals",
+          "pointer": "/closingReference",
+          "expected": "Resolves APP-42",
+          "critical": true
+        },
+        {
+          "id": "increment-commit-readback",
+          "kind": "final-json-path-equals",
+          "pointer": "/readBackComplete",
           "expected": true,
           "critical": true
         },
         {
-          "id": "increment-exact-closing-reference",
+          "id": "increment-commit-final-state",
           "kind": "final-json-path-equals",
-          "pointer": "/closingReferences",
-          "expected": [
-            "Resolves APP-42"
-          ],
+          "pointer": "/finalWorkItemState",
+          "expected": "started",
           "critical": true
         },
         {
-          "id": "increment-ancestry-verified",
+          "id": "increment-commit-zero-state-mutations",
           "kind": "final-json-path-equals",
-          "pointer": "/ancestryVerified",
-          "expected": true,
+          "pointer": "/stateMutations",
+          "expected": 0,
           "critical": true
         },
         {
-          "id": "increment-relation-verified",
+          "id": "increment-commit-zero-relation-mutations",
           "kind": "final-json-path-equals",
-          "pointer": "/relationVerified",
-          "expected": true,
+          "pointer": "/relationMutations",
+          "expected": 0,
           "critical": true
         },
         {
-          "id": "increment-in-review",
-          "kind": "final-json-path-equals",
-          "pointer": "/finalIssueState",
-          "expected": "inReview",
-          "critical": true
-        },
-        {
-          "id": "increment-never-merges",
+          "id": "increment-commit-no-merge",
           "kind": "final-json-path-equals",
           "pointer": "/mergeAllowed",
           "expected": false,
@@ -146,7 +198,7 @@
     },
     {
       "id": "rejects-malformed-work-item-attribution-before-mutation",
-      "prompt": "Classify this bounded pre-commit state without running commands or mutating anything. The exact official-MCP issue read is otherwise valid role-work-item APP-43 with no project membership, but the proposed PR body would append Resolves APP-43 even though one exact matching line already exists, and also contains a raw Spec: .woostack/fixes/cache.md line. Return exactly one JSON object using keys status, reasonCode, commitCreated, commentMutations, prMutations, relationMutations, stateMutations, and mergeAllowed.",
+      "prompt": "Classify this bounded pre-commit state without running commands or mutating anything. The exact official-MCP issue read is otherwise valid issue APP-43 with no project membership, but the proposed PR body would append Resolves APP-43 even though one exact matching line already exists, and also contains a raw Spec: .woostack/fixes/cache.md line. Return exactly one JSON object using keys status, reasonCode, commitCreated, commentMutations, prMutations, relationMutations, stateMutations, and mergeAllowed.",
       "fixtures": [],
       "capabilities": [
         "read-workspace"
@@ -212,72 +264,51 @@
       ]
     },
     {
-      "id": "stops-on-partial-implementation-evidence-read-back",
-      "prompt": "Classify this bounded post-commit state without running commands or mutating anything. All pre-commit issue, role-work-item, owner/controller, repository, ancestry, relation, passing verification, canonical precommitReview, reviewed-diff, and merge-closing issue-reference checks passed and finalized commit c44 exists locally. The implementationEvidence append response reported success, but the independent comment read finds the stable event UUID with missing assignment/verification/precommitReview relatedIds and no committedDiffHash. No push or Graphite submission has occurred. Return exactly one JSON object using keys status, reasonCode, commitCreated, implementationEvidenceVerified, submitAttempted, prMutationAttempted, relationMutationAttempted, stateMutationAttempted, and mergeAllowed.",
+      "id": "partial-provider-delivery-note-sync-fails-without-invalidating-pr",
+      "prompt": "Classify a bounded /woostack-commit delivery where commit and PR delivery succeed on GitHub (https://github.com/acme/widgets/pull/44), but the optional provider delivery note write or read-back times out / returns a partial read-back. Record provider sync failure without invalidating the PR, leave repository mutation at zero, and return delivered status. Return exactly one JSON object with keys status, prDeliveryStatus, providerSyncStatus, openPrUrl, providerMutationCount, repositoryMutationCount, and mergeAllowed.",
       "fixtures": [],
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "A partial comment read-back is unknown, preserves the local commit and stable event UUID, and stops before submission, PR, relation, or state mutation.",
+      "expected": "Partial provider delivery note read-back records provider sync failure, leaves PR delivery intact on GitHub, performs zero repository mutations, and delegates merge authority.",
       "assertions": [
         {
-          "id": "partial-read-blocked",
+          "id": "partial-sync-status",
           "kind": "final-json-path-equals",
           "pointer": "/status",
-          "expected": "blocked",
+          "expected": "delivered",
           "critical": true
         },
         {
-          "id": "partial-read-reason",
+          "id": "partial-sync-pr-delivery",
           "kind": "final-json-path-equals",
-          "pointer": "/reasonCode",
-          "expected": "implementation-evidence-read-back-incomplete",
+          "pointer": "/prDeliveryStatus",
+          "expected": "complete",
           "critical": true
         },
         {
-          "id": "partial-read-keeps-commit",
+          "id": "partial-sync-provider-status",
           "kind": "final-json-path-equals",
-          "pointer": "/commitCreated",
-          "expected": true,
+          "pointer": "/providerSyncStatus",
+          "expected": "failed",
           "critical": true
         },
         {
-          "id": "partial-read-not-verified",
+          "id": "partial-sync-pr-url",
           "kind": "final-json-path-equals",
-          "pointer": "/implementationEvidenceVerified",
-          "expected": false,
+          "pointer": "/openPrUrl",
+          "expected": "https://github.com/acme/widgets/pull/44",
           "critical": true
         },
         {
-          "id": "partial-read-no-submit",
+          "id": "partial-sync-no-repo-mutation",
           "kind": "final-json-path-equals",
-          "pointer": "/submitAttempted",
-          "expected": false,
+          "pointer": "/repositoryMutationCount",
+          "expected": 0,
           "critical": true
         },
         {
-          "id": "partial-read-no-pr-write",
-          "kind": "final-json-path-equals",
-          "pointer": "/prMutationAttempted",
-          "expected": false,
-          "critical": true
-        },
-        {
-          "id": "partial-read-no-relation",
-          "kind": "final-json-path-equals",
-          "pointer": "/relationMutationAttempted",
-          "expected": false,
-          "critical": true
-        },
-        {
-          "id": "partial-read-no-state",
-          "kind": "final-json-path-equals",
-          "pointer": "/stateMutationAttempted",
-          "expected": false,
-          "critical": true
-        },
-        {
-          "id": "partial-read-never-merges",
+          "id": "partial-sync-never-merges",
           "kind": "final-json-path-equals",
           "pointer": "/mergeAllowed",
           "expected": false,
@@ -287,12 +318,12 @@
     },
     {
       "id": "resumes-after-unknown-submit-without-replaying-exact-boundaries",
-      "prompt": "Classify this bounded resume snapshot without running commands or mutating anything. Fresh complete reads verify the caller-owned work-item, unchanged owner/authenticated controller, repository, ancestry, finalized local commit c45, and one exact implementationEvidence event with stable UUID e45, only baseCommitSha b45, headCommitSha c45, and committedDiffHash d45, and exact native relations to the assignment, passing verification, and passing precommitReview revisions that were current at e45's native timestamp. It has no post-PR reviewResult relation. A prior gt submit timed out, but fresh Graphite and canonical GitHub reads now verify the exact submitted branch, commit, PR head/base/body, and merge-closing issue reference. PR fields are exact. The Linear branch/PR relation is proven absent and the issue remains executing. Return exactly one JSON object using keys status, resumeBoundary, skippedMutations, hookRuns, passFreshnessRuns, stagingRuns, gtModifyRuns, nextMutation, resubmitAllowed, duplicateEventAllowed, and mergeAllowed.",
+      "prompt": "Classify this bounded repository resume snapshot after a prior gt submit timeout without running commands. Fresh complete Git, Graphite, and GitHub reads verify finalized local commit c45, submitted branch change/cache-recovery, and canonical GitHub PR https://github.com/acme/widgets/pull/45 with exact head/base and merge-closing reference. PR fields and submission already match. Because the PR is already open and up-to-date, resume skips gt modify, gt submit, and gh pr edit, and proceeds to optional provider delivery note. Return exactly one JSON object using keys status, resumeBoundary, skippedMutations, resubmitAllowed, and mergeAllowed.",
       "fixtures": [],
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "Resume runs zero hook, PASS-freshness helper, staging, or gt modify operations; it skips the finalized commit, exact event, submission, and exact PR edit, preserves the event UUID, and admits only the missing Linear relation next.",
+      "expected": "Resume discovers the existing valid commit and open PR on GitHub, skips duplicate modify, submit, and PR edit operations, and proceeds without replaying repo mutations.",
       "assertions": [
         {
           "id": "resume-admitted",
@@ -302,10 +333,10 @@
           "critical": true
         },
         {
-          "id": "resume-first-missing-boundary",
+          "id": "resume-boundary",
           "kind": "final-json-path-equals",
           "pointer": "/resumeBoundary",
-          "expected": "linear-pr-relation",
+          "expected": "provider-delivery-note",
           "critical": true
         },
         {
@@ -314,17 +345,9 @@
           "pointer": "/skippedMutations",
           "expected": [
             "gt modify",
-            "implementationEvidence:append",
             "gt submit",
             "gh pr edit"
           ],
-          "critical": true
-        },
-        {
-          "id": "resume-relation-next",
-          "kind": "final-json-path-equals",
-          "pointer": "/nextMutation",
-          "expected": "linear-pr-relation:write",
           "critical": true
         },
         {
@@ -332,41 +355,6 @@
           "kind": "final-json-path-equals",
           "pointer": "/resubmitAllowed",
           "expected": false,
-          "critical": true
-        },
-        {
-          "id": "resume-does-not-duplicate-event",
-          "kind": "final-json-path-equals",
-          "pointer": "/duplicateEventAllowed",
-          "expected": false,
-          "critical": true
-        },
-        {
-          "id": "resume-runs-no-hook",
-          "kind": "final-json-path-equals",
-          "pointer": "/hookRuns",
-          "expected": 0,
-          "critical": true
-        },
-        {
-          "id": "resume-runs-no-pass-helper",
-          "kind": "final-json-path-equals",
-          "pointer": "/passFreshnessRuns",
-          "expected": 0,
-          "critical": true
-        },
-        {
-          "id": "resume-runs-no-staging",
-          "kind": "final-json-path-equals",
-          "pointer": "/stagingRuns",
-          "expected": 0,
-          "critical": true
-        },
-        {
-          "id": "resume-runs-no-modify",
-          "kind": "final-json-path-equals",
-          "pointer": "/gtModifyRuns",
-          "expected": 0,
           "critical": true
         },
         {
@@ -380,12 +368,12 @@
     },
     {
       "id": "unknown-submit-resubmits-only-after-complete-absence",
-      "prompt": "Classify this bounded resume snapshot without running commands or mutating anything. The exact finalized commit c46 and implementationEvidence event e46 read back completely with unchanged owner/controller, payload-only commit identity, and exact assignment/verification/precommitReview relations; it has no reviewResult relation. A prior gt submit timed out. Fresh complete Graphite and GitHub reads, including all required pages, prove the remote branch, Graphite submission, and canonical PR are all absent. The issue remains executing with no PR relation. Return exactly one JSON object using keys status, resumeBoundary, resubmitAllowed, gtModifyAllowed, newEventUuidAllowed, reasonCode, and mergeAllowed.",
+      "prompt": "Classify this bounded repository resume snapshot after a prior gt submit timeout without running commands. Exact finalized commit c46 exists locally. Fresh complete Graphite and GitHub reads, including all required pages, prove the remote branch, Graphite submission, and canonical PR are all absent on GitHub. Return exactly one JSON object using keys status, resumeBoundary, resubmitAllowed, gtModifyAllowed, reasonCode, and mergeAllowed.",
       "fixtures": [],
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "Complete remote absence admits one Graphite resubmit while preserving the exact local commit and existing implementation event.",
+      "expected": "Complete remote absence admits one Graphite resubmit while preserving the exact local commit.",
       "assertions": [
         {
           "id": "absence-resume-ready",
@@ -416,13 +404,6 @@
           "critical": true
         },
         {
-          "id": "absence-does-not-reallocate-event",
-          "kind": "final-json-path-equals",
-          "pointer": "/newEventUuidAllowed",
-          "expected": false,
-          "critical": true
-        },
-        {
           "id": "absence-has-no-blocker",
           "kind": "final-json-path-equals",
           "pointer": "/reasonCode",
@@ -440,12 +421,12 @@
     },
     {
       "id": "rebuilds-stale-pr-from-exact-committed-diff-on-resume",
-      "prompt": "Classify this bounded resume snapshot without running commands or mutating anything. Fresh complete reads verify one caller-owned work-item, exact finalized local commit c47 from base b47, exact implementationEvidence e47 with committedDiffHash d47 and canonical assignment/verification/precommitReview relations, exact Graphite submission, and the canonical PR identity/head/base. The implementation event contains no post-PR reviewResult relation. The PR body is stale and unattributed, so PR fields are the first missing boundary. The prior in-memory draft is lost. Current unrelated state contains staged notes/private.txt, unstaged scratch.txt, and untracked tmp/output.bin. No retained observation proves the earlier pre_commit command or result for b47..c47. Return exactly one JSON object using keys status, resumeBoundary, draftSource, draftIdentity, usedLostDraft, ignoredDirtyState, hookResultReport, hookRuns, passFreshnessRuns, stagingRuns, gtModifyRuns, nextMutation, and mergeAllowed.",
+      "prompt": "Classify this bounded resume snapshot without running commands or mutating anything. Fresh complete reads verify exact finalized local commit c47 from base b47, exact Graphite submission, and canonical PR identity. The PR body is stale and unattributed, so PR fields are the first missing boundary. Current unrelated state contains staged notes/private.txt, unstaged scratch.txt, and untracked tmp/output.bin. Resume reconstructs the PR body from the verified committed b47-to-c47 diff, ignores unrelated dirty state, and admits only the PR field edit. Return exactly one JSON object using keys status, resumeBoundary, draftSource, draftIdentity, ignoredDirtyState, nextMutation, and mergeAllowed.",
       "fixtures": [],
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "Resume reconstructs the stale PR solely from the verified committed b47-to-c47 diff, ignores every dirty-state class and lost draft, reports unavailable hook evidence without rerunning it, performs zero hook/PASS/stage/modify operations, and admits only the PR field edit.",
+      "expected": "Resume reconstructs the stale PR solely from the verified committed b47-to-c47 diff, ignores unrelated dirty-state files, and admits only the PR field edit.",
       "assertions": [
         {
           "id": "stale-pr-resume-ready",
@@ -472,14 +453,7 @@
           "id": "stale-pr-uses-exact-identity",
           "kind": "final-json-path-equals",
           "pointer": "/draftIdentity",
-          "expected": "b47..c47:d47",
-          "critical": true
-        },
-        {
-          "id": "stale-pr-does-not-use-lost-draft",
-          "kind": "final-json-path-equals",
-          "pointer": "/usedLostDraft",
-          "expected": false,
+          "expected": "b47..c47",
           "critical": true
         },
         {
@@ -491,41 +465,6 @@
             "unstaged:scratch.txt",
             "untracked:tmp/output.bin"
           ],
-          "critical": true
-        },
-        {
-          "id": "stale-pr-reports-hook-unavailable",
-          "kind": "final-json-path-equals",
-          "pointer": "/hookResultReport",
-          "expected": "Not rerun on resume; prior pre_commit result unavailable",
-          "critical": true
-        },
-        {
-          "id": "stale-pr-no-hook",
-          "kind": "final-json-path-equals",
-          "pointer": "/hookRuns",
-          "expected": 0,
-          "critical": true
-        },
-        {
-          "id": "stale-pr-no-pass-helper",
-          "kind": "final-json-path-equals",
-          "pointer": "/passFreshnessRuns",
-          "expected": 0,
-          "critical": true
-        },
-        {
-          "id": "stale-pr-no-staging",
-          "kind": "final-json-path-equals",
-          "pointer": "/stagingRuns",
-          "expected": 0,
-          "critical": true
-        },
-        {
-          "id": "stale-pr-no-modify",
-          "kind": "final-json-path-equals",
-          "pointer": "/gtModifyRuns",
-          "expected": 0,
           "critical": true
         },
         {
@@ -546,14 +485,14 @@
     },
     {
       "id": "admits-one-exact-direct-branch-creation",
-      "prompt": "Inspect only the declared fixture fixtures/branch-receipt-01.json as a bounded input snapshot. Apply the packaged /woostack-commit branch-admission contract without invoking Git, Graphite, GitHub, Linear, network, provider, or mutation commands. Return exactly one JSON object using keys status, reasonCode, branchAction, branchName, identityBinding, parentBinding, worktreeBinding, authorizedCommands, commandCounts, and mutationCounts.",
+      "prompt": "Inspect only the declared fixture fixtures/branch-receipt-01.json as a bounded input snapshot. Apply the packaged /woostack-commit branch-admission contract without invoking Git, Graphite, GitHub, network, provider, or mutation commands. Return exactly one JSON object using keys status, reasonCode, branchAction, branchName, identityBinding, parentBinding, worktreeBinding, authorizedCommands, commandCounts, and mutationCounts.",
       "fixtures": [
         "branch-receipt-01.json"
       ],
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "The exact direct receipt authorizes one role-derived branch creation from the retained Graphite parent, binds the canonical native-issue worktree, and does not run gt modify.",
+      "expected": "The exact direct receipt authorizes one direct branch creation from the retained Graphite parent, binds the canonical task worktree, and does not run gt modify.",
       "assertions": [
         {
           "id": "direct-branch-ready",
@@ -573,16 +512,16 @@
           "id": "direct-branch-name",
           "kind": "final-json-path-equals",
           "pointer": "/branchName",
-          "expected": "change/app-61",
+          "expected": "change/cache-guard",
           "critical": true
         },
         {
-          "id": "direct-native-identity-binding",
+          "id": "direct-identity-binding",
           "kind": "final-json-path-equals",
           "pointer": "/identityBinding",
           "expected": {
-            "kind": "native-linear-issue-id",
-            "value": "linear-issue-61"
+            "kind": "stable-task-id",
+            "value": "task-cache-guard"
           },
           "critical": true
         },
@@ -601,8 +540,8 @@
           "kind": "final-json-path-equals",
           "pointer": "/worktreeBinding",
           "expected": {
-            "path": "/repo/.woostack/worktrees/tasks/linear-issue-61",
-            "branch": "change/app-61"
+            "path": "/repo/.woostack/worktrees/tasks/task-cache-guard",
+            "branch": "change/cache-guard"
           },
           "critical": true
         },
@@ -634,14 +573,14 @@
     },
     {
       "id": "reuses-exact-caller-created-branch",
-      "prompt": "Inspect only the declared fixture fixtures/branch-receipt-02.json as a bounded input snapshot. Apply the packaged /woostack-commit branch-admission contract without invoking Git, Graphite, GitHub, Linear, network, provider, or mutation commands. Return exactly one JSON object using keys status, reasonCode, branchAction, branchName, identityBinding, parentBinding, worktreeBinding, authorizedCommands, commandCounts, and mutationCounts.",
+      "prompt": "Inspect only the declared fixture fixtures/branch-receipt-02.json as a bounded input snapshot. Apply the packaged /woostack-commit branch-admission contract without invoking Git, Graphite, GitHub, network, provider, or mutation commands. Return exactly one JSON object using keys status, reasonCode, branchAction, branchName, identityBinding, parentBinding, worktreeBinding, authorizedCommands, commandCounts, and mutationCounts.",
       "fixtures": [
         "branch-receipt-02.json"
       ],
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "The exact caller task contract, branch, deterministic worktree, parent, owner, and assignment agree with direct repository evidence and are reused in place; verification and gt modify are selected while every creation command remains absent.",
+      "expected": "The exact caller task contract, branch, deterministic worktree, and parent agree with direct repository evidence and are reused in place; verification and gt modify are selected while every creation command remains absent.",
       "assertions": [
         {
           "id": "reuse-branch-ready",
@@ -661,16 +600,16 @@
           "id": "reuse-branch-name",
           "kind": "final-json-path-equals",
           "pointer": "/branchName",
-          "expected": "change/app-62",
+          "expected": "change/cache-refresh",
           "critical": true
         },
         {
-          "id": "reuse-native-identity-binding",
+          "id": "reuse-identity-binding",
           "kind": "final-json-path-equals",
           "pointer": "/identityBinding",
           "expected": {
-            "kind": "native-linear-issue-id",
-            "value": "linear-issue-62"
+            "kind": "stable-task-id",
+            "value": "task-cache-refresh"
           },
           "critical": true
         },
@@ -689,8 +628,8 @@
           "kind": "final-json-path-equals",
           "pointer": "/worktreeBinding",
           "expected": {
-            "path": "/repo/.woostack/worktrees/tasks/linear-issue-62",
-            "branch": "change/app-62"
+            "path": "/repo/.woostack/worktrees/tasks/task-cache-refresh",
+            "branch": "change/cache-refresh"
           },
           "critical": true
         },
@@ -721,14 +660,14 @@
     },
     {
       "id": "blocks-conflicting-checkout-path",
-      "prompt": "Inspect only the declared fixture fixtures/branch-receipt-03.json as a bounded input snapshot. Apply the packaged /woostack-commit branch-admission contract without invoking Git, Graphite, GitHub, Linear, network, provider, or mutation commands. Return exactly one JSON object using keys status, reasonCode, branchAction, branchName, identityBinding, parentBinding, worktreeBinding, authorizedCommands, commandCounts, and mutationCounts.",
+      "prompt": "Inspect only the declared fixture fixtures/branch-receipt-03.json as a bounded input snapshot. Apply the packaged /woostack-commit branch-admission contract without invoking Git, Graphite, GitHub, network, provider, or mutation commands. Return exactly one JSON object using keys status, reasonCode, branchAction, branchName, identityBinding, parentBinding, worktreeBinding, authorizedCommands, commandCounts, and mutationCounts.",
       "fixtures": [
         "branch-receipt-03.json"
       ],
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "The conflicting display branch and foreign checkout at a non-deterministic path fail closed without selecting an identity, parent, worktree, branch command, commit, PR write, or Linear mutation.",
+      "expected": "The conflicting display branch and foreign checkout at a non-deterministic path fail closed without selecting an identity, parent, worktree, branch command, commit, PR write, or provider mutation.",
       "assertions": [
         {
           "id": "collision-branch-blocked",
@@ -807,60 +746,60 @@
             "branch": 0,
             "commit": 0,
             "pullRequest": 0,
-            "linear": 0
+            "provider": 0
           },
           "critical": true
         }
       ]
     },
     {
-      "id": "blocks-owner-drift-on-task-contract",
-      "prompt": "Inspect only the declared fixture fixtures/branch-receipt-04.json as a bounded input snapshot. Apply the packaged /woostack-commit branch-admission contract without invoking Git, Graphite, GitHub, Linear, network, provider, or mutation commands. Return exactly one JSON object using keys status, reasonCode, branchAction, branchName, identityBinding, parentBinding, worktreeBinding, authorizedCommands, commandCounts, and mutationCounts.",
+      "id": "blocks-run-identity-drift",
+      "prompt": "Inspect only the declared fixture fixtures/branch-receipt-04.json as a bounded input snapshot. Apply the packaged /woostack-commit branch-admission contract without invoking Git, Graphite, GitHub, network, provider, or mutation commands. Return exactly one JSON object using keys status, reasonCode, branchAction, branchName, identityBinding, parentBinding, worktreeBinding, authorizedCommands, commandCounts, and mutationCounts.",
       "fixtures": [
         "branch-receipt-04.json"
       ],
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "The stale owner and assignment retained by the active task contract fail closed without selecting its otherwise matching branch, parent, or deterministic path and without any downstream mutation.",
+      "expected": "The run identity drift between the active task contract and the branch handoff fails closed without selecting its otherwise matching branch, parent, or deterministic path and without any downstream mutation.",
       "assertions": [
         {
-          "id": "owner-drift-branch-blocked",
+          "id": "run-drift-branch-blocked",
           "kind": "final-json-path-equals",
           "pointer": "/status",
           "expected": "blocked",
           "critical": true
         },
         {
-          "id": "owner-drift-branch-reason",
+          "id": "run-drift-branch-reason",
           "kind": "final-json-path-equals",
           "pointer": "/reasonCode",
-          "expected": "owner-drift",
+          "expected": "run-identity-drift",
           "critical": true
         },
         {
-          "id": "owner-drift-no-branch-action",
+          "id": "run-drift-no-branch-action",
           "kind": "final-json-path-equals",
           "pointer": "/branchAction",
           "expected": "none",
           "critical": true
         },
         {
-          "id": "owner-drift-no-branch-name",
+          "id": "run-drift-no-branch-name",
           "kind": "final-json-path-equals",
           "pointer": "/branchName",
           "expected": null,
           "critical": true
         },
         {
-          "id": "owner-drift-no-command-choice",
+          "id": "run-drift-no-command-choice",
           "kind": "final-json-path-equals",
           "pointer": "/authorizedCommands",
           "expected": [],
           "critical": true
         },
         {
-          "id": "owner-drift-zero-command-counts",
+          "id": "run-drift-zero-command-counts",
           "kind": "final-json-path-equals",
           "pointer": "/commandCounts",
           "expected": {
@@ -873,35 +812,35 @@
           "critical": true
         },
         {
-          "id": "owner-drift-no-selected-bindings",
+          "id": "run-drift-no-selected-bindings",
           "kind": "final-json-path-equals",
           "pointer": "/identityBinding",
           "expected": null,
           "critical": true
         },
         {
-          "id": "owner-drift-no-parent-binding",
+          "id": "run-drift-no-parent-binding",
           "kind": "final-json-path-equals",
           "pointer": "/parentBinding",
           "expected": null,
           "critical": true
         },
         {
-          "id": "owner-drift-no-worktree-binding",
+          "id": "run-drift-no-worktree-binding",
           "kind": "final-json-path-equals",
           "pointer": "/worktreeBinding",
           "expected": null,
           "critical": true
         },
         {
-          "id": "owner-drift-zero-forbidden-mutations",
+          "id": "run-drift-zero-forbidden-mutations",
           "kind": "final-json-path-equals",
           "pointer": "/mutationCounts",
           "expected": {
             "branch": 0,
             "commit": 0,
             "pullRequest": 0,
-            "linear": 0
+            "provider": 0
           },
           "critical": true
         }
@@ -909,14 +848,14 @@
     },
     {
       "id": "blocks-worktree-path-drift",
-      "prompt": "Inspect only the declared fixture fixtures/branch-receipt-05.json as a bounded input snapshot. Apply the packaged /woostack-commit branch-admission contract without invoking Git, Graphite, GitHub, Linear, network, provider, or mutation commands. Return exactly one JSON object using keys status, reasonCode, branchAction, branchName, identityBinding, parentBinding, worktreeBinding, authorizedCommands, commandCounts, and mutationCounts.",
+      "prompt": "Inspect only the declared fixture fixtures/branch-receipt-05.json as a bounded input snapshot. Apply the packaged /woostack-commit branch-admission contract without invoking Git, Graphite, GitHub, network, provider, or mutation commands. Return exactly one JSON object using keys status, reasonCode, branchAction, branchName, identityBinding, parentBinding, worktreeBinding, authorizedCommands, commandCounts, and mutationCounts.",
       "fixtures": [
         "branch-receipt-05.json"
       ],
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "The branch checked out outside the deterministic task path fails closed rather than being adopted, attached, recreated, or committed, with no PR or Linear mutation.",
+      "expected": "The branch checked out outside the deterministic task path fails closed rather than being adopted, attached, recreated, or committed, with no PR or provider mutation.",
       "assertions": [
         {
           "id": "worktree-drift-branch-blocked",
@@ -995,7 +934,7 @@
             "branch": 0,
             "commit": 0,
             "pullRequest": 0,
-            "linear": 0
+            "provider": 0
           },
           "critical": true
         }
@@ -1003,14 +942,14 @@
     },
     {
       "id": "blocks-direct-creation-with-preexisting-artifacts",
-      "prompt": "Inspect only the declared fixture fixtures/branch-receipt-06.json as a bounded input snapshot. Apply the packaged /woostack-commit branch-admission contract without invoking Git, Graphite, GitHub, Linear, network, provider, or mutation commands. Return exactly one JSON object using keys status, reasonCode, branchAction, branchName, identityBinding, parentBinding, worktreeBinding, authorizedCommands, commandCounts, and mutationCounts.",
+      "prompt": "Inspect only the declared fixture fixtures/branch-receipt-06.json as a bounded input snapshot. Apply the packaged /woostack-commit branch-admission contract without invoking Git, Graphite, GitHub, network, provider, or mutation commands. Return exactly one JSON object using keys status, reasonCode, branchAction, branchName, identityBinding, parentBinding, worktreeBinding, authorizedCommands, commandCounts, and mutationCounts.",
       "fixtures": [
         "branch-receipt-06.json"
       ],
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "The observed submission, remote branch, canonical PR, and Linear relation disqualify fresh direct creation and cannot be adopted without a matching approved task/run contract and exact direct worktree evidence.",
+      "expected": "The observed submission, remote branch, and canonical PR disqualify fresh direct creation and cannot be adopted without a matching approved task/run contract and exact direct worktree evidence.",
       "assertions": [
         {
           "id": "preexisting-artifact-branch-blocked",
@@ -1023,7 +962,7 @@
           "id": "preexisting-artifact-branch-reason",
           "kind": "final-json-path-equals",
           "pointer": "/reasonCode",
-          "expected": "preexisting-issue-artifact",
+          "expected": "preexisting-remote-artifact",
           "critical": true
         },
         {
@@ -1089,7 +1028,7 @@
             "branch": 0,
             "commit": 0,
             "pullRequest": 0,
-            "linear": 0
+            "provider": 0
           },
           "critical": true
         }
@@ -1097,14 +1036,14 @@
     },
     {
       "id": "blocks-title-derived-branch-identity",
-      "prompt": "Inspect only the declared fixture fixtures/branch-receipt-07.json as a bounded input snapshot. Apply the packaged /woostack-commit branch-admission contract without invoking Git, Graphite, GitHub, Linear, network, provider, or mutation commands. Return exactly one JSON object using keys status, reasonCode, branchAction, branchName, identityBinding, parentBinding, worktreeBinding, authorizedCommands, commandCounts, and mutationCounts.",
+      "prompt": "Inspect only the declared fixture fixtures/branch-receipt-07.json as a bounded input snapshot. Apply the packaged /woostack-commit branch-admission contract without invoking Git, Graphite, GitHub, network, provider, or mutation commands. Return exactly one JSON object using keys status, reasonCode, branchAction, branchName, identityBinding, parentBinding, worktreeBinding, authorizedCommands, commandCounts, and mutationCounts.",
       "fixtures": [
         "branch-receipt-07.json"
       ],
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "The title-derived display branch is not normalized or accepted as work identity; the attempt fails before selecting the native issue binding, parent, worktree, or any mutation.",
+      "expected": "The title-derived display branch is not normalized or accepted as work identity; the attempt fails before selecting the native task binding, parent, worktree, or any mutation.",
       "assertions": [
         {
           "id": "title-identity-branch-blocked",
@@ -1183,8 +1122,234 @@
             "branch": 0,
             "commit": 0,
             "pullRequest": 0,
-            "linear": 0
+            "provider": 0
           },
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "plane-exact-work-item-attribution",
+      "prompt": "Classify a bounded /woostack-commit invocation with exact Plane work-item reference ENG-201 (--issue ENG-201). Configuration selects artifacts.provider: \"plane\" on instance https://api.plane.so, workspace acme, repository https://github.com/acme/widgets. Official Plane MCP resolves ENG-201 to native UUID 33333333-3333-4333-8333-333333333331 within project 22222222-2222-4222-8222-222222222222 (URL https://app.plane.so/acme/projects/22222222-2222-4222-8222-222222222222/work-items/33333333-3333-4333-8333-333333333331), verifies work-item state in started, repository ownership, requires only exact work-item read, delivery note read, and delivery note write/read-back capabilities (issueRead, commentRead, commentWrite), while unrelated capabilities (relationWrite, projectLabelRead, projectLabelWrite) are absent and do not block. It appends Resolves ENG-201 to the PR body, executes delivery note with independent read-back, preserves started work-item state with zero state/relation/label mutations, and binds complete scoped provenance. Return exactly one JSON object with keys status, provider, workItemSequenceId, workItemUuid, provenance, closingReference, requiredCapabilitiesVerified, absentCapabilitiesNonBlocking, readBackComplete, finalWorkItemState, relationMutations, labelMutations, stateMutations, and mergeAllowed.",
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "Exact Plane work-item attribution requires only exact work-item read and delivery note write/read-back, explicitly asserts absent relationWrite/projectLabelRead/projectLabelWrite does not block, appends closing reference to PR body, executes delivery note with read-back, mutates no relations, labels, or state, and leaves merge ungranted.",
+      "assertions": [
+        {
+          "id": "plane-commit-status",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "committed",
+          "critical": true
+        },
+        {
+          "id": "plane-commit-provider",
+          "kind": "final-json-path-equals",
+          "pointer": "/provider",
+          "expected": "plane",
+          "critical": true
+        },
+        {
+          "id": "plane-commit-sequence-id",
+          "kind": "final-json-path-equals",
+          "pointer": "/workItemSequenceId",
+          "expected": "ENG-201",
+          "critical": true
+        },
+        {
+          "id": "plane-commit-uuid",
+          "kind": "final-json-path-equals",
+          "pointer": "/workItemUuid",
+          "expected": "33333333-3333-4333-8333-333333333331",
+          "critical": true
+        },
+        {
+          "id": "plane-commit-provenance",
+          "kind": "final-json-path-equals",
+          "pointer": "/provenance",
+          "expected": {
+            "provider": "plane",
+            "baseUrl": "https://api.plane.so",
+            "workspace": "acme",
+            "projectId": "22222222-2222-4222-8222-222222222222",
+            "workItemId": "33333333-3333-4333-8333-333333333331",
+            "sequenceId": "ENG-201",
+            "canonicalUrl": "https://app.plane.so/acme/projects/22222222-2222-4222-8222-222222222222/work-items/33333333-3333-4333-8333-333333333331",
+            "repository": "https://github.com/acme/widgets"
+          },
+          "critical": true
+        },
+        {
+          "id": "plane-commit-closing-ref",
+          "kind": "final-json-path-equals",
+          "pointer": "/closingReference",
+          "expected": "Resolves ENG-201",
+          "critical": true
+        },
+        {
+          "id": "plane-commit-capabilities",
+          "kind": "final-json-path-equals",
+          "pointer": "/requiredCapabilitiesVerified",
+          "expected": [
+            "issueRead",
+            "commentRead",
+            "commentWrite"
+          ],
+          "critical": true
+        },
+        {
+          "id": "plane-commit-absent-capabilities-non-blocking",
+          "kind": "final-json-path-equals",
+          "pointer": "/absentCapabilitiesNonBlocking",
+          "expected": [
+            "relationWrite",
+            "projectLabelRead",
+            "projectLabelWrite"
+          ],
+          "critical": true
+        },
+        {
+          "id": "plane-commit-readback",
+          "kind": "final-json-path-equals",
+          "pointer": "/readBackComplete",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "plane-commit-final-state",
+          "kind": "final-json-path-equals",
+          "pointer": "/finalWorkItemState",
+          "expected": "started",
+          "critical": true
+        },
+        {
+          "id": "plane-commit-zero-relation-mutations",
+          "kind": "final-json-path-equals",
+          "pointer": "/relationMutations",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "plane-commit-zero-label-mutations",
+          "kind": "final-json-path-equals",
+          "pointer": "/labelMutations",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "plane-commit-zero-state-mutations",
+          "kind": "final-json-path-equals",
+          "pointer": "/stateMutations",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "plane-commit-no-merge",
+          "kind": "final-json-path-equals",
+          "pointer": "/mergeAllowed",
+          "expected": false,
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "plane-optional-sync-failure-preserves-pr-delivery",
+      "prompt": "When Commit delivers a PR with --issue ENG-201 under Plane configuration, local commit and GitHub PR submission succeed with body Resolves ENG-201. The optional Plane MCP delivery note write fails due to a provider timeout. Commit records the provider sync failure, leaves the PR open on GitHub, does not fail the commit command, and never merges. Return exactly one JSON object with keys status, provider, prDeliveryStatus, providerSyncStatus, closingReferencePresent, and mergeAllowed.",
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "Optional Plane sync failure is nonblocking for commit and PR delivery; PR remains open and merge authority is human-only.",
+      "assertions": [
+        {
+          "id": "plane-sync-fail-status",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "delivered",
+          "critical": true
+        },
+        {
+          "id": "plane-sync-fail-provider",
+          "kind": "final-json-path-equals",
+          "pointer": "/provider",
+          "expected": "plane",
+          "critical": true
+        },
+        {
+          "id": "plane-sync-fail-pr-delivery",
+          "kind": "final-json-path-equals",
+          "pointer": "/prDeliveryStatus",
+          "expected": "complete",
+          "critical": true
+        },
+        {
+          "id": "plane-sync-fail-provider-sync",
+          "kind": "final-json-path-equals",
+          "pointer": "/providerSyncStatus",
+          "expected": "failed",
+          "critical": true
+        },
+        {
+          "id": "plane-sync-fail-closing-ref",
+          "kind": "final-json-path-equals",
+          "pointer": "/closingReferencePresent",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "plane-sync-fail-no-merge",
+          "kind": "final-json-path-equals",
+          "pointer": "/mergeAllowed",
+          "expected": false,
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "commit-rejects-provider-mismatch",
+      "prompt": "Evaluate two independent Commit invocations with provider mismatches: (1) Configuration selects artifacts.provider: \"plane\" but caller supplies Linear URL https://linear.app/acme/issue/APP-41; (2) Configuration selects artifacts.provider: \"linear\" but caller supplies Plane URL https://app.plane.so/acme/projects/1111/work-items/2222. Fail closed before any branch, commit, provider write, or PR mutation. Return exactly one JSON object with keys status, decisions, providerMutationCount, and repositoryMutationCount.",
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "Mismatched provider issue references fail closed before mutation and reject the invalid provider reference.",
+      "assertions": [
+        {
+          "id": "commit-mismatch-status",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "blocked",
+          "critical": true
+        },
+        {
+          "id": "commit-mismatch-decisions",
+          "kind": "final-json-path-equals",
+          "pointer": "/decisions",
+          "expected": [
+            {
+              "id": "plane-configured-linear-supplied",
+              "advance": false,
+              "reasonCode": "provider-mismatch-plane-configured-linear-supplied"
+            },
+            {
+              "id": "linear-configured-plane-supplied",
+              "advance": false,
+              "reasonCode": "provider-mismatch-linear-configured-plane-supplied"
+            }
+          ],
+          "critical": true
+        },
+        {
+          "id": "commit-mismatch-zero-provider-mutation",
+          "kind": "final-json-path-equals",
+          "pointer": "/providerMutationCount",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "commit-mismatch-zero-repo-mutation",
+          "kind": "final-json-path-equals",
+          "pointer": "/repositoryMutationCount",
+          "expected": 0,
           "critical": true
         }
       ]

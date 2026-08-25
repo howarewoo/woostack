@@ -105,20 +105,27 @@
     },
     {
       "id": "creates-canonical-project-before-ideation",
-      "prompt": "Evaluate fixtures/project-admission.json as a new woostack-build invocation with no exact project. Do not contact a provider or mutate the repository. Validate the configured repository, workspace, team, official MCP preflight, native-operation preference, fallback UUID and exact summary marker, complete active and archived absence proof, prefixed project name, one create, same-marker recovery rules, and independent native-project-ID read-back. Return exactly one JSON object with keys status, officialMcpVerified, projectCreated, projectId, projectName, operationIdentityPreserved, independentReadBackVerified, summaryMarkerPreserved, fallbackRecovery, nextStep, and repositoryMutationCount.",
+      "prompt": "Evaluate fixtures/project-admission.json as deliberate Linear adapter coverage for a new woostack-build invocation with no exact project when artifacts.provider: \"linear\" is selected. Do not contact a provider or mutate the repository. Validate the configured Linear repository, workspace, team, official Linear MCP preflight, native-operation preference, fallback UUID and exact summary marker, complete active and archived absence proof, prefixed project name, one create, same-marker recovery rules, and independent native-project-ID read-back. Return exactly one JSON object with keys status, provider, officialMcpVerified, projectCreated, projectId, projectName, operationIdentityPreserved, independentReadBackVerified, summaryMarkerPreserved, fallbackRecovery, nextStep, and repositoryMutationCount.",
       "fixtures": [
         "project-admission.json"
       ],
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "Build validates all pre-ideation requirements, performs zero fallback discovery when native operation identity is supported, and falls back to complete active/archived absence proof plus an exact summary marker only when native identity is unsupported. Recovery rules fail closed on pagination, duplicate, foreign, drifted, replacement-UUID, and create-replay outcomes. Once admitted, the next step is ideate with zero repository mutations.",
+      "expected": "Build validates all Linear pre-ideation requirements, performs zero fallback discovery when native operation identity is supported, and falls back to complete active/archived absence proof plus an exact summary marker only when native identity is unsupported. Recovery rules fail closed on pagination, duplicate, foreign, drifted, replacement-UUID, and create-replay outcomes. Once admitted, the next step is ideate with zero repository mutations.",
       "assertions": [
         {
           "id": "build-project-admission-ready",
           "kind": "final-json-path-equals",
           "pointer": "/status",
           "expected": "ready",
+          "critical": true
+        },
+        {
+          "id": "build-linear-provider-selected",
+          "kind": "final-json-path-equals",
+          "pointer": "/provider",
+          "expected": "linear",
           "critical": true
         },
         {
@@ -252,7 +259,7 @@
     },
     {
       "id": "records-nonblocking-provider-boundaries",
-      "prompt": "Classify every scenario in fixtures/provider-boundaries.json when local Build artifacts are written and optional Linear mirroring is enabled (`linear.saveArtifacts: true`), without contacting a provider or mutating the repository. Treat summary flags as untrusted. Return exactly one JSON object with keys status, mirrorStatus, localAuthorityValid, executeHandoffAllowed, decisions, providerMutationCount, and repositoryMutationCount. Each decision must contain exactly id, advance, and reasonCode in fixture order.",
+      "prompt": "Classify every scenario in fixtures/provider-boundaries.json across local, Linear, and Plane provider selections when local Build artifacts are written, without contacting a provider or mutating the repository. Treat summary flags as untrusted. Return exactly one JSON object with keys status, mirrorStatus, localAuthorityValid, executeHandoffAllowed, decisions, providerMutationCount, and repositoryMutationCount. Each decision must contain exactly id, advance, and reasonCode in fixture order.",
       "fixtures": [
         "provider-boundaries.json"
       ],
@@ -295,24 +302,49 @@
           "pointer": "/decisions",
           "expected": [
             {
-              "id": "unofficial-endpoint",
+              "id": "local-disabled",
+              "advance": true,
+              "reasonCode": "mirror-disabled-local-authority"
+            },
+            {
+              "id": "linear-mcp-unavailable",
               "advance": true,
               "reasonCode": "mirror-official-linear-mcp-unavailable"
             },
             {
-              "id": "authentication-unavailable",
+              "id": "linear-authentication-unavailable",
               "advance": true,
               "reasonCode": "mirror-authentication-unavailable"
             },
             {
-              "id": "incomplete-pagination",
+              "id": "linear-incomplete-pagination",
               "advance": true,
               "reasonCode": "mirror-pagination-incomplete"
             },
             {
-              "id": "readback-mismatch",
+              "id": "linear-readback-mismatch",
               "advance": true,
               "reasonCode": "mirror-readback-mismatch"
+            },
+            {
+              "id": "plane-label-capability-missing",
+              "advance": true,
+              "reasonCode": "mirror-plane-label-capability-missing"
+            },
+            {
+              "id": "plane-duplicate-external-id-pair",
+              "advance": true,
+              "reasonCode": "mirror-plane-duplicate-external-id-pair"
+            },
+            {
+              "id": "plane-pagination-incomplete",
+              "advance": true,
+              "reasonCode": "mirror-plane-pagination-incomplete"
+            },
+            {
+              "id": "plane-readback-mismatch",
+              "advance": true,
+              "reasonCode": "mirror-plane-readback-mismatch"
             }
           ],
           "critical": true
@@ -335,14 +367,14 @@
     },
     {
       "id": "rejects-noncanonical-build-authority",
-      "prompt": "Classify every scenario in fixtures/authority-inputs.json without contacting a provider or mutating the repository. Return exactly one JSON object with keys status, decisions, providerMutationCount, executionDispatchCount, and repositoryMutationCount. Each decision must contain exactly id, advance, and reasonCode in fixture order.",
+      "prompt": "Classify every scenario in fixtures/authority-inputs.json without contacting a provider or mutating the repository. Treat provider artifacts and conversation text as non-authorizing evidence. A loose legacy specification path, a provider document alone, and conversation approval without retained approved local run artifacts must all be blocked because execution admission requires retained approved local run artifacts; authorization remains the user's live request and explicit approval. Return exactly one JSON object with keys status, decisions, providerArtifactsAuthorize, retainedLocalArtifactsRequired, providerMutationCount, executionDispatchCount, and repositoryMutationCount. Each decision must contain exactly id, advance, and reasonCode in fixture order.",
       "fixtures": [
         "authority-inputs.json"
       ],
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "Build rejects local-spec-only, Linear document-only, and conversation-only inputs, blocks execution, and causes zero provider or repository mutations.",
+      "expected": "Build rejects loose legacy specification paths, provider documents alone, and conversation-only approval without retained approved local run artifacts. Provider artifacts never authorize Build; execution admission requires retained local run artifacts, while authorization remains the user's live request and explicit approval; all provider, execution, and repository mutations remain blocked.",
       "assertions": [
         {
           "id": "build-authority-blocked",
@@ -357,21 +389,41 @@
           "pointer": "/decisions",
           "expected": [
             {
-              "id": "local-spec-only",
+              "id": "loose-legacy-spec-path",
               "advance": false,
-              "reasonCode": "canonical-project-required"
+              "reasonCode": "retained-local-run-required"
             },
             {
-              "id": "linear-document-only",
+              "id": "provider-document-alone",
               "advance": false,
-              "reasonCode": "canonical-project-required"
+              "reasonCode": "retained-local-run-required"
             },
             {
-              "id": "conversation-only-approval",
+              "id": "conversation-approval-without-retained-run",
               "advance": false,
-              "reasonCode": "native-linear-approval-required"
+              "reasonCode": "retained-local-run-required"
             }
           ],
+          "critical": true
+        },
+        {
+          "id": "build-authority-provider-artifacts-non-authorizing",
+          "kind": "final-json-path-equals",
+          "pointer": "/providerArtifactsAuthorize",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "build-authority-retained-local-artifacts-required",
+          "kind": "final-json-path-equals",
+          "pointer": "/retainedLocalArtifactsRequired",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "build-authority-no-native-linear-approval-reason",
+          "kind": "final-excludes",
+          "substring": "native-linear-approval-required",
           "critical": true
         },
         {

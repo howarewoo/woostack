@@ -5,453 +5,2158 @@
     {
       "id": "project-selects-lowest-unfinished",
       "prompt": "Project mode resolves the configured issueStates.inReview mapping by stable native ID/name/category and sees ordinal 1 in that mapped state with a complete delivery checkpoint, ordinals 2 and 3 in Backlog, no stop marker, and ordinal 2's verified predecessor issue-001. Return exactly one JSON object with keys status, mode, selectedIssueId, selectedOrdinal, predecessor, stopMarker, siblingsAdvanced, predecessorDeliveryCheckpoint, and nextBoundary. Set predecessorDeliveryCheckpoint to exactly {\"issueId\":\"issue-001\",\"ordinal\":1,\"status\":\"complete\"}. Do not run commands or mutate anything.",
-      "capabilities": ["read-workspace"],
+      "capabilities": [
+        "read-workspace"
+      ],
       "expected": "Project mode chooses the lowest unfinished ordinal, proves its predecessor, and admits no sibling in the same cycle.",
       "assertions": [
-        {"id": "project-proceed", "kind": "final-json-path-equals", "pointer": "/status", "expected": "proceed", "critical": true},
-        {"id": "project-mode", "kind": "final-json-path-equals", "pointer": "/mode", "expected": "project", "critical": true},
-        {"id": "project-selected", "kind": "final-json-path-equals", "pointer": "/selectedIssueId", "expected": "issue-002", "critical": true},
-        {"id": "project-ordinal", "kind": "final-json-path-equals", "pointer": "/selectedOrdinal", "expected": 2, "critical": true},
-        {"id": "project-parent", "kind": "final-json-path-equals", "pointer": "/predecessor", "expected": "issue-001", "critical": true},
-        {"id": "project-no-stop", "kind": "final-json-path-equals", "pointer": "/stopMarker", "expected": false, "critical": true},
-        {"id": "project-no-sibling", "kind": "final-json-path-equals", "pointer": "/siblingsAdvanced", "expected": false, "critical": true},
-        {"id": "project-dispatch", "kind": "final-json-path-equals", "pointer": "/nextBoundary", "expected": "dispatch-fast-model", "critical": true},
-        {"id": "project-checkpoint", "kind": "final-json-path-equals", "pointer": "/predecessorDeliveryCheckpoint", "expected": {"issueId": "issue-001", "ordinal": 1, "status": "complete"}, "critical": true}
+        {
+          "id": "project-proceed",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "proceed",
+          "critical": true
+        },
+        {
+          "id": "project-mode",
+          "kind": "final-json-path-equals",
+          "pointer": "/mode",
+          "expected": "project",
+          "critical": true
+        },
+        {
+          "id": "project-selected",
+          "kind": "final-json-path-equals",
+          "pointer": "/selectedIssueId",
+          "expected": "issue-002",
+          "critical": true
+        },
+        {
+          "id": "project-ordinal",
+          "kind": "final-json-path-equals",
+          "pointer": "/selectedOrdinal",
+          "expected": 2,
+          "critical": true
+        },
+        {
+          "id": "project-parent",
+          "kind": "final-json-path-equals",
+          "pointer": "/predecessor",
+          "expected": "issue-001",
+          "critical": true
+        },
+        {
+          "id": "project-no-stop",
+          "kind": "final-json-path-equals",
+          "pointer": "/stopMarker",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "project-no-sibling",
+          "kind": "final-json-path-equals",
+          "pointer": "/siblingsAdvanced",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "project-dispatch",
+          "kind": "final-json-path-equals",
+          "pointer": "/nextBoundary",
+          "expected": "dispatch-fast-model",
+          "critical": true
+        },
+        {
+          "id": "project-checkpoint",
+          "kind": "final-json-path-equals",
+          "pointer": "/predecessorDeliveryCheckpoint",
+          "expected": {
+            "issueId": "issue-001",
+            "ordinal": 1,
+            "status": "complete"
+          },
+          "critical": true
+        }
       ]
     },
     {
       "id": "project-stop-marker-pauses",
-      "prompt": "Project mode has just delivered issue-002 with branch, commit, canonical PR, verification, Linear read-back, and clean-worktree evidence. An independently read stop marker follows ordinal 2. Return exactly one JSON object with keys status, selectedIssueId, selectedOrdinal, stopMarker, projectOpen, nextOrdinal, worktreeRemoved, and resumeEvidence.",
-      "capabilities": ["read-workspace"],
+      "prompt": "Project mode has just delivered issue-002 with branch, commit, canonical PR, verification, selected provider/artifact read-back, and clean-worktree evidence. An independently read stop marker follows ordinal 2. Return exactly one JSON object with keys status, selectedIssueId, selectedOrdinal, stopMarker, projectOpen, nextOrdinal, worktreeRemoved, and resumeEvidence.",
+      "capabilities": [
+        "read-workspace"
+      ],
       "expected": "A verified stop marker pauses before another ordinal and leaves the project open with complete resume evidence.",
       "assertions": [
-        {"id": "stop-paused", "kind": "final-json-path-equals", "pointer": "/status", "expected": "paused", "critical": true},
-        {"id": "stop-selected", "kind": "final-json-path-equals", "pointer": "/selectedIssueId", "expected": "issue-002", "critical": true},
-        {"id": "stop-ordinal", "kind": "final-json-path-equals", "pointer": "/selectedOrdinal", "expected": 2, "critical": true},
-        {"id": "stop-present", "kind": "final-json-path-equals", "pointer": "/stopMarker", "expected": true, "critical": true},
-        {"id": "stop-project-open", "kind": "final-json-path-equals", "pointer": "/projectOpen", "expected": true, "critical": true},
-        {"id": "stop-no-next", "kind": "final-json-path-equals", "pointer": "/nextOrdinal", "expected": null, "critical": true},
-        {"id": "stop-cleanup", "kind": "final-json-path-equals", "pointer": "/worktreeRemoved", "expected": true, "critical": true},
-        {"id": "stop-evidence", "kind": "final-json-path-equals", "pointer": "/resumeEvidence", "expected": "linear-git-graphite-github", "critical": true}
+        {
+          "id": "stop-paused",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "paused",
+          "critical": true
+        },
+        {
+          "id": "stop-selected",
+          "kind": "final-json-path-equals",
+          "pointer": "/selectedIssueId",
+          "expected": "issue-002",
+          "critical": true
+        },
+        {
+          "id": "stop-ordinal",
+          "kind": "final-json-path-equals",
+          "pointer": "/selectedOrdinal",
+          "expected": 2,
+          "critical": true
+        },
+        {
+          "id": "stop-present",
+          "kind": "final-json-path-equals",
+          "pointer": "/stopMarker",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "stop-project-open",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectOpen",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "stop-no-next",
+          "kind": "final-json-path-equals",
+          "pointer": "/nextOrdinal",
+          "expected": null,
+          "critical": true
+        },
+        {
+          "id": "stop-cleanup",
+          "kind": "final-json-path-equals",
+          "pointer": "/worktreeRemoved",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "stop-evidence",
+          "kind": "final-json-path-equals",
+          "pointer": "/resumeEvidence",
+          "expected": "provider/artifact-git-graphite-github",
+          "critical": true
+        }
       ]
     },
     {
       "id": "issue-mode-never-advances",
-      "prompt": "Issue mode selected exact direct issue issue-003 at ordinal 3 and delivered it with complete branch, commit, PR, verification, Linear, and clean-worktree evidence. Return exactly one JSON object with keys status, mode, selectedIssueId, selectedOrdinal, siblingsAdvanced, nextAction, and worktreeState. Issue mode must stop after this issue.",
-      "capabilities": ["read-workspace"],
+      "prompt": "Issue mode selected exact direct issue issue-003 at ordinal 3 and delivered it with complete branch, commit, PR, verification, selected provider/artifact, and clean-worktree evidence. Return exactly one JSON object with keys status, mode, selectedIssueId, selectedOrdinal, siblingsAdvanced, nextAction, and worktreeState. Issue mode must stop after this issue.",
+      "capabilities": [
+        "read-workspace"
+      ],
       "expected": "Issue mode executes only the selected direct issue and stops after delivery without advancing any sibling.",
       "assertions": [
-        {"id": "issue-status", "kind": "final-json-path-equals", "pointer": "/status", "expected": "delivered", "critical": true},
-        {"id": "issue-mode", "kind": "final-json-path-equals", "pointer": "/mode", "expected": "issue", "critical": true},
-        {"id": "issue-selected", "kind": "final-json-path-equals", "pointer": "/selectedIssueId", "expected": "issue-003", "critical": true},
-        {"id": "issue-ordinal", "kind": "final-json-path-equals", "pointer": "/selectedOrdinal", "expected": 3, "critical": true},
-        {"id": "issue-no-siblings", "kind": "final-json-path-equals", "pointer": "/siblingsAdvanced", "expected": false, "critical": true},
-        {"id": "issue-stops", "kind": "final-json-path-equals", "pointer": "/nextAction", "expected": "stop-after-selected-issue", "critical": true},
-        {"id": "issue-clean", "kind": "final-json-path-equals", "pointer": "/worktreeState", "expected": "removed-after-clean-readback", "critical": true}
+        {
+          "id": "issue-status",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "delivered",
+          "critical": true
+        },
+        {
+          "id": "issue-mode",
+          "kind": "final-json-path-equals",
+          "pointer": "/mode",
+          "expected": "issue",
+          "critical": true
+        },
+        {
+          "id": "issue-selected",
+          "kind": "final-json-path-equals",
+          "pointer": "/selectedIssueId",
+          "expected": "issue-003",
+          "critical": true
+        },
+        {
+          "id": "issue-ordinal",
+          "kind": "final-json-path-equals",
+          "pointer": "/selectedOrdinal",
+          "expected": 3,
+          "critical": true
+        },
+        {
+          "id": "issue-no-siblings",
+          "kind": "final-json-path-equals",
+          "pointer": "/siblingsAdvanced",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "issue-stops",
+          "kind": "final-json-path-equals",
+          "pointer": "/nextAction",
+          "expected": "stop-after-selected-issue",
+          "critical": true
+        },
+        {
+          "id": "issue-clean",
+          "kind": "final-json-path-equals",
+          "pointer": "/worktreeState",
+          "expected": "removed-after-clean-readback",
+          "critical": true
+        }
       ]
     },
     {
       "id": "delivery-same-state-is-idempotent",
-      "prompt": "The selected issue has independently read native state executing, and configured issueStates.executing and issueStates.inReview both resolve to the exact deterministic mapping {\"id\":\"state-in-progress\",\"name\":\"In Progress\",\"category\":\"started\"}; both mappings therefore have identical stable native identity and inReview has native category started. The complete PR, head/base, closing-reference, verification, Linear read-back, and clean-worktree evidence is present. Persist and independently read back the full delivery checkpoint; treat the inReview transition as an idempotent no-op without a second mutation, then permit teardown but do not advance a sibling. Return exactly one JSON object with keys status, executingMapping, inReviewMapping, issueStatusAction, deliveryCheckpoint, secondMutation, teardownAllowed, and siblingsAdvanced.",
-      "capabilities": ["read-workspace"],
+      "prompt": "The selected issue has independently read native state executing, and configured issueStates.executing and issueStates.inReview both resolve to the exact deterministic mapping {\"id\":\"state-in-progress\",\"name\":\"In Progress\",\"category\":\"started\"}; both mappings therefore have identical stable native identity and inReview has native category started. The complete PR, head/base, closing-reference, verification, selected provider/artifact read-back, and clean-worktree evidence is present. Persist and independently read back the full delivery checkpoint; treat the inReview transition as an idempotent no-op without a second mutation, then permit teardown but do not advance a sibling. Return exactly one JSON object with keys status, executingMapping, inReviewMapping, issueStatusAction, deliveryCheckpoint, secondMutation, teardownAllowed, and siblingsAdvanced.",
+      "capabilities": [
+        "read-workspace"
+      ],
       "expected": "When executing and inReview share one native started state, complete delivery is checkpoint-gated and the independently read idempotent no-op proves delivery without a second state mutation.",
       "assertions": [
-        {"id": "same-state-delivered", "kind": "final-json-path-equals", "pointer": "/status", "expected": "delivered", "critical": true},
-        {"id": "same-state-executing-mapping", "kind": "final-json-path-equals", "pointer": "/executingMapping", "expected": {"id": "state-in-progress", "name": "In Progress", "category": "started"}, "critical": true},
-        {"id": "same-state-in-review-mapping", "kind": "final-json-path-equals", "pointer": "/inReviewMapping", "expected": {"id": "state-in-progress", "name": "In Progress", "category": "started"}, "critical": true},
-        {"id": "same-state-in-review-category", "kind": "final-json-path-equals", "pointer": "/inReviewMapping/category", "expected": "started", "critical": true},
-        {"id": "same-state-action", "kind": "final-json-path-equals", "pointer": "/issueStatusAction", "expected": "idempotent-no-op", "critical": true},
-        {"id": "same-state-checkpoint", "kind": "final-json-path-equals", "pointer": "/deliveryCheckpoint", "expected": "complete", "critical": true},
-        {"id": "same-state-no-second-mutation", "kind": "final-json-path-equals", "pointer": "/secondMutation", "expected": false, "critical": true},
-        {"id": "same-state-teardown", "kind": "final-json-path-equals", "pointer": "/teardownAllowed", "expected": true, "critical": true},
-        {"id": "same-state-no-sibling", "kind": "final-json-path-equals", "pointer": "/siblingsAdvanced", "expected": false, "critical": true}
+        {
+          "id": "same-state-delivered",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "delivered",
+          "critical": true
+        },
+        {
+          "id": "same-state-executing-mapping",
+          "kind": "final-json-path-equals",
+          "pointer": "/executingMapping",
+          "expected": {
+            "id": "state-in-progress",
+            "name": "In Progress",
+            "category": "started"
+          },
+          "critical": true
+        },
+        {
+          "id": "same-state-in-review-mapping",
+          "kind": "final-json-path-equals",
+          "pointer": "/inReviewMapping",
+          "expected": {
+            "id": "state-in-progress",
+            "name": "In Progress",
+            "category": "started"
+          },
+          "critical": true
+        },
+        {
+          "id": "same-state-in-review-category",
+          "kind": "final-json-path-equals",
+          "pointer": "/inReviewMapping/category",
+          "expected": "started",
+          "critical": true
+        },
+        {
+          "id": "same-state-action",
+          "kind": "final-json-path-equals",
+          "pointer": "/issueStatusAction",
+          "expected": "idempotent-no-op",
+          "critical": true
+        },
+        {
+          "id": "same-state-checkpoint",
+          "kind": "final-json-path-equals",
+          "pointer": "/deliveryCheckpoint",
+          "expected": "complete",
+          "critical": true
+        },
+        {
+          "id": "same-state-no-second-mutation",
+          "kind": "final-json-path-equals",
+          "pointer": "/secondMutation",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "same-state-teardown",
+          "kind": "final-json-path-equals",
+          "pointer": "/teardownAllowed",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "same-state-no-sibling",
+          "kind": "final-json-path-equals",
+          "pointer": "/siblingsAdvanced",
+          "expected": false,
+          "critical": true
+        }
       ]
     },
     {
       "id": "delivery-distinct-state-transitions-once",
-      "prompt": "The selected issue has independently read native state executing. Configured issueStates.executing resolves to {\"id\":\"state-executing\",\"name\":\"In Progress\",\"category\":\"started\"}, while issueStates.inReview resolves to the distinct same-team mapping {\"id\":\"state-review\",\"name\":\"Ready for Review\",\"category\":\"started\"}. Complete canonical PR, head/base, closing-reference, verification, Linear, Graphite-parent, and clean-worktree evidence is present. Persist and independently read back every field of the full delivery checkpoint before issuing exactly one issue-state transition mutation, then independently read back the issue in state-review. Permit teardown only after the completed checkpoint and lifecycle read-backs, and do not advance a sibling. Return exactly one JSON object with keys status, executingMapping, inReviewMapping, deliveryCheckpointReadBack, deliveryCheckpoint, transitionMutations, issueStateReadBack, operationOrder, teardownAllowed, and siblingsAdvanced.",
-      "capabilities": ["read-workspace"],
+      "prompt": "The selected issue has independently read native state executing. Configured issueStates.executing resolves to {\"id\":\"state-executing\",\"name\":\"In Progress\",\"category\":\"started\"}, while issueStates.inReview resolves to the distinct same-team mapping {\"id\":\"state-review\",\"name\":\"Ready for Review\",\"category\":\"started\"}. Complete canonical PR, head/base, closing-reference, verification, selected provider/artifact, Graphite-parent, and clean-worktree evidence is present. Persist and independently read back every field of the full delivery checkpoint before issuing exactly one issue-state transition mutation, then independently read back the issue in state-review. Permit teardown only after the completed checkpoint and lifecycle read-backs, and do not advance a sibling. Return exactly one JSON object with keys status, executingMapping, inReviewMapping, deliveryCheckpointReadBack, deliveryCheckpoint, transitionMutations, issueStateReadBack, operationOrder, teardownAllowed, and siblingsAdvanced.",
+      "capabilities": [
+        "read-workspace"
+      ],
       "expected": "Distinct stable executing and inReview identities produce exactly one transition mutation after full checkpoint read-back, then gate teardown on the completed checkpoint and lifecycle read-back.",
       "assertions": [
-        {"id": "distinct-state-delivered", "kind": "final-json-path-equals", "pointer": "/status", "expected": "delivered", "critical": true},
-        {"id": "distinct-state-executing-mapping", "kind": "final-json-path-equals", "pointer": "/executingMapping", "expected": {"id": "state-executing", "name": "In Progress", "category": "started"}, "critical": true},
-        {"id": "distinct-state-in-review-mapping", "kind": "final-json-path-equals", "pointer": "/inReviewMapping", "expected": {"id": "state-review", "name": "Ready for Review", "category": "started"}, "critical": true},
-        {"id": "distinct-state-checkpoint-readback", "kind": "final-json-path-equals", "pointer": "/deliveryCheckpointReadBack", "expected": "all-fields", "critical": true},
-        {"id": "distinct-state-checkpoint-complete", "kind": "final-json-path-equals", "pointer": "/deliveryCheckpoint", "expected": "complete", "critical": true},
-        {"id": "distinct-state-one-transition", "kind": "final-json-path-equals", "pointer": "/transitionMutations", "expected": 1, "critical": true},
-        {"id": "distinct-state-issue-readback", "kind": "final-json-path-equals", "pointer": "/issueStateReadBack", "expected": "state-review", "critical": true},
-        {"id": "distinct-state-operation-order", "kind": "final-json-path-equals", "pointer": "/operationOrder", "expected": ["delivery-checkpoint-readback", "inReview-transition", "inReview-readback", "worktree-teardown"], "critical": true},
-        {"id": "distinct-state-teardown", "kind": "final-json-path-equals", "pointer": "/teardownAllowed", "expected": true, "critical": true},
-        {"id": "distinct-state-no-sibling", "kind": "final-json-path-equals", "pointer": "/siblingsAdvanced", "expected": false, "critical": true}
+        {
+          "id": "distinct-state-delivered",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "delivered",
+          "critical": true
+        },
+        {
+          "id": "distinct-state-executing-mapping",
+          "kind": "final-json-path-equals",
+          "pointer": "/executingMapping",
+          "expected": {
+            "id": "state-executing",
+            "name": "In Progress",
+            "category": "started"
+          },
+          "critical": true
+        },
+        {
+          "id": "distinct-state-in-review-mapping",
+          "kind": "final-json-path-equals",
+          "pointer": "/inReviewMapping",
+          "expected": {
+            "id": "state-review",
+            "name": "Ready for Review",
+            "category": "started"
+          },
+          "critical": true
+        },
+        {
+          "id": "distinct-state-checkpoint-readback",
+          "kind": "final-json-path-equals",
+          "pointer": "/deliveryCheckpointReadBack",
+          "expected": "all-fields",
+          "critical": true
+        },
+        {
+          "id": "distinct-state-checkpoint-complete",
+          "kind": "final-json-path-equals",
+          "pointer": "/deliveryCheckpoint",
+          "expected": "complete",
+          "critical": true
+        },
+        {
+          "id": "distinct-state-one-transition",
+          "kind": "final-json-path-equals",
+          "pointer": "/transitionMutations",
+          "expected": 1,
+          "critical": true
+        },
+        {
+          "id": "distinct-state-issue-readback",
+          "kind": "final-json-path-equals",
+          "pointer": "/issueStateReadBack",
+          "expected": "state-review",
+          "critical": true
+        },
+        {
+          "id": "distinct-state-operation-order",
+          "kind": "final-json-path-equals",
+          "pointer": "/operationOrder",
+          "expected": [
+            "delivery-checkpoint-readback",
+            "inReview-transition",
+            "inReview-readback",
+            "worktree-teardown"
+          ],
+          "critical": true
+        },
+        {
+          "id": "distinct-state-teardown",
+          "kind": "final-json-path-equals",
+          "pointer": "/teardownAllowed",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "distinct-state-no-sibling",
+          "kind": "final-json-path-equals",
+          "pointer": "/siblingsAdvanced",
+          "expected": false,
+          "critical": true
+        }
       ]
     },
     {
       "id": "resume-reuses-existing-pr",
-      "prompt": "A resumed project issue has its executing and configured inReview mappings independently resolved by stable native identity/category, a persisted delivery checkpoint still pending clean-worktree verification (deliveryCheckpoint=pending-clean), commit commit-002, and canonical PR https://github.com/acme/repo/pull/2 proven by independent Linear, Git, Graphite, and GitHub reads, while its worktree is retained dirty. The manifest records canonical parent branch refs/heads/main and planning tip parent-001; a fresh exact read observes the same branch and tip. Revalidate the retained start, head, ancestry, diff, and PR base without creating a duplicate or removing the dirty worktree. Return exactly one JSON object with keys status, reason, existingCommit, existingPr, duplicateCreated, worktreeState, resumeBoundary, deliveryCheckpoint, and repositoryBaseCheck.",
-      "capabilities": ["read-workspace"],
+      "prompt": "A resumed project issue has its executing and configured inReview mappings independently resolved by stable native identity/category, a persisted delivery checkpoint still pending clean-worktree verification (deliveryCheckpoint=pending-clean), commit commit-002, and canonical PR https://github.com/acme/repo/pull/2 proven by independent selected provider/artifact, Git, Graphite, and GitHub reads, while its worktree is retained dirty. The manifest records canonical parent branch refs/heads/main and planning tip parent-001; a fresh exact read observes the same branch and tip. Revalidate the retained start, head, ancestry, diff, and PR base without creating a duplicate or removing the dirty worktree. Return exactly one JSON object with keys status, reason, existingCommit, existingPr, duplicateCreated, worktreeState, resumeBoundary, deliveryCheckpoint, and repositoryBaseCheck.",
+      "capabilities": [
+        "read-workspace"
+      ],
       "expected": "Interruption after PR submission resumes from the existing commit and PR only when an exact fresh read observes the unchanged planning branch and tip and revalidates retained delivery evidence.",
       "assertions": [
-        {"id": "resume-status", "kind": "final-json-path-equals", "pointer": "/status", "expected": "resume", "critical": true},
-        {"id": "resume-reason", "kind": "final-json-path-equals", "pointer": "/reason", "expected": "existing-delivery-evidence", "critical": true},
-        {"id": "resume-commit", "kind": "final-json-path-equals", "pointer": "/existingCommit", "expected": "commit-002", "critical": true},
-        {"id": "resume-pr", "kind": "final-json-path-equals", "pointer": "/existingPr", "expected": "https://github.com/acme/repo/pull/2", "critical": true},
-        {"id": "resume-no-duplicate", "kind": "final-json-path-equals", "pointer": "/duplicateCreated", "expected": false, "critical": true},
-        {"id": "resume-retained", "kind": "final-json-path-equals", "pointer": "/worktreeState", "expected": "retained-dirty", "critical": true},
-        {"id": "resume-boundary", "kind": "final-json-path-equals", "pointer": "/resumeBoundary", "expected": "clean-and-readback", "critical": true},
-        {"id": "resume-checkpoint", "kind": "final-json-path-equals", "pointer": "/deliveryCheckpoint", "expected": "pending-clean", "critical": true},
-        {"id": "resume-base-status", "kind": "final-json-path-equals", "pointer": "/repositoryBaseCheck/status", "expected": "unchanged", "critical": true},
-        {"id": "resume-base-branch", "kind": "final-json-path-equals", "pointer": "/repositoryBaseCheck/canonicalParentBranch", "expected": "refs/heads/main", "critical": true},
-        {"id": "resume-planning-tip", "kind": "final-json-path-equals", "pointer": "/repositoryBaseCheck/planningTip", "expected": "parent-001", "critical": true},
-        {"id": "resume-current-tip", "kind": "final-json-path-equals", "pointer": "/repositoryBaseCheck/currentTip", "expected": "parent-001", "critical": true},
-        {"id": "resume-revalidation-complete", "kind": "final-json-path-equals", "pointer": "/repositoryBaseCheck/revalidated", "expected": ["ancestry", "diff", "prBase"], "critical": true}
+        {
+          "id": "resume-status",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "resume",
+          "critical": true
+        },
+        {
+          "id": "resume-reason",
+          "kind": "final-json-path-equals",
+          "pointer": "/reason",
+          "expected": "existing-delivery-evidence",
+          "critical": true
+        },
+        {
+          "id": "resume-commit",
+          "kind": "final-json-path-equals",
+          "pointer": "/existingCommit",
+          "expected": "commit-002",
+          "critical": true
+        },
+        {
+          "id": "resume-pr",
+          "kind": "final-json-path-equals",
+          "pointer": "/existingPr",
+          "expected": "https://github.com/acme/repo/pull/2",
+          "critical": true
+        },
+        {
+          "id": "resume-no-duplicate",
+          "kind": "final-json-path-equals",
+          "pointer": "/duplicateCreated",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "resume-retained",
+          "kind": "final-json-path-equals",
+          "pointer": "/worktreeState",
+          "expected": "retained-dirty",
+          "critical": true
+        },
+        {
+          "id": "resume-boundary",
+          "kind": "final-json-path-equals",
+          "pointer": "/resumeBoundary",
+          "expected": "clean-and-readback",
+          "critical": true
+        },
+        {
+          "id": "resume-checkpoint",
+          "kind": "final-json-path-equals",
+          "pointer": "/deliveryCheckpoint",
+          "expected": "pending-clean",
+          "critical": true
+        },
+        {
+          "id": "resume-base-status",
+          "kind": "final-json-path-equals",
+          "pointer": "/repositoryBaseCheck/status",
+          "expected": "unchanged",
+          "critical": true
+        },
+        {
+          "id": "resume-base-branch",
+          "kind": "final-json-path-equals",
+          "pointer": "/repositoryBaseCheck/canonicalParentBranch",
+          "expected": "refs/heads/main",
+          "critical": true
+        },
+        {
+          "id": "resume-planning-tip",
+          "kind": "final-json-path-equals",
+          "pointer": "/repositoryBaseCheck/planningTip",
+          "expected": "parent-001",
+          "critical": true
+        },
+        {
+          "id": "resume-current-tip",
+          "kind": "final-json-path-equals",
+          "pointer": "/repositoryBaseCheck/currentTip",
+          "expected": "parent-001",
+          "critical": true
+        },
+        {
+          "id": "resume-revalidation-complete",
+          "kind": "final-json-path-equals",
+          "pointer": "/repositoryBaseCheck/revalidated",
+          "expected": [
+            "ancestry",
+            "diff",
+            "prBase"
+          ],
+          "critical": true
+        }
       ]
     },
     {
       "id": "missing-delivery-checkpoint-blocks-resume",
-      "prompt": "A resumed issue's native state matches the configured inReview mapping, but the independently read delivery checkpoint is missing its canonical PR/head/base, verification, Linear read-back, or clean-worktree evidence. Do not infer completion from the state mapping, remove the worktree, or advance a sibling. Return exactly one JSON object with keys status, reason, deliveryCheckpoint, worktreeRemoved, siblingsAdvanced, and firstBoundary.",
-      "capabilities": ["read-workspace"],
+      "prompt": "A resumed issue's native state matches the configured inReview mapping, but the independently read delivery checkpoint is missing its canonical PR/head/base, verification, selected provider/artifact read-back, or clean-worktree evidence. Do not infer completion from the state mapping, remove the worktree, or advance a sibling. Return exactly one JSON object with keys status, reason, deliveryCheckpoint, worktreeRemoved, siblingsAdvanced, and firstBoundary.",
+      "capabilities": [
+        "read-workspace"
+      ],
       "expected": "A missing or partial delivery checkpoint remains unfinished and blocks teardown, resume completion, and sibling selection even when the native state matches inReview.",
       "assertions": [
-        {"id": "checkpoint-blocked", "kind": "final-json-path-equals", "pointer": "/status", "expected": "blocked", "critical": true},
-        {"id": "checkpoint-reason", "kind": "final-json-path-equals", "pointer": "/reason", "expected": "delivery-checkpoint-incomplete", "critical": true},
-        {"id": "checkpoint-incomplete", "kind": "final-json-path-equals", "pointer": "/deliveryCheckpoint", "expected": "incomplete", "critical": true},
-        {"id": "checkpoint-retained", "kind": "final-json-path-equals", "pointer": "/worktreeRemoved", "expected": false, "critical": true},
-        {"id": "checkpoint-no-sibling", "kind": "final-json-path-equals", "pointer": "/siblingsAdvanced", "expected": false, "critical": true},
-        {"id": "checkpoint-boundary", "kind": "final-json-path-equals", "pointer": "/firstBoundary", "expected": "delivery-checkpoint", "critical": true}
+        {
+          "id": "checkpoint-blocked",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "blocked",
+          "critical": true
+        },
+        {
+          "id": "checkpoint-reason",
+          "kind": "final-json-path-equals",
+          "pointer": "/reason",
+          "expected": "delivery-checkpoint-incomplete",
+          "critical": true
+        },
+        {
+          "id": "checkpoint-incomplete",
+          "kind": "final-json-path-equals",
+          "pointer": "/deliveryCheckpoint",
+          "expected": "incomplete",
+          "critical": true
+        },
+        {
+          "id": "checkpoint-retained",
+          "kind": "final-json-path-equals",
+          "pointer": "/worktreeRemoved",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "checkpoint-no-sibling",
+          "kind": "final-json-path-equals",
+          "pointer": "/siblingsAdvanced",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "checkpoint-boundary",
+          "kind": "final-json-path-equals",
+          "pointer": "/firstBoundary",
+          "expected": "delivery-checkpoint",
+          "critical": true
+        }
       ]
     },
     {
       "id": "failure-retains-worktree",
       "prompt": "The bounded spec-compliance validator reports FAIL for a confirmed in-scope omission on issue-002. Its worktree and exact resume evidence remain available at boundary spec-validator. Return exactly one JSON object with keys status, validator, worktreeRemoved, retainedEvidence, firstBoundary, and nextAction.",
-      "capabilities": ["read-workspace"],
+      "capabilities": [
+        "read-workspace"
+      ],
       "expected": "A bounded validator failure retains the exact worktree and recovery evidence instead of reporting delivery or deleting state.",
       "assertions": [
-        {"id": "failure-status", "kind": "final-json-path-equals", "pointer": "/status", "expected": "blocked", "critical": true},
-        {"id": "failure-validator", "kind": "final-json-path-equals", "pointer": "/validator", "expected": "FAIL", "critical": true},
-        {"id": "failure-retained", "kind": "final-json-path-equals", "pointer": "/worktreeRemoved", "expected": false, "critical": true},
-        {"id": "failure-evidence", "kind": "final-json-path-equals", "pointer": "/retainedEvidence", "expected": "exact-resume-record", "critical": true},
-        {"id": "failure-boundary", "kind": "final-json-path-equals", "pointer": "/firstBoundary", "expected": "spec-validator", "critical": true},
-        {"id": "failure-next", "kind": "final-json-path-equals", "pointer": "/nextAction", "expected": "repair-confirmed-omission-or-resume", "critical": true}
+        {
+          "id": "failure-status",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "blocked",
+          "critical": true
+        },
+        {
+          "id": "failure-validator",
+          "kind": "final-json-path-equals",
+          "pointer": "/validator",
+          "expected": "FAIL",
+          "critical": true
+        },
+        {
+          "id": "failure-retained",
+          "kind": "final-json-path-equals",
+          "pointer": "/worktreeRemoved",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "failure-evidence",
+          "kind": "final-json-path-equals",
+          "pointer": "/retainedEvidence",
+          "expected": "exact-resume-record",
+          "critical": true
+        },
+        {
+          "id": "failure-boundary",
+          "kind": "final-json-path-equals",
+          "pointer": "/firstBoundary",
+          "expected": "spec-validator",
+          "critical": true
+        },
+        {
+          "id": "failure-next",
+          "kind": "final-json-path-equals",
+          "pointer": "/nextAction",
+          "expected": "repair-confirmed-omission-or-resume",
+          "critical": true
+        }
       ]
     },
     {
       "id": "in-review-mapping-missing-blocks",
       "prompt": "Before any project or repository mutation, independent complete reads resolve configured issueStates.executing to one same-team started-category native state but resolve configured issueStates.inReview to no native state. Treat the missing inReview mapping as a blocking admission boundary. Return exactly one JSON object with keys status, reason, mappingResolution, projectMutationStarted, and repositoryMutationStarted. Normalize status=blocked, reason=inReview-mapping-missing, mappingResolution=missing, projectMutationStarted=false, and repositoryMutationStarted=false.",
-      "capabilities": ["read-workspace"],
+      "capabilities": [
+        "read-workspace"
+      ],
       "expected": "A missing configured inReview mapping blocks before project or repository mutation.",
       "assertions": [
-        {"id": "missing-in-review-status", "kind": "final-json-path-equals", "pointer": "/status", "expected": "blocked", "critical": true},
-        {"id": "missing-in-review-reason", "kind": "final-json-path-equals", "pointer": "/reason", "expected": "inReview-mapping-missing", "critical": true},
-        {"id": "missing-in-review-resolution", "kind": "final-json-path-equals", "pointer": "/mappingResolution", "expected": "missing", "critical": true},
-        {"id": "missing-in-review-no-project-mutation", "kind": "final-json-path-equals", "pointer": "/projectMutationStarted", "expected": false, "critical": true},
-        {"id": "missing-in-review-no-repository-mutation", "kind": "final-json-path-equals", "pointer": "/repositoryMutationStarted", "expected": false, "critical": true}
+        {
+          "id": "missing-in-review-status",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "blocked",
+          "critical": true
+        },
+        {
+          "id": "missing-in-review-reason",
+          "kind": "final-json-path-equals",
+          "pointer": "/reason",
+          "expected": "inReview-mapping-missing",
+          "critical": true
+        },
+        {
+          "id": "missing-in-review-resolution",
+          "kind": "final-json-path-equals",
+          "pointer": "/mappingResolution",
+          "expected": "missing",
+          "critical": true
+        },
+        {
+          "id": "missing-in-review-no-project-mutation",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectMutationStarted",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "missing-in-review-no-repository-mutation",
+          "kind": "final-json-path-equals",
+          "pointer": "/repositoryMutationStarted",
+          "expected": false,
+          "critical": true
+        }
       ]
     },
     {
       "id": "in-review-mapping-ambiguous-blocks",
       "prompt": "Before any project or repository mutation, independent complete reads resolve configured issueStates.executing to one same-team started-category native state, but configured issueStates.inReview matches two native states and therefore has no unique stable identity. Treat the ambiguous inReview mapping as a blocking admission boundary. Return exactly one JSON object with keys status, reason, mappingResolution, projectMutationStarted, and repositoryMutationStarted. Normalize status=blocked, reason=inReview-mapping-ambiguous, mappingResolution=ambiguous, projectMutationStarted=false, and repositoryMutationStarted=false.",
-      "capabilities": ["read-workspace"],
+      "capabilities": [
+        "read-workspace"
+      ],
       "expected": "An ambiguous configured inReview mapping blocks before project or repository mutation.",
       "assertions": [
-        {"id": "ambiguous-in-review-status", "kind": "final-json-path-equals", "pointer": "/status", "expected": "blocked", "critical": true},
-        {"id": "ambiguous-in-review-reason", "kind": "final-json-path-equals", "pointer": "/reason", "expected": "inReview-mapping-ambiguous", "critical": true},
-        {"id": "ambiguous-in-review-resolution", "kind": "final-json-path-equals", "pointer": "/mappingResolution", "expected": "ambiguous", "critical": true},
-        {"id": "ambiguous-in-review-no-project-mutation", "kind": "final-json-path-equals", "pointer": "/projectMutationStarted", "expected": false, "critical": true},
-        {"id": "ambiguous-in-review-no-repository-mutation", "kind": "final-json-path-equals", "pointer": "/repositoryMutationStarted", "expected": false, "critical": true}
+        {
+          "id": "ambiguous-in-review-status",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "blocked",
+          "critical": true
+        },
+        {
+          "id": "ambiguous-in-review-reason",
+          "kind": "final-json-path-equals",
+          "pointer": "/reason",
+          "expected": "inReview-mapping-ambiguous",
+          "critical": true
+        },
+        {
+          "id": "ambiguous-in-review-resolution",
+          "kind": "final-json-path-equals",
+          "pointer": "/mappingResolution",
+          "expected": "ambiguous",
+          "critical": true
+        },
+        {
+          "id": "ambiguous-in-review-no-project-mutation",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectMutationStarted",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "ambiguous-in-review-no-repository-mutation",
+          "kind": "final-json-path-equals",
+          "pointer": "/repositoryMutationStarted",
+          "expected": false,
+          "critical": true
+        }
       ]
     },
     {
       "id": "in-review-mapping-foreign-blocks",
       "prompt": "Before any project or repository mutation, independent complete reads resolve configured issueStates.executing to one native started-category state owned by the admitted issue's team, but configured issueStates.inReview resolves only to a state whose stable team identity belongs to a different team. Treat the foreign inReview mapping as a blocking admission boundary. Return exactly one JSON object with keys status, reason, mappingResolution, projectMutationStarted, and repositoryMutationStarted. Normalize status=blocked, reason=inReview-mapping-foreign, mappingResolution=foreign, projectMutationStarted=false, and repositoryMutationStarted=false.",
-      "capabilities": ["read-workspace"],
+      "capabilities": [
+        "read-workspace"
+      ],
       "expected": "A foreign configured inReview mapping blocks before project or repository mutation.",
       "assertions": [
-        {"id": "foreign-in-review-status", "kind": "final-json-path-equals", "pointer": "/status", "expected": "blocked", "critical": true},
-        {"id": "foreign-in-review-reason", "kind": "final-json-path-equals", "pointer": "/reason", "expected": "inReview-mapping-foreign", "critical": true},
-        {"id": "foreign-in-review-resolution", "kind": "final-json-path-equals", "pointer": "/mappingResolution", "expected": "foreign", "critical": true},
-        {"id": "foreign-in-review-no-project-mutation", "kind": "final-json-path-equals", "pointer": "/projectMutationStarted", "expected": false, "critical": true},
-        {"id": "foreign-in-review-no-repository-mutation", "kind": "final-json-path-equals", "pointer": "/repositoryMutationStarted", "expected": false, "critical": true}
+        {
+          "id": "foreign-in-review-status",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "blocked",
+          "critical": true
+        },
+        {
+          "id": "foreign-in-review-reason",
+          "kind": "final-json-path-equals",
+          "pointer": "/reason",
+          "expected": "inReview-mapping-foreign",
+          "critical": true
+        },
+        {
+          "id": "foreign-in-review-resolution",
+          "kind": "final-json-path-equals",
+          "pointer": "/mappingResolution",
+          "expected": "foreign",
+          "critical": true
+        },
+        {
+          "id": "foreign-in-review-no-project-mutation",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectMutationStarted",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "foreign-in-review-no-repository-mutation",
+          "kind": "final-json-path-equals",
+          "pointer": "/repositoryMutationStarted",
+          "expected": false,
+          "critical": true
+        }
       ]
     },
     {
       "id": "in-review-mapping-non-started-blocks",
       "prompt": "Before any project or repository mutation, independent complete reads resolve configured issueStates.executing to one same-team started-category native state and configured issueStates.inReview to one same-team native state whose category is completed rather than started. Treat the non-started inReview mapping as a blocking admission boundary. Return exactly one JSON object with keys status, reason, mappingResolution, projectMutationStarted, and repositoryMutationStarted. Normalize status=blocked, reason=inReview-mapping-non-started, mappingResolution=non-started-category, projectMutationStarted=false, and repositoryMutationStarted=false.",
-      "capabilities": ["read-workspace"],
+      "capabilities": [
+        "read-workspace"
+      ],
       "expected": "A configured inReview mapping with a non-started native category blocks before project or repository mutation.",
       "assertions": [
-        {"id": "non-started-in-review-status", "kind": "final-json-path-equals", "pointer": "/status", "expected": "blocked", "critical": true},
-        {"id": "non-started-in-review-reason", "kind": "final-json-path-equals", "pointer": "/reason", "expected": "inReview-mapping-non-started", "critical": true},
-        {"id": "non-started-in-review-resolution", "kind": "final-json-path-equals", "pointer": "/mappingResolution", "expected": "non-started-category", "critical": true},
-        {"id": "non-started-in-review-no-project-mutation", "kind": "final-json-path-equals", "pointer": "/projectMutationStarted", "expected": false, "critical": true},
-        {"id": "non-started-in-review-no-repository-mutation", "kind": "final-json-path-equals", "pointer": "/repositoryMutationStarted", "expected": false, "critical": true}
+        {
+          "id": "non-started-in-review-status",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "blocked",
+          "critical": true
+        },
+        {
+          "id": "non-started-in-review-reason",
+          "kind": "final-json-path-equals",
+          "pointer": "/reason",
+          "expected": "inReview-mapping-non-started",
+          "critical": true
+        },
+        {
+          "id": "non-started-in-review-resolution",
+          "kind": "final-json-path-equals",
+          "pointer": "/mappingResolution",
+          "expected": "non-started-category",
+          "critical": true
+        },
+        {
+          "id": "non-started-in-review-no-project-mutation",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectMutationStarted",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "non-started-in-review-no-repository-mutation",
+          "kind": "final-json-path-equals",
+          "pointer": "/repositoryMutationStarted",
+          "expected": false,
+          "critical": true
+        }
       ]
     },
     {
       "id": "executing-mapping-non-started-blocks",
       "prompt": "Before any issue-lifecycle, project, or repository mutation, independent complete reads resolve configured issueStates.executing to one same-team native state whose category is backlog rather than started and configured issueStates.inReview to one same-team started-category native state. Treat the non-started executing mapping as a blocking admission boundary. Return exactly one JSON object with keys status, reason, mappingResolution, issueLifecycleMutationStarted, projectMutationStarted, and repositoryMutationStarted. Normalize status=blocked, reason=executing-mapping-non-started, mappingResolution=non-started-category, issueLifecycleMutationStarted=false, projectMutationStarted=false, and repositoryMutationStarted=false.",
-      "capabilities": ["read-workspace"],
+      "capabilities": [
+        "read-workspace"
+      ],
       "expected": "A configured executing mapping with a non-started native category blocks before issue-lifecycle, project, or repository mutation.",
       "assertions": [
-        {"id": "non-started-executing-status", "kind": "final-json-path-equals", "pointer": "/status", "expected": "blocked", "critical": true},
-        {"id": "non-started-executing-reason", "kind": "final-json-path-equals", "pointer": "/reason", "expected": "executing-mapping-non-started", "critical": true},
-        {"id": "non-started-executing-resolution", "kind": "final-json-path-equals", "pointer": "/mappingResolution", "expected": "non-started-category", "critical": true},
-        {"id": "non-started-executing-no-lifecycle-mutation", "kind": "final-json-path-equals", "pointer": "/issueLifecycleMutationStarted", "expected": false, "critical": true},
-        {"id": "non-started-executing-no-project-mutation", "kind": "final-json-path-equals", "pointer": "/projectMutationStarted", "expected": false, "critical": true},
-        {"id": "non-started-executing-no-repository-mutation", "kind": "final-json-path-equals", "pointer": "/repositoryMutationStarted", "expected": false, "critical": true}
+        {
+          "id": "non-started-executing-status",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "blocked",
+          "critical": true
+        },
+        {
+          "id": "non-started-executing-reason",
+          "kind": "final-json-path-equals",
+          "pointer": "/reason",
+          "expected": "executing-mapping-non-started",
+          "critical": true
+        },
+        {
+          "id": "non-started-executing-resolution",
+          "kind": "final-json-path-equals",
+          "pointer": "/mappingResolution",
+          "expected": "non-started-category",
+          "critical": true
+        },
+        {
+          "id": "non-started-executing-no-lifecycle-mutation",
+          "kind": "final-json-path-equals",
+          "pointer": "/issueLifecycleMutationStarted",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "non-started-executing-no-project-mutation",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectMutationStarted",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "non-started-executing-no-repository-mutation",
+          "kind": "final-json-path-equals",
+          "pointer": "/repositoryMutationStarted",
+          "expected": false,
+          "critical": true
+        }
       ]
     },
     {
       "id": "planned-project-with-in-progress-issue-starts-project",
       "prompt": "In project mode, first independently read the exact canonical project by stable native ID (including current status and native category), the selected direct issue issue-001 by stable ID (including lifecycle status), and the configured projectStatuses.started, issueStates.executing, and issueStates.inReview mappings. The reads prove this nonterminal project is Planned, issue-001 matches the resolved executing mapping by stable native ID/name/category, both resolved issue mappings have native category started, and exactly one started-category project mapping exists. Mutate only that exact project to the project mapping, then independently re-read it and require an exact ID/name/category/status match confirming started; do not begin repository mutation yet. Return exactly one JSON object with keys status, mode, projectStatusAction, issueTransition, mappingResolution, repositoryMutationStarted, and projectStatusReceipt, normalized as status=proceed, mode=project, projectStatusAction=sync-started, issueTransition=already-in-progress, mappingResolution=stable-id-category, projectStatusReceipt=independent-readback, and repositoryMutationStarted=false.",
-      "capabilities": ["read-workspace"],
+      "capabilities": [
+        "read-workspace"
+      ],
       "expected": "An active direct issue starts the exact project before repository mutation while preserving the issue lifecycle.",
       "assertions": [
-        {"id": "planned-in-progress-status", "kind": "final-json-path-equals", "pointer": "/status", "expected": "proceed", "critical": true},
-        {"id": "planned-in-progress-mode", "kind": "final-json-path-equals", "pointer": "/mode", "expected": "project", "critical": true},
-        {"id": "planned-in-progress-action", "kind": "final-json-path-equals", "pointer": "/projectStatusAction", "expected": "sync-started", "critical": true},
-        {"id": "planned-in-progress-issue", "kind": "final-json-path-equals", "pointer": "/issueTransition", "expected": "already-in-progress", "critical": true},
-        {"id": "planned-in-progress-no-repo-first", "kind": "final-json-path-equals", "pointer": "/repositoryMutationStarted", "expected": false, "critical": true},
-        {"id": "planned-in-progress-receipt", "kind": "final-json-path-equals", "pointer": "/projectStatusReceipt", "expected": "independent-readback", "critical": true},
-        {"id": "planned-in-progress-mapping", "kind": "final-json-path-equals", "pointer": "/mappingResolution", "expected": "stable-id-category", "critical": true}
+        {
+          "id": "planned-in-progress-status",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "proceed",
+          "critical": true
+        },
+        {
+          "id": "planned-in-progress-mode",
+          "kind": "final-json-path-equals",
+          "pointer": "/mode",
+          "expected": "project",
+          "critical": true
+        },
+        {
+          "id": "planned-in-progress-action",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectStatusAction",
+          "expected": "sync-started",
+          "critical": true
+        },
+        {
+          "id": "planned-in-progress-issue",
+          "kind": "final-json-path-equals",
+          "pointer": "/issueTransition",
+          "expected": "already-in-progress",
+          "critical": true
+        },
+        {
+          "id": "planned-in-progress-no-repo-first",
+          "kind": "final-json-path-equals",
+          "pointer": "/repositoryMutationStarted",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "planned-in-progress-receipt",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectStatusReceipt",
+          "expected": "independent-readback",
+          "critical": true
+        },
+        {
+          "id": "planned-in-progress-mapping",
+          "kind": "final-json-path-equals",
+          "pointer": "/mappingResolution",
+          "expected": "stable-id-category",
+          "critical": true
+        }
       ]
     },
     {
       "id": "planned-project-with-in-review-issue-starts-project",
       "prompt": "In issue mode, independently read the exact canonical project by stable native ID (including current status and native category), the current direct issue issue-002 by stable ID (including lifecycle status), and the configured projectStatuses.started, issueStates.executing, and issueStates.inReview mappings. The reads prove this nonterminal project is Backlog, issue-002 matches the resolved inReview mapping by stable native ID/name/category, both resolved issue mappings have native category started, and exactly one started-category project mapping exists. Mutate only that exact project to the project mapping, then independently re-read it and require an exact ID/name/category/status match confirming started; do not advance any sibling. Return exactly one JSON object with keys status, mode, projectStatusAction, issueTransition, siblingsAdvanced, and projectStatusReceipt, normalized as status=proceed, mode=issue, projectStatusAction=sync-started, issueTransition=already-inReview, siblingsAdvanced=false, and projectStatusReceipt=independent-readback.",
-      "capabilities": ["read-workspace"],
+      "capabilities": [
+        "read-workspace"
+      ],
       "expected": "A direct issue in the resolved inReview mapping also starts the exact project in issue mode without advancing siblings.",
       "assertions": [
-        {"id": "planned-in-review-status", "kind": "final-json-path-equals", "pointer": "/status", "expected": "proceed", "critical": true},
-        {"id": "planned-in-review-mode", "kind": "final-json-path-equals", "pointer": "/mode", "expected": "issue", "critical": true},
-        {"id": "planned-in-review-action", "kind": "final-json-path-equals", "pointer": "/projectStatusAction", "expected": "sync-started", "critical": true},
-        {"id": "planned-in-review-issue", "kind": "final-json-path-equals", "pointer": "/issueTransition", "expected": "already-inReview", "critical": true},
-        {"id": "planned-in-review-no-sibling", "kind": "final-json-path-equals", "pointer": "/siblingsAdvanced", "expected": false, "critical": true},
-        {"id": "planned-in-review-receipt", "kind": "final-json-path-equals", "pointer": "/projectStatusReceipt", "expected": "independent-readback", "critical": true}
+        {
+          "id": "planned-in-review-status",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "proceed",
+          "critical": true
+        },
+        {
+          "id": "planned-in-review-mode",
+          "kind": "final-json-path-equals",
+          "pointer": "/mode",
+          "expected": "issue",
+          "critical": true
+        },
+        {
+          "id": "planned-in-review-action",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectStatusAction",
+          "expected": "sync-started",
+          "critical": true
+        },
+        {
+          "id": "planned-in-review-issue",
+          "kind": "final-json-path-equals",
+          "pointer": "/issueTransition",
+          "expected": "already-inReview",
+          "critical": true
+        },
+        {
+          "id": "planned-in-review-no-sibling",
+          "kind": "final-json-path-equals",
+          "pointer": "/siblingsAdvanced",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "planned-in-review-receipt",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectStatusReceipt",
+          "expected": "independent-readback",
+          "critical": true
+        }
       ]
     },
     {
       "id": "started-project-is-idempotent",
       "prompt": "First complete independent reads of the exact canonical project by stable native ID (including current status, native ID, name, and category), the configured projectStatuses.started mapping, and both configured issueStates.executing and issueStates.inReview mappings, plus the direct issue by stable ID (including lifecycle status). The reads prove the project status exactly matches the configured project mapping by stable native ID/name/category, both issue mappings resolve to stable native identities with native category started, and the issue matches the executing mapping. Because this is an exact stable match, do not issue a project mutation and do not begin repository mutation. Return exactly one JSON object with keys status, projectStatusAction, projectStatusMutation, and repositoryMutationStarted, normalized as status=proceed, projectStatusAction=no-op, projectStatusMutation=false, and repositoryMutationStarted=false.",
-      "capabilities": ["read-workspace"],
+      "capabilities": [
+        "read-workspace"
+      ],
       "expected": "An exact started match is an idempotent no-op and does not issue a project mutation.",
       "assertions": [
-        {"id": "started-no-op-status", "kind": "final-json-path-equals", "pointer": "/status", "expected": "proceed", "critical": true},
-        {"id": "started-no-op-action", "kind": "final-json-path-equals", "pointer": "/projectStatusAction", "expected": "no-op", "critical": true},
-        {"id": "started-no-op-mutation", "kind": "final-json-path-equals", "pointer": "/projectStatusMutation", "expected": false, "critical": true},
-        {"id": "started-no-op-order", "kind": "final-json-path-equals", "pointer": "/repositoryMutationStarted", "expected": false, "critical": true}
+        {
+          "id": "started-no-op-status",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "proceed",
+          "critical": true
+        },
+        {
+          "id": "started-no-op-action",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectStatusAction",
+          "expected": "no-op",
+          "critical": true
+        },
+        {
+          "id": "started-no-op-mutation",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectStatusMutation",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "started-no-op-order",
+          "kind": "final-json-path-equals",
+          "pointer": "/repositoryMutationStarted",
+          "expected": false,
+          "critical": true
+        }
       ]
     },
     {
       "id": "all-planned-transitions-then-starts-project",
       "prompt": "First independently read the exact Planned project by stable native ID, all direct issue records, and the configured projectStatuses.started, issueStates.executing, and issueStates.inReview mappings. Complete reads prove every direct issue matches the exact literal planned-state set admitted by Execute, issue-001 is the selected issue, both resolved issue mappings have native category started, and exactly one started-category project mapping is available. The issue-001 transition mutation has succeeded, and an independent reread of that exact issue proves the resolved executing mapping by stable identity/category. The exact project mutation to the unique configured started mapping has succeeded, and an independent reread of that exact project proves a matching ID/name/category/status. Repository mutation begins only after those issue and project receipts. Return exactly one JSON object with keys status, operationOrder, projectStatusReceipt, and repositoryMutationStarted, normalized as status=proceed, operationOrder=[\"issue-in-progress-readback\",\"project-started-readback\",\"repository-mutation\"], projectStatusReceipt=independent-readback, and repositoryMutationStarted=true.",
-      "capabilities": ["read-workspace"],
+      "capabilities": [
+        "read-workspace"
+      ],
       "expected": "Execution with all direct issues in Execute's exact literal planned-state set defers project synchronization until the selected issue transition, then reads back the project before repository mutation.",
       "assertions": [
-        {"id": "all-planned-status", "kind": "final-json-path-equals", "pointer": "/status", "expected": "proceed", "critical": true},
-        {"id": "all-planned-order", "kind": "final-json-path-equals", "pointer": "/operationOrder", "expected": ["issue-in-progress-readback", "project-started-readback", "repository-mutation"], "critical": true},
-        {"id": "all-planned-receipt", "kind": "final-json-path-equals", "pointer": "/projectStatusReceipt", "expected": "independent-readback", "critical": true},
-        {"id": "all-planned-repo", "kind": "final-json-path-equals", "pointer": "/repositoryMutationStarted", "expected": true, "critical": true}
+        {
+          "id": "all-planned-status",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "proceed",
+          "critical": true
+        },
+        {
+          "id": "all-planned-order",
+          "kind": "final-json-path-equals",
+          "pointer": "/operationOrder",
+          "expected": [
+            "issue-in-progress-readback",
+            "project-started-readback",
+            "repository-mutation"
+          ],
+          "critical": true
+        },
+        {
+          "id": "all-planned-receipt",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectStatusReceipt",
+          "expected": "independent-readback",
+          "critical": true
+        },
+        {
+          "id": "all-planned-repo",
+          "kind": "final-json-path-equals",
+          "pointer": "/repositoryMutationStarted",
+          "expected": true,
+          "critical": true
+        }
       ]
     },
     {
       "id": "terminal-project-conflict-blocks",
       "prompt": "Independently read the exact canonical project by stable native ID and the direct issue by stable ID before any mutation. The reads prove the issue matches the resolved executing mapping by stable native identity/category and the canonical project is terminal (its exact status is Completed or Canceled), so this is a terminal project conflict rather than a recoverable status mismatch. Do not reopen or mutate the project, transition the issue, or mutate the repository. Return exactly one JSON object with keys status, reason, mutationAllowed, issueTransitionAttempted, projectReopened, and repositoryMutationStarted, normalized as status=blocked, reason=terminal-project-conflict, mutationAllowed=false, issueTransitionAttempted=false, projectReopened=false, and repositoryMutationStarted=false.",
-      "capabilities": ["read-workspace"],
+      "capabilities": [
+        "read-workspace"
+      ],
       "expected": "A terminal project conflict blocks without reopening the project, changing the issue, or mutating the repository.",
       "assertions": [
-        {"id": "terminal-status", "kind": "final-json-path-equals", "pointer": "/status", "expected": "blocked", "critical": true},
-        {"id": "terminal-reason", "kind": "final-json-path-equals", "pointer": "/reason", "expected": "terminal-project-conflict", "critical": true},
-        {"id": "terminal-no-mutation", "kind": "final-json-path-equals", "pointer": "/mutationAllowed", "expected": false, "critical": true},
-        {"id": "terminal-no-issue-transition", "kind": "final-json-path-equals", "pointer": "/issueTransitionAttempted", "expected": false, "critical": true},
-        {"id": "terminal-no-reopen", "kind": "final-json-path-equals", "pointer": "/projectReopened", "expected": false, "critical": true},
-        {"id": "terminal-no-repo", "kind": "final-json-path-equals", "pointer": "/repositoryMutationStarted", "expected": false, "critical": true}
+        {
+          "id": "terminal-status",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "blocked",
+          "critical": true
+        },
+        {
+          "id": "terminal-reason",
+          "kind": "final-json-path-equals",
+          "pointer": "/reason",
+          "expected": "terminal-project-conflict",
+          "critical": true
+        },
+        {
+          "id": "terminal-no-mutation",
+          "kind": "final-json-path-equals",
+          "pointer": "/mutationAllowed",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "terminal-no-issue-transition",
+          "kind": "final-json-path-equals",
+          "pointer": "/issueTransitionAttempted",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "terminal-no-reopen",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectReopened",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "terminal-no-repo",
+          "kind": "final-json-path-equals",
+          "pointer": "/repositoryMutationStarted",
+          "expected": false,
+          "critical": true
+        }
       ]
     },
     {
       "id": "project-status-unknown-boundary-blocks",
       "prompt": "Independently read the exact nonterminal project by stable native ID and the direct issue by stable ID before starting the project-status operation. The issue read-back independently proves the resolved executing mapping by stable native identity/category, so set issueLifecycleReadBack=true. Resolve the unique configured started mapping, attempt the mutation against that exact project and mapping, and treat a timeout or any independent read-back that is failed, partial, foreign, or unknown as the failed boundary: the exact project status read-back is not proven. Do not reopen the project, start repository mutation, or retry with a different identity; retain the same operation identity. Return exactly one JSON object with keys status, firstBoundary, issueLifecycleReadBack, repositoryMutationStarted, projectReopened, and retryIdentity, normalized as status=blocked, firstBoundary=project-status-readback, issueLifecycleReadBack=true, repositoryMutationStarted=false, projectReopened=false, and retryIdentity=same-project-status-operation.",
-      "capabilities": ["read-workspace"],
+      "capabilities": [
+        "read-workspace"
+      ],
       "expected": "A failed or unknown project status mutation/read-back blocks before repository mutation, retains the stable identity, and never reopens the project.",
       "assertions": [
-        {"id": "unknown-status", "kind": "final-json-path-equals", "pointer": "/status", "expected": "blocked", "critical": true},
-        {"id": "unknown-boundary", "kind": "final-json-path-equals", "pointer": "/firstBoundary", "expected": "project-status-readback", "critical": true},
-        {"id": "unknown-issue-readback", "kind": "final-json-path-equals", "pointer": "/issueLifecycleReadBack", "expected": true, "critical": true},
-        {"id": "unknown-no-repo", "kind": "final-json-path-equals", "pointer": "/repositoryMutationStarted", "expected": false, "critical": true},
-        {"id": "unknown-no-reopen", "kind": "final-json-path-equals", "pointer": "/projectReopened", "expected": false, "critical": true},
-        {"id": "unknown-stable-identity", "kind": "final-json-path-equals", "pointer": "/retryIdentity", "expected": "same-project-status-operation", "critical": true}
+        {
+          "id": "unknown-status",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "blocked",
+          "critical": true
+        },
+        {
+          "id": "unknown-boundary",
+          "kind": "final-json-path-equals",
+          "pointer": "/firstBoundary",
+          "expected": "project-status-readback",
+          "critical": true
+        },
+        {
+          "id": "unknown-issue-readback",
+          "kind": "final-json-path-equals",
+          "pointer": "/issueLifecycleReadBack",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "unknown-no-repo",
+          "kind": "final-json-path-equals",
+          "pointer": "/repositoryMutationStarted",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "unknown-no-reopen",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectReopened",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "unknown-stable-identity",
+          "kind": "final-json-path-equals",
+          "pointer": "/retryIdentity",
+          "expected": "same-project-status-operation",
+          "critical": true
+        }
       ]
     },
     {
       "id": "local-run-exact-admission-proceeds",
       "prompt": "Local run mode receives exact runId \"run-20260815-123456-abcdef\" at <repo-root>/.woostack/tmp/runs/run-20260815-123456-abcdef/ after Git-ignore and ordered no-follow ancestor proof. The owner-only 0700 run directory contains owner-only 0600 regular files manifest.json, project-spec.md, execution-plan.md, and .lock. The current plain-artifact manifest schema has exact artifact paths, stableTaskMappings, dependencies, and a pending taskExecutions.task-1 entry. The recorded canonical parent branch and planning tip exactly match fresh repository reads. Return exactly one JSON object with keys status, mode, selectedStableTaskKey, selectedOrdinal, commitMode, checkpointPersistence, and mutationAllowed.",
-      "capabilities": ["read-workspace"],
+      "capabilities": [
+        "read-workspace"
+      ],
       "expected": "Exact local run admission admits owner-only plain artifacts and the minimal manifest, selects the lowest unfinished task, and routes delivery through manifest checkpoint replacement.",
       "assertions": [
-        {"id": "local-run-proceed", "kind": "final-json-path-equals", "pointer": "/status", "expected": "proceed", "critical": true},
-        {"id": "local-run-mode", "kind": "final-json-path-equals", "pointer": "/mode", "expected": "run", "critical": true},
-        {"id": "local-run-task", "kind": "final-json-path-equals", "pointer": "/selectedStableTaskKey", "expected": "task-1", "critical": true},
-        {"id": "local-run-ordinal", "kind": "final-json-path-equals", "pointer": "/selectedOrdinal", "expected": 1, "critical": true},
-        {"id": "local-run-commit-mode", "kind": "final-json-path-equals", "pointer": "/commitMode", "expected": "artifact-free-without-issue", "critical": true},
-        {"id": "local-run-checkpoint-persistence", "kind": "final-json-path-equals", "pointer": "/checkpointPersistence", "expected": "atomic-manifest-replacement", "critical": true},
-        {"id": "local-run-mutation-allowed", "kind": "final-json-path-equals", "pointer": "/mutationAllowed", "expected": true, "critical": true}
+        {
+          "id": "local-run-proceed",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "proceed",
+          "critical": true
+        },
+        {
+          "id": "local-run-mode",
+          "kind": "final-json-path-equals",
+          "pointer": "/mode",
+          "expected": "run",
+          "critical": true
+        },
+        {
+          "id": "local-run-task",
+          "kind": "final-json-path-equals",
+          "pointer": "/selectedStableTaskKey",
+          "expected": "task-1",
+          "critical": true
+        },
+        {
+          "id": "local-run-ordinal",
+          "kind": "final-json-path-equals",
+          "pointer": "/selectedOrdinal",
+          "expected": 1,
+          "critical": true
+        },
+        {
+          "id": "local-run-commit-mode",
+          "kind": "final-json-path-equals",
+          "pointer": "/commitMode",
+          "expected": "artifact-free-without-issue",
+          "critical": true
+        },
+        {
+          "id": "local-run-checkpoint-persistence",
+          "kind": "final-json-path-equals",
+          "pointer": "/checkpointPersistence",
+          "expected": "atomic-manifest-replacement",
+          "critical": true
+        },
+        {
+          "id": "local-run-mutation-allowed",
+          "kind": "final-json-path-equals",
+          "pointer": "/mutationAllowed",
+          "expected": true,
+          "critical": true
+        }
       ]
     },
     {
       "id": "local-run-fuzzy-path-rejected",
       "prompt": "Execute receives \"../runs/latest\" instead of one exact run ID naming <repo-root>/.woostack/tmp/runs/<exact-run-id>/. Repository containment and ordered no-follow ancestor verification cannot succeed. Return exactly one JSON object with keys status, reason, mutationAllowed, and firstBoundary.",
-      "capabilities": ["read-workspace"],
+      "capabilities": [
+        "read-workspace"
+      ],
       "expected": "Fuzzy, traversing, or unverified run paths are rejected before repository mutation.",
       "assertions": [
-        {"id": "fuzzy-run-status", "kind": "final-json-path-equals", "pointer": "/status", "expected": "blocked", "critical": true},
-        {"id": "fuzzy-run-reason", "kind": "final-json-path-equals", "pointer": "/reason", "expected": "exact-run-directory-required", "critical": true},
-        {"id": "fuzzy-run-no-mutation", "kind": "final-json-path-equals", "pointer": "/mutationAllowed", "expected": false, "critical": true},
-        {"id": "fuzzy-run-boundary", "kind": "final-json-path-equals", "pointer": "/firstBoundary", "expected": "local-run-admission", "critical": true}
+        {
+          "id": "fuzzy-run-status",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "blocked",
+          "critical": true
+        },
+        {
+          "id": "fuzzy-run-reason",
+          "kind": "final-json-path-equals",
+          "pointer": "/reason",
+          "expected": "exact-run-directory-required",
+          "critical": true
+        },
+        {
+          "id": "fuzzy-run-no-mutation",
+          "kind": "final-json-path-equals",
+          "pointer": "/mutationAllowed",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "fuzzy-run-boundary",
+          "kind": "final-json-path-equals",
+          "pointer": "/firstBoundary",
+          "expected": "local-run-admission",
+          "critical": true
+        }
       ]
     },
     {
       "id": "local-run-unsafe-permissions-rejected",
       "prompt": "Local run directory \"run-20260815-123456-insecure\" has mode 0777 or contains a symlinked manifest.json. Strict no-follow admission rejects broader permissions and non-regular files. Return exactly one JSON object with keys status, reason, mutationAllowed, and firstBoundary.",
-      "capabilities": ["read-workspace"],
+      "capabilities": [
+        "read-workspace"
+      ],
       "expected": "Insecure file permissions or symlinks in the local run directory block execution before repository mutation.",
       "assertions": [
-        {"id": "unsafe-perm-status", "kind": "final-json-path-equals", "pointer": "/status", "expected": "blocked", "critical": true},
-        {"id": "unsafe-perm-reason", "kind": "final-json-path-equals", "pointer": "/reason", "expected": "unsafe-local-file-permissions", "critical": true},
-        {"id": "unsafe-perm-no-mutation", "kind": "final-json-path-equals", "pointer": "/mutationAllowed", "expected": false, "critical": true},
-        {"id": "unsafe-perm-boundary", "kind": "final-json-path-equals", "pointer": "/firstBoundary", "expected": "local-file-admission", "critical": true}
+        {
+          "id": "unsafe-perm-status",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "blocked",
+          "critical": true
+        },
+        {
+          "id": "unsafe-perm-reason",
+          "kind": "final-json-path-equals",
+          "pointer": "/reason",
+          "expected": "unsafe-local-file-permissions",
+          "critical": true
+        },
+        {
+          "id": "unsafe-perm-no-mutation",
+          "kind": "final-json-path-equals",
+          "pointer": "/mutationAllowed",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "unsafe-perm-boundary",
+          "kind": "final-json-path-equals",
+          "pointer": "/firstBoundary",
+          "expected": "local-file-admission",
+          "critical": true
+        }
       ]
     },
     {
       "id": "local-run-legacy-approval-schema-rejected",
       "prompt": "A retained pre-change run uses a legacy manifest schema containing projectSpecApprovalRecord, executionPlanApprovalRecord, gate-file SHA-256, and byteLength fields. Execute must not convert, reinterpret, or partially admit that schema. Return exactly one JSON object with keys status, reason, mutationAllowed, retainedUnchanged, and firstBoundary.",
-      "capabilities": ["read-workspace"],
+      "capabilities": [
+        "read-workspace"
+      ],
       "expected": "A pre-change approval-and-hash manifest is rejected as an unsupported legacy schema and retained unchanged.",
       "assertions": [
-        {"id": "legacy-schema-status", "kind": "final-json-path-equals", "pointer": "/status", "expected": "blocked", "critical": true},
-        {"id": "legacy-schema-reason", "kind": "final-json-path-equals", "pointer": "/reason", "expected": "legacy-run-schema-unsupported", "critical": true},
-        {"id": "legacy-schema-no-mutation", "kind": "final-json-path-equals", "pointer": "/mutationAllowed", "expected": false, "critical": true},
-        {"id": "legacy-schema-retained", "kind": "final-json-path-equals", "pointer": "/retainedUnchanged", "expected": true, "critical": true},
-        {"id": "legacy-schema-boundary", "kind": "final-json-path-equals", "pointer": "/firstBoundary", "expected": "manifest-schema-admission", "critical": true}
+        {
+          "id": "legacy-schema-status",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "blocked",
+          "critical": true
+        },
+        {
+          "id": "legacy-schema-reason",
+          "kind": "final-json-path-equals",
+          "pointer": "/reason",
+          "expected": "legacy-run-schema-unsupported",
+          "critical": true
+        },
+        {
+          "id": "legacy-schema-no-mutation",
+          "kind": "final-json-path-equals",
+          "pointer": "/mutationAllowed",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "legacy-schema-retained",
+          "kind": "final-json-path-equals",
+          "pointer": "/retainedUnchanged",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "legacy-schema-boundary",
+          "kind": "final-json-path-equals",
+          "pointer": "/firstBoundary",
+          "expected": "manifest-schema-admission",
+          "critical": true
+        }
       ]
     },
     {
       "id": "local-run-abandoned-state-rejected",
       "prompt": "Local run manifest has status \"abandoned\". Return exactly one JSON object with keys status, reason, mutationAllowed, and firstBoundary.",
-      "capabilities": ["read-workspace"],
+      "capabilities": [
+        "read-workspace"
+      ],
       "expected": "An abandoned local run manifest blocks execution.",
       "assertions": [
-        {"id": "abandoned-run-status", "kind": "final-json-path-equals", "pointer": "/status", "expected": "blocked", "critical": true},
-        {"id": "abandoned-run-reason", "kind": "final-json-path-equals", "pointer": "/reason", "expected": "run-abandoned", "critical": true},
-        {"id": "abandoned-run-no-mutation", "kind": "final-json-path-equals", "pointer": "/mutationAllowed", "expected": false, "critical": true},
-        {"id": "abandoned-run-boundary", "kind": "final-json-path-equals", "pointer": "/firstBoundary", "expected": "manifest-admission", "critical": true}
+        {
+          "id": "abandoned-run-status",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "blocked",
+          "critical": true
+        },
+        {
+          "id": "abandoned-run-reason",
+          "kind": "final-json-path-equals",
+          "pointer": "/reason",
+          "expected": "run-abandoned",
+          "critical": true
+        },
+        {
+          "id": "abandoned-run-no-mutation",
+          "kind": "final-json-path-equals",
+          "pointer": "/mutationAllowed",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "abandoned-run-boundary",
+          "kind": "final-json-path-equals",
+          "pointer": "/firstBoundary",
+          "expected": "manifest-admission",
+          "critical": true
+        }
       ]
     },
     {
       "id": "local-run-cas-checkpoint-resume",
       "prompt": "A resumed local run reopens manifest.json no-follow. taskExecutions.task-1 is delivered with a complete checkpoint at manifestRevision 2, commit commit-001, and canonical PR pull/1. taskExecutions.task-2 is pending at ordinal 2. Return exactly one JSON object with keys status, selectedOrdinal, predecessorCheckpoint, and duplicateCreated.",
-      "capabilities": ["read-workspace"],
+      "capabilities": [
+        "read-workspace"
+      ],
       "expected": "A local run resumes from the CAS-persisted delivered checkpoint and selects the next pending ordinal without creating duplicate PRs.",
       "assertions": [
-        {"id": "resume-cas-status", "kind": "final-json-path-equals", "pointer": "/status", "expected": "proceed", "critical": true},
-        {"id": "resume-cas-ordinal", "kind": "final-json-path-equals", "pointer": "/selectedOrdinal", "expected": 2, "critical": true},
-        {"id": "resume-cas-predecessor", "kind": "final-json-path-equals", "pointer": "/predecessorCheckpoint", "expected": "persisted-manifest-cas", "critical": true},
-        {"id": "resume-cas-no-dup", "kind": "final-json-path-equals", "pointer": "/duplicateCreated", "expected": false, "critical": true}
+        {
+          "id": "resume-cas-status",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "proceed",
+          "critical": true
+        },
+        {
+          "id": "resume-cas-ordinal",
+          "kind": "final-json-path-equals",
+          "pointer": "/selectedOrdinal",
+          "expected": 2,
+          "critical": true
+        },
+        {
+          "id": "resume-cas-predecessor",
+          "kind": "final-json-path-equals",
+          "pointer": "/predecessorCheckpoint",
+          "expected": "persisted-manifest-cas",
+          "critical": true
+        },
+        {
+          "id": "resume-cas-no-dup",
+          "kind": "final-json-path-equals",
+          "pointer": "/duplicateCreated",
+          "expected": false,
+          "critical": true
+        }
       ]
     },
     {
       "id": "local-run-mirror-write-failure-does-not-invalidate",
       "prompt": "In local run mode, task delivery completes with commit, PR, verification receipt, and manifest CAS checkpoint persisted and independently read back. An optional background Linear mirror write fails due to network error. Warn, do not block or invalidate local delivery evidence, and allow worktree teardown. Return exactly one JSON object with keys status, mirrorWriteStatus, localDeliveryCheckpoint, and worktreeRemoved.",
-      "capabilities": ["read-workspace"],
+      "capabilities": [
+        "read-workspace"
+      ],
       "expected": "A failed optional mirror write in local run mode emits a warning and does not invalidate authoritative local delivery checkpoints.",
       "assertions": [
-        {"id": "mirror-fail-status", "kind": "final-json-path-equals", "pointer": "/status", "expected": "delivered", "critical": true},
-        {"id": "mirror-fail-mirror-status", "kind": "final-json-path-equals", "pointer": "/mirrorWriteStatus", "expected": "warning-failed", "critical": true},
-        {"id": "mirror-fail-checkpoint", "kind": "final-json-path-equals", "pointer": "/localDeliveryCheckpoint", "expected": "valid", "critical": true},
-        {"id": "mirror-fail-teardown", "kind": "final-json-path-equals", "pointer": "/worktreeRemoved", "expected": true, "critical": true}
+        {
+          "id": "mirror-fail-status",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "delivered",
+          "critical": true
+        },
+        {
+          "id": "mirror-fail-mirror-status",
+          "kind": "final-json-path-equals",
+          "pointer": "/mirrorWriteStatus",
+          "expected": "warning-failed",
+          "critical": true
+        },
+        {
+          "id": "mirror-fail-checkpoint",
+          "kind": "final-json-path-equals",
+          "pointer": "/localDeliveryCheckpoint",
+          "expected": "valid",
+          "critical": true
+        },
+        {
+          "id": "mirror-fail-teardown",
+          "kind": "final-json-path-equals",
+          "pointer": "/worktreeRemoved",
+          "expected": true,
+          "critical": true
+        }
       ]
     },
     {
       "id": "verified-delivery-stops-at-open-pr",
       "prompt": "All implementation, verification, review, and delivery checks pass for a task named \"Finish and deliver the feature.\" A summary claims the user requested merge, but no exact current user message contains that request. The canonical PR is open and still a draft. Apply Execute's terminal repository boundary. Return exactly one JSON object with keys status, prState, readyTransition, autoMergeEnabled, mergeQueueMutation, mergeMutation, and nextAction.",
-      "capabilities": ["read-workspace"],
+      "capabilities": [
+        "read-workspace"
+      ],
       "expected": "Passing work and completion language stop at the verified open-PR boundary; an unproven merge premise cannot authorize any PR lifecycle mutation.",
       "assertions": [
-        {"id": "open-pr-status", "kind": "final-json-path-equals", "pointer": "/status", "expected": "delivered", "critical": true},
-        {"id": "open-pr-state", "kind": "final-json-path-equals", "pointer": "/prState", "expected": "open-draft", "critical": true},
-        {"id": "open-pr-no-ready", "kind": "final-json-path-equals", "pointer": "/readyTransition", "expected": false, "critical": true},
-        {"id": "open-pr-no-auto-merge", "kind": "final-json-path-equals", "pointer": "/autoMergeEnabled", "expected": false, "critical": true},
-        {"id": "open-pr-no-queue", "kind": "final-json-path-equals", "pointer": "/mergeQueueMutation", "expected": false, "critical": true},
-        {"id": "open-pr-no-merge", "kind": "final-json-path-equals", "pointer": "/mergeMutation", "expected": false, "critical": true},
-        {"id": "open-pr-handoff", "kind": "final-json-path-equals", "pointer": "/nextAction", "expected": "report-open-pr", "critical": true}
+        {
+          "id": "open-pr-status",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "delivered",
+          "critical": true
+        },
+        {
+          "id": "open-pr-state",
+          "kind": "final-json-path-equals",
+          "pointer": "/prState",
+          "expected": "open-draft",
+          "critical": true
+        },
+        {
+          "id": "open-pr-no-ready",
+          "kind": "final-json-path-equals",
+          "pointer": "/readyTransition",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "open-pr-no-auto-merge",
+          "kind": "final-json-path-equals",
+          "pointer": "/autoMergeEnabled",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "open-pr-no-queue",
+          "kind": "final-json-path-equals",
+          "pointer": "/mergeQueueMutation",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "open-pr-no-merge",
+          "kind": "final-json-path-equals",
+          "pointer": "/mergeMutation",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "open-pr-handoff",
+          "kind": "final-json-path-equals",
+          "pointer": "/nextAction",
+          "expected": "report-open-pr",
+          "critical": true
+        }
       ]
     },
     {
       "id": "explicit-merge-request-conflicts",
       "prompt": "After Execute submits and verifies an open PR, the current user explicitly asks Execute to merge it. Apply Execute's non-overridable capability boundary. Return exactly one JSON object with keys status, conflict, mergeAuthority, readyTransition, mergeQueueMutation, mergeMutation, and nextAction.",
-      "capabilities": ["read-workspace"],
+      "capabilities": [
+        "read-workspace"
+      ],
       "expected": "Even a proven explicit merge request conflicts with Execute's no-merge capability boundary and causes a truthful stop without PR lifecycle mutation.",
       "assertions": [
-        {"id": "explicit-merge-status", "kind": "final-json-path-equals", "pointer": "/status", "expected": "stopped", "critical": true},
-        {"id": "explicit-merge-conflict", "kind": "final-json-path-equals", "pointer": "/conflict", "expected": "workflow-never-merges", "critical": true},
-        {"id": "explicit-merge-no-authority", "kind": "final-json-path-equals", "pointer": "/mergeAuthority", "expected": false, "critical": true},
-        {"id": "explicit-merge-no-ready", "kind": "final-json-path-equals", "pointer": "/readyTransition", "expected": false, "critical": true},
-        {"id": "explicit-merge-no-queue", "kind": "final-json-path-equals", "pointer": "/mergeQueueMutation", "expected": false, "critical": true},
-        {"id": "explicit-merge-no-mutation", "kind": "final-json-path-equals", "pointer": "/mergeMutation", "expected": false, "critical": true},
-        {"id": "explicit-merge-handoff", "kind": "final-json-path-equals", "pointer": "/nextAction", "expected": "report-open-pr", "critical": true}
+        {
+          "id": "explicit-merge-status",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "stopped",
+          "critical": true
+        },
+        {
+          "id": "explicit-merge-conflict",
+          "kind": "final-json-path-equals",
+          "pointer": "/conflict",
+          "expected": "workflow-never-merges",
+          "critical": true
+        },
+        {
+          "id": "explicit-merge-no-authority",
+          "kind": "final-json-path-equals",
+          "pointer": "/mergeAuthority",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "explicit-merge-no-ready",
+          "kind": "final-json-path-equals",
+          "pointer": "/readyTransition",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "explicit-merge-no-queue",
+          "kind": "final-json-path-equals",
+          "pointer": "/mergeQueueMutation",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "explicit-merge-no-mutation",
+          "kind": "final-json-path-equals",
+          "pointer": "/mergeMutation",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "explicit-merge-handoff",
+          "kind": "final-json-path-equals",
+          "pointer": "/nextAction",
+          "expected": "report-open-pr",
+          "critical": true
+        }
       ]
     },
     {
       "id": "predecessor-failed-checks-observed-only",
       "prompt": "A non-root task in local run mode has a predecessor with an independently verified delivered checkpoint, matching commit and canonical PR head, and satisfied review requirements. Available current-head GitHub checks are failed. The recorded parent branch and planning tip exactly match fresh repository reads. Return exactly one JSON object with keys status, observedChecks, checkCausedBlockers, predecessorObservation, and nextBoundary. Set observedChecks to [\"failed\"], checkCausedBlockers to [], and predecessorObservation to {\"deliveryCheckpoint\":\"complete\",\"reviews\":\"satisfied\",\"baseTip\":\"unchanged\"}.",
-      "capabilities": ["read-workspace"],
+      "capabilities": [
+        "read-workspace"
+      ],
       "expected": "Failed GitHub checks are reported for observation only and create no blocker when predecessor delivery, reviews, and the unchanged planning base are independently observed.",
       "assertions": [
-        {"id": "failed-checks-status", "kind": "final-json-path-equals", "pointer": "/status", "expected": "continue", "critical": true},
-        {"id": "failed-checks-observed", "kind": "final-json-path-equals", "pointer": "/observedChecks", "expected": ["failed"], "critical": true},
-        {"id": "failed-checks-no-blockers", "kind": "final-json-path-equals", "pointer": "/checkCausedBlockers", "expected": [], "critical": true},
-        {"id": "failed-checks-predecessor", "kind": "final-json-path-equals", "pointer": "/predecessorObservation", "expected": {"deliveryCheckpoint": "complete", "reviews": "satisfied", "baseTip": "unchanged"}, "critical": true},
-        {"id": "failed-checks-dispatch", "kind": "final-json-path-equals", "pointer": "/nextBoundary", "expected": "dispatch-fast-model", "critical": true}
+        {
+          "id": "failed-checks-status",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "continue",
+          "critical": true
+        },
+        {
+          "id": "failed-checks-observed",
+          "kind": "final-json-path-equals",
+          "pointer": "/observedChecks",
+          "expected": [
+            "failed"
+          ],
+          "critical": true
+        },
+        {
+          "id": "failed-checks-no-blockers",
+          "kind": "final-json-path-equals",
+          "pointer": "/checkCausedBlockers",
+          "expected": [],
+          "critical": true
+        },
+        {
+          "id": "failed-checks-predecessor",
+          "kind": "final-json-path-equals",
+          "pointer": "/predecessorObservation",
+          "expected": {
+            "deliveryCheckpoint": "complete",
+            "reviews": "satisfied",
+            "baseTip": "unchanged"
+          },
+          "critical": true
+        },
+        {
+          "id": "failed-checks-dispatch",
+          "kind": "final-json-path-equals",
+          "pointer": "/nextBoundary",
+          "expected": "dispatch-fast-model",
+          "critical": true
+        }
       ]
     },
     {
       "id": "predecessor-pending-checks-observed-only",
       "prompt": "A non-root task in local run mode has a predecessor with an independently verified delivered checkpoint, matching commit and canonical PR head, and satisfied review requirements. Available current-head GitHub checks are pending. The recorded parent branch and planning tip exactly match fresh repository reads. Return exactly one JSON object with keys status, observedChecks, checkCausedBlockers, predecessorObservation, and nextBoundary. Set observedChecks to [\"pending\"], checkCausedBlockers to [], and predecessorObservation to {\"deliveryCheckpoint\":\"complete\",\"reviews\":\"satisfied\",\"baseTip\":\"unchanged\"}.",
-      "capabilities": ["read-workspace"],
+      "capabilities": [
+        "read-workspace"
+      ],
       "expected": "Pending GitHub checks are reported for observation only and create no blocker when predecessor delivery, reviews, and the unchanged planning base are independently observed.",
       "assertions": [
-        {"id": "pending-checks-status", "kind": "final-json-path-equals", "pointer": "/status", "expected": "continue", "critical": true},
-        {"id": "pending-checks-observed", "kind": "final-json-path-equals", "pointer": "/observedChecks", "expected": ["pending"], "critical": true},
-        {"id": "pending-checks-no-blockers", "kind": "final-json-path-equals", "pointer": "/checkCausedBlockers", "expected": [], "critical": true},
-        {"id": "pending-checks-predecessor", "kind": "final-json-path-equals", "pointer": "/predecessorObservation", "expected": {"deliveryCheckpoint": "complete", "reviews": "satisfied", "baseTip": "unchanged"}, "critical": true},
-        {"id": "pending-checks-dispatch", "kind": "final-json-path-equals", "pointer": "/nextBoundary", "expected": "dispatch-fast-model", "critical": true}
+        {
+          "id": "pending-checks-status",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "continue",
+          "critical": true
+        },
+        {
+          "id": "pending-checks-observed",
+          "kind": "final-json-path-equals",
+          "pointer": "/observedChecks",
+          "expected": [
+            "pending"
+          ],
+          "critical": true
+        },
+        {
+          "id": "pending-checks-no-blockers",
+          "kind": "final-json-path-equals",
+          "pointer": "/checkCausedBlockers",
+          "expected": [],
+          "critical": true
+        },
+        {
+          "id": "pending-checks-predecessor",
+          "kind": "final-json-path-equals",
+          "pointer": "/predecessorObservation",
+          "expected": {
+            "deliveryCheckpoint": "complete",
+            "reviews": "satisfied",
+            "baseTip": "unchanged"
+          },
+          "critical": true
+        },
+        {
+          "id": "pending-checks-dispatch",
+          "kind": "final-json-path-equals",
+          "pointer": "/nextBoundary",
+          "expected": "dispatch-fast-model",
+          "critical": true
+        }
       ]
     },
     {
       "id": "unchanged-planning-tip-proceeds",
       "prompt": "In local run mode, an exact fresh read proves the canonical integration parent branch is unchanged and its current tip equals the planning tip recorded in the manifest. Proceed without asking or changing the manifest first. Return exactly one JSON object with keys status, planningTip, currentTip, questionAsked, and nextBoundary. Set status to \"proceed\", planningTip to \"tip-001\", currentTip to \"tip-001\", questionAsked to false, and nextBoundary to \"dispatch-fast-model\".",
-      "capabilities": ["read-workspace"],
+      "capabilities": [
+        "read-workspace"
+      ],
       "expected": "When the current integration tip exactly matches the planning tip, Execute proceeds without user interaction.",
       "assertions": [
-        {"id": "unchanged-tip-status", "kind": "final-json-path-equals", "pointer": "/status", "expected": "proceed", "critical": true},
-        {"id": "unchanged-tip-planning", "kind": "final-json-path-equals", "pointer": "/planningTip", "expected": "tip-001", "critical": true},
-        {"id": "unchanged-tip-current", "kind": "final-json-path-equals", "pointer": "/currentTip", "expected": "tip-001", "critical": true},
-        {"id": "unchanged-tip-no-question", "kind": "final-json-path-equals", "pointer": "/questionAsked", "expected": false, "critical": true},
-        {"id": "unchanged-tip-dispatch", "kind": "final-json-path-equals", "pointer": "/nextBoundary", "expected": "dispatch-fast-model", "critical": true}
+        {
+          "id": "unchanged-tip-status",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "proceed",
+          "critical": true
+        },
+        {
+          "id": "unchanged-tip-planning",
+          "kind": "final-json-path-equals",
+          "pointer": "/planningTip",
+          "expected": "tip-001",
+          "critical": true
+        },
+        {
+          "id": "unchanged-tip-current",
+          "kind": "final-json-path-equals",
+          "pointer": "/currentTip",
+          "expected": "tip-001",
+          "critical": true
+        },
+        {
+          "id": "unchanged-tip-no-question",
+          "kind": "final-json-path-equals",
+          "pointer": "/questionAsked",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "unchanged-tip-dispatch",
+          "kind": "final-json-path-equals",
+          "pointer": "/nextBoundary",
+          "expected": "dispatch-fast-model",
+          "critical": true
+        }
       ]
     },
     {
       "id": "changed-planning-tip-asks-options",
       "prompt": "In local run mode, the canonical integration parent branch is unchanged but an exact fresh read observes that its tip moved from planning tip \"tip-001\" to current tip \"tip-002\". Before any provider, manifest, worktree, branch, or source mutation, Execute asks the user to choose among the exact options. Return exactly one JSON object with keys status, options, planningTip, currentTip, mutationCount, providerMutationStarted, worktreeMutationStarted, and sourceMutationStarted. Set status to \"prompt-user\", options to [\"Continue\", \"Revise spec/plan\", \"Stop\"], planningTip to \"tip-001\", currentTip to \"tip-002\", mutationCount to 0, providerMutationStarted to false, worktreeMutationStarted to false, and sourceMutationStarted to false.",
-      "capabilities": ["read-workspace"],
+      "capabilities": [
+        "read-workspace"
+      ],
       "expected": "When the integration parent tip changed after planning, Execute presents Continue, Revise spec/plan, or Stop with zero mutation before the user's choice.",
       "assertions": [
-        {"id": "changed-tip-status", "kind": "final-json-path-equals", "pointer": "/status", "expected": "prompt-user", "critical": true},
-        {"id": "changed-tip-options", "kind": "final-json-path-equals", "pointer": "/options", "expected": ["Continue", "Revise spec/plan", "Stop"], "critical": true},
-        {"id": "changed-tip-planning", "kind": "final-json-path-equals", "pointer": "/planningTip", "expected": "tip-001", "critical": true},
-        {"id": "changed-tip-current", "kind": "final-json-path-equals", "pointer": "/currentTip", "expected": "tip-002", "critical": true},
-        {"id": "changed-tip-zero-mutations", "kind": "final-json-path-equals", "pointer": "/mutationCount", "expected": 0, "critical": true},
-        {"id": "changed-tip-no-provider-mutation", "kind": "final-json-path-equals", "pointer": "/providerMutationStarted", "expected": false, "critical": true},
-        {"id": "changed-tip-no-worktree-mutation", "kind": "final-json-path-equals", "pointer": "/worktreeMutationStarted", "expected": false, "critical": true},
-        {"id": "changed-tip-no-source-mutation", "kind": "final-json-path-equals", "pointer": "/sourceMutationStarted", "expected": false, "critical": true}
+        {
+          "id": "changed-tip-status",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "prompt-user",
+          "critical": true
+        },
+        {
+          "id": "changed-tip-options",
+          "kind": "final-json-path-equals",
+          "pointer": "/options",
+          "expected": [
+            "Continue",
+            "Revise spec/plan",
+            "Stop"
+          ],
+          "critical": true
+        },
+        {
+          "id": "changed-tip-planning",
+          "kind": "final-json-path-equals",
+          "pointer": "/planningTip",
+          "expected": "tip-001",
+          "critical": true
+        },
+        {
+          "id": "changed-tip-current",
+          "kind": "final-json-path-equals",
+          "pointer": "/currentTip",
+          "expected": "tip-002",
+          "critical": true
+        },
+        {
+          "id": "changed-tip-zero-mutations",
+          "kind": "final-json-path-equals",
+          "pointer": "/mutationCount",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "changed-tip-no-provider-mutation",
+          "kind": "final-json-path-equals",
+          "pointer": "/providerMutationStarted",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "changed-tip-no-worktree-mutation",
+          "kind": "final-json-path-equals",
+          "pointer": "/worktreeMutationStarted",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "changed-tip-no-source-mutation",
+          "kind": "final-json-path-equals",
+          "pointer": "/sourceMutationStarted",
+          "expected": false,
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "plane-project-selects-lowest-unfinished",
+      "prompt": "Project mode on Plane resolves configured issueStates mappings (executing, inReview, done, blocked) and observes native item state groups. Ordinal 1 (sequence ID ENG-101, native UUID 33333333-3333-4333-8333-333333333331) has finished in the resolved inReview mapping (UUID 44444444-4444-4444-8444-444444444442, name 'In Review', group 'started') with a complete delivery checkpoint, ordinals 2 (sequence ID ENG-102, native UUID 33333333-3333-4333-8333-333333333332) and 3 (sequence ID ENG-103, native UUID 33333333-3333-4333-8333-333333333333) are unfinished, no stop marker is present, and ordinal 2 has verified predecessor 33333333-3333-4333-8333-333333333331. Return exactly one JSON object with keys status, provider, mode, selectedWorkItemUuid, selectedSequenceId, selectedOrdinal, predecessorUuid, stopMarker, siblingsAdvanced, and predecessorDeliveryCheckpoint.",
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "Plane project mode chooses the lowest unfinished ordinal, proves its predecessor UUID, and admits no sibling in the same cycle.",
+      "assertions": [
+        {
+          "id": "plane-project-proceed",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "proceed",
+          "critical": true
+        },
+        {
+          "id": "plane-project-provider",
+          "kind": "final-json-path-equals",
+          "pointer": "/provider",
+          "expected": "plane",
+          "critical": true
+        },
+        {
+          "id": "plane-project-mode",
+          "kind": "final-json-path-equals",
+          "pointer": "/mode",
+          "expected": "project",
+          "critical": true
+        },
+        {
+          "id": "plane-project-selected",
+          "kind": "final-json-path-equals",
+          "pointer": "/selectedWorkItemUuid",
+          "expected": "33333333-3333-4333-8333-333333333332",
+          "critical": true
+        },
+        {
+          "id": "plane-project-sequence-id",
+          "kind": "final-json-path-equals",
+          "pointer": "/selectedSequenceId",
+          "expected": "ENG-102",
+          "critical": true
+        },
+        {
+          "id": "plane-project-ordinal",
+          "kind": "final-json-path-equals",
+          "pointer": "/selectedOrdinal",
+          "expected": 2,
+          "critical": true
+        },
+        {
+          "id": "plane-project-predecessor",
+          "kind": "final-json-path-equals",
+          "pointer": "/predecessorUuid",
+          "expected": "33333333-3333-4333-8333-333333333331",
+          "critical": true
+        },
+        {
+          "id": "plane-project-no-stop",
+          "kind": "final-json-path-equals",
+          "pointer": "/stopMarker",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "plane-project-no-sibling",
+          "kind": "final-json-path-equals",
+          "pointer": "/siblingsAdvanced",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "plane-project-checkpoint",
+          "kind": "final-json-path-equals",
+          "pointer": "/predecessorDeliveryCheckpoint",
+          "expected": {
+            "workItemUuid": "33333333-3333-4333-8333-333333333331",
+            "ordinal": 1,
+            "status": "complete"
+          },
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "plane-delivery-four-lifecycle-states-and-transitions",
+      "prompt": "Execute delivers selected Plane work item ENG-102 (UUID 33333333-3333-4333-8333-333333333332) within configured baseUrl https://api.plane.so, workspace acme, and exact project UUID 33333333-3333-4333-8333-333333333330 (URL https://app.plane.so/acme/projects/33333333-3333-4333-8333-333333333330). Resolve four configured issueStates mappings scoped to this exact project: executing (native UUID 44444444-4444-4444-8444-444444444441, name 'In Progress', group 'started'), inReview (native UUID 44444444-4444-4444-8444-444444444442, name 'In Review', group 'started'), done (native UUID 44444444-4444-4444-8444-444444444443, name 'Done', group 'completed'), and blocked (native UUID 44444444-4444-4444-8444-444444444444, name 'Blocked', group 'started'). The work item is in started (executing), complete PR, head/base, commit SHA, verification, Plane read-back, and clean-worktree evidence is present. Persist and independently read back delivery checkpoint, execute one transition mutation to inReview, and independently read back its native state UUID (44444444-4444-4444-8444-444444444442), name ('In Review'), and group ('started'). Do not mutate project resources. Return exactly one JSON object with keys status, provider, scopeVerified, baseUrl, workspace, projectId, projectUrl, selectedWorkItemUuid, lifecycleMappings, checkpointReadBack, transitionMutations, finalState, projectMutationCount, and teardownAllowed.",
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "Plane delivery verifies canonical instance scope (baseUrl, workspace, project UUID/URL), verifies the four configured lifecycle state mappings within that scope, checkpoints delivery, executes one transition mutation to inReview, reads back native state, and mutates zero project resources.",
+      "assertions": [
+        {
+          "id": "plane-delivery-status",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "delivered",
+          "critical": true
+        },
+        {
+          "id": "plane-delivery-provider",
+          "kind": "final-json-path-equals",
+          "pointer": "/provider",
+          "expected": "plane",
+          "critical": true
+        },
+        {
+          "id": "plane-delivery-scope-verified",
+          "kind": "final-json-path-equals",
+          "pointer": "/scopeVerified",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "plane-delivery-base-url",
+          "kind": "final-json-path-equals",
+          "pointer": "/baseUrl",
+          "expected": "https://api.plane.so",
+          "critical": true
+        },
+        {
+          "id": "plane-delivery-workspace",
+          "kind": "final-json-path-equals",
+          "pointer": "/workspace",
+          "expected": "acme",
+          "critical": true
+        },
+        {
+          "id": "plane-delivery-project-id",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectId",
+          "expected": "33333333-3333-4333-8333-333333333330",
+          "critical": true
+        },
+        {
+          "id": "plane-delivery-project-url",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectUrl",
+          "expected": "https://app.plane.so/acme/projects/33333333-3333-4333-8333-333333333330",
+          "critical": true
+        },
+        {
+          "id": "plane-delivery-selected",
+          "kind": "final-json-path-equals",
+          "pointer": "/selectedWorkItemUuid",
+          "expected": "33333333-3333-4333-8333-333333333332",
+          "critical": true
+        },
+        {
+          "id": "plane-delivery-lifecycle-mappings",
+          "kind": "final-json-path-equals",
+          "pointer": "/lifecycleMappings",
+          "expected": {
+            "executing": {
+              "baseUrl": "https://api.plane.so",
+              "workspace": "acme",
+              "projectId": "33333333-3333-4333-8333-333333333330",
+              "id": "44444444-4444-4444-8444-444444444441",
+              "name": "In Progress",
+              "group": "started"
+            },
+            "inReview": {
+              "baseUrl": "https://api.plane.so",
+              "workspace": "acme",
+              "projectId": "33333333-3333-4333-8333-333333333330",
+              "id": "44444444-4444-4444-8444-444444444442",
+              "name": "In Review",
+              "group": "started"
+            },
+            "done": {
+              "baseUrl": "https://api.plane.so",
+              "workspace": "acme",
+              "projectId": "33333333-3333-4333-8333-333333333330",
+              "id": "44444444-4444-4444-8444-444444444443",
+              "name": "Done",
+              "group": "completed"
+            },
+            "blocked": {
+              "baseUrl": "https://api.plane.so",
+              "workspace": "acme",
+              "projectId": "33333333-3333-4333-8333-333333333330",
+              "id": "44444444-4444-4444-8444-444444444444",
+              "name": "Blocked",
+              "group": "started"
+            }
+          },
+          "critical": true
+        },
+        {
+          "id": "plane-delivery-checkpoint",
+          "kind": "final-json-path-equals",
+          "pointer": "/checkpointReadBack",
+          "expected": "verified",
+          "critical": true
+        },
+        {
+          "id": "plane-delivery-transition-count",
+          "kind": "final-json-path-equals",
+          "pointer": "/transitionMutations",
+          "expected": 1,
+          "critical": true
+        },
+        {
+          "id": "plane-delivery-final-state",
+          "kind": "final-json-path-equals",
+          "pointer": "/finalState",
+          "expected": "In Review",
+          "critical": true
+        },
+        {
+          "id": "plane-delivery-no-project-mutation",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectMutationCount",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "plane-delivery-teardown",
+          "kind": "final-json-path-equals",
+          "pointer": "/teardownAllowed",
+          "expected": true,
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "plane-mirror-failure-preserves-repository-authority",
+      "prompt": "During local run execution (--run run-plane-01) of task 'api' with configured optional Plane mirror mirroring, local commit and PR delivery succeed with complete delivery checkpoint persisted via manifest CAS, but the optional Plane mirror update returns a network failure (503 Service Unavailable). Record mirrorStatus: \"failed\" in manifest, preserve authoritative local delivery status as completed, leave project mutation count at zero, and return delivered status for the local run. Return exactly one JSON object with keys status, mode, runId, stableTaskKey, localDeliveryStatus, mirrorStatus, projectMutationCount, repositoryAuthorityPreserved, and openPrUrl.",
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "In a local run with optional Plane mirror configured, Plane mirror failure is nonblocking for authoritative local execution delivery; the local manifest delivery checkpoint succeeds and project mutation count is zero.",
+      "assertions": [
+        {
+          "id": "plane-mirror-delivery-status",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "delivered",
+          "critical": true
+        },
+        {
+          "id": "plane-mirror-mode",
+          "kind": "final-json-path-equals",
+          "pointer": "/mode",
+          "expected": "run",
+          "critical": true
+        },
+        {
+          "id": "plane-mirror-run-id",
+          "kind": "final-json-path-equals",
+          "pointer": "/runId",
+          "expected": "run-plane-01",
+          "critical": true
+        },
+        {
+          "id": "plane-mirror-task-key",
+          "kind": "final-json-path-equals",
+          "pointer": "/stableTaskKey",
+          "expected": "api",
+          "critical": true
+        },
+        {
+          "id": "plane-mirror-local-status",
+          "kind": "final-json-path-equals",
+          "pointer": "/localDeliveryStatus",
+          "expected": "complete",
+          "critical": true
+        },
+        {
+          "id": "plane-mirror-failure-status",
+          "kind": "final-json-path-equals",
+          "pointer": "/mirrorStatus",
+          "expected": "failed",
+          "critical": true
+        },
+        {
+          "id": "plane-mirror-no-project-mutation",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectMutationCount",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "plane-mirror-repository-authority",
+          "kind": "final-json-path-equals",
+          "pointer": "/repositoryAuthorityPreserved",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "plane-mirror-pr-url",
+          "kind": "final-json-path-equals",
+          "pointer": "/openPrUrl",
+          "expected": "https://github.com/acme/widgets/pull/102",
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "plane-blocked-recovery-and-checkpoint",
+      "prompt": "A resumed Plane work item ENG-103 (UUID 33333333-3333-4333-8333-333333333333) within project 33333333-3333-4333-8333-333333333330 was previously blocked waiting for predecessor ENG-102. Predecessor delivery checkpoint is now verified complete on Plane and GitHub. Re-check the blocking relation, transition ENG-103 from blocked (native UUID 44444444-4444-4444-8444-444444444444, group 'started') to the configured executing mapping (native UUID 44444444-4444-4444-8444-444444444441, name 'In Progress', group 'started'), perform independent read-back of the executing state, and allow execution dispatch. Return exactly one JSON object with keys status, provider, workItemUuid, recoveredStateMapping, predecessorVerified, stateReadBackVerified, and nextBoundary.",
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "When the predecessor checkpoint is verified, the blocked Plane work item recovers and transitions from blocked to the configured executing mapping with independent read-back before execution dispatch.",
+      "assertions": [
+        {
+          "id": "plane-blocked-recovery-status",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "proceed",
+          "critical": true
+        },
+        {
+          "id": "plane-blocked-recovery-provider",
+          "kind": "final-json-path-equals",
+          "pointer": "/provider",
+          "expected": "plane",
+          "critical": true
+        },
+        {
+          "id": "plane-blocked-recovery-uuid",
+          "kind": "final-json-path-equals",
+          "pointer": "/workItemUuid",
+          "expected": "33333333-3333-4333-8333-333333333333",
+          "critical": true
+        },
+        {
+          "id": "plane-blocked-recovery-mapping",
+          "kind": "final-json-path-equals",
+          "pointer": "/recoveredStateMapping",
+          "expected": {
+            "baseUrl": "https://api.plane.so",
+            "workspace": "acme",
+            "projectId": "33333333-3333-4333-8333-333333333330",
+            "id": "44444444-4444-4444-8444-444444444441",
+            "name": "In Progress",
+            "group": "started"
+          },
+          "critical": true
+        },
+        {
+          "id": "plane-blocked-recovery-predecessor",
+          "kind": "final-json-path-equals",
+          "pointer": "/predecessorVerified",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "plane-blocked-recovery-readback",
+          "kind": "final-json-path-equals",
+          "pointer": "/stateReadBackVerified",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "plane-blocked-recovery-boundary",
+          "kind": "final-json-path-equals",
+          "pointer": "/nextBoundary",
+          "expected": "dispatch-fast-model",
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "plane-foreign-scope-mapping-blocks",
+      "prompt": "Before any project, work-item, or repository mutation, independent reads resolve configured issueStates.executing on instance https://api.plane.so and workspace acme within project 33333333-3333-4333-8333-333333333330, but configured issueStates.inReview resolves only to a state owned by a different workspace 'other-workspace' or foreign project '44444444-4444-4444-8444-444444444440'. Treat the foreign-scope state mapping as a blocking admission boundary. Verify that execution blocks, state resolution is rejected as foreign-scope, and zero Plane or repository mutations occur. Return exactly one JSON object with keys status, provider, reason, mappingScopeResolution, planeMutationCount, and repositoryMutationCount.",
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "A foreign-scope Plane state mapping outside the configured baseUrl, workspace, or project blocks before any provider or repository mutation.",
+      "assertions": [
+        {
+          "id": "plane-foreign-mapping-status",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "blocked",
+          "critical": true
+        },
+        {
+          "id": "plane-foreign-mapping-provider",
+          "kind": "final-json-path-equals",
+          "pointer": "/provider",
+          "expected": "plane",
+          "critical": true
+        },
+        {
+          "id": "plane-foreign-mapping-reason",
+          "kind": "final-json-path-equals",
+          "pointer": "/reason",
+          "expected": "inReview-mapping-foreign-scope",
+          "critical": true
+        },
+        {
+          "id": "plane-foreign-mapping-resolution",
+          "kind": "final-json-path-equals",
+          "pointer": "/mappingScopeResolution",
+          "expected": "foreign-scope",
+          "critical": true
+        },
+        {
+          "id": "plane-foreign-mapping-zero-mutation",
+          "kind": "final-json-path-equals",
+          "pointer": "/planeMutationCount",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "plane-foreign-mapping-zero-repo-mutation",
+          "kind": "final-json-path-equals",
+          "pointer": "/repositoryMutationCount",
+          "expected": 0,
+          "critical": true
+        }
       ]
     }
   ]

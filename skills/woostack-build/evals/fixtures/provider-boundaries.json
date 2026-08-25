@@ -1,20 +1,24 @@
 {
   "scenarios": [
     {
-      "id": "unofficial-endpoint",
-      "endpoint": "https://linear.example.invalid/mcp",
-      "authenticated": true,
-      "preflightComplete": true
+      "id": "local-disabled",
+      "provider": "local",
+      "mirrorEnabled": false
     },
     {
-      "id": "authentication-unavailable",
-      "endpoint": "https://mcp.linear.app/mcp",
+      "id": "linear-mcp-unavailable",
+      "provider": "linear",
+      "mcpAvailable": false
+    },
+    {
+      "id": "linear-authentication-unavailable",
+      "provider": "linear",
       "authenticated": false,
       "preflightComplete": true
     },
     {
-      "id": "incomplete-pagination",
-      "endpoint": "https://mcp.linear.app/mcp",
+      "id": "linear-incomplete-pagination",
+      "provider": "linear",
       "authenticated": true,
       "preflightComplete": true,
       "issuePages": [
@@ -26,8 +30,8 @@
       ]
     },
     {
-      "id": "readback-mismatch",
-      "endpoint": "https://mcp.linear.app/mcp",
+      "id": "linear-readback-mismatch",
+      "provider": "linear",
       "authenticated": true,
       "preflightComplete": true,
       "mutation": {
@@ -38,6 +42,49 @@
         "operationIdentity": "33333333-3333-4333-8333-333333333333",
         "nativeProjectRef": "project-build-44",
         "complete": true
+      }
+    },
+    {
+      "id": "plane-label-capability-missing",
+      "provider": "plane",
+      "baseUrl": "https://api.plane.so",
+      "workspace": "acme",
+      "projectLabels": ["feature"],
+      "capabilities": {
+        "projectRead": true,
+        "projectWrite": true,
+        "projectLabelRead": false,
+        "projectLabelWrite": false
+      }
+    },
+    {
+      "id": "plane-duplicate-external-id-pair",
+      "provider": "plane",
+      "baseUrl": "https://api.plane.so",
+      "workspace": "acme",
+      "external_source": "woostack",
+      "external_id": "11111111-1111-5111-8111-111111111111",
+      "matchingProjectsCount": 2
+    },
+    {
+      "id": "plane-pagination-incomplete",
+      "provider": "plane",
+      "baseUrl": "https://api.plane.so",
+      "workspace": "acme",
+      "workItemsComplete": false
+    },
+    {
+      "id": "plane-readback-mismatch",
+      "provider": "plane",
+      "baseUrl": "https://api.plane.so",
+      "workspace": "acme",
+      "mutationExternalPair": {
+        "external_source": "woostack",
+        "external_id": "11111111-1111-5111-8111-111111111111"
+      },
+      "readBackExternalPair": {
+        "external_source": "woostack",
+        "external_id": "22222222-2222-5222-8222-222222222222"
       }
     }
   ]

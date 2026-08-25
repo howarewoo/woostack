@@ -7,7 +7,7 @@
     "team": "APP"
   },
   "officialMcpPreflight": {
-    "endpoint": "https://mcp.linear.app/mcp",
+    "provider": "official-linear-mcp",
     "authenticated": true,
     "complete": true
   },
@@ -216,8 +216,20 @@
       "phase": "unknown-outcome-recovery",
       "recoveryIdentity": "11111111-1111-4111-8111-111111111111",
       "recoveryDiscovery": {
-        "activeProjectPages": [{"page": 1, "nextCursor": "active-page-2", "complete": false}],
-        "archivedProjectPages": [{"page": 1, "nextCursor": null, "complete": true}],
+        "activeProjectPages": [
+          {
+            "page": 1,
+            "nextCursor": "active-page-2",
+            "complete": false
+          }
+        ],
+        "archivedProjectPages": [
+          {
+            "page": 1,
+            "nextCursor": null,
+            "complete": true
+          }
+        ],
         "complete": false
       },
       "candidateCount": 0,
@@ -232,10 +244,25 @@
       "phase": "unknown-outcome-recovery",
       "recoveryIdentity": "11111111-1111-4111-8111-111111111111",
       "recoveryDiscovery": {
-        "activeProjectPages": [{"page": 1, "nextCursor": null, "complete": true}],
-        "archivedProjectPages": [{"page": 1, "nextCursor": null, "complete": true}],
+        "activeProjectPages": [
+          {
+            "page": 1,
+            "nextCursor": null,
+            "complete": true
+          }
+        ],
+        "archivedProjectPages": [
+          {
+            "page": 1,
+            "nextCursor": null,
+            "complete": true
+          }
+        ],
         "complete": true,
-        "matchingSummaryMarkers": ["Woostack project mutation ID: 11111111-1111-4111-8111-111111111111", "Woostack project mutation ID: 11111111-1111-4111-8111-111111111111"]
+        "matchingSummaryMarkers": [
+          "Woostack project mutation ID: 11111111-1111-4111-8111-111111111111",
+          "Woostack project mutation ID: 11111111-1111-4111-8111-111111111111"
+        ]
       },
       "candidateCount": 2,
       "advance": false,
@@ -249,10 +276,28 @@
       "phase": "unknown-outcome-recovery",
       "recoveryIdentity": "11111111-1111-4111-8111-111111111111",
       "recoveryDiscovery": {
-        "activeProjectPages": [{"page": 1, "nextCursor": null, "complete": true}],
-        "archivedProjectPages": [{"page": 1, "nextCursor": null, "complete": true}],
+        "activeProjectPages": [
+          {
+            "page": 1,
+            "nextCursor": null,
+            "complete": true
+          }
+        ],
+        "archivedProjectPages": [
+          {
+            "page": 1,
+            "nextCursor": null,
+            "complete": true
+          }
+        ],
         "complete": true,
-        "matchingSummaryMarkers": [{"summary": "Woostack project mutation ID: 11111111-1111-4111-8111-111111111111", "workspace": "other", "team": "APP"}]
+        "matchingSummaryMarkers": [
+          {
+            "summary": "Woostack project mutation ID: 11111111-1111-4111-8111-111111111111",
+            "workspace": "other",
+            "team": "APP"
+          }
+        ]
       },
       "candidateCount": 1,
       "advance": false,
@@ -266,10 +311,24 @@
       "phase": "unknown-outcome-recovery",
       "recoveryIdentity": "11111111-1111-4111-8111-111111111111",
       "recoveryDiscovery": {
-        "activeProjectPages": [{"page": 1, "nextCursor": null, "complete": true}],
-        "archivedProjectPages": [{"page": 1, "nextCursor": null, "complete": true}],
+        "activeProjectPages": [
+          {
+            "page": 1,
+            "nextCursor": null,
+            "complete": true
+          }
+        ],
+        "archivedProjectPages": [
+          {
+            "page": 1,
+            "nextCursor": null,
+            "complete": true
+          }
+        ],
         "complete": true,
-        "matchingSummaryMarkers": ["Woostack project mutation ID: malformed"]
+        "matchingSummaryMarkers": [
+          "Woostack project mutation ID: malformed"
+        ]
       },
       "candidateCount": 1,
       "advance": false,
@@ -283,10 +342,29 @@
       "phase": "unknown-outcome-recovery",
       "recoveryIdentity": "11111111-1111-4111-8111-111111111111",
       "recoveryDiscovery": {
-        "activeProjectPages": [{"page": 1, "nextCursor": "active-page-2", "complete": true}, {"page": 2, "nextCursor": null, "complete": true}],
-        "archivedProjectPages": [{"page": 1, "nextCursor": null, "complete": true}],
+        "activeProjectPages": [
+          {
+            "page": 1,
+            "nextCursor": "active-page-2",
+            "complete": true
+          },
+          {
+            "page": 2,
+            "nextCursor": null,
+            "complete": true
+          }
+        ],
+        "archivedProjectPages": [
+          {
+            "page": 1,
+            "nextCursor": null,
+            "complete": true
+          }
+        ],
         "complete": true,
-        "matchingSummaryMarkers": ["Woostack project mutation ID: 11111111-1111-4111-8111-111111111111"]
+        "matchingSummaryMarkers": [
+          "Woostack project mutation ID: 11111111-1111-4111-8111-111111111111"
+        ]
       },
       "candidateCount": 1,
       "candidateOwnershipValid": true,
