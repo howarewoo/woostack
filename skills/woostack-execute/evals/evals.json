@@ -1744,78 +1744,78 @@
       ]
     },
     {
-      "id": "plane-project-selects-lowest-unfinished",
-      "prompt": "Project mode on Plane resolves configured issueStates mappings (executing, inReview, done, blocked) and observes native item state groups. Ordinal 1 (sequence ID ENG-101, native UUID 33333333-3333-4333-8333-333333333331) has finished in the resolved inReview mapping (UUID 44444444-4444-4444-8444-444444444442, name 'In Review', group 'started') with a complete delivery checkpoint, ordinals 2 (sequence ID ENG-102, native UUID 33333333-3333-4333-8333-333333333332) and 3 (sequence ID ENG-103, native UUID 33333333-3333-4333-8333-333333333333) are unfinished, no stop marker is present, and ordinal 2 has verified predecessor 33333333-3333-4333-8333-333333333331. Return exactly one JSON object with keys status, provider, mode, selectedWorkItemUuid, selectedSequenceId, selectedOrdinal, predecessorUuid, stopMarker, siblingsAdvanced, and predecessorDeliveryCheckpoint.",
+      "id": "plane-spec-selects-lowest-unfinished",
+      "prompt": "Spec mode on Plane (--issue SPEC-100, native UUID 33333333-3333-4333-8333-333333333330) resolves configured issueStates mappings (executing, inReview, done, blocked) and observes native item state groups across its child work items. Ordinal 1 (sequence ID ENG-101, native UUID 33333333-3333-4333-8333-333333333331) has finished in the resolved inReview mapping (UUID 44444444-4444-4444-8444-444444444442, name 'In Review', group 'started') with a complete delivery checkpoint, ordinals 2 (sequence ID ENG-102, native UUID 33333333-3333-4333-8333-333333333332) and 3 (sequence ID ENG-103, native UUID 33333333-3333-4333-8333-333333333333) are unfinished, no stop marker is present, and ordinal 2 has verified predecessor 33333333-3333-4333-8333-333333333331. Return exactly one JSON object with keys status, provider, mode, selectedWorkItemUuid, selectedSequenceId, selectedOrdinal, predecessorUuid, stopMarker, siblingsAdvanced, and predecessorDeliveryCheckpoint.",
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "Plane project mode chooses the lowest unfinished ordinal, proves its predecessor UUID, and admits no sibling in the same cycle.",
+      "expected": "Plane spec mode chooses the lowest unfinished ordinal among its children, proves its predecessor UUID, and admits no sibling in the same cycle.",
       "assertions": [
         {
-          "id": "plane-project-proceed",
+          "id": "plane-spec-proceed",
           "kind": "final-json-path-equals",
           "pointer": "/status",
           "expected": "proceed",
           "critical": true
         },
         {
-          "id": "plane-project-provider",
+          "id": "plane-spec-provider",
           "kind": "final-json-path-equals",
           "pointer": "/provider",
           "expected": "plane",
           "critical": true
         },
         {
-          "id": "plane-project-mode",
+          "id": "plane-spec-mode",
           "kind": "final-json-path-equals",
           "pointer": "/mode",
-          "expected": "project",
+          "expected": "spec",
           "critical": true
         },
         {
-          "id": "plane-project-selected",
+          "id": "plane-spec-selected",
           "kind": "final-json-path-equals",
           "pointer": "/selectedWorkItemUuid",
           "expected": "33333333-3333-4333-8333-333333333332",
           "critical": true
         },
         {
-          "id": "plane-project-sequence-id",
+          "id": "plane-spec-sequence-id",
           "kind": "final-json-path-equals",
           "pointer": "/selectedSequenceId",
           "expected": "ENG-102",
           "critical": true
         },
         {
-          "id": "plane-project-ordinal",
+          "id": "plane-spec-ordinal",
           "kind": "final-json-path-equals",
           "pointer": "/selectedOrdinal",
           "expected": 2,
           "critical": true
         },
         {
-          "id": "plane-project-predecessor",
+          "id": "plane-spec-predecessor",
           "kind": "final-json-path-equals",
           "pointer": "/predecessorUuid",
           "expected": "33333333-3333-4333-8333-333333333331",
           "critical": true
         },
         {
-          "id": "plane-project-no-stop",
+          "id": "plane-spec-no-stop",
           "kind": "final-json-path-equals",
           "pointer": "/stopMarker",
           "expected": false,
           "critical": true
         },
         {
-          "id": "plane-project-no-sibling",
+          "id": "plane-spec-no-sibling",
           "kind": "final-json-path-equals",
           "pointer": "/siblingsAdvanced",
           "expected": false,
           "critical": true
         },
         {
-          "id": "plane-project-checkpoint",
+          "id": "plane-spec-checkpoint",
           "kind": "final-json-path-equals",
           "pointer": "/predecessorDeliveryCheckpoint",
           "expected": {

@@ -25,7 +25,7 @@ repo_rules = re.sub(r"\s+", " ", (root / "AGENTS.md").read_text(encoding="utf-8"
 
 checks = [
     (skill, r"`--project`, `--issue`, and `--run` are mutually exclusive; exactly one is required", "exact resource admission missing"),
-    (skill, r"lowest-ordinal unfinished (?:task or issue|issue|task|entry)", "lowest unfinished selection missing"),
+    (skill, r"lowest-ordinal unfinished (?:task or issue|issue or work item|issue|task|entry|child)", "lowest unfinished selection missing"),
     (skill, r"stop marker", "stop-marker behavior missing"),
     (skill, r"issue mode.*never advances siblings", "issue mode may advance siblings"),
     (skill, r"configured fast-model subagent", "fast-model dispatch missing"),
@@ -33,7 +33,9 @@ checks = [
     (skill, r"branch, commit, PR URL/head/base.*verification", "delivery evidence missing"),
     (skill, r"clean exact worktree", "clean-worktree gate missing"),
     (skill, r"never create a duplicate", "duplicate resume protection missing"),
+    (skill, r"Plane does not accept `--project` as an executable scope", "Plane project rejection missing"),
     (controller, r"Execute accepts exactly one of `--project`, `--issue`, or `--run`", "controller exact resource admission missing"),
+    (controller, r"Plane accepts only `--issue` and rejects `--project` before mutation", "controller Plane project rejection missing"),
     (controller, r"select lowest unfinished ordinal", "controller deterministic selection missing"),
     (controller, r"immediate predecessor's complete delivery checkpoint", "predecessor checkpoint proof missing"),
     (controller, r"one worktree", "controller worktree ownership missing"),
@@ -41,6 +43,7 @@ checks = [
     (controller, r"bounded spec-compliance validator", "controller validator missing"),
     (controller, r"Successful submission requires branch, commit, PR", "controller PR gate missing"),
     (controller, r"fresh independent evidence", "resume evidence missing"),
+    (controller, r"Parent lifecycle aggregates its children", "controller parent lifecycle aggregation missing"),
     (driver, r"configured fast-model subagent", "driver fast model missing"),
     (skill, r"active-execute-project-start-synchronization", "project-status contract link missing"),
     (skill, r"project or issue mode", "both Execute provider modes missing"),
@@ -70,7 +73,6 @@ checks = [
 for text, pattern, message in checks:
     if not re.search(pattern, text, re.I | re.S):
         raise SystemExit(f"{message}: {pattern}")
-
 if "inline-driver.md" in (skill + controller + driver).lower():
     raise SystemExit("removed inline driver is still referenced")
 if re.search(r"(direct issue|issue lifecycle|issue status).{0,100}`In (Progress|Review)`", skill + controller, re.I | re.S):
@@ -116,6 +118,11 @@ required_cases = {
     "all-planned-transitions-then-starts-project",
     "terminal-project-conflict-blocks",
     "project-status-unknown-boundary-blocks",
+    "plane-spec-selects-lowest-unfinished",
+    "plane-delivery-four-lifecycle-states-and-transitions",
+    "plane-mirror-failure-preserves-repository-authority",
+    "plane-blocked-recovery-and-checkpoint",
+    "plane-foreign-scope-mapping-blocks",
     "local-run-exact-admission-proceeds",
     "local-run-fuzzy-path-rejected",
     "local-run-unsafe-permissions-rejected",

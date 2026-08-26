@@ -39,17 +39,19 @@ def forbid(names, pattern, message=None):
 
 # 1. Structural assertions on Execute, Controller, Driver, and Shared Artifacts
 require("skill", r"`--project`, `--issue`, and `--run` are mutually exclusive; exactly one is required")
-require("skill", r"lowest-ordinal unfinished (?:task or issue|issue or work item|task|entry)")
+require("skill", r"lowest-ordinal unfinished (?:task or issue|issue or work item|task|entry|child)")
 require("skill", r"stop marker")
-require("skill", r"issue mode.*never advances siblings")
+require("skill", r"exact issue mode.*never advances siblings")
 require("skill", r"configured fast-model subagent")
 require("skill", r"one focused verification.*one small bounded spec-compliance validator")
 require("skill", r"branch, commit, PR URL/head/base.*verification")
 require("skill", r"clean exact worktree")
 require("skill", r"never create a duplicate")
 require("skill", r"stop at that verified open-PR boundary.*No user wording overrides")
+require("skill", r"Plane does not accept `--project` as an executable scope")
 
 require("controller", r"Execute accepts exactly one of `--project`, `--issue`, or `--run`")
+require("controller", r"Plane accepts only `--issue` and rejects `--project` before mutation")
 require("controller", r"select lowest unfinished ordinal")
 require("controller", r"immediate predecessor's complete delivery checkpoint")
 require("controller", r"one worktree")
@@ -58,6 +60,8 @@ require("controller", r"bounded spec-compliance validator")
 require("controller", r"Successful submission requires branch, commit, PR")
 require("controller", r"fresh independent evidence")
 require("controller", r"terminal repository mutation is Graphite PR submission or update.*never marks a PR ready.*auto-merge.*merge queue.*merges")
+require("controller", r"Parent lifecycle aggregates its children")
+require("controller", r"In local run mode, CAS-update the active task to `blocked` with that recovery evidence, increment `manifestRevision`")
 
 require("driver", r"configured fast-model subagent")
 require("driver", r"prohibitions on changing scope, dependencies, records, provider state, source-control")
@@ -75,17 +79,14 @@ require("plane_profile", r"canonical baseUrl/workspace/project scope")
 require("plane_profile", r"Reject missing, ambiguous, duplicate, foreign-scope, or group-mismatched states")
 require("plane_profile", r"Read back native ID, name, and group")
 require("plane_profile", r"Allowable groups are")
+require("plane_profile", r"Plane Execute requires one exact work-item reference via `--issue`.*does not accept `--project`")
+require("plane_profile", r"Parent lifecycle aggregates its child increment work items")
 
 require("controller", r"resolve.*configured `artifacts\.plane\.issueStates`.*executing, inReview, done, blocked.*by exact UUID or case-sensitive name in exact scope, validate allowable group semantics")
 require("controller", r"canonical `baseUrl`, `workspace`, and `project` scope")
 require("controller", r"reject missing, ambiguous, duplicate, foreign-scope, or group-mismatched states")
 require("controller", r"independently read back native ID, name, and group")
 require("controller", r"validate allowable group semantics")
-
-require("plane_profile", r"issueStates\.executing.*inReview.*done.*blocked.*by exact native UUID or exact case-sensitive name")
-require("plane_profile", r"reject missing, ambiguous, duplicate, foreign-scope, or group-mismatched states")
-require("plane_profile", r"Read back native ID, name, and group")
-require("plane_profile", r"Allowable groups are")
 
 # Plane procedure reflects Execute support while delivery notes/comments/Commit writer remain deferred
 require("plane_procedure", r"Plane delivery notes, comments, and Commit writer are unsupported in this increment")
@@ -182,7 +183,7 @@ class MockPlaneMCP:
         if not self.capabilities.get("independentReadBack", True):
             raise RuntimeError("missing capability: independentReadBack")
         if workspace != self.workspace:
-            raise ValueError(f"foreign workspace: {workspace} != {self.workspace}")
+            raise ValueError(f"foreign workspace: {workspace}")
         state = self.states.get((workspace, project_id, state_id))
         if not state:
             raise ValueError(f"state not found: {state_id}")
@@ -194,6 +195,26 @@ class MockPlaneMCP:
         if workspace != self.workspace:
             raise ValueError(f"foreign workspace: {workspace}")
         return self.projects.get(project_id)
+
+    def resolve_canonical_project(self, workspace, repository_url_or_name):
+        if not self.capabilities.get("projectRead"):
+            raise RuntimeError("missing capability: projectRead")
+        if workspace != self.workspace:
+            raise ValueError(f"foreign workspace: {workspace}")
+
+        repo_name = repository_url_or_name.rstrip("/").split("/")[-2:]
+        owner_repo = "/".join(repo_name) if len(repo_name) == 2 else repository_url_or_name
+        expected_project_name = f"[Repo] {owner_repo}"
+
+        matches = [
+            p for p in self.projects.values()
+            if p.get("workspace") == workspace and p.get("name") == expected_project_name
+        ]
+        if not matches:
+            raise ValueError(f"canonical repository project '{expected_project_name}' not found in workspace '{workspace}'")
+        if len(matches) > 1:
+            raise ValueError(f"ambiguous canonical repository project '{expected_project_name}' in workspace '{workspace}'")
+        return dict(matches[0])
 
     def list_work_items(self, workspace, project_id):
         if not self.capabilities.get("issueRead"):
@@ -333,10 +354,158 @@ def resolve_and_validate_plane_states(config, mcp, project_id):
     return resolved_states
 
 
+def _validate_spec_child_graph_and_relations(spec_item, children, all_relations):
+    """
+    Validates a complete single-parent child graph:
+    1. Direct parent membership (parent = spec_item["id"])
+    2. Strict 1..N ordinal numbering
+    3. Zero cross-parent or foreign relations
+    4. Exact adjacent-ordinal blocking relations: ordinal k-1 blocks ordinal k for k = 2..N
+    """
+    if not children:
+        raise ValueError(f"specification item {spec_item['id']} has no children")
+
+    child_ids = {c["id"] for c in children}
+
+    # Check for cross-parent or foreign relations involving ANY child of this spec
+    spec_relations = []
+    for rel in all_relations:
+        src_in = rel["source"] in child_ids
+        tgt_in = rel["target"] in child_ids
+        if src_in and tgt_in:
+            spec_relations.append(rel)
+        elif src_in or tgt_in:
+            raise ValueError(
+                f"cross-parent relation detected: {rel.get('id')} connects child in spec {spec_item['id']} with external/foreign work item"
+            )
+
+    # Validate strict 1..N ordinals
+    ordinals = [c["ordinal"] for c in children]
+    if sorted(ordinals) != list(range(1, len(children) + 1)):
+        raise ValueError(f"child ordinals are not strict 1..N: {ordinals}")
+
+    sorted_children = sorted(children, key=lambda x: x["ordinal"])
+
+    # Expected exact adjacent-ordinal blocking edges: ordinal k-1 blocks ordinal k
+    expected_edges = {
+        (sorted_children[k - 2]["id"], sorted_children[k - 1]["id"])
+        for k in range(2, len(sorted_children) + 1)
+    }
+
+    # 1. Verify all relations in spec_relations are 'blocks'
+    for rel in spec_relations:
+        if rel.get("type") != "blocks":
+            raise ValueError(f"unsupported relation type: {rel.get('type')}")
+
+    # 2. Reject unless relation row count equals expected N-1
+    expected_count = len(sorted_children) - 1
+    raw_count = len(spec_relations)
+    if raw_count != expected_count:
+        raise ValueError(
+            f"relation count mismatch: expected {expected_count} relations for {len(sorted_children)} children, got {raw_count}"
+        )
+
+    # 3. Reject unless endpoint-pair cardinality equals raw row count (duplicate native edge rejection)
+    raw_endpoint_pairs = [(rel["source"], rel["target"]) for rel in spec_relations]
+    actual_edges = set(raw_endpoint_pairs)
+    if len(actual_edges) != raw_count:
+        raise ValueError(
+            f"duplicate native relations detected: {raw_count} raw relations contains only {len(actual_edges)} unique endpoint pairs"
+        )
+
+    # 4. Validate exact adjacent-ordinal endpoint set
+    if actual_edges != expected_edges:
+        raise ValueError(
+            f"malformed, reversed, or skipped relation chain: expected edges {expected_edges}, got {actual_edges}"
+        )
+
+    predecessors = {rel["target"]: rel["source"] for rel in spec_relations}
+    return spec_relations, predecessors
+
+
+def admit_plane_execution_target(config, mcp, ref, is_project_mode=False):
+    """
+    Validates Plane execution target admission under the contract:
+    - Plane does not accept --project as executable scope.
+    - Resolves and verifies canonical [Repo] owner/name repository project first.
+    - Rejects target if its direct project membership does not match canonical project UUID.
+    - --issue admits either:
+        1. Top-level spec item (parent = null): discovers its complete validated child graph.
+        2. Exact child increment item (parent = <spec-UUID>): validates complete parent graph and admits child.
+    - Rejects cross-parent, duplicate, ambiguous, unparented children, foreign-scope, and malformed graphs.
+    """
+    if is_project_mode:
+        raise ValueError("Plane does not accept `--project` as an executable scope; use `--issue` with a spec work item or child work item")
+
+    plane_cfg = config["artifacts"]["plane"]
+    workspace = plane_cfg["workspace"]
+    repo_identity = plane_cfg["repository"]
+
+    # 1. Resolve and independently verify canonical repository project
+    canonical_proj = mcp.resolve_canonical_project(workspace, repo_identity)
+    canonical_project_id = canonical_proj["id"]
+
+    # 2. Read target work item
+    target_item = mcp.read_work_item(workspace, ref)
+    if not target_item:
+        raise ValueError(f"work item not found: {ref}")
+
+    # 3. Reject foreign project scope before mutation
+    if target_item.get("project_id") != canonical_project_id:
+        raise ValueError(
+            f"target work item {ref} belongs to foreign project '{target_item.get('project_id')}', expected canonical project '{canonical_project_id}'"
+        )
+
+    all_project_items = mcp.list_work_items(workspace, canonical_project_id)
+    all_relations = mcp.list_relations(workspace, canonical_project_id)
+
+    if target_item["parent"] is None:
+        # 1. Top-level specification work item
+        spec_item = target_item
+        children = [wi for wi in all_project_items if wi.get("parent") == spec_item["id"]]
+        spec_relations, predecessors = _validate_spec_child_graph_and_relations(spec_item, children, all_relations)
+
+        return {
+            "mode": "spec",
+            "spec_item": spec_item,
+            "children": sorted(children, key=lambda x: x["ordinal"]),
+            "relations": spec_relations,
+            "predecessors": predecessors,
+            "project_id": canonical_project_id,
+        }
+    else:
+        # 2. Exact child increment work item
+        child_item = target_item
+        parent_id = child_item["parent"]
+        parent_spec = next((wi for wi in all_project_items if wi["id"] == parent_id), None)
+        if not parent_spec or parent_spec.get("parent") is not None or parent_spec.get("project_id") != canonical_project_id:
+            raise ValueError(f"child item {child_item['id']} has invalid, foreign, or non-top-level parent {parent_id}")
+
+        # Validate parent specification's complete child and relation graph
+        parent_children = [wi for wi in all_project_items if wi.get("parent") == parent_spec["id"]]
+        spec_relations, predecessors = _validate_spec_child_graph_and_relations(parent_spec, parent_children, all_relations)
+
+        predecessor_id = predecessors.get(child_item["id"])
+        if child_item["ordinal"] > 1 and not predecessor_id:
+            raise ValueError(f"child item {child_item['id']} at ordinal {child_item['ordinal']} lacks required predecessor")
+
+        return {
+            "mode": "child",
+            "spec_item": parent_spec,
+            "selected_child": child_item,
+            "predecessor_id": predecessor_id,
+            "project_id": canonical_project_id,
+        }
+
+
 # ---------------------------------------------------------------------------
-# Test Case 1: Exact Three-Item Plane Chain Smoke Test
+# Test Case 1: Plane Spec Execution with Two Spec Parents
+# Proves selecting the second of two spec parents touches only its children,
+# repeatedly cycles all unfinished children in strict ordinal order until done,
+# aggregates parent lifecycle (executing -> done), and leaves the first spec
+# parent and its children completely untouched.
 # ---------------------------------------------------------------------------
-def test_three_item_plane_chain_smoke():
+def test_two_spec_parents_isolation_and_lifecycle_aggregation():
     config = {
         "artifacts": {
             "provider": "plane",
@@ -364,37 +533,47 @@ def test_three_item_plane_chain_smoke():
     proj_id = "proj-plane-001"
     mcp.projects[proj_id] = {
         "id": proj_id,
-        "name": "[Build] Widget Catalog",
+        "name": "[Repo] acme/widgets",
         "workspace": "acme",
         "status": "Planned",
     }
 
-    # Add native states to MCP with exact groups
+    # Add native states with exact categories
     mcp.add_state("acme", proj_id, "state-planned", "Planned", "unstarted")
     mcp.add_state("acme", proj_id, "state-in-progress", "In Progress", "started")
     mcp.add_state("acme", proj_id, "state-in-review", "In Review", "started")
     mcp.add_state("acme", proj_id, "state-done", "Done", "completed")
     mcp.add_state("acme", proj_id, "state-blocked", "Blocked", "started")
 
-    # Resolve and validate all 4 lifecycle states before any transition
     resolved_states = resolve_and_validate_plane_states(config, mcp, proj_id)
-    assert resolved_states["executing"]["id"] == "state-in-progress"
-    assert resolved_states["executing"]["group"] == "started"
-    assert resolved_states["inReview"]["id"] == "state-in-review"
-    assert resolved_states["inReview"]["group"] == "started"
-    assert resolved_states["done"]["id"] == "state-done"
-    assert resolved_states["done"]["group"] == "completed"
-    assert resolved_states["blocked"]["id"] == "state-blocked"
-    assert resolved_states["blocked"]["group"] == "started"
 
-    # Three work items:
-    # 1: Delivered (has complete delivery checkpoint)
-    # 2: Eligible (lowest unfinished ordinal, predecessor delivered)
-    # 3: Pending (waiting for 2)
-    mcp.work_items["wi-001"] = {
-        "id": "wi-001", "readable_id": "WID-1", "project_id": proj_id,
+    # 1. Spec Parent 1: [Build] Auth Service
+    mcp.work_items["spec-001"] = {
+        "id": "spec-001", "readable_id": "SPEC-1", "project_id": proj_id,
+        "title": "[Build] Auth Service", "state_id": "state-planned",
+        "parent": None, "ordinal": None, "delivery_checkpoint": None
+    }
+    mcp.work_items["wi-101"] = {
+        "id": "wi-101", "readable_id": "AUTH-1", "project_id": proj_id,
+        "title": "Auth Tokens", "state_id": "state-planned",
+        "parent": "spec-001", "ordinal": 1, "delivery_checkpoint": None
+    }
+    mcp.work_items["wi-102"] = {
+        "id": "wi-102", "readable_id": "AUTH-2", "project_id": proj_id,
+        "title": "Auth Middleware", "state_id": "state-planned",
+        "parent": "spec-001", "ordinal": 2, "delivery_checkpoint": None
+    }
+
+    # 2. Spec Parent 2: [Build] Widget Catalog (Selected for Execution)
+    mcp.work_items["spec-002"] = {
+        "id": "spec-002", "readable_id": "SPEC-2", "project_id": proj_id,
+        "title": "[Build] Widget Catalog", "state_id": "state-planned",
+        "parent": None, "ordinal": None, "delivery_checkpoint": None
+    }
+    mcp.work_items["wi-201"] = {
+        "id": "wi-201", "readable_id": "WID-1", "project_id": proj_id,
         "title": "Increment 1: Core Schema", "state_id": "state-in-review",
-        "parent": None, "ordinal": 1,
+        "parent": "spec-002", "ordinal": 1,
         "delivery_checkpoint": {
             "ordinal": 1, "branch": "adamwoo/core-schema", "commitSha": "sha-001",
             "prUrl": "https://github.com/acme/widgets/pull/1", "prHead": "adamwoo/core-schema",
@@ -402,55 +581,38 @@ def test_three_item_plane_chain_smoke():
             "deliveredAt": "2026-08-25T12:00:00Z"
         }
     }
-    mcp.work_items["wi-002"] = {
-        "id": "wi-002", "readable_id": "WID-2", "project_id": proj_id,
+    mcp.work_items["wi-202"] = {
+        "id": "wi-202", "readable_id": "WID-2", "project_id": proj_id,
         "title": "Increment 2: API Handler", "state_id": "state-planned",
-        "parent": None, "ordinal": 2,
+        "parent": "spec-002", "ordinal": 2,
         "delivery_checkpoint": None
     }
-    mcp.work_items["wi-003"] = {
-        "id": "wi-003", "readable_id": "WID-3", "project_id": proj_id,
+    mcp.work_items["wi-203"] = {
+        "id": "wi-203", "readable_id": "WID-3", "project_id": proj_id,
         "title": "Increment 3: UI Component", "state_id": "state-planned",
-        "parent": None, "ordinal": 3,
+        "parent": "spec-002", "ordinal": 3,
         "delivery_checkpoint": None
     }
+
+    # Relations strictly within each spec parent (adjacent ordinals)
     mcp.relations = [
-        {"id": "rel-1", "source": "wi-001", "target": "wi-002", "type": "blocks"},
-        {"id": "rel-2", "source": "wi-002", "target": "wi-003", "type": "blocks"},
+        {"id": "rel-auth-1", "source": "wi-101", "target": "wi-102", "type": "blocks"},
+        {"id": "rel-wid-1", "source": "wi-201", "target": "wi-202", "type": "blocks"},
+        {"id": "rel-wid-2", "source": "wi-202", "target": "wi-203", "type": "blocks"},
     ]
 
     repo = MockRepository(parent_tip="sha-001")
 
-    # Controller execution simulation:
-    # 1. Validate baseUrl, workspace scope, and read project
-    assert config["artifacts"]["plane"]["baseUrl"] == mcp.base_url, "baseUrl mismatch"
-    assert config["artifacts"]["plane"]["workspace"] == mcp.workspace, "workspace mismatch"
-    project = mcp.read_project("acme", proj_id)
-    assert project is not None, "project read failed"
-    assert project["workspace"] == "acme", "project workspace mismatch"
+    # Admit execution of SPEC-2
+    admission = admit_plane_execution_target(config, mcp, "SPEC-2", is_project_mode=False)
+    assert admission["mode"] == "spec"
+    assert admission["spec_item"]["id"] == "spec-002"
+    assert len(admission["children"]) == 3
+    assert [c["id"] for c in admission["children"]] == ["wi-201", "wi-202", "wi-203"]
 
-    # 2. Enumerate and scope all direct work items and native relations
-    items = mcp.list_work_items("acme", proj_id)
-    assert len(items) == 3, f"expected 3 scoped items, got {len(items)}"
-    for item in items:
-        assert item["project_id"] == proj_id, f"item {item['id']} has foreign project scope"
-        assert item["parent"] is None, f"item {item['id']} has non-null parent"
-        assert item["ordinal"] in (1, 2, 3), f"invalid ordinal {item['ordinal']}"
-
-    relations = mcp.list_relations("acme", proj_id)
-    assert len(relations) == 2, f"expected 2 blocking relations, got {len(relations)}"
-    predecessors = {}
-    for rel in relations:
-        assert rel["type"] == "blocks", f"unexpected relation type {rel['type']}"
-        predecessors[rel["target"]] = rel["source"]
-
-    # Verify strict predecessor chain: wi-001 -> wi-002 -> wi-003
-    assert predecessors.get("wi-002") == "wi-001", "predecessor of wi-002 must be wi-001"
-    assert predecessors.get("wi-003") == "wi-002", "predecessor of wi-003 must be wi-002"
-
-    # 3. Finished predicate: state is inReview or done, and full delivery checkpoint is present
     in_review_state = resolved_states["inReview"]["id"]
     done_state = resolved_states["done"]["id"]
+    executing_state = resolved_states["executing"]["id"]
 
     def is_finished(wi):
         return (
@@ -460,113 +622,623 @@ def test_three_item_plane_chain_smoke():
             and wi["delivery_checkpoint"].get("prUrl") is not None
         )
 
-    # 4. Derive lowest eligible unfinished item dynamically
-    unfinished = [wi for wi in sorted(items, key=lambda x: x["ordinal"]) if not is_finished(wi)]
-    assert len(unfinished) == 2, f"expected 2 unfinished items, got {len(unfinished)}"
+    # --- Plane Specification Mode Loop: Execute unfinished children in strict ordinal order ---
+    # 1. Transition parent specification work item to executing
+    mcp.update_work_item_state("acme", "spec-002", executing_state)
+    assert mcp.read_work_item("acme", "spec-002")["state_id"] == executing_state
 
-    eligible = []
-    for wi in unfinished:
-        pred_id = predecessors.get(wi["id"])
-        if pred_id is None:
-            eligible.append(wi)
-        else:
-            pred_item = next((x for x in items if x["id"] == pred_id), None)
-            if pred_item and is_finished(pred_item):
-                eligible.append(wi)
+    # --- Cycle 1: Execute lowest unfinished child (wi-202) ---
+    unfinished_c1 = [wi for wi in admission["children"] if not is_finished(mcp.read_work_item("acme", wi["id"]))]
+    assert len(unfinished_c1) == 2
+    selected_c1 = unfinished_c1[0]
+    assert selected_c1["id"] == "wi-202"
 
-    assert len(eligible) > 0, "no eligible unfinished items found"
-    selected_wi = eligible[0]
-    assert selected_wi["id"] == "wi-002", f"expected wi-002 selected, got {selected_wi['id']}"
-    assert selected_wi["ordinal"] == 2
+    pred_item_c1 = mcp.read_work_item("acme", admission["predecessors"][selected_c1["id"]])
+    assert pred_item_c1["delivery_checkpoint"]["commitSha"] == "sha-001"
 
-    # 5. Read predecessor delivery checkpoint from provider
-    pred_item = mcp.read_work_item("acme", predecessors[selected_wi["id"]])
-    assert pred_item is not None
-    assert pred_item["delivery_checkpoint"] is not None
-    assert pred_item["delivery_checkpoint"]["commitSha"] == "sha-001"
-    assert pred_item["delivery_checkpoint"]["branch"] == "adamwoo/core-schema"
+    mcp.update_work_item_state("acme", selected_c1["id"], executing_state)
 
-    # 6. Transition selected work item to executing state and read back
-    executing_state = resolved_states["executing"]["id"]
-    mcp.update_work_item_state("acme", selected_wi["id"], executing_state)
-    read_back_exec = mcp.read_work_item("acme", selected_wi["id"])
-    assert read_back_exec["state_id"] == "state-in-progress"
-    read_back_state = mcp.read_state("acme", proj_id, read_back_exec["state_id"])
-    assert read_back_state["group"] == "started"
-    assert len(mcp.project_status_mutations) == 0, "Plane project status must never be mutated"
-
-    # 7. Worker dispatch, implementation, commit without --issue (no Resolves line for Plane)
-    branch_name = "adamwoo/api-handler"
-    repo.create_branch(branch_name, pred_item["delivery_checkpoint"]["commitSha"])
-    commit_sha = repo.commit(branch_name, "feat: implement API handler", ["src/api.ts"])
-    pr = repo.submit_pr(
-        branch_name=branch_name,
-        base_branch=pred_item["delivery_checkpoint"]["branch"],
+    branch_202 = "adamwoo/api-handler"
+    repo.create_branch(branch_202, pred_item_c1["delivery_checkpoint"]["commitSha"])
+    commit_sha_202 = repo.commit(branch_202, "feat: implement API handler", ["src/api.ts"])
+    pr_202 = repo.submit_pr(
+        branch_name=branch_202,
+        base_branch=pred_item_c1["delivery_checkpoint"]["branch"],
         title="feat: implement API handler",
         body="Implement API handler",
-        graphite_parent=pred_item["delivery_checkpoint"]["branch"]
+        graphite_parent=pred_item_c1["delivery_checkpoint"]["branch"]
     )
 
-    # 8. Delivery checkpoint persistence to provider
-    checkpoint_data = {
+    checkpoint_202 = {
         "stableTaskKey": "task-api-handler",
         "ordinal": 2,
-        "branch": branch_name,
-        "commitSha": commit_sha,
-        "prUrl": pr["url"],
-        "prHead": pr["head"],
-        "prBase": pr["base"],
-        "graphiteParent": pr["graphite_parent"],
-        "verificationReceipt": "verified: unit + integration tests pass",
+        "branch": branch_202,
+        "commitSha": commit_sha_202,
+        "prUrl": pr_202["url"],
+        "prHead": pr_202["head"],
+        "prBase": pr_202["base"],
+        "graphiteParent": pr_202["graphite_parent"],
+        "verificationReceipt": "verified",
         "deliveredAt": "2026-08-25T13:00:00Z"
     }
-    mcp.write_delivery_checkpoint("acme", selected_wi["id"], checkpoint_data)
+    mcp.write_delivery_checkpoint("acme", selected_c1["id"], checkpoint_202)
+    mcp.update_work_item_state("acme", selected_c1["id"], in_review_state)
 
-    # 9. Independently read back delivery checkpoint from provider
-    read_back_wi = mcp.read_work_item("acme", selected_wi["id"])
-    assert read_back_wi["delivery_checkpoint"] == checkpoint_data, "checkpoint read-back mismatch"
+    # Verify Sibling Spec (spec-001 and children) is COMPLETELY UNTOUCHED
+    spec_001_read = mcp.read_work_item("acme", "spec-001")
+    assert spec_001_read["state_id"] == "state-planned", "spec-001 must remain planned"
+    assert spec_001_read["delivery_checkpoint"] is None
 
-    # 10. Transition to inReview state only after full checkpoint readback
-    mcp.update_work_item_state("acme", selected_wi["id"], in_review_state)
-    read_back_final = mcp.read_work_item("acme", selected_wi["id"])
-    assert read_back_final["state_id"] == "state-in-review"
-    read_back_final_state = mcp.read_state("acme", proj_id, read_back_final["state_id"])
-    assert read_back_final_state["group"] == "started"
-    assert is_finished(read_back_final) is True
+    wi_101_read = mcp.read_work_item("acme", "wi-101")
+    assert wi_101_read["state_id"] == "state-planned", "wi-101 must remain planned"
+    assert wi_101_read["delivery_checkpoint"] is None
 
-    # 11. Sibling item 3 must NOT be advanced in this cycle
-    item_3 = mcp.read_work_item("acme", "WID-3")
-    assert item_3["state_id"] == "state-planned"
-    assert item_3["delivery_checkpoint"] is None
-    assert is_finished(item_3) is False
+    wi_102_read = mcp.read_work_item("acme", "wi-102")
+    assert wi_102_read["state_id"] == "state-planned", "wi-102 must remain planned"
+    assert wi_102_read["delivery_checkpoint"] is None
 
-    # 12. Verify done state semantics (done + checkpoint counts as finished)
-    done_item = {
-        "id": "wi-done", "state_id": "state-done",
-        "delivery_checkpoint": checkpoint_data
+    # --- Cycle 2: Automatically advances to next unfinished child (wi-203) in spec mode ---
+    unfinished_c2 = [wi for wi in admission["children"] if not is_finished(mcp.read_work_item("acme", wi["id"]))]
+    assert len(unfinished_c2) == 1
+    selected_c2 = unfinished_c2[0]
+    assert selected_c2["id"] == "wi-203"
+
+    mcp.update_work_item_state("acme", selected_c2["id"], executing_state)
+    branch_203 = "adamwoo/ui-component"
+    repo.create_branch(branch_203, commit_sha_202)
+    commit_sha_203 = repo.commit(branch_203, "feat: implement UI component", ["src/ui.tsx"])
+    pr_203 = repo.submit_pr(
+        branch_name=branch_203,
+        base_branch=branch_202,
+        title="feat: implement UI component",
+        body="Implement UI component",
+        graphite_parent=branch_202
+    )
+    checkpoint_203 = {
+        "stableTaskKey": "task-ui-component",
+        "ordinal": 3,
+        "branch": branch_203,
+        "commitSha": commit_sha_203,
+        "prUrl": pr_203["url"],
+        "prHead": pr_203["head"],
+        "prBase": pr_203["base"],
+        "graphiteParent": pr_203["graphite_parent"],
+        "verificationReceipt": "verified",
+        "deliveredAt": "2026-08-25T14:00:00Z"
     }
-    assert is_finished(done_item) is True
+    mcp.write_delivery_checkpoint("acme", selected_c2["id"], checkpoint_203)
+    mcp.update_work_item_state("acme", selected_c2["id"], done_state)
 
-    # 13. Verify blocked transition and read-back for failure recovery
-    blocked_state = resolved_states["blocked"]["id"]
-    mcp.update_work_item_state("acme", "wi-003", blocked_state)
-    read_back_blocked = mcp.read_work_item("acme", "wi-003")
-    assert read_back_blocked["state_id"] == "state-blocked"
-    read_back_blocked_state = mcp.read_state("acme", proj_id, read_back_blocked["state_id"])
-    assert read_back_blocked_state["group"] == "started"
+    # --- Parent Lifecycle Aggregation: All children completed -> spec-002 transitions to done ---
+    all_children_finished = all(
+        is_finished(mcp.read_work_item("acme", c["id"])) for c in admission["children"]
+    )
+    assert all_children_finished is True
+    mcp.update_work_item_state("acme", "spec-002", done_state)
+    assert mcp.read_work_item("acme", "spec-002")["state_id"] == done_state
 
-    # Overall outcomes
-    assert len(mcp.project_status_mutations) == 0, "project status must not be mutated"
-    assert repo.mutation_count == 3, f"expected 3 repo mutations (branch, commit, pr), got {repo.mutation_count}"
-    assert len(repo.prs) == 1, "exactly one PR submitted"
+    # Verify spec-001 and its children STILL untouched
+    assert mcp.read_work_item("acme", "spec-001")["state_id"] == "state-planned"
+    assert mcp.read_work_item("acme", "wi-101")["state_id"] == "state-planned"
+    assert mcp.read_work_item("acme", "wi-102")["state_id"] == "state-planned"
+    assert len(mcp.project_status_mutations) == 0, "Plane project status must never be mutated"
 
-    print("smoke: three-item Plane chain: ok")
+    print("smoke: two spec parents isolation and lifecycle aggregation: ok")
 
-test_three_item_plane_chain_smoke()
+test_two_spec_parents_isolation_and_lifecycle_aggregation()
 
 
 # ---------------------------------------------------------------------------
-# Test Case 2: Plane State Resolution Acceptance (UUID vs Name vs Same-State)
+# Test Case 2: Exact Child Selection Touches No Sibling
+# ---------------------------------------------------------------------------
+def test_exact_child_selection_touches_no_sibling():
+    config = {
+        "artifacts": {
+            "provider": "plane",
+            "plane": {
+                "baseUrl": "https://api.plane.so",
+                "workspace": "acme",
+                "repository": "https://github.com/acme/widgets",
+                "projectLabels": ["woostack", "repo:widgets"],
+                "projectStatuses": {
+                    "backlog": "Backlog", "planned": "Planned", "started": "In Progress",
+                    "completed": "Completed", "canceled": "Canceled"
+                },
+                "issueStates": {
+                    "planned": "state-planned",
+                    "executing": "state-in-progress",
+                    "inReview": "state-in-review",
+                    "done": "state-done",
+                    "blocked": "state-blocked"
+                }
+            }
+        }
+    }
+    mcp = MockPlaneMCP(base_url="https://api.plane.so", workspace="acme")
+    proj_id = "proj-plane-001"
+    mcp.projects[proj_id] = {"id": proj_id, "name": "[Repo] acme/widgets", "workspace": "acme"}
+    mcp.add_state("acme", proj_id, "state-planned", "Planned", "unstarted")
+    mcp.add_state("acme", proj_id, "state-in-progress", "In Progress", "started")
+    mcp.add_state("acme", proj_id, "state-in-review", "In Review", "started")
+    mcp.add_state("acme", proj_id, "state-done", "Done", "completed")
+    mcp.add_state("acme", proj_id, "state-blocked", "Blocked", "started")
+
+    resolved_states = resolve_and_validate_plane_states(config, mcp, proj_id)
+
+    mcp.work_items["spec-002"] = {
+        "id": "spec-002", "readable_id": "SPEC-2", "project_id": proj_id,
+        "title": "[Build] Widget Catalog", "state_id": "state-planned", "parent": None
+    }
+    mcp.work_items["wi-201"] = {
+        "id": "wi-201", "readable_id": "WID-1", "project_id": proj_id,
+        "title": "Increment 1", "state_id": "state-in-review", "parent": "spec-002", "ordinal": 1,
+        "delivery_checkpoint": {"commitSha": "sha-001", "branch": "adamwoo/core-schema", "prUrl": "https://pr/1"}
+    }
+    mcp.work_items["wi-202"] = {
+        "id": "wi-202", "readable_id": "WID-2", "project_id": proj_id,
+        "title": "Increment 2", "state_id": "state-planned", "parent": "spec-002", "ordinal": 2,
+        "delivery_checkpoint": None
+    }
+    mcp.work_items["wi-203"] = {
+        "id": "wi-203", "readable_id": "WID-3", "project_id": proj_id,
+        "title": "Increment 3", "state_id": "state-planned", "parent": "spec-002", "ordinal": 3,
+        "delivery_checkpoint": None
+    }
+    mcp.relations = [
+        {"id": "rel-1", "source": "wi-201", "target": "wi-202", "type": "blocks"},
+        {"id": "rel-2", "source": "wi-202", "target": "wi-203", "type": "blocks"},
+    ]
+
+    repo = MockRepository(parent_tip="sha-001")
+
+    # Admit exact child selection: --issue WID-2
+    admission = admit_plane_execution_target(config, mcp, "WID-2", is_project_mode=False)
+    assert admission["mode"] == "child"
+    assert admission["selected_child"]["id"] == "wi-202"
+    assert admission["predecessor_id"] == "wi-201"
+
+    # Predecessor verification
+    pred_item = mcp.read_work_item("acme", admission["predecessor_id"])
+    assert pred_item["delivery_checkpoint"] is not None
+
+    # Parent aggregates to executing
+    mcp.update_work_item_state("acme", "spec-002", resolved_states["executing"]["id"])
+    mcp.update_work_item_state("acme", "wi-202", resolved_states["executing"]["id"])
+
+    # Execution of ONLY wi-202
+    branch = "adamwoo/api-handler"
+    repo.create_branch(branch, pred_item["delivery_checkpoint"]["commitSha"])
+    commit_sha = repo.commit(branch, "feat: api", ["src/api.ts"])
+    pr = repo.submit_pr(branch, pred_item["delivery_checkpoint"]["branch"], "feat: api", "body", pred_item["delivery_checkpoint"]["branch"])
+
+    checkpoint = {
+        "stableTaskKey": "task-api-handler", "ordinal": 2, "branch": branch,
+        "commitSha": commit_sha, "prUrl": pr["url"], "prHead": pr["head"],
+        "prBase": pr["base"], "graphiteParent": pr["graphite_parent"],
+        "verificationReceipt": "verified", "deliveredAt": "2026-08-25T13:00:00Z"
+    }
+    mcp.write_delivery_checkpoint("acme", "wi-202", checkpoint)
+    mcp.update_work_item_state("acme", "wi-202", resolved_states["inReview"]["id"])
+
+    # Sibling wi-203 MUST remain planned with NO checkpoint and NO advancement
+    wi_203_read = mcp.read_work_item("acme", "wi-203")
+    assert wi_203_read["state_id"] == "state-planned"
+    assert wi_203_read["delivery_checkpoint"] is None
+
+    # Issue mode finishes after the single selected child
+    assert repo.mutation_count == 3
+    assert len(repo.prs) == 1
+
+    print("smoke: exact child selection touches no sibling: ok")
+
+test_exact_child_selection_touches_no_sibling()
+
+
+# ---------------------------------------------------------------------------
+# Test Case 3: Cross-Parent Graph Rejection on Top-Level Spec (Zero Mutations)
+# ---------------------------------------------------------------------------
+def test_cross_parent_graph_causes_zero_mutation():
+    config = {
+        "artifacts": {
+            "provider": "plane",
+            "plane": {
+                "baseUrl": "https://api.plane.so",
+                "workspace": "acme",
+                "repository": "https://github.com/acme/widgets",
+                "projectLabels": ["woostack"],
+                "projectStatuses": {"started": "In Progress"},
+                "issueStates": {
+                    "executing": "state-in-progress", "inReview": "state-in-review",
+                    "done": "state-done", "blocked": "state-blocked"
+                }
+            }
+        }
+    }
+    mcp = MockPlaneMCP(base_url="https://api.plane.so", workspace="acme")
+    proj_id = "proj-plane-001"
+    mcp.projects[proj_id] = {"id": proj_id, "name": "[Repo] acme/widgets", "workspace": "acme"}
+
+    # Two spec items
+    mcp.work_items["spec-001"] = {"id": "spec-001", "readable_id": "SPEC-1", "project_id": proj_id, "parent": None}
+    mcp.work_items["wi-101"] = {"id": "wi-101", "readable_id": "AUTH-1", "project_id": proj_id, "parent": "spec-001", "ordinal": 1}
+
+    mcp.work_items["spec-002"] = {"id": "spec-002", "readable_id": "SPEC-2", "project_id": proj_id, "parent": None}
+    mcp.work_items["wi-201"] = {"id": "wi-201", "readable_id": "WID-1", "project_id": proj_id, "parent": "spec-002", "ordinal": 1}
+    mcp.work_items["wi-202"] = {"id": "wi-202", "readable_id": "WID-2", "project_id": proj_id, "parent": "spec-002", "ordinal": 2}
+
+    # Cross-parent relation: wi-101 (child of spec 1) blocks wi-201 (child of spec 2)
+    mcp.relations = [
+        {"id": "rel-cross", "source": "wi-101", "target": "wi-201", "type": "blocks"},
+        {"id": "rel-wid-1", "source": "wi-201", "target": "wi-202", "type": "blocks"},
+    ]
+
+    repo = MockRepository(parent_tip="sha-000")
+
+    # Attempt to admit spec-002: cross-parent relation must reject before ANY mutation
+    rejected = False
+    try:
+        admit_plane_execution_target(config, mcp, "SPEC-2", is_project_mode=False)
+    except ValueError as exc:
+        rejected = True
+        assert "cross-parent relation detected" in str(exc)
+
+    assert rejected is True, "cross-parent graph must be rejected"
+    assert repo.mutation_count == 0, "cross-parent rejection must make 0 repo mutations"
+    assert len(mcp.state_mutations) == 0, "cross-parent rejection must make 0 provider state mutations"
+    assert len(mcp.checkpoint_writes) == 0, "cross-parent rejection must make 0 checkpoint writes"
+    assert len(mcp.project_status_mutations) == 0, "cross-parent rejection must make 0 project mutations"
+
+    print("smoke: cross-parent graph causes zero mutation: ok")
+
+test_cross_parent_graph_causes_zero_mutation()
+
+
+# ---------------------------------------------------------------------------
+# Test Case 4: Exact Child Cross-Parent Graph Rejection (Zero Mutations)
+# ---------------------------------------------------------------------------
+def test_exact_child_cross_parent_graph_causes_zero_mutation():
+    config = {
+        "artifacts": {
+            "provider": "plane",
+            "plane": {
+                "baseUrl": "https://api.plane.so",
+                "workspace": "acme",
+                "repository": "https://github.com/acme/widgets",
+                "projectLabels": ["woostack"],
+                "projectStatuses": {"started": "In Progress"},
+                "issueStates": {
+                    "executing": "state-in-progress", "inReview": "state-in-review",
+                    "done": "state-done", "blocked": "state-blocked"
+                }
+            }
+        }
+    }
+    mcp = MockPlaneMCP(base_url="https://api.plane.so", workspace="acme")
+    proj_id = "proj-plane-001"
+    mcp.projects[proj_id] = {"id": proj_id, "name": "[Repo] acme/widgets", "workspace": "acme"}
+
+    # Two spec items
+    mcp.work_items["spec-001"] = {"id": "spec-001", "readable_id": "SPEC-1", "project_id": proj_id, "parent": None}
+    mcp.work_items["wi-101"] = {"id": "wi-101", "readable_id": "AUTH-1", "project_id": proj_id, "parent": "spec-001", "ordinal": 1}
+
+    mcp.work_items["spec-002"] = {"id": "spec-002", "readable_id": "SPEC-2", "project_id": proj_id, "parent": None}
+    mcp.work_items["wi-201"] = {"id": "wi-201", "readable_id": "WID-1", "project_id": proj_id, "parent": "spec-002", "ordinal": 1}
+    mcp.work_items["wi-202"] = {"id": "wi-202", "readable_id": "WID-2", "project_id": proj_id, "parent": "spec-002", "ordinal": 2}
+
+    # Cross-parent relation incoming to exact child wi-202 from external child wi-101
+    mcp.relations = [
+        {"id": "rel-cross", "source": "wi-101", "target": "wi-202", "type": "blocks"},
+    ]
+
+    repo = MockRepository(parent_tip="sha-000")
+
+    # Attempt to admit exact child WID-2: cross-parent relation must reject before ANY mutation
+    rejected = False
+    try:
+        admit_plane_execution_target(config, mcp, "WID-2", is_project_mode=False)
+    except ValueError as exc:
+        rejected = True
+        assert "cross-parent relation detected" in str(exc)
+
+    assert rejected is True
+    assert repo.mutation_count == 0
+    assert len(mcp.state_mutations) == 0
+    assert len(mcp.checkpoint_writes) == 0
+
+    print("smoke: exact child cross-parent graph causes zero mutation: ok")
+
+test_exact_child_cross_parent_graph_causes_zero_mutation()
+
+
+# ---------------------------------------------------------------------------
+# Test Case 5: Malformed, Reversed, or Skipped Relation Order Rejection (Zero Mutations)
+# ---------------------------------------------------------------------------
+def test_malformed_reversed_or_skipped_order_causes_zero_mutation():
+    config = {
+        "artifacts": {
+            "provider": "plane",
+            "plane": {
+                "baseUrl": "https://api.plane.so",
+                "workspace": "acme",
+                "repository": "https://github.com/acme/widgets",
+                "projectLabels": ["woostack"],
+                "projectStatuses": {"started": "In Progress"},
+                "issueStates": {
+                    "executing": "state-in-progress", "inReview": "state-in-review",
+                    "done": "state-done", "blocked": "state-blocked"
+                }
+            }
+        }
+    }
+    mcp = MockPlaneMCP(base_url="https://api.plane.so", workspace="acme")
+    proj_id = "proj-plane-001"
+    mcp.projects[proj_id] = {"id": proj_id, "name": "[Repo] acme/widgets", "workspace": "acme"}
+
+    mcp.work_items["spec-002"] = {"id": "spec-002", "readable_id": "SPEC-2", "project_id": proj_id, "parent": None}
+    mcp.work_items["wi-201"] = {"id": "wi-201", "readable_id": "WID-1", "project_id": proj_id, "parent": "spec-002", "ordinal": 1}
+    mcp.work_items["wi-202"] = {"id": "wi-202", "readable_id": "WID-2", "project_id": proj_id, "parent": "spec-002", "ordinal": 2}
+    mcp.work_items["wi-203"] = {"id": "wi-203", "readable_id": "WID-3", "project_id": proj_id, "parent": "spec-002", "ordinal": 3}
+
+    # Scenario A: Reversed edge with N-1=2 relations (2 blocks 1 instead of 1 blocks 2)
+    mcp.relations = [
+        {"id": "rel-rev", "source": "wi-202", "target": "wi-201", "type": "blocks"},
+        {"id": "rel-2", "source": "wi-202", "target": "wi-203", "type": "blocks"},
+    ]
+    repo = MockRepository(parent_tip="sha-000")
+
+    rejected_reversed = False
+    try:
+        admit_plane_execution_target(config, mcp, "SPEC-2", is_project_mode=False)
+    except ValueError as exc:
+        rejected_reversed = True
+        assert "malformed, reversed, or skipped relation chain" in str(exc)
+
+    assert rejected_reversed is True
+    assert repo.mutation_count == 0
+    assert len(mcp.state_mutations) == 0
+    assert len(mcp.checkpoint_writes) == 0
+
+    # Scenario B: Skipped/permutated edges with N-1=2 relations (1 blocks 3 and 3 blocks 2)
+    mcp.relations = [
+        {"id": "rel-skip", "source": "wi-201", "target": "wi-203", "type": "blocks"},
+        {"id": "rel-perm", "source": "wi-203", "target": "wi-202", "type": "blocks"},
+    ]
+    rejected_skipped = False
+    try:
+        admit_plane_execution_target(config, mcp, "WID-2", is_project_mode=False)
+    except ValueError as exc:
+        rejected_skipped = True
+        assert "malformed, reversed, or skipped relation chain" in str(exc)
+
+    assert rejected_skipped is True
+    assert repo.mutation_count == 0
+    assert len(mcp.state_mutations) == 0
+    assert len(mcp.checkpoint_writes) == 0
+
+    # Scenario C: Incomplete relation count (1 relation for 3 children: count mismatch)
+    mcp.relations = [
+        {"id": "rel-only-1", "source": "wi-201", "target": "wi-203", "type": "blocks"},
+    ]
+    rejected_count = False
+    try:
+        admit_plane_execution_target(config, mcp, "SPEC-2", is_project_mode=False)
+    except ValueError as exc:
+        rejected_count = True
+        assert "relation count mismatch" in str(exc)
+
+    assert rejected_count is True
+    assert repo.mutation_count == 0
+    assert len(mcp.state_mutations) == 0
+    assert len(mcp.checkpoint_writes) == 0
+
+    print("smoke: malformed reversed or skipped order causes zero mutation: ok")
+test_malformed_reversed_or_skipped_order_causes_zero_mutation()
+
+# ---------------------------------------------------------------------------
+# Test Case 6: Duplicate Native Relations Rejection (Zero Mutations)
+# ---------------------------------------------------------------------------
+def test_duplicate_native_relations_causes_zero_mutation():
+    config = {
+        "artifacts": {
+            "provider": "plane",
+            "plane": {
+                "baseUrl": "https://api.plane.so",
+                "workspace": "acme",
+                "repository": "https://github.com/acme/widgets",
+                "projectLabels": ["woostack"],
+                "projectStatuses": {"started": "In Progress"},
+                "issueStates": {
+                    "executing": "state-in-progress", "inReview": "state-in-review",
+                    "done": "state-done", "blocked": "state-blocked"
+                }
+            }
+        }
+    }
+    mcp = MockPlaneMCP(base_url="https://api.plane.so", workspace="acme")
+    proj_id = "proj-plane-001"
+    mcp.projects[proj_id] = {"id": proj_id, "name": "[Repo] acme/widgets", "workspace": "acme"}
+
+    mcp.work_items["spec-002"] = {"id": "spec-002", "readable_id": "SPEC-2", "project_id": proj_id, "parent": None}
+    mcp.work_items["wi-201"] = {"id": "wi-201", "readable_id": "WID-1", "project_id": proj_id, "parent": "spec-002", "ordinal": 1}
+    mcp.work_items["wi-202"] = {"id": "wi-202", "readable_id": "WID-2", "project_id": proj_id, "parent": "spec-002", "ordinal": 2}
+    mcp.work_items["wi-203"] = {"id": "wi-203", "readable_id": "WID-3", "project_id": proj_id, "parent": "spec-002", "ordinal": 3}
+
+    # Duplicate relation: two distinct relation rows for wi-201 -> wi-202
+    mcp.relations = [
+        {"id": "rel-1", "source": "wi-201", "target": "wi-202", "type": "blocks"},
+        {"id": "rel-1-dup", "source": "wi-201", "target": "wi-202", "type": "blocks"},
+        {"id": "rel-2", "source": "wi-202", "target": "wi-203", "type": "blocks"},
+    ]
+    repo = MockRepository(parent_tip="sha-000")
+
+    rejected_spec = False
+    try:
+        admit_plane_execution_target(config, mcp, "SPEC-2", is_project_mode=False)
+    except ValueError as exc:
+        rejected_spec = True
+        assert "relation count mismatch" in str(exc) or "duplicate native relations detected" in str(exc)
+
+    assert rejected_spec is True
+    assert repo.mutation_count == 0
+    assert len(mcp.state_mutations) == 0
+    assert len(mcp.checkpoint_writes) == 0
+
+    rejected_child = False
+    try:
+        admit_plane_execution_target(config, mcp, "WID-2", is_project_mode=False)
+    except ValueError as exc:
+        rejected_child = True
+        assert "relation count mismatch" in str(exc) or "duplicate native relations detected" in str(exc)
+
+    assert rejected_child is True
+    assert repo.mutation_count == 0
+    assert len(mcp.state_mutations) == 0
+    assert len(mcp.checkpoint_writes) == 0
+
+    print("smoke: duplicate native relations cause zero mutation: ok")
+
+test_duplicate_native_relations_causes_zero_mutation()
+
+
+# ---------------------------------------------------------------------------
+# Test Case 7: Foreign Project Target Rejection (Zero Mutations)
+# ---------------------------------------------------------------------------
+def test_foreign_project_target_causes_zero_mutation():
+    config = {
+        "artifacts": {
+            "provider": "plane",
+            "plane": {
+                "baseUrl": "https://api.plane.so",
+                "workspace": "acme",
+                "repository": "https://github.com/acme/widgets",
+                "projectLabels": ["woostack"],
+                "projectStatuses": {"started": "In Progress"},
+                "issueStates": {
+                    "executing": "state-in-progress", "inReview": "state-in-review",
+                    "done": "state-done", "blocked": "state-blocked"
+                }
+            }
+        }
+    }
+    mcp = MockPlaneMCP(base_url="https://api.plane.so", workspace="acme")
+    canonical_proj_id = "proj-plane-001"
+    mcp.projects[canonical_proj_id] = {"id": canonical_proj_id, "name": "[Repo] acme/widgets", "workspace": "acme"}
+
+    # Foreign project in same workspace
+    foreign_proj_id = "proj-other-001"
+    mcp.projects[foreign_proj_id] = {"id": foreign_proj_id, "name": "[Other] acme/other", "workspace": "acme"}
+    mcp.work_items["foreign-001"] = {
+        "id": "foreign-001", "readable_id": "FOREIGN-1", "project_id": foreign_proj_id,
+        "title": "Foreign item", "parent": None, "ordinal": 1
+    }
+
+    repo = MockRepository(parent_tip="sha-000")
+
+    rejected = False
+    try:
+        admit_plane_execution_target(config, mcp, "FOREIGN-1", is_project_mode=False)
+    except ValueError as exc:
+        rejected = True
+        assert "belongs to foreign project" in str(exc)
+
+    assert rejected is True
+    assert repo.mutation_count == 0
+    assert len(mcp.state_mutations) == 0
+    assert len(mcp.checkpoint_writes) == 0
+    assert len(mcp.project_status_mutations) == 0
+
+    print("smoke: foreign project target causes zero mutation: ok")
+
+test_foreign_project_target_causes_zero_mutation()
+
+
+# ---------------------------------------------------------------------------
+# Test Case 8: Plane Project Mode Selector Rejected (Zero Mutations)
+# ---------------------------------------------------------------------------
+def test_plane_project_selector_rejected_zero_mutation():
+    config = {
+        "artifacts": {
+            "provider": "plane",
+            "plane": {
+                "baseUrl": "https://api.plane.so",
+                "workspace": "acme",
+                "repository": "https://github.com/acme/widgets",
+                "projectLabels": ["woostack"],
+                "projectStatuses": {"started": "In Progress"},
+                "issueStates": {"executing": "s1", "inReview": "s2", "done": "s3", "blocked": "s4"}
+            }
+        }
+    }
+    mcp = MockPlaneMCP(base_url="https://api.plane.so", workspace="acme")
+    repo = MockRepository(parent_tip="sha-000")
+
+    rejected = False
+    try:
+        admit_plane_execution_target(config, mcp, "proj-plane-001", is_project_mode=True)
+    except ValueError as exc:
+        rejected = True
+        assert "Plane does not accept `--project` as an executable scope" in str(exc)
+
+    assert rejected is True
+    assert repo.mutation_count == 0
+    assert len(mcp.state_mutations) == 0
+    assert len(mcp.checkpoint_writes) == 0
+
+    print("smoke: Plane project selector rejected with zero mutation: ok")
+
+test_plane_project_selector_rejected_zero_mutation()
+
+
+# ---------------------------------------------------------------------------
+# Test Case 9: Plane Parent Lifecycle Aggregation on Child Blocker
+# ---------------------------------------------------------------------------
+def test_plane_parent_lifecycle_aggregation_on_blocker():
+    config = {
+        "artifacts": {
+            "provider": "plane",
+            "plane": {
+                "baseUrl": "https://api.plane.so",
+                "workspace": "acme",
+                "repository": "https://github.com/acme/widgets",
+                "projectLabels": ["woostack"],
+                "projectStatuses": {"started": "In Progress"},
+                "issueStates": {
+                    "executing": "state-in-progress", "inReview": "state-in-review",
+                    "done": "state-done", "blocked": "state-blocked"
+                }
+            }
+        }
+    }
+    mcp = MockPlaneMCP(base_url="https://api.plane.so", workspace="acme")
+    proj_id = "proj-plane-001"
+    mcp.projects[proj_id] = {"id": proj_id, "name": "[Repo] acme/widgets", "workspace": "acme"}
+    mcp.add_state("acme", proj_id, "state-planned", "Planned", "unstarted")
+    mcp.add_state("acme", proj_id, "state-in-progress", "In Progress", "started")
+    mcp.add_state("acme", proj_id, "state-in-review", "In Review", "started")
+    mcp.add_state("acme", proj_id, "state-done", "Done", "completed")
+    mcp.add_state("acme", proj_id, "state-blocked", "Blocked", "started")
+
+    resolved_states = resolve_and_validate_plane_states(config, mcp, proj_id)
+
+    mcp.work_items["spec-002"] = {"id": "spec-002", "readable_id": "SPEC-2", "project_id": proj_id, "state_id": "state-in-progress", "parent": None}
+    mcp.work_items["wi-201"] = {"id": "wi-201", "readable_id": "WID-1", "project_id": proj_id, "state_id": "state-in-progress", "parent": "spec-002", "ordinal": 1}
+
+    # Failure / blocker occurs on wi-201
+    blocked_state = resolved_states["blocked"]["id"]
+    mcp.update_work_item_state("acme", "wi-201", blocked_state)
+    mcp.update_work_item_state("acme", "spec-002", blocked_state)
+
+    assert mcp.read_work_item("acme", "wi-201")["state_id"] == "state-blocked"
+    assert mcp.read_work_item("acme", "spec-002")["state_id"] == "state-blocked"
+    assert len(mcp.project_status_mutations) == 0
+
+    print("smoke: Plane parent lifecycle aggregation on blocker: ok")
+
+test_plane_parent_lifecycle_aggregation_on_blocker()
+
+
+# ---------------------------------------------------------------------------
+# Test Case 10: Plane State Resolution Acceptance (UUID vs Name vs Same-State)
 # ---------------------------------------------------------------------------
 def test_plane_state_resolution_acceptance():
     mcp = MockPlaneMCP(base_url="https://api.plane.so", workspace="acme")
@@ -659,7 +1331,7 @@ test_plane_state_resolution_acceptance()
 
 
 # ---------------------------------------------------------------------------
-# Test Case 3: Plane State Resolution Rejection (Missing, Ambiguous, Foreign, Group Mismatch)
+# Test Case 11: Plane State Resolution Rejection (Missing, Ambiguous, Foreign, Group Mismatch)
 # ---------------------------------------------------------------------------
 def test_plane_state_resolution_rejection():
     mcp = MockPlaneMCP(base_url="https://api.plane.so", workspace="acme")
@@ -766,7 +1438,7 @@ test_plane_state_resolution_rejection()
 
 
 # ---------------------------------------------------------------------------
-# Test Case 4: Injected Mirror Failure with Zero Repository-Mutation Change
+# Test Case 12: Injected Mirror Failure with Zero Repository-Mutation Change
 # ---------------------------------------------------------------------------
 def test_injected_mirror_failure_zero_repo_change():
     repo = MockRepository(parent_tip="sha-000")
@@ -834,7 +1506,7 @@ test_injected_mirror_failure_zero_repo_change()
 
 
 # ---------------------------------------------------------------------------
-# Test Case 5: Local Run Mode Base-Change User Choice
+# Test Case 13: Local Run Mode Base-Change User Choice
 # ---------------------------------------------------------------------------
 def test_local_run_base_change_choice():
     manifest = {

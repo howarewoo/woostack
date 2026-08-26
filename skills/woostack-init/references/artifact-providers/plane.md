@@ -107,6 +107,26 @@ profile only for selected-provider identity, capability, mutation, and read-back
 
 ## Lifecycle and closure
 
+Plane Execute requires one exact work-item reference via `--issue` (a top-level specification work
+item or one exact child increment work item); it does not accept `--project` as an executable scope.
+Resolve and independently read back the canonical repository project `[Repo] owner/name` derived from
+configured `artifacts.plane.repository` under canonical instance `baseUrl` and `workspace` before admitting
+target membership. Reject the target if its direct project membership does not match that canonical project UUID.
+
+Admit either:
+
+1. **Top-level specification work item (`parent = null`):** selects its complete, exact single-parent
+   child graph (`parent = <spec-item-UUID>`) and strict sequential sibling blocking relations
+   (`blocks`: exact adjacent-ordinal endpoint edges `ordinal k-1` blocks `ordinal k` for `k = 2..N`).
+   Plane specification mode repeatedly cycles the lowest unfinished child in strict ordinal order until all
+   children finish or a stop marker is read.
+2. **Exact child increment work item (`parent = <spec-item-UUID>`):** validates the parent specification
+   item's complete child and relation graph, strict adjacent-ordinal blocking relations, and the selected child's
+   immediate unique predecessor. Execute runs only that exact child once and touches no sibling.
+
+Reject repository projects (`--project`), foreign projects/work items, cross-parent relations (relations
+connecting children of different specification parents or foreign items), malformed, skipped, or reversed
+relations, missing, duplicate, ambiguous, or unparented children before any mutation.
 Plane Execute mutates and reads back only configured work-item states. Resolve
 `artifacts.plane.issueStates.executing`, `inReview`, `done`, and `blocked` by exact native UUID or exact
 case-sensitive name within canonical baseUrl/workspace/project scope. Reject missing, ambiguous,
@@ -116,6 +136,15 @@ Allowable groups are: executing and inReview require `started`; done requires `c
 requires `started`. An exact current state is an idempotent no-op. Provider-mode transition failure
 blocks at that lifecycle boundary; optional local-run mirror failure after an authoritative local
 checkpoint remains nonblocking.
+
+Parent lifecycle aggregates its child increment work items:
+
+- **Executing:** the parent specification work item transitions to `executing` when active work begins
+  or resumes on any child (if not already `executing`), reading back native ID, name, and group.
+- **Blocked:** if any selected child blocks or encounters an execution failure, transition both that
+  child and the parent specification work item to `blocked` with recovery evidence.
+- **Done:** the parent specification work item transitions to `done` only after all its child increment
+  work items have completed (`is_finished` is true for all children).
 
 Never mutate, synthesize, archive, or gate on Plane project status. Handoff, abandonment, blockage,
 and completion retain the exact project unchanged and record only work-item and local recovery state.
