@@ -1,0 +1,36 @@
+---
+title: Artifacts
+description: Choose an artifact provider and look up the guarantees shared by local and mirrored storage.
+---
+
+The `artifacts` configuration selects where woostack stores development artifacts. Local storage is
+the default and remains authoritative when provider mirroring is enabled.
+
+<Cards>
+  <Card title="Local" href="/docs/configuration/artifacts/local" description="Files, run directories, retention, authority, and provider-free behavior." />
+  <Card title="Linear" href="/docs/configuration/artifacts/linear" description="Linear fields, identities, project hierarchy, and lifecycle behavior." />
+  <Card title="Plane" href="/docs/configuration/artifacts/plane" description="Plane fields, identities, work-item hierarchy, and lifecycle behavior." />
+</Cards>
+
+| `artifacts.provider` | Storage | Effect |
+| --- | --- | --- |
+| omitted or `"local"` | [Local](/docs/configuration/artifacts/local) | Stores Build and project-backed Fix artifacts under `.woostack/tmp/runs/`. Makes no artifact-provider calls. |
+| `"linear"` | [Linear](/docs/configuration/artifacts/linear) | Keeps the local run authoritative and mirrors through the authenticated official Linear MCP. |
+| `"plane"` | [Plane](/docs/configuration/artifacts/plane) | Keeps the local run authoritative and mirrors through the authenticated official Plane MCP. |
+
+## Mirror guarantees
+
+Configuration is non-secret policy. It never grants permission to access a provider, approve artifact
+content, or perform repository work. Credentials remain in the host's MCP or OAuth secret store.
+
+Every provider boundary requires the exact official MCP capabilities it uses. Reads require complete
+pagination. Creates use a stable identity allocated before the first attempt, and created or recovered
+resources receive an independent exact read before later mutations. Missing, partial, ambiguous,
+duplicate, or foreign results fail closed at that provider boundary.
+
+A mirror failure is recorded in the local manifest and remains nonblocking for local authority.
+Provider synchronization never changes GitHub merge authority. `woostack-change` never contacts an
+artifact provider.
+
+The canonical implementation rules live in the
+[local run artifact and provider mirror contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-backends.md).

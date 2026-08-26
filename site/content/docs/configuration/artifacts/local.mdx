@@ -1,0 +1,72 @@
+---
+title: Local
+description: Reference for the default local artifact store, run layout, authority, retention, and recovery behavior.
+---
+
+Local artifacts are the default. Select them explicitly with:
+
+```json
+{
+  "artifacts": {
+    "provider": "local"
+  }
+}
+```
+
+Omitting `artifacts.provider` has the same effect.
+
+## Storage layout
+
+Build and project-backed Fix allocate one run directory:
+
+```text
+.woostack/tmp/runs/<run-id>/
+├── manifest.json
+├── project-spec.md
+└── execution-plan.md
+```
+
+| Entry | Purpose |
+| --- | --- |
+| `manifest.json` | Recovery state, stable task mappings, mirror receipts, and monotonic revision data. |
+| `project-spec.md` | The complete approved specification. For Fix, this includes the proved root cause. |
+| `execution-plan.md` | The ordered PR-sized increment contracts and dependency graph. |
+
+The run directory uses owner-only `0700` permissions. Run files use owner-only `0600` permissions.
+Manifest updates use compare-and-swap and atomic replacement.
+
+## Authority
+
+The local run is the canonical development-artifact record for Build and project-backed Fix. Git,
+Graphite, and GitHub remain authoritative for source, branches, commits, pull requests, reviews, and
+merge state. Artifacts record work; they do not authorize it.
+
+Remote mirroring does not transfer authority away from the local run. A mirror failure is recorded in
+`manifest.json` and does not invalidate complete local artifacts.
+
+## Provider behavior
+
+With `artifacts.provider` omitted or set to `"local"`:
+
+- Build and project-backed Fix make no artifact-provider reads or writes.
+- Standalone Plan without requested persistence makes no provider call.
+- `woostack-change` never contacts an artifact provider.
+- `--project` fails before provider access because project selection requires remote mirroring.
+
+Automatic read-only Linear discovery during `woostack-init` is a setup operation. It does not select
+remote storage or authorize later provider access.
+
+## Retention and recovery
+
+Completed and explicitly abandoned runs are retained. Explicit abandonment records
+`status: "abandoned"` in the manifest and does not mutate a mirrored provider project.
+
+A nonterminal run resumes by exact run ID:
+
+```text
+/woostack-execute --run <exact-run-id> [--recheck]
+```
+
+Titles, recent history, branch names, and search ranking are not run selectors. Legacy tracked records
+remain unchanged unless the user explicitly invokes the guarded
+[woostack-init migration route](/docs/skills/woostack-init#optional-guarded-legacy-migration).

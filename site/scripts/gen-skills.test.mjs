@@ -174,42 +174,44 @@ test('concepts taxonomy keeps context economy under context management', async (
   assert.doesNotMatch(overview, /^## Context economy$/m);
 });
 
-test('configuration docs follow the scaffold and Linear contract', async () => {
+test('configuration references follow the scaffold and artifact provider contract', async () => {
   const repoRoot = path.resolve(import.meta.dirname, '..', '..');
-  const [templateRaw, configuration, auditRaw] = await Promise.all([
+  const [templateRaw, configuration, localArtifacts, linearArtifacts, planeArtifacts, auditRaw] = await Promise.all([
     readFile(path.join(repoRoot, 'skills', 'woostack-init', 'templates', 'config.json'), 'utf8'),
-    readFile(path.join(repoRoot, 'site', 'content', 'docs', 'configuration.mdx'), 'utf8'),
+    readFile(path.join(repoRoot, 'site', 'content', 'docs', 'configuration', 'index.mdx'), 'utf8'),
+    readFile(path.join(repoRoot, 'site', 'content', 'docs', 'configuration', 'artifacts', 'local.mdx'), 'utf8'),
+    readFile(path.join(repoRoot, 'site', 'content', 'docs', 'configuration', 'artifacts', 'linear.mdx'), 'utf8'),
+    readFile(path.join(repoRoot, 'site', 'content', 'docs', 'configuration', 'artifacts', 'plane.mdx'), 'utf8'),
     readFile(path.join(repoRoot, 'skills', 'woostack-audit', 'SKILL.md'), 'utf8'),
   ]);
   const template = JSON.parse(templateRaw);
-  assert.deepEqual(Object.keys(template), ['models', 'review', 'status']);
+  assert.deepEqual(Object.keys(template), ['artifacts', 'models', 'review', 'status']);
+  assert.equal(template.artifacts.provider, 'local');
   assert.equal(template.linear, undefined);
-  assert.equal(template.artifacts, undefined);
 
-  const exampleMatch = /## A complete repository-policy example[\s\S]*?```json\n([\s\S]*?)\n```/.exec(configuration);
-  assert.ok(exampleMatch, 'configuration page exposes a complete repository-policy JSON example');
+  const exampleMatch = /## A complete example[\s\S]*?```json\n([\s\S]*?)\n```/.exec(configuration);
+  assert.ok(exampleMatch, 'configuration page exposes a complete JSON example');
   const example = JSON.parse(exampleMatch[1]);
   assert.deepEqual(
     Object.keys(example).sort(),
-    ['audit', 'base_branch', 'commit', 'models', 'review', 'review_sweep', 'status']
+    ['artifacts', 'audit', 'base_branch', 'commit', 'models', 'review', 'review_sweep', 'status']
   );
+  assert.equal(example.artifacts.provider, 'local');
   assert.ok(example.models);
   assert.equal(example.linear, undefined);
-  assert.equal(example.artifacts, undefined);
   assert.equal(example.audit.models, undefined);
 
-  assert.match(configuration, /ships three\s+top-level keys: `models`, `review`, and `status`/);
-  assert.match(configuration, /There are eight top-level settings:/);
-  assert.doesNotMatch(configuration, /\| `artifacts` \|/);
-  assert.match(configuration, /\| `linear` \|/);
-  assert.match(configuration, /\| `audit` \|/);
-  assert.match(configuration, /^## Linear configuration$/m);
+  assert.match(configuration, /There are eight supported top-level settings/);
+  assert.match(configuration, /\[`artifacts`\]\(\/docs\/configuration\/artifacts\)/);
   assert.match(configuration, /^## Audit engine$/m);
   assert.match(configuration, /`audit\.severity_floor`/);
   assert.match(configuration, /Root model tiers also drive \[woostack-audit\]/);
-  assert.match(configuration, /automatically attempts safe read-only Linear default discovery/);
-  assert.match(configuration, /Missing or incomplete Linear setup never blocks local initialization/);
-  assert.match(configuration, /neither selects artifact persistence\s+nor authorizes later\s+provider access/);
+  assert.match(localArtifacts, /artifacts\.provider/);
+  assert.match(localArtifacts, /zero-provider local authority|no artifact-provider reads or writes/);
+  assert.match(linearArtifacts, /artifacts\.linear\.projectLabels/);
+  assert.match(linearArtifacts, /local run.*remains authoritative/is);
+  assert.match(planeArtifacts, /artifacts\.plane\.projectLabels/);
+  assert.match(planeArtifacts, /local run.*remains authoritative/is);
 
   const { fm, body } = parseFrontmatter(auditRaw, 'woostack-audit');
   const renderedBody = rewriteLinks(

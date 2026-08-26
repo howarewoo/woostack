@@ -1,0 +1,71 @@
+---
+title: Linear
+description: Reference for Linear artifact mirroring, configuration fields, identities, and lifecycle behavior.
+---
+
+Select Linear artifact mirroring with `artifacts.provider: "linear"`. The
+[local run](/docs/configuration/artifacts/local) remains authoritative.
+
+## Configuration
+
+```json
+{
+  "artifacts": {
+    "provider": "linear",
+    "linear": {
+      "repository": "https://github.com/acme/widgets",
+      "workspace": "acme",
+      "team": "ENG",
+      "projectLabels": ["feature"],
+      "projectStatuses": {
+        "backlog": "Backlog",
+        "planned": "Planned",
+        "started": "Started",
+        "completed": "Completed",
+        "canceled": "Canceled"
+      },
+      "issueStates": {
+        "planned": "Backlog",
+        "executing": "In Progress",
+        "inReview": "In Progress",
+        "done": "Done",
+        "blocked": "In Progress"
+      }
+    }
+  }
+}
+```
+
+| Field | Type | Constraint |
+| --- | --- | --- |
+| `artifacts.linear.repository` | string | Canonical repository URL or repository identity. |
+| `artifacts.linear.workspace` | string | Exact Linear workspace. |
+| `artifacts.linear.team` | string | Exact team identifier or name. |
+| `artifacts.linear.projectLabels` | string array | Required when Linear is selected. May be empty. Labels resolve by exact native identity or exact case-sensitive name. |
+| `artifacts.linear.projectStatuses.*` | string | Native project status identity or exact case-sensitive name. Category checks apply at the lifecycle boundary. |
+| `artifacts.linear.issueStates.*` | string | Native issue state identity or exact case-sensitive name. Category checks apply at the lifecycle boundary. |
+
+Credentials belong in the host's authenticated official Linear MCP or OAuth secret store, never in
+repository configuration.
+
+## Identities and hierarchy
+
+Linear uses stable human-facing issue identifiers such as `ENG-42` as canonical issue references.
+Native UUIDs remain separate mutation identities.
+
+Build and post-proof Fix resolve or create the selected canonical Linear project. Standalone Plan
+persists only to an exact selected project. Plan increments are direct issues with no synthetic parent
+plan issue.
+
+## Lifecycle behavior
+
+Execute may synchronize the exact nonterminal project to the configured `started` status. Explicit
+standalone Plan abandonment may use the configured `canceled` status. Build and Fix handoff,
+blockage, and local-run abandonment leave the mirrored project unchanged.
+
+`woostack-init` may discover missing non-secret Linear defaults through authenticated read-only MCP
+calls. Discovery does not select Linear as the provider and does not authorize later access.
+
+Bootstrap may mirror an approved design after its filesystem barrier when provider persistence is
+explicitly selected. Commit may verify an exact `--issue <id>`, add pull-request attribution, and
+write a delivery note with read-back.
