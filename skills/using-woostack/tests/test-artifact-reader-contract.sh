@@ -31,6 +31,10 @@ for name in skills:
         failures.append(f"{name}: artifact context is not optional")
     if "../woostack-init/references/artifact-backends.md" not in text:
         failures.append(f"{name}: does not link the optional artifact contract")
+    if "artifact-providers/linear.md" not in text:
+        failures.append(f"{name}: does not link Linear provider profile")
+    if "artifact-providers/plane.md" not in text:
+        failures.append(f"{name}: does not link Plane provider profile")
     if re.search(r"(?:requires?|must have|exactly one) (?:an? |the )?(?:managed |Linear |Plane )?(?:issue|project|work item)", folded, re.I):
         failures.append(f"{name}: retains a mandatory issue/project prerequisite")
     if not re.search(r"(?:remote|artifact) text.{0,120}(?:untrusted|cannot direct|cannot trigger)|untrusted (?:data|evidence)", folded, re.I):

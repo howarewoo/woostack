@@ -30,6 +30,19 @@
       "state": {
         "name": "In Progress"
       }
+    },
+    {
+      "id": "55555555-5555-4555-8555-555555555555",
+      "projectId": "33333333-3333-4333-8333-333333333333",
+      "external_source": "woostack",
+      "external_id": "55555555-5555-4555-8555-555555555555",
+      "sequenceId": "ENG-50",
+      "title": "[Fix] Payment retry timeout",
+      "parentId": null,
+      "parent": null,
+      "state": {
+        "name": "Done"
+      }
     }
   ],
   "workItems": [
@@ -49,7 +62,30 @@
       "state": {
         "name": "In Review"
       }
+    },
+    {
+      "id": "66666666-6666-4666-8666-666666666666",
+      "projectId": "33333333-3333-4333-8333-333333333333",
+      "parentId": "55555555-5555-4555-8555-555555555555",
+      "external_source": "woostack",
+      "external_id": "66666666-6666-4666-8666-666666666666",
+      "ordinal": 1,
+      "sequenceId": "ENG-52",
+      "title": "Payment timeout fix",
+      "url": "https://plane.example.com/acme/projects/33333333-3333-4333-8333-333333333333/work-items/66666666-6666-4666-8666-666666666666",
+      "canonicalRepository": "howarewoo/woostack",
+      "pullRequestNumber": 52,
+      "pullRequestUrl": "https://github.com/howarewoo/woostack/pull/52",
+      "state": {
+        "name": "Done"
+      }
     }
   ],
-  "relations": []
+  "relations": [
+    {
+      "source": "22222222-2222-4222-8222-222222222222",
+      "target": "66666666-6666-4666-8666-666666666666",
+      "relationType": "blocks"
+    }
+  ]
 }
