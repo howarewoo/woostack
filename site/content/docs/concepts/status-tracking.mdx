@@ -1,13 +1,13 @@
 ---
-title: Tracking work
-description: How woostack derives a current board from repository evidence and optional artifacts.
+title: Status board reference
+description: Repository inputs, identity rules, derived states, and failure behavior for the status board.
 ---
 
 [woostack-status](/docs/skills/woostack-status) computes a fresh view from Git, Graphite, and
 canonical GitHub data. It maintains no separate board or development ledger. Linear and Plane
 projects/work items are optional specification, plan, and fix artifacts.
 
-## What status tracks
+## Display shapes
 
 The repository graph defines two display shapes:
 
@@ -19,7 +19,7 @@ A row exists because repository work exists, not because an artifact exists. Can
 ref, commit SHA, PR number, head/base, and ancestry establish identity; titles and branch names are
 display text.
 
-## How the board is derived
+## Derivation
 
 Each status run:
 

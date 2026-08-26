@@ -315,7 +315,7 @@ test('local run manifests and git evidence own delivery truth', () => {
     'concepts must preserve repository delivery authority');
 });
 
-test('authored setup order keeps initialization and the external-engineer guide sequenced', () => {
+test('authored setup keeps the README sequence and a deterministic local tutorial', () => {
   assertInOrder('README.md', [
     ['initialization', /\b2\.\s+Initialization\b/i],
     ['repository policy', /\b4\.\s+Repository Policy\b/i],
@@ -327,11 +327,13 @@ test('authored setup order keeps initialization and the external-engineer guide 
   assert.match(sectionFiveTocLine ?? '', /^ {2}- /,
     'README.md: section 5 must remain nested under Getting Started');
   assertInOrder('site/content/docs/getting-started.mdx', [
+    ['install skills', /\b1\.\s+Install the skills\b/i],
     ['initialize local support', /\b2\.\s+Initialize local support\b/i],
-    ['choose workflow', /\b3\.\s+Choose the workflow\b/i],
-    ['automatic Linear defaults', /\b4\.\s+(?:Automatic\s+Linear\s+default\s+setup|Optional\s+(?:Linear\s+and\s+Plane|Linear)\s+mirror\s+setup)\b/i],
-    ['external engineer', /5\. Use an external engineer \(optional\)/i],
+    ['check installation', /\b3\.\s+Check the installation\b/i],
   ]);
+  assertContains('site/content/docs/getting-started.mdx',
+    /href="\/docs\/configuration"[\s\S]*href="\/docs\/hermes"/i,
+    'the tutorial must link to optional reference and how-to material after the local path');
 });
 
 test('Hermes is one external engineer over one persistent OMP process', () => {

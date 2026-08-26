@@ -9,7 +9,7 @@ manifest state for builds and post-diagnosis fixes (with optional Linear or Plan
 `artifacts.provider: "plane"`). Git and GitHub own implementation and delivery truth. Bootstrap,
 change, standalone planning, and other artifact use retain their documented optional boundaries.
 
-## Route by work shape
+## Routing by work shape
 
 ```mermaid
 flowchart TD
@@ -22,9 +22,9 @@ flowchart TD
   D -->|no| Build
 ```
 
-Routing is not an approval gate. If scope expands after work begins, preserve repository state,
-report the handoff, and route through the appropriate workflow rather than silently changing the
-contract.
+Routing is not an approval gate. When scope expands after work begins, the workflow preserves
+repository state and reports the handoff. The work then moves through the workflow that matches its
+new shape instead of silently changing the contract.
 
 ## Bootstrap
 

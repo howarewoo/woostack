@@ -1,134 +1,73 @@
 ---
 title: Getting started
-description: Install woostack in a coding harness, initialize local support, and optionally configure Linear/Plane mirroring or an external engineer.
+description: Install woostack in a coding harness and initialize local repository support.
 ---
 
-<Callout type="info">
-  Local run authority in `.woostack/tmp/runs/<run-id>/` owns product scope and execution contracts for
-  builds and post-diagnosis fixes (with optional Linear or Plane mirroring: `artifacts.provider: "linear"` or
-  `artifacts.provider: "plane"`). Git and GitHub own code, branches, pull requests, reviews, and merges.
-</Callout>
+This tutorial installs woostack in an existing repository. When you finish, your harness can find
+the skills and the repository has local woostack support.
 
-## Dependencies
+## Before you start
 
-Prepare these tools before installing woostack:
+Prepare:
 
 - An [agent harness](/docs/harnesses) that supports Agent Skills.
 - Node.js and pnpm. The installation command below uses `pnpx`.
-- Bash, Git, the GitHub CLI (`gh`), the Graphite CLI (`gt`), and `jq`. Authenticate both CLIs
-  and initialize Graphite for the target repository before running a workflow that delivers a PR.
-- An authenticated official Linear or Plane MCP connection only when optional provider mirroring is enabled
-  (`artifacts.provider: "linear"` or `artifacts.provider: "plane"`). Local initialization, default local run authority, and
-  provider-free workflows such as `/woostack-change` do not require it.
+- Bash, Git, the GitHub CLI (`gh`), the Graphite CLI (`gt`), and `jq`. Authenticate both CLIs and
+  initialize Graphite for the repository before using a workflow that delivers a pull request.
+
+You do not need Linear or Plane for this tutorial. Local run artifacts are the default.
 
 ## 1. Install the skills
 
-Install the collection with the package manager supported by your skill host:
+Run this command from the repository:
 
 ```bash
 pnpx skills add howarewoo/woostack
 ```
 
-Confirm the host can discover `using-woostack` and the `/woostack-*` command skills. Keep repository
-rules in the root `AGENTS.md`; do not copy workflow internals into project instructions.
+Confirm that your harness can find `using-woostack` and the `/woostack-*` command skills. If the
+skills do not appear, stop here and fix the harness installation before continuing.
 
 ## 2. Initialize local support
 
-From the target repository, invoke:
+Invoke the initialization skill from the same repository:
 
 ```text
 /woostack-init
 ```
 
-Initialization creates or repairs non-secret `.woostack/config.json`, diagnostic report roots,
-worktree support, the three project-scoped OMP role workers, and the project-scoped OMP session-naming
-extension with its local settings entry. It preserves other project agents and extensions
-and does not create a specification, plan, fix, issue, project, branch, or PR. Every run also
-attempts safe read-only Linear default discovery through the host-exposed official MCP. Missing or
-incomplete Linear capability is reported separately and never blocks local initialization. Optional
-developer overrides may be placed in `.woostack/config.local.json` in the primary checkout (ignored
-by Git).
+Initialization creates or repairs non-secret repository policy, diagnostic report directories,
+worktree support, and the host-specific local support that woostack needs. It preserves unrelated
+project agents and extensions.
 
-Read [Configuration](/docs/configuration) for policy. Every build and project-backed Fix allocates
-or resumes an exact local run store under `.woostack/tmp/runs/<run-id>/`. When
-`artifacts.provider: "linear"` or `artifacts.provider: "plane"`, Build and Fix also resolve or create one provider project mirror.
-## 3. Choose the workflow
+When the command finishes, confirm that `.woostack/config.json` exists. The command may also report
+read-only Linear discovery, but missing Linear access does not block local initialization.
 
-| Goal | Command |
-| --- | --- |
-| Create a genuinely greenfield codebase | `/woostack-bootstrap` |
-| Build a multi-increment feature | `/woostack-build` |
-| Fix a bug or regression | `/woostack-fix` |
-| Make one bounded non-bug change/refactor | `/woostack-change` |
-| Review a PR or local diff | `/woostack-review` |
-| Address unresolved PR threads | `/woostack-address-comments` |
-| Show current repository work state | `/woostack-status` |
+## 3. Check the installation
 
-The user's request and each workflow's explicit contract authorize work. Retained local run manifests
-record build/fix product authority and enable exact resume for approved nonterminal runs
-(`/woostack-execute --run <exact-run-id>`), but do not replace repository-delivery evidence.
-## 4. Optional Linear and Plane mirror setup
-
-The default `/woostack-init` run discovers only the host-exposed official Linear MCP endpoint:
+Invoke:
 
 ```text
-https://mcp.linear.app/mcp
+/woostack-doctor --check
 ```
 
-Authenticated read access is enough to preserve or configure validated non-secret
-repository/workspace/team/native-name defaults. Init never probes provider writes, reads or creates
-an artifact, or selects persistence. Missing, unauthenticated, ambiguous, or incomplete capability
-is a separately reported setup skip/blocker and does not fail ordinary local initialization.
+Doctor checks the local `.woostack/` policy and support surfaces without repairing them in
+`--check` mode. Resolve any reported local configuration error before starting repository work.
+Optional provider connectivity matters only when you configure provider mirroring.
 
-Authentication stays in the host's MCP/OAuth secret store. Never place API keys, credentials,
-tokens, or authorization headers in repository config, prompts, logs, or generated files.
+<Callout type="info">
+  woostack is now ready in this repository. Keep project-specific rules in the root `AGENTS.md`;
+  do not copy workflow internals into it.
+</Callout>
 
-`artifacts.provider: "local"` is the default in `.woostack/config.json`, keeping workflows
-provider-free. Supplying `--project` when `artifacts.provider` is not configured for mirroring fails
-closed immediately with an error stating that `--project` requires configured provider mirroring.
+## Choose what to do next
 
-When `artifacts.provider: "linear"` or `artifacts.provider: "plane"` is configured, the provider configuration supplies validated
-defaults for canonical project creation when no exact project was supplied. Build and
-project-backed Fix write plain Markdown
-`project-spec.md` and `execution-plan.md` files directly under `.woostack/tmp/runs/<run-id>/`, followed by one bounded mirror
-synchronization cycle when mirroring is enabled. Mirror failure is recorded in the manifest and is nonblocking for local authority.
-All run artifacts in `.woostack/tmp/runs/<run-id>/` are retained upon completion and explicit abandonment. Build/Fix present the verified
-`/woostack-execute --run <exact-run-id>` handoff and ask exactly `Stop here`, `Execute`, or `Abandon`. A mirrored project identity is evidence,
-not an alternate handoff command. `woostack-change` never contacts a provider.
-### Optional Bootstrap and Commit provider writers
-
-Optional provider writers (Bootstrap and Commit) follow the canonical
-[artifact contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-backends.md):
-
-- **Bootstrap design persistence:** Opt-in only when the caller explicitly requests provider persistence or supplies an exact project URL/UUID. Persistence executes strictly after the explicit design-approval gate and before target filesystem scaffolding. It resolves or creates one canonical feature project using configured `artifacts.linear` or `artifacts.plane` defaults (with required Plane `projectLabels`), writes `designApproved`, and reads back the complete project state. Provider capability or synchronization failure blocks only requested synchronization without breaking local authority or releasing the filesystem barrier.
-- **Commit PR attribution and delivery notes:** Opt-in only when the caller supplies an exact canonical issue (`--issue <id>`). Commit verifies the repository boundary through the configured provider's official MCP (`artifacts.provider: "linear"` or `"plane"`), appends `Resolves <id>` to the PR body, and optionally writes a concise delivery note with independent read-back. Commit and PR merge authority remains human-only on GitHub; provider synchronization failure is nonblocking for verified repository delivery.
-
-
-## 5. Use an external engineer (optional)
-
-Hermes is external to woostack. Do not install woostack in Hermes or treat Hermes as a supported
-coding harness. If you use Hermes, install woostack in OMP, start one persistent OMP process, and
-use Hermes only for in-contract decisions, escalation, approval relay, evidence review, and bounded
-redispatch. OMP remains the isolated coding harness and retains implementation authority for its
-approved task; Hermes never edits implementation source or accepts without direct evidence.
-
-The [Hermes guide](/docs/hermes) is the sole setup guide. It covers argument-safe `terminal`/`process`
-use, responsible-user approval relayed verbatim through the active OMP process, and cross-session
-resume against retained local artifacts without requiring a single process to stay alive forever.
-It also documents optional manual cleanup of legacy launchers; woostack never installs or removes
-those files automatically.
-
-## Setup references
+Use the workflow map to choose a command for real work. Read the configuration reference only when
+you need to change repository policy or enable optional provider mirroring.
 
 <Cards>
-  <Card title="Configuration" href="/docs/configuration" description="Non-secret repository policy, local run authority, and optional safe Linear and Plane defaults." />
-  <Card title="Building rules" href="/docs/concepts/building-rules" description="Workflow routing, gates, execution, and authority boundaries." />
-  <Card title="Hermes as an external engineer" href="/docs/hermes" description="Drive one persistent OMP process without installing woostack in Hermes." />
-  <Card title="OMP" href="/docs/harnesses/omp" description="Host-owned project workers and native OMP routing." />
-  <Card title="Artifact backends" href="/docs/configuration" description="Optional Linear and Plane mirror projects, work-item plans, and attribution." />
+  <Card title="Workflow maps" href="/docs/concepts/workflows" description="Choose Bootstrap, Build, Fix, or Change based on the shape of the work." />
+  <Card title="Configuration" href="/docs/configuration" description="Look up repository policy, local run settings, and optional provider mirroring." />
+  <Card title="How to use Hermes as an external engineer" href="/docs/hermes" description="Drive one persistent OMP process without installing woostack in Hermes." />
+  <Card title="Harness reference" href="/docs/harnesses" description="Compare supported coding harnesses and their native capabilities." />
 </Cards>
-## Recommended companions
-
-Independent implementation skills such as framework, database, security, accessibility, or writing
-review skills remain optional. They never replace the selected woostack workflow's scope, approval,
-verification, or review boundaries.

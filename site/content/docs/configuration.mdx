@@ -6,8 +6,8 @@ description: Non-secret repository policy, local run authority, and optional saf
 woostack resolves non-secret repository policy by layering tracked base configuration with an
 optional primary-checkout local override:
 
-1. **Tracked base** (`.woostack/config.json`) — committed repository policy.
-2. **Optional local override** (`.woostack/config.local.json`) — gitignored (`*.local.*`) developer
+1. **Tracked base:** `.woostack/config.json` contains committed repository policy.
+2. **Optional local override:** `.woostack/config.local.json` contains gitignored (`*.local.*`)
    overrides in the primary checkout. Linked worktrees automatically inherit the primary checkout's
    local configuration.
 
@@ -258,7 +258,7 @@ fail-closed restart/replay behavior.
 All review keys nest under `review`. [woostack-review](/docs/skills/woostack-review) validates the
 types when it runs; an unknown key inside `review` is a hard error.
 
-### Controlling noise
+### Finding severity and nits
 
 A finding at or above the severity floor is a normal (blocking-eligible) finding. A finding below
 the floor is surfaced as a non-blocking nit, or dropped entirely when nits are off. A below-floor
@@ -269,7 +269,7 @@ finding explicitly marked blocking always surfaces regardless of the floor.
 | `review.severity_floor` | string | `"high"` | Threshold: `low`, `medium`, or `high` (case-insensitive). |
 | `review.nits` | boolean | `true` | `true` posts below-floor findings as `Nit:` comments; `false` drops them. |
 
-### Choosing angles
+### Angle selection
 
 Angles are auto-detected from the diff and prefetched review context. Force an angle to run it regardless of detection; skip one
 to keep it off. `force` wins when an angle appears in both. The `bugs`, `security`, and `simplify`
@@ -280,8 +280,8 @@ angles can never be skipped. They are silently kept even if listed.
 | `review.angles.force` | array of string | `[]` | Angles always enabled. |
 | `review.angles.skip` | array of string | `[]` | Angles never enabled (except `bugs` / `security` / `simplify`). |
 
-See [Review angles](/docs/concepts/review-angles) for the full catalog of all 22 angles: what each one
-audits, when it auto-fires, and its model tier.
+See the [review angle reference](/docs/concepts/review-angles) for all 22 angles, including what
+each one audits, when it runs automatically, and its model tier.
 
 ### Filtering the diff
 
@@ -495,8 +495,8 @@ worktrees are cut from.
 ## Where to go next
 
 <Cards>
-  <Card title="Getting started" href="/docs/getting-started" description="Initialize locally with automatic safe Linear defaults, then optionally use an external Hermes engineer." />
-  <Card title="Hermes as an external engineer" href="/docs/hermes" description="Drive one persistent OMP process without installing woostack in Hermes." />
+  <Card title="Getting started" href="/docs/getting-started" description="Install the skills, initialize local support, and check the installation." />
+  <Card title="How to use Hermes as an external engineer" href="/docs/hermes" description="Drive one persistent OMP process without installing woostack in Hermes." />
   <Card title="woostack-review" href="/docs/skills/woostack-review" description="The review engine that reads every review.* key." />
   <Card title="woostack-init" href="/docs/skills/woostack-init" description="Creates local support and automatically configures safe non-secret Linear defaults when authenticated read access exists." />
   <Card title="woostack-doctor" href="/docs/skills/woostack-doctor" description="Checks policy and optional live artifact connectivity." />
