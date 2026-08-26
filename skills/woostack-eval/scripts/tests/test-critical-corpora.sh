@@ -169,7 +169,14 @@ const requiredContractProofs = {
     'Plane terminal zero-match discovery is required': [
       ['plan-plane-zero-match-discovery'],
     ],
-    'Plane exact five provider writes are required': [
+    'Plane specification parent and child increments are required': [
+      ['plan-plane-spec-parent-id'],
+      ['plan-plane-spec-parent-title'],
+      ['plan-plane-spec-parent-parent'],
+      ['plan-plane-child-parent-id'],
+      ['plan-plane-two-direct-issues'],
+    ],
+    'Plane exact seven provider writes are required': [
       ['plan-plane-provider-write-count'],
     ],
     'Plane operation scope is required on provider operations': [
@@ -899,9 +906,9 @@ const corpusContract = (caseCount, digest) => ({ caseCount, digest });
 const approvedCorpusContracts = {
   'woostack-eval': corpusContract(2, 'c7f619f14335a4f1e57978742eea6a590f055e3e364026834feeadf44f391806'),
   'woostack-build': corpusContract(6, '6e80c13770ab7eeaf4cb39c82d56c3672d8e543b20374796a63279464ae0ecd7'),
-  'woostack-plan': corpusContract(7, '7ec236b731dfa39cece196ae1d62169512ff3dd7b1c0cfb5219581ea8a101694'),
+  'woostack-plan': corpusContract(7, '4ed3194e6674c137482e16cf1b6db6ad553e23f1994e745fc317fd1022fd91c8'),
   'woostack-fix': corpusContract(7, '3eab5562704e48562a13e92620c8a4f7b1f27b5acdfb1c9b30f371d9edde36ef'),
-  'woostack-execute': corpusContract(37, 'a138230444aa5098c160c3764ea89d2e19ab0cb2b49539bde258e918201f8ede'),
+  'woostack-execute': corpusContract(37, 'b8ce609e8288f1f53c775d1c928743843366321b0ad1fb50348f2056bbf5de5e'),
   'woostack-commit': corpusContract(17, '5831bc06ad35d0b5261cc3c6969d3cc09a87d32f094e244b9fed7184674568a5'),
   'woostack-review': corpusContract(4, '72dddc1a586ca2c1fddb1d017b02d18cf95fd4b311384f5816eaea22a9300a93'),
   'woostack-sweep': corpusContract(13, '1d109f7e085d3c409d2963180863351234b75f82d967c789387d9874ae1c4282'),

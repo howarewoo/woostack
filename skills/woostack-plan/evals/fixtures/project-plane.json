@@ -2,30 +2,455 @@
   "caller": {
     "exactProjectUrl": "https://app.plane.so/acme/projects/33333333-3333-4333-8333-333333333330",
     "clientIds": {
+      "spec": "00000000-0000-4000-8000-000000000000",
       "storage": "11111111-1111-4111-8111-111111111111",
       "api": "22222222-2222-4222-8222-222222222222",
       "dependency": "33333333-3333-4333-8333-333333333333"
     }
   },
-  "repository": {"canonicalUrl": "https://github.com/acme/widgets"},
+  "repository": {
+    "canonicalUrl": "https://github.com/acme/widgets"
+  },
+  "candidateSpec": {
+    "specId": "spec",
+    "externalId": "00000000-0000-4000-8000-000000000000",
+    "externalSource": "woostack",
+    "title": "[Plan] Core storage and API layers",
+    "contentFingerprint": "sha256:spec"
+  },
   "candidateTasks": [
-    {"taskId": "storage", "ordinal": 1, "externalId": "11111111-1111-4111-8111-111111111111", "externalSource": "woostack", "title": "Storage layer", "contentFingerprint": "sha256:storage"},
-    {"taskId": "api", "ordinal": 2, "externalId": "22222222-2222-4222-8222-222222222222", "externalSource": "woostack", "title": "API layer", "contentFingerprint": "sha256:api", "dependencies": ["storage"]}
+    {
+      "taskId": "storage",
+      "ordinal": 1,
+      "externalId": "11111111-1111-4111-8111-111111111111",
+      "externalSource": "woostack",
+      "title": "Storage layer",
+      "contentFingerprint": "sha256:storage",
+      "parentId": "dddddddd-dddd-4ddd-8ddd-dddddddddddd"
+    },
+    {
+      "taskId": "api",
+      "ordinal": 2,
+      "externalId": "22222222-2222-4222-8222-222222222222",
+      "externalSource": "woostack",
+      "title": "API layer",
+      "contentFingerprint": "sha256:api",
+      "parentId": "dddddddd-dddd-4ddd-8ddd-dddddddddddd",
+      "dependencies": [
+        "storage"
+      ]
+    }
   ],
   "providerEvents": [
-    {"operation": "read-selected-project", "scope": {"baseUrl": "https://api.plane.so", "workspace": "acme", "projectId": "33333333-3333-4333-8333-333333333330"}, "fresh": {"id": "33333333-3333-4333-8333-333333333330", "name": "Widgets Project", "canonicalRepository": "https://github.com/acme/widgets"}},
-    {"operation": "discover-work-item-absence", "target": "storage", "scope": {"baseUrl": "https://api.plane.so", "workspace": "acme", "projectId": "33333333-3333-4333-8333-333333333330"}, "external_source": "woostack", "external_id": "11111111-1111-4111-8111-111111111111", "queries": [{"scope": "active", "archived": false, "pagination": {"exhausted": true, "pages": 1, "terminalCursor": null}, "matches": []}, {"scope": "archived", "archived": true, "pagination": {"exhausted": true, "pages": 1, "terminalCursor": null}, "matches": []}]},
-    {"operation": "create-work-item", "taskId": "storage", "scope": {"baseUrl": "https://api.plane.so", "workspace": "acme", "projectId": "33333333-3333-4333-8333-333333333330"}, "external_source": "woostack", "external_id": "11111111-1111-4111-8111-111111111111", "request": {"title": "Storage layer", "contentFingerprint": "sha256:storage", "repository": "https://github.com/acme/widgets", "workspace": "acme", "project_id": "33333333-3333-4333-8333-333333333330", "parent": null}, "response": {"id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", "sequence_id": 101, "parent": null}},
-    {"operation": "read-work-item", "scope": {"baseUrl": "https://api.plane.so", "workspace": "acme", "projectId": "33333333-3333-4333-8333-333333333330"}, "fresh": {"id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", "sequence_id": 101, "readable_id": "ENG-101", "title": "Storage layer", "contentFingerprint": "sha256:storage", "repository": "https://github.com/acme/widgets", "workspace": "acme", "project_id": "33333333-3333-4333-8333-333333333330", "parent": null, "external_source": "woostack", "external_id": "11111111-1111-4111-8111-111111111111"}},
-    {"operation": "discover-work-item-absence", "target": "api", "scope": {"baseUrl": "https://api.plane.so", "workspace": "acme", "projectId": "33333333-3333-4333-8333-333333333330"}, "external_source": "woostack", "external_id": "22222222-2222-4222-8222-222222222222", "queries": [{"scope": "active", "archived": false, "pagination": {"exhausted": true, "pages": 1, "terminalCursor": null}, "matches": []}, {"scope": "archived", "archived": true, "pagination": {"exhausted": true, "pages": 1, "terminalCursor": null}, "matches": []}]},
-    {"operation": "create-work-item", "taskId": "api", "scope": {"baseUrl": "https://api.plane.so", "workspace": "acme", "projectId": "33333333-3333-4333-8333-333333333330"}, "external_source": "woostack", "external_id": "22222222-2222-4222-8222-222222222222", "request": {"title": "API layer", "contentFingerprint": "sha256:api", "repository": "https://github.com/acme/widgets", "workspace": "acme", "project_id": "33333333-3333-4333-8333-333333333330", "parent": null}, "response": {"id": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb", "sequence_id": 102, "parent": null}},
-    {"operation": "read-work-item", "scope": {"baseUrl": "https://api.plane.so", "workspace": "acme", "projectId": "33333333-3333-4333-8333-333333333330"}, "fresh": {"id": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb", "sequence_id": 102, "readable_id": "ENG-102", "title": "API layer", "contentFingerprint": "sha256:api", "repository": "https://github.com/acme/widgets", "workspace": "acme", "project_id": "33333333-3333-4333-8333-333333333330", "parent": null, "external_source": "woostack", "external_id": "22222222-2222-4222-8222-222222222222"}},
-    {"operation": "discover-relation-absence", "target": "dependency", "scope": {"baseUrl": "https://api.plane.so", "workspace": "acme", "projectId": "33333333-3333-4333-8333-333333333330"}, "external_source": "woostack", "external_id": "33333333-3333-4333-8333-333333333333", "endpoints": {"issue": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb", "relates_to": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", "relation_type": "blocked_by"}, "queries": [{"scope": "active", "archived": false, "pagination": {"exhausted": true, "pages": 1, "terminalCursor": null}, "matches": []}, {"scope": "archived", "archived": true, "pagination": {"exhausted": true, "pages": 1, "terminalCursor": null}, "matches": []}]},
-    {"operation": "create-project-membership", "taskId": "storage", "scope": {"baseUrl": "https://api.plane.so", "workspace": "acme", "projectId": "33333333-3333-4333-8333-333333333330"}, "project_id": "33333333-3333-4333-8333-333333333330", "issue": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", "response": {"project_id": "33333333-3333-4333-8333-333333333330", "issue": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"}},
-    {"operation": "read-project-membership", "taskId": "storage", "scope": {"baseUrl": "https://api.plane.so", "workspace": "acme", "projectId": "33333333-3333-4333-8333-333333333330"}, "fresh": {"project_id": "33333333-3333-4333-8333-333333333330", "issue": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"}},
-    {"operation": "create-project-membership", "taskId": "api", "scope": {"baseUrl": "https://api.plane.so", "workspace": "acme", "projectId": "33333333-3333-4333-8333-333333333330"}, "project_id": "33333333-3333-4333-8333-333333333330", "issue": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb", "response": {"project_id": "33333333-3333-4333-8333-333333333330", "issue": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb"}},
-    {"operation": "read-project-membership", "taskId": "api", "scope": {"baseUrl": "https://api.plane.so", "workspace": "acme", "projectId": "33333333-3333-4333-8333-333333333330"}, "fresh": {"project_id": "33333333-3333-4333-8333-333333333330", "issue": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb"}},
-    {"operation": "create-relation", "scope": {"baseUrl": "https://api.plane.so", "workspace": "acme", "projectId": "33333333-3333-4333-8333-333333333330"}, "external_source": "woostack", "external_id": "33333333-3333-4333-8333-333333333333", "issue": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb", "relates_to": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", "relation_type": "blocked_by", "response": {"id": "cccccccc-cccc-4ccc-8ccc-cccccccccccc"}},
-    {"operation": "read-relations", "scope": {"baseUrl": "https://api.plane.so", "workspace": "acme", "projectId": "33333333-3333-4333-8333-333333333330"}, "pagination": {"exhausted": true, "pages": 1, "terminalCursor": null}, "fresh": {"items": [{"id": "cccccccc-cccc-4ccc-8ccc-cccccccccccc", "external_source": "woostack", "external_id": "33333333-3333-4333-8333-333333333333", "issue": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb", "relates_to": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", "relation_type": "blocked_by"}]}}
+    {
+      "operation": "read-selected-project",
+      "scope": {
+        "baseUrl": "https://api.plane.so",
+        "workspace": "acme",
+        "projectId": "33333333-3333-4333-8333-333333333330"
+      },
+      "fresh": {
+        "id": "33333333-3333-4333-8333-333333333330",
+        "name": "[Repo] acme/widgets",
+        "canonicalRepository": "https://github.com/acme/widgets"
+      }
+    },
+    {
+      "operation": "discover-work-item-absence",
+      "target": "spec",
+      "scope": {
+        "baseUrl": "https://api.plane.so",
+        "workspace": "acme",
+        "projectId": "33333333-3333-4333-8333-333333333330"
+      },
+      "external_source": "woostack",
+      "external_id": "00000000-0000-4000-8000-000000000000",
+      "queries": [
+        {
+          "scope": "active",
+          "archived": false,
+          "pagination": {
+            "exhausted": true,
+            "pages": 1,
+            "terminalCursor": null
+          },
+          "matches": []
+        },
+        {
+          "scope": "archived",
+          "archived": true,
+          "pagination": {
+            "exhausted": true,
+            "pages": 1,
+            "terminalCursor": null
+          },
+          "matches": []
+        }
+      ]
+    },
+    {
+      "operation": "create-work-item",
+      "taskId": "spec",
+      "scope": {
+        "baseUrl": "https://api.plane.so",
+        "workspace": "acme",
+        "projectId": "33333333-3333-4333-8333-333333333330"
+      },
+      "external_source": "woostack",
+      "external_id": "00000000-0000-4000-8000-000000000000",
+      "request": {
+        "title": "[Plan] Core storage and API layers",
+        "contentFingerprint": "sha256:spec",
+        "repository": "https://github.com/acme/widgets",
+        "workspace": "acme",
+        "project_id": "33333333-3333-4333-8333-333333333330",
+        "parent": null
+      },
+      "response": {
+        "id": "dddddddd-dddd-4ddd-8ddd-dddddddddddd",
+        "sequence_id": 100,
+        "parent": null
+      }
+    },
+    {
+      "operation": "read-work-item",
+      "scope": {
+        "baseUrl": "https://api.plane.so",
+        "workspace": "acme",
+        "projectId": "33333333-3333-4333-8333-333333333330"
+      },
+      "fresh": {
+        "id": "dddddddd-dddd-4ddd-8ddd-dddddddddddd",
+        "sequence_id": 100,
+        "readable_id": "ENG-100",
+        "title": "[Plan] Core storage and API layers",
+        "contentFingerprint": "sha256:spec",
+        "repository": "https://github.com/acme/widgets",
+        "workspace": "acme",
+        "project_id": "33333333-3333-4333-8333-333333333330",
+        "parent": null,
+        "external_source": "woostack",
+        "external_id": "00000000-0000-4000-8000-000000000000"
+      }
+    },
+    {
+      "operation": "discover-work-item-absence",
+      "target": "storage",
+      "scope": {
+        "baseUrl": "https://api.plane.so",
+        "workspace": "acme",
+        "projectId": "33333333-3333-4333-8333-333333333330"
+      },
+      "external_source": "woostack",
+      "external_id": "11111111-1111-4111-8111-111111111111",
+      "queries": [
+        {
+          "scope": "active",
+          "archived": false,
+          "pagination": {
+            "exhausted": true,
+            "pages": 1,
+            "terminalCursor": null
+          },
+          "matches": []
+        },
+        {
+          "scope": "archived",
+          "archived": true,
+          "pagination": {
+            "exhausted": true,
+            "pages": 1,
+            "terminalCursor": null
+          },
+          "matches": []
+        }
+      ]
+    },
+    {
+      "operation": "create-work-item",
+      "taskId": "storage",
+      "scope": {
+        "baseUrl": "https://api.plane.so",
+        "workspace": "acme",
+        "projectId": "33333333-3333-4333-8333-333333333330"
+      },
+      "external_source": "woostack",
+      "external_id": "11111111-1111-4111-8111-111111111111",
+      "request": {
+        "title": "Storage layer",
+        "contentFingerprint": "sha256:storage",
+        "repository": "https://github.com/acme/widgets",
+        "workspace": "acme",
+        "project_id": "33333333-3333-4333-8333-333333333330",
+        "parent": "dddddddd-dddd-4ddd-8ddd-dddddddddddd"
+      },
+      "response": {
+        "id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+        "sequence_id": 101,
+        "parent": "dddddddd-dddd-4ddd-8ddd-dddddddddddd"
+      }
+    },
+    {
+      "operation": "read-work-item",
+      "scope": {
+        "baseUrl": "https://api.plane.so",
+        "workspace": "acme",
+        "projectId": "33333333-3333-4333-8333-333333333330"
+      },
+      "fresh": {
+        "id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+        "sequence_id": 101,
+        "readable_id": "ENG-101",
+        "title": "Storage layer",
+        "contentFingerprint": "sha256:storage",
+        "repository": "https://github.com/acme/widgets",
+        "workspace": "acme",
+        "project_id": "33333333-3333-4333-8333-333333333330",
+        "parent": "dddddddd-dddd-4ddd-8ddd-dddddddddddd",
+        "external_source": "woostack",
+        "external_id": "11111111-1111-4111-8111-111111111111"
+      }
+    },
+    {
+      "operation": "discover-work-item-absence",
+      "target": "api",
+      "scope": {
+        "baseUrl": "https://api.plane.so",
+        "workspace": "acme",
+        "projectId": "33333333-3333-4333-8333-333333333330"
+      },
+      "external_source": "woostack",
+      "external_id": "22222222-2222-4222-8222-222222222222",
+      "queries": [
+        {
+          "scope": "active",
+          "archived": false,
+          "pagination": {
+            "exhausted": true,
+            "pages": 1,
+            "terminalCursor": null
+          },
+          "matches": []
+        },
+        {
+          "scope": "archived",
+          "archived": true,
+          "pagination": {
+            "exhausted": true,
+            "pages": 1,
+            "terminalCursor": null
+          },
+          "matches": []
+        }
+      ]
+    },
+    {
+      "operation": "create-work-item",
+      "taskId": "api",
+      "scope": {
+        "baseUrl": "https://api.plane.so",
+        "workspace": "acme",
+        "projectId": "33333333-3333-4333-8333-333333333330"
+      },
+      "external_source": "woostack",
+      "external_id": "22222222-2222-4222-8222-222222222222",
+      "request": {
+        "title": "API layer",
+        "contentFingerprint": "sha256:api",
+        "repository": "https://github.com/acme/widgets",
+        "workspace": "acme",
+        "project_id": "33333333-3333-4333-8333-333333333330",
+        "parent": "dddddddd-dddd-4ddd-8ddd-dddddddddddd"
+      },
+      "response": {
+        "id": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+        "sequence_id": 102,
+        "parent": "dddddddd-dddd-4ddd-8ddd-dddddddddddd"
+      }
+    },
+    {
+      "operation": "read-work-item",
+      "scope": {
+        "baseUrl": "https://api.plane.so",
+        "workspace": "acme",
+        "projectId": "33333333-3333-4333-8333-333333333330"
+      },
+      "fresh": {
+        "id": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+        "sequence_id": 102,
+        "readable_id": "ENG-102",
+        "title": "API layer",
+        "contentFingerprint": "sha256:api",
+        "repository": "https://github.com/acme/widgets",
+        "workspace": "acme",
+        "project_id": "33333333-3333-4333-8333-333333333330",
+        "parent": "dddddddd-dddd-4ddd-8ddd-dddddddddddd",
+        "external_source": "woostack",
+        "external_id": "22222222-2222-4222-8222-222222222222"
+      }
+    },
+    {
+      "operation": "discover-relation-absence",
+      "target": "dependency",
+      "scope": {
+        "baseUrl": "https://api.plane.so",
+        "workspace": "acme",
+        "projectId": "33333333-3333-4333-8333-333333333330"
+      },
+      "external_source": "woostack",
+      "external_id": "33333333-3333-4333-8333-333333333333",
+      "endpoints": {
+        "issue": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+        "relates_to": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+        "relation_type": "blocked_by"
+      },
+      "queries": [
+        {
+          "scope": "active",
+          "archived": false,
+          "pagination": {
+            "exhausted": true,
+            "pages": 1,
+            "terminalCursor": null
+          },
+          "matches": []
+        },
+        {
+          "scope": "archived",
+          "archived": true,
+          "pagination": {
+            "exhausted": true,
+            "pages": 1,
+            "terminalCursor": null
+          },
+          "matches": []
+        }
+      ]
+    },
+    {
+      "operation": "create-project-membership",
+      "taskId": "spec",
+      "scope": {
+        "baseUrl": "https://api.plane.so",
+        "workspace": "acme",
+        "projectId": "33333333-3333-4333-8333-333333333330"
+      },
+      "project_id": "33333333-3333-4333-8333-333333333330",
+      "issue": "dddddddd-dddd-4ddd-8ddd-dddddddddddd",
+      "response": {
+        "project_id": "33333333-3333-4333-8333-333333333330",
+        "issue": "dddddddd-dddd-4ddd-8ddd-dddddddddddd"
+      }
+    },
+    {
+      "operation": "read-project-membership",
+      "taskId": "spec",
+      "scope": {
+        "baseUrl": "https://api.plane.so",
+        "workspace": "acme",
+        "projectId": "33333333-3333-4333-8333-333333333330"
+      },
+      "fresh": {
+        "project_id": "33333333-3333-4333-8333-333333333330",
+        "issue": "dddddddd-dddd-4ddd-8ddd-dddddddddddd"
+      }
+    },
+    {
+      "operation": "create-project-membership",
+      "taskId": "storage",
+      "scope": {
+        "baseUrl": "https://api.plane.so",
+        "workspace": "acme",
+        "projectId": "33333333-3333-4333-8333-333333333330"
+      },
+      "project_id": "33333333-3333-4333-8333-333333333330",
+      "issue": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+      "response": {
+        "project_id": "33333333-3333-4333-8333-333333333330",
+        "issue": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"
+      }
+    },
+    {
+      "operation": "read-project-membership",
+      "taskId": "storage",
+      "scope": {
+        "baseUrl": "https://api.plane.so",
+        "workspace": "acme",
+        "projectId": "33333333-3333-4333-8333-333333333330"
+      },
+      "fresh": {
+        "project_id": "33333333-3333-4333-8333-333333333330",
+        "issue": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"
+      }
+    },
+    {
+      "operation": "create-project-membership",
+      "taskId": "api",
+      "scope": {
+        "baseUrl": "https://api.plane.so",
+        "workspace": "acme",
+        "projectId": "33333333-3333-4333-8333-333333333330"
+      },
+      "project_id": "33333333-3333-4333-8333-333333333330",
+      "issue": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+      "response": {
+        "project_id": "33333333-3333-4333-8333-333333333330",
+        "issue": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb"
+      }
+    },
+    {
+      "operation": "read-project-membership",
+      "taskId": "api",
+      "scope": {
+        "baseUrl": "https://api.plane.so",
+        "workspace": "acme",
+        "projectId": "33333333-3333-4333-8333-333333333330"
+      },
+      "fresh": {
+        "project_id": "33333333-3333-4333-8333-333333333330",
+        "issue": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb"
+      }
+    },
+    {
+      "operation": "create-relation",
+      "scope": {
+        "baseUrl": "https://api.plane.so",
+        "workspace": "acme",
+        "projectId": "33333333-3333-4333-8333-333333333330"
+      },
+      "external_source": "woostack",
+      "external_id": "33333333-3333-4333-8333-333333333333",
+      "issue": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+      "relates_to": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+      "relation_type": "blocked_by",
+      "response": {
+        "id": "cccccccc-cccc-4ccc-8ccc-cccccccccccc"
+      }
+    },
+    {
+      "operation": "read-relations",
+      "scope": {
+        "baseUrl": "https://api.plane.so",
+        "workspace": "acme",
+        "projectId": "33333333-3333-4333-8333-333333333330"
+      },
+      "pagination": {
+        "exhausted": true,
+        "pages": 1,
+        "terminalCursor": null
+      },
+      "fresh": {
+        "items": [
+          {
+            "id": "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+            "external_source": "woostack",
+            "external_id": "33333333-3333-4333-8333-333333333333",
+            "issue": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+            "relates_to": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+            "relation_type": "blocked_by"
+          }
+        ]
+      }
+    }
   ]
 }

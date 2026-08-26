@@ -4,7 +4,7 @@
   "cases": [
     {
       "id": "synchronizes-existing-exact-project-strict-chain",
-      "prompt": "Read fixtures/project-a.json as a standalone woostack-plan invocation. The caller supplies one exact existing Linear project and an approved specification fingerprint. Reconcile exactly two direct project issues with task IDs storage and api, ordinals 1 and 2, one native dependency storage \u2192 api, complete executor contracts including stop markers and Graphite parents, and independent read-back. Treat approved parent-branch intent in each issue as content and the last admitted parent tips under repository as separate mutable evidence. Do not mutate the repository. Return exactly one JSON object with keys status, invocationMode, artifactModeSelected, existingProjectRequired, projectCreated, directIssueIds, parentPlanIssueCount, ordinals, nativeDependencies, approvedParentBranchIntents, graphiteParents, lastAdmittedParentTips, graphReadBackVerified, repositoryMutationCount, approvalOwned, and executionOwned.",
+      "prompt": "Read fixtures/project-a.json as a standalone woostack-plan invocation. The caller supplies one exact existing Linear project and an approved specification fingerprint. Reconcile exactly two direct project issues with task IDs storage and api, ordinals 1 and 2, one native dependency storage → api, complete executor contracts including stop markers and Graphite parents, and independent read-back. Treat approved parent-branch intent in each issue as content and the last admitted parent tips under repository as separate mutable evidence. Do not mutate the repository. Return exactly one JSON object with keys status, invocationMode, artifactModeSelected, existingProjectRequired, projectCreated, directIssueIds, parentPlanIssueCount, ordinals, nativeDependencies, approvedParentBranchIntents, graphiteParents, lastAdmittedParentTips, graphReadBackVerified, repositoryMutationCount, approvalOwned, and executionOwned.",
       "fixtures": [
         "project-a.json"
       ],
@@ -139,14 +139,14 @@
     },
     {
       "id": "synchronizes-plane-exact-project-strict-chain",
-      "prompt": "Read fixtures/project-plane.json under the packaged woostack-plan contract. The caller supplies one existing exact Plane project (UUID: 33333333-3333-4333-8333-333333333330, instance: https://api.plane.so, workspace: acme) and an approved specification fingerprint. Execute complete zero-match absence discovery per candidate work item and relation across three identity discoveries (six active and archived provider queries with null terminal cursors), reconcile exactly two direct work-item issues with candidate task IDs (storage, api), continuous ordinals 1 and 2, parentless N/N-1 blocking dependency graph, preallocated external UUIDs, distinct native work-item UUIDs, distinct readable work-item IDs, and distinct native relation UUID. Prove every provider event uses baseUrl https://api.plane.so, workspace acme, and projectId 33333333-3333-4333-8333-333333333330; prove exact external_source \"woostack\", native↔external ID mappings, exact direct project membership for each work item with independent read-back, exact providerWriteCount=5 (2 work items, 2 memberships, 1 relation), independent read-back of the graph, and exact repository provenance https://github.com/acme/widgets, independent relation endpoint/type read-back, and zero repository mutation. Return exactly one JSON object with keys status, provider, baseUrl, workspace, projectReused, projectId, operationScope, zeroMatchDiscovery, candidateTaskIds, ordinals, parentPlanIssueCount, nativeDependencies, externalIds, nativeWorkItemIds, readableWorkItemIds, projectMemberships, repository, nativeRelationId, relationEndpoints, nativeToExternalMapping, externalSource, providerWriteCount, graphReadBackVerified, approvalOwned, executionOwned, and repositoryMutationCount.",
+      "prompt": "Read fixtures/project-plane.json under the packaged woostack-plan contract. The caller supplies the canonical repository project (name: [Repo] acme/widgets, UUID: 33333333-3333-4333-8333-333333333330, instance: https://api.plane.so, workspace: acme) and an approved specification fingerprint. Execute complete zero-match absence discovery per candidate work item and relation across four identity discoveries (eight active and archived provider queries with null terminal cursors), reconcile one top-level specification work item ([Plan] Core storage and API layers, native UUID: dddddddd-dddd-4ddd-8ddd-dddddddddddd, parent = null) and two child increment work items (storage, api, parent = dddddddd-dddd-4ddd-8ddd-dddddddddddd) with continuous ordinals 1 and 2, strict built-in sibling blocking dependency graph, preallocated external UUIDs, distinct native work-item UUIDs, distinct readable work-item IDs, and distinct native relation UUID. Prove every provider write uses external_source 'woostack', captures native UUIDs, verifies exact repository provenance, verifies relation endpoints/type, validates exact project membership by independent read-back, verifies complete terminal relation read-back, and mutates zero repository resources. Return exactly one JSON object with keys status, provider, baseUrl, workspace, projectReused, projectId, specParentId, specParentTitle, specParentParent, zeroMatchDiscovery, candidateTaskIds, ordinals, parentPlanIssueCount, childParentId, nativeDependencies, externalIds, nativeWorkItemIds, readableWorkItemIds, projectMemberships, repository, relationEndpoints, nativeRelationId, nativeToExternalMapping, externalSource, providerWriteCount, graphReadBackVerified, approvalOwned, executionOwned, operationScope, and repositoryMutationCount.",
       "fixtures": [
         "project-plane.json"
       ],
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "Plane exact project synchronization verifies complete zero-match absence discovery across six active and archived terminal-cursor-null queries for three identities before creation, proves project reuse, verifies baseUrl and workspace scope on every provider operation, preallocates external UUIDs, executes exactly 5 provider writes (2 work items, 2 direct project memberships, 1 relation), captures distinct native work-item UUIDs and separate readableWorkItemIds, validates exact project membership by independent read-back, validates native\u2194external mappings with external_source woostack, and verifies exact repository provenance, relation endpoints/type, complete terminal relation read-back, and no parent issues or repository mutation.",
+      "expected": "Plane exact project synchronization verifies complete zero-match absence discovery across eight active and archived terminal-cursor-null queries for four identities before creation, proves project reuse, verifies baseUrl and workspace scope on every provider operation, preallocates external UUIDs, executes exactly 7 provider writes (1 spec work item, 2 child work items, 3 direct project memberships, 1 relation), captures distinct native work-item UUIDs (including distinct native specification UUID dddddddd-dddd-4ddd-8ddd-dddddddddddd) and separate readableWorkItemIds, validates exact project membership by independent read-back, validates native↔external mappings with external_source woostack, and verifies exact repository provenance, relation endpoints/type, complete terminal relation read-back, spec item with null parent, child items parented to spec, and zero repository mutation.",
       "assertions": [
         {
           "id": "plan-plane-status",
@@ -191,11 +191,32 @@
           "critical": true
         },
         {
+          "id": "plan-plane-spec-parent-id",
+          "kind": "final-json-path-equals",
+          "pointer": "/specParentId",
+          "expected": "dddddddd-dddd-4ddd-8ddd-dddddddddddd",
+          "critical": true
+        },
+        {
+          "id": "plan-plane-spec-parent-title",
+          "kind": "final-json-path-equals",
+          "pointer": "/specParentTitle",
+          "expected": "[Plan] Core storage and API layers",
+          "critical": true
+        },
+        {
+          "id": "plan-plane-spec-parent-parent",
+          "kind": "final-json-path-equals",
+          "pointer": "/specParentParent",
+          "expected": null,
+          "critical": true
+        },
+        {
           "id": "plan-plane-zero-match-discovery",
           "kind": "final-json-path-equals",
           "pointer": "/zeroMatchDiscovery",
           "expected": {
-            "identityCount": 3,
+            "identityCount": 4,
             "activeScopeSearched": true,
             "archivedScopeSearched": true,
             "scopes": [
@@ -216,6 +237,13 @@
             "storage",
             "api"
           ],
+          "critical": true
+        },
+        {
+          "id": "plan-plane-child-parent-id",
+          "kind": "final-json-path-equals",
+          "pointer": "/childParentId",
+          "expected": "dddddddd-dddd-4ddd-8ddd-dddddddddddd",
           "critical": true
         },
         {
@@ -251,6 +279,7 @@
           "kind": "final-json-path-equals",
           "pointer": "/externalIds",
           "expected": {
+            "spec": "00000000-0000-4000-8000-000000000000",
             "storage": "11111111-1111-4111-8111-111111111111",
             "api": "22222222-2222-4222-8222-222222222222",
             "dependency": "33333333-3333-4333-8333-333333333333"
@@ -262,6 +291,7 @@
           "kind": "final-json-path-equals",
           "pointer": "/nativeWorkItemIds",
           "expected": {
+            "spec": "dddddddd-dddd-4ddd-8ddd-dddddddddddd",
             "storage": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
             "api": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb"
           },
@@ -272,6 +302,7 @@
           "kind": "final-json-path-equals",
           "pointer": "/readableWorkItemIds",
           "expected": {
+            "spec": "ENG-100",
             "storage": "ENG-101",
             "api": "ENG-102"
           },
@@ -282,6 +313,10 @@
           "kind": "final-json-path-equals",
           "pointer": "/projectMemberships",
           "expected": {
+            "spec": {
+              "projectId": "33333333-3333-4333-8333-333333333330",
+              "workItemId": "dddddddd-dddd-4ddd-8ddd-dddddddddddd"
+            },
             "storage": {
               "projectId": "33333333-3333-4333-8333-333333333330",
               "workItemId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"
@@ -323,6 +358,7 @@
           "kind": "final-json-path-equals",
           "pointer": "/nativeToExternalMapping",
           "expected": {
+            "dddddddd-dddd-4ddd-8ddd-dddddddddddd": "00000000-0000-4000-8000-000000000000",
             "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa": "11111111-1111-4111-8111-111111111111",
             "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb": "22222222-2222-4222-8222-222222222222",
             "cccccccc-cccc-4ccc-8ccc-cccccccccccc": "33333333-3333-4333-8333-333333333333"
@@ -340,7 +376,7 @@
           "id": "plan-plane-provider-write-count",
           "kind": "final-json-path-equals",
           "pointer": "/providerWriteCount",
-          "expected": 5,
+          "expected": 7,
           "critical": true
         },
         {
@@ -397,6 +433,11 @@
         {
           "assertionId": "plan-plane-external-source",
           "fixture": "project-plane.json",
+          "pointer": "/candidateSpec/externalSource"
+        },
+        {
+          "assertionId": "plan-plane-external-source",
+          "fixture": "project-plane.json",
           "pointer": "/candidateTasks/0/externalSource"
         },
         {
@@ -442,7 +483,27 @@
         {
           "assertionId": "plan-plane-external-source",
           "fixture": "project-plane.json",
-          "pointer": "/providerEvents/13/fresh/items/0/external_source"
+          "pointer": "/providerEvents/8/external_source"
+        },
+        {
+          "assertionId": "plan-plane-external-source",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/9/fresh/external_source"
+        },
+        {
+          "assertionId": "plan-plane-external-source",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/10/external_source"
+        },
+        {
+          "assertionId": "plan-plane-external-source",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/17/external_source"
+        },
+        {
+          "assertionId": "plan-plane-external-source",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/18/fresh/items/0/external_source"
         },
         {
           "assertionId": "plan-plane-base-url",
@@ -456,6 +517,21 @@
         },
         {
           "assertionId": "plan-plane-project-id",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/0/scope/projectId"
+        },
+        {
+          "assertionId": "plan-plane-operation-base-url",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/0/scope/baseUrl"
+        },
+        {
+          "assertionId": "plan-plane-operation-workspace",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/0/scope/workspace"
+        },
+        {
+          "assertionId": "plan-plane-operation-project-id",
           "fixture": "project-plane.json",
           "pointer": "/providerEvents/0/scope/projectId"
         },
@@ -475,6 +551,21 @@
           "pointer": "/providerEvents/1/scope/projectId"
         },
         {
+          "assertionId": "plan-plane-operation-base-url",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/1/scope/baseUrl"
+        },
+        {
+          "assertionId": "plan-plane-operation-workspace",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/1/scope/workspace"
+        },
+        {
+          "assertionId": "plan-plane-operation-project-id",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/1/scope/projectId"
+        },
+        {
           "assertionId": "plan-plane-base-url",
           "fixture": "project-plane.json",
           "pointer": "/providerEvents/2/scope/baseUrl"
@@ -486,6 +577,21 @@
         },
         {
           "assertionId": "plan-plane-project-id",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/2/scope/projectId"
+        },
+        {
+          "assertionId": "plan-plane-operation-base-url",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/2/scope/baseUrl"
+        },
+        {
+          "assertionId": "plan-plane-operation-workspace",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/2/scope/workspace"
+        },
+        {
+          "assertionId": "plan-plane-operation-project-id",
           "fixture": "project-plane.json",
           "pointer": "/providerEvents/2/scope/projectId"
         },
@@ -505,6 +611,21 @@
           "pointer": "/providerEvents/3/scope/projectId"
         },
         {
+          "assertionId": "plan-plane-operation-base-url",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/3/scope/baseUrl"
+        },
+        {
+          "assertionId": "plan-plane-operation-workspace",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/3/scope/workspace"
+        },
+        {
+          "assertionId": "plan-plane-operation-project-id",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/3/scope/projectId"
+        },
+        {
           "assertionId": "plan-plane-base-url",
           "fixture": "project-plane.json",
           "pointer": "/providerEvents/4/scope/baseUrl"
@@ -516,6 +637,21 @@
         },
         {
           "assertionId": "plan-plane-project-id",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/4/scope/projectId"
+        },
+        {
+          "assertionId": "plan-plane-operation-base-url",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/4/scope/baseUrl"
+        },
+        {
+          "assertionId": "plan-plane-operation-workspace",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/4/scope/workspace"
+        },
+        {
+          "assertionId": "plan-plane-operation-project-id",
           "fixture": "project-plane.json",
           "pointer": "/providerEvents/4/scope/projectId"
         },
@@ -535,6 +671,21 @@
           "pointer": "/providerEvents/5/scope/projectId"
         },
         {
+          "assertionId": "plan-plane-operation-base-url",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/5/scope/baseUrl"
+        },
+        {
+          "assertionId": "plan-plane-operation-workspace",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/5/scope/workspace"
+        },
+        {
+          "assertionId": "plan-plane-operation-project-id",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/5/scope/projectId"
+        },
+        {
           "assertionId": "plan-plane-base-url",
           "fixture": "project-plane.json",
           "pointer": "/providerEvents/6/scope/baseUrl"
@@ -546,6 +697,21 @@
         },
         {
           "assertionId": "plan-plane-project-id",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/6/scope/projectId"
+        },
+        {
+          "assertionId": "plan-plane-operation-base-url",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/6/scope/baseUrl"
+        },
+        {
+          "assertionId": "plan-plane-operation-workspace",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/6/scope/workspace"
+        },
+        {
+          "assertionId": "plan-plane-operation-project-id",
           "fixture": "project-plane.json",
           "pointer": "/providerEvents/6/scope/projectId"
         },
@@ -565,6 +731,21 @@
           "pointer": "/providerEvents/7/scope/projectId"
         },
         {
+          "assertionId": "plan-plane-operation-base-url",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/7/scope/baseUrl"
+        },
+        {
+          "assertionId": "plan-plane-operation-workspace",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/7/scope/workspace"
+        },
+        {
+          "assertionId": "plan-plane-operation-project-id",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/7/scope/projectId"
+        },
+        {
           "assertionId": "plan-plane-base-url",
           "fixture": "project-plane.json",
           "pointer": "/providerEvents/8/scope/baseUrl"
@@ -576,6 +757,21 @@
         },
         {
           "assertionId": "plan-plane-project-id",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/8/scope/projectId"
+        },
+        {
+          "assertionId": "plan-plane-operation-base-url",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/8/scope/baseUrl"
+        },
+        {
+          "assertionId": "plan-plane-operation-workspace",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/8/scope/workspace"
+        },
+        {
+          "assertionId": "plan-plane-operation-project-id",
           "fixture": "project-plane.json",
           "pointer": "/providerEvents/8/scope/projectId"
         },
@@ -595,6 +791,21 @@
           "pointer": "/providerEvents/9/scope/projectId"
         },
         {
+          "assertionId": "plan-plane-operation-base-url",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/9/scope/baseUrl"
+        },
+        {
+          "assertionId": "plan-plane-operation-workspace",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/9/scope/workspace"
+        },
+        {
+          "assertionId": "plan-plane-operation-project-id",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/9/scope/projectId"
+        },
+        {
           "assertionId": "plan-plane-base-url",
           "fixture": "project-plane.json",
           "pointer": "/providerEvents/10/scope/baseUrl"
@@ -606,6 +817,21 @@
         },
         {
           "assertionId": "plan-plane-project-id",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/10/scope/projectId"
+        },
+        {
+          "assertionId": "plan-plane-operation-base-url",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/10/scope/baseUrl"
+        },
+        {
+          "assertionId": "plan-plane-operation-workspace",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/10/scope/workspace"
+        },
+        {
+          "assertionId": "plan-plane-operation-project-id",
           "fixture": "project-plane.json",
           "pointer": "/providerEvents/10/scope/projectId"
         },
@@ -625,6 +851,21 @@
           "pointer": "/providerEvents/11/scope/projectId"
         },
         {
+          "assertionId": "plan-plane-operation-base-url",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/11/scope/baseUrl"
+        },
+        {
+          "assertionId": "plan-plane-operation-workspace",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/11/scope/workspace"
+        },
+        {
+          "assertionId": "plan-plane-operation-project-id",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/11/scope/projectId"
+        },
+        {
           "assertionId": "plan-plane-base-url",
           "fixture": "project-plane.json",
           "pointer": "/providerEvents/12/scope/baseUrl"
@@ -636,6 +877,21 @@
         },
         {
           "assertionId": "plan-plane-project-id",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/12/scope/projectId"
+        },
+        {
+          "assertionId": "plan-plane-operation-base-url",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/12/scope/baseUrl"
+        },
+        {
+          "assertionId": "plan-plane-operation-workspace",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/12/scope/workspace"
+        },
+        {
+          "assertionId": "plan-plane-operation-project-id",
           "fixture": "project-plane.json",
           "pointer": "/providerEvents/12/scope/projectId"
         },
@@ -657,201 +913,6 @@
         {
           "assertionId": "plan-plane-operation-base-url",
           "fixture": "project-plane.json",
-          "pointer": "/providerEvents/0/scope/baseUrl"
-        },
-        {
-          "assertionId": "plan-plane-operation-workspace",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/0/scope/workspace"
-        },
-        {
-          "assertionId": "plan-plane-operation-project-id",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/0/scope/projectId"
-        },
-        {
-          "assertionId": "plan-plane-operation-base-url",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/1/scope/baseUrl"
-        },
-        {
-          "assertionId": "plan-plane-operation-workspace",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/1/scope/workspace"
-        },
-        {
-          "assertionId": "plan-plane-operation-project-id",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/1/scope/projectId"
-        },
-        {
-          "assertionId": "plan-plane-operation-base-url",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/2/scope/baseUrl"
-        },
-        {
-          "assertionId": "plan-plane-operation-workspace",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/2/scope/workspace"
-        },
-        {
-          "assertionId": "plan-plane-operation-project-id",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/2/scope/projectId"
-        },
-        {
-          "assertionId": "plan-plane-operation-base-url",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/3/scope/baseUrl"
-        },
-        {
-          "assertionId": "plan-plane-operation-workspace",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/3/scope/workspace"
-        },
-        {
-          "assertionId": "plan-plane-operation-project-id",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/3/scope/projectId"
-        },
-        {
-          "assertionId": "plan-plane-operation-base-url",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/4/scope/baseUrl"
-        },
-        {
-          "assertionId": "plan-plane-operation-workspace",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/4/scope/workspace"
-        },
-        {
-          "assertionId": "plan-plane-operation-project-id",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/4/scope/projectId"
-        },
-        {
-          "assertionId": "plan-plane-operation-base-url",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/5/scope/baseUrl"
-        },
-        {
-          "assertionId": "plan-plane-operation-workspace",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/5/scope/workspace"
-        },
-        {
-          "assertionId": "plan-plane-operation-project-id",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/5/scope/projectId"
-        },
-        {
-          "assertionId": "plan-plane-operation-base-url",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/6/scope/baseUrl"
-        },
-        {
-          "assertionId": "plan-plane-operation-workspace",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/6/scope/workspace"
-        },
-        {
-          "assertionId": "plan-plane-operation-project-id",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/6/scope/projectId"
-        },
-        {
-          "assertionId": "plan-plane-operation-base-url",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/7/scope/baseUrl"
-        },
-        {
-          "assertionId": "plan-plane-operation-workspace",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/7/scope/workspace"
-        },
-        {
-          "assertionId": "plan-plane-operation-project-id",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/7/scope/projectId"
-        },
-        {
-          "assertionId": "plan-plane-operation-base-url",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/8/scope/baseUrl"
-        },
-        {
-          "assertionId": "plan-plane-operation-workspace",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/8/scope/workspace"
-        },
-        {
-          "assertionId": "plan-plane-operation-project-id",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/8/scope/projectId"
-        },
-        {
-          "assertionId": "plan-plane-operation-base-url",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/9/scope/baseUrl"
-        },
-        {
-          "assertionId": "plan-plane-operation-workspace",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/9/scope/workspace"
-        },
-        {
-          "assertionId": "plan-plane-operation-project-id",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/9/scope/projectId"
-        },
-        {
-          "assertionId": "plan-plane-operation-base-url",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/10/scope/baseUrl"
-        },
-        {
-          "assertionId": "plan-plane-operation-workspace",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/10/scope/workspace"
-        },
-        {
-          "assertionId": "plan-plane-operation-project-id",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/10/scope/projectId"
-        },
-        {
-          "assertionId": "plan-plane-operation-base-url",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/11/scope/baseUrl"
-        },
-        {
-          "assertionId": "plan-plane-operation-workspace",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/11/scope/workspace"
-        },
-        {
-          "assertionId": "plan-plane-operation-project-id",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/11/scope/projectId"
-        },
-        {
-          "assertionId": "plan-plane-operation-base-url",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/12/scope/baseUrl"
-        },
-        {
-          "assertionId": "plan-plane-operation-workspace",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/12/scope/workspace"
-        },
-        {
-          "assertionId": "plan-plane-operation-project-id",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/12/scope/projectId"
-        },
-        {
-          "assertionId": "plan-plane-operation-base-url",
-          "fixture": "project-plane.json",
           "pointer": "/providerEvents/13/scope/baseUrl"
         },
         {
@@ -863,6 +924,156 @@
           "assertionId": "plan-plane-operation-project-id",
           "fixture": "project-plane.json",
           "pointer": "/providerEvents/13/scope/projectId"
+        },
+        {
+          "assertionId": "plan-plane-base-url",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/14/scope/baseUrl"
+        },
+        {
+          "assertionId": "plan-plane-workspace",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/14/scope/workspace"
+        },
+        {
+          "assertionId": "plan-plane-project-id",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/14/scope/projectId"
+        },
+        {
+          "assertionId": "plan-plane-operation-base-url",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/14/scope/baseUrl"
+        },
+        {
+          "assertionId": "plan-plane-operation-workspace",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/14/scope/workspace"
+        },
+        {
+          "assertionId": "plan-plane-operation-project-id",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/14/scope/projectId"
+        },
+        {
+          "assertionId": "plan-plane-base-url",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/15/scope/baseUrl"
+        },
+        {
+          "assertionId": "plan-plane-workspace",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/15/scope/workspace"
+        },
+        {
+          "assertionId": "plan-plane-project-id",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/15/scope/projectId"
+        },
+        {
+          "assertionId": "plan-plane-operation-base-url",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/15/scope/baseUrl"
+        },
+        {
+          "assertionId": "plan-plane-operation-workspace",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/15/scope/workspace"
+        },
+        {
+          "assertionId": "plan-plane-operation-project-id",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/15/scope/projectId"
+        },
+        {
+          "assertionId": "plan-plane-base-url",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/16/scope/baseUrl"
+        },
+        {
+          "assertionId": "plan-plane-workspace",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/16/scope/workspace"
+        },
+        {
+          "assertionId": "plan-plane-project-id",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/16/scope/projectId"
+        },
+        {
+          "assertionId": "plan-plane-operation-base-url",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/16/scope/baseUrl"
+        },
+        {
+          "assertionId": "plan-plane-operation-workspace",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/16/scope/workspace"
+        },
+        {
+          "assertionId": "plan-plane-operation-project-id",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/16/scope/projectId"
+        },
+        {
+          "assertionId": "plan-plane-base-url",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/17/scope/baseUrl"
+        },
+        {
+          "assertionId": "plan-plane-workspace",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/17/scope/workspace"
+        },
+        {
+          "assertionId": "plan-plane-project-id",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/17/scope/projectId"
+        },
+        {
+          "assertionId": "plan-plane-operation-base-url",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/17/scope/baseUrl"
+        },
+        {
+          "assertionId": "plan-plane-operation-workspace",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/17/scope/workspace"
+        },
+        {
+          "assertionId": "plan-plane-operation-project-id",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/17/scope/projectId"
+        },
+        {
+          "assertionId": "plan-plane-base-url",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/18/scope/baseUrl"
+        },
+        {
+          "assertionId": "plan-plane-workspace",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/18/scope/workspace"
+        },
+        {
+          "assertionId": "plan-plane-project-id",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/18/scope/projectId"
+        },
+        {
+          "assertionId": "plan-plane-operation-base-url",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/18/scope/baseUrl"
+        },
+        {
+          "assertionId": "plan-plane-operation-workspace",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/18/scope/workspace"
+        },
+        {
+          "assertionId": "plan-plane-operation-project-id",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/18/scope/projectId"
         },
         {
           "assertionId": "plan-plane-repository",
@@ -885,6 +1096,16 @@
           "pointer": "/providerEvents/6/fresh/repository"
         },
         {
+          "assertionId": "plan-plane-repository",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/8/request/repository"
+        },
+        {
+          "assertionId": "plan-plane-repository",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/9/fresh/repository"
+        },
+        {
           "assertionId": "plan-plane-workspace",
           "fixture": "project-plane.json",
           "pointer": "/providerEvents/2/request/workspace"
@@ -905,6 +1126,16 @@
           "pointer": "/providerEvents/6/fresh/workspace"
         },
         {
+          "assertionId": "plan-plane-workspace",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/8/request/workspace"
+        },
+        {
+          "assertionId": "plan-plane-workspace",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/9/fresh/workspace"
+        },
+        {
           "assertionId": "plan-plane-operation-workspace",
           "fixture": "project-plane.json",
           "pointer": "/providerEvents/2/request/workspace"
@@ -923,6 +1154,16 @@
           "assertionId": "plan-plane-operation-workspace",
           "fixture": "project-plane.json",
           "pointer": "/providerEvents/6/fresh/workspace"
+        },
+        {
+          "assertionId": "plan-plane-operation-workspace",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/8/request/workspace"
+        },
+        {
+          "assertionId": "plan-plane-operation-workspace",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/9/fresh/workspace"
         },
         {
           "assertionId": "plan-plane-project-id",
@@ -967,12 +1208,12 @@
         {
           "assertionId": "plan-plane-project-id",
           "fixture": "project-plane.json",
-          "pointer": "/providerEvents/8/project_id"
+          "pointer": "/providerEvents/8/request/project_id"
         },
         {
           "assertionId": "plan-plane-operation-project-id",
           "fixture": "project-plane.json",
-          "pointer": "/providerEvents/8/project_id"
+          "pointer": "/providerEvents/8/request/project_id"
         },
         {
           "assertionId": "plan-plane-project-id",
@@ -987,47 +1228,92 @@
         {
           "assertionId": "plan-plane-project-id",
           "fixture": "project-plane.json",
-          "pointer": "/providerEvents/10/project_id"
+          "pointer": "/providerEvents/11/project_id"
         },
         {
           "assertionId": "plan-plane-operation-project-id",
           "fixture": "project-plane.json",
-          "pointer": "/providerEvents/10/project_id"
+          "pointer": "/providerEvents/11/project_id"
         },
         {
           "assertionId": "plan-plane-project-id",
           "fixture": "project-plane.json",
-          "pointer": "/providerEvents/11/fresh/project_id"
+          "pointer": "/providerEvents/11/response/project_id"
         },
         {
           "assertionId": "plan-plane-operation-project-id",
           "fixture": "project-plane.json",
-          "pointer": "/providerEvents/11/fresh/project_id"
+          "pointer": "/providerEvents/11/response/project_id"
         },
         {
           "assertionId": "plan-plane-project-id",
           "fixture": "project-plane.json",
-          "pointer": "/providerEvents/8/response/project_id"
+          "pointer": "/providerEvents/12/fresh/project_id"
         },
         {
           "assertionId": "plan-plane-operation-project-id",
           "fixture": "project-plane.json",
-          "pointer": "/providerEvents/8/response/project_id"
+          "pointer": "/providerEvents/12/fresh/project_id"
         },
         {
           "assertionId": "plan-plane-project-id",
           "fixture": "project-plane.json",
-          "pointer": "/providerEvents/10/response/project_id"
+          "pointer": "/providerEvents/13/project_id"
         },
         {
           "assertionId": "plan-plane-operation-project-id",
           "fixture": "project-plane.json",
-          "pointer": "/providerEvents/10/response/project_id"
+          "pointer": "/providerEvents/13/project_id"
         },
         {
-          "assertionId": "plan-plane-external-source",
+          "assertionId": "plan-plane-project-id",
           "fixture": "project-plane.json",
-          "pointer": "/providerEvents/12/external_source"
+          "pointer": "/providerEvents/13/response/project_id"
+        },
+        {
+          "assertionId": "plan-plane-operation-project-id",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/13/response/project_id"
+        },
+        {
+          "assertionId": "plan-plane-project-id",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/14/fresh/project_id"
+        },
+        {
+          "assertionId": "plan-plane-operation-project-id",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/14/fresh/project_id"
+        },
+        {
+          "assertionId": "plan-plane-project-id",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/15/project_id"
+        },
+        {
+          "assertionId": "plan-plane-operation-project-id",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/15/project_id"
+        },
+        {
+          "assertionId": "plan-plane-project-id",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/15/response/project_id"
+        },
+        {
+          "assertionId": "plan-plane-operation-project-id",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/15/response/project_id"
+        },
+        {
+          "assertionId": "plan-plane-project-id",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/16/fresh/project_id"
+        },
+        {
+          "assertionId": "plan-plane-operation-project-id",
+          "fixture": "project-plane.json",
+          "pointer": "/providerEvents/16/fresh/project_id"
         }
       ]
     },
@@ -1144,7 +1430,7 @@
     },
     {
       "id": "delegated-candidate-does-not-touch-provider",
-      "prompt": "Read fixtures/project-d.json as a woostack-build delegated planning invocation with the exact approved project fingerprint and read-only project context. The candidate has two increments and must be normalized to ordinals 1 and 2 with storage \u2192 api. Do not contact a provider. Return exactly one JSON object with keys status, invocationMode, candidateTaskIds, ordinals, nativeDependencies, executorContractsComplete, graphValid, providerReadCount, providerWriteCount, synchronizationOwner, graphHardeningOwner, and repositoryMutationCount.",
+      "prompt": "Read fixtures/project-d.json as a woostack-build delegated planning invocation with the exact approved project fingerprint and read-only project context. The candidate has two increments and must be normalized to ordinals 1 and 2 with storage → api. Do not contact a provider. Return exactly one JSON object with keys status, invocationMode, candidateTaskIds, ordinals, nativeDependencies, executorContractsComplete, graphValid, providerReadCount, providerWriteCount, synchronizationOwner, graphHardeningOwner, and repositoryMutationCount.",
       "fixtures": [
         "project-d.json"
       ],
