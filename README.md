@@ -101,10 +101,11 @@ The [using-woostack](skills/using-woostack/SKILL.md) skill reads project rules a
 
 Customize non-secret repository policy in `.woostack/config.json`, including review behavior,
 status staleness, pre-commit hooks, and optional `artifacts.linear` or `artifacts.plane` defaults. Build uses
-those defaults to create its canonical project when mirroring is enabled and the caller supplies no
-exact project. A new Fix uses them only after root-cause proof to create its canonical project and strict
-direct-issue chain. Policy cannot authorize provider writes or repository work. Provider
-authentication stays in the OAuth or secret store.
+those defaults to resolve or create its canonical project (or canonical `[Repo] owner/name` repository project
+for Plane) when mirroring is enabled and the caller supplies no exact project. A new Fix uses them only after
+root-cause proof to resolve or create its canonical project (or canonical repository project and specification
+work item for Plane) and strict direct-issue chain. Policy cannot authorize provider writes or repository work.
+Provider authentication stays in the OAuth or secret store.
 
 Review-policy fragment:
 ```json

@@ -53,19 +53,23 @@ canonical project. A supplied PR is read as repository context only; multiple di
 issues may be admitted later by Plan. `--inline` and `--subagent` select only the read-only Debug
 driver and are mutually exclusive.
 
-When `artifacts.provider: "plane"`, `--project` is optional: when supplied it is one exact canonical
-Plane project URL or stable UUID in the configured instance `baseUrl` and `workspace`, and retains its
-existing name. When omitted, Fix creates exactly one Plane project after root-cause proof whose name
-starts with `[Fix] ` and derives from the proved correction, using validated `artifacts.plane` baseUrl,
-workspace, repository, and nonempty `projectLabels` defaults. `artifacts.plane.projectLabels` requires
-complete workspace project-label pagination through the official Plane MCP with null terminal cursors,
-exact UUID or case-sensitive name resolution, and union with existing labels (preserving unrelated labels)
-in at most one write alongside admission/creation, and independent read-back. If the official Plane MCP lacks
-project-label operations, persistence fails closed at that provider boundary. `--issue` is optional source
+When `artifacts.provider: "plane"`, `--project` is optional: when supplied, it must match the canonical
+repository project `[Repo] owner/name` URL or stable UUID in the configured instance `baseUrl` and
+`workspace` (a mismatched project fails closed). When omitted, Fix resolves or creates the canonical
+repository project named `[Repo] owner/name` after root-cause proof and target-repository admission, using
+canonical repository identity, instance `baseUrl`, workspace, and nonempty `projectLabels` defaults.
+`artifacts.plane.projectLabels` requires complete workspace project-label pagination through the official
+Plane MCP with null terminal cursors, exact UUID or case-sensitive name resolution, and union with existing
+labels (preserving unrelated labels) in at most one write alongside admission/creation, and independent
+read-back. If the official Plane MCP lacks project-label operations, persistence fails closed at that provider
+boundary. Fix creates one top-level specification work item prefixed with `[Fix] ` with `parent = null`
+containing the complete proved Fix specification, and each independently shippable increment is created as
+an exact child work item of that specification work item (`parent = <spec-item-UUID>`) with direct project
+membership in `[Repo] owner/name` and `N-1` strict sibling blocking relations. `--issue` is optional source
 context: one exact Plane work-item reference (URL or readable ID such as `ENG-42` resolved to UUID); never
 repurposed as the canonical project, rewritten as a plan, closed, or treated as approval; preserved
-unchanged except for the supported link to the canonical project.
-
+unchanged (preserving exact title, description, state, assignment, labels, relations, comments, parent, and
+lifecycle) except for the supported direct project membership link to the canonical repository project.
 ## Context-loading boundary
 
 Before root-cause proof, load only the routing and output rules, this skill, [`woostack-debug`](../woostack-debug/SKILL.md), and the references that Debug directly requires. Do not load the Linear artifact contract, [`woostack-build`](../woostack-build/SKILL.md), [`woostack-ideate`](../woostack-ideate/SKILL.md), or [`woostack-harden`](../woostack-harden/SKILL.md) before proof.
@@ -114,18 +118,18 @@ After Debug returns root-cause proof, allocate or resume the canonical run store
 
 In provider mode, apply only the selected profile. Preflight its official-MCP capabilities and exact
 scope; completely discover and resolve configured project labels; resolve the exact supplied project
-or create one canonical `[Fix] ` project from validated profile defaults; apply missing labels at most
-once; and independently read back the complete project identity, repository, scope, labels, and
-content. Missing, ambiguous, duplicate, foreign, incomplete, unsupported, or unknown results block
-that provider boundary.
+or resolve/create the canonical project (`[Fix] <goal>` for Linear, canonical `[Repo] owner/name` repository
+project for Plane) from validated profile defaults; apply missing labels at most once; and independently
+read back the complete project identity, repository, scope, labels, and content. Missing, ambiguous,
+duplicate, foreign, incomplete, unsupported, or unknown results block that provider boundary.
 
 If an exact source issue/work-item was supplied, resolve it through the selected profile's canonical
 reference, independently read its canonical/readable and native identities, complete scope,
 membership, parent, content, comments, and relations, then add only the supported direct project link
-and read it back. Preserve every unrelated title, description, lifecycle state, assignment, label,
-relation, comment, and membership. Reject incompatible, archived, foreign, unknown-parent, or
+(to the canonical project for Linear, or canonical `[Repo] owner/name` repository project for Plane)
+and read it back. Preserve every exact title, description, lifecycle state, assignment, label,
+relation, comment, parent, and membership. Reject incompatible, archived, foreign, unknown-parent, or
 incompletely read sources without changing them.
-
 Admit the baseline and manifest, then invoke [`woostack-ideate`](../woostack-ideate/SKILL.md) with the
 proved diagnosis. Ideate and [`woostack-harden`](../woostack-harden/SKILL.md) work only in that manifest,
 perform zero provider reads and writes while drafting, and own no approval gate or repository mutation.
@@ -151,6 +155,10 @@ Fix writes plain Markdown `project-spec.md` and `execution-plan.md` directly und
 Obey the shared [plain artifact contract](../woostack-init/references/artifact-backends.md#readable-plain-artifact-writing).
 When `artifacts.provider: "linear"` or `artifacts.provider: "plane"`, Fix performs the immediate pre-save drift read, runs one bounded
 synchronization, and independently reads back the exact content before recording mirror status in the manifest.
+For Plane, bounded synchronization creates or reconciles one top-level specification work item named
+`[Fix] <goal>` (with `parent = null`) in the `[Repo] owner/name` project, writes the complete proved Fix
+specification Markdown to its description, independently reads back native UUID, readable ID, and `parent = null`,
+and binds it to `mirror.specItem` in the manifest outside child task mappings.
 Mirror failure is recorded in the manifest and is nonblocking.
 No draft provider cycle occurs while drafting. Abandon records `status: "abandoned"` in the manifest,
 retains run artifacts, and does not close a mirrored Linear or Plane project (and never synthesizes project status or archives a Plane project). No repository mutation occurs
@@ -177,10 +185,10 @@ pre-save drift read, shared
 [graph-write preflight](../woostack-init/references/artifact-backends.md#canonical-issue-references-nullable-parents-and-graph-write-preflight),
 and one bounded synchronization. Atomically bind stable task keys to canonical issue references,
 independently read back the exact graph, and update mirror status in the manifest. For Plane, execution plan
-mirroring maps each increment to one parentless direct work item (`parent = null`) and strict built-in blocking
-relations (`blocks`) with `external_source: "woostack"` and `external_id: <UUID>`. Mirror failure is
-recorded in the manifest and is nonblocking.
-
+mirroring maps each increment to an exact child work item of the specification work item
+(`parent = <spec-item-UUID>`) with direct project membership in `[Repo] owner/name` and strict built-in
+blocking relations (`blocks`: `ordinal k-1` blocks `ordinal k`) with `external_source: "woostack"` and
+`external_id: <UUID>`. Mirror failure is recorded in the manifest and is nonblocking.
 After plain `project-spec.md` and `execution-plan.md` are written (and optional mirror synchronization
 completes or records nonblocking failure), all run artifacts in `.woostack/tmp/runs/<run-id>/` are
 retained upon completion and upon explicit abandonment. Fix then displays the exact run ID, readable

@@ -185,7 +185,7 @@ neither selects artifact persistence nor authorizes later provider access.
 
 When `artifacts.provider: "plane"` is configured, the `artifacts.plane` object provides
 `baseUrl`, `workspace`, canonical `repository`, `projectLabels`, and native-name defaults.
-Build uses them to resolve or create the canonical repository project named `[Repo] owner/name`. When `--project` is supplied, it must match the canonical repository project.
+Build and post-proof Fix use them to resolve or create the canonical repository project named `[Repo] owner/name`. When `--project` is supplied, it must match the canonical repository project.
 `artifacts.linear.projectLabels` (array of strings, required when `artifacts.provider: "linear"`, empty array allowed) and
 `artifacts.plane.projectLabels` (array of strings, required non-empty array when `artifacts.provider: "plane"`) configure
 workspace project labels to attach to every admitted or created project. Project admission completely paginates workspace project labels through the
