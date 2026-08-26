@@ -136,9 +136,10 @@ sees the complete exact specification or direct-issue/dependency plan before han
 does the controller perform the immediate drift check, one bounded synchronization, and exact
 read-back.
 
-When mirrored, the project holds the high-level specification. One direct project issue per
-increment holds its executor-ready contract, and native issue dependencies encode the plan. There
-is no parent plan issue. After root-cause proof, Fix uses the same project-backed contract; an exact
+When mirrored, Linear holds the high-level specification on the project description with direct parentless
+increment issues and native dependencies. Plane holds one canonical `[Repo] owner/name` repository project,
+one top-level specification work item (`parent = null`), and child increment work items with `N-1` strict
+sibling blocking relations. After root-cause proof, Fix uses the same project-backed contract; an exact
 source issue remains preserved context, not a plan.
 
 The shared

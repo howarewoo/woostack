@@ -76,16 +76,18 @@ When `artifacts.provider: "linear"`, local artifacts mirror to one Linear projec
 complete specification, direct increment issues, and native issue dependencies. There is no parent plan
 issue or child containment. `woostack-change` never contacts Linear.
 
-When `artifacts.provider: "plane"`, Build and Fix mirror artifacts to one Plane project containing the complete
-specification, `N` parentless direct work items (`parent = null`), and `N-1` strict blocking relations.
+When `artifacts.provider: "plane"`, Build and Fix mirror artifacts to the canonical `[Repo] owner/name`
+repository project containing one top-level specification work item (`parent = null`), `N` increment
+child work items parented to the specification work item, and `N-1` strict sibling blocking relations.
 Project admission requires mandatory official Plane MCP project-label capabilities when `artifacts.plane.projectLabels`
 is configured, flattens completely paginated workspace project labels with null terminal cursors, and unions
 configured labels with existing project labels (preserving unrelated labels). If the official Plane MCP lacks
 project-label operations, persistence fails closed before project mutation. Optional provider writers (Bootstrap and Commit) require explicit opt-in, post-gate timing, exact identities, official MCP capabilities, and independent read-back, leaving repository authority on Git/GitHub.
 
-The manifest is the canonical local run authority. Standalone Plan remains distinct: it keeps its direct
-project-graph synchronization and independent read-back unchanged for Linear or Plane, without either Build/Fix approval
-gate.
+The manifest is the canonical local run authority. Standalone Plan remains distinct: it keeps its
+project-graph synchronization and independent read-back unchanged (with mandatory `--project` for Linear
+and optional `--project` defaulting to the canonical repository project for Plane), without either Build/Fix
+approval gate.
 
 Explicit abandonment sets `status: "abandoned"` in the run manifest and retains all run artifacts in
 `.woostack/tmp/runs/<run-id>/` without mutating a mirrored Linear or Plane project. Standalone Plan closes its

@@ -79,7 +79,7 @@ artifact_requirements = (
     r"stableTaskMappings",
     r"taskExecutions\[stableTaskKey\]",
     r"unknown.*parent.*blocks",
-    r"Do not create a parent plan resource",
+    r"Do not create (?:synthetic )?parent plan resource",
     r"Preserve its title, description, lifecycle state, assignment, labels, relations, comments, and membership",
     r"full project fields.*complete membership set.*complete dependency graph",
     r"existing-description mutation invariant",
@@ -139,10 +139,11 @@ require("plane_context", r"preserving unrelated.*existing labels")
 require("plane_context", r"official Plane MCP lacks project-label operations.*fails closed")
 require("plane_context", r"external_source.*external_id")
 require("plane_context", r"parent = null")
+require("plane_context", r"parent = <spec-item-UUID>|exact children of the specification work item")
 require("plane_procedure", r"external_source.*external_id")
 require("plane_procedure", r"parent = null")
+require("plane_procedure", r"parent = <spec-item-UUID>|exact specification parent UUID")
 require("plane_procedure", r"N-1.*strict blocking relations")
-
 source_names = tuple(paths)
 for obsolete in (
     r"canonicalProjectSpecFingerprint",
@@ -160,7 +161,7 @@ for obsolete in (
     forbid(source_names, obsolete)
 
 # One direct issue per increment and native relations remain required.
-require("artifact", r"Do not create a parent plan resource")
+require("artifact", r"Do not create (?:synthetic )?parent plan resource")
 require("artifact", r"membership before relations")
 require("artifact", r"Bind each newly created issue to its stable task key exactly once|bind the mapping exactly once")
 
@@ -227,19 +228,23 @@ class MockPlaneMCP:
         return None
 
     def create_work_item(self, workspace, project_id, title, external_source=None, external_id=None, parent=None):
-        self.operations.append(("create_work_item", workspace, project_id, title, external_id))
+        self.operations.append(("create_work_item", workspace, project_id, title, external_id, parent))
         if not self.capabilities.get("issueWrite"):
             raise RuntimeError("missing capability: issueWrite")
-        if parent is not None:
-            raise ValueError("parent must be null")
         wi_id = f"wi-{len(self.work_items) + 1}"
         wi = {
             "id": wi_id, "workspace": workspace, "project_id": project_id,
             "title": title, "external_source": external_source,
-            "external_id": external_id, "parent": None
+            "external_id": external_id, "parent": parent
         }
         self.work_items[wi_id] = wi
         return wi
+    def read_work_item(self, workspace, project_id, work_item_id):
+        self.operations.append(("read_work_item", workspace, project_id, work_item_id))
+        wi = self.work_items.get(work_item_id)
+        if not wi or wi["workspace"] != workspace or wi["project_id"] != project_id:
+            return None
+        return dict(wi)
 
     def find_work_item_by_external_id(self, workspace, project_id, external_source, external_id):
         self.operations.append(("find_by_ext_id", workspace, project_id, external_source, external_id))
@@ -304,7 +309,9 @@ def simulate_plane_build_mirror(config, mcp, spec_text, plan_increments):
                 raise ValueError(f"unresolved label: {name}")
             resolved_label_ids.append(label_map[name])
 
-    # 4. Project creation (preallocates externalId, baseUrl, workspace into manifest before create attempt)
+    # 4. Project creation/admission: canonical [Repo] owner/name project
+    repo_name = config["plane"].get("repository", "acme/widgets").replace("https://github.com/", "")
+    canonical_project_name = f"[Repo] {repo_name}"
     proj_ext_id = "ext-proj-1"
     manifest = {
         "stableTaskMappings": {},
@@ -314,7 +321,12 @@ def simulate_plane_build_mirror(config, mcp, spec_text, plan_increments):
                 "externalId": proj_ext_id,
                 "baseUrl": canonical_url,
                 "workspace": config["plane"]["workspace"],
-                "name": "[Build] New Feature",
+                "name": canonical_project_name,
+                "canonicalRef": None,
+                "nativeId": None,
+            },
+            "specItem": {
+                "externalId": "ext-spec-1",
                 "canonicalRef": None,
                 "nativeId": None,
             },
@@ -326,7 +338,7 @@ def simulate_plane_build_mirror(config, mcp, spec_text, plan_increments):
 
     existing_project_labels = ["lbl-existing"]
     effective_labels = list(dict.fromkeys(existing_project_labels + resolved_label_ids))
-    proj_created = mcp.create_project(config["plane"]["workspace"], "[Build] New Feature", labels=effective_labels,
+    proj_created = mcp.create_project(config["plane"]["workspace"], canonical_project_name, labels=effective_labels,
                                       external_source="woostack", external_id=proj_ext_id)
     # Independent read_project before project binding (create response alone cannot authorize binding)
     proj = mcp.read_project(config["plane"]["workspace"], proj_created["id"])
@@ -337,21 +349,36 @@ def simulate_plane_build_mirror(config, mcp, spec_text, plan_increments):
     manifest["mirror"]["project"]["nativeId"] = proj["id"]
     manifest["mirror"]["project"]["canonicalRef"] = proj["id"]
 
+    # 5. Top-level specification work item creation with parent = None
+    spec_created = mcp.create_work_item(config["plane"]["workspace"], proj["id"], "[Build] New Feature",
+                                        external_source="woostack", external_id="ext-spec-1", parent=None)
+    # Independent read_work_item before spec item binding
+    spec_wi = mcp.read_work_item(config["plane"]["workspace"], proj["id"], spec_created["id"])
+    if not spec_wi:
+        raise RuntimeError("failed to read back created specification work item")
+    manifest["mirror"]["specItem"]["nativeId"] = spec_wi["id"]
+    manifest["mirror"]["specItem"]["canonicalRef"] = spec_wi["id"]
+
+    # 6. Increment child work items with parent = spec_wi["id"]
     created_wis = []
     for inc in plan_increments:
         task_key = inc["task_key"]
         ext_id = f"ext-{task_key}"
         # Preallocate
         manifest["mirror"]["tasks"][task_key] = {"externalId": ext_id, "canonicalRef": None, "nativeId": None}
-        # Create
-        wi = mcp.create_work_item(config["plane"]["workspace"], proj["id"], inc["title"],
-                                  external_source="woostack", external_id=ext_id, parent=None)
+        # Create child work item with parent = spec_wi["id"]
+        wi_created = mcp.create_work_item(config["plane"]["workspace"], proj["id"], inc["title"],
+                                          external_source="woostack", external_id=ext_id, parent=spec_wi["id"])
+        # Independent read_work_item before binding to stableTaskMappings and before relations
+        wi = mcp.read_work_item(config["plane"]["workspace"], proj["id"], wi_created["id"])
+        if not wi:
+            raise RuntimeError(f"failed to read back created child work item {task_key}")
         manifest["stableTaskMappings"][task_key] = wi["id"]
         manifest["mirror"]["tasks"][task_key]["nativeId"] = wi["id"]
         manifest["mirror"]["tasks"][task_key]["canonicalRef"] = wi["id"]
         created_wis.append(wi)
 
-    # Create N-1 blocking relations (predecessor blocks successor)
+    # Create N-1 blocking relations (predecessor blocks successor) between increment child work items
     for i in range(len(created_wis) - 1):
         pred = created_wis[i]
         succ = created_wis[i + 1]
@@ -366,12 +393,18 @@ def simulate_plane_build_mirror(config, mcp, spec_text, plan_increments):
             "relationType": "blocks",
         })
 
-    # 6. Read-back verification
+    # 7. Read-back verification
     graph = mcp.read_back_graph(proj["id"])
-    assert len(graph["work_items"]) == len(plan_increments)
+    assert len(graph["work_items"]) == len(plan_increments) + 1  # 1 spec + N increments
     assert len(graph["relations"]) == len(plan_increments) - 1
-    for wi in graph["work_items"]:
-        assert wi["parent"] is None
+    # Spec item has parent None
+    spec_in_graph = [w for w in graph["work_items"] if w["id"] == spec_wi["id"]][0]
+    assert spec_in_graph["parent"] is None
+    # Child increment work items have parent == spec_wi["id"]
+    child_wis_in_graph = [w for w in graph["work_items"] if w["id"] != spec_wi["id"]]
+    assert len(child_wis_in_graph) == len(plan_increments)
+    for wi in child_wis_in_graph:
+        assert wi["parent"] == spec_wi["id"]
     manifest["mirror"]["status"] = "synced"
     return manifest
 
@@ -405,27 +438,49 @@ assert manifest_out["mirror"]["project"]["baseUrl"] == "https://api.plane.so"
 assert manifest_out["mirror"]["project"]["workspace"] == "acme"
 assert manifest_out["mirror"]["project"]["nativeId"] == "proj-1"
 assert manifest_out["mirror"]["project"]["canonicalRef"] == "proj-1"
-assert manifest_out["mirror"]["project"]["name"] == "[Build] New Feature"
-# Project never enters stableTaskMappings and assumes no readable ID
+assert manifest_out["mirror"]["project"]["name"] == "[Repo] acme/widgets"
+assert manifest_out["mirror"]["specItem"]["nativeId"] == "wi-1"
+assert manifest_out["mirror"]["specItem"]["canonicalRef"] == "wi-1"
+# Project and spec item never enter stableTaskMappings and assume no readable ID
 assert "proj-1" not in manifest_out["stableTaskMappings"]
+assert "wi-1" not in manifest_out["stableTaskMappings"]
 assert set(manifest_out["stableTaskMappings"].keys()) == {"task-1", "task-2", "task-3"}
 assert "readableId" not in manifest_out["mirror"]["project"]
 
-# Operation counts and ordering check: prove create_project -> read_project -> bind before work item mutation
+# Operation counts and ordering check: prove:
+# 1. create_project -> read_project -> bind
+# 2. create spec work item -> read_work_item spec -> bind spec
+# 3. for each child: create child work item -> read_work_item child -> bind child
+# 4. create relations only after all children are independently read back
+# 5. read_back_graph
 create_proj_ops = [op for op in mcp_valid.operations if op[0] == "create_project"]
 read_proj_ops = [op for op in mcp_valid.operations if op[0] == "read_project"]
 create_wi_ops = [op for op in mcp_valid.operations if op[0] == "create_work_item"]
+read_wi_ops = [op for op in mcp_valid.operations if op[0] == "read_work_item"]
 create_rel_ops = [op for op in mcp_valid.operations if op[0] == "create_relation"]
 assert len(create_proj_ops) == 1
 assert len(read_proj_ops) == 1
-assert len(create_wi_ops) == 3
+assert len(create_wi_ops) == 4  # 1 spec item + 3 increments
+assert len(read_wi_ops) == 4    # 1 spec item + 3 increments
 assert len(create_rel_ops) == 2
 
 op_types = [op[0] for op in mcp_valid.operations]
-create_idx = op_types.index("create_project")
+create_proj_idx = op_types.index("create_project")
 read_proj_idx = op_types.index("read_project")
-first_wi_idx = op_types.index("create_work_item")
-assert create_idx < read_proj_idx < first_wi_idx, "operation sequence must prove create_project -> read_project before work item operations"
+assert create_proj_idx < read_proj_idx
+
+wi_create_indices = [i for i, op in enumerate(mcp_valid.operations) if op[0] == "create_work_item"]
+wi_read_indices = [i for i, op in enumerate(mcp_valid.operations) if op[0] == "read_work_item"]
+rel_create_indices = [i for i, op in enumerate(mcp_valid.operations) if op[0] == "create_relation"]
+
+for c_idx, r_idx in zip(wi_create_indices, wi_read_indices):
+    assert c_idx < r_idx, "each work item must be independently read back after creation"
+
+assert read_proj_idx < wi_create_indices[0]
+
+for r_idx in wi_read_indices:
+    for rel_idx in rel_create_indices:
+        assert r_idx < rel_idx, "all work items must be independently read back before relation writes"
 # --- Scenario B: Missing label capability fails closed with 0 project/work item writes ---
 mcp_no_label = MockPlaneMCP(base_url="https://api.plane.so", workspace="acme",
                             capabilities={"projectRead": True, "projectWrite": True, "issueRead": True, "issueWrite": True,

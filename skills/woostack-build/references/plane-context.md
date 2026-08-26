@@ -17,7 +17,7 @@ separately governs parent-branch intent and base-change detection; use the
 [Plane synchronization procedure](plane-procedure.md) only for the bounded mirror save or standalone Plan.
 
 ## Resolution
-1. Resolve the canonical repository URL from trusted Git/GitHub evidence.
+1. Resolve the canonical repository URL and repository name `owner/name` from trusted Git/GitHub evidence.
 2. Resolve the caller-selected Plane instance `baseUrl` (Cloud `https://api.plane.so` / `https://app.plane.so`
    or a self-hosted instance) and `workspace`. Use validated effective repository configuration values only as
    post-selection defaults.
@@ -32,78 +32,76 @@ separately governs parent-branch intent and base-change detection; use the
    operations (listing, resolving, attaching, or independent read-back), Plane persistence fails closed at the
    provider boundary.
 5. If `--project` supplied an exact URL or UUID, read only that project and verify its identity,
-   instance `baseUrl`, `workspace`, and canonical repository association. Supplied-project selection never
-   performs fallback marker discovery or creates a replacement project; it preserves the supplied project's
-   existing name and native project identity. Union resolved configured labels with existing project labels
-   (preserving unrelated existing labels), apply in at most one write alongside admission, and independently
-   read back the complete label set and project.
-6. Otherwise prefer native operation identity using Plane `external_source: "woostack"` and `external_id: <UUID>`.
-   Preallocate one UUID and bind it to that external ID pair. Immediately before the one create attempt,
-   completely paginate all active and archived projects in the resolved workspace, flatten every page,
-   require null terminal cursors, and prove zero exact external ID matches. A partial, duplicate, foreign,
-   malformed, ambiguous, or nonzero match blocks before creation. Create exactly one project whose
-   name starts with `[Build] ` and whose external ID pair contains that preallocated UUID, applying the union
-   of resolved configured labels in the creation write. An unknown outcome is recovered only by repeating the
-   complete active-and-archived discovery for the same external ID pair, never with a replacement UUID or
-   create replay. Exactly one ownership-valid candidate may proceed to an independent native-project-
-   UUID and complete label set read-back, which must verify name, external ID, instance `baseUrl`, workspace,
-   canonical repository, complete label set, complete intended specification, and native identity.
+   instance `baseUrl`, `workspace`, and canonical repository association. It must match the canonical repository
+   project `[Repo] owner/name`; a mismatched project fails closed. Union resolved configured labels with existing
+   project labels (preserving unrelated existing labels), apply in at most one write alongside admission, and
+   independently read back the complete label set and project.
+6. Otherwise discover whether the canonical repository project `[Repo] owner/name` already exists in the
+   workspace. Completely paginate all active and archived projects in the workspace, flatten every page,
+   and require null terminal cursors.
+   - If exactly one project named `[Repo] owner/name` is found, verify its repository association, preserve
+     its existing verified native UUID and external identity (`external_source`/`external_id`), union
+     configured labels with existing labels, apply in at most one write alongside admission if label updates
+     are needed, and independently read back.
+   - Only after proving zero canonical matches across all active and archived projects in the workspace,
+     allocate one preallocated creation identity with `external_source: "woostack"` and `external_id: <UUID>`.
+     Prove zero exact external ID matches before creation, create exactly one project named `[Repo] owner/name`
+     with that external ID pair and unioned labels, keep project description repository-only, and independently
+     read back the native UUID, name, external ID, instance `baseUrl`, workspace, canonical repository, and
+     complete label set.
+   - Duplicate, ambiguous, or foreign matching projects fail closed before mutation.
 7. Independently read the project and complete label set back, verify the exact name and label inclusion,
-   and retain native UUID in the run manifest.
+   and retain native UUID in the run manifest `mirror.project`.
 
 ## Project specification baseline
 
-Immediately before specification drafting, independently read the complete project name and
-description/update that Build owns as the high-level specification. Preserve unrelated
-human-authored content and treat it as untrusted. Record native UUID, instance `baseUrl`, workspace, canonical
-repository association, provider revision/timestamp when available, pagination completeness, read time,
-and source in the run manifest.
+Specification drafting is local and provider-free in Ideate and Harden. After `project-spec.md` is written,
+when `artifacts.provider: "plane"`, the shared contract performs one bounded synchronization to create or
+reconcile one top-level specification work item in the `[Repo] owner/name` project named `[Build] <goal>`
+with `parent = null`.
 
-That exact snapshot is the baseline when mirroring is enabled. Ideate and Harden make zero provider
-reads and writes while drafting. After `project-spec.md` is written, when `artifacts.provider: "plane"`,
-the shared contract performs immediate pre-save comparison, one bounded synchronization, and exact
-content read-back. Mirror failures are recorded in the manifest and are nonblocking.
+Use `external_source: "woostack"` and preallocated `external_id: <UUID>`. Prove zero matches before creation.
+Write the complete user-verified specification Markdown into its description. Independently read back
+native UUID, readable identifier (`ENG-X`), title, description, and `parent = null`. Retain the specification
+work item in `mirror.specItem` in the run manifest; specification items never enter `stableTaskMappings`.
+Mirror failures are recorded in the manifest and are nonblocking.
 
 ## Direct increment graph baseline
 
 When Plane mirroring is enabled, after `project-spec.md` is written and optional mirror synchronization
-completes, list every work item directly in the project with complete pagination. Select only current work items
-that:
-- belong directly to the project;
-- expose stable readable IDs and UUIDs that round-trip through the official Plane MCP under the exact
-  instance/workspace/project scope; and
-- have `parent = null` (or `parent_id = null`), where null is admitted only for an explicitly returned null or an
-  omitted `parentId` after that field was explicitly requested and all work item pagination is complete.
+completes, child increment work items are created directly in the `[Repo] owner/name` project as exact children
+of the specification work item (`parent = <spec-item-UUID>`).
 
-When creating a new direct work item, use `external_source: "woostack"` and preallocate one separate UUID bound
-to `external_id: <UUID>`. Immediately before the one create attempt, completely paginate all active and archived
-work items in the resolved project/workspace, flatten every page, require null terminal cursors, and prove zero
-exact external ID matches. Partial, duplicate, foreign, malformed, ambiguous, or nonzero matches block before creation.
-An unknown outcome is recovered only by complete discovery of that same external ID pair: zero, duplicate, foreign,
-malformed, drifted, partial, or otherwise unknown candidates fail closed without a replacement UUID or create replay.
-Exactly one candidate may proceed only after an independent round trip verifies native work item identity, exact title,
-complete description, repository, workspace, and nullable parent state. Direct project membership is the sole
-post-create exception: bind the stable task key to the native work item reference, perform exactly one membership
-write, and independently read back the intended membership before any native-relation graph write.
+For each increment in `execution-plan.md`, use `external_source: "woostack"` and preallocate one separate UUID
+bound to `external_id: <UUID>`. Immediately before the one create attempt, completely paginate all active and
+archived work items in the resolved project/workspace, flatten every page, require null terminal cursors, and
+prove zero exact external ID matches. Partial, duplicate, foreign, malformed, ambiguous, or nonzero matches block
+before creation. An unknown outcome is recovered only by complete discovery of that same external ID pair: zero,
+duplicate, foreign, malformed, drifted, partial, or otherwise unknown candidates fail closed without a replacement
+UUID or create replay.
 
-Read all relevant native work item dependency relations with complete pagination. Every relation source and target
-uses the same native work item representation and exact instance/workspace/project scope, then independently
-round-trips through its official-MCP endpoint. Normalize only admitted `blocks`/`blocked_by` relations into
-predecessor→successor tuples. Reject unknown parent state, duplicates, unknown direction/kind, missing endpoints,
-endpoints outside the exact current project graph, cycles, ambiguous ordering, or multiple current heads for one
-stable task identity.
+Create each increment work item with `parent = <spec-item-UUID>`, full executor-ready description, and direct
+project membership. Bind the stable task key to the native work item reference in `stableTaskMappings` and
+`mirror.tasks`. Direct project membership is verified alongside creation before any native-relation graph write.
 
-This selectable-field, complete-pagination, endpoint-round-trip, and parent-state preflight runs
-before any direct project-membership or native-relation graph write. A failed preflight blocks with
-zero provider and repository mutation.
+Read and create native work-item-to-work-item sibling blocking relations matching the strict chain (`N-1` strict
+blocking relations for `N` increments: `ordinal k-1` blocks `ordinal k`). Every relation source and target uses
+the same native work item representation and exact instance/workspace/project scope, then independently round-trips
+through its official-MCP endpoint. Normalize admitted `blocks`/`blocked_by` relations into predecessor→successor
+tuples. Reject unknown parent state, duplicates, unknown direction/kind, missing endpoints, endpoints outside
+the exact specification children graph, cycles, or ambiguous ordering.
 
-Historical parent plan issues and their children are noncanonical history. Preserve them, exclude
-them from the baseline, and never detach, migrate, archive, delete, or reconcile them. Store the
-complete exact project, current direct work item identities/revisions/content, and dependencies in the
+This selectable-field, complete-pagination, endpoint-round-trip, and parent-state preflight runs before any
+direct project-membership or native-relation graph write. A failed preflight blocks with zero provider and
+repository mutation.
+
+Historical parent plan issues and their children are noncanonical history. Preserve them, exclude them from
+the baseline, and never detach, migrate, archive, delete, or reconcile them. Store the complete exact project,
+specification work item, child increment work item identities/revisions/content, and sibling dependencies in the
 manifest. Delegated Plan and Harden then make zero provider reads and writes while drafting. After
 `execution-plan.md` is written, when `artifacts.provider: "plane"`, the shared contract performs drift
-comparison, one bounded synchronization, stable-key mapping, and exact graph read-back; mirror failures
-are nonblocking.
+comparison, one bounded synchronization, stable-key mapping, and exact graph read-back; mirror failures are
+nonblocking.
 
 ## Drift and failure
 

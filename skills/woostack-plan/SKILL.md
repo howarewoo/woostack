@@ -1,26 +1,28 @@
 ---
 name: woostack-plan
-description: Turn one approved specification into a strict sequential chain of PR-sized direct Linear or Plane project issues. Never approves, executes, commits, reviews, or merges.
+description: Turn one approved specification into a strict sequential chain of PR-sized direct Linear issues or Plane increment child work items. Never approves, executes, commits, reviews, or merges.
 ---
 
 # woostack-plan
 
 Turn one approved specification into one complete execution plan. Standalone Plan reads one exact
-existing Linear or Plane project, derives and hardens a candidate chain, synchronizes the complete
-direct-issue graph, independently reads that graph back, and returns the verified result. When
-delegated by Build or project-backed Fix, Plan instead drafts the same complete candidate into the
-owning workflow's run-scoped manifest with zero provider calls and returns before synchronization.
+existing Linear project or the canonical Plane repository project, derives and hardens a candidate chain,
+synchronizes the complete direct-issue or parented specification graph, independently reads that graph
+back, and returns the verified result. When delegated by Build or project-backed Fix, Plan instead drafts
+the same complete candidate into the owning workflow's run-scoped manifest with zero provider calls and
+returns before synchronization.
 ## Command
 
 ```text
-/woostack-plan <approved specification> --project <exact existing Linear or Plane URL-or-UUID>
-/woostack-plan --project <exact existing Linear or Plane URL-or-UUID>
+/woostack-plan <approved specification> [--project <exact Linear or Plane URL-or-UUID>]
+/woostack-plan [--project <exact Linear or Plane URL-or-UUID>]
 ```
-For standalone use, `--project` is mandatory and requires `artifacts.provider: "linear"` or
+For standalone Linear use, `--project` is mandatory. For standalone Plane use, `--project` is optional
+and defaults to the canonical `[Repo] owner/name` repository project (when supplied, it must match the
+canonical repository project). Standalone use requires `artifacts.provider: "linear"` or
 `artifacts.provider: "plane"` in effective repository configuration. When `artifacts.provider` is "local"
 or omitted, standalone Plan fails closed before any provider access with an error stating that provider
 operations require `artifacts.provider: "linear"` or `artifacts.provider: "plane"`. There is no CLI provider override.
-
 Standalone Plan loads the shared
 [artifact contract](../woostack-init/references/artifact-backends.md), then only the selected row:
 
@@ -29,12 +31,13 @@ Standalone Plan loads the shared
 | `"linear"` | [Linear](../woostack-init/references/artifact-providers/linear.md) | [Linear procedure](../woostack-build/references/linear-procedure.md) |
 | `"plane"` | [Plane](../woostack-init/references/artifact-providers/plane.md) | [Plane procedure](../woostack-build/references/plane-procedure.md) |
 
-Resolve only the exact selected project under that profile. It must already exist, match the canonical
-repository, and belong to the caller-selected complete provider scope. A direct specification is
-reconciled against that project and never creates or selects an implicit project. Wrong resource type,
-missing project, foreign scope, incomplete read, or conflicting content blocks before mutation. There
-is no project-creation, fuzzy-discovery, or alternate-provider path. Standalone Plan also reads the
-repository, canonical parent branch and last admitted tip, existing patterns, and relevant tests.
+For Linear, resolve only the exact selected project, which must already exist and match the canonical
+repository. For Plane, resolve the canonical `[Repo] owner/name` repository project (or create it on first
+use when `--project` is omitted), requiring any explicitly supplied `--project` to match. The project must
+match the canonical repository and belong to the caller-selected complete provider scope. Wrong resource type,
+missing Linear project, foreign scope, incomplete read, or conflicting content blocks before mutation.
+There is no fuzzy-discovery or alternate-provider path. Standalone Plan also reads the repository,
+canonical parent branch and last admitted tip, existing patterns, and relevant tests.
 Build/Fix-delegated Plan instead obeys the shared
 [manifest contract](../woostack-init/references/artifact-backends.md#minimal-resumable-manifest-schema);
 it reads no provider context or synchronization procedure during the delegated phase.
@@ -59,10 +62,11 @@ or execution handoff authority.
 
 ## Direct issue contract
 
-Create or reconcile exactly one direct project issue for each execution increment. Never create a
-parent, container, checklist, layer, or plan issue. Historical parent/container issues are not
-current increments and are not detached, migrated, archived, deleted, or treated as containment.
-Every direct issue must retain these fields in its complete description:
+Create or reconcile exactly one direct project issue (for Linear) or child increment work item under the
+`[Plan] <goal>` specification work item (for Plane) for each execution increment. Never create extra
+container, checklist, layer, or synthetic issues. Historical parent/container issues are not current
+increments and are not detached, migrated, archived, deleted, or treated as containment. Every direct issue
+or increment work item must retain these fields in its complete description:
 
 - stable task ID, unique positive ordinal, concise outcome, and exactly one intended PR;
 - exact scope and explicit non-goals;
@@ -95,15 +99,14 @@ exception rationale in the issue. Otherwise split or reject an increment that ex
 
 ## Chain invariants
 
-The plan is a strict sequential chain. If there are `N` increments, ordinals are exactly the
-positive integers `1..N`, each ordinal and task ID is unique, and each native Linear/Plane dependency is
-exactly the matching predecessor edge:
+The plan is a strict sequential chain. If there are `N` increments, ordinals are exactly the positive
+integers `1..N`, each ordinal and task ID is unique, and each native Linear dependency or Plane sibling
+blocking relation is exactly the matching predecessor edge:
 
 ```text
 ordinal 1: no predecessor
 ordinal k (2..N): ordinal k-1 → ordinal k
 ```
-
 No missing, extra, branching, cyclic, or synthetic dependency is valid. The declared Graphite parent
 for ordinal 1 is the approved integration parent branch; for every later ordinal it is the
 immediately preceding increment's Graphite parent branch. Bind that stable parent-branch intent in
@@ -126,12 +129,14 @@ while synchronizing one exact project graph through the matching provider synchr
 ([Linear](../woostack-build/references/linear-procedure.md) or
 [Plane](../woostack-build/references/plane-procedure.md)):
 
-1. Reconcile the complete current project context without creating a project.
-2. Create or reconcile exactly one direct project issue/work item per increment with its full contract.
-3. Create or reconcile only the strict predecessor dependency chain.
-4. Independently read every project, issue, membership, description, and dependency edge back; accept
-   the plan only when the complete graph matches the candidate.
-
+1. Reconcile the complete current project context (for Plane, create/update the top-level `[Plan] <goal>`
+   specification work item with `parent = null`).
+2. Create or reconcile exactly one direct project issue (Linear) or child increment work item with
+   `parent = <spec-item-UUID>` (Plane) per increment with its full contract.
+3. Create or reconcile only the strict predecessor dependency chain (for Plane, `N-1` sibling blocking
+   relations).
+4. Independently read every project, spec item (where applicable), issue/work item, membership, description,
+   and dependency edge back; accept the plan only when the complete graph matches the candidate.
 Preallocate stable mutation identities, make reconciliation idempotent, and preserve unknown
 outcomes for recovery without allocating replacements. This standalone synchronization is
 unchanged, owns no approval gate, and does not use the Build/Fix run manifest.
@@ -152,9 +157,12 @@ identity or an execution claim.
 
 ## Hard constraints
 
-- One approved specification and one exact existing project in; one coherent strict chain out.
-- One direct project issue per increment; no parent/container issue and no hidden planning ledger.
+- One approved specification in; one coherent strict chain out.
+- One direct project issue (Linear) or specification child work item (Plane) per increment; no extra
+  container issue and no hidden planning ledger.
 - Ordinals are exactly `1..N`; native dependencies are exactly `N-1 → N`.
+- Standalone Plan requires `--project` for Linear; for Plane `--project` is optional and defaults to the
+  canonical `[Repo] owner/name` repository project.
 - Every issue carries the complete executor contract, size evidence, stop marker, and declared
   Graphite parent.
 - Direct issue plans target about 500 or fewer hand-written changed lines, with only the stated
@@ -163,6 +171,6 @@ identity or an execution claim.
   writes plain `execution-plan.md`, and optionally synchronizes when mirroring is enabled.
 - Standalone Plan keeps its direct project synchronization and independent read-back unchanged.
 - Plan owns no implementation, source edit, commit, branch, PR, review, merge, or execution.
-- No credential reads, fuzzy artifact discovery, implicit project creation, alternate provider,
-  synthetic dependencies, or obsolete container prose.
+- No credential reads, fuzzy artifact discovery, implicit project creation (outside omitted-project Plane
+  first use), alternate provider, synthetic dependencies, or obsolete container prose.
 - Never claim synchronization or independent read-back without evidence.

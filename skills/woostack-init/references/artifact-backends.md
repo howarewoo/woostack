@@ -46,8 +46,8 @@ routing and deterministic contract coverage; it does not weaken or modify the sh
 Build resolves one exact caller-supplied project or creates one only from validated selected-provider
 defaults. Fix reaches proved root cause before project resolution or creation. An exact Fix source
 resource is preserved context, not the Fix plan or permission to work. Standalone Plan writes only to
-an exact selected project when persistence is requested. Local artifacts may be mirrored once after
-they are complete.
+an exact selected project (or the canonical repository project when the provider profile defines one)
+when persistence is requested. Local artifacts may be mirrored once after they are complete.
 
 A mirror failure is recorded in the manifest and is nonblocking for local workflow authority.
 Supplying a project never relaxes repository, provider scope, pagination, capability, or read-back
@@ -107,30 +107,34 @@ read-back fails closed at that provider boundary.
 
 Each provider profile defines separate canonical caller-facing, readable, native, and external
 identities. Never substitute one form for another. `stableTaskMappings` maps each stable task key to
-one canonical direct-resource reference, or to `null` only while that resource is explicitly new.
+one canonical increment-resource reference, or to `null` only while that resource is explicitly new.
+When the selected profile defines a top-level specification resource, that specification resource is
+bound separately in manifest mirror state and never enters `stableTaskMappings`.
 After one creation succeeds and the resource is independently read back, bind the mapping exactly once.
 Never remap it or infer it from prose.
 
-Every complete direct-resource read requests the selected profile's canonical and native identity,
-canonical repository, complete provider scope, direct project membership, and parent. A current direct
-resource must have null parent. Omission is null only when the field was explicitly requested and both
-the response and pagination are complete; otherwise parent state is unknown and blocks. Preserve and
-exclude historical parent/container resources from the current direct graph.
+Every complete resource read requests the selected profile's canonical and native identity,
+canonical repository, complete provider scope, direct project membership, and parent. The selected
+provider profile defines its direct or parented hierarchy rules (for direct parentless resources,
+`parent = null`; for parented specification-and-increment hierarchies, top-level specification
+resources have `parent = null` while increment child resources have their exact specification parent
+identity). Omission is null only when the field was explicitly requested and both the response and
+pagination are complete; otherwise parent state is unknown and blocks. Preserve and exclude historical
+parent/container resources from the current direct graph.
 
-Before membership or dependency mutation:
+Before membership, parent linkage, or dependency mutation:
 
-1. completely read every retained direct resource and relation page;
+1. completely read every retained resource and relation page;
 2. round-trip every endpoint using the profile's required endpoint identity;
-3. verify repository, provider scope, exact project, direct membership, and null parent state;
+3. verify repository, provider scope, exact project, direct membership, and profile-defined parent state;
 4. reject duplicates, mixed identity forms, foreign scope, incomplete pagination, or ambiguity; and
 5. perform one mutation, then independently read the complete affected fields and graph back.
 
-An explicitly new direct resource has no usable endpoint until its one creation succeeds. Complete all
+An explicitly new resource has no usable endpoint until its one creation succeeds. Complete all
 retained-endpoint checks first. After creation, read the resource through the profile's canonical
-identity, bind its task key once, write and read back direct project membership, and only then write
-relations. A failure stops without duplicate creation or later mutations. Do not create a parent plan
-resource.
-
+identity, bind its task key (or specification root) once, write and read back direct project membership
+and parent linkage, and only then write relations. A failure stops without duplicate creation or later
+mutations. Do not create synthetic parent plan resources beyond what the selected profile defines.
 ## Exact Fix source preservation
 
 An exact Fix source resource is context only. Read and round-trip its canonical and native identity,
@@ -173,12 +177,14 @@ checkpoint updates use exclusive temporary creation, file flush, atomic replacem
 and a compare-and-swap on the independently reopened manifest revision.
 
 The `mirror` structure persists provider-neutral mappings and mutation state:
-
 - `provider` — selected provider name, or `"local"`;
 - `status` — `"unstarted"`, `"synced"`, or `"failed"`;
 - `error` — failure detail string or null;
 - `project` — canonical, native, external-mutation, presentation, and profile-defined scope fields for
   the exact project;
+- `specItem` — when the profile defines a top-level specification resource, its canonical/readable,
+  native, stable external-mutation identity, profile-defined scope, and binding manifest revision;
+  never enters `stableTaskMappings`;
 - `tasks` — dictionary keyed by `stableTaskKey`, each recording canonical/readable, native, stable
   external-mutation identity, profile-defined scope, and the manifest revision where binding occurred;
 - `relations` — predecessor/successor stable task keys, native relation identity, stable
@@ -196,12 +202,15 @@ Bind-once and recovery rules:
    complete discovery procedure; never allocate another identity or blindly replay creation.
 3. After project creation and independent read-back, bind its canonical and native identities
    atomically into `mirror.project`; projects never enter `stableTaskMappings`.
-4. After direct-resource creation and independent read-back, bind its canonical/readable and native
+4. When the profile defines a top-level specification resource, after specification creation and
+   independent read-back, bind its identities atomically into `mirror.specItem`; specification
+   resources never enter `stableTaskMappings`.
+5. After increment resource creation and independent read-back, bind its canonical/readable and native
    identities atomically into `stableTaskMappings` and `mirror.tasks[taskKey]`. Never remap, overwrite,
    or mix identity forms.
-5. Project membership and relation writes proceed only after native direct-resource read-back and
-   binding are persisted.
-6. After relation creation and independent read-back, bind its native identity into
+6. Direct project membership, parent linkage, and relation writes proceed only after native direct
+   resource read-back and binding are persisted.
+7. After relation creation and independent read-back, bind its native identity into
    `mirror.relations` through manifest CAS.
 Hold `.lock` for every manifest change. Before use and after each replacement, independently reopen the
 run directory, manifest, lock, and referenced artifact files no-follow and revalidate owner, mode,
