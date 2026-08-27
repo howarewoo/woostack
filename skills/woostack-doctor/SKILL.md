@@ -72,7 +72,10 @@ the `templates/` shipped there; the woostack collection installs both as sibling
    Legacy `.woostack/specs/`, `.woostack/plans/`, `.woostack/fixes/`, or
    `.woostack/overnight/` sets produce one blocking migration finding per active or ambiguous set;
    doctor does not run normal lifecycle lint on them and points at the explicit
-   [legacy migration procedure](../woostack-init/references/legacy-migration.md).
+   [legacy migration procedure](../woostack-init/references/legacy-migration.md). Old local artifacts
+   and existing provider resources are preserved; doctor never rewrites, reparents, or migrates
+   remote Linear or Plane resources in place. Incompatible retained Plane runs block with precise
+   regeneration guidance via `/woostack-build <goal>` or `/woostack-fix <prompt>` without mutation.
 4. **No workspace?** If the engine exits 2 with "no `.woostack/`", **stop** and tell the user to
    run [`woostack-init`](../woostack-init/SKILL.md). Doctor never scaffolds.
 5. **Propose a changeset.** Group the local `fixable=auto` findings into a proposed repair set —
@@ -101,7 +104,8 @@ the `templates/` shipped there; the woostack collection installs both as sibling
   drift and reports judgment-only signals; it never computes or writes lifecycle state.
 - **Artifacts are optional.** Static diagnosis validates non-secret policy. Local legacy
   development-record directories are migration blockers, not a backend and not normal lint input.
-  Doctor never creates, repairs, adopts, or deletes them.
+  Doctor preserves old local and remote artifacts; it never creates, repairs, adopts, rewrites, reparents,
+  or deletes them. Incompatible retained Plane runs fail closed with regeneration guidance.
 - **Provider access belongs to skill controllers.** Diagnosis and every doctor shell repair remain
   provider-free. Approved tracked repairs run through artifact-free `woostack-change` unless the
   caller explicitly selected an exact artifact. Explicit `--live` may validate official

@@ -1,0 +1,25 @@
+{
+  "runId": "run-20260715-legacy-plane-run",
+  "status": "in_progress",
+  "planningParentBranch": "refs/heads/main",
+  "planningParentTip": "sha-planning-100",
+  "canonicalRepository": "howarewoo/woostack",
+  "stableTaskMappings": {
+    "task-1": "wi-legacy-1"
+  },
+  "manifestRevision": 1,
+  "mirror": {
+    "provider": "plane",
+    "project": {
+      "id": "33333333-3333-4333-8333-333333333333",
+      "name": "[Build] Legacy feature without specItem"
+    },
+    "workItems": [
+      {
+        "id": "22222222-2222-4222-8222-222222222222",
+        "sequenceId": "ENG-10",
+        "title": "Legacy increment"
+      }
+    ]
+  }
+}

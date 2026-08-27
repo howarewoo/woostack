@@ -97,13 +97,24 @@ An exact Fix source work item is context only. Preserve its exact title, descrip
 labels, relations, comments, parent, and lifecycle. After canonical repository project admission, the only supported
 source mutation is one direct project link followed by exact membership read-back.
 
-## Workflow procedures
+## Readers, status, and provenance
 
-Build and Plan use the detailed [Plane context](../../../woostack-build/references/plane-context.md)
-and [Plane synchronization procedure](../../../woostack-build/references/plane-procedure.md). Standalone
-Plan synchronizes the graph directly; delegated Plan remains provider-free and delegates mirror
-synchronization to the Build wrapper. Bootstrap and Commit retain their workflow gates and use this
-profile only for selected-provider identity, capability, mutation, and read-back behavior.
+Status and generic artifact readers discover the canonical `[Repo] owner/name` project, top-level
+`[Build]/[Fix]/[Plan]` specification work items, and exact child increment graphs with complete paginated
+read-back and identity checks.
+
+Readers report the `[Repo] owner/name` project as repository association only. Specification aggregate
+lifecycle and child increment states are exposed without presenting project lifecycle as delivery state.
+Reject cross-parent relations, foreign items or projects, malformed/skipped/reversed relations, and
+unparented child increments from enrichment.
+
+Exact-source attribution and provenance distinguish:
+
+- **Repository project:** `[Repo] owner/name` (URL or UUID) represents repository association only;
+- **Specification parent:** `[Build] <goal>`, `[Fix] <goal>`, `[Plan] <goal>` (`parent = null`, URL or UUID)
+  represents specification provenance and aggregate delivery lifecycle;
+- **Child increment:** `parent = <spec-item-UUID>` (URL, UUID, or readable identifier such as `ENG-42`)
+  represents exact increment task attribution and state.
 
 ## Lifecycle and closure
 
@@ -148,3 +159,22 @@ Parent lifecycle aggregates its child increment work items:
 
 Never mutate, synthesize, archive, or gate on Plane project status. Handoff, abandonment, blockage,
 and completion retain the exact project unchanged and record only work-item and local recovery state.
+
+## Migration, doctor, and retained run guards
+
+Legacy migration and doctor preserve existing local artifacts and remote Plane resources; they never
+rewrite, reparent, or migrate existing Plane projects or work items in place.
+
+When an incompatible retained Plane run manifest (e.g. from an older schema where project was treated as
+a per-feature spec, missing `specItem` in mirror metadata, or treating project as executable scope) is
+encountered during validation or resume, block with precise regeneration guidance: do not mutate or attempt
+to auto-migrate the retained run; instruct the user to regenerate the run via `/woostack-build <goal>` or
+`/woostack-fix <prompt>`.
+
+## Workflow procedures
+
+Build and Plan use the detailed [Plane context](../../../woostack-build/references/plane-context.md)
+and [Plane synchronization procedure](../../../woostack-build/references/plane-procedure.md). Standalone
+Plan synchronizes the graph directly; delegated Plan remains provider-free and delegates mirror
+synchronization to the Build wrapper. Bootstrap and Commit retain their workflow gates and use this
+profile only for selected-provider identity, capability, mutation, and read-back behavior.

@@ -45,8 +45,9 @@ Static diagnosis is provider-free. It validates:
 - the non-secret `linear` or `plane` policy shape on effective configuration (tracked base plus primary-checkout local) and rejects backend selectors or credential-like keys; template presence and repairs apply strictly to tracked base `.woostack/config.json`;
 - generated-host, Git-ignore, and worktree hygiene; and
 - legacy development-record directories as one blocking `legacy-development-records` finding per
-  active or ambiguous set, without running document type/status/source/backlink checks.
-
+  active or ambiguous set, without running document type/status/source/backlink checks. Old artifacts are
+  preserved without in-place mutation or reparenting; incompatible retained Plane runs block with precise
+  regeneration guidance.
 `--live` is controller-owned. The skill controller resolves effective configuration to determine `artifacts.provider`.
 When `artifacts.provider: "linear"`, it discovers official Linear MCP tools (`official-linear-mcp`), authenticates,
 resolves exactly one workspace and team, validates native project categories and issue states, and proves

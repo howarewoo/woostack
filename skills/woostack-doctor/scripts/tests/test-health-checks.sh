@@ -127,4 +127,234 @@ assert_contains "$(bash "$C/orphan-worktree.sh" "$r3")" "worktrees/app	" "orphan
 git -C "$r3" worktree add -q "$r3/.woostack/worktrees/stale" -b wt-stale
 rm -rf "$r3/.woostack/worktrees/stale"
 assert_contains "$( cd "$r3" && bash "$C/orphan-worktree.sh" . )" "stale worktree registration" "stale registration detected with a relative root"
+
+# retained-plane-runs
+r4="$(mktemp -d)"; mkdir -p "$r4/.woostack/tmp/runs/run-legacy"
+cat > "$r4/.woostack/tmp/runs/run-legacy/manifest.json" <<'JSON'
+{
+  "runId": "run-legacy",
+  "mirror": {
+    "provider": "plane",
+    "project": {
+      "id": "33333333-3333-4333-8333-333333333333",
+      "name": "[Build] Legacy feature"
+    }
+  }
+}
+JSON
+legacy_before="$(cat "$r4/.woostack/tmp/runs/run-legacy/manifest.json")"
+assert_contains "$(bash "$C/retained-plane-runs.sh" "$r4")" "retained-plane-runs" "missing specItem in Plane run flagged"
+assert_contains "$(bash "$C/retained-plane-runs.sh" "$r4")" "regenerate via /woostack-build <goal> or /woostack-fix <prompt>" "regeneration guidance emitted"
+assert_eq "$(cat "$r4/.woostack/tmp/runs/run-legacy/manifest.json")" "$legacy_before" "retained Plane check is report-only (zero mutation)"
+
+# Incompatible Plane run with mismatched repository project name flagged
+cat > "$r4/.woostack/tmp/runs/run-legacy/manifest.json" <<'JSON'
+{
+  "runId": "run-legacy",
+  "canonicalRepository": "howarewoo/woostack",
+  "mirror": {
+    "provider": "plane",
+    "status": "synced",
+    "project": {
+      "id": "33333333-3333-4333-8333-333333333333",
+      "name": "[Repo] other-owner/mismatched-repo"
+    },
+    "specItem": {
+      "externalId": "11111111-1111-4111-8111-111111111111",
+      "canonicalRef": "ENG-40",
+      "nativeId": "11111111-1111-4111-8111-111111111111"
+    }
+  }
+}
+JSON
+assert_contains "$(bash "$C/retained-plane-runs.sh" "$r4")" "retained-plane-runs" "mismatched repo project name flagged"
+
+# Incompatible Plane run with missing canonicalRepository flagged
+cat > "$r4/.woostack/tmp/runs/run-legacy/manifest.json" <<'JSON'
+{
+  "runId": "run-legacy",
+  "mirror": {
+    "provider": "plane",
+    "status": "synced",
+    "project": {
+      "id": "33333333-3333-4333-8333-333333333333",
+      "name": "[Repo] howarewoo/woostack"
+    },
+    "specItem": {
+      "externalId": "11111111-1111-4111-8111-111111111111",
+      "canonicalRef": "ENG-40",
+      "nativeId": "11111111-1111-4111-8111-111111111111"
+    }
+  }
+}
+JSON
+assert_contains "$(bash "$C/retained-plane-runs.sh" "$r4")" "retained-plane-runs" "missing canonicalRepository flagged"
+
+# Incompatible Plane run with empty canonicalRepository flagged
+cat > "$r4/.woostack/tmp/runs/run-legacy/manifest.json" <<'JSON'
+{
+  "runId": "run-legacy",
+  "canonicalRepository": "",
+  "mirror": {
+    "provider": "plane",
+    "status": "synced",
+    "project": {
+      "id": "33333333-3333-4333-8333-333333333333",
+      "name": "[Repo] "
+    },
+    "specItem": {
+      "externalId": "11111111-1111-4111-8111-111111111111",
+      "canonicalRef": "ENG-40",
+      "nativeId": "11111111-1111-4111-8111-111111111111"
+    }
+  }
+}
+JSON
+assert_contains "$(bash "$C/retained-plane-runs.sh" "$r4")" "retained-plane-runs" "empty canonicalRepository flagged"
+
+# Incompatible Plane run with missing mirror.status flagged
+cat > "$r4/.woostack/tmp/runs/run-legacy/manifest.json" <<'JSON'
+{
+  "runId": "run-legacy",
+  "canonicalRepository": "howarewoo/woostack",
+  "mirror": {
+    "provider": "plane",
+    "project": {
+      "id": "33333333-3333-4333-8333-333333333333",
+      "name": "[Repo] howarewoo/woostack"
+    },
+    "specItem": {
+      "externalId": "11111111-1111-4111-8111-111111111111",
+      "canonicalRef": "ENG-40",
+      "nativeId": "11111111-1111-4111-8111-111111111111"
+    }
+  }
+}
+JSON
+assert_contains "$(bash "$C/retained-plane-runs.sh" "$r4")" "retained-plane-runs" "missing mirror.status flagged"
+
+# Incompatible Plane run with invalid mirror.status flagged
+cat > "$r4/.woostack/tmp/runs/run-legacy/manifest.json" <<'JSON'
+{
+  "runId": "run-legacy",
+  "canonicalRepository": "howarewoo/woostack",
+  "mirror": {
+    "provider": "plane",
+    "status": "in_progress",
+    "project": {
+      "id": "33333333-3333-4333-8333-333333333333",
+      "name": "[Repo] howarewoo/woostack"
+    },
+    "specItem": {
+      "externalId": "11111111-1111-4111-8111-111111111111",
+      "canonicalRef": "ENG-40",
+      "nativeId": "11111111-1111-4111-8111-111111111111"
+    }
+  }
+}
+JSON
+assert_contains "$(bash "$C/retained-plane-runs.sh" "$r4")" "retained-plane-runs" "invalid mirror.status flagged"
+
+# Incompatible Plane run with synced status but null refs flagged
+cat > "$r4/.woostack/tmp/runs/run-legacy/manifest.json" <<'JSON'
+{
+  "runId": "run-legacy",
+  "canonicalRepository": "howarewoo/woostack",
+  "mirror": {
+    "provider": "plane",
+    "status": "synced",
+    "project": {
+      "id": "33333333-3333-4333-8333-333333333333",
+      "name": "[Repo] howarewoo/woostack"
+    },
+    "specItem": {
+      "externalId": "11111111-1111-4111-8111-111111111111",
+      "canonicalRef": null,
+      "nativeId": null
+    }
+  }
+}
+JSON
+assert_contains "$(bash "$C/retained-plane-runs.sh" "$r4")" "retained-plane-runs" "synced status with null refs flagged"
+# Valid Plane run with synced mirror passes cleanly
+cat > "$r4/.woostack/tmp/runs/run-legacy/manifest.json" <<'JSON'
+{
+  "runId": "run-legacy",
+  "canonicalRepository": "howarewoo/woostack",
+  "mirror": {
+    "provider": "plane",
+    "status": "synced",
+    "project": {
+      "id": "33333333-3333-4333-8333-333333333333",
+      "name": "[Repo] howarewoo/woostack"
+    },
+    "specItem": {
+      "externalId": "11111111-1111-4111-8111-111111111111",
+      "canonicalRef": "ENG-40",
+      "nativeId": "11111111-1111-4111-8111-111111111111"
+    }
+  }
+}
+JSON
+assert_eq "$(bash "$C/retained-plane-runs.sh" "$r4")" "" "valid Plane run with synced specItem is clean"
+
+# Valid Plane run with unstarted/null preallocation passes cleanly
+cat > "$r4/.woostack/tmp/runs/run-legacy/manifest.json" <<'JSON'
+{
+  "runId": "run-legacy",
+  "canonicalRepository": "howarewoo/woostack",
+  "mirror": {
+    "provider": "plane",
+    "status": "unstarted",
+    "project": {
+      "id": "33333333-3333-4333-8333-333333333333",
+      "name": "[Repo] howarewoo/woostack"
+    },
+    "specItem": {
+      "externalId": "11111111-1111-4111-8111-111111111111",
+      "canonicalRef": null,
+      "nativeId": null
+    }
+  }
+}
+JSON
+assert_eq "$(bash "$C/retained-plane-runs.sh" "$r4")" "" "valid Plane run with unstarted null preallocation is clean"
+
+# Valid Plane run with failed status and null preallocation passes cleanly
+cat > "$r4/.woostack/tmp/runs/run-legacy/manifest.json" <<'JSON'
+{
+  "runId": "run-legacy",
+  "canonicalRepository": "howarewoo/woostack",
+  "mirror": {
+    "provider": "plane",
+    "status": "failed",
+    "project": {
+      "id": "33333333-3333-4333-8333-333333333333",
+      "name": "[Repo] howarewoo/woostack"
+    },
+    "specItem": {
+      "externalId": "11111111-1111-4111-8111-111111111111",
+      "canonicalRef": null,
+      "nativeId": null
+    }
+  }
+}
+JSON
+assert_eq "$(bash "$C/retained-plane-runs.sh" "$r4")" "" "valid Plane run with failed status and null preallocation is clean"
+
+# Linear and local runs pass cleanly without specItem
+cat > "$r4/.woostack/tmp/runs/run-legacy/manifest.json" <<'JSON'
+{
+  "runId": "run-legacy",
+  "mirror": {
+    "provider": "linear",
+    "project": {
+      "id": "99999999-9999-4999-8999-999999999999",
+      "name": "[Build] Linear feature"
+    }
+  }
+}
+JSON
+assert_eq "$(bash "$C/retained-plane-runs.sh" "$r4")" "" "Linear run without specItem passes Plane check"
+
 finish
