@@ -10,15 +10,31 @@ Execute accepts exactly one of `--project`, `--issue`, or `--run`. All three are
 
 ### Provider admission (`--project` and `--issue`)
 
-Accept exactly one caller-supplied Linear or Plane project or exact direct issue/work item (`--project` xor `--issue`).
+Linear accepts either one exact project or one exact direct issue (`--project` xor `--issue`). Plane
+accepts only `--issue` and rejects `--project` before mutation.
 
-Read the selected project/issue/work-item, complete project specification, current direct-issue/work-item set, native
-relations, and repository association independently. In issue mode the issue/work item must be one exact current
-direct item of the recorded project. For Plane, require direct parentless membership (`parent = null`), exact instance
-`baseUrl` and `workspace` scope, and complete built-in blocking relations (`blocks`). Incomplete pagination, drift,
-ambiguity, unsupported fields, or a missing read-back blocks before any branch, worktree, edit, or lifecycle write.
-Never infer approval from status, assignment, labels, comments, branch names, or local files.
+In Linear mode, read the selected project/issue, complete project specification, current direct-issue set
+(`parent = null`), native relations, and repository association independently.
 
+In Plane mode, resolve and independently read back the canonical repository project `[Repo] owner/name`
+derived from configured `artifacts.plane.repository` under the configured instance `baseUrl` and `workspace`
+before admitting target membership. Reject the target unless its direct project membership matches that canonical
+project UUID. Admit either:
+
+1. **Top-level specification work item (`parent = null`):** titled `[Build] <goal>`, `[Fix] <goal>`, or
+   `[Plan] <goal>`, with its full specification in its description. Discover and admit its complete, exact
+   single-parent child graph (`parent = <spec-item-UUID>`) and strict sequential sibling blocking relations
+   (`blocks`: exact adjacent-ordinal endpoint edges `ordinal k-1` blocks `ordinal k` for `k = 2..N`). Plane
+   specification mode repeatedly cycles the lowest unfinished child in strict ordinal order until all child work
+   items finish or a stop marker is read.
+2. **Exact child increment work item (`parent = <spec-item-UUID>`):** an exact child of a valid specification
+   work item. Admission validates the complete same-parent child graph, strict adjacent-ordinal blocking relations,
+   and the selected child's immediate unique predecessor. Execute runs only this exact child work item once and
+   touches no sibling.
+
+Incomplete pagination, drift, ambiguity, unsupported fields, cross-parent relations, malformed or skipped/reversed
+relations, unparented children, foreign scope, or missing read-backs block before any branch, worktree, edit, or
+lifecycle write. Never infer approval from status, assignment, labels, comments, branch names, or local files.
 ### Local run admission (`--run <exact-run-id> [--recheck]`)
 
 In local run mode, accept one exact `<exact-run-id>` at `<repo-root>/.woostack/tmp/runs/<exact-run-id>/`.
@@ -73,11 +89,12 @@ allocation, records, or boundaries.
 
 ## Sequential state machine
 
-Project mode repeatedly runs one cycle; issue mode runs one cycle for the selected issue only; local
-run mode repeatedly runs one cycle for each unfinished task in the approved manifest.
-
+Linear project mode, Plane specification mode, and local run mode repeatedly run cycles for the lowest
+unfinished item in the admitted graph until all items complete or a stop marker is read; exact issue mode
+(Linear direct issue or Plane exact child work item) runs exactly one cycle for the selected issue or work
+item only and stops.
 ```text
-admit (Linear/Plane project/issue or local run manifest)
+admit (Linear project/issue, Plane spec/child work item, or local run manifest)
   → read exact task/issue/work-item graph
   → [Linear provider only] resolve/read back configured `artifacts.linear.issueStates.executing` and `artifacts.linear.issueStates.inReview`
   → [Plane provider only] resolve/read back configured `artifacts.plane.issueStates` (executing, inReview, done, blocked) by exact UUID or case-sensitive name in exact scope, validate allowable group semantics
@@ -85,14 +102,14 @@ admit (Linear/Plane project/issue or local run manifest)
   → [Linear provider only] active issue? resolve/read back artifacts.linear.projectStatuses.started
   → [Linear provider only] all direct issues Backlog/Todo? persist/read back selected issue executing mapping
   → [Linear provider only] all direct issues Backlog/Todo? resolve/read back artifacts.linear.projectStatuses.started
-  → [Plane provider only] persist/read back selected work item executing mapping (project status unchanged)
+  → [Plane provider only] persist/read back selected work item and parent spec item executing mapping (project status unchanged)
   → persist task/issue intent + resume checkpoint
   → create or resume one worktree → dispatch fast-model worker
   → focused verification/smoke → bounded spec validator
   → commit/Graphite submit (with --issue in Linear provider mode; without --issue in Plane provider mode and local run mode)
   → read back branch/commit/PR/receipt
   → persist + independently read back full delivery checkpoint (Linear, Plane, or Manifest CAS)
-  → [provider only] read back inReview mapping/no-op
+  → [provider only] read back inReview mapping/no-op (and Plane spec parent done mapping when all children complete)
   → clean-worktree teardown → (stop marker? pause : next ordinal)
 ```
 
@@ -119,8 +136,7 @@ partial/foreign output, or failed/unknown mutation or read-back block at the bou
 reopening or continuing. Keep the project-status receipt separate from issue lifecycle and
 resume-checkpoint evidence.
 
-For Plane, project status is never mutated, synthesized, or gated; Execute mutates and reads back only configured work-item states (`artifacts.plane.issueStates`). Resolve all four configured mappings (executing, inReview, done, blocked) by exact native UUID or exact case-sensitive name within the canonical `baseUrl`, `workspace`, and `project` scope; reject missing, ambiguous, duplicate, foreign-scope, or group-mismatched states before mutation; independently read back native ID, name, and group; and validate allowable group semantics (executing and inReview require group `started`, done requires group `completed`, and blocked requires group `started`). Local run mode bypasses provider status synchronization.
-
+For Plane, project status is never mutated, synthesized, or gated; Execute mutates and reads back only configured work-item states (`artifacts.plane.issueStates`). Resolve all four configured mappings (executing, inReview, done, blocked) by exact native UUID or exact case-sensitive name within the canonical `baseUrl`, `workspace`, and `project` scope; reject missing, ambiguous, duplicate, foreign-scope, or group-mismatched states before mutation; independently read back native ID, name, and group; and validate allowable group semantics (executing and inReview require group `started`, done requires group `completed`, and blocked requires group `started`). Parent lifecycle aggregates its children: parent transitions to `executing` when active work begins or resumes on any child, parent transitions to `blocked` if any child blocks or fails, and parent transitions to `done` only after all its child increment work items complete. Local run mode bypasses provider status synchronization.
 A task or issue is unfinished until:
 - in Linear provider mode, its canonical state matches the resolved inReview mapping (`artifacts.linear.issueStates.inReview`) and the complete delivery checkpoint is independently read back;
 - in Plane provider mode, its canonical state matches the resolved inReview mapping (`artifacts.plane.issueStates.inReview`) or done mapping (`artifacts.plane.issueStates.done`) and the complete delivery checkpoint is independently read back;
@@ -221,16 +237,16 @@ verified diff → commit → Git/Graphite read-back → one Graphite PR submissi
 → persist + independently read back full delivery checkpoint through Execute's Plane work-item path
 → transition to and read back configured inReview state (or idempotent no-op)
 ```
-
 Only after canonical PR and verification read-back may the controller persist the complete delivery
 checkpoint to Plane and independently read back every field. After full checkpoint read-back succeeds,
 transition the work item to the configured inReview mapping (`artifacts.plane.issueStates.inReview`, resolved
 by exact UUID or case-sensitive name with group `started`) and read back its native ID, name, and group, or read back an idempotent no-op
-when executing and inReview share one native status. The completed checkpoint read-back and lifecycle
+when executing and inReview share one native status. If all child work items of the parent specification work
+item are now finished, transition the parent specification work item to `artifacts.plane.issueStates.done` and
+independently read back native ID, name, and group. The completed checkpoint read-back and lifecycle
 result together form the finished predicate: a missing, partial, failed, or unknown checkpoint read-back
 blocks teardown, resume, and sibling progression even when the native work-item status already matches
 inReview or done.
-
 In local run mode, invoke [`woostack-commit`](../../woostack-commit/SKILL.md) without `--issue` and
 without a `Resolves` line. The delivery sequence is:
 
@@ -267,19 +283,22 @@ completion state.
 ## Stop markers and evidence
 
 After a successful task or issue, independently re-read the project/manifest. A verified stop marker
-pauses before selecting another task/issue and leaves the project/run open. Without one, select the
-next lowest unfinished ordinal. Issue mode always stops after its selected issue.
+pauses before selecting another task/issue and leaves the project/run open. Without one: in Linear
+project mode, Plane specification mode, and local run mode, select the next lowest unfinished ordinal
+until all admitted items finish; in exact issue mode (Linear direct issue or Plane exact child), stop after
+the selected issue/work item.
 
 Success removes only the exact clean completed worktree after all delivery evidence reads back. Any
 failure, blocker, interruption, collision, or unknown outcome retains the worktree and records exact
 run/project/issue IDs, ordinal, path, branch, parent, dirty/index/diff state, known commit/PR,
 delivery checkpoint, verification/validator result, first uncertain boundary, and safe resume action.
-In Plane provider mode, transition and independently read back the selected work item to the configured
-blocked state (`artifacts.plane.issueStates.blocked`, resolved by exact UUID or case-sensitive name with group `started`, reading back its native ID, name, and group) with recovery evidence before a failed Plane cycle
-can resume. In local run mode, CAS-update the active task to `blocked` with that recovery evidence, increment
-`manifestRevision`, and independently reopen/read back the manifest no-follow. Resume requires fresh
-independent evidence and must reuse an existing PR/commit when present.
-
+In Plane provider mode, transition and independently read back the selected work item and its parent
+specification work item to the configured blocked state (`artifacts.plane.issueStates.blocked`, resolved
+by exact UUID or case-sensitive name with group `started`, reading back its native ID, name, and group) with
+recovery evidence before a failed Plane cycle can resume. In local run mode, CAS-update the active task to
+`blocked` with that recovery evidence, increment `manifestRevision`, and independently reopen/read back the
+manifest no-follow. Resume requires fresh independent evidence and must reuse an existing PR/commit when
+present.
 The controller handback is evidence only: selected resource and state, ordinal/mode, predecessor,
 worktree/branch, changed paths, observed verification and validator results, transition/read-back
 receipts, commit and PR, teardown or retained recovery state, stop marker, and first blocker/unknown
