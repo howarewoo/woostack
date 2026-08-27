@@ -1,0 +1,372 @@
+---
+title: Configuration
+description: Reference for woostack repository policy, configuration precedence, supported keys, types, and defaults.
+---
+
+This page lists the non-secret repository settings read by woostack. Artifact storage has its own
+[reference section](/docs/configuration/artifacts) because local storage and remote mirroring have
+different fields and guarantees.
+
+Configuration never contains credentials, grants permission to perform repository work, or approves
+artifact content.
+
+## Configuration files
+
+| File | Tracking | Scope |
+| --- | --- | --- |
+| `.woostack/config.json` | Tracked | Shared repository policy. `woostack-init` creates this file. |
+| `.woostack/config.local.json` | Gitignored by `*.local.*` | Optional primary-checkout overrides. Linked worktrees inherit it through the Git common directory. |
+
+If both files are absent, each consumer keeps its built-in defaults. An orphan local override without
+the tracked base file fails closed.
+
+## Merge and validation rules
+
+| Rule | Behavior |
+| --- | --- |
+| Object merge | Objects merge recursively. |
+| Scalar, array, or `null` override | The local value replaces the base value. Arrays do not concatenate. `null` does not delete a key. |
+| Invalid input | Empty, malformed, non-object, unreadable, symlinked, non-regular, orphaned, or credential-like configuration fails closed with the offending path. |
+| Secrets | Provider authentication stays in the host secret store. Both configuration files contain non-secret policy only. |
+| Doctor | `woostack-doctor` validates effective runtime configuration. Template presence checks and repairs apply only to `.woostack/config.json`. |
+| OMP models | OMP ignores `models`. Its profile and fixed role workers own model selection and recovery. |
+
+The effective value for this base configuration:
+
+```json
+{
+  "artifacts": {
+    "provider": "linear",
+    "linear": {
+      "repository": "https://github.com/acme/widgets",
+      "workspace": "acme",
+      "team": "ENG"
+    }
+  }
+}
+```
+
+and this local override:
+
+```json
+{
+  "artifacts": {
+    "linear": {
+      "team": "LOCAL-ENG"
+    }
+  }
+}
+```
+
+keeps `repository` and `workspace`, and sets `team` to `LOCAL-ENG`.
+
+## Top-level settings
+
+There are eight supported top-level settings. The init template writes `artifacts`, `models`,
+`review`, and `status`; omitted supported settings use built-in defaults.
+
+| Setting | Read by | Purpose |
+| --- | --- | --- |
+| [`artifacts`](/docs/configuration/artifacts) | Init, Build, Fix, Plan, Execute, and selected artifact-aware workflows | Selects local storage or optional Linear or Plane mirroring. |
+| `review` | [woostack-review](/docs/skills/woostack-review) | Review angles, finding visibility, diff filters, skip rules, tier forcing, chunking, and metrics. |
+| `models` | Review, Audit, and host subagent drivers | Shared fast, standard, and deep model leaves for hosts that consume repository model policy. OMP ignores this setting. |
+| `audit` | [woostack-audit](/docs/skills/woostack-audit) | Standing-code audit angles, filtering, chunking, severity floor, and report directory. |
+| `review_sweep` | [woostack-sweep](/docs/skills/woostack-sweep) | Maximum review rounds for one stack sweep. |
+| `commit` | [woostack-commit](/docs/skills/woostack-commit) | Command to run before staging. |
+| `status` | [woostack-status](/docs/skills/woostack-status) | Age threshold for stale active rows. |
+| `base_branch` | Init and worktree workflows | Trunk branch used for worktrees and pull requests. |
+
+## Artifact providers
+
+<Cards>
+  <Card title="Artifact overview" href="/docs/configuration/artifacts" description="Provider selection and authority boundaries." />
+  <Card title="Local" href="/docs/configuration/artifacts/local" description="Default files, run layout, retention, and recovery." />
+  <Card title="Linear" href="/docs/configuration/artifacts/linear" description="Linear fields, identities, project hierarchy, and lifecycle behavior." />
+  <Card title="Plane" href="/docs/configuration/artifacts/plane" description="Plane fields, identities, work-item hierarchy, and lifecycle behavior." />
+</Cards>
+
+## A complete example
+
+All keys in this example are optional. JSON has no comments, so the tables below own their exact
+types, defaults, and meaning.
+
+```json
+{
+  "artifacts": {
+    "provider": "local"
+  },
+  "review": {
+    "severity_floor": "high",
+    "nits": true,
+    "angles": {
+      "force": ["tests"],
+      "skip": ["seo"]
+    },
+    "ignore": ["**/*.generated.ts", "pnpm-lock.yaml"],
+    "project_rules": ["docs/engineering/rules.md"],
+    "authors_skip": ["dependabot[bot]", "renovate[bot]"],
+    "force_tier": "",
+    "chunking": { "max_loc": 4000 },
+    "defer_markers": true,
+    "metrics": false
+  },
+  "models": {
+    "fast": { "model": "google/gemini-3-5-flash", "effort": "low" },
+    "standard": { "model": "openai/gpt-5.5", "effort": "medium" },
+    "deep": { "model": "anthropic/claude-opus-4-8", "effort": "xhigh" }
+  },
+  "audit": {
+    "severity_floor": "high",
+    "angles": {
+      "force": [],
+      "skip": ["deps"]
+    },
+    "ignore": ["**/*.generated.ts"],
+    "chunking": { "max_loc": 4000 },
+    "report_dir": ".woostack/audits"
+  },
+  "review_sweep": { "max_rounds": 3 },
+  "commit": { "pre_commit": "pnpm format && pnpm test" },
+  "status": { "staleDays": 14 },
+  "base_branch": "main"
+}
+```
+
+## Review engine
+
+All review keys nest under `review`. [woostack-review](/docs/skills/woostack-review) validates the
+types when it runs; an unknown key inside `review` is a hard error.
+
+### Finding severity and nits
+
+A finding at or above the severity floor is a normal (blocking-eligible) finding. A finding below
+the floor is surfaced as a non-blocking nit, or dropped entirely when nits are off. A below-floor
+finding explicitly marked blocking always surfaces regardless of the floor.
+
+| Key | Type | Default | Meaning |
+| --- | --- | --- | --- |
+| `review.severity_floor` | string | `"high"` | Threshold: `low`, `medium`, or `high` (case-insensitive). |
+| `review.nits` | boolean | `true` | `true` posts below-floor findings as `Nit:` comments; `false` drops them. |
+
+### Angle selection
+
+Angles are auto-detected from the diff and prefetched review context. Force an angle to run it regardless of detection; skip one
+to keep it off. `force` wins when an angle appears in both. The `bugs`, `security`, and `simplify`
+angles can never be skipped. They are silently kept even if listed.
+
+| Key | Type | Default | Meaning |
+| --- | --- | --- | --- |
+| `review.angles.force` | array of string | `[]` | Angles always enabled. |
+| `review.angles.skip` | array of string | `[]` | Angles never enabled (except `bugs` / `security` / `simplify`). |
+
+See the [review angle reference](/docs/concepts/review-angles) for all 22 angles, including what
+each one audits, when it runs automatically, and its model tier.
+
+### Filtering the diff
+
+| Key | Type | Default | Meaning |
+| --- | --- | --- | --- |
+| `review.ignore` | array of string | `[]` | fnmatch globs; matching files are excluded from angle detection and from the diff body before analysis. |
+| `review.project_rules` | array of string | `[]` | fnmatch globs of extra rule files appended to the auto-discovered `rules.md`; triggers the `conventions` angle. |
+
+### Skipping PRs automatically
+
+Some PRs should short-circuit the whole review with a skip comment. By default, three bot authors
+are skipped (`dependabot[bot]`, `renovate[bot]`, and `github-actions[bot]`), and PR titles
+matching the release-rollup pattern `^(staging\|release\|chore\(release\))` are skipped. Set either
+to opt out: an empty array for `authors_skip`, or an empty string for the pattern.
+
+| Key | Type | Default | Meaning |
+| --- | --- | --- | --- |
+| `review.authors_skip` | array of string | three bots (above) | PR author logins that short-circuit the review. `[]` opts out. |
+| `review.release_rollup_pattern` | string | release regex (above) | Python regex matched against the PR title. `""` opts out. |
+
+### Model selection
+
+Each review subagent runs at a tier (`fast`, `standard`, or `deep`). On hosts that consume
+repository model configuration, the top-level `models` namespace maps that tier to a concrete
+model and optional effort. The namespace sits at the root, not under `review`, so review, audit,
+and local subagent drivers can share it.
+
+omp is the host-owned exception. It ignores the entire `models` namespace and maps the effective
+tier to its fixed init-managed role worker instead. Changing a flat or provider-specific model leaf
+never changes an omp dispatch.
+
+| Host | Repository model config | Flat fallback | Dispatch behavior |
+| --- | --- | --- | --- |
+| Claude Code | `models.anthropic.fast`, `.standard`, or `.deep` | matching flat leaf | Passes the resolved Anthropic model and effort to each Task call. The single-session CI action can pass the model, but not effort. |
+| Codex | `models.openai.fast`, `.standard`, or `.deep` | matching flat leaf | Passes the resolved OpenAI model and reasoning effort when the host supports per-call overrides. A single-model session resolves once for the whole run. |
+| Gemini | `models.google.fast`, `.standard`, or `.deep` | matching flat leaf | Uses the Google model for the resolved tier. |
+| OpenRouter | `models.openrouter.fast`, `.standard`, or `.deep` | matching flat leaf | Uses the OpenRouter model and reasoning effort for the resolved tier. |
+| omp (Oh My Pi) | ignored | ignored | Selects the fixed role-backed worker; omp owns its model and fallback. |
+
+For hosts that consume this namespace, a provider-specific leaf takes precedence over the
+matching flat leaf. The same config file can therefore supply provider-neutral defaults and
+provider-specific overrides:
+
+```json
+{
+  "models": {
+    "fast": { "model": "google/gemini-3-5-flash", "effort": "low" },
+    "standard": { "model": "openai-codex/gpt-5.6-sol", "effort": "medium" },
+    "deep": { "model": "anthropic/claude-opus-4-8", "effort": "xhigh" },
+    "anthropic": {
+      "fast": { "model": "claude-opus-4-8", "effort": "low" },
+      "standard": { "model": "claude-opus-4-8", "effort": "medium" },
+      "deep": { "model": "claude-opus-4-8", "effort": "xhigh" }
+    },
+    "openai": {
+      "fast": { "model": "gpt-5.5", "effort": "low" },
+      "standard": { "model": "gpt-5.5", "effort": "medium" },
+      "deep": { "model": "gpt-5.5", "effort": "high" }
+    }
+  }
+}
+```
+
+In this example, Claude Code selects the Anthropic branch and Codex selects the OpenAI branch.
+Another repository-model host can use the flat leaves. omp ignores every entry in the block.
+How each non-omp host consumes the schema, including spawn primitives, per-call routing knobs,
+and fallback, lives in its canonical host reference under
+`skills/using-woostack/references/hosts/`.
+
+Each tier leaf supports all three shared forms:
+
+- a model-slug string;
+- an object `{ "model": "<slug>", "effort": "<level>" }`; or
+- a non-empty ordered array of either form, used as a fallback preference list.
+
+Supported effort levels are `minimal`, `low`, `medium`, `high`, and `xhigh`.
+`review.force_tier` pins every review subagent to one tier, like running the review with `--fast`
+or `--deep`.
+
+In an array leaf, entry 0 is the primary and has the exact semantics of the bare value. Entries
+1..n declare a static preference order; runtime enactment remains host-specific. A review host
+with an explicit per-call model override can redispatch a rate-limited worker along later entries;
+other consumers follow their host reference. omp does not read or enact the array. An empty array
+is a hard config error.
+
+```json
+{
+  "models": {
+    "deep": [
+      { "model": "openai-codex/gpt-5.6-sol", "effort": "xhigh" },
+      { "model": "openai-codex/gpt-5.6-sol", "effort": "high" },
+      "google/gemini-3-5-flash"
+    ]
+  }
+}
+```
+
+The [complete example](#a-complete-example) uses flat leaves to assign non-omp hosts a model for
+each tier.
+
+**Clean break:** `models` moved out of `review`. A `review.models` block is a hard config error.
+Move it to the top level. `woostack-doctor` warns on a lingering `review.models`.
+
+| Key | Type | Default | Meaning |
+| --- | --- | --- | --- |
+| `models.fast`, `models.standard`, `models.deep` | string, `{model, effort}`, or array of those (fallback list) | provider table | Provider-agnostic model for the three shared tiers on repository-model hosts. |
+| `models.anthropic.*`, `models.openai.*`, `models.google.*`, `models.openrouter.*` | string, `{model, effort}`, or array of those (fallback list) | provider table | Per-provider override, with one `fast`, `standard`, or `deep` leaf. |
+| `review.force_tier` | string | absent (= standard) | Pin every subagent to `fast` or `deep`. Empty string = absent. |
+
+The default model per provider and tier:
+
+| Provider | `fast` | `standard` | `deep` |
+| --- | --- | --- | --- |
+| anthropic | `claude-opus-4-8` (effort `low`) | `claude-opus-4-8` (effort `medium`) | `claude-opus-4-8` (effort `xhigh`) |
+| openai | `gpt-5.5` | `gpt-5.5` | `gpt-5.5` |
+| google | `gemini-3-5-flash` | `gemini-3-5-flash` | `gemini-3-5-flash` |
+| openrouter | `openrouter/deepseek/deepseek-v4-flash` | `openrouter/deepseek/deepseek-v4-pro` | `openrouter/deepseek/deepseek-v4-pro` |
+
+Anthropic routes every tier to `claude-opus-4-8`, so the tier is carried by reasoning `effort`
+(`low`/`medium`/`xhigh`) rather than by the model. Effort applies on per-call hosts (Claude Code);
+the CI single-session `claude-code-action` step passes only the model.
+
+On repository-model hosts, the tier resolves by precedence, highest to lowest: an inline
+`--fast` / `--deep` comment on the PR → the action's `force_tier` input →
+`review.force_tier` → the action's `model` input → the matching provider-specific leaf → the
+matching flat leaf → the provider table default. On omp, only the effective-tier decisions apply;
+the fixed worker map replaces every model-resolution step.
+
+### Chunking, adjudication, and metrics
+
+| Key | Type | Default | Meaning |
+| --- | --- | --- | --- |
+| `review.chunking.max_loc` | integer ≥ 0 | `4000` | Changed-line threshold; a larger diff is split into chunks and each angle fans out across them. `0` disables chunking. |
+| `review.defer_markers` | boolean | `true` | `true` honors inline `woostack-defer(<ref>)` markers, demoting a matching finding to a non-blocking nit. `security` findings are never deferred. |
+| `review.metrics` | boolean | `false` | `true` writes a per-angle signal/noise breakdown, folds a rolling non-authoritative local `.woostack/metrics.json`, and prints advisory `review.angles.skip` suggestions when an optional angle has at least 20 local runs with zero blockers and either zero kept findings or only nit findings. |
+| `review.fix_commands` | array of string | `[]` | Reserved for a future loop mode; parsed but not yet consumed. |
+
+## Audit engine
+
+Audit settings nest under `audit`. [woostack-audit](/docs/skills/woostack-audit) validates this
+object when it runs and hard-fails on unknown audit-local keys. The audit always runs
+`simplify` and `production-readiness`, skips `architecture`, and keeps the `bugs` and `security`
+safety floor from the review engine. Configured force and skip lists add to those defaults.
+
+| Key | Type | Default | Meaning |
+| --- | --- | --- | --- |
+| `audit.angles.force` | array of string | `[]` | Additional review angles to run. |
+| `audit.angles.skip` | array of string | `[]` | Additional angles to skip. `simplify` cannot be skipped. |
+| `audit.severity_floor` | string | `"high"` | Finding threshold: `low`, `medium`, or `high`. |
+| `audit.ignore` | array of string | `[]` | Globs excluded from the synthetic audit diff. |
+| `audit.chunking.max_loc` | integer ≥ 0 | `4000` | Changed-line threshold for splitting the synthetic diff into chunks. |
+| `audit.report_dir` | string | `".woostack/audits"` | Repository-relative directory for audit reports. |
+
+Root model tiers also drive [woostack-audit](/docs/skills/woostack-audit) on hosts that consume
+repository model configuration. Put overrides in the root `models` namespace using flat leaves
+(`models.fast`, `models.standard`, `models.deep`) or provider-specific leaves. A nested
+`audit.models` block is a hard error.
+
+## Sweep rounds
+
+[woostack-sweep](/docs/skills/woostack-sweep) drives a stack of PRs to a clean review, looping
+review → address-comments per PR.
+
+| Key | Type | Default | Meaning |
+| --- | --- | --- | --- |
+| `review_sweep.max_rounds` | integer > 0 | `3` | Maximum review→address rounds per PR before the sweep declares it blocked. Freeze the Review's zero-blocker/blocker classification before Address; thread resolution cannot erase a blocker. A changed head reruns Review when that frozen result contains a blocker (including a mixed set). Correction-only delta proof means the entire pre/post-head delta is limited solely to corrections for the exact recorded non-blocking Review findings; unrelated, partial, or unverified deltas block. A zero-blocker Address-produced head may advance without re-review only with that proof, focused verification, full reply/resolution evidence, descendant restack, and complete head/base/ancestry/thread read-back. A non-positive or non-integer value warns and falls back to `3`. |
+
+## Commit hook
+
+[woostack-commit](/docs/skills/woostack-commit) can run a command before it stages anything: a
+formatter, linter, or test runner.
+
+| Key | Type | Default | Meaning |
+| --- | --- | --- | --- |
+| `commit.pre_commit` | string | absent (no-op) | Shell command run from the repo root before staging. A non-zero exit stops the commit; if it changes files, relevance is reassessed before staging. |
+
+## Status board
+
+[woostack-status](/docs/skills/woostack-status) flags an active repository row that has remained
+unchanged past the configured threshold.
+
+| Key | Type | Default | Meaning |
+| --- | --- | --- | --- |
+| `status.staleDays` | integer | `14` | Days of inactivity before an active repository row is flagged stale. |
+
+## Base branch
+
+`base_branch` is a top-level string (not nested) naming the trunk branch that PRs target and that
+worktrees are cut from.
+
+| Key | Type | Default | Meaning |
+| --- | --- | --- | --- |
+| `base_branch` | string | auto-detected | Trunk branch name. When absent, woostack resolves the `WOOSTACK_BASE_BRANCH` environment variable, then the remote's default branch, then `main`. |
+
+## Defaults and doctor
+
+<Callout type="info">
+  Init scaffolds `models`, `review`, and `status`, then automatically adds validated
+  Linear defaults when safe authenticated discovery succeeds. Missing connectivity never blocks
+  local initialization. Build and Fix operate with default local run authority under
+  `.woostack/tmp/runs/<run-id>/`; setting `artifacts.provider: "linear"` or `"plane"` enables optional provider mirroring (Build, Fix, and Plan).
+  [woostack-doctor](/docs/skills/woostack-doctor) validates effective runtime policy; explicit live checks
+  prove optional artifact connectivity.
+</Callout>
+
+## Migration notes
+
+- `AUDIT_CONFIG_FILE` is removed: [woostack-audit](/docs/skills/woostack-audit) reads effective configuration through the canonical resolver.
+- Review empty-config fallback is removed: an empty `.woostack/config.json` fails closed as malformed instead of falling back to default values.

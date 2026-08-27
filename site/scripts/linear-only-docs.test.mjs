@@ -66,7 +66,11 @@ const PATHS = [
   'skills/woostack-ideate/SKILL.md',
   'skills/woostack-harden/SKILL.md',
   'site/content/docs/concepts.mdx',
-  'site/content/docs/configuration.mdx',
+  'site/content/docs/configuration/index.mdx',
+  'site/content/docs/configuration/artifacts/index.mdx',
+  'site/content/docs/configuration/artifacts/local.mdx',
+  'site/content/docs/configuration/artifacts/linear.mdx',
+  'site/content/docs/configuration/artifacts/plane.mdx',
   'site/content/docs/getting-started.mdx',
   'site/content/docs/hermes.mdx',
   'site/content/docs/index.mdx',
@@ -391,9 +395,11 @@ test('provider-neutral configuration and project label preservation contracts ar
   assert.match(contract, /at most one write alongside project creation or admission/i);
   assert.match(contract, /independently read back the complete label set/i);
 
-  const configDoc = read('site/content/docs/configuration.mdx').replace(/\s+/g, ' ');
+  const configDoc = read('site/content/docs/configuration/index.mdx').replace(/\s+/g, ' ');
+  const linearArtifacts = read('site/content/docs/configuration/artifacts/linear.mdx').replace(/\s+/g, ' ');
   assert.match(configDoc, /artifacts\.provider/i);
-  assert.match(configDoc, /artifacts\.linear\.projectLabels/i);
+  assert.match(linearArtifacts, /artifacts\.linear\.projectLabels/i);
+
 });
 
 test('retired WOO-167 assets are absent and the WOO-166 Review mode is absent', async () => {

@@ -121,7 +121,8 @@ Review-policy fragment:
 - **`review.ignore`**: Exclude generated or external code files from PR reviews.
 
 For the full policy surface, see the authored
-[configuration reference](site/content/docs/configuration.mdx).
+[configuration reference](site/content/docs/configuration/index.mdx).
+
 
 ### 5. Artifact Context, Provider Mirroring, and External Engineers
 

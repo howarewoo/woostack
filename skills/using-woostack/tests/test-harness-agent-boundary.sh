@@ -164,7 +164,11 @@ forbid(harness_meta, r'"hermes"', "harness navigation still presents Hermes as a
 for relative in (
     "site/content/docs/index.mdx",
     "site/content/docs/getting-started.mdx",
-    "site/content/docs/configuration.mdx",
+    "site/content/docs/configuration/index.mdx",
+    "site/content/docs/configuration/artifacts/index.mdx",
+    "site/content/docs/configuration/artifacts/local.mdx",
+    "site/content/docs/configuration/artifacts/linear.mdx",
+    "site/content/docs/configuration/artifacts/plane.mdx",
     "site/content/docs/concepts.mdx",
     "site/content/docs/concepts/index.mdx",
     "site/content/docs/concepts/building-rules.mdx",
