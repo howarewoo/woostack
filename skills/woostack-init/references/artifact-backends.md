@@ -43,11 +43,11 @@ authority, local persistence, mutation ordering, failure, and independent read-b
 Adding a provider requires a new profile implementing those same boundaries plus explicit workflow
 routing and deterministic contract coverage; it does not weaken or modify the shared invariants.
 
-Build resolves one exact caller-supplied project or creates one only from validated selected-provider
-defaults. Fix reaches proved root cause before project resolution or creation. An exact Fix source
-resource is preserved context, not the Fix plan or permission to work. Standalone Plan writes only to
-an exact selected project (or the canonical repository project when the provider profile defines one)
-when persistence is requested. Local artifacts may be mirrored once after they are complete.
+Build resolves one exact caller-supplied or profile-configured project and creates one only when the
+selected provider profile permits it. Fix reaches proved root cause before project resolution or creation.
+An exact Fix source resource is preserved context, not the Fix plan or permission to work. Standalone Plan writes only to
+an exact selected or profile-configured project when persistence is requested. Local artifacts may be
+mirrored once after they are complete.
 
 A mirror failure is recorded in the manifest and is nonblocking for local workflow authority.
 Supplying a project never relaxes repository, provider scope, pagination, capability, or read-back

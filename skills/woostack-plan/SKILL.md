@@ -18,8 +18,8 @@ returns before synchronization.
 /woostack-plan [--project <exact Linear or Plane URL-or-UUID>]
 ```
 For standalone Linear use, `--project` is mandatory. For standalone Plane use, `--project` is optional
-and defaults to the canonical `[Repo] owner/name` repository project (when supplied, it must match the
-canonical repository project). Standalone use requires `artifacts.provider: "linear"` or
+and omitted input uses the exact `artifacts.plane.project`; when supplied, it must identify that same
+native project. Standalone use requires `artifacts.provider: "linear"` or
 `artifacts.provider: "plane"` in effective repository configuration. When `artifacts.provider` is "local"
 or omitted, standalone Plan fails closed before any provider access with an error stating that provider
 operations require `artifacts.provider: "linear"` or `artifacts.provider: "plane"`. There is no CLI provider override.
@@ -32,10 +32,10 @@ Standalone Plan loads the shared
 | `"plane"` | [Plane](../woostack-init/references/artifact-providers/plane.md) | [Plane procedure](../woostack-build/references/plane-procedure.md) |
 
 For Linear, resolve only the exact selected project, which must already exist and match the canonical
-repository. For Plane, resolve the canonical `[Repo] owner/name` repository project (or create it on first
-use when `--project` is omitted), requiring any explicitly supplied `--project` to match. The project must
-match the canonical repository and belong to the caller-selected complete provider scope. Wrong resource type,
-missing Linear project, foreign scope, incomplete read, or conflicting content blocks before mutation.
+repository. For Plane, resolve only the exact configured project, requiring any explicitly supplied
+`--project` to identify the same native project. The project must match the canonical repository and
+belong to the configured provider scope. Wrong resource type, missing project, foreign scope,
+incomplete read, or conflicting content blocks before mutation.
 There is no fuzzy-discovery or alternate-provider path. Standalone Plan also reads the repository,
 canonical parent branch and last admitted tip, existing patterns, and relevant tests.
 Build/Fix-delegated Plan instead obeys the shared
@@ -161,8 +161,8 @@ identity or an execution claim.
 - One direct project issue (Linear) or specification child work item (Plane) per increment; no extra
   container issue and no hidden planning ledger.
 - Ordinals are exactly `1..N`; native dependencies are exactly `N-1 → N`.
-- Standalone Plan requires `--project` for Linear; for Plane `--project` is optional and defaults to the
-  canonical `[Repo] owner/name` repository project.
+- Standalone Plan requires `--project` for Linear; for Plane `--project` is optional and omitted input
+  uses the exact `artifacts.plane.project`.
 - Every issue carries the complete executor contract, size evidence, stop marker, and declared
   Graphite parent.
 - Direct issue plans target about 500 or fewer hand-written changed lines, with only the stated

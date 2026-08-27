@@ -37,7 +37,7 @@ def validate_plane_graph(artifact, canonical_repo, expected_instance=EXPECTED_PL
     """
     Validates Plane artifact hierarchy against:
     1. Configured instance.baseUrl and workspace scope.
-    2. Canonical repository project exact membership (id, name='[Repo] owner/name', canonicalRepository).
+    2. Configured project exact membership (native id and canonicalRepository).
     3. Complete terminal pagination (isComplete=True, hasMore=False, nextCursor=None).
     4. Specification items:
        - Profile-defined owned spec identities (must start with [Build] , [Fix] , or [Plan] )
@@ -66,7 +66,7 @@ def validate_plane_graph(artifact, canonical_repo, expected_instance=EXPECTED_PL
         if inst.get("workspace") != expected_instance.get("workspace"):
             return False, {}, {}, None
 
-    # 2. Canonical repository project verification
+    # 2. Configured project verification
     proj = artifact.get("project")
     if not isinstance(proj, dict):
         return False, {}, {}, None
@@ -75,8 +75,6 @@ def validate_plane_graph(artifact, canonical_repo, expected_instance=EXPECTED_PL
     if not proj_id or not proj_name:
         return False, {}, {}, None
     if proj.get("canonicalRepository") != canonical_repo:
-        return False, {}, {}, None
-    if proj_name != f"[Repo] {canonical_repo}":
         return False, {}, {}, None
 
     # 3. Complete terminal pagination verification

@@ -89,14 +89,14 @@ issue/work-item reference. Read that resource through official host-exposed MCP 
 relevant pagination, verify its identity and claimed canonical repository, and retain the revision
 used.
 
-For Linear, an artifact represents a feature project or direct issue. For Plane, the single project is
-`[Repo] owner/name` representing repository association only; top-level work items (`parent = null`) are
-specification parents (`[Build] ...`, `[Fix] ...`, `[Plan] ...`) with aggregate lifecycle; and child work items
-(`parent = <spec-item-UUID>`) are increment work items with sequential blocking relations. Status discovers
-the canonical `[Repo] owner/name` project, top-level specification items, and exact child increment graphs with
-complete paginated read-back and identity checks. Status renders the repository project as repository association
-only; exposes specification aggregate lifecycle and child increment states without presenting project lifecycle
-as delivery state. Multiple specifications within one repository project are cleanly partitioned by their respective
+For Linear, an artifact represents a feature project or direct issue. For Plane, the configured project
+represents repository association only; top-level work items (`parent = null`) are specification
+parents (`[Build] ...`, `[Fix] ...`, `[Plan] ...`) with aggregate lifecycle; and child work items
+(`parent = <spec-item-UUID>`) are increment work items with sequential blocking relations. Status
+resolves the configured project, top-level specification items, and exact child increment graphs with
+complete paginated read-back and identity checks. Status renders the project as repository association
+only; exposes specification aggregate lifecycle and child increment states without presenting project
+lifecycle as delivery state. Multiple specifications within one project are cleanly partitioned by their respective
 parent specification items. Incomplete graphs, cross-parent relations, foreign projects, or unparented children
 are rejected from enrichment.
 

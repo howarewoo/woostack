@@ -52,9 +52,9 @@ Only for an exact caller-supplied provider project or direct-resource reference,
 [Plane](../woostack-init/references/artifact-providers/plane.md) profile:
 
 - discover the selected profile's official-MCP read capabilities;
-- resolve the exact project or direct-resource identity in complete profile-defined scope (for Plane: discover
-  the canonical `[Repo] owner/name` project, top-level `[Build]/[Fix]/[Plan]` specification items, and exact
-  child increment graphs with complete paginated read-back and identity checks);
+- resolve the exact project or direct-resource identity in complete profile-defined scope (for Plane:
+  resolve the configured project, top-level `[Build]/[Fix]/[Plan]` specification items, and exact child
+  increment graphs with complete paginated read-back and identity checks);
 - fully paginate only relevant descriptions, updates, comments, and relations;
 - verify canonical repository association when claimed;
 - extract the goal, specification, fix record, implementation plan, decisions, and canonical

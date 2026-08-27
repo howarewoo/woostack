@@ -76,9 +76,9 @@ context, load the shared
 
 Use only the selected profile's host-exposed official-MCP read capabilities. Independently read the
 exact resource in complete profile-defined scope, with complete pagination for any used updates,
-comments, or relations. For Plane, resolve the canonical repository project `[Repo] owner/name`,
-top-level specification item, or exact child work item. Require canonical repository association from
-verified provider and Git/GitHub evidence before retaining context; otherwise disclose and omit it.
+comments, or relations. For Plane, resolve the configured project, top-level specification item, or
+exact child work item. Require canonical repository association from verified provider and Git/GitHub
+evidence before retaining context; otherwise disclose and omit it.
 Reject only identities inferred from titles, slugs, timestamps, recent activity, or approximate matching.
 Missing, partial, stale, foreign, or conflicting context is disclosed and omitted; it never blocks a
 standing-code audit.

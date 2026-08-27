@@ -36,14 +36,8 @@ if command -v jq >/dev/null 2>&1; then
       baseUrl: "https://api.plane.so",
       workspace: "Acme",
       repository: "https://github.com/acme/widgets",
+      project: "33333333-3333-4333-8333-333333333330",
       projectLabels: ["woostack", "backend"],
-      projectStatuses: {
-        backlog: "Backlog",
-        planned: "Planned",
-        started: "Started",
-        completed: "Completed",
-        canceled: "Canceled"
-      },
       issueStates: {
         planned: "Backlog",
         executing: "In Progress",
@@ -59,7 +53,7 @@ if command -v jq >/dev/null 2>&1; then
   assert_contains "$(bash "$C/config-keys.sh" "$r2")" "projectLabels must be an array of non-empty strings" "empty projectLabels under plane fails"
 
   jq 'del(.artifacts.plane.baseUrl)' "$r2/.woostack/config.json" >"$tmp" && mv "$tmp" "$r2/.woostack/config.json"
-  assert_contains "$(bash "$C/config-keys.sh" "$r2")" "plane policy requires baseUrl, workspace, repository, projectLabels, projectStatuses, and issueStates only" "missing baseUrl under plane fails"
+  assert_contains "$(bash "$C/config-keys.sh" "$r2")" "plane policy requires baseUrl, workspace, repository, project, projectLabels, and issueStates only" "missing baseUrl under plane fails"
   jq '.artifacts = {provider: "linear"}' "$r2/.woostack/config.json" >"$tmp" && mv "$tmp" "$r2/.woostack/config.json"
   assert_contains "$(bash "$C/config-keys.sh" "$r2")" "linear policy requires repository, workspace, team, projectLabels, projectStatuses, and issueStates only" "provider linear requires full provider fields"
   jq '.artifacts = {

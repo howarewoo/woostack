@@ -132,11 +132,11 @@ require("linear_context", r"Reject missing, ambiguous, duplicate, or incomplete 
 
 # Plane-specific context and procedure checks
 require("plane_context", r"projectLabels")
-require("plane_context", r"completely paginate all workspace project labels.*flatten every page.*require null terminal cursors.*resolve.*before any project creation or admission mutation")
-require("plane_context", r"exact native UUID.*or exact case-sensitive name|exact native UUID")
-require("plane_context", r"union.*configured labels with existing project labels")
-require("plane_context", r"preserving unrelated.*existing labels")
-require("plane_context", r"official Plane MCP lacks project-label operations.*fails closed")
+require("plane_context", r"Completely paginate all workspace project labels.*require null terminal cursors.*resolve")
+require("plane_context", r"exact native UUID.*or exact case-sensitive name")
+require("plane_context", r"Union resolved labels with the configured project's.*existing labels")
+require("plane_context", r"preserving unrelated labels")
+require("plane_context", r"Preflight official Plane MCP capabilities.*project-label")
 require("plane_context", r"external_source.*external_id")
 require("plane_context", r"parent = null")
 require("plane_context", r"parent = <spec-item-UUID>|exact children of the specification work item")
@@ -309,19 +309,15 @@ def simulate_plane_build_mirror(config, mcp, spec_text, plan_increments):
                 raise ValueError(f"unresolved label: {name}")
             resolved_label_ids.append(label_map[name])
 
-    # 4. Project creation/admission: canonical [Repo] owner/name project
-    repo_name = config["plane"].get("repository", "acme/widgets").replace("https://github.com/", "")
-    canonical_project_name = f"[Repo] {repo_name}"
-    proj_ext_id = "ext-proj-1"
+    # 4. Exact configured project admission
+    project_ref = config["plane"]["project"]
     manifest = {
         "stableTaskMappings": {},
         "mirror": {
             "provider": "plane",
             "project": {
-                "externalId": proj_ext_id,
                 "baseUrl": canonical_url,
                 "workspace": config["plane"]["workspace"],
-                "name": canonical_project_name,
                 "canonicalRef": None,
                 "nativeId": None,
             },
@@ -336,16 +332,16 @@ def simulate_plane_build_mirror(config, mcp, spec_text, plan_increments):
         }
     }
 
-    existing_project_labels = ["lbl-existing"]
-    effective_labels = list(dict.fromkeys(existing_project_labels + resolved_label_ids))
-    proj_created = mcp.create_project(config["plane"]["workspace"], canonical_project_name, labels=effective_labels,
-                                      external_source="woostack", external_id=proj_ext_id)
-    # Independent read_project before project binding (create response alone cannot authorize binding)
-    proj = mcp.read_project(config["plane"]["workspace"], proj_created["id"])
+    proj = mcp.read_project(config["plane"]["workspace"], project_ref)
     if not proj:
-        raise RuntimeError("failed to read back created project")
+        raise RuntimeError("failed to read configured project")
+    effective_labels = list(dict.fromkeys(proj.get("labels", []) + resolved_label_ids))
+    mcp.projects[proj["id"]]["labels"] = effective_labels
+    mcp.operations.append(("update_project_labels", proj["id"], effective_labels))
+    proj = mcp.read_project(config["plane"]["workspace"], project_ref)
+    if not proj or proj.get("labels") != effective_labels:
+        raise RuntimeError("failed to read back configured project labels")
 
-    # Bind canonical/native IDs after independent read-back into mirror.project only (never stableTaskMappings; no readable ID assumed)
     manifest["mirror"]["project"]["nativeId"] = proj["id"]
     manifest["mirror"]["project"]["canonicalRef"] = proj["id"]
 
@@ -416,10 +412,13 @@ mcp_valid.workspace_labels = [
     {"id": "l-2", "name": "Backend"},
     {"id": "l-3", "name": "Docs"},
 ]
+configured_project = mcp_valid.create_project("acme", "Product Delivery", labels=["lbl-existing"])
+mcp_valid.operations.clear()
 cfg_valid = {
     "plane": {
         "baseUrl": "https://app.plane.so",  # Cloud app/api equivalence
         "workspace": "acme",
+        "project": configured_project["id"],
         "projectLabels": ["Core", "Backend"],
     }
 }
@@ -433,12 +432,11 @@ assert manifest_out["mirror"]["status"] == "synced"
 assert len(manifest_out["mirror"]["relations"]) == 2  # 3 items -> 2 relations
 assert mcp_valid.projects["proj-1"]["labels"] == ["lbl-existing", "l-1", "l-2"]  # preserves unrelated label
 
-assert manifest_out["mirror"]["project"]["externalId"] == "ext-proj-1"
+assert "externalId" not in manifest_out["mirror"]["project"]
 assert manifest_out["mirror"]["project"]["baseUrl"] == "https://api.plane.so"
 assert manifest_out["mirror"]["project"]["workspace"] == "acme"
-assert manifest_out["mirror"]["project"]["nativeId"] == "proj-1"
-assert manifest_out["mirror"]["project"]["canonicalRef"] == "proj-1"
-assert manifest_out["mirror"]["project"]["name"] == "[Repo] acme/widgets"
+assert manifest_out["mirror"]["project"]["nativeId"] == configured_project["id"]
+assert manifest_out["mirror"]["project"]["canonicalRef"] == configured_project["id"]
 assert manifest_out["mirror"]["specItem"]["nativeId"] == "wi-1"
 assert manifest_out["mirror"]["specItem"]["canonicalRef"] == "wi-1"
 # Project and spec item never enter stableTaskMappings and assume no readable ID
@@ -447,27 +445,20 @@ assert "wi-1" not in manifest_out["stableTaskMappings"]
 assert set(manifest_out["stableTaskMappings"].keys()) == {"task-1", "task-2", "task-3"}
 assert "readableId" not in manifest_out["mirror"]["project"]
 
-# Operation counts and ordering check: prove:
-# 1. create_project -> read_project -> bind
-# 2. create spec work item -> read_work_item spec -> bind spec
-# 3. for each child: create child work item -> read_work_item child -> bind child
-# 4. create relations only after all children are independently read back
-# 5. read_back_graph
+# Operation counts and ordering: the configured project is read and labeled before work-item creation.
 create_proj_ops = [op for op in mcp_valid.operations if op[0] == "create_project"]
 read_proj_ops = [op for op in mcp_valid.operations if op[0] == "read_project"]
 create_wi_ops = [op for op in mcp_valid.operations if op[0] == "create_work_item"]
 read_wi_ops = [op for op in mcp_valid.operations if op[0] == "read_work_item"]
 create_rel_ops = [op for op in mcp_valid.operations if op[0] == "create_relation"]
-assert len(create_proj_ops) == 1
-assert len(read_proj_ops) == 1
-assert len(create_wi_ops) == 4  # 1 spec item + 3 increments
-assert len(read_wi_ops) == 4    # 1 spec item + 3 increments
+assert len(create_proj_ops) == 0
+assert len(read_proj_ops) == 2
+assert len(create_wi_ops) == 4
+assert len(read_wi_ops) == 4
 assert len(create_rel_ops) == 2
 
 op_types = [op[0] for op in mcp_valid.operations]
-create_proj_idx = op_types.index("create_project")
 read_proj_idx = op_types.index("read_project")
-assert create_proj_idx < read_proj_idx
 
 wi_create_indices = [i for i, op in enumerate(mcp_valid.operations) if op[0] == "create_work_item"]
 wi_read_indices = [i for i, op in enumerate(mcp_valid.operations) if op[0] == "read_work_item"]
@@ -496,10 +487,13 @@ assert len(mcp_no_label.work_items) == 0
 
 # --- Scenario C: Self-hosted trailing slash normalization and scoping ---
 mcp_selfhosted = MockPlaneMCP(base_url="https://plane.internal.org", workspace="infra")
+configured_selfhosted = mcp_selfhosted.create_project("infra", "Infrastructure", labels=[])
+mcp_selfhosted.operations.clear()
 cfg_selfhosted = {
     "plane": {
         "baseUrl": "https://plane.internal.org/",  # trailing slash
         "workspace": "infra",
+        "project": configured_selfhosted["id"],
         "projectLabels": [],
     }
 }

@@ -100,11 +100,11 @@ The [using-woostack](skills/using-woostack/SKILL.md) skill reads project rules a
 ### 4. Repository Policy
 
 Customize non-secret repository policy in `.woostack/config.json`, including review behavior,
-status staleness, pre-commit hooks, and optional `artifacts.linear` or `artifacts.plane` defaults. Build uses
-those defaults to resolve or create its canonical project (or canonical `[Repo] owner/name` repository project
-for Plane) when mirroring is enabled and the caller supplies no exact project. A new Fix uses them only after
-root-cause proof to resolve or create its canonical project (or canonical repository project and specification
-work item for Plane) and strict direct-issue chain. Policy cannot authorize provider writes or repository work.
+status staleness, pre-commit hooks, and optional `artifacts.linear` or `artifacts.plane` defaults. Build
+uses those defaults to resolve or create its Linear project when mirroring is enabled and no exact
+project is supplied. Plane instead requires `artifacts.plane.project` to name the exact existing
+project that receives specification and increment work items. A new Fix uses provider configuration
+only after root-cause proof. Policy cannot authorize provider writes or repository work.
 Provider authentication stays in the OAuth or secret store.
 
 Review-policy fragment:
@@ -139,9 +139,9 @@ does the controller perform the immediate drift check, one bounded synchronizati
 read-back.
 
 When mirrored, Linear holds the high-level specification on the project description with direct parentless
-increment issues and native dependencies. Plane holds one canonical `[Repo] owner/name` repository project,
-one top-level specification work item (`parent = null`), and child increment work items with `N-1` strict
-sibling blocking relations. After root-cause proof, Fix uses the same project-backed contract; an exact
+increment issues and native dependencies. Plane attaches one top-level specification work item
+(`parent = null`) and child increment work items with `N-1` strict sibling blocking relations to the
+exact configured project. After root-cause proof, Fix uses the same project-backed contract; an exact
 source issue remains preserved context, not a plan.
 
 The shared

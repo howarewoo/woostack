@@ -76,9 +76,9 @@ When `artifacts.provider: "linear"`, local artifacts mirror to one Linear projec
 complete specification, direct increment issues, and native issue dependencies. There is no parent plan
 issue or child containment. `woostack-change` never contacts Linear.
 
-When `artifacts.provider: "plane"`, Build and Fix mirror artifacts to the canonical repository project
-`[Repo] owner/name` with one top-level specification work item (`[Build] <goal>` or `[Fix] <goal>`),
-child increment work items (`parent = <spec-item-UUID>`), and `N-1` strict blocking relations.
+When `artifacts.provider: "plane"`, Build and Fix mirror artifacts to the exact
+`artifacts.plane.project` with one top-level specification work item (`[Build] <goal>` or
+`[Fix] <goal>`), child increment work items (`parent = <spec-item-UUID>`), and `N-1` strict blocking relations.
 Project admission requires mandatory official Plane MCP project-label capabilities when `artifacts.plane.projectLabels`
 is configured, flattens completely paginated workspace project labels with null terminal cursors, and unions
 configured labels with existing project labels (preserving unrelated labels). If the official Plane MCP lacks

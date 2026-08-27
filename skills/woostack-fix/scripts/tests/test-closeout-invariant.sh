@@ -328,138 +328,26 @@ class MockPlaneFixMCP:
         return dict(wi)
 
 
-def discover_canonical_repository_projects(mcp_client, workspace, canonical_repo, canonical_name):
-    all_projects = []
-    cursor = None
-    while True:
-        page = mcp_client.list_projects(workspace, include_archived=True, cursor=cursor)
-        if not isinstance(page, dict) or "items" not in page or "next_cursor" not in page:
-            raise RuntimeError("incomplete pagination response")
-        all_projects.extend(page["items"])
-        cursor = page["next_cursor"]
-        if cursor is None:
-            break
-
-    # Exact baseUrl, workspace, repository, and canonical-name filtering
-    matched = []
-    for proj in all_projects:
-        if (
-            proj.get("workspace") == workspace
-            and proj.get("repository") == canonical_repo
-            and proj.get("name") == canonical_name
-        ):
-            matched.append(proj)
-
-    if len(matched) > 1:
-        raise RuntimeError(f"duplicate canonical repository projects discovered: {len(matched)} matches")
-
-    return matched
-
 
 def test_plane_fix_preservation_and_scoping():
     canonical_repo_url = "https://github.com/acme/widgets"
-    canonical_repo_project_name = "[Repo] acme/widgets"
 
     # ---------------------------------------------------------------------------
-    # Scenario A: Canonical repository project reuse (multi-page active & archived discovery)
-    # ---------------------------------------------------------------------------
-    mcp_reuse = MockPlaneFixMCP(
-        base_url="https://api.plane.so",
-        workspace="acme",
-        repository=canonical_repo_url
-    )
-    # Page 1: Foreign repo with different name, and foreign repo with SAME name (must not be selected)
-    mcp_reuse.projects["proj-foreign-1"] = {
-        "id": "proj-foreign-1",
-        "name": "[Repo] foreign/widgets",
-        "workspace": "acme",
-        "repository": "https://github.com/foreign/widgets",
-        "labels": ["Core"],
-        "archived": False,
-    }
-    mcp_reuse.projects["proj-foreign-2"] = {
-        "id": "proj-foreign-2",
-        "name": canonical_repo_project_name,
-        "workspace": "acme",
-        "repository": "https://github.com/foreign/other-repo",
-        "labels": ["Core"],
-        "archived": False,
-    }
-    # Page 2: Canonical project found on later page and in archived records
-    existing_proj_id = "proj-canonical-001"
-    mcp_reuse.projects[existing_proj_id] = {
-        "id": existing_proj_id,
-        "name": canonical_repo_project_name,
-        "workspace": "acme",
-        "repository": canonical_repo_url,
-        "labels": ["Core", "ExistingLabel"],
-        "external_source": "woostack",
-        "external_id": "ext-existing-proj",
-        "archived": True,
-    }
-
-    # Discover existing canonical repository project across complete terminal pagination
-    matched_projects = discover_canonical_repository_projects(
-        mcp_reuse, "acme", canonical_repo_url, canonical_repo_project_name
-    )
-    assert len(matched_projects) == 1, "must discover exact canonical repository project across multi-page active/archived discovery"
-    reused_proj = matched_projects[0]
-    assert reused_proj["id"] == existing_proj_id
-    assert reused_proj["repository"] == canonical_repo_url
-
-    # Apply missing configured label ("Fix") while preserving unrelated label ("ExistingLabel")
-    configured_labels = ["Core", "Fix"]
-    unioned_labels = list(set(reused_proj["labels"]) | set(configured_labels))
-    mcp_reuse.update_project_labels("acme", reused_proj["id"], unioned_labels)
-
-    # Reusable project path must NOT call create_project when matching canonical project exists
-    assert not any(call[0] == "create_project" for call in mcp_reuse.call_log), "existing canonical project must be reused without create_project"
-
-    # Independent read-back of reused project
-    read_back_reused = mcp_reuse.read_project("acme", reused_proj["id"])
-    assert read_back_reused is not None
-    assert set(read_back_reused["labels"]) == {"Core", "ExistingLabel", "Fix"}
-
-    # ---------------------------------------------------------------------------
-    # Scenario B: Duplicate canonical repository project discovery fails closed
-    # ---------------------------------------------------------------------------
-    mcp_dup = MockPlaneFixMCP(
-        base_url="https://api.plane.so",
-        workspace="acme",
-        repository=canonical_repo_url
-    )
-    mcp_dup.projects["proj-dup-1"] = {
-        "id": "proj-dup-1", "name": canonical_repo_project_name, "workspace": "acme",
-        "repository": canonical_repo_url, "labels": ["Core"], "archived": False
-    }
-    mcp_dup.projects["proj-dup-2"] = {
-        "id": "proj-dup-2", "name": canonical_repo_project_name, "workspace": "acme",
-        "repository": canonical_repo_url, "labels": ["Core"], "archived": True
-    }
-    dup_failed_closed = False
-    try:
-        discover_canonical_repository_projects(mcp_dup, "acme", canonical_repo_url, canonical_repo_project_name)
-    except RuntimeError as exc:
-        if "duplicate canonical repository projects" in str(exc):
-            dup_failed_closed = True
-    assert dup_failed_closed is True, "duplicate canonical repository projects must fail closed"
-
-    # ---------------------------------------------------------------------------
-    # Scenario C: Proved zero exact matches -> creation & complete end-to-end Fix flow
+    # Exact configured-project admission and complete end-to-end Fix flow
     # ---------------------------------------------------------------------------
     mcp = MockPlaneFixMCP(
         base_url="https://api.plane.so",
         workspace="acme",
         repository=canonical_repo_url
     )
-    # Populate multi-page unrelated projects
-    mcp.projects["proj-unrelated-1"] = {
-        "id": "proj-unrelated-1", "name": "[Repo] other/service", "workspace": "acme",
-        "repository": "https://github.com/other/service", "labels": ["Core"], "archived": False
-    }
-    mcp.projects["proj-unrelated-2"] = {
-        "id": "proj-unrelated-2", "name": "General Backlog", "workspace": "acme",
-        "repository": "https://github.com/foreign/general", "labels": [], "archived": True
+    configured_project_id = "proj-configured-001"
+    mcp.projects[configured_project_id] = {
+        "id": configured_project_id,
+        "name": "Product Delivery",
+        "workspace": "acme",
+        "repository": canonical_repo_url,
+        "labels": ["Core", "ExistingLabel"],
+        "archived": False,
     }
 
     # Initial source work item in Plane with complete snapshot (title, desc, state, assignee, labels, relations, comments, lifecycle)
@@ -488,7 +376,6 @@ def test_plane_fix_preservation_and_scoping():
 
     # 2. Target repository admission succeeds; Debug returns proof
     proved_root_cause = "lock contention in cache refresh loop"
-    canonical_project_name = canonical_repo_project_name
 
     # 3. Post-proof: resolve supplied exact work-item reference to UUID with baseUrl and workspace scope
     supplied_ref = "ENG-42"
@@ -497,30 +384,18 @@ def test_plane_fix_preservation_and_scoping():
     assert resolved_wi["id"] == source_id, f"expected UUID {source_id}, got {resolved_wi['id']}"
     assert resolved_wi["parent"] is None, "source work item must have parent = null"
 
-    # 4. Canonical repository project admission: proved zero exact matches across complete pagination -> create [Repo] owner/name
-    zero_match_discovery = discover_canonical_repository_projects(
-        mcp, "acme", canonical_repo_url, canonical_project_name
-    )
-    assert len(zero_match_discovery) == 0, "expected zero canonical project matches in zero-match scenario"
-
-    proj = mcp.create_project(
-        "acme", canonical_project_name, labels=["Core", "Fix"],
-        external_source="woostack", external_id="ext-proj-1"
-    )
-    assert proj["name"] == canonical_project_name, f"expected project name {canonical_project_name}, got {proj['name']}"
-
-    # Independent read-back of project and complete property validation before binding
-    read_back_proj = mcp.read_project("acme", proj["id"])
-    assert read_back_proj is not None, "project read-back failed"
-    assert read_back_proj["id"] == proj["id"]
-    assert read_back_proj["name"] == canonical_project_name
+    # 4. Resolve only the exact configured project; never infer or create one.
+    read_back_proj = mcp.read_project("acme", configured_project_id)
+    assert read_back_proj is not None, "configured project read failed"
     assert read_back_proj["repository"] == canonical_repo_url
     assert read_back_proj["workspace"] == "acme"
-    assert set(read_back_proj["labels"]) == {"Core", "Fix"}
-    assert read_back_proj["external_source"] == "woostack"
-    assert read_back_proj["external_id"] == "ext-proj-1"
+    unioned_labels = list(set(read_back_proj["labels"]) | {"Core", "Fix"})
+    mcp.update_project_labels("acme", configured_project_id, unioned_labels)
+    read_back_proj = mcp.read_project("acme", configured_project_id)
+    assert set(read_back_proj["labels"]) == {"Core", "ExistingLabel", "Fix"}
+    assert not any(call[0] == "create_project" for call in mcp.call_log)
 
-    # 5. Source work-item preservation: update ONLY the supported canonical repository project link
+    # 5. Source work-item preservation: update only the configured project link.
     mcp.link_source_work_item_to_project("acme", source_id, read_back_proj["id"])
     read_back_source = mcp.read_work_item("acme", source_id)
 
@@ -666,9 +541,13 @@ def test_plane_fix_preservation_and_scoping():
         workspace="acme",
         capabilities={"projectRead": True, "projectWrite": True, "issueRead": True, "issueWrite": True, "projectLabelWrite": False}
     )
+    mcp_no_labels.projects["configured"] = {
+        "id": "configured", "name": "Product Delivery", "workspace": "acme",
+        "repository": canonical_repo_url, "labels": [], "archived": False
+    }
     label_failure_blocked = False
     try:
-        mcp_no_labels.create_project("acme", canonical_project_name, labels=["Core"])
+        mcp_no_labels.update_project_labels("acme", "configured", ["Core"])
     except RuntimeError as exc:
         label_failure_blocked = True
         assert "projectLabelWrite" in str(exc)

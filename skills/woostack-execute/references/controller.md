@@ -16,10 +16,9 @@ accepts only `--issue` and rejects `--project` before mutation.
 In Linear mode, read the selected project/issue, complete project specification, current direct-issue set
 (`parent = null`), native relations, and repository association independently.
 
-In Plane mode, resolve and independently read back the canonical repository project `[Repo] owner/name`
-derived from configured `artifacts.plane.repository` under the configured instance `baseUrl` and `workspace`
-before admitting target membership. Reject the target unless its direct project membership matches that canonical
-project UUID. Admit either:
+In Plane mode, resolve and independently read back `artifacts.plane.project` under the configured
+instance `baseUrl` and `workspace` before admitting target membership. Reject the target unless its
+direct project membership matches that configured project's native UUID. Admit either:
 
 1. **Top-level specification work item (`parent = null`):** titled `[Build] <goal>`, `[Fix] <goal>`, or
    `[Plan] <goal>`, with its full specification in its description. Discover and admit its complete, exact

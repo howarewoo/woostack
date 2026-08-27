@@ -9,15 +9,15 @@ capabilities, membership, and work-item lifecycle mappings.
 ## Configuration and scope
 
 Require a validated `artifacts.plane` object containing canonical `baseUrl`, `workspace`,
-`repository` (canonical repository `owner/name` or URL), nonempty `projectLabels`, `projectStatuses`,
-and `issueStates`. Resolve configuration only after Plane is selected. Plane project status is
-unsupported by woostack; `projectStatuses` remains validated configuration but never authorizes
-synthesizing or mutating a Plane project status.
+`repository` (canonical repository `owner/name` or URL), `project` (exact Plane project URL or
+native UUID), nonempty `projectLabels`, and `issueStates`. Resolve configuration only after Plane is
+selected. `issueStates` owns lifecycle mapping for both top-level specification work items and child
+increment work items. Plane project status is not configurable because the project is association,
+not an artifact.
 
 Use only the host-authenticated official Plane MCP. Support Plane Cloud and self-hosted installations,
-scoped strictly to the configured canonical `baseUrl`, workspace, canonical repository project
-`[Repo] owner/name`, and repository. Plane configuration is manual non-secret policy; Init does not
-discover Plane defaults.
+scoped strictly to the configured canonical `baseUrl`, workspace, exact project, and repository.
+Plane configuration is manual non-secret policy; Init does not discover Plane defaults.
 
 ## Capabilities
 
@@ -29,17 +29,16 @@ or token fallback is allowed.
 
 ## Projects and labels
 
-Plane uses one canonical repository project per repository named `[Repo] owner/name` (derived from
-canonical repository identity, such as `owner/name` from `https://github.com/owner/name`). Build (during
-mirror synchronization) and standalone Plan resolve or create this single `[Repo] owner/name` project.
-Delegated Plan performs zero provider reads or writes; its Build wrapper resolves or creates the project
-when mirroring is enabled. Fix reaches proved root cause and verifies the writable target repository before
-resolving or creating the canonical `[Repo] owner/name` project. When `--project` is supplied, it must match
-this canonical `[Repo] owner/name` project URL or native UUID; a mismatched project fails closed before any mutation.
+Resolve the exact configured `artifacts.plane.project` by URL or native UUID and independently verify
+its configured `baseUrl`, workspace, and canonical repository association before mutation. Never infer,
+select by name, or create a Plane project. Build, Fix, and standalone Plan attach their specification
+and increment work items to this exact project. Delegated Plan performs zero provider reads or writes;
+its Build wrapper resolves the configured project when mirroring is enabled. Fix reaches proved root
+cause and verifies the writable target repository before project resolution. When `--project` is
+supplied, it must identify the same configured project; a mismatch fails closed before any mutation.
 
-Project description is repository-only (or brief repository description) and is never overwritten with
-feature specifications. Plane projects have native UUIDs and no assumed stable human-readable project
-identifier.
+Project description is never overwritten with feature specifications. Plane projects have native
+UUIDs and no assumed stable human-readable project identifier.
 
 Completely paginate workspace project labels with a null terminal cursor. Resolve each configured
 label by exact native UUID or exact case-sensitive name. Reject missing, ambiguous, duplicate, or
@@ -48,8 +47,8 @@ unrelated labels and every unrelated project label; write at most once and indep
 
 ## External identities and recovery
 
-Use Plane-native `external_source: "woostack"` and `external_id: <UUID>` for project, specification
-work-item, increment work-item, and relation creation. Preallocate one UUID per entity, persist it in
+Use Plane-native `external_source: "woostack"` and `external_id: <UUID>` for specification work-item,
+increment work-item, and relation creation. Preallocate one UUID per created entity, persist it in
 manifest mirror mappings through manifest CAS, and bind it to that exact pair before creation.
 Completely paginate active and archived resources and prove zero exact-pair matches before one create.
 Recover an unknown result only by repeating complete discovery for the same pair. Exactly one
@@ -71,13 +70,13 @@ Every complete work-item read requests native UUID, readable identifier, reposit
 workspace, direct project membership, and parent.
 
 1. **Specification work items:** Build, Fix, and Plan create one top-level specification work item in the
-   `[Repo] owner/name` project named `[Build] <goal>` (for Build), `[Fix] <goal>` (for Fix), or `[Plan] <goal>` (for Plan), with
-   its full specification content in its description and `parent = null`. It has separate native UUID,
-   readable identifier, and external identity. It binds to `mirror.specItem` in the manifest and never
-   enters `stableTaskMappings`.
-2. **Increment work items:** Increment work items are created directly in the `[Repo] owner/name`
-   project as exact children of that specification work item (`parent = <spec-item-UUID>`). Each has
-   direct project membership, preallocated external identity, native UUID, readable identifier, and its
+   configured project named `[Build] <goal>` (for Build), `[Fix] <goal>` (for Fix), or `[Plan] <goal>`
+   (for Plan), with its full specification content in its description and `parent = null`. It has
+   separate native UUID, readable identifier, and external identity. It binds to `mirror.specItem` in
+   the manifest and never enters `stableTaskMappings`.
+2. **Increment work items:** Increment work items are created directly in the configured project as
+   exact children of that specification work item (`parent = <spec-item-UUID>`). Each has direct
+   project membership, preallocated external identity, native UUID, readable identifier, and its
    complete executor-ready description.
 3. **Task mappings:** `stableTaskMappings` maps each stable task key to its child increment work item's
    readable reference (and native UUID in `mirror.tasks`).
@@ -94,23 +93,23 @@ Before membership, parent linkage, or relation mutation:
    exact specification parent UUID for increment work items.
 
 An exact Fix source work item is context only. Preserve its exact title, description, state, assignment,
-labels, relations, comments, parent, and lifecycle. After canonical repository project admission, the only supported
-source mutation is one direct project link followed by exact membership read-back.
+labels, relations, comments, parent, and lifecycle. After configured-project admission, the only
+supported source mutation is one direct project link followed by exact membership read-back.
 
 ## Readers, status, and provenance
 
-Status and generic artifact readers discover the canonical `[Repo] owner/name` project, top-level
-`[Build]/[Fix]/[Plan]` specification work items, and exact child increment graphs with complete paginated
-read-back and identity checks.
+Status and generic artifact readers resolve the configured project, top-level `[Build]/[Fix]/[Plan]`
+specification work items, and exact child increment graphs with complete paginated read-back and
+identity checks.
 
-Readers report the `[Repo] owner/name` project as repository association only. Specification aggregate
+Readers report the configured project as repository association only. Specification aggregate
 lifecycle and child increment states are exposed without presenting project lifecycle as delivery state.
 Reject cross-parent relations, foreign items or projects, malformed/skipped/reversed relations, and
 unparented child increments from enrichment.
 
 Exact-source attribution and provenance distinguish:
 
-- **Repository project:** `[Repo] owner/name` (URL or UUID) represents repository association only;
+- **Configured project:** exact URL or native UUID represents repository association only;
 - **Specification parent:** `[Build] <goal>`, `[Fix] <goal>`, `[Plan] <goal>` (`parent = null`, URL or UUID)
   represents specification provenance and aggregate delivery lifecycle;
 - **Child increment:** `parent = <spec-item-UUID>` (URL, UUID, or readable identifier such as `ENG-42`)
@@ -120,9 +119,9 @@ Exact-source attribution and provenance distinguish:
 
 Plane Execute requires one exact work-item reference via `--issue` (a top-level specification work
 item or one exact child increment work item); it does not accept `--project` as an executable scope.
-Resolve and independently read back the canonical repository project `[Repo] owner/name` derived from
-configured `artifacts.plane.repository` under canonical instance `baseUrl` and `workspace` before admitting
-target membership. Reject the target if its direct project membership does not match that canonical project UUID.
+Resolve and independently read back `artifacts.plane.project` under the configured `baseUrl` and
+`workspace` before admitting target membership. Reject the target if its direct project membership
+does not match that configured project's native UUID.
 
 Admit either:
 

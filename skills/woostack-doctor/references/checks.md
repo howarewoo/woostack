@@ -55,9 +55,9 @@ required `projectRead`, `projectWrite`, `projectUpdateRead`, `projectUpdateWrite
 `commentRead`, `commentWrite`, `relationRead`, `relationWrite`, `ownerRead`, `ownerWrite`, `independentReadBack`,
 and (when `projectLabels` is configured) `projectLabelRead`/`projectLabelWrite` capabilities.
 When `artifacts.provider: "plane"`, it discovers official Plane MCP tools (`official-plane-mcp`), authenticates,
-resolves canonical instance `baseUrl` and workspace, validates native project categories and issue states, and proves
-required `projectRead`, `projectWrite`, `issueRead`, `issueWrite`, `relationRead`, `relationWrite`, `projectLabelRead`,
-`projectLabelWrite`, and `independentReadBack` capabilities.
+resolves canonical instance `baseUrl`, workspace, exact configured project, and issue states, and proves
+required `projectRead`, `projectWrite`, `issueRead`, `issueWrite`, `relationRead`, `relationWrite`,
+`projectLabelRead`, `projectLabelWrite`, and `independentReadBack` capabilities.
 It writes exactly one normalized non-secret outcome to a mode-0600 temporary file, passes that path to
 `doctor.sh --live-receipt <path>`, and deletes it after consumption.
 

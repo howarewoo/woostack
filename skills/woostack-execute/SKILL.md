@@ -25,8 +25,8 @@ omitted, direct provider execution via `--project` or `--issue` fails closed bef
 When `artifacts.provider: "linear"`, `--project` accepts an exact Linear project and `--issue` accepts an
 exact direct Linear issue. When `artifacts.provider: "plane"`, `--project` is not an executable scope and
 is rejected before any mutation; `--issue` accepts an exact Plane work-item URL or readable ID (such as
-`ENG-42`), resolving and independently reading back its native UUID in the canonical repository project
-`[Repo] owner/name`.
+`ENG-42`), resolving and independently reading back its native UUID in the exact configured Plane
+project.
 Every cycle admits one task or direct issue/work item, one isolated worktree, and one PR. Execute does not perform
 review or merge operations. The `--project` form is the resumable handoff from Linear Build/Fix when mirroring
 is enabled; `--issue` is the handoff for an exact Linear issue or Plane work item (top-level specification item or
@@ -39,16 +39,16 @@ memory or fuzzy plan discovery.
 In project mode (`--project`), require `artifacts.provider: "linear"` and one exact Linear project supplied
 by URL or UUID. Reconstruct authority from fresh official provider reads of that project's complete
 specification, current direct-issue graph, native dependency relations, and canonical repository association.
-Plane does not accept `--project` as an executable scope; the canonical repository project `[Repo] owner/name`
-contains multiple specification items and cannot be executed as a whole.
+Plane does not accept `--project` as an executable scope; the configured project may contain multiple
+specification items and cannot be executed as a whole.
 
 In issue mode (`--issue`):
 
 1. **Linear issue mode:** require one exact direct issue (`parent = null`) and the same complete reads for
    its owning project. Issue mode executes only that exact issue and never advances siblings.
-2. **Plane work-item mode:** require one exact work-item reference (`--issue`), resolving to its native UUID
-   within the canonical repository project `[Repo] owner/name` under the configured instance `baseUrl` and
-   `workspace`. Plane admission admits either:
+2. **Plane work-item mode:** require one exact work-item reference (`--issue`), resolving to its native
+   UUID within `artifacts.plane.project` under the configured instance `baseUrl` and `workspace`.
+   Plane admission admits either:
    - **Top-level specification work item (`parent = null`):** titled `[Build] <goal>`, `[Fix] <goal>`, or
      `[Plan] <goal>`, with its full specification in its description. Execute discovers and admits its
      complete, exact single-parent child graph (`parent = <spec-item-UUID>`) and strict sequential sibling
@@ -135,7 +135,7 @@ For Plane, resolve configured `artifacts.plane.issueStates` (executing, inReview
 UUID or exact case-sensitive name within canonical baseUrl/workspace/project scope; reject missing, ambiguous,
 duplicate, foreign-scope, or group-mismatched states before mutation. Parent lifecycle aggregates its children:
 parent `executing` while active work is underway, parent `blocked` when any child blocks, and parent `done` only
-when all children complete. The canonical repository project status is never mutated, synthesized, or gated.
+when all children complete. The configured Plane project status is never mutated, synthesized, or gated.
 
 An exact current mapping is an idempotent no-op. A terminal conflict, missing/ambiguous/foreign
 mapping, drift, timeout, partial output, unsupported transition, or failed/unknown read-back blocks

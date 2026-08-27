@@ -82,7 +82,7 @@ project_keys='["backlog","planned","started","completed","canceled"]'
 issue_keys='["planned","executing","inReview","done","blocked"]'
 issue_categories='{"planned":"backlog","executing":"started","inReview":"started","done":"completed","blocked":"started"}'
 linear_allowed='["repository","workspace","team","projectLabels","projectStatuses","issueStates"]'
-plane_allowed='["baseUrl","workspace","repository","projectLabels","projectStatuses","issueStates"]'
+plane_allowed='["baseUrl","workspace","repository","project","projectLabels","issueStates"]'
 if [ "$provider" = "linear" ]; then
   if ! jq -e 'has("artifacts") and (.artifacts | type == "object") and (.artifacts | has("linear")) and (.artifacts.linear | type == "object")' "$EFFECTIVE_CFG" >/dev/null 2>&1; then
     emit error linear-policy report ".woostack/config.json" "linear policy requires repository, workspace, team, projectLabels, projectStatuses, and issueStates only"
@@ -123,29 +123,23 @@ if [ "$provider" = "linear" ]; then
 fi
 if [ "$provider" = "plane" ]; then
   if ! jq -e 'has("artifacts") and (.artifacts | type == "object") and (.artifacts | has("plane")) and (.artifacts.plane | type == "object")' "$EFFECTIVE_CFG" >/dev/null 2>&1; then
-    emit error linear-policy report ".woostack/config.json" "plane policy requires baseUrl, workspace, repository, projectLabels, projectStatuses, and issueStates only"
+    emit error linear-policy report ".woostack/config.json" "plane policy requires baseUrl, workspace, repository, project, projectLabels, and issueStates only"
   elif ! jq -e --argjson allowed "$plane_allowed" '
     .artifacts.plane | type == "object" and ((keys - $allowed) | length == 0)
   ' "$EFFECTIVE_CFG" >/dev/null 2>&1; then
-    emit error linear-policy report ".woostack/config.json" "plane policy requires baseUrl, workspace, repository, projectLabels, projectStatuses, and issueStates only"
+    emit error linear-policy report ".woostack/config.json" "plane policy requires baseUrl, workspace, repository, project, projectLabels, and issueStates only"
   elif ! jq -e '
     .artifacts.plane
     and (.artifacts.plane.baseUrl | type == "string" and test("^https?://[^?#\\s]+$"))
     and (.artifacts.plane.workspace | type == "string" and test("\\S"))
     and (.artifacts.plane.repository | type == "string"
       and test("^https://github\\.com/[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?/[A-Za-z0-9](?:[A-Za-z0-9._-]*[A-Za-z0-9])?$"))
+    and (.artifacts.plane.project | type == "string" and test("\\S"))
     and (.artifacts.plane | has("projectLabels"))
-    and (.artifacts.plane.projectStatuses | type == "object")
     and (.artifacts.plane.issueStates | type == "object")
   ' "$EFFECTIVE_CFG" >/dev/null 2>&1; then
-    emit error linear-policy report ".woostack/config.json" "plane policy requires baseUrl, workspace, repository, projectLabels, projectStatuses, and issueStates only"
+    emit error linear-policy report ".woostack/config.json" "plane policy requires baseUrl, workspace, repository, project, projectLabels, and issueStates only"
   else
-    if ! jq -e --argjson keys "$project_keys" '
-      (.artifacts.plane.projectStatuses | keys | sort) == ($keys | sort)
-      and all(.artifacts.plane.projectStatuses[]; type == "string" and test("\\S"))
-    ' "$EFFECTIVE_CFG" >/dev/null 2>&1; then
-      emit error linear-policy report ".woostack/config.json" "projectStatuses mapping is incomplete or contains invalid values"
-    fi
     if ! jq -e --argjson keys "$issue_keys" '
       (.artifacts.plane.issueStates | keys | sort) == ($keys | sort)
       and all(.artifacts.plane.issueStates[]; type == "string" and test("\\S"))
@@ -244,7 +238,6 @@ if [ "$provider" = "linear" ]; then
   fi
 elif [ "$provider" = "plane" ]; then
   if [ ! -r "$receipt" ] || ! jq -e \
-    --argjson project_keys "$project_keys" \
     --argjson issue_keys "$issue_keys" \
     --argjson issue_categories "$issue_categories" \
     --slurpfile config "$EFFECTIVE_CFG" '
@@ -257,12 +250,6 @@ elif [ "$provider" = "plane" ]; then
         and (.workspaceResolution | type == "object" and (keys | sort) == ["name", "status"])
         and .workspaceResolution.status == "unique"
         and .workspaceResolution.name == .workspace
-        and .projectStatuses.complete == true
-        and (.projectStatuses.resolved | keys | sort) == ($project_keys | sort)
-        and all($project_keys[];
-          . as $key
-          | ($receipt.projectStatuses.resolved[$key]
-            | .name == $config[0].artifacts.plane.projectStatuses[$key] and .category == $key))
         and .issueStates.complete == true
         and (.issueStates.resolved | keys | sort) == ($issue_keys | sort)
         and all($issue_keys[];
@@ -278,7 +265,7 @@ elif [ "$provider" = "plane" ]; then
     exit 0
   fi
 
-  for field in baseUrl workspace repository; do
+  for field in baseUrl workspace repository project; do
     expected="$(jq -r --arg field "$field" '.artifacts.plane[$field]' "$EFFECTIVE_CFG")"
     actual="$(jq -r --arg field "$field" '.[$field] // empty' "$receipt")"
     if [ "$field" = "baseUrl" ]; then

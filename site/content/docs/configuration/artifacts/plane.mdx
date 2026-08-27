@@ -16,14 +16,8 @@ Select Plane artifact mirroring with `artifacts.provider: "plane"`. The
       "baseUrl": "https://api.plane.so",
       "workspace": "acme",
       "repository": "https://github.com/acme/widgets",
+      "project": "33333333-3333-4333-8333-333333333330",
       "projectLabels": ["Core"],
-      "projectStatuses": {
-        "backlog": "Backlog",
-        "planned": "Planned",
-        "started": "Started",
-        "completed": "Completed",
-        "canceled": "Canceled"
-      },
       "issueStates": {
         "planned": "Backlog",
         "executing": "In Progress",
@@ -41,8 +35,8 @@ Select Plane artifact mirroring with `artifacts.provider: "plane"`. The
 | `artifacts.plane.baseUrl` | string | Canonical Plane Cloud or self-hosted API base URL. |
 | `artifacts.plane.workspace` | string | Exact workspace. |
 | `artifacts.plane.repository` | string | Canonical repository URL or repository identity. |
+| `artifacts.plane.project` | string | Exact Plane project URL or native UUID. All specification and increment work items attach to this project. |
 | `artifacts.plane.projectLabels` | nonempty string array | Required when Plane is selected. Labels resolve by exact native UUID or exact case-sensitive name. |
-| `artifacts.plane.projectStatuses.*` | string | Validated native-name policy. Woostack never reads, creates, or mutates Plane project status. |
 | `artifacts.plane.issueStates.*` | string | Native work-item state UUID or exact case-sensitive name. State-group checks apply at the lifecycle boundary. |
 
 Credentials belong in the host's authenticated official Plane MCP or OAuth secret store, never in
@@ -51,16 +45,17 @@ manual; Init does not discover Plane defaults.
 
 ## Identities and hierarchy
 
-Plane uses one long-lived repository project named `[Repo] owner/name`. Build, Fix, and standalone
-Plan create separate top-level `[Build]`, `[Fix]`, or `[Plan]` specification work items in that
-project. Plan increments are exact children of their specification item with strict sibling blocking
-relations. Readable work-item references remain separate from native UUIDs and stable external
-identities.
+Plane resolves the exact configured project and verifies its instance, workspace, and repository
+association. Build, Fix, and standalone Plan create separate top-level `[Build]`, `[Fix]`, or `[Plan]`
+specification work items in that project. Plan increments are exact children of their specification
+item with strict sibling blocking relations. Readable work-item references remain separate from
+native UUIDs and stable external identities. Woostack never infers or creates the project.
 
 ## Lifecycle behavior
 
-Execute changes configured work-item states and aggregates specification state from its children. It
-never treats the repository project as executable work and never mutates Plane project status.
+Execute changes configured work-item states and aggregates the top-level specification work item's
+state from its children. `issueStates` applies to both levels. The configured project is association,
+not an artifact, so woostack does not configure or mutate Plane project status.
 
 Bootstrap may mirror an approved design after its filesystem barrier when provider persistence is
 explicitly selected. Commit may verify an exact `--issue <id>`, add pull-request attribution, and
