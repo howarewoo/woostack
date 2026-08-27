@@ -33,8 +33,9 @@ Plane uses one canonical repository project per repository named `[Repo] owner/n
 canonical repository identity, such as `owner/name` from `https://github.com/owner/name`). Build (during
 mirror synchronization) and standalone Plan resolve or create this single `[Repo] owner/name` project.
 Delegated Plan performs zero provider reads or writes; its Build wrapper resolves or creates the project
-when mirroring is enabled. When `--project` is supplied, it must match this canonical `[Repo] owner/name`
-project URL or native UUID; a mismatched project fails closed before any mutation.
+when mirroring is enabled. Fix reaches proved root cause and verifies the writable target repository before
+resolving or creating the canonical `[Repo] owner/name` project. When `--project` is supplied, it must match
+this canonical `[Repo] owner/name` project URL or native UUID; a mismatched project fails closed before any mutation.
 
 Project description is repository-only (or brief repository description) and is never overwritten with
 feature specifications. Plane projects have native UUIDs and no assumed stable human-readable project
@@ -69,8 +70,8 @@ receipts retain native UUID and external identity separately.
 Every complete work-item read requests native UUID, readable identifier, repository, baseUrl,
 workspace, direct project membership, and parent.
 
-1. **Specification work items:** Build and Plan create one top-level specification work item in the
-   `[Repo] owner/name` project named `[Build] <goal>` (for Build) or `[Plan] <goal>` (for Plan), with
+1. **Specification work items:** Build, Fix, and Plan create one top-level specification work item in the
+   `[Repo] owner/name` project named `[Build] <goal>` (for Build), `[Fix] <goal>` (for Fix), or `[Plan] <goal>` (for Plan), with
    its full specification content in its description and `parent = null`. It has separate native UUID,
    readable identifier, and external identity. It binds to `mirror.specItem` in the manifest and never
    enters `stableTaskMappings`.
@@ -92,8 +93,8 @@ Before membership, parent linkage, or relation mutation:
 3. verify exact scope, direct project membership, `parent = null` for the specification work item, and
    exact specification parent UUID for increment work items.
 
-An exact Fix source work item is context only. Preserve its title, description, state, assignment,
-labels, relations, comments, and lifecycle. After canonical Fix project admission, the only supported
+An exact Fix source work item is context only. Preserve its exact title, description, state, assignment,
+labels, relations, comments, parent, and lifecycle. After canonical repository project admission, the only supported
 source mutation is one direct project link followed by exact membership read-back.
 
 ## Workflow procedures
@@ -118,10 +119,3 @@ checkpoint remains nonblocking.
 
 Never mutate, synthesize, archive, or gate on Plane project status. Handoff, abandonment, blockage,
 and completion retain the exact project unchanged and record only work-item and local recovery state.
-
-## Workflow procedures
-
-Build and Plan use the detailed [Plane context](../../../woostack-build/references/plane-context.md)
-and [Plane synchronization procedure](../../../woostack-build/references/plane-procedure.md).
-Bootstrap and Commit retain their workflow gates and use this profile only for selected-provider
-identity, capability, mutation, and read-back behavior.

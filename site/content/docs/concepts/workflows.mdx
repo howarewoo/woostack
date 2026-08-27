@@ -51,6 +51,7 @@ or `artifacts.provider: "plane"`, one bounded cycle mirrors Build artifacts to t
 one project, direct increment issues, native dependencies; for Plane: the canonical `[Repo] owner/name` repository project,
 one top-level specification work item with `parent = null`, `N` increment child work items parented to the specification
 work item, `N-1` strict sibling blocking relations, and project-label discovery/unioning preserving unrelated labels).
+Its execution plan orders independently shippable increments, each with at most one PR. Execute processes
 one increment at a time in ordinal order within a run; distinct run IDs may execute concurrently only through
 disjoint branches, worktrees, and responsibility surfaces. Every build manages one high-level specification and
 direct increment contracts in its retained local run manifest.
@@ -63,8 +64,10 @@ present the verified `Stop here`/`Execute`/`Abandon` handoff
 ```
 
 Fix requires root-cause proof before any project or plan creation and never substitutes a symptom patch.
-After proof, a canonical local run is allocated or resumed (and when `artifacts.provider: "linear"` or `artifacts.provider: "plane"`, an
-exact `--project` is reused or one project is created from validated defaults). An exact source
+After proof, a canonical local run is allocated or resumed (and when `artifacts.provider: "linear"`, an
+exact `--project` is reused or one `[Fix] ` project is created from validated defaults; for `artifacts.provider: "plane"`,
+the canonical `[Repo] owner/name` repository project is admitted or resolved, one `[Fix] ` top-level specification
+work item created, and increment children parented to it). An exact source
 `--issue` remains source context and is preserved apart from its supported project link; it is not
 repurposed as a plan issue. The complete diagnosis and specification live on the local run manifest,
 with executor-ready contracts on direct increments and dependencies between them.
