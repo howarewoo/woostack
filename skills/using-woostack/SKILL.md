@@ -73,12 +73,14 @@ Gated Ideate, Harden, and Build/Fix-delegated Plan work uses the permission-rest
 manifest and performs zero intermediate provider cycles. After plain `project-spec.md` and
 `execution-plan.md` are written, Build/Fix display the verified project handoff and ask `Stop here`,
 `Execute`, or `Abandon`; Execute is separately invoked or dispatched only for the selected choice.
-Standalone Plan keeps its direct synchronization unchanged. Follow the shared
+Standalone Plan keeps its synchronization unchanged (with optional `--project` for Plane defaulting to the
+canonical repository project). Follow the shared
 [`Local run artifact and provider mirror contract`](../woostack-init/references/artifact-backends.md#minimal-resumable-manifest-schema)
 and load only the selected
 [Linear](../woostack-init/references/artifact-providers/linear.md) or
-[Plane](../woostack-init/references/artifact-providers/plane.md) profile for provider-specific behavior.
-
+[Plane](../woostack-init/references/artifact-providers/plane.md) profile for provider-specific behavior (Linear
+mirrors to one feature project and direct parentless issues; Plane mirrors to one canonical `[Repo] owner/name`
+repository project, top-level specification work items, and increment child work items with sibling blocking relations).
 Linear or Plane assignment, status, labels, content, or metadata never authorizes work, and development
 artifacts never replace direct Git/Graphite/GitHub source-control evidence. Other workflows remain
 artifact-optional. `/woostack-init` may make authenticated read-only setup calls through the official
@@ -97,7 +99,7 @@ issues/work items are preserved. Handoff, replanning, and blockers leave project
 | `/woostack-build <goal> [--project <exact Linear or Plane URL-or-UUID>]`, prepare one canonical project and execution plan, then hand off with `Stop here`, `Execute`, or `Abandon` | `woostack-build` |
 | `/woostack-fix <prompt> [--project <exact Linear or Plane URL-or-UUID>] [--issue <exact canonical Linear issue or Plane work-item reference>] [--inline\|--subagent]`, diagnose a free-form defect, resolve/create its project and direct-issue plan after root-cause proof, then hand off with `Stop here`, `Execute`, or `Abandon` | `woostack-fix` |
 | `/woostack-change <goal>`, implement a small bounded non-bug enhancement or refactor directly in one isolated worktree and one reviewable PR | `woostack-change` |
-| `/woostack-plan <approved specification> [--project <exact Linear or Plane URL-or-UUID>]`, produce a PR-sized dependency-aware direct-issue plan; standalone persistence is optional | `woostack-plan` |
+| `/woostack-plan <approved specification> [--project <exact Linear or Plane URL-or-UUID>]`, produce a PR-sized dependency-aware direct-issue plan; standalone persistence is optional (for Plane, `--project` defaults to the canonical repository project) | `woostack-plan` |
 | `/woostack-execute <approved plan-or-task> [--project <exact Linear or Plane URL-or-UUID>] [--issue <exact canonical Linear issue or Plane work-item reference>] [--run <exact-run-id>] [--recheck]`, execute approved work from fresh exact Linear or Plane project/graph reads or an exact local run manifest, and Git/Graphite/GitHub ancestry evidence | `woostack-execute` |
 | `/woostack-sweep [PR#|branch] [--base R]`, drive one Graphite stack bottom-up: address pre-existing threads, run one multi-angle review per current head, address new findings, restack affected descendants, and halt unchanged recurring blockers | `woostack-sweep` |
 | `/woostack-commit [--issue <exact canonical Linear issue or Plane work-item reference>]`, commit session-relevant changes and update PR fields; artifact synchronization is optional | `woostack-commit` |

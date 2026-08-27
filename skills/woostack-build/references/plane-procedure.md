@@ -17,10 +17,11 @@ permission-restricted run manifest and make zero provider calls. This procedure 
 `project-spec.md` is written.
 
 When `artifacts.provider: "plane"`, perform only the shared immediate pre-save drift read and one
-bounded synchronization after `project-spec.md` is written. Write the specification under the
-existing-record invariant, independently read the content back, and update `mirror.status = "synced"`
-in the manifest; mirror failure is recorded as `mirror.status = "failed"` and is nonblocking. Do not
-save intermediate decisions, question replies, or hardening corrections.
+bounded synchronization after `project-spec.md` is written. Write the specification to the top-level
+`[Build] <goal>` specification work item (with `parent = null`) in the `[Repo] owner/name` project under the
+existing-record invariant, independently read the content and parent state back, and update `mirror.specItem`
+and `mirror.status = "synced"` in the manifest; mirror failure is recorded as `mirror.status = "failed"` and
+is nonblocking. Do not save intermediate decisions, question replies, or hardening corrections.
 
 ## Increment graph synchronization
 
@@ -34,11 +35,10 @@ read-back retains exactly one same-identity creation and permits no membership o
 
 After that preflight, perform one bounded synchronization of:
 
-1. one direct project work item per current increment;
+1. one increment child work item per current increment with `parent = <spec-item-UUID>`;
 2. complete executor-ready work item descriptions;
-3. direct project membership and no parent/container relation (`parent = null`); and
-4. native work-item-to-work-item blocking relations matching the graph (`N-1` strict blocking relations for `N` increments).
-
+3. direct project membership in the `[Repo] owner/name` project; and
+4. native work-item-to-work-item blocking relations matching the graph (`N-1` strict blocking relations for `N` increments: `ordinal k-1` blocks `ordinal k`).
 Use the manifest's preallocated stable client-generated project, work item, and relation mutation identities
 (`external_source: "woostack"` and `external_id: <UUID>`), canonical `baseUrl`, and `workspace`. A new work item's create identity may be used only
 after the shared pre-create checks; project-membership and relation identities may be used only after the native
@@ -52,22 +52,23 @@ explicitly new; record every newly allocated mapping atomically and never remap 
 [existing-description mutation invariant](../../woostack-init/references/artifact-backends.md#existing-description-mutation-invariant).
 
 After the bounded writes, independently read every work item's native UUID, readable ID, stable-key
-mapping, content, title, project membership, validated nullable-parent state, revision, and mutation identity.
+mapping, content, title, project membership, exact specification parent UUID, revision, and mutation identity.
 Then independently read the complete relation set and compare exact normalized predecessor→successor tuples with
 the local execution plan. That exact graph read-back verifies the mirror sync; update `mirror.status = "synced"`.
 Mirror failures are recorded in the manifest and are nonblocking for verified local authority or handoff.
 
 Standalone Plan uses the same native reference, complete-pagination, exact endpoint round-trip, scope, and
-nullable-parent preflight before its direct graph synchronization.
-Do not create a parent plan issue, child containment, placeholder work item, duplicate relation,
+specification parent preflight before its graph synchronization.
+Do not create an extra parent plan issue, child containment, placeholder work item, duplicate relation,
 replacement resource, or second synchronization cycle.
-
 ## Standalone plan
 
-Standalone `woostack-plan` with `artifacts.provider: "plane"` directly creates or updates the exact
-selected project's direct work item dependency graph (`N` parentless work items, `N-1` blocking relations),
-independently reads the complete graph back, and owns no execution authorization. It does not use the gated
-Build run manifest.
+Standalone `woostack-plan` with `artifacts.provider: "plane"` resolves or creates the canonical
+`[Repo] owner/name` repository project (defaulting to it when `--project` is omitted, or requiring exact match
+when `--project` is supplied), creates or updates the top-level `[Plan] <goal>` specification work item
+(`parent = null`), creates child increment work items (`parent = <spec-item-UUID>`) with direct project
+membership, and creates `N-1` sibling blocking relations (`ordinal k-1` blocks `ordinal k`). It independently
+reads the complete graph back, and owns no execution authorization. It does not use the gated Build run manifest.
 ## Delivery notes
 
 Plane delivery notes, comments, and Commit writer are unsupported in this increment

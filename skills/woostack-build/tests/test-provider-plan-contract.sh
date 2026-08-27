@@ -23,11 +23,11 @@ def forbid(pattern):
         failures.append(f"plan: matches forbidden pattern {pattern!r}")
 
 for needle in (
-    "`--project` is mandatory",
-    "exact existing Linear or Plane project",
-    "never creates or selects an implicit project",
+    "For standalone Linear use, `--project` is mandatory",
+    "For standalone Plane use, `--project` is optional",
+    "canonical `[Repo] owner/name` repository project",
     "one complete specification",
-    "Never create a parent, container, checklist, layer, or plan issue",
+    "Never create extra container, checklist, layer, or synthetic issues",
     "stable task ID, unique positive ordinal",
     "exactly one intended PR",
     "exact scope and explicit non-goals",
@@ -46,7 +46,7 @@ for needle in (
     "positive integers `1..N`",
     "ordinal k (2..N): ordinal k-1 → ordinal k",
     "exactly the matching predecessor edge",
-    "Independently read every project, issue",
+    "Independently read every project",
     "Delegated planning performs no provider read or mutation",
     "atomically records complete candidate contracts",
     "displays every concise stable task and dependency mapping",
@@ -59,7 +59,6 @@ for needle in (
     "Linear",
 ):
     require(needle)
-
 for pattern in (
     r"artifact-free",
     r"conversational-only",
@@ -87,16 +86,23 @@ def canonicalize_plane_url(url: str) -> str:
     return url
 
 class MockPlanePlanMCP:
-    def __init__(self, base_url="https://api.plane.so", workspace="acme"):
+    def __init__(self, base_url="https://api.plane.so", workspace="acme", repo="acme/widgets"):
         self.base_url = base_url
         self.workspace = workspace
+        self.repo = repo
         self.projects = {
             "11111111-2222-3333-4444-555555555555": {
                 "id": "11111111-2222-3333-4444-555555555555",
-                "name": "Platform Core",
+                "name": f"[Repo] {repo}",
                 "workspace": "acme",
-                "repository": "https://github.com/acme/widgets",
-            }
+                "repository": f"https://github.com/{repo}",
+            },
+            "22222222-2222-3333-4444-555555555555": {
+                "id": "22222222-2222-3333-4444-555555555555",
+                "name": "Different Roadmap",
+                "workspace": "acme",
+                "repository": "https://github.com/acme/other-repo",
+            },
         }
         self.readable_id_map = {
             "ENG-42": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
@@ -130,6 +136,32 @@ class MockPlanePlanMCP:
             return proj
         raise ValueError(f"unknown project: {project_arg}")
 
+    def create_project(self, workspace, name, repository, external_source="woostack", external_id=None):
+        self.operations.append(("create_project", workspace, name, repository, external_id))
+        proj_id = f"proj-{len(self.projects) + 1}"
+        proj = {
+            "id": proj_id,
+            "name": name,
+            "workspace": workspace,
+            "repository": repository,
+            "external_source": external_source,
+            "external_id": external_id,
+        }
+        self.projects[proj_id] = proj
+        return proj
+
+    def read_project(self, workspace, project_id):
+        self.operations.append(("read_project", workspace, project_id))
+        proj = self.projects.get(project_id)
+        if not proj or proj.get("workspace") != workspace:
+            return None
+        return dict(proj)
+
+    def list_projects_paginated(self, workspace, cursor=None):
+        self.operations.append(("list_projects", workspace, cursor))
+        items = [p for p in self.projects.values() if p.get("workspace") == workspace]
+        return {"items": items, "next_cursor": None}
+
     def resolve_work_item_ref(self, ref):
         self.operations.append(("resolve_work_item_ref", ref))
         if ref in self.readable_id_map:
@@ -146,11 +178,9 @@ class MockPlanePlanMCP:
         return {"items": items, "next_cursor": None}
 
     def create_work_item(self, project_id, title, parent=None, external_id=None):
-        self.operations.append(("create_work_item", project_id, title, external_id))
-        if parent is not None:
-            raise ValueError("parent must be null")
+        self.operations.append(("create_work_item", project_id, title, external_id, parent))
         wi_id = f"wi-{len(self.work_items) + 1}"
-        wi = {"id": wi_id, "project_id": project_id, "title": title, "parent": None, "external_id": external_id}
+        wi = {"id": wi_id, "project_id": project_id, "title": title, "parent": parent, "external_id": external_id}
         self.work_items[wi_id] = wi
         return wi
 
@@ -165,42 +195,72 @@ class MockPlanePlanMCP:
 def simulate_standalone_plan_plane(provider, project_arg, mcp, plan_items, simulate_incomplete_pagination=False):
     if provider == "local" or not provider:
         raise ValueError("standalone Plan requires provider linear or plane")
-    if not project_arg:
-        raise ValueError("--project is mandatory for standalone Plan")
 
-    # 1. Resolve exact project
-    proj = mcp.resolve_project(project_arg)
-
-    # 2. Check complete pagination on existing items
+    # 1. Resolve exact or default repository project
+    canonical_name = f"[Repo] {mcp.repo}"
+    canonical_repo_url = f"https://github.com/{mcp.repo}"
+    if project_arg:
+        proj = mcp.resolve_project(project_arg)
+        if proj.get("name") != canonical_name or proj.get("repository") != canonical_repo_url:
+            raise ValueError(f"mismatched project: expected {canonical_name} ({canonical_repo_url}), got {proj.get('name')} ({proj.get('repository')})")
+    else:
+        # Default to canonical repository project: complete pagination to discover existing project
+        proj_page = mcp.list_projects_paginated(mcp.workspace)
+        matching = [
+            p for p in proj_page.get("items", [])
+            if p.get("name") == canonical_name and p.get("repository") == canonical_repo_url
+        ]
+        if len(matching) == 1:
+            proj = matching[0]
+        elif len(matching) > 1:
+            raise ValueError(f"ambiguous matching projects found for {canonical_name}")
+        else:
+            # Zero canonical match first-use path: create [Repo] owner/name with preallocated identity and independent read-back
+            proj_ext_id = "plan-proj-ext-1"
+            created_proj = mcp.create_project(
+                mcp.workspace,
+                canonical_name,
+                canonical_repo_url,
+                external_source="woostack",
+                external_id=proj_ext_id,
+            )
+            # Independent read_project before use
+            proj = mcp.read_project(mcp.workspace, created_proj["id"])
+            if not proj:
+                raise RuntimeError("failed to read back created canonical repository project")
     existing_page = mcp.list_work_items_paginated(proj["id"], simulate_incomplete=simulate_incomplete_pagination)
     if existing_page.get("next_cursor") is not None:
         raise RuntimeError("incomplete pagination: terminal cursor not null")
 
-    # 3. Create N parentless work items
+    # 3. Create top-level specification work item with parent = None
+    spec_wi = mcp.create_work_item(proj["id"], "[Plan] Feature Plan", parent=None, external_id="plan-spec-ext-1")
+
+    # 4. Create N child work items with parent = spec_wi["id"]
     created = []
     for idx, item in enumerate(plan_items, start=1):
         ext_id = f"plan-ext-{idx}"
-        wi = mcp.create_work_item(proj["id"], item["title"], parent=None, external_id=ext_id)
+        wi = mcp.create_work_item(proj["id"], item["title"], parent=spec_wi["id"], external_id=ext_id)
         created.append(wi)
 
-    # 4. Create N-1 strict blocking relations: ordinal k-1 blocks ordinal k
+    # 5. Create N-1 strict sibling blocking relations: ordinal k-1 blocks ordinal k
     for k in range(len(created) - 1):
         blocker = created[k]
         blocked = created[k + 1]
         mcp.create_blocking_relation(proj["id"], blocker["id"], blocked["id"], external_id=f"rel-plan-ext-{k}")
 
-    # 5. Read-back verification
+    # 6. Read-back verification
     assert len(created) == len(plan_items)
     assert len(mcp.relations) == len(plan_items) - 1
+    assert spec_wi["parent"] is None
     for wi in created:
-        assert wi["parent"] is None
+        assert wi["parent"] == spec_wi["id"]
     for rel in mcp.relations:
         assert rel["blocker"] != rel["blocked"]
 
-    return {"project": proj, "work_items": created, "relations": mcp.relations}
+    return {"project": proj, "spec_item": spec_wi, "work_items": created, "relations": mcp.relations}
 
 
-# --- Plan Test 1: Successful Standalone Plan on Plane ---
+# --- Plan Test 1: Successful Standalone Plan on Plane with explicit project ---
 mcp_plan = MockPlanePlanMCP(base_url="https://api.plane.so", workspace="acme")
 items = [
     {"title": "Increment 1: Setup"},
@@ -214,8 +274,12 @@ result = simulate_standalone_plan_plane(
     mcp_plan,
     items,
 )
+assert result["project"]["name"] == "[Repo] acme/widgets"
+assert result["spec_item"]["parent"] is None
 assert len(result["work_items"]) == 4
 assert len(result["relations"]) == 3
+for wi in result["work_items"]:
+    assert wi["parent"] == result["spec_item"]["id"]
 # Verify direction: item 0 blocks item 1, item 1 blocks item 2, item 2 blocks item 3
 assert result["relations"][0]["blocker"] == result["work_items"][0]["id"]
 assert result["relations"][0]["blocked"] == result["work_items"][1]["id"]
@@ -224,6 +288,44 @@ assert result["relations"][1]["blocked"] == result["work_items"][2]["id"]
 assert result["relations"][2]["blocker"] == result["work_items"][2]["id"]
 assert result["relations"][2]["blocked"] == result["work_items"][3]["id"]
 
+# --- Plan Test 1b: Successful Standalone Plan on Plane with omitted --project (defaults to canonical repo project) ---
+mcp_plan_default = MockPlanePlanMCP(base_url="https://api.plane.so", workspace="acme")
+result_default = simulate_standalone_plan_plane(
+    "plane",
+    None,
+    mcp_plan_default,
+    items,
+)
+assert result_default["project"]["name"] == "[Repo] acme/widgets"
+assert result_default["spec_item"]["parent"] is None
+assert len(result_default["work_items"]) == 4
+assert len(result_default["relations"]) == 3
+for wi in result_default["work_items"]:
+    assert wi["parent"] == result_default["spec_item"]["id"]
+# --- Plan Test 1c: Successful Standalone Plan on Plane with empty project set (first-use project creation) ---
+mcp_plan_empty = MockPlanePlanMCP(base_url="https://api.plane.so", workspace="acme")
+mcp_plan_empty.projects = {}  # Empty workspace projects
+result_empty = simulate_standalone_plan_plane(
+    "plane",
+    None,
+    mcp_plan_empty,
+    items,
+)
+assert result_empty["project"]["name"] == "[Repo] acme/widgets"
+assert result_empty["project"]["repository"] == "https://github.com/acme/widgets"
+assert result_empty["project"]["external_id"] == "plan-proj-ext-1"
+assert result_empty["spec_item"]["parent"] is None
+assert len(result_empty["work_items"]) == 4
+assert len(result_empty["relations"]) == 3
+for wi in result_empty["work_items"]:
+    assert wi["parent"] == result_empty["spec_item"]["id"]
+
+# Verify create_project -> read_project ordering before any work item creation
+op_types_empty = [op[0] for op in mcp_plan_empty.operations]
+proj_create_idx = op_types_empty.index("create_project")
+proj_read_idx = op_types_empty.index("read_project")
+first_wi_create_idx = op_types_empty.index("create_work_item")
+assert proj_create_idx < proj_read_idx < first_wi_create_idx, "first-use project creation must prove create_project -> read_project before work item operations"
 # --- Plan Test 2: Incomplete pagination fails closed ---
 try:
     simulate_standalone_plan_plane(
@@ -271,6 +373,18 @@ try:
     raise AssertionError("expected foreign workspace failure")
 except ValueError as e:
     assert "foreign workspace in project URL" in str(e)
+
+# --- Plan Test 7: Mismatched same-workspace project fails closed ---
+try:
+    simulate_standalone_plan_plane(
+        "plane",
+        "https://app.plane.so/acme/projects/22222222-2222-3333-4444-555555555555",
+        mcp_plan,
+        items,
+    )
+    raise AssertionError("expected mismatched project failure")
+except ValueError as e:
+    assert "mismatched project" in str(e)
 
 print("test-provider-plan-contract: ok")
 PY

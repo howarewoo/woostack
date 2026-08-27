@@ -48,9 +48,9 @@ verified `Stop here`/`Execute`/`Abandon` handoff
 
 Build writes plain `project-spec.md` and `execution-plan.md` Markdown files. When `artifacts.provider: "linear"`
 or `artifacts.provider: "plane"`, one bounded cycle mirrors Build artifacts to the configured provider (for Linear:
-one project, direct increment issues, native dependencies; for Plane: one project, `N` parentless direct work items
-with `parent = null`, `N-1` strict blocking relations, and project-label discovery/unioning preserving unrelated
-labels). Its execution plan orders independently shippable increments, each with at most one PR. Execute processes
+one project, direct increment issues, native dependencies; for Plane: the canonical `[Repo] owner/name` repository project,
+one top-level specification work item with `parent = null`, `N` increment child work items parented to the specification
+work item, `N-1` strict sibling blocking relations, and project-label discovery/unioning preserving unrelated labels).
 one increment at a time in ordinal order within a run; distinct run IDs may execute concurrently only through
 disjoint branches, worktrees, and responsibility surfaces. Every build manages one high-level specification and
 direct increment contracts in its retained local run manifest.

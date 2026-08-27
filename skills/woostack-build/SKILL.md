@@ -31,10 +31,13 @@ or creates exactly one canonical project prefixed with `[Build] ` and otherwise 
 goal. Supplied projects retain their existing names. Each independently shippable increment is one direct
 issue in that project. Do not create a parent plan issue. Build verifies the canonical repository association,
 then uses validated repository/workspace/team defaults before starting the conversation.
-When `artifacts.provider: "plane"`, `--project` is optional. Build resolves the exact caller-supplied Plane project
-or creates exactly one canonical project prefixed with `[Build] ` from validated instance `baseUrl`, workspace,
-repository, and nonempty `projectLabels` defaults. Each independently shippable increment is one direct work item
-in that project with `parent = null`.
+When `artifacts.provider: "plane"`, `--project` is optional. Build resolves or creates the canonical repository
+project named `[Repo] owner/name` from canonical repository identity, instance `baseUrl`, workspace,
+and nonempty `projectLabels` defaults. When supplied, `--project` must match the canonical repository project.
+Build creates one top-level specification work item prefixed with `[Build] ` with `parent = null` containing
+the complete specification, and each independently shippable increment is created as an exact child work item
+of that specification work item (`parent = <spec-item-UUID>`) with direct project membership and `N-1`
+sibling blocking relations.
 Before acting, load the shared
 [artifact contract](../woostack-init/references/artifact-backends.md), then load only the selected
 provider row:
