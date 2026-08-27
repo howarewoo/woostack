@@ -77,7 +77,7 @@ linear_requirements = (
     "Woostack project mutation ID", "[woostack-mutation:<UUID>]",
 )
 plane_requirements = (
-    "baseUrl", "workspace", "external_source", "external_id",
+    "baseUrl", "workspace", "artifacts.plane.project", "external_source", "external_id",
     "readable identifier", "parent = null", "direct project membership",
     "Never mutate, synthesize",
 )

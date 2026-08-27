@@ -124,44 +124,51 @@ actual="$(bash "$RESOLVER" "$repo")"
 assert_eq "$(jq -r '.artifacts.provider' <<<"$actual")" "local" "local provider with partial plane config succeeds"
 
 printf '{"artifacts":{"provider":"plane","plane":{"workspace":"only-workspace"}}}\n' >"$repo/.woostack/config.json"; rm -f "$repo/.woostack/config.local.json"
-must_fail "$repo" ".woostack/config.json plane policy requires baseUrl, workspace, repository, projectLabels, projectStatuses, and issueStates only" "plane provider with partial plane config fails"
+must_fail "$repo" ".woostack/config.json plane policy requires baseUrl, workspace, repository, project, projectLabels, and issueStates only" "plane provider with partial plane config fails"
 
 cat >"$repo/.woostack/config.json" <<'JSON'
-{"artifacts":{"provider":"plane","plane":{"baseUrl":"https://api.plane.so","workspace":"acme","repository":"https://github.com/a/b","projectLabels":["Core"],"projectStatuses":{"backlog":"Backlog","planned":"Planned","started":"Started","completed":"Completed","canceled":"Canceled"},"issueStates":{"planned":"Backlog","executing":"In Progress","inReview":"In Progress","done":"Done","blocked":"In Progress"}}}}
+{"artifacts":{"provider":"plane","plane":{"baseUrl":"https://api.plane.so","workspace":"acme","repository":"https://github.com/a/b","project":"33333333-3333-4333-8333-333333333330","projectLabels":["Core"],"issueStates":{"planned":"Backlog","executing":"In Progress","inReview":"In Progress","done":"Done","blocked":"In Progress"}}}}
 JSON
 rm -f "$repo/.woostack/config.local.json"
 actual="$(bash "$RESOLVER" "$repo")"
 assert_eq "$(jq -r '.artifacts.provider' <<<"$actual")" "plane" "valid plane provider with projectLabels succeeds"
 assert_eq "$(jq -r '.artifacts.plane.baseUrl' <<<"$actual")" "https://api.plane.so" "plane baseUrl preserved"
 assert_eq "$(jq -r '.artifacts.plane.projectLabels[0]' <<<"$actual")" "Core" "plane projectLabels preserved"
+assert_eq "$(jq -r '.artifacts.plane.project' <<<"$actual")" "33333333-3333-4333-8333-333333333330" "Plane project preserved"
+printf '{"artifacts":{"plane":{"project":""}}}\n' >"$repo/.woostack/config.local.json"
+must_fail "$repo" ".woostack/config.local.json plane policy requires baseUrl, workspace, repository, project, projectLabels, and issueStates only" "empty Plane project fails closed"
+rm -f "$repo/.woostack/config.local.json"
+printf '{"artifacts":{"plane":{"projectStatuses":{}}}}\n' >"$repo/.woostack/config.local.json"
+must_fail "$repo" ".woostack/config.local.json plane policy requires baseUrl, workspace, repository, project, projectLabels, and issueStates only" "obsolete Plane projectStatuses fails closed"
+rm -f "$repo/.woostack/config.local.json"
 
 # 15c. Plane baseUrl normalization (Cloud equivalence & self-hosted trailing slash)
 cat >"$repo/.woostack/config.json" <<'JSON'
-{"artifacts":{"provider":"plane","plane":{"baseUrl":"https://app.plane.so","workspace":"acme","repository":"https://github.com/a/b","projectLabels":["Core"],"projectStatuses":{"backlog":"Backlog","planned":"Planned","started":"Started","completed":"Completed","canceled":"Canceled"},"issueStates":{"planned":"Backlog","executing":"In Progress","inReview":"In Progress","done":"Done","blocked":"In Progress"}}}}
+{"artifacts":{"provider":"plane","plane":{"baseUrl":"https://app.plane.so","workspace":"acme","repository":"https://github.com/a/b","project":"33333333-3333-4333-8333-333333333330","projectLabels":["Core"],"issueStates":{"planned":"Backlog","executing":"In Progress","inReview":"In Progress","done":"Done","blocked":"In Progress"}}}}
 JSON
 actual="$(bash "$RESOLVER" "$repo")"
 assert_eq "$(jq -r '.artifacts.plane.baseUrl' <<<"$actual")" "https://api.plane.so" "plane app.plane.so canonicalized to api.plane.so"
 
 cat >"$repo/.woostack/config.json" <<'JSON'
-{"artifacts":{"provider":"plane","plane":{"baseUrl":"https://api.plane.so/","workspace":"acme","repository":"https://github.com/a/b","projectLabels":["Core"],"projectStatuses":{"backlog":"Backlog","planned":"Planned","started":"Started","completed":"Completed","canceled":"Canceled"},"issueStates":{"planned":"Backlog","executing":"In Progress","inReview":"In Progress","done":"Done","blocked":"In Progress"}}}}
+{"artifacts":{"provider":"plane","plane":{"baseUrl":"https://api.plane.so/","workspace":"acme","repository":"https://github.com/a/b","project":"33333333-3333-4333-8333-333333333330","projectLabels":["Core"],"issueStates":{"planned":"Backlog","executing":"In Progress","inReview":"In Progress","done":"Done","blocked":"In Progress"}}}}
 JSON
 actual="$(bash "$RESOLVER" "$repo")"
 assert_eq "$(jq -r '.artifacts.plane.baseUrl' <<<"$actual")" "https://api.plane.so" "plane api.plane.so/ trailing slash stripped and canonicalized"
 
 cat >"$repo/.woostack/config.json" <<'JSON'
-{"artifacts":{"provider":"plane","plane":{"baseUrl":"https://plane.internal/","workspace":"acme","repository":"https://github.com/a/b","projectLabels":["Core"],"projectStatuses":{"backlog":"Backlog","planned":"Planned","started":"Started","completed":"Completed","canceled":"Canceled"},"issueStates":{"planned":"Backlog","executing":"In Progress","inReview":"In Progress","done":"Done","blocked":"In Progress"}}}}
+{"artifacts":{"provider":"plane","plane":{"baseUrl":"https://plane.internal/","workspace":"acme","repository":"https://github.com/a/b","project":"33333333-3333-4333-8333-333333333330","projectLabels":["Core"],"issueStates":{"planned":"Backlog","executing":"In Progress","inReview":"In Progress","done":"Done","blocked":"In Progress"}}}}
 JSON
 actual="$(bash "$RESOLVER" "$repo")"
 assert_eq "$(jq -r '.artifacts.plane.baseUrl' <<<"$actual")" "https://plane.internal" "self-hosted plane trailing slash stripped"
 cat >"$repo/.woostack/config.json" <<'JSON'
-{"artifacts":{"provider":"plane","plane":{"baseUrl":"https://api.plane.so","workspace":"acme","repository":"https://github.com/a/b","projectLabels":[],"projectStatuses":{"backlog":"Backlog","planned":"Planned","started":"Started","completed":"Completed","canceled":"Canceled"},"issueStates":{"planned":"Backlog","executing":"In Progress","inReview":"In Progress","done":"Done","blocked":"In Progress"}}}}
+{"artifacts":{"provider":"plane","plane":{"baseUrl":"https://api.plane.so","workspace":"acme","repository":"https://github.com/a/b","project":"33333333-3333-4333-8333-333333333330","projectLabels":[],"issueStates":{"planned":"Backlog","executing":"In Progress","inReview":"In Progress","done":"Done","blocked":"In Progress"}}}}
 JSON
 must_fail "$repo" ".woostack/config.json projectLabels must be an array of non-empty strings" "empty projectLabels under plane fails"
 
 cat >"$repo/.woostack/config.json" <<'JSON'
-{"artifacts":{"provider":"plane","plane":{"baseUrl":"invalid-url","workspace":"acme","repository":"https://github.com/a/b","projectLabels":["Core"],"projectStatuses":{"backlog":"Backlog","planned":"Planned","started":"Started","completed":"Completed","canceled":"Canceled"},"issueStates":{"planned":"Backlog","executing":"In Progress","inReview":"In Progress","done":"Done","blocked":"In Progress"}}}}
+{"artifacts":{"provider":"plane","plane":{"baseUrl":"invalid-url","workspace":"acme","repository":"https://github.com/a/b","project":"33333333-3333-4333-8333-333333333330","projectLabels":["Core"],"issueStates":{"planned":"Backlog","executing":"In Progress","inReview":"In Progress","done":"Done","blocked":"In Progress"}}}}
 JSON
-must_fail "$repo" ".woostack/config.json plane policy requires baseUrl, workspace, repository, projectLabels, projectStatuses, and issueStates only" "invalid baseUrl fails"
+must_fail "$repo" ".woostack/config.json plane policy requires baseUrl, workspace, repository, project, projectLabels, and issueStates only" "invalid baseUrl fails"
 
 # 16. Layered invalid overrides attribution
 cat >"$repo/.woostack/config.json" <<'JSON'
@@ -177,10 +184,10 @@ printf '{"artifacts":{"linear":{"issueStates":{"planned":""}}}}\n' >"$repo/.woos
 must_fail "$repo" ".woostack/config.local.json issueStates mapping is incomplete or contains invalid values" "invalid local issueStates override attributes to local config"
 
 cat >"$repo/.woostack/config.json" <<'JSON'
-{"artifacts":{"provider":"plane","plane":{"baseUrl":"https://api.plane.so","workspace":"acme","repository":"https://github.com/a/b","projectLabels":["Core"],"projectStatuses":{"backlog":"Backlog","planned":"Planned","started":"Started","completed":"Completed","canceled":"Canceled"},"issueStates":{"planned":"Backlog","executing":"In Progress","inReview":"In Progress","done":"Done","blocked":"In Progress"}}}}
+{"artifacts":{"provider":"plane","plane":{"baseUrl":"https://api.plane.so","workspace":"acme","repository":"https://github.com/a/b","project":"33333333-3333-4333-8333-333333333330","projectLabels":["Core"],"issueStates":{"planned":"Backlog","executing":"In Progress","inReview":"In Progress","done":"Done","blocked":"In Progress"}}}}
 JSON
 printf '{"artifacts":{"plane":{"baseUrl":""}}}\n' >"$repo/.woostack/config.local.json"
-must_fail "$repo" ".woostack/config.local.json plane policy requires baseUrl, workspace, repository, projectLabels, projectStatuses, and issueStates only" "invalid local plane baseUrl override attributes to local config"
+must_fail "$repo" ".woostack/config.local.json plane policy requires baseUrl, workspace, repository, project, projectLabels, and issueStates only" "invalid local plane baseUrl override attributes to local config"
 
 printf '{"artifacts":{"plane":{"projectLabels":[]}}}\n' >"$repo/.woostack/config.local.json"
 must_fail "$repo" ".woostack/config.local.json projectLabels must be an array of non-empty strings" "empty local plane projectLabels override attributes to local config"

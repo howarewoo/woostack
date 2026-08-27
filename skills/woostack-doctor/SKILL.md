@@ -36,7 +36,7 @@ It has two layers:
   the OAuth workspace slug, native team ID/key, native mappings, and independent read-back.
   When `artifacts.provider: "plane"`, discover the host's official Plane MCP tools, authenticate,
   and verify Plane availability plus required project/issue/relation/label read and mutation capabilities,
-  then verify canonical instance `baseUrl`, workspace, native mappings, and independent read-back.
+  then verify canonical instance `baseUrl`, workspace, exact configured project, native mappings, and independent read-back.
   Write only the normalized non-secret result to a mode-0600 temporary receipt, invoke
   `doctor.sh --live-receipt <path> [path]`, and delete the receipt. Missing MCP, authentication,
   capability, identity, mapping, or read-back blocks at its phase.
@@ -62,7 +62,7 @@ the `templates/` shipped there; the woostack collection installs both as sibling
    - When `artifacts.provider: "plane"`, discover and authenticate official Plane MCP (`official-plane-mcp`).
      Verify Plane availability and required `projectRead`, `projectWrite`, `issueRead`, `issueWrite`,
      `relationRead`, `relationWrite`, `projectLabelRead`, `projectLabelWrite`, and `independentReadBack`
-     capabilities. Verify canonical instance `baseUrl` and workspace, native project status and issue state
+     capabilities. Verify canonical instance `baseUrl`, workspace, exact configured project, native issue-state
      mappings, and independent read-back.
    - When `artifacts.provider: "local"` or omitted, live provider preflight is skipped.
    Write the normalized non-secret mode-0600 receipt matching the resolved provider schema, and run

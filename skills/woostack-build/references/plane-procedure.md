@@ -18,7 +18,7 @@ permission-restricted run manifest and make zero provider calls. This procedure 
 
 When `artifacts.provider: "plane"`, perform only the shared immediate pre-save drift read and one
 bounded synchronization after `project-spec.md` is written. Write the specification to the top-level
-`[Build] <goal>` specification work item (with `parent = null`) in the `[Repo] owner/name` project under the
+`[Build] <goal>` specification work item (with `parent = null`) in the configured project under the
 existing-record invariant, independently read the content and parent state back, and update `mirror.specItem`
 and `mirror.status = "synced"` in the manifest; mirror failure is recorded as `mirror.status = "failed"` and
 is nonblocking. Do not save intermediate decisions, question replies, or hardening corrections.
@@ -37,12 +37,12 @@ After that preflight, perform one bounded synchronization of:
 
 1. one increment child work item per current increment with `parent = <spec-item-UUID>`;
 2. complete executor-ready work item descriptions;
-3. direct project membership in the `[Repo] owner/name` project; and
+3. direct membership in the configured project; and
 4. native work-item-to-work-item blocking relations matching the graph (`N-1` strict blocking relations for `N` increments: `ordinal k-1` blocks `ordinal k`).
-Use the manifest's preallocated stable client-generated project, work item, and relation mutation identities
-(`external_source: "woostack"` and `external_id: <UUID>`), canonical `baseUrl`, and `workspace`. A new work item's create identity may be used only
-after the shared pre-create checks; project-membership and relation identities may be used only after the native
-work item read-back succeeds.
+Use the manifest's preallocated stable client-generated work-item and relation mutation identities
+(`external_source: "woostack"` and `external_id: <UUID>`), canonical `baseUrl`, and `workspace`. A new
+work item's create identity may be used only after the shared pre-create checks; membership and relation
+identities may be used only after the native work-item read-back succeeds.
 
 Reconcile every retained baseline work item with exactly one stable local task key. Reuse a prior verified
 native work item mapping when present; otherwise display one explicit proposed baseline native-reference→task-key
@@ -63,11 +63,11 @@ Do not create an extra parent plan issue, child containment, placeholder work it
 replacement resource, or second synchronization cycle.
 ## Standalone plan
 
-Standalone `woostack-plan` with `artifacts.provider: "plane"` resolves or creates the canonical
-`[Repo] owner/name` repository project (defaulting to it when `--project` is omitted, or requiring exact match
-when `--project` is supplied), creates or updates the top-level `[Plan] <goal>` specification work item
-(`parent = null`), creates child increment work items (`parent = <spec-item-UUID>`) with direct project
-membership, and creates `N-1` sibling blocking relations (`ordinal k-1` blocks `ordinal k`). It independently
+Standalone `woostack-plan` with `artifacts.provider: "plane"` resolves the exact configured project
+(using it when `--project` is omitted, or requiring the supplied value to identify the same native
+project), creates or updates the top-level `[Plan] <goal>` specification work item (`parent = null`),
+creates child increment work items (`parent = <spec-item-UUID>`) with direct project membership, and
+creates `N-1` sibling blocking relations (`ordinal k-1` blocks `ordinal k`). It independently
 reads the complete graph back, and owns no execution authorization. It does not use the gated Build run manifest.
 ## Delivery notes
 

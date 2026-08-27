@@ -196,25 +196,13 @@ class MockPlaneMCP:
             raise ValueError(f"foreign workspace: {workspace}")
         return self.projects.get(project_id)
 
-    def resolve_canonical_project(self, workspace, repository_url_or_name):
-        if not self.capabilities.get("projectRead"):
-            raise RuntimeError("missing capability: projectRead")
-        if workspace != self.workspace:
-            raise ValueError(f"foreign workspace: {workspace}")
-
-        repo_name = repository_url_or_name.rstrip("/").split("/")[-2:]
-        owner_repo = "/".join(repo_name) if len(repo_name) == 2 else repository_url_or_name
-        expected_project_name = f"[Repo] {owner_repo}"
-
-        matches = [
-            p for p in self.projects.values()
-            if p.get("workspace") == workspace and p.get("name") == expected_project_name
-        ]
-        if not matches:
-            raise ValueError(f"canonical repository project '{expected_project_name}' not found in workspace '{workspace}'")
-        if len(matches) > 1:
-            raise ValueError(f"ambiguous canonical repository project '{expected_project_name}' in workspace '{workspace}'")
-        return dict(matches[0])
+    def resolve_configured_project(self, workspace, project_ref, repository):
+        project = self.read_project(workspace, project_ref)
+        if not project:
+            raise ValueError(f"configured project '{project_ref}' not found in workspace '{workspace}'")
+        if project.get("repository", repository) != repository:
+            raise ValueError("configured project repository does not match policy")
+        return dict(project)
 
     def list_work_items(self, workspace, project_id):
         if not self.capabilities.get("issueRead"):
@@ -427,8 +415,8 @@ def admit_plane_execution_target(config, mcp, ref, is_project_mode=False):
     """
     Validates Plane execution target admission under the contract:
     - Plane does not accept --project as executable scope.
-    - Resolves and verifies canonical [Repo] owner/name repository project first.
-    - Rejects target if its direct project membership does not match canonical project UUID.
+    - Resolves and verifies the exact configured project first.
+    - Rejects target if its direct project membership does not match the configured project UUID.
     - --issue admits either:
         1. Top-level spec item (parent = null): discovers its complete validated child graph.
         2. Exact child increment item (parent = <spec-UUID>): validates complete parent graph and admits child.
@@ -440,9 +428,10 @@ def admit_plane_execution_target(config, mcp, ref, is_project_mode=False):
     plane_cfg = config["artifacts"]["plane"]
     workspace = plane_cfg["workspace"]
     repo_identity = plane_cfg["repository"]
+    project_ref = plane_cfg["project"]
 
-    # 1. Resolve and independently verify canonical repository project
-    canonical_proj = mcp.resolve_canonical_project(workspace, repo_identity)
+    # 1. Resolve and independently verify the configured project
+    canonical_proj = mcp.resolve_configured_project(workspace, project_ref, repo_identity)
     canonical_project_id = canonical_proj["id"]
 
     # 2. Read target work item
@@ -513,11 +502,8 @@ def test_two_spec_parents_isolation_and_lifecycle_aggregation():
                 "baseUrl": "https://api.plane.so",
                 "workspace": "acme",
                 "repository": "https://github.com/acme/widgets",
+                "project": "proj-plane-001",
                 "projectLabels": ["woostack", "repo:widgets"],
-                "projectStatuses": {
-                    "backlog": "Backlog", "planned": "Planned", "started": "In Progress",
-                    "completed": "Completed", "canceled": "Canceled"
-                },
                 "issueStates": {
                     "planned": "state-planned",
                     "executing": "state-in-progress",
@@ -739,11 +725,8 @@ def test_exact_child_selection_touches_no_sibling():
                 "baseUrl": "https://api.plane.so",
                 "workspace": "acme",
                 "repository": "https://github.com/acme/widgets",
+                "project": "proj-plane-001",
                 "projectLabels": ["woostack", "repo:widgets"],
-                "projectStatuses": {
-                    "backlog": "Backlog", "planned": "Planned", "started": "In Progress",
-                    "completed": "Completed", "canceled": "Canceled"
-                },
                 "issueStates": {
                     "planned": "state-planned",
                     "executing": "state-in-progress",
@@ -845,8 +828,8 @@ def test_cross_parent_graph_causes_zero_mutation():
                 "baseUrl": "https://api.plane.so",
                 "workspace": "acme",
                 "repository": "https://github.com/acme/widgets",
+                "project": "proj-plane-001",
                 "projectLabels": ["woostack"],
-                "projectStatuses": {"started": "In Progress"},
                 "issueStates": {
                     "executing": "state-in-progress", "inReview": "state-in-review",
                     "done": "state-done", "blocked": "state-blocked"
@@ -904,8 +887,8 @@ def test_exact_child_cross_parent_graph_causes_zero_mutation():
                 "baseUrl": "https://api.plane.so",
                 "workspace": "acme",
                 "repository": "https://github.com/acme/widgets",
+                "project": "proj-plane-001",
                 "projectLabels": ["woostack"],
-                "projectStatuses": {"started": "In Progress"},
                 "issueStates": {
                     "executing": "state-in-progress", "inReview": "state-in-review",
                     "done": "state-done", "blocked": "state-blocked"
@@ -961,8 +944,8 @@ def test_malformed_reversed_or_skipped_order_causes_zero_mutation():
                 "baseUrl": "https://api.plane.so",
                 "workspace": "acme",
                 "repository": "https://github.com/acme/widgets",
+                "project": "proj-plane-001",
                 "projectLabels": ["woostack"],
-                "projectStatuses": {"started": "In Progress"},
                 "issueStates": {
                     "executing": "state-in-progress", "inReview": "state-in-review",
                     "done": "state-done", "blocked": "state-blocked"
@@ -1045,8 +1028,8 @@ def test_duplicate_native_relations_causes_zero_mutation():
                 "baseUrl": "https://api.plane.so",
                 "workspace": "acme",
                 "repository": "https://github.com/acme/widgets",
+                "project": "proj-plane-001",
                 "projectLabels": ["woostack"],
-                "projectStatuses": {"started": "In Progress"},
                 "issueStates": {
                     "executing": "state-in-progress", "inReview": "state-in-review",
                     "done": "state-done", "blocked": "state-blocked"
@@ -1111,8 +1094,8 @@ def test_foreign_project_target_causes_zero_mutation():
                 "baseUrl": "https://api.plane.so",
                 "workspace": "acme",
                 "repository": "https://github.com/acme/widgets",
+                "project": "proj-plane-001",
                 "projectLabels": ["woostack"],
-                "projectStatuses": {"started": "In Progress"},
                 "issueStates": {
                     "executing": "state-in-progress", "inReview": "state-in-review",
                     "done": "state-done", "blocked": "state-blocked"
@@ -1163,8 +1146,8 @@ def test_plane_project_selector_rejected_zero_mutation():
                 "baseUrl": "https://api.plane.so",
                 "workspace": "acme",
                 "repository": "https://github.com/acme/widgets",
+                "project": "proj-plane-001",
                 "projectLabels": ["woostack"],
-                "projectStatuses": {"started": "In Progress"},
                 "issueStates": {"executing": "s1", "inReview": "s2", "done": "s3", "blocked": "s4"}
             }
         }
@@ -1200,8 +1183,8 @@ def test_plane_parent_lifecycle_aggregation_on_blocker():
                 "baseUrl": "https://api.plane.so",
                 "workspace": "acme",
                 "repository": "https://github.com/acme/widgets",
+                "project": "proj-plane-001",
                 "projectLabels": ["woostack"],
-                "projectStatuses": {"started": "In Progress"},
                 "issueStates": {
                     "executing": "state-in-progress", "inReview": "state-in-review",
                     "done": "state-done", "blocked": "state-blocked"

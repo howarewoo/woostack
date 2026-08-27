@@ -1,7 +1,7 @@
 # Plane project context
 
 When optional Plane mirroring is enabled (`artifacts.provider: "plane"`), this procedure resolves the
-one canonical Plane project for [`woostack-build`](../SKILL.md) and admits each exact pre-draft
+exact configured Plane project for [`woostack-build`](../SKILL.md) and admits each exact pre-draft
 baseline. When `artifacts.provider` is "local" or omitted, default local mode makes zero provider calls,
 `--project` fails closed before any provider access, and local run authority in
 `.woostack/tmp/runs/<run-id>/` operates with no provider context. Repository policy supplies validated
@@ -18,46 +18,27 @@ separately governs parent-branch intent and base-change detection; use the
 
 ## Resolution
 1. Resolve the canonical repository URL and repository name `owner/name` from trusted Git/GitHub evidence.
-2. Resolve the caller-selected Plane instance `baseUrl` (Cloud `https://api.plane.so` / `https://app.plane.so`
-   or a self-hosted instance) and `workspace`. Use validated effective repository configuration values only as
-   post-selection defaults.
-3. Preflight official Plane MCP capabilities for complete project reads, selectable direct work item
+2. Resolve the configured Plane instance `baseUrl`, `workspace`, and exact `artifacts.plane.project`
+   URL or native UUID. Never infer a project from repository identity or recent/name-based discovery.
+3. Preflight official Plane MCP capabilities for exact project reads, selectable direct work item
    identity/project/parent fields, complete paginated work item and relation reads, work item/project
-   writes, relation writes, independent read-back, and workspace project label discovery/updates
+   writes, relation writes, independent read-back, and workspace project-label discovery/updates
    (`projectLabelRead`, `projectLabelWrite`).
-4. When `artifacts.plane.projectLabels` is configured, completely paginate all workspace project labels through the
-   official Plane MCP, flatten every page, require null terminal cursors, and resolve each configured label string by exact
-   native UUID or exact case-sensitive name before any project creation or admission mutation. Reject missing,
-   ambiguous, duplicate, or incomplete matches before mutation. If the official Plane MCP lacks project-label
-   operations (listing, resolving, attaching, or independent read-back), Plane persistence fails closed at the
-   provider boundary.
-5. If `--project` supplied an exact URL or UUID, read only that project and verify its identity,
-   instance `baseUrl`, `workspace`, and canonical repository association. It must match the canonical repository
-   project `[Repo] owner/name`; a mismatched project fails closed. Union resolved configured labels with existing
-   project labels (preserving unrelated existing labels), apply in at most one write alongside admission, and
-   independently read back the complete label set and project.
-6. Otherwise discover whether the canonical repository project `[Repo] owner/name` already exists in the
-   workspace. Completely paginate all active and archived projects in the workspace, flatten every page,
-   and require null terminal cursors.
-   - If exactly one project named `[Repo] owner/name` is found, verify its repository association, preserve
-     its existing verified native UUID and external identity (`external_source`/`external_id`), union
-     configured labels with existing labels, apply in at most one write alongside admission if label updates
-     are needed, and independently read back.
-   - Only after proving zero canonical matches across all active and archived projects in the workspace,
-     allocate one preallocated creation identity with `external_source: "woostack"` and `external_id: <UUID>`.
-     Prove zero exact external ID matches before creation, create exactly one project named `[Repo] owner/name`
-     with that external ID pair and unioned labels, keep project description repository-only, and independently
-     read back the native UUID, name, external ID, instance `baseUrl`, workspace, canonical repository, and
-     complete label set.
-   - Duplicate, ambiguous, or foreign matching projects fail closed before mutation.
-7. Independently read the project and complete label set back, verify the exact name and label inclusion,
-   and retain native UUID in the run manifest `mirror.project`.
+4. Read only the configured project and verify its native identity, instance `baseUrl`, workspace, and
+   canonical repository association. If `--project` is supplied, require it to resolve to the same native
+   project UUID. Missing, ambiguous, foreign, or mismatched project evidence fails closed; never create
+   a project.
+5. Completely paginate all workspace project labels, require null terminal cursors, and resolve each
+   configured `projectLabels` value by exact native UUID or exact case-sensitive name. Reject missing,
+   ambiguous, duplicate, or incomplete matches. Union resolved labels with the configured project's
+   existing labels, preserving unrelated labels; write at most once and independently read back the
+   exact project identity, repository association, and complete label set into `mirror.project`.
 
 ## Project specification baseline
 
 Specification drafting is local and provider-free in Ideate and Harden. After `project-spec.md` is written,
 when `artifacts.provider: "plane"`, the shared contract performs one bounded synchronization to create or
-reconcile one top-level specification work item in the `[Repo] owner/name` project named `[Build] <goal>`
+reconcile one top-level specification work item in the configured project named `[Build] <goal>`
 with `parent = null`.
 
 Use `external_source: "woostack"` and preallocated `external_id: <UUID>`. Prove zero matches before creation.
@@ -69,7 +50,7 @@ Mirror failures are recorded in the manifest and are nonblocking.
 ## Direct increment graph baseline
 
 When Plane mirroring is enabled, after `project-spec.md` is written and optional mirror synchronization
-completes, child increment work items are created directly in the `[Repo] owner/name` project as exact children
+completes, child increment work items are created directly in the configured project as exact children
 of the specification work item (`parent = <spec-item-UUID>`).
 
 For each increment in `execution-plan.md`, use `external_source: "woostack"` and preallocate one separate UUID

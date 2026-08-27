@@ -5,16 +5,10 @@
       "baseUrl": "https://api.plane.so",
       "workspace": "acme",
       "repository": "https://github.com/acme/widgets",
+      "project": "33333333-3333-4333-8333-333333333330",
       "projectLabels": [
         "Core"
       ],
-      "projectStatuses": {
-        "backlog": "Backlog",
-        "planned": "Planned",
-        "started": "Started",
-        "completed": "Completed",
-        "canceled": "Canceled"
-      },
       "issueStates": {
         "planned": "Backlog",
         "executing": "In Progress",

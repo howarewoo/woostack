@@ -25,7 +25,7 @@ def forbid(pattern):
 for needle in (
     "For standalone Linear use, `--project` is mandatory",
     "For standalone Plane use, `--project` is optional",
-    "canonical `[Repo] owner/name` repository project",
+    "exact `artifacts.plane.project`",
     "one complete specification",
     "Never create extra container, checklist, layer, or synthetic issues",
     "stable task ID, unique positive ordinal",
@@ -90,6 +90,7 @@ class MockPlanePlanMCP:
         self.base_url = base_url
         self.workspace = workspace
         self.repo = repo
+        self.configured_project = "11111111-2222-3333-4444-555555555555"
         self.projects = {
             "11111111-2222-3333-4444-555555555555": {
                 "id": "11111111-2222-3333-4444-555555555555",
@@ -196,38 +197,18 @@ def simulate_standalone_plan_plane(provider, project_arg, mcp, plan_items, simul
     if provider == "local" or not provider:
         raise ValueError("standalone Plan requires provider linear or plane")
 
-    # 1. Resolve exact or default repository project
-    canonical_name = f"[Repo] {mcp.repo}"
+    # 1. Resolve the exact configured project; an explicit --project must match it.
     canonical_repo_url = f"https://github.com/{mcp.repo}"
+    configured = mcp.resolve_project(mcp.configured_project)
+    if configured.get("repository") != canonical_repo_url:
+        raise ValueError("configured project repository does not match policy")
     if project_arg:
-        proj = mcp.resolve_project(project_arg)
-        if proj.get("name") != canonical_name or proj.get("repository") != canonical_repo_url:
-            raise ValueError(f"mismatched project: expected {canonical_name} ({canonical_repo_url}), got {proj.get('name')} ({proj.get('repository')})")
-    else:
-        # Default to canonical repository project: complete pagination to discover existing project
-        proj_page = mcp.list_projects_paginated(mcp.workspace)
-        matching = [
-            p for p in proj_page.get("items", [])
-            if p.get("name") == canonical_name and p.get("repository") == canonical_repo_url
-        ]
-        if len(matching) == 1:
-            proj = matching[0]
-        elif len(matching) > 1:
-            raise ValueError(f"ambiguous matching projects found for {canonical_name}")
-        else:
-            # Zero canonical match first-use path: create [Repo] owner/name with preallocated identity and independent read-back
-            proj_ext_id = "plan-proj-ext-1"
-            created_proj = mcp.create_project(
-                mcp.workspace,
-                canonical_name,
-                canonical_repo_url,
-                external_source="woostack",
-                external_id=proj_ext_id,
-            )
-            # Independent read_project before use
-            proj = mcp.read_project(mcp.workspace, created_proj["id"])
-            if not proj:
-                raise RuntimeError("failed to read back created canonical repository project")
+        supplied = mcp.resolve_project(project_arg)
+        if supplied["id"] != configured["id"]:
+            raise ValueError(f"mismatched project: configured {configured['id']}, got {supplied['id']}")
+    proj = mcp.read_project(mcp.workspace, configured["id"])
+    if not proj:
+        raise RuntimeError("failed to read back configured project")
     existing_page = mcp.list_work_items_paginated(proj["id"], simulate_incomplete=simulate_incomplete_pagination)
     if existing_page.get("next_cursor") is not None:
         raise RuntimeError("incomplete pagination: terminal cursor not null")
@@ -288,7 +269,7 @@ assert result["relations"][1]["blocked"] == result["work_items"][2]["id"]
 assert result["relations"][2]["blocker"] == result["work_items"][2]["id"]
 assert result["relations"][2]["blocked"] == result["work_items"][3]["id"]
 
-# --- Plan Test 1b: Successful Standalone Plan on Plane with omitted --project (defaults to canonical repo project) ---
+# --- Plan Test 1b: Omitted --project uses artifacts.plane.project ---
 mcp_plan_default = MockPlanePlanMCP(base_url="https://api.plane.so", workspace="acme")
 result_default = simulate_standalone_plan_plane(
     "plane",
@@ -296,36 +277,21 @@ result_default = simulate_standalone_plan_plane(
     mcp_plan_default,
     items,
 )
-assert result_default["project"]["name"] == "[Repo] acme/widgets"
+assert result_default["project"]["id"] == mcp_plan_default.configured_project
 assert result_default["spec_item"]["parent"] is None
 assert len(result_default["work_items"]) == 4
 assert len(result_default["relations"]) == 3
 for wi in result_default["work_items"]:
     assert wi["parent"] == result_default["spec_item"]["id"]
-# --- Plan Test 1c: Successful Standalone Plan on Plane with empty project set (first-use project creation) ---
+# --- Plan Test 1c: Missing configured project fails closed without creation ---
 mcp_plan_empty = MockPlanePlanMCP(base_url="https://api.plane.so", workspace="acme")
-mcp_plan_empty.projects = {}  # Empty workspace projects
-result_empty = simulate_standalone_plan_plane(
-    "plane",
-    None,
-    mcp_plan_empty,
-    items,
-)
-assert result_empty["project"]["name"] == "[Repo] acme/widgets"
-assert result_empty["project"]["repository"] == "https://github.com/acme/widgets"
-assert result_empty["project"]["external_id"] == "plan-proj-ext-1"
-assert result_empty["spec_item"]["parent"] is None
-assert len(result_empty["work_items"]) == 4
-assert len(result_empty["relations"]) == 3
-for wi in result_empty["work_items"]:
-    assert wi["parent"] == result_empty["spec_item"]["id"]
-
-# Verify create_project -> read_project ordering before any work item creation
-op_types_empty = [op[0] for op in mcp_plan_empty.operations]
-proj_create_idx = op_types_empty.index("create_project")
-proj_read_idx = op_types_empty.index("read_project")
-first_wi_create_idx = op_types_empty.index("create_work_item")
-assert proj_create_idx < proj_read_idx < first_wi_create_idx, "first-use project creation must prove create_project -> read_project before work item operations"
+mcp_plan_empty.projects = {}
+try:
+    simulate_standalone_plan_plane("plane", None, mcp_plan_empty, items)
+    raise AssertionError("expected configured project resolution failure")
+except ValueError as e:
+    assert "unknown project" in str(e)
+assert not any(op[0] == "create_project" for op in mcp_plan_empty.operations)
 # --- Plan Test 2: Incomplete pagination fails closed ---
 try:
     simulate_standalone_plan_plane(

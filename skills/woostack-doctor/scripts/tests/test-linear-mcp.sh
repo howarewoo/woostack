@@ -34,11 +34,8 @@ complete_plane_config() {
       plane:{
         baseUrl:"https://api.plane.so",
         repository:"https://github.com/acme/widgets",workspace:"acme",
+        project:"33333333-3333-4333-8333-333333333330",
         projectLabels:["Core"],
-        projectStatuses:{
-          backlog:"Backlog",planned:"Planned",started:"Started",
-          completed:"Completed",canceled:"Canceled"
-        },
         issueStates:{planned:"Backlog",executing:"In Progress",inReview:"In Progress",done:"Done",blocked:"In Progress"}
       }
     }
@@ -50,14 +47,8 @@ complete_plane_receipt() {
     schemaVersion:1,provider:"official-plane-mcp",mcpAvailable:true,authenticated:true,ready:true,
     baseUrl:"https://api.plane.so",
     repository:"https://github.com/acme/widgets",workspace:"acme",
+    project:"33333333-3333-4333-8333-333333333330",
     workspaceResolution:{status:"unique",name:"acme"},
-    projectStatuses:{complete:true,resolved:{
-      backlog:{name:"Backlog",category:"backlog"},
-      planned:{name:"Planned",category:"planned"},
-      started:{name:"Started",category:"started"},
-      completed:{name:"Completed",category:"completed"},
-      canceled:{name:"Canceled",category:"canceled"}
-    }},
     issueStates:{complete:true,resolved:{
       planned:{name:"Backlog",category:"backlog"},
       executing:{name:"In Progress",category:"started"},
