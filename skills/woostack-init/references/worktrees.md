@@ -133,10 +133,18 @@ automatically.
 
 ## 6. Operate only in the task worktree
 
-Every source edit, implementation test, formatter, and task-scoped verification command runs from
-the exact task worktree. Before the first tracked edit and every worker redispatch, recheck the
-approved stable task/run contract, deterministic path, `git worktree list --porcelain`, branch,
-parent, allowed surface, and complete dirty/index/diff identity.
+Every session authorized to modify tracked files in an isolated task worktree must be created with
+that exact task worktree as its active session cwd before its first tracked-file read or write. A
+prompt-level worktree path is descriptive context, not a mechanism for changing cwd; workers and
+host adapters never use shell `cd` to enter a worktree. Hosts without a native session cwd mechanism
+fail closed before worktree access.
+
+Before the first tracked edit and every worker redispatch, the worker executes the normalized
+isolation assertion: without changing directories, resolve the active physical cwd (`pwd -P`), run
+`git rev-parse --show-toplevel`, and require both to equal the expected physical worktree path. A
+mismatch reports both paths and blocks before any read or write. Recheck the approved stable
+task/run contract, deterministic path, `git worktree list --porcelain`, branch, parent, allowed
+surface, and complete dirty/index/diff identity.
 
 The coding worker never:
 

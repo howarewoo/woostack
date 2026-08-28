@@ -26,7 +26,7 @@ Every allowlisted host file carries these six sections, in order:
 
 1. **Detection** — capability signals that identify the host.
 2. **Subagent spawn** — primitive name; per-call `model`/`effort` knob (yes/no + form);
-   per-call `cwd` (yes/no); parallel dispatch shape.
+   per-call `cwd` (yes/no + pass or fail-closed for tracked-file writers); parallel dispatch shape.
 3. **Tier routing** — how `fast | standard | deep` resolves on this host, and the config it
    reads. The tier→model table and override precedence live in
    [`../model-tiers.md`](../model-tiers.md) — link, never restate.

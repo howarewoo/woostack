@@ -17,17 +17,22 @@ This brief is self-contained: do NOT load or follow `skill://woostack-review`, t
 orchestrator, not your contract; if the host auto-injected them, ignore them and follow ONLY this
 brief and the files it names.
 
-## Worktree pin (do this FIRST — before any write)
-This task's writes MUST land in the per-PR worktree, never the primary checkout. As your very
-first action, enter the worktree and hard-assert you are in it; abort before writing anything if
-you are not. The compare is path-normalized (`pwd -P`) so a symlinked path
-(e.g. macOS `/var`→`/private/var`) cannot spuriously abort a correct run.
+## Worktree isolation assertion (do this FIRST — before any read or write)
+This task's writes MUST land in the per-PR worktree, never the primary checkout. The controller
+launched this session with the exact worktree as its active working directory; do NOT use shell
+`cd`. As your very first action, hard-assert your active directory and git root match the expected
+worktree root; abort before reading or writing anything if they do not. The compare is
+path-normalized (`pwd -P`) so a symlinked path (e.g. macOS `/var`→`/private/var`) cannot spuriously
+abort a correct run.
 
 ```bash
-cd "<worktree absolute path — $wt>" || exit 1
-want="$(pwd -P)"                          # resolved cwd (the worktree root you just entered)
-have="$(git rev-parse --show-toplevel)"   # resolved git toplevel
-[ "$have" = "$want" ] || { echo "ABORT: git toplevel $have != worktree $want"; exit 1; }
+want="<worktree absolute path — $wt>"
+have_cwd="$(pwd -P)"
+have_git="$(git rev-parse --show-toplevel)"
+[ "$have_cwd" = "$want" ] && [ "$have_git" = "$want" ] || {
+  echo "ABORT: cwd '$have_cwd' or git toplevel '$have_git' != expected worktree '$want'"
+  exit 1
+}
 ```
 
 If the assertion fails, STOP and report BLOCKED with both paths — do not create, edit, or test any

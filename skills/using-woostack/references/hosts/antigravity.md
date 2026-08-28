@@ -15,8 +15,9 @@ or fallback tokens. Artifact operations follow the canonical
   isolated-context subagent per task on demand. Dispatch independent tasks in a single turn
   to run them in parallel; rely on the isolation pattern for token economy.
 - **Per-call model/effort knob:** no — single model per session.
-- **Per-call cwd:** not exposed — fill the dispatch-prompt worktree pin; the subagent
-  self-pins.
+- **Per-call cwd:** not exposed — tracked-file-writing workers
+  fail closed before worktree reads or writes because Antigravity CLI cannot set session cwd.
+  Read-only workers receive the worktree path as descriptive prompt context.
 
 ## Tier routing
 
@@ -40,8 +41,8 @@ host — no spawn-time auth probe exists; switch manually by promoting an entry 
   `reviewerCredentialContextId` is `antigravity:context:<instance-id>`. Feed both into
   [Review's bound-validator sequence](../../../woostack-review/SKILL.md). The CI runner remains
   `run-gemini-cli` (Antigravity cannot run headless there).
-- **woostack-execute:** resolve the session model from the `fast` tier before
-  dispatch; all implementation workers share that session model.
+- **woostack-execute:** Antigravity CLI cannot establish session cwd for tracked-file-writing
+  workers; Execute fails closed before worktree access.
 - **woostack-eval (comparative dispatch):** instantiate the two isolated-context workers for
   each candidate/baseline inseparable pair in the same dynamic orchestration turn. There is no
   concrete per-call model pin; choose one concrete run model before the session.

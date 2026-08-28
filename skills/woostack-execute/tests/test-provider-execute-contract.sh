@@ -65,6 +65,13 @@ require("controller", r"In local run mode, CAS-update the active task to `blocke
 
 require("driver", r"configured fast-model subagent")
 require("driver", r"prohibitions on changing scope, dependencies, records, provider state, source-control")
+require("skill", r"exact isolated task worktree as its active session cwd")
+require("skill", r"omp --cwd <exact-worktree> -p <packet>")
+require("controller", r"exact isolated task worktree as its active session cwd")
+require("controller", r"omp --cwd <exact-worktree> -p <packet>")
+require("driver", r"exact task worktree as its active session cwd before its first tracked-file read or write")
+require("driver", r"omp --cwd <exact-worktree> -p <packet>")
+require("driver", r"normalized isolation assertion without changing directories")
 
 # Linear-specific and Plane-specific state mappings
 require("linear_profile", r"artifacts\.linear.*issueStates.*executing.*inReview")

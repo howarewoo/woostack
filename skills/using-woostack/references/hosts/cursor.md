@@ -14,8 +14,9 @@ HTTP/REST/GraphQL transport or fallback tokens. Artifact operations follow the c
   schedule or queue workers.
 - **Per-call model/effort knob:** not exposed to woostack dispatch; workers run on the
   host-selected model.
-- **Per-call cwd:** not exposed — fill the dispatch-prompt worktree pin; the subagent
-  self-pins.
+- **Per-call cwd:** not exposed — tracked-file-writing workers
+  fail closed before worktree reads or writes because Cursor cannot set session cwd.
+  Read-only workers receive the worktree path as descriptive prompt context.
 
 ## Tier routing
 
@@ -38,8 +39,8 @@ host — no spawn-time auth probe exists; switch manually by promoting an entry 
   returned by each dispatch; `reviewerCredentialContextId` is
   `cursor:composer:<subagent-id>`. Feed both into
   [Review's bound-validator sequence](../../../woostack-review/SKILL.md).
-- **woostack-execute:** use the session's configured `fast` implementation model
-  before dispatch; per-call model pinning remains unavailable.
+- **woostack-execute:** Cursor cannot establish session cwd for tracked-file-writing workers;
+  Execute fails closed before worktree access.
 - **woostack-eval (comparative dispatch):** submit the two isolated workers for each
   candidate/baseline inseparable pair together through Composer's parallel-subagent primitive.
   Cursor exposes no concrete per-call model pin; `session-default` is provable only when the

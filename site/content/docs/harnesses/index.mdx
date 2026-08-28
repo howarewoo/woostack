@@ -17,12 +17,12 @@ the coding harness, and the harness retains implementation, worker, and process 
 
 | Harness | Model and effort routing | Working directory | Host behavior |
 | --- | --- | --- | --- |
-| [omp (Oh My Pi)](/docs/harnesses/omp) | Host-owned roles through init-managed project workers; no per-call model knob | Passed when exposed; explicit cwd pins when needed | OMP-owned model identity, workers, and recovery |
-| [opencode](/docs/harnesses/opencode) | Per-call model routing | Passed when exposed; prompt pin always | Provider exhaustion surfaces as an error |
-| [Claude Code](/docs/harnesses/claude-code) | Per-call model and supported effort routing | No per-call cwd; subagent self-pins | Provider exhaustion surfaces as an error |
-| [Codex](/docs/harnesses/codex) | Per-call locally; one model per Codex Action job | Passed when exposed; prompt pin always | Local and CI routing differ |
-| [Cursor / Composer](/docs/harnesses/cursor) | Session model; no per-call routing | No per-call cwd; subagent self-pins | Requested tiers collapse to the session model |
-| [Antigravity CLI](/docs/harnesses/antigravity) | One model per session | No per-call cwd; subagent self-pins | Cannot run headless in ephemeral CI |
+| [omp (Oh My Pi)](/docs/harnesses/omp) | Host-owned roles through init-managed project workers; no per-call model knob | One-shot CLI session with `--cwd` for writers; `task` for read-only | OMP-owned model identity, workers, and recovery |
+| [opencode](/docs/harnesses/opencode) | Per-call model routing | Passed when exposed; fail closed for writers if unavailable | Provider exhaustion surfaces as an error |
+| [Claude Code](/docs/harnesses/claude-code) | Per-call model and supported effort routing | No per-call cwd; writers fail closed | Provider exhaustion surfaces as an error |
+| [Codex](/docs/harnesses/codex) | Per-call locally; one model per Codex Action job | Passed when exposed; fail closed for writers if unavailable | Local and CI routing differ |
+| [Cursor / Composer](/docs/harnesses/cursor) | Session model; no per-call routing | No per-call cwd; writers fail closed | Requested tiers collapse to the session model |
+| [Antigravity CLI](/docs/harnesses/antigravity) | One model per session | No per-call cwd; writers fail closed | Cannot run headless in ephemeral CI |
 
 For normal in-process OMP use,
 [host-owned role routing](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/hosts/omp.md)
@@ -36,7 +36,7 @@ host reference for the exact mechanics.
 <Cards>
   <Card title="omp (Oh My Pi)" href="/docs/harnesses/omp" description="Host-owned worker routing and project-scoped OMP workers." />
   <Card title="opencode" href="/docs/harnesses/opencode" description="Per-call routing through the runtime subagent primitive." />
-  <Card title="Claude Code" href="/docs/harnesses/claude-code" description="Task-based dispatch with per-call models and prompt-pinned worktrees." />
+  <Card title="Claude Code" href="/docs/harnesses/claude-code" description="Task-based dispatch with per-call models and fail-closed writer cwd." />
   <Card title="Codex" href="/docs/harnesses/codex" description="Local per-call routing and Codex Action's single-session mode." />
   <Card title="Cursor / Composer" href="/docs/harnesses/cursor" description="Parallel dispatch with session-model tier collapse." />
   <Card title="Antigravity CLI" href="/docs/harnesses/antigravity" description="Dynamic subagents, single-session routing, and interactive authentication." />

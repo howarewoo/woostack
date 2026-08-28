@@ -8,9 +8,10 @@ for GPT-5-family reasoning models, a separate `reasoning_effort` value. woostack
 passes both values for each task. A Codex Action job is single-session instead: woostack resolves
 one run model up front, and every tier uses that model for the job.
 
-The local spawn receives a working directory when the host exposes one; the prompt-level worktree
-pin is always present. Provider exhaustion surfaces as an error. Configured fallback entries are
-a manual preference order on this host, not an automatically probed spawn-time chain.
+The local spawn receives a working directory when the host exposes one; if the spawn cannot set
+session cwd, tracked-file-writing workers fail closed before worktree access. Descriptive prompt
+identity is not a cwd mechanism. Provider exhaustion surfaces as an error. Configured fallback
+entries are a manual preference order on this host, not an automatically probed spawn-time chain.
 
 For detection, the local-versus-Action boundary, per-skill instructions, and degradation rules,
 read the [canonical Codex reference](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/hosts/codex.md).

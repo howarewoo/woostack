@@ -14,8 +14,9 @@ fallback tokens. Artifact operations follow the canonical
   schedule workers; use an explicit cap such as `N=1` only when the build does not support
   parallelism.
 - **Per-call model/effort knob:** yes — pass the resolved model explicitly per spawn.
-- **Per-call cwd:** pass it when the spawn accepts one; fill the dispatch-prompt worktree pin
-  regardless.
+- **Per-call cwd:** pass it natively when the spawn accepts one; if the spawn cannot set session
+  cwd, tracked-file-writing workers fail closed before worktree access. Descriptive prompt identity
+  is not a cwd mechanism.
 
 ## Tier routing
 

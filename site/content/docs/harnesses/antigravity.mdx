@@ -7,11 +7,12 @@ Antigravity CLI (`agy`) creates an isolated-context subagent for each task and c
 independent tasks together. It exposes one model per session rather than a per-call model or effort
 knob, so woostack resolves one run model and every task tier collapses to it.
 
-The spawn primitive does not expose a per-call working directory. Each worker receives the
-expected worktree through the dispatch prompt and self-pins before writing. Antigravity
-authenticates through the system keyring and Google Sign-In; it has no documented non-interactive
-API-key path, so it cannot run headless in ephemeral CI. Provider exhaustion surfaces as an error,
-with no documented host-owned fallback.
+The spawn primitive does not expose a per-call working directory. Tracked-file-writing workers fail
+closed before worktree reads or writes because Antigravity CLI cannot set session cwd. Read-only
+workers receive the expected worktree through the dispatch prompt as descriptive context.
+Antigravity authenticates through the system keyring and Google Sign-In; it has no documented
+non-interactive API-key path, so it cannot run headless in ephemeral CI. Provider exhaustion
+surfaces as an error, with no documented host-owned fallback.
 
 For detection, exact orchestration behavior, per-skill instructions, and degradation rules, read
 the [canonical Antigravity reference](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/hosts/antigravity.md).

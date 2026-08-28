@@ -69,8 +69,15 @@ facts already exist, attach to that workspace and resume it; never create a dupl
 ## Implement and verify
 
 In the isolated workspace, implement every change needed for the accepted bounded scope and no
-other change. Inspect the complete diff and changed paths. Run the focused verification and the
-changed-path smoke scenario, noting the commands and observed results. A failed or incomplete
+other change. The controller retains ownership of admission, verification, Graphite, submission,
+and cleanup, and delegates bounded tracked-file implementation to one fresh one-shot worker session
+launched with the exact task worktree as its active session cwd. The worker receives the bounded
+scope and exclusive worktree ownership, executes the normalized isolation assertion before any
+tracked-file read or write, and returns changed paths, diff identity, and verification observations.
+The worker never commits, pushes, submits PRs, or modifies source-control state.
+
+The controller inspects the complete diff and changed paths, then runs the focused verification and
+the changed-path smoke scenario, noting the commands and observed results. A failed or incomplete
 check blocks delivery; it does not authorize a scope expansion or a second workspace.
 
 ## Deliver one PR

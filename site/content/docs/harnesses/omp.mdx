@@ -22,7 +22,8 @@ behavior; repository model leaves are ignored.
   concurrently.
 - Pass the exact worktree and complete task contract.
 - Workers return observations/changes; the controller owns synthesis and acceptance.
-- If the spawn API cannot set cwd, pin it in the prompt and require the worker to verify it.
+- Tracked-file-writing workers launch as fresh one-shot CLI sessions with `--cwd` and the managed
+  `woostack-fast` definition; read-only workers use in-process `task` dispatch.
 
 See OMP's published [model roles](https://omp.sh/docs/roles), [custom
 subagents](https://omp.sh/docs/subagents), and the canonical

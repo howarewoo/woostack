@@ -125,6 +125,43 @@ for row in (
     r"receipt",
 ):
     require(omp + review + orchestrator, row, f"retained OMP/Review boundary missing: {row}")
+require(omp, r"omp --cwd <exact-worktree> -p <packet>",
+        "OMP host adapter does not require one-shot CLI session with --cwd for tracked-file writers")
+require(omp, r"agent:\s+woostack-fast",
+        "OMP host adapter does not bind fast worker to woostack-fast definition")
+require(omp, r"`task` dispatch is prohibited because it cannot set session cwd",
+        "OMP host adapter does not prohibit in-process task dispatch for tracked-file writes")
+
+claude_code = read("skills/using-woostack/references/hosts/claude-code.md")
+cursor = read("skills/using-woostack/references/hosts/cursor.md")
+antigravity = read("skills/using-woostack/references/hosts/antigravity.md")
+codex = read("skills/using-woostack/references/hosts/codex.md")
+opencode = read("skills/using-woostack/references/hosts/opencode.md")
+
+require(claude_code, r"tracked-file-writing workers fail closed",
+        "Claude Code adapter does not fail closed for tracked-file writers")
+forbid(claude_code, r"subagent self-pins and aborts",
+       "Claude Code adapter retains obsolete prompt self-pin fallback")
+require(cursor, r"tracked-file-writing workers fail closed",
+        "Cursor adapter does not fail closed for tracked-file writers")
+forbid(cursor, r"the subagent self-pins",
+       "Cursor adapter retains obsolete prompt self-pin fallback")
+require(antigravity, r"tracked-file-writing workers fail closed",
+        "Antigravity adapter does not fail closed for tracked-file writers")
+forbid(antigravity, r"the subagent self-pins",
+       "Antigravity adapter retains obsolete prompt self-pin fallback")
+require(codex, r"tracked-file-writing workers fail closed",
+        "Codex adapter does not fail closed for tracked-file writers when cwd unexposed")
+require(opencode, r"tracked-file-writing workers fail closed",
+        "OpenCode adapter does not fail closed for tracked-file writers when cwd unexposed")
+
+implementer = read("skills/woostack-execute/prompts/implementer.md")
+require(implementer, r'have_cwd="\$\(pwd -P\)"',
+        "Implementer prompt does not assert active pwd -P")
+require(implementer, r'have_git="\$\(git rev-parse --show-toplevel\)"',
+        "Implementer prompt does not assert git rev-parse --show-toplevel")
+forbid(implementer, r'cd "<worktree',
+       "Implementer prompt retains shell cd to enter worktree")
 
 require(agents + readme, r"external engineer.*not an installed woostack host|outside the installed",
         "root framing does not reject Hermes as an installed host/runtime")

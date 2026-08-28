@@ -171,7 +171,10 @@ Local run mode bypasses provider lifecycle synchronization.
    exactly one deterministic isolated worktree owned by this run. Sequential within each run; distinct
    run IDs may execute concurrently in isolated worktrees only when paths and responsibility surfaces
    do not collide. Dispatch the configured fast-model subagent with the exact task scope and exclusive
-   worktree ownership.
+   worktree ownership, creating the session with the exact isolated task worktree as its active session
+   cwd before its first tracked-file read or write. On OMP, launch one fresh one-shot CLI session
+   (`omp --cwd <exact-worktree> -p <packet>`) with the absolute managed worker definition
+   (`.omp/agents/woostack-fast.md`) and `@smol` role.
 6. After the worker returns, run one focused verification and changed-path smoke scenario, then one
    bounded spec-compliance validator against the approved contract. When validation produces
    screenshots in Linear provider mode, apply [Controller-owned screenshot evidence](references/controller.md#controller-owned-screenshot-evidence)
@@ -257,7 +260,10 @@ Every implementation is delegated to the configured fast-model subagent; the con
 substitute local work or claim a dispatch it did not perform. The packet contains the exact task or
 issue, task key, allowed paths, worktree path, canonical parent branch/current admitted tip,
 retained start/head when resuming, Graphite parent, acceptance, and explicit prohibitions on scope
-changes, credentials, source-control boundaries, provider writes, and work in another worktree.
+changes, credentials, source-control boundaries, provider writes, and work in another worktree. The
+worker session starts with the exact task worktree as its active session cwd, and its first action
+runs the normalized isolation assertion; unsupported host routes lacking session cwd fail closed
+before worktree access.
 
 The worker edits only its isolated worktree and returns changed paths, diff identity, focused check
 and smoke observations, and one status. It does not commit, push, submit a PR, change Linear, review,

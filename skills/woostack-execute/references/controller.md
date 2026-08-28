@@ -173,19 +173,26 @@ worktrees when their branches, paths, and responsibility surfaces do not collide
 
 ## Worker dispatch and narrow verification
 
-Dispatch exactly one configured fast-model subagent in the exact isolated task worktree. Its packet includes
-run/task IDs, repository/worktree, allowed paths, canonical parent branch/current admitted tip,
-retained start/head when resuming, Graphite parent, acceptance, focused verification/smoke command,
-validator input, and prohibitions on source-control, provider writes, review, credentials, scope
-changes, and other worktrees.
+Dispatch exactly one configured fast-model subagent with the exact isolated task worktree as its
+active session cwd. Its packet includes run/task IDs, repository/worktree, allowed paths,
+canonical parent branch/current admitted tip, retained start/head when resuming, Graphite parent,
+acceptance, focused verification/smoke command, validator input, and prohibitions on source-control,
+provider writes, review, credentials, scope changes, and other worktrees.
+
+On OMP, launch one fresh one-shot CLI session (`omp --cwd <exact-worktree> -p <packet>`) with the
+absolute managed worker definition (`.omp/agents/woostack-fast.md`) and `@smol` model role. On
+hosts with native session cwd support, pass the exact worktree through the native cwd field; hosts
+without a session cwd mechanism fail closed before worktree access. The worker's first action is the
+normalized isolation assertion (`pwd -P` and `git rev-parse --show-toplevel` equal the expected
+worktree root).
 
 After handback, the controller rechecks worktree identity, canonical parent branch/current tip,
 retained start/head, ancestry, diff, PR base, and branch/parent before acting. Run one focused
 verification and changed-path smoke scenario, then one bounded spec-compliance validator against the
 approved contract. Repair only a confirmed in-scope omission through the same worker; do not broaden
 the check into unrelated analysis or cleanup.
-A timeout or missing response is `UNKNOWN`, not failure; inspect process and worktree before any
-redispatch.
+A timeout, missing response, launch failure, or ambiguous handback is `UNKNOWN`, not failure; inspect
+process and worktree before any redispatch.
 
 ### Controller-owned screenshot evidence (Linear provider mode only)
 

@@ -83,6 +83,52 @@ assert_not_contains "$omp" "Hermes engineer pairing" \
 assert_not_contains "$omp" "hosts/hermes.md" \
   "OMP does not link the retired Hermes host adapter"
 
+assert_contains "$omp" 'omp --cwd <exact-worktree> -p <packet>' \
+  "OMP requires one-shot CLI session with --cwd for tracked-file writers"
+assert_contains "$omp" "agent: woostack-fast" \
+  "OMP binds fast worker to woostack-fast definition"
+assert_contains "$omp" 'task` dispatch is prohibited because' \
+  "OMP prohibits in-process task dispatch for tracked-file writes"
+
+claude_code="$(cat "$H/claude-code.md")"
+assert_contains "$claude_code" "fail closed before worktree reads or writes" \
+  "Claude Code fails closed for tracked-file writers"
+assert_not_contains "$claude_code" "subagent self-pins and aborts" \
+  "Claude Code omits obsolete prompt self-pin fallback"
+
+cursor="$(cat "$H/cursor.md")"
+assert_contains "$cursor" "fail closed before worktree reads or writes" \
+  "Cursor fails closed for tracked-file writers"
+assert_not_contains "$cursor" "the subagent self-pins" \
+  "Cursor omits obsolete prompt self-pin fallback"
+
+antigravity="$(cat "$H/antigravity.md")"
+assert_contains "$antigravity" "fail closed before worktree reads or writes" \
+  "Antigravity fails closed for tracked-file writers"
+assert_not_contains "$antigravity" "the subagent self-pins" \
+  "Antigravity omits obsolete prompt self-pin fallback"
+
+codex="$(cat "$H/codex.md")"
+assert_contains "$codex" "fail closed before worktree access" \
+  "Codex fails closed for tracked-file writers when cwd unexposed"
+
+opencode="$(cat "$H/opencode.md")"
+assert_contains "$opencode" "fail closed before worktree access" \
+  "OpenCode fails closed for tracked-file writers when cwd unexposed"
+
+worktrees="$(cat "$S/woostack-init/references/worktrees.md")"
+assert_contains "$worktrees" "active session cwd before its first tracked-file read or write" \
+  "worktrees requires active session cwd before tracked-file access"
+assert_contains "$worktrees" "never use shell" \
+  "worktrees prohibits shell cd to enter a worktree"
+assert_contains "$worktrees" 'git rev-parse --show-toplevel' \
+  "worktrees requires normalized isolation assertion"
+
+implementer="$(cat "$S/woostack-execute/prompts/implementer.md")"
+assert_contains "$implementer" 'have_git="$(git rev-parse --show-toplevel)"' \
+  "implementer checks git rev-parse --show-toplevel"
+assert_not_contains "$implementer" 'cd "<worktree' \
+  "implementer prompt contains no shell cd to enter worktree"
 using="$(cat "$S/using-woostack/SKILL.md")"
 assert_not_contains "$using" "engineer-agent authority protocol" \
   "using-woostack does not load the engineer-agent protocol"

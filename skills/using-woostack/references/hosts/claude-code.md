@@ -15,8 +15,9 @@ transport or fallback tokens. Artifact operations follow the canonical
   handle concurrency.
 - **Per-call model/effort knob:** yes — pass the resolved model (and effort form where the
   model family carries one) explicitly on every spawn.
-- **Per-call cwd:** no (the `Agent`/`Task` spawn takes no cwd) — fill the dispatch-prompt
-  worktree pin; the subagent self-pins and aborts if not in `$wt`.
+- **Per-call cwd:** no (the `Agent`/`Task` spawn takes no cwd) — tracked-file-writing workers
+  fail closed before worktree reads or writes because Claude Code cannot set session cwd.
+  Read-only workers receive the worktree path as descriptive prompt context.
 - **Worker profile:** plain `general-purpose` for fan-out workers; never a skill-scoped
   profile.
 
@@ -39,10 +40,11 @@ to entry 0, or re-run after editing config).
 
 ## Per-skill notes
 
-- **woostack-execute (dispatch):** the no-per-call-cwd case — prompt pin + self-pin guard —
-  is the normal path here.
+- **woostack-execute (dispatch):** Claude Code cannot establish session cwd for
+  tracked-file-writing workers; Execute fails closed before worktree access.
 - **woostack-execute:** route the implementation worker at the `fast` tier per
-  call; the controller retains project admission, verification, and delivery boundaries.
+  call when supported; the controller retains project admission, verification, and delivery
+  boundaries.
 - **woostack-commit (fast drafting):** route the drafting subagent at the `fast` tier
   per-call.
 - **woostack-review (local swarm):** dispatch every active angle task via `Task`, letting the host

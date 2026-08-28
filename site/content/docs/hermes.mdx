@@ -5,8 +5,9 @@ sidebar: { order: 4 }
 ---
 
 Hermes is an **external engineer**, not a supported woostack host or installed woostack runtime.
-Install woostack in OMP or another supported coding harness. Hermes may coordinate decisions and
-review evidence, but it must not edit implementation source or replace repository evidence.
+Woostack is installed only in OMP or another supported coding harness. Hermes may coordinate
+decisions and review evidence, but it must not edit implementation source or replace repository
+evidence.
 
 ## Before you start
 
@@ -50,7 +51,8 @@ and bounded redispatch.
 ## 3. Keep decisions inside the approved contract
 
 Hermes may interpret the approved contract, inspect OMP's diff and command results, review the
-evidence, accept an in-contract result, or request one bounded correction. It may not expand scope,
+evidence, accept an in-contract decision or result, or request one bounded correction. It may not
+expand scope,
 edit source, run implementation commands, commit, push, open a pull request, or infer missing
 context.
 
@@ -66,8 +68,8 @@ not implicit approval.
 ## 5. Relay the user's response verbatim
 
 When OMP presents an Ask during an active conversation, only the responsible user's live response
-may decide it. Relay that response **verbatim and unmodified** through the same OMP process that
-presented the Ask. Do not summarize, rewrite, splice, or replay it.
+may decide it. Relay that response **verbatim and unmodified** through the
+same persistent OMP process that presented the Ask. Do not summarize, rewrite, splice, or replay it.
 
 A provider record, status, assignment, label, cached transcript, or Hermes-authored message is not
 a decision. If the process restarts during the active conversation, present a fresh Ask, obtain a

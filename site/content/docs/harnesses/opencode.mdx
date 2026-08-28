@@ -8,9 +8,11 @@ per spawn. woostack resolves each task's effective `fast`, `standard`, or `deep`
 the corresponding model on that spawn. Independent tasks are submitted together; concurrency is
 capped only when the installed runtime cannot run them in parallel.
 
-woostack passes the worktree path when the spawn supports it and always includes the prompt-level
-worktree pin. No host-owned usage-limit fallback is documented. If a spawn cannot carry the
-resolved model, the worker inherits the session model and woostack reports the degradation.
+woostack passes the worktree path through the runtime's native cwd field; if the runtime cannot set
+session cwd, tracked-file-writing workers fail closed before worktree access. Descriptive prompt
+identity is not a cwd mechanism. No host-owned usage-limit fallback is documented. If a spawn
+cannot carry the resolved model, the worker inherits the session model and woostack reports the
+degradation.
 
 For detection, exact dispatch mechanics, per-skill instructions, and degradation rules, read the
 [canonical opencode reference](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/hosts/opencode.md).

@@ -8,10 +8,11 @@ documented per-call model or effort control there. The session model becomes the
 requested task tier collapses to that model. Changing the effective tier requires changing the
 session model before the run.
 
-Cursor does not expose a per-call working directory to woostack. Each worker receives the expected
-worktree through the dispatch prompt and self-pins before writing. Provider exhaustion surfaces as
-an error; no host-owned usage-limit fallback is documented. When a requested tier cannot be routed
-per call, woostack runs at the session model and reports the degradation.
+Cursor does not expose a per-call working directory to woostack. Tracked-file-writing workers fail
+closed before worktree reads or writes because Cursor cannot set session cwd. Read-only workers
+receive the expected worktree through the dispatch prompt as descriptive context. Provider
+exhaustion surfaces as an error; no host-owned usage-limit fallback is documented. When a requested
+tier cannot be routed per call, woostack runs at the session model and reports the degradation.
 
 For detection, exact dispatch behavior, per-skill instructions, and degradation rules, read the
 [canonical Cursor reference](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/hosts/cursor.md).

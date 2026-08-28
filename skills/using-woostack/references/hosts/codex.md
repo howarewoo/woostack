@@ -15,8 +15,9 @@ fallback tokens. Artifact operations follow the canonical
   independent tasks together and let the runtime schedule.
 - **Per-call model/effort knob:** yes locally — `model` plus `reasoning_effort` (GPT-5-family
   reasoning is a parameter on the same slug, not a slug suffix). No, under Codex Action.
-- **Per-call cwd:** pass it when the spawn accepts one; fill the dispatch-prompt worktree pin
-  regardless.
+- **Per-call cwd:** pass it natively when the spawn accepts one; if the spawn cannot set session
+  cwd, tracked-file-writing workers fail closed before worktree access. Descriptive prompt identity
+  is not a cwd mechanism.
 
 ## Tier routing
 
