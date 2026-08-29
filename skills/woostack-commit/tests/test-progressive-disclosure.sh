@@ -13,7 +13,7 @@ corpus=re.sub(r"\s+"," ",skill+"\n"+"\n".join(refs.values()))
 checks={
  "artifact-free command":r"/woostack-commit \[<message>\]",
  "optional issue flag":r"--issue <exact canonical issue or work-item reference>",
- "no issue prerequisite":r"Artifact providers \(Linear or Plane\) are optional: no issue, work item, project",
+ "no issue prerequisite":r"Artifact providers \((?:Linear or Plane|Linear, Plane, or GitHub)\) are optional: no issue, work item, project",
  "bounded input":r"approved bounded task contract.*direct repository evidence",
  "no inferred scope":r"Do not reconstruct scope from a branch name, commit message, PR, artifact, or prior session",
  "inspect":r"### 1\. Inspect repository state",
