@@ -67,7 +67,7 @@ There are eight supported top-level settings. The init template writes `artifact
 
 | Setting | Read by | Purpose |
 | --- | --- | --- |
-| [`artifacts`](/docs/configuration/artifacts) | Init, Build, Fix, Plan, Execute, and selected artifact-aware workflows | Selects local storage or optional Linear or Plane mirroring. |
+| [`artifacts`](/docs/configuration/artifacts) | Init, Build, Fix, Plan, Execute, and selected artifact-aware workflows | Selects local storage or optional GitHub, Linear, or Plane mirroring. |
 | `review` | [woostack-review](/docs/skills/woostack-review) | Review angles, finding visibility, diff filters, skip rules, tier forcing, chunking, and metrics. |
 | `models` | Review, Audit, and host subagent drivers | Shared fast, standard, and deep model leaves for hosts that consume repository model policy. OMP ignores this setting. |
 | `audit` | [woostack-audit](/docs/skills/woostack-audit) | Standing-code audit angles, filtering, chunking, severity floor, and report directory. |
@@ -81,6 +81,7 @@ There are eight supported top-level settings. The init template writes `artifact
 <Cards>
   <Card title="Artifact overview" href="/docs/configuration/artifacts" description="Provider selection and authority boundaries." />
   <Card title="Local" href="/docs/configuration/artifacts/local" description="Default files, run layout, retention, and recovery." />
+  <Card title="GitHub" href="/docs/configuration/artifacts/github" description="GitHub fields, Project README specification, parentless issues, and lifecycle behavior." />
   <Card title="Linear" href="/docs/configuration/artifacts/linear" description="Linear fields, identities, project hierarchy, and lifecycle behavior." />
   <Card title="Plane" href="/docs/configuration/artifacts/plane" description="Plane fields, identities, work-item hierarchy, and lifecycle behavior." />
 </Cards>
@@ -358,10 +359,11 @@ worktrees are cut from.
 ## Defaults and doctor
 
 <Callout type="info">
-  Init scaffolds `models`, `review`, and `status`, then automatically adds validated
-  Linear defaults when safe authenticated discovery succeeds. Missing connectivity never blocks
+  Init scaffolds `models`, `review`, and `status`, and automatically adds validated
+  Linear defaults when safe authenticated discovery succeeds. When `artifacts.provider: "github"`,
+  Init discovers GitHub defaults via `gh`. Missing connectivity never blocks
   local initialization. Build and Fix operate with default local run authority under
-  `.woostack/tmp/runs/<run-id>/`; setting `artifacts.provider: "linear"` or `"plane"` enables optional provider mirroring (Build, Fix, and Plan).
+  `.woostack/tmp/runs/<run-id>/`; setting `artifacts.provider: "github"`, `"linear"`, or `"plane"` enables optional provider mirroring (Build, Fix, and Plan).
   [woostack-doctor](/docs/skills/woostack-doctor) validates effective runtime policy; explicit live checks
   prove optional artifact connectivity.
 </Callout>

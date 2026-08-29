@@ -1,21 +1,21 @@
 ---
 title: Core concepts
-description: Repository delivery evidence, local run authority with optional Linear/Plane mirroring, and plain artifact project loops.
+description: Repository delivery evidence, local run authority with optional Linear, Plane, or GitHub mirroring, and plain artifact project loops.
 ---
 
 import { ContextEconomy } from '@/components/concepts/context-economy';
 
 woostack is a multiperson development workflow with two distinct truth domains. Local run manifests
 in `.woostack/tmp/runs/<run-id>/` own current product specifications, increment contracts, and
-manifest state for builds and post-diagnosis fixes (with optional Linear or Plane mirroring: `artifacts.provider: "linear"` or
-`artifacts.provider: "plane"`). Git and GitHub own source, branches, commits, pull requests, reviews,
+manifest state for builds and post-diagnosis fixes (with optional Linear, Plane, or GitHub mirroring: `artifacts.provider: "linear"`,
+`"plane"`, or `"github"`). Git and GitHub own source, branches, commits, pull requests, reviews,
 and merge evidence. A build always manages one high-level specification plus direct increment
 contracts with dependency relations in its retained local run manifest. After proof, a Fix uses the
 same local run structure for its complete specification plus a strict direct-issue chain. Other
 workflows remain artifact-optional.
 
-Default init may make authenticated read-only Linear setup calls to validate non-secret defaults,
-but that narrow exception permits no provider write.
+Default init may make authenticated read-only Linear setup calls to validate non-secret defaults
+(or GitHub discovery when `artifacts.provider: "github"` is selected), but that narrow exception permits no provider write.
 ## The build loop
 
 [woostack-build](/docs/skills/woostack-build) handles work expected to require multiple
@@ -46,10 +46,10 @@ Build and project-backed Fix write plain Markdown working documents directly und
 `.woostack/tmp/runs/<run-id>/`:
 
 1. **`project-spec.md`** contains the complete user-verified high-level specification. When
-   `artifacts.provider: "linear"` or `artifacts.provider: "plane"`,
+   `artifacts.provider` is configured for mirroring (`"linear"`, `"plane"`, or `"github"`),
    one bounded mirror synchronization writes the specification to the configured provider; mirror failures are nonblocking.
 2. **`execution-plan.md`** contains every ordered increment contract and dependency tuple. When
-   `artifacts.provider: "linear"` or `artifacts.provider: "plane"`,
+   `artifacts.provider` is configured for mirroring (`"linear"`, `"plane"`, or `"github"`),
    one bounded mirror synchronization binds stable task keys to canonical provider references; mirror failures are nonblocking.
 After both files are written, Build/Fix display the exact run ID, readable artifact paths, stable task
 mappings, dependencies, planning parent branch, planning parent tip, and
@@ -71,8 +71,8 @@ resume exactly by run ID.
 | --- | --- | --- |
 | Use when | One bounded fix/change can ship in one PR | A feature needs multiple independently shippable increments |
 | Active contract | Fix: complete specification plus direct-issue plan. Change: one explicit goal | Complete specification plus direct-issue plan |
-| Development plan | Fix: local run manifest after root-cause proof → direct increment contracts + dependencies (optional Linear or Plane mirror). Change: none | Local run manifest → direct increment contracts + dependencies (optional Linear or Plane mirror) |
-| Evidence | Local run manifest owns spec/plan (optional Linear or Plane mirror); Git/GitHub prove delivery | Local run manifest owns spec/plan (optional Linear or Plane mirror); Git/GitHub prove delivery per increment |
+| Development plan | Fix: local run manifest after root-cause proof → direct increment contracts + dependencies (optional Linear, Plane, or GitHub mirror). Change: none | Local run manifest → direct increment contracts + dependencies (optional Linear, Plane, or GitHub mirror) |
+| Evidence | Local run manifest owns spec/plan (optional Linear, Plane, or GitHub mirror); Git/GitHub prove delivery | Local run manifest owns spec/plan (optional Linear, Plane, or GitHub mirror); Git/GitHub prove delivery per increment |
 | Code delivery | One GitHub PR | One GitHub PR per increment |
 
 These shapes are chosen by work size. Retained local run manifests record build/fix product authority
@@ -104,14 +104,15 @@ build workflow under its own contract.
 Small helpers gather and compress deterministic repository context so agents consume a result
 rather than every input. Review prefetch gathers the relevant diff, metadata, and repository rules
 once for independent analysis. Local Build/Fix runs retain only their verified manifest and
-repository delivery evidence. Provider-mode workflows retain only the verified MCP identities and
+repository delivery evidence. Provider-mode workflows retain only the verified identities and
 synchronization receipts required for the current decision.
 
-Automatic init setup uses the host's authenticated official Linear MCP connection. Init needs only read
+Automatic init setup uses the host's authenticated official Linear MCP connection to discover non-secret defaults.
+When `artifacts.provider: "github"` is selected, Init uses authenticated `gh` for read-only discovery. Init needs only read
 capability and validates local config writes independently; it never reads a development artifact or probes a provider write.
 
-When `artifacts.provider: "linear"` or `artifacts.provider: "plane"`,
-Build and Fix mirroring verifies the canonical repository association and resolved workspace/team or instance/workspace,
+When `artifacts.provider` is configured for mirroring (`"linear"`, `"plane"`, or `"github"`),
+Build and Fix mirroring verifies the canonical repository association and resolved owner, workspace, or team,
 proves the exact capabilities it needs without reading credentials, and independently reads
 mutations back. Tracked policy supplies validated defaults only after a workflow selects a provider and
 cannot authorize unrelated provider writes.

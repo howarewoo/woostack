@@ -1,0 +1,102 @@
+---
+title: GitHub
+description: Reference for GitHub Projects and repository issues artifact mirroring, configuration fields, hierarchy, and lifecycle behavior.
+---
+
+Select GitHub artifact mirroring with `artifacts.provider: "github"`. The
+[local run](/docs/configuration/artifacts/local) remains authoritative.
+
+## Configuration
+
+```json
+{
+  "artifacts": {
+    "provider": "github",
+    "github": {
+      "owner": "acme",
+      "ownerType": "organization",
+      "statusField": "Status",
+      "visibility": "private",
+      "projectStatuses": {
+        "planned": "Todo",
+        "executing": "In Progress",
+        "inReview": "In Review",
+        "done": "Done",
+        "blocked": "Blocked"
+      }
+    }
+  }
+}
+```
+
+| Field | Type | Constraint |
+| --- | --- | --- |
+| `artifacts.github.owner` | string | Required nonempty GitHub organization or user login. |
+| `artifacts.github.ownerType` | string | Optional `"organization"` or `"user"`. Resolved via discovery when omitted. |
+| `artifacts.github.statusField` | string | Optional exact case-sensitive single-select field name. Defaults to `"Status"`. |
+| `artifacts.github.visibility` | string | Optional `"private"` or `"public"`. Defaults to `"private"`; applies only to newly created Projects. |
+| `artifacts.github.projectStatuses` | object | Required mapping of five exact keys (`planned`, `executing`, `inReview`, `done`, `blocked`) to nonempty, pairwise unique option names on the Status field. |
+
+Credentials belong in the host's authenticated `gh` environment, never in repository configuration.
+Projects v2 and native dependencies use `gh api graphql`; repository issue operations use GitHub issue
+APIs through `gh`. Custom HTTP/GraphQL clients, credential reads, and token forwarding are forbidden.
+
+### Transport capabilities and boundaries
+
+The GitHub provider requires host-authenticated `gh` with these verified capabilities:
+- **Projects:** `projectRead`, `projectWrite`, and `projectDelete` (for smoke testing);
+- **Issues:** `issueRead`, `issueWrite`, `issueClose`, and `issueDelete` (for smoke testing);
+- **Dependencies:** `dependencyRead` and `dependencyWrite`;
+- **Status field:** `statusFieldRead` and `statusFieldWrite`;
+- **Operations:** complete `pagination` and `independentReadBack`.
+
+Missing capabilities, unauthorized scopes, foreign markers, drift, or partial responses fail closed at
+the provider boundary.
+
+## Identities, hierarchy, and graph
+
+Accepted canonical URL forms are:
+- **Projects:** `https://github.com/orgs/<owner>/projects/<N>` (organizations) or `https://github.com/users/<owner>/projects/<N>` (users);
+- **Issues:** `https://github.com/<owner>/<repo>/issues/<N>`.
+
+Canonical URLs are user-facing references and Commit attribution targets. Native GraphQL node IDs and
+Project item IDs remain separate mutation identities.
+
+Build and post-proof Fix resolve an exact supplied Project URL or create one `[Build]/[Fix] <goal>`
+Project under the configured owner. The complete specification is written inside `ProjectV2.readme`
+between markers `<!-- woostack-spec-start -->` and `<!-- woostack-spec-end -->`, preserving unrelated
+README bytes. `shortDescription` contains a concise goal summary.
+
+Plan increments are normal parentless repository issues (`parent = null`) added directly as Project items.
+No synthetic parent plan issue or draft item is created. Preallocated external mutation IDs
+(`<!-- woostack-project-mutation:<UUID> -->` and `<!-- woostack-issue-mutation:<UUID> -->`) enable
+duplicate-safe recovery across pagination.
+
+An admitted sequence of $N$ increments creates $N-1$ native `blocked-by` dependencies (predecessor blocks
+successor). Project item ordering or prose never substitutes for the native graph.
+
+## Lifecycle and closure
+
+Execute transitions Project item status from `planned` to `executing` during implementation, `inReview`
+at PR delivery, and `done` (closing the issue) at completion. Recorded blockers set `blocked` without
+closing the issue. Nonterminal states keep issues open.
+
+Completing all increments leaves the Project open. Explicit provider-backed Plan/Execute closure
+closes the exact admitted Project after a fresh read and independent read-back. Local-run abandonment
+records `status: "abandoned"` in the manifest and retains all local artifacts in
+`.woostack/tmp/runs/<run-id>/` without mutating or closing the mirrored Project or its issues.
+
+## Workflow matrix
+
+| Skill | GitHub provider behavior |
+| --- | --- |
+| [woostack-build](/docs/skills/woostack-build) | Resolves an exact supplied Project or creates one `[Build] <goal>` Project; writes specification to managed README; creates parentless issues with direct Project membership; and wires $N-1$ native blocked-by edges. |
+| [woostack-fix](/docs/skills/woostack-fix) | Proves root cause before provider access; preserves an exact source `--issue` as context with a direct Project link; and creates/reconciles a separate strict increment chain. |
+| [woostack-plan](/docs/skills/woostack-plan) | Standalone Plan requires an exact existing canonical Project URL (`orgs/<owner>/projects/<N>` or `users/<owner>/projects/<N>`) and synchronizes the direct issue graph; delegated Plan is provider-free. |
+| [woostack-execute](/docs/skills/woostack-execute) | Consumes exact Project/issue URLs, validates ancestry/graph, transitions item status (`planned` → `executing` → `inReview` → `done`), and closes issue only at `done`. All-done leaves Project open. |
+| [woostack-commit](/docs/skills/woostack-commit) | Exact `--issue <url>` attribution; writes optional requested delivery note with read-back; note failure is nonblocking. |
+| [woostack-status](/docs/skills/woostack-status) | Read-only enrichment joined through independently verified repository/PR identity; cannot create rows or override repository evidence. |
+| [woostack-bootstrap](/docs/skills/woostack-bootstrap) | Optional persistence only after explicit approved design and filesystem barrier. |
+| [woostack-init](/docs/skills/woostack-init) | Gated read-only discovery (owner, ownerType, canonical repository, status options) via `gh` only when `artifacts.provider: "github"`; never selects persistence or probes writes. |
+| [woostack-doctor](/docs/skills/woostack-doctor) | Validates typed config statically; live mode proves authenticated identity, required capability set, and smoke deletion preflight without storing secrets. |
+| [woostack-change](/docs/skills/woostack-change) | Provider-free; never contacts GitHub artifact APIs. |

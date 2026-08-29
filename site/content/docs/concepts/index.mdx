@@ -1,12 +1,12 @@
 ---
 title: Overview
-description: "woostack's local run authority, optional Linear and Plane mirror records, delivery boundaries, and context management."
+description: "woostack's local run authority, optional Linear, Plane, and GitHub mirror records, delivery boundaries, and context management."
 ---
 
 woostack coordinates multiperson development through explicit workflow contracts, isolated
 implementation, and independent review. Local run manifests under `.woostack/tmp/runs/<run-id>/`
 own current product scope, increment contracts, and execution state for builds and post-diagnosis
-fixes, with optional Linear or Plane mirroring (`artifacts.provider: "linear"` or `artifacts.provider: "plane"`). Git and GitHub own code and
+fixes, with optional Linear, Plane, or GitHub mirroring (`artifacts.provider: "linear"`, `"plane"`, or `"github"`). Git and GitHub own code and
 pull-request truth.
 
 Every build manages one high-level specification plus direct increment contracts with dependency
@@ -19,7 +19,7 @@ skill owner. Local diagnostic reports remain non-authoritative evidence.
 
 <Cards>
   <Card title="Building rules" href="/docs/concepts/building-rules" description="The plain-artifact local-authority loop, fix route, and split authority boundary." />
-  <Card title="Workflow maps" href="/docs/concepts/workflows" description="Compare Bootstrap, Build, Fix, and Change with local run authority and optional Linear or Plane mirroring." />
+  <Card title="Workflow maps" href="/docs/concepts/workflows" description="Compare Bootstrap, Build, Fix, and Change with local run authority and optional Linear, Plane, or GitHub mirroring." />
   <Card title="Least code, still safe" href="/docs/concepts/least-code" description="Write as little code as necessary without cutting edge cases or risks." />
   <Card title="Context management" href="/docs/concepts/context-management" description="Keep reasoning focused with compact reads, isolated sessions, and explicit handoffs." />
   <Card title="Parallelism with worktrees" href="/docs/concepts/worktrees" description="Isolate sequential run tasks and concurrent disjoint runs in separate Git worktrees." />
