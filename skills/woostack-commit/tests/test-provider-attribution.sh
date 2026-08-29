@@ -27,8 +27,8 @@ def forbid(text, pattern, message):
 
 # Structural checks on woostack-commit/SKILL.md
 for pattern, message in (
-    (r"Artifact providers \(Linear or Plane\) are optional: no issue, work item, project, assignment", "commit does not declare provider-optional operation"),
-    (r"`--issue` associates the verified Linear issue or Plane work item with the PR, adds its merge-closing", "--issue does not require merge-closing association"),
+    (r"Artifact providers \((?:Linear or Plane|Linear, Plane, or GitHub)\) are optional: no issue, work item, project, assignment", "commit does not declare provider-optional operation"),
+    (r"`--issue` associates the verified Linear issue, Plane work item, or GitHub issue", "--issue does not require merge-closing association"),
     (r"never creates one implicitly", "commit can create an artifact implicitly"),
     (r"Do not add a provider reference in artifact-free mode", "artifact-free PR body is not protected"),
     (r"append one verified `Resolves <issue identifier>` line", "supplied issue lacks closing reference"),
@@ -210,6 +210,12 @@ res3 = simulate_commit_pr_update({"artifacts": {"provider": "plane"}}, explicit_
 if not res3["pr_updated"] or res3["closing_ref"] != "Resolves PROJ-42" or res3["artifact_sync"] != "success":
     failures.append("Commit Test 3 failed: Plane attribution did not associate correctly")
 
+
+# Test case 3b: GitHub issue attribution
+github_mock = MockProvider("github", issues={"https://github.com/acme/repo/issues/42": {"identifier": "https://github.com/acme/repo/issues/42", "repository": "acme/repo"}})
+res3b = simulate_commit_pr_update({"artifacts": {"provider": "github"}}, explicit_issue="https://github.com/acme/repo/issues/42", provider_mock=github_mock)
+if not res3b["pr_updated"] or res3b["closing_ref"] != "Resolves https://github.com/acme/repo/issues/42" or res3b["artifact_sync"] != "success":
+    failures.append("Commit Test 3b failed: GitHub attribution did not associate correctly")
 # Test case 4: Absent exact-read capability on provider
 no_read_linear = MockProvider("linear", issues={"WOO-101": {"identifier": "WOO-101", "repository": "acme/repo"}}, capabilities={"write_note", "read_back"})
 res4a = simulate_commit_pr_update({"artifacts": {"provider": "linear"}}, explicit_issue="WOO-101", provider_mock=no_read_linear)

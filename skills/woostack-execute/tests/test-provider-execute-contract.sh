@@ -19,6 +19,9 @@ paths = {
     "linear_profile": root / "skills/woostack-init/references/artifact-providers/linear.md",
     "plane_profile": root / "skills/woostack-init/references/artifact-providers/plane.md",
     "plane_procedure": root / "skills/woostack-build/references/plane-procedure.md",
+    "github_profile": root / "skills/woostack-init/references/artifact-providers/github.md",
+    "github_procedure": root / "skills/woostack-build/references/github-procedure.md",
+    "github_context": root / "skills/woostack-build/references/github-context.md",
     "repo_rules": root / "AGENTS.md",
 }
 text = {name: path.read_text(encoding="utf-8") for name, path in paths.items()}
@@ -96,6 +99,16 @@ require("plane_procedure", r"Execute supports work-item state transitions and de
 require("skill", r"Unsupported project lifecycle is a required no-op")
 require("controller", r"For Plane, project status is never mutated, synthesized, or gated; Execute mutates and reads back only configured work-item states")
 require("plane_profile", r"Never mutate, synthesize, archive, or gate on Plane project status")
+
+# GitHub-specific execution and lifecycle contracts
+require("skill", r"Linear, Plane, or GitHub project increment")
+require("controller", r"GitHub accepts either one exact canonical Project URL or one exact canonical direct repository issue URL")
+require("controller", r"artifacts\.github\.owner.*statusField.*planned.*executing.*inReview.*done.*blocked")
+require("controller", r"In GitHub provider mode, invoke.*woostack-commit.*with `--issue`")
+require("controller", r"for GitHub done, transition item to done, close issue, leave Project open")
+require("controller", r"In GitHub provider mode, transition and independently read back the selected Project item to the configured blocked state")
+require("github_profile", r"New increment items begin at `planned`, transitioning to `executing`.*`inReview`.*`done`.*closing the issue")
+require("github_profile", r"Completing all increments leaves the Project open.*explicit Plan/Execute closure")
 
 # Delivery checkpoints and mirror failure nonblocking separation
 require("skill", r"persisted checkpoint.*teardown.*resume.*sibling")
@@ -1512,6 +1525,124 @@ def test_local_run_base_change_choice():
     print("smoke: local run base-change choice: ok")
 
 test_local_run_base_change_choice()
+
+# ---------------------------------------------------------------------------
+# Test Case 14: GitHub Execution Lifecycle, Issue Closure, and Explicit Project Closure
+# ---------------------------------------------------------------------------
+class MockGitHubClient:
+    def __init__(self, owner="acme", repo="widgets", capabilities=None):
+        self.owner, self.repo = owner, repo
+        self.capabilities = capabilities or {"projectRead": True, "projectWrite": True, "issueRead": True, "issueWrite": True, "issueClose": True, "statusFieldWrite": True, "dependencyRead": True, "dependencyWrite": True}
+        self.projects, self.issues, self.dependencies, self.item_status_mutations, self.issue_close_mutations, self.project_close_mutations, self.checkpoint_writes = {}, {}, [], [], [], [], []
+    def add_project(self, url, owner, repository, status_field="Status", status_options=None, closed=False):
+        self.projects[url] = {"url": url, "owner": owner, "repository": repository, "status_field": status_field, "status_options": status_options or {"planned": "o1", "executing": "o2", "inReview": "o3", "done": "o4", "blocked": "o5"}, "closed": closed, "items": {}}
+    def add_issue(self, url, owner, repository, number, parent=None, state="OPEN"):
+        self.issues[url] = {"url": url, "owner": owner, "repository": repository, "number": number, "parent": parent, "state": state}
+    def add_project_item(self, project_url, issue_url, status_option="planned"):
+        self.projects[project_url]["items"][issue_url] = {"issue_url": issue_url, "status_option": status_option}
+    def add_dependency(self, blocking_url, blocked_url):
+        self.dependencies.append((blocking_url, blocked_url))
+    def read_dependencies(self):
+        return list(self.dependencies)
+    def read_project(self, url):
+        return self.projects.get(url) if self.capabilities.get("projectRead") else (_ for _ in ()).throw(RuntimeError("missing projectRead"))
+    def read_issue(self, url):
+        return self.issues.get(url) if self.capabilities.get("issueRead") else (_ for _ in ()).throw(RuntimeError("missing issueRead"))
+    def update_item_status(self, project_url, issue_url, option_name):
+        if not self.capabilities.get("statusFieldWrite"): raise RuntimeError("missing statusFieldWrite")
+        proj, item = self.projects.get(project_url), self.projects.get(project_url, {}).get("items", {}).get(issue_url)
+        if not proj or not item or option_name not in proj["status_options"]: raise ValueError("invalid item/option")
+        if item["status_option"] == option_name: return item
+        item["status_option"] = option_name
+        self.item_status_mutations.append((project_url, issue_url, option_name))
+        return item
+    def close_issue(self, issue_url):
+        if not self.capabilities.get("issueClose"): raise RuntimeError("missing issueClose")
+        issue = self.issues.get(issue_url)
+        if not issue: raise ValueError("issue not found")
+        if issue["state"] != "CLOSED":
+            issue["state"] = "CLOSED"; self.issue_close_mutations.append(issue_url)
+        return issue
+    def close_project(self, project_url):
+        if not self.capabilities.get("projectWrite"): raise RuntimeError("missing projectWrite")
+        proj = self.projects.get(project_url)
+        if not proj: raise ValueError("project not found")
+        if not proj["closed"]:
+            proj["closed"] = True; self.project_close_mutations.append(project_url)
+        return proj
+
+def resolve_github_status_options(config, proj_options):
+    gh_cfg = config.get("artifacts", {}).get("github", {})
+    resolved, seen = {}, set()
+    for req in ("planned", "executing", "inReview", "done", "blocked"):
+        name = gh_cfg.get("projectStatuses", {}).get(req)
+        if not name or name not in proj_options: raise ValueError(f"missing/foreign status option: {req}")
+        opt_id = proj_options[name]
+        if opt_id in seen: raise ValueError(f"duplicate status option id: {opt_id}")
+        seen.add(opt_id); resolved[req] = name
+    return resolved
+
+def validate_and_execute_github_increment(config, gh_client, project_url, issue_url, repo, predecessor_checkpoint=None):
+    proj, issue = gh_client.read_project(project_url), gh_client.read_issue(issue_url)
+    gh_cfg = config.get("artifacts", {}).get("github", {})
+    status_map = resolve_github_status_options(config, proj["status_options"])
+    if not proj or proj["owner"] != gh_cfg.get("owner") or proj["repository"] != f"https://github.com/{gh_client.owner}/{gh_client.repo}": raise ValueError("project/repo mismatch")
+    if not issue or issue["parent"] is not None or issue["state"] == "CLOSED" or issue_url not in proj["items"]: raise ValueError("invalid issue")
+    base_branch = predecessor_checkpoint["branch"] if predecessor_checkpoint else "main"
+    gh_client.update_item_status(project_url, issue_url, status_map["executing"])
+    branch = f"adamwoo/task-{issue['number']}"
+    repo.create_branch(branch, base_branch)
+    commit = repo.commit(branch, f"feat: increment {issue['number']}", ["src/mod.ts"])
+    pr = repo.submit_pr(branch_name=branch, base_branch=base_branch, title=f"Task {issue['number']}", body=f"Resolves {issue_url}", graphite_parent=base_branch)
+    gh_client.checkpoint_writes.append((issue_url, pr["url"]))
+    gh_client.update_item_status(project_url, issue_url, status_map["inReview"])
+    gh_client.update_item_status(project_url, issue_url, status_map["done"])
+    gh_client.close_issue(issue_url)
+    assert proj["closed"] is False, "Project must not auto-close on all increments completion!"
+    return {"status": "delivered", "branch": branch, "commit": commit, "pr": pr, "ordinal": issue["number"]}
+
+def test_github_execution_suite():
+    cfg = {"artifacts": {"provider": "github", "github": {"owner": "acme", "statusField": "Status", "projectStatuses": {"planned": "Todo", "executing": "In Progress", "inReview": "In Review", "done": "Done", "blocked": "Blocked"}}}}
+    client, repo = MockGitHubClient(owner="acme", repo="widgets"), MockRepository(parent_tip="sha-000")
+    p_url, i1_url, i2_url = "https://github.com/orgs/acme/projects/1", "https://github.com/acme/widgets/issues/10", "https://github.com/acme/widgets/issues/11"
+    client.add_project(p_url, "acme", "https://github.com/acme/widgets", status_options={"Todo": "opt-1", "In Progress": "opt-2", "In Review": "opt-3", "Done": "opt-4", "Blocked": "opt-5"})
+    client.add_issue(i1_url, "acme", "https://github.com/acme/widgets", 10)
+    client.add_issue(i2_url, "acme", "https://github.com/acme/widgets", 11)
+    client.add_project_item(p_url, i1_url, "Todo")
+    client.add_project_item(p_url, i2_url, "Todo")
+    client.add_dependency(i1_url, i2_url) # exact N-1 blocked-by relation
+    assert client.read_dependencies() == [(i1_url, i2_url)]
+
+    # 1. Multi-increment with ordinals, stacked bases, and predecessor checkpoints
+    res1 = validate_and_execute_github_increment(cfg, client, p_url, i1_url, repo)
+    assert client.issues[i1_url]["state"] == "CLOSED" and client.projects[p_url]["closed"] is False
+    res2 = validate_and_execute_github_increment(cfg, client, p_url, i2_url, repo, predecessor_checkpoint=res1)
+    assert res2["pr"]["base"] == res1["branch"] and client.issues[i2_url]["state"] == "CLOSED"
+    client.close_project(p_url)
+    assert client.projects[p_url]["closed"] is True
+
+    # 2. Close-only recovery for done+open and inReview transition before close
+    client_rec = MockGitHubClient(owner="acme", repo="widgets")
+    client_rec.add_project(p_url, "acme", "https://github.com/acme/widgets", status_options={"Todo": "opt-1", "In Progress": "opt-2", "In Review": "opt-3", "Done": "opt-4", "Blocked": "opt-5"})
+    client_rec.add_issue(i1_url, "acme", "https://github.com/acme/widgets", 10, state="OPEN")
+    client_rec.add_project_item(p_url, i1_url, "Done")
+    client_rec.close_issue(i1_url)
+    assert client_rec.issues[i1_url]["state"] == "CLOSED" and len(client_rec.checkpoint_writes) == 0
+    client_rec.add_issue(i2_url, "acme", "https://github.com/acme/widgets", 11, state="OPEN")
+    client_rec.add_project_item(p_url, i2_url, "In Review")
+    client_rec.update_item_status(p_url, i2_url, "Done")
+    client_rec.close_issue(i2_url)
+    assert client_rec.issues[i2_url]["state"] == "CLOSED" and client_rec.projects[p_url]["items"][i2_url]["status_option"] == "Done"
+    # 3. Status option resolution rejections (missing/duplicate/foreign)
+    bad_cfg = {"artifacts": {"provider": "github", "github": {"owner": "acme", "projectStatuses": {"planned": "Todo", "executing": "In Progress"}}}}
+    try: resolve_github_status_options(bad_cfg, {"Todo": "opt-1", "In Progress": "opt-2"}); assert False
+    except ValueError: pass
+    dup_opts = {"Todo": "opt-1", "In Progress": "opt-1", "In Review": "opt-3", "Done": "opt-4", "Blocked": "opt-5"}
+    try: resolve_github_status_options(cfg, dup_opts); assert False
+    except ValueError: pass
+    print("smoke: GitHub execution lifecycle, stacked bases, close recovery, and option resolution: ok")
+
+test_github_execution_suite()
 
 print("all provider execute contract tests: ok")
 PY

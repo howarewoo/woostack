@@ -11,7 +11,8 @@ Execute accepts exactly one of `--project`, `--issue`, or `--run`. All three are
 ### Provider admission (`--project` and `--issue`)
 
 Linear accepts either one exact project or one exact direct issue (`--project` xor `--issue`). Plane
-accepts only `--issue` and rejects `--project` before mutation.
+accepts only `--issue` and rejects `--project` before mutation. GitHub accepts either one exact canonical Project URL
+or one exact canonical direct repository issue URL (`--project` xor `--issue`).
 
 In Linear mode, read the selected project/issue, complete project specification, current direct-issue set
 (`parent = null`), native relations, and repository association independently.
@@ -31,6 +32,15 @@ direct project membership matches that configured project's native UUID. Admit e
    and the selected child's immediate unique predecessor. Execute runs only this exact child work item once and
    touches no sibling.
 
+
+In GitHub mode, resolve and independently read back `artifacts.github.owner`, `statusField` (default `"Status"`), and
+five options (`planned`, `executing`, `inReview`, `done`, `blocked`) by exact case-sensitive name. For `--project`,
+require an exact canonical Project URL (`https://github.com/orgs/<owner>/projects/<N>` or `/users/<owner>/projects/<N>`),
+read its complete managed README specification, verify canonical repository association, and admit its direct
+parentless repository issues (`parent = null`), Project item memberships, and native blocked-by dependency relations
+($N-1$ strict dependencies: `ordinal k-1` blocks `ordinal k`). For `--issue`, require one exact canonical parentless
+repository issue URL (`parent = null`) and the same complete Project reads. Reject foreign owner/repository, parented
+issues, missing/duplicate status options, or malformed graphs before mutation.
 Incomplete pagination, drift, ambiguity, unsupported fields, cross-parent relations, malformed or skipped/reversed
 relations, unparented children, foreign scope, or missing read-backs block before any branch, worktree, edit, or
 lifecycle write. Never infer approval from status, assignment, labels, comments, branch names, or local files.
@@ -93,25 +103,26 @@ unfinished item in the admitted graph until all items complete or a stop marker 
 (Linear direct issue or Plane exact child work item) runs exactly one cycle for the selected issue or work
 item only and stops.
 ```text
-admit (Linear project/issue, Plane spec/child work item, or local run manifest)
+admit (Linear project/issue, Plane spec/child work item, GitHub Project/issue, or local run manifest)
   → read exact task/issue/work-item graph
   → [Linear provider only] resolve/read back configured `artifacts.linear.issueStates.executing` and `artifacts.linear.issueStates.inReview`
   → [Plane provider only] resolve/read back configured `artifacts.plane.issueStates` (executing, inReview, done, blocked) by exact UUID or case-sensitive name in exact scope, validate allowable group semantics
+  → [GitHub provider only] resolve/read back configured `statusField` and options (planned, executing, inReview, done, blocked) in exact scope
   → select lowest unfinished ordinal → prove parent branch/current tip
   → [Linear provider only] active issue? resolve/read back artifacts.linear.projectStatuses.started
   → [Linear provider only] all direct issues Backlog/Todo? persist/read back selected issue executing mapping
   → [Linear provider only] all direct issues Backlog/Todo? resolve/read back artifacts.linear.projectStatuses.started
   → [Plane provider only] persist/read back selected work item and parent spec item executing mapping (project status unchanged)
+  → [GitHub provider only] persist/read back selected Project item executing status option (project status unchanged)
   → persist task/issue intent + resume checkpoint
   → create or resume one worktree → dispatch fast-model worker
   → focused verification/smoke → bounded spec validator
-  → commit/Graphite submit (with --issue in Linear provider mode; without --issue in Plane provider mode and local run mode)
+  → commit/Graphite submit (with --issue in Linear and GitHub provider modes; without --issue in Plane provider mode and local run mode)
   → read back branch/commit/PR/receipt
-  → persist + independently read back full delivery checkpoint (Linear, Plane, or Manifest CAS)
-  → [provider only] read back inReview mapping/no-op (and Plane spec parent done mapping when all children complete)
+  → persist + independently read back full delivery checkpoint (Linear, Plane, GitHub, or Manifest CAS)
+  → [provider only] read back inReview mapping/no-op (and Plane spec parent done mapping when all children complete; for GitHub done, transition item to done, close issue, leave Project open)
   → clean-worktree teardown → (stop marker? pause : next ordinal)
 ```
-
 ### Project status gate (Linear provider mode only)
 
 Linear provider mode applies the shared [active Execute project-start synchronization](../../woostack-init/references/artifact-backends.md#active-execute-project-start-synchronization)
@@ -139,6 +150,7 @@ For Plane, project status is never mutated, synthesized, or gated; Execute mutat
 A task or issue is unfinished until:
 - in Linear provider mode, its canonical state matches the resolved inReview mapping (`artifacts.linear.issueStates.inReview`) and the complete delivery checkpoint is independently read back;
 - in Plane provider mode, its canonical state matches the resolved inReview mapping (`artifacts.plane.issueStates.inReview`) or done mapping (`artifacts.plane.issueStates.done`) and the complete delivery checkpoint is independently read back;
+- in GitHub provider mode, its canonical item state matches the resolved done option (`artifacts.github.projectStatuses.done`), the repository issue state is `CLOSED`, and the complete delivery checkpoint is independently read back;
 - in local run mode, `taskExecutions[stableTaskKey].status` is `delivered` and its complete delivery
   checkpoint is independently read back via no-follow manifest CAS reopen.
 Project and local run modes select the lowest unfinished ordinal in the approved direct task/issue order.
@@ -201,9 +213,8 @@ Linear evidence failure: warn, continue repository delivery, and never claim suc
 evidence is non-authoritative and does not replace mandatory Linear lifecycle or
 Git/Graphite/GitHub evidence. Never post a screenshot to a GitHub PR or external hosting.
 
-For Plane provider mode, screenshot attachment and comment evidence are Linear-only and explicitly
-skipped until Plane writer support is introduced in its planned increment; warn and continue
-repository delivery without invoking the unconfigured provider or failing delivery.
+For Plane and GitHub provider modes, screenshot attachment and comment evidence are Linear-only and explicitly
+skipped; warn and continue repository delivery without failing delivery.
 
 ## Delivery and PR boundaries
 
@@ -246,6 +257,26 @@ independently read back native ID, name, and group. The completed checkpoint rea
 result together form the finished predicate: a missing, partial, failed, or unknown checkpoint read-back
 blocks teardown, resume, and sibling progression even when the native work-item status already matches
 inReview or done.
+
+In GitHub provider mode, invoke [`woostack-commit`](../../woostack-commit/SKILL.md) with `--issue` and the
+exact selected canonical issue URL. The delivery sequence is:
+
+```text
+verified diff → commit → Git/Graphite read-back → one Graphite PR submission
+→ canonical PR/head/base + `Resolves <issue URL>` read-back → verification receipt read-back
+→ persist + independently read back full delivery checkpoint through Execute's GitHub path
+→ transition Project item to configured inReview status option (or idempotent no-op) and read back
+→ on complete, transition Project item to done, close issue, and independently read back both (Project remains open)
+```
+Only after canonical PR and verification read-back may the controller persist the complete delivery checkpoint
+to GitHub and independently read back every field. After full checkpoint read-back succeeds, transition the Project
+item to `inReview` (or idempotent no-op) and read back. On verified completion of an increment, transition the Project
+item to `done`, close the repository issue, and independently read back both. Completing all increments leaves the
+Project open; only explicit provider closure closes the Project. If on resume or admission an increment is observed
+with Project item status `done` and a complete delivery checkpoint with verified PR but the repository issue remains
+`OPEN`, execute close-only recovery: perform and independently read back issue closure without rerunning worker implementation,
+committing, submitting PRs, or rewinding lifecycle state. If the Project item is observed in `inReview` with a complete
+delivery checkpoint and verified PR, transition and independently read back the item to `done` before executing issue closure.
 In local run mode, invoke [`woostack-commit`](../../woostack-commit/SKILL.md) without `--issue` and
 without a `Resolves` line. The delivery sequence is:
 
@@ -261,7 +292,7 @@ graphiteParent, verificationReceipt, deliveredAt }`) and increment `manifestRevi
 manifest no-follow and verify every persisted field before tearing down the clean worktree or
 advancing to the next sibling task.
 
-If optional Linear or Plane mirror writes are configured in local run mode, mirror writes are best effort only:
+If optional Linear, Plane, or GitHub mirror writes are configured in local run mode, mirror writes are best effort only:
 any mirror write failure emits a warning and never invalidates, blocks, or overwrites the authoritative
 local checkpoint.
 
@@ -283,8 +314,8 @@ completion state.
 
 After a successful task or issue, independently re-read the project/manifest. A verified stop marker
 pauses before selecting another task/issue and leaves the project/run open. Without one: in Linear
-project mode, Plane specification mode, and local run mode, select the next lowest unfinished ordinal
-until all admitted items finish; in exact issue mode (Linear direct issue or Plane exact child), stop after
+project mode, Plane specification mode, GitHub project mode, and local run mode, select the next lowest unfinished ordinal
+until all admitted items finish; in exact issue mode (Linear direct issue, Plane exact child, or GitHub repository issue), stop after
 the selected issue/work item.
 
 Success removes only the exact clean completed worktree after all delivery evidence reads back. Any
@@ -294,8 +325,10 @@ delivery checkpoint, verification/validator result, first uncertain boundary, an
 In Plane provider mode, transition and independently read back the selected work item and its parent
 specification work item to the configured blocked state (`artifacts.plane.issueStates.blocked`, resolved
 by exact UUID or case-sensitive name with group `started`, reading back its native ID, name, and group) with
-recovery evidence before a failed Plane cycle can resume. In local run mode, CAS-update the active task to
-`blocked` with that recovery evidence, increment `manifestRevision`, and independently reopen/read back the
+recovery evidence before a failed Plane cycle can resume.
+In GitHub provider mode, transition and independently read back the selected Project item to the configured
+blocked state (`artifacts.github.projectStatuses.blocked`) without closing the issue, retaining recovery evidence.
+In local run mode, CAS-update the active task to `blocked` with that recovery evidence, increment `manifestRevision`, and independently reopen/read back the
 manifest no-follow. Resume requires fresh independent evidence and must reuse an existing PR/commit when
 present.
 The controller handback is evidence only: selected resource and state, ordinal/mode, predecessor,

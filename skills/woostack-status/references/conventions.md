@@ -2,7 +2,7 @@
 
 These rules define `/woostack-status` derivation and output. Status is read-only. Git, Graphite, and
 canonical GitHub reads own repository identity, ancestry, commits, PR, review, checks, threads, and
-merge state. Exact caller-supplied Linear or Plane resources may enrich rows under the
+merge state. Exact caller-supplied Linear, Plane, or GitHub resources may enrich rows under the
 [optional artifact contract](../../woostack-init/references/artifact-backends.md), but never define
 or override repository status.
 
@@ -55,7 +55,7 @@ Derive one state from current direct evidence:
   unstable.
 
 `review-clean` is evidence, not product acceptance. `merged` is repository history, not artifact
-completion. No row state comes from a Linear or Plane native status, assignment, delegate, comment, event,
+completion. No row state comes from a Linear, Plane, or GitHub native status, assignment, delegate, comment, event,
 relation, or project phase.
 
 ## Reviews, checks, and threads
@@ -84,10 +84,10 @@ Never repair, remove, clean, reset, stash, reassign, attach, or create from stat
 
 ## Optional artifact columns
 
-Artifact mode starts only from an exact caller-supplied Linear or Plane project URL/stable UUID or canonical
-issue/work-item reference. Read that resource through official host-exposed MCP capabilities for the configured provider, complete
-relevant pagination, verify its identity and claimed canonical repository, and retain the revision
-used.
+Artifact mode starts only from an exact caller-supplied Linear, Plane, or GitHub project URL/stable UUID or canonical
+issue/work-item reference. Read that resource through official host-exposed capabilities (MCP for Linear or Plane;
+host-authenticated gh for GitHub), complete relevant pagination, verify its identity and claimed canonical repository,
+and retain the revision used.
 
 For Linear, an artifact represents a feature project or direct issue. For Plane, the configured project
 represents repository association only; top-level work items (`parent = null`) are specification
@@ -99,6 +99,13 @@ only; exposes specification aggregate lifecycle and child increment states witho
 lifecycle as delivery state. Multiple specifications within one project are cleanly partitioned by their respective
 parent specification items. Incomplete graphs, cross-parent relations, foreign projects, or unparented children
 are rejected from enrichment.
+
+For GitHub, an artifact represents a GitHub Project (Projects v2) carrying the specification in its managed
+README section, parentless canonical repository issues (`parent = null`), direct Project item membership, and
+native blocked-by dependency relations. Status resolves the Project and increment items with complete paginated
+read-back, verifies repository association, and exposes specification and increment status from the Status field
+without presenting artifact state as repository delivery state. Missing/malformed graphs, foreign repositories,
+parented issues, or unverified items are rejected from enrichment.
 
 An artifact may contribute only display context:
 

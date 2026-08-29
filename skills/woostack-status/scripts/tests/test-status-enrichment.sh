@@ -225,7 +225,30 @@ def validate_plane_graph(artifact, canonical_repo, expected_instance=EXPECTED_PL
 
     return True, spec_map, work_item_map, proj_name
 
-def derive_status_board(repo, artifact=None, expected_instance=EXPECTED_PLANE_INSTANCE):
+def validate_github_graph(artifact, canonical_repo, expected_owner=None):
+    if not isinstance(artifact, dict) or artifact.get("provider") != "github": return False, {}, {}, None
+    if expected_owner and artifact.get("owner") != expected_owner: return False, {}, {}, None
+    proj, pagination, issues, relations = artifact.get("project", {}), artifact.get("pagination", {}), artifact.get("issues", []), artifact.get("relations", [])
+    if not proj.get("url") or proj.get("canonicalRepository") != canonical_repo: return False, {}, {}, None
+    if "<!-- woostack-spec-start -->" not in proj.get("readme", "") or "<!-- woostack-spec-end -->" not in proj.get("readme", ""): return False, {}, {}, None
+    if pagination.get("isComplete") is not True or pagination.get("hasMore") is not False: return False, {}, {}, None
+    status_opts = artifact.get("statusOptions", {})
+    if not all(k in status_opts for k in ("planned", "executing", "inReview", "done", "blocked")): return False, {}, {}, None
+    issue_map = {}
+    for iss in issues:
+        if not isinstance(iss, dict) or not iss.get("url") or iss.get("canonicalRepository") != canonical_repo or iss.get("parent") is not None: return False, {}, {}, None
+        p_item = iss.get("projectItem", {})
+        if not p_item or p_item.get("projectUrl") != proj["url"]: return False, {}, {}, None
+        if iss.get("ordinal") is None or not isinstance(iss.get("ordinal"), int) or iss.get("ordinal") < 1: return False, {}, {}, None
+        issue_map[iss["url"]] = iss
+    sorted_issues = sorted(issue_map.values(), key=lambda i: i["ordinal"])
+    if not issue_map or [i["ordinal"] for i in sorted_issues] != list(range(1, len(issue_map) + 1)): return False, {}, {}, None
+    expected_edges = set((sorted_issues[i]["url"], sorted_issues[i+1]["url"]) for i in range(len(sorted_issues) - 1))
+    actual_edges_list = [(r.get("source"), r.get("target")) for r in relations if r.get("relationType") == "blocks"]
+    if len(relations) != len(expected_edges) or len(actual_edges_list) != len(expected_edges) or set(actual_edges_list) != expected_edges: return False, {}, {}, None
+    return True, {"title": proj.get("title", "Spec"), "url": proj["url"]}, issue_map, proj["url"]
+
+def derive_status_board(repo, artifact=None, expected_instance=EXPECTED_PLANE_INSTANCE, expected_owner="howarewoo"):
     rows = []
     canonical_repo = repo["canonicalRepository"]
     for branch in repo.get("branches", []):
@@ -291,6 +314,30 @@ def derive_status_board(repo, artifact=None, expected_instance=EXPECTED_PLANE_IN
                     else:
                         row["enrichmentOmitted"] = True
 
+            elif art_provider == "github":
+                is_valid, spec_info, issue_map, proj_url = validate_github_graph(artifact, canonical_repo, expected_owner=expected_owner)
+                if not is_valid:
+                    row["enrichmentOmitted"] = True
+                else:
+                    matches = []
+                    if pr:
+                        pr_num = pr.get("number")
+                        for iss in issue_map.values():
+                            if iss.get("pullRequestNumber") == pr_num:
+                                matches.append(iss)
+                    if len(matches) == 1:
+                        iss = matches[0]
+                        row["artifact"] = {
+                            "provider": "github",
+                            "identifier": f"#{iss.get('number')}",
+                            "url": iss.get("url"),
+                            "projectUrl": proj_url,
+                            "label": spec_info["title"],
+                            "statusField": artifact.get("statusField", "Status"),
+                            "nativeState": iss.get("projectItem", {}).get("statusOption"),
+                        }
+                    else:
+                        row["enrichmentOmitted"] = True
         rows.append(row)
     return rows
 
@@ -729,5 +776,19 @@ empty_plane = derive_status_board(empty_snapshot, plane_fixture)
 assert len(empty_linear) == 0, "Artifacts cannot create board rows in empty repo (Linear)"
 assert len(empty_plane) == 0, "Artifacts cannot create board rows in empty repo (Plane)"
 
+
+# Scenario 15: GitHub Project enrichment parity & negative cases
+gh_fixture = {"provider": "github", "owner": "howarewoo", "statusField": "Status", "statusOptions": {"planned": "o1", "executing": "o2", "inReview": "o3", "done": "o4", "blocked": "o5"}, "project": {"url": "https://github.com/orgs/howarewoo/projects/1", "title": "Spec", "canonicalRepository": "howarewoo/woostack", "readme": "<!-- woostack-spec-start -->spec<!-- woostack-spec-end -->"}, "pagination": {"isComplete": True, "hasMore": False, "nextCursor": None}, "issues": [{"url": "https://github.com/howarewoo/woostack/issues/42", "number": 42, "ordinal": 1, "parent": None, "canonicalRepository": "howarewoo/woostack", "pullRequestNumber": 42, "projectItem": {"projectUrl": "https://github.com/orgs/howarewoo/projects/1", "statusOption": "In Review"}}], "relations": []}
+gh_rows = derive_status_board(repo_snapshot, gh_fixture)
+assert len(gh_rows) == 1 and gh_rows[0]["artifact"]["provider"] == "github" and gh_rows[0]["artifact"]["identifier"] == "#42"
+# Negative cases: owner mismatch, parented issue, non-member projectUrl, wrong dependency direction, incomplete pagination
+for k, v in [("owner", "other"), ("issues", [{"url": "u", "ordinal": 1, "parent": "p", "canonicalRepository": "howarewoo/woostack"}]), ("issues", [{"url": "https://github.com/howarewoo/woostack/issues/42", "ordinal": 1, "canonicalRepository": "howarewoo/woostack", "projectItem": {"projectUrl": "other"}}]), ("relations", [{"source": "a", "target": "b", "relationType": "wrong"}]), ("pagination", {"isComplete": False})]:
+    bad = copy.deepcopy(gh_fixture); bad[k] = v
+    assert derive_status_board(repo_snapshot, bad)[0]["artifact"] is None and derive_status_board(repo_snapshot, bad)[0]["enrichmentOmitted"] is True
+# Multi-issue out-of-order relation acceptance
+multi_gh = copy.deepcopy(gh_fixture)
+multi_gh["issues"] = [{"url": "u1", "ordinal": 1, "canonicalRepository": "howarewoo/woostack", "projectItem": {"projectUrl": "https://github.com/orgs/howarewoo/projects/1"}}, {"url": "u2", "ordinal": 2, "canonicalRepository": "howarewoo/woostack", "projectItem": {"projectUrl": "https://github.com/orgs/howarewoo/projects/1"}}, {"url": "u3", "ordinal": 3, "canonicalRepository": "howarewoo/woostack", "projectItem": {"projectUrl": "https://github.com/orgs/howarewoo/projects/1"}}]
+multi_gh["relations"] = [{"source": "u2", "target": "u3", "relationType": "blocks"}, {"source": "u1", "target": "u2", "relationType": "blocks"}] # out of order
+assert validate_github_graph(multi_gh, "howarewoo/woostack", "howarewoo")[0] is True
 print("status enrichment fixture parity and negative cases: ok")
 PY

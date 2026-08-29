@@ -1,18 +1,19 @@
 # Optional commit association
 
-Load this reference only when the caller supplied one exact canonical Linear issue or Plane
-work-item reference. The normal commit/PR path is artifact-free and does not read this file.
+Load this reference only when the caller supplied one exact canonical Linear issue, Plane
+work-item, or GitHub issue reference. The normal commit/PR path is artifact-free and does not read this file.
 
 Follow the shared
 [artifact contract](../../woostack-init/references/artifact-backends.md), then load only the selected
-[Linear](../../woostack-init/references/artifact-providers/linear.md) or
-[Plane](../../woostack-init/references/artifact-providers/plane.md) profile. Git, Graphite, and
+[Linear](../../woostack-init/references/artifact-providers/linear.md),
+[Plane](../../woostack-init/references/artifact-providers/plane.md), or
+[GitHub](../../woostack-init/references/artifact-providers/github.md) profile. Git, Graphite, and
 canonical GitHub reads remain authoritative for repositories, branches, commits, ancestry, PRs,
 reviews, and merge state.
 
 ## Admission
 
-1. Resolve only the exact caller-supplied resource through official host-exposed MCP capabilities (`linear` or `plane`).
+1. Resolve only the exact caller-supplied resource through official host-exposed capabilities (MCP for Linear or Plane; host-authenticated `gh` for GitHub).
 2. Independently read its native/stable identity, current content, and claimed canonical repository.
 3. Fully paginate only fields required for the requested attribution/note.
 4. Compare the readable fix/change/task record with the active approved workflow contract.
@@ -26,9 +27,9 @@ blocks only association/synchronization unless the caller explicitly made it par
 
 Artifact-free PRs have no provider reference requirement. For an exact caller-supplied issue or
 work item, add one `Resolves <issue identifier>` line to the PR body (for example `Resolves WOO-144`
-for Linear or `Resolves PROJ-144` / canonical readable identifier for Plane). Use the canonical
-identifier from the independent resource read, never a value parsed from caller prose, a branch, or
-existing PR text. Do not add a project reference. The closing keyword lets the repository's provider
+for Linear, `Resolves PROJ-144` / canonical readable identifier for Plane, or `Resolves https://github.com/owner/repo/issues/42`
+for GitHub). Use the canonical independently read closing identifier from the verified artifact.
+Preserve existing PR text. Do not add a project reference. The closing keyword lets the repository's provider
 integration move the associated issue or work item to its configured merged state only after the PR
 merges; it does not itself prove lifecycle state, authority, ownership, acceptance, or merge.
 Preserve existing human-authored PR content.
@@ -48,8 +49,8 @@ Write only the requested concise delivery fields:
 - observed verification/review outcome; and
 - blockers or safe resume boundary.
 
-Re-read the exact artifact immediately before the write, preserve unrelated content, use a stable
-operation identity when available (`external_source`/`external_id` for Plane or mutation markers),
+Re-read the exact artifact immediately before the write, preserve unrelated content and managed markers
+(`<!-- woostack-issue-mutation:<UUID> -->`), use a stable operation identity when available
 and independently read the mutation back. Never change scope, assignment, delegate, owner, status,
 acceptance, labels, relations, or project membership merely because a commit or PR exists.
 
