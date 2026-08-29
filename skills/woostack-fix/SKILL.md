@@ -8,7 +8,7 @@ description: Use for bugs, regressions, hotfixes, and production signals that re
 Fix is a bounded bug-fix workflow that owns one canonical local run under `.woostack/tmp/runs/<run-id>/`.
 It accepts a goal or untrusted Linear, Plane, GitHub, Sentry, or monitoring input, proves the causal root,
 manages plain specification and direct-issue planning, retains artifacts, and hands off to Execute.
-Local run authority is unconditional; Linear and Plane are optional mirror flows gated by `artifacts.provider: "linear"` or `artifacts.provider: "plane"`.
+Local run authority is unconditional; Linear, Plane, and GitHub are optional mirror flows gated by `artifacts.provider: "linear"`, `artifacts.provider: "plane"`, or `artifacts.provider: "github"`.
 Git, Graphite, and canonical GitHub reads remain the authority for repository delivery. Fix never merges.
 
 ```text
@@ -28,8 +28,8 @@ synchronization, read-back, artifact retention, and the unchanged Execute safety
 ## Command
 
 ```text
-/woostack-fix <goal-or-untrusted-input> [--project <exact Linear or Plane URL-or-UUID>]
-             [--issue <exact canonical Linear issue or Plane work-item reference>] [--run <exact-run-id>] [--inline|--subagent]
+/woostack-fix <goal-or-untrusted-input> [--project <exact Linear, Plane, or GitHub URL-or-UUID>]
+             [--issue <exact canonical Linear, Plane, or GitHub issue reference>] [--run <exact-run-id>] [--inline|--subagent]
 /woostack-fix --run <exact-run-id>
 ```
 
@@ -40,7 +40,17 @@ creates a new persistent local run under `.woostack/tmp/runs/<run-id>/`.
 Local run creation is unconditional. Default local mode makes zero provider calls. When `artifacts.provider`
 is "local" or omitted in effective repository configuration, an explicit `--project` or `--issue`
 flag fails closed before any provider access with an error stating that provider arguments require
-configured provider mirroring (`artifacts.provider: "linear"` or `artifacts.provider: "plane"`).
+configured provider mirroring (`artifacts.provider: "linear"`, `artifacts.provider: "plane"`, or `artifacts.provider: "github"`).
+
+When `artifacts.provider: "github"`, `--project` is optional: when supplied it is one exact canonical
+GitHub Project URL under the configured owner and retains its existing title and visibility. When omitted,
+Fix creates exactly one Project after root-cause proof whose title starts with `[Fix] ` and otherwise
+derives from the proved correction with configured/default private visibility. `--issue` is optional
+source context: one exact canonical issue URL in the canonical repository; never repurposed as the
+canonical Project, rewritten as a plan, closed, or treated as approval; preserved unchanged except for the
+supported direct Project item link to the canonical Project. A supplied PR is read as repository context only;
+multiple direct PR-linked issues may be admitted later by Plan. `--inline` and `--subagent` select only the
+read-only Debug driver and are mutually exclusive.
 
 When `artifacts.provider: "linear"`, `--project` is optional: when supplied it is one exact canonical
 Linear project URL or stable UUID and retains its existing name. When omitted, Fix creates exactly one
@@ -52,7 +62,6 @@ or treated as approval. A source issue is left unchanged except for the supporte
 canonical project. A supplied PR is read as repository context only; multiple direct PR-linked
 issues may be admitted later by Plan. `--inline` and `--subagent` select only the read-only Debug
 driver and are mutually exclusive.
-
 When `artifacts.provider: "plane"`, Fix resolves the exact existing `artifacts.plane.project` in the
 configured instance `baseUrl` and workspace after root-cause proof and target-repository admission.
 An optional `--project` must identify that same native project; a mismatch fails closed. Fix never
@@ -99,7 +108,8 @@ inline only when safe.
 After Debug proves the root cause, compare the proved causal target repository with the invocation repository using trusted Git/GitHub evidence, then non-mutatingly verify that the active checkout is the exact writable owning checkout. Missing, ambiguous, foreign, read-only, unwritable, absent, or wrong checkout blocks before every provider, artifact, or repository effect. A supplied `--project` or `--issue` cannot bypass this guard. Preserve the matching writable path and offer only `retarget-reinvoke-in-exact-writable-owning-repository` or `diagnosis-only`; never clone, switch, mutate, or invent a workaround.
 Immediately after Debug returns root-cause proof and exact writable target-repository admission
 succeeds, load the shared [artifact contract](../woostack-init/references/artifact-backends.md), only
-the selected [Linear](../woostack-init/references/artifact-providers/linear.md) or
+the selected [GitHub](../woostack-init/references/artifact-providers/github.md),
+[Linear](../woostack-init/references/artifact-providers/linear.md), or
 [Plane](../woostack-init/references/artifact-providers/plane.md) profile, the
 [Build project wrapper](../woostack-build/SKILL.md), and the internal
 [`woostack-ideate`](../woostack-ideate/SKILL.md) and
@@ -114,17 +124,17 @@ separately governs parent-branch intent and base-change detection; Fix does not 
 After Debug returns root-cause proof, allocate or resume the canonical run store under
 `.woostack/tmp/runs/<run-id>/`. In local mode, make no provider call.
 
-In provider mode, apply only the selected profile. Preflight its official-MCP capabilities and exact
-scope; completely discover and resolve configured project labels; resolve the exact supplied or
-configured project (`[Fix] <goal>` for Linear, `artifacts.plane.project` for Plane); apply missing
-labels at most once; and independently read back the complete project identity, repository, scope,
-labels, and content. Missing, ambiguous, duplicate, foreign, incomplete, unsupported, or unknown
-results block that provider boundary.
+In provider mode, apply only the selected profile. Preflight its capabilities (official MCP for Linear/Plane,
+host-authenticated `gh` for GitHub) and exact scope; resolve configured project labels when supported
+(Linear/Plane, skipped for GitHub); resolve the exact supplied or configured project (`[Fix] <goal>` for Linear
+or GitHub, `artifacts.plane.project` for Plane); apply missing labels at most once when supported; and independently
+read back the complete project identity, repository, scope, labels (where supported), and content. Missing,
+ambiguous, duplicate, foreign, incomplete, unsupported, or unknown results block that provider boundary.
 
 If an exact source issue/work-item was supplied, resolve it through the selected profile's canonical
 reference, independently read its canonical/readable and native identities, complete scope,
 membership, parent, content, comments, and relations, then add only the supported direct project link
-(to the canonical project for Linear or configured project for Plane) and read it back. Preserve every
+(to the canonical project for Linear or GitHub, or configured project for Plane) and read it back. Preserve every
 exact title, description, lifecycle state, assignment, label,
 relation, comment, parent, and membership. Reject incompatible, archived, foreign, unknown-parent, or
 incompletely read sources without changing them.
@@ -151,7 +161,7 @@ safety redundancy.
 
 Fix writes plain Markdown `project-spec.md` and `execution-plan.md` directly under `.woostack/tmp/runs/<run-id>/`.
 Obey the shared [plain artifact contract](../woostack-init/references/artifact-backends.md#readable-plain-artifact-writing).
-When `artifacts.provider: "linear"` or `artifacts.provider: "plane"`, Fix performs the immediate pre-save drift read, runs one bounded
+When `artifacts.provider: "linear"`, `artifacts.provider: "plane"`, or `artifacts.provider: "github"`, Fix performs the immediate pre-save drift read, runs one bounded
 synchronization, and independently reads back the exact content before recording mirror status in the manifest.
 For Plane, bounded synchronization creates or reconciles one top-level specification work item named
 `[Fix] <goal>` (with `parent = null`) in the configured project, writes the complete proved Fix
@@ -159,7 +169,7 @@ specification Markdown to its description, independently reads back native UUID,
 and binds it to `mirror.specItem` in the manifest outside child task mappings.
 Mirror failure is recorded in the manifest and is nonblocking.
 No draft provider cycle occurs while drafting. Abandon records `status: "abandoned"` in the manifest,
-retains run artifacts, and does not close a mirrored Linear or Plane project (and never synthesizes project status or archives a Plane project). No repository mutation occurs
+retains run artifacts, and does not close a mirrored Linear, Plane, or GitHub project (and never synthesizes project status or archives a Plane project). No repository mutation occurs
 before Execute.
 
 ### 4. Plan and Harden
@@ -178,7 +188,7 @@ No provider or repository mutation occurs during planning or hardening.
 ### 5. Execution-plan writing
 
 Fix writes plain Markdown `execution-plan.md` directly under `.woostack/tmp/runs/<run-id>/`, containing every ordered increment contract and dependency tuple.
-When `artifacts.provider: "linear"` or `artifacts.provider: "plane"`, Fix performs the immediate
+When `artifacts.provider: "linear"`, `artifacts.provider: "plane"`, or `artifacts.provider: "github"`, Fix performs the immediate
 pre-save drift read, shared
 [graph-write preflight](../woostack-init/references/artifact-backends.md#canonical-issue-references-nullable-parents-and-graph-write-preflight),
 and one bounded synchronization. Atomically bind stable task keys to canonical issue references,
@@ -201,7 +211,7 @@ Ask a body-free handoff question whose explicit options are exactly `Stop here`,
 `Abandon`. `Stop here` returns the command without repository, run, or project-state mutation.
 `Execute` invokes normal [`woostack-execute`](../woostack-execute/SKILL.md) once in the same session
 with `--run <exact-run-id>`. `Abandon` records `status: "abandoned"` in the manifest, retains run
-artifacts, does not close or mutate a mirrored Linear or Plane project, and does not dispatch Execute. Unknown
+artifacts, does not close or mutate a mirrored Linear, Plane, or GitHub project, and does not dispatch Execute. Unknown
 or custom input fails closed and asks again; it never dispatches or mutates.
 
 Execute applies the shared repository ancestry and base-change contract and owns implementation,
@@ -216,5 +226,5 @@ Return the proved root cause or blocker; exact run ID; readable artifact paths; 
 and the unchanged-except-for-project-link result; stable task, worktree, branch, planning parent
 branch/tip, and increment identities; exact changed paths; concrete verification and smoke results;
 risks, blockers, and the safe resume boundary. Include canonical project identity and read-back
-evidence only when Linear or Plane mirroring was enabled and observed. Never claim a diagnosis, approval,
+evidence only when Linear, Plane, or GitHub mirroring was enabled and observed. Never claim a diagnosis, approval,
 repository mutation, execution, delivery, or provider state not directly observed.

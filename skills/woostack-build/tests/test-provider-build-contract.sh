@@ -15,9 +15,12 @@ paths = {
     "linear_procedure": root / "skills/woostack-build/references/linear-procedure.md",
     "plane_context": root / "skills/woostack-build/references/plane-context.md",
     "plane_procedure": root / "skills/woostack-build/references/plane-procedure.md",
+    "github_context": root / "skills/woostack-build/references/github-context.md",
+    "github_procedure": root / "skills/woostack-build/references/github-procedure.md",
     "artifact": root / "skills/woostack-init/references/artifact-backends.md",
     "linear_profile": root / "skills/woostack-init/references/artifact-providers/linear.md",
     "plane_profile": root / "skills/woostack-init/references/artifact-providers/plane.md",
+    "github_profile": root / "skills/woostack-init/references/artifact-providers/github.md",
     "ideate": root / "skills/woostack-ideate/SKILL.md",
     "harden": root / "skills/woostack-harden/SKILL.md",
     "plan": root / "skills/woostack-plan/SKILL.md",
@@ -58,9 +61,8 @@ for pattern in (
 ):
     require("build", pattern)
 
-for name in ("build", "linear_context", "linear_procedure", "plane_context", "plane_procedure", "ideate", "harden", "plan", "fix", "execute"):
+for name in ("build", "linear_context", "linear_procedure", "plane_context", "plane_procedure", "github_context", "github_procedure", "ideate", "harden", "plan", "fix", "execute"):
     require(name, r"manifest", f"{name}: local run manifest contract missing")
-
 # The shared contract owns local safety, one-time plain writes, recovery, and explicit base choice.
 artifact_requirements = (
     r"Local run artifact and provider mirror contract",
@@ -97,13 +99,14 @@ for pattern in artifact_requirements:
     require("artifact", pattern)
 
 # Provider safety retained by Build and its shared references.
-for name in ("linear_context", "linear_procedure", "plane_context", "plane_procedure"):
+for name in ("linear_context", "linear_procedure", "plane_context", "plane_procedure", "github_context", "github_procedure"):
     require(name, r"nullable-parent|null parent|parent state|parent = null")
-for name in ("linear_procedure", "plane_procedure"):
+for name in ("linear_procedure", "plane_procedure", "github_procedure"):
     require(name, r"zero provider and repository mutation")
 require("harden", r"canonical issue references|canonical provider references")
 require("linear_profile", r"host-authenticated official Linear MCP")
 require("plane_profile", r"host-authenticated official Plane MCP")
+require("github_profile", r"host-authenticated official `?gh`? CLI")
 require("artifact", r"untrusted data")
 require("artifact", r"Never replace an existing full description")
 require("linear_profile", r"completed or canceled.*terminal conflicts")
@@ -144,6 +147,17 @@ require("plane_procedure", r"external_source.*external_id")
 require("plane_procedure", r"parent = null")
 require("plane_procedure", r"parent = <spec-item-UUID>|exact specification parent UUID")
 require("plane_procedure", r"N-1.*strict blocking relations")
+
+# GitHub-specific context and procedure checks
+require("github_context", r"artifacts\.github\.owner")
+require("github_context", r"<!-- woostack-project-mutation:<UUID> -->")
+require("github_context", r"<!-- woostack-spec-start -->.*<!-- woostack-spec-end -->")
+require("github_context", r"<!-- woostack-issue-mutation:<UUID> -->")
+require("github_context", r"parent = null")
+require("github_procedure", r"<!-- woostack-spec-start -->.*<!-- woostack-spec-end -->")
+require("github_procedure", r"shortDescription")
+require("github_procedure", r"parent = null")
+require("github_procedure", r"N-1.*strict dependencies|N-1.*dependencies")
 source_names = tuple(paths)
 for obsolete in (
     r"canonicalProjectSpecFingerprint",
@@ -517,5 +531,140 @@ recovered = mcp_recovery.find_work_item_by_external_id("acme", "proj-1", "woosta
 assert recovered is not None
 assert recovered["id"] == wi_existing["id"]
 
+# ---------------------------------------------------------------------------
+# Synthetic fixture-driven GitHub Build provider boundary tests (0 network calls)
+# ---------------------------------------------------------------------------
+
+class MockGitHubCLI:
+    def __init__(self, owner="acme", repo="acme/widgets", capabilities=None):
+        self.owner, self.repo = owner, repo
+        self.capabilities = capabilities or {"projectRead": True, "projectWrite": True, "issueRead": True, "issueWrite": True, "dependencyRead": True, "dependencyWrite": True, "pagination": True, "independentReadBack": True}
+        self.projects, self.issues, self.items, self.dependencies = {}, {}, {}, []
+        self.create_calls, self.throw_on_create = 0, False
+
+    def list_projects_paginated(self, owner):
+        if not self.capabilities.get("pagination"): raise RuntimeError("missing capability: pagination")
+        return {"items": [p for p in self.projects.values() if p["owner"] == owner], "next_cursor": None}
+
+    def create_project(self, owner, title, visibility="private"):
+        if not self.capabilities.get("projectWrite"): raise RuntimeError("missing capability: projectWrite")
+        pid = f"PVT_{len(self.projects)+1:04d}"
+        p = {"id": pid, "number": len(self.projects)+1, "owner": owner, "title": title, "visibility": visibility, "repository": f"https://github.com/{self.repo}", "readme": "", "shortDescription": ""}
+        self.projects[pid] = p; return dict(p)
+
+    def read_project(self, pid):
+        if not self.capabilities.get("projectRead"): raise RuntimeError("missing capability: projectRead")
+        return dict(self.projects[pid]) if pid in self.projects else None
+
+    def update_project_readme(self, pid, readme, short_description=""):
+        if not self.capabilities.get("projectWrite"): raise RuntimeError("missing capability: projectWrite")
+        self.projects[pid]["readme"] = readme; self.projects[pid]["shortDescription"] = short_description
+        return dict(self.projects[pid])
+
+    def create_issue(self, repo, title, body):
+        if not self.capabilities.get("issueWrite"): raise RuntimeError("missing capability: issueWrite")
+        self.create_calls += 1
+        n = len(self.issues) + 1; iid = f"I_{n:04d}"
+        iss = {"id": iid, "number": n, "repo": repo, "title": title, "body": body, "url": f"https://github.com/{repo}/issues/{n}", "parent": None}
+        self.issues[iid] = iss
+        if self.throw_on_create: raise RuntimeError("unknown issue creation result")
+        return dict(iss)
+
+    def read_issue(self, iid):
+        if not self.capabilities.get("issueRead"): raise RuntimeError("missing capability: issueRead")
+        return dict(self.issues[iid]) if iid in self.issues else None
+
+    def add_project_item(self, pid, cid):
+        if not self.capabilities.get("projectWrite"): raise RuntimeError("missing capability: projectWrite")
+        item = {"id": f"PVTI_{len(self.items.get(pid, []))+1:04d}", "content_id": cid}
+        self.items.setdefault(pid, []).append(item); return dict(item)
+
+    def add_issue_dependency(self, blocker_id, blocked_id):
+        if not self.capabilities.get("dependencyWrite"): raise RuntimeError("missing capability: dependencyWrite")
+        dep = {"id": f"DEP_{len(self.dependencies)+1:04d}", "blocker_id": blocker_id, "blocked_id": blocked_id}
+        self.dependencies.append(dep); return dict(dep)
+
+
+def simulate_github_build_mirror(config, cli, spec_text, plan_increments):
+    if config["github"]["owner"] != cli.owner: raise ValueError("owner mismatch")
+    for cap in ("projectRead", "projectWrite", "issueRead", "issueWrite", "dependencyRead", "dependencyWrite", "independentReadBack"):
+        if not cli.capabilities.get(cap): raise RuntimeError(f"missing capability: {cap}")
+    proj_marker = "<!-- woostack-project-mutation:proj-uuid-1 -->"
+    existing_projs = [p for p in cli.list_projects_paginated(config["github"]["owner"])["items"] if proj_marker in p.get("readme", "")]
+    if len(existing_projs) == 1:
+        proj = existing_projs[0]
+    elif len(existing_projs) > 1:
+        raise ValueError("duplicate project marker")
+    else:
+        proj = cli.create_project(config["github"]["owner"], "[Build] Feature", visibility=config["github"].get("visibility", "private"))
+        if proj.get("repository") != f"https://github.com/{cli.repo}": raise ValueError("repository mismatch")
+        spec_section = f"<!-- woostack-spec-start -->\n{proj_marker}\n{spec_text}\n<!-- woostack-spec-end -->"
+        cli.update_project_readme(proj["id"], spec_section, short_description="Feature")
+    manifest = {"stableTaskMappings": {}, "mirror": {"provider": "github", "project": {"owner": config["github"]["owner"], "canonicalRef": f"https://github.com/orgs/{config['github']['owner']}/projects/{proj['number']}", "nativeId": proj["id"]}, "tasks": {}, "relations": [], "status": "unstarted"}}
+    created_issues = []
+    for inc in plan_increments:
+        k = inc["task_key"]
+        contract = f"## {inc['title']}\nOutcome: {inc['title']}\nScope: lib.ts\n<!-- woostack-issue-mutation:{k}-uuid -->\nStop marker: complete"
+        matching_issues = [i for i in cli.issues.values() if i["repo"] == cli.repo and f"<!-- woostack-issue-mutation:{k}-uuid -->" in i.get("body", "")]
+        if len(matching_issues) == 1:
+            iss = matching_issues[0]
+        elif len(matching_issues) > 1:
+            raise ValueError("duplicate issue marker")
+        else:
+            iss = cli.create_issue(cli.repo, inc["title"], contract)
+        read_iss = cli.read_issue(iss["id"])
+        if not read_iss or read_iss["parent"] is not None or "<!-- woostack-issue-mutation:" not in read_iss["body"] or "Stop marker: complete" not in read_iss["body"]:
+            raise RuntimeError("invalid issue contract read-back")
+        manifest["stableTaskMappings"][k] = iss["url"]
+        manifest["mirror"]["tasks"][k] = {"canonicalRef": iss["url"], "nativeId": iss["id"]}
+        item = cli.add_project_item(proj["id"], iss["id"])
+        manifest["mirror"]["tasks"][k]["itemNodeId"] = item["id"]
+        created_issues.append(iss)
+    for i in range(len(created_issues) - 1):
+        dep = cli.add_issue_dependency(created_issues[i]["id"], created_issues[i+1]["id"])
+        manifest["mirror"]["relations"].append({"sourceKey": plan_increments[i]["task_key"], "targetKey": plan_increments[i+1]["task_key"], "nativeId": dep["id"], "relationType": "blocks"})
+    assert len(cli.items.get(proj["id"], [])) == len(plan_increments) and len(cli.dependencies) == len(plan_increments) - 1
+    manifest["mirror"]["status"] = "synced"
+    return manifest
+
+
+# --- Scenario A: Valid GitHub Build mirror ---
+cli_valid = MockGitHubCLI(owner="acme", repo="acme/widgets")
+cfg_gh_valid = {"github": {"owner": "acme", "ownerType": "organization", "visibility": "private", "statusField": "Status", "projectStatuses": {"planned": "Todo", "executing": "In Progress", "inReview": "In Review", "done": "Done", "blocked": "Blocked"}}}
+gh_increments = [{"task_key": "task-1", "title": "First slice"}, {"task_key": "task-2", "title": "Second slice"}, {"task_key": "task-3", "title": "Third slice"}]
+gh_manifest = simulate_github_build_mirror(cfg_gh_valid, cli_valid, "# Feature Spec", gh_increments)
+assert gh_manifest["mirror"]["status"] == "synced" and len(gh_manifest["mirror"]["relations"]) == 2
+assert gh_manifest["stableTaskMappings"]["task-1"] == "https://github.com/acme/widgets/issues/1"
+assert cli_valid.dependencies[0]["blocker_id"] == "I_0001" and cli_valid.dependencies[0]["blocked_id"] == "I_0002"
+
+# --- Scenario B: Missing capability / foreign repo fails closed ---
+try:
+    simulate_github_build_mirror(cfg_gh_valid, MockGitHubCLI(capabilities={"projectWrite": False}), "# Spec", gh_increments)
+    raise AssertionError("expected failure on missing capability")
+except RuntimeError as e: assert "missing capability" in str(e)
+
+# --- Scenario C: Unknown issue creation committed server-side then throws, resumes real sync path ---
+cli_throw = MockGitHubCLI(owner="acme", repo="acme/widgets")
+cli_throw.throw_on_create = True
+try:
+    simulate_github_build_mirror(cfg_gh_valid, cli_throw, "# Spec", [{"task_key": "task-1", "title": "First slice"}])
+    raise AssertionError("expected unknown error")
+except RuntimeError as e: assert "unknown issue creation result" in str(e)
+cli_throw.throw_on_create = False
+gh_resumed = simulate_github_build_mirror(cfg_gh_valid, cli_throw, "# Spec", [{"task_key": "task-1", "title": "First slice"}])
+assert cli_throw.create_calls == 1, "create_issue must not be called a second time on resume"
+assert gh_resumed["stableTaskMappings"]["task-1"] == "https://github.com/acme/widgets/issues/1"
+assert len(cli_throw.issues) == 1, "no duplicate issue should be created"
+
+# --- Scenario D: Supplied Project preserves prefix, suffix, title, visibility, metadata ---
+cli_supp = MockGitHubCLI(owner="acme", repo="acme/widgets")
+cli_supp.projects["PVT_S"] = {"id": "PVT_S", "number": 42, "owner": "acme", "title": "Custom", "visibility": "public", "repository": "https://github.com/acme/widgets", "custom": "meta", "readme": "# Pre\n<!-- woostack-spec-start -->\nOld\n<!-- woostack-spec-end -->\n# Post", "shortDescription": "Old"}
+p = cli_supp.read_project("PVT_S")
+assert p["repository"] == "https://github.com/acme/widgets"
+pre, post = p["readme"].split("<!-- woostack-spec-start -->")[0], p["readme"].split("<!-- woostack-spec-end -->")[1]
+cli_supp.update_project_readme("PVT_S", f"{pre}<!-- woostack-spec-start -->\nNew Spec\n<!-- woostack-spec-end -->{post}", "New Summary")
+p_after = cli_supp.read_project("PVT_S")
+assert p_after["title"] == "Custom" and p_after["visibility"] == "public" and p_after["custom"] == "meta"
+assert p_after["readme"].startswith("# Pre\n") and p_after["readme"].endswith("\n# Post") and p_after["shortDescription"] == "New Summary"
 print("test-provider-build-contract: ok")
 PY
