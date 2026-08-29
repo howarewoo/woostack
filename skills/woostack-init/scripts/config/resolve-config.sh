@@ -148,8 +148,8 @@ if jq -e 'has("artifacts")' <<<"$effective" >/dev/null 2>&1; then
     fail "$(target_file 'has("artifacts") and (.artifacts | type != "object")') artifacts must be a JSON object"
   fi
   if jq -e '.artifacts | has("provider")' <<<"$effective" >/dev/null 2>&1; then
-    if ! jq -e '.artifacts.provider | type == "string" and (. == "local" or . == "linear" or . == "plane")' <<<"$effective" >/dev/null 2>&1; then
-      fail "$(target_file 'has("artifacts") and (.artifacts | has("provider")) and ((.artifacts.provider | type != "string") or (.artifacts.provider != "local" and .artifacts.provider != "linear" and .artifacts.provider != "plane"))') artifacts.provider must be \"local\", \"linear\", or \"plane\""
+    if ! jq -e '.artifacts.provider | type == "string" and (. == "local" or . == "github" or . == "linear" or . == "plane")' <<<"$effective" >/dev/null 2>&1; then
+      fail "$(target_file 'has("artifacts") and (.artifacts | has("provider")) and ((.artifacts.provider | type != "string") or (.artifacts.provider != "local" and .artifacts.provider != "github" and .artifacts.provider != "linear" and .artifacts.provider != "plane"))') artifacts.provider must be \"local\", \"github\", \"linear\", or \"plane\""
     fi
   fi
 fi
@@ -159,7 +159,35 @@ project_keys='["backlog","planned","started","completed","canceled"]'
 issue_keys='["planned","executing","inReview","done","blocked"]'
 linear_allowed='["repository","workspace","team","projectLabels","projectStatuses","issueStates"]'
 plane_allowed='["baseUrl","workspace","repository","project","projectLabels","issueStates"]'
-if [ "$provider" = "linear" ]; then
+github_allowed='["owner","ownerType","statusField","visibility","projectStatuses"]'
+if [ "$provider" = "github" ]; then
+  if ! jq -e 'has("artifacts") and (.artifacts | type == "object") and (.artifacts | has("github")) and (.artifacts.github | type == "object")' <<<"$effective" >/dev/null 2>&1; then
+    fail "$(target_file 'has("artifacts") and ((.artifacts | has("github") and (.artifacts.github | type != "object")) or (.artifacts.provider? == "github" and (.artifacts.github? | type != "object")))') github policy requires owner, projectStatuses, and optional ownerType, statusField, visibility only"
+  fi
+  if ! jq -e --argjson allowed "$github_allowed" '
+    .artifacts.github | type == "object" and ((keys - $allowed) | length == 0)
+  ' <<<"$effective" >/dev/null 2>&1; then
+    fail "$(target_file 'has("artifacts") and (.artifacts.github? | type == "object" and ((keys - ["owner","ownerType","statusField","visibility","projectStatuses"]) | length > 0))') github policy requires owner, projectStatuses, and optional ownerType, statusField, visibility only"
+  fi
+  if ! jq -e '
+    .artifacts.github
+    and (.artifacts.github.owner | type == "string"
+      and test("^[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?$"))
+    and (if .artifacts.github | has("ownerType") then (.artifacts.github.ownerType == "organization" or .artifacts.github.ownerType == "user") else true end)
+    and (if .artifacts.github | has("statusField") then (.artifacts.github.statusField | type == "string" and test("\\S")) else true end)
+    and (if .artifacts.github | has("visibility") then (.artifacts.github.visibility == "private" or .artifacts.github.visibility == "public") else true end)
+    and (.artifacts.github.projectStatuses | type == "object")
+  ' <<<"$effective" >/dev/null 2>&1; then
+    fail "$(target_file 'has("artifacts") and ((.artifacts.provider? == "github") or (.artifacts | has("github")))') github policy requires owner, projectStatuses, and optional ownerType, statusField, visibility only"
+  fi
+  if ! jq -e --argjson keys "$issue_keys" '
+    (.artifacts.github.projectStatuses | keys | sort) == ($keys | sort)
+    and all(.artifacts.github.projectStatuses[]; type == "string" and test("\\S"))
+    and ((.artifacts.github.projectStatuses | [.[]] | unique | length) == ($keys | length))
+  ' <<<"$effective" >/dev/null 2>&1; then
+    fail "$(target_file 'has("artifacts") and (.artifacts.github? | has("projectStatuses"))') projectStatuses mapping is incomplete or contains invalid values"
+  fi
+elif [ "$provider" = "linear" ]; then
   if ! jq -e 'has("artifacts") and (.artifacts | type == "object") and (.artifacts | has("linear")) and (.artifacts.linear | type == "object")' <<<"$effective" >/dev/null 2>&1; then
     fail "$(target_file 'has("artifacts") and ((.artifacts | has("linear") and (.artifacts.linear | type != "object")) or (.artifacts.provider? == "linear" and (.artifacts.linear? | type != "object")))') linear policy requires repository, workspace, team, projectLabels, projectStatuses, and issueStates only"
   fi

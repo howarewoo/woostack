@@ -19,9 +19,11 @@ overloaded):
 - **repair:** `bash checks/<name>.sh --fix <WOO_ROOT> <extra-args...>` → applies the fix.
 
 The orchestrator exports `WOOSTACK_DOCTOR_LIVE=0` for ordinary runs. On explicit `--live`, the
-skill controller resolves effective configuration first, discovers/authenticates the configured official provider MCP (Linear or Plane), performs preflight once, and invokes
-the engine with `--live-receipt <path>`. The receipt is normalized and non-secret. Static checks
-never inspect credentials or invoke HTTP, GraphQL, provider adapters, or hard-coded MCP tools.
+skill controller resolves effective configuration first, discovers/authenticates the configured
+provider transport (`gh` for GitHub, or the official provider MCP for Linear or Plane), performs
+preflight once, and invokes the engine with `--live-receipt <path>`. The receipt is normalized and
+non-secret. Static checks never inspect credentials or invoke HTTP, GraphQL, provider adapters, or
+hard-coded MCP tools.
 ## Checks
 
 | code | check | severity | fixable | `--fix` args |
@@ -42,13 +44,17 @@ Legacy development records are migration input, not normal document-lint or auto
 
 Static diagnosis is provider-free. It validates:
 
-- the non-secret `linear` or `plane` policy shape on effective configuration (tracked base plus primary-checkout local) and rejects backend selectors or credential-like keys; template presence and repairs apply strictly to tracked base `.woostack/config.json`;
+- the non-secret `github`, `linear`, or `plane` policy shape on effective configuration (tracked base plus primary-checkout local) and rejects backend selectors or credential-like keys; template presence and repairs apply strictly to tracked base `.woostack/config.json`;
 - generated-host, Git-ignore, and worktree hygiene; and
 - legacy development-record directories as one blocking `legacy-development-records` finding per
   active or ambiguous set, without running document type/status/source/backlink checks. Old artifacts are
   preserved without in-place mutation or reparenting; incompatible retained Plane runs block with precise
   regeneration guidance.
 `--live` is controller-owned. The skill controller resolves effective configuration to determine `artifacts.provider`.
+When `artifacts.provider: "github"`, it discovers and authenticates host `gh` CLI (`official-gh-cli`),
+resolves owner login/type, validates native Status field/option mappings, and proves required `projectRead`,
+`projectWrite`, `projectDelete`, `issueRead`, `issueWrite`, `issueClose`, `issueDelete`, `dependencyRead`,
+`dependencyWrite`, `statusFieldRead`, `statusFieldWrite`, `pagination`, and `independentReadBack` capabilities.
 When `artifacts.provider: "linear"`, it discovers official Linear MCP tools (`official-linear-mcp`), authenticates,
 resolves exactly one workspace and team, validates native project categories and issue states, and proves
 required `projectRead`, `projectWrite`, `projectUpdateRead`, `projectUpdateWrite`, `issueRead`, `issueWrite`,
@@ -61,13 +67,20 @@ required `projectRead`, `projectWrite`, `issueRead`, `issueWrite`, `relationRead
 It writes exactly one normalized non-secret outcome to a mode-0600 temporary file, passes that path to
 `doctor.sh --live-receipt <path>`, and deletes it after consumption.
 
+For GitHub, the normalized non-secret receipt supplies `schemaVersion: 1`, `provider: "official-gh-cli"`,
+`ghAvailable: true`, `authenticated: true`, `ready: true`, `viewer` (`login`, `id`), `scopes` (exact
+`["project", "read:org", "repo"]`), `owner`, `ownerResolution` (`login`, `type`, `status: "unique"`, `id`), canonical
+`repository` (compared to target repository independently derived from Git), `projectStatuses` (`complete: true`,
+`statusField`, `fieldId`, `fieldType: "SINGLE_SELECT"`, `resolved` with 5 distinct option `id`s and `name`s),
+exact capability booleans (`projectRead`, `projectWrite`, `projectDelete`, `issueRead`, `issueWrite`, `issueClose`,
+`issueDelete`, `dependencyRead`, `dependencyWrite`, `statusFieldRead`, `statusFieldWrite`, `pagination`,
+`independentReadBack`), and `readBack` (`status: "verified"`, `complete: true`, `independent: true`), rejecting extra/secret keys.
 For Linear, the receipt's top level supplies `schemaVersion: 1`, `provider: "official-linear-mcp"`, `ready`, canonical `repository`, resolved `workspace` and `team`,
 and capability booleans. `workspaceResolution` contains the unique OAuth-scoped workspace `name` and `status`.
 `teamResolution` retains the independently read native team ID and key.
 For Plane, the receipt supplies `schemaVersion: 1`, `provider: "official-plane-mcp"`, `ready`, `baseUrl`, `workspace`, canonical `repository`, and capability booleans
 (including mandatory `projectLabelRead` and `projectLabelWrite`). No team resolution is included for Plane.
-The controller derives these non-secret outcomes from official host-MCP reads; raw provider
-responses are not receipt input.
+The controller derives these non-secret outcomes from official host tools; raw provider responses are not receipt input.
 The shell engine validates only the normalized receipt and reports exact missing capabilities or
 fields. It never calls a provider or adapter and never reads a
 provider credential. Missing authentication, missing/ambiguous workspace, instance, or team, bad state

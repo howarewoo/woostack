@@ -33,6 +33,7 @@ The supported provider profiles are parallel implementations of this shared cont
 
 | `artifacts.provider` | Provider profile |
 | --- | --- |
+| `"github"` | [GitHub](artifact-providers/github.md) |
 | `"linear"` | [Linear](artifact-providers/linear.md) |
 | `"plane"` | [Plane](artifact-providers/plane.md) |
 
@@ -296,10 +297,10 @@ Merge authority remains human-only and outside every woostack workflow.
 
 ## Provider and credential boundary
 
-Use only the host-authenticated official MCP named by the selected provider profile. Discover
-capabilities from the host after provider selection. Never request API keys, read repository
-credentials, use custom HTTP/GraphQL/REST transport, or copy host tokens into a worker, subprocess,
-prompt, report, or file.
+Use only the host-authenticated official MCP named by the selected provider profile, or the
+host-authenticated official `gh` CLI for GitHub. Discover capabilities from the host after provider
+selection. Never request API keys, read repository credentials, use custom HTTP/GraphQL/REST
+transport, or copy host tokens into a worker, subprocess, prompt, report, or file.
 
 Prove the minimum exact-read, pagination, requested-mutation, and independent read-back capabilities
 before an operation. Missing capability blocks only the selected provider operation. Provider-specific

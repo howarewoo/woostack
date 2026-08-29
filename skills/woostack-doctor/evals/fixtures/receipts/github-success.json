@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "provider": "official-gh-cli",
+  "ghAvailable": true,
+  "authenticated": true,
+  "ready": true,
+  "viewer": {
+    "login": "octocat",
+    "id": "MDQ6VXNlcjE="
+  },
+  "scopes": [
+    "repo",
+    "project",
+    "read:org"
+  ],
+  "owner": "acme",
+  "ownerResolution": {
+    "status": "unique",
+    "login": "acme",
+    "type": "organization",
+    "id": "MDEyOk9yZ2FuaXphdGlvbjEyMzQ1"
+  },
+  "repository": "https://github.com/acme/widgets",
+  "projectStatuses": {
+    "complete": true,
+    "statusField": "Status",
+    "fieldId": "PVTSSF_12345",
+    "fieldType": "SINGLE_SELECT",
+    "resolved": {
+      "planned": {
+        "name": "Todo",
+        "id": "opt_1"
+      },
+      "executing": {
+        "name": "In Progress",
+        "id": "opt_2"
+      },
+      "inReview": {
+        "name": "In Review",
+        "id": "opt_3"
+      },
+      "done": {
+        "name": "Done",
+        "id": "opt_4"
+      },
+      "blocked": {
+        "name": "Blocked",
+        "id": "opt_5"
+      }
+    }
+  },
+  "capabilities": {
+    "projectRead": true,
+    "projectWrite": true,
+    "projectDelete": true,
+    "issueRead": true,
+    "issueWrite": true,
+    "issueClose": true,
+    "issueDelete": true,
+    "dependencyRead": true,
+    "dependencyWrite": true,
+    "statusFieldRead": true,
+    "statusFieldWrite": true,
+    "pagination": true,
+    "independentReadBack": true
+  },
+  "readBack": {
+    "status": "verified",
+    "complete": true,
+    "independent": true
+  }
+}

@@ -10,6 +10,7 @@ from pathlib import Path
 root = Path(sys.argv[1])
 shared = root / "skills/woostack-init/references/artifact-backends.md"
 profiles = {
+    "github": root / "skills/woostack-init/references/artifact-providers/github.md",
     "linear": root / "skills/woostack-init/references/artifact-providers/linear.md",
     "plane": root / "skills/woostack-init/references/artifact-providers/plane.md",
 }
@@ -51,6 +52,7 @@ for provider, text in texts.items():
         failures.append(f"{provider}: missing shared contract link")
 
 for literal in (
+    "artifact-providers/github.md",
     "artifact-providers/linear.md",
     "artifact-providers/plane.md",
     "load only the selected profile",
@@ -60,6 +62,7 @@ for literal in (
         failures.append(f"shared contract missing {literal!r}")
 
 for leaked in (
+    r"artifacts\.github",
     r"artifacts\.linear",
     r"artifacts\.plane",
     r"external_source",
@@ -70,6 +73,19 @@ for leaked in (
 ):
     if re.search(leaked, shared_text, re.I):
         failures.append(f"shared contract leaks provider implementation: {leaked}")
+
+github_requirements = (
+    "artifacts.github",
+    "owner",
+    "projectStatuses",
+    "statusField",
+    "gh api graphql",
+    "parent = null",
+    "ProjectV2.readme",
+)
+for literal in github_requirements:
+    if literal not in texts["github"]:
+        failures.append(f"github profile missing {literal!r}")
 
 linear_requirements = (
     "canonical issue reference",

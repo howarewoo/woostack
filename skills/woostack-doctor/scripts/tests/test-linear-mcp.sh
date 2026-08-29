@@ -41,6 +41,12 @@ complete_plane_config() {
     }
   }'
 }
+complete_github_config() {
+  jq -cn '{models:{},review:{},status:{staleDays:14},artifacts:{provider:"github",github:{owner:"acme",ownerType:"organization",statusField:"Status",visibility:"private",projectStatuses:{planned:"Todo",executing:"In Progress",inReview:"In Review",done:"Done",blocked:"Blocked"}}}}'
+}
+complete_github_receipt() {
+  jq -cn '{schemaVersion:1,provider:"official-gh-cli",ghAvailable:true,authenticated:true,ready:true,viewer:{login:"octocat",id:"MDQ6VXNlcjE="},scopes:["project","read:org","repo"],owner:"acme",ownerResolution:{status:"unique",login:"acme",type:"organization",id:"MDEyOk9yZ2FuaXphdGlvbjEyMzQ1"},repository:"https://github.com/acme/widgets",projectStatuses:{complete:true,statusField:"Status",fieldId:"PVTSSF_12345",fieldType:"SINGLE_SELECT",resolved:{planned:{name:"Todo",id:"opt_1"},executing:{name:"In Progress",id:"opt_2"},inReview:{name:"In Review",id:"opt_3"},done:{name:"Done",id:"opt_4"},blocked:{name:"Blocked",id:"opt_5"}}},capabilities:{projectRead:true,projectWrite:true,projectDelete:true,issueRead:true,issueWrite:true,issueClose:true,issueDelete:true,dependencyRead:true,dependencyWrite:true,statusFieldRead:true,statusFieldWrite:true,pagination:true,independentReadBack:true},readBack:{status:"verified",complete:true,independent:true}}'
+}
 
 complete_plane_receipt() {
   jq -cn '{
@@ -147,7 +153,7 @@ jq '.artifacts={provider:"invalid"}' "$bad_provider/.woostack/config.json" >"$ba
 mv "$bad_provider/config.tmp" "$bad_provider/.woostack/config.json"
 run_doctor "$bad_provider"
 assert_exit 1 "$RC" "invalid artifacts provider fails static diagnosis"
-assert_contains "$OUTPUT" "artifacts.provider must be \"local\", \"linear\", or \"plane\"" "provider finding is actionable"
+assert_contains "$OUTPUT" "artifacts.provider must be \"local\", \"github\", \"linear\", or \"plane\"" "provider finding is actionable"
 
 plane_repo="$(make_repo plane-static)"
 complete_plane_config >"$plane_repo/.woostack/config.json"
@@ -332,4 +338,40 @@ chmod 600 "$plane_selfhosted_receipt"
 run_doctor "$plane_selfhosted_repo" --live-receipt "$plane_selfhosted_receipt"
 assert_exit 0 "$RC" "self-hosted plane trailing slash config matches receipt"
 
+github_repo="$(make_repo github-static)"
+git -C "$github_repo" remote add origin https://github.com/acme/widgets
+complete_github_config >"$github_repo/.woostack/config.json"
+run_doctor "$github_repo"
+assert_exit 0 "$RC" "valid non-secret GitHub policy passes static diagnosis"
+
+github_receipt="$TMP/github-receipt.json"
+complete_github_receipt >"$github_receipt"
+chmod 600 "$github_receipt"
+run_doctor "$github_repo" --live-receipt "$github_receipt"
+assert_exit 0 "$RC" "complete normalized GitHub live receipt passes"
+
+test_receipt_mutation() {
+  local jq_filter="$1" expected_substring="$2" desc="$3"
+  local mutated="$TMP/mutated-$(date +%s%N).json"
+  jq "$jq_filter" "$github_receipt" >"$mutated"
+  chmod 600 "$mutated"
+  run_doctor "$github_repo" --live-receipt "$mutated"
+  assert_exit 1 "$RC" "$desc"
+  assert_contains "$OUTPUT" "$expected_substring" "$desc is actionable"
+}
+test_receipt_mutation '.capabilities.dependencyWrite=false' 'missing GitHub CLI capability: dependencyWrite' 'missing capability fails'
+test_receipt_mutation '.owner="other-org"' 'receipt owner does not match configured GitHub policy' 'owner mismatch fails'
+test_receipt_mutation '.ownerResolution.type="user"' 'receipt ownerType does not match configured GitHub policy' 'ownerType mismatch fails'
+test_receipt_mutation '.repository="https://github.com/acme/other-repo"' 'receipt repository does not match target repository derived from Git' 'repo mismatch fails'
+test_receipt_mutation '.projectStatuses.statusField="CustomStatus"' 'receipt statusField does not match configured GitHub policy' 'statusField mismatch fails'
+test_receipt_mutation '.projectStatuses.resolved.inReview.id="opt_2"' 'normalized GitHub CLI receipt is missing, malformed, partial, or not ready' 'duplicate option IDs fail'
+test_receipt_mutation '.token="ghp_secret_token"' 'normalized GitHub CLI receipt is missing, malformed, partial, or not ready' 'extra token fails'
+test_receipt_mutation '.scopes=["repo","project"]' 'normalized GitHub CLI receipt is missing, malformed, partial, or not ready' 'missing scope fails'
+test_receipt_mutation '.projectStatuses.extraField="invalid"' 'normalized GitHub CLI receipt is missing, malformed, partial, or not ready' 'extra nested key fails'
+
+github_no_remote_repo="$(make_repo github-no-remote)"
+complete_github_config >"$github_no_remote_repo/.woostack/config.json"
+run_doctor "$github_no_remote_repo" --live-receipt "$github_receipt"
+assert_exit 1 "$RC" "github repository validation fails closed when remote cannot be derived from Git"
+assert_contains "$OUTPUT" "receipt repository does not match target repository derived from Git" "missing remote is actionable"
 finish

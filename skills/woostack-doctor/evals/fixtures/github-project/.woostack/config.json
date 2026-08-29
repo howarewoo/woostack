@@ -1,0 +1,23 @@
+{
+  "artifacts": {
+    "provider": "github",
+    "github": {
+      "owner": "acme",
+      "ownerType": "organization",
+      "statusField": "Status",
+      "visibility": "private",
+      "projectStatuses": {
+        "planned": "Todo",
+        "executing": "In Progress",
+        "inReview": "In Review",
+        "done": "Done",
+        "blocked": "Blocked"
+      }
+    }
+  },
+  "models": {},
+  "review": {},
+  "status": {
+    "staleDays": 14
+  }
+}
