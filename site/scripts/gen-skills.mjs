@@ -25,6 +25,7 @@ export const PUBLIC_ORDER = [
   'woostack-address-comments',
   'woostack-status',
   'woostack-visualize',
+  'woostack-design',
   'woostack-debug',
   'woostack-tdd',
   'woostack-doctor',
