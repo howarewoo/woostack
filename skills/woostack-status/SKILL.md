@@ -9,18 +9,18 @@ Render a fresh read-only work board. Git, Graphite, and canonical GitHub evidenc
 ancestry, commits, PRs, reviews, checks, threads, and merge state. Exact Linear, Plane, or GitHub projects/issues/work items
 may supply optional specification, plan, or fix labels; they never define repository state.
 
-Status never edits source, Git, GitHub, Linear, Plane, local plans, or lifecycle state. It does not
+Status never edits source, Git, GitHub, Linear, Plane, local plans, provider state, or lifecycle state. It does not
 reconcile, assign, transition, comment, accept, merge, or repair.
 
 ## Commands
 
 ```text
 /woostack-status
-/woostack-status <branch|PR#|exact Linear, Plane, or GitHub project URL-or-UUID|exact canonical Linear/GitHub issue or Plane work-item reference>
+/woostack-status <branch|PR#|exact Linear or Plane project URL-or-UUID|canonical GitHub Project URL|exact canonical Linear issue, Plane work-item, or GitHub issue reference>
 ```
 
 With no target, inspect the canonical repository's current Graphite work surface. A branch or PR
-narrows the repository view. An exact Linear, Plane, or GitHub project URL/UUID or exact caller-supplied canonical
+narrows the repository view. An exact Linear/Plane project URL-or-UUID, canonical GitHub Project URL, or exact caller-supplied canonical
 issue/work-item reference opts into artifact enrichment; it is not a work prerequisite. Never infer an
 artifact from a title, issue key, branch, trailer, recent activity, current user, or search ranking.
 ## Repository snapshot

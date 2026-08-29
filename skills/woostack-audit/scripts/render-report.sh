@@ -47,6 +47,8 @@ def clean(value):
     return text
 
 target, repository = clean(target), clean(repository)
+managed_context = clean(os.environ.get("AUDIT_MANAGED_CONTEXT", "")).strip()
+managed_context_display = managed_context if managed_context else "none unless independently verified provenance is supplied by the caller."
 lines = [
     "Non-authoritative diagnostic evidence — report only.",
     "",
@@ -54,7 +56,7 @@ lines = [
     "",
     f"- **Canonical repository:** {repository}",
     "- **Authority:** diagnostic evidence only; not scope, approval, assignment, lifecycle, or acceptance.",
-    "- **Managed context:** none unless independently verified provenance is supplied by the caller.",
+    f"- **Managed context:** {managed_context_display}",
     "",
 ]
 if not findings:

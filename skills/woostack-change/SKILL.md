@@ -7,7 +7,7 @@ description: Use for a small bounded non-bug enhancement or refactor that can sh
 
 Implement one small, bounded, non-bug enhancement or refactor from the user's request through
 one isolated worktree and Graphite branch, ending in at most one complete reviewable PR. Change
-makes no Linear call and invokes no other woostack workflow; it owns implementation and delivery
+makes no provider call and invokes no other woostack workflow; it owns implementation and delivery
 directly. The accepted scope is the authority for the run; Git, Graphite, and GitHub are the
 delivery evidence.
 
