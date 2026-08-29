@@ -113,6 +113,7 @@ issues/work items are preserved. Handoff, replanning, and blockers leave project
 | `/woostack-address-comments <PR#>`, address every unresolved thread on one exact existing PR with the smallest in-contract fix or evidence-backed pushback, verified replies, and resolution reads | `woostack-address-comments` |
 | `/woostack-status [branch|PR#|exact Linear or Plane project URL-or-UUID|canonical GitHub Project URL|exact canonical Linear issue, Plane work-item, or GitHub issue reference]`, show the read-only repository-derived work board | `woostack-status` |
 | `/woostack-visualize <source> [for <audience>]`, render a source as audience-tailored HTML | `woostack-visualize` |
+| `/woostack-design [target]`, organize multi-step UI flows into standardized horizontal sequences with aligned branch rows | `woostack-design` |
 | `/woostack-debug <target>`, run an autonomous root-cause analysis before fixing (investigative only — hands back the root cause and a proposed fix) | `woostack-debug` |
 | `/woostack-tdd <target> [--issue <exact canonical Linear issue, Plane work-item, or GitHub issue reference>]`, add appropriate tests to a bounded code, PR, or artifact target with optional artifact context (gate-light; TDD doctrine home) | `woostack-tdd` |
 | `/woostack-doctor [path] [--check]`, diagnose + gated-repair `.woostack/` workspace health (policy + conventions; `--check` is CI-friendly exit-coded) | `woostack-doctor` |

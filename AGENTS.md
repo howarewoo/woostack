@@ -10,7 +10,7 @@ This is a published collection of skills, not an application codebase. It packag
 decisions for building new web, mobile, and API projects so agents can install it with
 `pnpx skills add howarewoo/woostack`.
 
-The public command/adoption surface has twenty-one skills:
+The public command/adoption surface has twenty-two skills:
 
 - [`using-woostack`](skills/using-woostack/SKILL.md)
 - [`woostack-init`](skills/woostack-init/SKILL.md)
@@ -25,6 +25,7 @@ The public command/adoption surface has twenty-one skills:
 - [`woostack-address-comments`](skills/woostack-address-comments/SKILL.md)
 - [`woostack-status`](skills/woostack-status/SKILL.md)
 - [`woostack-visualize`](skills/woostack-visualize/SKILL.md)
+- [`woostack-design`](skills/woostack-design/SKILL.md)
 - [`woostack-debug`](skills/woostack-debug/SKILL.md)
 - [`woostack-tdd`](skills/woostack-tdd/SKILL.md)
 - [`woostack-doctor`](skills/woostack-doctor/SKILL.md)
@@ -38,7 +39,7 @@ The collection also installs two internal sub-skills:
 [`woostack-ideate`](skills/woostack-ideate/SKILL.md) and
 [`woostack-harden`](skills/woostack-harden/SKILL.md). `woostack-build` delegates its ideate
 phase to the former and its harden phase to the latter. Both are bundled building blocks, not
-`/woostack-*` commands: they have no routing row and are absent from the twenty-one-skill command
+`/woostack-*` commands: they have no routing row and are absent from the twenty-two-skill command
 surface above.
 
 There is no application source code, app lockfile, build, or CI for this repo's own
@@ -101,7 +102,7 @@ retained unchanged local run artifacts does not require the original process to 
 contract lives in the authored [Hermes guide](site/content/docs/hermes.mdx); it does not make Hermes a supported host
 or grant it implementation authority.
 
-This collection still has twenty-one public command/adoption skills at twenty-three fixed `SKILL.md`
+This collection still has twenty-two public command/adoption skills at twenty-four fixed `SKILL.md`
 locations. Remote provider support adds neither a command-routing row nor a per-provider skill.
 ## Modes
 
@@ -115,7 +116,7 @@ do not add application code, app build configs, or app lockfiles **outside the s
 
 **Mode B: run a woostack command.** Use this when the user asks for `/woostack-init`,
 `/woostack-bootstrap`, `/woostack-build`, `/woostack-fix`, `/woostack-change`, `/woostack-plan`, `/woostack-execute`, `/woostack-commit`,
-`/woostack-review`, `/woostack-address-comments`, `/woostack-status`, `/woostack-visualize`, `/woostack-debug`,
+`/woostack-review`, `/woostack-address-comments`, `/woostack-status`, `/woostack-visualize`, `/woostack-design`, `/woostack-debug`,
 `/woostack-tdd`, `/woostack-doctor`, `/woostack-sweep`, `/woostack-qa`, `/woostack-audit`, `/woostack-eval`, or `/woostack-reflect`, including intent-equivalent wording. Load the matching skill
 before acting. For bootstrap work, the output belongs in a fresh repo in a different
 directory, not in this repo.
@@ -162,7 +163,7 @@ directory, not in this repo.
   pages need no manual edit: they regenerate from each `SKILL.md` at build time (see the
   documentation-site exception above). When in doubt, run `pnpm -C site build` to confirm the
   site still builds.
-- Do not move or rename any of the twenty-three `SKILL.md` files (the twenty-one public command/adoption
+- Do not move or rename any of the twenty-four `SKILL.md` files (the twenty-two public command/adoption
   skills plus internal `woostack-ideate` and `woostack-harden`).
 - Do not rename files under
   [`skills/woostack-bootstrap/references/`](skills/woostack-bootstrap/references/) without
@@ -211,6 +212,8 @@ directory, not in this repo.
   [`skills/woostack-debug/SKILL.md`](skills/woostack-debug/SKILL.md)
 - Visualization engine (audience-tailored HTML renders):
   [`skills/woostack-visualize/SKILL.md`](skills/woostack-visualize/SKILL.md)
+- Design flow layout standard (standardized multi-step flow layouts):
+  [`skills/woostack-design/SKILL.md`](skills/woostack-design/SKILL.md)
 - Workspace health — diagnose + gated repair of `.woostack/`:
   [`skills/woostack-doctor/SKILL.md`](skills/woostack-doctor/SKILL.md)
 - TDD doctrine home and add-tests command (public command):
