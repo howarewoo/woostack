@@ -82,7 +82,13 @@ When `--recheck` is specified, invoke bounded [`woostack-harden`](../../woostack
 against the current trunk or integration parent tip:
 - If no discrepancies are found, execution proceeds.
 - If discrepancies are found, report them and offer `Continue`, `Revise spec/plan`, or `Stop`.
-
+When `--recheck` is specified with `--run` on an already-delivered task whose verified existing open PR lacks the exact mapped GitHub issue association, recovery reuses the recorded delivery checkpoint and verified existing open PR:
+1. Verify the bound canonical issue URL from `stableTaskMappings[stableTaskKey]` live against the admitted canonical repository (rejecting inferred, unmapped, foreign-scope, or parented issues).
+2. Verify that the PR is `OPEN` and matches the recorded delivery checkpoint identity (`prUrl`, `prHead`/`branch`, `prBase`, `commitSha`). If the PR is closed or merged, or if checkpoint identity mismatches, reject the repair with zero mutations.
+3. Read the existing open PR and verify whether it contains the exact `Resolves <canonical issue URL>` line.
+4. If absent, update the PR body to add the missing line, then independently read back and verify that the PR body contains exactly one matching `Resolves <canonical issue URL>` line.
+5. Stop before worktree discovery, branch creation, source mutation, commit, PR submission, or issue lifecycle changes.
+If canonical issue verification or PR association fails, emit a warning, record the mirror failure in the manifest, and leave the authoritative local checkpoint and existing repository delivery intact.
 ### Repository ancestry re-admission
 
 Apply the shared
@@ -117,7 +123,7 @@ admit (Linear project/issue, Plane spec/child work item, GitHub Project/issue, o
   → persist task/issue intent + resume checkpoint
   → create or resume one worktree → dispatch fast-model worker
   → focused verification/smoke → bounded spec validator
-  → commit/Graphite submit (with --issue in Linear and GitHub provider modes; without --issue in Plane provider mode and local run mode)
+  → commit/Graphite submit (with --issue in Linear and GitHub provider modes, and in local run mode with an exact mapped GitHub mirror; without --issue in Plane provider mode, unmapped local runs, and non-GitHub local runs)
   → read back branch/commit/PR/receipt
   → persist + independently read back full delivery checkpoint (Linear, Plane, GitHub, or Manifest CAS)
   → [provider only] read back inReview mapping/no-op (and Plane spec parent done mapping when all children complete; for GitHub done, transition item to done, close issue, leave Project open)
@@ -277,8 +283,19 @@ with Project item status `done` and a complete delivery checkpoint with verified
 `OPEN`, execute close-only recovery: perform and independently read back issue closure without rerunning worker implementation,
 committing, submitting PRs, or rewinding lifecycle state. If the Project item is observed in `inReview` with a complete
 delivery checkpoint and verified PR, transition and independently read back the item to `done` before executing issue closure.
-In local run mode, invoke [`woostack-commit`](../../woostack-commit/SKILL.md) without `--issue` and
-without a `Resolves` line. The delivery sequence is:
+In local run mode:
+- If `mirror.provider` is `"github"` and `stableTaskMappings[stableTaskKey]` contains an exact bound canonical repository issue URL (`https://github.com/<owner>/<repo>/issues/<N>`), verify the canonical issue live against the admitted repository.
+  - If live verification succeeds: invoke [`woostack-commit`](../../woostack-commit/SKILL.md) with `--issue <canonical issue URL>` regardless of aggregate `mirror.status`. The delivery sequence is:
+
+```text
+verified diff → commit → Git/Graphite read-back → one Graphite PR submission
+→ canonical PR/head/base + `Resolves <issue URL>` read-back → verification receipt read-back
+→ manifest CAS delivery checkpoint persistence → no-follow manifest reopen/read-back
+```
+
+Independently read back branch, commit, PR URL/head/base, verification receipt, Graphite parent, and exactly one matching `Resolves <canonical issue URL>` body line when association succeeds. If post-submission association or read-back fails (for example, PR is submitted but read-back lacks the closing line or provider API fails), warn, record the mirror failure in the manifest, rediscover and reuse the verified branch, commit, PR, and Graphite parent, and persist the local delivery checkpoint without replaying Commit or creating duplicate objects; `--recheck` remains available to repair the missing association on the existing open PR later.
+  - If pre-Commit live issue verification fails (for example, issue not found, parented issue, foreign repository scope, or API error): warn, record the mirror failure in the manifest, and continue repository delivery by invoking [`woostack-commit`](../../woostack-commit/SKILL.md) without `--issue` and without a `Resolves` line, proceeding to local checkpoint persistence without blocking local authority.
+- For local runs with provider `local`, an omitted or unmapped task mapping, or a non-GitHub provider (Linear or Plane), invoke [`woostack-commit`](../../woostack-commit/SKILL.md) without `--issue` and without a `Resolves` line. The delivery sequence is:
 
 ```text
 verified diff → commit → Git/Graphite read-back → one Graphite PR submission
@@ -297,11 +314,14 @@ any mirror write failure emits a warning and never invalidates, blocks, or overw
 local checkpoint.
 
 Successful submission requires branch, commit, PR, matching head/base, Graphite parent, verification
-receipt, full delivery checkpoint, and a clean exact worktree. In Linear provider mode, exactly one closing
-reference and issue/project read-back are also required; in Plane provider mode, the delivery checkpoint is
-persisted and read back through Execute's Plane work-item path without a closing reference. On unknown submission,
-rediscover and continue only from the first absent boundary; never duplicate a commit, branch, or PR. Execute
-never reviews, merges, or claims acceptance.
+receipt, full delivery checkpoint, and a clean exact worktree. In Linear and GitHub provider modes,
+exactly one closing reference and issue/project read-back are also required. For a mirrored local run,
+exactly one closing reference is required only when association succeeds; an association failure
+remains a warned, nonblocking mirror failure after the existing PR checkpoint is persisted. In Plane
+provider mode, the delivery checkpoint is persisted and read back through Execute's Plane work-item
+path without a closing reference. On unknown submission, rediscover and continue only from the first
+absent boundary; never duplicate a commit, branch, or PR. Execute never reviews, merges, or claims
+acceptance.
 
 The controller's terminal repository mutation is Graphite PR submission or update. It never marks a
 PR ready, enables auto-merge, enters a merge queue, retargets a PR for merge, or merges. Task names

@@ -81,11 +81,19 @@ Execute transitions Project item status from `planned` to `executing` during imp
 at PR delivery, and `done` (closing the issue) at completion. Recorded blockers set `blocked` without
 closing the issue. Nonterminal states keep issues open.
 
+When local runs are mirrored to GitHub (`artifacts.provider: "github"`), the local manifest remains the
+authoritative execution and resume checkpoint. Execute delivery associates the PR with the exact mapped
+canonical issue (`Resolves https://github.com/<owner>/<repo>/issues/<N>`), verified live against the
+admitted repository. An aggregate failed mirror status does not suppress issue association when an exact
+task mapping exists. If issue verification or association fails, Execute warns and continues repository
+delivery and local manifest CAS persistence without blocking. When `--recheck` encounters an
+already-delivered task whose verified open PR lacks the exact association, it repairs the PR body without
+rerunning implementation, creating Git/Graphite objects, or modifying issue lifecycle state.
+
 Completing all increments leaves the Project open. Explicit provider-backed Plan/Execute closure
 closes the exact admitted Project after a fresh read and independent read-back. Local-run abandonment
 records `status: "abandoned"` in the manifest and retains all local artifacts in
 `.woostack/tmp/runs/<run-id>/` without mutating or closing the mirrored Project or its issues.
-
 ## Workflow matrix
 
 | Skill | GitHub provider behavior |
@@ -93,7 +101,7 @@ records `status: "abandoned"` in the manifest and retains all local artifacts in
 | [woostack-build](/docs/skills/woostack-build) | Resolves an exact supplied Project or creates one `[Build] <goal>` Project; writes specification to managed README; creates parentless issues with direct Project membership; and wires $N-1$ native blocked-by edges. |
 | [woostack-fix](/docs/skills/woostack-fix) | Proves root cause before provider access; preserves an exact source `--issue` as context with a direct Project link; and creates/reconciles a separate strict increment chain. |
 | [woostack-plan](/docs/skills/woostack-plan) | Standalone Plan requires an exact existing canonical Project URL (`orgs/<owner>/projects/<N>` or `users/<owner>/projects/<N>`) and synchronizes the direct issue graph; delegated Plan is provider-free. |
-| [woostack-execute](/docs/skills/woostack-execute) | Consumes exact Project/issue URLs, validates ancestry/graph, transitions item status (`planned` → `executing` → `inReview` → `done`), and closes issue only at `done`. All-done leaves Project open. |
+| [woostack-execute](/docs/skills/woostack-execute) | Provider mode: consumes exact Project/issue URLs, validates ancestry/graph, transitions Project item status (`planned` → `executing` → `inReview` → `done`), and closes issue only at `done`; all-done leaves Project open. Mirrored local runs: consumes local run manifest, associates PR to exact mapped issue (`Resolves <url>`) without Project status transitions or issue closure, uses authoritative local CAS checkpoints, emits nonblocking warnings on mirror/association failure, and supports existing-open-PR `--recheck` repair without duplicate work. |
 | [woostack-commit](/docs/skills/woostack-commit) | Exact `--issue <url>` attribution; writes optional requested delivery note with read-back; note failure is nonblocking. |
 | [woostack-status](/docs/skills/woostack-status) | Read-only enrichment joined through independently verified repository/PR identity; cannot create rows or override repository evidence. |
 | [woostack-bootstrap](/docs/skills/woostack-bootstrap) | Optional persistence only after explicit approved design and filesystem barrier. |
