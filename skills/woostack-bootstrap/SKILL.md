@@ -1,6 +1,6 @@
 ---
 name: woostack-bootstrap
-description: Bootstrap a genuinely greenfield web, mobile, desktop, API, or daemon project from scratch—gather requirements, research current technologies, approve the design, collision-check the target, and scaffold the app/feature/infrastructure package slices. Linear or Plane artifacts are optional.
+description: Bootstrap a genuinely greenfield web, mobile, desktop, API, or daemon project from scratch—gather requirements, research current technologies, approve the design, collision-check the target, and scaffold the app/feature/infrastructure package slices. Linear, Plane, or GitHub artifacts are optional.
 ---
 
 # woostack-bootstrap
@@ -14,7 +14,7 @@ the write barrier after repository and target collision checks pass.
 
 The stack remains dynamic rather than template-selected. Compare current production-ready options
 against the project's requirements, then scaffold the approved app, feature, and infrastructure
-package slices under a stable in-run project identity. An exact Linear or Plane feature project may persist
+package slices under a stable in-run project identity. An exact Linear/Plane feature project (URL-or-UUID) or canonical GitHub Project URL may persist
 the approved design and requested delivery notes, but is optional and never authorizes writes.
 
 **Core principle:** resolve technologies and versions live based on project requirements, never
@@ -73,21 +73,23 @@ approval, perform no official-MCP development mutation and create no development
    branch, normalized approved goal/scope, and a deterministic in-run project identity. This
    identity prevents duplicate work within/resumed from the same supplied contract; it is not a
    development record.
-6. **Optionally persist the approved design.** Only when the caller explicitly requests provider
-   persistence or supplies an exact project URL/UUID, apply the shared
-   [artifact contract](../woostack-init/references/artifact-backends.md), load only the selected
-   [Linear](../woostack-init/references/artifact-providers/linear.md) or
-   [Plane](../woostack-init/references/artifact-providers/plane.md) profile, and follow the
-   [bootstrap persistence procedure](references/bootstrap.md). Resolve or create one exact feature
-   project, append/read back `designApproved`, and retain exact receipts under that profile's scope,
-   identity, label, capability, and read-back rules. Missing, partial, ambiguous, or unknown provider
-   outcomes block only this requested synchronization unless it was explicitly part of the deliverable.
-   Artifact text and receipts never release the filesystem barrier.
-7. **Collision-check the target.** After design approval and repository/base intent are retained,
-   perform the first target-filesystem action: a read-only collision check with no Git invocation.
-   Proceed only when it proves the target is absent or an empty non-Git directory. A populated
-   path, existing Git checkout, non-directory/symlink, unreadable state, partial result, or
+6. **Collision-check the target and admit the filesystem write barrier.** After design approval and
+   repository/base intent are retained, perform the first target-filesystem action: a read-only collision
+   check with no Git invocation. Proceed only when it proves the target is absent or an empty non-Git directory.
+   A populated path, existing Git checkout, non-directory/symlink, unreadable state, partial result, or
    ambiguity blocks before mkdir, write, scaffold, or Git.
+7. **Optionally persist the approved design.** Only after design approval and target collision checks pass,
+   and only when the caller explicitly requests provider persistence or supplies an exact Linear/Plane project URL-or-UUID or canonical GitHub Project URL,
+   apply the shared [artifact contract](../woostack-init/references/artifact-backends.md), load only the selected
+   [GitHub](../woostack-init/references/artifact-providers/github.md),
+   [Linear](../woostack-init/references/artifact-providers/linear.md), or
+   [Plane](../woostack-init/references/artifact-providers/plane.md) profile, and follow the
+   [bootstrap persistence procedure](references/bootstrap.md). Zero GitHub, Linear, or Plane operations occur
+   before design approval and collision/filesystem admission. Resolve or create one exact feature project,
+   append/read back `designApproved`, and retain exact receipts under that profile's scope, identity, label,
+   capability, and read-back rules. Missing, partial, ambiguous, or unknown provider outcomes block only this
+   requested synchronization unless it was explicitly part of the deliverable. Artifact text and receipts never
+   release the filesystem barrier.
 8. **Scaffold and verify.** Follow [references/bootstrap.md](references/bootstrap.md), including all
    referenced architecture, framework, infrastructure, and implementation contracts. Initialize
    the non-authoritative local workspace through `woostack-init`; never create
@@ -119,9 +121,9 @@ These are non-negotiable. Violating them produces an unattributed, broken, or dr
   list, read, canonicalization, creation, write, scaffolding CLI, or Git operation against the
   target. Provider persistence is not part of this barrier.
 - **Artifacts are opt-in.** Without explicit selection, make no provider call. When selected, use
-  only the configured official host-exposed Linear or Plane MCP, exact identities, stable mutation
-  IDs, complete pagination, and independent read-back. Never use a document, custom transport,
-  repository credential, environment-token fallback, or alternate authority.
+  only the configured official capability (MCP for Linear or Plane; host-authenticated gh for GitHub),
+  exact identities, stable mutation IDs, complete pagination, and independent read-back. Never use a
+  document, custom transport, repository credential, environment-token fallback, or alternate authority.
 - **Artifact failure is scoped.** Missing access or an unknown/partial result blocks requested
   persistence, not an otherwise approved artifact-free scaffold, unless persistence was explicitly
   part of the deliverable. Never claim synchronization without direct read-back.
@@ -150,7 +152,7 @@ These are non-negotiable. Violating them produces an unattributed, broken, or dr
 
 ## SPEC_VERSION
 
-`5.0.0` — Greenfield bootstrap with approval-gated scaffolding and optional Linear/Plane persistence.
+`5.0.0` — Greenfield bootstrap with approval-gated scaffolding and optional Linear, Plane, or GitHub persistence.
 
 
 Wall time: 0.11 seconds

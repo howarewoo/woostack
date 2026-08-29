@@ -4,8 +4,8 @@
 
 The `agy` CLI; reads `AGENTS.md` natively; authenticates via system keyring / Google Sign-In
 (no documented non-interactive API-key path, so it cannot run headless in ephemeral CI).
-Discover official host-exposed Linear or Plane MCP capabilities via `AGENTS.md` / Antigravity MCP runtime;
-select provider tool namespace strictly by `artifacts.provider`. Never use custom HTTP/REST/GraphQL transport
+Discover official Linear or Plane MCP tools via `AGENTS.md` / Antigravity MCP runtime or host-authenticated
+GitHub CLI (`gh`), selected strictly by `artifacts.provider`. Never use custom HTTP/REST/GraphQL transport
 or fallback tokens. Artifact operations follow the canonical
 [artifact backends contract](../../../woostack-init/references/artifact-backends.md).
 
@@ -53,6 +53,6 @@ host — no spawn-time auth probe exists; switch manually by promoting an entry 
 
 Single-session collapse is the documented mode, not a degradation. A run that cannot resolve
 any model → session default + say so, per the inline law of the dispatching skill.
-When the configured provider's official MCP or a required capability is absent on this host, fail
+When the configured provider's official interface (Linear/Plane MCP, or host-authenticated gh for GitHub) or a required capability is absent on this host, fail
 closed for required provider boundaries or report the missing capability for optional operations per
 canonical artifact law.

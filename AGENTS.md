@@ -61,8 +61,8 @@ framing pages are committed. Deploy notes live in [`site/README.md`](site/README
 
 The canonical persistent artifact store for `woostack-build` and project-backed `woostack-fix` is
 local in `.woostack/tmp/runs/<run-id>/`. Workflows operate with default zero-provider local authority
-(`artifacts.provider: "local"` or omitted). When `artifacts.provider: "linear"`, local artifacts mirror
-to Linear in bounded post-drafting cycles. Supplying `--project` when `artifacts.provider` is not
+(`artifacts.provider: "local"` or omitted). When `artifacts.provider` is `"linear"`, `"plane"`, or `"github"`,
+local artifacts mirror in bounded post-drafting cycles. Supplying `--project` when `artifacts.provider` is not
 configured for provider mirroring fails closed immediately.
 
 Gated Ideate, Harden, and delegated Plan work is managed in one permission-restricted run manifest
@@ -78,18 +78,19 @@ mutate a mirrored provider project. Standalone Plan synchronization remains dire
 shared
 [local run artifact and provider mirror contract](skills/woostack-init/references/artifact-backends.md#minimal-resumable-manifest-schema)
 owns local authority, manifest, ordering, recovery, retention, and Execute reads. The selected
-[Linear](skills/woostack-init/references/artifact-providers/linear.md) or
-[Plane](skills/woostack-init/references/artifact-providers/plane.md) profile owns provider-specific
+[Linear](skills/woostack-init/references/artifact-providers/linear.md),
+[Plane](skills/woostack-init/references/artifact-providers/plane.md), or
+[GitHub](skills/woostack-init/references/artifact-providers/github.md) profile owns provider-specific
 configuration, capabilities, identities, labels, graph operations, and lifecycle semantics.
 The user's request and explicit conversation choices authorize repository work; artifacts
 record that work and never grant permission, assignment, ownership, acceptance, or source-control
 authority. Git and GitHub own source, branches, commits, pull requests, reviews, and merge evidence.
 
-`/woostack-init` may use only the official Linear MCP for narrow automatic authenticated read-only
-discovery of non-secret repository/workspace/team/native-name defaults; it never selects
-persistence or authorizes a provider write. `.woostack/config.json` supplies validated defaults
+`/woostack-init` may use only the official Linear MCP or host-authenticated gh for narrow automatic
+authenticated read-only discovery of non-secret repository/workspace/team/native-name defaults; it never
+selects persistence or authorizes a provider write. `.woostack/config.json` supplies validated defaults
 only after artifact selection. Credentials remain in the host secret store, and local diagnostic
-reports remain non-authoritative. `woostack-change` never contacts Linear. Handoff, replanning, and
+reports remain non-authoritative. `woostack-change` never contacts a remote provider. Handoff, replanning, and
 blockers leave project status unchanged.
 
 External engineers such as Hermes are outside the installed woostack host/runtime surface. Hermes
@@ -101,7 +102,7 @@ contract lives in the authored [Hermes guide](site/content/docs/hermes.mdx); it 
 or grant it implementation authority.
 
 This collection still has twenty-one public command/adoption skills at twenty-three fixed `SKILL.md`
-locations. Linear support adds neither a command-routing row nor a per-provider skill.
+locations. Remote provider support adds neither a command-routing row nor a per-provider skill.
 ## Modes
 
 Identify the mode before acting.

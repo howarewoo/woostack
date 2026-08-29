@@ -3,8 +3,8 @@
 ## Detection
 
 Cursor's Composer agent runtime; project rules load from `.cursorrules`.
-Discover official Linear or Plane MCP tools exposed via Cursor Composer / `.cursorrules` MCP configuration,
-selected strictly by `artifacts.provider`. Never use custom
+Discover official Linear or Plane MCP tools exposed via Cursor Composer / `.cursorrules` MCP configuration or
+host-authenticated GitHub CLI (`gh`), selected strictly by `artifacts.provider`. Never use custom
 HTTP/REST/GraphQL transport or fallback tokens. Artifact operations follow the canonical
 [artifact backends contract](../../../woostack-init/references/artifact-backends.md).
 
@@ -50,6 +50,6 @@ host — no spawn-time auth probe exists; switch manually by promoting an entry 
 
 Tier requested but not routable per call → run at the session model and say so (degraded),
 per the inline law of the dispatching skill.
-When the configured provider's official MCP or a required capability is absent on this host, fail
+When the configured provider's official interface (Linear/Plane MCP, or host-authenticated gh for GitHub) or a required capability is absent on this host, fail
 closed for required provider boundaries or report the missing capability for optional operations per
 canonical artifact law.

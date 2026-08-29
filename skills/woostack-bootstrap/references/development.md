@@ -28,8 +28,8 @@ approval, assignment, dependencies, or acceptance.
 ## Artifact provider records
 
 Canonical persistent local run manifests under `.woostack/tmp/runs/<run-id>/` own product scope and
-execution contracts for builds and post-diagnosis fixes, with optional Linear or Plane mirroring
-(`artifacts.provider: "linear"` or `artifacts.provider: "plane"`). Git, Graphite, and canonical
+execution contracts for builds and post-diagnosis fixes, with optional Linear, Plane, or GitHub mirroring
+(`artifacts.provider: "linear"`, `artifacts.provider: "plane"`, or `artifacts.provider: "github"`). Git, Graphite, and canonical
 GitHub evidence remain authoritative for repository execution and delivery:
 
 - a build project stores the evolving high-level specification;
@@ -44,12 +44,12 @@ uses stable operation identity and independent read-back under the canonical
 
 Provider documents, unconfigured backends, and local spec, plan, fix, progress, or overnight files
 are not build/fix product authority. Effective repository configuration (`.woostack/config.json` plus
-optional local override) is non-secret policy; its `artifacts.linear` or `artifacts.plane` object may
+optional local override) is non-secret policy; its `artifacts.linear`, `artifacts.plane`, or `artifacts.github` object may
 provide validated repository/workspace/team/native-name defaults but never credentials, write
 permission, or approval. Provider authentication stays in the host's official Linear or Plane
-MCP/OAuth connection. Missing required capability blocks build or a proved fix at its retained
+MCP/OAuth connection or host-authenticated gh CLI. Missing required capability blocks build or a proved fix at its retained
 boundary. Woostack does not issue custom HTTP/GraphQL requests or consume repository credentials.
-GitHub GraphQL remains valid only for GitHub source-control operations such as review-thread handling.
+GitHub GraphQL remains valid for Projects v2 and issue dependency operations through host-authenticated gh, and GitHub source-control operations such as review-thread handling.
 
 Artifact-optional workflows retain their documented selection boundary. Missing optional artifact
 access blocks only that artifact operation. `woostack-change` never contacts a provider.

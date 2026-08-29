@@ -13,11 +13,11 @@ permission to mutate the repository.
 - **Outcome:** {{complete|partial|aborted}}
 - **Findings:** {{N}}
 - **Sanitization:** passed residual check {{RECEIPT_OR_TIMESTAMP}}
-- **Managed context:** {{none | exact verified issue/project provenance and read receipt}}
+- **Managed context:** {{none | exact verified canonical PR, linear://..., scoped Plane, or canonical GitHub provenance and read receipt}}
 
 ## Coverage receipt
 
-- **Journey source:** {{focus args | verified managed context | blind exploration}}
+- **Journey source:** {{focus args | verified managed context (canonical PR, linear://..., scoped Plane, canonical GitHub) | blind exploration}}
 - **Queue:** {{numbered journey list — the run bound}}
 - **Bound:** one pass, no re-crawl{{; --stop-first exit at finding 1 if applicable}}
 - **Session closed:** {{yes/no}}
@@ -48,7 +48,7 @@ permission to mutate the repository.
 - Bounded scope: {{source paths and excluded surface}}
 - Evidence pointers: {{finding and sanitized evidence references}}
 - Observable acceptance criteria: {{behavior that must be observed}}
-- Optional Linear artifact: {{none | stable UUID / native ID / URL}}
+- Optional artifact reference: {{none | linear://... | scoped Plane reference | canonical GitHub URL}}
 - Artifact read-back: {{n/a | receipt ID and timestamp}}
 
 ## Unconfirmed observations

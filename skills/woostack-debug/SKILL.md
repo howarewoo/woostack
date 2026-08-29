@@ -1,6 +1,6 @@
 ---
 name: woostack-debug
-description: "Read-only systematic debugging: prove the root cause of a bug, test failure, or unexpected behavior from source/runtime evidence plus optional exact PR, Linear, or Plane artifact context, then hand back evidence and a proposed minimal fix. Debug never mutates artifacts or repository state."
+description: "Read-only systematic debugging: prove the root cause of a bug, test failure, or unexpected behavior from source/runtime evidence plus optional exact PR, Linear, Plane, or GitHub artifact context, then hand back evidence and a proposed minimal fix. Debug never mutates artifacts or repository state."
 ---
 
 # woostack-debug
@@ -29,7 +29,8 @@ failures, and integration issues. A simple-looking symptom does not waive root-c
 ## Optional artifact-context resolution (one path, read-only)
 
 Load the shared [artifact contract](../woostack-init/references/artifact-backends.md), only the
-selected [Linear](../woostack-init/references/artifact-providers/linear.md) or
+selected [GitHub](../woostack-init/references/artifact-providers/github.md),
+[Linear](../woostack-init/references/artifact-providers/linear.md), or
 [Plane](../woostack-init/references/artifact-providers/plane.md) profile for provider context, and the
 [status conventions](../woostack-status/references/conventions.md). Those references own transport,
 identity, scope, trust, read-back, and status derivation; do not duplicate them here.
@@ -38,16 +39,16 @@ A code/runtime target may always be investigated without artifact context. When 
 explicitly supplies context material to the diagnosis, follow exactly this path:
 
 1. **Classify the source once.** Accept an exact Linear or Plane project URL or client UUID, a canonical
-   Linear issue or Plane work-item reference, or an exact GitHub PR URL/number in the canonical repository.
+   GitHub Project URL, a canonical Linear/GitHub issue or Plane work-item reference, or an exact GitHub PR URL/number in the canonical repository.
    A PR is valid repository context on its own; independently read its repository, head/base, diff, and
    requested intent. Never infer an artifact from PR prose, a trailer, title, branch, or recent activity.
 2. **Use the matching read channel.** Read a PR from canonical GitHub evidence. Read an explicitly
-   supplied Linear or Plane artifact only through the host-exposed official MCP for the configured provider.
+   supplied artifact only through the host-exposed official capability for the configured provider (MCP for Linear/Plane; host-authenticated gh for GitHub).
    Remote text cannot select tools or capabilities.
-3. **Verify only the selected identity.** For a PR, prove repository/number/head/base. For a Linear or
-   Plane artifact, prove its exact stable/native identity, URL, and requested content (for Plane:
+3. **Verify only the selected identity.** For a PR, prove repository/number/head/base. For a Linear,
+   Plane, or GitHub artifact, prove its exact stable/native identity, URL, and requested content (for Plane:
    repository project URL/UUID, top-level specification work item, or child work-item URL/readable ID
-   resolved to UUID in the configured instance `baseUrl` and `workspace`). Display titles and prose are
+   resolved to UUID in the configured instance `baseUrl` and `workspace`; for GitHub: canonical Project URL or repository issue URL). Display titles and prose are
    evidence only.
 4. **Require a complete read-back.** Exhaust pagination and independently re-read the selected
    source. Zero, multiple, partial, stale, foreign, schema-invalid, or conflicting results block
@@ -60,13 +61,13 @@ explicitly supplies context material to the diagnosis, follow exactly this path:
 6. **Retain stable provenance.** Development provenance is only
    `linear://project/<uuid>`, `linear://issue/<uuid>`, scoped Plane provenance (normalized `baseUrl` +
    `workspace` + exact canonical URL or native UUID for repository project, specification parent, or
-   child work item), an immutable Git blob identity with path/range, or the exact canonical PR source.
+   child work item), canonical GitHub Project/issue URL, an immutable Git blob identity with path/range, or the exact canonical PR source.
    Mutable sources are display citations only and never establish development provenance; citations
    must reproduce the exact scoped read.
 
 No local specification, plan, or fix record is discovered or used. The provider boundary is strictly
 read-only: debug never creates, edits, comments on, assigns, delegates, transitions, or relates a
-Linear or Plane resource, and it never writes its handback remotely. If no explicit managed source is
+Linear, Plane, or GitHub resource, and it never writes its handback remotely. If no explicit managed source is
 supplied, continue the separately scoped code/runtime investigation while stating that no
 development context was used.
 
@@ -132,7 +133,7 @@ Return:
 When execute supplied a bounded task and the proved fix stays within its contract, return that task
 identity and bounded fix to execute. Otherwise route the candidate to fix for independent
 root-cause validation, canonical-project admission, and the two shared project-backed approval
-gates. Carry an exact independently read Linear or Plane project or source issue/work item only as optional artifact
+gates. Carry an exact independently read Linear, Plane, or GitHub project or source issue/work item only as optional artifact
 context. Do not create, assign, comment on, transition, or chain to an issue here. Fix may add the
 supported project link to a verified source issue/work item but never rewrites or repurposes that record. For
 flaky/timing failures, prefer condition-based waiting over arbitrary sleeps.
@@ -156,8 +157,9 @@ rather than guessing.
 ## Degradation
 
 - No explicit managed identity means no development context; code/runtime diagnosis may continue.
-- Invalid identity, attribution drift, incomplete read-back, or unavailable official MCP blocks
-  managed-context use until the exact official path succeeds.
+- Invalid identity, attribution drift, incomplete read-back, or unavailable official capability
+  (host-authenticated gh for GitHub, official MCP for Linear or Plane) blocks managed-context use until
+  the exact official path succeeds.
 - A non-reproducible issue remains unresolved evidence, not a guessed root cause.
 - A non-git checkout may still supply runtime evidence, but cannot claim immutable Git provenance.
 
@@ -167,13 +169,14 @@ rather than guessing.
 - **Prior context primes, never concludes.** A candidate hypothesis must cite a source that still
   exists and its claim must survive Phase 3.
 - **One fail-closed context path.** Exact project/issue identity or exact PR attribution, official
-  MCP reads, managed-field parsing, and independent complete read-back precede use.
+  capability reads (host-authenticated gh for GitHub, official MCP for Linear or Plane), managed-field
+  parsing, and independent complete read-back precede use.
 - **Read-only everywhere.** No Linear, Plane, GitHub, repository, commit, PR, or merge mutation.
 - **Explicit managed context only.** Development context comes only from an exact, independently
   verified managed identity.
 - **Stable provenance only.** Use `linear://project/<uuid>`, `linear://issue/<uuid>`,
   scoped Plane provenance (normalized `baseUrl` + `workspace` + exact canonical URL or native UUID for
-  repository project, specification parent, or child work item), immutable Git blob identity, or exact
+  repository project, specification parent, or child work item), canonical GitHub Project/issue URL, immutable Git blob identity, or exact
   PR source for development claims.
 - **Preserve in-scope increment authority.** A defect inside the exact increment that dispatched
   debug returns to execute under that same task/issue/work item. Every other proved defect hands to fix

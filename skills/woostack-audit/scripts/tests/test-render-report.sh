@@ -88,4 +88,10 @@ assert_eq "$ec" "0" "null optional fields do not crash the renderer"
 body="$(cat "$out")"
 assert_contains "$body" "Null fields" "renders the finding title with null fields"
 assert_not_contains "$body" "**Fix:** None" "null fix is not rendered as the literal string None"
+
+# Managed context is sanitized and rendered when supplied.
+echo '[]' > "$OUTDIR/findings.json"
+AUDIT_REPORT_PATH="$out" AUDIT_TARGET="src" AUDIT_MANAGED_CONTEXT="https://github.com/orgs/acme/projects/1" bash "$SCRIPT" >/dev/null 2>&1 && ec=0 || ec=$?
+assert_eq "$ec" "0" "managed context exits 0"
+assert_contains "$(cat "$out")" "- **Managed context:** https://github.com/orgs/acme/projects/1" "renders provider-neutral managed context"
 finish

@@ -1,7 +1,7 @@
 # Bootstrap procedure
 
 This reference owns the collision-safe greenfield filesystem procedure. The design-approval gate in
-[`../SKILL.md`](../SKILL.md) is the authority boundary. Optional Linear or Plane persistence records the
+[`../SKILL.md`](../SKILL.md) is the authority boundary. Optional Linear, Plane, or GitHub persistence records the
 approved design; it never releases a write barrier.
 
 ## Inputs retained before target access
@@ -17,18 +17,34 @@ Keep only in active run context:
 7. intended canonical future repository URL and integration branch; and
 8. deterministic stable run/project identity.
 
-Before design approval, do not stat, list, canonicalize, create, or write the target and do not
-invoke Git against it. Create no local specification/plan, provider resource, branch, commit, or PR.
+Before design approval and target collision check, do not mutate, create, delete, overwrite, or
+scaffold the target, and do not invoke Git against it. Target inspection before write admission is
+strictly read-only (stat, directory listing, no-follow symlink check). Create no local specification/plan,
+provider resource, branch, commit, or PR. Zero GitHub, Linear, or Plane operations occur before
+design approval and collision admission.
+
+## Filesystem write barrier and collision check
+
+All of these must hold before target admission:
+
+1. complete design explicitly approved in the current conversation;
+2. stable run identity plus intended canonical repository/base retained; and
+3. read-only collision check proves the target is absent or an empty non-Git directory.
+
+Reject a symlink, non-directory object, unreadable/ambiguous result, existing Git worktree or
+repository, populated directory, or path owned by another process/run. Never reset, clean, delete,
+overwrite, reuse, or scaffold around an existing path.
 
 ## Optional design artifact
 
-Only after explicit design approval, and only when the caller requested persistence or supplied an
-exact project URL/UUID, follow the shared
+Only after explicit design approval and successful collision admission, and only when the caller
+requested persistence or supplied an exact Linear/Plane project URL-or-UUID or canonical GitHub Project URL, follow the shared
 [artifact contract](../../woostack-init/references/artifact-backends.md) and load only the configured
-[Linear](../../woostack-init/references/artifact-providers/linear.md) or
+[GitHub](../../woostack-init/references/artifact-providers/github.md),
+[Linear](../../woostack-init/references/artifact-providers/linear.md), or
 [Plane](../../woostack-init/references/artifact-providers/plane.md) profile:
 
-- prove the selected profile's official-MCP capabilities and exact scope;
+- prove the selected profile's official capability (MCP for Linear or Plane; host-authenticated gh for GitHub) and exact scope;
 - resolve the exact supplied project or create one only when requested;
 - write the approved goal, architecture, scope, decisions, and repository/base intent;
 - use the profile's stable operation identity;
@@ -37,37 +53,15 @@ exact project URL/UUID, follow the shared
 
 Missing, partial, ambiguous, or unknown artifact outcomes block that requested synchronization only
 unless persistence was explicitly part of the deliverable. Without artifact mode make no provider
-call. Never create a provider document or increment issue/work-item during bootstrap.
-
-## Filesystem write barrier
-
-All of these must hold before the first target mutation:
-
-1. complete design explicitly approved in the current conversation;
-2. stable run identity plus intended canonical repository/base retained;
-3. optional artifact synchronization either not selected, successfully read back, or explicitly
-   allowed to degrade by the caller; and
-4. collision check proves the target is absent or an empty non-Git directory.
-
-Artifact metadata, native status, provider response, remembered approval, or target-path
-availability cannot substitute for design approval.
-
-## First target access and collision check
-
-After the barrier's non-filesystem conditions hold, perform one read-only target check:
-
-- reject a symlink, non-directory object, unreadable/ambiguous result, existing Git worktree or
-  repository, populated directory, or path owned by another process/run;
-- permit an absent target or an empty non-Git directory only; and
-- retain the exact resolved parent/target identity used for creation.
-
-Never reset, clean, delete, overwrite, reuse, or scaffold around an existing path. A changed result
-between check and creation blocks.
+call. Never create a provider document or increment issue/work-item during bootstrap. Zero provider
+operations occur before collision admission. Artifact metadata, native status, provider response,
+remembered approval, or target-path availability cannot substitute for design approval.
 
 ## Scaffold the approved architecture
 
-Create only the approved surfaces using
-[architecture.md](architecture.md), [frameworks.md](frameworks.md),
+After any provider synchronization and immediately before scaffold creation, re-run the exact
+no-follow collision check; a changed result blocks before any target write. Create only the approved
+surfaces using [architecture.md](architecture.md), [frameworks.md](frameworks.md),
 [infrastructure.md](infrastructure.md), and [patterns.md](patterns.md).
 
 The default package-slice shape is:

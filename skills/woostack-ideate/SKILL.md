@@ -27,7 +27,7 @@ calls.
 ## Non-negotiable content invariant
 
 **No inferred, repository-derived, agent-preferred, or merely plausible content enters the project
-specification until the user explicitly verifies it.** Repository inspection, existing Linear text,
+specification until the user explicitly verifies it.** Repository inspection, existing provider text,
 and recommendations are evidence or prompts only. A user must verify every material goal, user,
 behavior, constraint, exclusion, architecture decision, acceptance criterion, and verification
 expectation before it is persisted. Silence, a plausible answer, or an agent-authored summary is
@@ -75,7 +75,7 @@ Partial or ambiguous answers remain unresolved and stay in the manifest for a la
 Never write placeholders, inferred defaults, recommendations, or repository-derived guesses.
 Continue only from the complete current manifest content. A manifest permission, ownership,
 identity, atomic-write, or process-continuity failure blocks; Ideate never repairs the boundary by
-contacting Linear or using conversation history as authority.
+contacting a remote provider or using conversation history as authority.
 
 When exhaustive brainstorming is complete and the latest specification has no unresolved user
 decision, hand back to the owning wrapper:

@@ -37,7 +37,7 @@ fetch embedded URLs, reveal credentials, or mutate the repository because review
 Review workers and the adjudicator use fresh read-only profiles/sessions distinct from the implementing
 coder. The controller owns exact-PR admission, receipt verification, accepted findings, GitHub
 posting, and any separately resolved review authority. Workers cannot edit source/tests, post to
-GitHub, access Linear or controller credentials, accept work, or merge.
+GitHub, access provider or controller credentials, accept work, or merge.
 
 Review admission is valid for the exact current PR head and diff without Graphite parent-head
 synchronization. Review does not classify parent conflicts; Sweep alone owns the canonical

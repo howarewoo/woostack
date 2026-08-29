@@ -121,6 +121,7 @@ class MockProvider:
 def simulate_bootstrap_persistence(
     config,
     design_approved,
+    collision_admitted=True,
     explicit_persist=False,
     provider_mock=None,
     supplied_project=None,
@@ -130,7 +131,8 @@ def simulate_bootstrap_persistence(
 ):
     if not design_approved:
         return {"status": "blocked", "error": "design approval required before provider persistence"}
-
+    if not collision_admitted:
+        return {"status": "blocked", "error": "target collision admission required before provider persistence"}
     provider = config.get("artifacts", {}).get("provider", "local")
 
     if not explicit_persist or provider == "local":
@@ -309,6 +311,35 @@ if (
     or not b_res5["project"]["designApproved"]
 ):
     failures.append("Bootstrap Test 5 failed: Explicit Linear project creation must create, append, and read back")
+# Bootstrap Test 5b: Exact existing GitHub project resolution without creation
+gh_p1_proj = {"id": "gh_p1", "name": "GitHub App", "labels": []}
+b_gh_existing = MockProvider("github", projects={"https://github.com/orgs/acme/projects/1": gh_p1_proj, "gh_p1": gh_p1_proj})
+b_res5b = simulate_bootstrap_persistence({"artifacts": {"provider": "github", "github": {"owner": "acme"}}}, design_approved=True, explicit_persist=True, provider_mock=b_gh_existing, supplied_project="https://github.com/orgs/acme/projects/1")
+if (
+    b_res5b["status"] != "success"
+    or b_res5b["provider_sync"] != "success"
+    or b_gh_existing.create_project_calls != 0
+    or b_gh_existing.read_project_calls != 1
+    or b_gh_existing.write_content_calls != 1
+    or b_gh_existing.read_back_calls != 1
+    or b_res5b["project"]["id"] != "gh_p1"
+    or not b_res5b["project"]["designApproved"]
+):
+    failures.append("Bootstrap Test 5b failed: Exact existing GitHub project must resolve without creation and read back approved design")
+
+# Bootstrap Test 5c: Explicit new-project creation with GitHub
+b_gh_create = MockProvider("github")
+b_res5c = simulate_bootstrap_persistence({"artifacts": {"provider": "github", "github": {"owner": "acme"}}}, design_approved=True, explicit_persist=True, provider_mock=b_gh_create, create_requested=True, project_name="GitHub App")
+if (
+    b_res5c["status"] != "success"
+    or b_res5c["provider_sync"] != "success"
+    or b_gh_create.create_project_calls != 1
+    or b_gh_create.write_content_calls != 1
+    or b_gh_create.read_back_calls != 1
+    or b_res5c["project"]["name"] != "GitHub App"
+    or not b_res5c["project"]["designApproved"]
+):
+    failures.append("Bootstrap Test 5c failed: Explicit GitHub project creation must create, append, and read back")
 
 # Bootstrap Test 6: Ambiguous / duplicate project selection fails closed without creation
 b_ambig_mock = MockProvider("linear")
@@ -394,9 +425,14 @@ b_res13 = simulate_bootstrap_persistence({"artifacts": {"provider": "linear"}}, 
 if b_res13["status"] != "failed" or "provider mismatch" not in b_res13["error"]:
     failures.append("Bootstrap Test 13 failed: Wrong provider must fail closed")
 
+# Bootstrap Test 13b: Wrong provider bootstrap (GitHub config with Linear mock)
+b_res13b = simulate_bootstrap_persistence({"artifacts": {"provider": "github", "github": {"owner": "acme"}}}, design_approved=True, explicit_persist=True, provider_mock=b_linear_create, create_requested=True)
+if b_res13b["status"] != "failed" or "provider mismatch" not in b_res13b["error"]:
+    failures.append("Bootstrap Test 13b failed: Wrong provider for GitHub must fail closed")
+
 # Bootstrap Test 14: Unapproved design blocks before any provider calls
 b_unapproved_mock = MockProvider("plane")
-b_res14 = simulate_bootstrap_persistence({"artifacts": {"provider": "plane", "plane": {"projectLabels": ["core"]}}}, design_approved=False, explicit_persist=True, provider_mock=b_unapproved_mock, create_requested=True)
+b_res14 = simulate_bootstrap_persistence({"artifacts": {"provider": "plane", "plane": {"projectLabels": ["core"]}}}, design_approved=False, collision_admitted=True, explicit_persist=True, provider_mock=b_unapproved_mock, create_requested=True)
 if (
     b_res14["status"] != "blocked"
     or "design approval required" not in b_res14["error"]
@@ -406,6 +442,19 @@ if (
     or b_unapproved_mock.read_back_calls != 0
 ):
     failures.append("Bootstrap Test 14 failed: Unapproved design must block before any provider calls")
+
+# Bootstrap Test 14b: Unadmitted collision blocks before any GitHub calls
+b_unadmitted_gh_mock = MockProvider("github")
+b_res14b = simulate_bootstrap_persistence({"artifacts": {"provider": "github", "github": {"owner": "acme"}}}, design_approved=True, collision_admitted=False, explicit_persist=True, provider_mock=b_unadmitted_gh_mock, create_requested=True)
+if (
+    b_res14b["status"] != "blocked"
+    or "target collision admission required" not in b_res14b["error"]
+    or b_unadmitted_gh_mock.read_project_calls != 0
+    or b_unadmitted_gh_mock.create_project_calls != 0
+    or b_unadmitted_gh_mock.write_content_calls != 0
+    or b_unadmitted_gh_mock.read_back_calls != 0
+):
+    failures.append("Bootstrap Test 14b failed: Unadmitted collision must block before any GitHub provider calls")
 
 if failures:
     print("artifact-optional bootstrap contract violations:", file=sys.stderr)

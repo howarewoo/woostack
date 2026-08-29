@@ -4,7 +4,7 @@
 
 Use this adapter inside an active Oh My Pi session. Discover the actual `task`, `hub`, and related
 capabilities available in the session. Discover official host-exposed Linear or Plane MCP tools via registered session
-tools / tool routes, selected strictly by `artifacts.provider`. Never use custom HTTP/REST/GraphQL
+tools / tool routes or host-authenticated GitHub CLI (`gh`), selected strictly by `artifacts.provider`. Never use custom HTTP/REST/GraphQL
 transport or fallback tokens. Artifact operations follow the canonical
 [artifact backends contract](../../../woostack-init/references/artifact-backends.md).
 
@@ -106,6 +106,6 @@ read-back.
 Session-naming degradation is non-blocking: if `woostack_rename_session` is unavailable or fails,
 emit one concise warning and proceed with the workflow.
 
-When the configured provider's official MCP or a required capability is absent in the session, fail
+When the configured provider's official interface (Linear/Plane MCP, or host-authenticated gh for GitHub) or a required capability is absent in the session, fail
 closed for required provider boundaries or report the missing capability for optional operations per
 canonical artifact law.
