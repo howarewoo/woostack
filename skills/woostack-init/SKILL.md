@@ -44,13 +44,16 @@ does not change the setup or artifact-selection boundaries below.
      `.omp/settings.json`, and `.omp/.gitignore`, preserves other extensions, settings keys, and
      ignore lines, and rejects tracked settings.
 4. Perform the automatic read-only [Linear setup](#automatic-linear-setup). Its configured,
-   preserved, skipped, or setup-blocked outcome is separate from local initialization.
+   preserved, skipped, or setup-blocked outcome is separate from local initialization. When
+   `artifacts.provider: "github"` is selected in configuration, perform the selected-provider
+   read-only [GitHub discovery](#selected-provider-github-discovery).
 5. Validate JSON/schema/path permissions, ignore policy, report roots, managed OMP role agents, and
    cross-links. Run the shipped doctor checks.
 6. Report created, repaired, preserved, skipped, and blocked local paths with exact validation
    results. Report the Linear configured, preserved, skipped, or setup-blocked outcome separately;
-   a Linear setup outcome never changes a successful ordinary local-init result.
-
+   when GitHub was selected, report the GitHub discovery outcome (configured, preserved, skipped,
+   or discovery-blocked) separately; provider outcomes never change a successful ordinary
+   local-init result.
 ## Automatic Linear setup
 
 On every run, discover official host-exposed Linear MCP capability. When it is available, use only
@@ -78,6 +81,14 @@ both cases continue ordinary local initialization and doctor validation. Never h
 tool names, read credential values, use direct GraphQL/HTTP, or test connectivity with a provider
 write.
 
+## Selected-provider GitHub discovery
+
+When `artifacts.provider: "github"` is selected in configuration, Init may use the host-authenticated
+`gh` CLI only for narrow read-only discovery and validation of missing or unverified non-secret `owner`,
+`ownerType`, canonical Git repository identity, and Project Status field/options. Authenticated read-only
+access is sufficient: Init never selects persistence, reads development artifact content, probes writes,
+tests connectivity with a mutation, or modifies GitHub Projects or repository issues.
+
 ## Optional guarded legacy migration
 
 Tracked legacy `.woostack/specs/`, `.woostack/plans/`, `.woostack/fixes/`, and overnight records are
@@ -90,8 +101,8 @@ contract's fresh terminal proof plus explicit approval.
 
 ## Hard constraints
 
-- Artifact persistence remains explicit. Automatic Linear setup is read-only, selects no artifact,
-  and is never required for successful local initialization or repair.
+- Artifact persistence remains explicit. Automatic Linear setup and selected-provider GitHub discovery
+  are read-only, select no artifact, and are never required for successful local initialization or repair.
 - No source edit outside `.woostack/` except the three init-managed `.omp/agents/woostack-*.md`
   role definitions and the local managed OMP session-naming assets
   (`.omp/extensions/woostack-session-name.ts`, `.omp/settings.json`, and `.omp/.gitignore`); no

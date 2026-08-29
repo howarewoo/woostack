@@ -35,5 +35,6 @@ assert_contains "$OUT" "run woostack-init first" "missing workspace points to in
 run_doctor --live "$repo"
 assert_exit 2 "$CODE" "raw --live cannot make a shell provider call"
 assert_contains "$OUT" "controller-owned" "raw live mode explains the receipt boundary"
+assert_contains "$OUT" "gh for GitHub, official MCP for Linear/Plane" "raw live mode names all supported provider transports"
 
 finish

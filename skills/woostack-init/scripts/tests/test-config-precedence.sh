@@ -89,7 +89,7 @@ must_fail "$repo" ".woostack/config.json linear.saveArtifacts is deprecated; mig
 printf '{"linear":{"saveArtifacts":false}}\n' >"$repo/.woostack/config.json"; printf '{"linear":null}\n' >"$repo/.woostack/config.local.json"
 must_fail "$repo" ".woostack/config.json linear.saveArtifacts is deprecated; migrate to artifacts.provider and artifacts.linear" "base legacy key shadowed by local null fails"
 printf '{"artifacts":{"provider":"invalid"}}\n' >"$repo/.woostack/config.json"; rm -f "$repo/.woostack/config.local.json"
-must_fail "$repo" ".woostack/config.json artifacts.provider must be \"local\", \"linear\", or \"plane\"" "invalid provider fails"
+must_fail "$repo" ".woostack/config.json artifacts.provider must be \"local\", \"github\", \"linear\", or \"plane\"" "invalid provider fails"
 # 15. Selected-provider only validation
 printf '{"artifacts":{"provider":"local","linear":{"workspace":"only-workspace"}}}\n' >"$repo/.woostack/config.json"; rm -f "$repo/.woostack/config.local.json"
 actual="$(bash "$RESOLVER" "$repo")"
@@ -191,4 +191,46 @@ must_fail "$repo" ".woostack/config.local.json plane policy requires baseUrl, wo
 
 printf '{"artifacts":{"plane":{"projectLabels":[]}}}\n' >"$repo/.woostack/config.local.json"
 must_fail "$repo" ".woostack/config.local.json projectLabels must be an array of non-empty strings" "empty local plane projectLabels override attributes to local config"
+
+# 15d. GitHub provider validation
+printf '{"artifacts":{"provider":"local","github":{"owner":"acme"}}}\n' >"$repo/.woostack/config.json"; rm -f "$repo/.woostack/config.local.json"
+actual="$(bash "$RESOLVER" "$repo")"
+assert_eq "$(jq -r '.artifacts.provider' <<<"$actual")" "local" "local provider with partial github config succeeds"
+
+printf '{"artifacts":{"provider":"github","github":{"owner":"acme"}}}\n' >"$repo/.woostack/config.json"; rm -f "$repo/.woostack/config.local.json"
+must_fail "$repo" ".woostack/config.json github policy requires owner, projectStatuses, and optional ownerType, statusField, visibility only" "github provider with partial github config fails"
+
+printf '{"artifacts":{"provider":"github","github":{"owner":"acme","ownerType":"organization","statusField":"Status","visibility":"private","projectStatuses":{"planned":"Todo","executing":"In Progress","inReview":"In Review","done":"Done","blocked":"Blocked"}}}}\n' >"$repo/.woostack/config.json"
+rm -f "$repo/.woostack/config.local.json"
+actual="$(bash "$RESOLVER" "$repo")"
+assert_eq "$(jq -r '.artifacts.provider' <<<"$actual")" "github" "valid github provider with all fields succeeds"
+assert_eq "$(jq -r '.artifacts.github.owner' <<<"$actual")" "acme" "github owner preserved"
+assert_eq "$(jq -r '.artifacts.github.ownerType' <<<"$actual")" "organization" "github ownerType preserved"
+assert_eq "$(jq -r '.artifacts.github.statusField' <<<"$actual")" "Status" "github statusField preserved"
+assert_eq "$(jq -r '.artifacts.github.visibility' <<<"$actual")" "private" "github visibility preserved"
+assert_eq "$(jq -r '.artifacts.github.projectStatuses.planned' <<<"$actual")" "Todo" "github projectStatuses preserved"
+
+printf '{"artifacts":{"provider":"github","github":{"owner":"howarewoo","projectStatuses":{"planned":"Todo","executing":"In Progress","inReview":"In Review","done":"Done","blocked":"Blocked"}}}}\n' >"$repo/.woostack/config.json"
+actual="$(bash "$RESOLVER" "$repo")"
+assert_eq "$(jq -r '.artifacts.provider' <<<"$actual")" "github" "valid github provider with optional fields omitted succeeds"
+assert_eq "$(jq -r '.artifacts.github.owner' <<<"$actual")" "howarewoo" "github user owner preserved"
+
+printf '{"artifacts":{"provider":"github","github":{"owner":"-invalid-","projectStatuses":{"planned":"Todo","executing":"In Progress","inReview":"In Review","done":"Done","blocked":"Blocked"}}}}\n' >"$repo/.woostack/config.json"
+must_fail "$repo" ".woostack/config.json github policy requires owner, projectStatuses, and optional ownerType, statusField, visibility only" "invalid owner fails"
+printf '{"artifacts":{"provider":"github","github":{"owner":"acme","ownerType":"team","projectStatuses":{"planned":"Todo","executing":"In Progress","inReview":"In Review","done":"Done","blocked":"Blocked"}}}}\n' >"$repo/.woostack/config.json"
+must_fail "$repo" ".woostack/config.json github policy requires owner, projectStatuses, and optional ownerType, statusField, visibility only" "invalid ownerType fails"
+printf '{"artifacts":{"provider":"github","github":{"owner":"acme","visibility":"internal","projectStatuses":{"planned":"Todo","executing":"In Progress","inReview":"In Review","done":"Done","blocked":"Blocked"}}}}\n' >"$repo/.woostack/config.json"
+must_fail "$repo" ".woostack/config.json github policy requires owner, projectStatuses, and optional ownerType, statusField, visibility only" "invalid visibility fails"
+printf '{"artifacts":{"provider":"github","github":{"owner":"acme","projectStatuses":{"planned":"Todo","executing":"In Progress","inReview":"In Review","done":"Done"}}}}\n' >"$repo/.woostack/config.json"
+must_fail "$repo" ".woostack/config.json projectStatuses mapping is incomplete or contains invalid values" "incomplete projectStatuses fails"
+printf '{"artifacts":{"provider":"github","github":{"owner":"acme","projectStatuses":{"planned":"Todo","executing":"In Progress","inReview":"In Progress","done":"Done","blocked":"Blocked"}}}}\n' >"$repo/.woostack/config.json"
+must_fail "$repo" ".woostack/config.json projectStatuses mapping is incomplete or contains invalid values" "duplicate status values in projectStatuses fails"
+printf '{"artifacts":{"provider":"github","github":{"owner":"acme","extraKey":"val","projectStatuses":{"planned":"Todo","executing":"In Progress","inReview":"In Review","done":"Done","blocked":"Blocked"}}}}\n' >"$repo/.woostack/config.json"
+must_fail "$repo" ".woostack/config.json github policy requires owner, projectStatuses, and optional ownerType, statusField, visibility only" "unknown key in github config fails"
+
+printf '{"artifacts":{"provider":"github","github":{"owner":"acme","projectStatuses":{"planned":"Todo","executing":"In Progress","inReview":"In Review","done":"Done","blocked":"Blocked"}}}}\n' >"$repo/.woostack/config.json"
+printf '{"artifacts":{"github":{"owner":""}}}\n' >"$repo/.woostack/config.local.json"
+must_fail "$repo" ".woostack/config.local.json github policy requires owner, projectStatuses, and optional ownerType, statusField, visibility only" "invalid local github owner override attributes to local config"
+printf '{"artifacts":{"github":{"projectStatuses":{"planned":""}}}}\n' >"$repo/.woostack/config.local.json"
+must_fail "$repo" ".woostack/config.local.json projectStatuses mapping is incomplete or contains invalid values" "invalid local github projectStatuses override attributes to local config"
 finish

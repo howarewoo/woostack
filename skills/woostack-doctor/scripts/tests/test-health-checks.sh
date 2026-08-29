@@ -28,8 +28,7 @@ if command -v jq >/dev/null 2>&1; then
   jq 'del(.linear)' "$r2/.woostack/config.json" >"$tmp" && mv "$tmp" "$r2/.woostack/config.json"
 
   jq '.artifacts = {provider: "invalid"}' "$r2/.woostack/config.json" >"$tmp" && mv "$tmp" "$r2/.woostack/config.json"
-  assert_contains "$(bash "$C/config-keys.sh" "$r2")" "artifacts.provider must be \"local\", \"linear\", or \"plane\"" "invalid provider rejected"
-
+  assert_contains "$(bash "$C/config-keys.sh" "$r2")" "artifacts.provider must be \"local\", \"github\", \"linear\", or \"plane\"" "invalid provider rejected"
   jq '.artifacts = {
     provider: "plane",
     plane: {
@@ -54,6 +53,10 @@ if command -v jq >/dev/null 2>&1; then
 
   jq 'del(.artifacts.plane.baseUrl)' "$r2/.woostack/config.json" >"$tmp" && mv "$tmp" "$r2/.woostack/config.json"
   assert_contains "$(bash "$C/config-keys.sh" "$r2")" "plane policy requires baseUrl, workspace, repository, project, projectLabels, and issueStates only" "missing baseUrl under plane fails"
+  jq -c '.artifacts = {provider:"github",github:{owner:"acme",ownerType:"organization",statusField:"Status",visibility:"private",projectStatuses:{planned:"Todo",executing:"In Progress",inReview:"In Review",done:"Done",blocked:"Blocked"}}}' "$r2/.woostack/config.json" >"$tmp" && mv "$tmp" "$r2/.woostack/config.json"
+  assert_eq "$(bash "$C/config-keys.sh" "$r2")" "" "after configuring full provider fields with provider github, clean"
+  jq 'del(.artifacts.github.owner)' "$r2/.woostack/config.json" >"$tmp" && mv "$tmp" "$r2/.woostack/config.json"
+  assert_contains "$(bash "$C/config-keys.sh" "$r2")" "github policy requires owner, projectStatuses, and optional ownerType, statusField, visibility only" "missing owner under github fails"
   jq '.artifacts = {provider: "linear"}' "$r2/.woostack/config.json" >"$tmp" && mv "$tmp" "$r2/.woostack/config.json"
   assert_contains "$(bash "$C/config-keys.sh" "$r2")" "linear policy requires repository, workspace, team, projectLabels, projectStatuses, and issueStates only" "provider linear requires full provider fields"
   jq '.artifacts = {

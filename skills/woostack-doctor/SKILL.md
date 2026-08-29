@@ -1,6 +1,6 @@
 ---
 name: woostack-doctor
-description: Diagnose and, after approval, repair a repo's `.woostack/` workspace health—static config checks, guarded legacy-record checks, and optional live Linear/Plane artifact connectivity. Remote content is never auto-repaired. Includes exit-coded CI mode and an interactive local repair gate.
+description: Diagnose and, after approval, repair a repo's `.woostack/` workspace health—static config checks, guarded legacy-record checks, and optional live artifact connectivity (gh for GitHub, official MCP for Linear/Plane). Remote content is never auto-repaired. Includes exit-coded CI mode and an interactive local repair gate.
 ---
 
 # woostack-doctor
@@ -30,6 +30,9 @@ It has two layers:
   Mutates nothing.
 - `/woostack-doctor [path] --live` — resolve the target and its effective layered policy first.
   When `artifacts.provider` is `"local"` or omitted, provider preflight is skipped.
+  When `artifacts.provider: "github"`, discover and authenticate host `gh` CLI, verify GitHub
+  availability, required Project/issue/dependency/status/deletion/pagination capabilities, owner login/type,
+  canonical repository, and independent read-back.
   When `artifacts.provider: "linear"`, discover the host's official Linear MCP tools, authenticate,
   and verify Linear availability plus required project/update/issue/comment/relation/owner read and
   mutation capabilities (and label capabilities when `projectLabels` is configured), then verify
@@ -38,7 +41,7 @@ It has two layers:
   and verify Plane availability plus required project/issue/relation/label read and mutation capabilities,
   then verify canonical instance `baseUrl`, workspace, exact configured project, native mappings, and independent read-back.
   Write only the normalized non-secret result to a mode-0600 temporary receipt, invoke
-  `doctor.sh --live-receipt <path> [path]`, and delete the receipt. Missing MCP, authentication,
+  `doctor.sh --live-receipt <path> [path]`, and delete the receipt. Missing tool, authentication,
   capability, identity, mapping, or read-back blocks at its phase.
 - `/woostack-doctor [path] --check --live` — the same controller-owned live preflight with
   CI-style annotations and exit behavior.
@@ -53,6 +56,11 @@ the `templates/` shipped there; the woostack collection installs both as sibling
 2. **Resolve effective policy first.** Resolve the target and primary checkout, then load the
    effective committed plus primary-checkout local policy to determine the selected `artifacts.provider`.
 3. **Preflight the configured provider in live mode.** For explicit `--live`:
+   - When `artifacts.provider: "github"`, discover and authenticate host `gh` CLI (`official-gh-cli`).
+     Verify GitHub availability, required `projectRead`, `projectWrite`, `projectDelete`, `issueRead`,
+     `issueWrite`, `issueClose`, `issueDelete`, `dependencyRead`, `dependencyWrite`, `statusFieldRead`,
+     `statusFieldWrite`, `pagination`, and `independentReadBack` capabilities, `owner`, `ownerType` (when
+     configured), canonical repository, native Status field/option mappings, and independent read-back.
    - When `artifacts.provider: "linear"`, discover and authenticate official Linear MCP (`official-linear-mcp`).
      Verify Linear availability and required `projectRead`, `projectWrite`, `projectUpdateRead`,
      `projectUpdateWrite`, `issueRead`, `issueWrite`, `commentRead`, `commentWrite`, `relationRead`,
@@ -108,9 +116,9 @@ the `templates/` shipped there; the woostack collection installs both as sibling
   or deletes them. Incompatible retained Plane runs fail closed with regeneration guidance.
 - **Provider access belongs to skill controllers.** Diagnosis and every doctor shell repair remain
   provider-free. Approved tracked repairs run through artifact-free `woostack-change` unless the
-  caller explicitly selected an exact artifact. Explicit `--live` may validate official
-  host MCP connectivity for optional artifact use and passes only a normalized non-secret receipt
-  to the shell engine. The temporary receipt is mode 0600 and deleted after consumption. The shell
+  caller explicitly selected an exact artifact. Explicit `--live` may validate selected-provider
+  transport (`gh` for GitHub, official MCP for Linear/Plane) for optional artifact use and passes
+  only a normalized non-secret receipt to the shell engine. The temporary receipt is mode 0600 and deleted after consumption. The shell
   never reads a provider credential or invokes HTTP, GraphQL, an API-key adapter, or a hard-coded
   MCP tool name. Unknown or partial provider outcomes block optional artifact operations only.
 - **Gate every repair.** Nothing mutates before explicit approval; `report` findings are never

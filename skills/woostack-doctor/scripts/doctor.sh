@@ -14,7 +14,7 @@ while [ "$#" -gt 0 ]; do
       [ "$#" -ge 2 ] || { echo "doctor: --live-receipt requires a path" >&2; exit 2; }
       LIVE_RECEIPT="$2"; shift 2 ;;
     --live)
-      echo "doctor: --live is controller-owned; supply --live-receipt <path> after official Linear MCP preflight" >&2
+      echo "doctor: --live is controller-owned; supply --live-receipt <path> after provider preflight (gh for GitHub, official MCP for Linear/Plane)" >&2
       exit 2 ;;
     -*) echo "doctor: unknown flag: $1" >&2; exit 2 ;;
     *) TARGET="$1"; shift ;;
@@ -38,7 +38,7 @@ export WOOSTACK_DOCTOR_LIVE_CONTEXT="$live_context"
 if [ -n "$LIVE_RECEIPT" ]; then
   if [ ! -f "$LIVE_RECEIPT" ] || [ ! -r "$LIVE_RECEIPT" ]; then
     printf '%s\t%s\t%s\t%s\t%s\n' error linear-live report ".woostack/config.json" \
-      "normalized Linear MCP live receipt is missing or unreadable" >>"$findings"
+      "normalized provider live receipt is missing or unreadable" >>"$findings"
   else
     cat "$LIVE_RECEIPT" >"$live_context"
     chmod 600 "$live_context"
