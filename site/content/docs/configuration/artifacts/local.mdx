@@ -53,8 +53,8 @@ With `artifacts.provider` omitted or set to `"local"`:
 - `woostack-change` never contacts an artifact provider.
 - `--project` fails before provider access because project selection requires remote mirroring.
 
-Automatic read-only Linear discovery during `woostack-init` is a setup operation. It does not select
-remote storage or authorize later provider access.
+Automatic read-only Linear discovery during `woostack-init` (or GitHub discovery when `artifacts.provider: "github"`)
+is a setup operation. It does not select remote storage or authorize later provider access.
 
 ## Retention and recovery
 

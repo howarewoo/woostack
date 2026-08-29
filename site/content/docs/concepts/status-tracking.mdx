@@ -4,8 +4,8 @@ description: Repository inputs, identity rules, derived states, and failure beha
 ---
 
 [woostack-status](/docs/skills/woostack-status) computes a fresh view from Git, Graphite, and
-canonical GitHub data. It maintains no separate board or development ledger. Linear and Plane
-projects/work items are optional specification, plan, and fix artifacts.
+canonical GitHub data. It maintains no separate board or development ledger. Linear, Plane, and
+GitHub projects, issues, and work items are optional specification, plan, and fix artifacts.
 
 ## Display shapes
 
@@ -27,7 +27,7 @@ Each status run:
    ancestry;
 2. fully reads candidate PRs, checks, reviews, unresolved threads, merge evidence, and timestamps;
 3. derives work/review/merge state from that complete snapshot;
-4. optionally reads exact caller-supplied Linear or Plane artifacts and joins only through independently
+4. optionally reads exact caller-supplied Linear, Plane, or GitHub artifacts and joins only through independently
    verified repository/PR identity; and
 5. prints the current board, terminal counts, blockers, staleness, and one next action per row.
 
@@ -39,7 +39,7 @@ own the precise state derivation and output contract.
 
 - The active user-approved workflow defines scope and acceptance.
 - Git and GitHub own source-control, PR, review, and merge truth.
-- Linear or Plane artifacts may explain an explicitly linked spec, plan, or fix but cannot create a row,
+- Linear, Plane, or GitHub artifacts may explain an explicitly linked spec, plan, or fix but cannot create a row,
   grant permission, or override repository evidence. For Plane, the repository project is reported as
   repository association only, exposing specification aggregate lifecycle and child increment states
   without presenting project lifecycle as delivery state.

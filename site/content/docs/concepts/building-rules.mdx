@@ -1,20 +1,20 @@
 ---
 title: Building rules
-description: The plain-artifact local-authority build loop, optional Linear/Plane mirroring, and bounded one-PR routes.
+description: The plain-artifact local-authority build loop, optional Linear, Plane, or GitHub mirroring, and bounded one-PR routes.
 ---
 
 Woostack separates product authority from repository delivery evidence. Local run manifests under
 `.woostack/tmp/runs/<run-id>/` own the current specification and execution contracts for builds and
-post-diagnosis fixes (with optional Linear or Plane mirroring: `artifacts.provider: "linear"` or `artifacts.provider: "plane"`).
+post-diagnosis fixes (with optional Linear, Plane, or GitHub mirroring: `artifacts.provider: "linear"`, `"plane"`, or `"github"`).
 Git and GitHub own source, branches, commits, pull requests, reviews, and merge evidence.
 
 ## Workflow scope
 
 | Shape | Commands | Active contract | Provider mirror behavior |
 | --- | --- | --- | --- |
-| Bounded bug or regression | [woostack-fix](/docs/skills/woostack-fix) | proved root cause plus plain specification and direct-issue plan | local run manifest, direct increment contracts, dependencies (optional Linear or Plane mirror) |
+| Bounded bug or regression | [woostack-fix](/docs/skills/woostack-fix) | proved root cause plus plain specification and direct-issue plan | local run manifest, direct increment contracts, dependencies (optional Linear, Plane, or GitHub mirror) |
 | Bounded non-bug change | [woostack-change](/docs/skills/woostack-change) | one explicit goal/contract | none |
-| Multi-increment feature | [woostack-build](/docs/skills/woostack-build) | plain specification plus direct-issue graph | local run manifest, direct increment contracts, dependencies (optional Linear or Plane mirror) |
+| Multi-increment feature | [woostack-build](/docs/skills/woostack-build) | plain specification plus direct-issue graph | local run manifest, direct increment contracts, dependencies (optional Linear, Plane, or GitHub mirror) |
 | Greenfield codebase | [woostack-bootstrap](/docs/skills/woostack-bootstrap) | complete approved design | exact artifact or explicit persistence request only |
 
 The shape of the work determines the workflow. Development records cannot turn ambiguous scope
@@ -36,7 +36,7 @@ present verified run handoff
 
 Build and project-backed Fix write plain Markdown `project-spec.md` and `execution-plan.md` working
 documents directly under `.woostack/tmp/runs/<run-id>/`. During each drafting phase there are no
-intermediate provider cycles. When `artifacts.provider: "linear"` or `artifacts.provider: "plane"`, one
+intermediate provider cycles. When `artifacts.provider` is configured for mirroring (`"linear"`, `"plane"`, or `"github"`), one
 bounded cycle mirrors Build and Fix artifacts to the configured provider; mirror failure is recorded in the manifest and is nonblocking
 for local authority.
 After both files are written, Build/Fix display the exact run ID, readable artifact paths, stable task
@@ -66,16 +66,20 @@ retention, and unchanged Execute reads.
 - Graphite preserves stack ancestry. GitHub proves PR/head/base/check/review/merge state.
 - Every workflow stops on scope, ancestry, collision, evidence, or review drift. No workflow merges.
 
-## Canonical local records and optional Linear and Plane mirroring
+## Canonical local records and optional remote mirroring
 
 Build and project-backed Fix operate with canonical persistent local run authority under
 `.woostack/tmp/runs/<run-id>/` by default (`artifacts.provider: "local"` or omitted). Supplying `--project` when
 `artifacts.provider` is not configured for mirroring fails closed immediately.
 
+When `artifacts.provider: "github"`, local artifacts mirror to one GitHub Project under the configured
+owner with the complete specification in a managed README section, parentless repository issues
+(`parent = null`) with direct Project membership, and $N-1$ native blocked-by dependencies.
+`woostack-change` never contacts GitHub artifact APIs.
+
 When `artifacts.provider: "linear"`, local artifacts mirror to one Linear project containing the
 complete specification, direct increment issues, and native issue dependencies. There is no parent plan
 issue or child containment. `woostack-change` never contacts Linear.
-
 When `artifacts.provider: "plane"`, Build and Fix mirror artifacts to the exact
 `artifacts.plane.project` with one top-level specification work item (`[Build] <goal>` or
 `[Fix] <goal>`), child increment work items (`parent = <spec-item-UUID>`), and `N-1` strict blocking relations.
@@ -85,11 +89,11 @@ configured labels with existing project labels (preserving unrelated labels). If
 project-label operations, persistence fails closed before project mutation. Optional provider writers (Bootstrap and Commit) require explicit opt-in, post-gate timing, exact identities, official MCP capabilities, and independent read-back, leaving repository authority on Git/GitHub.
 
 The manifest is the canonical local run authority. Standalone Plan remains distinct: it keeps its direct
-project-graph synchronization and independent read-back unchanged for Linear or Plane, without either Build/Fix approval
+project-graph synchronization and independent read-back unchanged for GitHub, Linear, or Plane, without either Build/Fix approval
 gate.
 
 Explicit abandonment sets `status: "abandoned"` in the run manifest and retains all run artifacts in
-`.woostack/tmp/runs/<run-id>/` without mutating a mirrored Linear or Plane project. Standalone Plan closes its
+`.woostack/tmp/runs/<run-id>/` without mutating a mirrored GitHub, Linear, or Plane project. Standalone Plan closes its
 existing project as canceled after independent read-back. Handoff, replanning, and blockers leave the
 project open.
 ## Authority boundaries
@@ -97,7 +101,7 @@ project open.
 | Surface | Authority |
 | --- | --- |
 | User request and decisions | initiates the selected workflow and authorizes decisions |
-| Local run manifest (`.woostack/tmp/runs/<run-id>/`) | current fix/build product scope, plans, contracts, and execution state (mirrored to Linear or Plane when configured) |
+| Local run manifest (`.woostack/tmp/runs/<run-id>/`) | current fix/build product scope, plans, contracts, and execution state (mirrored to Linear, Plane, or GitHub when configured) |
 | Git and GitHub | source, ancestry, commits, PRs, checks, reviews, merge evidence |
 | Graphite | stack and branch operations |
 | Audit, QA, response reports | sanitized non-authoritative diagnostic evidence |

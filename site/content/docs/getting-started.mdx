@@ -15,7 +15,7 @@ Prepare:
 - Bash, Git, the GitHub CLI (`gh`), the Graphite CLI (`gt`), and `jq`. Authenticate both CLIs and
   initialize Graphite for the repository before using a workflow that delivers a pull request.
 
-You do not need Linear or Plane for this tutorial. Local run artifacts are the default.
+You do not need Linear, Plane, or GitHub for this tutorial. Local run artifacts are the default.
 
 ## 1. Install the skills
 
@@ -41,7 +41,7 @@ worktree support, and the host-specific local support that woostack needs. It pr
 project agents and extensions.
 
 When the command finishes, confirm that `.woostack/config.json` exists. The command may also report
-read-only Linear discovery, but missing Linear access does not block local initialization.
+read-only Linear discovery (or GitHub discovery when `artifacts.provider: "github"` is selected), but missing provider access does not block local initialization.
 
 ## 3. Check the installation
 

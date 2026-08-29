@@ -49,11 +49,11 @@ Session naming uses an in-process project extension:
   to protect shared configuration.
 
 
-## Local run artifacts and optional Linear/Plane mirroring
+## Local run artifacts and optional remote mirroring
 
 Build and project-backed Fix operate with canonical persistent local authority under
 `.woostack/tmp/runs/<run-id>/` by default (`artifacts.provider: "local"` or omitted). When
-`artifacts.provider: "linear"` or `artifacts.provider: "plane"`, local artifacts mirror to the
+`artifacts.provider: "github"`, `"linear"`, or `"plane"`, local artifacts mirror to the
 configured provider. OMP credentials stay in its host-owned MCP/OAuth secret environment and never
 enter repository config, prompts, logs, or generated output. Follow the
 [Local run artifact and provider mirror contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-backends.md).
@@ -64,7 +64,7 @@ resume exactly with `/woostack-execute --run <exact-run-id> [--recheck]`. Retain
 authorize worker assignment, dispatch, edits, commits, review, product acceptance, or repository
 delivery claims. Before proof, Fix makes no provider call. `woostack-change` never contacts a provider.
 
-Optional provider writers (Bootstrap and Commit) execute only upon explicit caller opt-in (requested persistence after design approval for Bootstrap; `--issue` for Commit), using only the official host-exposed MCP matching `artifacts.provider` (`"linear"` or `"plane"`), with independent read-back and nonblocking optional synchronization that preserves Git/GitHub repository authority.
+Optional provider writers (Bootstrap and Commit) execute only upon explicit caller opt-in (requested persistence after design approval for Bootstrap; `--issue` for Commit), using only the official host interface matching `artifacts.provider` (host-authenticated `gh` for GitHub, or official Linear/Plane MCP), with independent read-back and nonblocking optional synchronization that preserves Git/GitHub repository authority.
 ## Recovery
 
 Stop on profile, cwd, worktree, branch, ancestry, credential, process-exit, verification, review, or
