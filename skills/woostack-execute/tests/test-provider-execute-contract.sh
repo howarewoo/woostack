@@ -110,6 +110,14 @@ require("controller", r"In GitHub provider mode, transition and independently re
 require("github_profile", r"New increment items begin at `planned`, transitioning to `executing`.*`inReview`.*`done`.*closing the issue")
 require("github_profile", r"Completing all increments leaves the Project open.*explicit Plan/Execute closure")
 
+# GitHub-mirrored local-run PR association and recovery contract
+require("skill", r"In local run mode:.*mirror\.provider.*github.*stableTaskMappings.*canonical repository issue URL.*woostack-commit.*--issue")
+require("skill", r"exactly one matching `Resolves <canonical issue URL>` body line")
+require("skill", r"For local runs with provider `local`, an omitted or unmapped task mapping, or a non-GitHub provider.*without `--issue`")
+require("controller", r"In local run mode:.*mirror\.provider.*github.*stableTaskMappings.*canonical repository issue URL.*woostack-commit.*--issue")
+require("controller", r"exactly one matching `Resolves <canonical issue URL>` body line")
+require("controller", r"recheck.*recovery reuses the recorded delivery checkpoint and verified existing open PR.*Resolves")
+
 # Delivery checkpoints and mirror failure nonblocking separation
 require("skill", r"persisted checkpoint.*teardown.*resume.*sibling")
 require("controller", r"full delivery checkpoint.*teardown.*resume.*sibling")
@@ -302,14 +310,33 @@ class MockRepository:
             "number": pr_number,
             "url": pr_url,
             "head": branch_name,
+            "head_sha": self.branches[branch_name],
             "base": base_branch,
             "title": title,
             "body": body,
             "graphite_parent": graphite_parent,
+            "state": "OPEN",
         }
         self.prs.append(pr_record)
         self.mutation_count += 1
         return pr_record
+
+    def close_pr(self, pr_url):
+        for pr in self.prs:
+            if pr["url"] == pr_url:
+                pr["state"] = "CLOSED"
+                self.mutation_count += 1
+                return pr
+        raise ValueError(f"PR not found: {pr_url}")
+
+    def update_pr_body(self, pr_url, new_body):
+        for pr in self.prs:
+            if pr["url"] == pr_url:
+                pr["body"] = new_body
+                self.mutation_count += 1
+                return pr
+        raise ValueError(f"PR not found: {pr_url}")
+
 
 
 def resolve_and_validate_plane_states(config, mcp, project_id):
@@ -1643,6 +1670,349 @@ def test_github_execution_suite():
     print("smoke: GitHub execution lifecycle, stacked bases, close recovery, and option resolution: ok")
 
 test_github_execution_suite()
+
+# ---------------------------------------------------------------------------
+# Test Case 15: GitHub-Mirrored Local-Run PR Association, Fallbacks, and --recheck Repair
+# ---------------------------------------------------------------------------
+def execute_local_run_task_delivery(manifest, task_key, repo, gh_client=None, predecessor_checkpoint=None, inject_post_submission_failure=False):
+    base_branch = predecessor_checkpoint["branch"] if predecessor_checkpoint else "main"
+    branch_name = f"adamwoo/{task_key}"
+    repo.create_branch(branch_name, base_branch)
+    commit_sha = repo.commit(branch_name, f"feat: implement {task_key}", ["src/index.ts"])
+
+    mirror_cfg = manifest.get("mirror", {})
+    mirror_provider = mirror_cfg.get("provider")
+    task_mappings = manifest.get("stableTaskMappings", {})
+    mapped_issue_url = task_mappings.get(task_key)
+
+    commit_issue_arg = None
+    pr_body_lines = [f"Implementation for {task_key}"]
+    warning_emitted = False
+
+    if mirror_provider == "github" and mapped_issue_url:
+        try:
+            if not gh_client:
+                raise RuntimeError("missing gh client")
+            issue = gh_client.read_issue(mapped_issue_url)
+            if not issue or issue.get("parent") is not None:
+                raise ValueError("invalid/parented issue")
+            if issue.get("repository") != f"https://github.com/{gh_client.owner}/{gh_client.repo}":
+                raise ValueError("foreign repository issue")
+            commit_issue_arg = mapped_issue_url
+            if not inject_post_submission_failure:
+                pr_body_lines.append(f"Resolves {mapped_issue_url}")
+        except Exception as exc:
+            warning_emitted = True
+            manifest.setdefault("warnings", []).append(f"pre-commit issue verification failed: {exc}")
+
+    pr_body = "\n".join(pr_body_lines)
+    pr = repo.submit_pr(
+        branch_name=branch_name,
+        base_branch=base_branch,
+        title=f"feat: {task_key}",
+        body=pr_body,
+        graphite_parent=base_branch
+    )
+
+    if inject_post_submission_failure:
+        # Post-submission association / read-back failure: PR exists but read-back lacks closing line or API fails
+        warning_emitted = True
+        manifest.setdefault("warnings", []).append("post-submission PR association read-back failed")
+    elif commit_issue_arg:
+        resolves_matches = re.findall(rf"^Resolves\s+{re.escape(commit_issue_arg)}$", pr["body"], re.M)
+        assert len(resolves_matches) == 1, f"expected exactly one Resolves line, got {len(resolves_matches)}"
+    else:
+        resolves_matches = re.findall(r"^Resolves\s+", pr["body"], re.M)
+        assert len(resolves_matches) == 0, f"expected zero Resolves lines, got {len(resolves_matches)}"
+
+    checkpoint = {
+        "stableTaskKey": task_key,
+        "ordinal": manifest.get("taskGraph", {}).get(task_key, {}).get("ordinal", 1),
+        "branch": branch_name,
+        "commitSha": commit_sha,
+        "prUrl": pr["url"],
+        "prHead": pr["head"],
+        "prBase": pr["base"],
+        "graphiteParent": pr["graphite_parent"],
+        "verificationReceipt": "verified",
+        "deliveredAt": "2026-08-29T12:00:00Z"
+    }
+    manifest.setdefault("taskExecutions", {})[task_key] = {
+        "status": "delivered",
+        "checkpoint": checkpoint
+    }
+    manifest["manifestRevision"] = manifest.get("manifestRevision", 1) + 1
+    return checkpoint, warning_emitted
+
+
+def recheck_local_run_github_association(manifest, task_key, repo, gh_client):
+    task_exec = manifest.get("taskExecutions", {}).get(task_key)
+    if not task_exec or task_exec.get("status") != "delivered":
+        raise ValueError("task is not delivered")
+    checkpoint = task_exec.get("checkpoint")
+    if not checkpoint:
+        raise ValueError("missing delivery checkpoint")
+
+    mirror_cfg = manifest.get("mirror", {})
+    mirror_provider = mirror_cfg.get("provider")
+    task_mappings = manifest.get("stableTaskMappings", {})
+    mapped_issue_url = task_mappings.get(task_key)
+
+    if mirror_provider != "github" or not mapped_issue_url:
+        return {"repaired": False, "reason": "not a GitHub-mirrored task with exact mapping"}
+
+    # 1. Live verify canonical issue
+    try:
+        issue = gh_client.read_issue(mapped_issue_url)
+        if not issue or issue.get("parent") is not None:
+            raise ValueError("invalid/parented issue")
+        if issue.get("repository") != f"https://github.com/{gh_client.owner}/{gh_client.repo}":
+            raise ValueError("foreign repository issue")
+    except Exception as exc:
+        manifest.setdefault("warnings", []).append(f"recheck issue verification failed: {exc}")
+        return {"repaired": False, "reason": str(exc)}
+
+    # 2. Re-read existing PR and verify identity and OPEN state
+    pr_url = checkpoint["prUrl"]
+    matching_prs = [p for p in repo.prs if p["url"] == pr_url]
+    if not matching_prs:
+        raise ValueError(f"existing PR not found: {pr_url}")
+    pr = matching_prs[0]
+
+    if pr.get("state") != "OPEN":
+        return {"repaired": False, "reason": "PR is not OPEN"}
+    if pr.get("head") != checkpoint.get("prHead") or pr.get("head") != checkpoint.get("branch"):
+        return {"repaired": False, "reason": "PR head/branch mismatch"}
+    if pr.get("base") != checkpoint.get("prBase"):
+        return {"repaired": False, "reason": "PR base mismatch"}
+    if pr.get("head_sha") != checkpoint.get("commitSha"):
+        return {"repaired": False, "reason": "PR head commit SHA mismatch"}
+
+    resolves_matches = re.findall(rf"^Resolves\s+{re.escape(mapped_issue_url)}$", pr["body"], re.M)
+    if len(resolves_matches) == 1:
+        return {"repaired": False, "reason": "already associated"}
+    elif len(resolves_matches) == 0:
+        new_body = pr["body"] + f"\nResolves {mapped_issue_url}"
+        repo.update_pr_body(pr_url, new_body)
+        recheck_matches = re.findall(rf"^Resolves\s+{re.escape(mapped_issue_url)}$", pr["body"], re.M)
+        assert len(recheck_matches) == 1, f"expected exactly one Resolves line after repair, got {len(recheck_matches)}"
+        return {"repaired": True, "prUrl": pr_url, "issueUrl": mapped_issue_url}
+    else:
+        raise ValueError(f"unexpected duplicate Resolves lines: {len(resolves_matches)}")
+
+
+def test_github_mirrored_local_run_association():
+    gh_client = MockGitHubClient(owner="acme", repo="widgets")
+    issue_694_url = "https://github.com/acme/widgets/issues/694"
+    gh_client.add_issue(issue_694_url, "acme", "https://github.com/acme/widgets", 694, state="OPEN")
+    # Seed foreign issue under foreign repo so foreign scope rejection is genuinely exercised
+    foreign_issue_url = "https://github.com/other-org/other-repo/issues/10"
+    gh_client.add_issue(foreign_issue_url, "other-org", "https://github.com/other-org/other-repo", 10, state="OPEN")
+
+    # 1. Mapped GitHub local run delivery associates exact issue and reads back one Resolves line
+    repo1 = MockRepository(parent_tip="sha-000")
+    manifest1 = {
+        "manifestRevision": 1,
+        "mirror": {"provider": "github", "status": "synced"},
+        "stableTaskMappings": {"task-mapped": issue_694_url},
+        "taskGraph": {"task-mapped": {"ordinal": 1}},
+        "taskExecutions": {}
+    }
+    chk1, warn1 = execute_local_run_task_delivery(manifest1, "task-mapped", repo1, gh_client)
+    assert warn1 is False
+    assert manifest1["taskExecutions"]["task-mapped"]["status"] == "delivered"
+    assert "Resolves https://github.com/acme/widgets/issues/694" in repo1.prs[0]["body"]
+
+    # 2. Aggregate failed mirror status does not suppress association when exact mapping exists
+    repo2 = MockRepository(parent_tip="sha-000")
+    manifest2 = {
+        "manifestRevision": 1,
+        "mirror": {"provider": "github", "status": "failed", "error": "Project README sync error"},
+        "stableTaskMappings": {"task-failed-mirror": issue_694_url},
+        "taskGraph": {"task-failed-mirror": {"ordinal": 1}},
+        "taskExecutions": {}
+    }
+    chk2, warn2 = execute_local_run_task_delivery(manifest2, "task-failed-mirror", repo2, gh_client)
+    assert warn2 is False
+    assert manifest2["taskExecutions"]["task-failed-mirror"]["status"] == "delivered"
+    assert "Resolves https://github.com/acme/widgets/issues/694" in repo2.prs[0]["body"]
+
+    # 3. Fallbacks: local, unmapped, linear, and plane remain artifact-free without Resolves line
+    repo3 = MockRepository(parent_tip="sha-000")
+    manifest3_local = {"manifestRevision": 1, "mirror": {"provider": "local"}, "stableTaskMappings": {}, "taskExecutions": {}}
+    execute_local_run_task_delivery(manifest3_local, "task-local", repo3, gh_client)
+    assert "Resolves" not in repo3.prs[-1]["body"]
+
+    manifest3_unmapped = {"manifestRevision": 1, "mirror": {"provider": "github"}, "stableTaskMappings": {}, "taskExecutions": {}}
+    execute_local_run_task_delivery(manifest3_unmapped, "task-unmapped", repo3, gh_client)
+    assert "Resolves" not in repo3.prs[-1]["body"]
+
+    manifest3_linear = {"manifestRevision": 1, "mirror": {"provider": "linear"}, "stableTaskMappings": {"task-lin": "LIN-123"}, "taskExecutions": {}}
+    execute_local_run_task_delivery(manifest3_linear, "task-lin", repo3, gh_client)
+    assert "Resolves" not in repo3.prs[-1]["body"]
+
+    manifest3_plane = {"manifestRevision": 1, "mirror": {"provider": "plane"}, "stableTaskMappings": {"task-pln": "ENG-42"}, "taskExecutions": {}}
+    execute_local_run_task_delivery(manifest3_plane, "task-pln", repo3, gh_client)
+    assert "Resolves" not in repo3.prs[-1]["body"]
+
+    # 4. Pre-commit verification failure (404 / foreign repo) warns without blocking local CAS delivery
+    repo4 = MockRepository(parent_tip="sha-000")
+    manifest4_404 = {
+        "manifestRevision": 1,
+        "mirror": {"provider": "github"},
+        "stableTaskMappings": {"task-404": "https://github.com/acme/widgets/issues/999"},
+        "taskExecutions": {}
+    }
+    chk4a, warn4a = execute_local_run_task_delivery(manifest4_404, "task-404", repo4, gh_client)
+    assert warn4a is True
+    assert manifest4_404["taskExecutions"]["task-404"]["status"] == "delivered"
+    assert "Resolves" not in repo4.prs[-1]["body"]
+
+    manifest4_foreign = {
+        "manifestRevision": 1,
+        "mirror": {"provider": "github"},
+        "stableTaskMappings": {"task-foreign": foreign_issue_url},
+        "taskExecutions": {}
+    }
+    chk4b, warn4b = execute_local_run_task_delivery(manifest4_foreign, "task-foreign", repo4, gh_client)
+    assert warn4b is True
+    assert manifest4_foreign["taskExecutions"]["task-foreign"]["status"] == "delivered"
+    assert "Resolves" not in repo4.prs[-1]["body"]
+
+    # 5. Injected post-submission association / read-back failure:
+    # Exactly one PR created, checkpoint delivered, commit is NOT replayed; recheck repairs the same PR
+    repo5_post = MockRepository(parent_tip="sha-000")
+    manifest5_post = {
+        "manifestRevision": 1,
+        "mirror": {"provider": "github", "status": "synced"},
+        "stableTaskMappings": {"task-post-fail": issue_694_url},
+        "taskGraph": {"task-post-fail": {"ordinal": 1}},
+        "taskExecutions": {}
+    }
+    chk5_post, warn5_post = execute_local_run_task_delivery(
+        manifest5_post, "task-post-fail", repo5_post, gh_client, inject_post_submission_failure=True
+    )
+    assert warn5_post is True
+    assert manifest5_post["taskExecutions"]["task-post-fail"]["status"] == "delivered"
+    # Exactly one branch, commit, and PR created (no replay)
+    assert len(repo5_post.branches) == 1
+    assert len(repo5_post.commits) == 1
+    assert len(repo5_post.prs) == 1
+    assert "Resolves" not in repo5_post.prs[0]["body"]
+
+    # Recheck repairs that same PR
+    rec_post = recheck_local_run_github_association(manifest5_post, "task-post-fail", repo5_post, gh_client)
+    assert rec_post["repaired"] is True
+    assert "Resolves https://github.com/acme/widgets/issues/694" in repo5_post.prs[0]["body"]
+    assert len(repo5_post.branches) == 1
+    assert len(repo5_post.commits) == 1
+    assert len(repo5_post.prs) == 1
+
+    # 6. --recheck repair on existing open PR with ZERO new branches/commits/PRs
+    repo6 = MockRepository(parent_tip="sha-000")
+    repo6.create_branch("adamwoo/task-694", "sha-000")
+    c_sha6 = repo6.commit("adamwoo/task-694", "feat: initial commit", ["src/mod.ts"])
+    pr695 = repo6.submit_pr(
+        branch_name="adamwoo/task-694",
+        base_branch="main",
+        title="feat: initial increment PR",
+        body="Existing PR body without Resolves line",
+        graphite_parent="main"
+    )
+    manifest6 = {
+        "manifestRevision": 2,
+        "mirror": {"provider": "github", "status": "synced"},
+        "stableTaskMappings": {"task-recheck": issue_694_url},
+        "taskExecutions": {
+            "task-recheck": {
+                "status": "delivered",
+                "checkpoint": {
+                    "stableTaskKey": "task-recheck",
+                    "ordinal": 1,
+                    "branch": "adamwoo/task-694",
+                    "commitSha": c_sha6,
+                    "prUrl": pr695["url"],
+                    "prHead": pr695["head"],
+                    "prBase": pr695["base"],
+                    "graphiteParent": "main",
+                    "verificationReceipt": "verified",
+                    "deliveredAt": "2026-08-29T10:00:00Z"
+                }
+            }
+        }
+    }
+
+    b_count_before = len(repo6.branches)
+    c_count_before = len(repo6.commits)
+    p_count_before = len(repo6.prs)
+
+    rec_res = recheck_local_run_github_association(manifest6, "task-recheck", repo6, gh_client)
+    assert rec_res["repaired"] is True
+    assert "Resolves https://github.com/acme/widgets/issues/694" in repo6.prs[0]["body"]
+
+    assert len(repo6.branches) == b_count_before, "recheck must not create new branch"
+    assert len(repo6.commits) == c_count_before, "recheck must not create new commit"
+    assert len(repo6.prs) == p_count_before, "recheck must not submit new PR"
+    assert gh_client.issues[issue_694_url]["state"] == "OPEN", "recheck must not mutate issue state"
+
+    # Idempotent re-run
+    rec_res_again = recheck_local_run_github_association(manifest6, "task-recheck", repo6, gh_client)
+    assert rec_res_again["repaired"] is False
+    assert rec_res_again["reason"] == "already associated"
+    assert len(re.findall(rf"^Resolves\s+{re.escape(issue_694_url)}$", repo6.prs[0]["body"], re.M)) == 1
+
+    # 7. Closed PR rejection (zero mutations)
+    repo6.close_pr(pr695["url"])
+    mut_count_before_closed = repo6.mutation_count
+    # remove Resolves to test repair rejection on closed PR
+    pr695["body"] = "Closed PR body without association line"
+    rec_closed = recheck_local_run_github_association(manifest6, "task-recheck", repo6, gh_client)
+    assert rec_closed["repaired"] is False
+    assert rec_closed["reason"] == "PR is not OPEN"
+    assert repo6.mutation_count == mut_count_before_closed
+    assert "Resolves" not in pr695["body"]
+
+    # 8. Advanced PR head rejection (zero mutations)
+    pr695["state"] = "OPEN"
+    pr695["head_sha"] = "sha-advanced"
+    mut_count_before_advanced_head = repo6.mutation_count
+    rec_advanced_head = recheck_local_run_github_association(manifest6, "task-recheck", repo6, gh_client)
+    assert rec_advanced_head["repaired"] is False
+    assert rec_advanced_head["reason"] == "PR head commit SHA mismatch"
+    assert repo6.mutation_count == mut_count_before_advanced_head
+    assert "Resolves" not in pr695["body"]
+    pr695["head_sha"] = c_sha6
+
+    # 9. Checkpoint mismatch rejection (head/branch/base/commit mismatch -> zero mutations)
+    manifest6_mismatch = dict(manifest6)
+    manifest6_mismatch["taskExecutions"] = {
+        "task-recheck": {
+            "status": "delivered",
+            "checkpoint": {
+                "stableTaskKey": "task-recheck",
+                "ordinal": 1,
+                "branch": "adamwoo/other-branch",
+                "commitSha": "sha-foreign",
+                "prUrl": pr695["url"],
+                "prHead": "adamwoo/other-branch",
+                "prBase": "main",
+                "graphiteParent": "main",
+                "verificationReceipt": "verified",
+                "deliveredAt": "2026-08-29T10:00:00Z"
+            }
+        }
+    }
+    pr695["state"] = "OPEN"
+    mut_count_before_mismatch = repo6.mutation_count
+    rec_mismatch = recheck_local_run_github_association(manifest6_mismatch, "task-recheck", repo6, gh_client)
+    assert rec_mismatch["repaired"] is False
+    assert "mismatch" in rec_mismatch["reason"]
+    assert repo6.mutation_count == mut_count_before_mismatch
+    assert "Resolves" not in pr695["body"]
+
+    print("smoke: GitHub mirrored local run PR association, fallbacks, nonblocking warnings, and recheck repair: ok")
+
+test_github_mirrored_local_run_association()
 
 print("all provider execute contract tests: ok")
 PY

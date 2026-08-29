@@ -108,7 +108,13 @@ Before any worktree or source mutation in local run mode:
 
 When `--recheck` is provided with `--run`, invoke bounded [`woostack-harden`](../woostack-harden/SKILL.md)
 against the current trunk / integration parent tip before execution. If discrepancies are found, report
-them and offer `Continue`, `Revise spec/plan`, or `Stop`.
+them and offer `Continue`, `Revise spec/plan`, or `Stop`. When `--recheck` encounters an already-delivered
+task whose verified existing open PR lacks the exact mapped GitHub issue association, recovery reuses the
+recorded delivery checkpoint and verified open PR: verify that the PR is open and matches the recorded
+checkpoint identity (`prUrl`, `prHead`/`branch`, `prBase`, `commitSha`), repair and read back exactly one
+matching `Resolves <canonical issue URL>` line, and stop before creating any worktree, branch, commit, or PR,
+without mutating issue lifecycle. If the PR is closed or merged, or if checkpoint identity mismatches,
+recovery rejects mutation with zero changes.
 
 ### Repository ancestry admission
 
@@ -208,9 +214,23 @@ Local run mode bypasses provider lifecycle synchronization.
      exact selected canonical issue URL to commit and submit exactly one Graphite PR. Independently read back branch,
      commit, PR URL/head/base, the exact `Resolves <issue URL>` body line, verification receipt,
      and Graphite parent.
-   - In local run mode, invoke [`woostack-commit`](../woostack-commit/SKILL.md) without `--issue` and
-     without a `Resolves` line. Independently read back branch, commit, PR URL/head/base, verification
-     receipt, and Graphite parent.
+   - In local run mode:
+     - If `mirror.provider` is `"github"` and `stableTaskMappings[stableTaskKey]` contains an exact bound
+       canonical repository issue URL (`https://github.com/<owner>/<repo>/issues/<N>`), verify the canonical
+       issue live against the admitted repository. If verified, invoke [`woostack-commit`](../woostack-commit/SKILL.md)
+       with `--issue <canonical issue URL>` regardless of aggregate mirror status. Independently read back
+       branch, commit, PR URL/head/base, verification receipt, Graphite parent, and exactly one matching
+       `Resolves <canonical issue URL>` body line when association succeeds. If pre-Commit live issue verification
+       fails (for example, missing, foreign-scope, or parented issue), warn, record the mirror failure, and continue
+       repository delivery by invoking [`woostack-commit`](../woostack-commit/SKILL.md) without `--issue` and without
+       blocking local checkpoint persistence. If post-submission association or read-back fails after PR creation,
+       warn, record the mirror failure, rediscover and reuse the verified branch, commit, PR, and Graphite parent,
+       and persist the local delivery checkpoint without replaying Commit or creating duplicate objects; `--recheck`
+       remains available to repair the missing association on the existing open PR later.
+     - For local runs with provider `local`, an omitted or unmapped task mapping, or a non-GitHub provider
+       (Linear or Plane), invoke [`woostack-commit`](../woostack-commit/SKILL.md) without `--issue` and
+       without a `Resolves` line. Independently read back branch, commit, PR URL/head/base, verification
+       receipt, and Graphite parent.
 8. Persist the complete delivery checkpoint:
    - In Linear provider mode, persist the delivery checkpoint to Linear and independently read back every field.
      Only after that full read-back succeeds, resolve and independently read back the configured inReview mapping
