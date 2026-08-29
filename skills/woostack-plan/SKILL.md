@@ -1,41 +1,43 @@
 ---
 name: woostack-plan
-description: Turn one approved specification into a strict sequential chain of PR-sized direct Linear issues or Plane increment child work items. Never approves, executes, commits, reviews, or merges.
+description: Turn one approved specification into a strict sequential chain of PR-sized direct Linear issues, Plane increment child work items, or parentless canonical-repository GitHub issues. Never approves, executes, commits, reviews, or merges.
 ---
 
 # woostack-plan
 
 Turn one approved specification into one complete execution plan. Standalone Plan reads one exact
-existing Linear project or the canonical Plane repository project, derives and hardens a candidate chain,
-synchronizes the complete direct-issue or parented specification graph, independently reads that graph
-back, and returns the verified result. When delegated by Build or project-backed Fix, Plan instead drafts
-the same complete candidate into the owning workflow's run-scoped manifest with zero provider calls and
-returns before synchronization.
+existing Linear project, canonical GitHub Project, or the canonical Plane repository project, derives
+and hardens a candidate chain, synchronizes the complete direct-issue, parented specification, or
+parentless GitHub graph, independently reads that graph back, and returns the verified result. When
+delegated by Build or project-backed Fix, Plan instead drafts the same complete candidate into the
+owning workflow's run-scoped manifest with zero provider calls and returns before synchronization.
 ## Command
 
 ```text
-/woostack-plan <approved specification> [--project <exact Linear or Plane URL-or-UUID>]
-/woostack-plan [--project <exact Linear or Plane URL-or-UUID>]
+/woostack-plan <approved specification> [--project <exact Linear, Plane, or GitHub URL-or-UUID>]
+/woostack-plan [--project <exact Linear, Plane, or GitHub URL-or-UUID>]
 ```
-For standalone Linear use, `--project` is mandatory. For standalone Plane use, `--project` is optional
+For standalone Linear or GitHub use, `--project` is mandatory. For standalone Plane use, `--project` is optional
 and omitted input uses the exact `artifacts.plane.project`; when supplied, it must identify that same
-native project. Standalone use requires `artifacts.provider: "linear"` or
-`artifacts.provider: "plane"` in effective repository configuration. When `artifacts.provider` is "local"
+native project. Standalone use requires `artifacts.provider: "linear"`, `artifacts.provider: "plane"`, or
+`artifacts.provider: "github"` in effective repository configuration. When `artifacts.provider` is "local"
 or omitted, standalone Plan fails closed before any provider access with an error stating that provider
-operations require `artifacts.provider: "linear"` or `artifacts.provider: "plane"`. There is no CLI provider override.
+operations require `artifacts.provider: "linear"`, `artifacts.provider: "plane"`, or `artifacts.provider: "github"`. There is no CLI provider override.
 Standalone Plan loads the shared
 [artifact contract](../woostack-init/references/artifact-backends.md), then only the selected row:
 
 | `artifacts.provider` | Provider profile | Synchronization |
 | --- | --- | --- |
+| `"github"` | [GitHub](../woostack-init/references/artifact-providers/github.md) | [GitHub procedure](../woostack-build/references/github-procedure.md) |
 | `"linear"` | [Linear](../woostack-init/references/artifact-providers/linear.md) | [Linear procedure](../woostack-build/references/linear-procedure.md) |
 | `"plane"` | [Plane](../woostack-init/references/artifact-providers/plane.md) | [Plane procedure](../woostack-build/references/plane-procedure.md) |
 
 For Linear, resolve only the exact selected project, which must already exist and match the canonical
-repository. For Plane, resolve only the exact configured project, requiring any explicitly supplied
-`--project` to identify the same native project. The project must match the canonical repository and
-belong to the configured provider scope. Wrong resource type, missing project, foreign scope,
-incomplete read, or conflicting content blocks before mutation.
+repository. For GitHub, resolve only the exact selected canonical Project URL, which must already exist
+under the configured owner and match the canonical repository. For Plane, resolve only the exact configured
+project, requiring any explicitly supplied `--project` to identify the same native project. The project
+must match the canonical repository and belong to the configured provider scope. Wrong resource type,
+missing project, foreign scope, incomplete read, or conflicting content blocks before mutation.
 There is no fuzzy-discovery or alternate-provider path. Standalone Plan also reads the repository,
 canonical parent branch and last admitted tip, existing patterns, and relevant tests.
 Build/Fix-delegated Plan instead obeys the shared
@@ -62,9 +64,10 @@ or execution handoff authority.
 
 ## Direct issue contract
 
-Create or reconcile exactly one direct project issue (for Linear) or child increment work item under the
-`[Plan] <goal>` specification work item (for Plane) for each execution increment. Never create extra
-container, checklist, layer, or synthetic issues. Historical parent/container issues are not current
+Create or reconcile exactly one direct project issue (for Linear), parentless repository issue with direct
+Project membership (for GitHub), or child increment work item under the `[Plan] <goal>` specification work
+item (for Plane) for each execution increment. Never create extra container, checklist, layer, or
+synthetic issues. Historical parent/container issues are not current
 increments and are not detached, migrated, archived, deleted, or treated as containment. Every direct issue
 or increment work item must retain these fields in its complete description:
 
@@ -100,8 +103,8 @@ exception rationale in the issue. Otherwise split or reject an increment that ex
 ## Chain invariants
 
 The plan is a strict sequential chain. If there are `N` increments, ordinals are exactly the positive
-integers `1..N`, each ordinal and task ID is unique, and each native Linear dependency or Plane sibling
-blocking relation is exactly the matching predecessor edge:
+integers `1..N`, each ordinal and task ID is unique, and each native Linear dependency, GitHub blocked-by
+dependency, or Plane sibling blocking relation is exactly the matching predecessor edge:
 
 ```text
 ordinal 1: no predecessor
@@ -126,15 +129,17 @@ In standalone use only, after the chain is complete and valid, verify the canoni
 association and selected workspace/team or instance/workspace, then apply the
 [existing-description mutation invariant](../woostack-init/references/artifact-backends.md#existing-description-mutation-invariant)
 while synchronizing one exact project graph through the matching provider synchronization procedure
-([Linear](../woostack-build/references/linear-procedure.md) or
+([GitHub](../woostack-build/references/github-procedure.md),
+[Linear](../woostack-build/references/linear-procedure.md), or
 [Plane](../woostack-build/references/plane-procedure.md)):
 
-1. Reconcile the complete current project context (for Plane, create/update the top-level `[Plan] <goal>`
-   specification work item with `parent = null`).
-2. Create or reconcile exactly one direct project issue (Linear) or child increment work item with
-   `parent = <spec-item-UUID>` (Plane) per increment with its full contract.
-3. Create or reconcile only the strict predecessor dependency chain (for Plane, `N-1` sibling blocking
-   relations).
+1. Reconcile the complete current project context (for GitHub, write the managed README section and
+   update `shortDescription`; for Plane, create/update the top-level `[Plan] <goal>` specification work item with `parent = null`).
+2. Create or reconcile exactly one direct project issue (Linear), parentless repository issue in the canonical
+   repository with direct Project membership (GitHub), or child increment work item with `parent = <spec-item-UUID>`
+   (Plane) per increment with its full contract.
+3. Create or reconcile only the strict predecessor dependency chain (for GitHub and Plane, `N-1` native
+   blocking relations/dependencies: predecessor blocks successor).
 4. Independently read every project, spec item (where applicable), issue/work item, membership, description,
    and dependency edge back; accept the plan only when the complete graph matches the candidate.
 Preallocate stable mutation identities, make reconciliation idempotent, and preserve unknown
@@ -144,8 +149,8 @@ unchanged, owns no approval gate, and does not use the Build/Fix run manifest.
 When delegated by Build or Fix, stop before every provider read or synchronization. Return the
 complete manifest-backed candidate contracts and strict chain to the wrapper. The wrapper hardens
 the manifest, writes `execution-plan.md`, displays every concise stable task and dependency mapping,
-and owns optional post-drafting mirror synchronization (when `artifacts.provider: "linear"` or
-`artifacts.provider: "plane"`) and exact read-back.
+and owns optional post-drafting mirror synchronization (when `artifacts.provider: "linear"`,
+`artifacts.provider: "plane"`, or `artifacts.provider: "github"`) and exact read-back.
 
 ## Return
 
@@ -158,10 +163,10 @@ identity or an execution claim.
 ## Hard constraints
 
 - One approved specification in; one coherent strict chain out.
-- One direct project issue (Linear) or specification child work item (Plane) per increment; no extra
+- One direct project issue (Linear), parentless repository issue with direct Project membership (GitHub), or specification child work item (Plane) per increment; no extra
   container issue and no hidden planning ledger.
 - Ordinals are exactly `1..N`; native dependencies are exactly `N-1 → N`.
-- Standalone Plan requires `--project` for Linear; for Plane `--project` is optional and omitted input
+- Standalone Plan requires `--project` for Linear and GitHub; for Plane `--project` is optional and omitted input
   uses the exact `artifacts.plane.project`.
 - Every issue carries the complete executor contract, size evidence, stop marker, and declared
   Graphite parent.

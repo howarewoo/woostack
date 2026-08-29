@@ -23,7 +23,7 @@ def forbid(pattern):
         failures.append(f"plan: matches forbidden pattern {pattern!r}")
 
 for needle in (
-    "For standalone Linear use, `--project` is mandatory",
+    "For standalone Linear or GitHub use, `--project` is mandatory",
     "For standalone Plane use, `--project` is optional",
     "exact `artifacts.plane.project`",
     "one complete specification",
@@ -57,6 +57,8 @@ for needle in (
     "owns no implementation, source edit, commit, branch, PR, review, merge",
     "Plane",
     "Linear",
+    "GitHub",
+    "parentless repository issue",
 ):
     require(needle)
 for pattern in (
@@ -352,5 +354,75 @@ try:
 except ValueError as e:
     assert "mismatched project" in str(e)
 
+
+# ---------------------------------------------------------------------------
+# Synthetic fixture-driven GitHub Plan provider boundary tests (0 network calls)
+# ---------------------------------------------------------------------------
+
+class MockGitHubPlanCLI:
+    def __init__(self, owner="acme", repo="acme/widgets"):
+        self.owner, self.repo = owner, repo
+        self.projects = {1: {"id": "PVT_0001", "number": 1, "owner": "acme", "title": "Roadmap", "readme": "", "shortDescription": "", "repository": f"https://github.com/{repo}"}, 2: {"id": "PVT_0002", "number": 2, "owner": "acme", "title": "Foreign", "readme": "", "shortDescription": "", "repository": "https://github.com/foreign/repo"}}
+        self.issues, self.items, self.dependencies = {}, {}, []
+
+    def resolve_project_url(self, url):
+        m = re.match(r"^https://github\.com/(orgs|users)/([^/]+)/projects/(\d+)$", url)
+        if not m: raise ValueError(f"malformed canonical GitHub Project URL: {url}")
+        if m.group(2) != self.owner: raise ValueError(f"owner mismatch: {m.group(2)} != {self.owner}")
+        num = int(m.group(3))
+        if num not in self.projects: raise ValueError(f"unknown Project number: {num}")
+        p = self.projects[num]
+        if p.get("repository") != f"https://github.com/{self.repo}": raise ValueError("repository mismatch")
+        return dict(p)
+
+    def update_project_readme(self, pid, readme, short_description=""):
+        self.projects[1]["readme"] = readme; self.projects[1]["shortDescription"] = short_description
+
+    def create_issue(self, repo, title, body):
+        n = len(self.issues) + 1; iid = f"I_{n:04d}"
+        iss = {"id": iid, "number": n, "repo": repo, "title": title, "body": body, "url": f"https://github.com/{repo}/issues/{n}", "parent": None}
+        self.issues[iid] = iss; return dict(iss)
+
+    def add_project_item(self, pid, cid):
+        item = {"id": f"PVTI_{len(self.items)+1:04d}", "content_id": cid}
+        self.items.setdefault(pid, []).append(item); return dict(item)
+
+    def add_issue_dependency(self, blocker_id, blocked_id):
+        dep = {"id": f"DEP_{len(self.dependencies)+1:04d}", "blocker_id": blocker_id, "blocked_id": blocked_id}
+        self.dependencies.append(dep); return dict(dep)
+
+
+def simulate_standalone_plan_github(provider, project_arg, cli, plan_items):
+    if provider != "github": raise ValueError("provider must be github")
+    if not project_arg: raise ValueError("requires mandatory --project")
+    proj = cli.resolve_project_url(project_arg)
+    cli.update_project_readme(proj["id"], "<!-- woostack-spec-start -->\n# Spec\n<!-- woostack-spec-end -->", short_description="Plan summary")
+    created = []
+    for idx, item in enumerate(plan_items):
+        contract = f"## {item['title']}\nOutcome: {item['title']}\nScope: lib.ts\n<!-- woostack-issue-mutation:plan-{idx}-uuid -->\nStop marker: complete"
+        iss = cli.create_issue(cli.repo, item["title"], contract)
+        if iss["parent"] is not None or "<!-- woostack-issue-mutation:" not in iss["body"] or "Stop marker: complete" not in iss["body"]:
+            raise RuntimeError("invalid issue contract")
+        cli.add_project_item(proj["id"], iss["id"])
+        created.append(iss)
+    for k in range(len(created) - 1):
+        cli.add_issue_dependency(created[k]["id"], created[k+1]["id"])
+    assert len(created) == len(plan_items) and len(cli.dependencies) == len(plan_items) - 1
+    return {"project": proj, "issues": created, "dependencies": cli.dependencies}
+
+
+# --- GitHub Plan Tests ---
+cli_plan = MockGitHubPlanCLI(owner="acme", repo="acme/widgets")
+gh_items = [{"title": "Increment 1: Setup"}, {"title": "Increment 2: Core"}, {"title": "Increment 3: Polish"}]
+gh_plan_res = simulate_standalone_plan_github("github", "https://github.com/orgs/acme/projects/1", cli_plan, gh_items)
+assert gh_plan_res["project"]["number"] == 1 and len(gh_plan_res["issues"]) == 3 and len(gh_plan_res["dependencies"]) == 2
+assert gh_plan_res["dependencies"][0]["blocker_id"] == "I_0001" and gh_plan_res["dependencies"][0]["blocked_id"] == "I_0002"
+assert cli_plan.projects[1]["shortDescription"] == "Plan summary"
+
+for bad_url, err in [(None, "requires mandatory --project"), ("https://github.com/not-a-project", "malformed canonical GitHub Project URL"), ("https://github.com/orgs/foreign/projects/1", "owner mismatch"), ("https://github.com/orgs/acme/projects/2", "repository mismatch")]:
+    try:
+        simulate_standalone_plan_github("github", bad_url, cli_plan, gh_items)
+        raise AssertionError(f"expected failure for {bad_url}")
+    except ValueError as e: assert err in str(e)
 print("test-provider-plan-contract: ok")
 PY

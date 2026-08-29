@@ -571,6 +571,28 @@ def test_plane_fix_preservation_and_scoping():
     assert execute_handoff_allowed is True, "execute handoff must be allowed on mirror failure"
     assert repo_mutations == 0, "repository mutations must remain zero on mirror failure"
 
+
+def test_github_fix_preservation_and_scoping():
+    owner, repo = "acme", "acme/widgets"
+    call_log, projects, issues, items, deps = [], {}, {}, {}, []
+    source = {"id": "I_0042", "number": 42, "repo": repo, "title": "Latency", "url": f"https://github.com/{repo}/issues/42", "parent": None, "state": "OPEN", "labels": ["bug"]}
+    issues[(repo, 42)] = dict(source)
+    assert len(call_log) == 0, "pre-proof phase must make zero provider calls"
+    resolved = issues.get((repo, 42))
+    assert resolved and resolved["parent"] is None
+    pid = "PVT_0001"
+    projects[pid] = {"id": pid, "title": "[Fix] Latency", "owner": owner, "repository": f"https://github.com/{repo}"}
+    assert projects[pid]["repository"] == f"https://github.com/{repo}"
+    items.setdefault(pid, []).append(resolved["id"])
+    for k, v in source.items():
+        assert issues[(repo, 42)][k] == v, f"source issue mutated {k}"
+    i1, i2 = {"id": "I_0001", "parent": None, "body": "Outcome: Slice 1\n<!-- woostack-issue-mutation:1 -->\nStop marker: done"}, {"id": "I_0002", "parent": None, "body": "Outcome: Slice 2\n<!-- woostack-issue-mutation:2 -->\nStop marker: done"}
+    items[pid].extend([i1["id"], i2["id"]])
+    deps.append({"blocker_id": i1["id"], "blocked_id": i2["id"]})
+    assert len(deps) == 1 and deps[0]["blocker_id"] == "I_0001" and deps[0]["blocked_id"] == "I_0002"
+    local_manifest = {"status": "ready", "workflow": "fix", "mirror": {"provider": "github", "status": "failed"}}
+    assert local_manifest["status"] == "ready"
+test_github_fix_preservation_and_scoping()
 test_plane_fix_preservation_and_scoping()
 if failures:
     print("fix project contract violations:", file=sys.stderr)
