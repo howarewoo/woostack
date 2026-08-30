@@ -165,10 +165,11 @@ function writeBoundSessionUsage(sessions) {
 }
 
 
-function prepare(runRoot, dense = false) {
-  run("init", "--run-root", runRoot, "--skill-root", skillRoot);
+function prepare(runRoot, dense = false, cohort = "historical-five-pr") {
+  run("init", "--run-root", runRoot, "--skill-root", skillRoot, "--cohort", cohort);
   const corpus = JSON.parse(readFileSync(join(runRoot, "corpus.json"), "utf8"));
-  const activeCases = corpus.cases.filter((item) => item.rank === 1);
+  const manifest = JSON.parse(readFileSync(join(runRoot, "manifest.json"), "utf8"));
+  const activeCases = manifest.caseIds.map((id) => corpus.cases.find((item) => item.id === id));
   const stages = [];
   const timingStartMs = Date.now() - 12_000;
   const instant = (seconds) => new Date(timingStartMs + seconds * 1000).toISOString();
@@ -296,6 +297,52 @@ try {
   assert.equal(verified.cases, 10);
   assert.equal(verified.goldens, 30);
 
+  const historicalSelectionRoot = join(workspace, "historical-selection");
+  run("init", "--run-root", historicalSelectionRoot, "--skill-root", skillRoot);
+  const historicalManifest = JSON.parse(readFileSync(join(historicalSelectionRoot, "manifest.json"), "utf8"));
+  assert.equal(historicalManifest.cohort, "historical-five-pr");
+  assert.deepEqual(historicalManifest.caseIds, ["cal-dot-com", "discourse", "grafana", "keycloak", "sentry"]);
+  const fullSelectionRoot = join(workspace, "full-selection");
+  run("init", "--run-root", fullSelectionRoot, "--skill-root", skillRoot, "--cohort", "full-ten-pr");
+  const fullManifest = JSON.parse(readFileSync(join(fullSelectionRoot, "manifest.json"), "utf8"));
+  const fullCaseIds = ["cal-dot-com", "cal-dot-com-2", "discourse", "discourse-2", "grafana", "grafana-2", "keycloak", "keycloak-2", "sentry", "sentry-2"];
+  assert.equal(fullManifest.cohort, "full-ten-pr");
+  assert.deepEqual(fullManifest.caseIds, fullCaseIds);
+  assert.deepEqual(fullManifest.expectedFindings, fullCaseIds.map((id) => `cases/${id}/findings.json`));
+  assert.deepEqual(fullManifest.expectedReviewEvidence, fullCaseIds.map((id) => `cases/${id}/review`));
+  for (const id of fullCaseIds) assert.equal(existsSync(join(fullSelectionRoot, "cases", id)), true);
+  const identityPlanRoot = join(workspace, "identity-plan");
+  run("init", "--run-root", identityPlanRoot, "--skill-root", skillRoot, "--cohort", "full-ten-pr");
+  const identityFindings = [
+    { title: "same accepted title", description: "same accepted description", file: "src/first.ts", line: 125 },
+    { title: "same accepted title", description: "same accepted description", file: "src/second.ts", line: 125 },
+  ];
+  for (const item of JSON.parse(readFileSync(join(identityPlanRoot, "corpus.json"), "utf8")).cases) {
+    writeJson(join(identityPlanRoot, "cases", item.id, "findings.json"), item.id === "cal-dot-com-2" ? identityFindings : []);
+  }
+  const identitySummary = JSON.parse(run("plan", "--run-root", identityPlanRoot));
+  assert.deepEqual(identitySummary, { cases: 10, candidates: 2, pairs: 4 });
+  const identityPlan = JSON.parse(readFileSync(join(identityPlanRoot, "judge-plan.json"), "utf8"));
+  const identityCase = identityPlan.cases.find(({ id }) => id === "cal-dot-com-2");
+  assert.deepEqual(identityCase.candidates.map(({ id }) => id), ["C01", "C02"]);
+  assert.deepEqual(identityCase.candidates.map(({ text }) => text), [
+    "same accepted title. same accepted description",
+    "same accepted title. same accepted description",
+  ]);
+  assert.equal(identityPlan.pairs.length, 4);
+  assert.deepEqual(identityPlan.cases.filter(({ id }) => id !== "cal-dot-com-2").map(({ candidates }) => candidates.length), Array(9).fill(0));
+
+  const duplicateIdentityRoot = join(workspace, "duplicate-identity-plan");
+  run("init", "--run-root", duplicateIdentityRoot, "--skill-root", skillRoot, "--cohort", "full-ten-pr");
+  for (const item of JSON.parse(readFileSync(join(duplicateIdentityRoot, "corpus.json"), "utf8")).cases) {
+    writeJson(join(duplicateIdentityRoot, "cases", item.id, "findings.json"), item.id === "cal-dot-com-2" ? [identityFindings[0], identityFindings[0]] : []);
+  }
+  assert.notEqual(execute("plan", "--run-root", duplicateIdentityRoot).status, 0);
+  assert.equal(existsSync(join(duplicateIdentityRoot, "judge-plan.json")), false);
+
+  const invalidCohortRoot = join(workspace, "invalid-cohort");
+  assert.notEqual(execute("init", "--run-root", invalidCohortRoot, "--skill-root", skillRoot, "--cohort", "unknown").status, 0);
+  assert.equal(existsSync(invalidCohortRoot), false);
   const fakeOmp = join(workspace, "fake-omp.mjs");
   writeFileSync(fakeOmp, `#!/usr/bin/env node
 import { readSync, writeFileSync } from "node:fs";
@@ -704,6 +751,17 @@ process.stdout.write(JSON.stringify(args.at(-1).includes("/comments?") ? [respon
   assert.match(renderedPrompt.stdout, /benchmark\.mjs launch-nested/);
   assert.match(renderedPrompt.stdout, /candidate 30m; adjudicator and judge 15m/);
   assert.equal(existsSync(shellMarker), false);
+  const fullPromptRoot = join(workspace, "prompt-full");
+  const fullPrompt = spawnSync(join(root, "run.sh"), ["--render-prompt", "--org", "benchmark-test", "--cohort", "full-ten-pr", "--run-root", fullPromptRoot], { encoding: "utf8" });
+  assert.equal(fullPrompt.status, 0, fullPrompt.stderr);
+  assert.match(fullPrompt.stdout, /- cohort: full-ten-pr/);
+  for (const repository of ["woostack-review-recall-20260814-cal-dot-com", "woostack-review-recall-20260814-cal-dot-com-2", "woostack-review-recall-20260814-discourse", "woostack-review-recall-20260814-discourse-2", "woostack-review-recall-20260814-grafana", "woostack-review-recall-20260814-grafana-2", "woostack-review-recall-20260814-keycloak", "woostack-review-recall-20260814-keycloak-2", "woostack-review-recall-20260814-sentry", "woostack-review-recall-20260814-sentry-2"]) assert.match(fullPrompt.stdout, new RegExp(repository));
+  const bugsPrompt = readFileSync(join(skillRoot, "prompts", "angles", "bugs.md"), "utf8");
+  const validatorPrompt = readFileSync(join(skillRoot, "prompts", "validator.md"), "utf8");
+  assert.match(bugsPrompt, /definitions? or signatures? visible in the diff or permitted evidence/);
+  assert.match(bugsPrompt, /never infer unavailable overloads or source/);
+  assert.match(validatorPrompt, /definitions or signatures visible in the diff or permitted evidence/);
+  assert.match(validatorPrompt, /reject speculation about unavailable overloads or source/);
 
   const missingDeliveryRun = join(workspace, "missing-delivery");
 
@@ -802,8 +860,13 @@ process.stdout.write(JSON.stringify(args.at(-1).includes("/comments?") ? [respon
   const dryRunRoot = join(workspace, "dry-run");
   const dryRun = spawnSync(join(root, "run.sh"), ["--dry-run", "--org", "benchmark-test", "--run-root", dryRunRoot], { encoding: "utf8" });
   assert.equal(dryRun.status, 0, dryRun.stderr);
-  assert.deepEqual(JSON.parse(dryRun.stdout), { repositoryRoot: resolve(root, "..", ".."), benchmarkRoot: root, skillRoot, runRoot: dryRunRoot, githubNamespace: "benchmark-test", usageDb: resolve(process.env.HOME, ".omp", "stats.db"), cohort: "historical-five-pr", dryRun: true });
+  assert.deepEqual(JSON.parse(dryRun.stdout), { repositoryRoot: resolve(root, "..", ".."), benchmarkRoot: root, skillRoot, runRoot: dryRunRoot, githubNamespace: "benchmark-test", usageDb: resolve(process.env.HOME, ".omp", "stats.db"), cohort: "historical-five-pr", caseIds: ["cal-dot-com", "discourse", "grafana", "keycloak", "sentry"], dryRun: true });
   assert.equal(existsSync(dryRunRoot), false);
+  const fullDryRunRoot = join(workspace, "dry-run-full");
+  const fullDryRun = spawnSync(join(root, "run.sh"), ["--dry-run", "--org", "benchmark-test", "--cohort", "full-ten-pr", "--run-root", fullDryRunRoot], { encoding: "utf8" });
+  assert.equal(fullDryRun.status, 0, fullDryRun.stderr);
+  assert.deepEqual(JSON.parse(fullDryRun.stdout).caseIds, ["cal-dot-com", "cal-dot-com-2", "discourse", "discourse-2", "grafana", "grafana-2", "keycloak", "keycloak-2", "sentry", "sentry-2"]);
+  assert.equal(existsSync(fullDryRunRoot), false);
   console.log("benchmark harness tests passed");
 } finally {
   rmSync(workspace, { recursive: true, force: true });
