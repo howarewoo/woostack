@@ -34,6 +34,12 @@ Apply this spatial standard to all arranged flows:
   step frames across the sequence.
 - **Preserve frame design.** Preserve supplied frame dimensions, aspect ratios, and visual styling.
   Do not resize, restyle, or alter the internal content of any frame.
+- **Screen-frame backgrounds only.** Give each actual screen frame a background that makes its outer
+  edge unambiguous. Do not add backgrounds to flow groups, sequence or fork rows, titles,
+  descriptions, labels, or surrounding canvas regions.
+- **Preserve clear frame backgrounds.** Keep an existing screen-frame background unchanged when it
+  already defines the screen edge; otherwise add only the frame-level background needed to make
+  that edge clear.
 
 ### 3. Branches and forks
 
@@ -58,8 +64,8 @@ Apply this spatial standard to all arranged flows:
 
 - **Relative layout only.** Define spatial placement through relative positioning, uniform spacing,
   and column alignment. Do not rely on fixed numeric dimensions or pixel coordinates.
-- **Preserve visual design.** Do not alter colors, typography, frame sizing, or existing visual
-  appearance.
+- **Preserve visual design.** Except for a screen-frame background required above when the screen
+  edge is unclear, do not alter colors, typography, frame sizing, or existing visual appearance.
 - **No connectors.** Do not create arrows, connecting lines, or link vectors between frames.
   Spatial alignment and horizontal reading order establish sequence and relationships.
 - **Tool agnostic.** Do not include tool-specific APIs, MCP bindings, platform plugins, scripts,
