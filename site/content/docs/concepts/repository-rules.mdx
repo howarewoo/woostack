@@ -1,6 +1,6 @@
 ---
 title: Repository structure and rules
-description: The complete architecture, package, dependency, infrastructure, testing, Git, and scaffold rules for projects bootstrapped with woostack.
+description: The complete app-local code placement, shared extraction, dependency, production, testing, Git, and scaffold rules for projects bootstrapped with woostack.
 ---
 
 Woostack defines a strong repository architecture for new projects created through
@@ -8,94 +8,71 @@ Woostack defines a strong repository architecture for new projects created throu
 repository: existing conventions and history remain authoritative, and brownfield work routes to
 Build, Fix, or Change.
 
-The package tiers and dependency direction below are non-negotiable for a bootstrapped project. The
-implementation patterns are mandatory unless the project's own documentation explicitly overrides
-them.
+All product code starts in the app that owns it. Extract a package only when multiple apps need the
+same implementation or contract. The remaining implementation patterns are mandatory unless the
+project's own documentation explicitly overrides them.
 
 ## Canonical layout
 
 ```text
 <project-root>/
 ├── apps/                         # Deployable units: web, api, worker, mobile, …
-└── packages/
-    ├── features/                 # One package per business/domain slice
-    │   └── <feature>/
-    │       ├── src/
-    │       │   ├── contracts/
-    │       │   ├── services/
-    │       │   ├── components/
-    │       │   ├── layouts/
-    │       │   └── schemas/
-    │       ├── package.json
-    │       └── tsconfig.json
-    └── infrastructure/           # Shared technical integrations
-        ├── db-client/
-        ├── auth/
-        ├── observability/
-        ├── ui/
-        └── utils/
+│   └── <app>/
+│       └── src/
+│           ├── contracts/        # App-owned, when needed
+│           ├── services/         # App-owned, when needed
+│           ├── components/       # App-owned, when needed
+│           ├── layouts/          # App-owned, when needed
+│           └── schemas/          # App-owned, when needed
+└── packages/                     # Shared across multiple apps; omit when unused
+    └── <shared-capability>/
 ```
 
 - `apps/` contains independently deployable surfaces with unscoped names such as `web`, `api`, and
   `worker`.
-- `packages/features/` contains business logic, with one package per domain or feature slice.
-- `packages/infrastructure/` contains shared technical libraries, platform adapters, and vendor SDK
-  wrappers.
-- Exact directory names may follow ecosystem conventions, including `products/`, `features/`, or
-  `infrastructure/`, but the logical tiers and dependency direction do not change.
-- Omit empty directories and empty layers.
+- Business logic, data access, authentication, observability, UI, utilities, and vendor
+  integrations live in their owning app by default.
+- `packages/` contains only implementations or contracts genuinely shared by multiple apps.
+- Name an extracted package for the capability it shares.
+- Omit empty directories and an unused `packages/` directory.
 - Do not create placeholder packages, example features, speculative abstractions, or duplicate
   tooling.
 
-## Package boundaries
+## App-local first
 
-The required dependency direction is:
+- Follow each app framework's native directory and module conventions.
+- Extract the smallest coherent surface to `packages/<shared-capability>` only when multiple apps
+  need the same implementation or contract.
+- After extraction, remove app-local copies and have each consumer import the shared package.
 
-```text
-Apps → Features → Infrastructure
-```
+### App internals
 
-- Apps may import Features and Infrastructure.
-- Features may import Infrastructure, but never Apps or another Feature.
-- Infrastructure may import other Infrastructure packages, but never Apps or Features.
-- Compose feature services, routes, components, and infrastructure adapters at the application
-  boundary.
-
-### Feature internals
-
-Create only the directories a feature needs:
+Create only the directories an app needs:
 
 - `contracts/`: typed interfaces and validated API input/output schemas.
 - `services/`: business logic, use cases, handlers, and database queries.
-- `components/`: feature-specific UI components.
-- `layouts/`: feature-specific layout shells.
-- `schemas/`: internal domain-validation schemas.
+- `components/`: app-owned UI components.
+- `layouts/`: app-owned layout shells.
+- `schemas/`: internal validation schemas.
 
-Raw database queries belong in a feature service or database infrastructure package, not directly
-in controllers or applications.
-
-### Feature public API
-
-- Features expose UI entry points through `components/` and `layouts/` only.
-- `services/` and `schemas/` remain package-internal.
-- An API app may import feature `contracts/` to compose its router.
-- UI apps must not reach directly into feature services.
+Prefer the selected framework's native convention when it already provides one.
 
 ## API and client patterns
 
 The default type-safe API layout uses oRPC:
 
 ```text
-packages/features/<feature>/src/contracts/{feature}Contract.ts
-packages/features/<feature>/src/services/
+apps/api/src/contracts/{capability}Contract.ts
+apps/api/src/services/
 apps/api/src/router.ts
-packages/infrastructure/api-client/
+apps/<client>/src/lib/api-client.ts
 ```
 
-- Contracts define validated input and output shapes.
-- Feature services implement business logic and API handlers.
-- `apps/api/src/router.ts` composes feature routers and exports the root `Router` type.
-- `@infrastructure/api-client` owns shared `createApiClient` and `createOrpcUtils` helpers.
+- Contracts define validated input and output shapes inside the API app.
+- App-local services implement business logic and API handlers.
+- `apps/api/src/router.ts` composes those handlers and exports the root `Router` type.
+- API client helpers stay in each client app by default; extract `packages/api-client` only when
+  multiple apps need the same implementation.
 - API types flow from the database/domain through the server contract to clients.
 - All client-side fetching and mutations use TanStack Query with `@orpc/tanstack-query`.
 - Never use `useEffect` to load server data.
@@ -112,7 +89,7 @@ Within a major API version:
 - Existing error codes retain their meaning; add new codes for new conditions.
 - Breaking changes require a versioned endpoint or a major-version bump.
 
-## Web, mobile, and navigation
+## Web and mobile
 
 ### Next.js boundaries
 
@@ -122,48 +99,38 @@ Within a major API version:
   hooks such as `useState` or `useReducer`.
 - Add `"use client"` only where required and keep client boundaries small.
 
-### Platform-independent navigation
-
-- Feature packages never import `next/navigation` or `expo-router` directly.
-- Features use `@infrastructure/navigation`.
-- Each app installs its platform adapter through a root `<NavigationProvider>`.
-
 ### Cross-platform UI
 
 - Web uses shadcn/ui with Base UI primitives and Tailwind CSS by default.
 - Mobile uses `react-native-reusables` with UniWind by default.
-- Both consume shared design tokens from `@infrastructure/ui`.
-- Add a shadcn component locally to the relevant web app first. Move it to
-  `packages/infrastructure/ui-web/src/components/` and re-export it only when multiple web apps need
-  it.
-- Web theme tokens live in `@infrastructure/ui`; the mobile mirror lives in
-  `apps/mobile/global.css`. Keep them synchronized.
+- Keep themes, tokens, helpers, and components in their consuming app by default.
+- Move a web component to `packages/ui-web/src/components/` only when multiple web apps need the
+  same implementation.
+- Extract shared tokens to `packages/ui` only when multiple apps consume the same theme, and keep
+  platform-specific mirrors synchronized.
 
 ## Multi-language monorepos
 
-- Keep JS/TS apps under `apps/` and JS/TS packages under `packages/`.
-- Put non-JS/TS apps under `apps/<name>` and shared non-JS/TS domain libraries under
-  `packages/features/<name>`.
-- Each language uses its native dependency manager: Cargo for Rust, Go modules for Go, and uv or
-  Poetry for Python.
-- Do not force native-language dependencies into the JavaScript dependency catalog.
-- Root `turbo.json` orchestrates tasks across languages.
-- Expose native commands through package scripts that Turborepo can target.
-- Share cross-language contracts through OpenAPI, Protocol Buffers, JSON Schema, or another
-  language-neutral format.
+- Put every deployable service under `apps/<name>` and follow its native language and framework
+  conventions.
+- Scope dependencies to each app or intentionally shared package through its native package
+  manager: Cargo for Rust, Go modules for Go, and uv or Poetry for Python.
+- Use root task orchestration only when it simplifies real cross-app commands; do not add wrapper
+  manifests solely to make unlike ecosystems look uniform.
+- When multiple apps need a cross-language contract, share it through OpenAPI, Protocol Buffers,
+  JSON Schema, or another language-neutral format.
 
 ## Dependencies
 
 - Resolve every version live from its authoritative registry; never use model memory.
 - Use stable versions unless the approved design explicitly requires a prerelease.
-- Pin exact versions without `^` or `~` ranges.
-- Put shared JS/TS versions in the `pnpm-workspace.yaml` `catalog:` block.
-- Individual `package.json` files reference `"catalog:"` instead of literal shared versions.
-- Update shared dependencies in one dedicated PR, never independently in individual packages.
+- Each app declares the packages and versions required by its own framework and runtime.
+- A shared package declares its own runtime, peer, and development dependencies.
+- Keep only genuine repository-wide tooling at the root.
 - Explicitly allow only required native lifecycle scripts when the package manager blocks them by
   default.
-- Check framework peer-dependency ranges before fixing catalog versions.
-- Verify that local packages resolve from the workspace rather than an external registry.
+- Check peer-dependency alignment within each consuming app or package.
+- Verify that intentionally shared local packages resolve from the workspace.
 - Check native-module compatibility with mobile, desktop, serverless, and edge runtimes.
 
 ## Data, identity, and observability
@@ -174,21 +141,17 @@ Within a major API version:
   conventional migration directory.
 - Never run production migrations directly from a developer machine; use CI/CD or deployment hooks.
 - Configure relational database connection pooling in serverless environments.
-- Encapsulate database access in `@infrastructure/db-client`.
-- Only that package instantiates vendor clients or connections.
-- Expose high-level query interfaces or a single pooled client.
-- Keep application domains independent of a specific database SDK.
+- Use a clean vendor interface when it provides real portability or testability.
+- Centralize connection instantiation and expose high-level queries or a single pooled client.
 
 ### Authentication
 
-- Encapsulate authentication and session handling in `@infrastructure/auth`.
-- Wrap third-party auth SDKs behind a project-owned interface.
-- Features never directly import an authentication vendor SDK.
+- Wrap a third-party auth SDK when a project-owned interface provides real portability,
+  testability, or reuse.
 - Provide server-only trusted helpers for token verification and session retrieval.
 
 ### Observability
 
-- Encapsulate logging, metrics, and error tracking in `@infrastructure/observability`.
 - Emit structured JSON logs with fields such as `timestamp`, `level`, `message`, `service`, and
   `env`.
 - Capture unhandled exceptions through an error-tracking service.
@@ -224,7 +187,7 @@ These hosting choices are workload guidance, not fixed vendor mandates.
 - Use Vitest by default, Jest through `jest-expo` for React Native, and Playwright for end-to-end
   tests.
 - Tests for a source file live in a sibling `__tests__/` directory.
-- A feature is incomplete until all tests pass.
+- A change is incomplete until all tests pass.
 
 ## Type discipline
 
@@ -232,7 +195,7 @@ These hosting choices are workload guidance, not fixed vendor mandates.
 - Use `unknown` only at a trust boundary and narrow it immediately.
 - Prefer schema-derived types such as `z.infer<typeof Schema>` for API shapes.
 - Prefer generics over duplicated types.
-- Put a helper type in `@infrastructure/utils` only after more than one package needs it.
+- Keep helper types app-local; extract one to a shared package only when multiple apps need it.
 
 ## Least code, still safe
 
@@ -284,7 +247,7 @@ For every approved surface:
 - Resolve exact dependency versions live.
 - Use the smallest supported scaffold.
 - Remove demo and example code outside the approved product.
-- Establish workspace and import boundaries.
+- Establish each app's native structure and only the shared packages the approved surfaces need.
 - Implement only the minimum vertical slice needed to prove the architecture.
 - Configure environment validation without including secret values.
 - Add the required security, error, accessibility, data-loss, migration, and observability
@@ -302,8 +265,8 @@ For every approved surface:
   ledger.
 - The initial greenfield scaffold is the only primary-worktree exception.
 - Use isolated worktrees and Graphite for every later feature or fix.
-- Do not commit or push until generated files, environment files, lockfiles, ignore rules, and
-  package boundaries have been classified.
+- Do not commit or push until generated files, environment files, lockfiles, ignore rules, and code
+  ownership have been classified.
 
 ## Branching
 
@@ -325,7 +288,7 @@ For every approved surface:
 Write the root README after the scaffold works. Include:
 
 - product purpose and approved deployable surfaces;
-- architecture and dependency-direction rules;
+- architecture and app-local/shared-code placement decisions;
 - exact selected technologies and live-resolved versions;
 - setup prerequisites and non-secret environment-variable names;
 - development, build, test, lint, format, migration, and boot commands that actually exist;
@@ -349,8 +312,8 @@ A bootstrap is incomplete until it runs:
 8. at least one vertical path through each surface.
 
 The final tree inspection rejects committed secrets, committed `.env*` files, generated build
-output, leftover examples, broken package boundaries, unexpected files, a missing lockfile, or dirty
-formatter output. A nonexistent command cannot be reported as passing.
+output, leftover examples, premature or duplicated shared packages, unexpected files, missing
+lockfiles, or dirty formatter output. A nonexistent command cannot be reported as passing.
 
 ## Existing repositories
 

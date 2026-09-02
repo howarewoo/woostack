@@ -1,6 +1,6 @@
 ---
 name: woostack-bootstrap
-description: Bootstrap a genuinely greenfield web, mobile, desktop, API, or daemon project from scratch—gather requirements, research current technologies, approve the design, collision-check the target, and scaffold the app/feature/infrastructure package slices. Linear, Plane, or GitHub artifacts are optional.
+description: Bootstrap a genuinely greenfield web, mobile, desktop, API, or daemon project from scratch—gather requirements, research current technologies, approve the design, collision-check the target, and scaffold app-local code with shared packages only when needed. Linear, Plane, or GitHub artifacts are optional.
 ---
 
 # woostack-bootstrap
@@ -13,9 +13,10 @@ design approval before any target-directory write. That approval—not a provide
 the write barrier after repository and target collision checks pass.
 
 The stack remains dynamic rather than template-selected. Compare current production-ready options
-against the project's requirements, then scaffold the approved app, feature, and infrastructure
-package slices under a stable in-run project identity. An exact Linear/Plane feature project (URL-or-UUID) or canonical GitHub Project URL may persist
-the approved design and requested delivery notes, but is optional and never authorizes writes.
+against the project's requirements, then scaffold each approved app with code local to that app.
+Extract a package only when multiple apps need the same code. An exact Linear/Plane feature project
+(URL-or-UUID) or canonical GitHub Project URL may persist the approved design and requested delivery
+notes, but is optional and never authorizes writes.
 
 **Core principle:** resolve technologies and versions live based on project requirements, never
 from memory, and prove the approved design plus collision-safe target before writing the new
@@ -102,8 +103,8 @@ approval, perform no official-MCP development mutation and create no development
 |---|---|
 | [references/decisions.md](references/decisions.md) | Questionnaire guide and explicit design-confirmation protocol |
 | [references/bootstrap.md](references/bootstrap.md) | Project-first bootstrap procedure and filesystem barrier |
-| [references/architecture.md](references/architecture.md) | Monorepo layout, package tiers, import boundaries, naming |
-| [references/frameworks.md](references/frameworks.md) | Version-resolution rules, workspace catalogs, and gotchas |
+| [references/architecture.md](references/architecture.md) | App-local code placement, optional shared packages, and naming |
+| [references/frameworks.md](references/frameworks.md) | Version-resolution rules, app-scoped dependencies, and gotchas |
 | [references/infrastructure.md](references/infrastructure.md) | Production-readiness patterns: hosting, CI/CD, env vars, migrations, observability |
 | [references/patterns.md](references/patterns.md) | Standard implementation and TDD guidelines |
 | [references/development.md](references/development.md) | Repository authority, optional artifacts, routing, and branching model |
@@ -137,9 +138,9 @@ These are non-negotiable. Violating them produces an unattributed, broken, or dr
   silently choose or scaffold a stack.
 - **Always resolve latest versions live.** Never use hardcoded versions from memory. Query the
   registry live during research and exact resolution.
-- **Maintain package slice architecture.** Strictly follow
-  [references/architecture.md](references/architecture.md) for package layering
-  (`Apps -> Features -> Infrastructure`) regardless of the chosen technology stack.
+- **Keep code app-local until shared.** Follow
+  [references/architecture.md](references/architecture.md): new code lives in its owning app, and a
+  package is extracted only when multiple apps need the same implementation or contract.
 - **Do not ship unverified.** Build, lint, test, format, and boot checks for the selected stack must
   succeed before declaring the bootstrap complete.
 - **Record decisions.** At handoff, write final stack choices, resolved versions, rationale, and
