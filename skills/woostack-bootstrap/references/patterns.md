@@ -104,7 +104,20 @@ the app that owns them.
   surface to `packages/<shared-capability>`.
 - After extraction, remove app-local duplicates and import the shared package from each consumer.
 
-## 6. Test-Driven Development
+## 6. Application-boundary adapters
+
+When data crosses between applications, use explicit adapters at the receiving and sending boundaries so transport, client, and vendor formats never leak into application or domain logic.
+
+- **Scope:** Applies in both directions across HTTP/RPC server-client, service-service, webhooks, queues/events, and third-party APIs. Excludes database persistence mapping and ordinary in-process module calls.
+- **Responsibilities:** Adapters validate or narrow untrusted wire input; map wire or vendor representations to application/domain models and map domain models back to wire shapes; and translate transport-specific errors so business logic remains independent of transport, client, and vendor details.
+- **Form:** Functions or modules satisfy the pattern; classes are not required.
+- **Placement:** Keep adapters in the application that owns the boundary, optionally in an app-local `adapters/` directory. Extract to a shared package (`packages/<shared-capability>`) only when multiple applications consume the exact same contract or implementation, then remove app-local duplicates.
+- **Compatibility and safety:** Preserve existing wire and API contracts unless an approved change explicitly versions or breaks them. Preserve input validation, error handling, security, accessibility, and data-loss protections.
+- **Touched-flow policy:** Apply to new boundary flows and existing flows materially changed by a task. Do not migrate untouched legacy boundary flows.
+- **Identity-shape exception:** When a deliberately shared contract is already the application/domain shape, do not add an identity-only or no-op wrapper. Boundary validation and transport/error handling still apply, but a separate adapter module is required only where translation or transport/vendor isolation performs real work.
+- **Review criteria:** Architecture review blocks concrete changed-code transport/client/vendor leaks or missing required boundary validation and error translation. Review does not block folder/file naming, class-vs-function style, or the omission of identity/no-op wrappers.
+
+## 7. Test-Driven Development
 
 Red → Green → Refactor, test-first, non-negotiable. The canonical TDD kernel — the workflow,
 coverage classes, and no-runner substitution — lives once in
@@ -115,7 +128,7 @@ coverage classes, and no-runner substitution — lives once in
 
 A change is **not complete** until all tests pass.
 
-## 7. API stability
+## 8. API stability
 
 HTTP endpoints maintain backward compatibility within a major version.
 
@@ -127,14 +140,14 @@ HTTP endpoints maintain backward compatibility within a major version.
 
 oRPC contracts encode this: changing a `z.object` field is a code-level signal of an API break.
 
-## 8. Type discipline
+## 9. Type discipline
 
 - No `any`. No `unknown` (except at trust boundaries where you narrow immediately).
 - Prefer schema-driven types (`z.infer<typeof Schema>`) over hand-rolled interfaces for API shapes.
 - Generics over duplication.
 - Keep helper types app-local; extract one to a shared package only when multiple apps need it.
 
-## 9. Least code & comments
+## 10. Least code & comments
 
 Write as little code as necessary — but never at the cost of correctness or safety. Understand the
 problem first, then take the first rung that holds.
@@ -163,7 +176,7 @@ problem first, then take the first rung that holds.
 - Comments explain **why** when non-obvious (hidden constraint, workaround, surprising invariant). Skip the **what** — code names that.
 - No magic literals. Extract to `UPPER_SNAKE_CASE` constants with descriptive names.
 
-## 10. App-scoped dependency protocol
+## 11. App-scoped dependency protocol
 
 - Each app declares the dependencies and versions its runtime needs in its own manifest.
 - Shared packages declare their own runtime, peer, and development dependencies.

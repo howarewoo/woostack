@@ -15,7 +15,7 @@ required = {
     "command": r"/woostack-change <goal>",
     "bounded admission": r"small bounded non-bug.*one reviewable PR",
     "clarify before mutation": r"Clarify only what is needed.*Do not create a branch, worktree, or file change while classifying or clarifying",
-    "direct ownership": r"makes no Linear call and invokes no other woostack workflow.*owns implementation and delivery",
+    "direct ownership": r"makes no provider call and invokes no other woostack workflow.*owns implementation and delivery",
     "bug reroute": r"bug, regression.*woostack-fix",
     "multi-pr reroute": r"multiple PRs.*woostack-build",
     "preflight": r"git worktree list --porcelain.*local and remote branches.*Graphite ancestry.*canonical GitHub PR state",

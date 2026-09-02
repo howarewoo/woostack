@@ -69,9 +69,14 @@ facts already exist, attach to that workspace and resume it; never create a dupl
 ## Implement and verify
 
 In the isolated workspace, implement every change needed for the accepted bounded scope and no
-other change. Inspect the complete diff and changed paths. Run the focused verification and the
-changed-path smoke scenario, noting the commands and observed results. A failed or incomplete
-check blocks delivery; it does not authorize a scope expansion or a second workspace.
+other change. When touching new or materially changed inter-application boundaries, route wire/vendor
+data through app-local adapters, isolate transport errors, validate/narrow untrusted inputs, preserve
+wire/API compatibility, and provide focused mapping or round-trip tests plus affected boundary
+error-path coverage per the canonical [application-boundary adapters rule](../woostack-bootstrap/references/patterns.md#6-application-boundary-adapters);
+do not migrate untouched legacy boundaries or introduce no-op wrappers for shared identity contracts.
+Inspect the complete diff and changed paths. Run the focused verification and the changed-path smoke
+scenario, noting the commands and observed results. A failed or incomplete check blocks delivery; it
+does not authorize a scope expansion or a second workspace.
 
 ## Deliver one PR
 

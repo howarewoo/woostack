@@ -12,6 +12,7 @@ Use the selected framework's native structure inside each deployable app:
 ├── apps/                      Deployable units (unscoped names, e.g. web, api, worker)
 │   └── <app>/
 │       └── src/
+│           ├── adapters/     App-owned boundary adapters, when needed
 │           ├── contracts/    App-owned API and I/O contracts, when needed
 │           ├── services/     App-owned business logic and handlers, when needed
 │           ├── components/   App-owned UI, when needed
@@ -48,10 +49,10 @@ If requirements call for multiple programming languages:
 Within an app, group code by the roles its framework and product need. Empty directories are
 omitted.
 
+- `adapters/`: Boundary adapters mapping wire/vendor data to domain models and isolating transport errors; optional (see [Application-boundary adapters](patterns.md#6-application-boundary-adapters)).
 - `contracts/`: Typed interfaces and I/O validation schemas.
 - `services/`: Business logic, database queries, and handlers.
 - `components/`: App-owned UI components.
 - `layouts/`: App-owned layout shells.
 - `schemas/`: Internal validation schemas.
-
 Prefer the selected framework's native convention when it already provides one.
