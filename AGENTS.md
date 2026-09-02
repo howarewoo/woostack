@@ -131,6 +131,9 @@ directory, not in this repo.
   kept, not DRY-removed. Full standard — the ladder, its deltas, comments, and magic-literal
   rules — is [`patterns.md §10`](skills/woostack-bootstrap/references/patterns.md), enforced by
   the `simplify`/`comments` review angles.
+- **Remove before add.** When relaxing or removing a repository restriction, delete the obsolete
+  rule and its dependent explanations first. Add replacement text only when needed to preserve a
+  necessary positive invariant; never enumerate behavior that is merely no longer forbidden.
 - No fabricated versions. When a skill or generated project needs a version, resolve it
   live with `npm view <pkg> version` or an equivalent registry command.
 - No hidden tools. Do not invent CI, app tests, package scripts, or app build steps for this
