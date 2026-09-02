@@ -3,6 +3,7 @@
   "pages": [
     "index",
     "building-rules",
+    "repository-rules",
     "workflows",
     "least-code",
     "context-management",
