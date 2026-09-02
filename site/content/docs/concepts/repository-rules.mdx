@@ -1,0 +1,375 @@
+---
+title: Repository structure and rules
+description: The complete architecture, package, dependency, infrastructure, testing, Git, and scaffold rules for projects bootstrapped with woostack.
+---
+
+Woostack defines a strong repository architecture for new projects created through
+[woostack-bootstrap](/docs/skills/woostack-bootstrap). It does not silently restructure an existing
+repository: existing conventions and history remain authoritative, and brownfield work routes to
+Build, Fix, or Change.
+
+The package tiers and dependency direction below are non-negotiable for a bootstrapped project. The
+implementation patterns are mandatory unless the project's own documentation explicitly overrides
+them.
+
+## Canonical layout
+
+```text
+<project-root>/
+├── apps/                         # Deployable units: web, api, worker, mobile, …
+└── packages/
+    ├── features/                 # One package per business/domain slice
+    │   └── <feature>/
+    │       ├── src/
+    │       │   ├── contracts/
+    │       │   ├── services/
+    │       │   ├── components/
+    │       │   ├── layouts/
+    │       │   └── schemas/
+    │       ├── package.json
+    │       └── tsconfig.json
+    └── infrastructure/           # Shared technical integrations
+        ├── db-client/
+        ├── auth/
+        ├── observability/
+        ├── ui/
+        └── utils/
+```
+
+- `apps/` contains independently deployable surfaces with unscoped names such as `web`, `api`, and
+  `worker`.
+- `packages/features/` contains business logic, with one package per domain or feature slice.
+- `packages/infrastructure/` contains shared technical libraries, platform adapters, and vendor SDK
+  wrappers.
+- Exact directory names may follow ecosystem conventions, including `products/`, `features/`, or
+  `infrastructure/`, but the logical tiers and dependency direction do not change.
+- Omit empty directories and empty layers.
+- Do not create placeholder packages, example features, speculative abstractions, or duplicate
+  tooling.
+
+## Package boundaries
+
+The required dependency direction is:
+
+```text
+Apps → Features → Infrastructure
+```
+
+- Apps may import Features and Infrastructure.
+- Features may import Infrastructure, but never Apps or another Feature.
+- Infrastructure may import other Infrastructure packages, but never Apps or Features.
+- Compose feature services, routes, components, and infrastructure adapters at the application
+  boundary.
+
+### Feature internals
+
+Create only the directories a feature needs:
+
+- `contracts/`: typed interfaces and validated API input/output schemas.
+- `services/`: business logic, use cases, handlers, and database queries.
+- `components/`: feature-specific UI components.
+- `layouts/`: feature-specific layout shells.
+- `schemas/`: internal domain-validation schemas.
+
+Raw database queries belong in a feature service or database infrastructure package, not directly
+in controllers or applications.
+
+### Feature public API
+
+- Features expose UI entry points through `components/` and `layouts/` only.
+- `services/` and `schemas/` remain package-internal.
+- An API app may import feature `contracts/` to compose its router.
+- UI apps must not reach directly into feature services.
+
+## API and client patterns
+
+The default type-safe API layout uses oRPC:
+
+```text
+packages/features/<feature>/src/contracts/{feature}Contract.ts
+packages/features/<feature>/src/services/
+apps/api/src/router.ts
+packages/infrastructure/api-client/
+```
+
+- Contracts define validated input and output shapes.
+- Feature services implement business logic and API handlers.
+- `apps/api/src/router.ts` composes feature routers and exports the root `Router` type.
+- `@infrastructure/api-client` owns shared `createApiClient` and `createOrpcUtils` helpers.
+- API types flow from the database/domain through the server contract to clients.
+- All client-side fetching and mutations use TanStack Query with `@orpc/tanstack-query`.
+- Never use `useEffect` to load server data.
+- Do not create separate `queries/` or `mutations/` directories; derive options from
+  `createOrpcUtils(client)`.
+
+### API compatibility
+
+Within a major API version:
+
+- Shipped URLs are immutable.
+- Input schemas may gain optional fields, but fields cannot be removed or renamed.
+- Output schemas may gain fields, but existing fields cannot be removed or change type.
+- Existing error codes retain their meaning; add new codes for new conditions.
+- Breaking changes require a versioned endpoint or a major-version bump.
+
+## Web, mobile, and navigation
+
+### Next.js boundaries
+
+- Pages in `apps/web` and `apps/landing` are Server Components by default.
+- Render and fetch on the server by default.
+- Use a Client Component only for DOM event handlers, browser-only APIs, or stateful UI requiring
+  hooks such as `useState` or `useReducer`.
+- Add `"use client"` only where required and keep client boundaries small.
+
+### Platform-independent navigation
+
+- Feature packages never import `next/navigation` or `expo-router` directly.
+- Features use `@infrastructure/navigation`.
+- Each app installs its platform adapter through a root `<NavigationProvider>`.
+
+### Cross-platform UI
+
+- Web uses shadcn/ui with Base UI primitives and Tailwind CSS by default.
+- Mobile uses `react-native-reusables` with UniWind by default.
+- Both consume shared design tokens from `@infrastructure/ui`.
+- Add a shadcn component locally to the relevant web app first. Move it to
+  `packages/infrastructure/ui-web/src/components/` and re-export it only when multiple web apps need
+  it.
+- Web theme tokens live in `@infrastructure/ui`; the mobile mirror lives in
+  `apps/mobile/global.css`. Keep them synchronized.
+
+## Multi-language monorepos
+
+- Keep JS/TS apps under `apps/` and JS/TS packages under `packages/`.
+- Put non-JS/TS apps under `apps/<name>` and shared non-JS/TS domain libraries under
+  `packages/features/<name>`.
+- Each language uses its native dependency manager: Cargo for Rust, Go modules for Go, and uv or
+  Poetry for Python.
+- Do not force native-language dependencies into the JavaScript dependency catalog.
+- Root `turbo.json` orchestrates tasks across languages.
+- Expose native commands through package scripts that Turborepo can target.
+- Share cross-language contracts through OpenAPI, Protocol Buffers, JSON Schema, or another
+  language-neutral format.
+
+## Dependencies
+
+- Resolve every version live from its authoritative registry; never use model memory.
+- Use stable versions unless the approved design explicitly requires a prerelease.
+- Pin exact versions without `^` or `~` ranges.
+- Put shared JS/TS versions in the `pnpm-workspace.yaml` `catalog:` block.
+- Individual `package.json` files reference `"catalog:"` instead of literal shared versions.
+- Update shared dependencies in one dedicated PR, never independently in individual packages.
+- Explicitly allow only required native lifecycle scripts when the package manager blocks them by
+  default.
+- Check framework peer-dependency ranges before fixing catalog versions.
+- Verify that local packages resolve from the workspace rather than an external registry.
+- Check native-module compatibility with mobile, desktop, serverless, and edge runtimes.
+
+## Data, identity, and observability
+
+### Database
+
+- Every schema mutation is a discrete, version-controlled migration file in the selected tool's
+  conventional migration directory.
+- Never run production migrations directly from a developer machine; use CI/CD or deployment hooks.
+- Configure relational database connection pooling in serverless environments.
+- Encapsulate database access in `@infrastructure/db-client`.
+- Only that package instantiates vendor clients or connections.
+- Expose high-level query interfaces or a single pooled client.
+- Keep application domains independent of a specific database SDK.
+
+### Authentication
+
+- Encapsulate authentication and session handling in `@infrastructure/auth`.
+- Wrap third-party auth SDKs behind a project-owned interface.
+- Features never directly import an authentication vendor SDK.
+- Provide server-only trusted helpers for token verification and session retrieval.
+
+### Observability
+
+- Encapsulate logging, metrics, and error tracking in `@infrastructure/observability`.
+- Emit structured JSON logs with fields such as `timestamp`, `level`, `message`, `service`, and
+  `env`.
+- Capture unhandled exceptions through an error-tracking service.
+- Redact authorization headers, API keys, tokens, and other secrets before transmitting telemetry.
+
+## Environment variables
+
+- Managed hosting or service configuration is the production source of truth.
+- Local `.env` files are allowed for development, but raw secrets are never committed.
+- Keep a root `.env.example` containing names with empty values.
+- Root `.gitignore` covers `.env`, `.env.local`, and `.env.*.local`.
+- Validate required environment variables at startup and fail fast with descriptive errors.
+
+## CI/CD and hosting
+
+- Use one root CI pipeline for the monorepo.
+- Run it on every pull request targeting an integration branch.
+- Required PR checks are formatting, lint/static analysis, type checking, building every workspace
+  application, and unit/integration tests.
+- PR branches deploy automatically to preview or staging environments.
+- The primary branch triggers production builds and deployments.
+- Production database migrations execute through deployment automation.
+- Prefer managed frontend hosting with preview deployments, caching, and edge rendering.
+- Prefer serverless or edge functions for short stateless API workloads.
+- Prefer containers for long-running processes, WebSockets, or heavy compute.
+- Use mobile cloud-build pipelines to manage certificates, profiles, and store submission.
+
+These hosting choices are workload guidance, not fixed vendor mandates.
+
+## Testing
+
+- Follow Red → Green → Refactor and write the failing test first.
+- Use Vitest by default, Jest through `jest-expo` for React Native, and Playwright for end-to-end
+  tests.
+- Tests for a source file live in a sibling `__tests__/` directory.
+- A feature is incomplete until all tests pass.
+
+## Type discipline
+
+- Do not use `any`.
+- Use `unknown` only at a trust boundary and narrow it immediately.
+- Prefer schema-derived types such as `z.infer<typeof Schema>` for API shapes.
+- Prefer generics over duplicated types.
+- Put a helper type in `@infrastructure/utils` only after more than one package needs it.
+
+## Least code, still safe
+
+Before adding code, stop at the first rung that works:
+
+1. Confirm the code is needed.
+2. Reuse an in-tree helper or pattern.
+3. Use the standard library.
+4. Use a native platform feature.
+5. Use an already-installed dependency.
+6. Use a direct one-line implementation.
+7. Add the minimum new implementation.
+
+Additional rules:
+
+- Trace the affected flow before choosing the smallest solution.
+- When approaches are equally small, choose the edge-case-correct one.
+- Prefer deletion over addition and boring code over clever code.
+- Never remove validation, error handling, security, accessibility, or data-loss protection to make
+  code smaller.
+- Preserve deliberate defense in depth; it is not ordinary DRY duplication.
+- Keep a regression test for a behavior-changing simplification.
+- Give a deliberate known limitation a `why` comment that names its ceiling and upgrade path.
+- Keep non-test source files at or below 500 lines.
+- Add JSDoc describing purpose, inputs, and outputs to user-facing components and procedures.
+- Comments explain non-obvious reasons, constraints, workarounds, or invariants—not what the code
+  already states.
+- Extract magic literals into descriptively named `UPPER_SNAKE_CASE` constants.
+
+See [Least code, still safe](/docs/concepts/least-code) for the rationale and review behavior.
+
+## Greenfield admission and scaffolding
+
+Before creating a repository:
+
+- Gather scale, traffic, hosting, data, auth, compliance, integration, budget, and team constraints.
+- Research current production-ready technologies and versions.
+- Present two or three cohesive stack options covering trade-offs, production readiness, and cost.
+- Obtain explicit approval of the complete stack and architecture.
+- Do not access or modify the target before approval.
+- Make the first target operation a read-only collision check.
+- Proceed only when the path is absent or an empty non-Git directory.
+- Reject symlinks, populated directories, existing repositories/worktrees, unreadable paths,
+  ambiguous results, and paths owned by another run.
+- Never reset, clean, delete, overwrite, or scaffold around an existing target.
+
+For every approved surface:
+
+- Resolve exact dependency versions live.
+- Use the smallest supported scaffold.
+- Remove demo and example code outside the approved product.
+- Establish workspace and import boundaries.
+- Implement only the minimum vertical slice needed to prove the architecture.
+- Configure environment validation without including secret values.
+- Add the required security, error, accessibility, data-loss, migration, and observability
+  protections.
+- Keep generated output and runtime evidence out of source control.
+- Reuse framework conventions instead of creating a second convention.
+
+## Git and workspace initialization
+
+- Initialize Git only after creating the approved scaffold in the verified target.
+- Configure the canonical remote without embedding credentials.
+- Configure the intended integration branch.
+- Initialize `.woostack/` through `woostack-init`.
+- Do not create `.woostack/specs/`, `.woostack/plans/`, `.woostack/fixes/`, or a shadow development
+  ledger.
+- The initial greenfield scaffold is the only primary-worktree exception.
+- Use isolated worktrees and Graphite for every later feature or fix.
+- Do not commit or push until generated files, environment files, lockfiles, ignore rules, and
+  package boundaries have been classified.
+
+## Branching
+
+- `main` represents production.
+- Each repository configures its integration branch; `staging` is only an example.
+- A `feature/<name>` branch represents one change and one PR.
+- Cut feature branches from the resolved integration branch, not automatically from `main`.
+- Target feature PRs at the integration branch.
+- Promote the integration branch to `main` after integration testing and according to the release
+  cadence.
+- Do not open a PR directly against `main` except for an emergency hotfix.
+- Cherry-pick an emergency hotfix back into the integration branch immediately.
+- Never force-push to `main` or the integration branch.
+- Use Graphite to manage branch stacks.
+- Merge authority remains human-only.
+
+## Required README
+
+Write the root README after the scaffold works. Include:
+
+- product purpose and approved deployable surfaces;
+- architecture and dependency-direction rules;
+- exact selected technologies and live-resolved versions;
+- setup prerequisites and non-secret environment-variable names;
+- development, build, test, lint, format, migration, and boot commands that actually exist;
+- deployment and observability assumptions;
+- rationale for material choices; and
+- an artifact link only when persistence was explicitly selected and verified.
+
+Do not copy Woostack's complete internal workflow or artifact protocol into the application README.
+
+## Required verification
+
+A bootstrap is incomplete until it runs:
+
+1. dependency installation with the selected package manager and lockfile;
+2. formatter/check mode;
+3. lint/static analysis;
+4. type checking or compilation where applicable;
+5. tests actually defined by the scaffold;
+6. a production build;
+7. boot/smoke verification of every approved deployable surface; and
+8. at least one vertical path through each surface.
+
+The final tree inspection rejects committed secrets, committed `.env*` files, generated build
+output, leftover examples, broken package boundaries, unexpected files, a missing lockfile, or dirty
+formatter output. A nonexistent command cannot be reported as passing.
+
+## Existing repositories
+
+Woostack does not impose this greenfield architecture on an existing repository. Existing
+conventions and history own brownfield work:
+
+- bugs, regressions, and root-cause work route to [Fix](/docs/skills/woostack-fix);
+- bounded one-PR enhancements and refactors route to [Change](/docs/skills/woostack-change); and
+- larger initiatives route to [Build](/docs/skills/woostack-build).
+
+## Canonical sources
+
+This page lists the complete project-structure contract in one place. The executable skill and its
+references remain authoritative:
+
+- [`woostack-bootstrap/SKILL.md`](https://github.com/howarewoo/woostack/blob/main/skills/woostack-bootstrap/SKILL.md)
+- [`architecture.md`](https://github.com/howarewoo/woostack/blob/main/skills/woostack-bootstrap/references/architecture.md)
+- [`frameworks.md`](https://github.com/howarewoo/woostack/blob/main/skills/woostack-bootstrap/references/frameworks.md)
+- [`infrastructure.md`](https://github.com/howarewoo/woostack/blob/main/skills/woostack-bootstrap/references/infrastructure.md)
+- [`patterns.md`](https://github.com/howarewoo/woostack/blob/main/skills/woostack-bootstrap/references/patterns.md)
+- [`development.md`](https://github.com/howarewoo/woostack/blob/main/skills/woostack-bootstrap/references/development.md)
+- [`bootstrap.md`](https://github.com/howarewoo/woostack/blob/main/skills/woostack-bootstrap/references/bootstrap.md)
