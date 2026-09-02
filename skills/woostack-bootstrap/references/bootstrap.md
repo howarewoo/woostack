@@ -64,25 +64,24 @@ no-follow collision check; a changed result blocks before any target write. Crea
 surfaces using [architecture.md](architecture.md), [frameworks.md](frameworks.md),
 [infrastructure.md](infrastructure.md), and [patterns.md](patterns.md).
 
-The default package-slice shape is:
+The default shape is:
 
 ```text
-apps/ or products/       deployable surfaces
-features/                product capabilities and use cases
-infrastructure/          adapters for data, auth, queues, email, observability, etc.
-packages/                 narrow shared primitives/tooling when justified
+apps/ or products/       deployable surfaces and their app-local code
+packages/                code shared by multiple apps; omit when unused
 ```
 
-Exact directories follow the selected ecosystem, but dependency direction remains apps → features
-→ infrastructure contracts, with composition at the application boundary. Do not create empty
-layers, placeholder packages, example features, speculative abstractions, or duplicate tooling.
+Exact app directories follow the selected ecosystem. All new code starts in its owning app.
+Extract the smallest coherent shared package only after multiple apps need the same implementation
+or contract. Do not create empty layers, placeholder packages, example features, speculative
+abstractions, or duplicate tooling.
 
 For each approved surface:
 
 1. resolve every exact dependency version live from the authoritative registry;
 2. initialize the smallest supported scaffold;
 3. remove demo/example code not part of the approved product;
-4. establish workspace/package boundaries and import rules;
+4. establish each app's native structure and only the shared packages the approved surfaces need;
 5. implement only the minimum vertical slice needed to prove the architecture;
 6. configure environment-variable validation without secret values;
 7. add security, error, accessibility, data-loss, migration, and observability protections that the
@@ -105,15 +104,15 @@ worktree exemption.
    ledger; and
 5. use Graphite/worktrees for every later bounded feature or fix.
 
-Do not commit or push until generated files, environment files, lockfiles, ignore rules, and package
-boundaries are classified under repository policy.
+Do not commit or push until generated files, environment files, lockfiles, ignore rules, and code
+ownership are classified under repository policy.
 
 ## README handoff
 
 Write the project README only after the scaffold works. Include:
 
 - product purpose and approved surfaces;
-- architecture/package dependency rules;
+- architecture and app-local/shared-code placement decisions;
 - exact selected technologies and live-resolved versions;
 - setup prerequisites and non-secret environment variable names;
 - development, build, test, lint, format, migration, and boot commands that actually exist;
@@ -136,9 +135,9 @@ Run the generated project's real commands from the target:
 7. boot/smoke of each approved deployable surface, exercising at least one vertical path.
 
 Inspect the target tree and Git status afterward. Reject committed secrets, `.env*`, generated build
-output, stray examples, broken package boundaries, unexpected files, missing lockfile, or dirty
-formatter output. A command that does not exist is not a passing check; fix the scaffold or report
-the explicit gap.
+output, stray examples, premature or duplicated shared packages, unexpected files, missing
+lockfiles, or dirty formatter output. A command that does not exist is not a passing check; fix the
+scaffold or report the explicit gap.
 
 ## Optional artifact delivery note
 

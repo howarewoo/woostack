@@ -35,31 +35,31 @@ Regardless of the chosen database provider (SQL or NoSQL), enforce the following
 
 ---
 
-## Database Client Wrapper
+## Database Client Ownership
 
-Encapsulate database access within a shared `@infrastructure/db-client` package:
-
-- **Vendor Abstraction**: Wrap database clients (e.g. Prisma, Drizzle, Supabase JS) in clean interface modules to keep the core application domain independent of the database vendor.
-- **Connection Isolation**: Limit direct connection instantiation to `@infrastructure/db-client`, exposing only high-level query interfaces or a single pooled client.
+- **Vendor abstraction**: Use a clean interface when it protects domain logic from a vendor SDK.
+- **Connection isolation**: Centralize connection instantiation and expose high-level queries or a
+  single pooled client.
 
 ---
 
 ## Authentication & Identity
 
-Encapsulate authentication and session management within a shared `@infrastructure/auth` package:
-
-- **SDK Isolation**: Wrap third-party auth SDKs (e.g. Supabase Auth, Clerk, Auth0) inside a unified interface so that downstream features do not directly import vendor libraries.
-- **Server-Side Verification**: Provide trusted helper methods for token verification and session retrieval that run in server-only contexts (e.g. middleware, API context handlers).
+- **SDK isolation**: Wrap a third-party auth SDK when a project-owned interface provides real
+  portability, testability, or reuse.
+- **Server-side verification**: Provide trusted helper methods for token verification and session
+  retrieval in server-only contexts such as middleware and API handlers.
 
 ---
 
 ## Observability & Logging
 
-Encapsulate logging, metrics, and error tracking within a shared `@infrastructure/observability` package:
-
-- **Structured Logging**: Emit logs as structured JSON (containing keys like `timestamp`, `level`, `message`, `service`, `env`) so they are easily queryable in logging platforms.
-- **Error Capturing**: Catch unhandled exceptions and ship them to an error tracking service (e.g. Sentry, Axiom, Datadog).
-- **Secrets Redaction**: Redact sensitive headers, API keys, and authorization tokens at the logger level before transmitting events to telemetry backends.
+- **Structured logging**: Emit queryable structured JSON with keys such as `timestamp`, `level`,
+  `message`, `service`, and `env`.
+- **Error capturing**: Catch unhandled exceptions and send them to the selected error-tracking
+  service.
+- **Secrets redaction**: Redact sensitive headers, API keys, and authorization tokens before
+  transmitting telemetry.
 
 ---
 

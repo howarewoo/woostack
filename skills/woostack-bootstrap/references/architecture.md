@@ -1,73 +1,57 @@
-# Architecture & Package Slicing
+# Architecture & Code Placement
 
-Reference monorepo layout for new projects bootstrapped from this spec. AI agents must reproduce this structure.
+Reference layout for new projects bootstrapped from this spec. Application code starts in the
+deployable app that owns it. A package is created only when code must be shared across apps.
 
 ## Layout
 
-Regardless of the chosen programming languages or frameworks, the project must follow a clean separation between **Apps** (deployable units), **Features** (business logic packages), and **Infrastructure** (shared libraries and vendor SDK wrappers).
+Use the selected framework's native structure inside each deployable app:
 
-```
+```text
 <project-root>/
-├── apps/                      Deployable units (unscoped names, e.g., web, api, worker)
-├── packages/
-│   ├── features/              Business logic packages (one package per feature slice)
-│   │   └── <feature>/
-│   │       ├── src/
-│   │       │   ├── contracts/     Clean API contracts (Zod, Protobuf, OpenAPISchema)
-│   │       │   ├── services/      Business logic procedures and handlers
-│   │       │   ├── components/    Feature-specific internal UI components
-│   │       │   ├── layouts/       Feature-specific layouts
-│   │       │   └── schemas/       Domain-specific internal validation schemas
-│   │       ├── package.json
-│   │       └── tsconfig.json
-│   └── infrastructure/        Shared libraries and SDK wrappers
-│       ├── db-client/         Database connector wrapper
-│       ├── auth/              Authentication client wrapper
-│       ├── observability/     Logging and error tracking
-│       ├── ui/                Design tokens and global styling
-│       └── utils/             Cross-platform helpers
+├── apps/                      Deployable units (unscoped names, e.g. web, api, worker)
+│   └── <app>/
+│       └── src/
+│           ├── contracts/    App-owned API and I/O contracts, when needed
+│           ├── services/     App-owned business logic and handlers, when needed
+│           ├── components/   App-owned UI, when needed
+│           ├── layouts/      App-owned layouts, when needed
+│           └── schemas/      App-owned validation schemas, when needed
+└── packages/                 Code genuinely shared by multiple apps; omit when unused
+    └── <shared-capability>/
 ```
 
----
+## App-local first
 
-## Package Tiers
+- Put new code in the owning app and follow that framework's existing directory conventions.
+- Extract code to `packages/<shared-capability>` only when multiple apps need the same
+  implementation or contract.
+- Name an extracted package for the capability it shares.
+- After extraction, keep one shared implementation and have each consuming app import it instead
+  of retaining app-local copies.
+- Empty directories and unused `packages/` directories are omitted.
 
-The monorepo enforces three main tiers with strict import directions:
+## Multi-language repositories
 
-```
-Apps  →  Features  →  Infrastructure
-```
+If requirements call for multiple programming languages:
 
-- **Apps** may import **Features** and **Infrastructure**.
-- **Features** may import **Infrastructure** but *never* other Features or Apps.
-- **Infrastructure** may import other Infrastructure libraries, but *never* Features or Apps.
+1. Place each deployable service in `apps/<name>` and follow its language and framework conventions.
+2. Keep dependencies scoped to each app or shared package through its native package manager, such
+   as Cargo for Rust, Go modules for Go, and uv or Poetry for Python.
+3. Use root task orchestration only when it simplifies real cross-app commands; do not add wrapper
+   manifests solely to make unlike ecosystems look uniform.
+4. When multiple apps need a shared cross-language contract, use a language-agnostic specification
+   such as OpenAPI, Protocol Buffers, or JSON Schema.
 
-| Tier | Path | Role | May Import |
-|---|---|---|---|
-| **Apps** | `apps/*` | Deployable apps (e.g., frontends, APIs, workers). | Features, Infrastructure |
-| **Features** | `packages/features/*` | Core business logic separated by domain slice. | Infrastructure |
-| **Infrastructure** | `packages/infrastructure/*` | Technical wrappers (e.g., DB clients, Auth SDKs, loggers). | Other Infrastructure |
+## App internal structure
 
----
+Within an app, group code by the roles its framework and product need. Empty directories are
+omitted.
 
-## Multi-Language Monorepos
+- `contracts/`: Typed interfaces and I/O validation schemas.
+- `services/`: Business logic, database queries, and handlers.
+- `components/`: App-owned UI components.
+- `layouts/`: App-owned layout shells.
+- `schemas/`: Internal validation schemas.
 
-If a project's requirements dictate using multiple programming languages (e.g., a Next.js TypeScript frontend and a Python or Go API), follow this guidance for multi-language monorepos to maintain package boundaries:
-
-1. **Service Placement**: Place JS/TS apps in `apps/` and packages in `packages/`. Non-JS/TS apps and shared feature libraries should be located in `apps/<name>` or `packages/features/<name>` respectively.
-2. **Dependency Management**: Non-JS/TS folders manage their dependencies using their native package managers (e.g., `cargo` for Rust, `go mod` for Go, `uv` or `poetry` for Python). Do not try to force them into a single `package.json` catalog.
-3. **Build Orchestration**: The root `turbo.json` configures Turborepo to orchestrate tasks across all languages. Wrap native commands inside root `package.json` scripts that Turborepo can target:
-   - Example: A test task for a Python app runs `pytest`, which is invoked via a script in `apps/python-api/package.json` (`"test": "uv run pytest"`).
-4. **API Contracts**: Use language-agnostic contract specifications (e.g., OpenAPI JSON, Protocol Buffers, or JSON Schema) to share types between frontend and backend.
-
----
-
-## Feature Internal Structure
-
-Each feature slice contains sub-directories grouping components by role. Empty directories are omitted.
-
-- `contracts/`: Typed interfaces and I/O validation schemas (e.g. Zod schemas or OpenAPI specs).
-- `services/`: Core business logic, database queries, and handlers (avoid putting raw DB queries directly in controllers/apps).
-- `components/`: UI components used internally by the feature.
-- `layouts/`: UI layouts used by the feature.
-- `schemas/`: Domain-specific internal validation schemas.
+Prefer the selected framework's native convention when it already provides one.
