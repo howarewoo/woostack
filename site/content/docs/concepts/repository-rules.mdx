@@ -19,6 +19,7 @@ project's own documentation explicitly overrides them.
 ├── apps/                         # Deployable units: web, api, worker, mobile, …
 │   └── <app>/
 │       └── src/
+│           ├── adapters/         # App-owned boundary adapters, when needed
 │           ├── contracts/        # App-owned, when needed
 │           ├── services/         # App-owned, when needed
 │           ├── components/       # App-owned, when needed
@@ -49,6 +50,7 @@ project's own documentation explicitly overrides them.
 
 Create only the directories an app needs:
 
+- `adapters/`: boundary adapters mapping wire/vendor representations to domain models and isolating transport errors; optional (see [Application-boundary adapters](https://github.com/howarewoo/woostack/blob/main/skills/woostack-bootstrap/references/patterns.md#6-application-boundary-adapters)).
 - `contracts/`: typed interfaces and validated API input/output schemas.
 - `services/`: business logic, use cases, handlers, and database queries.
 - `components/`: app-owned UI components.
@@ -89,6 +91,20 @@ Within a major API version:
 - Existing error codes retain their meaning; add new codes for new conditions.
 - Breaking changes require a versioned endpoint or a major-version bump.
 
+
+### Application-boundary adapters
+
+When data crosses application boundaries (HTTP/RPC server-client, service-to-service, webhooks, queues/events, or third-party APIs in either direction):
+
+- Keep transport, client, and vendor formats out of domain and business logic through boundary adapters.
+- Adapters own input validation/narrowing, wire/domain bidirectional mapping, and transport error translation.
+- Place adapters in the owning app by default, optionally under `adapters/`; extract to `packages/<shared-capability>` only when multiple apps share the exact contract.
+- Functions or modules satisfy the pattern; classes are not required.
+- Do not add identity-only or no-op wrappers when a deliberately shared contract is already the domain model shape.
+- Apply to new and materially touched boundary flows; untouched legacy flows remain unchanged.
+- Review blocks concrete changed-code transport leaks or missing boundary validation/error translation, but does not police folder naming, class-versus-function style, or justified identity mapping omissions.
+
+See [patterns.md §6](https://github.com/howarewoo/woostack/blob/main/skills/woostack-bootstrap/references/patterns.md#6-application-boundary-adapters) for the canonical pattern.
 ## Web and mobile
 
 ### Next.js boundaries
