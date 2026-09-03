@@ -63,6 +63,17 @@ for pattern in (
 
 for name in ("build", "linear_context", "linear_procedure", "plane_context", "plane_procedure", "github_context", "github_procedure", "ideate", "harden", "plan", "fix", "execute"):
     require(name, r"manifest", f"{name}: local run manifest contract missing")
+
+# Ideate progressively covers product-to-design decisions without weakening user verification.
+for pattern in (
+    r"Problem and users.*System qualities.*Removal before addition.*Entities and interfaces.*Flows and state.*Architecture decisions.*Deep risks.*Completion",
+    r"Apply each category only when it is relevant.*answer can affect the specification or design",
+    r"independent question.*later categories",
+    r"repository reconciliation to Harden.*implementation decomposition to Plan",
+    r"No inferred.*content enters the project specification until the user explicitly verifies it",
+):
+    require("ideate", pattern)
+
 # The shared contract owns local safety, one-time plain writes, recovery, and explicit base choice.
 artifact_requirements = (
     r"Local run artifact and provider mirror contract",

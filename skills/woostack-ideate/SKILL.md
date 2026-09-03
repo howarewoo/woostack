@@ -54,17 +54,37 @@ schemas, migrations, or endpoints from repository inspection.
 ## Dialogue and local drafting
 
 Brainstorm exhaustively within the requested feature, ask only for missing decisions, and resolve
-upstream decisions first. Ask every currently known independent question together in one clearly
-numbered batch with complete in-scope coverage across the problem and evidence, users, desired behavior,
-constraints, non-goals, interfaces/data, failure and security cases, operational effects, acceptance, and
-verification as applicable. A batch may contain one question only when it is the sole currently eligible
-question. Order questions by dependency layer: do not ask a
-dependent question until its upstream decision is verified. A later batch may contain only questions
-that become dependent after verified answers or questions that remained unresolved or ambiguous in an
-earlier batch; do not defer a question that was already known to be independent. Options and an
-explicit recommendation may help the user decide, but the recommendation is not a decision. Inspect
-only bounded relevant repository context to find questions; never turn a convention or inconsistency
-into a decision without asking.
+upstream decisions first. Use this progressive coverage order to expose dependencies and keep the
+conversation anchored to the contract:
+
+1. **Problem and users:** establish the evidence, intended outcome, actors, and prioritized
+   functional behavior.
+2. **System qualities:** quantify only relevant non-functional requirements, then capture
+   constraints, compatibility, and non-goals.
+3. **Removal before addition:** identify viable deletion or simplification opportunities and
+   resolve them before proposing additive architecture.
+4. **Entities and interfaces:** when applicable, identify the domain entities and define each
+   changed storage or API contract required by the conditional `## Data models` section.
+5. **Flows and state:** when behavior spans meaningful steps, capture the request, event, or data
+   flow and the state transitions necessary to produce each outcome.
+6. **Architecture decisions:** capture only material user-owned boundaries, tradeoffs, and choices;
+   leave repository reconciliation to Harden and implementation decomposition to Plan.
+7. **Deep risks:** examine capacity only when it can change the design, then cover bottlenecks,
+   failure and security cases, data-loss risks, operational effects, and relevant edge behavior.
+8. **Completion:** define observable acceptance criteria and verification expectations.
+
+Apply each category only when it is relevant to the project and its answer can affect the
+specification or design. Architecture, interface, and technology choices still require explicit
+user verification. The ordering does not justify serializing independent decisions: ask every
+currently known independent question together
+in one clearly numbered batch, including questions from later categories when their upstream
+decisions are already verified or unnecessary. A batch may contain one question only when it is the
+sole currently eligible question. Do not ask a dependent question until its upstream decision is
+verified. A later batch may contain only questions that become dependent after verified answers or
+questions that remained unresolved or ambiguous in an earlier batch; do not defer a question that
+was already known to be independent. Options and an explicit recommendation may help the user decide,
+but the recommendation is not a decision. Inspect only bounded relevant repository context to find
+questions; never turn a convention or inconsistency into a decision without asking.
 
 After each user reply, persist no provider content. If it contains one or more explicit,
 unambiguous verified decisions, atomically replace the manifest draft once with those decisions and
