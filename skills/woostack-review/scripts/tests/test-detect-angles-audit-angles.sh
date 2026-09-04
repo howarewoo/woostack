@@ -10,6 +10,7 @@ setup() { work="$(mktemp -d)"; export OUTDIR="$work/out"; mkdir -p "$OUTDIR"; \
 # Ordinary source changes receive only the singular general correctness pass.
 setup "src/index.ts"; bash "$SCRIPT" >/dev/null 2>&1
 assert_eq "$(cat "$OUTDIR/angles.txt")" "bugs" "ordinary source uses one correctness pass"
+assert_eq "$(grep -Ec '^(react|types)$' "$OUTDIR/angles.txt" || true)" "0" "ordinary TypeScript source dispatches no removed specialist"
 rm -rf "$work"
 
 # Specialist signals remain deterministic and narrow.

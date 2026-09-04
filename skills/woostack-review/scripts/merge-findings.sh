@@ -242,9 +242,8 @@ if os.path.isfile(inventory):
         pass
 allowed_angles = {
     "bugs", "security", "conventions", "acceptance", "seo", "aeo", "design",
-    "react", "database", "tests", "api", "infra", "observability", "types",
-    "i18n", "docs", "deps", "skills", "architecture", "comments", "simplify",
-    "production-readiness",
+    "database", "tests", "api", "infra", "observability", "i18n", "docs",
+    "deps", "skills", "architecture", "comments", "simplify", "production-readiness",
 }
 allowed_evidence = {"diff", "execution", "contract"}
 reject_classes = {

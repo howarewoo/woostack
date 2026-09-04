@@ -5,7 +5,7 @@ install: pnpx skills add howarewoo/woostack
 requires:
   bins: [gh, jq, node]
 recommends:
-  skills: [pbakaus/impeccable, coreyhaines31/seo-audit, coreyhaines31/ai-seo, openai/security-best-practices, supabase/supabase-postgres-best-practices]
+  skills: [pbakaus/impeccable, coreyhaines31/seo-audit, coreyhaines31/ai-seo]
 ---
 
 # woostack-review

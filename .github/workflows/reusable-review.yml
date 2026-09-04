@@ -40,11 +40,6 @@ on:
         description: 'Comma-separated list of review angles to skip.'
         type: string
         required: false
-      react_doctor_version:
-        description: 'npm version of react-doctor to invoke.'
-        type: string
-        required: false
-        default: 'latest'
       impeccable_version:
         description: 'npm version of impeccable CLI to invoke.'
         type: string
@@ -159,7 +154,6 @@ jobs:
           max_turns: ${{ inputs.max_turns }}
           skip_labels: ${{ inputs.skip_labels }}
           prompt_override: ${{ inputs.prompt_override }}
-          react_doctor_version: ${{ inputs.react_doctor_version }}
           impeccable_version: ${{ inputs.impeccable_version }}
       - name: Run angle review (retry once)
         if: steps.review1.outcome == 'failure'
@@ -182,7 +176,6 @@ jobs:
           max_turns: ${{ inputs.max_turns }}
           skip_labels: ${{ inputs.skip_labels }}
           prompt_override: ${{ inputs.prompt_override }}
-          react_doctor_version: ${{ inputs.react_doctor_version }}
           impeccable_version: ${{ inputs.impeccable_version }}
       # Artifact name includes the chunk suffix so multiple chunk jobs for the
       # same angle cannot collide on upload. `chunk` is `""` in the un-chunked

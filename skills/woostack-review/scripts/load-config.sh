@@ -106,7 +106,7 @@ src, dst, script_dir = sys.argv[1], sys.argv[2], sys.argv[3]
 sys.path.insert(0, script_dir)
 from model_config import normalize_models
 
-VALID_ANGLES = {"bugs", "security", "conventions", "acceptance", "seo", "aeo", "design", "react", "database", "tests", "api", "infra", "observability", "types", "i18n", "docs", "deps", "architecture", "skills", "comments", "simplify", "production-readiness"}
+VALID_ANGLES = {"bugs", "security", "conventions", "acceptance", "seo", "aeo", "design", "database", "tests", "api", "infra", "observability", "i18n", "docs", "deps", "architecture", "skills", "comments", "simplify", "production-readiness"}
 VALID_FLOORS = {"low", "medium", "high"}
 FORCE_TIERS = {"fast", "deep"}
 # Keys recognized inside the `review` block (and the legacy top-level form).

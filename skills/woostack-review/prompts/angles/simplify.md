@@ -27,7 +27,7 @@ the smaller shape that replaces it.
   buying clarity — the code is simpler with it inlined.
 - **One-liner opportunities.** A hand-rolled loop/reducer a single stdlib/native call replaces.
 
-**Scope-split with `architecture`** (precedent: `types.md` defers to `react`). When the
+**Scope-split with `architecture`.** When the
 `architecture` angle is ALSO enabled (a `woostack-review` diff includes it in
 `$OUTDIR/angles.txt`), **defer within-change structural-shape** findings (nesting, layering,
 spaghetti, naming) to it and own only **existence/YAGNI, cross-file dead code, and

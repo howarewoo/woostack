@@ -40,7 +40,7 @@ through the responsible development workflow; creating or binding a Linear, Plan
 Audit runs on the synthetic diff with **`simplify`** and **`production-readiness`** by default
 (plus the `bugs` + `security` safety floor). `--simplify` narrows the audit to simplification;
 `--prod-only` emphasizes production-readiness while keeping simplification. It also auto-detects
-review's other angles (`observability`, `types`, `deps`, `tests`, `conventions`, …) on the target.
+review's other angles (`observability`, `database`, `deps`, `tests`, `conventions`, …) on the target.
 The `architecture` angle is skipped — `simplify` owns the full simplification surface when it is
 absent (see [`prompts/angles/simplify.md`](../woostack-review/prompts/angles/simplify.md)). Both
 new angles are shared with `woostack-review`, which also runs them on source-touching diffs.

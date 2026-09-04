@@ -83,7 +83,6 @@ You are the <angle> reviewer for this PR. Read:
   - $OUTDIR/diff.txt (or diff.chunk-<id>.txt when chunked)
   - $OUTDIR/meta.json
 
-For `react` first run `npx -y react-doctor@$REACT_DOCTOR_VERSION --diff $BASE_REF --offline`.
 
 Write findings as a JSON array to $OUTDIR/findings.<angle>.json
 (or .<angle>.<chunk_id>.json when chunked) per the schema in _worker-header.md.

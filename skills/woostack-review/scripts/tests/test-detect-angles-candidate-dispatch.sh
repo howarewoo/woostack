@@ -28,10 +28,11 @@ bash "$SCRIPT" >/dev/null 2>&1
 assert_contains "$(cat "$OUTDIR/angles.txt")" "security" "uppercase secret token dispatches security"
 rm -rf "$work"
 
-# Type syntax in a non-TypeScript diff section does not dispatch types.
-setup "src/job.py" '+type User = payload'
+# TSX and TypeScript syntax retain generic signals without specialized dispatch.
+setup "src/component.tsx" '+type Props = { label: string }'
 bash "$SCRIPT" >/dev/null 2>&1
-assert_eq "$(grep -cx 'types' "$OUTDIR/angles.txt" || true)" "0" "Python type token does not dispatch TypeScript specialist"
+assert_contains "$(cat "$OUTDIR/angles.txt")" "design" "TSX still dispatches generic design review"
+assert_eq "$(grep -Ec '^(react|types)$' "$OUTDIR/angles.txt" || true)" "0" "TSX dispatches no removed specialist"
 rm -rf "$work"
 
 # Deterministic changed-line signal retains security even on an ordinary path.

@@ -137,7 +137,7 @@ parent-supplied artifacts; `related_files` may name only files in those artifact
 confidence labels or evidence copied from an external source. Candidates without
 these fields are discarded before `raw_findings.json`.
 
-`angle` is one of `bugs | security | conventions | acceptance | seo | aeo | design | react | database | tests | api | infra | observability | types | i18n | docs | deps | architecture | comments | simplify | production-readiness`.
+`angle` is one of `bugs | security | conventions | acceptance | seo | aeo | design | database | tests | api | infra | observability | i18n | docs | deps | architecture | comments | simplify | production-readiness`.
 
 `line` MUST be the post-patch absolute start line — i.e. a line that exists on the RIGHT side of the diff (a `+` added line or a ` ` context line within a hunk for `file`). Optional `end_line` is the inclusive post-patch end of a multi-line anchor and MUST be greater than `line` on the RIGHT side of that same hunk. Validate both through `scripts/resolve-diff-line.sh` (see *Output Discipline* above). Drop the finding when the helper returns `null`; when it returns only the start for a requested range, omit `end_line` and keep the single-line finding.
 

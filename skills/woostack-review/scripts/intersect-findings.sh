@@ -26,9 +26,8 @@ source, target, floor, nits, defer = sys.argv[1:]
 ranks = {"LOW": 0, "MEDIUM": 1, "HIGH": 2}
 allowed_angles = {
     "bugs", "security", "conventions", "acceptance", "seo", "aeo", "design",
-    "react", "database", "tests", "api", "infra", "observability", "types",
-    "i18n", "docs", "deps", "skills", "architecture", "comments", "simplify",
-    "production-readiness",
+    "database", "tests", "api", "infra", "observability", "i18n", "docs",
+    "deps", "skills", "architecture", "comments", "simplify", "production-readiness",
 }
 required_strings = ("file", "title", "description", "failure_mode", "fix")
 items = json.load(open(source))

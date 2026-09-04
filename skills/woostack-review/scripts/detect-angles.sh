@@ -24,19 +24,11 @@
 #               ClaudeBot / Google-Extended / anthropic-ai) or JSON-LD schema
 #               types (FAQPage / HowTo / Article / Product / ItemList) fire it.
 #   design   — *.{tsx,jsx,vue,svelte,html,css,scss,sass,less,styl,astro}
-#   react    — *.{tsx,jsx} in the diff. The angle handles non-React .tsx
-#              (e.g. Solid, Preact-only) gracefully, so a package.json check is
-#              unnecessary and breaks monorepos where react lives in workspace
-#              packages, not the root manifest.
 #   security — deterministic auth/secrets/data-flow paths, or high-risk
 #              security tokens on added diff lines (see has_security_* below).
-#   database — *.sql, migrations/ trees (db/supabase/prisma), prisma/schema.prisma,
-#               drizzle.config.{ts,js,mjs}, drizzle/, knexfile.{ts,js},
-#               supabase/(config.toml|seed.sql), OR diff body contains SQL DDL
-#               (CREATE/ALTER/DROP TABLE|INDEX|POLICY|FUNCTION|TRIGGER|SCHEMA|TYPE),
-#               RLS tokens (CREATE POLICY, ENABLE ROW LEVEL SECURITY, SECURITY
-#               DEFINER, auth.uid()/auth.jwt()), Supabase client construction, or
-#               ORM raw-SQL call sites (.raw(, sql`, db.query(, pool.query()
+#   database — *.sql, generic migrations/ trees, ORM schema/config files, OR
+#               diff body contains SQL DDL, row-level access-control clauses,
+#               stored-procedure privilege clauses, or ORM raw-SQL call sites.
 #   conventions — gated on prefetch having produced /tmp/pr-review/rules.md
 #               (i.e. the repo carries AGENTS.md / CLAUDE.md / .cursorrules /
 #               .windsurfrules / GEMINI.md somewhere along the changed paths).
@@ -62,8 +54,6 @@
 #               OpenTelemetry / span. / metrics., bare `catch {}` swallow,
 #               `.catch(() => null|undefined)`, production Mock/Fake/Stub fallback
 #               construction.
-#   types     — declaration-oriented TypeScript paths (types/, typings/, *.d.ts)
-#               or explicit type syntax on an added diff line.
 #   i18n      — locales/, messages/, i18n/, translations/ directory trees,
 #               *.po / *.pot files, or `i18n.t(` / `useTranslations(` /
 #               `<Trans` / `FormattedMessage` tokens in the diff body.
@@ -183,14 +173,9 @@ has_design_file() {
   echo "$CHANGED_PATHS" | grep -qE '\.(tsx|jsx|vue|svelte|html|css|scss|sass|less|styl|astro)$'
 }
 
-has_react_signal() {
-  echo "$CHANGED_PATHS" | grep -qE '\.(tsx|jsx)$'
-}
-
 has_database_file() {
   echo "$CHANGED_PATHS" | grep -qE '\.sql$' && return 0
-  echo "$CHANGED_PATHS" | grep -qE '(^|/)(db/migrations|supabase/migrations|prisma/migrations|migrations)/' && return 0
-  echo "$CHANGED_PATHS" | grep -qE '(^|/)supabase/(config\.toml|seed\.sql)$' && return 0
+  echo "$CHANGED_PATHS" | grep -qE '(^|/)(db/migrations|prisma/migrations|migrations)/' && return 0
   echo "$CHANGED_PATHS" | grep -qE '(^|/)prisma/schema\.prisma$' && return 0
   echo "$CHANGED_PATHS" | grep -qE '(^|/)drizzle\.config\.(ts|js|mjs)$' && return 0
   echo "$CHANGED_PATHS" | grep -qE '(^|/)drizzle/' && return 0
@@ -199,9 +184,9 @@ has_database_file() {
 }
 
 has_database_diff_token() {
-  # SQL DDL, RLS tokens, Supabase client, and ORM raw-SQL call sites.
+  # SQL DDL, row-level access-control clauses, and ORM raw-SQL call sites.
   # Anchored to reduce false-fires on plain English ("create a table") in docs.
-  grep -qE "\b(CREATE|ALTER|DROP)[[:space:]]+(TABLE|INDEX|POLICY|FUNCTION|TRIGGER|SCHEMA|TYPE|VIEW|MATERIALIZED)\b|\bENABLE[[:space:]]+ROW[[:space:]]+LEVEL[[:space:]]+SECURITY\b|\bSECURITY[[:space:]]+DEFINER\b|\bauth\.(uid|jwt|role)\(\)|createClient\([^)]*supabase|\.raw\(|\bsql\`|\bdb\.query\(|\bpool\.query\(" "$DIFF"
+  grep -qE "\b(CREATE|ALTER|DROP)[[:space:]]+(TABLE|INDEX|POLICY|FUNCTION|PROCEDURE|TRIGGER|SCHEMA|TYPE|VIEW|MATERIALIZED)\b|\bENABLE[[:space:]]+ROW[[:space:]]+LEVEL[[:space:]]+SECURITY\b|\bSECURITY[[:space:]]+DEFINER\b|\.raw\(|\bsql\`|\bdb\.query\(|\bpool\.query\(" "$DIFF"
 }
 
 has_tests_file() {
@@ -266,26 +251,6 @@ has_security_diff_token() {
   # Only added lines can provide a postable security anchor. Keep this list
   # concrete enough to avoid turning ordinary data plumbing into security work.
   grep -qiE '^\+.*\b(password|passwd|secret|api[_-]?key|access[_-]?token|refresh[_-]?token|authorization|set-cookie|innerHTML|dangerouslySetInnerHTML|eval\(|exec\(|spawn\(|child_process|readFile\(|writeFile\(|crypto\.|Math\.random\(|fetch\(|axios\.|\.query\(|SELECT[[:space:]]|INSERT[[:space:]]|UPDATE[[:space:]]|DELETE[[:space:]])' "$DIFF"
-}
-has_types_signal() {
-  # TypeScript-only specialist: declaration-oriented paths or explicit type
-  # syntax on an added line in a TypeScript-family diff section.
-  echo "$CHANGED_PATHS" | grep -qE '(^|/)(types?|typings?)/|\.d\.(ts|mts|cts)$' && return 0
-  if grep -q '^diff --git ' "$DIFF"; then
-    awk '
-      /^diff --git / {
-        path=$4
-        sub(/^b\//, "", path)
-        in_ts = path ~ /\.(ts|tsx|cts|mts)$/
-        next
-      }
-      in_ts && /^\+/ && !/^\+\+\+/ && /(interface|type[[:space:]]+[A-Za-z_$]|satisfies[[:space:]]|as[[:space:]]+const)/ { found=1 }
-      END { exit(found ? 0 : 1) }
-    ' "$DIFF"
-    return $?
-  fi
-  echo "$CHANGED_PATHS" | grep -qE '\.(ts|tsx|cts|mts)$' || return 1
-  grep -qE '^\+.*(interface|type[[:space:]]+[A-Za-z_$]|satisfies[[:space:]]|as[[:space:]]+const)' "$DIFF"
 }
 
 has_i18n_file() {
@@ -362,10 +327,6 @@ if has_design_file; then
   ANGLES+=("design")
 fi
 
-if has_react_signal; then
-  ANGLES+=("react")
-fi
-
 if has_database_file || has_database_diff_token; then
   ANGLES+=("database")
 fi
@@ -384,10 +345,6 @@ fi
 
 if has_observability_diff_token; then
   ANGLES+=("observability")
-fi
-
-if has_types_signal; then
-  ANGLES+=("types")
 fi
 
 if has_i18n_file || has_i18n_diff_token; then

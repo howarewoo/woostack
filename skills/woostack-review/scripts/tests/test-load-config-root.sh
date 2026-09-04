@@ -64,5 +64,21 @@ set -e
 assert_exit 1 "$rc" "empty base config fails review loader"
 assert_contains "$(cat "$out/load-config-empty.err")" "::error file=.woostack/config.json::" "empty base config emits error annotation"
 
-rm -rf "$repo" "$wt" "$empty_repo" "$empty_cfg_repo" "$(dirname "$out")"
+# Removed specialized angle names fail through the existing unknown-angle path.
+invalid_cfg_root="$(mktemp -d)"
+for angle in react types; do
+  invalid_repo="$invalid_cfg_root/$angle"
+  mkdir -p "$invalid_repo/.woostack"
+  printf '{"review":{"angles":{"force":["%s"]}}}\n' "$angle" > "$invalid_repo/.woostack/config.json"
+  set +e
+  ( cd "$invalid_repo" && env -u GITHUB_WORKSPACE OUTDIR="$out" bash "$SCRIPT" ) \
+    >"$out/load-config-$angle.out" 2>"$out/load-config-$angle.err"
+  rc=$?
+  set -e
+  assert_exit 1 "$rc" "$angle angle is rejected"
+  assert_contains "$(cat "$out/load-config-$angle.err")" "unknown angle(s): $angle" \
+    "$angle rejection uses unknown-angle error"
+done
+
+rm -rf "$repo" "$wt" "$empty_repo" "$empty_cfg_repo" "$invalid_cfg_root" "$(dirname "$out")"
 finish

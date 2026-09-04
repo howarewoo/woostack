@@ -76,7 +76,7 @@ For each angle in `$OUTDIR/angles.txt` (× each chunk when chunked):
 Each angle agent:
 
 1. Loads `$WOO_REVIEW_ACTION_PATH/prompts/angles/<angle>.md`.
-2. Executes the angle prompt against its assigned diff. For `react` run `npx -y react-doctor@$REACT_DOCTOR_VERSION --diff $BASE_REF --offline`.
+2. Executes the angle prompt against its assigned diff.
 3. Writes findings to `$OUTDIR/findings.<angle>.json` (or `findings.<angle>.<chunk_id>.json` in chunked mode) — JSON array per the schema in `_worker-header.md`.
 
 Stay within each angle's scope; do not let one angle flag issues that belong to another. `merge-findings.sh` (Phase 3) handles within-angle dedup across chunks.
