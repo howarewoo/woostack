@@ -92,7 +92,7 @@ simplification. The complete specification and delegated execution plan carry th
 the executor-ready evidence for why addition is necessary. Preserve behavior and safety parity: this
 analysis never drops validation, error handling, security, accessibility, compatibility, data-loss
 protection, or deliberate safety redundancy. The canonical
-[least-code doctrine](../woostack-bootstrap/references/patterns.md#10-least-code--comments) is the
+[least-code doctrine](../woostack-bootstrap/references/patterns.md#7-least-code--comments) is the
 source of truth; Execute's existing smallest-complete-change and behavior-preserving simplification
 contract remains unchanged.
 

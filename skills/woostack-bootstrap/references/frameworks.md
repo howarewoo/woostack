@@ -1,36 +1,34 @@
-# Frameworks & Dependency Versioning
+# Technology Selection & Dependency Versioning
 
-This document defines dynamic framework-version selection and app-scoped dependency ownership.
+The approved stack determines the ecosystem and tools. Bootstrap resolves its dependency versions
+live and keeps ownership with the application or shared code that consumes them.
 
 ## Registry-based version lookup
 
-AI agents must **never** resolve dependency versions from training memory. Resolve every version
-live at bootstrap time with the authoritative registry.
+Never resolve dependency versions from model memory. Query the authoritative registry for the
+approved ecosystem at bootstrap time. Examples include:
 
-1. **JavaScript/TypeScript (npm)**: Use `npm view <pkg> version` for the latest stable version or
-   `npm view <pkg> dist-tags` to inspect tags such as `latest`, `next`, or `beta`.
-2. **Python (PyPI)**: Query the PyPI package metadata or use the selected Python package manager.
-3. **Rust (crates.io)**: Use `cargo search <pkg>` or query the crates.io API.
-4. **Go**: Use `go list -m -versions <module>` or query proxy.golang.org.
+- JavaScript or TypeScript: `npm view <pkg> version` for the latest stable release and
+  `npm view <pkg> dist-tags` when the approved design requires a prerelease channel.
+- Python: query package metadata from PyPI through the selected tooling.
+- Rust: query crates.io through Cargo or its API.
+- Go: query the selected module through the public module proxy.
 
----
+Use stable releases unless the approved design explicitly requires a prerelease.
 
-## App-scoped dependencies
+## Dependency ownership
 
-1. **App ownership**: Declare each app's dependencies in that app's manifest.
-2. **Shared-package ownership**: A shared package declares its own runtime, peer, and development
-   dependencies.
-3. **Root restraint**: Keep only genuine repository-wide tooling at the root.
-4. **Lifecycle script permissions**: When a package manager disables lifecycle scripts by default,
-   explicitly enable only the native modules that require them.
+1. **Application ownership:** Declare each application's dependencies in its own manifest.
+2. **Shared-code ownership:** Shared code declares its own runtime, peer, and development dependencies
+   when the selected ecosystem distinguishes them.
+3. **Root restraint:** Keep only genuine repository-wide tooling at the root.
+4. **Lifecycle permissions:** If the selected package manager restricts lifecycle scripts, enable
+   only the dependencies whose required native installation has been verified.
 
----
+## Compatibility and integrity
 
-## Universal gotchas & safeguards
-
-- **Peer dependency alignment**: Check peer warnings within each consuming app or package before
-  resolving its versions.
-- **Workspace resolution**: Verify that an intentionally shared local package resolves from the
-  workspace rather than an external registry.
-- **Native module constraints**: Ensure selected packages support the target mobile, desktop,
-  serverless, or edge runtime.
+- Resolve peer or compatibility warnings within each consuming application or shared unit.
+- Verify that intentionally shared local code resolves from the repository rather than an external
+  registry.
+- Confirm every selected dependency supports its target runtime and deployment environment.
+- Preserve lockfile and integrity metadata produced by the approved package manager.

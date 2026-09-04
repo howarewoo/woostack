@@ -9,7 +9,7 @@ Two roles in one skill. **(1) The canonical TDD doctrine home** — the kernel b
 here and linked, never restated, by [woostack-plan](../woostack-plan/SKILL.md),
 [woostack-execute](../woostack-execute/SKILL.md),
 [woostack-debug](../woostack-debug/SKILL.md), and
-[bootstrap patterns.md §7](../woostack-bootstrap/references/patterns.md). **(2) The public
+[bootstrap patterns.md §4](../woostack-bootstrap/references/patterns.md#4-test-driven-development). **(2) The public
 `/woostack-tdd <target>` command**—validate one bounded, test-only contract, optionally enrich it
 from exact caller-supplied artifacts, then delegate repository mutation to
 [`woostack-execute`](../woostack-execute/SKILL.md). TDD itself performs no direct repository
@@ -41,7 +41,7 @@ to manufacture red. New code remains red-first.
 </CHARACTERIZATION-CARVE-OUT>
 
 Follow the repository's existing runner, file layout, and naming conventions. The project-level
-standard lives in [patterns.md §7](../woostack-bootstrap/references/patterns.md). Clarify unclear
+standard lives in [patterns.md §4](../woostack-bootstrap/references/patterns.md#4-test-driven-development). Clarify unclear
 inputs, outputs, errors, or integration boundaries before writing tests.
 
 ## `/woostack-tdd <target>` — add repository tests

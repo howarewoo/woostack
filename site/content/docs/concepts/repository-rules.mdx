@@ -1,217 +1,153 @@
 ---
 title: Repository structure and rules
-description: The complete app-local code placement, shared extraction, dependency, production, testing, Git, and scaffold rules for projects bootstrapped with woostack.
+description: Technology-neutral ownership, dependency, production, testing, Git, and scaffold rules for projects bootstrapped with woostack.
 ---
 
-Woostack defines a strong repository architecture for new projects created through
-[woostack-bootstrap](/docs/skills/woostack-bootstrap). It does not silently restructure an existing
-repository: existing conventions and history remain authoritative, and brownfield work routes to
-Build, Fix, or Change.
+Woostack defines engineering outcomes for new projects created through
+[woostack-bootstrap](/docs/skills/woostack-bootstrap), not a built-in technology stack. Bootstrap
+researches current named options, requires explicit approval, and records the selected technologies
+and live-resolved versions. Existing repository conventions and history remain authoritative for
+brownfield work, which routes to Build, Fix, or Change.
 
-All product code starts in the app that owns it. Extract a package only when multiple apps need the
-same implementation or contract. The remaining implementation patterns are mandatory unless the
-project's own documentation explicitly overrides them.
+## Repository-owned structure
 
-## Canonical layout
+- Follow the approved stack's native structure in a new repository and the established structure in
+  an existing one.
+- Keep product code in the deployable application or unit that owns it.
+- Keep business logic, data access, authentication, observability, UI, utilities, and vendor
+  integrations with that owner.
+- Extract only the smallest coherent implementation or contract genuinely shared by multiple
+  applications, place and name it according to repository conventions, and remove local duplicates.
+- Create only directories and modules required by the approved product.
+- Do not create placeholder packages, speculative abstractions, pass-through wrappers, duplicate
+  tooling, or a second convention beside the repository's own.
 
-```text
-<project-root>/
-├── apps/                         # Deployable units: web, api, worker, mobile, …
-│   └── <app>/
-│       └── src/
-│           ├── adapters/         # App-owned boundary adapters, when needed
-│           ├── contracts/        # App-owned, when needed
-│           ├── services/         # App-owned, when needed
-│           ├── components/       # App-owned, when needed
-│           ├── layouts/          # App-owned, when needed
-│           └── schemas/          # App-owned, when needed
-└── packages/                     # Shared across multiple apps; omit when unused
-    └── <shared-capability>/
-```
+### Application internals
 
-- `apps/` contains independently deployable surfaces with unscoped names such as `web`, `api`, and
-  `worker`.
-- Business logic, data access, authentication, observability, UI, utilities, and vendor
-  integrations live in their owning app by default.
-- `packages/` contains only implementations or contracts genuinely shared by multiple apps.
-- Name an extracted package for the capability it shares.
-- Omit empty directories and an unused `packages/` directory.
-- Do not create placeholder packages, example features, speculative abstractions, or duplicate
-  tooling.
+Group code according to the selected technology and repository conventions. An application may need
+boundary adapters, contracts, services, UI, layouts, or validation, but those role names do not
+mandate a directory tree.
 
-## App-local first
+Boundary adapters map wire or vendor representations to domain models and isolate transport errors;
+see [Application-boundary adapters](https://github.com/howarewoo/woostack/blob/main/skills/woostack-bootstrap/references/patterns.md#3-application-boundary-adapters).
 
-- Follow each app framework's native directory and module conventions.
-- Extract the smallest coherent surface to `packages/<shared-capability>` only when multiple apps
-  need the same implementation or contract.
-- After extraction, remove app-local copies and have each consumer import the shared package.
-
-### App internals
-
-Create only the directories an app needs:
-
-- `adapters/`: boundary adapters mapping wire/vendor representations to domain models and isolating transport errors; optional (see [Application-boundary adapters](https://github.com/howarewoo/woostack/blob/main/skills/woostack-bootstrap/references/patterns.md#6-application-boundary-adapters)).
-- `contracts/`: typed interfaces and validated API input/output schemas.
-- `services/`: business logic, use cases, handlers, and database queries.
-- `components/`: app-owned UI components.
-- `layouts/`: app-owned layout shells.
-- `schemas/`: internal validation schemas.
-
-Prefer the selected framework's native convention when it already provides one.
-
-## API and client patterns
-
-The default type-safe API layout uses oRPC:
-
-```text
-apps/api/src/contracts/{capability}Contract.ts
-apps/api/src/services/
-apps/api/src/router.ts
-apps/<client>/src/lib/api-client.ts
-```
-
-- Contracts define validated input and output shapes inside the API app.
-- App-local services implement business logic and API handlers.
-- `apps/api/src/router.ts` composes those handlers and exports the root `Router` type.
-- API client helpers stay in each client app by default; extract `packages/api-client` only when
-  multiple apps need the same implementation.
-- API types flow from the database/domain through the server contract to clients.
-- All client-side fetching and mutations use TanStack Query with `@orpc/tanstack-query`.
-- Never use `useEffect` to load server data.
-- Do not create separate `queries/` or `mutations/` directories; derive options from
-  `createOrpcUtils(client)`.
+## APIs and application boundaries
 
 ### API compatibility
 
-Within a major API version:
+Within the repository's supported compatibility window:
 
-- Shipped URLs are immutable.
-- Input schemas may gain optional fields, but fields cannot be removed or renamed.
-- Output schemas may gain fields, but existing fields cannot be removed or change type.
-- Existing error codes retain their meaning; add new codes for new conditions.
-- Breaking changes require a versioned endpoint or a major-version bump.
-
+- Existing route or operation identifiers remain stable.
+- Inputs may gain optional fields; do not remove or rename existing fields.
+- Outputs may gain fields; do not remove existing fields or change their meaning or type.
+- Existing error codes retain their meaning; add distinct codes for new conditions.
+- An approved breaking change uses the repository's documented versioning mechanism.
 
 ### Application-boundary adapters
 
-When data crosses application boundaries (HTTP/RPC server-client, service-to-service, webhooks, queues/events, or third-party APIs in either direction):
+When data crosses application boundaries (HTTP/RPC server-client, service-to-service, webhooks,
+queues/events, or third-party APIs in either direction):
 
 - Keep transport, client, and vendor formats out of domain and business logic through boundary adapters.
 - Adapters own input validation/narrowing, wire/domain bidirectional mapping, and transport error translation.
-- Place adapters in the owning app by default, optionally under `adapters/`; extract to `packages/<shared-capability>` only when multiple apps share the exact contract.
+- Place adapters in the owning application; extract them only when multiple applications share the
+  exact contract or implementation.
 - Functions or modules satisfy the pattern; classes are not required.
-- Do not add identity-only or no-op wrappers when a deliberately shared contract is already the domain model shape.
-- Apply to new and materially touched boundary flows; untouched legacy flows remain unchanged.
-- Review blocks concrete changed-code transport leaks or missing boundary validation/error translation, but does not police folder naming, class-versus-function style, or justified identity mapping omissions.
+- Do not add identity-only or no-op wrappers when a deliberately shared contract is already the
+  domain model shape.
+- Apply the rule to new and materially touched boundary flows; untouched legacy flows remain unchanged.
+- Review blocks concrete changed-code transport leaks or missing boundary validation/error
+  translation, but does not police naming, implementation style, or justified identity mapping
+  omissions.
 
-See [patterns.md §6](https://github.com/howarewoo/woostack/blob/main/skills/woostack-bootstrap/references/patterns.md#6-application-boundary-adapters) for the canonical pattern.
-## Web and mobile
+See [patterns.md §3](https://github.com/howarewoo/woostack/blob/main/skills/woostack-bootstrap/references/patterns.md#3-application-boundary-adapters) for the canonical pattern.
 
-### Next.js boundaries
+## Technology selection and dependencies
 
-- Pages in `apps/web` and `apps/landing` are Server Components by default.
-- Render and fetch on the server by default.
-- Use a Client Component only for DOM event handlers, browser-only APIs, or stateful UI requiring
-  hooks such as `useState` or `useReducer`.
-- Add `"use client"` only where required and keep client boundaries small.
-
-### Cross-platform UI
-
-- Web uses shadcn/ui with Base UI primitives and Tailwind CSS by default.
-- Mobile uses `react-native-reusables` with UniWind by default.
-- Keep themes, tokens, helpers, and components in their consuming app by default.
-- Move a web component to `packages/ui-web/src/components/` only when multiple web apps need the
-  same implementation.
-- Extract shared tokens to `packages/ui` only when multiple apps consume the same theme, and keep
-  platform-specific mirrors synchronized.
-
-## Multi-language monorepos
-
-- Put every deployable service under `apps/<name>` and follow its native language and framework
-  conventions.
-- Scope dependencies to each app or intentionally shared package through its native package
-  manager: Cargo for Rust, Go modules for Go, and uv or Poetry for Python.
-- Use root task orchestration only when it simplifies real cross-app commands; do not add wrapper
-  manifests solely to make unlike ecosystems look uniform.
-- When multiple apps need a cross-language contract, share it through OpenAPI, Protocol Buffers,
-  JSON Schema, or another language-neutral format.
-
-## Dependencies
-
-- Resolve every version live from its authoritative registry; never use model memory.
-- Use stable versions unless the approved design explicitly requires a prerelease.
-- Each app declares the packages and versions required by its own framework and runtime.
-- A shared package declares its own runtime, peer, and development dependencies.
+- Gather relevant product, scale, traffic, hosting, data, identity, compliance, integration, budget,
+  and team constraints before selecting technologies.
+- Research current named options and present two or three cohesive stacks with their trade-offs,
+  production readiness, operating costs, and authoritative sources.
+- Obtain explicit approval of the complete stack and architecture before scaffolding. Do not infer a
+  default for an undecided category.
+- Record the exact selected technologies, material choices, and live-resolved versions in the root
+  README.
+- Resolve every dependency version live from its authoritative registry; never use model memory.
+- Use stable releases unless the approved design explicitly requires a prerelease.
+- Each application declares the dependencies required by its runtime in its own manifest.
+- Shared code declares its own dependency categories when the selected ecosystem supports them.
 - Keep only genuine repository-wide tooling at the root.
-- Explicitly allow only required native lifecycle scripts when the package manager blocks them by
-  default.
-- Check peer-dependency alignment within each consuming app or package.
-- Verify that intentionally shared local packages resolve from the workspace.
-- Check native-module compatibility with mobile, desktop, serverless, and edge runtimes.
+- Enable lifecycle scripts only for dependencies whose required installation behavior has been
+  verified.
+- Resolve peer or compatibility warnings in each consumer, verify local shared-code resolution, and
+  check dependency support for the target runtime.
+- Preserve the approved package manager's lockfile and integrity metadata.
+
+## Type safety
+
+- Use the approved stack's strongest practical static and runtime type-safety mechanisms.
+- Validate or narrow untrusted values at trust boundaries before application code consumes them.
+- Derive related contract types from one source of truth when the selected technology supports it.
+- Do not bypass type checks without a narrow, documented reason.
+- Keep type and contract helpers application-local; extract only definitions shared by multiple
+  applications.
 
 ## Data, identity, and observability
 
-### Database
+### Data and migrations
 
-- Every schema mutation is a discrete, version-controlled migration file in the selected tool's
-  conventional migration directory.
-- Never run production migrations directly from a developer machine; use CI/CD or deployment hooks.
-- Configure relational database connection pooling in serverless environments.
-- Use a clean vendor interface when it provides real portability or testability.
-- Centralize connection instantiation and expose high-level queries or a single pooled client.
+- Keep every schema mutation discrete, ordered, version-controlled, and reproducible with the
+  approved data tooling.
+- Do not run production migrations directly from a developer machine; use controlled deployment
+  automation with observable failure and recovery behavior.
+- Configure connection limits, pooling, retries, backups, restoration, and destructive-change
+  safeguards to match the selected database and runtime.
+- Add a project-owned interface around a vendor client only when it provides real portability,
+  testability, isolation, or reuse; do not add a pass-through abstraction.
+- Centralize client or connection instantiation when shared lifecycle, pooling, or rate-limit control
+  requires it.
 
 ### Authentication
 
-- Wrap a third-party auth SDK when a project-owned interface provides real portability,
-  testability, or reuse.
-- Provide server-only trusted helpers for token verification and session retrieval.
+- Wrap a third-party identity client only when a project-owned interface provides real portability,
+  testability, isolation, or reuse.
+- Verify tokens and sessions only in trusted server-side contexts and keep authorization decisions
+  explicit at protected boundaries.
 
 ### Observability
 
-- Emit structured JSON logs with fields such as `timestamp`, `level`, `message`, `service`, and
-  `env`.
-- Capture unhandled exceptions through an error-tracking service.
-- Redact authorization headers, API keys, tokens, and other secrets before transmitting telemetry.
+- Emit structured, queryable events with consistent time, severity, message, service, and
+  environment fields.
+- Capture unhandled failures through the approved monitoring path.
+- Redact credentials, authorization material, personal data, and other secrets before transmitting
+  telemetry.
 
-## Environment variables
+## Environment and secrets
 
-- Managed hosting or service configuration is the production source of truth.
-- Local `.env` files are allowed for development, but raw secrets are never committed.
-- Keep a root `.env.example` containing names with empty values.
-- Root `.gitignore` covers `.env`, `.env.local`, and `.env.*.local`.
-- Validate required environment variables at startup and fail fast with descriptive errors.
+- Use the approved production secret store or managed runtime configuration as the production source
+  of truth.
+- Keep local development secrets out of source control and provide a non-secret inventory of required
+  configuration names.
+- Ensure ignore rules cover local secret files used by the selected stack.
+- Validate required configuration at startup and fail with descriptive, non-secret errors.
 
-## CI/CD and hosting
+## CI/CD and deployment
 
-- Use one root CI pipeline for the monorepo.
-- Run it on every pull request targeting an integration branch.
-- Required PR checks are formatting, lint/static analysis, type checking, building every workspace
-  application, and unit/integration tests.
-- PR branches deploy automatically to preview or staging environments.
-- The primary branch triggers production builds and deployments.
-- Production database migrations execute through deployment automation.
-- Prefer managed frontend hosting with preview deployments, caching, and edge rendering.
-- Prefer serverless or edge functions for short stateless API workloads.
-- Prefer containers for long-running processes, WebSockets, or heavy compute.
-- Use mobile cloud-build pipelines to manage certificates, profiles, and store submission.
-
-These hosting choices are workload guidance, not fixed vendor mandates.
+- Use the repository's approved automation and commands.
+- Run every applicable formatting, static-analysis, type/compile, build, and test check defined by the
+  scaffold on pull requests.
+- Match deployment architecture to runtime duration, scaling, latency, state, networking, and
+  regional requirements.
+- Automate preview/staging and production deployments, migrations, rollback, and release credential
+  handling according to the approved delivery model.
+- Never report a nonexistent or unobserved command as passing.
 
 ## Testing
 
-- Follow Red → Green → Refactor and write the failing test first.
-- Use Vitest by default, Jest through `jest-expo` for React Native, and Playwright for end-to-end
-  tests.
-- Tests for a source file live in a sibling `__tests__/` directory.
-- A change is incomplete until all tests pass.
-
-## Type discipline
-
-- Do not use `any`.
-- Use `unknown` only at a trust boundary and narrow it immediately.
-- Prefer schema-derived types such as `z.infer<typeof Schema>` for API shapes.
-- Prefer generics over duplicated types.
-- Keep helper types app-local; extract one to a shared package only when multiple apps need it.
+- Follow Red → Green → Refactor and write the failing test first for new implementation.
+- Use the repository's approved test runner, file layout, and naming conventions.
+- Cover observable behavior, boundaries, invariants, transitions, precedence, and real failure paths.
+- A change is incomplete until its required verification passes.
 
 ## Least code, still safe
 
@@ -219,7 +155,7 @@ Before adding code, stop at the first rung that works:
 
 1. Confirm the code is needed.
 2. Reuse an in-tree helper or pattern.
-3. Use the standard library.
+3. Use standard facilities.
 4. Use a native platform feature.
 5. Use an already-installed dependency.
 6. Use a direct one-line implementation.
@@ -236,10 +172,11 @@ Additional rules:
 - Keep a regression test for a behavior-changing simplification.
 - Give a deliberate known limitation a `why` comment that names its ceiling and upgrade path.
 - Keep non-test source files at or below 500 lines.
-- Add JSDoc describing purpose, inputs, and outputs to user-facing components and procedures.
+- Document user-facing components and procedures with the repository's native convention.
 - Comments explain non-obvious reasons, constraints, workarounds, or invariants—not what the code
   already states.
-- Extract magic literals into descriptively named `UPPER_SNAKE_CASE` constants.
+- Replace unexplained repeated or policy-bearing literals with descriptively named constants using
+  the repository's naming convention.
 
 See [Least code, still safe](/docs/concepts/least-code) for the rationale and review behavior.
 
@@ -247,29 +184,24 @@ See [Least code, still safe](/docs/concepts/least-code) for the rationale and re
 
 Before creating a repository:
 
-- Gather scale, traffic, hosting, data, auth, compliance, integration, budget, and team constraints.
-- Research current production-ready technologies and versions.
-- Present two or three cohesive stack options covering trade-offs, production readiness, and cost.
-- Obtain explicit approval of the complete stack and architecture.
+- Complete the live research and explicit technology-approval gate above.
 - Do not access or modify the target before approval.
 - Make the first target operation a read-only collision check.
 - Proceed only when the path is absent or an empty non-Git directory.
-- Reject symlinks, populated directories, existing repositories/worktrees, unreadable paths,
+- Reject symlinks, populated directories, existing repositories or worktrees, unreadable paths,
   ambiguous results, and paths owned by another run.
 - Never reset, clean, delete, overwrite, or scaffold around an existing target.
 
 For every approved surface:
 
 - Resolve exact dependency versions live.
-- Use the smallest supported scaffold.
+- Use the smallest supported scaffold for the selected stack.
 - Remove demo and example code outside the approved product.
-- Establish each app's native structure and only the shared packages the approved surfaces need.
+- Establish each application's native structure and only the shared code the approved surfaces need.
 - Implement only the minimum vertical slice needed to prove the architecture.
 - Configure environment validation without including secret values.
-- Add the required security, error, accessibility, data-loss, migration, and observability
-  protections.
+- Add required security, error, accessibility, data-loss, migration, and observability protections.
 - Keep generated output and runtime evidence out of source control.
-- Reuse framework conventions instead of creating a second convention.
 
 ## Git and workspace initialization
 
@@ -304,10 +236,10 @@ For every approved surface:
 Write the root README after the scaffold works. Include:
 
 - product purpose and approved deployable surfaces;
-- architecture and app-local/shared-code placement decisions;
+- architecture and application-local/shared-code placement decisions;
 - exact selected technologies and live-resolved versions;
-- setup prerequisites and non-secret environment-variable names;
-- development, build, test, lint, format, migration, and boot commands that actually exist;
+- setup prerequisites and non-secret configuration names;
+- development, build, test, analysis, format, migration, and boot commands that actually exist;
 - deployment and observability assumptions;
 - rationale for material choices; and
 - an artifact link only when persistence was explicitly selected and verified.
@@ -316,25 +248,20 @@ Do not copy Woostack's complete internal workflow or artifact protocol into the 
 
 ## Required verification
 
-A bootstrap is incomplete until it runs:
+A bootstrap is incomplete until it runs every applicable command defined by the approved scaffold:
 
-1. dependency installation with the selected package manager and lockfile;
-2. formatter/check mode;
-3. lint/static analysis;
-4. type checking or compilation where applicable;
-5. tests actually defined by the scaffold;
-6. a production build;
-7. boot/smoke verification of every approved deployable surface; and
-8. at least one vertical path through each surface.
+dependency installation and lockfile generation, format/check mode, static analysis, type checking or
+compilation, tests, production build, boot/smoke verification of every deployable surface, and at
+least one vertical path through each surface.
 
-The final tree inspection rejects committed secrets, committed `.env*` files, generated build
-output, leftover examples, premature or duplicated shared packages, unexpected files, missing
-lockfiles, or dirty formatter output. A nonexistent command cannot be reported as passing.
+The final tree inspection rejects committed secrets, local secret files, generated build output,
+leftover examples, premature or duplicated shared code, unexpected files, missing lockfiles, or dirty
+formatter output. A nonexistent command cannot be reported as passing.
 
 ## Existing repositories
 
-Woostack does not impose this greenfield architecture on an existing repository. Existing
-conventions and history own brownfield work:
+Woostack does not impose greenfield architecture on an existing repository. Existing conventions and
+history own brownfield work:
 
 - bugs, regressions, and root-cause work route to [Fix](/docs/skills/woostack-fix);
 - bounded one-PR enhancements and refactors route to [Change](/docs/skills/woostack-change); and
@@ -342,8 +269,7 @@ conventions and history own brownfield work:
 
 ## Canonical sources
 
-This page lists the complete project-structure contract in one place. The executable skill and its
-references remain authoritative:
+This page summarizes the project contract. The executable skill and references remain authoritative:
 
 - [`woostack-bootstrap/SKILL.md`](https://github.com/howarewoo/woostack/blob/main/skills/woostack-bootstrap/SKILL.md)
 - [`architecture.md`](https://github.com/howarewoo/woostack/blob/main/skills/woostack-bootstrap/references/architecture.md)

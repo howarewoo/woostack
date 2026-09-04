@@ -49,7 +49,6 @@ Install the `woostack` collection into your agent's skill directory:
 pnpx skills add howarewoo/woostack
 ```
 
-*Note: `pnpm` (and `pnpx`) is the recommended package manager for woostack, as bootstrapped projects default to a pnpm workspace catalog.*
 
 This command registers twenty-one public command/adoption skills and two bundled internal skills
 at twenty-three fixed `SKILL.md` locations. The collection includes `using-woostack`,
@@ -219,7 +218,7 @@ responsible workflow. They never replace the approved contract or Git/GitHub fac
 
 ## Contributing
 
-The skills evolve here. Open a PR to update default frameworks, revise patterns, document gotchas, or refine the bootstrap and build procedures. See [CONTRIBUTING.md](CONTRIBUTING.md) and [AGENTS.md](AGENTS.md).
+The skills evolve here. Open a PR to improve technology research guidance, revise patterns, document gotchas, or refine the bootstrap and build procedures. See [CONTRIBUTING.md](CONTRIBUTING.md) and [AGENTS.md](AGENTS.md).
 
 ## Spec Version
 
