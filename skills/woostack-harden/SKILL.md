@@ -42,7 +42,7 @@ existing code before proposing additions. It challenges an additive draft when b
 shows the same contract can be met by deletion or simplification, then asks the user to validate the
 safe removal—or the bounded reason addition remains necessary—without dropping behavior or safety
 requirements.
-[least-code doctrine](../woostack-bootstrap/references/patterns.md#10-least-code--comments) rather
+[least-code doctrine](../woostack-bootstrap/references/patterns.md#7-least-code--comments) rather
 than duplicating it.
 
 During specification reconciliation, Harden validates the Ideate-owned conditional `## Data models`

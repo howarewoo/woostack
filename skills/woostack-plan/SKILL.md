@@ -87,7 +87,7 @@ or increment work item must retain these fields in its complete description:
 - a declared Graphite parent; and
 - a hand-written changed-line estimate and size rationale.
 
-When an increment touches an inter-application boundary (HTTP/RPC server-client, service-to-service, webhooks, queues/events, or third-party APIs in either direction), the direct issue contract must explicitly identify each boundary and specify adapter mapping, boundary validation/narrowing, transport error translation, app-local placement, wire/API compatibility, and focused boundary test obligations following the canonical [application-boundary adapters rule](../woostack-bootstrap/references/patterns.md#6-application-boundary-adapters). Do not demand identity-only or no-op wrappers when a deliberately shared contract is already the application/domain shape.
+When an increment touches an inter-application boundary (HTTP/RPC server-client, service-to-service, webhooks, queues/events, or third-party APIs in either direction), the direct issue contract must explicitly identify each boundary and specify adapter mapping, boundary validation/narrowing, transport error translation, app-local placement, wire/API compatibility, and focused boundary test obligations following the canonical [application-boundary adapters rule](../woostack-bootstrap/references/patterns.md#3-application-boundary-adapters). Do not demand identity-only or no-op wrappers when a deliberately shared contract is already the application/domain shape.
 
 Before admitting any verification command or smoke scenario, independently verify each named
 repository-local script or path already exists at the last admitted repository parent tip, is created by a predecessor

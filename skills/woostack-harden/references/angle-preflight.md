@@ -16,7 +16,7 @@ lens, ask one question at a time:
 - **Removal before addition:** Before accepting additive scope, does bounded evidence show the same
   contract can be met by safe deletion or simplification? Record the viable opportunity or the
   user-validated reason addition remains necessary, preserving the [least-code
-  doctrine](../../woostack-bootstrap/references/patterns.md#10-least-code--comments).
+  doctrine](../../woostack-bootstrap/references/patterns.md#7-least-code--comments).
 - **Conventions and inconsistency:** What established pattern, contract, or exception does the
   proposed decision touch? Is the difference intentional, and where is that decision recorded?
 - **Behavior and verification:** Which observable success, edge, failure, or smoke behavior is

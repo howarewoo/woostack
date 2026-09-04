@@ -129,7 +129,7 @@ directory, not in this repo.
   Never buy that smallness by cutting edge cases or risks: validation, error handling, security,
   accessibility, and data-loss handling stay, and deliberate multi-layer safety redundancy is
   kept, not DRY-removed. Full standard — the ladder, its deltas, comments, and magic-literal
-  rules — is [`patterns.md §10`](skills/woostack-bootstrap/references/patterns.md), enforced by
+  rules — is [`patterns.md §7`](skills/woostack-bootstrap/references/patterns.md#7-least-code--comments), enforced by
   the `simplify`/`comments` review angles.
 - **Remove before add.** When relaxing or removing a repository restriction, delete the obsolete
   rule and its dependent explanations first. Add replacement text only when needed to preserve a

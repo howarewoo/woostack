@@ -37,7 +37,7 @@ At the specification boundary, Ideate records viable removal opportunities befor
 proposals. For each opportunity, capture the user's verified choice of safe deletion or
 simplification, or the bounded reason it cannot meet the contract; never infer that addition is
 necessary. Carry this removal-first analysis into the complete specification, using the canonical
-[least-code doctrine](../woostack-bootstrap/references/patterns.md#10-least-code--comments) without
+[least-code doctrine](../woostack-bootstrap/references/patterns.md#7-least-code--comments) without
 dropping its safety requirements.
 
 Ideate owns the conditional collection of the specification's `## Data models` section. When the

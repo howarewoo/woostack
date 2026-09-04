@@ -27,17 +27,17 @@ else:
     patterns_text = patterns_path.read_text(encoding="utf-8")
 
 # Exactly one canonical section heading in patterns.md
-canonical_headings = re.findall(r"^##\s*6\.\s*Application-boundary adapters\s*$", patterns_text, re.M)
+canonical_headings = re.findall(r"^##\s*3\.\s*Application-boundary adapters\s*$", patterns_text, re.M)
 if len(canonical_headings) != 1:
-    failures.append(f"patterns.md must have exactly 1 canonical '## 6. Application-boundary adapters' heading, found {len(canonical_headings)}")
+    failures.append(f"patterns.md must have exactly 1 canonical '## 3. Application-boundary adapters' heading, found {len(canonical_headings)}")
 
 # Numbered headings sequence in patterns.md
-require(patterns_text, r"## 6\. Application-boundary adapters", "patterns.md missing ## 6. Application-boundary adapters")
-require(patterns_text, r"## 7\. Test-Driven Development", "patterns.md missing renumbered ## 7. Test-Driven Development")
-require(patterns_text, r"## 8\. API stability", "patterns.md missing renumbered ## 8. API stability")
-require(patterns_text, r"## 9\. Type discipline", "patterns.md missing renumbered ## 9. Type discipline")
-require(patterns_text, r"## 10\. Least code & comments", "patterns.md missing renumbered ## 10. Least code & comments")
-require(patterns_text, r"## 11\. App-scoped dependency protocol", "patterns.md missing renumbered ## 11. App-scoped dependency protocol")
+require(patterns_text, r"## 3\. Application-boundary adapters", "patterns.md missing ## 3. Application-boundary adapters")
+require(patterns_text, r"## 4\. Test-Driven Development", "patterns.md missing renumbered ## 4. Test-Driven Development")
+require(patterns_text, r"## 5\. API stability", "patterns.md missing renumbered ## 5. API stability")
+require(patterns_text, r"## 6\. Type safety", "patterns.md missing renumbered ## 6. Type safety")
+require(patterns_text, r"## 7\. Least code & comments", "patterns.md missing renumbered ## 7. Least code & comments")
+require(patterns_text, r"## 8\. Dependency ownership", "patterns.md missing renumbered ## 8. Dependency ownership")
 
 # Canonical clauses in patterns.md
 require(patterns_text, r"HTTP/RPC server-client.*service-service.*webhooks.*queues/events.*third-party APIs", "patterns.md missing all named boundaries")
@@ -48,8 +48,8 @@ require(patterns_text, r"map wire or vendor representations to application/domai
 require(patterns_text, r"translate transport-specific errors", "patterns.md missing transport error translation responsibility")
 require(patterns_text, r"so transport, client, and vendor formats never leak into application or domain logic", "patterns.md missing domain isolation from transport/client/vendor types")
 require(patterns_text, r"so business logic remains independent of transport, client, and vendor details", "patterns.md missing business logic transport independence")
-require(patterns_text, r"Keep adapters in the application that owns the boundary, optionally in an app-local `adapters/` directory", "patterns.md missing app-local and optional adapters/ placement")
-require(patterns_text, r"Extract to a shared package \(`packages/<shared-capability>`\) only when multiple applications consume the exact same contract", "patterns.md missing shared package extraction rule")
+require(patterns_text, r"Keep adapters in the application that owns the boundary, optionally in an application-local adapter location", "patterns.md missing application-local adapter placement")
+require(patterns_text, r"Extract to the repository's shared-code location only when multiple applications consume the exact same contract", "patterns.md missing repository-native shared extraction rule")
 require(patterns_text, r"Preserve existing wire and API contracts", "patterns.md missing wire/API compatibility requirement")
 require(patterns_text, r"Preserve input validation, error handling, security, accessibility, and data-loss protections", "patterns.md missing named safety protections preservation")
 require(patterns_text, r"Apply to new boundary flows and existing flows materially changed by a task", "patterns.md missing new/materially touched flow scope")
@@ -61,8 +61,8 @@ require(patterns_text, r"Review does not block folder/file naming, class-vs-func
 # ==============================================================================
 # 2. Downstream Surfaces Link Resolution & Anti-Competition Checks
 # ==============================================================================
-CANONICAL_ANCHOR = "#6-application-boundary-adapters"
-CANONICAL_SITE_URL = "https://github.com/howarewoo/woostack/blob/main/skills/woostack-bootstrap/references/patterns.md#6-application-boundary-adapters"
+CANONICAL_ANCHOR = "#3-application-boundary-adapters"
+CANONICAL_SITE_URL = "https://github.com/howarewoo/woostack/blob/main/skills/woostack-bootstrap/references/patterns.md#3-application-boundary-adapters"
 
 downstream_files = {
     "arch": root / "skills/woostack-bootstrap/references/architecture.md",
@@ -84,13 +84,13 @@ for name, path in downstream_files.items():
 # Verify downstream files do not define a competing canonical section heading
 for name, text in surface_texts.items():
     if name == "site":
-        if re.search(r"^##\s*6\.\s*Application-boundary adapters", text, re.M):
-            failures.append(f"site page {downstream_files[name]} must not define a competing '## 6.' canonical heading")
+        if re.search(r"^##\s*3\.\s*Application-boundary adapters", text, re.M):
+            failures.append(f"site page {downstream_files[name]} must not define a competing '## 3.' canonical heading")
     else:
-        if re.search(r"^##\s*(?:6\.\s*)?Application-boundary adapters", text, re.M):
+        if re.search(r"^##\s*(?:3\.\s*)?Application-boundary adapters", text, re.M):
             failures.append(f"downstream file {downstream_files[name]} must not define a competing canonical adapter heading")
 
-# Validate relative Markdown links resolve to patterns.md and anchor #6-application-boundary-adapters
+# Validate relative Markdown links resolve to patterns.md and anchor #3-application-boundary-adapters
 for name in ("arch", "plan", "execute", "change", "review"):
     src_path = downstream_files[name]
     text = surface_texts[name]
@@ -102,7 +102,7 @@ for name in ("arch", "plan", "execute", "change", "review"):
     for label, target in links:
         if "#" in target:
             target_file_rel, anchor = target.split("#", 1)
-            if anchor == "6-application-boundary-adapters":
+            if anchor == "3-application-boundary-adapters":
                 has_canonical_anchor = True
             resolved = (src_path.parent / target_file_rel).resolve()
             if resolved != patterns_path.resolve():
@@ -117,10 +117,8 @@ if CANONICAL_SITE_URL not in surface_texts["site"]:
 # ==============================================================================
 # 3. Structural Placement & Authored Site Reference Checks
 # ==============================================================================
-require(surface_texts["arch"], r"adapters/.*App-owned boundary adapters, when needed", "architecture.md layout tree missing adapters/ directory")
-require(surface_texts["arch"], r"adapters/`:\s*Boundary adapters.*patterns\.md#6-application-boundary-adapters", "architecture.md app internals missing adapters/ with canonical link")
-require(surface_texts["site"], r"adapters/.*App-owned boundary adapters, when needed", "repository-rules.mdx layout tree missing adapters/")
-require(surface_texts["site"], r"adapters/`:\s*boundary adapters.*patterns\.md#6-application-boundary-adapters", "repository-rules.mdx app internals missing adapters/ with canonical link")
+require(surface_texts["arch"], r"Boundary adapters map wire or vendor data.*patterns\.md#3-application-boundary-adapters", "architecture.md missing boundary adapter placement with canonical link")
+require(surface_texts["site"], r"Boundary adapters map wire or vendor representations.*patterns\.md#3-application-boundary-adapters", "repository-rules.mdx missing boundary adapter placement with canonical link")
 require(surface_texts["site"], r"### Application-boundary adapters", "repository-rules.mdx missing ### Application-boundary adapters section")
 require(surface_texts["site"], r"Keep transport, client, and vendor formats out of domain and business logic through boundary adapters", "repository-rules.mdx missing domain isolation obligation")
 require(surface_texts["site"], r"Adapters own input validation/narrowing, wire/domain bidirectional mapping, and transport error translation", "repository-rules.mdx missing adapter responsibilities")
@@ -136,7 +134,7 @@ scenario_1_assertions = [
      r"inter-application boundary.*specify adapter mapping.*boundary validation/narrowing.*transport error translation.*app-local placement.*wire/API compatibility.*focused boundary test obligations",
      "Scenario 1 (Plan): missing inter-app boundary mapping, validation, error translation, placement, compatibility, or test obligations"),
     (surface_texts["execute"],
-     r"applicable inter-application boundary requirements.*mapping, validation, error translation, app-local placement, compatibility, and focused boundary tests.*patterns\.md#6-application-boundary-adapters",
+     r"applicable inter-application boundary requirements.*mapping, validation, error translation, app-local placement, compatibility, and focused boundary tests.*patterns\.md#3-application-boundary-adapters",
      "Scenario 1 (Execute packet): missing boundary adapter packet requirements and canonical link"),
     (surface_texts["execute"],
      r"enforcing the canonical \[application-boundary adapters rule\].*when new or materially changed inter-application boundaries are touched",

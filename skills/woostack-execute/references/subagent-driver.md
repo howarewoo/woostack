@@ -27,7 +27,7 @@ The controller sends all context directly; a link or prior conversation is insuf
   parent;
 - allowed paths and exclusive writable surface;
 - acceptance clauses, one focused verification/smoke scenario, and bounded validator input;
-- applicable inter-application boundary requirements (mapping, validation, error translation, app-local placement, compatibility, and focused boundary tests) per the canonical [application-boundary adapters rule](../../woostack-bootstrap/references/patterns.md#6-application-boundary-adapters);
+- applicable inter-application boundary requirements (mapping, validation, error translation, app-local placement, compatibility, and focused boundary tests) per the canonical [application-boundary adapters rule](../../woostack-bootstrap/references/patterns.md#3-application-boundary-adapters);
 - current diff/recovery identity when resuming; and
 - explicit prohibitions on changing scope, dependencies, records, provider state, source-control
   boundaries, credentials, other worktrees, sibling issues, or acceptance.
@@ -40,7 +40,7 @@ Missing, stale, contradictory, or unsafe packet input returns `BLOCKED` before e
 1. Confirm the exact worktree, branch, run/issue identity, parent, allowed surface, and clean
    controller-owned boundaries.
 2. Run only the smallest contract-relevant focused check or reproduction when one is required.
-3. Implement the smallest complete change within the packet's allowed paths, enforcing the canonical [application-boundary adapters rule](../../woostack-bootstrap/references/patterns.md#6-application-boundary-adapters) when new or materially changed inter-application boundaries are touched without introducing identity-only wrappers.
+3. Implement the smallest complete change within the packet's allowed paths, enforcing the canonical [application-boundary adapters rule](../../woostack-bootstrap/references/patterns.md#3-application-boundary-adapters) when new or materially changed inter-application boundaries are touched without introducing identity-only wrappers.
 4. Run only the assigned focused verification and changed-path smoke scenario; do not run broad
    test suites, unrelated linters, or formatters.
 5. If the implementation is blocked, return `BLOCKED` with the exact root cause, observed obstacle,

@@ -1,75 +1,57 @@
 # Infrastructure & Production Readiness
 
-Guidelines for deployment targets, environment management, migrations, CI/CD, and observability. Swap and configure providers based on project scale and requirements.
+Select infrastructure from the approved workload, operational, compliance, budget, and team
+requirements. This guidance defines outcomes, not vendors or deployment tools.
 
----
+## Hosting and deployment
 
-## Hosting & Cloud Deployment
+- Match the deployment model to runtime duration, scaling, latency, state, networking, and regional
+  requirements.
+- Automate repeatable production and preview/staging deployments where the approved delivery model
+  supports them.
+- Make certificates, release credentials, rollback, and store or platform submission responsibilities
+  explicit for every deployable surface.
 
-Choose hosting targets based on the selected application architectures (serverless, containerized, or traditional VPS):
+## Data and migrations
 
-- **Web Frontends**: Deploy to managed hosting providers (Vercel, Netlify, Cloudflare Pages) that support edge rendering, route-based caching, and automatic preview deployments out of the box.
-- **APIs & Backend Services**: 
-  - Deploy to serverless edge platforms (Vercel Functions, Cloudflare Workers, AWS Lambda) for auto-scaling and zero-maintenance global distribution.
-  - Deploy to container platforms (Fly.io, AWS ECS, GCP Cloud Run, Render) for long-running processes, websocket connections, and heavy computing needs.
-- **Mobile Apps**: Compile and submit through cloud build pipelines (e.g. Expo EAS for React Native, App Center) to handle certificates, profiles, and App Store/Play Store submissions.
+- Keep every schema mutation discrete, ordered, version-controlled, and reproducible with the
+  approved data tooling.
+- Do not run production migrations directly from a developer machine; use controlled deployment
+  automation with observable failure and recovery behavior.
+- Configure connection limits, pooling, retries, backups, restoration, and destructive-change
+  safeguards to match the selected database and runtime.
 
----
+## Environment and secrets
 
-## Data Layer & Migrations
+- Use the approved production secret store or managed runtime configuration as the production source
+  of truth.
+- Keep local development secrets out of source control and provide a non-secret inventory of required
+  configuration names.
+- Ensure ignore rules cover local secret files used by the selected stack.
+- Validate required configuration at startup and fail with descriptive, non-secret errors.
 
-Regardless of the chosen database provider (SQL or NoSQL), enforce the following production-readiness practices:
+## External clients and identity
 
-- **Stack-agnostic database migrations**: All schema mutations must be written as discrete, version-controlled migration files committed to the repository (e.g. under `supabase/migrations/`, `prisma/migrations/`, `db/migrate/`).
-- **Migration Execution**: Never run migrations from the local developer machine directly to production. CI/CD pipelines or deployment hooks must run migrations automatically during deployment.
-- **Connection Management**: Serverless API execution environments have connection limits. For relational databases, ensure connection pooling is configured (e.g. Supabase connection pooler, PgBouncer, AWS RDS Proxy) to prevent database exhaustion.
+- Add a project-owned interface around a vendor client only when it provides real portability,
+  testability, isolation, or reuse; do not add pass-through abstractions.
+- Centralize connection or client instantiation when the selected service requires shared lifecycle,
+  pooling, or rate-limit control.
+- Verify identity tokens and sessions only in trusted server-side contexts and keep authorization
+  decisions explicit at protected boundaries.
 
----
+## Observability
 
-## Environment Variables
+- Emit structured, queryable events with consistent time, severity, message, service, and environment
+  fields.
+- Capture unhandled failures through the approved monitoring path.
+- Redact credentials, authorization material, personal data, and other secrets before telemetry
+  leaves the process.
 
-- **Source of Truth**: Managed service dashboards (e.g., Vercel Project Settings, Fly.io Secrets, Github Secrets, AWS SSM Parameter Store).
-- **Local Development**: Use local `.env` files for local dev. **Never commit raw secrets to the repository.** Include a `.env.example` template in the root of the project with empty values.
-- **Ignored Files**: The root `.gitignore` must strictly cover `.env`, `.env.local`, `.env.*.local` files.
-- **Runtime Validation**: Use Zod, clean schemas, or framework validations to check for the presence of required environment variables at application startup, failing fast with descriptive errors if any are missing.
+## CI/CD
 
----
-
-## Database Client Ownership
-
-- **Vendor abstraction**: Use a clean interface when it protects domain logic from a vendor SDK.
-- **Connection isolation**: Centralize connection instantiation and expose high-level queries or a
-  single pooled client.
-
----
-
-## Authentication & Identity
-
-- **SDK isolation**: Wrap a third-party auth SDK when a project-owned interface provides real
-  portability, testability, or reuse.
-- **Server-side verification**: Provide trusted helper methods for token verification and session
-  retrieval in server-only contexts such as middleware and API handlers.
-
----
-
-## Observability & Logging
-
-- **Structured logging**: Emit queryable structured JSON with keys such as `timestamp`, `level`,
-  `message`, `service`, and `env`.
-- **Error capturing**: Catch unhandled exceptions and send them to the selected error-tracking
-  service.
-- **Secrets redaction**: Redact sensitive headers, API keys, and authorization tokens before
-  transmitting telemetry.
-
----
-
-## CI/CD Pipelines
-
-Implement a single root CI pipeline (typically using GitHub Actions) to run checks on every pull request targeting integration branches.
-
-- **PR Validation Checks**:
-  1. **Linting & Formatting**: Verify code style constraints (e.g. `biome ci` or `eslint`).
-  2. **Type Checking**: Verify type safety across the monorepo.
-  3. **Build Pipeline**: Compile all applications in the workspace (e.g. `pnpm turbo build`).
-  4. **Testing**: Run unit and integration tests (e.g. `pnpm test`).
-- **Deployment Pipelines**: Set up automated deployments. Merges to the primary branch (`main`) trigger production builds and deployments; PR branches trigger preview/staging deployments automatically.
+- Use the repository's approved automation and commands.
+- On pull requests, run every applicable formatting, static-analysis, type/compile, build, and test
+  check already defined by the scaffold.
+- Automate releases and migrations according to the repository's documented branch and deployment
+  policy.
+- Never report a nonexistent or unobserved command as passing.
