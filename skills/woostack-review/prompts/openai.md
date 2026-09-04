@@ -83,7 +83,7 @@ worker receives the angle prompt and prefetched artifacts directly.
 When no such subagent primitive exists, run each angle listed in `$OUTDIR/angles.txt`, in order (× each chunk when chunked):
 
 1. Read `$WOO_REVIEW_ACTION_PATH/prompts/angles/<angle>.md`.
-2. Execute the angle prompt against the angle's diff (full or chunk-specific). For `react` run `npx -y react-doctor@$REACT_DOCTOR_VERSION --diff $BASE_REF --offline`.
+2. Execute the angle prompt against the angle's diff (full or chunk-specific).
 3. Write the angle's findings to `$OUTDIR/findings.<angle>.json` (or `findings.<angle>.<chunk_id>.json` in chunked mode) — JSON array conforming to the schema in `_worker-header.md`.
 
 Stay within each angle's scope; do not let `bugs` flag a design issue or vice versa. `merge-findings.sh` (Phase 3) handles within-angle dedup across chunks.

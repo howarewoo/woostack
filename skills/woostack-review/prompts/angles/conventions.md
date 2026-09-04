@@ -14,7 +14,7 @@ This angle runs **only** when `rules.md` exists. If it is absent, exit immediate
 
 **Skip:**
 
-- Anything not covered by an explicit rule. This angle is not a generalist code-review pass — `bugs`, `security`, `design`, `react`, `database` already cover those.
+- Anything not covered by an explicit rule. This angle is not a generalist code-review pass — the other enabled angles already cover those concerns.
 - Pedantic prose-style nits inside doc files unless `rules.md` itself prescribes a doc-style rule.
 - Pre-existing rule violations not introduced by this PR.
 

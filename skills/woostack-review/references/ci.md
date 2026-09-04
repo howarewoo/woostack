@@ -41,7 +41,7 @@ jobs:
 
 The `if:` gate prevents an untrusted fork commenter from spending the repository's provider token.
 Pin `@main` to a release tag once one is cut. The action ships its own prompts and scripts and
-installs the `react-doctor` / `impeccable` CLIs via `npx` at run time.
+installs the `impeccable` CLI via `npx` at run time.
 
 ## Provider secrets
 

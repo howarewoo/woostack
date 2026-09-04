@@ -91,13 +91,9 @@ inputs:
     required: false
     default: ''
   disable_angles:
-    description: 'Comma-separated list of review angles to skip (seo, aeo, design, react, database, tests, api, infra, observability, types, i18n, docs, deps). `bugs`, `security`, and `simplify` are always on and cannot be disabled.'
+    description: 'Comma-separated list of review angles to skip (seo, aeo, design, database, tests, api, infra, observability, i18n, docs, deps). `bugs`, `security`, and `simplify` are always on and cannot be disabled.'
     required: false
     default: ''
-  react_doctor_version:
-    description: 'npm version of react-doctor to invoke via npx (used by the react angle).'
-    required: false
-    default: 'latest'
   impeccable_version:
     description: 'npm version of impeccable CLI to invoke via npx (used by the design angle).'
     required: false
@@ -203,11 +199,11 @@ runs:
       shell: bash
       run: bash "${{ github.action_path }}/skills/woostack-review/scripts/merge-findings.sh"
 
-    - name: Setup Node.js (for react-doctor + impeccable CLIs)
+    - name: Setup Node.js (for impeccable CLI)
       if: |
         steps.prefetch.outputs.skip != 'true' && (
-          (inputs.mode == 'full' && (contains(steps.angles.outputs.angles, 'react') || contains(steps.angles.outputs.angles, 'design'))) ||
-          (inputs.mode == 'review' && (contains(inputs.angle, 'react') || contains(inputs.angle, 'design')))
+          (inputs.mode == 'full' && contains(steps.angles.outputs.angles, 'design')) ||
+          (inputs.mode == 'review' && contains(inputs.angle, 'design'))
         )
       uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
       with:
@@ -326,7 +322,6 @@ runs:
         WOO_REVIEW_SEQUENTIAL_VALIDATE: ${{ inputs.mode == 'validate' && '1' || '' }}
         ENABLED_ANGLES: ${{ (inputs.mode == 'review' && inputs.angle) || steps.angles.outputs.angles }}
         IMPECCABLE_VERSION: ${{ inputs.impeccable_version }}
-        REACT_DOCTOR_VERSION: ${{ inputs.react_doctor_version }}
 
     - name: Run review (OpenAI Codex)
       id: run-openai
@@ -346,7 +341,6 @@ runs:
         WOO_REVIEW_SEQUENTIAL_VALIDATE: ${{ inputs.mode == 'validate' && '1' || '' }}
         ENABLED_ANGLES: ${{ (inputs.mode == 'review' && inputs.angle) || steps.angles.outputs.angles }}
         IMPECCABLE_VERSION: ${{ inputs.impeccable_version }}
-        REACT_DOCTOR_VERSION: ${{ inputs.react_doctor_version }}
 
     - name: Run review (Google Gemini)
       id: run-google
@@ -371,7 +365,6 @@ runs:
         WOO_REVIEW_SEQUENTIAL_VALIDATE: ${{ inputs.mode == 'validate' && '1' || '' }}
         ENABLED_ANGLES: ${{ (inputs.mode == 'review' && inputs.angle) || steps.angles.outputs.angles }}
         IMPECCABLE_VERSION: ${{ inputs.impeccable_version }}
-        REACT_DOCTOR_VERSION: ${{ inputs.react_doctor_version }}
 
     - name: Run review (OpenRouter via opencode)
       id: run-opencode
@@ -391,7 +384,6 @@ runs:
         WOO_REVIEW_SEQUENTIAL_VALIDATE: ${{ inputs.mode == 'validate' && '1' || '' }}
         ENABLED_ANGLES: ${{ (inputs.mode == 'review' && inputs.angle) || steps.angles.outputs.angles }}
         IMPECCABLE_VERSION: ${{ inputs.impeccable_version }}
-        REACT_DOCTOR_VERSION: ${{ inputs.react_doctor_version }}
 
     - name: Rename chunked findings (issue #14)
       if: always() && inputs.chunk != '' && steps.prefetch.outputs.skip != 'true' && (inputs.mode == 'full' || inputs.mode == 'review')

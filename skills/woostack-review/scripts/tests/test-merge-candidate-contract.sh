@@ -141,7 +141,7 @@ cat > "$work/findings.security.json" <<'JSON'
     "suggestion": null
   },
   {
-    "angle": "types",
+    "angle": "database",
     "file": "src/api.ts",
     "line": 2,
     "title": "Unsupported candidate",

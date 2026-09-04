@@ -66,24 +66,22 @@ The prefetch step parses optional effective configuration (`.woostack/config.jso
 
 ## Review Angles
 
-This action runs up to twenty-two distinct review angles, auto-selected from the changed files. The set of enabled angles is listed in `/tmp/pr-review/angles.txt`. The per-angle prompt bodies live at `${ACTION_PATH}/prompts/angles/<angle>.md` and are loaded by the orchestrator.
+This action runs up to twenty distinct review angles, auto-selected from the changed files. The set of enabled angles is listed in `/tmp/pr-review/angles.txt`. The per-angle prompt bodies live at `${ACTION_PATH}/prompts/angles/<angle>.md` and are loaded by the orchestrator.
 
 | Angle | Always-on | Tooling |
 |---|---|---|
 | `bugs` | yes | LLM only |
-| `security` | yes | LLM + `openai/security-best-practices` rubric (loaded from installed skill or fetched via `gh api repos/openai/skills/contents/skills/.curated/security-best-practices/references/<file>`) |
+| `security` | yes | LLM with an embedded generic OWASP-shaped exploit rubric |
 | `conventions` | gated on `rules.md` presence | LLM + project-discovered `rules.md` (concatenated `AGENTS.md` / `CLAUDE.md` / `.cursorrules` / `.windsurfrules` / `GEMINI.md`) |
 | `acceptance` | gated on local parent-owned `intent.md` presence | LLM + active caller-approved contract, optionally enriched from an exact verified Linear artifact; never enabled by CI attribution alone |
 | `seo` | no | LLM + `coreyhaines31/seo-audit` rubric (embedded in `prompts/angles/seo.md`) |
 | `aeo` | no | LLM + `coreyhaines31/ai-seo` rubric (embedded in `prompts/angles/aeo.md`); deeper `references/` fetched on demand via `gh api repos/coreyhaines31/marketingskills/contents/skills/ai-seo/references/<file>` |
 | `design` | no | LLM + `npx -y impeccable@$IMPECCABLE_VERSION detect --json` (one run; quantitative pass from JSON + qualitative critique scoped to flagged files) |
-| `react` | no | `npx -y react-doctor@$REACT_DOCTOR_VERSION --diff $BASE_REF --offline` (React linter) + LLM |
-| `database` | no | LLM + `supabase/supabase-postgres-best-practices` rubric (loaded from installed skill or fetched via `gh api repos/supabase/agent-skills/contents/skills/supabase-postgres-best-practices/references/<file>`) |
+| `database` | no | LLM with an embedded technology-neutral correctness and safety rubric |
 | `tests` | no | LLM only — gated on test-file path in diff |
 | `api` | no | LLM only — gated on OpenAPI / GraphQL / `.proto` / route-handler paths or HTTP-verb tokens in the diff |
 | `infra` | no | LLM only — gated on `.github/workflows/`, `Dockerfile*`, Terraform / Pulumi / CDK, K8s manifests, Helm |
 | `observability` | no | LLM only — gated on logging / error-handling tokens in the diff |
-| `types` | no | LLM only — gated on `*.ts` / `*.tsx` / `*.cts` / `*.mts` in diff |
 | `i18n` | no | LLM only — gated on `locales/` / `messages/` / `i18n/` / `translations/` directory trees, `*.po` / `*.pot` files, or `i18n.t(` / `useTranslations(` / `<Trans` / `<FormattedMessage` / `$t(` / `t("…")` tokens in the diff body |
 | `docs` | no | LLM only — gated on docs paths (`README*`, `CHANGELOG*`, `docs/`, `.env.example`, `*.md`/`*.mdx`, `openapi.{yaml,yml,json}`, `swagger.{yaml,yml,json}`) in diff; `SKILL.md` is excluded — owned by `skills` |
 | `deps` | no | LLM only — gated on dependency-manifest paths (`package.json`, lockfiles, `requirements.txt`, `go.mod`, `Cargo.toml`, …) in diff |
@@ -292,7 +290,7 @@ for f in findings:
         else:
             sev_tag = severity
         footer_parts.append(f"<strong>{sev_tag}</strong>")
-    if angle in {"bugs","security","conventions","acceptance","seo","aeo","design","react","database","tests","api","infra","observability","types","i18n","docs","deps","architecture","skills","comments","simplify","production-readiness"}:
+    if angle in {"bugs","security","conventions","acceptance","seo","aeo","design","database","tests","api","infra","observability","i18n","docs","deps","architecture","skills","comments","simplify","production-readiness"}:
         footer_parts.append(f"<code>{angle}</code>")
     if footer_parts:
         body += "\n\n<sub>— " + " · ".join(footer_parts) + "</sub>"
@@ -437,7 +435,7 @@ Every runner MUST write a final `findings.json` (for debugging + potential post-
 ]
 ```
 
-`angle` is one of `bugs | security | conventions | acceptance | seo | aeo | design | react | database | tests | api | infra | observability | types | i18n | docs | deps | architecture | comments | simplify | production-readiness`.
+`angle` is one of `bugs | security | conventions | acceptance | seo | aeo | design | database | tests | api | infra | observability | i18n | docs | deps | architecture | comments | simplify | production-readiness`.
 
 `line` MUST be the post-patch absolute start line — i.e. a line that exists on the RIGHT side of the diff (a `+` added line or a ` ` context line within a hunk for `file`). Optional `end_line` is the inclusive post-patch end of a multi-line anchor and MUST be greater than `line` on the RIGHT side of that same hunk. Validate both via `scripts/resolve-diff-line.sh`; drop a finding when the helper returns `null`, and omit `end_line` when a requested range degrades to its valid start.
 

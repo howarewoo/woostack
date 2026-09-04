@@ -29,16 +29,13 @@ else
     echo "✅ Node.js found."
 fi
 
-# 4. Pre-fetch Node dependencies to speed up first run.
-# Versions are overridable via env so the skill and the action stay in lockstep.
-# Defaults mirror action.yml inputs (latest).
+# 4. Pre-fetch the design tool to speed up first run.
+# The version is overridable via env so the skill and action stay in lockstep.
+# The default mirrors the action.yml input (latest).
 IMPECCABLE_VERSION="${IMPECCABLE_VERSION:-latest}"
-REACT_DOCTOR_VERSION="${REACT_DOCTOR_VERSION:-latest}"
-echo "📦 Pre-fetching Node tools (impeccable@${IMPECCABLE_VERSION}, react-doctor@${REACT_DOCTOR_VERSION})..."
+echo "📦 Pre-fetching Node tool (impeccable@${IMPECCABLE_VERSION})..."
 npx -y "impeccable@${IMPECCABLE_VERSION}" --version > /dev/null \
   || echo "⚠️  Could not pre-fetch impeccable@${IMPECCABLE_VERSION} (will fetch on first use)."
-npx -y "react-doctor@${REACT_DOCTOR_VERSION}" --version > /dev/null \
-  || echo "⚠️  Could not pre-fetch react-doctor@${REACT_DOCTOR_VERSION} (will fetch on first use)."
 
 # 5. Check for dependent AI skills
 echo "🤖 Checking for dependent AI skills..."
