@@ -46,8 +46,12 @@ The standard applies during planning, implementation, and review:
   [woostack-ideate](/docs/skills/woostack-ideate), [woostack-harden](/docs/skills/woostack-harden),
   and delegated [woostack-plan](/docs/skills/woostack-plan). Harden checks whether safe deletion,
   reuse, or simplification can satisfy the scope before accepting additions.
-  [woostack-execute](/docs/skills/woostack-execute) applies the standard during implementation,
-  and [woostack-change](/docs/skills/woostack-change) applies it to bounded changes.
+- [woostack-plan](/docs/skills/woostack-plan) applies the ladder before fixing increment scope,
+  recording concrete reuse opportunities and material reasons for additions in the existing contract.
+  [woostack-execute](/docs/skills/woostack-execute) and
+  [woostack-change](/docs/skills/woostack-change) load it before choosing an implementation and
+  carry it into delegated implementation packets. A smaller solution must still satisfy the
+  complete accepted scope and required verification.
 - The [`simplify` review angle](/docs/concepts/review-angles) checks the ladder when selected.
   Bounded holistic review includes simplicity and comment accuracy in its `general` pass.
   Separate angle selection follows the detector and explicit configuration.
