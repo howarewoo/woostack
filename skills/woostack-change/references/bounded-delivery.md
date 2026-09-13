@@ -42,9 +42,12 @@ contract and direct repository evidence before each mutation boundary and after 
 
 ## Implement, verify, and independently review
 
-Implement every change needed for the accepted bounded scope and no other change. Prefer safe
-removal or simplification over additive work. Preserve validation, error handling, security,
-accessibility, compatibility, and data-loss protections. Follow the canonical
+Implement every change needed for the accepted bounded scope and no other change. Before choosing
+an implementation, load and apply the canonical
+[least-code standard](../../woostack-bootstrap/references/patterns.md#7-least-code--comments):
+trace the affected flow, then take the first safe rung that satisfies the complete contract.
+Carry that standard into any delegated implementation packet. Simplification cannot reduce accepted
+scope, compatibility, safety protections, or required verification. Follow the canonical
 [application-boundary adapters rule](../../woostack-bootstrap/references/patterns.md#3-application-boundary-adapters)
 for new or materially changed boundaries; do not migrate untouched legacy boundaries or add no-op
 wrappers for shared identity contracts.

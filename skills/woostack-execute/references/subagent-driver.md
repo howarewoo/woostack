@@ -12,6 +12,12 @@ The controller retains admission, issue selection, predecessor/Graphite proof, w
 lifecycle writes, commit, PR submission, read-backs, and teardown. Delegation transfers only the
 bounded implementation surface, never those authorities.
 
+Before choosing an implementation, load and apply the canonical
+[least-code standard](../../woostack-bootstrap/references/patterns.md#7-least-code--comments) to
+the affected flow. Both inline and delegated work take the first safe rung that satisfies the
+complete admitted contract; neither may trade acceptance, compatibility, safety protections, or
+required verification for a smaller diff.
+
 ## Isolation and routing
 
 For inline work, verify the admitted worktree, branch, parent, and allowed paths before editing.
@@ -50,6 +56,7 @@ directly; a link or prior conversation is insufficient:
 - allowed paths and exclusive writable surface;
 - selected host role/effective tier and only the concrete routing identity the host actually exposes;
 - acceptance clauses, one focused verification/smoke scenario, and bounded validator input;
+- the applicable least-code standard's content and verified reuse opportunities from the plan or repository, not merely its link;
 - applicable inter-application boundary requirements (mapping, validation, error translation, app-local placement, compatibility, and focused boundary tests) per the canonical [application-boundary adapters rule](../../woostack-bootstrap/references/patterns.md#3-application-boundary-adapters);
 - current diff/recovery identity when resuming; and
 - explicit prohibitions on changing scope, dependencies, records, provider state, source-control

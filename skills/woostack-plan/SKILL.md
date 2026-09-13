@@ -113,6 +113,14 @@ Prefer the fewest independently reviewable increments that deliver coherent outc
 split by file or layer merely to manufacture issues. Leave coding order and implementation
 decomposition to the executor within each approved increment's scope.
 
+Before fixing each increment's scope, load and apply the canonical
+[least-code standard](../woostack-bootstrap/references/patterns.md#7-least-code--comments) to the
+affected repository flow. Prefer existing capabilities over planned new code; record concrete
+reuse opportunities and material reasons for new dependencies or abstractions in the existing
+scope, interfaces, or risks fields. Do not invent implementation detail merely to document every
+rung. Simplification must still cover every approved acceptance criterion and required protection;
+an alternative that changes product scope returns to the owning workflow rather than entering the plan.
+
 ## Provider synchronization
 
 In standalone use only, after the chain is complete and valid, verify the canonical repository
