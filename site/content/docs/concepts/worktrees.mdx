@@ -30,9 +30,11 @@ approved task or a fully verified handoff. Partial, unrelated, or competing stat
 The agent must not reset, stash, delete, adopt another checkout, or create around the collision.
 
 The approved task names its parent branch. Direct Git evidence verifies the branch's tip, its
-latest commit. A newer tip on the same branch must pass the shared ancestry and user-choice rules
-before new work can start there. Retained work keeps its recorded start and head commits and
-rechecks ancestry, diff, and PR base without silently rebasing, resetting, or recreating it.
+latest commit. When the same branch moves, Execute checks the changes against the selected task,
+its dependencies, and any retained work. Unrelated changes continue without a prompt; relevant or
+uncertain changes offer `Continue`, `Revise spec/plan`, or `Stop`. Ancestry safeguards still apply.
+Retained work keeps its recorded start and head commits and rechecks ancestry, diff, and PR base
+without silently rebasing, resetting, or recreating it.
 Available CI checks are observation-only; their result or availability alone does not block.
 
 | Task kind | Fresh branch start | Graphite parent |

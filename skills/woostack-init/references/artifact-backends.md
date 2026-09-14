@@ -295,20 +295,36 @@ The manifest records the exact canonical integration parent branch and its obser
 finishes. Execute independently resolves the same branch and current tip before any provider,
 worktree, branch, or source mutation.
 
-If the current tip equals the planning tip, continue without a question. If the branch identity has
-changed or either read is incomplete, block. If the same branch has a different tip, make zero
-mutations and present exactly these options:
+The last admitted tip is task-scoped; a newly selected task starts from its planning tip, not another
+task's no-impact admission. If the current tip equals that last admitted tip, continue without a
+question. If the branch identity has changed or either read is incomplete, block. If the same branch
+has a different tip, assess impact read-only before any mutation:
+
+1. Inspect the complete diff between the last admitted and current tips, including renames and
+   deletions, against the selected task's approved scope, acceptance criteria, planned verification,
+   dependencies, and any retained implementation diff. Trace changed shared APIs, schemas,
+   dependencies, build/configuration, and repository rules that the task relies on; disjoint paths
+   alone do not prove independence.
+2. If the evidence establishes no impact on that work, admit the current tip and continue without
+   a question. Carry the compared tips and concrete no-impact rationale into the next ordinary
+   execution checkpoint and independently read it back. Preserve the original planning tip.
+3. If changes affect the work, or bounded inspection cannot establish independence, report the
+   compared tips and concrete impact or uncertainty. Make zero mutations and ask whether the user
+   wants to continue, presenting exactly these options:
 
 - `Continue`
 - `Revise spec/plan`
 - `Stop`
 
 `Continue` records the user's explicit choice and the newly observed tip in the next manifest
-checkpoint, reads it back, and then continues from that selected base. This is never automatic.
+checkpoint, reads it back, and then continues from that selected base.
 `Revise spec/plan` stops Execute and returns to the owning workflow; because artifact files are
 write-once, revised content is written in a new run and the prior run is retained. `Stop` leaves the
-run and repository unchanged and reports the observed difference. No ancestry classification,
-content comparison, check result, or agent inference chooses on the user's behalf.
+run and repository unchanged and reports the observed difference.
+
+Reassess if the parent moves again or a different task is selected; a no-impact finding applies only
+to the compared tips and assessed work. Admission never bypasses ancestry, collision, Graphite-parent,
+or PR-base safeguards, and never authorizes silently rebasing, resetting, or recreating retained work.
 
 For a non-root task, independently observe the predecessor's delivered checkpoint, commit, canonical
 PR head/base, reviews, and available current-head checks. Report failed, pending, unavailable, or
@@ -436,6 +452,7 @@ abandonment, and every blocked boundary. Never delete or rewrite a prior run to 
 
 Report repository delivery and mirror synchronization separately. Include an exact provider project
 URL/native ID or canonical issue reference and its read-back result only when mirroring was selected
-and observed. Report the planning and current base tips and the user's choice when a base changed.
+and observed. Report compared base tips and the impact assessment; include the user's choice only
+when one was required.
 Never claim a read, write, checkpoint, synchronization, or delivery result that was not independently
 observed.
