@@ -1675,11 +1675,11 @@
     },
     {
       "id": "changed-planning-tip-asks-options",
-      "prompt": "In local run mode, the canonical integration parent branch is unchanged but an exact fresh read observes that its tip moved from planning tip \"tip-001\" to current tip \"tip-002\". Before any provider, manifest, worktree, branch, or source mutation, Execute asks the user to choose among the exact options. Return exactly one JSON object with keys status, options, planningTip, currentTip, mutationCount, providerMutationStarted, worktreeMutationStarted, and sourceMutationStarted. Set status to \"prompt-user\", options to [\"Continue\", \"Revise spec/plan\", \"Stop\"], planningTip to \"tip-001\", currentTip to \"tip-002\", mutationCount to 0, providerMutationStarted to false, worktreeMutationStarted to false, and sourceMutationStarted to false.",
+      "prompt": "In local run mode, the canonical integration parent branch is unchanged but fresh evidence proves it advanced from planning tip tip-001 to current tip tip-002. The selected task implements checkout using the shared pricing API. Read-only inspection of the complete base diff proves that the pricing API removed an argument required by the approved checkout plan, although none of the task's planned checkout files changed. No user choice has been made. Evaluate this boundary without commands or mutations. Return exactly one JSON object with keys status, options, planningTip, currentTip, mutationCount, providerMutationStarted, worktreeMutationStarted, and sourceMutationStarted.",
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "When the integration parent tip changed after planning, Execute presents Continue, Revise spec/plan, or Stop with zero mutation before the user's choice.",
+      "expected": "A base change affecting a task dependency requires Continue, Revise spec/plan, or Stop before mutation even when task paths are disjoint.",
       "assertions": [
         {
           "id": "changed-tip-status",
@@ -1739,6 +1739,64 @@
           "kind": "final-json-path-equals",
           "pointer": "/sourceMutationStarted",
           "expected": false,
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "unrelated-planning-tip-continues",
+      "prompt": "In local run mode, the canonical parent branch advanced from planning tip tip-001 to tip-002. The selected task changes checkout validation. Complete read-only diff inspection proves the only base change fixes a spelling error in an unrelated archived article. The task's scope, acceptance criteria, verification, dependencies, shared APIs, schemas, configuration, repository rules, and retained implementation are unaffected. All ancestry and worktree safeguards pass. Evaluate this boundary without commands or mutations. Return exactly one JSON object with keys status, questionAsked, and nextBoundary (implement, prompt-user, or stop).",
+      "capabilities": ["read-workspace"],
+      "expected": "Proved unrelated base movement proceeds without user interaction.",
+      "assertions": [
+        {
+          "id": "unrelated-tip-proceeds",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "proceed",
+          "critical": true
+        },
+        {
+          "id": "unrelated-tip-no-question",
+          "kind": "final-json-path-equals",
+          "pointer": "/questionAsked",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "unrelated-tip-implements",
+          "kind": "final-json-path-equals",
+          "pointer": "/nextBoundary",
+          "expected": "implement",
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "uncertain-planning-tip-asks",
+      "prompt": "In local run mode, fresh reads prove the same canonical parent branch advanced from tip-001 to tip-002. The selected task changes checkout. The complete base diff changes a shared build plugin outside the task paths, but bounded inspection cannot establish whether its generated outputs affect checkout. No other safeguard blocks and no user choice has been made. Evaluate this boundary without commands or mutations. Return exactly one JSON object with keys status, options, and mutationCount.",
+      "capabilities": ["read-workspace"],
+      "expected": "Uncertain indirect impact requires the existing user choice with zero mutations.",
+      "assertions": [
+        {
+          "id": "uncertain-tip-prompts",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "prompt-user",
+          "critical": true
+        },
+        {
+          "id": "uncertain-tip-options",
+          "kind": "final-json-path-equals",
+          "pointer": "/options",
+          "expected": ["Continue", "Revise spec/plan", "Stop"],
+          "critical": true
+        },
+        {
+          "id": "uncertain-tip-no-mutation",
+          "kind": "final-json-path-equals",
+          "pointer": "/mutationCount",
+          "expected": 0,
           "critical": true
         }
       ]

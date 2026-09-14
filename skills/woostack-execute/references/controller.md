@@ -63,17 +63,12 @@ remain mandatory; the controller admits the returned data semantically:
 
 ### Base-change detection and user choice
 
-Before any worktree or source mutation in local run mode:
-
-1. Compare `planningParentTip` in the run manifest with the current integration parent tip from fresh
-   Git/Graphite/GitHub evidence.
-2. If the observed parent tip equals `planningParentTip`, proceed directly to task execution.
-3. If the observed parent tip differs from `planningParentTip`, report the old and current parent
-   evidence plus any concrete conflict or plan risk, then ask the user:
-   - **`Continue`**: executes against the current admitted parent under existing branch/worktree safeguards.
-   - **`Revise spec/plan`**: returns to the owning Build/Fix run for ordinary file updates without an
-     acceptance gate.
-   - **`Stop`**: makes no repository mutation.
+Apply the shared
+[base-impact assessment and choice contract](../../woostack-init/references/artifact-backends.md#repository-ancestry-and-base-change-detection)
+before any mutation. Supply the planning parent branch, last admitted tip (initially
+`planningParentTip`), fresh parent evidence, selected task contract and dependencies, and retained
+implementation diff. Continue without interruption only for unchanged tips or demonstrated
+no-impact changes; otherwise preserve the shared user-choice or blocking boundary.
 
 When `--recheck` is specified, invoke bounded [`woostack-harden`](../../woostack-harden/SKILL.md)
 against the current trunk or integration parent tip:

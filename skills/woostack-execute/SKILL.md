@@ -89,17 +89,12 @@ independent-readback checks are required before using run data.
 
 ### Base-change detection and user choice
 
-Before any worktree or source mutation in local run mode:
-
-1. Read `planningParentBranch` and `planningParentTip` from the run manifest, and observe the current
-   integration parent tip from fresh Git/Graphite/GitHub evidence.
-2. If the observed parent tip equals `planningParentTip`, proceed directly to task execution.
-3. If the observed parent tip differs from `planningParentTip`, report the old and current parent
-   evidence plus any concrete conflict or plan risk, then ask the user before source mutation:
-   - **`Continue`**: executes against the current admitted parent under existing branch/worktree safeguards.
-   - **`Revise spec/plan`**: returns to the owning Build/Fix workflow under the shared
-     [revision and retention contract](../woostack-init/references/artifact-backends.md#repository-ancestry-and-base-change-detection).
-   - **`Stop`**: makes no repository mutation.
+Before any mutation in local run mode, compare the manifest's planning parent branch and last
+admitted tip (initially `planningParentTip`) with fresh Git/Graphite/GitHub evidence. Apply the shared
+[base-impact assessment and choice contract](../woostack-init/references/artifact-backends.md#repository-ancestry-and-base-change-detection):
+unchanged tips or changes proved unrelated to the selected work proceed without a question;
+relevant or uncertain changes require `Continue`, `Revise spec/plan`, or `Stop`. Branch-identity
+and incomplete-read blockers remain unchanged.
 
 When `--recheck` is provided with `--run`, invoke bounded [`woostack-harden`](../woostack-harden/SKILL.md)
 against the current trunk / integration parent tip before execution. If discrepancies are found, report
