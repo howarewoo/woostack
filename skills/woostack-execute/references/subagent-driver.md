@@ -93,6 +93,21 @@ direct controller read-back evidence.
 
 ## Independent spec validation
 
+Before verification, identify the finite checks required by the approved contract. If an automation
+or environment failure blocks a check, try one materially different recovery after the initial
+attempt. If neither attempt produces new verification evidence, stop that troubleshooting path and
+report the exact unverified criterion. A mandatory criterion requires an explicit user waiver or
+scope decision before delivery; never silently waive it. Once required checks are satisfied and
+any approved limitations are recorded, proceed to independent validation and delivery without
+adding more QA. This recovery limit does not replace fixing a reproduced product bug.
+
+Track every temporary server, helper, and recorder started for verification. Stop each recorder
+and confirm its exit when its scenario ends or is interrupted, including simulator shutdown or
+replacement; never carry it into an unrelated scenario. Before starting another recording,
+reconcile any recorder already owned by the task, stopping it and confirming its exit if still
+running. Final teardown stops remaining task-owned resources; it is not the first resource
+inventory or the normal recorder cleanup boundary.
+
 After implementation, the controller rechecks worktree, branch, parent, and complete diff identity,
 runs one focused verification and real changed-path smoke scenario, and obtains one bounded
 spec-compliance result using [the spec-validator prompt](../prompts/spec-reviewer.md). The validator
