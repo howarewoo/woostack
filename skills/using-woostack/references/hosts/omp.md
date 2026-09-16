@@ -24,21 +24,26 @@ blocking.
 ## Subagent spawn
 
 OMP's `task` primitive accepts a worker selector but no per-call model/tier/effort argument.
+All subagents spawned via `task` run in-process within the same OMP harness session, sharing
+in-memory IPC, queues, and tool bridges. External tools (such as Orca) cannot manage subagent
+processes because inter-agent coordination depends on this in-process harness.
+
 Woostack uses three project-scoped neutral workers provisioned by
 [`woostack-init`](../../../woostack-init/SKILL.md). Their model fields point only to OMP's
 host-owned roles; they never read repository model preferences or name a concrete model.
 
 - Batch dependency-independent bounded tasks in one `tasks` call.
-- Pass the exact worktree path and complete contract in each dispatch.
+- Pass the exact resolved task workspace path and complete contract in each dispatch. When the
+  controller runs inside an external worktree (such as an Orca workspace), pass that active
+  checkout root so subagents edit the active workspace directly.
 - Use the most specific available worker role.
 - Coding workers return observations and changes; the controller owns synthesis, gates, and
   acceptance.
-- A worker must not expand its task, edit another worktree, review/accept itself, merge, or infer
+- A worker must not expand its task, edit another workspace, review/accept itself, merge, or infer
   hidden context.
 
-If the native spawn API exposes no working-directory field, pin the canonical worktree in the
+If the native spawn API exposes no working-directory field, pin the resolved task workspace in the
 prompt and require the worker to verify it before reading or writing. A cwd mismatch stops work.
-
 ## Tier routing
 
 After the calling skill resolves the effective tier, use this fixed host-owned map:

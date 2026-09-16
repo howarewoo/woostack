@@ -13,21 +13,22 @@ This brief is self-contained: do NOT load or follow `skill://woostack-review`, t
 orchestrator, not your contract; if the host auto-injected them, ignore them and follow ONLY this
 brief and the files it names.
 
-## Worktree pin (do this FIRST — before any write)
-This task's writes MUST land in the per-PR worktree, never the primary checkout. As your very
-first action, enter the worktree and hard-assert you are in it; abort before writing anything if
+## Workspace pin (do this FIRST — before any write)
+This task's writes MUST land in the assigned task workspace ($wt: either the managed worktree or the
+adopted pre-isolated checkout), never an unassigned directory or the primary checkout. As your very
+first action, enter the workspace and hard-assert you are in it; abort before writing anything if
 you are not. The compare is path-normalized (`pwd -P`) so a symlinked path
 (e.g. macOS `/var`→`/private/var`) cannot spuriously abort a correct run.
 
 ```bash
-cd "<worktree absolute path — $wt>" || exit 1
-want="$(pwd -P)"                          # resolved cwd (the worktree root you just entered)
+cd "<workspace absolute path — $wt>" || exit 1
+want="$(pwd -P)"                          # resolved cwd (the workspace root you just entered)
 have="$(git rev-parse --show-toplevel)"   # resolved git toplevel
-[ "$have" = "$want" ] || { echo "ABORT: git toplevel $have != worktree $want"; exit 1; }
+[ "$have" = "$want" ] || { echo "ABORT: git toplevel $have != workspace $want"; exit 1; }
 ```
 
 If the assertion fails, STOP and report BLOCKED with both paths — do not create, edit, or test any
-file. Run every later step (tests, edits, verification) from this worktree.
+file. Run every later step (tests, edits, verification) from this workspace.
 
 ## Complete implementation packet
 <expand every field from the driver's Complete dispatch packet here, including the full readable
