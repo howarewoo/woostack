@@ -113,13 +113,13 @@ admit (Linear project/issue, Plane spec/child work item, GitHub Project/issue, o
   → [Plane provider only] persist/read back selected work item and parent spec item executing mapping (project status unchanged)
   → [GitHub provider only] persist/read back selected Project item executing status option (project status unchanged)
   → persist task/issue intent + resume checkpoint
-  → create or resume one worktree → implement inline or delegate isolated work
+  → create, resume, or adopt one workspace → implement inline or delegate isolated work
   → focused verification/smoke → independent bounded spec validator
   → commit/Graphite submit (with --issue in Linear and GitHub provider modes, and in local run mode with an exact mapped GitHub mirror; without --issue in Plane provider mode, unmapped local runs, and non-GitHub local runs)
   → read back branch/commit/PR/receipt
   → persist + independently read back full delivery checkpoint (Linear, Plane, GitHub, or Manifest CAS)
   → [provider only] read back inReview mapping/no-op (and Plane spec parent done mapping when all children complete; for GitHub done, transition item to done, close issue, leave Project open)
-  → clean-worktree teardown → (stop marker? pause : next ordinal)
+  → clean-worktree teardown (managed only) → (stop marker? pause : next ordinal)
 ```
 ### Project status gate (Linear provider mode only)
 
@@ -170,14 +170,17 @@ In local run mode, before worktree or source mutation, CAS-update
 worktree path, branch, parent, and start tip through the shared run-store helper and verify its
 independent read-back. A resumed `active` task must match that evidence exactly.
 
-Inventory `git worktree list --porcelain`, deterministic path, branch/commit/diff/index state,
-Graphite ancestry, and canonical PR state. There must be either no worktree state, in which case
-create exactly one worktree from the admitted current parent tip, or one exact recoverable state for
-the same run, stable task key/issue, contract, branch, parent, and checkpoint. A retained worktree
-keeps its recorded start/head and requires fresh ancestry, diff, and PR-base reads. A collision,
-competing checkout, unexplained dirty state, partial provider result, or unknown worker process stops
-the cycle. Never reset, clean, overwrite, reassign, or create around a collision.
-
+Inventory `git worktree list --porcelain`, resolved task workspace path, branch/commit/diff/index
+state, Graphite ancestry, and canonical PR state. Resolve workspace isolation mode under the
+[canonical worktree contract](../../woostack-init/references/worktrees.md#1-identity-workspace-resolution-and-placement):
+in a pre-isolated external worktree (`git_dir != git_common_dir`), adopt the active checkout in-place
+(`managed_worktree = false`); in the primary checkout (`git_dir == git_common_dir`), create a managed
+task worktree (`managed_worktree = true`) from the admitted current parent tip. There must be either no
+prior task state or one exact recoverable state for the same run, stable task key/issue, contract,
+branch, parent, and checkpoint. A retained worktree keeps its recorded start/head and requires fresh
+ancestry, diff, and PR-base reads. A collision, competing checkout, unexplained dirty state, partial
+provider result, or unknown worker process stops the cycle. Never reset, clean, overwrite, reassign,
+or create around a collision.
 Execution is strictly sequential within each run. Distinct run IDs may execute concurrently in isolated
 worktrees when their branches, paths, and responsibility surfaces do not collide.
 
@@ -291,15 +294,15 @@ verified diff → commit → Git/Graphite read-back → one Graphite PR submissi
 After delivery, CAS-update `taskExecutions[stableTaskKey]` from `active` to `delivered` with the
 complete checkpoint (`{ stableTaskKey, ordinal, branch, commitSha, prUrl, prHead, prBase,
 graphiteParent, verificationReceipt, deliveredAt }`) through the shared run-store helper. Verify
-every field in its independent read-back before tearing down the clean worktree or advancing
-to the next sibling task.
+every field in its independent read-back before tearing down a clean managed worktree (leaving
+pre-isolated checkouts intact) or advancing to the next sibling task.
 
 If optional Linear, Plane, or GitHub mirror writes are configured in local run mode, mirror writes are best effort only:
 any mirror write failure emits a warning and never invalidates, blocks, or overwrites the authoritative
 local checkpoint.
 
 Successful submission requires branch, commit, PR, matching head/base, Graphite parent, verification
-receipt, full delivery checkpoint, and a clean exact worktree. In Linear and GitHub provider modes,
+receipt, full delivery checkpoint, and a clean exact task workspace (tearing down only managed worktrees). In Linear and GitHub provider modes,
 exactly one closing reference and issue/project read-back are also required. For a mirrored local run,
 exactly one closing reference is required only when association succeeds; an association failure
 remains a warned, nonblocking mirror failure after the existing PR checkpoint is persisted. In Plane

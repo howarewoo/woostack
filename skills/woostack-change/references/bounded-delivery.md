@@ -27,19 +27,20 @@ never silently change the contract or split it into additional PRs.
 
 ## Create or resume one isolated workspace
 
-Apply the [canonical worktree contract](../../woostack-init/references/worktrees.md#1-identity-and-placement)
-for identity, base admission, collision discovery, creation, and task-only writes. Independently
-read the physical repository root, canonical remote, configured integration base and exact commit,
-complete worktree/branch/status/diff inventory, Graphite ancestry, and canonical GitHub PR state.
-Require either no task state or one exact recoverable state. Never reset, clean, stash, overwrite,
-or create around unexpected user work.
+Apply the [canonical worktree contract](../../woostack-init/references/worktrees.md#1-identity-workspace-resolution-and-placement)
+for identity, workspace resolution, base admission, collision discovery, creation/adoption, and
+task-only writes. Independently read the physical repository root, canonical remote, configured
+integration base and exact commit, complete worktree/branch/status/diff inventory, Graphite ancestry,
+and canonical GitHub PR state. Require either no task state or one exact recoverable state. Never
+reset, clean, stash, overwrite, or create around unexpected user work.
 
-Create and assert one isolated worktree under the
-[canonical creation contract](../../woostack-init/references/worktrees.md#5-create-and-assert),
-with one Graphite-tracked branch whose parent is the verified integration base. Resume an exact
-existing task/worktree/branch/parent/head instead of creating a duplicate. Revalidate the approved
-contract and direct repository evidence before each mutation boundary and after interruptions.
-
+Create, assert, or adopt one isolated task workspace under the
+[canonical creation contract](../../woostack-init/references/worktrees.md#5-create-assert-or-adopt):
+adopt an existing linked/external worktree in-place (`managed_worktree = false`) or create a managed
+task worktree (`managed_worktree = true`) when starting in the primary checkout, with one
+Graphite-tracked branch whose parent is the verified integration base. Resume an exact existing
+task/worktree/branch/parent/head instead of creating a duplicate. Revalidate the approved contract and
+direct repository evidence before each mutation boundary and after interruptions.
 ## Implement, verify, and independently review
 
 Implement every change needed for the accepted bounded scope and no other change. Before choosing
@@ -78,10 +79,11 @@ Independently read back the exact repository, branch, parent, commit, changed pa
 PR head/base, and open state. The success boundary is one complete reviewable PR whose verified
 commit contains every requested bounded change.
 
-Remove only the isolated worktree after successful delivery and independently verified cleanliness,
-following [canonical teardown](../../woostack-init/references/worktrees.md#8-teardown). Keep its
-branch, commits, and PR; never remove a user-owned checkout.
-
+Remove only a managed task worktree created by Woostack (`managed_worktree = true`) after successful
+delivery and independently verified cleanliness, following
+[canonical teardown](../../woostack-init/references/worktrees.md#8-teardown). Preserve pre-isolated or
+external worktrees (`managed_worktree = false`), and keep its branch, commits, and PR; never remove a
+user-owned or external checkout.
 If implementation, verification, review, commit, submission, read-back, or cleanup fails, is blocked,
 or has an unknown outcome, retain the worktree. Return exact Git, Graphite, and GitHub resume
 evidence: repository/base, task/worktree, branch/parent, head/commit, status/diff, verification/review

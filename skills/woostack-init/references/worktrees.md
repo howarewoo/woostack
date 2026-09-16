@@ -9,31 +9,44 @@ state. Linear is optional artifact context only.
 
 - `<wi>/scripts/resolve-base.sh` — resolve the configured integration base.
 
-## 1. Identity and placement
+## 1. Identity, workspace resolution, and placement
 
 Every active implementation task has one stable task ID, one controller/engineer run, one branch,
-and one worktree. The approved task/run contract supplies identity; the deterministic path plus
+and one workspace. The approved task/run contract supplies identity; the deterministic path plus
 direct Git, Graphite, and canonical GitHub evidence supplies repository state. For filesystem
-placement, require the ID to be one non-empty path component matching
-`^[A-Za-z0-9][A-Za-z0-9._-]*$`; reject separators, whitespace, and any other encoding. Never derive
-identity from a title, ordinal, recent activity, issue key, shortened hash, or disposable directory
-name.
+placement when creating a managed task worktree, require the ID to be one non-empty path component
+matching `^[A-Za-z0-9][A-Za-z0-9._-]*$`; reject separators, whitespace, and any other encoding. Never
+derive identity from a title, ordinal, recent activity, issue key, shortened hash, or disposable
+directory name.
 
-The physical primary root is the common Git directory's repository root, not whichever worktree the
-caller currently occupies. Resolve it inline from any checkout:
+Resolve workspace isolation mode inline from the active session:
 
 ```sh
-git_common_dir="$(git rev-parse --git-common-dir)"
-WOOSTACK_ROOT="$(cd "$git_common_dir/.." && pwd -P)"
+git_dir="$(cd "$(git rev-parse --git-dir)" && pwd -P)"
+git_common_dir="$(cd "$(git rev-parse --git-common-dir)" && pwd -P)"
+current_toplevel="$(cd "$(git rev-parse --show-toplevel)" && pwd -P)"
+primary_root="$(cd "$git_common_dir/.." && pwd -P)"
 ```
 
-Place each task worktree at
-`$WOOSTACK_ROOT/.woostack/worktrees/tasks/<stable-task-id>`; never nest it inside another task
-worktree or a tracked source directory.
+1. **Pre-isolated or linked worktree (`git_dir != git_common_dir`):**
+   The active session already occupies an external or linked worktree (such as an Orca workspace,
+   Graphite worktree, or human-created checkout). The task workspace is `$current_toplevel`. Woostack
+   adopts this checkout in-place, does not create a nested worktree under `.woostack/worktrees/tasks/`,
+   and marks the workspace as externally managed (`managed_worktree = false`).
+2. **Primary checkout (`git_dir == git_common_dir`):**
+   The active session is in the repository primary checkout (such as `main`). To protect the primary
+   checkout, prevent dirty-state collisions, and keep `main` clean, Woostack creates and manages a task
+   worktree at `$primary_root/.woostack/worktrees/tasks/<stable-task-id>`, marking it as managed
+   (`managed_worktree = true`). Never nest a managed worktree inside another task worktree or a tracked
+   source directory.
+
+In-process subagents: all subagents spawned via the host harness (such as OMP `task` or Claude Code
+`Task`) run within the host's session context and receive the resolved task workspace path
+(`$current_toplevel` or the managed worktree path). They pin their working directory to that workspace
+and communicate with the controller through the host's in-process IPC.
 
 Optional exact Linear project/issue IDs may be recorded as descriptive context, but cannot replace
 the stable task ID or any repository identity.
-
 ## 2. Verified start point
 
 A caller supplies one complete task-bound ancestry contract whose stable canonical parent-branch
@@ -74,9 +87,9 @@ or partial proof.
 
 Before create, resume, review-reopen, handoff, commit, or teardown, take one complete snapshot of:
 
-- the approved stable task/run contract and deterministic worktree path;
+- the approved stable task/run contract and resolved task workspace path;
 - `git worktree list --porcelain`, including every checkout and its branch/HEAD;
-- filesystem existence at the deterministic path;
+- filesystem existence at the workspace path;
 - local and remote branches/commits;
 - staged, unstaged, untracked, conflict, and diff state in the relevant checkout;
 - Graphite parent/stack ancestry;
@@ -86,36 +99,49 @@ The task/run identity comes from the active approved controller contract or one 
 handoff packet. Repository reads cannot invent, replace, or transfer that identity. Branch display
 text, a directory name, chat, recent activity, and artifact fields are never allocation evidence.
 
-Require the deterministic path to agree with both the filesystem and
-`git worktree list --porcelain`, the branch to have at most one checkout, and every retained
-branch/commit/PR fact to form one consistent ancestry. A material change while the snapshot is
-assembled invalidates it; repeat discovery rather than combining observations from different
-states.
-
+Require the workspace path to agree with both the filesystem and `git worktree list --porcelain`, the
+branch to have at most one checkout, and every retained branch/commit/PR fact to form one consistent
+ancestry. A material change while the snapshot is assembled invalidates it; repeat discovery rather
+than combining observations from different states.
 ## 4. Discovery and recovery
 
 Classify the complete direct-evidence snapshot:
 
-1. **All absent:** the deterministic path is absent from the filesystem and worktree inventory, and
-   no local/remote branch, commit, or canonical PR already represents the task.
-2. **One exact retained state:** resume only when the deterministic path, worktree listing, branch,
+1. **All absent:** for managed worktrees, the deterministic path is absent from the filesystem and
+   worktree inventory; in all modes, no local/remote branch, commit, or canonical PR already
+   represents the task.
+2. **Pre-isolated workspace active:** the active checkout is an external or linked worktree, its
+   branch and dirty/diff state match the approved task contract, and ancestry/parent facts agree.
+3. **One exact retained state:** resume only when the deterministic path, worktree listing, branch,
    recorded start SHA/head, parent branch, ancestry, dirty/index/diff state, commits, and PR facts
    agree with the same approved task/run contract or completely verified handoff successor. A
    compatible descendant tip on the same canonical parent branch does not invalidate content
    receipts: preserve the retained start/head and freshly revalidate ancestry, diff, and PR base.
-3. **Verified review-reopen:** the prior implementation worktree is absent, the same canonical
-   branch and PR/head remain, the approved review-fix contract names the same stable task, the
-   deterministic path is free, and the branch is not checked out anywhere.
-4. **Partial or competing state:** stop. Preserve everything and report the exact conflicting
+4. **Verified review-reopen:** the prior implementation worktree is absent (or pre-isolated workspace
+   is clean), the same canonical branch and PR/head remain, the approved review-fix contract names the
+   same stable task, the workspace path is free, and the branch is not checked out elsewhere.
+5. **Partial or competing state:** stop. Preserve everything and report the exact conflicting
    paths, checkouts, branches, heads, ancestry, dirty state, or PRs.
 
 Never delete, overwrite, reset, clean, stash, reassign, invent a new task ID, attach an unexplained
 branch, or create around a collision.
 
-## 5. Create and assert
+## 5. Create, assert, or adopt
 
 After the complete snapshot proves the intended operation collision-free:
 
+### Pre-isolated workspace (`managed_worktree = false`)
+1. verify the active checkout is `$current_toplevel` and matches `git worktree list --porcelain`;
+2. if already on the approved `<branch>`, verify it is clean or matches the active task contract; if on
+   the integration base or another branch, create and check out `<branch>` at
+   `<latest-admitted-parent-tip>` using `gt create <branch>` or
+   `git checkout -b <branch> <latest-admitted-parent-tip>`;
+3. use `gt track --parent <branch>` for the approved Graphite parent;
+4. verify physical path, common Git root, branch, HEAD/start, Graphite parent, and absence of another
+   checkout; and
+5. re-read dirty/index/diff state plus canonical remote branch/PR evidence at the new boundary.
+
+### Managed task worktree (`managed_worktree = true`)
 1. verify the deterministic path is absent from both the filesystem and
    `git worktree list --porcelain`;
 2. for fresh work, use `git worktree add -b <branch> <path> <latest-admitted-parent-tip>` after
@@ -127,20 +153,21 @@ After the complete snapshot proves the intended operation collision-free:
    checkout; and
 5. re-read dirty/index/diff state plus canonical remote branch/PR evidence at the new boundary.
 
-A failed or partial post-create assertion is an unknown mutation boundary. Rediscover direct
-repository state, preserve any observed branch/worktree, and stop; do not recreate or clean it
-automatically.
+A failed or partial post-create or adoption assertion is an unknown mutation boundary. Rediscover
+direct repository state, preserve any observed branch/worktree, and stop; do not recreate, adopt, or
+clean it automatically.
 
-## 6. Operate only in the task worktree
+## 6. Operate only in the task workspace
 
 Every source edit, implementation test, formatter, and task-scoped verification command runs from
-the exact task worktree. Before the first tracked edit and every worker redispatch, recheck the
-approved stable task/run contract, deterministic path, `git worktree list --porcelain`, branch,
-parent, allowed surface, and complete dirty/index/diff identity.
+the exact task workspace (`$current_toplevel` for pre-isolated checkouts or the managed worktree path).
+Before the first tracked edit and every worker redispatch, recheck the approved stable task/run
+contract, workspace path, `git worktree list --porcelain`, branch, parent, allowed surface, and
+complete dirty/index/diff identity.
 
 The coding worker never:
 
-- reads or writes another task worktree;
+- reads or writes another task workspace or worktree;
 - changes allocation, scope, plan dependencies, or acceptance;
 - commits, pushes, submits, opens/updates a PR, restacks, or merges when the controller owns those
   boundaries;
@@ -154,11 +181,11 @@ decided only from the approved task/run contract and fresh direct repository evi
 
 The controller invokes [`woostack-commit`](../../woostack-commit/SKILL.md) only after verification
 and independent review bind to the same complete diff identity. Immediately before
-commit/submission, re-read the task/run contract, deterministic worktree path, complete worktree
+commit/submission, re-read the task/run contract, resolved task workspace path, complete worktree
 inventory, branch, parent, index/diff, and canonical PR evidence.
 
 A review-reopen operation permits only the exact approved review fix on the same branch/PR. It may
-reattach that branch only when the deterministic path is free and no checkout already holds it.
+reattach that branch only when the workspace path is free and no checkout already holds it.
 After the fix passes focused verification and review, Graphite may restack the affected
 branch/descendants under [`woostack-sweep`](../../woostack-sweep/SKILL.md). Re-read every resulting
 head/base/ancestry and PR. Review reopen grants no unrelated ref rewrite, merge, or second fix.
@@ -168,23 +195,28 @@ a branch, commit, PR, or operation merely because a command returned unclearly.
 
 ## 8. Teardown
 
-Remove a worktree only after direct reads prove the task's controller-owned boundary is complete:
-finalized commit, clean task worktree, canonical PR/head/base when submission was requested, and no
-unresolved local mutation. Re-resolve and verify the exact deterministic path immediately before
-`git worktree remove <path>`.
+Teardown applies only after direct reads prove the task's controller-owned boundary is complete:
+finalized commit, clean task workspace, canonical PR/head/base when submission was requested, and no
+unresolved local mutation.
+
+1. **Managed worktrees (`managed_worktree = true`):**
+   Re-resolve and verify the exact deterministic path immediately before
+   `git worktree remove <path>`.
+2. **Pre-isolated or external worktrees (`managed_worktree = false`):**
+   Verify cleanliness, the finalized commit, and PR read-back, but **leave the workspace intact**.
+   Never run `git worktree remove` on a user-owned, Orca-managed, or external checkout.
 
 Keep branch, commits, PR, and optional artifacts. On failure, blocker, collision, handoff, or unknown
 outcome, preserve the worktree and report:
 
 - stable task/run ID and approved contract identity;
-- deterministic worktree path and current `git worktree list --porcelain` entry;
+- workspace path and current `git worktree list --porcelain` entry;
 - branch, start SHA, and Graphite parent;
 - dirty/index/diff, commit, and PR state;
 - first unverified boundary; and
 - exact safe next action.
 
 Never use teardown as cleanup for unexplained state.
-
 ## 9. Greenfield bootstrap boundary
 
 A genuinely greenfield target has no Git repository yet, so it cannot use this worktree contract

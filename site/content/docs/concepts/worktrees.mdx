@@ -7,28 +7,35 @@ A Git worktree is a separate checkout of the same repository. It lets a task edi
 without changing files in the primary checkout. A worktree does not grant scope, approval, status,
 or acceptance. The
 [canonical worktree contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/worktrees.md)
-defines collision checks, parent relationships, recovery, and removal.
+defines collision checks, workspace resolution, parent relationships, recovery, and removal.
 
-## One worktree per bounded task
+## Workspace isolation modes
 
-Each active implementation task has one controller and run identity, one branch, one worktree,
-one allowed set of paths, and at most one PR. Task and run IDs remain separate from optional
-provider IDs and mirror records.
+Each active implementation task has one controller and run identity, one branch, one workspace,
+one allowed set of paths, and at most one PR. Woostack detects whether the active session is already
+isolated:
+
+1. **Pre-isolated or linked worktree:** When the active session already occupies an external worktree
+   (such as an Orca workspace, Graphite worktree, or human-created checkout), Woostack adopts the
+   active checkout in-place. It does not spawn a nested worktree, and the workspace remains
+   externally managed.
+2. **Primary checkout:** When running directly in the primary checkout (such as `main`), Woostack
+   creates and manages an isolated task worktree to keep the primary tree clean:
 
 ```text
 .woostack/worktrees/tasks/<stable-task-id>
 ```
 
-Before creating, resuming, reopening for review, committing, or removing a worktree, woostack checks
+Before creating, resuming, reopening for review, committing, or removing a worktree, Woostack checks
 its expected path and task against the filesystem, `git worktree list --porcelain`, local and remote
 branches, commits, uncommitted changes, Graphite parents, and GitHub PR evidence. A branch can be
 checked out in at most one worktree, and all observed paths and commits must agree.
 
-For new work, `git worktree add -b` creates the branch and checkout together. Git rejects an
-existing branch, path, or checkout. Retained work resumes only when all evidence matches the same
-approved task or a fully verified handoff. Partial, unrelated, or competing state stops the task.
-The agent must not reset, stash, delete, adopt another checkout, or create around the collision.
-
+For fresh work in primary checkout mode, `git worktree add -b` creates the branch and checkout together.
+In pre-isolated mode, Woostack creates or switches to the task branch within the active checkout.
+Retained work resumes only when all evidence matches the same approved task or a fully verified
+handoff. Partial, unrelated, or competing state stops the task. The agent must not reset, stash,
+delete, or create around the collision.
 The approved task names its parent branch. Direct Git evidence verifies the branch's tip, its
 latest commit. When the same branch moves, Execute checks the changes against the selected task,
 its dependencies, and any retained work. Unrelated changes continue without a prompt; relevant or
@@ -50,10 +57,11 @@ task order cannot replace approved dependencies and verified Git ancestry.
 ## The primary tree stays clean
 
 <Callout type="info">
-  Tracked implementation writes land in the task worktree. The primary checkout remains a clean,
-  stable coordination point.
+  Tracked implementation writes land in the task workspace. In primary checkouts, the managed
+  worktree isolates changes so the primary checkout remains a clean, stable coordination point.
+  Subagents dispatched via the host harness (such as OMP `task`) run in-process and pin their
+  operations to the resolved workspace.
 </Callout>
-
 Execute processes tasks one at a time within each local run. Separate runs can proceed concurrently
 only when their allowed paths, branches, worktrees, and PRs do not overlap. Dependent tasks follow
 their declared Git parent. Before writing, each worker checks that its physical working directory
@@ -61,14 +69,15 @@ is the exact Git root it was assigned.
 
 ## Teardown and recovery
 
-- After success, the controller verifies the finalized commit, clean task worktree, and canonical
-  PR identity when submission was requested. It removes only the exact task worktree. The branch,
-  commits, PR, and remote evidence remain.
+- After success, the controller verifies the finalized commit, clean task workspace, and canonical
+  PR identity when submission was requested. For managed worktrees created by Woostack, it removes
+  the exact task worktree (`git worktree remove`). For external or pre-isolated worktrees (such as
+  Orca workspaces), it verifies cleanliness and leaves the workspace intact—never deleting an
+  external or user-owned checkout. The branch, commits, PR, and remote evidence remain in all modes.
 - On failure, handoff, or an unknown result, keep the worktree. Report the task and run, expected
   path, worktree inventory, branch ancestry, uncommitted changes, first unverified step, and safe next
   action. A timeout proves neither success nor absence.
 - When reopening for review, attach only the verified existing branch and head. Its expected path
   must be free and the branch checked out nowhere else. Never adopt an unrelated checkout.
-
 Optional provider failure does not weaken collision or ancestry checks. A failed mirror operation
 does not block delivery that has been verified against the local run and repository.
