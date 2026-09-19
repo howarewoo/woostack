@@ -9,9 +9,10 @@ Build is a thin controller wrapper around the internal decision and planning pha
 persistent local runs under `.woostack/tmp/runs/<run-id>/`, supports exact `--run`, retains
 success/Stop/Abandon artifacts, and hands off with `/woostack-execute --run <exact-run-id>`. Local run
 authority is unconditional; Linear, Plane, or GitHub is an optional mirror flow gated by
-`artifacts.provider: "linear"`, `artifacts.provider: "plane"`, or `artifacts.provider: "github"`. Git,
-Graphite, and canonical GitHub reads remain the authority for repository delivery. Merge authority
-is human-only: never auto-merge, never enqueue, never merge.
+`artifacts.provider: "linear"`, `artifacts.provider: "plane"`, or `artifacts.provider: "github"`. Git
+and canonical GitHub reads remain the authority for repository delivery. Git + `gh` is the default;
+optional Graphite selection follows the [source-control contract](../woostack-commit/references/graphite.md).
+Merge authority is human-only: never auto-merge, never enqueue, never merge.
 ## Commands
 
 ```text
@@ -123,4 +124,4 @@ implementation, focused verification, progress evidence, and repository delivery
 contract. Build does not select another execution mode, create a competing authority, or merge.
 
 Any required local manifest boundary failure blocks at the last verified boundary. Artifact records
-never replace Git/Graphite/GitHub evidence or grant repository permission.
+never replace required Git/GitHub evidence (plus Graphite in that mode) or grant repository permission.

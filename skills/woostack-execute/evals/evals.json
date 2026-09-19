@@ -135,13 +135,6 @@
           "pointer": "/worktreeRemoved",
           "expected": true,
           "critical": true
-        },
-        {
-          "id": "stop-evidence",
-          "kind": "final-json-path-equals",
-          "pointer": "/resumeEvidence",
-          "expected": "provider/artifact-git-graphite-github",
-          "critical": true
         }
       ]
     },
@@ -287,7 +280,7 @@
     },
     {
       "id": "delivery-distinct-state-transitions-once",
-      "prompt": "The selected issue has independently read native state executing. Configured issueStates.executing resolves to {\"id\":\"state-executing\",\"name\":\"In Progress\",\"category\":\"started\"}, while issueStates.inReview resolves to the distinct same-team mapping {\"id\":\"state-review\",\"name\":\"Ready for Review\",\"category\":\"started\"}. Complete canonical PR, head/base, closing-reference, verification, selected provider/artifact, Graphite-parent, and clean-worktree evidence is present. Persist and independently read back every field of the full delivery checkpoint before issuing exactly one issue-state transition mutation, then independently read back the issue in state-review. Permit teardown only after the completed checkpoint and lifecycle read-backs, and do not advance a sibling. Return exactly one JSON object with keys status, executingMapping, inReviewMapping, deliveryCheckpointReadBack, deliveryCheckpoint, transitionMutations, issueStateReadBack, operationOrder, teardownAllowed, and siblingsAdvanced.",
+      "prompt": "The selected issue has independently read native state executing. Configured issueStates.executing resolves to {\"id\":\"state-executing\",\"name\":\"In Progress\",\"category\":\"started\"}, while issueStates.inReview resolves to the distinct same-team mapping {\"id\":\"state-review\",\"name\":\"Ready for Review\",\"category\":\"started\"}. Complete canonical PR, head/base, closing-reference, verification, selected provider/artifact, parent-branch, and clean-worktree evidence is present. Persist and independently read back every field of the full delivery checkpoint before issuing exactly one issue-state transition mutation, then independently read back the issue in state-review. Permit teardown only after the completed checkpoint and lifecycle read-backs, and do not advance a sibling. Return exactly one JSON object with keys status, executingMapping, inReviewMapping, deliveryCheckpointReadBack, deliveryCheckpoint, transitionMutations, issueStateReadBack, operationOrder, teardownAllowed, and siblingsAdvanced.",
       "capabilities": [
         "read-workspace"
       ],
@@ -380,7 +373,7 @@
     },
     {
       "id": "resume-reuses-existing-pr",
-      "prompt": "A resumed project issue has its executing and configured inReview mappings independently resolved by stable native identity/category, a persisted delivery checkpoint still pending clean-worktree verification (deliveryCheckpoint=pending-clean), commit commit-002, and canonical PR https://github.com/acme/repo/pull/2 proven by independent selected provider/artifact, Git, Graphite, and GitHub reads, while its worktree is retained dirty. The manifest records canonical parent branch refs/heads/main and planning tip parent-001; a fresh exact read observes the same branch and tip. Revalidate the retained start, head, ancestry, diff, and PR base without creating a duplicate or removing the dirty worktree. Return exactly one JSON object with keys status, reason, existingCommit, existingPr, duplicateCreated, worktreeState, resumeBoundary, deliveryCheckpoint, and repositoryBaseCheck.",
+      "prompt": "A resumed project issue has its executing and configured inReview mappings independently resolved by stable native identity/category, a persisted delivery checkpoint still pending clean-worktree verification (deliveryCheckpoint=pending-clean), commit commit-002, and canonical PR https://github.com/acme/repo/pull/2 proven by independent selected provider/artifact, Git and GitHub reads, while its worktree is retained dirty. The manifest records canonical parent branch refs/heads/main and planning tip parent-001; a fresh exact read observes the same branch and tip. Revalidate the retained start, head, ancestry, diff, and PR base without creating a duplicate or removing the dirty worktree. Return exactly one JSON object with keys status, reason, existingCommit, existingPr, duplicateCreated, worktreeState, resumeBoundary, deliveryCheckpoint, and repositoryBaseCheck.",
       "capabilities": [
         "read-workspace"
       ],

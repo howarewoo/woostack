@@ -105,7 +105,7 @@ worktree exemption.
    [`woostack-init`](../../woostack-init/SKILL.md);
 4. do not create `.woostack/specs/`, `.woostack/plans/`, `.woostack/fixes/`, or a shadow development
    ledger; and
-5. use Graphite/worktrees for every later bounded feature or fix.
+5. use isolated worktrees for every later bounded feature or fix.
 
 Do not commit or push until generated files, environment files, lockfiles, ignore rules, and code
 ownership are classified under repository policy.

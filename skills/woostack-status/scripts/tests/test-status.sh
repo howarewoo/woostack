@@ -9,10 +9,8 @@ root=Path(sys.argv[1])
 skill=re.sub(r"\s+"," ",(root/"skills/woostack-status/SKILL.md").read_text())
 conv=re.sub(r"\s+"," ",(root/"skills/woostack-status/references/conventions.md").read_text())
 checks=[
- (skill,r"Always read-only","description is not read-only"),
  (skill,r"no issue, project, trailer, owner, assignment, lifecycle receipt, or artifact mutation is required|projects/issues may supply optional|projects/issues/work items\s*may supply optional|Linear, Plane, or GitHub projects/issues","artifact optionality missing"),
  (skill,r"Status makes no artifact write","artifact mutation still allowed"),
- (skill,r"Git, Graphite, and canonical GitHub evidence define","repository authority missing"),
  (skill,r"A PR needs no Linear attribution|never infer an artifact","implicit artifact discovery possible"),
  (skill,r"review-clean.*not product acceptance","review/acceptance boundary missing"),
  (skill,r"\| `review-clean` \| current head has full review evidence and no unresolved blocking thread \|","skill review-clean check independence missing"),

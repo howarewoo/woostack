@@ -16,7 +16,7 @@ context unless the user requests a supported synchronization operation.
 | --- | --- | --- | --- |
 | [woostack-visualize](/docs/skills/woostack-visualize) | Renders an exact artifact, PR, repository source, or repository-grounded concept as one self-contained HTML view. Repository claims must be pinned to immutable Git content or an exact PR. | disposable HTML view | `/woostack-visualize <source>` |
 | [woostack-design](/docs/skills/woostack-design) | Arranges multi-step UI flows and screen sequences into a standardized horizontal layout with aligned branches. | design layout updates | `/woostack-design [target]` |
-| [woostack-status](/docs/skills/woostack-status) | Computes a fresh branch/PR board from Git, Graphite, and GitHub, optionally enriched by artifacts. | no | `/woostack-status` |
+| [woostack-status](/docs/skills/woostack-status) | Computes a fresh branch/PR board from Git and GitHub, plus Graphite when selected, optionally enriched by artifacts. | no | `/woostack-status` |
 | [woostack-debug](/docs/skills/woostack-debug) | Runs root-cause analysis and returns a proposed correction. | no | `/woostack-debug <target>` |
 | [woostack-qa](/docs/skills/woostack-qa) | Explores a running app and writes a sanitized report. | non-authoritative report | `/woostack-qa <url> [focus…]` |
 | [woostack-audit](/docs/skills/woostack-audit) | Reviews existing code, rather than a PR diff, and writes a ranked report without applying fixes. | non-authoritative report | `/woostack-audit <target>` |

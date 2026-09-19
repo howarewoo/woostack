@@ -72,7 +72,7 @@ back, and owns no execution authorization. It does not use the gated Build/Fix r
 
 ## Delivery notes
 
-After repository execution, write only concise delivery evidence derived from Git/Graphite/GitHub:
+After repository execution, write only concise delivery evidence derived from Git/GitHub:
 canonical PR URLs, commit SHAs, changed paths, observed verification, review result, and blockers.
 A note records evidence; it does not establish the fact it records. Read the exact issue/project
 back after writing and report artifact and repository outcomes separately.

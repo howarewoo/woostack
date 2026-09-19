@@ -49,10 +49,10 @@ separate from write authority. Init persists only non-secret policy, never local
 Implementation branches begin from verified repository base evidence and follow the
 [canonical worktree contract](../../woostack-init/references/worktrees.md). Bootstrap's initial
 new-repository scaffold is the one pre-base worktree exception. Later PRs require direct
-Git/Graphite/GitHub identity and may include an ordinary optional artifact link. Git/Graphite and
-GitHub remain the source of truth for commits, branches, PRs, reviews, and merges.
+Git/GitHub identity and may include an ordinary optional artifact link. Git and GitHub remain the
+source of truth for commits, branches, PRs, reviews, and merges.
 
-Every `/woostack-status` run derives rows from current repository/Graphite/GitHub evidence. Exact
+Every `/woostack-status` run derives rows from current Git/GitHub evidence, plus Graphite when selected. Exact
 caller-supplied provider context may enrich a row with linked specification, plan, or fix-artifact
 notes; missing artifact access affects only that enrichment. The
 [feature-state conventions](../../woostack-status/references/conventions.md) define rendering,
@@ -74,10 +74,11 @@ a branch such as `staging` before a human merges a release into `main`.
 | First feature branch | First PR in a plan | Verified integration branch |
 | Dependent feature branch | Next PR in a stack | The approved predecessor's branch |
 
-Use Graphite (`gt create`, `gt modify`, `gt submit`) to manage stacks. Follow the
+Use Git + `gh` by default; Graphite is optional for explicitly selected or verified already-managed
+tasks/stacks. The [source-control contract](../../woostack-commit/references/graphite.md) owns
+backend selection and delivery mechanics. Follow the
 [worktree/base-branch contract](../../woostack-init/references/worktrees.md) to resolve the base
-and verify each predecessor before starting dependent work. Never force-push to `main` or the
-integration branch.
+and verify each predecessor before starting dependent work. Never force-push.
 
 ## When to deviate
 

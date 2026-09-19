@@ -3,6 +3,18 @@
   "skill": "woostack-status",
   "cases": [
     {
+      "id": "native-board-without-graphite",
+      "prompt": "Simulate read-only Status without tools. gt is not installed and no Graphite selection or metadata exists. Complete Git/GitHub evidence proves exact PR 901 on branch feature is open draft, with no blocking thread, and its canonical base is main. Approved intent, retained start SHA, and Git DAG verify feature's parent main. A second local branch scratch has no PR and no retained parent intent: its merge-base and upstream exist but do not establish an intended parent. Render both rows without provider calls. Return JSON with rendered, gtRequired, rows [{branch,state,parentBranch}], and repositoryMutationCount. Preserve known local/PR state even when only parent identity is unknown.",
+      "capabilities": ["read-workspace"],
+      "expected": "No Graphite prerequisite; the draft row has verified main parent, scratch remains local with explicitly unknown parent.",
+      "assertions": [
+        {"id": "rendered", "kind": "final-json-path-equals", "pointer": "/rendered", "expected": true, "critical": true},
+        {"id": "no-gt-gate", "kind": "final-json-path-equals", "pointer": "/gtRequired", "expected": false, "critical": true},
+        {"id": "known-and-unknown-parent", "kind": "final-json-path-equals", "pointer": "/rows", "expected": [{"branch": "feature", "state": "draft", "parentBranch": "main"}, {"branch": "scratch", "state": "local", "parentBranch": "unknown"}], "critical": true},
+        {"id": "read-only", "kind": "final-json-path-equals", "pointer": "/repositoryMutationCount", "expected": 0, "critical": true}
+      ]
+    },
+    {
       "id": "status-derives-board-from-git-graphite-github",
       "prompt": "Classify a repository workspace with five Graphite branches: (1) feature-a with local worktree and no PR; (2) feature-b with open draft PR #101; (3) feature-c with open PR #102, review changes-requested, and 1 open blocking thread; (4) feature-d with open PR #103, passing full review, and 0 unresolved threads; (5) feature-e with PR #104 proven merged by canonical GitHub. Do not call providers or mutate files. Return exactly one JSON object with rendered true, rows containing the 5 derived states [\"local\", \"draft\", \"in-review\", \"review-clean\", \"merged\"] in branch order, checksObservableOnly true, providerMutationCount 0, and repositoryMutationCount 0.",
       "fixtures": [],

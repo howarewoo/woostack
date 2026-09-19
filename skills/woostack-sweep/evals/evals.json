@@ -3,6 +3,33 @@
   "skill": "woostack-sweep",
   "cases": [
     {
+      "id": "native-stack-paginated-parent-merge",
+      "prompt": "Simulate Sweep without running tools. No Graphite selection or metadata exists and gt is unavailable. Canonical GitHub pagination has page 1 PR 901 head lower@L2 base main@M, page 2 PR 902 head upper@U1 base lower@L2, then hasNextPage=false. Target is PR 902 and floor main. Approved parent intent and retained points are verified: lower started at M, upper started at L1; Git proves M ancestor L1, L1 ancestor L2 and U1, but L2 is not ancestor U1. Worktrees are clean, isolated, owned, and remote heads match. PR 901 gets a verified Address correction L3, descendant reconciliation is required; the merge of L3 into U1 is conflict-free and yields U2 containing both U1 and L3. Remote read-backs and all review/thread/mergeability gates pass after reconciliation. Return JSON with mode, graphPagesConsumed, order, descendantOperation, forcePush, gtCalls, preservedChildAncestor, and readBackBeforeReview.",
+      "capabilities": ["read-workspace"],
+      "expected": "Resolve the complete native chain across both pages, merge the exact parent tip into the child without rewriting history, normal-push only that child, and read back before review.",
+      "assertions": [
+        {"id": "native-default", "kind": "final-json-path-equals", "pointer": "/mode", "expected": "native", "critical": true},
+        {"id": "complete-pages", "kind": "final-json-path-equals", "pointer": "/graphPagesConsumed", "expected": 2, "critical": true},
+        {"id": "dependency-order", "kind": "final-json-path-equals", "pointer": "/order", "expected": [901, 902], "critical": true},
+        {"id": "parent-tip-merge", "kind": "final-json-path-equals", "pointer": "/descendantOperation", "expected": {"child": 902, "parentSha": "L3", "operation": "merge", "push": "non-force"}, "critical": true},
+        {"id": "no-force", "kind": "final-json-path-equals", "pointer": "/forcePush", "expected": false, "critical": true},
+        {"id": "no-gt", "kind": "final-json-path-equals", "pointer": "/gtCalls", "expected": 0, "critical": true},
+        {"id": "preserved-history", "kind": "final-json-path-equals", "pointer": "/preservedChildAncestor", "expected": "U1", "critical": true},
+        {"id": "readback-gate", "kind": "final-json-path-equals", "pointer": "/readBackBeforeReview", "expected": true, "critical": true}
+      ]
+    },
+    {
+      "id": "native-graph-and-mode-fail-closed",
+      "prompt": "Simulate independent Sweep preflights without tools. A: GitHub page 1 suggests one native chain but page 2 adds a second child of its lower PR and no explicit branch-tip scope resolves membership. B: complete native graph has a cycle. C: parent branch between target and floor has no submitted PR. D: canonical PR base and approved parent intent conflict although merge-base exists. E: Graphite explicitly selected, gt restack fails before a proved outcome; native merge would succeed. Return JSON with blockedCases, mutationCountBeforeResolution, and automaticNativeFallback. Do not treat any partial graph as complete.",
+      "capabilities": ["read-workspace"],
+      "expected": "All five unsafe boundaries block; no speculative mutation or fallback follows partial graph or selected Graphite failure.",
+      "assertions": [
+        {"id": "all-blocked", "kind": "final-json-path-equals", "pointer": "/blockedCases", "expected": ["A", "B", "C", "D", "E"], "critical": true},
+        {"id": "no-speculation", "kind": "final-json-path-equals", "pointer": "/mutationCountBeforeResolution", "expected": 0, "critical": true},
+        {"id": "no-fallback", "kind": "final-json-path-equals", "pointer": "/automaticNativeFallback", "expected": false, "critical": true}
+      ]
+    },
+    {
       "id": "bottom-up-preexisting-then-clean",
       "prompt": "Drive a two-PR Graphite stack bottom-up: PR 101 is the lower dependency and has one pre-existing unresolved thread; PR 102 is its descendant and has none. For each current head, read canonical head and threads, address pre-existing threads before invoking exactly one /woostack-review <PR#> pass, then address all new findings. PR 101 review is clean; PR 102 review has two nits that Address resolves with evidence replies and no code or head change. Return one JSON object with order, addressCalls, reviewCalls, rounds, threads, and status.",
       "capabilities": ["read-workspace"],

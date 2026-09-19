@@ -2566,7 +2566,7 @@
         "startCommitSha": "6060606060606060606060606060606060606060",
         "baseRefName": "feature/open-parent",
         "baseSha": "6060606060606060606060606060606060606060",
-        "graphiteParent": "feature/open-parent",
+        "parentBranch": "feature/open-parent",
         "ancestryVerified": true
       }
     },
@@ -2595,7 +2595,7 @@
         "startCommitSha": "6161616161616161616161616161616161616161",
         "baseRefName": "feature/done-parent",
         "baseSha": "6161616161616161616161616161616161616161",
-        "graphiteParent": "feature/done-parent",
+        "parentBranch": "feature/done-parent",
         "ancestryVerified": true
       }
     },
@@ -2638,7 +2638,7 @@
         "startCommitSha": "6060606060606060606060606060606060606060",
         "baseRefName": "feature/open-parent",
         "baseSha": "6060606060606060606060606060606060606060",
-        "graphiteParent": "feature/open-parent",
+        "parentBranch": "feature/open-parent",
         "ancestryVerified": true
       }
     },
@@ -2667,7 +2667,7 @@
         "startCommitSha": "6262626262626262626262626262626262626262",
         "baseRefName": "feature/open-parent",
         "baseSha": "6262626262626262626262626262626262626262",
-        "graphiteParent": "feature/open-parent",
+        "parentBranch": "feature/open-parent",
         "ancestryVerified": true
       }
     }

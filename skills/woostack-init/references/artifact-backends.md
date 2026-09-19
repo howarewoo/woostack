@@ -2,8 +2,9 @@
 
 Development artifacts record specifications, proved root cause, increment contracts, implementation
 plans, dependency graphs, and delivery evidence. They do not authorize repository work. The user's
-request and each workflow's explicit conversation choices authorize the workflow; Git, Graphite, and
-canonical GitHub reads prove source, ancestry, pull-request, review, and merge facts.
+request and each workflow's explicit conversation choices authorize the workflow; Git and canonical
+GitHub reads prove source, ancestry, pull-request, review, and merge facts. Backend selection follows
+the [source-control contract](../../woostack-commit/references/graphite.md).
 
 The canonical persistent store for `woostack-build` and project-backed `woostack-fix` is
 `.woostack/tmp/runs/<run-id>/`. It contains ordinary Markdown artifacts and a small recovery manifest.
@@ -220,7 +221,7 @@ Artifact paths must identify only the fixed plain files above; the helper never 
 manifest-supplied paths. Workflow admission validates the complete draft/task/dependency references
 and content, while the manifest remains recovery state rather than a substitute for final artifact
 prose. Storage success is not specification approval, a resolved question, task admission, provider
-acceptance, or Git/Graphite/GitHub delivery evidence.
+acceptance, or Git/GitHub delivery evidence.
 
 The `mirror` structure persists provider-neutral mappings and mutation state:
 - `provider` — selected provider name, or `"local"`;
@@ -278,8 +279,10 @@ concurrently; tasks within one run do not.
 - `pending` — not selected;
 - `active` — selected before worktree or source mutation, with branch/worktree and start-base facts;
 - `blocked` — exact failed boundary plus the safe resume action;
-- `delivered` — complete branch, commit, canonical PR URL/head/base, verification, provider read-back
-  when applicable, and clean-worktree evidence.
+- `delivered` — complete branch, approved `parentBranch`, retained start/old-parent SHA, commit,
+  canonical PR URL/head/base, verification, provider read-back when applicable, and clean-worktree
+  evidence. Git DAG and canonical PR base must agree with that parent proof; an upstream ref or
+  merge-base alone is insufficient. Graphite metadata is additional evidence only in Graphite mode.
 
 Select the lowest unfinished ordinal whose predecessor has a complete delivered checkpoint. Change
 `pending` to `active` and read the manifest back before creating a worktree or changing source. Persist
@@ -323,7 +326,7 @@ write-once, revised content is written in a new run and the prior run is retaine
 run and repository unchanged and reports the observed difference.
 
 Reassess if the parent moves again or a different task is selected; a no-impact finding applies only
-to the compared tips and assessed work. Admission never bypasses ancestry, collision, Graphite-parent,
+to the compared tips and assessed work. Admission never bypasses ancestry, collision, parent-branch,
 or PR-base safeguards, and never authorizes silently rebasing, resetting, or recreating retained work.
 
 For a non-root task, independently observe the predecessor's delivered checkpoint, commit, canonical

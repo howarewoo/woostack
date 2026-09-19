@@ -50,8 +50,9 @@ integration branch's tip has changed since planning, the user must choose what t
   current head commit.
 - Implementation may run in the current session or in a separate worker. Focused checks, a smoke
   test of the changed behavior, and independent comparison against the approved task precede delivery.
-- Graphite manages parent-child branch relationships. GitHub shows PR, commit, review, and merge
-  state. Available CI checks are observation-only; their result or availability alone does not block.
+- Git and GitHub prove parent-child branch relationships, PRs, commits, reviews, and merge
+  state. Graphite supplies additional stack evidence only when selected. Available CI checks are
+  observation-only; their result or availability alone does not block.
 - Unresolved scope, ancestry, collision, required-evidence, or review conflicts stop the workflow.
   Agents never merge, mark a PR ready, enable auto-merge, or queue a PR for merge.
 
@@ -72,7 +73,7 @@ source-control authority.
 | User request and decisions | initiates the selected workflow and authorizes decisions |
 | Local run manifest (`.woostack/tmp/runs/<run-id>/`) | records project-backed scope, plans, task contracts, and recovery state; does not grant permission |
 | Git and GitHub | source, ancestry, commits, PRs, checks, reviews, merge evidence |
-| Graphite | stack and branch operations |
+| Graphite (optional) | stack and branch operations when explicitly selected or already managed |
 | Audit, QA, response reports | sanitized non-authoritative diagnostic evidence |
 
 The [Hermes guide](/docs/hermes) documents how an external engineer can review harness evidence

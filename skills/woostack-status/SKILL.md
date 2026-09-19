@@ -1,11 +1,11 @@
 ---
 name: woostack-status
-description: Show a fresh repository work board from Git, Graphite, canonical GitHub evidence, and optional exact Linear, Plane, or GitHub artifacts. Always read-only.
+description: Show a fresh read-only repository work board from Git, canonical GitHub evidence, optional Graphite ancestry, and optional exact Linear, Plane, or GitHub artifacts.
 ---
 
 # woostack-status
 
-Render a fresh read-only work board. Git, Graphite, and canonical GitHub evidence define branches,
+Render a fresh read-only work board. Git and canonical GitHub evidence define branches,
 ancestry, commits, PRs, reviews, checks, threads, and merge state. Exact Linear, Plane, or GitHub projects/issues/work items
 may supply optional specification, plan, or fix labels; they never define repository state.
 
@@ -19,7 +19,7 @@ reconcile, assign, transition, comment, accept, merge, or repair.
 /woostack-status <branch|PR#|exact Linear or Plane project URL-or-UUID|canonical GitHub Project URL|exact canonical Linear issue, Plane work-item, or GitHub issue reference>
 ```
 
-With no target, inspect the canonical repository's current Graphite work surface. A branch or PR
+With no target, inspect the canonical repository's current work surface. A branch or PR
 narrows the repository view. An exact Linear/Plane project URL-or-UUID, canonical GitHub Project URL, or exact caller-supplied canonical
 issue/work-item reference opts into artifact enrichment; it is not a work prerequisite. Never infer an
 artifact from a title, issue key, branch, trailer, recent activity, current user, or search ranking.
@@ -28,7 +28,7 @@ artifact from a title, issue key, branch, trailer, recent activity, current user
 1. Resolve the physical repository root and canonical remote.
 2. Read the configured integration branch, deterministic task paths from any active approved
    contracts, filesystem state, `git worktree list --porcelain`, local/remote branches and commits,
-   complete dirty/index/diff state, and Graphite ancestry.
+   complete dirty/index/diff state, and available parent intent and retained start/old parent SHAs.
 3. Fetch canonical GitHub PR metadata for candidate branches with complete pagination: number/URL,
    state, head/base branches and SHAs, draft state, reviews, unresolved threads, and merge
    evidence. Read available checks separately as best-effort observable data for display; missing or
@@ -36,8 +36,14 @@ artifact from a title, issue key, branch, trailer, recent activity, current user
 4. Match branch to PR by canonical repository plus exact head ref/SHA. Reject duplicate checkouts,
    branches, commits, or PRs; ambiguous matches; stale heads; moved bases; or incomplete required
    non-check pages.
-5. Reconcile each deterministic path and retained task/run contract directly against Git, Graphite,
-   worktree, dirty-state, and GitHub facts. Contract metadata never overrides repository state.
+5. Reconcile each deterministic path and retained task/run contract directly against Git, worktree,
+   dirty-state, and GitHub facts. Follow the
+   [source-control and ancestry contract](../woostack-commit/references/graphite.md); consult
+   Graphite only for explicitly selected or already verified managed work. Its absence never blocks
+   the board. Prove parents from approved intent, retained parent points, Git DAG, and canonical PR
+   bases; never infer them from merge-base or upstream alone. Contract metadata never overrides
+   repository state. Label a genuinely unprovable parent `unknown` without discarding independently
+   proved PR state; disclose selected Graphite read failures without silently switching modes.
 6. Freeze the complete snapshot before rendering. If a material read changes mid-snapshot, restart
    once; repeated drift is reported as `unstable`, not smoothed over.
 
@@ -99,8 +105,8 @@ to derive the row state.
 
 ## Dependencies and next action
 
-Use the approved dependency plan when explicitly supplied; otherwise derive only Graphite parent
-ancestry and do not invent product dependencies. For each row, state one evidence-backed next
+Use the approved dependency plan when explicitly supplied; otherwise derive only verified branch
+parent ancestry and do not invent product dependencies. For each row, state one evidence-backed next
 action:
 
 - resolve a collision or unknown read;
@@ -109,7 +115,7 @@ action:
 - address blocking findings/threads;
 - wait for required review;
 - re-review a changed head;
-- restack an ancestry mismatch;
+- reconcile an ancestry mismatch through the selected source-control workflow;
 - merge through the repository's normal process; or
 - no repository action for a verified merged row.
 
@@ -129,7 +135,7 @@ Render a concise table containing:
 
 - stable task/branch/PR identity;
 - repository state;
-- branch and Graphite parent/base;
+- branch and verified parent/base (or `unknown` with the missing proof);
 - PR URL, head/base, checks, review/thread summary, and merge evidence;
 - worktree checkout/path collision or dirty-state warning;
 - dependency readiness when an approved plan was supplied;

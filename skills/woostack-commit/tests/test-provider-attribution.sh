@@ -34,7 +34,6 @@ for pattern, message in (
     (r"append one verified `Resolves <issue identifier>` line", "supplied issue lacks closing reference"),
     (r"moves the issue or work item to its configured merged state only after the PR merges", "closing reference claims an early lifecycle transition"),
     (r"Artifact failure does not invalidate the verified commit or PR", "artifact failure can invalidate repository delivery"),
-    (r"Graphite for history mutation", "Graphite mutation boundary missing"),
     (r"independently read the canonical GitHub PR", "PR read-back missing"),
 ):
     require(skill, pattern, message)

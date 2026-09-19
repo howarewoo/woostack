@@ -4,14 +4,14 @@
   "cases": [
     {
       "id": "synchronizes-existing-exact-project-strict-chain",
-      "prompt": "Read fixtures/project-a.json as a standalone woostack-plan invocation. The caller supplies one exact existing Linear project and an approved specification. Reconcile exactly two direct project issues with task IDs storage and api, ordinals 1 and 2, one native dependency storage → api, complete outcome/scope/acceptance/verification contracts and Graphite parents, and independent read-back. Treat approved parent-branch intent in each issue as content and the last admitted parent tips under repository as separate mutable evidence. Do not mutate the repository. Return exactly one JSON object with keys status, invocationMode, artifactModeSelected, existingProjectRequired, projectCreated, directIssueIds, parentPlanIssueCount, ordinals, nativeDependencies, approvedParentBranchIntents, graphiteParents, lastAdmittedParentTips, graphReadBackVerified, repositoryMutationCount, approvalOwned, and executionOwned.",
+      "prompt": "Read fixtures/project-a.json as a standalone woostack-plan invocation. The caller supplies one exact existing Linear project and an approved specification. Reconcile exactly two direct project issues with task IDs storage and api, ordinals 1 and 2, one native dependency storage → api, complete outcome/scope/acceptance/verification contracts and parent branches, and independent read-back. Treat approved parent-branch intent in each issue as content and the last admitted parent tips under repository as separate mutable evidence. Do not mutate the repository. Return exactly one JSON object with keys status, invocationMode, artifactModeSelected, existingProjectRequired, projectCreated, directIssueIds, parentPlanIssueCount, ordinals, nativeDependencies, approvedParentBranchIntents, parentBranches, lastAdmittedParentTips, graphReadBackVerified, repositoryMutationCount, approvalOwned, and executionOwned.",
       "fixtures": [
         "project-a.json"
       ],
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "The exact existing project is reused, two direct issues form the sole strict predecessor edge, the root Graphite parent is the approved integration branch, and the child Graphite parent is the immediately preceding increment branch. Stable branch intent remains content while each increment's last admitted tip is separate repository evidence. No parent issue or project is created; Plan neither approves nor executes.",
+      "expected": "The exact existing project is reused, two direct issues form the sole strict predecessor edge, the root parent branch is the approved integration branch, and the child parent branch is the immediately preceding increment branch. Stable branch intent remains content while each increment's last admitted tip is separate repository evidence. No parent issue or project is created; Plan neither approves nor executes.",
       "assertions": [
         {
           "id": "plan-existing-project-required",
@@ -81,16 +81,16 @@
           "critical": true
         },
         {
-          "id": "plan-root-graphite-parent",
+          "id": "plan-root-parent-branch",
           "kind": "final-json-path-equals",
-          "pointer": "/graphiteParents/storage",
+          "pointer": "/parentBranches/storage",
           "expected": "refs/heads/main",
           "critical": true
         },
         {
-          "id": "plan-child-graphite-parent",
+          "id": "plan-child-parent-branch",
           "kind": "final-json-path-equals",
-          "pointer": "/graphiteParents/api",
+          "pointer": "/parentBranches/api",
           "expected": "refs/heads/plan-a-storage",
           "critical": true
         },
@@ -1644,7 +1644,7 @@
     },
     {
       "id": "outcome-contract-needs-no-coding-plan",
-      "prompt": "Evaluate this Build-delegated Plan candidate against the packaged contract without mutating anything. The user's complete verified specification is to remove an unreachable legacy help page, keep the current help route and content unchanged, and ship one reviewable PR. Task legacy-help, ordinal 1: outcome remove that page; scope docs/legacy-help.md; non-goals current help content, public routes, and other documentation; acceptance the legacy page is absent and all current help links still resolve; Graphite parent refs/heads/main; predecessor bindings empty. Captured repository evidence at admitted main tip abc123 proves the page contains 640 handwritten lines, has no inbound links or navigation entry, and the existing package.json script docs:check runs node scripts/check-doc-links.mjs. Verification is npm run docs:check plus opening the current local help route and following its sidebar links with no missing page; Node/npm and the local docs server are available prerequisites. The documentation effect is removal of that unreferenced page; no other material effect or active risk was found. Return JSON with decision (candidate, blocked, or split), missingContractFields, intendedPrCount, codingOrderOwner, providerMutationCount, and repositoryMutationCount.",
+      "prompt": "Evaluate this Build-delegated Plan candidate against the packaged contract without mutating anything. The user's complete verified specification is to remove an unreachable legacy help page, keep the current help route and content unchanged, and ship one reviewable PR. Task legacy-help, ordinal 1: outcome remove that page; scope docs/legacy-help.md; non-goals current help content, public routes, and other documentation; acceptance the legacy page is absent and all current help links still resolve; parent branch refs/heads/main; predecessor bindings empty. Captured repository evidence at admitted main tip abc123 proves the page contains 640 handwritten lines, has no inbound links or navigation entry, and the existing package.json script docs:check runs node scripts/check-doc-links.mjs. Verification is npm run docs:check plus opening the current local help route and following its sidebar links with no missing page; Node/npm and the local docs server are available prerequisites. The documentation effect is removal of that unreferenced page; no other material effect or active risk was found. Return JSON with decision (candidate, blocked, or split), missingContractFields, intendedPrCount, codingOrderOwner, providerMutationCount, and repositoryMutationCount.",
       "fixtures": [],
       "capabilities": [],
       "expected": "The one coherent outcome contract is executor-ready without implementation steps, line estimates, acceptance-to-step mapping, or empty-category declarations. The existing page's length does not force a split or rejection; the executor owns coding order.",

@@ -13,10 +13,12 @@
       "branch": "change/cache-refresh",
       "worktreePath": "/repo/.woostack/worktrees/tasks/task-cache-refresh",
       "startCommit": "b62",
-      "graphiteParent": "staging"
+      "parentBranch": "staging"
     }
   },
   "sourceControl": {
+    "mode": "graphite",
+    "modeSource": "explicit-user-selection",
     "repositoryRead": {
       "canonicalUrl": "https://github.com/acme/widgets",
       "complete": true
@@ -26,8 +28,8 @@
     "currentBranch": "change/cache-refresh",
     "head": "b62",
     "retainedStartCommit": "b62",
-    "graphiteParent": "staging",
-    "graphiteParentHead": "b62",
+    "parentBranch": "staging",
+    "parentHead": "b62",
     "dirtyState": {
       "complete": true,
       "paths": [
@@ -46,7 +48,7 @@
     "branch": "change/cache-refresh",
     "worktreePath": "/repo/.woostack/worktrees/tasks/task-cache-refresh",
     "startCommit": "b62",
-    "graphiteParent": "staging"
+    "parentBranch": "staging"
   },
   "git": {
     "complete": true,

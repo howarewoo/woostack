@@ -18,9 +18,11 @@ You need:
   where your agent runs commands. Init's OMP support script requires Python 3.
 - An existing Git repository open in both your terminal and your agent.
 
-Before using a workflow that delivers a pull request (PR), also install and authenticate the GitHub
-CLI (`gh`) and Graphite CLI (`gt`), and initialize Graphite for that repository. Those delivery tools
-are separate from the local setup in this tutorial.
+Before using a workflow that delivers a pull request (PR), also install Git and authenticate the
+GitHub CLI (`gh`). Git + `gh` is the default source-control path. Graphite is optional for an
+explicitly selected or verified already-managed task/stack; see the
+[source-control contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-commit/references/graphite.md).
+These delivery tools are separate from the local setup in this tutorial.
 
 You do not need a Linear, Plane, or GitHub project for local setup. By default, woostack keeps
 planning files and run records in the repository's local `.woostack/` workspace. Optional provider

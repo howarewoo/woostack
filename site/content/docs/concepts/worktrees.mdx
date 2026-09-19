@@ -28,8 +28,9 @@ isolated:
 
 Before creating, resuming, reopening for review, committing, or removing a worktree, Woostack checks
 its expected path and task against the filesystem, `git worktree list --porcelain`, local and remote
-branches, commits, uncommitted changes, Graphite parents, and GitHub PR evidence. A branch can be
-checked out in at most one worktree, and all observed paths and commits must agree.
+branches, commits, uncommitted changes, approved parent evidence, and GitHub PR evidence. Graphite
+parents are checked only in Graphite mode. A branch can be checked out in at most one worktree,
+and all observed paths and commits must agree.
 
 For fresh work in primary checkout mode, `git worktree add -b` creates the branch and checkout together.
 In pre-isolated mode, Woostack creates or switches to the task branch within the active checkout.
@@ -44,7 +45,7 @@ Retained work keeps its recorded start and head commits and rechecks ancestry, d
 without silently rebasing, resetting, or recreating it.
 Available CI checks are observation-only; their result or availability alone does not block.
 
-| Task kind | Fresh branch start | Graphite parent |
+| Task kind | Fresh branch start | Approved parent |
 | --- | --- | --- |
 | Standalone task | latest compatible tip of the integration branch | integration branch |
 | Independent feature root | latest compatible tip of the approved parent branch | approved parent branch |

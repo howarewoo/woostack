@@ -2,8 +2,11 @@
 
 Worktrees isolate tracked implementation writes and make collisions/recovery explicit. They do not
 own scope, allocation, dependencies, approval, acceptance, or merge authority. The approved
-workflow contract owns those decisions; Git, Graphite, and canonical GitHub reads own repository
-state. Linear is optional artifact context only.
+workflow contract owns those decisions; Git and canonical GitHub reads own repository state.
+Select native Git + `gh` by default, or Graphite only when explicitly selected or verified as already
+managing this task/stack, under the
+[source-control contract](../../woostack-commit/references/graphite.md).
+Linear is optional artifact context only.
 
 `<wi>` below means the installed `woostack-init` skill directory. Its worktree helper is:
 
@@ -13,7 +16,7 @@ state. Linear is optional artifact context only.
 
 Every active implementation task has one stable task ID, one controller/engineer run, one branch,
 and one workspace. The approved task/run contract supplies identity; the deterministic path plus
-direct Git, Graphite, and canonical GitHub evidence supplies repository state. For filesystem
+direct Git and canonical GitHub evidence supplies repository state. For filesystem
 placement when creating a managed task worktree, require the ID to be one non-empty path component
 matching `^[A-Za-z0-9][A-Za-z0-9._-]*$`; reject separators, whitespace, and any other encoding. Never
 derive identity from a title, ordinal, recent activity, issue key, shortened hash, or disposable
@@ -49,8 +52,9 @@ Optional exact Linear project/issue IDs may be recorded as descriptive context, 
 the stable task ID or any repository identity.
 ## 2. Verified start point
 
-A caller supplies one complete task-bound ancestry contract whose stable canonical parent-branch
-Apply the shared
+A caller supplies one complete task-bound ancestry contract with stable approved `parentBranch`
+intent, retained start/old-parent SHA, Git DAG evidence, and canonical PR base when a PR exists.
+An upstream ref or merge-base alone is insufficient. Apply the shared
 [repository ancestry contract](artifact-backends.md#repository-ancestry-and-base-change-detection)
 to its last independently admitted parent tip. Mutable observed refs, heads, commits, and tips
 remain repository evidence outside content approval identity. Never substitute the current
@@ -74,7 +78,7 @@ responsibility surfaces, runs, worktrees, branches, and PRs are disjoint.
 
 A child declares exactly one predecessor as its Git parent. Require that predecessor's canonical
 branch identity, complete delivery checkpoint, commit, canonical PR identity/head/base, fully
-paginated current-head reviews, merge state, and Graphite parent to agree; read available checks for
+paginated current-head reviews, merge state, and approved parent ancestry to agree; read available checks for
 observation only (incomplete or unavailable check reads never block). Apply the shared repository
 advancement contract before using a newly observed descendant head for fresh child work. Start
 retained work from its recorded state and revalidate ancestry, diff, and PR base; never silently
@@ -92,7 +96,8 @@ Before create, resume, review-reopen, handoff, commit, or teardown, take one com
 - filesystem existence at the workspace path;
 - local and remote branches/commits;
 - staged, unstaged, untracked, conflict, and diff state in the relevant checkout;
-- Graphite parent/stack ancestry;
+- approved `parentBranch`, retained start/old-parent SHA, and Git DAG ancestry; in Graphite mode,
+  also verify Graphite parent/stack metadata against that proof;
 - fully paginated canonical GitHub PR head/base/state/reviews/threads; and
 - available GitHub checks for observation only (incomplete or unavailable check reads never block).
 The task/run identity comes from the active approved controller contract or one completely verified
@@ -134,11 +139,12 @@ After the complete snapshot proves the intended operation collision-free:
 1. verify the active checkout is `$current_toplevel` and matches `git worktree list --porcelain`;
 2. if already on the approved `<branch>`, verify it is clean or matches the active task contract; if on
    the integration base or another branch, create and check out `<branch>` at
-   `<latest-admitted-parent-tip>` using `gt create <branch>` or
-   `git checkout -b <branch> <latest-admitted-parent-tip>`;
-3. use `gt track --parent <branch>` for the approved Graphite parent;
-4. verify physical path, common Git root, branch, HEAD/start, Graphite parent, and absence of another
-   checkout; and
+   `<latest-admitted-parent-tip>` using `git checkout -b <branch> <latest-admitted-parent-tip>`;
+   in Graphite mode, use the selected backend's creation procedure at that verified start;
+3. only in Graphite mode, from the task checkout use `gt track --parent <parentBranch>` with the
+   approved parent branch, never the child `<branch>`;
+4. verify physical path, common Git root, branch, HEAD/start, approved parent ancestry, and absence
+   of another checkout; in Graphite mode also verify its parent metadata; and
 5. re-read dirty/index/diff state plus canonical remote branch/PR evidence at the new boundary.
 
 ### Managed task worktree (`managed_worktree = true`)
@@ -148,9 +154,10 @@ After the complete snapshot proves the intended operation collision-free:
    compatible parent-tip re-admission so Git exclusively rejects an existing branch, path, or
    checkout; for verified review-reopen, attach only the already verified canonical branch with
    `git worktree add <path> <branch>`;
-3. use `gt track --parent <branch>` for the approved Graphite parent;
-4. verify physical path, common Git root, branch, HEAD/start, Graphite parent, and absence of another
-   checkout; and
+3. only in Graphite mode, from the task checkout use `gt track --parent <parentBranch>` with the
+   approved parent branch, never the child `<branch>`;
+4. verify physical path, common Git root, branch, HEAD/start, approved parent ancestry, and absence
+   of another checkout; in Graphite mode also verify its parent metadata; and
 5. re-read dirty/index/diff state plus canonical remote branch/PR evidence at the new boundary.
 
 A failed or partial post-create or adoption assertion is an unknown mutation boundary. Rediscover
@@ -177,7 +184,7 @@ The coding worker never:
 An unexpected file, branch, checkout, worktree, dirty-state, or ancestry change blocks. Recovery is
 decided only from the approved task/run contract and fresh direct repository evidence.
 
-## 7. Commit, review reopen, and restack
+## 7. Commit, review reopen, and parent reconciliation
 
 The controller invokes [`woostack-commit`](../../woostack-commit/SKILL.md) only after verification
 and independent review bind to the same complete diff identity. Immediately before
@@ -186,12 +193,15 @@ inventory, branch, parent, index/diff, and canonical PR evidence.
 
 A review-reopen operation permits only the exact approved review fix on the same branch/PR. It may
 reattach that branch only when the workspace path is free and no checkout already holds it.
-After the fix passes focused verification and review, Graphite may restack the affected
-branch/descendants under [`woostack-sweep`](../../woostack-sweep/SKILL.md). Re-read every resulting
-head/base/ancestry and PR. Review reopen grants no unrelated ref rewrite, merge, or second fix.
+After the fix passes focused verification and review, reconcile affected branches/descendants under
+[`woostack-sweep`](../../woostack-sweep/SKILL.md) using the selected backend. Native reconciliation
+merges the verified parent tip into the child and uses a normal push; it does not rebase or merge
+the GitHub PR. Re-read every resulting head/base/ancestry and PR. Review reopen grants no unrelated
+ref rewrite, PR merge, or second fix.
 
-Unknown commit/push/submit/restack outcome requires direct rediscovery before retry. Never duplicate
-a branch, commit, PR, or operation merely because a command returned unclearly.
+Unknown commit/push/submit/reconciliation outcome requires direct rediscovery before retry. Never
+duplicate a branch, commit, PR, or operation merely because a command returned unclearly, or switch
+backends as error recovery.
 
 ## 8. Teardown
 
@@ -211,7 +221,7 @@ outcome, preserve the worktree and report:
 
 - stable task/run ID and approved contract identity;
 - workspace path and current `git worktree list --porcelain` entry;
-- branch, start SHA, and Graphite parent;
+- branch, start/old-parent SHA, approved `parentBranch`, and selected source-control mode;
 - dirty/index/diff, commit, and PR state;
 - first unverified boundary; and
 - exact safe next action.

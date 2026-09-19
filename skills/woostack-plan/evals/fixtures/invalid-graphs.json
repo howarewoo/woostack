@@ -32,7 +32,7 @@
           "scope": ["docs/legacy-help.md"],
           "nonGoals": ["Changing current help content or public routes"],
           "acceptance": ["criterion-a: the unreachable page is absent and current help links still resolve"],
-          "graphiteParent": "refs/heads/main",
+          "parentBranch": "refs/heads/main",
           "predecessors": []
         }
       ]

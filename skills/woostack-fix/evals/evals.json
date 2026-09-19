@@ -544,12 +544,12 @@
       "prompt": "Use the complete fixtures/bounded-fix.json as synthetic observations, including the actual user response after presentation and delivery evidence. Do not execute commands or contact services. Explain whether the Fix can be reported delivered, the cleanup decision, and evidence to return. Distinguish GitHub source-control PR delivery from optional development-artifact provider access.",
       "fixtures": ["bounded-fix.json"],
       "capabilities": ["read-workspace"],
-      "expected": "Natural-language informed approval permits Fix to deliver one independently reviewed and verified Graphite PR with no project manifest/spec/plan or provider call. Only the clean task worktree may be removed; branch and open PR remain and never advance toward merge.",
+      "expected": "Natural-language informed approval permits Fix to deliver one independently reviewed and verified PR with no project manifest/spec/plan or provider call. Only the clean task worktree may be removed; branch and open PR remain and never advance toward merge.",
       "assertions": [
         {
           "id": "direct-approved-delivery",
           "kind": "qualitative",
-          "rubric": "Does the response accept the explicit post-presentation approval, retain Fix identity rather than reroute through Change/Execute, and allow a single Graphite PR without project run files or Linear calls?",
+          "rubric": "Does the response accept the explicit post-presentation approval, retain Fix identity rather than reroute through Change/Execute, and allow a single PR without project run files or Linear calls?",
           "critical": true
         },
         {

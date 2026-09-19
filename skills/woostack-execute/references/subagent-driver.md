@@ -8,7 +8,7 @@ to delegate. Implement inline when that comparison favors it. Either path implem
 one admitted increment in its exact isolated worktree; neither permits another increment to
 start early.
 
-The controller retains admission, issue selection, predecessor/Graphite proof, worktree allocation,
+The controller retains admission, issue selection, predecessor/parent proof, worktree allocation,
 lifecycle writes, commit, PR submission, read-backs, and teardown. Delegation transfers only the
 bounded implementation surface, never those authorities.
 
@@ -36,7 +36,7 @@ under the same boundaries; the independent validator remains required.
 
 Each dispatch receives a fresh process/session, exactly one worktree and branch, one stable
 run/issue identity, and only the credential context needed by its configured coding model.
-It has no controller, GitHub-write, Graphite-submit, provider MCP, browser, SSH, or unrelated secret
+It has no controller, GitHub-write, source-control-write, provider MCP, browser, SSH, or unrelated secret
 context. Give one implementation owner exclusive access to the writable surface at a time.
 The controller does not edit while a worker owns it; reclaim ownership only after the worker has
 stopped and its worktree/diff identity is independently read back.
@@ -51,8 +51,8 @@ directly; a link or prior conversation is insufficient:
 - complete readable approved increment contract, relevant verified specification, and applicable
   repository conventions; existing artifact paths are read-only context;
 - canonical repository and exact isolated worktree path;
-- canonical parent branch/current admitted tip, retained start/head when resuming, and Graphite
-  parent;
+- canonical parent branch/current admitted tip, retained start/head when resuming, and selected-backend
+  ancestry evidence;
 - allowed paths and exclusive writable surface;
 - selected host role/effective tier and only the concrete routing identity the host actually exposes;
 - acceptance clauses, one focused verification/smoke scenario, and bounded validator input;
@@ -83,7 +83,7 @@ redispatch or inline takeover. Never start a duplicate writer around an unknown 
 ## Worker return contract
 
 Return exactly the run and issue IDs, mode/ordinal, worktree/branch, canonical parent branch/current
-admitted tip, retained start/head when resuming, Graphite parent, sorted changed paths, diff identity,
+admitted tip, retained start/head when resuming, parent branch, sorted changed paths, diff identity,
 focused checks with observed results (explicitly identifying anything unrun), validator input
 boundary (if supplied), blocker or requested decision, and one status:
 `DONE | DONE_WITH_CONCERNS | NEEDS_CONTEXT | BLOCKED`.

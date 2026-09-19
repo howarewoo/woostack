@@ -19,8 +19,6 @@ checks={
  "inspect":r"### 1\. Inspect repository state",
  "verify":r"### 2\. Verify before staging",
  "stage narrow":r"### 3\. Stage only task-relevant changes",
- "Graphite commit":r"### 4\. Create or update the Graphite commit",
- "Graphite submit":r"### 5\. Submit with Graphite",
  "PR body":r"### 6\. Update PR title and body",
  "optional sync":r"### 7\. Synchronize an optional artifact",
  "stale verification":r"If source changed after verification, return to the calling workflow",
