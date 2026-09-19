@@ -1,14 +1,19 @@
 ---
 name: woostack-execute
-description: Execute one approved Linear, Plane, or GitHub project increment, one exact Linear/GitHub issue or Plane work item, or an approved local run manifest as a resumable sequential Graphite PR workflow. Never reviews or merges.
+description: Execute one approved Linear, Plane, or GitHub project increment, one exact Linear/GitHub issue or Plane work item, or an approved local run manifest as a resumable sequential PR workflow. Never reviews or merges.
 ---
 
 # woostack-execute
 
 Execute approved work through one strict sequential controller. The controller is the source of
-allocation, admission, ancestry, worktree, persistence, and delivery boundaries. Git, Graphite,
+allocation, admission, ancestry, worktree, persistence, and delivery boundaries. Git
 and canonical GitHub reads prove repository delivery; Linear, Plane, GitHub, or the local run manifest records the
 approved contract and resume evidence but never proves source-control state.
+
+Apply the shared [source-control selection and ancestry contract](../woostack-commit/references/graphite.md)
+before mutation: Git+gh is the default; Graphite is used only when explicitly selected or already
+verified for this task/stack. Unknown selection blocks, and a failed `gt` command never triggers
+automatic backend switching. Carry the selected mode through admission, delivery, and resume.
 
 ## Commands
 
@@ -90,7 +95,7 @@ independent-readback checks are required before using run data.
 ### Base-change detection and user choice
 
 Before any mutation in local run mode, compare the manifest's planning parent branch and last
-admitted tip (initially `planningParentTip`) with fresh Git/Graphite/GitHub evidence. Apply the shared
+admitted tip (initially `planningParentTip`) with fresh Git/GitHub and selected-backend evidence. Apply the shared
 [base-impact assessment and choice contract](../woostack-init/references/artifact-backends.md#repository-ancestry-and-base-change-detection):
 unchanged tips or changes proved unrelated to the selected work proceed without a question;
 relevant or uncertain changes require `Continue`, `Revise spec/plan`, or `Stop`. Branch-identity
@@ -111,7 +116,7 @@ recovery rejects mutation with zero changes.
 Before any worktree or source mutation in all modes, read the approved stable parent-branch intent and
 last admitted tip, then apply the shared
 [repository ancestry contract](../woostack-init/references/artifact-backends.md#repository-ancestry-and-base-change-detection)
-to fresh Git/Graphite/GitHub evidence. Execute carries the resulting current admitted tip and any
+to fresh Git/GitHub and selected-backend evidence. Execute carries the resulting current admitted tip and any
 retained start/head into worktree discovery; it does not duplicate the shared decision matrix.
 
 `--project` is **Linear or GitHub project mode** (repeatedly running cycles for the lowest unfinished direct issue).
@@ -194,34 +199,34 @@ Local run mode bypasses provider lifecycle synchronization.
    explicitly skipped; continue repository delivery.
 7. Commit and PR submission:
    - In Linear provider mode, invoke [`woostack-commit`](../woostack-commit/SKILL.md) with `--issue` and the
-     exact selected Linear issue to commit and submit exactly one Graphite PR. Independently read back branch,
+     exact selected Linear issue to commit and submit exactly one PR. Independently read back branch,
      commit, PR URL/head/base, the exact `Resolves <issue identifier>` body line, verification receipt,
-     and Graphite parent.
+     and parent branch.
    - In Plane provider mode, invoke [`woostack-commit`](../woostack-commit/SKILL.md) without `--issue`
      (Commit does not support Plane in this increment; no `Resolves` line). Independently read back branch,
-     commit, PR URL/head/base, verification receipt, and Graphite parent, and persist/read back the PR delivery
+     commit, PR URL/head/base, verification receipt, and parent branch, and persist/read back the PR delivery
      checkpoint through Execute's Plane work-item path.
    - In GitHub provider mode, invoke [`woostack-commit`](../woostack-commit/SKILL.md) with `--issue` and the
-     exact selected canonical issue URL to commit and submit exactly one Graphite PR. Independently read back branch,
+     exact selected canonical issue URL to commit and submit exactly one PR. Independently read back branch,
      commit, PR URL/head/base, the exact `Resolves <issue URL>` body line, verification receipt,
-     and Graphite parent.
+     and parent branch.
    - In local run mode:
      - If `mirror.provider` is `"github"` and `stableTaskMappings[stableTaskKey]` contains an exact bound
        canonical repository issue URL (`https://github.com/<owner>/<repo>/issues/<N>`), verify the canonical
        issue live against the admitted repository. If verified, invoke [`woostack-commit`](../woostack-commit/SKILL.md)
        with `--issue <canonical issue URL>` regardless of aggregate mirror status. Independently read back
-       branch, commit, PR URL/head/base, verification receipt, Graphite parent, and exactly one matching
+       branch, commit, PR URL/head/base, verification receipt, parent branch, and exactly one matching
        `Resolves <canonical issue URL>` body line when association succeeds. If pre-Commit live issue verification
        fails (for example, missing, foreign-scope, or parented issue), warn, record the mirror failure, and continue
        repository delivery by invoking [`woostack-commit`](../woostack-commit/SKILL.md) without `--issue` and without
        blocking local checkpoint persistence. If post-submission association or read-back fails after PR creation,
-       warn, record the mirror failure, rediscover and reuse the verified branch, commit, PR, and Graphite parent,
+       warn, record the mirror failure, rediscover and reuse the verified branch, commit, PR, and parent branch,
        and persist the local delivery checkpoint without replaying Commit or creating duplicate objects; `--recheck`
        remains available to repair the missing association on the existing open PR later.
      - For local runs with provider `local`, an omitted or unmapped task mapping, or a non-GitHub provider
        (Linear or Plane), invoke [`woostack-commit`](../woostack-commit/SKILL.md) without `--issue` and
        without a `Resolves` line. Independently read back branch, commit, PR URL/head/base, verification
-       receipt, and Graphite parent.
+       receipt, and parent branch.
 8. Persist the complete delivery checkpoint:
    - In Linear provider mode, persist the delivery checkpoint to Linear and independently read back every field.
      Only after that full read-back succeeds, resolve and independently read back the configured inReview mapping
@@ -241,7 +246,7 @@ Local run mode bypasses provider lifecycle synchronization.
      Completing all increments leaves the Project open; only explicit provider closure closes the Project.
    - In local run mode, CAS-update `taskExecutions[stableTaskKey]` from `active` to `delivered` only
      with the complete delivery checkpoint (`{ stableTaskKey, ordinal, branch, commitSha, prUrl,
-     prHead, prBase, graphiteParent, verificationReceipt, deliveredAt }`). Use the shared run-store
+     prHead, prBase, parentBranch, verificationReceipt, deliveredAt }`). Use the shared run-store
      helper and verify every field in its independent read-back before worktree teardown or
      advancing to the next sibling.
    - If Linear, Plane, or GitHub mirror writes are configured in local run mode, they are best effort only: failure
@@ -255,7 +260,7 @@ Local run mode bypasses provider lifecycle synchronization.
 
 A successful cycle has no orphan worktree. At a failed, blocked, interrupted, colliding, or unknown
 boundary, retain the worktree and record the first unknown boundary, branch, commit/PR if any, dirty state,
-Graphite parent, verification receipt, delivery read-back, and exact safe resume action.
+parent branch, verification receipt, delivery read-back, and exact safe resume action.
 In Plane provider mode, transition and independently read back the selected work item and its parent
 specification work item to the configured `artifacts.plane.issueStates.blocked` mapping (resolved by
 exact native UUID or exact case-sensitive name with group `started`, reading back its native state ID,
@@ -309,7 +314,7 @@ field before the completion transition or idempotent no-op can authorize teardow
 progression. Canonical state alone never proves delivery. Do not change the specification, task graph,
 assignment, or ownership.
 
-Successful PR submission requires all of: exact branch and commit, Graphite parent/read-back, one
+Successful PR submission requires all of: exact branch and commit, parent branch/read-back, one
 canonical PR read-back with matching head/base, verification receipt, delivery checkpoint read-back,
 and a clean exact worktree. Only then may the worktree be removed. Execute never reviews, merges,
 marks product acceptance, or claims merged state.
@@ -327,7 +332,7 @@ closed, and proven wording still cannot override this no-merge boundary.
 A stop marker is an independently read control record that pauses selection; it is not an execution
 failure. Interruptions, blocked decisions, collisions, and unknown provider or source-control
 outcomes preserve the current project/run and worktree. Handback reports the exact project/run/issue
-state, selected ordinal, predecessor/Graphite parent, worktree/branch, changed paths,
+state, selected ordinal, predecessor/parent branch, worktree/branch, changed paths,
 verification/validator results, delivery and Git evidence, known PR, first uncertain boundary, and
 the next safe action. A later run resumes from independent evidence, not chat memory, local plan
 files, branch names, activity, or duplicate submissions.

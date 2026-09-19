@@ -338,6 +338,12 @@ repository model configuration. Put overrides in the root `models` namespace usi
 
 [woostack-sweep](/docs/skills/woostack-sweep) works through a stack of PRs from bottom to top.
 It addresses existing threads before reviewing each PR, then addresses new findings.
+Git + `gh` is the default; Graphite is optional for an explicitly selected or verified
+already-managed stack. Native Sweep reconciles descendants by merging each verified parent tip
+into its child branch and pushing normally, without rebasing or force-pushing. This is a local
+branch operation, not a GitHub PR merge; agents never merge PRs or advance them toward merge.
+The [source-control contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-commit/references/graphite.md)
+owns backend selection and mechanics. Backend failures stop rather than switch modes.
 
 | Key | Type | Default | Meaning |
 | --- | --- | --- | --- |

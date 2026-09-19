@@ -9,6 +9,8 @@
     "branchHandoff": null
   },
   "sourceControl": {
+    "mode": "graphite",
+    "modeSource": "explicit-user-selection",
     "repositoryRead": {
       "canonicalUrl": "https://github.com/acme/widgets",
       "complete": true
@@ -18,8 +20,8 @@
     "currentBranch": "staging",
     "head": "b67",
     "retainedStartCommit": "b67",
-    "graphiteParent": "staging",
-    "graphiteParentHead": "b67",
+    "parentBranch": "staging",
+    "parentHead": "b67",
     "dirtyState": {
       "complete": true,
       "paths": [
@@ -43,7 +45,7 @@
     "branch": "change/cache-hardening",
     "worktreePath": "/repo/.woostack/worktrees/tasks/task-cache-hardening",
     "startCommit": "b67",
-    "graphiteParent": "staging"
+    "parentBranch": "staging"
   },
   "git": {
     "complete": true,

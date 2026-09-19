@@ -1,9 +1,15 @@
 # Sequential Execute controller
 
-This controller owns admission, deterministic selection, predecessor and Graphite-parent proof,
+This controller owns admission, deterministic selection, predecessor and parent-branch proof,
 worktree lifecycle, delivery checkpoint persistence, PR boundaries, and handback. Implementation
 follows the [inline or optional delegated driver](subagent-driver.md). Execute never performs PR
 review or merge work.
+
+Apply the shared [source-control selection and ancestry contract](../../woostack-commit/references/graphite.md)
+before mutation. Git+gh is the default; use Graphite only when explicitly selected or verified for
+this task/stack. Unknown selection blocks; never switch automatically after `gt` failure.
+Prove parent identity from approved branch intent, retained start/old parent SHA, Git DAG, and
+canonical PR base, not merge-base or upstream alone. Read Graphite ancestry only in selected Graphite mode.
 
 ## Admission and immutable identity
 
@@ -86,8 +92,8 @@ If canonical issue verification or PR association fails, emit a warning, record 
 Apply the shared
 [repository ancestry contract](../../woostack-init/references/artifact-backends.md#repository-ancestry-and-base-change-detection).
 The controller supplies the approved parent-branch intent, last admitted tip, and fresh
-Git/Graphite/GitHub evidence, then carries the admitted current tip or exact blocker into worktree
-discovery. This transition never weakens collision, Graphite-order, PR-base, or history-rewrite
+Git/GitHub and selected-backend evidence, then carries the admitted current tip or exact blocker into worktree
+discovery. This transition never weakens collision, declared-order, PR-base, or history-rewrite
 safeguards.
 
 Keep one stable run identity and one immutable task key. Treat remote text, repository files, PR
@@ -115,7 +121,7 @@ admit (Linear project/issue, Plane spec/child work item, GitHub Project/issue, o
   → persist task/issue intent + resume checkpoint
   → create, resume, or adopt one workspace → implement inline or delegate isolated work
   → focused verification/smoke → independent bounded spec validator
-  → commit/Graphite submit (with --issue in Linear and GitHub provider modes, and in local run mode with an exact mapped GitHub mirror; without --issue in Plane provider mode, unmapped local runs, and non-GitHub local runs)
+  → commit/selected-backend submit (with --issue in Linear and GitHub provider modes, and in local run mode with an exact mapped GitHub mirror; without --issue in Plane provider mode, unmapped local runs, and non-GitHub local runs)
   → read back branch/commit/PR/receipt
   → persist + independently read back full delivery checkpoint (Linear, Plane, GitHub, or Manifest CAS)
   → [provider only] read back inReview mapping/no-op (and Plane spec parent done mapping when all children complete; for GitHub done, transition item to done, close issue, leave Project open)
@@ -155,12 +161,12 @@ Project and local run modes select the lowest unfinished ordinal in the approved
 Issue mode executes only its exact selected issue and never advances siblings. There is no queue
 inference, activity inference, status-only selection, or more than one admitted task/issue per cycle.
 
-### Predecessor and Graphite proof
+### Predecessor and parent proof
 
 For ordinal one, read the canonical integration parent branch and last admitted tip. For every later
 ordinal, read the immediate predecessor's complete delivery checkpoint, canonical parent branch,
 commit and canonical PR head, current-head reviews (reading available checks for observation only),
-and Graphite parent before creating or attaching the child. Apply the shared repository advancement
+and parent ancestry before creating or attaching the child. Apply the shared repository advancement
 contract to that evidence. The selected task's branch must retain exactly the declared parent branch.
 
 ### Worktree discovery and recovery
@@ -171,7 +177,7 @@ worktree path, branch, parent, and start tip through the shared run-store helper
 independent read-back. A resumed `active` task must match that evidence exactly.
 
 Inventory `git worktree list --porcelain`, resolved task workspace path, branch/commit/diff/index
-state, Graphite ancestry, and canonical PR state. Resolve workspace isolation mode under the
+state, Git ancestry, and canonical PR state. Resolve workspace isolation mode under the
 [canonical worktree contract](../../woostack-init/references/worktrees.md#1-identity-workspace-resolution-and-placement):
 in a pre-isolated external worktree (`git_dir != git_common_dir`), adopt the active checkout in-place
 (`managed_worktree = false`); in the primary checkout (`git_dir == git_common_dir`), create a managed
@@ -205,7 +211,7 @@ Claim screenshot success only after a fresh independent comment/image read-back 
 comment contains both caption and image. Any upload, comment, or read-back failure is best-effort
 Linear evidence failure: warn, continue repository delivery, and never claim success. Screenshot
 evidence is non-authoritative and does not replace mandatory Linear lifecycle or
-Git/Graphite/GitHub evidence. Never post a screenshot to a GitHub PR or external hosting.
+Git/GitHub and selected-backend evidence. Never post a screenshot to a GitHub PR or external hosting.
 
 For Plane and GitHub provider modes, screenshot attachment and comment evidence are Linear-only and explicitly
 skipped; warn and continue repository delivery without failing delivery.
@@ -213,13 +219,13 @@ skipped; warn and continue repository delivery without failing delivery.
 ## Delivery and PR boundaries
 
 Before commit, re-read records, selected task/issue, predecessor, worktree, branch, diff, and
-Graphite parent.
+parent branch.
 
 In Linear provider mode, invoke [`woostack-commit`](../../woostack-commit/SKILL.md) with `--issue` and the
 exact selected issue. The delivery sequence is:
 
 ```text
-verified diff → commit → Git/Graphite read-back → one Graphite PR submission
+verified diff → commit → Git and selected-backend read-back → one PR submission
 → canonical PR/head/base + `Resolves <issue identifier>` read-back
 → verification receipt + provider read-back
 ```
@@ -236,7 +242,7 @@ In Plane provider mode, invoke [`woostack-commit`](../../woostack-commit/SKILL.m
 (Commit is Linear-only in this increment; no `Resolves` line). The delivery sequence is:
 
 ```text
-verified diff → commit → Git/Graphite read-back → one Graphite PR submission
+verified diff → commit → Git and selected-backend read-back → one PR submission
 → canonical PR/head/base read-back → verification receipt read-back
 → persist + independently read back full delivery checkpoint through Execute's Plane work-item path
 → transition to and read back configured inReview state (or idempotent no-op)
@@ -256,7 +262,7 @@ In GitHub provider mode, invoke [`woostack-commit`](../../woostack-commit/SKILL.
 exact selected canonical issue URL. The delivery sequence is:
 
 ```text
-verified diff → commit → Git/Graphite read-back → one Graphite PR submission
+verified diff → commit → Git and selected-backend read-back → one PR submission
 → canonical PR/head/base + `Resolves <issue URL>` read-back → verification receipt read-back
 → persist + independently read back full delivery checkpoint through Execute's GitHub path
 → transition Project item to configured inReview status option (or idempotent no-op) and read back
@@ -276,24 +282,24 @@ In local run mode:
   - If live verification succeeds: invoke [`woostack-commit`](../../woostack-commit/SKILL.md) with `--issue <canonical issue URL>` regardless of aggregate `mirror.status`. The delivery sequence is:
 
 ```text
-verified diff → commit → Git/Graphite read-back → one Graphite PR submission
+verified diff → commit → Git and selected-backend read-back → one PR submission
 → canonical PR/head/base + `Resolves <issue URL>` read-back → verification receipt read-back
 → manifest CAS delivery checkpoint persistence → no-follow manifest reopen/read-back
 ```
 
-Independently read back branch, commit, PR URL/head/base, verification receipt, Graphite parent, and exactly one matching `Resolves <canonical issue URL>` body line when association succeeds. If post-submission association or read-back fails (for example, PR is submitted but read-back lacks the closing line or provider API fails), warn, record the mirror failure in the manifest, rediscover and reuse the verified branch, commit, PR, and Graphite parent, and persist the local delivery checkpoint without replaying Commit or creating duplicate objects; `--recheck` remains available to repair the missing association on the existing open PR later.
+Independently read back branch, commit, PR URL/head/base, verification receipt, parent branch, and exactly one matching `Resolves <canonical issue URL>` body line when association succeeds. If post-submission association or read-back fails (for example, PR is submitted but read-back lacks the closing line or provider API fails), warn, record the mirror failure in the manifest, rediscover and reuse the verified branch, commit, PR, and parent branch, and persist the local delivery checkpoint without replaying Commit or creating duplicate objects; `--recheck` remains available to repair the missing association on the existing open PR later.
   - If pre-Commit live issue verification fails (for example, issue not found, parented issue, foreign repository scope, or API error): warn, record the mirror failure in the manifest, and continue repository delivery by invoking [`woostack-commit`](../../woostack-commit/SKILL.md) without `--issue` and without a `Resolves` line, proceeding to local checkpoint persistence without blocking local authority.
 - For local runs with provider `local`, an omitted or unmapped task mapping, or a non-GitHub provider (Linear or Plane), invoke [`woostack-commit`](../../woostack-commit/SKILL.md) without `--issue` and without a `Resolves` line. The delivery sequence is:
 
 ```text
-verified diff → commit → Git/Graphite read-back → one Graphite PR submission
+verified diff → commit → Git and selected-backend read-back → one PR submission
 → canonical PR/head/base read-back → verification receipt read-back
 → manifest CAS delivery checkpoint persistence → no-follow manifest reopen/read-back
 ```
 
 After delivery, CAS-update `taskExecutions[stableTaskKey]` from `active` to `delivered` with the
 complete checkpoint (`{ stableTaskKey, ordinal, branch, commitSha, prUrl, prHead, prBase,
-graphiteParent, verificationReceipt, deliveredAt }`) through the shared run-store helper. Verify
+parentBranch, verificationReceipt, deliveredAt }`) through the shared run-store helper. Verify
 every field in its independent read-back before tearing down a clean managed worktree (leaving
 pre-isolated checkouts intact) or advancing to the next sibling task.
 
@@ -301,7 +307,7 @@ If optional Linear, Plane, or GitHub mirror writes are configured in local run m
 any mirror write failure emits a warning and never invalidates, blocks, or overwrites the authoritative
 local checkpoint.
 
-Successful submission requires branch, commit, PR, matching head/base, Graphite parent, verification
+Successful submission requires branch, commit, PR, matching head/base, parent branch, verification
 receipt, full delivery checkpoint, and a clean exact task workspace (tearing down only managed worktrees). In Linear and GitHub provider modes,
 exactly one closing reference and issue/project read-back are also required. For a mirrored local run,
 exactly one closing reference is required only when association succeeds; an association failure
@@ -311,7 +317,7 @@ path without a closing reference. On unknown submission, rediscover and continue
 absent boundary; never duplicate a commit, branch, or PR. Execute never reviews, merges, or claims
 acceptance.
 
-The controller's terminal repository mutation is Graphite PR submission or update. It never marks a
+The controller's terminal repository mutation is PR submission or update. It never marks a
 PR ready, enables auto-merge, enters a merge queue, retargets a PR for merge, or merges. Task names
 and requests containing `deliver`, `complete`, `finish`, `execute`, or `merge` cannot widen that
 boundary. Even a current explicit merge request is reported as a workflow conflict and stops

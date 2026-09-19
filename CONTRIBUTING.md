@@ -46,15 +46,17 @@ This guide covers common edits. Read [AGENTS.md](AGENTS.md) for the full reposit
 
 ## Workflow
 
-1. Use Graphite to create a branch from `main`. The branch is a separate line of work;
+1. Create a Git branch from `main`. The branch is a separate line of work;
    `main` is protected, so changes go through a pull request (PR).
 2. Edit the relevant files. Keep each PR focused on one concern where possible.
 3. Check that relative links and heading links still resolve (`[label](path.md#anchor)`).
 4. Run the changed asset's actual command or a focused smoke check, plus relevant behavioral
    tests and syntax checks. Tests should check behavior, not exact instruction wording or a
    test-only copy of the implementation. This repo has no universal test command or CI for its own PRs.
-5. Submit the PR with Graphite and fill out the PR template. Agents must not mark it ready,
-   enable auto-merge, queue it for merging, or merge it.
+5. Push the exact branch without force and open a draft PR with `gh`, filling out the PR template.
+   Graphite is optional when explicitly selected or the task/stack is verified as already managed;
+   follow the [source-control contract](skills/woostack-commit/references/graphite.md).
+   Agents must not mark it ready, enable auto-merge, queue it for merging, or merge it.
 
 For site changes, run `pnpm -C site build`. The site is the exception to this repository's
 no-application-code rule. Its [README](site/README.md) covers local development and deployment.

@@ -9,6 +9,8 @@
     "branchHandoff": null
   },
   "sourceControl": {
+    "mode": "graphite",
+    "modeSource": "explicit-user-selection",
     "repositoryRead": {
       "canonicalUrl": "https://github.com/acme/widgets",
       "complete": true
@@ -18,8 +20,8 @@
     "currentBranch": "staging",
     "head": "b63",
     "retainedStartCommit": "b63",
-    "graphiteParent": "staging",
-    "graphiteParentHead": "b63",
+    "parentBranch": "staging",
+    "parentHead": "b63",
     "dirtyState": {
       "complete": true,
       "paths": [
@@ -42,7 +44,7 @@
     "branch": "change/cache-telemetry",
     "worktreePath": "/repo/.woostack/worktrees/tasks/task-cache-telemetry",
     "startCommit": "b63",
-    "graphiteParent": "staging"
+    "parentBranch": "staging"
   },
   "git": {
     "complete": true,

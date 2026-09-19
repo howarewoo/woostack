@@ -46,6 +46,10 @@ it reads no provider context or synchronization procedure during the delegated p
 Repository parent-tip admission follows the shared
 [repository ancestry contract](../woostack-init/references/artifact-backends.md#repository-ancestry-and-base-change-detection);
 Plan owns only the approved parent-branch intent and last-admitted-tip handoff.
+Use the shared [source-control selection and ancestry contract](../woostack-commit/references/graphite.md):
+Git+gh is the default delivery path; Graphite is opt-in for an explicitly selected or verified
+Graphite-managed task/stack. Planning records backend-neutral `parentBranch` intent, not a requirement
+to install or track with Graphite. Unknown selection blocks mutation; `gt` failure never selects native mode.
 
 ## Input and ownership
 
@@ -78,7 +82,7 @@ or increment work item must retain these fields in its complete description:
 - focused checks and one executable smoke scenario;
 - material risks, active blockers, and relevant documentation, migration, deployment,
   compatibility, or cross-increment effects; and
-- a declared Graphite parent and exact predecessor dependency binding.
+- a declared parent branch and exact predecessor dependency binding.
 
 When an increment touches an inter-application boundary (HTTP/RPC server-client, service-to-service, webhooks, queues/events, or third-party APIs in either direction), the direct issue contract must explicitly identify each boundary and specify adapter mapping, boundary validation/narrowing, transport error translation, app-local placement, wire/API compatibility, and focused boundary test obligations following the canonical [application-boundary adapters rule](../woostack-bootstrap/references/patterns.md#3-application-boundary-adapters). Do not demand identity-only or no-op wrappers when a deliberately shared contract is already the application/domain shape.
 
@@ -100,12 +104,12 @@ dependency, or Plane sibling blocking relation is exactly the matching predecess
 ordinal 1: no predecessor
 ordinal k (2..N): ordinal k-1 → ordinal k
 ```
-No missing, extra, branching, cyclic, or synthetic dependency is valid. The declared Graphite parent
+No missing, extra, branching, cyclic, or synthetic dependency is valid. The declared parent branch
 for ordinal 1 is the approved integration parent branch; for every later ordinal it is the
 immediately preceding increment's branch. Bind that stable parent-branch intent in
 each complete issue description and carry the last admitted tip as separate repository evidence for
 Execute's base-change check. A different branch identity, unknown task, ordinal gap, out-of-order edge,
-or parent that Graphite cannot represent blocks the plan. Validate that every acceptance criterion is
+or unprovable parent relationship blocks the plan. Validate that every acceptance criterion is
 covered exactly by at least one increment and that every issue contract is complete before any provider
 mutation.
 
@@ -153,7 +157,7 @@ and owns optional post-drafting mirror synchronization (when `artifacts.provider
 ## Return
 
 Return the complete ordered task contracts, exact project or baseline identity, strict predecessor
-and Graphite parent edges, repository assumptions/effects, focused verification strategy,
+and parent branch edges, repository assumptions/effects, focused verification strategy,
 read-back evidence, provider mutation/read counts, and stable mutation identities. Delegated Plan
 returns its run/process/manifest identity and makes no provider claim. Do not return a parent-plan
 identity or an execution claim.
@@ -167,7 +171,7 @@ identity or an execution claim.
 - Standalone Plan requires `--project` for Linear and GitHub; for Plane `--project` is optional and omitted input
   uses the exact `artifacts.plane.project`.
 - Every issue carries the complete outcome, scope, acceptance, verification, and declared
-  Graphite parent/dependency contract.
+  parent branch/dependency contract.
 - Delegated Build/Fix planning performs zero provider reads and writes; its wrapper hardens,
   writes plain `execution-plan.md`, and optionally synchronizes when mirroring is enabled.
 - Standalone Plan keeps its direct project synchronization and independent read-back unchanged.

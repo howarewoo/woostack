@@ -43,7 +43,7 @@ only the selected provider profile; its storage and synchronization mechanics do
 | Commit current changes and submit or update their PR | `woostack-commit` |
 | Review one exact existing PR without editing it | `woostack-review` |
 | Address every unresolved thread on one exact existing PR | `woostack-address-comments` |
-| Review and correct one Graphite stack bottom-up | `woostack-sweep` |
+| Review and correct one PR stack bottom-up | `woostack-sweep` |
 | Show the repository-derived work board | `woostack-status` |
 | Render verified source as audience-tailored HTML | `woostack-visualize` |
 | Organize multi-step UI design flows | `woostack-design` |

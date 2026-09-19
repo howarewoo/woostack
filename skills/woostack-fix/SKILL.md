@@ -9,7 +9,7 @@ Fix accepts a goal or untrusted Linear, Plane, GitHub, Sentry, or monitoring inp
 causal root before mutation. A complete, understood one-PR correction proceeds through informed
 user approval and direct bounded delivery. Multi-increment or materially uncertain work, explicit
 project/run/source-issue context, and requested coordinated persistence use the project-backed
-path. Git, Graphite, and canonical GitHub reads remain repository-delivery authority. Fix never
+path. Git and canonical GitHub reads remain repository-delivery authority. Fix never
 merges.
 
 ## Command
@@ -83,7 +83,7 @@ Present the full diagnosis and correction before asking for approval, including:
 - relevant technical details and consequences, including material risks, compatibility, security,
   accessibility, data-loss, migration, and documentation effects where applicable; and
 - acceptance outcomes, focused verification, the regression/reproduction check, changed-path smoke,
-  and intended integration base/Graphite parent.
+  and intended integration base/parent branch.
 
 Prefer safe removal or simplification before additive work. Do not hide technical decisions behind
 a short summary, replace evidence with pointers alone, or ask the user to approve unresolved material
@@ -94,7 +94,7 @@ If the user revises the correction or a material consequence changes, return to 
 the revised complete contract for fresh approval; use the project-backed path when it no longer fits
 a fully understood one-PR correction.
 
-After approval, own implementation, verification, independent review, and one Graphite PR directly
+After approval, own implementation, verification, independent review, and one PR directly
 through the shared [bounded-delivery contract](../woostack-change/references/bounded-delivery.md).
 Keep diagnosis and approval bound to that exact task/repository/scope. Create no mandatory local
 project manifest, specification, or plan and make zero development-artifact provider calls, even

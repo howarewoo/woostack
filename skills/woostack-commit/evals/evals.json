@@ -368,12 +368,12 @@
     },
     {
       "id": "unknown-submit-resubmits-only-after-complete-absence",
-      "prompt": "Classify this bounded repository resume snapshot after a prior gt submit timeout without running commands. Exact finalized commit c46 exists locally. Fresh complete Graphite and GitHub reads, including all required pages, prove the remote branch, Graphite submission, and canonical PR are all absent on GitHub. Return exactly one JSON object using keys status, resumeBoundary, resubmitAllowed, gtModifyAllowed, reasonCode, and mergeAllowed.",
+      "prompt": "Classify this bounded native Git/gh repository resume snapshot after a prior single-branch git push timeout without running commands. Exact finalized commit c46 exists locally, no Graphite management evidence exists, and the selected native mode is retained. Fresh complete Git remote-ref and GitHub reads, including all required pages, prove the remote task branch and canonical PR are absent. All parent, scope, and verification gates pass. Return exactly one JSON object using keys status, resumeBoundary, resubmitAllowed, commitAllowed, reasonCode, and mergeAllowed; name the submission boundary native-submit.",
       "fixtures": [],
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "Complete remote absence admits one Graphite resubmit while preserving the exact local commit.",
+      "expected": "Complete remote absence admits one native non-force push followed by independently verified draft PR creation, preserving the exact local commit without recommitting.",
       "assertions": [
         {
           "id": "absence-resume-ready",
@@ -386,7 +386,7 @@
           "id": "absence-resumes-submit",
           "kind": "final-json-path-equals",
           "pointer": "/resumeBoundary",
-          "expected": "graphite-submit",
+          "expected": "native-submit",
           "critical": true
         },
         {
@@ -399,7 +399,7 @@
         {
           "id": "absence-does-not-recommit",
           "kind": "final-json-path-equals",
-          "pointer": "/gtModifyAllowed",
+          "pointer": "/commitAllowed",
           "expected": false,
           "critical": true
         },
@@ -1350,6 +1350,36 @@
           "kind": "final-json-path-equals",
           "pointer": "/repositoryMutationCount",
           "expected": 0,
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "native-commit-without-graphite",
+      "prompt": "Classify a Commit invocation without running commands: approved task branch and isolated worktree, parent intent and retained start SHA, Git ancestry, exact reviewed staged diff, and complete canonical GitHub evidence all agree. There is no Graphite metadata or management evidence and gt is absent; Git and gh are available and authenticated. The task has no PR and its remote branch is absent. Explain the selected mode, commit/push/PR creation sequence, draft state, parent proof, and required read-backs. Do not execute mutations.",
+      "fixtures": [],
+      "capabilities": ["read-workspace"],
+      "expected": "Admit native Git+gh without gt; append the staged commit, push exactly the verified branch without force, create one draft PR with exact repository/head/base after proving absence, then independently verify remote and PR identity.",
+      "assertions": [
+        {
+          "id": "native-no-gt-dependency",
+          "kind": "qualitative",
+          "rubric": "Does Commit proceed without installing or initializing gt, preserve parent/ancestry and staging gates, append a Git commit, use exact single-branch non-force push and gh draft PR creation after duplicate discovery, and require independent read-backs?",
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "managed-graphite-failure-does-not-fallback",
+      "prompt": "Classify without mutation: fresh evidence verifies the exact task is Graphite-managed and the user selected Graphite. A gt mutation timed out and its outcome is unknown. Git and gh work. May Commit repeat the mutation or switch to native mode to finish? Explain the safe next boundary and preserved state.",
+      "fixtures": [],
+      "capabilities": ["read-workspace"],
+      "expected": "Preserve the selected mode and rediscover Git, Graphite, and canonical GitHub state. Do not replay an unproved mutation or fall back because tools failed.",
+      "assertions": [
+        {
+          "id": "unknown-outcome-preserves-mode",
+          "kind": "qualitative",
+          "rubric": "Does the answer refuse both blind mutation replay and error-driven native fallback, preserving state and requiring fresh selected-mode and canonical repository read-back before resuming the first unproved boundary?",
           "critical": true
         }
       ]

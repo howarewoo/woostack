@@ -6,10 +6,10 @@ description: Use for a small bounded non-bug enhancement or refactor that can sh
 # woostack-change
 
 Implement one small, bounded, non-bug enhancement or refactor from the user's request through
-one isolated worktree and Graphite branch, ending in at most one complete reviewable PR. Change
+one isolated worktree and task branch, ending in at most one complete reviewable PR. Change
 owns delivery through the shared [bounded-delivery contract](references/bounded-delivery.md).
 It makes no provider call and invokes no other woostack workflow. The accepted scope is the
-authority; Git, Graphite, and GitHub are the delivery evidence.
+authority; Git and GitHub are the delivery evidence, with Graphite evidence only in selected Graphite mode.
 
 ## Command
 
@@ -39,6 +39,6 @@ expands later, stop and reroute rather than silently widening it.
 
 Follow the shared [bounded-delivery contract](references/bounded-delivery.md) for the active task
 contract, isolated worktree creation/resume, implementation, focused verification and smoke,
-independent review, Graphite submission, read-back, retention, and return evidence. Change adds
+independent review, selected-backend submission, read-back, retention, and return evidence. Change adds
 no approval gate or persisted plan. It remains a non-bug command; shared mechanics do not admit
 Fix work through Change.

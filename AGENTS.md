@@ -154,9 +154,10 @@ directory, not in this repo.
   PR only. They do not grant merge authority. Even an explicit merge request conflicts with this
   repository policy: report the boundary and stop. Never run `gh pr ready`, `gh pr merge`, a
   merge-queue mutation, or an equivalent Graphite/GitHub operation.
-- Use Graphite for source control when mutating history or opening/updating PRs. Prefer
-  `gt create`, `gt modify`, `gt sync`, `gt submit`, `gt track`, and `gt log`; use raw `git`
-  for read-only inspection and low-level fallback.
+- Use Git + GitHub CLI (`gh`) by default for source control. Graphite is optional: select it
+  only on explicit request or verified evidence that the current task/stack is already managed.
+  Follow the [source-control contract](skills/woostack-commit/references/graphite.md);
+  backend errors stop the operation rather than trigger a fallback. Never force-push.
 - Cross-link, do not duplicate. If a fact belongs in a reference file, link to it from
   related docs instead of restating it.
 - Reference frameworks by name, not version, except in

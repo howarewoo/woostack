@@ -7,9 +7,9 @@ Follow the shared
 [artifact contract](../../woostack-init/references/artifact-backends.md), then load only the selected
 [Linear](../../woostack-init/references/artifact-providers/linear.md),
 [Plane](../../woostack-init/references/artifact-providers/plane.md), or
-[GitHub](../../woostack-init/references/artifact-providers/github.md) profile. Git, Graphite, and
+[GitHub](../../woostack-init/references/artifact-providers/github.md) profile. Git and
 canonical GitHub reads remain authoritative for repositories, branches, commits, ancestry, PRs,
-reviews, and merge state.
+reviews, and merge state; Graphite supplies additional ancestry evidence only when selected.
 
 ## Admission
 

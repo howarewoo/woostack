@@ -73,7 +73,7 @@
         "parentId": null,
         "executorReady": true,
         "approvedParentBranchIntent": "refs/heads/main",
-        "graphiteParentBranch": "refs/heads/main"
+        "parentBranch": "refs/heads/main"
       }
     },
     {
@@ -93,7 +93,7 @@
         "parentId": null,
         "executorReady": true,
         "approvedParentBranchIntent": "refs/heads/plan-a-storage",
-        "graphiteParentBranch": "refs/heads/plan-a-storage"
+        "parentBranch": "refs/heads/plan-a-storage"
       }
     },
     {

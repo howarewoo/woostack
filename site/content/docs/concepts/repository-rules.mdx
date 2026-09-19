@@ -214,7 +214,7 @@ For every approved surface:
 - Do not create `.woostack/specs/`, `.woostack/plans/`, `.woostack/fixes/`, or a shadow development
   ledger.
 - The initial greenfield scaffold is the only primary-worktree exception.
-- Use isolated worktrees and Graphite for every later feature or fix.
+- Use isolated worktrees for every later feature or fix.
 - Do not commit or push until generated files, environment files, lockfiles, ignore rules, and code
   ownership have been classified.
 
@@ -229,8 +229,10 @@ For every approved surface:
   release cadence.
 - Do not open a PR directly against `main` except for an emergency hotfix.
 - Cherry-pick an emergency hotfix back into the integration branch immediately.
-- Never force-push to `main` or the integration branch.
-- Use Graphite to manage branch stacks, the parent-child relationships between dependent PRs.
+- Never force-push.
+- Use Git + `gh` by default. Graphite is optional for an explicitly selected or verified
+  already-managed task/stack, following the
+  [source-control contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-commit/references/graphite.md).
 - Agents never merge, mark a PR ready, enable auto-merge, or queue it for merge.
 
 ## Required README

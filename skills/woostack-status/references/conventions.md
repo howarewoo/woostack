@@ -1,6 +1,6 @@
 # Woostack status conventions
 
-These rules define `/woostack-status` derivation and output. Status is read-only. Git, Graphite, and
+These rules define `/woostack-status` derivation and output. Status is read-only. Git and
 canonical GitHub reads own repository identity, ancestry, commits, PR, review, checks, threads, and
 merge state. Exact caller-supplied Linear, Plane, or GitHub resources may enrich rows under the
 [optional artifact contract](../../woostack-init/references/artifact-backends.md), but never define
@@ -14,7 +14,9 @@ Take one logical snapshot:
 2. inventory deterministic paths from any active approved contracts, filesystem state,
    `git worktree list --porcelain`, local/remote branches and commits, and complete
    dirty/index/diff state;
-3. inventory Graphite parent/stack ancestry; and
+3. inventory approved parent intent and retained parent SHAs, proving ancestry with Git and canonical
+   PR bases under the [shared source-control contract](../../woostack-commit/references/graphite.md);
+   consult Graphite only for explicitly selected or already verified managed work; and
 4. fully paginate canonical GitHub PRs, commits, reviews, threads, and merge evidence for
    candidate branches.
 
@@ -28,6 +30,10 @@ direct repository evidence.
 If a material fact changes while the snapshot is assembled, discard the snapshot and retry once.
 Repeated drift is `unknown`. Missing or ambiguous evidence never becomes an empty successful set.
 
+Missing optional `gt` never blocks the board. Mark genuinely unprovable parent identity `unknown`
+and retain independently proved PR state. Do not infer a parent from merge-base or upstream alone.
+A selected Graphite read failure is disclosed, not converted into permission to change modes.
+
 ## Row identity and grouping
 
 Create one row for each non-base stable task/branch/PR identity:
@@ -35,7 +41,7 @@ Create one row for each non-base stable task/branch/PR identity:
 - use a stable approved task ID only when the active approved contract supplies one;
 - otherwise use the exact branch or canonical PR identity;
 - keep an unsubmitted worktree branch as a local row; and
-- group rows only by verified Graphite ancestry or an explicitly supplied approved dependency plan.
+- group rows only by verified parent ancestry or an explicitly supplied approved dependency plan.
 
 Never synthesize a task, issue, project, dependency, or owner from display text.
 
@@ -51,7 +57,7 @@ Derive one state from current direct evidence:
 - `merged` — canonical GitHub proves the exact PR/head was merged;
 - `blocked` — a directly observed collision, changes-requested review, unresolved blocking thread,
   dependency/ancestry mismatch, or explicit workflow blocker prevents progress; and
-- `unknown` — required Git/Graphite/GitHub evidence is missing, partial, conflicting, ambiguous, or
+- `unknown` — required Git/GitHub or selected-mode evidence is missing, partial, conflicting, ambiguous, or
   unstable.
 
 `review-clean` is evidence, not product acceptance. `merged` is repository history, not artifact
@@ -74,7 +80,7 @@ Validate each observed worktree against the
 [canonical worktree contract](../../woostack-init/references/worktrees.md). Report:
 
 - deterministic and actual path;
-- complete `git worktree list --porcelain` entry, branch/head, and Graphite parent;
+- complete `git worktree list --porcelain` entry, branch/head, and verified parent or missing proof;
 - dirty/index/diff state;
 - duplicate checkout, branch, commit, or PR;
 - conflict with an active approved task/run contract; and
@@ -135,7 +141,7 @@ Return exactly one repository next action per row, selected from direct facts:
 4. address blocking findings or threads;
 5. wait for required review;
 6. re-review a changed head;
-7. restack an ancestry mismatch;
+7. reconcile an ancestry mismatch through the selected source-control workflow;
 8. merge through the repository's normal process; or
 9. no repository action for a verified merged row.
 
@@ -144,7 +150,7 @@ repository action.
 
 ## Output
 
-Render a stable table ordered by Graphite ancestry, then deterministic branch/PR identity. Include:
+Render a stable table ordered by verified parent ancestry, then deterministic branch/PR identity. Include:
 
 - task/branch/PR identity;
 - state and staleness;

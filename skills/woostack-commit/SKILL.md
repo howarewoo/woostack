@@ -1,6 +1,6 @@
 ---
 name: woostack-commit
-description: Commit the current session-relevant changes, create or verify the Graphite branch, submit it, and update the current PR with a goal, summary, and test plan. An optional exact Linear issue, Plane work item, or GitHub issue receives a merge-closing PR reference and may receive a delivery note. Use for /woostack-commit, "commit this", "commit the current changes", "update the PR", or when finishing a woostack change before review.
+description: Commit current session-relevant changes and submit or update their PR using Git and GitHub CLI, with optional Graphite. Include a goal, summary, and test plan. An optional exact provider issue receives a merge-closing reference. Use for /woostack-commit, "commit this", or "update the PR".
 ---
 
 # woostack-commit
@@ -27,12 +27,17 @@ reference, and opts into delivery synchronization. Its absence is the normal art
 Never infer an issue or work item from a branch, PR body, title, recent activity, or issue key.
 `--issue` requires PR submission/update and is incompatible with `--no-pr-update`.
 
+For `--no-pr-update`, perform local verification and commit only: skip push, PR title/body updates,
+and optional artifact synchronization. GitHub authentication and fresh remote PR reads are not
+required for this local-only path; preserve any known conflicting PR evidence and report remote
+identity as unverified rather than claiming absence or successful delivery.
+
 ## Input contract
 
 Require the active workflow's approved bounded task contract plus direct repository evidence:
 
 - canonical repository and configured integration/base branch;
-- current branch, HEAD, worktree, index, tracked/untracked changes, and Graphite ancestry;
+- current branch, HEAD, worktree, index, tracked/untracked changes, and verified parent ancestry;
 - exact changed-path set and why each path belongs to the task;
 - observed verification results and any manual checks;
 - review/quality receipt required by the calling workflow, if that workflow defines one; and
@@ -47,7 +52,7 @@ ask for the missing scope decision.
 ### 1. Inspect repository state
 
 Confirm the physical working directory is the repository root. Read the configured base, current
-branch/HEAD, Graphite stack, status, staged diff, unstaged diff, and untracked paths. Preserve
+branch/HEAD, selected source-control mode, parent ancestry, status, staged diff, unstaged diff, and untracked paths. Preserve
 unrelated user changes. Never switch branches, reset, clean, stash, delete, or overwrite to make the
 state convenient.
 
@@ -56,7 +61,7 @@ Reject:
 - protected-primary work;
 - detached HEAD;
 - unresolved conflicts;
-- an existing PR whose repository, head branch, base, or Graphite ancestry conflicts;
+- an existing PR whose repository, head branch, base, or verified ancestry conflicts;
 - duplicate open PRs for the branch;
 - unexplained staged paths; or
 - a changed path outside the approved task contract.
@@ -84,28 +89,27 @@ excludes, or unrelated local files.
 If a hook or staging operation changed content unexpectedly, unstage only the paths this invocation
 staged, preserve the worktree, and stop with the exact mismatch.
 
-### 4. Create or update the Graphite commit
+### 4. Create or update the task commit
 
-Use Graphite for history mutation:
-Follow the [Graphite branch and submission boundary](references/graphite.md) for exact branch,
-collision, command, and read-back rules.
+Follow the [source-control branch and submission boundary](references/graphite.md) for mode
+selection, exact branch, collision, commands, and read-back. Git and GitHub CLI are the default;
+Graphite is optional. Resolve the mode before staging, not after a command fails.
 
-- create a collision-free task branch with `gt create -m <subject>` when no suitable branch exists;
-- otherwise use `gt modify -m <subject>` for the current task branch; and
-- never amend or restack an unrelated branch.
+Use `git commit -m <subject>` to append a native Git commit; use the reference's Graphite path
+only for a selected Graphite task. Never amend or restack an unrelated branch.
 
 The subject comes from the caller's explicit message when accurate; otherwise derive a concise
 imperative subject from the approved task contract. Re-read branch, HEAD, parent/base, commit, and
 working-tree state after the mutation. Unrelated unstaged changes may remain; staged changes may not.
 
-### 5. Submit with Graphite
+### 5. Submit the task branch
 
-Use `gt submit` for the current branch/stack. Do not force-push, submit unrelated descendants, or
-create a duplicate PR. After submission, independently read the canonical GitHub PR and verify its
+Follow the selected mode's submission commands in the same reference. Do not force-push, submit
+unrelated descendants, or create a duplicate PR. After submission, independently read the canonical GitHub PR and verify its
 repository, number/URL, head branch/SHA, base branch, and open state.
 
-Unknown submission outcome is not permission to retry blindly. Re-read Graphite and GitHub first;
-resume from the first unproved boundary.
+Unknown submission outcome is not permission to retry blindly or switch tools. Re-read Git,
+GitHub, and Graphite when selected; resume from the first unproved boundary.
 
 Skip this step only when `--no-pr-update` was explicitly supplied and the requested operation does
 not require submission. Report the local branch and commit rather than implying a PR exists.
@@ -172,7 +176,7 @@ artifact write merely because a previous call did not return cleanly.
 
 Report:
 
-- branch and Graphite parent/base;
+- source-control mode, branch, and verified parent/base;
 - commit subject and SHA;
 - canonical PR URL, or explicitly `not submitted`;
 - exact staged path set;
