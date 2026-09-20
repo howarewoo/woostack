@@ -116,7 +116,7 @@ records `status: "abandoned"` in the manifest and retains all local artifacts in
 | [woostack-bootstrap](/docs/skills/woostack-bootstrap) | Optional persistence only after explicit design approval and approval to write to the verified filesystem target. |
 | [woostack-init](/docs/skills/woostack-init) | Discovers owner, ownerType, canonical repository, and status options through read-only `gh` calls only when `artifacts.provider: "github"`. Never selects persistence or probes writes. |
 | [woostack-doctor](/docs/skills/woostack-doctor) | Checks config types locally. Explicit live checks verify authenticated identity and required capabilities, including deletion capability needed for smoke testing, without storing secrets. |
-| [woostack-change](/docs/skills/woostack-change) | Provider-free; never contacts GitHub artifact APIs. |
+| [woostack-change](/docs/skills/woostack-change) | Goal-only Change is provider-free. An explicit exact canonical GitHub issue input performs the required read of that issue through host-authenticated `gh`; it requires no artifact-provider configuration, Project, or mirror, and performs no issue lifecycle writes. |
 
 See the [GitHub provider contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-providers/github.md)
 for exact capability, resource identity, and recovery requirements.

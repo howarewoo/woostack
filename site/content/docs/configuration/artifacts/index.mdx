@@ -35,7 +35,10 @@ duplicate, or out-of-scope results stop that provider operation.
 
 A failed mirror operation is recorded in the local manifest but does not block work based on a
 complete local run. Provider synchronization never grants permission to merge a PR; agents never
-merge. `woostack-change` never contacts an artifact provider.
+merge. Goal-only [Change](/docs/skills/woostack-change) and bounded Fix make no artifact-provider
+calls. Issue-backed Change performs the required read of its explicitly selected exact GitHub issue through
+host-authenticated `gh`; it does not select an artifact provider or require provider configuration, a
+Project, a mirror, or a persisted plan.
 
 The canonical implementation rules live in the
 [local run artifact and provider mirror contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-backends.md).

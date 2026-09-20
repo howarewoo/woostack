@@ -39,7 +39,10 @@ authentication store, not in repository configuration.
 [`woostack-build`](../../woostack-build/SKILL.md) verifies requirements with the user, writes the
 specification and plan, then offers `Stop here`, `Execute`, or `Abandon`. Follow its
 current handoff procedure. Saved files and provider records do not grant permission to start work.
-Small Fix and Change workflows do not contact an artifact provider.
+Bounded Fix and goal-only Change do not contact an artifact provider. Change's exact GitHub issue
+admission is the read-only exception defined in
+[`woostack-change`](../../woostack-change/SKILL.md#admit-an-exact-github-issue); it remains available
+with local/omitted `artifacts.provider` and does not select artifact mirroring.
 
 [`woostack-bootstrap`](../SKILL.md) owns greenfield routing and complete-design approval;
 its [filesystem procedure](bootstrap.md#filesystem-write-barrier-and-collision-check) owns bounded
