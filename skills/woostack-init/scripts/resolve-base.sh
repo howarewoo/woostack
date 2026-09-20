@@ -12,11 +12,8 @@
 #   3. git symbolic-ref refs/remotes/origin/HEAD -> the remote default branch
 #   4. main — fallback when there is no remote / fresh repo
 #
-# Root resolution mirrors resolve-root.sh (WOOSTACK_ROOT override ->
-# GITHUB_WORKSPACE -> git rev-parse --show-toplevel -> pwd) so `.woostack/`
-# anchors to the repo root. (woostack-init/scripts has no resolve-root.sh to
-# source, so the precedence is inlined here; keep it in sync with
-# skills/woostack-review/scripts/resolve-root.sh.)
+# Root resolution precedence is WOOSTACK_ROOT -> GITHUB_WORKSPACE ->
+# git rev-parse --show-toplevel -> pwd; `.woostack/` anchors to the repo root.
 if [ -z "${WOOSTACK_ROOT:-}" ]; then
   if [ -n "${GITHUB_WORKSPACE:-}" ]; then
     WOOSTACK_ROOT="$GITHUB_WORKSPACE"

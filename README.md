@@ -1,8 +1,8 @@
 # woostack
 
-woostack is a collection of skills that teach AI coding assistants how to plan work, change code,
-and review pull requests (PRs). You make the product decisions. The assistant checks the repository
-and GitHub before reporting what changed or what is ready for review.
+woostack is a collection of skills that teach AI coding assistants how to plan work and
+change code. You make the product decisions. The assistant checks the repository and GitHub
+before reporting what changed or what is ready for review.
 
 Use one PR for a small change or a well-understood fix. For larger work, woostack saves a
 specification and step-by-step plan so you can resume later. Changes still need verification and
@@ -65,18 +65,8 @@ Store non-secret settings in `.woostack/config.json`. Keep credentials in your h
 Configuration supplies defaults; it does not give the assistant permission to change remote records
 or override your decisions.
 
-For example, this review configuration sets a severity threshold and excludes generated files:
-```json
-{
-  "review": {
-    "severity_floor": "medium",
-    "ignore": ["**/*.generated.ts"]
-  }
-}
-```
-
-- `review.severity_floor` filters findings by severity, such as `high`, `medium`, or `low`.
-- `review.ignore` excludes matching files from PR reviews.
+For pull-request review, use [Pullfrog](https://pullfrog.com/). This repository includes the
+Pullfrog workflow at [`.github/workflows/pullfrog.yml`](.github/workflows/pullfrog.yml).
 
 For the full policy surface, see the authored
 [configuration reference](site/content/docs/configuration/index.mdx).
@@ -118,20 +108,17 @@ See the [workflow maps](site/content/docs/concepts/workflows.mdx) for the full s
 
 ## Review and check your work
 
-| What you need | Command |
+| What you need | Tool |
 | --- | --- |
-| Review an existing PR and post checked findings to GitHub | [/woostack-review](skills/woostack-review/SKILL.md) |
+| Review a pull request | [Pullfrog](https://pullfrog.com/) |
 | Investigate and address every unresolved review thread | [/woostack-address-comments](skills/woostack-address-comments/SKILL.md) |
-| Inspect existing code in a file, directory, or repository | [/woostack-audit](skills/woostack-audit/SKILL.md) |
 | Explore a running web app and reproduce browser bugs | [/woostack-qa](skills/woostack-qa/SKILL.md) |
 | Investigate and fix a production error | [/woostack-fix](skills/woostack-fix/SKILL.md) |
 | Compare skill behavior against an approved set of evaluation cases | [/woostack-eval](skills/woostack-eval/SKILL.md) |
 | Find concrete improvements to instructions from this conversation | [/woostack-reflect](skills/woostack-reflect/SKILL.md) |
 
-Review checks findings independently before posting them. Audit and QA only write local reports,
-under `.woostack/audits/` and `.woostack/qa/`; they do not fix code or post findings. Eval does not
-edit the skill it evaluates. Reflect reports suggestions first and does not file or edit anything
-on its initial action.
+Pullfrog handles pull-request review. Address-comments can resolve the resulting GitHub threads;
+QA and Eval remain report-only and do not fix source or post findings.
 
 Reports help you decide what to do next. They do not expand the agreed scope or replace
 Git/GitHub evidence. Agents never merge PRs; merging is a human decision.

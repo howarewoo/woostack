@@ -184,20 +184,9 @@ The coding worker never:
 An unexpected file, branch, checkout, worktree, dirty-state, or ancestry change blocks. Recovery is
 decided only from the approved task/run contract and fresh direct repository evidence.
 
-## 7. Commit, review reopen, and parent reconciliation
-
-The controller invokes [`woostack-commit`](../../woostack-commit/SKILL.md) only after verification
-and independent review bind to the same complete diff identity. Immediately before
-commit/submission, re-read the task/run contract, resolved task workspace path, complete worktree
-inventory, branch, parent, index/diff, and canonical PR evidence.
-
-A review-reopen operation permits only the exact approved review fix on the same branch/PR. It may
-reattach that branch only when the workspace path is free and no checkout already holds it.
-After the fix passes focused verification and review, reconcile affected branches/descendants under
-[`woostack-sweep`](../../woostack-sweep/SKILL.md) using the selected backend. Native reconciliation
-merges the verified parent tip into the child and uses a normal push; it does not rebase or merge
-the GitHub PR. Re-read every resulting head/base/ancestry and PR. Review reopen grants no unrelated
-ref rewrite, PR merge, or second fix.
+After a completed child is delivered, the selected backend reconciles affected branches and
+descendants from verified remote state. Native Git uses a local ancestry merge; Graphite uses its
+guarded restack path. Neither mode force-pushes or mutates human merge authority.
 
 Unknown commit/push/submit/reconciliation outcome requires direct rediscovery before retry. Never
 duplicate a branch, commit, PR, or operation merely because a command returned unclearly, or switch

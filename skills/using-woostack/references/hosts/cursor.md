@@ -33,11 +33,6 @@ host — no spawn-time auth probe exists; switch manually by promoting an entry 
 
 ## Per-skill notes
 
-- **woostack-review (local swarm):** dispatch angle workers in parallel and let the host schedule
-  or queue them. For validators, `reviewerSessionId` is the exact opaque Composer subagent ID
-  returned by each dispatch; `reviewerCredentialContextId` is
-  `cursor:composer:<subagent-id>`. Feed both into
-  [Review's bound-validator sequence](../../../woostack-review/SKILL.md).
 - **woostack-eval (comparative dispatch):** submit the two isolated workers for each
   candidate/baseline inseparable pair together through Composer's parallel-subagent primitive.
   Cursor exposes no concrete per-call model pin; `session-default` is provable only when the

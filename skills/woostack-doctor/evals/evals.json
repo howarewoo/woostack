@@ -59,10 +59,10 @@
           "critical": true
         },
         {
-          "id": "missing-review-key-stays-missing",
+          "id": "missing-status-key-stays-missing",
           "kind": "file-excludes",
           "file": "fixtures/incomplete-project/.woostack/config.json",
-          "substring": "\"review\"",
+          "substring": "\"status\"",
           "critical": true
         }
       ]

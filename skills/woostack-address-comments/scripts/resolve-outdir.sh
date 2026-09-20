@@ -1,10 +1,8 @@
 #!/usr/bin/env bash
-# Single source of truth for the default OUTDIR.
-#
-# Sourced (not executed) by every woostack-review script. Respect an explicit
-# OUTDIR override (host sandbox dirs, the GitHub Action's pin, tests); otherwise
-# derive a per-project path so concurrent reviews of different repos on one
-# machine do not share — and clobber — the same /tmp/pr-review tree.
+# Sourced (not executed) by every address-comments script. Respect an explicit
+# OUTDIR override (host sandbox dirs, GitHub thread helpers, tests); otherwise derive a per-project
+# path so concurrent thread operations for different repos on one machine do not share — and clobber
+# — the same /tmp/pr-review tree.
 #
 # Derivation: hash the woostack root (the git toplevel, via resolve-root.sh —
 # stable across subdirs of one repo); two distinct repo roots hash to two

@@ -23,8 +23,6 @@ entrypoints = {
     "plan": root / "skills/woostack-plan/SKILL.md",
     "execute": root / "skills/woostack-execute/SKILL.md",
     "commit": root / "skills/woostack-commit/references/provider-attribution.md",
-    "debug": root / "skills/woostack-debug/SKILL.md",
-    "audit": root / "skills/woostack-audit/SKILL.md",
     "status": root / "skills/woostack-status/SKILL.md",
     "visualize": root / "skills/woostack-visualize/SKILL.md",
 }

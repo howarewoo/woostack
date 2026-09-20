@@ -35,6 +35,3 @@ Every allowlisted host file carries these six sections, in order:
 5. **Per-skill notes** — host-specific steps consumed by named skills.
 6. **Degradation** — the host-specific fallback path when a capability is absent (the
    say-so-on-degrade law itself stays inline in each consuming skill).
-
-Review's CI path never reads these files: CI runners follow no links, so review-orchestration
-host content stays self-contained in `skills/woostack-review/prompts/*.md`.

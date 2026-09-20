@@ -515,7 +515,7 @@ EOF
 cat >"$PACKAGE/evals/trigger-evals.json" <<'EOF'
 {"schemaVersion":1,"skill":"valid-corpus","cases":[
   {"id":"positive","query":"Use the valid corpus skill.","shouldTrigger":true,"expectedSkill":"valid-corpus"},
-  {"id":"near-miss","query":"Review this instead.","shouldTrigger":false,"expectedSkill":"woostack-review","conflictsWith":["woostack-review"]}
+  {"id":"near-miss","query":"Review this instead.","shouldTrigger":false,"expectedSkill":"none"}
 ]}
 EOF
 expect_valid 'complete supported corpora' valid-corpus 'Package with a complete behavior corpus.' \

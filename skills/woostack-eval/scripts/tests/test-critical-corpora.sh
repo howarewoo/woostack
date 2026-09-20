@@ -23,11 +23,8 @@ packages=(
   skills/woostack-fix
   skills/woostack-execute
   skills/woostack-commit
-  skills/woostack-review
-  skills/woostack-sweep
   skills/woostack-address-comments
   skills/woostack-debug
-  skills/woostack-audit
   skills/woostack-visualize
   skills/woostack-init
   skills/woostack-doctor
@@ -62,11 +59,8 @@ const expectedPackages = [
   'skills/woostack-fix',
   'skills/woostack-execute',
   'skills/woostack-commit',
-  'skills/woostack-review',
-  'skills/woostack-sweep',
   'skills/woostack-address-comments',
   'skills/woostack-debug',
-  'skills/woostack-audit',
   'skills/woostack-visualize',
   'skills/woostack-init',
   'skills/woostack-doctor',
@@ -74,7 +68,7 @@ const expectedPackages = [
   'skills/woostack-bootstrap',
 ];
 const same = (left, right) => JSON.stringify(left) === JSON.stringify(right);
-if (!same(packages, expectedPackages) || new Set(packages).size !== 16) {
+if (!same(packages, expectedPackages) || new Set(packages).size !== 13) {
   throw new Error(`critical package enumeration changed: ${JSON.stringify(packages)}`);
 }
 
@@ -366,67 +360,6 @@ const requiredContractProofs = {
     ],
     'no merge': [['standalone-commit-no-merge'], ['increment-commit-no-merge']],
   },
-  'woostack-review': {
-    'one exact PR is the only public mode': [['accepts-exact-pr'], ['rejects-other-modes'], ['review-read-only']],
-    'one multi-angle swarm has one evidence adjudicator': [
-      ['all-angles'],
-      ['one-swarm'],
-      ['one-adjudicator'],
-      ['finalization-after-adjudication'],
-      ['no-early-merge'],
-    ],
-    'accepted findings produce one native PR event': [
-      ['blocker-event'],
-      ['nit-event'],
-      ['all-findings-posted'],
-    ],
-    'no edit or merge': [['no-code-edits'], ['no-merge-or-edit']],
-  },
-  'woostack-sweep': {
-    'preexisting comments are addressed before one review': [
-      ['order'],
-      ['old-thread-before-review'],
-      ['review-once-each'],
-    ],
-    'nit-only rounds advance without rereview': [
-      ['nit-resolved'],
-      ['address-without-rereview'],
-      ['correction-only-proof'],
-      ['focused-verification'],
-      ['descendant-restack'],
-      ['complete-evidence'],
-      ['clean'],
-    ],
-    'blocking rounds restack descendants and review again': [
-      ['review-count'],
-      ['restack-descendants'],
-      ['heads-current'],
-    ],
-    'unchanged blockers halt with an exact resume boundary': [
-      ['blocked'],
-      ['no-extra-review'],
-      ['exact-blocker'],
-      ['resume'],
-    ],
-    'stale-parent mergeability matrix and direct Review independence': [
-      ['mergeable-review-once'],
-      ['mergeable-no-restack'],
-      ['mergeable-clean-eligible'],
-      ['stale-sync-informational'],
-      ['stale-sync-does-not-invalidate'],
-      ['conflicting-no-review'],
-      ['conflicting-no-address'],
-      ['conflicting-not-clean-eligible'],
-      ['conflicting-guarded-restack'],
-      ['unknown-no-review'],
-      ['unknown-no-address'],
-      ['unknown-not-clean-eligible'],
-      ['unknown-no-restack'],
-      ['unknown-blocked'],
-      ['direct-review-independent'],
-      ['direct-review-no-conflict-authority'],
-    ],
-  },
   'woostack-address-comments': {
     'one exact PR is required': [['blocked'], ['exact-pr-reason'], ['no-mutation']],
     'every thread receives a deterministic disposition': [
@@ -453,46 +386,6 @@ const requiredContractProofs = {
     'exact PR context with complete read-back': [['valid-project-provenance'], ['valid-issue-provenance'], ['valid-pr-source'], ['valid-readback']],
     'read-only investigation': [['valid-debug-no-writes'], ['valid-debug-source-unchanged']],
     'invalid discovery and mutation paths fail closed': [['rejected-debug-status'], ['rejected-debug-reasons'], ['rejected-debug-no-local-authority'], ['rejected-debug-no-mutation']],
-  },
-  'woostack-audit': {
-    'standing target through synthetic all-added review': [
-      structural('all-added-diff-created'),
-      structural('all-added-line-present'),
-      ['simplify-receipt-proof-recorded'],
-      ['bugs-receipt-proof-recorded'],
-      ['security-receipt-proof-recorded'],
-      ['production-receipt-proof-recorded'],
-      structural('validated-finding-recorded'),
-      ['standing-target-unchanged'],
-    ],
-    'sanitized non-authoritative report with bounded remediation contract': [
-      structural('audit-report-created'),
-      ['report-is-explicitly-non-authoritative'],
-      ['diagnostic-authority-recorded'],
-      ['proposed-remediation-contract-recorded'],
-      ['report-denies-development-authority'],
-    ],
-    'remediation defers provider until fix root-cause proof': [
-      ['fix-handoff-ready'],
-      ['provider-deferred-until-fix-proof'],
-      ['report-remains-evidence'],
-      ['fix-dispatched'],
-      ['no-local-development-fallback'],
-    ],
-    'no remote mutation fix or merge': [
-      ['no-code-host-post'],
-      ['no-provider-mutation-receipt'],
-      ['no-audit-fix'],
-      ['no-audit-merge'],
-      ['no-provider-mutation-on-rejection'],
-      ['no-repository-mutation-on-rejection'],
-    ],
-    'optional provider context resolves exact scoped provenance': [
-      ['audit-plane-context-resolved'],
-      ['audit-plane-provenance'],
-      ['audit-plane-foreign-omitted'],
-      ['audit-plane-zero-mutation'],
-    ],
   },
   'woostack-visualize': {
     'exact managed source with complete read-back': [['valid-visualize-status'], ['valid-visualize-provenance'], ['valid-visualize-source-accepted'], ['valid-visualize-readback']],
@@ -910,15 +803,12 @@ const approvedCorpusContracts = {
   'woostack-fix': corpusContract(7, '3eab5562704e48562a13e92620c8a4f7b1f27b5acdfb1c9b30f371d9edde36ef'),
   'woostack-execute': corpusContract(37, 'b8ce609e8288f1f53c775d1c928743843366321b0ad1fb50348f2056bbf5de5e'),
   'woostack-commit': corpusContract(17, '5831bc06ad35d0b5261cc3c6969d3cc09a87d32f094e244b9fed7184674568a5'),
-  'woostack-review': corpusContract(4, '72dddc1a586ca2c1fddb1d017b02d18cf95fd4b311384f5816eaea22a9300a93'),
-  'woostack-sweep': corpusContract(13, '1d109f7e085d3c409d2963180863351234b75f82d967c789387d9874ae1c4282'),
   'woostack-address-comments': corpusContract(3, '6a5d04522d1f10af74ee69300a49f2fe23aa7e3357b8cb6223399e8511d6c0a5'),
   'woostack-debug': corpusContract(4, 'ab54ed28d0ac1dd043104fcecdae38ea22a21471baa1356cabf7f1d061121014'),
-  'woostack-audit': corpusContract(3, '94462137c1dfc06c853bbca7143a169ed57c2b1b6988d8c5595e89d324157b87'),
   'woostack-visualize': corpusContract(3, 'e986a8099ca7aa788ed424f5753956dbf479a6b124f4719f6af6c053203bd7e5'),
-  'woostack-init': corpusContract(24, '59e6caef4aae98972b65721ff28a28115c0019e4f8c75f1b282586bec8a9b7d5'),
-  'woostack-doctor': corpusContract(6, 'c452e457bae579b3bf76c37069653bc855843024820723ec4861ee618a743ea3'),
-  'woostack-status': corpusContract(8, '58fcfbd6428547d559ce92c891f7a0c768f6a1c7c92f859fa19c30412f023ca2'),
+  'woostack-init': corpusContract(24, 'ffff4551cf55159abd47e845ee047bca01e51cb24c31d04125f4755070f7b3a9'),
+  'woostack-doctor': corpusContract(6, 'f041393925877c8a0dab9bb2d17023992d534528f510ffd90a9b3e2895ab2dd2'),
+  'woostack-status': corpusContract(9, 'f488ccb2973c68f24f86d2f8954be8a6866533386a2a3878ce47055c355e1fab'),
   'woostack-bootstrap': corpusContract(13, '03a3e5b8a99dc0e6e458486ff6f59c61332427dda0d6c26658a78e2a2e1977b6'),
 };
 
@@ -1480,8 +1370,8 @@ for (let index = 0; index < packages.length; index += 1) {
 }
 
 if (!same(Object.keys(requiredContractProofs).sort(), expectedPackages.map((entry) => path.basename(entry)).sort())) {
-  throw new Error('critical contract map must cover exactly the sixteen required packages');
+  throw new Error('critical contract map must cover exactly the thirteen required packages');
 }
 NODE
 
-printf 'PASS: validated critical behavior corpora for exactly 16 required packages\n'
+printf 'PASS: validated critical behavior corpora for exactly 13 required packages\n'

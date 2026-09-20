@@ -14,11 +14,8 @@ call. Woostack creates three general-purpose project workers that refer to OMP's
 OMP chooses the models behind those roles and manages provider credentials, thinking level,
 retries, and fallbacks. It ignores repository model settings.
 
-- Run `woostack-init` before review. If managed worker definitions are missing or have changed,
-  `woostack-doctor` can repair them after approval while preserving other project agents.
-- After choosing its review angles, Review checks that every worker it needs is available in the
-  active registry. It does this before starting any summary, angle, or validator worker.
-  Review never creates or repairs agents, or starts only part of the planned review group.
+- Run `woostack-init` before delegated work. If managed worker definitions are missing or have
+  changed, `woostack-doctor` can repair them after approval while preserving other project agents.
 - Execute handles one implementation task at a time per local run. Separate run IDs may execute
   concurrently only in isolated worktrees with no conflicting branches, paths, or responsibilities.
 - Each worker receives the exact worktree and full task contract, including its allowed scope.

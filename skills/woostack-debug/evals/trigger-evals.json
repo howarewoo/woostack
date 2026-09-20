@@ -10,13 +10,6 @@
       "conflictsWith": ["woostack-qa"]
     },
     {
-      "id": "invitation-module-standing-audit",
-      "query": "Before we change the invitation module, assess it as it stands across correctness, security, and maintainability, rank the risks you find, and produce a report without fixing anything.",
-      "shouldTrigger": false,
-      "expectedSkill": "woostack-audit",
-      "conflictsWith": ["woostack-debug"]
-    },
-    {
       "id": "running-app-account-journey-exploration",
       "query": "A candidate build is available at http://localhost:4173. Go through account creation, recovery, and deletion the way a customer would, including expired links and back-button use, and list only problems you can repeat.",
       "shouldTrigger": false,

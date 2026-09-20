@@ -67,7 +67,7 @@ contract_text = {
 }
 for source, phrase, message in [
     ('router', 'review the current active conversation through this invocation', 'router has stale invocation wording'),
-    ('router', '| `/woostack-reflect`', 'woostack-reflect is not publicly routed'),
+    ('router', 'Reflect on this conversation for durable instruction suggestions | `woostack-reflect`', 'woostack-reflect is not publicly routed'),
     ('router', 'canonical candidate gate', 'router does not cross-link the canonical candidate gate'),
     ('router', 'the session already contains a concrete observed preventable instruction gap', 'router omits the evaluable candidate predicate'),
     ('output discipline', 'the session already contains a concrete observed preventable instruction gap', 'output discipline omits the evaluable candidate predicate'),
@@ -85,35 +85,35 @@ for source, phrase, message in [
 public = [
     'using-woostack', 'woostack-init', 'woostack-bootstrap', 'woostack-build',
     'woostack-fix', 'woostack-change', 'woostack-plan', 'woostack-execute',
-    'woostack-commit', 'woostack-review', 'woostack-address-comments',
-    'woostack-status', 'woostack-visualize',
-    'woostack-debug', 'woostack-tdd', 'woostack-doctor', 'woostack-sweep',
-    'woostack-qa', 'woostack-audit', 'woostack-eval', 'woostack-reflect',
+    'woostack-commit', 'woostack-address-comments',
+    'woostack-status', 'woostack-visualize', 'woostack-design',
+    'woostack-debug', 'woostack-tdd', 'woostack-doctor', 'woostack-qa',
+    'woostack-eval', 'woostack-reflect',
 ]
 internal = ['woostack-harden', 'woostack-ideate']
 fixed = public + internal
-require(len(public) == 21 and len(fixed) == 23 and len(set(fixed)) == 23, 'invalid expected command counts')
+require(len(public) == 19 and len(fixed) == 21 and len(set(fixed)) == 21, 'invalid expected command counts')
 
 agents = read('AGENTS.md')
-section = re.search(r'The public command/adoption surface has twenty-one skills:\s*(.*?)\nThe collection also installs', agents, re.S)
-require(section is not None, 'AGENTS.md does not declare the 21-skill public surface')
+section = re.search(r'The public command/adoption surface has nineteen skills:\s*(.*?)\nThe collection also installs', agents, re.S)
+require(section is not None, 'AGENTS.md does not declare the 19-skill public surface')
 agent_public = re.findall(r'^- \[`([^`]+)`\]\(skills/[^)]+/SKILL\.md\)$', section.group(1), re.M)
 require(agent_public == public, f'AGENTS.md public order mismatch: {agent_public!r}')
-require('twenty-one public command/adoption skills at twenty-three fixed' in agents, 'AGENTS.md count is stale')
-require('twenty-three `SKILL.md` files (the twenty-one public command/adoption' in agents, 'AGENTS.md fixed-path count is stale')
+require('nineteen public command/adoption skills at twenty-one fixed' in agents, 'AGENTS.md count is stale')
+require('twenty-one `SKILL.md` files (the nineteen public command/adoption' in agents, 'AGENTS.md fixed-path count is stale')
 
 actual_fixed = sorted(path.parent.name for path in (root / 'skills').glob('*/SKILL.md'))
 require(actual_fixed == sorted(fixed), f'fixed SKILL.md surface mismatch: {actual_fixed!r}')
 
 routing = read('skills/using-woostack/SKILL.md')
-routes = re.findall(r'^\| `/([^`\s]+)', routing, re.M)
+routes = re.findall(r'^\| .* \| `([^`]+)` \|$', routing, re.M)
+routes = [route for route in routes if route != 'using-woostack']
 expected_routes = [
     'woostack-init', 'woostack-bootstrap', 'woostack-build', 'woostack-fix',
-    'woostack-change', 'woostack-plan', 'woostack-execute',
-    'woostack-sweep', 'woostack-commit', 'woostack-review',
-    'woostack-audit', 'woostack-qa', 'woostack-eval',
-    'woostack-reflect', 'woostack-address-comments', 'woostack-status',
-    'woostack-visualize', 'woostack-debug', 'woostack-tdd', 'woostack-doctor',
+    'woostack-change', 'woostack-plan', 'woostack-execute', 'woostack-commit',
+    'woostack-address-comments', 'woostack-status', 'woostack-visualize',
+    'woostack-design', 'woostack-debug', 'woostack-tdd', 'woostack-doctor',
+    'woostack-qa', 'woostack-eval', 'woostack-reflect',
 ]
 require(routes == expected_routes, f'routing order mismatch: {routes!r}')
 require(routes.count('woostack-reflect') == 1, 'woostack-reflect must have one public route')
@@ -130,7 +130,7 @@ for source in ['site/content/docs/concepts.mdx', 'site/content/docs/concepts/con
     require('concrete observed preventable instruction gap' in folded, f'{source} omits the candidate gate')
     require('no reflection headings' in folded, f'{source} omits the no-candidate result')
 folded_index = re.sub(r"\s+", " ", read('site/content/docs/index.mdx'))
-require('twenty-one public command/adoption skills at twenty-three fixed `SKILL.md` locations' in folded_index, 'site index count is stale')
+require('Pullfrog' in folded_index, 'site index omits the Pullfrog recommendation')
 
 active_files = [
     'AGENTS.md', 'README.md', 'CONTRIBUTING.md',

@@ -88,7 +88,7 @@ out-of-workspace access.
     "query": "Evaluate this example skill.",
     "shouldTrigger": true,
     "expectedSkill": "woostack-example",
-    "conflictsWith": ["woostack-review"]
+    "conflictsWith": ["woostack-debug"]
   }]
 }
 ```

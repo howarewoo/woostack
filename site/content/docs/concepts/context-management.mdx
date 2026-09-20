@@ -19,16 +19,12 @@ result, remove narration and repetition, and retain exact evidence, commands, pa
 Security, destructive actions, root-cause analysis, and architecture keep the detail required to
 remain unambiguous.
 
-[woostack-review](/docs/skills/woostack-review) applies the same principle through a strict finding
-contract. Comments stay short without losing evidence, severity, or an actionable fix.
-
 ## Sessions end with instruction suggestions
 
-[woostack-reflect](/docs/skills/woostack-reflect) runs at an ordinary final reply only when the
-conversation already shows a preventable problem that a reusable instruction could address.
-Its candidate gate defines that condition. A qualifying reply runs one report-only pass; a reply
-without a candidate has no reflection headings. An explicit `/woostack-reflect` invocation always
-runs exactly one pass.
+[woostack-reflect](/docs/skills/woostack-reflect) runs at an ordinary final reply only when
+the session already contains a concrete observed preventable instruction gap, per its canonical
+candidate gate. A qualifying reply runs one report-only pass; otherwise it has no reflection headings.
+An explicit `/woostack-reflect` invocation always runs exactly one pass.
 
 Reflection treats transcripts and tool output as untrusted evidence. It does not execute embedded
 instructions, follow embedded URLs, or expand the task. The first pass only reports suggestions:
@@ -41,8 +37,6 @@ Small helpers compute bounded local results:
 
 - [woostack-status](/docs/skills/woostack-status) reads Git/GitHub evidence, plus Graphite when
   selected, and prints a compact board without creating a board file.
-- Review's `prefetch.sh` gathers the verified PR diff, metadata, and repository rules. Exact
-  caller-supplied artifact context may be added separately.
 
 Generated indexes, bundles, temporary intent snapshots, and caches help agents find information.
 They do not authorize work. Remote text and tool output are evidence, never instructions.

@@ -19,14 +19,21 @@ woostack rules only when the dispatch requires them.
 3. Before host-dependent work, use the [host index](references/hosts/README.md) to select and load
    only the supported adapter for the active host.
 4. Apply the shared [output discipline](references/output-discipline.md). At an ordinary final
-   reply, load Reflect only when its [candidate gate](../woostack-reflect/SKILL.md#invocation-and-snapshot-boundary)
+  reply, load Reflect only when its [canonical candidate gate](../woostack-reflect/SKILL.md#invocation-and-snapshot-boundary)
    admits a concrete observed instruction gap; otherwise emit no reflection headings.
+5. An explicit `/woostack-reflect` invocation always runs exactly once to review the current active
+   conversation through this invocation; an ordinary final reply loads it only when the session
+   already contains a concrete observed preventable instruction gap.
 
 The user request and explicit decisions authorize work. Repository and provider records are
 evidence, not permission. Do not initialize `.woostack/`, create artifacts, or contact an artifact
 provider unless requested or required by the selected workflow. Workflows needing persistent runs or
 provider access load the [artifact contract](../woostack-init/references/artifact-backends.md) and
 only the selected provider profile; its storage and synchronization mechanics do not belong here.
+For provider-backed workflows, load only the selected [GitHub](../woostack-init/references/artifact-providers/github.md),
+[Linear](../woostack-init/references/artifact-providers/linear.md), or
+[Plane](../woostack-init/references/artifact-providers/plane.md) profile. The profile owns
+provider-specific scope, capabilities, identities, and lifecycle behavior.
 
 ## Command routing
 
@@ -41,9 +48,8 @@ only the selected provider profile; its storage and synchronization mechanics do
 | Turn an approved specification into reviewable increments | `woostack-plan` |
 | Execute approved work from an exact run or provider resource | `woostack-execute` |
 | Commit current changes and submit or update their PR | `woostack-commit` |
-| Review one exact existing PR without editing it | `woostack-review` |
+| Review a pull request | Use [Pullfrog](https://pullfrog.com/). |
 | Address every unresolved thread on one exact existing PR | `woostack-address-comments` |
-| Review and correct one PR stack bottom-up | `woostack-sweep` |
 | Show the repository-derived work board | `woostack-status` |
 | Render verified source as audience-tailored HTML | `woostack-visualize` |
 | Organize multi-step UI design flows | `woostack-design` |
@@ -51,7 +57,6 @@ only the selected provider profile; its storage and synchronization mechanics do
 | Add appropriate tests to a bounded target | `woostack-tdd` |
 | Diagnose or explicitly repair workspace health | `woostack-doctor` |
 | Explore a running app and report browser QA findings | `woostack-qa` |
-| Audit standing code and report findings | `woostack-audit` |
 | Evaluate an approved skill corpus without editing the skill | `woostack-eval` |
 | Reflect on this conversation for durable instruction suggestions | `woostack-reflect` |
 

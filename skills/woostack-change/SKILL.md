@@ -31,7 +31,7 @@ When an issue is selected, use host-authenticated `gh` to read only that exact r
 repository mutation. This explicit selection permits the required issue reads even when
 `artifacts.provider` is `"local"` or omitted; no provider configuration, project membership,
 mirror, or persisted plan is required. Without an issue selection, make no development-artifact
-provider calls.
+provider calls. Goal-only Change never reads or writes Linear or another development-artifact provider.
 
 Verify the canonical repository against the target Git remote, native issue identity and canonical
 URL, open state, and that the resource is an issue rather than a pull request. Read its complete

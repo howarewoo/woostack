@@ -1,6 +1,6 @@
 # Source-control branch and submission boundary
 
-This shared contract applies to Commit, worktrees, delivery, planning, Status, and Sweep.
+This shared contract applies to Commit, worktrees, delivery, planning, Status, and reconciliation.
 Git and canonical GitHub reads prove repository state. Graphite is an optional stack tool;
 provider artifacts never select or authorize source-control mutations.
 
@@ -65,7 +65,8 @@ On an existing verified task branch:
 - Native: append the staged task change using `git commit -m <subject>`; do not automatically amend.
 - Graphite: use `gt modify --commit -m <subject>` only after verifying its automatic descendant
   restack cannot touch an unapproved branch or rewrite a published descendant. Otherwise append
-  with `git commit -m <subject>` and re-read Graphite ancestry; leave reconciliation to Sweep.
+  with `git commit -m <subject>` and re-read Graphite ancestry; leave reconciliation to the calling
+  workflow.
 
 No staged change means no new commit; reuse the exact verified existing commit for pending
 submission or PR metadata recovery. Never amend an unrelated commit or restack an unrelated branch.
@@ -112,10 +113,11 @@ branches, merge, mark ready, enable auto-merge, or enqueue a PR.
 
 ## Stack reconciliation
 
-[Sweep](../../woostack-sweep/SKILL.md) owns exact affected-set discovery, conflict gates, review
-invalidation, and descendant reconciliation. Native mode incorporates each verified parent tip
-with a local Git merge in the child's clean isolated worktree, then uses a normal single-branch
-push. A local ancestry merge is not a GitHub PR merge and never grants human-only merge authority.
+The calling workflow owns exact affected-set discovery, conflict gates, review invalidation, and
+descendant reconciliation. Those checks must use the selected backend's verified state.
+Native mode incorporates each verified parent tip with a local Git merge in the child's clean
+isolated worktree, then uses a normal single-branch push. A local ancestry merge is not a GitHub PR
+merge and never grants human-only merge authority.
 Graphite mode uses its guarded stack restack path. Neither mode may force-push; a rewritten
 published head requiring a non-fast-forward push blocks for human resolution.
 

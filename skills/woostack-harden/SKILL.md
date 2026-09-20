@@ -33,8 +33,9 @@ manifest. The local run manifest is the canonical authority.
 
 Work one discrepancy at a time and ask **one question per message**. Begin with the exact manifest
 draft, then inspect only the bounded repository files, configuration, tests, documentation, and
-conventions that can bear on its decisions. Use [the angle pre-flight](references/angle-preflight.md)
-to choose relevant reconciliation prompts; the canonical Review lenses remain authoritative.
+conventions that can bear on its decisions. Apply relevant repository conventions, least-code checks,
+and provider constraints as reconciliation prompts. Harden must return complete plain artifacts;
+it must not add scope, invent approval, or turn a draft into source-control authority.
 
 At both specification and planning boundaries, Harden performs the removal-first check before
 accepting additive work: it verifies that the proposal removes, reuses, simplifies, or generalizes
