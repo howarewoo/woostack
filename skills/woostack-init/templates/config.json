@@ -3,7 +3,6 @@
     "provider": "local"
   },
   "models": {},
-  "review": {},
   "status": {
     "staleDays": 14
   }

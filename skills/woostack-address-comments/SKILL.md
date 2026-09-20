@@ -99,5 +99,5 @@ Report:
 - reply IDs and resolution read-back results; and
 - the exact safe resume boundary.
 
-After code changes, the owning workflow may request a fresh [`woostack-review`](../woostack-review/SKILL.md).
+After code changes, use [Pullfrog](https://pullfrog.com/) for a fresh pull-request review.
 This command never declares global acceptance or merge readiness.

@@ -34,12 +34,6 @@ host — no spawn-time auth probe exists; switch manually by promoting an entry 
 
 ## Per-skill notes
 
-- **woostack-review (local swarm):** orchestrate isolated-context subagents per angle (see
-  `skills/woostack-review/prompts/google.md` for the orchestration narrative). For validators,
-  `reviewerSessionId` is the exact opaque isolated-context instance ID returned by each dispatch;
-  `reviewerCredentialContextId` is `antigravity:context:<instance-id>`. Feed both into
-  [Review's bound-validator sequence](../../../woostack-review/SKILL.md). The CI runner remains
-  `run-gemini-cli` (Antigravity cannot run headless there).
 - **woostack-eval (comparative dispatch):** instantiate the two isolated-context workers for
   each candidate/baseline inseparable pair in the same dynamic orchestration turn. There is no
   concrete per-call model pin; choose one concrete run model before the session.

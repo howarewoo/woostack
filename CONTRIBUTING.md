@@ -28,10 +28,6 @@ This guide covers common edits. Read [AGENTS.md](AGENTS.md) for the full reposit
 | Change the check of requirements against the repository (Harden) | `skills/woostack-harden/SKILL.md` |
 | Change the plan phase (the build loop's planning step) | `skills/woostack-plan/SKILL.md` |
 | Change the execute phase (the build loop's implementation step) | `skills/woostack-execute/SKILL.md` |
-| Change how a stack of dependent PRs is reviewed and corrected (`/woostack-sweep`) | `skills/woostack-sweep/SKILL.md` |
-| Change the commit / PR update workflow | `skills/woostack-commit/SKILL.md` |
-| Change the review engine | `skills/woostack-review/SKILL.md`, `skills/woostack-review/scripts/`, `skills/woostack-review/prompts/` |
-| Change audits of existing code (`/woostack-audit`) | `skills/woostack-audit/SKILL.md`, `skills/woostack-audit/scripts/` |
 | Change browser-based app checks (`/woostack-qa`) | `skills/woostack-qa/SKILL.md`, `skills/woostack-qa/references/` |
 | Change skill evaluation (`/woostack-eval`) | `skills/woostack-eval/SKILL.md`, `skills/woostack-eval/references/`, `skills/woostack-eval/scripts/` |
 | Change session reflection (`/woostack-reflect`) | `skills/woostack-reflect/SKILL.md`, `skills/woostack-reflect/scripts/` |
@@ -65,7 +61,8 @@ no-application-code rule. Its [README](site/README.md) covers local development 
 
 - Keep workflow changes in skill files and their supporting Markdown, templates, scripts,
   prompts, or JSON. Application code, build configuration, and lockfiles belong only in `site/`.
-  The consumer review action and reusable workflow are also shipped assets; do not delete them as stray CI.
+- Pull-request review uses [Pullfrog](https://pullfrog.com/); the shipped workflow is
+  `.github/workflows/pullfrog.yml`.
 - Resolve package versions from the registry when needed (`npm view <pkg> version`).
   Name frameworks without versions, except where a known incompatibility requires a pin in
   `skills/woostack-bootstrap/references/frameworks.md`.

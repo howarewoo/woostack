@@ -20,20 +20,6 @@
       "shouldTrigger": false,
       "expectedSkill": "woostack-status",
       "conflictsWith": ["woostack-address-comments"]
-    },
-    {
-      "id": "fresh-single-pr-inspection",
-      "query": "No one has inspected PR #2462 yet. Examine its diff for defects and missing coverage and return validated findings without changing the branch.",
-      "shouldTrigger": false,
-      "expectedSkill": "woostack-review",
-      "conflictsWith": ["woostack-address-comments"]
-    },
-    {
-      "id": "whole-stack-request",
-      "query": "The current Graphite series contains four dependent pull requests at different feedback stages. Work across the entire chain from the oldest dependency onward until every branch is ready or genuinely blocked.",
-      "shouldTrigger": false,
-      "expectedSkill": "woostack-sweep",
-      "conflictsWith": ["woostack-address-comments"]
     }
   ]
 }

@@ -1,6 +1,6 @@
 ---
 name: woostack-qa
-description: Use to explore a running web app in a real browser, reproduce confirmed bugs, and create sanitized, severity-ranked, non-authoritative diagnostic reports; use woostack-review for code diffs and woostack-audit for standing code. Report-only runs never mutate Linear, Plane, GitHub, or application source.
+description: Use to explore a running web app in a real browser, reproduce confirmed bugs, and create sanitized, severity-ranked, non-authoritative diagnostic reports. Report-only runs never mutate Linear, Plane, GitHub, or application source.
 install: pnpx skills add howarewoo/woostack
 recommends:
   bins: [agent-browser]
@@ -8,9 +8,7 @@ recommends:
 
 # woostack-qa
 
-Exploratory-QA a **running application** the way a user would. Where
-[`woostack-audit`](../woostack-audit/SKILL.md) inspects standing code at rest and
-[`woostack-review`](../woostack-review/SKILL.md) gates a diff, `woostack-qa` drives the live
+Exploratory-QA a **running application** the way a user would. `woostack-qa` drives the live
 app in a real browser: it walks the core journeys, attacks edge cases, watches an always-on
 assertion floor, reproduces every suspected bug once before logging it, and emits a
 severity-ranked, sanitized, **non-authoritative report-only** findings document under
@@ -139,11 +137,11 @@ halting.
 
 Write one severity-ranked, sanitized markdown doc per run to `.woostack/qa/<date>-<slug>.md` from
 [references/report-template.md](references/report-template.md). Before the file can remain in a
-tracked path, redact credentials, tokens, keys, passwords, cookies, personal data, local home
-paths, sensitive source or telemetry, and unneeded remote text with stable placeholders such as
-`[REDACTED_TOKEN]`; a residual sanitization failure leaves no report. Severity uses review's
-vocabulary — `HIGH` / `MEDIUM` / `LOW` plus a `blocking` flag for crash, data-loss, or
-journey-blocking bugs.
+tracked path, redact credentials, tokens, keys, passwords, cookies, personal data, local home paths,
+sensitive source or telemetry, and unneeded remote text with stable placeholders such as
+`[REDACTED_TOKEN]`; a residual sanitization failure leaves no report.
+Severity uses the shared vocabulary: `HIGH` / `MEDIUM` / `LOW` plus a `blocking` flag for crash,
+data-loss, or journey-blocking bugs.
 
 Every report opens with `Authority: non-authoritative diagnostic evidence` and visibly labels
 itself report only. It records:

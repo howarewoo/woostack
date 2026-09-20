@@ -24,8 +24,5 @@
       }
     }
   },
-  "models": {},
-  "status": {
-    "staleDays": 14
-  }
+  "models": {}
 }

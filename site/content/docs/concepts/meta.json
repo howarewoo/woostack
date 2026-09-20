@@ -9,7 +9,6 @@
     "context-management",
     "worktrees",
     "status-tracking",
-    "review-angles",
     "utilities"
   ]
 }

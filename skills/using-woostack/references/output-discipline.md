@@ -17,9 +17,7 @@ Applies to:
 - swarm/worker reports,
 - log/report writes.
 
-Does **NOT** apply to authored source, documentation, commit messages, or PR descriptions. The
-review JSON-artifact and inline-comment contract is governed separately by
-[woostack-review `_worker-header.md`](../../woostack-review/prompts/_worker-header.md).
+Does **NOT** apply to authored source, documentation, commit messages, or PR descriptions.
 
 ## User-facing replies
 

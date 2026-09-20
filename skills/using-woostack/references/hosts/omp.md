@@ -71,13 +71,6 @@ worktree isolation, or treating absent evidence as success.
 
 ## Per-skill notes
 
-- `woostack-review`: after angle detection and before any summary, angle, or validator worker,
-  discover the active task-agent registry and require every distinct selector needed by the
-  complete planned run. Missing support aborts the whole swarm before launch. For validators,
-  `reviewerSessionId` is the exact opaque agent ID returned by `task`;
-  `reviewerCredentialContextId` is `omp:task:<agent-id>`. Feed both into
-  [Review's bound-validator sequence](../../../woostack-review/SKILL.md). Missing receipts still
-  fail the existing hard receipt gate.
 - `woostack-execute`: when its [implementation driver](../../../woostack-execute/references/subagent-driver.md)
   delegates, map the selected effective tier through the host-owned worker table above.
 - `woostack-commit`: map optional fast drafting to `agent: woostack-fast`; draft inline if

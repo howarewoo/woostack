@@ -11,8 +11,6 @@ Each skill owns its procedure:
 | Plan a feature that needs several PRs, then choose whether to execute | `woostack-build` |
 | Diagnose a bug and obtain approval for its correction | `woostack-fix` |
 | Deliver a small enhancement or refactor in one PR | `woostack-change` |
-| Review an existing PR | `woostack-review` |
-| Audit existing code | `woostack-audit` |
 | Check a running app in a browser | `woostack-qa` |
 | Production errors, Sentry issues, and monitoring defects | `woostack-fix` |
 | Evaluate approved behavior and trigger corpora for a skill without editing it | `woostack-eval` |
@@ -20,9 +18,6 @@ Each skill owns its procedure:
 
 Follow the selected command's handoff rules. Only a human can merge a PR.
 
-Review configuration and diagnostic reports may remain under `.woostack/`.
-Review metrics in `.woostack/metrics.json` are ignored by Git. These records do not authorize work
-or determine its scope.
 
 ## Artifact provider records
 

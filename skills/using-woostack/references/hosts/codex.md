@@ -36,12 +36,6 @@ host — no spawn-time auth probe exists; switch manually by promoting an entry 
 
 ## Per-skill notes
 
-- **woostack-review (local swarm):** per-call bucket — honor each angle prompt's `tier:` and
-  resolve each spawn's model via the review scripts' resolver. For validators,
-  `reviewerSessionId` is the dispatch result's exact opaque worker ID;
-  `reviewerCredentialContextId` is `codex:worker:<worker-id>`. Feed both into
-  [Review's bound-validator sequence](../../../woostack-review/SKILL.md). The CI single-session
-  `load-prompt.sh` / `resolve-model.sh` path remains self-contained.
 - **woostack-eval (comparative dispatch):** local Codex can start the two isolated workers in
   each candidate/baseline inseparable pair together and pin the same concrete `model` plus
   `reasoning_effort` on both calls. `session-default` is provable only when both calls omit

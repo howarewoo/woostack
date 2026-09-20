@@ -2422,7 +2422,7 @@
         "headSha": "1212121212121212121212121212121212121212",
         "committedDiffHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "fullReview": true,
-        "headMarker": "<!-- woostack-review:sha=1212121212121212121212121212121212121212 -->",
+        "headMarker": "<!-- pullfrog-review:sha=1212121212121212121212121212121212121212 -->",
         "reviewer": {
           "kind": "app",
           "principalId": "app-engineer-12"
@@ -2444,7 +2444,7 @@
         "headSha": "1313131313131313131313131313131313131313",
         "committedDiffHash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
         "fullReview": true,
-        "headMarker": "<!-- woostack-review:sha=1313131313131313131313131313131313131313 -->",
+        "headMarker": "<!-- pullfrog-review:sha=1313131313131313131313131313131313131313 -->",
         "reviewer": {
           "kind": "app",
           "principalId": "app-reviewer"
@@ -2470,7 +2470,7 @@
         "headSha": "2323232323232323232323232323232323232323",
         "committedDiffHash": "dddddddddddddddddddddddddddddddddddddddd",
         "fullReview": true,
-        "headMarker": "<!-- woostack-review:sha=2323232323232323232323232323232323232323 -->",
+        "headMarker": "<!-- pullfrog-review:sha=2323232323232323232323232323232323232323 -->",
         "reviewer": {
           "kind": "app",
           "principalId": "app-reviewer"
@@ -2496,7 +2496,7 @@
         "headSha": "2121212121212121212121212121212121212121",
         "committedDiffHash": "cccccccccccccccccccccccccccccccccccccccc",
         "fullReview": true,
-        "headMarker": "<!-- woostack-review:sha=2121212121212121212121212121212121212121 -->",
+        "headMarker": "<!-- pullfrog-review:sha=2121212121212121212121212121212121212121 -->",
         "reviewer": {
           "kind": "human",
           "principalId": "user-dispatcher"
@@ -2522,7 +2522,7 @@
         "headSha": "3434343434343434343434343434343434343434",
         "committedDiffHash": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
         "fullReview": true,
-        "headMarker": "<!-- woostack-review:sha=3434343434343434343434343434343434343434 -->",
+        "headMarker": "<!-- pullfrog-review:sha=3434343434343434343434343434343434343434 -->",
         "reviewer": {
           "kind": "app",
           "principalId": "app-reviewer"

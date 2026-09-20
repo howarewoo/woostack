@@ -21,7 +21,6 @@ export const PUBLIC_ORDER = [
   'woostack-plan',
   'woostack-execute',
   'woostack-commit',
-  'woostack-review',
   'woostack-address-comments',
   'woostack-status',
   'woostack-visualize',
@@ -29,9 +28,7 @@ export const PUBLIC_ORDER = [
   'woostack-debug',
   'woostack-tdd',
   'woostack-doctor',
-  'woostack-sweep',
   'woostack-qa',
-  'woostack-audit',
   'woostack-eval',
   'woostack-reflect',
 ];

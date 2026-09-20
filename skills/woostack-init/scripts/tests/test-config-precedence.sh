@@ -21,33 +21,33 @@ must_fail() { # $1=target, $2=expected_err_substring, $3=desc
 
 # 1. Base-only policy & 2. Recursive merge with local addition and sibling preservation
 cat >"$repo/.woostack/config.json" <<'JSON'
-{"artifacts":{"provider":"local","linear":{"repository":"https://github.com/a/b","workspace":"acme","team":"DEFAULT"}},"review":{"severity_floor":"high","nits":true,"angles":{"skip":["seo"]}},"models":{"standard":"gpt-5.5"}}
+{"artifacts":{"provider":"local","linear":{"repository":"https://github.com/a/b","workspace":"acme","team":"DEFAULT"}},"models":{"standard":{"model":"gpt-5.5","effort":"high","nits":true,"angles":{"skip":["seo"]}}}}
 JSON
 git -C "$repo" add .woostack/config.json && git -C "$repo" commit -qm "init config"
 actual="$(bash "$RESOLVER" "$repo")"
 assert_eq "$(jq -r '.artifacts.linear.team' <<<"$actual")" "DEFAULT" "committed team is used"
 
 cat >"$repo/.woostack/config.local.json" <<'JSON'
-{"artifacts":{"linear":{"team":"LOCAL"}},"review":{"severity_floor":"low","custom":"opt"},"status":{"staleDays":7}}
+{"artifacts":{"linear":{"team":"LOCAL"}},"models":{"standard":{"effort":"low","custom":"opt"}},"status":{"staleDays":7}}
 JSON
 actual="$(bash "$RESOLVER" "$repo")"
 assert_eq "$(jq -r '.artifacts.linear.team' <<<"$actual")" "LOCAL" "local team overrides"
 assert_eq "$(jq -r '.artifacts.linear.workspace' <<<"$actual")" "acme" "sibling linear keys preserved"
-assert_eq "$(jq -r '.review.severity_floor' <<<"$actual")" "low" "nested setting overridden"
-assert_eq "$(jq -r '.review.nits' <<<"$actual")" "true" "sibling review keys preserved"
-assert_eq "$(jq -r '.review.custom' <<<"$actual")" "opt" "local additions preserved"
+assert_eq "$(jq -r '.models.standard.effort' <<<"$actual")" "low" "nested setting overridden"
+assert_eq "$(jq -r '.models.standard.nits' <<<"$actual")" "true" "sibling model keys preserved"
+assert_eq "$(jq -r '.models.standard.custom' <<<"$actual")" "opt" "local additions preserved"
 assert_eq "$(jq -r '.status.staleDays' <<<"$actual")" "7" "top additions preserved"
-assert_eq "$(jq -r '.models.standard' <<<"$actual")" "gpt-5.5" "base objects preserved"
+assert_eq "$(jq -r '.models.standard.model' <<<"$actual")" "gpt-5.5" "base objects preserved"
 # 3. Scalar/array/null replacement & 4. Linked worktrees
 cat >"$repo/.woostack/config.local.json" <<'JSON'
-{"review":{"angles":{"skip":["database"]}},"models":null}
+{"models":{"standard":{"angles":{"skip":["database"]}}},"status":null}
 JSON
 actual="$(bash "$RESOLVER" "$repo")"
-assert_eq "$(jq -c '.review.angles.skip' <<<"$actual")" '["database"]' "local array replaces"
-assert_eq "$(jq -r '.models' <<<"$actual")" "null" "local null replaces"
+assert_eq "$(jq -c '.models.standard.angles.skip' <<<"$actual")" '["database"]' "local array replaces"
+assert_eq "$(jq -r '.status' <<<"$actual")" "null" "local null replaces"
 git -C "$repo" worktree add -q "$worktree"
 actual="$(bash "$RESOLVER" "$worktree")"
-assert_eq "$(jq -c '.review.angles.skip' <<<"$actual")" '["database"]' "worktree inherits local"
+assert_eq "$(jq -c '.models.standard.angles.skip' <<<"$actual")" '["database"]' "worktree inherits local"
 
 # 5. Both absent & 6. Orphaned local & 7. Empty base config
 mkdir -p "$TMP/empty_repo" "$TMP/orphan/.woostack" "$TMP/empty_base/.woostack"

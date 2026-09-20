@@ -68,8 +68,9 @@ problem first, then take the first rung that holds.
 - **The ladder.** Before adding code, walk the rungs and stop at the first that works: (1) YAGNI —
   is it needed at all? (2) in-tree reuse — a helper/util/pattern that already exists here; (3)
   standard facilities; (4) a native platform feature; (5) an already-installed dependency; (6)
-  one line; (7) only then the minimum new code that works. The review
-  [`simplify` angle](../../woostack-review/prompts/angles/simplify.md) enforces this ladder.
+  one line; (7) only then the minimum new code that works.
+The full least-code standard is the governing simplification check for generated projects and
+repository changes.
 - **Read first (delta A).** The ladder runs *after* you understand the problem: read the code the
   change touches and trace the real flow end to end before picking a rung. Lazy about the
   solution, never about reading — the smallest change in the wrong place is a second bug.

@@ -58,20 +58,19 @@ still check the implementation.
 
 ### Session reflection becomes instruction suggestions
 
-[woostack-reflect](/docs/skills/woostack-reflect) runs at an ordinary final reply only when the
-conversation already shows a preventable problem that a reusable instruction could address.
-Its candidate gate defines that condition. A qualifying reply runs one report-only pass; a reply
-without a candidate has no reflection headings.
+[woostack-reflect](/docs/skills/woostack-reflect) always runs exactly once for an explicit
+`/woostack-reflect` invocation. An ordinary final reply loads it only when the session already
+contains a concrete observed preventable instruction gap; otherwise it has no reflection headings.
+Its candidate gate defines that condition, and the first pass is report-only.
 
 
-Diagnostic outputs from audit, QA, or production-response workflows can support a decision but
-cannot authorize a fix. Repairs use the appropriate Fix, Change, or Build workflow and its rules.
+Diagnostic outputs from QA or production-response workflows can support a decision but cannot
+authorize a fix. Repairs use the appropriate Fix, Change, or Build workflow and its rules.
 
 ### Tools compute, agents read compact results
 
-Helpers gather and check evidence that can be processed mechanically. Review prefetch gathers the
-relevant diff, metadata, and repository rules once. Run-store operations protect the files used to
-resume work. The user still verifies workflow decisions.
+Helpers gather and check evidence that can be processed mechanically. Run-store operations protect
+the files used to resume work. The user still verifies workflow decisions.
 
 
 ### External engineers and coding harnesses

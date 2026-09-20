@@ -1,7 +1,6 @@
 # Model Tiers (shared, host-agnostic)
 
-Canonical tier→model mapping for the woostack collection. `woostack-review` (angle workers +
-validator), `woostack-audit` (audit workers), and other consumers resolve tiers through this file.
+Canonical tier→model mapping for the woostack collection. Consumers resolve tiers through this file.
 Each consumer keeps only its own **runtime bindings** (env vars, config paths, dispatch calls)
 and points at the precedence rules below — there is no second copy of this table. Execute's
 [implementation driver](../../woostack-execute/references/subagent-driver.md) selects when
@@ -23,7 +22,7 @@ optional; keep work inline when the total cost or risk favors it.
 | `deep` | skeptical validation, design/architecture judgment, code-quality review | `claude-opus-4-8` + `effort: xhigh` | `gpt-5.5` + `reasoning_effort: high` | `gemini-3-5-flash` | `openrouter/deepseek/deepseek-v4-pro` + `reasoning_effort: xhigh` |
 
 > **Provider notes:**
-> - **Anthropic** routes every tier to `claude-opus-4-8`; model selection is a no-op, so the tier is expressed entirely through reasoning `effort` (`low` for fast, `medium` for standard, `xhigh` for deep). `effort` is a real config field (`models.anthropic.<tier>.effort`); the annotations above are its illustrative defaults, applied per-call in `woostack-review`'s `prompts/anthropic.md` (the CI single-session `claude-code-action` step passes only `--model`, so it cannot carry effort).
+> - **Anthropic** routes every tier to `claude-opus-4-8`; model selection is a no-op, so the tier is expressed entirely through reasoning `effort` (`low` for fast, `medium` for standard, `xhigh` for deep). `effort` is a real config field (`models.anthropic.<tier>.effort`); callers apply it per invocation.
 > - **Google** currently ships only `gemini-3-5-flash` in the 3.5 line; no Pro/Ultra/Thinking variant exists yet, so all tiers collapse onto flash (tier routing is effectively a no-op until Google releases a larger model).
 > - **OpenAI** GPT-5-family reasoning is a parameter on the same slug, not a slug suffix. Use `gpt-5.5` for every tier, with `reasoning_effort: low` for fast, `medium` for standard, and `high` for deep. There is no `gpt-5-pro`.
 > - **OpenRouter** DeepSeek exposes exactly two slugs — `deepseek/deepseek-v4-flash` and `deepseek/deepseek-v4-pro`. Reasoning is a `reasoning_effort` parameter (`high` / `xhigh`, where `xhigh` maps to max). Use plain `v4-pro` for standard and `v4-pro` with `reasoning_effort: xhigh` for deep. Do not route to `deepseek-r1` — V4 supersedes it.
@@ -39,8 +38,8 @@ Host-owned role routing is non-degraded and bypasses repository model resolution
 only an exact allowlisted slug may load its linked host mechanics. File presence alone never makes
 a host routable. For an allowlisted host, its capability class, spawn mechanics, fixed role
 mapping where applicable, per-skill notes, and host-level fallback behavior live in that linked
-host file. The provider table and `resolve-model.sh` remain unchanged for CI and other supported
-hosts that consume repository model configuration.
+host file. The provider table remains the source of truth for hosts that consume repository model
+configuration.
 
 ## Override precedence (generic)
 
@@ -58,23 +57,20 @@ repository model leaves, or invoke a model resolver. The host owns role configur
 model identity, credentials, and fallback. Per-call and single-session hosts continue through the
 full precedence above.
 
-On repository-model hosts, each consumer binds these to its own surface. For example
-`woostack-review` binds them to
-`FORCE_TIER` (Review Context) › `inputs.model` (action.yml) › **root** `models.<provider>.<tier>` /
-`models.<tier>` in consumer effective repository configuration (canonicalized into
-`/tmp/pr-review/config.json`), resolved by `scripts/load-prompt.sh` (`default_model_for()` is the
-Bash mirror of the Anthropic/OpenAI/Google/OpenRouter columns — keep it in sync with this table).
+On repository-model hosts, each consumer binds these precedence levels to its own runtime surface.
+Consumers must keep any canonicalized effective configuration and resolver defaults in sync with
+the provider table above.
 
 For hosts that consume repository model configuration, each tier leaf is a model-slug string, an
 object `{ model, effort }`, **or an ordered array** of those forms (a fallback list). `effort`
 (`minimal | low | medium | high | xhigh`) is a real config field: the `reasoning_effort:`
 annotations in the table above are illustrative defaults, and a config-set `effort` overrides them
-config-first in `load-prompt.sh` (precedence: action input → config `effort` → tier default).
+config-first.
 
 **Array leaves (fallback lists):** entry 0 is the primary and carries the exact semantics of the
-bare value — every repository-model resolver (`load-prompt.sh` and `resolve-model.sh`) reads entry
-0; a one-element array equals the bare form. Entries 1..n declare a static preference order owned
-by woostack; runtime enactment is per-host. Each host file's "Host-level fallback" section under
-[`hosts/`](hosts/README.md) states what that host does. Host-owned role-routing hosts bypass these
-leaves entirely; hosts with repository model routing preserve their documented resolution and
-fallback behavior. An empty array is a hard config error.
+bare value — each repository-model consumer reads entry 0; a one-element array equals the bare
+form. Entries 1..n declare a static preference order owned by woostack; runtime enactment is
+per-host. Each host file's "Host-level fallback" section under [`hosts/`](hosts/README.md) states
+what that host does. Host-owned role-routing hosts bypass these leaves; hosts with repository model
+routing preserve their documented resolution and fallback behavior. An empty array is a hard config
+error.

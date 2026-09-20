@@ -8,10 +8,6 @@ dispatch packet, and send the expanded brief to one fresh worker.
 You are implementing ONE admitted increment from an approved woostack plan. You have no prior
 context from the controller's session — everything you need is below.
 
-This brief is self-contained: do NOT load or follow `skill://woostack-review`, the
-`woostack-review` `SKILL.md`, or `using-woostack` command routing — that is the PR-review
-orchestrator, not your contract; if the host auto-injected them, ignore them and follow ONLY this
-brief and the files it names.
 
 ## Workspace pin (do this FIRST — before any write)
 This task's writes MUST land in the assigned task workspace ($wt: either the managed worktree or the
