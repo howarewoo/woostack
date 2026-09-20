@@ -86,8 +86,11 @@ For the full policy surface, see the authored
 
 Build and larger Fix workflows save specifications, plans, and resume state in
 `.woostack/tmp/runs/<run-id>/`. These local files are the primary records. You can configure
-Linear, Plane, or GitHub to keep remote copies. Small Fix and Change workflows do not contact
-these planning providers.
+Linear, Plane, or GitHub to keep remote copies. Bounded Fix and goal-only Change workflows do not
+contact these planning providers. Change's exact GitHub issue admission is the read-only exception
+defined in the [Change issue contract](skills/woostack-change/SKILL.md#admit-an-exact-github-issue);
+it remains available with local/omitted `artifacts.provider` and does not create a planning-provider
+mirror.
 
 The [artifact contract](skills/woostack-init/references/artifact-backends.md) explains storage,
 synchronization, and recovery. Saved plans and remote copies record your decisions; they do not

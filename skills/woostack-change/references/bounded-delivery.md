@@ -5,9 +5,11 @@ Shared implementation and delivery mechanics for [`woostack-change`](../SKILL.md
 admission and user authority: Change accepts only non-bug work; Fix requires causal proof and
 explicit informed approval. This reference cannot widen either contract or replace those gates.
 
-The calling skill owns delivery directly, without invoking another woostack workflow. Make zero
-development-artifact provider calls and create no project manifest, specification, or execution
-plan. Git and canonical GitHub repository/PR operations supply source-control evidence,
+The calling skill owns delivery directly, without invoking another woostack workflow. Create no
+project manifest, specification, or execution plan. Development-artifact provider calls are limited
+to the exact issue reads explicitly admitted by
+[Change's GitHub issue input](../SKILL.md#admit-an-exact-github-issue); goal-only Change and bounded
+Fix make none. Git and canonical GitHub repository/PR operations supply source-control evidence,
 not development-artifact authority.
 
 Before mutation, apply the shared [source-control selection and ancestry contract](../../woostack-commit/references/graphite.md).
@@ -22,8 +24,10 @@ Keep the following explicit in the active conversation or completely verified ha
 - intended correction or change, relevant technical consequences, risks, focused verification,
   and changed-path smoke scenario;
 - integration base commit, approved parent-branch intent, and retained start/old parent SHA;
-- current worktree, branch, head, complete diff identity, and PR facts; and
-- for Fix, the evidence-bound diagnosis, full presented scope, and the user's explicit approval.
+- current worktree, branch, head, complete diff identity, and PR facts;
+- for Fix, the evidence-bound diagnosis, full presented scope, and the user's explicit approval; and
+- for issue-backed Change, the independently verified canonical issue URL, native identity, and
+  accepted issue-derived scope.
 
 Do not create hidden workflow state. Repository defaults cannot widen the accepted scope. If
 scope expands, retain the workspace and return to the calling skill's planning/admission boundary;
@@ -83,6 +87,19 @@ add a Git commit (never automatically amend), explicitly push only the task bran
 and use `gh pr create --draft` with the exact repository/head/base only after excluding an existing
 matching PR; update an existing PR body with `gh pr edit`. Preserve its identity and intended base.
 Never merge, mark ready, enable auto-merge, enqueue, or force-push.
+
+For issue-backed Change, re-read the exact issue before submission and on resume to verify its
+identity, repository, open state, and continued agreement with the accepted contract. Changed scope
+returns to Change admission before more mutation. An unavailable or invalid issue blocks associated
+delivery; retain any verified repository progress rather than dropping the association.
+Apply the canonical
+[PR association rules](../../woostack-commit/references/provider-attribution.md#pr-association):
+preserve human-authored PR text, add exactly one `Resolves <canonical GitHub issue URL>` line, and
+verify the full PR body and intended reference on read-back alongside head/base/SHA. This uses only
+the selected issue's reads and GitHub PR operations, not provider mirroring or issue writes. Do not
+claim the issue is closed or close it directly. An unknown submission or association outcome
+requires discovery before retry; report repository delivery and association separately.
+
 Independently read back the exact repository, branch, parent, commit, changed paths, PR URL,
 PR head/base, and open state. The success boundary is one complete reviewable PR whose verified
 commit contains every requested bounded change.
@@ -102,5 +119,6 @@ unproved boundary without duplicating a branch, commit, PR, or cleanup.
 
 Return the stable task identity, accepted scope and Fix approval when applicable, worktree/branch,
 base/parent, changed paths, verification/smoke and independent-review results, commit SHA, canonical
-PR URL/head/base/state, and cleanup result. For a reroute or retained failure, name the destination
+PR URL/head/base/state, and cleanup result. For issue-backed Change, include the canonical issue URL
+and verified closing-reference outcome. For a reroute or retained failure, name the destination
 or blocker and exact safe resume boundary. Never claim evidence not directly observed.

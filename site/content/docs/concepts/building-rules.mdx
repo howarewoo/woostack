@@ -9,10 +9,10 @@ work fits one pull request (PR) and uses the agreed scope in the current convers
 
 ## Workflow scope
 
-| Shape | Commands | Active contract | Provider mirror behavior |
+| Shape | Commands | Active contract | Provider/input behavior |
 | --- | --- | --- | --- |
 | Bounded bug or regression | [woostack-fix](/docs/skills/woostack-fix) | proved diagnosis and complete user-approved correction/verification | none |
-| Bounded non-bug change | [woostack-change](/docs/skills/woostack-change) | one explicit goal/contract | none |
+| Bounded non-bug change | [woostack-change](/docs/skills/woostack-change) | one explicit goal/contract, or an exact GitHub issue plus bounded contract | none for goal-only; issue-backed input reads only the selected GitHub issue |
 | Larger or explicitly project-backed fix | [woostack-fix](/docs/skills/woostack-fix) | complete user-verified specification and increment plan | optional mirror |
 | Multi-increment feature | [woostack-build](/docs/skills/woostack-build) | user-verified specification and ordered local increment plan | optional Linear, Plane, or GitHub mirror |
 | Greenfield codebase | [woostack-bootstrap](/docs/skills/woostack-bootstrap) | complete approved design | exact artifact or explicit persistence request only |
@@ -58,9 +58,10 @@ integration branch's tip has changed since planning, the user must choose what t
 
 ## Canonical local records and optional remote mirroring
 
-Build and project-backed Fix use local records as the source of truth for the plan. The
-[configuration reference](/docs/configuration) and its provider profiles explain provider selection
-and each provider's resource types. Bounded Fix and Change make no provider calls.
+Build and project-backed Fix use local records as the source of truth for the plan. Goal-only
+[Change](/docs/skills/woostack-change) and bounded Fix make no artifact-provider calls. Issue-backed
+Change performs the required read of its exact selected GitHub issue through host-authenticated `gh`; it
+does not require provider configuration, a Project, a mirror, or a persisted plan.
 
 Run artifacts are retained after completion or abandonment. Abandoning a local run leaves its mirror
 unchanged. Standalone provider lifecycle operations follow the selected profile and never confer

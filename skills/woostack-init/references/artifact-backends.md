@@ -25,7 +25,10 @@ When it is `"local"` or omitted:
 - Build and project-backed Fix make zero provider reads or writes;
 - `--project` fails closed before provider access and explains that it requires configured provider mirroring;
 - standalone Plan without requested persistence makes no provider call; and
-- `woostack-change` never contacts a provider.
+- goal-only `woostack-change` makes no development-artifact provider call. Its
+  [exact GitHub issue admission](../../woostack-change/SKILL.md#admit-an-exact-github-issue) is a
+  read-only host-authenticated `gh` exception that remains available with local/omitted
+  `artifacts.provider`; it does not select artifact mirroring or require project configuration.
 
 Legacy `linear.saveArtifacts` configurations are rejected with explicit migration guidance to
 `artifacts.provider` and the selected provider configuration.

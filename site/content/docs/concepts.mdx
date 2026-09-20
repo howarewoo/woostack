@@ -12,7 +12,9 @@ commits it came from, and whether its pull requests (PRs) have been reviewed or 
 
 - Bounded work fits one PR. Change handles a non-bug enhancement or refactor. Fix first proves the
   cause of a defect and gets explicit approval of the complete correction and verification plan.
-  Neither bounded route makes artifact-provider calls or requires a project run.
+  Goal-only Change and bounded Fix make no artifact-provider calls or require a project run. Change
+  with an explicit exact canonical GitHub issue input performs the required read of that issue through
+  host-authenticated `gh`; it still requires no provider configuration, project, mirror, or persisted plan.
 - Project-backed work needs a specification and an ordered plan. Build and larger, uncertain, or
   explicitly project-backed fixes keep those files and a manifest under
   `.woostack/tmp/runs/<run-id>/`. The manifest records the run's tasks and recovery state. These local

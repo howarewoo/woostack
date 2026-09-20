@@ -96,8 +96,11 @@ authority. Git and GitHub own source, branches, commits, pull requests, reviews,
 authenticated read-only discovery of non-secret repository/workspace/team/native-name defaults; it never
 selects persistence or authorizes a provider write. `.woostack/config.json` supplies validated defaults
 only after artifact selection. Credentials remain in the host secret store, and local diagnostic
-reports remain non-authoritative. `woostack-change` never contacts a remote provider. Handoff, replanning, and
-blockers leave project status unchanged.
+reports remain non-authoritative. Goal-only `woostack-change` remains provider-free; an explicitly
+selected exact GitHub issue permits only the read-only `gh` admission defined in the
+[Change issue contract](skills/woostack-change/SKILL.md#admit-an-exact-github-issue), even with
+`artifacts.provider` local or omitted. That exception does not select artifact mirroring or authorize
+work. Handoff, replanning, and blockers leave project status unchanged.
 
 External engineers such as Hermes are outside the installed woostack host/runtime surface. Hermes
 may drive one persistent OMP session as an external decision-maker and reviewer, but woostack is

@@ -91,9 +91,12 @@ transitions, or relates a Linear, Plane, or GitHub resource.
 
 Every rendered report states `Authority: non-authoritative diagnostic evidence`. A remediation
 candidate is evidence for a later `woostack-fix`, `woostack-change`, or `woostack-build` workflow,
-not a fix plan, issue contract, acceptance criterion, or permission to mutate. `woostack-change`
-remains provider-free; build persistence follows build selection; a fix binds or creates its required
-canonical project/issue only after independently proving root cause.
+not a fix plan, issue contract, acceptance criterion, or permission to mutate. Goal-only
+`woostack-change` remains provider-free; its [exact GitHub issue admission](../woostack-change/SKILL.md#admit-an-exact-github-issue)
+performs only the read-only host-authenticated `gh` lookup and works with local/omitted
+artifact-provider configuration without selecting artifact mirroring. Build persistence follows build
+selection; a fix binds or creates its required canonical project/issue only after independently proving
+root cause.
 
 ## Workflow
 
