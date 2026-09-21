@@ -41,18 +41,19 @@ integration branch's tip has changed since planning, the user must choose what t
 ## Execution invariants
 
 - Each increment fits at most one PR.
-- Execute requires exactly one of `--run <exact-run-id> [--recheck]`, `--project <...>`, or
-  `--issue <...>`. Provider forms require configured provider access. Plane uses `--issue`;
-  its project is not an executable scope. See [Execute](/docs/skills/woostack-execute) for exact inputs.
-- Tasks run sequentially within each run. Separate runs may run concurrently only when their paths,
-  branches, worktrees, PRs, and responsibilities do not overlap.
-- Each active task has one controller, branch, collision-safe worktree, allowed set of paths, and
-  current head commit.
-- Implementation may run in the current session or in a separate worker. Focused checks, a smoke
-  test of the changed behavior, and independent comparison against the approved task precede delivery.
+- Execute takes one complete bounded task per invocation: `/woostack-execute <bounded input>`
+  with an optional exact canonical GitHub issue URL. Retired `--run`, `--project`, and `--recheck`
+  inputs are rejected (see [Execute](/docs/skills/woostack-execute#retired-inputs)). Build/Fix stop at
+  retained artifacts; the caller selects one task and supplies its complete bounded contract.
+- Each bounded task runs its own worktree, branch, allowed paths, and PR. Separate tasks may proceed
+  concurrently only when their paths, branches, worktrees, PRs, and responsibilities do not overlap.
+- Each active task has one branch, one collision-safe worktree, one allowed set of paths, and
+  one current head commit.
+- Focused checks, a smoke test of the changed behavior, and comparison against the approved task
+  precede delivery. Implementation subagents and independent validators are optional.
 - Git and GitHub prove parent-child branch relationships, PRs, commits, reviews, and merge
-  state. Graphite supplies additional stack evidence only when selected. Available CI checks are
-  observation-only; their result or availability alone does not block.
+  state. Graphite supplies additional stack evidence only when selected. Required repository checks remain
+  mandatory delivery gates; non-required available CI checks are observation-only.
 - Unresolved scope, ancestry, collision, required-evidence, or review conflicts stop the workflow.
   Agents never merge, mark a PR ready, enable auto-merge, or queue a PR for merge.
 

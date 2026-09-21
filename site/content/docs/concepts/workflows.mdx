@@ -53,7 +53,9 @@ its outcome, scope, acceptance criteria, verification, risks, dependencies, and 
 
 The [artifact contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-backends.md)
 owns local run storage and optional provider profiles. Run IDs remain exact, artifacts are retained,
-and mirror failures do not replace or invalidate local authority.
+and mirror failures do not replace or invalidate local authority. Build stops before automatic Execute
+dispatch; the caller supplies one selected complete bounded task to Execute.
+
 
 ## Fix
 
@@ -66,18 +68,20 @@ and verification for explicit approval. Then implement, verify, independently re
 PR through [bounded delivery](https://github.com/howarewoo/woostack/blob/main/skills/woostack-change/references/bounded-delivery.md).
 No project manifest or artifact-provider call is needed.
 
-Multi-increment or materially uncertain fixes, exact `--run`, `--project`, or `--issue` selections,
-explicitly required provider context, and requested coordinated persistence use the project-backed
-Build sequence. A configured provider alone does not force that route. Source issues provide
-context; they do not become execution plans or grant permission.
+Multi-increment or materially uncertain fixes, explicit project/run context, explicitly required
+provider context, and requested coordinated persistence use the project-backed Build sequence. A
+configured provider alone does not force that route. Source issues provide context; they do not become
+execution plans or grant permission.
 
 ### Project-backed handoff
 
 Build and project-backed Fix display the complete verified artifacts, run and task identities,
-dependencies, parent branch/tip, optional mirror status, and exact Execute command. The user may
-stop, execute, or abandon in natural language. Ambiguous responses ask again; material scope changes
-return to explicit verification. The [Build handoff](/docs/skills/woostack-build#verified-handoff)
-owns the detailed transition and recovery rules.
+dependencies, parent branch/tip, optional mirror status, and retained artifact paths, then stop.
+The user may stop, execute, or abandon in natural language. On `Execute`, the caller must select one
+complete bounded task and supply it to [woostack-execute](/docs/skills/woostack-execute#retired-inputs);
+there is no automatic dispatch. Ambiguous responses ask again; material scope changes return to
+explicit verification. The [Build handoff](/docs/skills/woostack-build#verified-handoff) owns the
+detailed transition and recovery rules.
 
 ## Change
 
@@ -99,19 +103,27 @@ calls. The issue-backed path performs the required read of the selected issue th
 
 ## Shared execution boundary
 
-Build and project-backed Fix hand approved work to [woostack-execute](/docs/skills/woostack-execute):
+> **Retired automatic handoff.** Build and project-backed Fix stop at retained artifacts; the caller
+> selects one complete bounded task and supplies it to
+> [woostack-execute](/docs/skills/woostack-execute#retired-inputs). Final orchestration automation is
+> later work.
 
-1. verify the repository and base branch, then create or resume a collision-safe worktree for each task;
-2. choose inline or delegated implementation using the [delegation guidance](/docs/concepts/context-management#isolated-agents-receive-bounded-envelopes);
-3. run focused checks and a smoke test that exercises the changed behavior in the real program;
-4. have an independent validator compare the complete uncommitted diff with the approved task;
-5. use [woostack-commit](/docs/skills/woostack-commit) only after that validation passes; and
-6. independently read back the PR, its exact head and base, and its review state. Available CI checks
-   are reported for observation; their result or availability alone does not block delivery.
+Each bounded [woostack-execute](/docs/skills/woostack-execute) task then:
 
-Execution stays sequential within a run. Separate runs may proceed concurrently only with disjoint
-worktrees, branches, and responsibility surfaces. Delegation does not grant a worker provider,
-commit, posting, or acceptance authority.
+1. verifies the repository and base branch, then creates or resumes a collision-safe worktree for its task;
+2. implements inline or in an optional worker using the [delegation guidance](/docs/concepts/context-management#isolated-agents-receive-bounded-envelopes);
+3. runs focused checks and a smoke test that exercises the changed behavior in the real program;
+4. compares the complete uncommitted diff with the approved task;
+5. uses [woostack-commit](/docs/skills/woostack-commit) to submit its PR; and
+6. independently reads back the PR, its exact head and base, and its review state. Required repository
+   checks remain mandatory delivery gates; other available CI checks are reported for observation, and
+   their result or availability alone does not block delivery.
+
+Separate bounded tasks may proceed concurrently only with disjoint
+worktrees, branches, and responsibility surfaces. An optional worker must stay within the admitted
+task; a workflow that owns delivery retains its normal boundaries, while an Execute implementation
+worker may use Execute's Commit path to submit its own admitted task PR rather than returning
+uncommitted work for a parent to deliver.
 
 ## Review and corrections
 

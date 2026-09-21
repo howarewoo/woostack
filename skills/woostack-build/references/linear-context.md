@@ -115,13 +115,10 @@ manifest baseline. Provider read or synchronization failures in mirror mode are 
 manifest and are nonblocking for local authority, artifact retention, or handoff. Local manifest,
 permission, and file safety failures remain strictly blocking.
 
-When Linear mirroring is enabled, before implementation, after every worker handback, before redispatch,
-immediately before commit, and before selecting another increment in Execute, repeat the provider mirror read:
-
-- provider project drift is reported and recorded in mirror status;
-- provider issue or dependency drift is reported and recorded in mirror status;
-- unrelated metadata/comments do not affect local authority; and
-- missing capability, incomplete pagination, or unknown provider outcomes in mirror mode are recorded
-  as mirror status and do not block local authority or handoff.
+> **Retired Execute drift reads.** Per-handback, redispatch, commit, and increment mirror reads
+> belonged to the retired Execute run controller. Bounded Execute performs no Linear mirror reads;
+> with an exact GitHub issue it uses only that issue's read-only admission plus Commit association
+> (see [`woostack-execute`](../../woostack-execute/SKILL.md#optional-exact-github-issue)). The
+> historical rules are retained only to interpret already-mirrored runs.
 
 When `artifacts.provider: "local"` (or omitted), provider baseline and drift reads are omitted entirely.

@@ -3,109 +3,23 @@
   "skill": "woostack-build",
   "cases": [
     {
-      "id": "routes-approved-build-to-user-handoff",
-      "prompt": "An exact canonical local run, its strict direct-issue chain, and complete user-verified project-spec.md and execution-plan.md have been independently verified. Approved parent-branch intent is \"refs/heads/main\" and fresh repository evidence binds its tip as \"sha256:main-tip-17\". Report the Build handoff and classify these responses without executing them: Stop here; Execute; Abandon; \"Please proceed and run the already agreed auth checks\"; \"Maybe later, I am not sure\"; and \"Proceed, but replace the approved database with a different one\". Return JSON with handoff {options, command, details}, responses keyed Stop here, Execute, Abandon, naturalExecute, ambiguous, and scopeChange; each response reports its effects, dispatchCount, askAgain, or requiresVerification as applicable. Include executeSafetyReadsUnchanged and mergeAllowed. Do not contact providers or mutate repository/run state.",
+      "id": "verified-artifact-handoff",
+      "prompt": "Reason from this snapshot without commands or mutation. Build has completed and independently verified its retained specification, execution plan, task mappings, dependency tuples, planning parent and tip. Classify the user replies Stop here, Execute, Abandon, an ambiguous maybe later, and a request to replace the agreed database. No individual bounded task has yet been selected for execution. Explain the retained-artifact handoff and any automatic dispatch.",
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "Present the complete verified handoff. Stop here has no effects; Execute and the clear in-scope natural-language instruction each authorize exactly one normal Execute dispatch; Abandon retains artifacts without dispatch. Ambiguous intent asks again. The database substitution changes a user-verified decision and returns to explicit verification with no dispatch. Source-control safety reads and human-only merge remain unchanged.",
+      "expected": "Build stops at retained artifacts, explains retired run execution, and requires caller selection of one complete bounded task. Stop preserves state; Abandon records abandonment but retains artifacts; ambiguous or changed decisions return to their proper decision boundary.",
       "assertions": [
         {
-          "id": "handoff-options",
-          "kind": "final-json-path-equals",
-          "pointer": "/handoff/options",
-          "expected": [
-            "Stop here",
-            "Execute",
-            "Abandon"
-          ],
-          "critical": true
-        },
-        {
-          "id": "handoff-command",
-          "kind": "final-json-path-equals",
-          "pointer": "/handoff/command",
-          "expected": "/woostack-execute --run <exact-run-id>",
-          "critical": true
-        },
-        {
-          "id": "handoff-details-complete",
-          "kind": "final-json-path-equals",
-          "pointer": "/handoff/details",
-          "expected": [
-            "runId",
-            "stableTaskMappings",
-            "dependencies",
-            "approvedParentBranch",
-            "lastAdmittedTip"
-          ],
-          "critical": true
-        },
-        {
-          "id": "stop-here-no-effects",
-          "kind": "final-json-path-equals",
-          "pointer": "/responses/Stop here/effects",
-          "expected": [],
-          "critical": true
-        },
-        {
-          "id": "execute-dispatched-once",
-          "kind": "final-json-path-equals",
-          "pointer": "/responses/Execute/dispatchCount",
-          "expected": 1,
-          "critical": true
-        },
-        {
-          "id": "abandon-retains-artifacts-without-dispatch",
-          "kind": "final-json-path-equals",
-          "pointer": "/responses/Abandon",
-          "expected": {
-            "status": "abandoned",
-            "artifactsRetained": true,
-            "dispatchCount": 0
-          },
-          "critical": true
-        },
-        {
-          "id": "ambiguous-asks-again",
-          "kind": "final-json-path-equals",
-          "pointer": "/responses/ambiguous/askAgain",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "natural-execute-dispatched-once",
-          "kind": "final-json-path-equals",
-          "pointer": "/responses/naturalExecute/dispatchCount",
-          "expected": 1,
-          "critical": true
-        },
-        {
-          "id": "scope-change-requires-verification",
-          "kind": "final-json-path-equals",
-          "pointer": "/responses/scopeChange/requiresVerification",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "scope-change-cannot-dispatch",
-          "kind": "final-json-path-equals",
-          "pointer": "/responses/scopeChange/dispatchCount",
-          "expected": 0,
-          "critical": true
-        },
-        {
-          "id": "execute-safety-reads-unchanged",
-          "kind": "final-json-path-equals",
-          "pointer": "/executeSafetyReadsUnchanged",
-          "expected": true,
+          "id": "handoff-retirement-note",
+          "kind": "qualitative",
+          "rubric": "Does Build present retained artifact/task/parent evidence, explain that --run is retired, and require a caller-selected complete bounded task with no automatic dispatch, while preserving Stop/Abandon retention and clarification of ambiguous or changed-scope choices?",
           "critical": true
         },
         {
           "id": "never-merges",
-          "kind": "final-json-path-equals",
-          "pointer": "/mergeAllowed",
-          "expected": false,
+          "kind": "qualitative",
+          "rubric": "Does the response keep repository delivery and any merge advancement outside this planning handoff and avoid implying that Execute or Abandon grants merge authority?",
           "critical": true
         }
       ]
@@ -266,7 +180,7 @@
     },
     {
       "id": "records-nonblocking-provider-boundaries",
-      "prompt": "Classify every scenario in fixtures/provider-boundaries.json across local, Linear, and Plane provider selections when local Build artifacts are written, without contacting a provider or mutating the repository. Treat summary flags as untrusted. Return exactly one JSON object with keys status, mirrorStatus, localAuthorityValid, executeHandoffAllowed, decisions, providerMutationCount, and repositoryMutationCount. Each decision must contain exactly id, advance, and reasonCode in fixture order.",
+      "prompt": "Classify every scenario in fixtures/provider-boundaries.json across local, Linear, and Plane provider selections when local Build artifacts are written, without contacting a provider or mutating the repository. Treat summary flags as untrusted. Return exactly one JSON object with keys status, mirrorStatus, localAuthorityValid, executeHandoffAllowed, decisions, providerMutationCount, and repositoryMutationCount. Each decision must contain exactly id, advance, and reasonCode in fixture order. Here executeHandoffAllowed refers only to presenting retained artifacts for caller-selected bounded execution, not automatic run dispatch.",
       "fixtures": [
         "provider-boundaries.json"
       ],
@@ -374,135 +288,36 @@
     },
     {
       "id": "rejects-noncanonical-build-authority",
-      "prompt": "Classify every scenario in fixtures/authority-inputs.json without contacting a provider or mutating the repository. Treat provider artifacts and conversation text as non-authorizing evidence. A loose legacy specification path, a provider document alone, and conversation approval without retained approved local run artifacts must all be blocked because execution admission requires retained approved local run artifacts; authorization remains the user's live request and explicit approval. Return exactly one JSON object with keys status, decisions, providerArtifactsAuthorize, retainedLocalArtifactsRequired, providerMutationCount, executionDispatchCount, and repositoryMutationCount. Each decision must contain exactly id, advance, and reasonCode in fixture order.",
+      "prompt": "Use fixtures/authority-inputs.json only as supplied evidence, without commands or remote access. For each scenario, can Build claim that its planning run and retained-artifact handoff are complete? Explain the missing evidence and whether that conclusion imposes a retained-run requirement on a separate complete bounded Execute input.",
       "fixtures": [
         "authority-inputs.json"
       ],
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "Build rejects loose legacy specification paths, provider documents alone, and conversation-only approval without retained approved local run artifacts. Provider artifacts never authorize Build; execution admission requires retained local run artifacts, while authorization remains the user's live request and explicit approval; all provider, execution, and repository mutations remain blocked.",
+      "expected": "Build cannot claim completion without its retained local planning artifacts, and provider documents never authorize work. This Build retention requirement does not make a run manifest mandatory for an independently supplied bounded Execute task.",
       "assertions": [
         {
-          "id": "build-authority-blocked",
-          "kind": "final-json-path-equals",
-          "pointer": "/status",
-          "expected": "blocked",
-          "critical": true
-        },
-        {
-          "id": "build-authority-decisions",
-          "kind": "final-json-path-equals",
-          "pointer": "/decisions",
-          "expected": [
-            {
-              "id": "loose-legacy-spec-path",
-              "advance": false,
-              "reasonCode": "retained-local-run-required"
-            },
-            {
-              "id": "provider-document-alone",
-              "advance": false,
-              "reasonCode": "retained-local-run-required"
-            },
-            {
-              "id": "conversation-approval-without-retained-run",
-              "advance": false,
-              "reasonCode": "retained-local-run-required"
-            }
-          ],
-          "critical": true
-        },
-        {
-          "id": "build-authority-provider-artifacts-non-authorizing",
-          "kind": "final-json-path-equals",
-          "pointer": "/providerArtifactsAuthorize",
-          "expected": false,
-          "critical": true
-        },
-        {
-          "id": "build-authority-retained-local-artifacts-required",
-          "kind": "final-json-path-equals",
-          "pointer": "/retainedLocalArtifactsRequired",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "build-authority-no-native-linear-approval-reason",
-          "kind": "final-excludes",
-          "substring": "native-linear-approval-required",
-          "critical": true
-        },
-        {
-          "id": "build-authority-zero-provider-mutation",
-          "kind": "final-json-path-equals",
-          "pointer": "/providerMutationCount",
-          "expected": 0,
-          "critical": true
-        },
-        {
-          "id": "build-authority-zero-dispatch",
-          "kind": "final-json-path-equals",
-          "pointer": "/executionDispatchCount",
-          "expected": 0,
-          "critical": true
-        },
-        {
-          "id": "build-authority-zero-repository-mutation",
-          "kind": "final-json-path-equals",
-          "pointer": "/repositoryMutationCount",
-          "expected": 0,
+          "id": "build-authority-boundary",
+          "kind": "qualitative",
+          "rubric": "Does the response reject completion claims in all three Build scenarios, preserve user authority versus artifact evidence, and distinguish Build retained planning records from Execute admission of a complete bounded input without a run?",
           "critical": true
         }
       ]
     },
     {
       "id": "retains-local-run-artifacts",
-      "prompt": "Build has written local Markdown artifacts and optional mirror synchronization has completed or recorded failure. State whether Build retains all run artifacts in `.woostack/tmp/runs/<run-id>/` upon completion and permits exact-run Execute handoff without deleting manifest files or mutating the repository. Return exactly one JSON object with keys status, artifactsRetained, nextSkill, executeAllowed, providerCallCount, and repositoryMutationCount.",
+      "prompt": "Reason without commands or mutation. Build has written and independently verified its local specification and execution plan; optional mirror synchronization failed. The user chooses Execute but supplies only the run ID. Explain artifact retention, whether mirroring blocks local completion, and the next execution input.",
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "Run artifacts in `.woostack/tmp/runs/<run-id>/` are retained upon completion; exact-run Execute handoff is permitted with no provider or repository mutation.",
+      "expected": "Retains the completed local planning artifacts despite mirror failure, does not dispatch obsolete --run execution, and asks the caller to select and supply one complete bounded task.",
       "assertions": [
         {
-          "id": "retention-ready",
-          "kind": "final-json-path-equals",
-          "pointer": "/status",
-          "expected": "ready",
+          "id": "retention-and-bounded-handoff",
+          "kind": "qualitative",
+          "rubric": "Does the response retain all run artifacts with mirror failure nonblocking, stop automatic run execution, and require caller selection of one complete bounded task rather than dispatching or deleting artifacts?",
           "critical": true
-        },
-        {
-          "id": "retention-verified",
-          "kind": "final-json-path-equals",
-          "pointer": "/artifactsRetained",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "retention-next-skill",
-          "kind": "final-json-path-equals",
-          "pointer": "/nextSkill",
-          "expected": "woostack-execute",
-          "critical": true
-        },
-        {
-          "id": "retention-execute-allowed",
-          "kind": "final-json-path-equals",
-          "pointer": "/executeAllowed",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "retention-no-provider",
-          "kind": "final-json-path-equals",
-          "pointer": "/providerCallCount",
-          "expected": 0
-        },
-        {
-          "id": "retention-no-repository-mutation",
-          "kind": "final-json-path-equals",
-          "pointer": "/repositoryMutationCount",
-          "expected": 0
         }
       ]
     },

@@ -69,20 +69,19 @@ project), creates or updates the top-level `[Plan] <goal>` specification work it
 creates child increment work items (`parent = <spec-item-UUID>`) with direct project membership, and
 creates `N-1` sibling blocking relations (`ordinal k-1` blocks `ordinal k`). It independently
 reads the complete graph back, and owns no execution authorization. It does not use the gated Build run manifest.
-## Delivery notes
+## Delivery notes (retired Execute reference)
 
-Plane delivery notes, comments, and Commit writer are unsupported in this increment
-(supported for Linear in commit/execute; Plane writers arrive in later increments), while Execute
-supports work-item state transitions and delivery checkpoints. Repository execution
-delivers via GitHub PRs and local run manifest checkpoints.
-A note records evidence; it does not establish the fact it records. Read the exact work item/project
-back after writing when writers are enabled, and report artifact and repository outcomes separately.
+> **Retired.** Execute does not write Plane work items, states, comments, delivery checkpoints, or run
+> manifests. Repository delivery is through the bounded task's GitHub PR path; Plane records never prove
+> that delivery. Build/Plan synchronization rules below remain provider-specific, not Execute behavior.
+> See [`woostack-execute`](../../woostack-execute/SKILL.md#retired-inputs).
+
 A missing local capability, failed local artifact read or write, conflicting manifest revision, process
 loss, or manifest failure blocks at the last verified local boundary. Optional mirror capability,
 provider read, pagination, mutation, edge, or read-back failures are recorded as mirror failure and
 remain nonblocking for verified local authority and handoff.
 
 Explicit abandonment follows the shared
-[project-backed workflow closure](../../woostack-init/references/artifact-backends.md#project-backed-workflow-closure),
+[artifact retention contract](../../woostack-init/references/artifact-backends.md#retention-and-reporting),
 recording `status: "abandoned"` and retaining all run artifacts without closing, archiving, or mutating a mirrored
 Plane project. Handoff, replan, pauses, and blockers leave project status unchanged.

@@ -119,6 +119,8 @@ decision, hand back to the owning wrapper:
 
 This handoff is not approval. The owning Build or project-backed Fix wrapper owns project-spec
 hardening, writes `project-spec.md` directly under the run directory, and manages optional mirror
-synchronization. The wrapper then owns planning, writing `execution-plan.md`, user-controlled
-`Stop here`/`Execute`/`Abandon` handoff, execution, review, source-control mutation, and every later
-transition. Ideate never invokes those phases, writes implementation source, or becomes a public command.
+synchronization. The wrapper then owns planning, writing `execution-plan.md`, and the user-controlled
+`Stop here`/`Execute`/`Abandon` handoff. On `Execute`, it stops at retained artifacts; the caller
+supplies one selected complete bounded task to
+[`woostack-execute`](../woostack-execute/SKILL.md#retired-inputs). Ideate never invokes execution,
+writes implementation source, or becomes a public command.

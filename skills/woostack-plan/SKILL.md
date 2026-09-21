@@ -91,7 +91,7 @@ repository-local script or path already exists at the last admitted repository p
 increment whose native dependency orders it before use, or will be created by the same increment
 before use. Verify a manifest-defined command against its exact manifest entry and state any
 external runtime prerequisite. A missing or invented command blocks plan persistence; never defer
-existence checking to Execute.
+existence checking to the bounded task.
 
 
 ## Chain invariants
@@ -108,7 +108,7 @@ No missing, extra, branching, cyclic, or synthetic dependency is valid. The decl
 for ordinal 1 is the approved integration parent branch; for every later ordinal it is the
 immediately preceding increment's branch. Bind that stable parent-branch intent in
 each complete issue description and carry the last admitted tip as separate repository evidence for
-Execute's base-change check. A different branch identity, unknown task, ordinal gap, out-of-order edge,
+the bounded task's base-change check. A different branch identity, unknown task, ordinal gap, out-of-order edge,
 or unprovable parent relationship blocks the plan. Validate that every acceptance criterion is
 covered exactly by at least one increment and that every issue contract is complete before any provider
 mutation.
