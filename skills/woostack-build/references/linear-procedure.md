@@ -83,6 +83,6 @@ provider read, pagination, mutation, edge, or read-back failures are recorded as
 remain nonblocking for verified local authority and handoff.
 
 Explicit abandonment follows the shared
-[project-backed workflow closure](../../woostack-init/references/artifact-backends.md#project-backed-workflow-closure),
+[artifact retention contract](../../woostack-init/references/artifact-backends.md#retention-and-reporting),
 recording `status: "abandoned"` and retaining all run artifacts without closing a mirrored Linear project.
 Handoff, replan, pauses, and blockers leave project status unchanged.

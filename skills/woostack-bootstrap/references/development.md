@@ -32,8 +32,11 @@ for its resource types and authentication requirements. Keep credentials in the 
 authentication store, not in repository configuration.
 
 [`woostack-build`](../../woostack-build/SKILL.md) verifies requirements with the user, writes the
-specification and plan, then offers `Stop here`, `Execute`, or `Abandon`. Follow its
-current handoff procedure. Saved files and provider records do not grant permission to start work.
+specification and plan, then offers `Stop here`, `Execute`, or `Abandon`. Follow its current handoff
+procedure: automatic Execute dispatch is retired, so `Execute` stops at retained artifacts and the
+caller supplies one selected complete bounded task to
+[`woostack-execute`](../../woostack-execute/SKILL.md#retired-inputs). Saved files and provider records
+do not grant permission to start work.
 Bounded Fix and goal-only Change do not contact an artifact provider. Change's exact GitHub issue
 admission is the read-only exception defined in
 [`woostack-change`](../../woostack-change/SKILL.md#admit-an-exact-github-issue); it remains available

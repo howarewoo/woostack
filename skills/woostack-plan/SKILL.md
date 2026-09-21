@@ -91,7 +91,7 @@ repository-local script or path already exists at the last admitted repository p
 increment whose dependency orders it before use, or will be created by the same increment
 before use. Verify a manifest-defined command against its exact manifest entry and state any
 external runtime prerequisite. A missing or invented command blocks plan persistence; never defer
-existence checking to Execute.
+existence checking to the bounded task.
 
 
 ## Graph invariants
@@ -118,8 +118,8 @@ Orchestrate is the intended consumer; Plan does not choose a speculative branch 
 integration branch. A join without one verified parent containing all required changes remains a
 valid plan, with an explicit parent/integration decision required before that issue can run.
 
-Current Execute is sequential, not a DAG dispatcher. Do not hand a branching/multi-root/join plan
-to legacy Execute as runnable, including through `--run`; retain the graph and report the unsupported
+Bounded Execute takes one complete bounded task per invocation and is not a DAG dispatcher. Do not hand a branching/multi-root/join plan
+to Execute as runnable, including through retired `--run`; retain the graph and report the unsupported
 handoff before execution mutation. Planning and mirroring success do not prove execution readiness.
 
 ### Linear, Plane, and local-only sequence

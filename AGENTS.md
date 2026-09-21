@@ -66,16 +66,18 @@ project-backed fixes use the retained planning workflow below.
 Gated Ideate, Harden, and delegated Plan work is managed in one permission-restricted run manifest
 with zero provider cycles. Build and project-backed Fix write plain `project-spec.md` and `execution-plan.md`
 directly under `.woostack/tmp/runs/<run-id>/` and proceed directly to a user-controlled handoff
-(`Stop here`, `Execute`, `Abandon`). When `artifacts.provider` selects a configured provider, local
+(`Stop here`, `Execute`, `Abandon`); the handoff stops at retained artifacts and the caller supplies
+one selected complete bounded task to `/woostack-execute <bounded input>` (see
+[Execute retired inputs](skills/woostack-execute/SKILL.md#retired-inputs)). When `artifacts.provider` selects a configured provider, local
 artifacts mirror in bounded post-drafting cycles; mirror failure is recorded in the manifest and is
-nonblocking for local authority. Resuming work uses `/woostack-execute --run <exact-run-id> [--recheck]`,
-`/woostack-build --run <exact-run-id>`, or `/woostack-fix --run <exact-run-id>`. All run artifacts in
+nonblocking for local authority. Resuming planning work uses
+`/woostack-build --run <exact-run-id>` or `/woostack-fix --run <exact-run-id>`. All run artifacts in
 `.woostack/tmp/runs/<run-id>/` are retained upon completion and upon explicit abandonment to preserve
 an unbroken audit trail. Explicit abandonment sets `status: "abandoned"` in the manifest and does not
 mutate a mirrored provider project. Standalone Plan synchronization remains direct and unchanged. The
 shared
 [local run artifact and provider mirror contract](skills/woostack-init/references/artifact-backends.md#minimal-resumable-manifest-schema)
-owns local authority, manifest, ordering, recovery, retention, and Execute reads. The selected
+owns local authority, manifest, ordering, recovery, and retention. The selected
 [Linear](skills/woostack-init/references/artifact-providers/linear.md),
 [Plane](skills/woostack-init/references/artifact-providers/plane.md), or
 [GitHub](skills/woostack-init/references/artifact-providers/github.md) profile owns provider-specific
@@ -190,7 +192,7 @@ the repository's simplify/comments guidance.
   [`skills/woostack-change/SKILL.md`](skills/woostack-change/SKILL.md)
 - Plan-writing engine for the build loop (public command):
   [`skills/woostack-plan/SKILL.md`](skills/woostack-plan/SKILL.md)
-- Plan-execution engine for the build loop (public command):
+- Bounded task execution engine delivering one task through one PR (public command):
   [`skills/woostack-execute/SKILL.md`](skills/woostack-execute/SKILL.md)
 - Exploratory browser QA engine (public command; drives a running app via the `agent-browser`
   CLI, report-only findings under `.woostack/qa/`):

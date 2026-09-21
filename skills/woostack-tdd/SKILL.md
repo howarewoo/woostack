@@ -87,8 +87,8 @@ or other mutation and authors no lifecycle state.
 1. Validate the explicit target and bounded test-only contract.
 2. Read the repository's runner, file layout, naming conventions, and source boundaries needed to
    prove the work is exclusively tests. Broader or untestable scope returns to the owning workflow.
-3. Delegate the retained contract to `/woostack-execute <approved test contract>`, including exact
-   artifact flags only when the caller supplied them. The executor owns worktree isolation,
+3. Delegate the retained contract to `/woostack-execute <approved test contract>`, passing an exact
+   canonical GitHub issue URL only when the caller supplied one. The executor owns worktree isolation,
    test edits, the Red/characterization observation, Green/Refactor verification, review, commit,
    push, and PR submission.
 4. Report the contract provenance and executor handoff. Never claim test files changed until the
@@ -107,7 +107,7 @@ or other mutation and authors no lifecycle state.
 - **Single source for the kernel.** Consumers link this section; they do not duplicate it.
 - **Complete test contract before handoff.** An explicit target, observable contract, and direct
   repository boundary precede delegation.
-- **Canonical executor owns mutation.** `woostack-execute` alone owns worktree/ancestry, test edits,
+- **Canonical executor owns mutation.** The bounded `woostack-execute` task owns its worktree/ancestry, test edits,
   verification, review, commit, push, and PR submission.
 - **No direct repository mutation.** TDD writes no implementation, tests, local development
   records, artifact state, commit, PR, or merge state.

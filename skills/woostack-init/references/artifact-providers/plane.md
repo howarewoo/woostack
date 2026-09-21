@@ -115,49 +115,17 @@ Exact-source attribution and provenance distinguish:
 - **Child increment:** `parent = <spec-item-UUID>` (URL, UUID, or readable identifier such as `ENG-42`)
   represents exact increment task attribution and state.
 
-## Lifecycle and closure
+## Lifecycle and closure (retired Execute reference)
 
-Plane Execute requires one exact work-item reference via `--issue` (a top-level specification work
-item or one exact child increment work item); it does not accept `--project` as an executable scope.
-Resolve and independently read back `artifacts.plane.project` under the configured `baseUrl` and
-`workspace` before admitting target membership. Reject the target if its direct project membership
-does not match that configured project's native UUID.
+> **Retired.** Execute no longer accepts Plane work-item `--issue` scope, resolves Plane project
+> membership, mutates work-item states, runs a project/run controller, or closes provider resources.
+> Its only optional provider input is an exact canonical GitHub issue URL, read through `gh` and
+> associated by Commit. The retained Plane project/work-item/state schema and historical records
+> support Build/Plan mirroring only; see
+> [`woostack-execute`](../../../woostack-execute/SKILL.md#retired-inputs).
 
-Admit either:
-
-1. **Top-level specification work item (`parent = null`):** selects its complete, exact single-parent
-   child graph (`parent = <spec-item-UUID>`) and strict sequential sibling blocking relations
-   (`blocks`: exact adjacent-ordinal endpoint edges `ordinal k-1` blocks `ordinal k` for `k = 2..N`).
-   Plane specification mode repeatedly cycles the lowest unfinished child in strict ordinal order until all
-   children finish or a stop marker is read.
-2. **Exact child increment work item (`parent = <spec-item-UUID>`):** validates the parent specification
-   item's complete child and relation graph, strict adjacent-ordinal blocking relations, and the selected child's
-   immediate unique predecessor. Execute runs only that exact child once and touches no sibling.
-
-Reject repository projects (`--project`), foreign projects/work items, cross-parent relations (relations
-connecting children of different specification parents or foreign items), malformed, skipped, or reversed
-relations, missing, duplicate, ambiguous, or unparented children before any mutation.
-Plane Execute mutates and reads back only configured work-item states. Resolve
-`artifacts.plane.issueStates.executing`, `inReview`, `done`, and `blocked` by exact native UUID or exact
-case-sensitive name within canonical baseUrl/workspace/project scope. Reject missing, ambiguous,
-duplicate, foreign-scope, or group-mismatched states. Read back native ID, name, and group.
-
-Allowable groups are: executing and inReview require `started`; done requires `completed`; blocked
-requires `started`. An exact current state is an idempotent no-op. Provider-mode transition failure
-blocks at that lifecycle boundary; optional local-run mirror failure after an authoritative local
-checkpoint remains nonblocking.
-
-Parent lifecycle aggregates its child increment work items:
-
-- **Executing:** the parent specification work item transitions to `executing` when active work begins
-  or resumes on any child (if not already `executing`), reading back native ID, name, and group.
-- **Blocked:** if any selected child blocks or encounters an execution failure, transition both that
-  child and the parent specification work item to `blocked` with recovery evidence.
-- **Done:** the parent specification work item transitions to `done` only after all its child increment
-  work items have completed (`is_finished` is true for all children).
-
-Never mutate, synthesize, archive, or gate on Plane project status. Handoff, abandonment, blockage,
-and completion retain the exact project unchanged and record only work-item and local recovery state.
+The configured Plane project remains repository association context; its status is never changed by
+woostack. Handoff, abandonment, blockers, and completion leave the project unchanged.
 
 ## Migration, doctor, and retained run guards
 

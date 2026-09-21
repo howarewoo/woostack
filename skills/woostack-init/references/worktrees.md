@@ -14,13 +14,13 @@ Linear is optional artifact context only.
 
 ## 1. Identity, workspace resolution, and placement
 
-Every active implementation task has one stable task ID, one controller/engineer run, one branch,
-and one workspace. The approved task/run contract supplies identity; the deterministic path plus
-direct Git and canonical GitHub evidence supplies repository state. For filesystem
-placement when creating a managed task worktree, require the ID to be one non-empty path component
-matching `^[A-Za-z0-9][A-Za-z0-9._-]*$`; reject separators, whitespace, and any other encoding. Never
-derive identity from a title, ordinal, recent activity, issue key, shortened hash, or disposable
-directory name.
+Every active implementation task has one stable task ID, one branch, and one workspace. A planning
+workflow may additionally supply a retained run ID; that ID is not executable scope. The approved
+task contract supplies identity; the deterministic path plus direct Git and canonical GitHub evidence
+supplies repository state. Require the ID to be one non-empty path component matching
+`^[A-Za-z0-9][A-Za-z0-9._-]*$`; reject separators, whitespace, and any other encoding. Never derive
+identity from a title, ordinal, recent activity, issue key, shortened hash, or disposable directory
+name.
 
 Resolve workspace isolation mode inline from the active session:
 
@@ -46,10 +46,11 @@ primary_root="$(cd "$git_common_dir/.." && pwd -P)"
 In-process subagents: all subagents spawned via the host harness (such as OMP `task` or Claude Code
 `Task`) run within the host's session context and receive the resolved task workspace path
 (`$current_toplevel` or the managed worktree path). They pin their working directory to that workspace
-and communicate with the controller through the host's in-process IPC.
+and communicate with the calling workflow through the host's in-process IPC.
 
-Optional exact Linear project/issue IDs may be recorded as descriptive context, but cannot replace
-the stable task ID or any repository identity.
+Optional exact GitHub issue association may be recorded as descriptive context alongside the stable
+task ID (see [`woostack-execute`](../../woostack-execute/SKILL.md#optional-exact-github-issue)), but it
+replaces neither the stable task ID nor any repository identity.
 ## 2. Verified start point
 
 A caller supplies one complete task-bound ancestry contract with stable approved `parentBranch`
@@ -77,35 +78,37 @@ responsibility surfaces, runs, worktrees, branches, and PRs are disjoint.
 ### Plan dependency child
 
 A child declares its complete logical prerequisite set and exactly one predecessor as its concrete
-Git parent for checkout. Require that parent's canonical branch identity, complete delivery
-checkpoint, commit, canonical PR identity/head/base, fully paginated current-head reviews, merge
-state, and approved parent ancestry to agree; the selected parent branch and SHA must contain every
-required predecessor change. Read available checks for observation only (incomplete or unavailable
-check reads never block). Apply the shared repository advancement contract before using a newly
-observed descendant head for fresh child work. Start retained work from its recorded state and
-revalidate ancestry, diff, and PR base; never silently rebase, reset, recreate, or attach it to a
-different branch. Every non-parent predecessor must have canonical GitHub merge evidence represented
-in the child's permitted ancestry. If no delivered branch contains all prerequisites, pause for an
-explicit integration-parent decision before admission; do not invent an integration branch or
-ordinal chain. Reject inferred order, rewritten heads, open non-parent dependencies, duplicate
-ancestry, conflicts, or partial proof.
+Git parent for checkout. The caller supplies the prerequisite and parent-readiness evidence; the
+bounded task verifies it as ordinary evidence rather than discovering dependencies. Require that
+parent's canonical branch identity, complete delivery checkpoint, commit, canonical PR identity/head/base,
+fully paginated current-head reviews, merge state, and approved parent ancestry to agree; the selected
+parent branch and SHA must contain every required predecessor change. Read available checks for
+observation only (incomplete or unavailable check reads never block). Apply the shared repository
+advancement contract before using a newly observed descendant head for fresh child work. Start
+retained work from its recorded state and revalidate ancestry, diff, and PR base; never silently
+rebase, reset, recreate, or attach it to a different branch. Every non-parent predecessor must have
+canonical GitHub merge evidence represented in the child's permitted ancestry. If no delivered branch
+contains all prerequisites, pause for an explicit integration-parent decision before admission; do
+not invent an integration branch or ordinal chain. Reject inferred order, rewritten heads, open
+non-parent dependencies, duplicate ancestry, conflicts, or partial proof.
 
 ## 3. Direct identity and collision evidence
 
 Before create, resume, review-reopen, handoff, commit, or teardown, take one complete snapshot of:
 
-- the approved stable task/run contract and resolved task workspace path;
+- the approved bounded-task contract and, when present, retained planning-run identity and workspace
+  path;
 - `git worktree list --porcelain`, including every checkout and its branch/HEAD;
 - filesystem existence at the workspace path;
 - local and remote branches/commits;
 - staged, unstaged, untracked, conflict, and diff state in the relevant checkout;
 - approved `parentBranch`, retained start/old-parent SHA, and Git DAG ancestry; in Graphite mode,
   also verify Graphite parent/stack metadata against that proof;
-- fully paginated canonical GitHub PR head/base/state/reviews/threads; and
-- available GitHub checks for observation only (incomplete or unavailable check reads never block).
-The task/run identity comes from the active approved controller contract or one completely verified
-handoff packet. Repository reads cannot invent, replace, or transfer that identity. Branch display
-text, a directory name, chat, recent activity, and artifact fields are never allocation evidence.
+- fully paginated canonical GitHub PR head/base/state/reviews/threads and available checks; required
+  checks remain delivery gates, while incomplete or unavailable non-required checks are observational.
+The task identity comes from the active approved task contract or one completely verified handoff
+packet. Repository reads cannot invent, replace, or transfer that identity. Branch display text, a
+directory name, chat, recent activity, and artifact fields are never allocation evidence.
 
 Require the workspace path to agree with both the filesystem and `git worktree list --porcelain`, the
 branch to have at most one checkout, and every retained branch/commit/PR fact to form one consistent
@@ -122,9 +125,10 @@ Classify the complete direct-evidence snapshot:
    branch and dirty/diff state match the approved task contract, and ancestry/parent facts agree.
 3. **One exact retained state:** resume only when the deterministic path, worktree listing, branch,
    recorded start SHA/head, parent branch, ancestry, dirty/index/diff state, commits, and PR facts
-   agree with the same approved task/run contract or completely verified handoff successor. A
-   compatible descendant tip on the same canonical parent branch does not invalidate content
-   receipts: preserve the retained start/head and freshly revalidate ancestry, diff, and PR base.
+   agree with the same approved task contract (and any retained planning-run evidence) or a completely
+   verified handoff successor. A compatible descendant tip on the same canonical parent branch does
+   not invalidate content receipts: preserve the retained start/head and freshly revalidate ancestry,
+   diff, and PR base.
 4. **Verified review-reopen:** the prior implementation worktree is absent (or pre-isolated workspace
    is clean), the same canonical branch and PR/head remain, the approved review-fix contract names the
    same stable task, the workspace path is free, and the branch is not checked out elsewhere.
@@ -171,21 +175,27 @@ clean it automatically.
 
 Every source edit, implementation test, formatter, and task-scoped verification command runs from
 the exact task workspace (`$current_toplevel` for pre-isolated checkouts or the managed worktree path).
-Before the first tracked edit and every worker redispatch, recheck the approved stable task/run
-contract, workspace path, `git worktree list --porcelain`, branch, parent, allowed surface, and
-complete dirty/index/diff identity.
+Before the first tracked edit and every optional worker redispatch, recheck the approved bounded-task
+contract and, when present, retained planning-run evidence, workspace path, `git worktree list
+--porcelain`, branch, parent, allowed surface, and complete dirty/index/diff identity.
 
-The coding worker never:
+Keep one writer per overlapping task surface. A timeout or lost worker response leaves ownership
+unknown: before overlapping redispatch, inline takeover, staging, or delivery, establish that the
+previous writer stopped or relinquished ownership, then refresh the repository evidence above.
+If liveness or ownership remains unknown, preserve the workspace and block overlapping mutation.
+
+An optional coding worker never:
 
 - reads or writes another task workspace or worktree;
 - changes allocation, scope, plan dependencies, or acceptance;
-- commits, pushes, submits, opens/updates a PR, restacks, or merges when the controller owns those
-  boundaries;
+- commits, pushes, submits, opens/updates a PR, restacks, or merges when the calling workflow owns those
+  boundaries; bounded Execute's optional implementation worker may use Execute's own Commit path for
+  its admitted task because Execute owns that delivery;
 - accesses optional artifact credentials or mutates artifacts; or
 - moves, removes, or repairs a task worktree.
-
 An unexpected file, branch, checkout, worktree, dirty-state, or ancestry change blocks. Recovery is
-decided only from the approved task/run contract and fresh direct repository evidence.
+decided only from the approved task contract, any retained planning-run evidence, and fresh direct
+repository evidence.
 
 After a completed child is delivered, the selected backend reconciles affected branches and
 descendants from verified remote state. Native Git uses a local ancestry merge; Graphite uses its
@@ -197,7 +207,7 @@ backends as error recovery.
 
 ## 8. Teardown
 
-Teardown applies only after direct reads prove the task's controller-owned boundary is complete:
+Teardown applies only after direct reads prove the task's workflow-owned boundary is complete:
 finalized commit, clean task workspace, canonical PR/head/base when submission was requested, and no
 unresolved local mutation.
 

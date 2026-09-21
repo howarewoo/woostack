@@ -46,7 +46,7 @@ provider-specific scope, capabilities, identities, and lifecycle behavior.
 | Diagnose and fix a defect, bounded or project-backed | `woostack-fix` |
 | Implement a bounded non-bug enhancement or refactor in one PR | `woostack-change` |
 | Turn an approved specification into reviewable increments | `woostack-plan` |
-| Execute approved work from an exact run or provider resource | `woostack-execute` |
+| Implement one bounded task and deliver one PR | `woostack-execute` |
 | Commit current changes and submit or update their PR | `woostack-commit` |
 | Review a pull request | Use [Pullfrog](https://pullfrog.com/). |
 | Address every unresolved thread on one exact existing PR | `woostack-address-comments` |

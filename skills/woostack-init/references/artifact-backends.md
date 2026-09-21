@@ -274,14 +274,17 @@ A legacy run whose manifest uses an earlier unsupported schema is rejected befor
 or source mutation. It is retained unchanged for diagnosis or explicit abandonment; Execute never
 partially converts it.
 
-## Task mappings and execution checkpoints
+## Task mappings and delivery checkpoints (retained planning schema)
 
-Every task key appears exactly once in the display-ordered plan, mappings, and `taskExecutions`.
-Dependencies reference only known keys and satisfy the selected planning profile. Persisting a
-GitHub DAG does not make it executable by the current local-run controller: legacy Execute admits
-only its strict sequential contract and must stop before mutation on unsupported graphs, retaining
-their artifacts and edges unchanged. Distinct run IDs may execute concurrently; tasks within a
-local run do not. No local-run orchestration is introduced by provider graph support.
+> **Retired execution path.** The task-mapping/`taskExecutions` run controller below is retained
+> planning-artifact schema only. Execute no longer runs projects, ordinals, sibling progression,
+> or worker checkpoints; it takes one complete bounded task per invocation under
+> [`woostack-execute`](../../woostack-execute/SKILL.md#retired-inputs). Build/Fix stop at retained
+> artifacts and ask the caller to supply one selected complete bounded task. Final orchestration
+> automation is later work; do not treat this schema as an execution protocol.
+
+The retained schema records each task key once in the display-ordered plan, mappings, and `taskExecutions`.
+Dependencies reference only known keys and satisfy the selected planning profile; they preserve the planning order for historical artifacts. No Execute invocation schedules siblings or advances a run. Persisting a GitHub DAG does not make it executable; retain its artifacts and edges unchanged. No local-run orchestration is introduced by provider graph support.
 
 `taskExecutions[stableTaskKey]` has one of these states:
 
@@ -293,18 +296,19 @@ local run do not. No local-run orchestration is introduced by provider graph sup
   evidence. Git DAG and canonical PR base must agree with that parent proof; an upstream ref or
   merge-base alone is insufficient. Graphite metadata is additional evidence only in Graphite mode.
 
-For an admitted sequential Execute run, select the lowest unfinished ordinal whose predecessor has a complete delivered checkpoint. Change
-`pending` to `active` and read the manifest back before creating a worktree or changing source. Persist
-blocked and delivered checkpoints by manifest compare-and-swap and independently read back every
-field. Never infer delivery from an issue status, recreate a known branch/commit/PR, remove a dirty or
-unverified worktree, or advance a sibling from a partial checkpoint.
-
 <a id="repository-ancestry-and-base-change-detection"></a>
 
-## Planning base and Execute choice
+## Planning base and bounded-task base evidence
+
+> **Retired execution path.** The manifest-checkpoint flow below is retained planning-side base
+> evidence for one bounded task. Execute admits a caller-supplied complete parent/base contract as
+> ordinary evidence under
+> [`woostack-execute`](../../woostack-execute/SKILL.md#admit-the-workspace-and-ancestry); it writes no
+> manifest checkpoints and requires no run controller. A planning workflow records its parent/tip
+> evidence here; the bounded task carries the needed parent-readiness facts forward.
 
 The manifest records the exact canonical integration parent branch and its observed tip when planning
-finishes. Execute independently resolves the same branch and current tip before any provider,
+finishes. A bounded task independently resolves the same branch and current tip before any provider,
 worktree, branch, or source mutation.
 
 The last admitted tip is task-scoped; a newly selected task starts from its planning tip, not another
@@ -318,8 +322,8 @@ has a different tip, assess impact read-only before any mutation:
    dependencies, build/configuration, and repository rules that the task relies on; disjoint paths
    alone do not prove independence.
 2. If the evidence establishes no impact on that work, admit the current tip and continue without
-   a question. Carry the compared tips and concrete no-impact rationale into the next ordinary
-   execution checkpoint and independently read it back. Preserve the original planning tip.
+   a question. Carry the compared tips and concrete no-impact rationale forward as ordinary task
+   evidence. Preserve the original planning tip.
 3. If changes affect the work, or bounded inspection cannot establish independence, report the
    compared tips and concrete impact or uncertainty. Make zero mutations and ask whether the user
    wants to continue, presenting exactly these options:
@@ -328,9 +332,9 @@ has a different tip, assess impact read-only before any mutation:
 - `Revise spec/plan`
 - `Stop`
 
-`Continue` records the user's explicit choice and the newly observed tip in the next manifest
-checkpoint, reads it back, and then continues from that selected base.
-`Revise spec/plan` stops Execute and returns to the owning workflow; because artifact files are
+`Continue` records the user's explicit choice and the newly observed tip as ordinary task evidence,
+then continues from that selected base.
+`Revise spec/plan` stops the bounded task and returns to the owning workflow; because artifact files are
 write-once, revised content is written in a new run and the prior run is retained. `Stop` leaves the
 run and repository unchanged and reports the observed difference.
 
@@ -338,16 +342,15 @@ Reassess if the parent moves again or a different task is selected; a no-impact 
 to the compared tips and assessed work. Admission never bypasses ancestry, collision, parent-branch,
 or PR-base safeguards, and never authorizes silently rebasing, resetting, or recreating retained work.
 
-For a non-root task, independently observe every declared prerequisite's delivered checkpoint,
-commit, canonical PR head/base, reviews, and available current-head checks. Keep that logical
-prerequisite set separate from the exactly one concrete Git parent used for checkout. Apply the
-selected profile's parent-selection policy and require recorded parent-branch/SHA ancestry proof
-that contains every required predecessor before dispatch. A join without that proof pauses for an
-explicit integration-parent decision; it must not invent an integration branch or ordinal chain.
-Report failed, pending, unavailable, or incomplete checks for observation only. Check outcomes do
-not mutate prerequisites, choose a base, or create a blocker by themselves.
-
-## Optional mirror synchronization
+For a non-root task, the caller supplies every declared prerequisite's delivered checkpoint,
+commit, canonical PR head/base, reviews, and available current-head checks as complete parent-readiness
+evidence; the bounded task verifies them as ordinary evidence rather than discovering dependencies.
+Keep that logical prerequisite set separate from the exactly one concrete Git parent used for checkout.
+Apply the selected profile's parent-selection policy and require recorded parent-branch/SHA ancestry
+proof that contains every required predecessor before dispatch. A join without that proof pauses for
+an explicit integration-parent decision; it must not invent an integration branch or ordinal chain.
+Report failed, pending, unavailable, or incomplete checks for observation only. Check outcomes do not
+mutate prerequisites, choose a base, or create a blocker by themselves.
 
 When a non-local provider is selected, a completed local artifact may be mirrored in one bounded
 cycle. Immediately re-read the exact project, every retained direct resource, complete memberships
@@ -432,30 +435,21 @@ relations, or project membership. Build/Fix uses this only during its optional b
 Ideate, Harden, and delegated Plan remain provider-free while drafting. Standalone Plan uses it only
 for explicitly selected direct persistence.
 
-## Active Execute project-start synchronization
+## Retired Execute provider lifecycle and closure
 
-Provider-mode Execute resolves lifecycle mappings, allowable native categories/groups, and supported
-project or direct-resource transitions through the selected provider profile. Missing, ambiguous,
-duplicate, foreign, incomplete, or category/group-mismatched resolution blocks before lifecycle,
-worktree, or source mutation.
+> **Retired.** Execute no longer performs provider lifecycle synchronization, project-start
+> transitions, or project closure. The rules below are retained historical reference for
+> already-mirrored provider state only. A bounded Execute task makes no development-artifact
+> provider calls without `--issue`, and with it uses only the exact issue's read-only admission
+> plus Commit association under
+> [`woostack-execute`](../../woostack-execute/SKILL.md#optional-exact-github-issue). Standalone Plan
+> closure below remains the only live project-closure path in this section.
 
-Immediately before a supported transition, re-read the exact resource and retain one stable mutation
-identity. An exact current state is an idempotent no-op. Otherwise update only the profile-supported
-native lifecycle field and independently read back resource identity, native state identity/name/
-category or group, revision when available, and mutation identity. Terminal conflicts, failure, or
-unknown read-back block without retrying or continuing.
+Historical provider-mode Execute lifecycle mappings and project-start transitions are retained only as
+schema/provenance context for existing mirrored records; they are not a live workflow. Bounded Execute
+does not resolve, mutate, or close provider projects, work items, or statuses.
 
-Local run mode bypasses provider lifecycle synchronization. The selected profile defines whether
-project lifecycle mutation exists; unsupported project status must never be synthesized from a
-work-item state or workflow outcome.
-
-## Project-backed workflow closure
-
-Explicit abandonment is terminal and distinct from handoff, replanning, or a blocker. Build and
-project-backed Fix first atomically record `status: "abandoned"` in the local manifest, retain the run,
-stop repository work, and leave any mirrored project unchanged.
-
-A provider-backed standalone Plan or Execute closure uses only the retained exact project. If none
+A provider-backed standalone Plan closure uses only the retained exact project. If none
 exists, report nothing to close and create nothing. The selected provider profile defines whether a
 project closure transition is supported and its exact mutation/read-back contract. An unsupported
 project lifecycle is a required no-op, never a reason to synthesize, archive, delete, or bulk-change
