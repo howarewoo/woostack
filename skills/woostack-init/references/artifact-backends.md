@@ -222,7 +222,10 @@ draft specification and `draft.unresolvedQuestions`, artifact paths, ordered sta
 dependencies, `stableTaskMappings`, `taskExecutions`, and `mirror`. Retain their existing shapes.
 Artifact paths must identify only the fixed plain files above; the helper never follows arbitrary
 manifest-supplied paths. Workflow admission validates the complete draft/task/dependency references
-and content, while the manifest remains recovery state rather than a substitute for final artifact
+and applies the selected profile's graph rules: [GitHub prerequisite DAGs](artifact-providers/github.md#issue-identity-and-graph)
+or the existing Linear, Plane, and local-only sequence. The existing task/dependency collections
+represent both without a manifest version change or edge migration. Ordinals alone never rewrite
+retained dependency mappings. The manifest remains recovery state rather than a substitute for final artifact
 prose. Storage success is not specification approval, a resolved question, task admission, provider
 acceptance, or Git/GitHub delivery evidence.
 
@@ -273,9 +276,12 @@ partially converts it.
 
 ## Task mappings and execution checkpoints
 
-Every task key appears exactly once in the ordered plan, mappings, and `taskExecutions`. Dependencies
-reference only known keys and form the admitted strict sequence. Distinct run IDs may execute
-concurrently; tasks within one run do not.
+Every task key appears exactly once in the display-ordered plan, mappings, and `taskExecutions`.
+Dependencies reference only known keys and satisfy the selected planning profile. Persisting a
+GitHub DAG does not make it executable by the current local-run controller: legacy Execute admits
+only its strict sequential contract and must stop before mutation on unsupported graphs, retaining
+their artifacts and edges unchanged. Distinct run IDs may execute concurrently; tasks within a
+local run do not. No local-run orchestration is introduced by provider graph support.
 
 `taskExecutions[stableTaskKey]` has one of these states:
 
@@ -287,7 +293,7 @@ concurrently; tasks within one run do not.
   evidence. Git DAG and canonical PR base must agree with that parent proof; an upstream ref or
   merge-base alone is insufficient. Graphite metadata is additional evidence only in Graphite mode.
 
-Select the lowest unfinished ordinal whose predecessor has a complete delivered checkpoint. Change
+For an admitted sequential Execute run, select the lowest unfinished ordinal whose predecessor has a complete delivered checkpoint. Change
 `pending` to `active` and read the manifest back before creating a worktree or changing source. Persist
 blocked and delivered checkpoints by manifest compare-and-swap and independently read back every
 field. Never infer delivery from an issue status, recreate a known branch/commit/PR, remove a dirty or
@@ -332,10 +338,12 @@ Reassess if the parent moves again or a different task is selected; a no-impact 
 to the compared tips and assessed work. Admission never bypasses ancestry, collision, parent-branch,
 or PR-base safeguards, and never authorizes silently rebasing, resetting, or recreating retained work.
 
-For a non-root task, independently observe the predecessor's delivered checkpoint, commit, canonical
-PR head/base, reviews, and available current-head checks. Report failed, pending, unavailable, or
-incomplete checks for observation only. Check outcomes do not mutate the predecessor, choose a base,
-or create a blocker by themselves.
+For a non-root task, independently observe every declared prerequisite's delivered checkpoint,
+commit, canonical PR head/base, reviews, and available current-head checks. Logical prerequisites
+do not select a Git parent; apply the selected profile's parent-selection policy and require concrete
+parent/SHA ancestry proof before dispatch. Report failed, pending, unavailable, or incomplete checks
+for observation only. Check outcomes do not mutate prerequisites, choose a base, or create a blocker
+by themselves.
 
 ## Optional mirror synchronization
 

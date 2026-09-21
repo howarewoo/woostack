@@ -77,8 +77,23 @@ it allocates recovery markers (`<!-- woostack-project-mutation:<UUID> -->` and
 `<!-- woostack-issue-mutation:<UUID> -->`) so later reads can detect an uncertain creation result
 without creating a duplicate.
 
-A sequence of $N$ increments has $N-1$ native `blocked-by` dependencies: each increment blocks the
-next. Project item order and written descriptions cannot replace these dependencies.
+GitHub plans use explicit prerequisite graphs. Independent roots, forks, chains, and joins are
+valid; only genuine prerequisites become native `blocked-by` edges. Stable ordinals control display
+and tie-breaking, not dependencies or Git ancestry. Existing chain edges are preserved unless the
+approved plan explicitly changes them.
+
+Each root records its approved integration parent. Dependents record their prerequisites and a
+parent-selection policy; a concrete Git parent and SHA require verified delivered-branch evidence.
+A join without one parent containing all required changes remains valid but cannot run until an
+explicit parent/integration decision is made. Planning never creates an automatic integration branch.
+
+Synchronization validates the complete graph before mutations and independently reads back every
+issue, membership, and exact edge. Missing or foreign endpoints, ambiguous identities, cycles, and
+incomplete pagination block; they do not expand Project scope.
+
+Current Execute remains sequential. GitHub DAG planning and mirroring do not make branching graphs
+executable through `--project`, `--issue`, or `--run`. Those graphs remain retained for the intended
+Orchestrate consumer; Linear, Plane, and local-only planning keep their existing sequence.
 
 ## Lifecycle and closure
 
@@ -107,8 +122,8 @@ records `status: "abandoned"` in the manifest and retains all local artifacts in
 
 | Skill | GitHub provider behavior |
 | --- | --- |
-| [woostack-build](/docs/skills/woostack-build) | Resolves an exact supplied Project or creates one `[Build] <goal>` Project; writes specification to managed README; creates parentless issues with direct Project membership; and wires $N-1$ native blocked-by edges. |
-| [woostack-fix](/docs/skills/woostack-fix) | Bounded Fix is provider-free. Project-backed Fix proves root cause before provider access, preserves an exact source `--issue` as context with a direct Project link, and creates/reconciles a separate strict increment chain. |
+| [woostack-build](/docs/skills/woostack-build) | Resolves an exact supplied Project or creates one `[Build] <goal>` Project; writes specification to managed README; creates parentless issues with direct Project membership; and wires explicit prerequisite edges. |
+| [woostack-fix](/docs/skills/woostack-fix) | Bounded Fix is provider-free. Project-backed Fix proves root cause before provider access, preserves an exact source `--issue` as context with a direct Project link, and creates/reconciles a separate increment DAG. |
 | [woostack-plan](/docs/skills/woostack-plan) | Standalone Plan requires an exact existing canonical Project URL (`orgs/<owner>/projects/<N>` or `users/<owner>/projects/<N>`) and synchronizes the direct issue graph; delegated Plan is provider-free. |
 | [woostack-execute](/docs/skills/woostack-execute) | Accepts exact Project/issue URLs in provider mode or a local run ID. The [lifecycle rules above](#lifecycle-and-closure) distinguish provider transitions from local checkpoints and PR-association recovery. |
 | [woostack-commit](/docs/skills/woostack-commit) | Exact `--issue <url>` attribution; writes optional requested delivery note with read-back; note failure is nonblocking. |

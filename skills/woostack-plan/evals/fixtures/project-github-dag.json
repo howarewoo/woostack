@@ -1,0 +1,1307 @@
+{
+  "caller": {
+    "exactProjectUrl": "https://github.com/orgs/acme/projects/7",
+    "provider": "github"
+  },
+  "repository": {
+    "canonicalUrl": "https://github.com/acme/app",
+    "integrationParentBranch": "refs/heads/main",
+    "baseFiles": {
+      "scripts/check.py": "from pathlib import Path\nimport sys\nfor name in sys.argv[1:]:\n    path = Path(name)\n    assert path.read_text().strip() == path.stem, name\n"
+    },
+    "externalPrerequisites": [
+      "Python 3",
+      "Git"
+    ]
+  },
+  "project": {
+    "id": "project-7",
+    "owner": "acme",
+    "canonicalRepository": "https://github.com/acme/app",
+    "readme": "Human prefix\n<!-- woostack-spec-start -->\nAdd the declared outputs, retaining existing outputs.\n<!-- woostack-spec-end -->\nHuman suffix",
+    "statusOptions": {
+      "planned": "todo",
+      "executing": "active",
+      "inReview": "review",
+      "done": "done",
+      "blocked": "blocked"
+    }
+  },
+  "candidateTasks": [
+    {
+      "taskId": "task-a",
+      "ordinal": 20,
+      "predecessors": [],
+      "outcome": "Add a output consuming declared prerequisite outputs.",
+      "scope": [
+        "src/a.txt"
+      ],
+      "nonGoals": [
+        "Change other outputs or schedule execution"
+      ],
+      "acceptance": [
+        "src/a.txt contains exactly a followed by a newline; prerequisite outputs remain unchanged."
+      ],
+      "verification": {
+        "command": "python3 scripts/check.py src/a.txt",
+        "commandSource": "scripts/check.py at admitted base",
+        "pathSources": {
+          "src/a.txt": "same increment"
+        }
+      },
+      "smoke": "Run the focused command and read the new output; repeat without changing prerequisite files.",
+      "risks": [
+        "Missing prerequisite output prevents execution."
+      ],
+      "intendedPRs": 1,
+      "parentSelection": {
+        "integrationParent": "refs/heads/main"
+      }
+    },
+    {
+      "taskId": "task-b",
+      "ordinal": 40,
+      "predecessors": [],
+      "outcome": "Add b output consuming declared prerequisite outputs.",
+      "scope": [
+        "src/b.txt"
+      ],
+      "nonGoals": [
+        "Change other outputs or schedule execution"
+      ],
+      "acceptance": [
+        "src/b.txt contains exactly b followed by a newline; prerequisite outputs remain unchanged."
+      ],
+      "verification": {
+        "command": "python3 scripts/check.py src/b.txt",
+        "commandSource": "scripts/check.py at admitted base",
+        "pathSources": {
+          "src/b.txt": "same increment"
+        }
+      },
+      "smoke": "Run the focused command and read the new output; repeat without changing prerequisite files.",
+      "risks": [
+        "Missing prerequisite output prevents execution."
+      ],
+      "intendedPRs": 1,
+      "parentSelection": {
+        "integrationParent": "refs/heads/main"
+      }
+    },
+    {
+      "taskId": "task-c",
+      "ordinal": 10,
+      "predecessors": [
+        "task-a"
+      ],
+      "outcome": "Add c output consuming declared prerequisite outputs.",
+      "scope": [
+        "src/c.txt"
+      ],
+      "nonGoals": [
+        "Change other outputs or schedule execution"
+      ],
+      "acceptance": [
+        "src/c.txt contains exactly c followed by a newline; prerequisite outputs remain unchanged."
+      ],
+      "verification": {
+        "command": "python3 scripts/check.py src/a.txt src/c.txt",
+        "commandSource": "scripts/check.py at admitted base",
+        "pathSources": {
+          "src/a.txt": "task-a",
+          "src/c.txt": "same increment"
+        }
+      },
+      "smoke": "Run the focused command and read the new output; repeat without changing prerequisite files.",
+      "risks": [
+        "Missing prerequisite output prevents execution."
+      ],
+      "intendedPRs": 1,
+      "parentSelection": {
+        "policy": "Select one verified delivered parent containing every prerequisite; otherwise pause for an explicit parent/integration decision."
+      }
+    },
+    {
+      "taskId": "task-d",
+      "ordinal": 30,
+      "predecessors": [
+        "task-b",
+        "task-c"
+      ],
+      "outcome": "Add d output consuming declared prerequisite outputs.",
+      "scope": [
+        "src/d.txt"
+      ],
+      "nonGoals": [
+        "Change other outputs or schedule execution"
+      ],
+      "acceptance": [
+        "src/d.txt contains exactly d followed by a newline; prerequisite outputs remain unchanged."
+      ],
+      "verification": {
+        "command": "python3 scripts/check.py src/b.txt src/c.txt src/d.txt",
+        "commandSource": "scripts/check.py at admitted base",
+        "pathSources": {
+          "src/b.txt": "task-b",
+          "src/c.txt": "task-c",
+          "src/d.txt": "same increment"
+        }
+      },
+      "smoke": "Run the focused command and read the new output; repeat without changing prerequisite files.",
+      "risks": [
+        "Missing prerequisite output prevents execution."
+      ],
+      "intendedPRs": 1,
+      "parentSelection": {
+        "policy": "Select one verified delivered parent containing every prerequisite; otherwise pause for an explicit parent/integration decision."
+      }
+    }
+  ],
+  "stableTaskMappings": {
+    "task-a": null,
+    "task-b": null,
+    "task-c": null,
+    "task-d": null
+  },
+  "cycles": [
+    {
+      "events": [
+        {
+          "operation": "read-project",
+          "item": {
+            "id": "project-7",
+            "owner": "acme",
+            "canonicalRepository": "https://github.com/acme/app",
+            "readme": "Human prefix\n<!-- woostack-spec-start -->\nAdd the declared outputs, retaining existing outputs.\n<!-- woostack-spec-end -->\nHuman suffix",
+            "statusOptions": {
+              "planned": "todo",
+              "executing": "active",
+              "inReview": "review",
+              "done": "done",
+              "blocked": "blocked"
+            }
+          },
+          "complete": true,
+          "pageInfo": {
+            "hasNextPage": false,
+            "endCursor": null
+          }
+        },
+        {
+          "operation": "list-project-issues",
+          "items": [],
+          "complete": true,
+          "pageInfo": {
+            "hasNextPage": false,
+            "endCursor": null
+          }
+        },
+        {
+          "operation": "list-project-memberships",
+          "items": [],
+          "complete": true,
+          "pageInfo": {
+            "hasNextPage": false,
+            "endCursor": null
+          }
+        },
+        {
+          "operation": "read-dependencies",
+          "items": [],
+          "complete": true,
+          "pageInfo": {
+            "hasNextPage": false,
+            "endCursor": null
+          }
+        },
+        {
+          "operation": "discover-marker",
+          "marker": "<!-- woostack-issue-mutation:70000000-0000-4000-8000-000000000101 -->",
+          "scopes": [
+            "open",
+            "closed"
+          ],
+          "items": [],
+          "complete": true,
+          "pageInfo": {
+            "hasNextPage": false,
+            "endCursor": null
+          }
+        },
+        {
+          "operation": "create-issue",
+          "request": {
+            "id": "issue-101",
+            "url": "https://github.com/acme/app/issues/101",
+            "repository": "https://github.com/acme/app",
+            "parent": null,
+            "state": "OPEN",
+            "title": "Add a output consuming declared prerequisite outputs.",
+            "body": "<!-- woostack-issue-mutation:70000000-0000-4000-8000-000000000101 -->\n{\"acceptance\": [\"src/a.txt contains exactly a followed by a newline; prerequisite outputs remain unchanged.\"], \"intendedPRs\": 1, \"nonGoals\": [\"Change other outputs or schedule execution\"], \"ordinal\": 20, \"outcome\": \"Add a output consuming declared prerequisite outputs.\", \"parentSelection\": {\"integrationParent\": \"refs/heads/main\"}, \"predecessors\": [], \"risks\": [\"Missing prerequisite output prevents execution.\"], \"scope\": [\"src/a.txt\"], \"smoke\": \"Run the focused command and read the new output; repeat without changing prerequisite files.\", \"taskId\": \"task-a\", \"verification\": {\"command\": \"python3 scripts/check.py src/a.txt\", \"commandSource\": \"scripts/check.py at admitted base\", \"pathSources\": {\"src/a.txt\": \"same increment\"}}}",
+            "labels": [
+              "human-label"
+            ],
+            "assignees": [
+              "human-owner"
+            ]
+          },
+          "response": {
+            "id": "issue-101"
+          }
+        },
+        {
+          "operation": "read-issue",
+          "item": {
+            "id": "issue-101",
+            "url": "https://github.com/acme/app/issues/101",
+            "repository": "https://github.com/acme/app",
+            "parent": null,
+            "state": "OPEN",
+            "title": "Add a output consuming declared prerequisite outputs.",
+            "body": "<!-- woostack-issue-mutation:70000000-0000-4000-8000-000000000101 -->\n{\"acceptance\": [\"src/a.txt contains exactly a followed by a newline; prerequisite outputs remain unchanged.\"], \"intendedPRs\": 1, \"nonGoals\": [\"Change other outputs or schedule execution\"], \"ordinal\": 20, \"outcome\": \"Add a output consuming declared prerequisite outputs.\", \"parentSelection\": {\"integrationParent\": \"refs/heads/main\"}, \"predecessors\": [], \"risks\": [\"Missing prerequisite output prevents execution.\"], \"scope\": [\"src/a.txt\"], \"smoke\": \"Run the focused command and read the new output; repeat without changing prerequisite files.\", \"taskId\": \"task-a\", \"verification\": {\"command\": \"python3 scripts/check.py src/a.txt\", \"commandSource\": \"scripts/check.py at admitted base\", \"pathSources\": {\"src/a.txt\": \"same increment\"}}}",
+            "labels": [
+              "human-label"
+            ],
+            "assignees": [
+              "human-owner"
+            ]
+          },
+          "complete": true,
+          "pageInfo": {
+            "hasNextPage": false,
+            "endCursor": null
+          }
+        },
+        {
+          "operation": "read-membership",
+          "items": [],
+          "complete": true,
+          "pageInfo": {
+            "hasNextPage": false,
+            "endCursor": null
+          }
+        },
+        {
+          "operation": "add-membership",
+          "request": {
+            "id": "item-101",
+            "issue": "issue-101",
+            "project": "project-7",
+            "status": "todo",
+            "customFields": {
+              "Priority": "human-priority"
+            }
+          },
+          "response": {
+            "id": "item-101"
+          }
+        },
+        {
+          "operation": "read-membership",
+          "items": [
+            {
+              "id": "item-101",
+              "issue": "issue-101",
+              "project": "project-7",
+              "status": "todo",
+              "customFields": {
+                "Priority": "human-priority"
+              }
+            }
+          ],
+          "complete": true,
+          "pageInfo": {
+            "hasNextPage": false,
+            "endCursor": null
+          }
+        },
+        {
+          "operation": "discover-marker",
+          "marker": "<!-- woostack-issue-mutation:70000000-0000-4000-8000-000000000102 -->",
+          "scopes": [
+            "open",
+            "closed"
+          ],
+          "items": [],
+          "complete": true,
+          "pageInfo": {
+            "hasNextPage": false,
+            "endCursor": null
+          }
+        },
+        {
+          "operation": "create-issue",
+          "request": {
+            "id": "issue-102",
+            "url": "https://github.com/acme/app/issues/102",
+            "repository": "https://github.com/acme/app",
+            "parent": null,
+            "state": "OPEN",
+            "title": "Add b output consuming declared prerequisite outputs.",
+            "body": "<!-- woostack-issue-mutation:70000000-0000-4000-8000-000000000102 -->\n{\"acceptance\": [\"src/b.txt contains exactly b followed by a newline; prerequisite outputs remain unchanged.\"], \"intendedPRs\": 1, \"nonGoals\": [\"Change other outputs or schedule execution\"], \"ordinal\": 40, \"outcome\": \"Add b output consuming declared prerequisite outputs.\", \"parentSelection\": {\"integrationParent\": \"refs/heads/main\"}, \"predecessors\": [], \"risks\": [\"Missing prerequisite output prevents execution.\"], \"scope\": [\"src/b.txt\"], \"smoke\": \"Run the focused command and read the new output; repeat without changing prerequisite files.\", \"taskId\": \"task-b\", \"verification\": {\"command\": \"python3 scripts/check.py src/b.txt\", \"commandSource\": \"scripts/check.py at admitted base\", \"pathSources\": {\"src/b.txt\": \"same increment\"}}}",
+            "labels": [
+              "human-label"
+            ],
+            "assignees": [
+              "human-owner"
+            ]
+          },
+          "response": {
+            "id": "issue-102"
+          }
+        },
+        {
+          "operation": "read-issue",
+          "item": {
+            "id": "issue-102",
+            "url": "https://github.com/acme/app/issues/102",
+            "repository": "https://github.com/acme/app",
+            "parent": null,
+            "state": "OPEN",
+            "title": "Add b output consuming declared prerequisite outputs.",
+            "body": "<!-- woostack-issue-mutation:70000000-0000-4000-8000-000000000102 -->\n{\"acceptance\": [\"src/b.txt contains exactly b followed by a newline; prerequisite outputs remain unchanged.\"], \"intendedPRs\": 1, \"nonGoals\": [\"Change other outputs or schedule execution\"], \"ordinal\": 40, \"outcome\": \"Add b output consuming declared prerequisite outputs.\", \"parentSelection\": {\"integrationParent\": \"refs/heads/main\"}, \"predecessors\": [], \"risks\": [\"Missing prerequisite output prevents execution.\"], \"scope\": [\"src/b.txt\"], \"smoke\": \"Run the focused command and read the new output; repeat without changing prerequisite files.\", \"taskId\": \"task-b\", \"verification\": {\"command\": \"python3 scripts/check.py src/b.txt\", \"commandSource\": \"scripts/check.py at admitted base\", \"pathSources\": {\"src/b.txt\": \"same increment\"}}}",
+            "labels": [
+              "human-label"
+            ],
+            "assignees": [
+              "human-owner"
+            ]
+          },
+          "complete": true,
+          "pageInfo": {
+            "hasNextPage": false,
+            "endCursor": null
+          }
+        },
+        {
+          "operation": "read-membership",
+          "items": [],
+          "complete": true,
+          "pageInfo": {
+            "hasNextPage": false,
+            "endCursor": null
+          }
+        },
+        {
+          "operation": "add-membership",
+          "request": {
+            "id": "item-102",
+            "issue": "issue-102",
+            "project": "project-7",
+            "status": "todo",
+            "customFields": {
+              "Priority": "human-priority"
+            }
+          },
+          "response": {
+            "id": "item-102"
+          }
+        },
+        {
+          "operation": "read-membership",
+          "items": [
+            {
+              "id": "item-102",
+              "issue": "issue-102",
+              "project": "project-7",
+              "status": "todo",
+              "customFields": {
+                "Priority": "human-priority"
+              }
+            }
+          ],
+          "complete": true,
+          "pageInfo": {
+            "hasNextPage": false,
+            "endCursor": null
+          }
+        },
+        {
+          "operation": "discover-marker",
+          "marker": "<!-- woostack-issue-mutation:70000000-0000-4000-8000-000000000103 -->",
+          "scopes": [
+            "open",
+            "closed"
+          ],
+          "items": [],
+          "complete": true,
+          "pageInfo": {
+            "hasNextPage": false,
+            "endCursor": null
+          }
+        },
+        {
+          "operation": "create-issue",
+          "request": {
+            "id": "issue-103",
+            "url": "https://github.com/acme/app/issues/103",
+            "repository": "https://github.com/acme/app",
+            "parent": null,
+            "state": "OPEN",
+            "title": "Add c output consuming declared prerequisite outputs.",
+            "body": "<!-- woostack-issue-mutation:70000000-0000-4000-8000-000000000103 -->\n{\"acceptance\": [\"src/c.txt contains exactly c followed by a newline; prerequisite outputs remain unchanged.\"], \"intendedPRs\": 1, \"nonGoals\": [\"Change other outputs or schedule execution\"], \"ordinal\": 10, \"outcome\": \"Add c output consuming declared prerequisite outputs.\", \"parentSelection\": {\"policy\": \"Select one verified delivered parent containing every prerequisite; otherwise pause for an explicit parent/integration decision.\"}, \"predecessors\": [\"task-a\"], \"risks\": [\"Missing prerequisite output prevents execution.\"], \"scope\": [\"src/c.txt\"], \"smoke\": \"Run the focused command and read the new output; repeat without changing prerequisite files.\", \"taskId\": \"task-c\", \"verification\": {\"command\": \"python3 scripts/check.py src/a.txt src/c.txt\", \"commandSource\": \"scripts/check.py at admitted base\", \"pathSources\": {\"src/a.txt\": \"task-a\", \"src/c.txt\": \"same increment\"}}}",
+            "labels": [
+              "human-label"
+            ],
+            "assignees": [
+              "human-owner"
+            ]
+          },
+          "response": {
+            "id": "issue-103"
+          }
+        },
+        {
+          "operation": "read-issue",
+          "item": {
+            "id": "issue-103",
+            "url": "https://github.com/acme/app/issues/103",
+            "repository": "https://github.com/acme/app",
+            "parent": null,
+            "state": "OPEN",
+            "title": "Add c output consuming declared prerequisite outputs.",
+            "body": "<!-- woostack-issue-mutation:70000000-0000-4000-8000-000000000103 -->\n{\"acceptance\": [\"src/c.txt contains exactly c followed by a newline; prerequisite outputs remain unchanged.\"], \"intendedPRs\": 1, \"nonGoals\": [\"Change other outputs or schedule execution\"], \"ordinal\": 10, \"outcome\": \"Add c output consuming declared prerequisite outputs.\", \"parentSelection\": {\"policy\": \"Select one verified delivered parent containing every prerequisite; otherwise pause for an explicit parent/integration decision.\"}, \"predecessors\": [\"task-a\"], \"risks\": [\"Missing prerequisite output prevents execution.\"], \"scope\": [\"src/c.txt\"], \"smoke\": \"Run the focused command and read the new output; repeat without changing prerequisite files.\", \"taskId\": \"task-c\", \"verification\": {\"command\": \"python3 scripts/check.py src/a.txt src/c.txt\", \"commandSource\": \"scripts/check.py at admitted base\", \"pathSources\": {\"src/a.txt\": \"task-a\", \"src/c.txt\": \"same increment\"}}}",
+            "labels": [
+              "human-label"
+            ],
+            "assignees": [
+              "human-owner"
+            ]
+          },
+          "complete": true,
+          "pageInfo": {
+            "hasNextPage": false,
+            "endCursor": null
+          }
+        },
+        {
+          "operation": "read-membership",
+          "items": [],
+          "complete": true,
+          "pageInfo": {
+            "hasNextPage": false,
+            "endCursor": null
+          }
+        },
+        {
+          "operation": "add-membership",
+          "request": {
+            "id": "item-103",
+            "issue": "issue-103",
+            "project": "project-7",
+            "status": "todo",
+            "customFields": {
+              "Priority": "human-priority"
+            }
+          },
+          "response": {
+            "id": "item-103"
+          }
+        },
+        {
+          "operation": "read-membership",
+          "items": [
+            {
+              "id": "item-103",
+              "issue": "issue-103",
+              "project": "project-7",
+              "status": "todo",
+              "customFields": {
+                "Priority": "human-priority"
+              }
+            }
+          ],
+          "complete": true,
+          "pageInfo": {
+            "hasNextPage": false,
+            "endCursor": null
+          }
+        },
+        {
+          "operation": "discover-marker",
+          "marker": "<!-- woostack-issue-mutation:70000000-0000-4000-8000-000000000104 -->",
+          "scopes": [
+            "open",
+            "closed"
+          ],
+          "items": [],
+          "complete": true,
+          "pageInfo": {
+            "hasNextPage": false,
+            "endCursor": null
+          }
+        },
+        {
+          "operation": "create-issue",
+          "request": {
+            "id": "issue-104",
+            "url": "https://github.com/acme/app/issues/104",
+            "repository": "https://github.com/acme/app",
+            "parent": null,
+            "state": "OPEN",
+            "title": "Add d output consuming declared prerequisite outputs.",
+            "body": "<!-- woostack-issue-mutation:70000000-0000-4000-8000-000000000104 -->\n{\"acceptance\": [\"src/d.txt contains exactly d followed by a newline; prerequisite outputs remain unchanged.\"], \"intendedPRs\": 1, \"nonGoals\": [\"Change other outputs or schedule execution\"], \"ordinal\": 30, \"outcome\": \"Add d output consuming declared prerequisite outputs.\", \"parentSelection\": {\"policy\": \"Select one verified delivered parent containing every prerequisite; otherwise pause for an explicit parent/integration decision.\"}, \"predecessors\": [\"task-b\", \"task-c\"], \"risks\": [\"Missing prerequisite output prevents execution.\"], \"scope\": [\"src/d.txt\"], \"smoke\": \"Run the focused command and read the new output; repeat without changing prerequisite files.\", \"taskId\": \"task-d\", \"verification\": {\"command\": \"python3 scripts/check.py src/b.txt src/c.txt src/d.txt\", \"commandSource\": \"scripts/check.py at admitted base\", \"pathSources\": {\"src/b.txt\": \"task-b\", \"src/c.txt\": \"task-c\", \"src/d.txt\": \"same increment\"}}}",
+            "labels": [
+              "human-label"
+            ],
+            "assignees": [
+              "human-owner"
+            ]
+          },
+          "response": {
+            "id": "issue-104"
+          }
+        },
+        {
+          "operation": "read-issue",
+          "item": {
+            "id": "issue-104",
+            "url": "https://github.com/acme/app/issues/104",
+            "repository": "https://github.com/acme/app",
+            "parent": null,
+            "state": "OPEN",
+            "title": "Add d output consuming declared prerequisite outputs.",
+            "body": "<!-- woostack-issue-mutation:70000000-0000-4000-8000-000000000104 -->\n{\"acceptance\": [\"src/d.txt contains exactly d followed by a newline; prerequisite outputs remain unchanged.\"], \"intendedPRs\": 1, \"nonGoals\": [\"Change other outputs or schedule execution\"], \"ordinal\": 30, \"outcome\": \"Add d output consuming declared prerequisite outputs.\", \"parentSelection\": {\"policy\": \"Select one verified delivered parent containing every prerequisite; otherwise pause for an explicit parent/integration decision.\"}, \"predecessors\": [\"task-b\", \"task-c\"], \"risks\": [\"Missing prerequisite output prevents execution.\"], \"scope\": [\"src/d.txt\"], \"smoke\": \"Run the focused command and read the new output; repeat without changing prerequisite files.\", \"taskId\": \"task-d\", \"verification\": {\"command\": \"python3 scripts/check.py src/b.txt src/c.txt src/d.txt\", \"commandSource\": \"scripts/check.py at admitted base\", \"pathSources\": {\"src/b.txt\": \"task-b\", \"src/c.txt\": \"task-c\", \"src/d.txt\": \"same increment\"}}}",
+            "labels": [
+              "human-label"
+            ],
+            "assignees": [
+              "human-owner"
+            ]
+          },
+          "complete": true,
+          "pageInfo": {
+            "hasNextPage": false,
+            "endCursor": null
+          }
+        },
+        {
+          "operation": "read-membership",
+          "items": [],
+          "complete": true,
+          "pageInfo": {
+            "hasNextPage": false,
+            "endCursor": null
+          }
+        },
+        {
+          "operation": "add-membership",
+          "request": {
+            "id": "item-104",
+            "issue": "issue-104",
+            "project": "project-7",
+            "status": "todo",
+            "customFields": {
+              "Priority": "human-priority"
+            }
+          },
+          "response": {
+            "id": "item-104"
+          }
+        },
+        {
+          "operation": "read-membership",
+          "items": [
+            {
+              "id": "item-104",
+              "issue": "issue-104",
+              "project": "project-7",
+              "status": "todo",
+              "customFields": {
+                "Priority": "human-priority"
+              }
+            }
+          ],
+          "complete": true,
+          "pageInfo": {
+            "hasNextPage": false,
+            "endCursor": null
+          }
+        },
+        {
+          "operation": "read-issue",
+          "item": {
+            "id": "issue-101",
+            "url": "https://github.com/acme/app/issues/101",
+            "repository": "https://github.com/acme/app",
+            "parent": null,
+            "state": "OPEN",
+            "title": "Add a output consuming declared prerequisite outputs.",
+            "body": "<!-- woostack-issue-mutation:70000000-0000-4000-8000-000000000101 -->\n{\"acceptance\": [\"src/a.txt contains exactly a followed by a newline; prerequisite outputs remain unchanged.\"], \"intendedPRs\": 1, \"nonGoals\": [\"Change other outputs or schedule execution\"], \"ordinal\": 20, \"outcome\": \"Add a output consuming declared prerequisite outputs.\", \"parentSelection\": {\"integrationParent\": \"refs/heads/main\"}, \"predecessors\": [], \"risks\": [\"Missing prerequisite output prevents execution.\"], \"scope\": [\"src/a.txt\"], \"smoke\": \"Run the focused command and read the new output; repeat without changing prerequisite files.\", \"taskId\": \"task-a\", \"verification\": {\"command\": \"python3 scripts/check.py src/a.txt\", \"commandSource\": \"scripts/check.py at admitted base\", \"pathSources\": {\"src/a.txt\": \"same increment\"}}}",
+            "labels": [
+              "human-label"
+            ],
+            "assignees": [
+              "human-owner"
+            ]
+          },
+          "complete": true,
+          "pageInfo": {
+            "hasNextPage": false,
+            "endCursor": null
+          }
+        },
+        {
+          "operation": "read-membership",
+          "items": [
+            {
+              "id": "item-101",
+              "issue": "issue-101",
+              "project": "project-7",
+              "status": "todo",
+              "customFields": {
+                "Priority": "human-priority"
+              }
+            }
+          ],
+          "complete": true,
+          "pageInfo": {
+            "hasNextPage": false,
+            "endCursor": null
+          }
+        },
+        {
+          "operation": "read-issue",
+          "item": {
+            "id": "issue-103",
+            "url": "https://github.com/acme/app/issues/103",
+            "repository": "https://github.com/acme/app",
+            "parent": null,
+            "state": "OPEN",
+            "title": "Add c output consuming declared prerequisite outputs.",
+            "body": "<!-- woostack-issue-mutation:70000000-0000-4000-8000-000000000103 -->\n{\"acceptance\": [\"src/c.txt contains exactly c followed by a newline; prerequisite outputs remain unchanged.\"], \"intendedPRs\": 1, \"nonGoals\": [\"Change other outputs or schedule execution\"], \"ordinal\": 10, \"outcome\": \"Add c output consuming declared prerequisite outputs.\", \"parentSelection\": {\"policy\": \"Select one verified delivered parent containing every prerequisite; otherwise pause for an explicit parent/integration decision.\"}, \"predecessors\": [\"task-a\"], \"risks\": [\"Missing prerequisite output prevents execution.\"], \"scope\": [\"src/c.txt\"], \"smoke\": \"Run the focused command and read the new output; repeat without changing prerequisite files.\", \"taskId\": \"task-c\", \"verification\": {\"command\": \"python3 scripts/check.py src/a.txt src/c.txt\", \"commandSource\": \"scripts/check.py at admitted base\", \"pathSources\": {\"src/a.txt\": \"task-a\", \"src/c.txt\": \"same increment\"}}}",
+            "labels": [
+              "human-label"
+            ],
+            "assignees": [
+              "human-owner"
+            ]
+          },
+          "complete": true,
+          "pageInfo": {
+            "hasNextPage": false,
+            "endCursor": null
+          }
+        },
+        {
+          "operation": "read-membership",
+          "items": [
+            {
+              "id": "item-103",
+              "issue": "issue-103",
+              "project": "project-7",
+              "status": "todo",
+              "customFields": {
+                "Priority": "human-priority"
+              }
+            }
+          ],
+          "complete": true,
+          "pageInfo": {
+            "hasNextPage": false,
+            "endCursor": null
+          }
+        },
+        {
+          "operation": "add-dependency",
+          "request": [
+            "issue-101",
+            "issue-103"
+          ],
+          "response": [
+            "issue-101",
+            "issue-103"
+          ]
+        },
+        {
+          "operation": "read-dependencies",
+          "items": [
+            [
+              "issue-101",
+              "issue-103"
+            ]
+          ],
+          "complete": true,
+          "pageInfo": {
+            "hasNextPage": false,
+            "endCursor": null
+          }
+        },
+        {
+          "operation": "read-issue",
+          "item": {
+            "id": "issue-102",
+            "url": "https://github.com/acme/app/issues/102",
+            "repository": "https://github.com/acme/app",
+            "parent": null,
+            "state": "OPEN",
+            "title": "Add b output consuming declared prerequisite outputs.",
+            "body": "<!-- woostack-issue-mutation:70000000-0000-4000-8000-000000000102 -->\n{\"acceptance\": [\"src/b.txt contains exactly b followed by a newline; prerequisite outputs remain unchanged.\"], \"intendedPRs\": 1, \"nonGoals\": [\"Change other outputs or schedule execution\"], \"ordinal\": 40, \"outcome\": \"Add b output consuming declared prerequisite outputs.\", \"parentSelection\": {\"integrationParent\": \"refs/heads/main\"}, \"predecessors\": [], \"risks\": [\"Missing prerequisite output prevents execution.\"], \"scope\": [\"src/b.txt\"], \"smoke\": \"Run the focused command and read the new output; repeat without changing prerequisite files.\", \"taskId\": \"task-b\", \"verification\": {\"command\": \"python3 scripts/check.py src/b.txt\", \"commandSource\": \"scripts/check.py at admitted base\", \"pathSources\": {\"src/b.txt\": \"same increment\"}}}",
+            "labels": [
+              "human-label"
+            ],
+            "assignees": [
+              "human-owner"
+            ]
+          },
+          "complete": true,
+          "pageInfo": {
+            "hasNextPage": false,
+            "endCursor": null
+          }
+        },
+        {
+          "operation": "read-membership",
+          "items": [
+            {
+              "id": "item-102",
+              "issue": "issue-102",
+              "project": "project-7",
+              "status": "todo",
+              "customFields": {
+                "Priority": "human-priority"
+              }
+            }
+          ],
+          "complete": true,
+          "pageInfo": {
+            "hasNextPage": false,
+            "endCursor": null
+          }
+        },
+        {
+          "operation": "read-issue",
+          "item": {
+            "id": "issue-104",
+            "url": "https://github.com/acme/app/issues/104",
+            "repository": "https://github.com/acme/app",
+            "parent": null,
+            "state": "OPEN",
+            "title": "Add d output consuming declared prerequisite outputs.",
+            "body": "<!-- woostack-issue-mutation:70000000-0000-4000-8000-000000000104 -->\n{\"acceptance\": [\"src/d.txt contains exactly d followed by a newline; prerequisite outputs remain unchanged.\"], \"intendedPRs\": 1, \"nonGoals\": [\"Change other outputs or schedule execution\"], \"ordinal\": 30, \"outcome\": \"Add d output consuming declared prerequisite outputs.\", \"parentSelection\": {\"policy\": \"Select one verified delivered parent containing every prerequisite; otherwise pause for an explicit parent/integration decision.\"}, \"predecessors\": [\"task-b\", \"task-c\"], \"risks\": [\"Missing prerequisite output prevents execution.\"], \"scope\": [\"src/d.txt\"], \"smoke\": \"Run the focused command and read the new output; repeat without changing prerequisite files.\", \"taskId\": \"task-d\", \"verification\": {\"command\": \"python3 scripts/check.py src/b.txt src/c.txt src/d.txt\", \"commandSource\": \"scripts/check.py at admitted base\", \"pathSources\": {\"src/b.txt\": \"task-b\", \"src/c.txt\": \"task-c\", \"src/d.txt\": \"same increment\"}}}",
+            "labels": [
+              "human-label"
+            ],
+            "assignees": [
+              "human-owner"
+            ]
+          },
+          "complete": true,
+          "pageInfo": {
+            "hasNextPage": false,
+            "endCursor": null
+          }
+        },
+        {
+          "operation": "read-membership",
+          "items": [
+            {
+              "id": "item-104",
+              "issue": "issue-104",
+              "project": "project-7",
+              "status": "todo",
+              "customFields": {
+                "Priority": "human-priority"
+              }
+            }
+          ],
+          "complete": true,
+          "pageInfo": {
+            "hasNextPage": false,
+            "endCursor": null
+          }
+        },
+        {
+          "operation": "add-dependency",
+          "request": [
+            "issue-102",
+            "issue-104"
+          ],
+          "response": [
+            "issue-102",
+            "issue-104"
+          ]
+        },
+        {
+          "operation": "read-dependencies",
+          "items": [
+            [
+              "issue-101",
+              "issue-103"
+            ],
+            [
+              "issue-102",
+              "issue-104"
+            ]
+          ],
+          "complete": true,
+          "pageInfo": {
+            "hasNextPage": false,
+            "endCursor": null
+          }
+        },
+        {
+          "operation": "read-issue",
+          "item": {
+            "id": "issue-103",
+            "url": "https://github.com/acme/app/issues/103",
+            "repository": "https://github.com/acme/app",
+            "parent": null,
+            "state": "OPEN",
+            "title": "Add c output consuming declared prerequisite outputs.",
+            "body": "<!-- woostack-issue-mutation:70000000-0000-4000-8000-000000000103 -->\n{\"acceptance\": [\"src/c.txt contains exactly c followed by a newline; prerequisite outputs remain unchanged.\"], \"intendedPRs\": 1, \"nonGoals\": [\"Change other outputs or schedule execution\"], \"ordinal\": 10, \"outcome\": \"Add c output consuming declared prerequisite outputs.\", \"parentSelection\": {\"policy\": \"Select one verified delivered parent containing every prerequisite; otherwise pause for an explicit parent/integration decision.\"}, \"predecessors\": [\"task-a\"], \"risks\": [\"Missing prerequisite output prevents execution.\"], \"scope\": [\"src/c.txt\"], \"smoke\": \"Run the focused command and read the new output; repeat without changing prerequisite files.\", \"taskId\": \"task-c\", \"verification\": {\"command\": \"python3 scripts/check.py src/a.txt src/c.txt\", \"commandSource\": \"scripts/check.py at admitted base\", \"pathSources\": {\"src/a.txt\": \"task-a\", \"src/c.txt\": \"same increment\"}}}",
+            "labels": [
+              "human-label"
+            ],
+            "assignees": [
+              "human-owner"
+            ]
+          },
+          "complete": true,
+          "pageInfo": {
+            "hasNextPage": false,
+            "endCursor": null
+          }
+        },
+        {
+          "operation": "read-membership",
+          "items": [
+            {
+              "id": "item-103",
+              "issue": "issue-103",
+              "project": "project-7",
+              "status": "todo",
+              "customFields": {
+                "Priority": "human-priority"
+              }
+            }
+          ],
+          "complete": true,
+          "pageInfo": {
+            "hasNextPage": false,
+            "endCursor": null
+          }
+        },
+        {
+          "operation": "read-issue",
+          "item": {
+            "id": "issue-104",
+            "url": "https://github.com/acme/app/issues/104",
+            "repository": "https://github.com/acme/app",
+            "parent": null,
+            "state": "OPEN",
+            "title": "Add d output consuming declared prerequisite outputs.",
+            "body": "<!-- woostack-issue-mutation:70000000-0000-4000-8000-000000000104 -->\n{\"acceptance\": [\"src/d.txt contains exactly d followed by a newline; prerequisite outputs remain unchanged.\"], \"intendedPRs\": 1, \"nonGoals\": [\"Change other outputs or schedule execution\"], \"ordinal\": 30, \"outcome\": \"Add d output consuming declared prerequisite outputs.\", \"parentSelection\": {\"policy\": \"Select one verified delivered parent containing every prerequisite; otherwise pause for an explicit parent/integration decision.\"}, \"predecessors\": [\"task-b\", \"task-c\"], \"risks\": [\"Missing prerequisite output prevents execution.\"], \"scope\": [\"src/d.txt\"], \"smoke\": \"Run the focused command and read the new output; repeat without changing prerequisite files.\", \"taskId\": \"task-d\", \"verification\": {\"command\": \"python3 scripts/check.py src/b.txt src/c.txt src/d.txt\", \"commandSource\": \"scripts/check.py at admitted base\", \"pathSources\": {\"src/b.txt\": \"task-b\", \"src/c.txt\": \"task-c\", \"src/d.txt\": \"same increment\"}}}",
+            "labels": [
+              "human-label"
+            ],
+            "assignees": [
+              "human-owner"
+            ]
+          },
+          "complete": true,
+          "pageInfo": {
+            "hasNextPage": false,
+            "endCursor": null
+          }
+        },
+        {
+          "operation": "read-membership",
+          "items": [
+            {
+              "id": "item-104",
+              "issue": "issue-104",
+              "project": "project-7",
+              "status": "todo",
+              "customFields": {
+                "Priority": "human-priority"
+              }
+            }
+          ],
+          "complete": true,
+          "pageInfo": {
+            "hasNextPage": false,
+            "endCursor": null
+          }
+        },
+        {
+          "operation": "add-dependency",
+          "request": [
+            "issue-103",
+            "issue-104"
+          ],
+          "response": [
+            "issue-103",
+            "issue-104"
+          ]
+        },
+        {
+          "operation": "read-dependencies",
+          "items": [
+            [
+              "issue-101",
+              "issue-103"
+            ],
+            [
+              "issue-102",
+              "issue-104"
+            ],
+            [
+              "issue-103",
+              "issue-104"
+            ]
+          ],
+          "complete": true,
+          "pageInfo": {
+            "hasNextPage": false,
+            "endCursor": null
+          }
+        },
+        {
+          "operation": "read-project",
+          "item": {
+            "id": "project-7",
+            "owner": "acme",
+            "canonicalRepository": "https://github.com/acme/app",
+            "readme": "Human prefix\n<!-- woostack-spec-start -->\nAdd the declared outputs, retaining existing outputs.\n<!-- woostack-spec-end -->\nHuman suffix",
+            "statusOptions": {
+              "planned": "todo",
+              "executing": "active",
+              "inReview": "review",
+              "done": "done",
+              "blocked": "blocked"
+            }
+          },
+          "complete": true,
+          "pageInfo": {
+            "hasNextPage": false,
+            "endCursor": null
+          }
+        },
+        {
+          "operation": "list-project-issues",
+          "items": [
+            {
+              "id": "issue-101",
+              "url": "https://github.com/acme/app/issues/101",
+              "repository": "https://github.com/acme/app",
+              "parent": null,
+              "state": "OPEN",
+              "title": "Add a output consuming declared prerequisite outputs.",
+              "body": "<!-- woostack-issue-mutation:70000000-0000-4000-8000-000000000101 -->\n{\"acceptance\": [\"src/a.txt contains exactly a followed by a newline; prerequisite outputs remain unchanged.\"], \"intendedPRs\": 1, \"nonGoals\": [\"Change other outputs or schedule execution\"], \"ordinal\": 20, \"outcome\": \"Add a output consuming declared prerequisite outputs.\", \"parentSelection\": {\"integrationParent\": \"refs/heads/main\"}, \"predecessors\": [], \"risks\": [\"Missing prerequisite output prevents execution.\"], \"scope\": [\"src/a.txt\"], \"smoke\": \"Run the focused command and read the new output; repeat without changing prerequisite files.\", \"taskId\": \"task-a\", \"verification\": {\"command\": \"python3 scripts/check.py src/a.txt\", \"commandSource\": \"scripts/check.py at admitted base\", \"pathSources\": {\"src/a.txt\": \"same increment\"}}}",
+              "labels": [
+                "human-label"
+              ],
+              "assignees": [
+                "human-owner"
+              ]
+            },
+            {
+              "id": "issue-102",
+              "url": "https://github.com/acme/app/issues/102",
+              "repository": "https://github.com/acme/app",
+              "parent": null,
+              "state": "OPEN",
+              "title": "Add b output consuming declared prerequisite outputs.",
+              "body": "<!-- woostack-issue-mutation:70000000-0000-4000-8000-000000000102 -->\n{\"acceptance\": [\"src/b.txt contains exactly b followed by a newline; prerequisite outputs remain unchanged.\"], \"intendedPRs\": 1, \"nonGoals\": [\"Change other outputs or schedule execution\"], \"ordinal\": 40, \"outcome\": \"Add b output consuming declared prerequisite outputs.\", \"parentSelection\": {\"integrationParent\": \"refs/heads/main\"}, \"predecessors\": [], \"risks\": [\"Missing prerequisite output prevents execution.\"], \"scope\": [\"src/b.txt\"], \"smoke\": \"Run the focused command and read the new output; repeat without changing prerequisite files.\", \"taskId\": \"task-b\", \"verification\": {\"command\": \"python3 scripts/check.py src/b.txt\", \"commandSource\": \"scripts/check.py at admitted base\", \"pathSources\": {\"src/b.txt\": \"same increment\"}}}",
+              "labels": [
+                "human-label"
+              ],
+              "assignees": [
+                "human-owner"
+              ]
+            },
+            {
+              "id": "issue-103",
+              "url": "https://github.com/acme/app/issues/103",
+              "repository": "https://github.com/acme/app",
+              "parent": null,
+              "state": "OPEN",
+              "title": "Add c output consuming declared prerequisite outputs.",
+              "body": "<!-- woostack-issue-mutation:70000000-0000-4000-8000-000000000103 -->\n{\"acceptance\": [\"src/c.txt contains exactly c followed by a newline; prerequisite outputs remain unchanged.\"], \"intendedPRs\": 1, \"nonGoals\": [\"Change other outputs or schedule execution\"], \"ordinal\": 10, \"outcome\": \"Add c output consuming declared prerequisite outputs.\", \"parentSelection\": {\"policy\": \"Select one verified delivered parent containing every prerequisite; otherwise pause for an explicit parent/integration decision.\"}, \"predecessors\": [\"task-a\"], \"risks\": [\"Missing prerequisite output prevents execution.\"], \"scope\": [\"src/c.txt\"], \"smoke\": \"Run the focused command and read the new output; repeat without changing prerequisite files.\", \"taskId\": \"task-c\", \"verification\": {\"command\": \"python3 scripts/check.py src/a.txt src/c.txt\", \"commandSource\": \"scripts/check.py at admitted base\", \"pathSources\": {\"src/a.txt\": \"task-a\", \"src/c.txt\": \"same increment\"}}}",
+              "labels": [
+                "human-label"
+              ],
+              "assignees": [
+                "human-owner"
+              ]
+            },
+            {
+              "id": "issue-104",
+              "url": "https://github.com/acme/app/issues/104",
+              "repository": "https://github.com/acme/app",
+              "parent": null,
+              "state": "OPEN",
+              "title": "Add d output consuming declared prerequisite outputs.",
+              "body": "<!-- woostack-issue-mutation:70000000-0000-4000-8000-000000000104 -->\n{\"acceptance\": [\"src/d.txt contains exactly d followed by a newline; prerequisite outputs remain unchanged.\"], \"intendedPRs\": 1, \"nonGoals\": [\"Change other outputs or schedule execution\"], \"ordinal\": 30, \"outcome\": \"Add d output consuming declared prerequisite outputs.\", \"parentSelection\": {\"policy\": \"Select one verified delivered parent containing every prerequisite; otherwise pause for an explicit parent/integration decision.\"}, \"predecessors\": [\"task-b\", \"task-c\"], \"risks\": [\"Missing prerequisite output prevents execution.\"], \"scope\": [\"src/d.txt\"], \"smoke\": \"Run the focused command and read the new output; repeat without changing prerequisite files.\", \"taskId\": \"task-d\", \"verification\": {\"command\": \"python3 scripts/check.py src/b.txt src/c.txt src/d.txt\", \"commandSource\": \"scripts/check.py at admitted base\", \"pathSources\": {\"src/b.txt\": \"task-b\", \"src/c.txt\": \"task-c\", \"src/d.txt\": \"same increment\"}}}",
+              "labels": [
+                "human-label"
+              ],
+              "assignees": [
+                "human-owner"
+              ]
+            }
+          ],
+          "complete": true,
+          "pageInfo": {
+            "hasNextPage": false,
+            "endCursor": null
+          }
+        },
+        {
+          "operation": "list-project-memberships",
+          "items": [
+            {
+              "id": "item-101",
+              "issue": "issue-101",
+              "project": "project-7",
+              "status": "todo",
+              "customFields": {
+                "Priority": "human-priority"
+              }
+            },
+            {
+              "id": "item-102",
+              "issue": "issue-102",
+              "project": "project-7",
+              "status": "todo",
+              "customFields": {
+                "Priority": "human-priority"
+              }
+            },
+            {
+              "id": "item-103",
+              "issue": "issue-103",
+              "project": "project-7",
+              "status": "todo",
+              "customFields": {
+                "Priority": "human-priority"
+              }
+            },
+            {
+              "id": "item-104",
+              "issue": "issue-104",
+              "project": "project-7",
+              "status": "todo",
+              "customFields": {
+                "Priority": "human-priority"
+              }
+            }
+          ],
+          "complete": true,
+          "pageInfo": {
+            "hasNextPage": false,
+            "endCursor": null
+          }
+        },
+        {
+          "operation": "read-dependencies",
+          "items": [
+            [
+              "issue-101",
+              "issue-103"
+            ],
+            [
+              "issue-102",
+              "issue-104"
+            ],
+            [
+              "issue-103",
+              "issue-104"
+            ]
+          ],
+          "complete": true,
+          "pageInfo": {
+            "hasNextPage": false,
+            "endCursor": null
+          }
+        }
+      ]
+    },
+    {
+      "events": [
+        {
+          "operation": "read-project",
+          "item": {
+            "id": "project-7",
+            "owner": "acme",
+            "canonicalRepository": "https://github.com/acme/app",
+            "readme": "Human prefix\n<!-- woostack-spec-start -->\nAdd the declared outputs, retaining existing outputs.\n<!-- woostack-spec-end -->\nHuman suffix",
+            "statusOptions": {
+              "planned": "todo",
+              "executing": "active",
+              "inReview": "review",
+              "done": "done",
+              "blocked": "blocked"
+            }
+          },
+          "complete": true,
+          "pageInfo": {
+            "hasNextPage": false,
+            "endCursor": null
+          }
+        },
+        {
+          "operation": "list-project-issues",
+          "items": [
+            {
+              "id": "issue-101",
+              "url": "https://github.com/acme/app/issues/101",
+              "repository": "https://github.com/acme/app",
+              "parent": null,
+              "state": "OPEN",
+              "title": "Add a output consuming declared prerequisite outputs.",
+              "body": "<!-- woostack-issue-mutation:70000000-0000-4000-8000-000000000101 -->\n{\"acceptance\": [\"src/a.txt contains exactly a followed by a newline; prerequisite outputs remain unchanged.\"], \"intendedPRs\": 1, \"nonGoals\": [\"Change other outputs or schedule execution\"], \"ordinal\": 20, \"outcome\": \"Add a output consuming declared prerequisite outputs.\", \"parentSelection\": {\"integrationParent\": \"refs/heads/main\"}, \"predecessors\": [], \"risks\": [\"Missing prerequisite output prevents execution.\"], \"scope\": [\"src/a.txt\"], \"smoke\": \"Run the focused command and read the new output; repeat without changing prerequisite files.\", \"taskId\": \"task-a\", \"verification\": {\"command\": \"python3 scripts/check.py src/a.txt\", \"commandSource\": \"scripts/check.py at admitted base\", \"pathSources\": {\"src/a.txt\": \"same increment\"}}}",
+              "labels": [
+                "human-label"
+              ],
+              "assignees": [
+                "human-owner"
+              ]
+            },
+            {
+              "id": "issue-102",
+              "url": "https://github.com/acme/app/issues/102",
+              "repository": "https://github.com/acme/app",
+              "parent": null,
+              "state": "OPEN",
+              "title": "Add b output consuming declared prerequisite outputs.",
+              "body": "<!-- woostack-issue-mutation:70000000-0000-4000-8000-000000000102 -->\n{\"acceptance\": [\"src/b.txt contains exactly b followed by a newline; prerequisite outputs remain unchanged.\"], \"intendedPRs\": 1, \"nonGoals\": [\"Change other outputs or schedule execution\"], \"ordinal\": 40, \"outcome\": \"Add b output consuming declared prerequisite outputs.\", \"parentSelection\": {\"integrationParent\": \"refs/heads/main\"}, \"predecessors\": [], \"risks\": [\"Missing prerequisite output prevents execution.\"], \"scope\": [\"src/b.txt\"], \"smoke\": \"Run the focused command and read the new output; repeat without changing prerequisite files.\", \"taskId\": \"task-b\", \"verification\": {\"command\": \"python3 scripts/check.py src/b.txt\", \"commandSource\": \"scripts/check.py at admitted base\", \"pathSources\": {\"src/b.txt\": \"same increment\"}}}",
+              "labels": [
+                "human-label"
+              ],
+              "assignees": [
+                "human-owner"
+              ]
+            },
+            {
+              "id": "issue-103",
+              "url": "https://github.com/acme/app/issues/103",
+              "repository": "https://github.com/acme/app",
+              "parent": null,
+              "state": "OPEN",
+              "title": "Add c output consuming declared prerequisite outputs.",
+              "body": "<!-- woostack-issue-mutation:70000000-0000-4000-8000-000000000103 -->\n{\"acceptance\": [\"src/c.txt contains exactly c followed by a newline; prerequisite outputs remain unchanged.\"], \"intendedPRs\": 1, \"nonGoals\": [\"Change other outputs or schedule execution\"], \"ordinal\": 10, \"outcome\": \"Add c output consuming declared prerequisite outputs.\", \"parentSelection\": {\"policy\": \"Select one verified delivered parent containing every prerequisite; otherwise pause for an explicit parent/integration decision.\"}, \"predecessors\": [\"task-a\"], \"risks\": [\"Missing prerequisite output prevents execution.\"], \"scope\": [\"src/c.txt\"], \"smoke\": \"Run the focused command and read the new output; repeat without changing prerequisite files.\", \"taskId\": \"task-c\", \"verification\": {\"command\": \"python3 scripts/check.py src/a.txt src/c.txt\", \"commandSource\": \"scripts/check.py at admitted base\", \"pathSources\": {\"src/a.txt\": \"task-a\", \"src/c.txt\": \"same increment\"}}}",
+              "labels": [
+                "human-label"
+              ],
+              "assignees": [
+                "human-owner"
+              ]
+            },
+            {
+              "id": "issue-104",
+              "url": "https://github.com/acme/app/issues/104",
+              "repository": "https://github.com/acme/app",
+              "parent": null,
+              "state": "OPEN",
+              "title": "Add d output consuming declared prerequisite outputs.",
+              "body": "<!-- woostack-issue-mutation:70000000-0000-4000-8000-000000000104 -->\n{\"acceptance\": [\"src/d.txt contains exactly d followed by a newline; prerequisite outputs remain unchanged.\"], \"intendedPRs\": 1, \"nonGoals\": [\"Change other outputs or schedule execution\"], \"ordinal\": 30, \"outcome\": \"Add d output consuming declared prerequisite outputs.\", \"parentSelection\": {\"policy\": \"Select one verified delivered parent containing every prerequisite; otherwise pause for an explicit parent/integration decision.\"}, \"predecessors\": [\"task-b\", \"task-c\"], \"risks\": [\"Missing prerequisite output prevents execution.\"], \"scope\": [\"src/d.txt\"], \"smoke\": \"Run the focused command and read the new output; repeat without changing prerequisite files.\", \"taskId\": \"task-d\", \"verification\": {\"command\": \"python3 scripts/check.py src/b.txt src/c.txt src/d.txt\", \"commandSource\": \"scripts/check.py at admitted base\", \"pathSources\": {\"src/b.txt\": \"task-b\", \"src/c.txt\": \"task-c\", \"src/d.txt\": \"same increment\"}}}",
+              "labels": [
+                "human-label"
+              ],
+              "assignees": [
+                "human-owner"
+              ]
+            }
+          ],
+          "complete": true,
+          "pageInfo": {
+            "hasNextPage": false,
+            "endCursor": null
+          }
+        },
+        {
+          "operation": "list-project-memberships",
+          "items": [
+            {
+              "id": "item-101",
+              "issue": "issue-101",
+              "project": "project-7",
+              "status": "todo",
+              "customFields": {
+                "Priority": "human-priority"
+              }
+            },
+            {
+              "id": "item-102",
+              "issue": "issue-102",
+              "project": "project-7",
+              "status": "todo",
+              "customFields": {
+                "Priority": "human-priority"
+              }
+            },
+            {
+              "id": "item-103",
+              "issue": "issue-103",
+              "project": "project-7",
+              "status": "todo",
+              "customFields": {
+                "Priority": "human-priority"
+              }
+            },
+            {
+              "id": "item-104",
+              "issue": "issue-104",
+              "project": "project-7",
+              "status": "todo",
+              "customFields": {
+                "Priority": "human-priority"
+              }
+            }
+          ],
+          "complete": true,
+          "pageInfo": {
+            "hasNextPage": false,
+            "endCursor": null
+          }
+        },
+        {
+          "operation": "read-dependencies",
+          "items": [
+            [
+              "issue-101",
+              "issue-103"
+            ],
+            [
+              "issue-102",
+              "issue-104"
+            ],
+            [
+              "issue-103",
+              "issue-104"
+            ]
+          ],
+          "complete": true,
+          "pageInfo": {
+            "hasNextPage": false,
+            "endCursor": null
+          }
+        }
+      ]
+    }
+  ],
+  "dispatchEvidence": {
+    "task-d": {
+      "deliveredBranches": [
+        {
+          "taskId": "task-b",
+          "branch": "task-b",
+          "containsTasks": [
+            "task-b"
+          ]
+        },
+        {
+          "taskId": "task-c",
+          "branch": "task-c",
+          "containsTasks": [
+            "task-a",
+            "task-c"
+          ]
+        }
+      ],
+      "selectedParent": null
+    }
+  }
+}

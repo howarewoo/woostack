@@ -21,8 +21,23 @@ Read the complete Project title, shortDescription, and managed README section (`
 
 ## Direct increment graph baseline
 
-When GitHub mirroring is enabled, select current Project issues in the canonical repository having `parent = null` and a canonical URL (`https://github.com/owner/repo/issues/<N>`). When creating an issue, preallocate UUID, embed `<!-- woostack-issue-mutation:<UUID> -->` in the complete body contract, paginate canonical repo issues to prove zero marker matches, create with `parent = null`, read back the issue and persist the bind-once mapping, add directly as a Project item and read back `planned` status, and finally create and read back native dependencies before advancing.
-Read native dependencies via `gh api graphql` and normalize `blocked-by` relations into predecessor→successor tuples ($N-1$ edges: `ordinal k-1` blocks `ordinal k`). Preflight runs before relation writes. Delegated Plan/Harden make zero provider calls while drafting. After `execution-plan.md` is written, perform drift comparison, bounded synchronization, stable-key mapping, and graph read-back; mirror failures are nonblocking.
+Read all Project items and native `blocked-by` relations through terminal pagination before admitting
+the baseline. Retained increments must round-trip as parentless canonical-repository issues with direct
+membership in the exact Project. Preserve and exclude historical parent/container resources; missing
+or foreign endpoints do not authorize expanding scope.
+
+Map each retained increment to exactly one stable task key using its verified canonical URL and native
+identity, never its title or ordinal. Ambiguous, duplicate, or unmatched retained identities block
+instead of falling through to creation. An explicitly new key retains a `null` mapping and one
+preallocated marker UUID until canonical read-back permits binding.
+
+Normalize blocked-by relations into prerequisite→dependent tuples and admit the complete graph under
+the [GitHub graph and parent-selection contract](../../woostack-init/references/artifact-providers/github.md#issue-identity-and-graph).
+Store complete issue identities/revisions/content, membership, and dependency evidence in the manifest.
+Delegated Plan and Harden make zero provider calls while drafting. After `execution-plan.md` is written,
+compare fresh reads with this baseline before the [bounded synchronization](github-procedure.md#increment-graph-synchronization).
+Ordinal adjacency never changes the baseline's edges; preserve existing chains unless the approved
+specification explicitly changes their prerequisites.
 
 ## Drift and failure
 

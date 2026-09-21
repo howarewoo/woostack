@@ -65,8 +65,9 @@ and own no approval gate.
 
 After `project-spec.md` is written (and optional mirror synchronization completes or records nonblocking
 failure), invoke [`woostack-plan`](../woostack-plan/SKILL.md) with the readable specification, baseline
-identity, and verified run manifest. When delegated by Build, Plan returns only a candidate strict
-sequential direct-issue chain and performs no provider read or mutation. Harden admits the candidate
+identity, and verified run manifest. When delegated by Build, Plan returns only a candidate graph
+under its [selected-provider invariants](../woostack-plan/SKILL.md#graph-invariants) and performs no
+provider read or mutation. Harden admits the candidate
 into the manifest and reconciles it with repository evidence. Build writes `execution-plan.md` directly
 under the run directory and performs optional bounded mirror synchronization when `artifacts.provider: "linear"`, `artifacts.provider: "plane"`, or `artifacts.provider: "github"`.
 
@@ -105,12 +106,19 @@ mappings and status (when mirroring was enabled), and the exact handoff command:
 /woostack-execute --run <exact-run-id>
 ```
 
+This command is runnable only for a graph admitted by current sequential Execute. A GitHub DAG
+outside that contract is retained and mirrored without being linearized; report the unsupported
+handoff rather than dispatching Execute. The
+[GitHub parent-selection contract](../woostack-init/references/artifact-providers/github.md#issue-identity-and-graph)
+records the intended Orchestrate boundary and any unresolved join decision.
+
 Ask whether to `Stop here`, `Execute`, or `Abandon`. Accept an unambiguous natural-language choice;
 the user need not repeat a literal option label.
 
 - **Stop here:** return the resume command without repository, run, or project-state mutation.
-- **Execute:** invoke normal [`woostack-execute`](../woostack-execute/SKILL.md) once with the exact
-  `--run <exact-run-id>`.
+- **Execute:** only for a supported sequential graph, invoke normal
+  [`woostack-execute`](../woostack-execute/SKILL.md) once with the exact `--run <exact-run-id>`;
+  otherwise retain the plan and report the unsupported handoff above.
 - **Abandon:** record `status: "abandoned"`, retain the run, leave any mirrored project unchanged,
   and do not dispatch Execute.
 

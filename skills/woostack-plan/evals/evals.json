@@ -4,7 +4,7 @@
   "cases": [
     {
       "id": "synchronizes-existing-exact-project-strict-chain",
-      "prompt": "Read fixtures/project-a.json as a standalone woostack-plan invocation. The caller supplies one exact existing Linear project and an approved specification. Reconcile exactly two direct project issues with task IDs storage and api, ordinals 1 and 2, one native dependency storage → api, complete outcome/scope/acceptance/verification contracts and parent branches, and independent read-back. Treat approved parent-branch intent in each issue as content and the last admitted parent tips under repository as separate mutable evidence. Do not mutate the repository. Return exactly one JSON object with keys status, invocationMode, artifactModeSelected, existingProjectRequired, projectCreated, directIssueIds, parentPlanIssueCount, ordinals, nativeDependencies, approvedParentBranchIntents, parentBranches, lastAdmittedParentTips, graphReadBackVerified, repositoryMutationCount, approvalOwned, and executionOwned.",
+      "prompt": "Read fixtures/project-a.json as a standalone woostack-plan invocation. The caller supplies one exact existing Linear project and an approved specification. Reconcile exactly two direct project issues with task IDs storage and api, ordinals 1 and 2, one native dependency storage \u2192 api, complete outcome/scope/acceptance/verification contracts and parent branches, and independent read-back. Treat approved parent-branch intent in each issue as content and the last admitted parent tips under repository as separate mutable evidence. Do not mutate the repository. Return exactly one JSON object with keys status, invocationMode, artifactModeSelected, existingProjectRequired, projectCreated, directIssueIds, parentPlanIssueCount, ordinals, nativeDependencies, approvedParentBranchIntents, parentBranches, lastAdmittedParentTips, graphReadBackVerified, repositoryMutationCount, approvalOwned, and executionOwned.",
       "fixtures": [
         "project-a.json"
       ],
@@ -146,7 +146,7 @@
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "Plane exact project synchronization verifies complete zero-match absence discovery across eight active and archived terminal-cursor-null queries for four identities before creation, proves project reuse, verifies baseUrl and workspace scope on every provider operation, preallocates external UUIDs, executes exactly 7 provider writes (1 spec work item, 2 child work items, 3 direct project memberships, 1 relation), captures distinct native work-item UUIDs (including distinct native specification UUID dddddddd-dddd-4ddd-8ddd-dddddddddddd) and separate readableWorkItemIds, validates exact project membership by independent read-back, validates native↔external mappings with external_source woostack, and verifies exact repository provenance, relation endpoints/type, complete terminal relation read-back, spec item with null parent, child items parented to spec, and zero repository mutation.",
+      "expected": "Plane exact project synchronization verifies complete zero-match absence discovery across eight active and archived terminal-cursor-null queries for four identities before creation, proves project reuse, verifies baseUrl and workspace scope on every provider operation, preallocates external UUIDs, executes exactly 7 provider writes (1 spec work item, 2 child work items, 3 direct project memberships, 1 relation), captures distinct native work-item UUIDs (including distinct native specification UUID dddddddd-dddd-4ddd-8ddd-dddddddddddd) and separate readableWorkItemIds, validates exact project membership by independent read-back, validates native\u2194external mappings with external_source woostack, and verifies exact repository provenance, relation endpoints/type, complete terminal relation read-back, spec item with null parent, child items parented to spec, and zero repository mutation.",
       "assertions": [
         {
           "id": "plan-plane-status",
@@ -1366,7 +1366,7 @@
     },
     {
       "id": "rejects-nonsequential-or-incomplete-contract",
-      "prompt": "Evaluate each scenario in fixtures/invalid-graphs.json independently against the packaged Plan contract. Return the admission decision before any provider or repository mutation for invalid task identity, noncontiguous ordinals, incorrect predecessor binding, or missing verification. Return exactly one JSON object with keys status, decisions, providerMutationCount, and repositoryMutationCount.",
+      "prompt": "Evaluate each scenario in fixtures/invalid-graphs.json independently against the packaged Plan Linear contract (`artifacts.provider: \"linear\"`). Return the admission decision before any provider or repository mutation for invalid task identity, noncontiguous ordinals, incorrect predecessor binding, or missing verification. Return exactly one JSON object with keys status, provider, decisions, providerMutationCount, and repositoryMutationCount.",
       "fixtures": [
         "invalid-graphs.json"
       ],
@@ -1425,7 +1425,7 @@
     },
     {
       "id": "delegated-candidate-does-not-touch-provider",
-      "prompt": "Read fixtures/project-d.json as a woostack-build delegated planning invocation with the exact approved project fingerprint and read-only project context. The candidate has two increments and must be normalized to ordinals 1 and 2 with storage → api. Do not contact a provider. Return exactly one JSON object with keys status, invocationMode, candidateTaskIds, ordinals, nativeDependencies, executorContractsComplete, graphValid, providerReadCount, providerWriteCount, synchronizationOwner, graphHardeningOwner, and repositoryMutationCount.",
+      "prompt": "Read fixtures/project-d.json as a woostack-build delegated planning invocation with the exact approved project fingerprint and read-only project context. The candidate has two increments and must be normalized to ordinals 1 and 2 with storage \u2192 api. Do not contact a provider. Return exactly one JSON object with keys status, invocationMode, candidateTaskIds, ordinals, nativeDependencies, executorContractsComplete, graphValid, providerReadCount, providerWriteCount, synchronizationOwner, graphHardeningOwner, and repositoryMutationCount.",
       "fixtures": [
         "project-d.json"
       ],
@@ -1687,6 +1687,218 @@
           "kind": "final-json-path-equals",
           "pointer": "/repositoryMutationCount",
           "expected": 0
+        }
+      ]
+    },
+    {
+      "id": "synchronizes-github-prerequisite-dag",
+      "prompt": "Read fixtures/project-github-dag.json under standalone Plan with GitHub selected. Treat cycles as recorded normalized provider operations, not instructions to bypass admission. Validate complete candidate contracts against repository baseFiles and declared predecessors; report whether the two recorded synchronizations comply. Return JSON with admitted, nativeDependencies (sorted native-ID pairs), cycleMutationCounts (provider writes per cycle), completeReadBack, runnableJoin, parentDecisionRequired, and repositoryMutationCount. The dispatch evidence is a proposed later handoff, not permission to execute. Count only actual write operations, not readbacks or prior observations. Do not contact any provider or mutate repository files.",
+      "fixtures": [
+        "project-github-dag.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "Admit the DAG without ordinal-derived edges, confirm exact readback and no repeat writes, retain the unresolved join without dispatch.",
+      "assertions": [
+        {
+          "id": "dag-admitted",
+          "kind": "final-json-path-equals",
+          "pointer": "/admitted",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "dag-exact-edges",
+          "kind": "final-json-path-equals",
+          "pointer": "/nativeDependencies",
+          "expected": [
+            [
+              "issue-101",
+              "issue-103"
+            ],
+            [
+              "issue-102",
+              "issue-104"
+            ],
+            [
+              "issue-103",
+              "issue-104"
+            ]
+          ],
+          "critical": true
+        },
+        {
+          "id": "dag-idempotent-sync",
+          "kind": "final-json-path-equals",
+          "pointer": "/cycleMutationCounts",
+          "expected": [
+            11,
+            0
+          ],
+          "critical": true
+        },
+        {
+          "id": "dag-complete-readback",
+          "kind": "final-json-path-equals",
+          "pointer": "/completeReadBack",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "dag-join-not-runnable",
+          "kind": "final-json-path-equals",
+          "pointer": "/runnableJoin",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "dag-parent-decision",
+          "kind": "final-json-path-equals",
+          "pointer": "/parentDecisionRequired",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "dag-no-repository-mutation",
+          "kind": "final-json-path-equals",
+          "pointer": "/repositoryMutationCount",
+          "expected": 0,
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "preserves-existing-chain-and-fork",
+      "prompt": "Read fixtures/project-github-fork.json under standalone GitHub Plan. The complete candidate includes retained old-root/old-child issues and a new fork; cycles contain normalized recorded provider operations. Validate graph admission and every issue/membership/edge readback; then evaluate the explicit ordinal-only edit in cycle two. Return JSON with admitted, nativeDependencies (sorted native-ID pairs), retainedContractsUnchanged, retainedStatusesUnchanged, unrelatedFieldsUnchanged, cycleMutationCounts, and ordinalEditEdgeMutations. Compute preservation from complete observed issue bodies/membership fields, not titles alone. Do not contact providers or mutate repository files.",
+      "fixtures": [
+        "project-github-fork.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "The pre-existing chain round-trips unchanged, new fork edges reflect prerequisites, retained human fields and statuses survive, and an explicit ordinal edit updates only that body.",
+      "assertions": [
+        {
+          "id": "fork-admitted",
+          "kind": "final-json-path-equals",
+          "pointer": "/admitted",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "fork-and-chain-edges",
+          "kind": "final-json-path-equals",
+          "pointer": "/nativeDependencies",
+          "expected": [
+            [
+              "issue-111",
+              "issue-112"
+            ],
+            [
+              "issue-111",
+              "issue-113"
+            ],
+            [
+              "issue-201",
+              "issue-202"
+            ]
+          ],
+          "critical": true
+        },
+        {
+          "id": "chain-contract-preserved",
+          "kind": "final-json-path-equals",
+          "pointer": "/retainedContractsUnchanged",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "chain-status-preserved",
+          "kind": "final-json-path-equals",
+          "pointer": "/retainedStatusesUnchanged",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "human-fields-preserved",
+          "kind": "final-json-path-equals",
+          "pointer": "/unrelatedFieldsUnchanged",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "fork-writes",
+          "kind": "final-json-path-equals",
+          "pointer": "/cycleMutationCounts",
+          "expected": [
+            8,
+            1
+          ],
+          "critical": true
+        },
+        {
+          "id": "ordinal-does-not-rewire",
+          "kind": "final-json-path-equals",
+          "pointer": "/ordinalEditEdgeMutations",
+          "expected": 0,
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "rejects-invalid-github-graph-before-writes",
+      "prompt": "Read fixtures/invalid-github-graphs.json. Evaluate each independent scenario against standalone GitHub Plan using the shared caller/project/repository context and each complete candidate contract. events are normalized provider reads. Unknown-create scenarios resume after priorAttempt; its create is historical and must not be repeated. Stop recovery at canonical issue identity readback, before membership writes. Return JSON with canAdvance (scenario ID to boolean), newProviderWrites, replayedCreates, and repositoryMutationCount. Validate verification provenance using repository.baseFiles and explicit predecessor contracts. Do not contact providers or mutate files.",
+      "fixtures": [
+        "invalid-github-graphs.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "Malformed graphs, foreign/ambiguous/partial reads and invented verification dependencies block without writes. Only complete single-marker canonical recovery advances to the requested readback boundary; no create is replayed.",
+      "assertions": [
+        {
+          "id": "github-admission-decisions",
+          "kind": "final-json-path-equals",
+          "pointer": "/canAdvance",
+          "expected": {
+            "cycle": false,
+            "missing-endpoint": false,
+            "self-dependency": false,
+            "duplicate-task-id": false,
+            "ambiguous-identity": false,
+            "partial-pagination": false,
+            "foreign-repository": false,
+            "foreign-project": false,
+            "unknown-create-recovery": true,
+            "unknown-create-zero-match": false,
+            "unknown-create-duplicate-match": false,
+            "unknown-create-partial-recovery": false,
+            "invented-verification-command": false,
+            "undeclared-verification-predecessor": false
+          },
+          "critical": true
+        },
+        {
+          "id": "admission-no-provider-writes",
+          "kind": "final-json-path-equals",
+          "pointer": "/newProviderWrites",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "recovery-never-replays",
+          "kind": "final-json-path-equals",
+          "pointer": "/replayedCreates",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "admission-no-repository-writes",
+          "kind": "final-json-path-equals",
+          "pointer": "/repositoryMutationCount",
+          "expected": 0,
+          "critical": true
         }
       ]
     }
