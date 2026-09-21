@@ -3,10 +3,10 @@ title: Artifacts
 description: Choose an artifact provider and look up the guarantees shared by local and mirrored storage.
 ---
 
-Development artifacts are specifications, plans, and records used to resume work. For Build and
+Development artifacts are specifications, plans, and records used to resume planning work. For Build and
 project-backed Fix, `artifacts` selects local storage or local storage with a remote copy.
-The local run remains the source of truth. Standalone Plan can write directly to an exact selected
-provider resource; Execute can work from that resource or from a local run.
+The local run remains the source of truth. Execute accepts one complete bounded task and does not
+consume a Project or run as executable scope.
 
 <Cards>
   <Card title="Local" href="/docs/configuration/artifacts/local" description="Files, run directories, retention, authority, and provider-free behavior." />

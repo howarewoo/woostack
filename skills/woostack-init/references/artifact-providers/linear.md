@@ -66,24 +66,17 @@ An exact Fix source issue is context only. Preserve its title, description, stat
 labels, relations, comments, and lifecycle. After canonical Fix project admission, the only supported
 source-issue mutation is one direct project link followed by exact membership read-back.
 
-## Lifecycle and closure
+## Lifecycle and closure (retired Execute reference)
 
-In provider Execute modes, resolve `artifacts.linear.issueStates.executing` and `inReview` to unique
-same-team native states with category `started`. Resolve `artifacts.linear.projectStatuses.started`
-to one native project status with category `started`. Missing, ambiguous, foreign, incomplete, or
-category-mismatched resolution blocks before lifecycle or repository mutation.
+> **Retired.** Execute no longer performs Linear lifecycle transitions, project/run-controller reads,
+> or closure. It accepts one bounded task and no Linear/Plane issue scope. The retained
+> `issueStates`/`projectStatuses` fields and historical records support Build/Plan mirroring only;
+> see [`woostack-execute`](../../../woostack-execute/SKILL.md#retired-inputs).
 
-When a current direct issue matches executing or inReview, synchronize the exact nonterminal project
-to the configured started status. If all direct issues are Backlog or Todo, transition the selected
-issue to executing and read it back first. Re-read the project before mutation, update only its native
-status with one stable mutation identity, and independently read back identity, status ID/name/category,
-revision, and mutation identity. An exact started status is an idempotent no-op; completed or canceled
-projects are terminal conflicts.
-
-A provider-backed standalone Plan or Execute closure uses only the retained exact project. Resolve
-the configured canceled-category status, update only that status, and independently read it back.
-Never create, archive, or delete a project to close it. Build/Fix handoff, blockage, and local-run
-abandonment leave the mirrored project unchanged.
+A provider-backed standalone Plan closure uses only the retained exact project. Resolve the configured
+canceled-category status, update only that status, and independently read it back. Never create, archive,
+or delete a project to close it. Build/Fix handoff, blockage, and local-run abandonment leave the
+mirrored project unchanged.
 
 ## Workflow procedures
 

@@ -91,19 +91,23 @@ before worktree, source, or provider mutation, retaining artifacts and edges unc
 storage retains the existing task/dependency/mapping forms without schema migration or edge rewriting;
 workflow admission validates the DAG.
 
-## Lifecycle and closure
+## Lifecycle and closure (retired Execute reference)
 
-Admission resolves the single-select Status field (`statusField`, default `"Status"`) and five distinct
-options for `planned`, `executing`, `inReview`, `done`, and `blocked`.
+> **Retired.** Execute no longer performs GitHub Project/issue lifecycle transitions, run-controller
+> reads, or closure. It accepts one bounded task and an optional exact GitHub issue URL; the issue
+> path is read-only until Commit adds the verified closing reference. The retained `projectStatuses`
+> fields and historical records support Build/Plan mirroring only; see
+> [`woostack-execute`](../../../woostack-execute/SKILL.md#retired-inputs).
 
-New increment items begin at `planned`, transitioning to `executing` during execution, `inReview` at
-delivery, and `done` (closing the issue) at completion. Recorded blockers set `blocked` without closing.
-Completing all increments leaves the Project open; explicit Plan/Execute closure updates only Project closed
-state after fresh read-back.
+An explicitly requested provider-backed standalone Plan closure uses only the retained exact
+Project. Independently verify its canonical identity and current state, update only its `closed`
+state, and read back that same Project as closed. An already-closed Project is an independently
+verified no-op. Do not create a replacement, close issues, alter membership or dependencies, or
+bulk-change resources. An unknown outcome requires fresh discovery before retry.
 
 ## Workflow procedures
 
 Build and Plan synchronize the local specification and increment graph to GitHub Projects and
 repository issues using this profile's admission, managed README section, membership, dependency,
-and lifecycle rules. Bootstrap, Execute, Commit, and Status retain their workflow gates and use this
+and lifecycle rules. Bootstrap, Commit, and Status retain their workflow gates and use this
 profile for selected-provider identity, capability, mutation, and read-back behavior.

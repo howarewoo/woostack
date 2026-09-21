@@ -116,7 +116,7 @@ and [`woostack-harden`](../woostack-harden/SKILL.md), and only the selected
 [Linear](../woostack-init/references/artifact-providers/linear.md), or
 [Plane](../woostack-init/references/artifact-providers/plane.md) profile when mirroring is enabled.
 These own persistence, ordering, permissions/locking/CAS, recovery, provider scope/capabilities,
-read-back, and the unchanged Execute safety contract. Apply the shared
+and read-back. Apply the shared
 [repository advancement contract](../woostack-init/references/artifact-backends.md#repository-ancestry-and-base-change-detection)
 for parent intent and base changes.
 
@@ -193,9 +193,11 @@ retain local authority and all run artifacts. No repository implementation occur
 
 Use [Build's verified handoff](../woostack-build/SKILL.md#verified-handoff) unchanged: present the full
 verified artifacts and exact run/resume evidence, then accept the user's clear Stop/Execute/Abandon
-intent. That contract owns dispatch, ambiguity, scope changes, artifact retention, and abandonment;
-Fix does not define another handoff parser. Normal Execute owns implementation and delivery for this
-path, including repository advancement and independent evidence boundaries.
+intent. That contract owns ambiguity, scope changes, artifact retention, and abandonment;
+Fix does not define another handoff parser. A bounded Execute task owns implementation and delivery
+for this path once the caller supplies one selected complete bounded task (see
+[`woostack-execute`](../woostack-execute/SKILL.md#retired-inputs)), including repository advancement
+and independent evidence boundaries; there is no automatic dispatch.
 
 Return the diagnosis or blocker, exact run ID and readable artifact paths, source identity and
 preservation/link result, stable task/dependency/parent evidence, optional observed mirror status,

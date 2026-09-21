@@ -79,12 +79,10 @@ authorize later provider access.
 Completed and explicitly abandoned runs are retained. Explicit abandonment records
 `status: "abandoned"` in the manifest and does not mutate a mirrored provider project.
 
-Resume an unfinished run by its exact run ID:
-
-```text
-/woostack-execute --run <exact-run-id> [--recheck]
-```
-
-Titles, recent history, branch names, and search ranking are not run selectors. Legacy tracked records
-remain unchanged unless the user explicitly invokes the guarded
+The retired `/woostack-execute --run <exact-run-id> [--recheck]` resume command is rejected. To
+continue, select one complete bounded task from the retained artifacts and supply it as
+`/woostack-execute <bounded input>` (see
+[Execute retired inputs](/docs/skills/woostack-execute#retired-inputs)). Titles, recent history,
+branch names, and search ranking are not run selectors. Legacy tracked records remain unchanged unless
+the user explicitly invokes the guarded
 [woostack-init migration route](/docs/skills/woostack-init#optional-guarded-legacy-migration).
