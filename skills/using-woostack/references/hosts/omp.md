@@ -34,16 +34,13 @@ host-owned roles; they never read repository model preferences or name a concret
 
 - Batch dependency-independent bounded tasks in one `tasks` call.
 - Pass the exact resolved task workspace path and complete contract in each dispatch. When the
-  controller runs inside an external worktree (such as an Orca workspace), pass that active
+  calling workflow runs inside an external worktree (such as an Orca workspace), pass that active
   checkout root so subagents edit the active workspace directly.
 - Use the most specific available worker role.
-- Coding workers return observations and changes; the controller owns synthesis, gates, and
+- Coding workers return observations and changes; the calling workflow owns synthesis, gates, and
   acceptance.
 - A worker must not expand its task, edit another workspace, review/accept itself, merge, or infer
   hidden context.
-
-If the native spawn API exposes no working-directory field, pin the resolved task workspace in the
-prompt and require the worker to verify it before reading or writing. A cwd mismatch stops work.
 ## Tier routing
 
 After the calling skill resolves the effective tier, use this fixed host-owned map:
@@ -71,8 +68,8 @@ worktree isolation, or treating absent evidence as success.
 
 ## Per-skill notes
 
-- `woostack-execute`: when its [implementation driver](../../../woostack-execute/references/subagent-driver.md)
-  delegates, map the selected effective tier through the host-owned worker table above.
+- `woostack-execute`: works inline by default; optional subagents it spawns map the selected
+  effective tier through the host-owned worker table above. Delegation is optional, never required.
 - `woostack-commit`: map optional fast drafting to `agent: woostack-fast`; draft inline if
   unavailable.
 - **woostack-eval (comparative dispatch):** map the candidate and baseline's common effective tier

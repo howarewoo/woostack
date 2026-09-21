@@ -91,4 +91,6 @@ and the unresolved-question set is empty. Then verify the complete manifest once
 Hand this one local result back to the owning Build/Fix wrapper. This is not approval and does not
 transition phases. The wrapper writes `project-spec.md` or `execution-plan.md` directly under the run
 directory, handles optional mirror synchronization and retention, and owns the `Stop here`/`Execute`/`Abandon`
-handoff. Harden invokes none of those activities and never edits implementation source.
+handoff. On `Execute`, it stops at retained artifacts; the caller supplies one selected complete bounded
+task to [`woostack-execute`](../woostack-execute/SKILL.md#retired-inputs). Harden invokes none of those
+activities and never edits implementation source.

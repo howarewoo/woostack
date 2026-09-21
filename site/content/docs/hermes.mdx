@@ -87,19 +87,14 @@ a correction. Do not silently change the profile, worktree, process, or contract
 Git and GitHub remain authoritative for source, branch ancestry, commits, pull requests,
 reviews, and merges. Hermes accepting a result does not prove any of those source-control facts.
 
-## 7. Resume a retained run later
 
-Build and project-backed Fix retain `project-spec.md`, `execution-plan.md`, and the run manifest,
-which records recovery state, under `.woostack/tmp/runs/<run-id>/`. A later OMP process may resume
-unchanged approved artifacts with:
+## 7. Retained planning artifacts
 
-```text
-/woostack-execute --run <exact-run-id> [--recheck]
-```
-
-Resume validates the retained run before continuing. Execute rejects abandoned runs and verifies
-completed runs without starting more work. Resume does not permit switching processes during an
-active conversation or reusing a previous live response.
+Build and project-backed Fix retain `project-spec.md`, `execution-plan.md`, and the run manifest
+under `.woostack/tmp/runs/<run-id>/`. Execute no longer resumes a run or accepts `--recheck`.
+To continue, the caller selects one complete bounded task from the retained artifacts and supplies
+`/woostack-execute <bounded input>` with its parent evidence and exact retained state. The
+retirement is recorded at [Execute retired inputs](/docs/skills/woostack-execute#retired-inputs).
 
 ## 8. Clean up legacy launchers when safe
 

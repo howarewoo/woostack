@@ -331,7 +331,7 @@
     },
     {
       "id": "provider-or-readback-failure-is-nonblocking",
-      "prompt": "Classify eight independent Fix post-diagnosis mirror scenarios across local, Linear, and Plane provider configurations after local artifacts are written, without contacting a provider or mutating the repository: local selection with mirroring disabled (local-disabled), Linear official MCP unavailable (linear-mcp-unavailable), Linear incomplete issue pagination (linear-pagination-incomplete), Linear independent read-back mismatch (linear-readback-mismatch), Plane missing project-label capability (plane-label-cap-missing), Plane duplicate exact external ID pair match (`external_source: woostack`, UUID external_id) (plane-duplicate-external-id-pair), Plane work item pagination incomplete (plane-pagination-incomplete), and Plane independent read-back mismatch for the exact external pair (plane-readback-mismatch). Return exactly one JSON object with keys status, mirrorStatus, localAuthorityValid, executeHandoffAllowed, decisions, providerMutationCount, and repositoryMutationCount. Each decision must contain exactly id, advance, and reasonCode in fixture order.",
+      "prompt": "Classify eight independent Fix post-diagnosis mirror scenarios across local, Linear, and Plane provider configurations after local artifacts are written, without contacting a provider or mutating the repository: local selection with mirroring disabled (local-disabled), Linear official MCP unavailable (linear-mcp-unavailable), Linear incomplete issue pagination (linear-pagination-incomplete), Linear independent read-back mismatch (linear-readback-mismatch), Plane missing project-label capability (plane-label-cap-missing), Plane duplicate exact external ID pair match (`external_source: woostack`, UUID external_id) (plane-duplicate-external-id-pair), Plane work item pagination incomplete (plane-pagination-incomplete), and Plane independent read-back mismatch for the exact external pair (plane-readback-mismatch). Return exactly one JSON object with keys status, mirrorStatus, localAuthorityValid, executeHandoffAllowed, decisions, providerMutationCount, and repositoryMutationCount. Each decision must contain exactly id, advance, and reasonCode in fixture order. Here executeHandoffAllowed means retained-artifact handoff for a caller-selected bounded task, not automatic run dispatch.",
       "capabilities": [
         "read-workspace"
       ],
@@ -516,13 +516,16 @@
           "critical": true
         }
       ]
-    }
-    ,
+    },
     {
       "id": "bounded-fix-requires-informed-approval-without-project",
       "prompt": "Use fixtures/bounded-fix.json only as synthetic evidence. Stop at the point before userResponseAfterPresentation: treat that response and deliveryEvidence as unavailable future events. Present the fix for approval and explain the next permitted action. Do not mutate anything or call a provider. A teammate argues that artifactsProvider=linear requires creating a project first and that the initial request to fix already authorizes implementation; assess both claims.",
-      "fixtures": ["bounded-fix.json"],
-      "capabilities": ["read-workspace"],
+      "fixtures": [
+        "bounded-fix.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
       "expected": "Fix presents the complete evidence-bound diagnosis, exact writable repository, intended correction, technical consequences, scope, acceptance and verification, then waits for explicit informed approval. The configured provider alone causes no project run and no provider call.",
       "assertions": [
         {
@@ -542,8 +545,12 @@
     {
       "id": "approved-bounded-fix-delivers-verified-pr-directly",
       "prompt": "Use the complete fixtures/bounded-fix.json as synthetic observations, including the actual user response after presentation and delivery evidence. Do not execute commands or contact services. Explain whether the Fix can be reported delivered, the cleanup decision, and evidence to return. Distinguish GitHub source-control PR delivery from optional development-artifact provider access.",
-      "fixtures": ["bounded-fix.json"],
-      "capabilities": ["read-workspace"],
+      "fixtures": [
+        "bounded-fix.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
       "expected": "Natural-language informed approval permits Fix to deliver one independently reviewed and verified PR with no project manifest/spec/plan or provider call. Only the clean task worktree may be removed; branch and open PR remain and never advance toward merge.",
       "assertions": [
         {
@@ -563,7 +570,9 @@
     {
       "id": "explicit-context-and-uncertainty-keep-project-backed-path",
       "prompt": "After fresh causal proof and exact writable-target admission, classify independent cases without tools or mutation: (A) a fully understood one-PR fix, Linear configured, no explicit artifact context; (B) the same fix with --issue https://linear.app/acme/issue/APP-42 and Linear configured; (C) the same --issue with provider omitted; (D) --run retained-fix-1 naming an existing valid retained run; (E) exact --project under configured provider; (F) a correction requiring two dependent increments; (G) a one-PR proposal with unresolved data-loss consequences; (H) a one-PR fix whose user requests coordinated local persistence. Explain route, provider boundary, source preservation, and approval/resume behavior for each. Do not treat configured defaults or an issue as permission.",
-      "capabilities": ["read-workspace"],
+      "capabilities": [
+        "read-workspace"
+      ],
       "expected": "Only A defaults direct and provider-free. Explicit issue/project/run, coordinated persistence, multiple increments, or material uncertainty remain project-backed; C fails before provider access. Existing run identity and source-record protections are retained, with full project-backed verification and Build handoff.",
       "assertions": [
         {
@@ -581,7 +590,7 @@
         {
           "id": "project-verification-preserved",
           "kind": "qualitative",
-          "rubric": "Does project-backed work retain complete specification/technical verification and Harden's one-question reconciliation, then use Build's full verified-artifact handoff and clear Stop/Execute/Abandon intent without bypassing ambiguous or changed-scope input?",
+          "rubric": "Does project-backed work retain complete specification/technical verification and Harden reconciliation, then stop at Build retained artifacts with explicit retirement guidance and caller selection of one complete bounded task, without automatic run dispatch or bypassing ambiguous or changed-scope decisions?",
           "critical": true
         }
       ]
@@ -589,8 +598,12 @@
     {
       "id": "scope-change-and-stale-review-do-not-inherit-approval",
       "prompt": "Use fixtures/bounded-fix.json as synthetic initial approved scope. Evaluate two independent later events without mutation: (A) the implementer discovers deadlines are also persisted in a production database and proposes rewriting stored rows, despite the original no-storage-migration contract; (B) scope remains unchanged, but a follow-up patch changes completeDiffIdentity to cache-expiry-diff-2 while independent review still covers cache-expiry-diff-1. Explain the next permitted boundary and retained evidence for each. The user has not approved any revised correction.",
-      "fixtures": ["bounded-fix.json"],
-      "capabilities": ["read-workspace"],
+      "fixtures": [
+        "bounded-fix.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
       "expected": "Material migration scope returns to planning and fresh informed approval, using project-backed planning while consequences remain uncertain. A stale review blocks delivery until affected verification and independent review bind to the new diff; neither case duplicates or discards the retained workspace.",
       "assertions": [
         {
@@ -610,8 +623,12 @@
     {
       "id": "transferred-debug-proof-is-freshness-checked",
       "prompt": "Use fixtures/bounded-fix.json as a complete Debug handback before Fix approval, and compare two independent source states without running commands: (A) its exact repository/blob and millisecond clock assumptions independently read back unchanged; (B) the repository matches but the current clock implementation now returns seconds, contradicting the recorded runtime assumption. Explain which diagnosis work can transfer and what remains blocked. The handback itself includes no approval.",
-      "fixtures": ["bounded-fix.json"],
-      "capabilities": ["read-workspace"],
+      "fixtures": [
+        "bounded-fix.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
       "expected": "Fresh same-source proof transfers without repeating all Debug phases, but changed clock evidence requires targeted causal investigation. Neither diagnosis authorizes implementation or skips writable-target admission and informed approval.",
       "assertions": [
         {

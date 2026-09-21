@@ -60,12 +60,12 @@ Build and project-backed Fix resolve or create the selected Linear project. Boun
 contact Linear. Standalone Plan writes only to an exact selected project. Each increment is a
 direct project issue; woostack does not create an extra parent issue to hold the plan.
 
-## Lifecycle behavior
+## Lifecycle behavior (retired Execute reference)
 
-In provider mode, Execute may move the exact unfinished project to its configured `started` status.
-Explicit provider-backed standalone Plan or Execute closure may use the configured `canceled`
-status. Local-run execution skips provider lifecycle changes. Build and Fix handoff, blockers,
-and local-run abandonment leave the mirrored project unchanged.
+> **Retired.** Execute no longer performs Linear lifecycle transitions, project/run-controller reads,
+> or closure. It accepts one complete bounded task and no Linear/Plane issue scope; the retained
+> provider status fields and historical records support Build/Plan mirroring only. See
+> [Execute retired inputs](/docs/skills/woostack-execute#retired-inputs).
 
 `woostack-init` may discover missing non-secret Linear defaults through authenticated read-only MCP
 calls. Discovery does not select Linear as the provider and does not authorize later access.

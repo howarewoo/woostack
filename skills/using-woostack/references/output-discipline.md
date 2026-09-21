@@ -48,7 +48,7 @@ Does **NOT** apply to authored source, documentation, commit messages, or PR des
 
 ## Contract fields are verbatim
 
-**Never compress a structured field the parent parses.** The controller's `subagent-driver.md` branches on exact tokens — compressing or renaming them breaks that branching:
+**Never compress a structured field the parent parses.** A receiving workflow branches on exact tokens — compressing or renaming them breaks that branching:
 
 - `STATUS:` codes — `DONE` / `DONE_WITH_CONCERNS` / `NEEDS_CONTEXT` / `BLOCKED`
 - `VERDICT:` tokens — `PASS` / `FAIL` / `APPROVED` / `CHANGES_REQUESTED`

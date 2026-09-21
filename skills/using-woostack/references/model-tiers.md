@@ -2,9 +2,7 @@
 
 Canonical tier→model mapping for the woostack collection. Consumers resolve tiers through this file.
 Each consumer keeps only its own **runtime bindings** (env vars, config paths, dispatch calls)
-and points at the precedence rules below — there is no second copy of this table. Execute's
-[implementation driver](../../woostack-execute/references/subagent-driver.md) selects when
-delegation is useful and which tier fits the work.
+and points at the precedence rules below — there is no second copy of this table.
 
 Tiers are `fast | standard | deep`. The caller selects an effective tier or uses a prompt's `tier:`
 frontmatter; the runtime resolves it to a concrete model or host-owned role according to the

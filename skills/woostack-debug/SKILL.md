@@ -10,8 +10,8 @@ is woostack's systematic investigation phase: every skill can route a stuck veri
 confirmed defect here instead of guessing. It owns no approval gate, writes no repository or
 provider state, and hands back evidence plus a bounded remediation candidate.
 
-It is a public command, `/woostack-debug <target>`, and an internal hook used by
-[`woostack-execute`](../woostack-execute/SKILL.md). It always runs autonomously.
+It is a public command, `/woostack-debug <target>`, and an internal hook used during
+bounded [`woostack-execute`](../woostack-execute/SKILL.md) verification. It always runs autonomously.
 
 <IRON-LAW>
 NO FIX WITHOUT ROOT CAUSE INVESTIGATION FIRST.
@@ -70,13 +70,11 @@ Linear, Plane, or GitHub resource, and it never writes its handback remotely. If
 supplied, continue the separately scoped code/runtime investigation while stating that no
 development context was used.
 
-When `woostack-execute` supplied a bounded task contract and the proved defect is inside that
-contract, hand the evidence and minimal fix back to execute under the same task. Debug neither
+When a bounded `woostack-execute` task supplied its task contract and the proved defect is inside that
+contract, hand the evidence and minimal fix back to that same task. Debug neither
 expands scope nor creates authority. Otherwise hand the evidence-bound diagnosis to
 [`woostack-fix`](../woostack-fix/SKILL.md), which verifies its source/runtime freshness, admits the
 exact writable repository, and chooses informed direct approval or project-backed planning.
-An exact independently verified project or source issue/work item may transfer as explicitly
-required artifact context; it is never repurposed as a project or execution-plan item.
 
 ## The four phases
 
@@ -133,11 +131,9 @@ Unchanged evidence can transfer without repeating all four phases; stale, missin
 links require targeted investigation before reliance. A prior report's conclusion alone never
 establishes proof or approval. For flaky/timing failures, prefer condition-based waiting over sleeps.
 
-Return in-scope candidates to their existing Execute task; otherwise return to Fix's admission and
+Return in-scope candidates to their existing bounded Execute task; otherwise return to Fix's admission and
 approval boundary. Do not chain remediation or create, assign, comment on, transition, or repurpose
 an issue here. Fix alone owns any supported project link after exact source verification.
-
-## Operation
 
 `/woostack-debug <target>` runs all four phases end to end and hands back the diagnosis. It has no
 per-hypothesis approval gate, interactive mode, or `--auto` flag. With no target, ask what is broken

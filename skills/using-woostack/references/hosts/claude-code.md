@@ -38,7 +38,7 @@ to entry 0, or re-run after editing config).
 
 ## Per-skill notes
 
-- **woostack-execute (dispatch):** the no-per-call-cwd case — prompt pin + self-pin guard —
+- **woostack-execute:** the no-per-call-cwd case — prompt pin + self-pin guard —
   is the normal path here.
 - **woostack-commit (fast drafting):** route the drafting subagent at the `fast` tier
   per-call.
