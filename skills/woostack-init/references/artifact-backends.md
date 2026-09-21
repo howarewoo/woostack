@@ -339,11 +339,13 @@ to the compared tips and assessed work. Admission never bypasses ancestry, colli
 or PR-base safeguards, and never authorizes silently rebasing, resetting, or recreating retained work.
 
 For a non-root task, independently observe every declared prerequisite's delivered checkpoint,
-commit, canonical PR head/base, reviews, and available current-head checks. Logical prerequisites
-do not select a Git parent; apply the selected profile's parent-selection policy and require concrete
-parent/SHA ancestry proof before dispatch. Report failed, pending, unavailable, or incomplete checks
-for observation only. Check outcomes do not mutate prerequisites, choose a base, or create a blocker
-by themselves.
+commit, canonical PR head/base, reviews, and available current-head checks. Keep that logical
+prerequisite set separate from the exactly one concrete Git parent used for checkout. Apply the
+selected profile's parent-selection policy and require recorded parent-branch/SHA ancestry proof
+that contains every required predecessor before dispatch. A join without that proof pauses for an
+explicit integration-parent decision; it must not invent an integration branch or ordinal chain.
+Report failed, pending, unavailable, or incomplete checks for observation only. Check outcomes do
+not mutate prerequisites, choose a base, or create a blocker by themselves.
 
 ## Optional mirror synchronization
 

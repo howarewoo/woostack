@@ -50,7 +50,11 @@ Every increment has a unique stable task ID, a unique positive display ordinal, 
 predecessor set naming admitted task IDs. Ordinals are stable display and tie-break order only; they are not
 dependency or ancestry order, and gaps or edges against display order do not invalidate the graph.
 Independent roots, forks, chains, and joins are valid; only declared predecessors become native
-`blocked-by` edges. An exact Fix source issue is read-only context; after admission it receives only one direct Project link.
+`blocked-by` edges. Normalize every dependency as `prerequisite → dependent`. For GitHub, write that tuple by applying
+`blocked-by` to the dependent issue with the prerequisite issue as the blocking issue. In other
+words, the normalized tuple's second identity is GitHub's dependent endpoint and its first identity
+is GitHub's `blockedBy` endpoint. Read both native endpoint collections independently and normalize
+them back to the same `prerequisite → dependent` tuple before comparing the complete edge set. An exact Fix source issue is read-only context; after admission it receives only one direct Project link.
 
 Admission validates the complete graph before persistence or provider mutation and rejects duplicate
 task IDs, ordinals or prerequisites, self-dependencies, cycles, missing endpoints, ambiguous identities, incomplete

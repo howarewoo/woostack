@@ -37,8 +37,10 @@ Perform one bounded synchronization in strict order:
    not a second blind add. A missing retained membership is drift and blocks.
 3. Compare the complete observed edge set with the explicit prerequisite sets. Existing exact edges
    are no-ops; create only missing declared edges. Remove an edge only for an explicitly approved
-   prerequisite change, never to fit display order. Round-trip both native issue endpoints before
-   each relation mutation and independently read back the affected graph afterward.
+   prerequisite change, never to fit display order. Normalize each edge as `prerequisite → dependent`;
+   send the dependent as GitHub's current issue and the prerequisite as its `blockedBy` issue, then
+   normalize both native endpoint reads back to that same tuple. Round-trip both native issue
+   endpoints before each relation mutation and independently read back the affected graph afterward.
 
 Apply the [canonical graph preflight and recovery rules](../../woostack-init/references/artifact-providers/github.md#issue-identity-and-graph)
 before every create, membership, or edge mutation. Unknown issue creates retain the same marker UUID

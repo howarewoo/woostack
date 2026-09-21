@@ -6,6 +6,17 @@
   "repository": {
     "canonicalUrl": "https://github.com/acme/app",
     "integrationParentBranch": "refs/heads/main",
+    "dependencyDirection": {
+      "normalizedOrder": "prerequisite -> dependent",
+      "githubWrite": {
+        "dependent": "second tuple element",
+        "blockedBy": "first tuple element"
+      },
+      "githubRead": {
+        "dependent": "second tuple element",
+        "blockedBy": "first tuple element"
+      }
+    },
     "baseFiles": {
       "scripts/check.py": "from pathlib import Path\nimport sys\nfor name in sys.argv[1:]:\n    path = Path(name)\n    assert path.read_text().strip() == path.stem, name\n"
     },
@@ -1301,7 +1312,12 @@
           ]
         }
       ],
-      "selectedParent": null
+      "selectedParent": null,
+      "parentSelection": {
+        "decision": "paused",
+        "reason": "No delivered branch contains both task-b and task-c.",
+        "requiredBeforeDispatch": "An explicit integration parent branch and SHA containing both prerequisite changes."
+      }
     }
   }
 }
