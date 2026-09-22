@@ -169,7 +169,7 @@ leave any mirrored Project unchanged.
 | [woostack-execute](/docs/skills/woostack-execute) | Accepts one complete bounded task plus an optional exact GitHub issue URL; retired `--project`, `--run`, and `--recheck` are rejected. |
 | [woostack-status](/docs/skills/woostack-status) | Adds read-only context only after verifying repository/PR identity. Provider records cannot create rows or override repository evidence. |
 | [woostack-bootstrap](/docs/skills/woostack-bootstrap) | Optional persistence only after explicit design approval and approval to write to the verified filesystem target. |
-| [woostack-doctor](/docs/skills/woostack-doctor) | Checks config types locally. Explicit live checks verify Project-mirroring identity and operation-scoped capabilities without storing secrets; they are not a parent-mode capability receipt. |
+| [woostack-doctor](/docs/skills/woostack-doctor) | Checks config types locally. Explicit live checks verify Project-mirroring identity and the fixed read-only Project/Status, pagination, and independent read-back capabilities without storing secrets; they are not a parent-mode capability receipt. |
 | [woostack-change](/docs/skills/woostack-change) | Goal-only Change is provider-free. An explicit exact canonical GitHub issue input performs the required read of that issue through an authorized GitHub capability (native tools preferred; host-authenticated `gh` supported); it requires no artifact-provider configuration, Project, or mirror, and performs no issue lifecycle writes. |
 
 See the [GitHub provider contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-providers/github.md)
