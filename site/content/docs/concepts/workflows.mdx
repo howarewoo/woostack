@@ -3,7 +3,7 @@ title: Workflow maps
 description: "Choose preparation, bounded delivery, or a complete greenfield workflow."
 ---
 
-Start with the user's explicit goal. Change may also take an exact canonical GitHub issue URL as
+Start with the user's explicit goal. Execute may also take an exact canonical GitHub issue URL as
 explicit issue-backed input. Bounded work fits one pull request (PR) and uses the agreed scope in the
 current conversation. Prepared work ends at a verified GitHub issue graph. Git and GitHub show what
 was implemented and delivered.
@@ -17,7 +17,7 @@ was implemented and delivered.
 | Reconcile a specification or candidate issue plan | [Harden](/docs/skills/woostack-harden) |
 | Root-cause investigation without a correction | [Debug](/docs/skills/woostack-debug) |
 | Feature or proved defect needing a verified issue graph | [Prepare](/docs/skills/woostack-prepare) |
-| Bounded non-bug work for one coherent PR | [Change](/docs/skills/woostack-change) |
+| Bounded non-bug work for one coherent PR | [Execute](/docs/skills/woostack-execute) |
 | Approved issue graph publication | [Plan](/docs/skills/woostack-plan) |
 | Add or strengthen tests for a bounded target | [Execute](/docs/skills/woostack-execute) with its [testing guidance](https://github.com/howarewoo/woostack/blob/main/skills/woostack-execute/references/tdd.md) |
 
@@ -83,22 +83,17 @@ merge. A dependent PR targets its verified prerequisite branch; a join pauses if
 parent contains all prerequisite changes. The final result is submitted PRs awaiting review/merge,
 not closed issues or product acceptance.
 
-## Change
+
+## Execute
 
 ```text
-classify → scope → repository preflight → execute → verify → review → hand back
+/woostack-execute <bounded input> [--issue <exact canonical GitHub issue URL>]
 ```
 
-Change handles one bounded non-bug enhancement/refactor and has no hard approval gate. It accepts a
-goal-only request or an exact canonical GitHub issue input; either path still requires one coherent
-PR boundary, verification, smoke testing, and review. The goal-only path makes no remote calls. The
-issue-backed path performs the required read of the selected issue through host-authenticated `gh`;
-it requires no Project configuration, second remote record, or persisted plan.
-
-```text
-/woostack-change <goal>
-/woostack-change [<goal>] --issue <exact canonical GitHub issue URL>
-```
+Execute accepts one complete bounded enhancement, refactor, test-only task, or authorized
+understood correction. It needs no parent issue, Project, planning provider, or persisted plan; an
+exact issue is optional and read-only. Unknown root cause, unresolved scope, or work that needs
+multiple increments stays at Debug or the applicable planning workflow.
 
 ## Shared execution boundary
 

@@ -15,7 +15,7 @@ It has two layers:
   reads no credentials and makes no network calls. An explicit controller-owned
   `--live-receipt <path>` is only a normalized, non-secret GitHub capability receipt.
 - The interactive repair layer proposes local auto-fixes, mutates nothing before approval, routes
-  approved tracked repairs through [`woostack-change`](../woostack-change/SKILL.md), and performs
+  approved tracked repairs through [`woostack-execute`](../woostack-execute/SKILL.md), and performs
   only the safe filesystem repairs owned by a check. Remote and retained data are report-only.
 
 ## Commands
@@ -60,7 +60,7 @@ canonical resolver.
 6. Propose a changeset grouped by finding code, path, and exact local change. Provider, legacy, and
    retained-data findings are report-only.
 7. **HARD GATE — approval.** Silence is not approval. Apply only the explicitly approved local
-   auto-fix findings. Route tracked repairs through `woostack-change`; safe filesystem-only repairs
+   auto-fix findings. Route tracked repairs through `woostack-execute`; safe filesystem-only repairs
    may use their owning check. No repair command contacts a provider or mutates retained data.
 8. Confirm with the same static or receipt-validation mode and report residual findings.
 

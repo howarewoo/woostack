@@ -20,7 +20,7 @@ packages=(
   skills/woostack-eval
   skills/woostack-prepare
   skills/woostack-plan
-  skills/woostack-change
+  skills/woostack-execute
   skills/woostack-execute
   skills/woostack-commit
   skills/woostack-address-comments
@@ -55,7 +55,7 @@ const expectedPackages = [
   'skills/woostack-eval',
   'skills/woostack-prepare',
   'skills/woostack-plan',
-  'skills/woostack-change',
+  'skills/woostack-execute',
   'skills/woostack-execute',
   'skills/woostack-commit',
   'skills/woostack-address-comments',

@@ -18,7 +18,7 @@ The public command/adoption surface has twenty-one skills:
 - [`woostack-ideate`](skills/woostack-ideate/SKILL.md)
 - [`woostack-harden`](skills/woostack-harden/SKILL.md)
 - [`woostack-prepare`](skills/woostack-prepare/SKILL.md)
-- [`woostack-change`](skills/woostack-change/SKILL.md)
+- [`woostack-execute`](skills/woostack-execute/SKILL.md)
 - [`woostack-plan`](skills/woostack-plan/SKILL.md)
 - [`woostack-orchestrate`](skills/woostack-orchestrate/SKILL.md)
 - [`woostack-execute`](skills/woostack-execute/SKILL.md)
@@ -62,7 +62,7 @@ implementation, assignment, ownership, acceptance, or source-control action. Pla
 GitHub issue and relationship publication; Orchestrate owns scheduling and Execute owns bounded
 implementation and PR delivery.
 
-Bounded non-bug Change remains provider-free except for its documented exact GitHub issue read.
+Bounded non-bug Execute remains provider-free except for its documented exact GitHub issue read.
 Retired managed-provider configuration and records remain opaque historical data; only explicitly
 selected direct GitHub operations use the surviving GitHub configuration. Prepare never relies on
 retained records or implicit remote publication.
@@ -75,7 +75,7 @@ narrow automatic authenticated read-only discovery of non-secret repository/nati
 it never selects persistence or authorizes a remote write. `.woostack/config.json` supplies
 validated GitHub defaults only after configuration is selected. Credentials remain in the host
 secret store, and local diagnostic reports remain non-authoritative. Goal-only
-`woostack-change` remains provider-free; an explicit exact GitHub issue permits only its documented
+`woostack-execute` remains provider-free; an explicit exact GitHub issue permits only its documented
 read-only admission. That exception does not select Project publication or authorize work.
 Handoff, replanning, and blockers leave Project status unchanged.
 
@@ -106,7 +106,7 @@ do not add application code, app build configs, or app lockfiles **outside the s
 
 **Mode B: run a woostack command.** Use this when the user asks for `/woostack-init`,
 `/woostack-bootstrap`, `/woostack-ideate`, `/woostack-harden`, `/woostack-prepare`,
-`/woostack-change`, `/woostack-plan`, `/woostack-orchestrate`, `/woostack-execute`,
+`/woostack-execute`, `/woostack-plan`, `/woostack-orchestrate`, `/woostack-execute`,
 `/woostack-commit`, `/woostack-address-comments`, `/woostack-status`, `/woostack-visualize`,
 `/woostack-design`, `/woostack-debug`, `/woostack-tdd`, `/woostack-doctor`, `/woostack-qa`,
 `/woostack-eval`, or `/woostack-reflect`, including intent-equivalent wording. Load the matching
@@ -190,7 +190,7 @@ the repository's simplify/comments guidance.
 - Shared plain planning input and handback contract:
   [`skills/using-woostack/references/planning-inputs.md`](skills/using-woostack/references/planning-inputs.md)
 - Bounded non-bug change loop (public command; one reviewable PR, no approval gate or persisted plan):
-  [`skills/woostack-change/SKILL.md`](skills/woostack-change/SKILL.md)
+  [`skills/woostack-execute/SKILL.md`](skills/woostack-execute/SKILL.md)
 - Plan-owned GitHub issue publication engine (public command):
   [`skills/woostack-plan/SKILL.md`](skills/woostack-plan/SKILL.md)
 - Bounded task execution engine delivering one task through one PR (public command):

@@ -44,10 +44,8 @@ routes before requirements gathering, MCP preflight, or project creation:
 - bugs, regressions, incidents, and root-cause work → [`woostack-debug`](../woostack-debug/SKILL.md)
   for diagnosis or [`woostack-prepare`](../woostack-prepare/SKILL.md) for a proved issue graph;
 - a bounded non-bug enhancement or refactor that fits one reviewable PR, including a one-file
-  request → [`woostack-change`](../woostack-change/SKILL.md);
+  request → [`woostack-execute`](../woostack-execute/SKILL.md);
 - a multi-PR feature or architectural initiative → [`woostack-prepare`](../woostack-prepare/SKILL.md).
-
-Single-surface throwaway scripts are also outside bootstrap.
 
 ## Procedure
 
@@ -113,7 +111,7 @@ approval, perform no official-MCP development mutation and create no development
 These are non-negotiable. Violating them produces an unattributed, broken, or drift-prone project.
 
 - **Brownfield routing.** Route every existing-repository bug or regression to Debug or Prepare,
-  every bounded one-PR non-bug request to Change, and every multi-PR initiative to Prepare before
+  every bounded one-PR non-bug request to Execute, and every multi-PR initiative to Prepare before
   creating a bootstrap project.
 - **Artifact-free until explicit approval.** Requirements, research, options, and design stay in
   the run context. No remote project, update, issue, document, local spec/plan, target directory,

@@ -102,7 +102,7 @@ in the coding assistant.
 | Reconcile a specification or candidate issue plan | [/woostack-harden](skills/woostack-harden/SKILL.md) | Checks supplied content against bounded repository/evidence identity and returns complete reconciled content after explicit corrections. |
 | Prepare a feature or proved defect for issue planning | [/woostack-prepare](skills/woostack-prepare/SKILL.md) | Composes the relevant public phases and ends at one fully read-back GitHub parent/child graph without implementing or dispatching it. |
 | Publish an approved GitHub issue plan | [/woostack-plan](skills/woostack-plan/SKILL.md) | Publishes one verified GitHub parent/child hierarchy or explicit Project graph with native prerequisite edges, without implementing it. |
-| A small enhancement or refactor | [/woostack-change](skills/woostack-change/SKILL.md) | Delivers one PR without creating a planning project. |
+| A small enhancement or refactor | [/woostack-execute](skills/woostack-execute/SKILL.md) | Delivers one PR without creating a planning project. |
 | Execute an approved GitHub issue graph | [/woostack-orchestrate](skills/woostack-orchestrate/SKILL.md) | Takes one exact parent issue or explicit Project, runs ready tasks in isolated Execute workers, and verifies submitted draft PRs without merging. |
 
 Prepare stops at planning. Direct bounded implementation remains an explicit Execute request; a

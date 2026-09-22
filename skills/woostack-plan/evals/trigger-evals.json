@@ -49,7 +49,7 @@
       "id": "bounded-change-needs-direct-workflow",
       "query": "Add one bounded preference in a single pull request; no sequential multi-increment plan or GitHub issue graph is needed.",
       "shouldTrigger": false,
-      "expectedSkill": "woostack-change",
+      "expectedSkill": "woostack-execute",
       "conflictsWith": ["woostack-plan"]
     },
     {

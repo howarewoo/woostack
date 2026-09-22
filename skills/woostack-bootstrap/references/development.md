@@ -12,7 +12,7 @@ Each skill owns its procedure:
 | Elicit a complete user-verified specification | `woostack-ideate` |
 | Reconcile a supplied specification or candidate issue plan | `woostack-harden` |
 | Publish an approved GitHub parent/child or Project issue graph | `woostack-plan` |
-| Deliver a small enhancement or refactor in one PR | `woostack-change` |
+| Deliver a small enhancement or refactor in one PR | `woostack-execute` |
 | Check a running app in a browser | `woostack-qa` |
 | Prove a root cause without applying a correction | `woostack-debug` |
 | Evaluate approved behavior and trigger corpora for a skill without editing it | `woostack-eval` |

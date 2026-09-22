@@ -129,7 +129,7 @@ test('navOrder places public planning phases before orchestration', () => {
     'woostack-ideate',
     'woostack-harden',
     'woostack-prepare',
-    'woostack-change',
+    'woostack-execute',
     'woostack-plan',
     'woostack-orchestrate',
     'woostack-execute',
