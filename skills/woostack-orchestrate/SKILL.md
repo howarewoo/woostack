@@ -226,8 +226,10 @@ If launch identity is lost, discover it from the actual host; never invent one f
 1. Dispatch all entries from the current `schedule` response up to its effective cap, then wait
    for **one** worker completion or actionable host event—not the whole batch.
 2. Process that completion through the independent result, validation, note, and optional Project
-   gates below. Use `apply-result` even for unknown/malformed outcomes so the reservation, evidence,
-   and first uncertain boundary are retained. A worker's finish alone never releases its dependents.
+   gates below. Bind every `apply-result` envelope to the originating native handle under the
+   [result contract](references/validation.md#result-schema), never to current task state. Use a
+   valid bound envelope for unknown/malformed worker responses; unparseable/unbound envelopes are
+   rejected without changing the current reservation. A worker's finish never releases dependents.
 3. Immediately assemble fresh scope and delivery evidence, invoke `schedule` with the existing
    state, and launch newly emitted workers while unrelated workers remain active. Thus verified A
    can release C while B is still running. Do not order by ordinal or introduce wave barriers.
@@ -269,10 +271,12 @@ canonical [`#artifact-delivery-note`](../woostack-commit/references/provider-att
 mechanism. Release dependents only after that readback is included in the result. In explicit
 Project mode only, and only when its configured lifecycle mapping was admitted, write and read back
 `inReview`; a schedule intent is not a status receipt. Parent-issue mode performs no Project call.
-For `unknown`, missing, or malformed worker/result evidence, the helper retains the complete
-reservation, dirty worktree, branch, PR evidence, and first uncertain boundary. Unknown blocks only
-that task and its descendants; unrelated ready tasks remain dispatchable only within proven spare
-capacity because a possibly-live unknown worker still occupies its slot. Run `reconcile` only with
+For a bound `unknown`, missing, or malformed worker response, the helper retains the complete
+reservation, dirty worktree, branch, PR evidence, and first uncertain boundary. An unparseable or
+unbound envelope returns `worker-identity` without changing claims, checkpoint, reservation, or
+status. Unknown blocks only that task and its descendants; unrelated ready tasks remain dispatchable
+only within proven spare capacity because a possibly-live unknown worker still occupies its slot.
+Run `reconcile` only with
 the admitted scope, existing state, canonical Git repository, freshly read host recovery inventory,
 and [bound stopped-worker evidence](references/validation.md#unknown-reconciliation) plus the
 reserved branch/workspace/parent and canonical PR/readback identity.

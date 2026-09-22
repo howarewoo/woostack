@@ -1748,12 +1748,21 @@ def cmd_apply_result(args):
     item = state["tasks"][args.task]
     require(item["status"] in ("running", "note-pending", "evidence-pending"),
             "not-running", "task has no active reservation or receipt retry")
+    try:
+        result = load_json(args.result)
+    except InputError as error:
+        raise InputError("worker-identity", "parseable completion envelope with native worker identity required") from error
+    worker = result.get("worker")
+    host_worker = item.get("host_worker")
+    identity_fields = ("host_id", "session_id", "worker_id")
+    require(isinstance(host_worker, dict) and isinstance(worker, dict)
+            and all(text(host_worker.get(key)) for key in identity_fields)
+            and host_worker == {key: worker.get(key) for key in identity_fields},
+            "worker-identity", "completion must match the recorded native host/session/worker identity")
     task = next(t for t in admitted["tasks"] if t["task_id"] == args.task)
     claim_scope(args.git_repo, admitted, state)
     claim_task(args.git_repo, admitted, task, state, item)
-    result = {}
     try:
-        result = load_json(args.result)
         proof = validate_delivery(admitted, task, item["reservation"], result, args.git_repo)
         pr_url = result["worker"]["pr_url"]
         require(not any(tid != args.task and other.get("verified_pr") == pr_url

@@ -20,7 +20,9 @@ values to invent:
 {
   "outcome": "ok",
   "worker": {
-    "worker_id": "<runtime-substituted worker identity>",
+    "host_id": "<runtime-substituted originating native host incarnation>",
+    "session_id": "<runtime-substituted originating native session incarnation>",
+    "worker_id": "<runtime-substituted originating native worker handle>",
     "pr_url": "<runtime-substituted canonical PR URL>",
     "branch": "<runtime-substituted worker branch>",
     "workspace": "<runtime-substituted actual selected isolated workspace>",
@@ -85,6 +87,35 @@ example's markers mean “runtime-substituted fact required”, not a successful
 result may omit `note` when no validated delivery note exists. It must not replace missing fields
 with another task's evidence.
 
+Every active `apply-result` envelope carries `worker.host_id`, `worker.session_id`, and
+`worker.worker_id`, all nonempty strings matching the task's recorded `host_worker` exactly.
+The controller derives these fields from the native launch/handle that produced this completion,
+including cached completions and missing-response observations, never from the task's current
+state. Do not relabel an old result with a repair worker's identity. This binding precedes all
+claims/state publication and delivery validation for every outcome, including `needs-repair` and
+`unknown`; a matching identity is necessary, not authority to skip independent validation.
+
+If that originating worker's response is missing, unreadable, or malformed, the controller supplies
+a valid JSON envelope with its native identity and `outcome: "unknown"` (or the malformed report
+fields). For example, substitute the actual originating handle into:
+
+```json
+{
+  "outcome": "unknown",
+  "worker": {
+    "host_id": "<originating native host incarnation>",
+    "session_id": "<originating native session incarnation>",
+    "worker_id": "<originating native worker handle>"
+  }
+}
+```
+
+An unreadable/unparseable envelope, missing binding, missing recorded writer, or mismatched native
+identity instead returns `worker-identity` without changing claims, checkpoint, reservation, or task
+status. Recover the originating identity through direct host reads; never guess it to force an
+`unknown` transition. Standalone validation/admission of already-delivered work has no active launch
+and keeps its existing delivery-evidence contract.
+
 The `worker` and `readback` identities must agree. `readback.closing_references` must contain
 exactly one entry, the canonical child URL, and the PR body must carry exactly one
 `Resolves <child URL>` reference. A specification-parent closing reference, duplicate reference,
@@ -135,15 +166,17 @@ A changed head invalidates all check/validation/diff evidence and requires fresh
 
 ## Gate order and statuses
 
-The helper must apply these gates against the current reservation; the skill must not implement an
-alternate acceptance path:
+The helper first requires a result for a running task or a note/evidence receipt retry and enforces
+the [active native-identity binding](#result-schema). A non-active task is rejected; an unparseable
+or unbound envelope returns `worker-identity`, without entering the unknown catch path or mutating
+the current writer's state. Once bound, apply these gates against the current reservation; the
+skill must not implement an alternate acceptance path:
 
-1. **Missing, malformed, or `unknown` result:** persist the task as `unknown` with its complete
-   reservation/workspace, direct evidence, and first uncertain boundary intact. Unknown blocks that
-   task and its descendants; unrelated ready tasks remain dispatchable. Do not guess fields,
-   dispatch another worker, or clear identity from a report. This includes an unreadable/missing
-   result, incomplete worker/readback/check/validation evidence, missing stopped-worker
-   reconciliation evidence, and a result for a non-running task.
+1. **Bound missing, malformed, or `unknown` worker result:** persist the task as `unknown` with its
+   complete reservation/workspace, direct evidence, and first uncertain boundary intact. Unknown
+   blocks that task and its descendants; unrelated ready tasks remain dispatchable. This includes
+   incomplete worker/readback/check/validation evidence within a valid bound envelope. Do not guess
+   report fields, dispatch another worker, or clear identity from a report.
 2. **Focused checks or independent specification review fail:** return `repair-ready`, preserving
    the exact original branch, absolute workspace, parent branch/SHA, reservation, and retained PR.
    The note may be absent. Repairs return through the same branch/PR and may not be reparents or
@@ -153,7 +186,7 @@ alternate acceptance path:
    dispatch a second Execute worker for repository work already represented by that PR.
 4. **Note or optional Project receipt missing:** return `note-pending`, retaining the validated
    PR, checks, diff, and complete result. Retry only the failed note/Project read-back with the same
-   result and identity; never replay repository delivery or dispatch a worker.
+   result and recorded native identity; never replay repository delivery or dispatch a worker.
 5. **Worker/readback or canonical identity conflict:** return a blocked `unknown` result for that
    task, preserving its reservation and stopping only its descendants. Wrong repository/head
    repository, PR URL, branch/head, base, child association, duplicate/closed PR, or a non-unique
@@ -222,11 +255,16 @@ identities, including the session/host incarnation, not a model-chosen label or 
 The helper records this identity separately as `host_worker`; worker result prose cannot replace
 it. Another identity is rejected until the controller emits a new repair dispatch. Each dispatch
 clears the prior native identity; record the new launch even when branch/workspace stay unchanged.
+Completion envelopes retain the identity of their originating handle, not whichever writer is
+currently recorded for the task. Note/evidence-only retries keep that same recorded identity;
+a new repair launch receives its own native identity even when its reservation and PR are unchanged.
 
 If the dispatch reply was lost, direct host discovery may supply the missing identity against the
 still-running or unknown reservation through the same command. Correlate the actual launch/session
-and workspace, not just a similarly named worker. If that correlation is unavailable, leave the task
-unknown and occupied; neither a stopped receipt nor a PR can substitute for a recorded native writer.
+and workspace, not just a similarly named worker. If that correlation is unavailable, preserve the
+current status and occupied reservation; neither an unbound result, stopped receipt, nor PR can
+substitute for a recorded native writer. Once recovered and recorded, apply a bound unknown
+observation before unknown reconciliation when the response itself is missing or malformed.
 `record-worker` uses the same durable claims and checkpoint CAS as other controller mutations.
 
 ## Unknown reconciliation

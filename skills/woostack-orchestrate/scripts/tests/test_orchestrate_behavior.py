@@ -926,11 +926,14 @@ class OrchestrateBehavior(unittest.TestCase):
         dispatch = scheduled["dispatch"][0]
         self.assertEqual(dispatch["task_id"], "task-a")
         reservation = self._reservation(dispatch)
+        host = self._start_host()
+        host.dispatch([dispatch])
+        report = host.wait_for_report("task-a")
         unknown_state, unknown_output, _ = self._apply(
             admitted_path,
             state,
             "task-a",
-            {"outcome": "unknown"},
+            {"outcome": "unknown", "worker": report["worker"]},
             "unknown",
         )
         self.assertEqual(unknown_output.get("status"), "unknown", unknown_output)
@@ -948,12 +951,15 @@ class OrchestrateBehavior(unittest.TestCase):
         )
         self.assertEqual([item["task_id"] for item in spare["dispatch"]], ["task-b"], spare)
         self.assertTrue(spare_state.exists())
+        host.dispatch(spare["dispatch"])
+        self.assertTrue(host.b_started.wait(30))
+        observed_worker = copy.deepcopy(host.identities["task-b"])
 
         malformed_state, malformed, _ = self._apply(
             admitted_path,
             spare_state,
             "task-b",
-            {"outcome": "ok", "worker": {"worker_id": "execute-task-b"}},
+            {"outcome": "ok", "worker": observed_worker},
             "malformed",
         )
         self.assertEqual(malformed.get("status"), "unknown", malformed)
@@ -977,8 +983,10 @@ class OrchestrateBehavior(unittest.TestCase):
         host.dispatch(scheduled["dispatch"])
         self.assertTrue(host.b_started.wait(30))
         self.assertFalse(host.futures["task-b"].done())
+        observed_worker = copy.deepcopy(host.identities["task-b"])
         unknown_state, unknown, _ = self._apply(
-            admitted_path, state, "task-b", {"outcome": "unknown"}, "live-timeout"
+            admitted_path, state, "task-b",
+            {"outcome": "unknown", "worker": observed_worker}, "live-timeout"
         )
         self.assertEqual(unknown["status"], "unknown", unknown)
         _, rejected, code = self._reconcile(
@@ -1006,8 +1014,10 @@ class OrchestrateBehavior(unittest.TestCase):
         self.assertTrue(host.before_pr.wait(30))
         self.assertNotIn("task-b", self.github.prs)
         self.assertFalse(host.futures["task-b"].done())
+        observed_worker = copy.deepcopy(host.identities["task-b"])
         state, unknown, _ = self._apply(
-            admitted_path, state, "task-b", {"outcome": "unknown"}, "positive-live-timeout"
+            admitted_path, state, "task-b",
+            {"outcome": "unknown", "worker": observed_worker}, "positive-live-timeout"
         )
         self.assertEqual(unknown["status"], "unknown")
         original = state.read_bytes()
@@ -1051,27 +1061,161 @@ class OrchestrateBehavior(unittest.TestCase):
         self.assertEqual(host.consumed_packets, ["task-b"])
         self.assertFalse(host.futures["task-b"].done())
 
-    def test_stopped_host_without_recorded_native_identity_stays_unknown(self) -> None:
+    def test_replayed_needs_repair_cannot_release_live_repair_worker(self) -> None:
+        snapshot = self._single_task_snapshot()
+        admitted_path, admitted = self._admit_issue(snapshot)
+        state, scheduled = self._schedule(
+            admitted_path, admitted, None, snapshot, "replay-initial", cap="1"
+        )
+        entry_a = scheduled["dispatch"][0]
+        host = self._start_host(workers=2)
+        host.dispatch([entry_a])
+        report_a = host.wait_for_report("task-a")
+        cached_a = make_result(self.github, "task-a", report_a, admitted)
+        cached_a["outcome"] = "needs-repair"
+        state, repair_ready, _ = self._apply(
+            admitted_path, state, "task-a", cached_a, "replay-first-completion"
+        )
+        self.assertEqual(repair_ready["status"], "repair-ready", repair_ready)
+
+        state, repair = self._schedule(
+            admitted_path, admitted, state, snapshot, "replay-repair", cap="1"
+        )
+        self.assertEqual([entry["task_id"] for entry in repair["dispatch"]], ["task-a"])
+        entry_b = repair["dispatch"][0]
+        self.assertTrue(entry_b["repair"])
+        self.assertEqual(self._reservation(entry_b), self._reservation(entry_a))
+        host.hold_before_mutation = True
+        host.dispatch([entry_b])
+        self.assertTrue(host.before_mutation.wait(30))
+        future_b = host.futures["task-a"]
+        self.assertTrue(future_b.running())
+        identity_b = copy.deepcopy(host.identities["task-a"])
+        self.assertNotEqual(identity_b["worker_id"], report_a["worker"]["worker_id"])
+        self.assertEqual(
+            {key: cached_a["worker"][key] for key in identity_b},
+            {key: report_a["worker"][key] for key in identity_b},
+        )
+        before = state.read_bytes()
+        current = json.loads(before)["tasks"]["task-a"]
+        self.assertEqual(current["status"], "running")
+        self.assertEqual(current["host_worker"], identity_b)
+        self.assertEqual(current["reservation"], self._reservation(entry_b))
+        # B has started but cannot alter A's valid Git/PR evidence until released.
+        self.assertEqual(git(Path(entry_b["workspace"]), "rev-parse", "HEAD"), report_a["worker"]["head_sha"])
+        self.assertEqual(self.github.readback("task-a"), cached_a["readback"])
+        self.assertEqual(make_result(self.github, "task-a", report_a, admitted)["checks"], cached_a["checks"])
+
+        out, rejected, code = self._apply(
+            admitted_path, state, "task-a", cached_a, "replay-stale-completion", expect_code=None
+        )
+        self.assertNotEqual(code, 0, rejected)
+        self.assertEqual(rejected["error"], "worker-identity", rejected)
+        self.assertFalse(out.exists())
+        self.assertEqual(state.read_bytes(), before)
+        self.assertTrue(future_b.running())
+        state, no_third_worker = self._schedule(
+            admitted_path, admitted, state, snapshot, "replay-no-third-worker", cap="2"
+        )
+        self.assertEqual(no_third_worker["dispatch"], [], no_third_worker)
+        retained = json.loads(state.read_text())["tasks"]["task-a"]
+        self.assertEqual(retained["status"], "running")
+        self.assertEqual(retained["host_worker"], identity_b)
+        self.assertEqual(retained["reservation"], self._reservation(entry_b))
+        self.assertEqual(host.consumed_packets, ["task-a", "task-a"])
+        self.assertTrue(future_b.running())
+
+        host.mutation_hold.set()
+        report_b = host.wait_for_report("task-a")
+        self.assertEqual({key: report_b["worker"][key] for key in identity_b}, identity_b)
+        self.assertNotEqual(report_b["worker"]["head_sha"], report_a["worker"]["head_sha"])
+        result_b = make_result(self.github, "task-a", report_b, admitted)
+        delivered_state, delivered, _ = self._apply(
+            admitted_path, state, "task-a", result_b, "replay-current-completion"
+        )
+        self.assertEqual(delivered["status"], "delivered", delivered)
+        self.assertEqual(json.loads(delivered_state.read_text())["tasks"]["task-a"]["status"], "delivered")
+
+    def test_unbound_and_foreign_unknown_envelopes_leave_live_launch_untouched(self) -> None:
+        snapshot = self._single_task_snapshot()
+        admitted_path, admitted = self._admit_issue(snapshot)
+        state, scheduled = self._schedule(
+            admitted_path, admitted, None, snapshot, "binding-initial", cap="1"
+        )
+        host = self._start_host(workers=1)
+        host.hold_before_mutation = True
+        host.dispatch(scheduled["dispatch"])
+        self.assertTrue(host.before_mutation.wait(30))
+        identity = copy.deepcopy(host.identities["task-a"])
+        before = state.read_bytes()
+        variants = {
+            "missing-worker": {"outcome": "unknown"},
+            "malformed-worker": {"outcome": "unknown", "worker": []},
+            "incomplete-identity": {
+                "outcome": "unknown", "worker": {"worker_id": identity["worker_id"]},
+            },
+        }
+        for field in ("host_id", "session_id", "worker_id"):
+            variants["foreign-" + field] = {
+                "outcome": "unknown", "worker": {**identity, field: "another-native-launch"},
+            }
+        for label, envelope in variants.items():
+            with self.subTest(envelope=label):
+                out, rejected, code = self._apply(
+                    admitted_path, state, "task-a", envelope, "binding-" + label, expect_code=None
+                )
+                self.assertNotEqual(code, 0, rejected)
+                self.assertEqual(rejected["error"], "worker-identity", rejected)
+                self.assertFalse(out.exists())
+                self.assertEqual(state.read_bytes(), before)
+                self.assertTrue(host.futures["task-a"].running())
+
+        # Unparseable transport bytes cannot enter the bound malformed-report transition.
+        result_path = self.tmp / "binding-unparseable.json"
+        result_path.write_text("{", encoding="utf-8")
+        out = self.tmp / "binding-unparseable-state.json"
+        code, rejected = invoke_cli(
+            "apply-result", "--admitted", str(admitted_path), "--state", str(state),
+            "--state-out", str(out), "--git-repo", str(self.repo),
+            "--task", "task-a", "--result", str(result_path),
+        )
+        self.assertNotEqual(code, 0, rejected)
+        self.assertEqual(rejected["error"], "worker-identity", rejected)
+        self.assertFalse(out.exists())
+        self.assertEqual(state.read_bytes(), before)
+        self.assertTrue(host.futures["task-a"].running())
+        _, resumed = self._schedule(
+            admitted_path, admitted, state, snapshot, "binding-no-takeover", cap="2"
+        )
+        self.assertEqual(resumed["dispatch"], [], resumed)
+        self.assertEqual(host.consumed_packets, ["task-a"])
+
+    def test_unrecorded_completion_is_rejected_until_native_discovery_and_current_stop(self) -> None:
         snapshot = self._single_task_snapshot()
         admitted_path, admitted = self._admit_issue(snapshot)
         state, scheduled = self._schedule(admitted_path, admitted, None, snapshot, "unrecorded")
         host = self._start_host(workers=1)
         host.on_launch = None  # Lost host launch receipt, not a worker completion report.
         host.dispatch(scheduled["dispatch"])
-        host.wait_for_report("task-a")
-        state, unknown, _ = self._apply(
-            admitted_path, state, "task-a", {"outcome": "unknown"}, "unrecorded-unknown"
+        report = host.wait_for_report("task-a")
+        observation = {"outcome": "unknown", "worker": report["worker"]}
+        original = state.read_bytes()
+        out, rejected, code = self._apply(
+            admitted_path, state, "task-a", observation, "unrecorded-unknown", expect_code=None
         )
-        self.assertEqual(unknown["status"], "unknown")
+        self.assertNotEqual(code, 0, rejected)
+        self.assertEqual(rejected["error"], "worker-identity", rejected)
+        self.assertFalse(out.exists())
+        self.assertEqual(state.read_bytes(), original)
         evidence = self.github.readback("task-a")
         evidence["worker_stop"] = self._stop_receipt(host, "task-a", state)
-        out, rejected, code = self._reconcile(admitted_path, state, "task-a", evidence, "unrecorded-stop")
-        self.assertNotEqual(code, 0, rejected)
-        self.assertEqual(rejected["error"], "worker-liveness")
-        self.assertFalse(out.exists())
         # Actual host discovery can bind the missing launch, but cannot reuse the old receipt.
         self.launch_context[scheduled["dispatch"][0]["branch"]] = (admitted_path, state)
         self._record_launch(scheduled["dispatch"][0], host.identities["task-a"])
+        state, unknown, _ = self._apply(
+            admitted_path, state, "task-a", observation, "discovered-unknown"
+        )
+        self.assertEqual(unknown["status"], "unknown", unknown)
         _, rejected, code = self._reconcile(admitted_path, state, "task-a", evidence, "unrecorded-stale")
         self.assertNotEqual(code, 0, rejected)
         self.assertEqual(rejected["error"], "worker-liveness")
@@ -1089,7 +1233,8 @@ class OrchestrateBehavior(unittest.TestCase):
         host.dispatch([original])
         report = host.wait_for_report("task-a")
         state, outcome, _ = self._apply(
-            admitted_path, state, "task-a", {"outcome": "unknown"}, "claim-lost-response"
+            admitted_path, state, "task-a",
+            {"outcome": "unknown", "worker": report["worker"]}, "claim-lost-response"
         )
         self.assertEqual(outcome["status"], "unknown", outcome)
 
@@ -1251,7 +1396,7 @@ class OrchestrateBehavior(unittest.TestCase):
             admitted_path,
             state,
             "task-a",
-            {"outcome": "unknown"},
+            {"outcome": "unknown", "worker": report["worker"]},
             "reconcile-pr-unknown",
         )
         self.assertEqual(unknown_output.get("status"), "unknown", unknown_output)
