@@ -753,6 +753,7 @@ def admit(snapshot, mode, selector, limit):
             "missing-integration", "admitted integration branch and commit required")
     parent_url = None
     selector_urls = None
+    scope = {}
     if mode == "issue":
         require(ISSUE_RE.fullmatch(selector) is not None, "invalid-issue-url", "exact issue URL required")
         selector = canonical_issue_url(selector, canonical)
@@ -866,10 +867,6 @@ def admit(snapshot, mode, selector, limit):
         # never become issue/publication identity or snapshot drift.
         record["contract_hash"] = digest(entry["contract"])
         record["contract_revision"] = record["contract_hash"]
-        record["dependency_snapshot"] = {
-            "prerequisites": list(record["prerequisites"]),
-            "external_prerequisites": list(record["external_prerequisites"]),
-        }
         if mode == "issues":
             record["specification"] = entry.get("specification", entry["body"])
             require(text(record["specification"]), "malformed-contract", "selected issue specification missing")
@@ -881,6 +878,11 @@ def admit(snapshot, mode, selector, limit):
     tasks_by_id = {task["task_id"]: task for task in tasks}
     require(len(tasks_by_id) == len(tasks), "duplicate-identity", "duplicate task_id")
     edges = collect_edges(snapshot, tasks, mode, canonical)
+    for task in tasks:
+        task["dependency_snapshot"] = {
+            "prerequisites": list(task["prerequisites"]),
+            "external_prerequisites": list(task["external_prerequisites"]),
+        }
     graph = graph_metadata(snapshot, edges) if mode == "issues" else {
         "coverage": "native", "model_inference": "not-applicable",
         "source": "native-read", "complete": True}
@@ -895,7 +897,6 @@ def admit(snapshot, mode, selector, limit):
     host_cap = positive(host.get("max_parallel", 1))
     if tasks:
         require(host.get("delivery_capable") is True, "no-subagent-capability", "delivery-capable subagent required")
-    host_cap = positive(host.get("max_parallel", 1))
     ordered_tasks = sorted(tasks, key=lambda task: task["task_id"]) if mode == "issues" else tasks
     immutable_tasks = [{k: v for k, v in t.items() if k not in ("existing_delivery", "workspace", "branch")}
                        for t in sorted(tasks, key=lambda t: t["task_id"])]
@@ -1332,7 +1333,8 @@ def validate_delivery(admitted, task, reservation, result, repo):
     if result["outcome"] == "needs-repair" or not checks["passed"] or validation["verdict"] == "fail":
         return {"status": "repair-ready", "reason": "checks-failed" if not checks["passed"] else "validation-failed"}
     delivery = {"pr_url": readback["pr_url"], "head_sha": readback["head_sha"],
-                "branch": readback["branch"], "base_branch": readback["base_branch"],
+                "branch": readback["branch"], "workspace": reservation["workspace"],
+                "base_branch": readback["base_branch"],
                 "commit_sha": readback["commit_sha"], "association": task["url"],
                 "validated_diff": actual_diff, "contract_hash": task["contract_hash"],
                 "checkpoint": copy.deepcopy(result)}
@@ -1635,7 +1637,11 @@ def cmd_schedule(args):
                 blocked.append({"task_id": tid, "reason": getattr(error, "code", "workspace-conflict")})
                 continue
         else:
-            parent = choose_parent(admitted, task, state, decisions, args.git_repo)
+            try:
+                parent = choose_parent(admitted, task, state, decisions, args.git_repo)
+            except InputError as error:
+                paused.append({"task_id": tid, "reason": error.code})
+                continue
             if parent is None:
                 paused.append({"task_id": tid, "reason": "join-no-containing-parent",
                                "prerequisite_branches": [state["tasks"][p]["delivery"]["branch"] for p in task["prerequisites"]]})
@@ -1691,7 +1697,9 @@ def cmd_schedule(args):
         except InputError as error:
             paused.append({"task_id": tid, "reason": error.code})
             continue
-        item.update(status="running", reservation=reservation, parent_decision=copy.deepcopy(decision))
+        item.update(status="running", reservation=reservation, parent_decision=copy.deepcopy(decision),
+                    first_uncertain_boundary=None,
+                    last_evidence={"parent_readiness": copy.deepcopy(readiness)})
         dispatch.append({"task_id": tid, "ordinal": task["ordinal"], "child_url": task["url"],
                          "repair": repair, "retained_pr": retained_pr, **reservation,
                          "packet": packet(admitted, task, reservation, repair, retained_pr, readiness)})

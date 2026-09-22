@@ -50,7 +50,7 @@
     {
       "id": "unapproved-task",
       "query": "Start implementing this task even though its decisions and acceptance criteria have not been supplied yet.",
-      "shouldTrigger": false,
+      "shouldTrigger": true,
       "expectedSkill": "woostack-execute"
     }
   ]

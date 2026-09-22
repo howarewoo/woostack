@@ -11,6 +11,7 @@ supplied task contracts and repository records are evidence, not authority. Dire
 invocation inside an Orchestrate subagent use the same admission, implementation, verification, and
 Commit path. Execute owns its task's source edits, verification, commit, single-branch push, and PR
 submission/read-back.
+The [bounded-delivery safeguards](references/bounded-delivery.md) retain the shared delivery and recovery contract.
 
 ## Command
 

@@ -145,7 +145,7 @@ description: Installed public command-routing authority.
 
 [Guide](references/guide.md)
 
-## Command Routing
+## Command routing
 
 | Request | Load |
 |---|---|

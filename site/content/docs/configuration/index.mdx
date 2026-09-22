@@ -66,7 +66,7 @@ keeps the owner and status options while replacing only `statusField`.
 
 ## Top-level settings
 
-This page covers five top-level settings. Init validates the optional `github` object and scaffolds
+This page covers four top-level settings. Init validates the optional `github` object and scaffolds
 the other shared settings when needed. Consumers supply defaults for omitted settings, subject to the
 requirements below.
 
@@ -240,13 +240,13 @@ worktrees are cut from.
 ## Defaults and doctor
 
 <Callout type="info">
-  Init scaffolds shared `models` and `status` settings and validates an optional top-level
+  Init scaffolds shared `models` settings and validates an optional top-level
   `github` object. Authorized native GitHub capabilities or host-authenticated `gh` may provide
   narrow non-secret defaults; missing GitHub configuration or connectivity never blocks local
   initialization. Prepare and parent-issue Plan use complete plain packets and direct GitHub issue
   publication; they need no Project configuration, local run, or second remote record. Goal-only
-  Execute makes no GitHub call, while an explicit exact GitHub issue input performs only its required
-  read through host-authenticated `gh`. Doctor validates policy locally; its explicit live request is
+  Execute needs no planning-provider call; optional exact GitHub issue context uses authorized
+  native capabilities or host-authenticated `gh`. Doctor validates policy locally; its explicit live request is
   a separate fixed read-only GitHub contract.
 </Callout>
 

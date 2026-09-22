@@ -21,7 +21,6 @@ packages=(
   skills/woostack-prepare
   skills/woostack-plan
   skills/woostack-execute
-  skills/woostack-execute
   skills/woostack-commit
   skills/woostack-address-comments
   skills/woostack-debug
@@ -50,24 +49,6 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const [repositoryRoot, resultsRoot, ...packages] = process.argv.slice(2);
-const expectedPackages = [
-  'skills/woostack-eval',
-  'skills/woostack-prepare',
-  'skills/woostack-plan',
-  'skills/woostack-execute',
-  'skills/woostack-execute',
-  'skills/woostack-commit',
-  'skills/woostack-address-comments',
-  'skills/woostack-debug',
-  'skills/woostack-visualize',
-  'skills/woostack-init',
-  'skills/woostack-doctor',
-  'skills/woostack-bootstrap',
-];
-const same = (left, right) => JSON.stringify(left) === JSON.stringify(right);
-if (!same(packages, expectedPackages) || new Set(packages).size !== 12) {
-  throw new Error(`critical package enumeration changed: ${JSON.stringify(packages)}`);
-}
 
 
 

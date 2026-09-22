@@ -308,6 +308,7 @@ class FakeGitHub:
             "parent_prs": self.parent_pr_readbacks(),
             "repository_rules": self.repository_rules,
             "host": {"delivery_capable": True, "max_parallel": self.max_parallel},
+            "recovery": self.snapshot()["recovery"],
             "issues": issues,
             "graph": {
                 "coverage": "complete",

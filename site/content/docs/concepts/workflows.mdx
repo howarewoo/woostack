@@ -3,8 +3,8 @@ title: Workflow maps
 description: "Choose preparation, bounded delivery, or a complete greenfield workflow."
 ---
 
-Start with the user's explicit goal. Execute may also take an exact canonical GitHub issue URL as
-explicit issue-backed input. Bounded work fits one pull request (PR) and uses the agreed scope in the
+Start with the user's explicit goal. Execute may also associate an exact canonical GitHub issue
+URL with its complete bounded input. Bounded work fits one pull request (PR) and uses the agreed scope in the
 current conversation. Prepared work ends at a verified GitHub issue graph. Git and GitHub show what
 was implemented and delivered.
 
@@ -17,7 +17,7 @@ was implemented and delivered.
 | Reconcile a specification or candidate issue plan | [Harden](/docs/skills/woostack-harden) |
 | Root-cause investigation without a correction | [Debug](/docs/skills/woostack-debug) |
 | Feature or proved defect needing a verified issue graph | [Prepare](/docs/skills/woostack-prepare) |
-| Bounded non-bug work for one coherent PR | [Execute](/docs/skills/woostack-execute) |
+| Bounded enhancement, refactor, or authorized correction for one PR | [Execute](/docs/skills/woostack-execute) |
 | Approved issue graph publication | [Plan](/docs/skills/woostack-plan) |
 | Add or strengthen tests for a bounded target | [Execute](/docs/skills/woostack-execute) with its [testing guidance](https://github.com/howarewoo/woostack/blob/main/skills/woostack-execute/references/tdd.md) |
 
@@ -56,7 +56,7 @@ blocks before Plan; Prepare never guesses a correction.
 
 Prepare's public phases exchange complete plain packets. Plan is the sole publisher and supports one
 exact GitHub parent selector or one exact Project selector. It creates no source branch, worktree,
-commit, PR, implementation worker, local run, or remote record. It reports the verified parent,
+commit, PR, implementation worker, local run, or second remote record. It reports the verified parent,
 children, native prerequisite edges, and the separate next suggestion:
 `/woostack-orchestrate --issue <verified-parent-url>` (or the applicable Project command).
 Partial publication preserves exact confirmed identities and resumes Plan at the first unproved
@@ -126,10 +126,9 @@ returning uncommitted work for a parent to deliver.
 
 ## Review and corrections
 
-Local Review uses one reviewer across all relevant concerns for bounded low-risk changes and
-specialists for broader or riskier changes. An independent adjudicator checks each proposed finding
-against the evidence. CI and audit keep specialist coverage. Review receipts record what was checked
-and bind the result to the exact source.
+PR review uses [Pullfrog](https://pullfrog.com/). Execute does not require an independent pre-commit
+review receipt. Orchestrate independently validates each submitted task against its contract before
+releasing dependents; this is not permission to mark ready or merge.
 
 Address-comments investigates every thread, batches coherent corrections and verification, then
 replies and resolves each thread independently. Unsafe decisions stay open without discarding

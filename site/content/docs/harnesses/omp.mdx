@@ -102,9 +102,9 @@ complete bounded task and supply `/woostack-execute <bounded input>` with its pa
 [Execute retired inputs](/docs/skills/woostack-execute#retired-inputs).
 
 Saved records do not grant permission to assign workers, edit code, commit, review, or accept a
-product. They also do not prove delivery. Prepare makes no remote publication, goal-only Execute
-makes no GitHub call, and issue-backed Execute performs only the required read of its explicitly
-selected exact GitHub issue through host-authenticated `gh`; no Project configuration is required.
+product. They also do not prove delivery. Prepare delegates publication only to Plan. Execute needs
+no planning-provider call; optional exact issue context uses authorized native GitHub capabilities
+or host-authenticated `gh` and requires no Project configuration.
 
 Bootstrap and Commit use direct GitHub operations only when explicitly requested: Project publication
 after design approval and target collision checks for Bootstrap, or an exact issue association for

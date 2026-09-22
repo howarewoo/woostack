@@ -41,10 +41,10 @@ Use bootstrap only when there is no existing codebase whose conventions or histo
 An empty remote repository may be the intended destination, but an existing repository request
 routes before requirements gathering, MCP preflight, or project creation:
 
-- bugs, regressions, incidents, and root-cause work → [`woostack-debug`](../woostack-debug/SKILL.md)
+- unresolved bugs, regressions, incidents, and root-cause work → [`woostack-debug`](../woostack-debug/SKILL.md)
   for diagnosis or [`woostack-prepare`](../woostack-prepare/SKILL.md) for a proved issue graph;
-- a bounded non-bug enhancement or refactor that fits one reviewable PR, including a one-file
-  request → [`woostack-execute`](../woostack-execute/SKILL.md);
+- a bounded enhancement, refactor, test task, or authorized correction with causal proof that fits
+  one reviewable PR → [`woostack-execute`](../woostack-execute/SKILL.md);
 - a multi-PR feature or architectural initiative → [`woostack-prepare`](../woostack-prepare/SKILL.md).
 
 ## Procedure
@@ -110,9 +110,8 @@ approval, perform no official-MCP development mutation and create no development
 
 These are non-negotiable. Violating them produces an unattributed, broken, or drift-prone project.
 
-- **Brownfield routing.** Route every existing-repository bug or regression to Debug or Prepare,
-  every bounded one-PR non-bug request to Execute, and every multi-PR initiative to Prepare before
-  creating a bootstrap project.
+- **Brownfield routing.** Route unresolved defects to Debug, complete bounded tasks to Execute,
+  and multi-increment work to Prepare before creating a bootstrap project.
 - **Artifact-free until explicit approval.** Requirements, research, options, and design stay in
   the run context. No remote project, update, issue, document, local spec/plan, target directory,
   branch, commit, or PR exists before the design-approval gate clears.

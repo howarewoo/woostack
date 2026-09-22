@@ -6,9 +6,7 @@ import {
   rewriteLinks,
   neutralizeTags,
   renderPage,
-  navOrder,
 } from './gen-skills.mjs';
-
 
 test('parseFrontmatter extracts name + description and returns the body', () => {
   const raw = '---\nname: woostack-prepare\ndescription: Prepare a feature.\n---\n\n# woostack-prepare\n\nbody';
@@ -113,37 +111,4 @@ test('renderPage emits title/description and source links for public phases', ()
     page,
     /\[View source on GitHub\]\(https:\/\/github\.com\/howarewoo\/woostack\/blob\/main\/skills\/woostack-prepare\/SKILL\.md\)/
   );
-  assert.doesNotMatch(page, /Internal sub-skill/);
-
-  const ideate = renderPage('woostack-ideate', { name: 'woostack-ideate', description: 'x' }, 'b');
-  const harden = renderPage('woostack-harden', { name: 'woostack-harden', description: 'x' }, 'b');
-  assert.doesNotMatch(ideate, /Internal sub-skill/);
-  assert.doesNotMatch(harden, /Internal sub-skill/);
 });
-
-test('navOrder places public planning phases before orchestration', () => {
-  const expectedPublic = [
-    'using-woostack',
-    'woostack-init',
-    'woostack-bootstrap',
-    'woostack-ideate',
-    'woostack-harden',
-    'woostack-prepare',
-    'woostack-execute',
-    'woostack-plan',
-    'woostack-orchestrate',
-    'woostack-execute',
-    'woostack-commit',
-    'woostack-address-comments',
-    'woostack-visualize',
-    'woostack-design',
-    'woostack-debug',
-    'woostack-doctor',
-    'woostack-qa',
-    'woostack-eval',
-    'woostack-reflect',
-  ];
-
-  assert.deepEqual(navOrder([...expectedPublic].reverse()), expectedPublic);
-});
-

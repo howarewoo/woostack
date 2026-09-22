@@ -643,6 +643,13 @@ class OrchestrateBehavior(unittest.TestCase):
         self.assertEqual(unchanged["status"], "ok", unchanged)
         self.assertEqual(unchanged["dispatch"], [], unchanged)
         self.assertTrue(state.exists())
+        changed_workspace = copy.deepcopy(snapshot)
+        changed_workspace["children"][0]["workspace"] = str(self.repo.parent / "agent-selected" / "task-a")
+        changed_workspace["children"][0]["branch"] = "agent/task-a"
+        state, allocation_changed = self._schedule(
+            admitted_path, admitted, state, changed_workspace, "runtime-allocation-change"
+        )
+        self.assertEqual(allocation_changed.get("status"), "ok", allocation_changed)
 
         git(self.repo, "commit", "--allow-empty", "-m", "mutable integration tip")
         mutable_tip = git(self.repo, "rev-parse", "HEAD")
@@ -676,18 +683,11 @@ class OrchestrateBehavior(unittest.TestCase):
         changed_body = copy.deepcopy(snapshot)
         changed_body["children"][0]["body"] += " changed"
         drift_cases.append(("immutable child field", changed_body))
-        changed_workspace = copy.deepcopy(snapshot)
-        changed_workspace["children"][0]["workspace"] = str(self.repo.parent / "agent-selected" / "task-a")
-        changed_workspace["children"][0]["branch"] = "agent/task-a"
         for label, fresh in drift_cases:
             with self.subTest(label=label):
                 state, payload = self._schedule(admitted_path, admitted, state, fresh, "drift-" + label.replace(" ", "-"))
                 self.assertEqual(payload.get("status"), "snapshot-drift", payload)
                 self.assertEqual(payload.get("dispatch"), [], payload)
-        _, allocation_changed = self._schedule(
-            admitted_path, admitted, state, changed_workspace, "runtime-allocation-change"
-        )
-        self.assertEqual(allocation_changed.get("status"), "ok", allocation_changed)
 
     def test_runtime_branch_collision_blocks_duplicate_reservations(self) -> None:
         snapshot = self.github.snapshot()
@@ -973,27 +973,56 @@ class OrchestrateBehavior(unittest.TestCase):
         self.assertEqual(resumed["unknown"], ["task-b"], resumed)
         self.assertFalse(host.futures["task-b"].done())
 
-    def test_overlapping_selector_cannot_claim_canonical_task(self) -> None:
+    def test_cross_selector_claim_prevents_second_physical_worker_and_keeps_owned_recovery(self) -> None:
         snapshot = self._single_task_snapshot()
         admitted_path, admitted = self._admit_issue(snapshot)
-        state, scheduled = self._schedule(admitted_path, admitted, None, snapshot, "claim-issue")
-        self.assertEqual([item["task_id"] for item in scheduled["dispatch"]], ["task-a"], scheduled)
-        project_admitted_path, project_admitted = self._admit_project()
-        project_state, project = self._schedule(
-            project_admitted_path,
-            project_admitted,
-            None,
-            self.github.project_snapshot(),
-            "claim-project",
-            cap="1",
+        state, scheduled = self._schedule(admitted_path, admitted, None, snapshot, "claim-parent")
+        original = scheduled["dispatch"][0]
+        host = self._start_host(workers=1)
+        host.dispatch([original])
+        report = host.wait_for_report("task-a")
+        state, outcome, _ = self._apply(
+            admitted_path, state, "task-a", {"outcome": "unknown"}, "claim-lost-response"
         )
-        self.assertEqual(project["dispatch"], [], project)
-        self.assertIn(
-            {"task_id": "task-a", "reason": "ownership-conflict",
-             "next_action": "reconcile the other controller's canonical task claim"},
-            project["blocked"],
+        self.assertEqual(outcome["status"], "unknown", outcome)
+
+        listed = self.github.issue_list_snapshot(selected=[original["child_url"]])
+        listed["graph"]["edges"] = []
+        project = self.github.project_snapshot()
+        for mode, fresh, entries, admit_scope in (
+            ("list", listed, listed["issues"], self._admit_issues),
+            ("project", project, project["members"], self._admit_project),
+        ):
+            # Different valid host allocations must not evade repository+issue ownership.
+            task = next(item for item in entries if item.get("task_id") == "task-a")
+            task["workspace"] = str(self.tmp / ("second-" + mode))
+            task["branch"] = "host/second-" + mode
+            other_path, other = admit_scope(fresh)
+            _, blocked = self._schedule(other_path, other, None, fresh, "claim-" + mode, cap="1")
+            self.assertEqual(blocked["dispatch"], [], blocked)
+            self.assertIn("ownership-conflict", [item["reason"] for item in blocked["blocked"]])
+            self.assertFalse(Path(task["workspace"]).exists())
+            self.assertEqual(git(self.repo, "branch", "--list", task["branch"]), "")
+
+        evidence = self.github.readback("task-a")
+        evidence["worker_stopped"] = True
+        state, reconciled, code = self._reconcile(
+            admitted_path, state, "task-a", evidence, "claim-owned-recovery"
         )
-        self.assertTrue(project_state.exists())
+        self.assertEqual(code, 0, reconciled)
+        result = make_result(self.github, "task-a", report, admitted)
+        state, delivered, _ = self._apply(admitted_path, state, "task-a", result, "claim-delivered")
+        self.assertEqual(delivered["status"], "delivered", delivered)
+        self._persist("task-a", result, original)
+        _, resumed = self._schedule(
+            admitted_path, admitted, state, self._single_task_snapshot(), "claim-resumed"
+        )
+        self.assertEqual(resumed["dispatch"], [], resumed)
+        self.assertEqual(resumed["delivered"], ["task-a"])
+        self.assertEqual(self.github.prs["task-a"]["pr_url"], evidence["pr_url"])
+        workers = [json.loads(line) for line in self.transport_log.read_text().splitlines()
+                   if json.loads(line).get("operation") == "dispatch-worker"]
+        self.assertEqual(len(workers), 1)
 
     def test_stop_preserves_running_reservation_and_blocks_new_dispatch(self) -> None:
         snapshot = self._two_task_snapshot()

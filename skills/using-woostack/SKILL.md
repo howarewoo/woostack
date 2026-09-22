@@ -43,7 +43,6 @@ capabilities, and read-back. Retired managed-provider data is never imported or 
 | Elicit a complete user-verified specification from a goal or existing specification | `woostack-ideate` |
 | Reconcile a supplied specification or candidate issue plan against repository evidence | `woostack-harden` |
 | Prepare a feature or proved defect for a verified GitHub issue graph without implementation | `woostack-prepare` |
-| Implement a bounded non-bug enhancement or refactor in one PR | `woostack-execute` |
 | Turn an approved specification into reviewable increments and publish the native issue graph | `woostack-plan` |
 | Execute one exact GitHub parent, Project, or explicit issue list with parallel workers and stacked PRs | `woostack-orchestrate` |
 | Implement one bounded task — enhancement, refactor, test-only work, or authorized understood correction — and deliver one PR | `woostack-execute` |
@@ -53,7 +52,6 @@ capabilities, and read-back. Retired managed-provider data is never imported or 
 | Render verified source as audience-tailored HTML | `woostack-visualize` |
 | Organize multi-step UI design flows | `woostack-design` |
 | Investigate a root cause without implementing a fix | `woostack-debug` |
-| Add or strengthen tests for a bounded target | `woostack-execute` (apply its [testing guidance](../woostack-execute/references/tdd.md)) |
 | Diagnose or explicitly repair workspace health | `woostack-doctor` |
 | Explore a running app and report browser QA findings | `woostack-qa` |
 | Evaluate an approved skill corpus without editing it | `woostack-eval` |
@@ -67,13 +65,14 @@ Every supported explicit `/woostack-*` command loads its namesake skill. Intent-
 the same route. Ideate and Harden are public, directly callable phases that exchange complete plain
 packets. Prepare composes Debug for defects, Ideate, Harden, and Plan as needed and ends at a fully
 read-back GitHub issue graph; it never implements, creates source branches, dispatches workers, or
-invokes Execute or Orchestrate. Plan is the sole issue publisher. Execute remains non-bug and one-PR;
-Execute remains the explicit bounded implementation and draft-PR path. None of these planning phases
-automatically edits source, commits, submits a PR, or grants merge authority.
+invokes Execute or Orchestrate. Plan is the sole issue publisher. Execute is the explicit bounded
+implementation and draft-PR path, including proven corrections and test-only tasks under its
+[testing guidance](../woostack-execute/references/tdd.md). Unknown defects require Debug's causal
+proof before correction. Planning phases never edit source, commit, submit a PR, or grant merge authority.
 
-The former `/woostack-tdd` test-work command is retired. Send a complete bounded test task
-directly to `/woostack-execute`; it keeps the test-only scope, focused verification, and normal
-one-PR delivery path without a separate router or project handoff.
+The former `woostack-change`, `woostack-tdd`, and `woostack-status` commands are retired without
+aliases. Supply a complete bounded enhancement, correction, or test task directly to Execute;
+unresolved scope belongs in the public planning phases. Never invoke a replacement automatically.
 
 Ordinary questions about work progress use available authorized GitHub reads or the GitHub UI:
 parent/child issues and native dependency relations define planned work, while linked pull requests

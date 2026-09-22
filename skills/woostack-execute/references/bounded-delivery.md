@@ -1,15 +1,13 @@
 # Bounded one-PR delivery
 
-Shared implementation and delivery mechanics for the
-[direct bounded Fix path](../SKILL.md#direct-bounded-fix). The calling skill owns admission and
-user authority: Fix requires causal proof and explicit informed approval. This reference cannot
-widen that contract or replace its gates.
+Shared implementation and delivery safeguards owned by [Execute](../SKILL.md). Execute admits one
+complete bounded enhancement, refactor, test task, or authorized correction with causal evidence.
+This reference cannot widen the accepted task or replace its admission gates.
 
-The calling skill owns delivery directly, without invoking another woostack workflow. Create no
-project manifest, specification, or execution plan. Development-artifact provider calls are limited
-to the exact issue reads explicitly admitted by the caller's GitHub issue input; bounded Fix makes
-none. Git and canonical GitHub repository/PR operations supply source-control evidence, not
-development-artifact authority.
+Create no project manifest, specification, or execution plan. Optional issue context follows
+[Execute's exact GitHub issue admission](../SKILL.md#optional-exact-github-issue). Repository
+delivery goes through Commit; Git and canonical GitHub reads supply source-control evidence, not
+permission to implement or authority to merge.
 
 Before mutation, apply the shared [source-control selection and ancestry contract](../../woostack-commit/references/graphite.md).
 Use native Git and an authorized GitHub capability for repository delivery (prefer native GitHub
@@ -26,7 +24,7 @@ Keep the following explicit in the active conversation or completely verified ha
 - intended change, relevant technical consequences, risks, focused verification, and changed-path
   smoke scenario;
 - integration base commit, approved parent-branch intent, and retained start/old parent SHA;
-- for Fix, the evidence-bound diagnosis, full presented scope, and the user's explicit approval; and
+- for a correction, evidence-bound diagnosis and the user's authorization for the complete scope; and
 - for an exact caller-supplied issue, the independently verified canonical issue URL, native identity,
   and accepted issue-derived scope.
 
@@ -51,7 +49,7 @@ Resume an exact existing task/workspace/branch/parent/head instead of creating a
 the approved contract and direct repository evidence before each mutation boundary and after
 interruptions.
 
-## Implement, verify, and independently review
+## Implement and verify
 
 Implement every change needed for the accepted bounded scope and no other change. Before choosing
 an implementation, load and apply the canonical
@@ -71,18 +69,15 @@ Inspect the complete diff and changed paths. Run focused verification and the ch
 scenario, retaining exact commands and observed results. A failed or incomplete required check
 blocks delivery.
 
-An independent read-only reviewer, distinct from the implementer, must check the full accepted
-contract against the complete diff, relevant safety/edge cases, and observed verification. Bind
-review evidence to reviewer identity, task, repository, parent, and the same complete diff identity
-as verification. The implementer cannot approve their own work; unavailable independent review
-blocks delivery rather than becoming self-review. Correct in-scope findings, rerun affected checks,
-and obtain fresh independent review for the changed diff. Material scope changes return to Change
-admission before more implementation.
+Execute does not require an independent pre-commit review receipt. If the caller requests an
+independent reviewer, bind its observations to the exact task, repository, parent, and complete
+diff identity. The implementer cannot claim independent review of their own work. Correct in-scope
+findings and rerun affected checks; material scope changes return to Execute admission.
 
 ## Deliver and read back one PR
 
-Only after verification and independent review pass on the same complete diff, commit and submit
-at most one PR using the selected backend under the shared source-control contract. In native mode,
+Only after required verification passes on the complete task diff, use
+[Commit](../../woostack-commit/SKILL.md) to submit at most one PR under the source-control contract. In native mode,
 add a Git commit (never automatically amend), explicitly push only the task branch without force,
 and use the selected authorized GitHub submission capability to create a draft only after excluding
 an existing matching PR; host-authenticated `gh pr create --draft` and `gh pr edit` are supported
@@ -117,8 +112,8 @@ without duplicating a branch, commit, PR, or cleanup.
 
 ## Return
 
-Return the stable task identity, accepted scope and Fix approval when applicable, worktree/branch,
-base/parent, changed paths, verification/smoke and independent-review results, commit SHA, canonical
+Return the stable task identity, accepted scope and correction authorization when applicable, worktree/branch,
+base/parent, changed paths, verification/smoke and any independent-review results, commit SHA, canonical
 PR URL/head/base/state, and cleanup result. For an exact issue association, include the canonical
 issue URL and verified closing-reference outcome. For a reroute or retained failure, name the
 destination or blocker and exact safe resume boundary. Never claim evidence not directly observed.
