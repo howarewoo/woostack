@@ -3,9 +3,9 @@
 
 The behavioral suite imports this module for fixture assembly and for a real
 ThreadPoolExecutor-backed host.  The helper remains the only scheduler: the
-host consumes emitted Execute packets, creates the requested Git worktrees and
-branches, commits a small task file, and records a canonical fake PR.  When
-invoked as a script this module is a thin recording wrapper around the shipped
+host consumes emitted Execute packets, uses the selected runtime workspace and
+branch evidence, commits a small task file, and records a canonical fake PR.
+When invoked as a script this module is a thin recording wrapper around the shipped
 ``scripts/orchestrate.py`` CLI.
 """
 
@@ -177,6 +177,12 @@ class FakeGitHub:
             issue_record(self.parent_url, "task-d", 4, 104, ["task-a", "task-b"]),
             issue_record(self.parent_url, "task-e", 5, 105),
         ]
+        # Runtime allocation is supplied by the host-facing snapshot, not the
+        # admitted issue contract.  These paths deliberately live outside the
+        # checkout and use ordinary repository branch names.
+        for child in self.children:
+            child["workspace"] = str(self.repo.parent / "host-worktrees" / child["task_id"])
+            child["branch"] = "feature/" + child["task_id"]
         # Multiple native pages are deliberately assembled before a snapshot is
         # emitted.  These are not scheduler decisions; they model paginated gh
         # reads and leave an auditable transport log.
@@ -623,6 +629,7 @@ class FakeHost:
                 "worker_id": "execute-%s" % task_id,
                 "pr_url": pr_url,
                 "branch": branch,
+                "workspace": str(workspace.resolve()),
                 "head_sha": head_sha,
                 "base_branch": base_branch,
                 "commit_sha": head_sha,

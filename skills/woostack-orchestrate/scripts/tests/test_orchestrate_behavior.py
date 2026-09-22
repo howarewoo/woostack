@@ -245,9 +245,9 @@ class OrchestrateBehavior(unittest.TestCase):
         """Create actual historical PR bytes, without declaring their current readiness."""
         parent_sha = parent_sha or self.base_sha
         task = next(child for child in self.github.children if child["task_id"] == task_id)
-        worktree = self.repo / ".woostack" / "worktrees" / "tasks" / task_id
+        worktree = Path(task["workspace"])
         worktree.parent.mkdir(parents=True, exist_ok=True)
-        branch = "woostack/" + task_id
+        branch = task["branch"]
         git(self.repo, "worktree", "add", "-b", branch, str(worktree), parent_sha)
         (worktree / "src").mkdir(exist_ok=True)
         (worktree / "src" / (task_id + ".txt")).write_text("Historical delivery for " + task_id + "\n")
@@ -258,13 +258,14 @@ class OrchestrateBehavior(unittest.TestCase):
             "pr_url": self.github.canonical + "/pull/" + str(1000 + task["ordinal"]),
             "branch": branch, "head_sha": head, "commit_sha": head, "base_branch": parent_branch,
             "association": task["url"], "open": True, "unique": True, "draft": True,
-            "diff_identity": diff_identity(self.repo, parent_sha, head),
+            "diff_identity": diff_identity(worktree, parent_sha, head),
         }
         self.github.save_pr(task_id, pr)
         worker = {key: pr[key] for key in ("pr_url", "branch", "head_sha", "commit_sha", "base_branch", "association")}
         worker["worker_id"] = "prior-execute-" + task_id
+        worker["workspace"] = str(worktree.resolve())
         result = make_result(self.github, task_id, {"worker": worker, "parent_sha": parent_sha}, {
-            "mode": "issue", "tasks": [{**task, "workspace": str(worktree.relative_to(self.repo))}],
+            "mode": "issue", "tasks": [{**task, "workspace": str(worktree.resolve()), "branch": branch}],
         })
         retained = {"reservation": {"branch": branch, "workspace": str(worktree.resolve()),
                                    "parent_branch": parent_branch, "parent_sha": parent_sha},
@@ -279,14 +280,16 @@ class OrchestrateBehavior(unittest.TestCase):
         initial_state, initial = self._schedule(
             admitted_path, admitted, None, self.github.snapshot(), "initial", cap="3"
         )
-        self.assertEqual(initial["status"], "ok", initial)
         self.assertEqual(
             sorted(item["task_id"] for item in initial["dispatch"]),
             ["task-a", "task-b", "task-e"],
         )
         self.assertNotIn(self.github.parent_url, [item["child_url"] for item in initial["dispatch"]])
-        self.assertEqual(git(self.repo, "for-each-ref", "--format=%(refname:short)", "refs/heads"), "main")
-        self.assertFalse((self.repo / ".woostack" / "worktrees" / "tasks" / "task-a").exists())
+        first_entry = next(item for item in initial["dispatch"] if item["task_id"] == "task-a")
+        self.assertEqual(first_entry["branch"], "feature/task-a")
+        self.assertTrue(Path(first_entry["workspace"]).is_absolute())
+        self.assertNotIn(".woostack", Path(first_entry["workspace"]).parts)
+        self.assertFalse(Path(first_entry["workspace"]).exists())
 
         host = self._start_host()
         host.dispatch(initial["dispatch"])
@@ -314,7 +317,7 @@ class OrchestrateBehavior(unittest.TestCase):
         c_entries = [item for item in refill_c["dispatch"] if item["task_id"] == "task-c"]
         self.assertEqual(len(c_entries), 1, refill_c)
         c_entry = c_entries[0]
-        self.assertEqual(c_entry["parent_branch"], "woostack/task-a")
+        self.assertEqual(c_entry["parent_branch"], self.github.children[0]["branch"])
         self.assertEqual(c_entry["parent_sha"], report_a["worker"]["head_sha"])
         self.assertEqual(c_entry["packet"]["parent_readiness"]["logical_prerequisites"], ["task-a"])
         self.assertEqual(c_entry["packet"]["parent_readiness"]["prerequisites"][0]["checkpoint"]["note"]["head_sha"],
@@ -355,13 +358,16 @@ class OrchestrateBehavior(unittest.TestCase):
         self.assertEqual(paused["dispatch"], [], paused)
         paused_d = next(item for item in paused["paused"] if item["task_id"] == "task-d")
         self.assertEqual(paused_d["reason"], "join-no-containing-parent")
-        self.assertEqual(sorted(paused_d["prerequisite_branches"]), ["woostack/task-a", "woostack/task-b"])
+        self.assertEqual(sorted(paused_d["prerequisite_branches"]),
+                         [self.github.children[0]["branch"], self.github.children[1]["branch"]])
 
         # A join branch is a user-selected parent decision.  The helper must
         # never create it automatically.
         git(self.repo, "checkout", "-q", "-b", "join-ab", self.base_sha)
-        self._run(["git", "-C", str(self.repo), "merge", "--no-ff", "woostack/task-a", "-m", "join A"])
-        self._run(["git", "-C", str(self.repo), "merge", "--no-ff", "woostack/task-b", "-m", "join B"])
+        self._run(["git", "-C", str(self.repo), "merge", "--no-ff",
+                   self.github.children[0]["branch"], "-m", "join A"])
+        self._run(["git", "-C", str(self.repo), "merge", "--no-ff",
+                   self.github.children[1]["branch"], "-m", "join B"])
         join_sha = git(self.repo, "rev-parse", "HEAD")
         git(self.repo, "checkout", "-q", "main")
         self.github.parent_branches.add("join-ab")
@@ -623,7 +629,7 @@ class OrchestrateBehavior(unittest.TestCase):
         self.assertNotEqual(code, 0, payload)
         self.assertEqual(payload.get("error"), "incomplete-hierarchy", payload)
 
-    def test_fingerprint_binds_scope_parent_spec_rules_identity_and_workspace(self) -> None:
+    def test_fingerprint_binds_scope_parent_spec_rules_and_identity_not_runtime_allocation(self) -> None:
         snapshot = self.github.snapshot()
         admitted_path, admitted = self._admit_issue(snapshot)
         state, initial = self._schedule(admitted_path, admitted, None, snapshot, "fingerprint-base", cap="3")
@@ -671,13 +677,95 @@ class OrchestrateBehavior(unittest.TestCase):
         changed_body["children"][0]["body"] += " changed"
         drift_cases.append(("immutable child field", changed_body))
         changed_workspace = copy.deepcopy(snapshot)
-        changed_workspace["children"][0]["workspace"] = "safe/alternate-task-a"
-        drift_cases.append(("workspace", changed_workspace))
+        changed_workspace["children"][0]["workspace"] = str(self.repo.parent / "agent-selected" / "task-a")
+        changed_workspace["children"][0]["branch"] = "agent/task-a"
         for label, fresh in drift_cases:
             with self.subTest(label=label):
                 state, payload = self._schedule(admitted_path, admitted, state, fresh, "drift-" + label.replace(" ", "-"))
                 self.assertEqual(payload.get("status"), "snapshot-drift", payload)
                 self.assertEqual(payload.get("dispatch"), [], payload)
+        _, allocation_changed = self._schedule(
+            admitted_path, admitted, state, changed_workspace, "runtime-allocation-change"
+        )
+        self.assertEqual(allocation_changed.get("status"), "ok", allocation_changed)
+
+    def test_runtime_branch_collision_blocks_duplicate_reservations(self) -> None:
+        snapshot = self.github.snapshot()
+        snapshot["children"] = snapshot["children"][:2]
+        snapshot["expected_index"] = ["task-a", "task-b"]
+        shared_branch = "review/custom-shared"
+        for child in snapshot["children"]:
+            child["branch"] = shared_branch
+        admitted_path, admitted = self._admit_issue(snapshot)
+        _, output = self._schedule(admitted_path, admitted, None, snapshot, "branch-reservation", cap="2")
+        self.assertEqual([entry["task_id"] for entry in output["dispatch"]], ["task-a"], output)
+        self.assertEqual(
+            [{"task_id": "task-b", "reason": "branch-reservation-collision"}],
+            [item for item in output["blocked"] if item["task_id"] == "task-b"],
+        )
+
+    def test_fresh_reuse_blocks_unowned_dirty_existing_worktree(self) -> None:
+        snapshot = self._single_task_snapshot()
+        task = snapshot["children"][0]
+        workspace = self.tmp / "existing-dirty"
+        branch = "host/reused-dirty"
+        git(self.repo, "worktree", "add", "-q", "-b", branch, str(workspace), self.base_sha)
+        task["workspace"] = str(workspace)
+        task["branch"] = branch
+        (workspace / "staged.txt").write_text("staged user state\n", encoding="utf-8")
+        git(workspace, "add", "staged.txt")
+        (workspace / "dirty.txt").write_text("uncommitted user state\n", encoding="utf-8")
+
+        admitted_path, admitted = self._admit_issue(snapshot)
+        _, output = self._schedule(admitted_path, admitted, None, snapshot, "fresh-dirty", cap="1")
+
+        self.assertEqual(output["dispatch"], [], output)
+        self.assertEqual(
+            [{"task_id": "task-a", "reason": "workspace-unclaimed"}],
+            [item for item in output["blocked"] if item["task_id"] == "task-a"],
+        )
+        self.assertTrue((workspace / "staged.txt").exists())
+        self.assertTrue((workspace / "dirty.txt").exists())
+
+    def test_fresh_reuse_blocks_unowned_committed_existing_branch(self) -> None:
+        snapshot = self._single_task_snapshot()
+        task = snapshot["children"][0]
+        workspace = self.tmp / "existing-committed"
+        branch = "host/reused-committed"
+        git(self.repo, "worktree", "add", "-q", "-b", branch, str(workspace), self.base_sha)
+        task["workspace"] = str(workspace)
+        task["branch"] = branch
+        (workspace / "unrelated.txt").write_text("unrelated user commit\n", encoding="utf-8")
+        git(workspace, "add", "unrelated.txt")
+        git(workspace, "commit", "-m", "Unrelated retained work")
+
+        admitted_path, admitted = self._admit_issue(snapshot)
+        _, output = self._schedule(admitted_path, admitted, None, snapshot, "fresh-committed", cap="1")
+
+        self.assertEqual(output["dispatch"], [], output)
+        self.assertEqual(
+            [{"task_id": "task-a", "reason": "workspace-unclaimed"}],
+            [item for item in output["blocked"] if item["task_id"] == "task-a"],
+        )
+        self.assertNotEqual(git(workspace, "rev-parse", "HEAD"), self.base_sha)
+        self.assertTrue((workspace / "unrelated.txt").exists())
+
+
+    def test_runtime_rejects_unlinked_clone_even_with_matching_remote_and_branch(self) -> None:
+        clone = self.tmp / "external-clone"
+        self._run(["git", "clone", "-q", str(self.repo), str(clone)])
+        git(clone, "remote", "set-url", "origin", self.github.canonical + ".git")
+        git(clone, "switch", "-q", "-c", "external/task-a")
+        snapshot = self._single_task_snapshot()
+        snapshot["children"][0]["workspace"] = str(clone)
+        snapshot["children"][0]["branch"] = "external/task-a"
+        admitted_path, admitted = self._admit_issue(snapshot)
+        _, output = self._schedule(admitted_path, admitted, None, snapshot, "unlinked-clone", cap="1")
+        self.assertEqual(output["dispatch"], [], output)
+        self.assertEqual(
+            [{"task_id": "task-a", "reason": "workspace-not-linked"}],
+            [item for item in output["blocked"] if item["task_id"] == "task-a"],
+        )
 
     def test_checkpoint_cas_rejects_stale_writer_without_overwriting_evidence(self) -> None:
         snapshot = self._single_task_snapshot()
@@ -979,7 +1067,7 @@ class OrchestrateBehavior(unittest.TestCase):
         evidence = self.github.readback("task-a")
         evidence["worker_stopped"] = True
         wrong_branch = copy.deepcopy(evidence)
-        wrong_branch["branch"] = "woostack/not-task-a"
+        wrong_branch["branch"] = "other/branch"
         _, wrong_output, wrong_code = self._reconcile(admitted_path, unknown_state, "task-a", wrong_branch, "reconcile-wrong")
         self.assertNotEqual(wrong_code, 0, wrong_output)
         self.assertEqual(json.loads(unknown_state.read_text())["tasks"]["task-a"]["status"], "unknown")
@@ -1159,7 +1247,7 @@ class OrchestrateBehavior(unittest.TestCase):
 
         mismatch_cases = []
         changed = copy.deepcopy(valid)
-        changed["worker"]["branch"] = "woostack/other"
+        changed["worker"]["branch"] = "other/branch"
         mismatch_cases.append("worker-branch")
         changed2 = copy.deepcopy(valid)
         changed2["worker"]["head_sha"] = self.base_sha
@@ -1261,9 +1349,9 @@ class OrchestrateBehavior(unittest.TestCase):
         self.assertEqual(json.loads(requested_state.read_text())["tasks"]["task-a"]["status"], "repair-ready")
 
     def test_alias_workspace_collision_and_same_parent_repair(self) -> None:
-        worktree_root = self.repo / ".woostack" / "worktrees" / "tasks"
-        worktree_root.mkdir(parents=True)
-        os.symlink(".woostack/worktrees/tasks", self.repo / "alias")
+        worktree_root = Path(self.github.children[0]["workspace"]).parent
+        worktree_root.mkdir(parents=True, exist_ok=True)
+        os.symlink(worktree_root, self.repo / "alias")
         collision_snapshot = self.github.snapshot()
         collision_snapshot["children"] = collision_snapshot["children"][:2]
         collision_snapshot["children"][1]["workspace"] = "alias/task-a"

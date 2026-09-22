@@ -3,16 +3,41 @@
 This reference is the machine-facing contract for
 [`woostack-orchestrate`](../SKILL.md) and the shipped
 `scripts/orchestrate.py` helper. The helper is the only scheduler. It reads local JSON and local
-Git ancestry evidence, never calls a network, and never spawns a worker. The skill performs the
-host-authenticated native reads, normalizes them, invokes the helper, creates the reserved
-worktree, and delivers the helper packet through the selected host adapter.
+Git ancestry evidence, never calls a network, and never spawns a worker. The skill obtains or
+reuses an isolated workspace through repository/host capabilities and delivers the helper packet
+through the selected host adapter.
 
 Link rather than copy the shared [source-control contract](../../woostack-commit/references/graphite.md),
-[canonical worktree contract](../../woostack-init/references/worktrees.md),
-[least-code standard](../../woostack-bootstrap/references/patterns.md#7-least-code--comments),
-[model tiers](../../using-woostack/references/model-tiers.md), and canonical
+the outcome-level [runtime workspace guidance](#runtime-workspace-and-branch-evidence),
+the [least-code standard](../../woostack-bootstrap/references/patterns.md#7-least-code--comments),
+the [model tiers](../../using-woostack/references/model-tiers.md), and canonical
 [`#artifact-delivery-note`](../../woostack-commit/references/provider-attribution.md#artifact-delivery-note)
 contract.
+
+## Runtime workspace and branch evidence
+
+The admitted task contract contains scope, dependencies, verification, and intended Git-parent
+policy; it does not contain a future workspace path or branch-name recipe. On each fresh `schedule`
+call, the repository, host, or agent may supply the actual selected `workspace` and `branch` on a
+task record. These values are runtime evidence, not publication identity and are excluded from the
+admission fingerprint. They may be absolute or
+repository-relative paths; the helper resolves relative paths only against the supplied
+`--git-repo` root and emits the resulting absolute path.
+
+The selected checkout may be repository-managed, a host-created linked worktree, or an already-created
+suitable external linked worktree. It may be outside `.woostack/` or outside the primary checkout. No
+allocation command, directory layout, branch prefix, or creation/adoption mode is required. A task
+without current runtime allocation evidence is reported as `workspace-unassigned`; the caller
+supplies the next fresh snapshot after choosing a safe isolated workspace through its supported
+mechanism. The helper never falls back to the primary checkout.
+
+Before dispatch, validate the actual selected path and branch against the admitted canonical
+repository, physical path aliases, complete Git worktree inventory, active reservations, branch
+checkouts, and parent ancestry. Existing suitable worktrees can be reused. Wrong-repository,
+wrong-branch, dirty unrelated, active-writer, alias/ancestor, or incompatible branch evidence
+blocks without deletion, reset, cleanup, takeover, or automatic relocation. Delivery and recovery
+must retain the selected workspace and branch and verify the same checkout before reuse.
+
 
 ## Native reads before JSON assembly
 
@@ -142,8 +167,6 @@ Add these fields:
       "node_id": "<runtime-substituted opaque GraphQL issue node ID>",
       "state": "open",
       "resource": "issue",
-      "title": "<runtime-substituted native child title>",
-      "body": "<runtime-substituted complete native child body>",
       "actual_parent": "<runtime-substituted canonical parent issue URL>",
       "nested_children": false,
       "prerequisites": ["<runtime-substituted admitted prerequisite task ID>"],
@@ -167,10 +190,8 @@ Add these fields:
 canonical repository, open, a native issue, and have `actual_parent` exactly equal to the selected
 parent URL. `nested_children: true` blocks as unsupported scope; never flatten it. `expected_index`
 comes from the complete parent specification and every named child must be present in the fully
-paginated native child read. A child may supply `workspace` only as a safe relative override; the
-helper resolves it to an absolute path under the primary Git common root during scheduling.
-
-### Explicit Project snapshot
+paginated native child read. Runtime `workspace`/`branch` values are optional fresh allocation
+evidence, never required issue-contract fields or immutable scope identity.
 
 Add a complete native Project record and complete member issue records:
 
@@ -329,7 +350,7 @@ compact separators) over the immutable scope view. It binds:
 - complete `specification` (when required) and `repository_rules`;
 - every immutable child/member/list-issue field: task ID, ordinal, URL, native IDs (including
   Project `item_id`), state/resource, title/body, actual and declared parent, nested flag,
-  workspace, full contract, and prerequisite/external prerequisite sets; and
+  full contract, and prerequisite/external prerequisite sets; and
 - effective graph edges and their provenance/evidence, plus Project lifecycle identity/configuration
   when Project mode is selected.
 
@@ -352,8 +373,8 @@ A fresh snapshot for a task already delivered must carry complete `existing_deli
 {
   "existing_delivery": {
     "reservation": {
-      "branch": "woostack/task-a",
-      "workspace": "/absolute/primary-root/.woostack/worktrees/tasks/task-a",
+      "branch": "<same runtime-selected task branch>",
+      "workspace": "<same absolute selected isolated workspace>",
       "parent_branch": "<same selected parent branch>",
       "parent_sha": "<same admitted parent SHA>"
     },
@@ -409,13 +430,13 @@ state/fingerprint/scope mismatch, missing durable checkpoint head, or a state ta
 from the admission blocks; never silently reinitialize. Keep the state path private and use the
 helper's atomic `--state-out` replace.
 
-Under that ownership, the helper persists each ready task's branch, absolute workspace, parent
-branch, and parent SHA before the caller creates a worktree. Fresh branches are exactly
-`woostack/<task-id>`. Repairs reuse the exact original reservation and retained PR. Before creation,
-compare canonical physical paths (including aliases and ancestor/descendant paths) and the complete
-Git worktree inventory. An existing unclaimed branch/worktree blocks. The caller creates and reads
-back the reserved worktree under the shared contract; helper reservation does not itself create Git
-state.
+Under that exclusive ownership, the helper persists the actual selected task branch, absolute
+workspace, parent branch, and parent SHA before host dispatch. The branch and workspace are runtime
+facts, not stable task-ID projections or required publication fields. Repairs reuse the exact
+original reservation and retained PR. Before reuse, compare canonical physical paths (including
+aliases and ancestor/descendant paths), repository identity, current branch/HEAD, and complete Git
+worktree inventory. A suitable existing worktree may be retained; an incompatible or unclaimed
+branch/workspace blocks. The helper reservation does not itself create Git state.
 
 Roots use the admitted integration branch/SHA. A dependent may use a delivered prerequisite branch
 or the admitted integration branch only when local

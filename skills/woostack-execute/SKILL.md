@@ -93,18 +93,19 @@ Execute does not request an artifact note or mutate issue/project content, membe
 ## Admit the workspace and ancestry
 
 Apply the [source-control contract](../woostack-commit/references/graphite.md) and
-[canonical worktree contract](../woostack-init/references/worktrees.md) for task-level identity,
-parent/base admission, collision discovery, creation/adoption, and task-only writes. Use native Git
-with an authorized GitHub interface by default; host-authenticated `gh` remains supported where
-appropriate. Use Graphite only when explicitly selected or verified for this task. A backend failure
+[isolated-workspace guidance](../woostack-init/references/worktrees.md) for task-level identity,
+parent/base admission, collision discovery, and task-only writes. Native Git with authorized native GitHub capabilities or host-authenticated `gh` is the
+default; use Graphite only when explicitly selected or verified for this task. A backend failure
 never permits switching or force-pushing.
 
-For a direct invocation, resolve the configured integration base and adopt a pre-isolated checkout
-or create one managed task worktree under that contract. When called with a supplied workspace and
-parent, preserve both; verify the physical checkout, branch, parent intent, retained start SHA,
-Git ancestry, and canonical PR facts rather than allocating another workspace or inferring a parent.
-The supplied complete contract must include any required parent-readiness evidence; Execute does
-not discover or schedule dependencies. Missing or conflicting evidence blocks.
+For a direct invocation, the repository, host, or caller supplies one isolated workspace and branch
+through its supported capabilities. When called with a supplied workspace and parent, preserve both;
+verify the physical checkout, branch, parent intent, retained start SHA, Git ancestry, and canonical
+PR facts rather than allocating another workspace or inferring a parent. Do not require a fixed path,
+branch recipe, creation/adoption mode, or publication-time workspace. The supplied complete contract
+must include any required parent-readiness evidence; Execute does not discover or schedule
+dependencies. Missing or conflicting evidence blocks.
+
 
 Before source edits and delivery, require a coherent snapshot of worktree inventory, local/remote
 branch and commit state, index, tracked/untracked changes, complete task diff, parent ancestry,
@@ -136,7 +137,7 @@ Subagents and independent validators are optional, not delivery prerequisites. E
 responsibility for the complete task, required verification, and PR submission; no pre-commit
 handoff is required. Caller-owned post-submission validation and the standalone PR-review workflow
 remain outside Execute's required delivery path. Optional writers follow the shared
-[exclusive-writer recovery guard](../woostack-init/references/worktrees.md#6-operate-only-in-the-task-workspace).
+[exclusive-writer recovery guard](../woostack-init/references/worktrees.md#discovery-operation-and-recovery).
 
 ## Deliver through Commit
 
@@ -169,10 +170,10 @@ verified staged change, and reuse the one matching open PR. A lost creation resp
 of absence. Conflicting/closed/merged PR state or incomplete discovery blocks rather than creating
 a replacement or changing the base. Resume only the first unproved boundary of the same task.
 
-After complete delivery, apply [canonical teardown](../woostack-init/references/worktrees.md#8-teardown)
-only to a verified clean managed task worktree. Preserve supplied, external, and user-owned
-workspaces, branches, commits, and PRs. Failed checks, unsafe mixed changes, collisions, and unknown
-outcomes preserve all recoverable work.
+After complete delivery, retain the selected workspace unless its owner explicitly supplies a safe
+lifecycle operation. Preserve supplied, external, and user-owned workspaces, branches, commits, and
+PRs. Publication creates no workspace obligation. Failed checks, unsafe mixed changes, collisions, and
+unknown outcomes preserve all recoverable work.
 
 Return ordinary execution output: task and scope, workspace/branch, parent/start, changed paths,
 checks and smoke results, commit SHA, verified PR URL/head/base/state, optional issue association,

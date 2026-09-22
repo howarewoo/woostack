@@ -42,9 +42,9 @@ target inspection and fresh collision-safe write admission. Optional project per
 separate from write authority. Init persists only non-secret policy, never local specs or plans.
 
 
-Implementation branches begin from verified repository base evidence and follow the
-[canonical worktree contract](../../woostack-init/references/worktrees.md). Bootstrap's initial
-new-repository scaffold is the one pre-base worktree exception. Later PRs require direct
+Implementation branches begin from verified repository base evidence and use one selected isolated
+workspace under the [workspace guidance](../../woostack-init/references/worktrees.md). Bootstrap's
+initial new-repository scaffold is the one pre-base worktree exception. Later PRs require direct
 Git/GitHub identity and may include an ordinary optional artifact link. Git and GitHub remain the
 source of truth for commits, branches, PRs, reviews, and merges.
 
