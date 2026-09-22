@@ -10,7 +10,6 @@ composed by a preparation caller, one complete approved specification and reposi
 becomes one verified specification parent or explicitly selected Project graph, complete PR-sized
 children, and genuine native prerequisite edges. Plan independently reads the result back and returns
 the actual publication evidence. It never implements, executes, or merges.
-
 ## Command
 
 ```text
