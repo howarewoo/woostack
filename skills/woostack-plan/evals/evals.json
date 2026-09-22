@@ -739,6 +739,28 @@
           "critical": true
         }
       ]
+    },
+    {
+      "id": "parent-capacity-before-publication",
+      "prompt": "Evaluate only native parent capacity admission; all other repository, approval, contract, identity, capability and graph checks have passed. Complete native pagination proves 99 distinct existing direct children. Scenario overfull proposes two additional unlinked children. Scenario recovered-link proposes one additional unlinked child plus a same-publication child whose recovered native identity is already among the 99 linked children. Scenario drift initially admits that recovered-link candidate, but a fresh pre-mutation read finds one unrelated newly linked child. Return exactly JSON with canWrite mapping these three scenario IDs to booleans, and actions for overfull and drift. Do not call any mutation tool or invent a replacement parent.",
+      "capabilities": ["read-workspace"],
+      "expected": "Overfull and drift stop before any parent-body update, child creation or link write. The recovered already-linked identity is counted once, so recovered-link fits exactly 100. No candidate truncation, child removal, or parent splitting occurs.",
+      "assertions": [
+        {
+          "id": "capacity-and-recovery-admission",
+          "kind": "final-json-path-equals",
+          "pointer": "/canWrite",
+          "expected": {"overfull": false, "recovered-link": true, "drift": false},
+          "critical": true
+        },
+        {
+          "id": "capacity-failure-no-mutations",
+          "kind": "final-json-path-equals",
+          "pointer": "/actions",
+          "expected": {"overfull": [], "drift": []},
+          "critical": true
+        }
+      ]
     }
   ]
 }

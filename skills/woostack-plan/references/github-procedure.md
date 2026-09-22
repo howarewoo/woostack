@@ -83,6 +83,16 @@ of direct PR-sized children. Nested containers, foreign/conflicting parents, mis
 children, incomplete pagination, duplicate task mappings, or ambiguous identities block before
 mutation. A readable body index or `Parent: #N` prose is not hierarchy evidence.
 
+Before any write, including a parent-body update or child creation, prove that the fully paginated
+existing direct-child set plus all planned additional links fits GitHub's
+[100 direct-sub-issue limit](https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/adding-sub-issues).
+Count unique native child identities already linked once, plus every admitted child not yet linked
+(including same-publication children recovered after an interrupted create); a new parent starts
+with zero existing children. Unknown membership or a total above 100 blocks publication before
+creating any issue. Do not truncate the candidate, split parents, or remove retained children to fit.
+Recheck capacity during the existing pre-mutation drift admission; concurrent additions require
+fresh admission, not optimistic continuation.
+
 Synchronize in strict order:
 
 1. **Specification parent.** For `new`, prove zero marker matches, create one parent issue once, and
