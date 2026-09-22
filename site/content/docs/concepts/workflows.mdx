@@ -49,7 +49,7 @@ verified `Stop here`/`Execute`/`Abandon` handoff
 
 The user verifies the complete specification, including technical details, through Ideate and Harden.
 An increment is a piece of the plan that fits one independently reviewable PR. Each increment records
-its outcome, scope, acceptance criteria, verification, risks, dependencies, and parent Git branch.
+its outcome, scope, acceptance criteria, verification, risks, prerequisites, and Git parent-selection policy.
 
 The [artifact contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-backends.md)
 owns local run storage and optional provider profiles. Run IDs remain exact, artifacts are retained,
@@ -82,6 +82,11 @@ complete bounded task and supply it to [woostack-execute](/docs/skills/woostack-
 there is no automatic dispatch. Ambiguous responses ask again; material scope changes return to
 explicit verification. The [Build handoff](/docs/skills/woostack-build#verified-handoff) owns the
 detailed transition and recovery rules.
+
+GitHub planning supports [prerequisite DAGs](/docs/configuration/artifacts/github#identities-hierarchy-and-graph).
+The complete DAG remains retained for future Orchestrate. A caller may select one task for
+[bounded Execute admission](/docs/skills/woostack-execute#admit-one-task) with its concrete parent
+and complete prerequisite-readiness evidence; Execute does not dispatch the graph.
 
 ## Change
 

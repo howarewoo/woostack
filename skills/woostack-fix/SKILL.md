@@ -176,8 +176,9 @@ successful provider evidence.
 
 Admit the fresh baseline and invoke [`woostack-plan`](../woostack-plan/SKILL.md) with the readable
 specification, run manifest, and exact project identity when enabled. Delegated Plan returns complete
-local increment contracts and strict sequential dependencies with zero provider reads/writes. Harden
-reconciles them against the full specification, repository evidence, risks, and verification. Retain
+local increment contracts and dependencies under Plan's
+[selected-provider graph invariants](../woostack-plan/SKILL.md#graph-invariants), with zero provider
+reads/writes. Harden reconciles them against the full specification, repository evidence, risks, and verification. Retain
 stable task keys and dependencies; never repurpose a source issue as a plan issue.
 
 Write `execution-plan.md` containing every ordered increment contract and dependency tuple through

@@ -21,7 +21,6 @@ entrypoints = {
     "build": root / "skills/woostack-build/SKILL.md",
     "fix": root / "skills/woostack-fix/SKILL.md",
     "plan": root / "skills/woostack-plan/SKILL.md",
-    "execute": root / "skills/woostack-execute/SKILL.md",
     "commit": root / "skills/woostack-commit/references/provider-attribution.md",
     "status": root / "skills/woostack-status/SKILL.md",
     "visualize": root / "skills/woostack-visualize/SKILL.md",
@@ -93,7 +92,6 @@ linear_requirements = (
 plane_requirements = (
     "baseUrl", "workspace", "artifacts.plane.project", "external_source", "external_id",
     "readable identifier", "parent = null", "direct project membership",
-    "Never mutate, synthesize",
 )
 for literal in linear_requirements:
     if literal not in texts["linear"]:

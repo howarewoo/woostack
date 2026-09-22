@@ -1,13 +1,13 @@
 ---
 name: woostack-plan
-description: Turn one approved specification into a strict sequential chain of PR-sized direct Linear issues, Plane increment child work items, or parentless canonical-repository GitHub issues. Never approves, executes, commits, reviews, or merges.
+description: Turn one approved specification into PR-sized issues with explicit GitHub prerequisite DAGs or sequential Linear/Plane plans. Never approves, executes, commits, reviews, or merges.
 ---
 
 # woostack-plan
 
 Turn one approved specification into one complete execution plan. Standalone Plan reads one exact
 existing Linear project, canonical GitHub Project, or the canonical Plane repository project, derives
-and hardens a candidate chain, synchronizes the complete direct-issue, parented specification, or
+and hardens a candidate graph, synchronizes the complete direct-issue, parented specification, or
 parentless GitHub graph, independently reads that graph back, and returns the verified result. When
 delegated by Build or project-backed Fix, Plan instead drafts the same complete candidate into the
 owning workflow's run-scoped manifest with zero provider calls and returns before synchronization.
@@ -45,7 +45,7 @@ Build/Fix-delegated Plan instead obeys the shared
 it reads no provider context or synchronization procedure during the delegated phase.
 Repository parent-tip admission follows the shared
 [repository ancestry contract](../woostack-init/references/artifact-backends.md#repository-ancestry-and-base-change-detection);
-Plan owns only the approved parent-branch intent and last-admitted-tip handoff.
+Plan owns the approved root parent intent, dependent parent-selection policy, and last-admitted-tip handoff.
 Use the shared [source-control selection and ancestry contract](../woostack-commit/references/graphite.md):
 Git+gh is the default delivery path; Graphite is opt-in for an explicitly selected or verified
 Graphite-managed task/stack. Planning records backend-neutral `parentBranch` intent, not a requirement
@@ -82,36 +82,55 @@ or increment work item must retain these fields in its complete description:
 - focused checks and one executable smoke scenario;
 - material risks, active blockers, and relevant documentation, migration, deployment,
   compatibility, or cross-increment effects; and
-- a declared parent branch and exact predecessor dependency binding.
+- an explicit prerequisite set and parent-selection policy under the selected graph contract below.
 
 When an increment touches an inter-application boundary (HTTP/RPC server-client, service-to-service, webhooks, queues/events, or third-party APIs in either direction), the direct issue contract must explicitly identify each boundary and specify adapter mapping, boundary validation/narrowing, transport error translation, app-local placement, wire/API compatibility, and focused boundary test obligations following the canonical [application-boundary adapters rule](../woostack-bootstrap/references/patterns.md#3-application-boundary-adapters). Do not demand identity-only or no-op wrappers when a deliberately shared contract is already the application/domain shape.
 
 Before admitting any verification command or smoke scenario, independently verify each named
-repository-local script or path already exists at the last admitted repository parent tip, is created by a predecessor
-increment whose native dependency orders it before use, or will be created by the same increment
+repository-local script or path already exists at the last admitted repository parent tip, is created by a declared predecessor
+increment whose dependency orders it before use, or will be created by the same increment
 before use. Verify a manifest-defined command against its exact manifest entry and state any
 external runtime prerequisite. A missing or invented command blocks plan persistence; never defer
 existence checking to the bounded task.
 
 
-## Chain invariants
+## Graph invariants
 
-The plan is a strict sequential chain. If there are `N` increments, ordinals are exactly the positive
-integers `1..N`, each ordinal and task ID is unique, and each native Linear dependency, GitHub blocked-by
-dependency, or Plane sibling blocking relation is exactly the matching predecessor edge:
+Every task ID and positive display ordinal is unique, every prerequisite names an admitted task,
+and every issue contract is complete. Reject duplicate prerequisites, self-dependencies, cycles,
+missing endpoints, and ambiguous identities before persistence or provider mutation. Every acceptance
+criterion must be covered by at least one increment. Repository verification provenance is part of
+admission: ordinal proximity does not prove that a task supplies a command or file.
 
-```text
-ordinal 1: no predecessor
-ordinal k (2..N): ordinal k-1 → ordinal k
-```
-No missing, extra, branching, cyclic, or synthetic dependency is valid. The declared parent branch
-for ordinal 1 is the approved integration parent branch; for every later ordinal it is the
-immediately preceding increment's branch. Bind that stable parent-branch intent in
-each complete issue description and carry the last admitted tip as separate repository evidence for
-the bounded task's base-change check. A different branch identity, unknown task, ordinal gap, out-of-order edge,
-or unprovable parent relationship blocks the plan. Validate that every acceptance criterion is
-covered exactly by at least one increment and that every issue contract is complete before any provider
-mutation.
+### GitHub prerequisite DAG
+
+When `artifacts.provider: "github"`, including delegated planning for a GitHub mirror, use the
+[GitHub graph and parent-selection contract](../woostack-init/references/artifact-providers/github.md#issue-identity-and-graph).
+Independent roots, forks, chains, and joins are valid. Record each task's complete explicit
+prerequisite set; only those prerequisites become native blocked-by edges. Normalize each edge as a
+`[prerequisite, dependent]` tuple and read provider relations back in the same order, verifying both
+endpoint identities. Ordinals are stable display/tie-break order, not dependencies or ancestry; gaps or
+an edge against display order do not invalidate an otherwise valid DAG. Preserve existing chain edges
+unless the approved specification explicitly changes them; never add or remove edges merely to match ordinal adjacency.
+
+A root records its approved integration parent. A dependent records its prerequisites and the policy
+for resolving one concrete Git parent and SHA from verified delivered branches at dispatch.
+Orchestrate is the intended consumer; Plan does not choose a speculative branch or create an
+integration branch. A join without one verified parent containing all required changes remains a
+valid plan, with an explicit parent/integration decision required before that issue can run.
+
+Bounded Execute takes one complete bounded task per invocation and is not a DAG dispatcher. Do not hand a branching/multi-root/join plan
+to Execute as runnable, including through retired `--run`; retain the graph and report the unsupported
+handoff before execution mutation. Planning and mirroring success do not prove execution readiness.
+
+### Linear, Plane, and local-only sequence
+
+Their existing planning contract remains a strict sequence: ordinals are exactly `1..N`,
+ordinal 1 has no predecessor, and ordinal `k` depends only on ordinal `k-1`. The root's declared
+parent is the approved integration branch; each later task's parent is its immediate predecessor's
+branch. Carry last-admitted tips separately as repository evidence. Missing, extra, branching,
+out-of-order, or unprovable parent edges block these plans. GitHub DAG support does not add local-run,
+Linear, or Plane orchestration.
 
 Prefer the fewest independently reviewable increments that deliver coherent outcomes. Do not
 split by file or layer merely to manufacture issues. Leave coding order and implementation
@@ -127,7 +146,7 @@ an alternative that changes product scope returns to the owning workflow rather 
 
 ## Provider synchronization
 
-In standalone use only, after the chain is complete and valid, verify the canonical repository
+In standalone use only, after the graph is complete and valid, verify the canonical repository
 association and selected workspace/team or instance/workspace, then apply the
 [existing-description mutation invariant](../woostack-init/references/artifact-backends.md#existing-description-mutation-invariant)
 while synchronizing one exact project graph through the matching provider synchronization procedure
@@ -140,38 +159,38 @@ while synchronizing one exact project graph through the matching provider synchr
 2. Create or reconcile exactly one direct project issue (Linear), parentless repository issue in the canonical
    repository with direct Project membership (GitHub), or child increment work item with `parent = <spec-item-UUID>`
    (Plane) per increment with its full contract.
-3. Create or reconcile only the strict predecessor dependency chain (for GitHub and Plane, `N-1` native
-   blocking relations/dependencies: predecessor blocks successor).
+3. Reconcile exactly the admitted prerequisite edges under the selected provider profile: explicit
+   GitHub DAG edges, or the existing strict predecessor sequence for Linear and Plane.
 4. Independently read every project, spec item (where applicable), issue/work item, membership, description,
    and dependency edge back; accept the plan only when the complete graph matches the candidate.
 Preallocate stable mutation identities, make reconciliation idempotent, and preserve unknown
 outcomes for recovery without allocating replacements. This standalone synchronization is
-unchanged, owns no approval gate, and does not use the Build/Fix run manifest.
+provider-owned, owns no approval gate, and does not use the Build/Fix run manifest.
 
 When delegated by Build or Fix, stop before every provider read or synchronization. Return the
-complete manifest-backed candidate contracts and strict chain to the wrapper. The wrapper hardens
+complete manifest-backed candidate contracts and selected graph to the wrapper. The wrapper hardens
 the manifest, writes `execution-plan.md`, displays every concise stable task and dependency mapping,
 and owns optional post-drafting mirror synchronization (when `artifacts.provider: "linear"`,
 `artifacts.provider: "plane"`, or `artifacts.provider: "github"`) and exact read-back.
 
 ## Return
 
-Return the complete ordered task contracts, exact project or baseline identity, strict predecessor
-and parent branch edges, repository assumptions/effects, focused verification strategy,
+Return the complete display-ordered task contracts, exact project or baseline identity, explicit
+prerequisite sets and parent-selection policies, repository assumptions/effects, focused verification strategy,
 read-back evidence, provider mutation/read counts, and stable mutation identities. Delegated Plan
 returns its run/process/manifest identity and makes no provider claim. Do not return a parent-plan
 identity or an execution claim.
 
 ## Hard constraints
 
-- One approved specification in; one coherent strict chain out.
+- One approved specification in; one coherent graph under the selected provider contract out.
 - One direct project issue (Linear), parentless repository issue with direct Project membership (GitHub), or specification child work item (Plane) per increment; no extra
   container issue and no hidden planning ledger.
-- Ordinals are exactly `1..N`; native dependencies are exactly `N-1 → N`.
+- GitHub ordinals never imply edges; Linear, Plane, and local-only plans retain their strict sequence.
 - Standalone Plan requires `--project` for Linear and GitHub; for Plane `--project` is optional and omitted input
   uses the exact `artifacts.plane.project`.
-- Every issue carries the complete outcome, scope, acceptance, verification, and declared
-  parent branch/dependency contract.
+- Every issue carries the complete outcome, scope, acceptance, verification, prerequisite set,
+  and parent-selection contract.
 - Delegated Build/Fix planning performs zero provider reads and writes; its wrapper hardens,
   writes plain `execution-plan.md`, and optionally synchronizes when mirroring is enabled.
 - Standalone Plan keeps its direct project synchronization and independent read-back unchanged.

@@ -26,8 +26,10 @@ The [workflow map](/docs/concepts/workflows) shows the Build/Fix sequence. Ideat
 that the user verifies. Harden checks those decisions against the repository and raises one
 discrepancy at a time. Technical details do not become approved just because they match existing code.
 Plan divides the work into increments, each small enough for one PR. It records outcomes, scope,
-acceptance criteria, verification, risks, and the dependency order and parent branches. It does not
-prescribe every coding step or estimate changed lines.
+acceptance criteria, verification, risks, explicit prerequisites, and parent-selection policy. It does
+not prescribe every coding step or estimate changed lines. [GitHub plans](/docs/configuration/artifacts/github#identities-hierarchy-and-graph)
+support dependency DAGs; Linear, Plane, and local-only plans retain their sequential contract.
+Execute accepts one selected bounded task under its [admission contract](/docs/skills/woostack-execute#admit-one-task), not a whole plan.
 
 Build and project-backed Fix use the
 [verified handoff](/docs/skills/woostack-build#verified-handoff). The user sees the complete artifacts

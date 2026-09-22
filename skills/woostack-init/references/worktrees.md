@@ -77,18 +77,33 @@ responsibility surfaces, runs, worktrees, branches, and PRs are disjoint.
 
 ### Plan dependency child
 
-A child declares exactly one predecessor as its Git parent. The caller supplies that predecessor's
-canonical branch identity, complete delivery checkpoint, commit, canonical PR identity/head/base, fully
-paginated current-head reviews, merge state, and approved parent ancestry as complete
-parent-readiness evidence; the bounded task verifies them as ordinary evidence rather than
-discovering dependencies. Read available checks for
+A child admitted to Execute declares its complete logical prerequisite set and exactly one concrete
+Git parent for checkout: a declared predecessor or an explicitly approved integration branch/SHA
+containing every prerequisite change. The integration parent need not represent a predecessor task.
+The caller supplies the prerequisite and parent-readiness evidence; the bounded task verifies it as
+ordinary evidence rather than discovering dependencies.
+For every prerequisite, require its complete delivery checkpoint, branch/commit, canonical PR
+identity/head/base, fully paginated current-head reviews, merge state, and approved ancestry to agree.
+Independently verify the concrete parent's canonical branch/SHA and ancestry containing every required
+predecessor change. A predecessor parent retains its prerequisite PR evidence. An approved integration
+parent need not have its own delivery checkpoint or PR; verify its canonical PR head/base, reviews,
+and merge state whenever such a PR exists. Proven absence of an integration-parent PR is not missing
+prerequisite evidence.
+Read available checks for
 observation only (incomplete or unavailable check reads never block). Apply the shared repository
 advancement contract before using a newly observed descendant head for fresh child work. Start
 retained work from its recorded state and revalidate ancestry, diff, and PR base; never silently
-rebase, reset, recreate, or attach it to a different branch. Every non-parent
-predecessor must have canonical GitHub merge evidence represented in the child's permitted ancestry.
-Reject inferred order, rewritten heads, open non-parent dependencies, duplicate ancestry, conflicts,
-or partial proof.
+rebase, reset, recreate, or attach it to a different branch. Every non-parent predecessor must have
+canonical GitHub merge evidence represented in the child's permitted ancestry. If no delivered branch
+contains all prerequisites, pause for an explicit integration-parent decision before admission; do
+not invent an integration branch or ordinal chain. Reject inferred order, rewritten heads, open
+non-parent dependencies, duplicate ancestry, conflicts, or partial proof.
+
+For a GitHub DAG dependent, the logical prerequisite set does not select a Git parent. Before
+checkout, the caller must supply the explicit parent branch/SHA and complete readiness evidence
+above. A join without that proof pauses that task before admission. Execute accepts one selected
+bounded task, not its retained graph; other roots, forks, or joins in that graph do not disqualify
+the task. Future Orchestrate owns graph dispatch.
 
 ## 3. Direct identity and collision evidence
 

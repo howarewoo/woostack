@@ -222,7 +222,10 @@ draft specification and `draft.unresolvedQuestions`, artifact paths, ordered sta
 dependencies, `stableTaskMappings`, `taskExecutions`, and `mirror`. Retain their existing shapes.
 Artifact paths must identify only the fixed plain files above; the helper never follows arbitrary
 manifest-supplied paths. Workflow admission validates the complete draft/task/dependency references
-and content, while the manifest remains recovery state rather than a substitute for final artifact
+and applies the selected profile's graph rules: [GitHub prerequisite DAGs](artifact-providers/github.md#issue-identity-and-graph)
+or the existing Linear, Plane, and local-only sequence. The existing task/dependency collections
+represent both without a manifest version change or edge migration. Ordinals alone never rewrite
+retained dependency mappings. The manifest remains recovery state rather than a substitute for final artifact
 prose. Storage success is not specification approval, a resolved question, task admission, provider
 acceptance, or Git/GitHub delivery evidence.
 
@@ -280,9 +283,8 @@ partially converts it.
 > artifacts and ask the caller to supply one selected complete bounded task. Final orchestration
 > automation is later work; do not treat this schema as an execution protocol.
 
-The retained schema records each task key once in the ordered plan, mappings, and `taskExecutions`.
-Dependencies reference known keys and preserve the planning order for historical artifacts; no Execute
-invocation schedules siblings or advances a run.
+The retained schema records each task key once in the display-ordered plan, mappings, and `taskExecutions`.
+Dependencies reference only known keys and satisfy the selected planning profile; they preserve the planning order for historical artifacts. No Execute invocation schedules siblings or advances a run. Persisting a GitHub DAG does not make it executable; retain its artifacts and edges unchanged. No local-run orchestration is introduced by provider graph support.
 
 `taskExecutions[stableTaskKey]` has one of these states:
 
@@ -293,7 +295,6 @@ invocation schedules siblings or advances a run.
   canonical PR URL/head/base, verification, provider read-back when applicable, and clean-worktree
   evidence. Git DAG and canonical PR base must agree with that parent proof; an upstream ref or
   merge-base alone is insufficient. Graphite metadata is additional evidence only in Graphite mode.
-
 
 <a id="repository-ancestry-and-base-change-detection"></a>
 
@@ -341,11 +342,16 @@ Reassess if the parent moves again or a different task is selected; a no-impact 
 to the compared tips and assessed work. Admission never bypasses ancestry, collision, parent-branch,
 or PR-base safeguards, and never authorizes silently rebasing, resetting, or recreating retained work.
 
-For a non-root task, the caller supplies the predecessor's delivered checkpoint, commit, canonical
-PR head/base, reviews, and available current-head checks as complete parent-readiness evidence; the
-bounded task verifies them as ordinary evidence rather than discovering dependencies. Report failed,
-pending, unavailable, or incomplete checks for observation only. Check outcomes do not mutate the
-predecessor, choose a base, or create a blocker by themselves.
+For a non-root task, the caller supplies every declared prerequisite's delivered checkpoint,
+commit, canonical PR head/base, reviews, and available current-head checks as complete parent-readiness
+evidence; the bounded task verifies them as ordinary evidence rather than discovering dependencies.
+Keep that logical prerequisite set separate from the exactly one concrete Git parent used for checkout.
+Apply the selected profile's parent-selection policy and require recorded parent-branch/SHA ancestry
+proof that contains every required predecessor before dispatch. A join without that proof records the
+parent/integration decision as unresolved and pauses for an explicit decision; it must not invent an
+integration branch or ordinal chain. Apply the [bounded task parent-admission contract](worktrees.md#plan-dependency-child).
+Report failed, pending, unavailable, or incomplete checks for observation only. Check outcomes do not
+mutate prerequisites, choose a base, or create a blocker by themselves.
 
 When a non-local provider is selected, a completed local artifact may be mirrored in one bounded
 cycle. Immediately re-read the exact project, every retained direct resource, complete memberships

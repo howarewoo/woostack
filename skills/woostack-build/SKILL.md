@@ -72,8 +72,9 @@ and own no approval gate.
 
 After `project-spec.md` is written (and optional mirror synchronization completes or records nonblocking
 failure), invoke [`woostack-plan`](../woostack-plan/SKILL.md) with the readable specification, baseline
-identity, and verified run manifest. When delegated by Build, Plan returns only a candidate strict
-sequential direct-issue chain and performs no provider read or mutation. Harden admits the candidate
+identity, and verified run manifest. When delegated by Build, Plan returns only a candidate graph
+under its [selected-provider invariants](../woostack-plan/SKILL.md#graph-invariants) and performs no
+provider read or mutation. Harden admits the candidate
 into the manifest and reconciles it with repository evidence. Build writes `execution-plan.md` directly
 under the run directory and performs optional bounded mirror synchronization when `artifacts.provider: "linear"`, `artifacts.provider: "plane"`, or `artifacts.provider: "github"`.
 
@@ -112,6 +113,10 @@ mappings and status (when mirroring was enabled). It then stops at retained arti
 > [`woostack-execute`](../woostack-execute/SKILL.md#retired-inputs)). To continue, the caller selects
 > one complete bounded task and supplies it as `/woostack-execute <bounded input>` with its
 > decisions, parent evidence, and exact retained state.
+
+A GitHub DAG outside the sequential contract is retained and mirrored without being linearized. The
+[GitHub parent-selection contract](../woostack-init/references/artifact-providers/github.md#issue-identity-and-graph)
+records the intended Orchestrate boundary and any unresolved join decision.
 
 Ask whether to `Stop here`, `Execute`, or `Abandon`. Accept an unambiguous natural-language choice;
 the user need not repeat a literal option label.

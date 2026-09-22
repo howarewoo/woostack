@@ -42,13 +42,67 @@ and recovery. Projects v2 does not require project labels; repository labels and
 ## Issue identity and graph
 
 Canonical issue URLs (`https://github.com/owner/repo/issues/<N>`) are displayed task mappings and Commit
-references; native GraphQL IDs are retained separately. Every increment is a normal parentless repository
+references; native GraphQL IDs are retained separately in mirror state. Every increment is a normal parentless repository
 issue (`parent = null`) added directly as a Project item. Issue creation embeds
 `<!-- woostack-issue-mutation:<UUID> -->` in the body for duplicate-safe pagination recovery.
 
-An admitted sequence of $N$ increments has $N-1$ native `blocked-by` dependencies (`ordinal k-1` blocks
-`ordinal k`). Predecessor and successor issue node IDs are verified before and after relation mutation.
-An exact Fix source issue is read-only context; after admission it receives only one direct Project link.
+Every increment has a unique stable task ID, a unique positive display ordinal, and an explicit
+predecessor set naming admitted task IDs. Ordinals are stable display and tie-break order only; they are not
+dependency or ancestry order, and gaps or edges against display order do not invalidate the graph.
+Independent roots, forks, chains, and joins are valid; only declared predecessors become native
+`blocked-by` edges. Normalize every edge as one prerequisite→dependent tuple in `[prerequisite, dependent]`
+order. A tuple maps to exactly one native `blocked-by` edge on the dependent pointing at the prerequisite:
+the second identity is GitHub's current dependent issue and the first is its `blockedBy` issue.
+Read both native endpoint collections independently and normalize them back into the same
+`[prerequisite, dependent]` order before comparing the complete edge set. Require read-back to verify both
+endpoint identities, not an edge count. An exact Fix source issue is read-only context; after admission it
+receives only one direct Project link.
+
+Admission validates the complete graph before persistence or provider mutation and rejects duplicate
+task IDs, ordinals or prerequisites, self-dependencies, cycles, missing endpoints, ambiguous identities, incomplete
+pagination, and foreign repository or Project scope. An explicitly new task key (mapping `null` with a
+preallocated UUID) is the only case that may create; any other unmapped endpoint is an invalid missing
+endpoint and blocks. No check silently broadens repository or Project scope.
+
+A root records the approved integration parent branch. Each dependent records its complete prerequisite
+set and a parent-selection policy for resolving one concrete Git parent branch and SHA from verified
+delivered predecessor branches or an explicitly approved integration parent at dispatch. Future
+Orchestrate resolves that parent for graph dispatch; a caller selecting one bounded task supplies
+the parent and readiness evidence. Plan never chooses it speculatively or creates an integration
+branch or artificial chain.
+One verified parent must contain all required predecessor changes. The
+[parent-admission contract](../worktrees.md#plan-dependency-child) requires canonical branch/SHA
+ancestry and every prerequisite's complete delivery evidence; an integration parent's own PR evidence
+is required only when that PR exists. A join lacking the required proof remains valid but pauses that
+issue for an explicit parent/integration decision before dispatch.
+
+Ordinal edits never change edges. Existing chain edges are preserved unless the approved specification
+explicitly changes them; never add or remove edges to match ordinal adjacency. Preserve unrelated issue
+fields, unrelated Project state, historical parent/container resources, and stable marker identities.
+Verification scripts follow explicit predecessors only: each named repository-local script or path must
+already exist at the last admitted parent tip, be created by a declared predecessor ordered before use,
+or be created by the same increment before use.
+
+Before issue creation, direct membership, or relation mutation, completely read every retained issue,
+membership, and relation page, round-trip every endpoint in its required identity form, and verify
+canonical repository, exact Project, direct membership, and `parent = null`. Use the manifest's
+preallocated stable mutation identities in mirror mode, or the retained standalone mutation identities;
+creation binds once after independent read-back, membership follows binding, and relations follow membership.
+After an unknown create outcome, recover only by repeating complete discovery for the same marker UUID;
+never allocate another identity or replay the create. Compare complete current reads with the admitted
+candidate before writes: unchanged fields, memberships, and edges are no-ops. Remove an existing edge
+only when the approved specification explicitly changes that prerequisite; unexpected drift blocks,
+never silently pruning a chain. Independently read back every issue, membership, description, and the
+complete exact predecessor→successor edge set after mutation. Mirror mismatches record failure without
+changing local artifacts; standalone mismatches block without claiming synchronization.
+
+Retain the complete DAG for future Orchestrate; Execute cannot accept or dispatch it as a graph.
+A caller may select one task from any valid DAG for
+[bounded Execute admission](../../../woostack-execute/SKILL.md#admit-one-task), supplying its concrete
+parent and complete prerequisite-readiness evidence under the
+[worktree contract](../worktrees.md#plan-dependency-child). An unresolved join parent blocks that
+task, not unrelated tasks. Run-store storage retains the existing task/dependency/mapping forms
+without schema migration or edge rewriting; workflow admission validates the DAG.
 
 ## Lifecycle and closure (retired Execute reference)
 
