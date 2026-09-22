@@ -79,7 +79,8 @@ Empty, malformed, non-object, unreadable, symlinked, non-regular, orphaned, or c
 configuration fails closed with the offending path. Both files contain non-secret policy only;
 provider authentication stays in the host secret store. Doctor validates effective configuration at
 runtime, while template presence and repair apply only to the tracked base file. OMP ignores model
-settings in both layers because role routing is host-owned.
+settings in both layers because active-session agent selection and role routing are host-owned; the
+repository does not create or rename worker definitions.
 
 After a workflow selects provider mirroring, resolve and compare every configured repository,
 workspace, team, native-status, and presentation value with the canonical repository and authenticated

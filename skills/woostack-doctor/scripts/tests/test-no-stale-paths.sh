@@ -22,4 +22,13 @@ for obsolete in \
   [ ! -e "$obsolete" ] && pass ||
     fail "retired local development-record lint remains: $obsolete"
 done
+for obsolete in \
+  "$ROOT/skills/woostack-init/scripts/provision-omp-agents.sh" \
+  "$ROOT/skills/woostack-init/scripts/tests/test-provision-omp-agents.sh" \
+  "$ROOT/skills/woostack-doctor/scripts/checks/omp-agents.sh" \
+  "$ROOT/skills/woostack-doctor/scripts/tests/test-omp-agents.sh"; do
+  [ ! -e "$obsolete" ] && pass ||
+    fail "retired OMP agent provisioning/check remains: $obsolete"
+done
+
 finish

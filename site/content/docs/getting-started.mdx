@@ -49,9 +49,10 @@ Send this to your coding agent with the same repository open. Do not run it in y
 ```
 
 Init creates missing `.woostack/` configuration, diagnostic report directories, and support for
-Git worktrees (separate working directories used to isolate changes). It also installs managed OMP
-agent definitions and session-naming support under `.omp/`. It preserves unrelated project agents,
-extensions, and valid user configuration.
+Git worktrees (separate working directories used to isolate changes). It also installs the local
+OMP session-naming extension under `.omp/`; delegation uses agents already exposed by the active
+session, not project-managed agent definitions. It preserves unrelated OMP agents, extensions, and
+valid user configuration.
 
 Init does not create a development plan, issue, branch, or PR, and it does not commit or push.
 It stops when a path or file collision makes a change unsafe. Existing policy and reports require

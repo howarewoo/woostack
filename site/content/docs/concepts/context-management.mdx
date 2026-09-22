@@ -65,6 +65,6 @@ read results may accompany it but cannot expand its scope or permissions.
 
 Hosts map `fast`, `standard`, and `deep` work to concrete models through the canonical
 [model-tier reference](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/model-tiers.md).
-OMP instead uses
-[host-owned role routing](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/hosts/omp.md).
-The host owns models, credentials, and fallbacks; woostack supplies the effective role or tier.
+OMP instead selects an existing agent exposed by the active session. The host owns agent
+capabilities, models, credentials, and fallbacks; woostack supplies the effective tier as task
+context and preserves the workspace and evidence contract.

@@ -23,75 +23,107 @@ blocking.
 
 ## Subagent spawn
 
-OMP's `task` primitive accepts a worker selector but no per-call model/tier/effort argument.
-All subagents spawned via `task` run in-process within the same OMP harness session, sharing
-in-memory IPC, queues, and tool bridges. External tools (such as Orca) cannot manage subagent
-processes because inter-agent coordination depends on this in-process harness.
+OMP's `task` primitive accepts an existing worker selector but no per-call model, tier, effort, or
+working-directory argument. All subagents spawned via `task` run in-process within the same OMP
+harness session, sharing in-memory IPC, queues, and tool bridges. External tools (such as Orca)
+cannot manage subagent processes because inter-agent coordination depends on this in-process
+harness.
 
-Woostack uses three project-scoped neutral workers provisioned by
-[`woostack-init`](../../../woostack-init/SKILL.md). Their model fields point only to OMP's
-host-owned roles; they never read repository model preferences or name a concrete model.
+Select only an agent actually returned by session discovery. The current OMP inventory exposes:
+
+- `task` — the write-capable general-purpose agent for implementation and delivery work;
+- `scout` — a read-only agent for exploration and source analysis; and
+- `reviewer` and `security-reviewer` — read-only agents for independent review.
+
+These are host-owned agents, not woostack definitions. Do not create, install, rename, alias, or
+persist a replacement catalog. If the active session exposes a different name, use that discovered
+name only when its observed capabilities satisfy the task. A read-only agent is never suitable for
+a write task.
 
 - Batch dependency-independent bounded tasks in one `tasks` call.
-- Pass the exact resolved task workspace path and complete contract in each dispatch. When the
-  calling workflow runs inside an external worktree (such as an Orca workspace), pass that active
-  checkout root so subagents edit the active workspace directly.
-- Use the most specific available worker role.
-- Coding workers return observations and changes; the calling workflow owns synthesis, gates, and
-  acceptance.
-- A worker must not expand its task, edit another workspace, review/accept itself, merge, or infer
-  hidden context.
-## Tier routing
+- Pass the exact resolved task workspace path in the dispatch prompt. The worker must verify that
+  path, branch, parent/start SHA, and allowed paths before reading or writing; `task` cannot receive
+  a `cwd` argument.
+- Pass the complete task contract: repository rules, authority limits, non-goals, acceptance,
+  required checks and smoke scenario, and result-evidence requirements. Do not duplicate a worker
+  definition in the prompt.
+- A worker must not expand its task, edit another workspace, review or accept itself, merge, or
+  infer hidden context.
 
-After the calling skill resolves the effective tier, use this fixed host-owned map:
+## Agent selection and tier handling
 
-| Effective tier | OMP model role | Project worker selector |
-|---|---|---|
-| `deep -> slow` | `@slow` | `agent: woostack-deep` |
-| `standard -> default` | `@default` | `agent: woostack-standard` |
-| `fast -> smol` | `@smol` | `agent: woostack-fast` |
+Use the discovered `task`-equivalent agent for coding or delivery, `scout`-equivalent agents for
+read-only exploration, and `reviewer`-equivalent agents for independent review. The caller may use
+`fast | standard | deep` to shape task detail and verification depth, but OMP owns model/provider
+configuration and recovery; never translate a tier into a worker name or model parameter.
 
-OMP owns each role's concrete model, provider, thinking level, credential rotation, and retry
-policy. Do not inspect repository model leaves or translate repository fallbacks into a second
-worker dispatch.
-
-The three definitions share one neutral general-purpose worker body. Init creates or updates only
-those managed files under `.omp/agents/` and preserves every other project agent. Review never
-creates or repairs workers; a missing or drifted managed definition must return to init or the
-gated [`woostack-doctor`](../../../woostack-doctor/SKILL.md) repair path.
+A selector proves only that the host accepted that agent. It does not prove a concrete model,
+provider, effort, or completion identity. Preserve those facts as separate host evidence whenever a
+workflow requires them.
 
 ## Host-level fallback
 
-Request the mapped worker once and let OMP perform host-owned recovery. Missing worker support or a
-missing required receipt is a capability failure. It never permits switching profiles, weakening
-worktree isolation, or treating absent evidence as success.
+Request the selected existing worker once and let OMP perform host-owned recovery. Do not switch
+profiles, weaken worktree isolation, or treat absent evidence as success. Missing write capability
+for a required coding task, missing independent review capability, or missing required result
+evidence is an explicit capability failure. Inline fallback is allowed only when the calling
+workflow's contract explicitly permits it; Orchestrate must block without a delivery-capable
+subagent and Execute must not gain orchestration responsibilities.
 
 ## Per-skill notes
 
-- `woostack-execute`: works inline by default; optional subagents it spawns map the selected
-  effective tier through the host-owned worker table above. Delegation is optional, never required.
+- `woostack-execute`: works inline by default; an optional discovered write-capable worker may
+  implement the one supplied bounded task. Execute still owns admission, verification, Commit, and
+  delivery; it does not discover or schedule additional tasks.
 - **woostack-orchestrate (parallel dispatch):** for each schedule packet, dispatch one
-  delivery-capable Execute worker via the `task` primitive with the most specific available worker
-  role. Pass its exact `workspace`, `branch`, `parent_branch`, `parent_sha`, child issue URL, and
-  packet `bounded_input`/`acceptance`/`checks` as the complete contract. Clamp the schedule's
-  `effective_cap` to real host capability, batch up to that cap, and refill as workers complete.
-  A host mode that serializes runs at concurrency one gets a clear notice; without a
-  delivery-capable subagent primitive, block rather than executing inline.
-- `woostack-commit`: map optional fast drafting to `agent: woostack-fast`; draft inline if
-  unavailable.
-- **woostack-eval (comparative dispatch):** map the candidate and baseline's common effective tier
-  to the same managed worker and start both siblings in the same `tasks[]` call. The selector is a
-  role pin, not proof of a concrete model. Use OMP-provided completion identity to prove both
-  actions ran with the required identical model and effort; an unprovable identity, host fallback
-  divergence, or model/effort divergence fails the mechanics proof. A host mode unable to start
-  both siblings in the same batch fails comparative preflight.
+  delivery-capable discovered write agent through `task`. Pass its exact `workspace`, `branch`,
+  `parent_branch`, `parent_sha`, child issue URL, and packet `bounded_input`/`acceptance`/`checks` as
+  the complete contract. Clamp the schedule's `effective_cap` to real host capability, batch up to
+  that cap, and refill as workers complete. A host mode that serializes runs at concurrency one
+  gets a clear notice; without a delivery-capable subagent, block rather than executing inline.
+- `woostack-commit`: optional fast drafting may use the discovered write-capable worker; draft
+  inline when that optional capability is unavailable. Commit remains responsible for its own
+  source-control and PR evidence.
+- **woostack-eval (comparative dispatch):** dispatch candidate and baseline siblings through the
+  same discovered worker in one `tasks[]` call. The selector is not proof of model or effort
+  identity. Require OMP completion evidence proving both actions used the same host, runner,
+  completion identity, model/session identity, tier, and effort required by the frozen manifest.
+  An unprovable identity, host fallback divergence, model/effort divergence, incomplete receipt, or
+  missing output/evidence blocks comparative success. A host unable to start both siblings in the
+  same bounded wave fails comparative preflight; only Eval's explicitly accepted candidate-only
+  qualitative smoke branch may degrade.
+
+## Safe cleanup of retired generated definitions
+
+`woostack-init` no longer creates `.omp/agents/` files or installs an agent-specific ignore rule.
+Existing files are user content and are not inspected or repaired by Init or Doctor. Cleanup is
+optional and manual; do not add a migration subsystem for it.
+
+To remove only unchanged files generated by the retired provisioner, resolve the selected consumer
+repository to a canonical root and confirm each candidate was created by an older Woostack Init.
+An exact byte match is required but is not, by itself, proof of ownership. Obtain the historical
+provisioner from a separately verified `howarewoo/woostack` checkout at pre-retirement commit
+`cb3bbdc5789677bef2628390361ec9aa42e4827a`; do not assume that commit exists in the consumer
+repository. If the trusted source is unavailable, preserve the files for manual review.
+
+Generate expected bytes in a separate temporary directory whose absolute path is canonicalized
+before invoking the historical provisioner. Never run it against the consumer repository.
+Reject symlinked consumer `.omp` or `agents` directories. Compare each candidate with `cmp` and
+remove only a regular, non-symlink `.omp/agents/woostack-{fast,standard,deep}.md` file whose bytes
+match exactly and whose generated provenance is confirmed. Skip missing, modified, malformed,
+user-authored, or symlinked files. Keep every other agent and configuration entry.
+
+Leave `.omp/agents/.gitignore` and unrelated ignore entries unchanged unless a user has separately
+confirmed, by provenance rather than filename, that a standalone `woostack-*.md` line was generated
+by Woostack. Any ambiguous, modified, symlinked, or user-owned entry stays in place for manual
+review. Repeating the comparison/removal is idempotent and never follows or deletes a symlink
+target.
 
 ## Degradation
 
-Never generate or repair project workers during review. Missing managed workers are a capability
-failure that returns to init or gated doctor repair. A workflow may fall back inline only when its
-own driver contract explicitly allows it. Preserve the effective tier and report the actual
-missing capability or receipt.
+Missing discovered agents or host capabilities are reported precisely. Absence of the retired
+Woostack agent files is not a failure. Preserve the effective task tier, exact workspace, and
+authority boundaries, and report the actual missing capability or receipt.
 
 Require each worker to return:
 - exact worktree and branch/head identity;
@@ -108,6 +140,6 @@ read-back.
 Session-naming degradation is non-blocking: if `woostack_rename_session` is unavailable or fails,
 emit one concise warning and proceed with the workflow.
 
-When the configured provider's official interface (Linear/Plane MCP, or host-authenticated gh for GitHub) or a required capability is absent in the session, fail
-closed for required provider boundaries or report the missing capability for optional operations per
-canonical artifact law.
+When the configured provider's official interface (Linear/Plane MCP, or host-authenticated gh for GitHub) or a required capability is absent
+in the session, fail closed for required provider boundaries or report the missing capability for
+optional operations per canonical artifact law.

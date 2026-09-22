@@ -28,8 +28,7 @@ the tracked base file stops configuration loading with an error.
 | Scalar, array, or `null` override | The local value replaces the base value. Arrays do not concatenate. `null` does not delete a key. |
 | Invalid input | Empty, malformed, non-object, unreadable, symlinked, non-regular, orphaned, or credential-like configuration fails closed with the offending path. |
 | Secrets | Provider authentication stays in the host secret store. Both configuration files contain non-secret policy only. |
-| Doctor | `woostack-doctor` validates effective runtime configuration. Template presence checks and repairs apply only to `.woostack/config.json`. |
-| OMP models | OMP ignores `models`. Its profile and fixed role workers own model selection and recovery. |
+| OMP agents | OMP discovers and selects host-owned agents; repository model settings do not create or rename them. |
 
 This partial example shows how the two files merge. It is not a complete Linear configuration;
 the [Linear page](/docs/configuration/artifacts/linear) lists the required fields.
@@ -71,7 +70,7 @@ This page covers five top-level settings. The init template writes `artifacts`, 
 | Setting | Read by | Purpose |
 | --- | --- | --- |
 | [`artifacts`](/docs/configuration/artifacts) | Init, Build, Fix, Plan, and selected artifact-aware workflows | Selects local storage or optional GitHub, Linear, or Plane mirroring. |
-| `models` | Host subagent drivers | Shared fast, standard, and deep model leaves for hosts that consume repository model policy. OMP ignores this setting. |
+| `models` | Host subagent drivers | Shared fast, standard, and deep model leaves for hosts that consume repository model policy. OMP selects existing host agents and does not use this setting to create or rename them. |
 | `commit` | [woostack-commit](/docs/skills/woostack-commit) | Command to run before staging. |
 | `status` | [woostack-status](/docs/skills/woostack-status) | Age threshold for stale active rows. |
 | `base_branch` | Init and worktree workflows | Trunk branch used for worktrees and pull requests. |
@@ -114,9 +113,9 @@ Each repository-model consumer runs at a tier (`fast`, `standard`, or `deep`). T
 `models` namespace maps that tier to a concrete model and optional effort. The namespace remains
 at the root so host subagent drivers can share it.
 
-omp is the host-owned exception. It ignores the entire `models` namespace and maps the effective
-tier to its fixed init-managed role worker instead. Changing a flat or provider-specific model leaf
-never changes an omp dispatch.
+OMP is the host-owned exception. It does not use repository model leaves to create a dispatch
+catalog; it selects an agent exposed by the active session and passes the effective tier as task
+context. Changing a model leaf never creates or renames an OMP agent.
 
 | Host | Repository model config | Flat fallback | Dispatch behavior |
 | --- | --- | --- | --- |
@@ -124,7 +123,7 @@ never changes an omp dispatch.
 | Codex | `models.openai.fast`, `.standard`, or `.deep` | matching flat leaf | Passes the resolved OpenAI model and reasoning effort when the host supports per-call overrides. A single-model session resolves once for the whole run. |
 | Gemini | `models.google.fast`, `.standard`, or `.deep` | matching flat leaf | Uses the Google model for the resolved tier. |
 | OpenRouter | `models.openrouter.fast`, `.standard`, or `.deep` | matching flat leaf | Uses the OpenRouter model and reasoning effort for the resolved tier. |
-| omp (Oh My Pi) | ignored | ignored | Selects the fixed role-backed worker; omp owns its model and fallback. |
+| omp (Oh My Pi) | ignored for agent selection | ignored | Selects a discovered host agent; OMP owns its model and fallback. |
 
 For hosts that consume this namespace, a provider-specific leaf takes precedence over the
 matching flat leaf. The same config file can therefore supply provider-neutral defaults and
@@ -208,8 +207,8 @@ hosts pass only the model.
 
 On hosts that read repository model policy, resolution follows the explicit model input, the
 provider-specific leaf, the flat leaf, and the provider default. Single-model sessions resolve one
-model for the whole run. On omp, the effective tier selects a fixed worker; the host owns its
-model.
+model for the whole run. On OMP, agent selection and model recovery remain host-owned; the effective
+tier is task context and never creates a project worker or alias.
 
 
 ## Commit hook
