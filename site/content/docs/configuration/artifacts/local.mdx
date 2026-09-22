@@ -62,13 +62,14 @@ Remote mirroring does not transfer authority away from the local run. A mirror f
 With `artifacts.provider` omitted or set to `"local"`:
 
 - Build and project-backed Fix make no artifact-provider reads or writes.
-- Standalone Plan without requested persistence makes no provider call.
+- Direct Plan still publishes the exact GitHub scope selected by `--parent-issue` or `--project`;
+  parent mode needs no provider selector, local run, Project settings, or mirror.
 - Goal-only [Change](/docs/skills/woostack-change) makes no artifact-provider reads or writes.
 - Issue-backed Change performs the required read of the explicitly selected exact canonical GitHub issue
   through host-authenticated `gh`; it does not require provider configuration, a Project, a mirror, or a
   persisted plan.
-- `--project` fails before provider access because it requires a configured non-local provider.
-  Plan's `--parent-issue` also fails: it requires `artifacts.provider: "github"`, though no Project.
+- Build/Fix `--project` fails before provider access because it requires a configured non-local
+  provider; this does not change Plan's direct GitHub publication path.
 
 Automatic read-only Linear discovery during `woostack-init` (or GitHub discovery when
 `artifacts.provider: "github"`) is a setup operation. An issue-backed Change read is driven by

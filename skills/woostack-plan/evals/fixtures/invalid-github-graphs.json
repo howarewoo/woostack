@@ -1,7 +1,6 @@
 {
   "caller": {
-    "exactProjectUrl": "https://github.com/orgs/acme/projects/7",
-    "provider": "github"
+    "exactProjectUrl": "https://github.com/orgs/acme/projects/7"
   },
   "repository": {
     "canonicalUrl": "https://github.com/acme/app",

@@ -14,7 +14,7 @@ manifest, plain artifacts, mutation ordering, failure handling, and read-back in
 scope, capabilities, identities, labels, graph endpoints, and lifecycle mappings. The shared
 [repository ancestry contract](../../woostack-init/references/artifact-backends.md#repository-ancestry-and-base-change-detection)
 separately governs parent-branch intent and base-change detection; use the
-[Linear synchronization procedure](linear-procedure.md) only for the bounded mirror save or standalone Plan.
+[Linear synchronization procedure](linear-procedure.md) only for the bounded Build/Fix mirror save.
 
 ## Resolution
 1. Resolve the canonical repository URL from trusted Git/GitHub evidence.
@@ -103,10 +103,9 @@ zero provider and repository mutation.
 Historical parent plan issues and their children are noncanonical history. Preserve them, exclude
 them from the baseline, and never detach, migrate, archive, delete, or reconcile them. Store the
 complete exact project, current direct-issue identities/revisions/content, and dependencies in the
-manifest. Delegated Plan and Harden then make zero provider reads and writes while drafting. After
-`execution-plan.md` is written, when `artifacts.provider: "linear"`, the shared contract performs drift
-comparison, one bounded synchronization, stable-key mapping, and exact graph read-back; mirror failures
-are nonblocking.
+Harden remains provider-free while drafting. After `execution-plan.md` is written, when
+`artifacts.provider: "linear"`, the shared contract performs drift comparison, one bounded
+synchronization, stable-key mapping, and exact graph read-back; mirror failures are nonblocking.
 
 ## Drift and failure
 

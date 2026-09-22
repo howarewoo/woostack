@@ -57,14 +57,14 @@ Use readable issue identifiers such as `ENG-42` to select and refer to issues. L
 UUIDs are kept separately for API changes.
 
 Build and project-backed Fix resolve or create the selected Linear project. Bounded Fix does not
-contact Linear. Standalone Plan writes only to an exact selected project. Each increment is a
-direct project issue; woostack does not create an extra parent issue to hold the plan.
+contact Linear. Plan does not use Linear; its direct GitHub publisher owns parent/child/dependency
+publication. Build/Fix Linear increments remain direct project issues with no extra parent issue.
 
 ## Lifecycle behavior (retired Execute reference)
 
 > **Retired.** Execute no longer performs Linear lifecycle transitions, project/run-controller reads,
 > or closure. It accepts one complete bounded task and no Linear/Plane issue scope; the retained
-> provider status fields and historical records support Build/Plan mirroring only. See
+> provider status fields and historical records support Build/Fix mirroring only. See
 > [Execute retired inputs](/docs/skills/woostack-execute#retired-inputs).
 
 `woostack-init` may discover missing non-secret Linear defaults through authenticated read-only MCP

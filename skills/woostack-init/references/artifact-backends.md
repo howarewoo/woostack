@@ -18,13 +18,17 @@ Every Build and project-backed Fix allocates or resumes exactly one local run. A
 exact run only by its run ID; fuzzy names, recent history, titles, branch names, and search ranking are
 never selection mechanisms.
 
-`artifacts.provider` gates development-artifact calls except the explicitly selected GitHub scopes below.
+`artifacts.provider` gates development-artifact calls for Build and project-backed Fix. Direct Plan
+publication is a separate explicit GitHub scope: it uses host-authenticated `gh` for the exact
+`--parent-issue` or `--project` selector and does not require a provider selector or local run.
 
 When it is `"local"` or omitted:
 
 - Build and project-backed Fix make zero provider reads or writes;
-- `--project` fails closed before provider access and explains that it requires configured provider mirroring;
-- standalone Plan without requested persistence makes no provider call; and
+- Build/Fix `--project` fails closed before provider access and explains that it requires configured
+  provider mirroring;
+- direct Plan still requires its exact GitHub scope and performs the required issue/Project reads and
+  writes; and
 - goal-only `woostack-change` makes no development-artifact provider call. Its
   [exact GitHub issue admission](../../woostack-change/SKILL.md#admit-an-exact-github-issue) is a
   read-only host-authenticated `gh` exception that remains available with local/omitted
@@ -52,16 +56,18 @@ Adding a provider requires a new profile implementing those same boundaries plus
 routing and deterministic contract coverage; it does not weaken or modify the shared invariants.
 
 Build resolves one exact caller-supplied or profile-configured project and creates one only when the
-selected provider profile permits it. Fix reaches proved root cause before project resolution or creation.
-An exact Fix source resource is preserved context, not the Fix plan or permission to work. Standalone
-Plan writes only to its explicitly selected profile-defined scope: an exact project or specification
-resource, or a new specification resource when the profile permits explicit creation. Local artifacts
-may be mirrored once after they are complete; standalone publication does not select mirroring.
+selected provider profile permits it. Fix reaches proved root cause before project resolution or
+creation. An exact Fix source resource is preserved context, not the Fix plan or permission to work.
+Plan publishes only to its exact explicitly selected GitHub parent or Project scope and never uses a
+Build/Fix run, local mirror, or hidden persistence boundary. A caller may retain a plain handback for
+its own transition, but it is not Plan's publication authority.
 
-A mirror failure is recorded in the manifest and is nonblocking for local workflow authority.
-Supplying a project never relaxes repository, provider scope, pagination, capability, or read-back
-checks. Init discovery, optional provider writers, lifecycle support, and unsupported operations are
-defined by the selected profile and remain bounded by this contract.
+A provider failure in a Build/Fix transitional artifact path is recorded in that run's manifest and
+is nonblocking only for that local workflow. Direct Plan relationship or read-back failure blocks
+publication and is returned with the confirmed identity boundary. Supplying a project never relaxes
+repository, provider scope, pagination, capability, or read-back checks. Init discovery, optional
+provider writers, lifecycle support, and unsupported operations are defined by the selected profile
+and remain bounded by this contract.
 
 ## Effective repository configuration and precedence
 
@@ -443,9 +449,9 @@ Creation and mutation are separate:
   intended patch and preservation of all unrelated text.
 
 A description patch changes no unrelated title, assignment, delegate, status, labels, archival state,
-relations, or project membership. Build/Fix uses this only during its optional bounded mirror cycle;
-Ideate, Harden, and delegated Plan remain provider-free while drafting. Standalone Plan uses it only
-for explicitly selected direct persistence.
+relations, or project membership. Build/Fix uses this only during its optional bounded artifact
+cycle. Ideate and Harden remain provider-free. Plan's direct GitHub publisher owns its own exact
+issue/graph mutation and read-back invariants.
 
 ## Retired Execute provider lifecycle and closure
 
@@ -454,19 +460,12 @@ for explicitly selected direct persistence.
 > already-mirrored provider state only. A bounded Execute task makes no development-artifact
 > provider calls without `--issue`, and with it uses only the exact issue's read-only admission
 > plus Commit association under
-> [`woostack-execute`](../../woostack-execute/SKILL.md#optional-exact-github-issue). Standalone Plan
-> closure below remains the only live project-closure path in this section.
+> [`woostack-execute`](../../woostack-execute/SKILL.md#optional-exact-github-issue). Build/Fix
+> provider closure is not a live Execute path.
 
 Historical provider-mode Execute lifecycle mappings and project-start transitions are retained only as
 schema/provenance context for existing mirrored records; they are not a live workflow. Bounded Execute
 does not resolve, mutate, or close provider projects, work items, or statuses.
-
-A provider-backed standalone Plan closure uses only the retained exact project. If none
-exists, report nothing to close and create nothing. The selected provider profile defines whether a
-project closure transition is supported and its exact mutation/read-back contract. An unsupported
-project lifecycle is a required no-op, never a reason to synthesize, archive, delete, or bulk-change
-resources. Failure retains the same retry boundary and never resumes repository work. With mirroring
-disabled, make no provider closure call.
 ## Retention and reporting
 
 Retain `manifest.json`, `project-spec.md`, `execution-plan.md`, and `.lock` on completion, explicit

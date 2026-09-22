@@ -31,11 +31,10 @@ or token fallback is allowed.
 
 Resolve the exact configured `artifacts.plane.project` by URL or native UUID and independently verify
 its configured `baseUrl`, workspace, and canonical repository association before mutation. Never infer,
-select by name, or create a Plane project. Build, Fix, and standalone Plan attach their specification
-and increment work items to this exact project. Delegated Plan performs zero provider reads or writes;
-its Build wrapper resolves the configured project when mirroring is enabled. Fix reaches proved root
-cause and verifies the writable target repository before project resolution. When `--project` is
-supplied, it must identify the same configured project; a mismatch fails closed before any mutation.
+select by name, or create a Plane project. Build and Fix attach their specification and increment
+work items to this exact project. Plan does not use Plane. Fix reaches proved root cause and verifies
+the writable target repository before project resolution. When `--project` is supplied, it must identify
+the same configured project; a mismatch fails closed before any mutation.
 
 Project description is never overwritten with feature specifications. Plane projects have native
 UUIDs and no assumed stable human-readable project identifier.
@@ -69,11 +68,11 @@ receipts retain native UUID and external identity separately.
 Every complete work-item read requests native UUID, readable identifier, repository, baseUrl,
 workspace, direct project membership, and parent.
 
-1. **Specification work items:** Build, Fix, and Plan create one top-level specification work item in the
-   configured project named `[Build] <goal>` (for Build), `[Fix] <goal>` (for Fix), or `[Plan] <goal>`
-   (for Plan), with its full specification content in its description and `parent = null`. It has
-   separate native UUID, readable identifier, and external identity. It binds to `mirror.specItem` in
-   the manifest and never enters `stableTaskMappings`.
+1. **Specification work items:** Build and Fix create one top-level specification work item in the
+   configured project named `[Build] <goal>` (for Build) or `[Fix] <goal>` (for Fix), with its full
+   specification content in its description and `parent = null`. It has separate native UUID,
+   readable identifier, and external identity. It binds to `mirror.specItem` in the manifest and never
+   enters `stableTaskMappings`.
 2. **Increment work items:** Increment work items are created directly in the configured project as
    exact children of that specification work item (`parent = <spec-item-UUID>`). Each has direct
    project membership, preallocated external identity, native UUID, readable identifier, and its
@@ -98,7 +97,7 @@ supported source mutation is one direct project link followed by exact membershi
 
 ## Readers, status, and provenance
 
-Status and generic artifact readers resolve the configured project, top-level `[Build]/[Fix]/[Plan]`
+Status and generic artifact readers resolve the configured project, top-level `[Build]/[Fix]`
 specification work items, and exact child increment graphs with complete paginated read-back and
 identity checks.
 
@@ -109,8 +108,7 @@ unparented child increments from enrichment.
 
 Exact-source attribution and provenance distinguish:
 
-- **Configured project:** exact URL or native UUID represents repository association only;
-- **Specification parent:** `[Build] <goal>`, `[Fix] <goal>`, `[Plan] <goal>` (`parent = null`, URL or UUID)
+- **Specification parent:** `[Build] <goal>` or `[Fix] <goal>` (`parent = null`, URL or UUID)
   represents specification provenance and aggregate delivery lifecycle;
 - **Child increment:** `parent = <spec-item-UUID>` (URL, UUID, or readable identifier such as `ENG-42`)
   represents exact increment task attribution and state.
@@ -121,7 +119,7 @@ Exact-source attribution and provenance distinguish:
 > membership, mutates work-item states, runs a project/run controller, or closes provider resources.
 > Its only optional provider input is an exact canonical GitHub issue URL, read through `gh` and
 > associated by Commit. The retained Plane project/work-item/state schema and historical records
-> support Build/Plan mirroring only; see
+> support Build/Fix mirroring only; see
 > [`woostack-execute`](../../../woostack-execute/SKILL.md#retired-inputs).
 
 The configured Plane project remains repository association context; its status is never changed by
@@ -140,8 +138,7 @@ to auto-migrate the retained run; instruct the user to regenerate the run via `/
 
 ## Workflow procedures
 
-Build and Plan use the detailed [Plane context](../../../woostack-build/references/plane-context.md)
-and [Plane synchronization procedure](../../../woostack-build/references/plane-procedure.md). Standalone
-Plan synchronizes the graph directly; delegated Plan remains provider-free and delegates mirror
-synchronization to the Build wrapper. Bootstrap and Commit retain their workflow gates and use this
+Build and Fix use the detailed [Plane context](../../../woostack-build/references/plane-context.md)
+and [Plane synchronization procedure](../../../woostack-build/references/plane-procedure.md).
+Plan does not use this provider profile. Bootstrap and Commit retain their workflow gates and use this
 profile only for selected-provider identity, capability, mutation, and read-back behavior.

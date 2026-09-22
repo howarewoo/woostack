@@ -171,27 +171,32 @@ into the plan without dropping safety/compatibility protections.
 
 Write `project-spec.md` through the shared
 [plain artifact contract](../woostack-init/references/artifact-backends.md#readable-plain-artifact-writing).
-When mirroring is enabled, perform the immediate pre-save drift read, one bounded sync, and independent
-content read-back. Plane binds its top-level specification identity to `mirror.specItem`, outside
-child task mappings. Record optional mirror failure as nonblocking local authority; never fabricate
-successful provider evidence.
+For a remaining configured Linear/Plane provider path, perform the immediate pre-save drift read, one
+bounded sync, and independent content read-back. Plane binds its top-level specification identity to
+`mirror.specItem`, outside child task mappings. Record optional mirror failure as nonblocking local
+authority; never fabricate successful provider evidence. The GitHub Plan path above is direct and
+does not use this mirror step.
 
-### Plan, Harden, and write the execution plan
+### Plan and write the execution plan (GitHub scope)
 
-Admit the fresh baseline and invoke [`woostack-plan`](../woostack-plan/SKILL.md) with the readable
-specification, run manifest, and exact project identity when enabled. Delegated Plan returns complete
-local increment contracts and dependencies under Plan's
-[selected-provider graph invariants](../woostack-plan/SKILL.md#graph-invariants), with zero provider
-reads/writes. Harden reconciles them against the full specification, repository evidence, risks, and verification. Retain
-stable task keys and dependencies; never repurpose a source issue as a plan issue.
+For an explicit GitHub parent or Project scope, admit the fresh baseline and invoke
+[`woostack-plan`](../woostack-plan/SKILL.md) with the complete approved specification, exact
+repository/evidence identity, and selector. Plan passes the candidate through public
+[`woostack-harden`](../woostack-harden/SKILL.md) once, then owns every GitHub issue, native-parent,
+Project-membership, and dependency mutation plus independent read-back. Fix no longer invokes a
+draft-only delegated Plan, and it never performs a second issue or relationship synchronization.
+Retain stable task keys, identities, and dependencies; never repurpose a source issue as a plan issue.
 
-Write `execution-plan.md` containing every ordered increment contract and dependency tuple through
-the shared plain artifact/run-store contract. When mirroring is enabled, perform immediate pre-save
-drift read, shared [graph-write preflight](../woostack-init/references/artifact-backends.md#canonical-issue-references-nullable-parents-and-graph-write-preflight),
-one bounded sync, atomic stable-task mappings, and independent exact graph read-back. Plane maps
-increments to exact children of its specification work item with direct project membership and
-`N-1` strict sibling blocking relations under the selected profile. Record optional mirror failure;
-retain local authority and all run artifacts. No repository implementation occurs during these phases.
+Write `execution-plan.md` from Plan's complete returned child contracts, actual URLs/native
+identities, exact graph, and publication evidence through the shared plain artifact/run-store
+contract. Do not run another GitHub graph writer. Any remaining non-GitHub provider synchronization
+is transitional Build/Fix behavior until issue #741 and is not a second GitHub publisher; no repository
+implementation occurs during these phases.
+
+Without a GitHub publication scope, use Build's transitional local candidate-drafting and public
+Harden branch, preserving the proved diagnosis in every task. Local mode makes no provider calls.
+Write the complete reconciled candidate to `execution-plan.md`; do not invoke Plan in a draft-only
+mode or invent remote identities. Only an explicitly selected remaining provider may synchronize it.
 
 ### Verified handoff
 
