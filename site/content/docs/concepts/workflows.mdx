@@ -89,25 +89,34 @@ or an exact parent issue URL (parent-issue mode, native parent/child issues); th
 exclusive, parent-issue mode needs `artifacts.provider: "github"` but no Project settings, and
 Build/Fix optional mirrors never select it automatically. A caller may select one task for
 [bounded Execute admission](/docs/skills/woostack-execute#admit-one-task), or explicitly invoke
-[Orchestrate](/docs/skills/woostack-orchestrate) for a GitHub scope. Execute does not dispatch graphs.
+[Orchestrate](/docs/skills/woostack-orchestrate) for a GitHub scope. Execute does not dispatch graphs;
+the explicit `--issues` form is the Orchestrate-only route for a closed list without a common
+parent or Project.
 
 ## Orchestrate
 
 ```text
 /woostack-orchestrate --issue <canonical GitHub parent issue URL> [--max-parallel <positive integer>]
 /woostack-orchestrate --project <canonical GitHub Project URL> [--max-parallel <positive integer>]
+/woostack-orchestrate --issues <canonical issue URL> <canonical issue URL> ... [--max-parallel <positive integer>]
 ```
 
-Select exactly one scope. The recommended ChatGPT-to-Codex handoff is a specification parent with
-native PR-sized children; this execution mode needs no Project or provider-mirror configuration.
-The parent supplies context, not an extra implementation task. Explicit Project execution retains
-its configured membership and lifecycle checks.
+Select exactly one scope family. The recommended ChatGPT-to-Codex handoff remains a specification
+parent with native PR-sized children; this mode needs no Project or provider-mirror configuration.
+Explicit Project execution retains its configured membership and lifecycle checks. Explicit list
+execution reads exactly the supplied open issues, normalizes repeated/reordered URLs, and validates
+complete contracts plus a supplied dependency DAG. Native, declared, and model-inferred edges keep
+separate provenance/evidence; inference belongs to the skill, not the deterministic helper, and
+inferred relationships are never published back to GitHub. External prerequisites block only their
+affected tasks and never expand the list.
 
 Orchestrate keeps up to three delivery-capable Execute workers active by default, bounded by host
 capability. Verified submission and independent specification validation release dependents without
 waiting for a whole wave or a merge. A dependent PR targets its verified prerequisite branch; a join
 pauses if no permitted single parent contains all prerequisite changes. Unrelated tasks continue.
-The final result is submitted PRs awaiting review/merge, not closed issues or product acceptance.
+Graph/scope drift preserves running reservations and stops fresh dispatch; unknown worker outcomes
+require direct stopped-worker/branch/PR reconciliation before same-identity repair. The final result
+is submitted PRs awaiting review/merge, not closed issues or product acceptance.
 
 ## Change
 

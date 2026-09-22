@@ -91,9 +91,12 @@ Use the workflow map to choose a command for your next task. The configuration r
 how to change repository policy or enable optional provider mirroring.
 
 For an approved GitHub plan, hand the coding agent one exact specification parent issue with native
-PR-sized children using `/woostack-orchestrate --issue <canonical parent issue URL>`. No GitHub
-Project is required. See [Orchestrate](/docs/skills/woostack-orchestrate) for admission, worker
-capabilities, and the explicit Project alternative.
+PR-sized children using `/woostack-orchestrate --issue <canonical parent issue URL>`. If no common
+parent or Project exists, supply the exact selected issues with
+`/woostack-orchestrate --issues <canonical issue URL> ...`; list mode infers a bounded technical
+DAG without creating a container or publishing native dependency edges. No GitHub Project is
+required for either form. See [Orchestrate](/docs/skills/woostack-orchestrate) for admission,
+worker capabilities, graph evidence, and recovery boundaries.
 
 <Cards>
   <Card title="Workflow maps" href="/docs/concepts/workflows" description="Choose Bootstrap, Build, Fix, or Change based on the shape of the work." />

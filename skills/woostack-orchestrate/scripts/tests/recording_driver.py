@@ -255,6 +255,65 @@ class FakeGitHub:
         })
         return result
 
+    def issue_list_snapshot(
+        self,
+        selected: Optional[Sequence[str]] = None,
+        *,
+        pagination: Optional[Dict[str, Any]] = None,
+        model_inference: str = "complete",
+    ) -> Dict[str, Any]:
+        """Assemble standalone selected issues plus supplied DAG evidence.
+
+        This is a recording of native reads and a caller-supplied graph, not a
+        second scheduler or an inference engine.
+        """
+        issues = []
+        for child in self.children:
+            item = copy.deepcopy(child)
+            item["actual_parent"] = None
+            item["declared_parent"] = None
+            item["prerequisites"] = []
+            item["external_prerequisites"] = []
+            if item["task_id"] in self.delivery:
+                item["existing_delivery"] = copy.deepcopy(self.delivery[item["task_id"]])
+            issues.append(item)
+        selected = list(selected or [item["url"] for item in issues])
+        edges = [
+            {"predecessor": "task-a", "dependent": "task-c", "provenance": "inferred",
+             "evidence": {"reason": "C consumes the interface introduced by A"}},
+            {"predecessor": "task-b", "dependent": "task-d", "provenance": "inferred",
+             "evidence": {"reason": "D consumes the migration delivered by B"}},
+            {"predecessor": "task-c", "dependent": "task-d", "provenance": "inferred",
+             "evidence": {"reason": "D consumes the API delivered by C"}},
+        ]
+        result = {
+            "canonical_repo": self.canonical,
+            "integration": copy.deepcopy(self.integration),
+            "parent_prs": self.parent_pr_readbacks(),
+            "repository_rules": self.repository_rules,
+            "host": {"delivery_capable": True, "max_parallel": self.max_parallel},
+            "issues": issues,
+            "graph": {
+                "coverage": "complete",
+                "model_inference": model_inference,
+                "source": "recording-driver",
+                "complete": True,
+                "edges": edges,
+            },
+            "pagination": copy.deepcopy(pagination or {
+                "issues": True,
+                "parents": True,
+                "dependencies": True,
+                "contracts": True,
+            }),
+        }
+        result["selected_issues"] = [item for item in issues if item["url"] in selected]
+        result["issues"] = result["selected_issues"]
+        record("github", "assemble-issue-list-snapshot", {
+            "issues": selected, "edges": len(edges), "model_inference": model_inference,
+        })
+        return result
+
     def project_snapshot(self, *, pagination: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         project_url = "https://github.com/orgs/acme/projects/7"
         parent = copy.deepcopy(self.parent)

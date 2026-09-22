@@ -138,10 +138,13 @@ An explicit [Orchestrate](/docs/skills/woostack-orchestrate) invocation dispatch
 through isolated Execute workers. Linear, Plane, and local-only planning keep their existing sequence.
 
 Orchestrate's `--issue` form selects the complete native child scope without requiring Project access
-or provider mirroring. Its `--project` form selects only admitted Project members. Independently
-validated PR delivery releases dependents; no issue closure or merge is required. Child delivery
-notes preserve evidence, and only explicitly selected Project execution uses configured `inReview`
-status. Both forms leave the scope open for human review/merge.
+or provider mirroring. Its `--project` form selects only admitted Project members. Its explicit
+`--issues` form selects exactly the supplied open canonical issues, even when they have different
+parents or Project memberships; it validates a caller-supplied DAG with native, declared, and
+inferred provenance without publishing inferred edges or requiring native dependency-write access.
+Independently validated PR delivery releases dependents; no issue closure or merge is required.
+Child delivery notes preserve evidence, and only explicitly selected Project execution uses configured
+`inReview` status. All forms leave the scope open for human review/merge.
 
 ## Lifecycle and closure (retired Execute reference)
 
@@ -158,10 +161,9 @@ leave any mirrored Project unchanged.
 
 | Skill | GitHub provider behavior |
 | --- | --- |
-| [woostack-build](/docs/skills/woostack-build) | Resolves an exact supplied Project or creates one `[Build] <goal>` Project; writes specification to managed README; creates parentless issues with direct Project membership; and wires explicit prerequisite edges. |
+| [woostack-orchestrate](/docs/skills/woostack-orchestrate) | Executes one exact native child scope, configured Project member set, or explicit canonical issue list; validates graph evidence, verifies worker PRs, and records delivery without closing issues or merging. |
 | [woostack-fix](/docs/skills/woostack-fix) | Bounded Fix is provider-free. Project-backed Fix proves root cause before provider access, preserves an exact source `--issue` as context with a direct Project link, and creates/reconciles a separate increment DAG. |
 | [woostack-plan](/docs/skills/woostack-plan) | Standalone Plan with `--project` requires an exact existing canonical Project URL (`orgs/<owner>/projects/<N>` or `users/<owner>/projects/<N>`) and synchronizes the direct issue graph; standalone Plan with `--parent-issue new` or an exact parent issue URL synchronizes the native parent/child graph with no Project; delegated Plan is provider-free. |
-| [woostack-orchestrate](/docs/skills/woostack-orchestrate) | Executes the native direct children of one exact `--issue` without Project/mirror prerequisites, or the admitted members of one exact configured `--project`; verifies worker PRs and records delivery without closing issues or merging. |
 | [woostack-execute](/docs/skills/woostack-execute) | Accepts one complete bounded task plus an optional exact GitHub issue URL; retired `--project`, `--run`, and `--recheck` are rejected. |
 | [woostack-init](/docs/skills/woostack-init) | Discovers owner, ownerType, canonical repository, and status options through read-only `gh` calls only when `artifacts.provider: "github"`. Never selects persistence or probes writes. |
 | [woostack-status](/docs/skills/woostack-status) | Adds read-only context only after verifying repository/PR identity. Provider records cannot create rows or override repository evidence. |

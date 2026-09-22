@@ -99,7 +99,7 @@ in the coding assistant.
 | A feature that needs several PRs | [/woostack-build](skills/woostack-build/SKILL.md) | Works through requirements with you, saves a specification and plan, then retains the artifacts for you to select one bounded task for Execute. |
 | A bug fix | [/woostack-fix](skills/woostack-fix/SKILL.md) | Proves the cause and asks you to approve the correction before delivering a small fix or planning larger work. |
 | A small enhancement or refactor | [/woostack-change](skills/woostack-change/SKILL.md) | Delivers one PR without creating a planning project. |
-| Execute an approved GitHub issue graph | [/woostack-orchestrate](skills/woostack-orchestrate/SKILL.md) | Takes one exact parent issue or explicit Project, runs ready tasks in isolated Execute workers, and verifies submitted draft PRs without merging. |
+| Execute an approved GitHub issue graph | [/woostack-orchestrate](skills/woostack-orchestrate/SKILL.md) | Takes one exact parent issue, explicit Project, or explicit issue list, runs ready tasks in isolated Execute workers, and verifies submitted draft PRs without merging. |
 
 Fix does not contact a planning provider during diagnosis. Configuring a provider does not make
 every fix a project. Selecting a project, provider work item, or saved run explicitly uses the

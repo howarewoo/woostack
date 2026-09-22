@@ -97,11 +97,13 @@ selected exact GitHub issue permits only the read-only `gh` admission defined in
 `artifacts.provider` local or omitted. That exception does not select artifact mirroring or authorize
 work. Handoff, replanning, and blockers leave project status unchanged.
 
-Explicit [`woostack-orchestrate`](skills/woostack-orchestrate/SKILL.md) execution selects either one
-GitHub specification parent with native task children or one configured GitHub Project. Parent-issue
-execution does not require provider mirroring or Project configuration. Orchestrate owns scheduling
-and independent post-submission validation; each Execute worker owns one task's delivery through
-Commit. This does not change Build/Fix handoff or grant merge authority.
+Explicit [`woostack-orchestrate`](skills/woostack-orchestrate/SKILL.md) execution selects one
+GitHub specification parent with native task children, one configured GitHub Project, or an
+explicit canonical list of GitHub issues. Parent-issue execution does not require provider
+mirroring or Project configuration; list execution does not require a parent, Project, or native
+dependency publication. Orchestrate owns scheduling and independent post-submission validation;
+each Execute worker owns one task's delivery through Commit. This does not change Build/Fix handoff
+or grant merge authority.
 
 External engineers such as Hermes are outside the installed woostack host/runtime surface. Hermes
 may drive one persistent OMP session as an external decision-maker and reviewer, but woostack is
@@ -199,7 +201,7 @@ the repository's simplify/comments guidance.
   [`skills/woostack-change/SKILL.md`](skills/woostack-change/SKILL.md)
 - Plan-writing engine for the build loop (public command):
   [`skills/woostack-plan/SKILL.md`](skills/woostack-plan/SKILL.md)
-- GitHub parent-issue or explicit Project orchestration (public command):
+- GitHub parent-issue, explicit issue-list, or explicit Project orchestration (public command):
   [`skills/woostack-orchestrate/SKILL.md`](skills/woostack-orchestrate/SKILL.md)
 - Bounded task execution engine delivering one task through one PR (public command):
   [`skills/woostack-execute/SKILL.md`](skills/woostack-execute/SKILL.md)

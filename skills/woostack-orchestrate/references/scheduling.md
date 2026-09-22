@@ -68,13 +68,14 @@ native/Git reads; the markers below are not fabricated evidence.
     }
   },
   "repository_rules": "<runtime-substituted complete repository rules>",
-  "specification": "<runtime-substituted complete approved specification>",
+  "specification": "<runtime-substituted complete approved specification when parent or Project mode is selected>",
   "host": {
     "delivery_capable": true,
     "max_parallel": "<runtime-substituted positive host capability>"
   },
   "pagination": {
     "sub_issues": true,
+    "issues": true,
     "parents": true,
     "dependencies": true,
     "contracts": true
@@ -83,10 +84,12 @@ native/Git reads; the markers below are not fabricated evidence.
 ```
 
 `repository_rules` and `specification` are complete strings from the admitted repository/scope;
-they are not summaries. Every boolean in `pagination` must correspond to a terminal native read.
-Issue-mode snapshots require all four keys. Project-mode snapshots require `members`, `parents`,
-`dependencies`, and `contracts` (and may also carry `sub_issues` when the native member read used
-it); all required keys must be `true`.
+they are not summaries. List mode uses each selected issue body or explicit `specification` field
+as worker context and does not require an aggregate `specification`. Every boolean in `pagination`
+must correspond to a terminal native read. Issue-mode snapshots require all four existing keys;
+Project-mode snapshots require `members`, `parents`, `dependencies`, and `contracts`; list-mode
+snapshots require `issues`, `parents`, `dependencies`, and `contracts`. All required keys must be
+`true`.
 
 `parent_prs` supplies fresh canonical PR discovery for the integration branch and any explicitly
 selected non-predecessor parent. An empty `prs` array means fully proved absence, not unavailable
@@ -214,6 +217,72 @@ from execution. Do not import nonmembers, flatten nested containers, or infer a 
 Project position. Repeated evidence for one URL is deduplicated only when every immutable field,
 including `item_id`, agrees; any disagreement blocks as ambiguous identity.
 
+### Explicit issue-list snapshot
+
+List mode uses `--issues` and carries no aggregate specification parent or Project record:
+
+```json
+{
+  "issues": [
+    {
+      "url": "<canonical selected issue URL>",
+      "id": "<positive native REST ID>",
+      "node_id": "<opaque GraphQL issue node ID>",
+      "state": "open",
+      "resource": "issue",
+      "title": "<complete native title>",
+      "body": "<complete native body>",
+      "actual_parent": "<independently read canonical parent URL or null>",
+      "nested_children": false,
+      "task_id": "<stable Git-safe ID, optional when issue number can derive issue-N>",
+      "ordinal": "<stable positive tie-break ordinal, optional>",
+      "prerequisites": ["<selected task ID or canonical external issue URL>"],
+      "external_prerequisites": ["<canonical issue URL outside this explicit list>"],
+      "contract": {
+        "goal": "<string>",
+        "scope": ["<contained path>"],
+        "non_goals": ["<string>"],
+        "acceptance": ["<observable criterion>"],
+        "checks": ["<exact command>"],
+        "smoke": "<real changed-path scenario>",
+        "decisions": "<string>",
+        "risks": "<string>"
+      }
+    }
+  ],
+  "graph": {
+    "coverage": "complete",
+    "model_inference": "complete",
+    "source": "skill",
+    "complete": true,
+    "edges": [
+      {
+        "predecessor": "<task ID>",
+        "dependent": "<task ID>",
+        "provenance": "native|declared|inferred",
+        "evidence": "<non-empty native read, declaration, or model rationale>"
+      }
+    ]
+  }
+}
+```
+
+The caller must read exactly the selected issue set and set terminal `pagination.issues`,
+`pagination.parents`, `pagination.dependencies`, and `pagination.contracts` only after those reads
+complete. Repeated selectors and repeated native evidence for one canonical URL are deduplicated
+only when immutable identity, body, parent, contract, and dependency evidence agree. The helper
+sorts normalized selectors and task identities before computing the fingerprint, so reordering the
+same explicit set is equivalent.
+
+`graph.edges` may also be supplied as top-level `edges`, `dependency_edges`, or
+`edge_provenance`; the helper normalizes all accepted forms to the schema above and rejects
+duplicate endpoint pairs, missing evidence, unknown selected endpoints, self-dependencies, and
+cycles. Native, declared, and inferred edges are distinct evidence classes. A model does not run in
+the helper: `graph.model_inference` records the caller's evidence (`not-run` is valid only when no
+inferred edge is supplied), while `graph.coverage` records deterministic supplied-graph coverage.
+An external prerequisite stays on the affected task's blocker list and is never imported into the
+admitted task set.
+
 ## Invoking the bridge
 
 Assemble the complete snapshot above from actual native/Git reads, serialize it with a JSON writer,
@@ -228,15 +297,16 @@ the existing state and newly assembled `--fresh` evidence. Follow the
 Admission computes a `fingerprint` as `sha256:` plus the SHA-256 of canonical JSON (sorted keys,
 compact separators) over the immutable scope view. It binds:
 
-- mode and exact selector;
+- mode and exact selector, or the normalized sorted explicit issue URL set in list mode;
 - canonical repository;
-- native parent or Project identity and the parent specification identity/body binding;
-- complete `specification` and `repository_rules`;
-- every immutable child/member field: task ID, ordinal, URL, native IDs (including Project
-  `item_id`), state/resource, title/body,
-  actual and declared parent, nested flag, workspace, full contract, and prerequisite/external
-  prerequisite sets; and
-- Project lifecycle identity/configuration when Project mode is selected.
+- native parent or Project identity and the parent specification identity/body binding, or every
+  selected issue identity/body binding in list mode;
+- complete `specification` (when required) and `repository_rules`;
+- every immutable child/member/list-issue field: task ID, ordinal, URL, native IDs (including
+  Project `item_id`), state/resource, title/body, actual and declared parent, nested flag,
+  workspace, full contract, and prerequisite/external prerequisite sets; and
+- effective graph edges and their provenance/evidence, plus Project lifecycle identity/configuration
+  when Project mode is selected.
 
 It deliberately excludes host capability/cap, integration branch SHA, fresh `parent_prs`, and
 runtime reservation/delivery evidence. These mutable facts are checked separately: changing the

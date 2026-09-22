@@ -15,9 +15,15 @@
       "expectedSkill": "woostack-orchestrate"
     },
     {
-      "id": "native-children-concurrent",
-      "query": "Execute the approved native children of this exact GitHub parent issue concurrently, stack dependent PRs without merging, and validate every submitted task.",
+      "id": "explicit-issue-list-execution",
+      "query": "/woostack-orchestrate --issues https://github.com/acme/app/issues/101 https://github.com/acme/app/issues/102 --max-parallel 2",
       "shouldTrigger": true,
+      "expectedSkill": "woostack-orchestrate"
+    },
+    {
+      "id": "issue-list-natural-language-without-set",
+      "query": "Run these GitHub issues through the dependency DAG you infer from their work",
+      "shouldTrigger": false,
       "expectedSkill": "woostack-orchestrate"
     },
     {

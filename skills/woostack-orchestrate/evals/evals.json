@@ -193,6 +193,38 @@
           "critical": true
         }
       ]
+    },
+    {
+      "id": "explicit-list-dag-provenance",
+      "prompt": "Reason only from the supplied snapshot. Do not run commands, mutate files, or contact remote services. The user explicitly selects issues A, B, C, D, and E in a reordered list with one repeated canonical URL. No common parent or Project exists. Supplied complete graph evidence identifies inferred A→C, B→D, and C→D edges, while E is unrelated. A, B, and E are initially runnable; after A delivery C may start on A's verified unmerged branch while B remains active; D pauses because no single verified parent contains B and C. What scope and evidence may Orchestrate use?",
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "Normalizes and deduplicates the explicit issue set without using order as dependency, preserves only selected tasks, distinguishes inferred edge evidence from native/declared evidence, schedules independent roots and C continuously, and pauses only D at the uncontained join. It does not create a parent, Project, native edge, aggregate PR, or claim model inference ran inside the deterministic helper.",
+      "assertions": [
+        {
+          "id": "explicit-list-dag-provenance-boundary",
+          "kind": "qualitative",
+          "rubric": "Does the response preserve the explicit normalized issue set, provenance/evidence, continuous scheduling, and join pause without scope expansion or native relationship publication?",
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "explicit-list-drift-and-recovery",
+      "prompt": "Reason only from the supplied snapshot. Do not run commands, mutate files, or contact remote services. An explicit issue-list scope has running A and pending B/C with an admitted inferred A→C edge. A fresh read changes C's contract and replaces the graph edge with an unsupported B→C inference; the user has not re-admitted the changed list. Separately, a worker response is lost after reserving A and may have created a PR. What are the safe transitions?",
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "Returns snapshot-drift for changed immutable contract/graph, preserves running reservations and does not dispatch the changed scope; retains the lost worker reservation and globally halts fresh dispatch until direct stopped-worker/branch/PR reconciliation proves whether the same identity can repair. It never duplicates work or treats an inferred edge as native publication.",
+      "assertions": [
+        {
+          "id": "explicit-list-drift-and-recovery-boundary",
+          "kind": "qualitative",
+          "rubric": "Does the response preserve immutable graph/contract drift and unknown worker ownership while requiring direct reconciliation before same-identity repair?",
+          "critical": true
+        }
+      ]
     }
   ]
 }
