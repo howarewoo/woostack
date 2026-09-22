@@ -99,6 +99,11 @@ or path exists at the admitted parent tip, is created by an admitted prerequisit
 created by the same increment before use. A missing or invented command blocks publication; inspection
 is not a passing-test claim.
 
+When an increment adds or strengthens tests, link its testing contract and focused checks to the
+canonical [Execute testing guidance](../woostack-execute/references/tdd.md). Plan records the
+observable contract and verification expectations only; it does not implement or execute the tests.
+
+
 ## Graph invariants
 
 Every task ID and positive ordinal is unique, every prerequisite names an admitted task, every

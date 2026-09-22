@@ -20,8 +20,9 @@ acceptance record, lifecycle state, or permission to remediate. Each verified de
 proposed bounded remediation contract and may link an exact caller-supplied GitHub issue. Neither
 form establishes scope, acceptance, assignment, or implementation authority.
 QA is an on-demand local engine with no CI delivery or gate. It is not a test-suite author
-([`woostack-tdd`](../woostack-tdd/SKILL.md) owns durable test work), not a load/perf/security
-scanner, and it never starts, builds, or restarts the target app.
+([`woostack-execute`](../woostack-execute/SKILL.md) owns durable test work under its
+[testing guidance](../woostack-execute/references/tdd.md)), not a load/perf/security scanner,
+and it never starts, builds, or restarts the target app.
 
 ## Commands
 

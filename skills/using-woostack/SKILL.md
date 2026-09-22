@@ -54,7 +54,7 @@ capabilities, and read-back. Retired managed-provider data is never imported or 
 | Render verified source as audience-tailored HTML | `woostack-visualize` |
 | Organize multi-step UI design flows | `woostack-design` |
 | Investigate a root cause without implementing a fix | `woostack-debug` |
-| Add appropriate tests to a bounded target | `woostack-tdd` |
+| Add or strengthen tests for a bounded target | `woostack-execute` (apply its [testing guidance](../woostack-execute/references/tdd.md)) |
 | Diagnose or explicitly repair workspace health | `woostack-doctor` |
 | Explore a running app and report browser QA findings | `woostack-qa` |
 | Evaluate an approved skill corpus without editing the skill | `woostack-eval` |
@@ -71,6 +71,10 @@ read-back GitHub issue graph; it never implements, creates source branches, disp
 invokes Execute or Orchestrate. Plan is the sole issue publisher. Change remains non-bug and one-PR;
 Execute remains the explicit bounded implementation and draft-PR path. None of these planning phases
 automatically edits source, commits, submits a PR, or grants merge authority.
+
+The former `/woostack-tdd` test-work command is retired. Send a complete bounded test task
+directly to `/woostack-execute`; it keeps the test-only scope, focused verification, and normal
+one-PR delivery path without a separate router or project handoff.
 
 ## AGENTS.md usage
 

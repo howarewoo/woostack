@@ -28,7 +28,6 @@ The public command/adoption surface has twenty-one skills:
 - [`woostack-visualize`](skills/woostack-visualize/SKILL.md)
 - [`woostack-design`](skills/woostack-design/SKILL.md)
 - [`woostack-debug`](skills/woostack-debug/SKILL.md)
-- [`woostack-tdd`](skills/woostack-tdd/SKILL.md)
 - [`woostack-doctor`](skills/woostack-doctor/SKILL.md)
 - [`woostack-qa`](skills/woostack-qa/SKILL.md)
 - [`woostack-eval`](skills/woostack-eval/SKILL.md)
@@ -195,6 +194,8 @@ the repository's simplify/comments guidance.
   [`skills/woostack-plan/SKILL.md`](skills/woostack-plan/SKILL.md)
 - Bounded task execution engine delivering one task through one PR (public command):
   [`skills/woostack-execute/SKILL.md`](skills/woostack-execute/SKILL.md)
+- Execute testing doctrine:
+  [`skills/woostack-execute/references/tdd.md`](skills/woostack-execute/references/tdd.md)
 - Exploratory browser QA engine (public command; drives a running app via the `agent-browser`
   CLI, report-only findings under `.woostack/qa/`):
   [`skills/woostack-qa/SKILL.md`](skills/woostack-qa/SKILL.md)
@@ -213,8 +214,6 @@ the repository's simplify/comments guidance.
   [`skills/woostack-design/SKILL.md`](skills/woostack-design/SKILL.md)
 - Workspace health — diagnose + gated repair of `.woostack/`:
   [`skills/woostack-doctor/SKILL.md`](skills/woostack-doctor/SKILL.md)
-- TDD doctrine home and add-tests command (public command):
-  [`skills/woostack-tdd/SKILL.md`](skills/woostack-tdd/SKILL.md)
 - Address-comments delegator:
   [`skills/woostack-address-comments/SKILL.md`](skills/woostack-address-comments/SKILL.md)
 - Derived feature board (status command) and its canonical feature-state conventions:
