@@ -41,6 +41,12 @@ exact parent issue URL, exclusive with `--project`). Parent mode needs only the 
 repository and native relationship capabilities; it does not require a provider selector or local run.
 The parent hierarchy groups the plan and is distinct from `blocked-by` edges and Git branch ancestry.
 
+Execute accepts one selected bounded task under its [admission contract](/docs/skills/woostack-execute#admit-one-task), not a whole plan.
+An explicit [Orchestrate](/docs/skills/woostack-orchestrate) invocation selects a GitHub parent issue,
+Project, or exact canonical issue list and dispatches ready tasks to Execute. List mode keeps the
+selected set closed, validates native/declared/inferred edge provenance, and does not publish
+inferred dependencies. Parent-issue and list execution require no Project configuration.
+
 Plan is the sole issue publisher. It independently reads every parent, child, hierarchy, and edge back.
 A partial graph preserves exact identities and resumes at the first unproved Plan boundary; it is not
 Orchestrate-ready. Prepare reports the separate suggestion

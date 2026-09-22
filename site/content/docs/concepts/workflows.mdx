@@ -72,17 +72,25 @@ valid plan with an explicit execution-time integration decision.
 ```text
 /woostack-orchestrate --issue <canonical GitHub parent issue URL> [--max-parallel <positive integer>]
 /woostack-orchestrate --project <canonical GitHub Project URL> [--max-parallel <positive integer>]
+/woostack-orchestrate --issues <canonical issue URL> <canonical issue URL> ... [--max-parallel <positive integer>]
 ```
 
-Orchestrate is a separate explicit command. Select exactly one scope. The specification parent with
-native PR-sized children needs no Project configuration; explicit Project execution retains its
-configured membership and lifecycle checks. Orchestrate keeps up to three
- delivery-capable Execute workers active by default, bounded by host capability. Verified submission
-and independent specification validation release dependents without waiting for a whole wave or a
-merge. A dependent PR targets its verified prerequisite branch; a join pauses if no permitted single
-parent contains all prerequisite changes. The final result is submitted PRs awaiting review/merge,
-not closed issues or product acceptance.
+Select exactly one scope family. The recommended ChatGPT-to-Codex handoff remains a specification
+parent with native PR-sized children; this mode needs no Project configuration.
+Explicit Project execution retains its configured membership and lifecycle checks. Explicit list
+execution reads exactly the supplied open issues, normalizes repeated/reordered URLs, and validates
+complete contracts plus a supplied dependency DAG. Native, declared, and model-inferred edges keep
+separate provenance/evidence; inference belongs to the skill, not the deterministic helper, and
+inferred relationships are never published back to GitHub. External prerequisites block only their
+affected tasks and never expand the list.
 
+Orchestrate keeps up to three delivery-capable Execute workers active by default, bounded by host
+capability. Verified submission and independent specification validation release dependents without
+waiting for a whole wave or a merge. A dependent PR targets its verified prerequisite branch; a join
+pauses if no permitted single parent contains all prerequisite changes. Unrelated tasks continue.
+Graph/scope drift preserves running reservations and stops fresh dispatch; unknown worker outcomes
+require direct stopped-worker/branch/PR reconciliation before same-identity repair. The final result
+is submitted PRs awaiting review/merge, not closed issues or product acceptance.
 
 ## Execute
 

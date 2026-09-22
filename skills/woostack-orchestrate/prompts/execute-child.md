@@ -12,8 +12,10 @@ GitHub reads. It is a required runtime fact, not a value to invent or fill with 
 - Canonical repository: `$RUNTIME_CANONICAL_REPO`.
 - Specification scope selector: `$RUNTIME_SCOPE_URL` (context only; never close it).
 - Specification parent issue (issue mode): `$RUNTIME_PARENT_ISSUE_URL`; Project mode supplies the
-  selected member's independently read parent identity instead.
-- Complete approved specification: `$RUNTIME_SPECIFICATION`.
+  selected member's independently read parent identity; explicit issue-list mode may supply `null`
+  because the selected list is not a specification parent.
+- Full specification context: `$RUNTIME_SPECIFICATION` (the approved parent/Project specification,
+  or the selected issue's complete body/specification in explicit issue-list mode).
 - Complete repository rules: `$RUNTIME_REPOSITORY_RULES`.
 - Child issue: `$RUNTIME_CHILD_ISSUE_URL` (stable task `$RUNTIME_TASK_ID`, ordinal
   `$RUNTIME_ORDINAL`). This exact child is the only permitted Commit association.

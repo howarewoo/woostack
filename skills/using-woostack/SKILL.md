@@ -45,7 +45,7 @@ capabilities, and read-back. Retired managed-provider data is never imported or 
 | Prepare a feature or proved defect for a verified GitHub issue graph without implementation | `woostack-prepare` |
 | Implement a bounded non-bug enhancement or refactor in one PR | `woostack-execute` |
 | Turn an approved specification into reviewable increments and publish the native issue graph | `woostack-plan` |
-| Execute native children of one GitHub parent issue or tasks in an exact GitHub Project with parallel workers and stacked PRs | `woostack-orchestrate` |
+| Execute one exact GitHub parent, Project, or explicit issue list with parallel workers and stacked PRs | `woostack-orchestrate` |
 | Implement one bounded task — enhancement, refactor, test-only work, or authorized understood correction — and deliver one PR | `woostack-execute` |
 | Commit current changes and submit or update their PR | `woostack-commit` |
 | Review a pull request | Use [Pullfrog](https://pullfrog.com/). |

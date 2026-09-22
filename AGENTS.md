@@ -78,11 +78,12 @@ secret store, and local diagnostic reports remain non-authoritative. Goal-only
 read-only admission. That exception does not select Project publication or authorize work.
 Handoff, replanning, and blockers leave Project status unchanged.
 
-Explicit [`woostack-orchestrate`](skills/woostack-orchestrate/SKILL.md) execution selects either one
-GitHub specification parent with native task children or one configured GitHub Project. Parent-issue
-execution does not require Project configuration. Orchestrate owns scheduling and independent
-post-submission validation; each Execute worker owns one task's delivery through Commit. This does
-not change Prepare's planning-only boundary or grant merge authority.
+Explicit [`woostack-orchestrate`](skills/woostack-orchestrate/SKILL.md) execution selects one
+GitHub specification parent with native task children, one configured GitHub Project, or an
+explicit canonical list of GitHub issues. Parent-issue execution does not require Project configuration; list execution does not require a parent, Project, or native
+dependency publication. Orchestrate owns scheduling and independent post-submission validation;
+each Execute worker owns one task's delivery through Commit. This does not change Prepare's planning-only boundary
+or grant merge authority.
 
 External engineers such as Hermes are outside the installed woostack host/runtime surface. Hermes
 may drive one persistent OMP session as an external decision-maker and reviewer, but woostack is

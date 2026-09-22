@@ -33,8 +33,8 @@ invent:
     "task_id": "<runtime-substituted stable task ID>",
     "ordinal": "<runtime-substituted positive ordinal>",
     "child_issue_url": "<runtime-substituted canonical child issue URL>",
-    "scope_url": "<runtime-substituted exact --issue/--project selector>",
-    "parent_issue_url": "<runtime-substituted issue scope URL, or Project member actual_parent>",
+    "scope_url": "<runtime-substituted exact --issue/--project/--issues selector>",
+    "parent_issue_url": "<runtime-substituted issue scope URL, Project member actual_parent, or selected-list actual_parent>",
     "specification": "<runtime-substituted complete approved specification>",
     "repository_rules": "<runtime-substituted complete repository rules>",
     "bounded_input": {
@@ -86,6 +86,14 @@ from helper output and direct reads. `parent_issue_url` is the selected specific
 issue mode; in Project mode it is the member's independently read `actual_parent` (including
 `null` for a parentless member). `scope_url` remains the exact selected Project URL in Project
 mode. `specification` and `repository_rules` are complete strings, not summaries.
+
+In explicit issue-list mode, `scope_url` is the canonical normalized space-delimited selector
+list, `parent_issue_url` is `null` unless the selected issue independently reports a parent, and
+the packet's `specification` is that issue's complete body (or explicit complete specification).
+The packet also carries `dependency_edges` for the task and the admitted `graph` record. These are
+caller-supplied evidence for Execute context; the worker must not infer additional prerequisites or
+publish native relationships. An inferred edge is not a GitHub blocked-by edge and does not permit
+scope expansion.
 
 The example's `parent_readiness` is a root with proved parent-PR absence. For a dependent,
 `logical_prerequisites` is the complete admitted task-ID set and `prerequisites` has exactly one

@@ -137,10 +137,13 @@ Plan's only supported publication scopes are the explicit GitHub Project and par
 above; both retain the same prerequisite DAG and read-back contract.
 
 Orchestrate's `--issue` form selects the complete native child scope without requiring Project access
-or configuration. Its `--project` form selects only admitted Project members. Independently
-validated PR delivery releases dependents; no issue closure or merge is required. Child delivery
-notes preserve evidence, and only explicitly selected Project execution uses configured `inReview`
-status. Both forms leave the scope open for human review/merge.
+or configuration. Its `--project` form selects only admitted Project members. Its explicit
+`--issues` form selects exactly the supplied open canonical issues, even when they have different
+parents or Project memberships; it validates a caller-supplied DAG with native, declared, and
+inferred provenance without publishing inferred edges or requiring native dependency-write access.
+Independently validated PR delivery releases dependents; no issue closure or merge is required.
+Child delivery notes preserve evidence, and only explicitly selected Project execution uses configured
+`inReview` status. All forms leave the scope open for human review/merge.
 
 ## Lifecycle and closure (retired Execute reference)
 
@@ -159,7 +162,7 @@ completion leave any retained Project artifact unchanged.
 | --- | --- |
 | [woostack-prepare](/docs/skills/woostack-prepare) | Produces or accepts a complete packet and delegates direct native graph publication to Plan; it does not create implementation work, branches, PRs, or execution. |
 | [woostack-plan](/docs/skills/woostack-plan) | `--project` requires an exact existing canonical Project URL and direct issue-graph publication; `--parent-issue new` or an exact parent URL publishes the native parent/child graph without a Project. Direct and composed Plan use the same publisher. |
-| [woostack-orchestrate](/docs/skills/woostack-orchestrate) | Executes native children of one exact `--issue` without Project prerequisites, or admitted members of one exact configured `--project`; verifies worker PRs without closing issues or merging. |
+| [woostack-orchestrate](/docs/skills/woostack-orchestrate) | Executes one exact native child scope, configured Project member set, or explicit canonical issue list; validates graph evidence, verifies worker PRs, and records delivery without closing issues or merging. |
 | [woostack-execute](/docs/skills/woostack-execute) | Accepts one complete bounded task plus an optional exact GitHub issue URL; retired `--project`, `--run`, and `--recheck` are rejected. |
 | [woostack-init](/docs/skills/woostack-init) | Validates optional `github` configuration once and may discover non-secret owner/status defaults through authorized native GitHub capabilities or host-authenticated `gh`; it never selects persistence or probes writes. |
 | [woostack-bootstrap](/docs/skills/woostack-bootstrap) | May publish an approved design only to an exact explicitly selected Project after target approval and collision checks. |

@@ -1,6 +1,6 @@
 ---
 name: woostack-orchestrate
-description: Orchestrate one GitHub parent issue or one explicit GitHub Project through parallel Execute workers with stacked PRs, independently verified delivery, and joins. Never implements inline or merges.
+description: Orchestrate one GitHub parent issue, explicit issue list, or GitHub Project through parallel Execute workers with stacked PRs, independently verified delivery, and joins. Never implements inline or merges.
 ---
 
 # woostack-orchestrate
@@ -33,17 +33,18 @@ contract.
 ```text
 /woostack-orchestrate --issue <canonical GitHub parent issue URL> [--max-parallel <positive integer>]
 /woostack-orchestrate --project <canonical GitHub Project URL> [--max-parallel <positive integer>]
+/woostack-orchestrate --issues <canonical issue URL> <canonical issue URL> ... [--max-parallel <positive integer>]
 ```
 
-Require exactly one selector before any GitHub read.
-`https://github.com/<owner>/<repo>/issues/<N>` and
-`https://github.com/orgs/<owner>/projects/<N>` or
-`https://github.com/users/<owner>/projects/<N>`. Reject both selectors, no selector, malformed
-URLs, non-positive/non-integer limits, foreign repositories, and a selector inferred from a bare
-number, title, branch, PR, search result, or recent activity. The default requested cap is three;
-the effective cap is clamped to the host capability recorded in the admitted snapshot. A host
-without a delivery-capable subagent blocks before admission/dispatch rather than executing source
-inline. A sequential-capability host may admit the scope and runs at one with a clear notice.
+Require exactly one selector family before any provider read. `--issue` and `--project` retain
+their strict canonical single-scope contracts. `--issues` is an explicit nonempty list of
+canonical issue URLs in the admitted repository; repeated URLs are normalized and deduplicated,
+and list order is never a dependency. Reject mixed selector families, malformed/foreign URLs,
+and a list inferred from issue numbers, titles, branches, PRs, search results, or recent activity.
+The default requested cap is three; the effective cap is clamped to the host capability recorded in
+the admitted snapshot. A host without a delivery-capable subagent blocks before admission/dispatch
+rather than executing source inline. A sequential-capability host may admit the scope and runs at
+one with a clear notice.
 
 ## One real helper path
 
@@ -75,7 +76,7 @@ The five bridge commands are:
 python3 <orchestrate-skill>/scripts/orchestrate.py admit \
   --issue <parent-url> --snapshot <freshly-assembled-snapshot.json> \
   [--max-parallel <n>] > admitted.json
-# Or use --project <project-url> instead of --issue; never pass both.
+# Or use --project <project-url> or --issues <issue-url> ... instead; never pass selector families together.
 
 # Initial refill: deliberately omit --state. --fresh and --git-repo are required.
 python3 <orchestrate-skill>/scripts/orchestrate.py schedule \
@@ -118,42 +119,59 @@ missing or unselected Project configuration cannot block it. Read no Project dat
 unrelated destination. Explicit `--project` instead follows that profile's configured Project
 owner/repository, specification, membership, and lifecycle admission.
 
+List mode does not require a specification parent, Project membership, provider mirror, local
+planning run, aggregate specification, or native dependency-write capability. It reads exactly the
+selected issue identities and relevant native/repository evidence. Each selected issue must be open,
+canonical, independently readable, and carry a complete bounded contract; its body (or an explicit
+complete `specification` field) supplies worker context. Existing parent links are preserved as
+context, not as scope.
+
+The list snapshot carries a complete supplied graph. Each selected issue includes explicit
+`prerequisites` and `external_prerequisites` arrays, including empty arrays only for verified empty
+reads. Each effective edge is normalized to `predecessor`, `dependent`, `provenance`
+(`native`, `declared`, or `inferred`), and non-empty `evidence`. Native blocked-by reads,
+unambiguous declarations in issue data, and model-produced technical prerequisites remain
+distinguishable. The skill owns model inference; the helper only validates the supplied graph and
+requires explicit successful `graph.coverage: "complete"`, `graph.model_inference: "complete"`,
+and `graph.complete: true` receipts, never claiming to have run inference. When a documented task
+prerequisite duplicates an annotated graph edge, the annotated graph record remains authoritative;
+conflicting explicit edge evidence blocks. Missing or incomplete reads, ambiguous direction,
+duplicate endpoints, unknown external requirements, self-dependencies, cycles, or unsupported
+scope changes block the affected work. An external prerequisite remains a blocker and never
+widens the explicit list.
+
 
 1. Resolve the current host against the exact allowlist before GitHub access. Prove a
    delivery-capable subagent primitive and its positive real `max_parallel`; put those observed
    facts in `host`. A missing delivery primitive blocks. A smaller host cap clamps scheduling but
    does not change admitted scope.
-2. Resolve the canonical Git repository and integration branch/SHA with direct Git and an authorized
-   GitHub capability exposed by the host (prefer native GitHub tools when suitable; authenticated
-   `gh` remains supported). Read the selected parent/Project and every relevant native page using
-   the capability's supported shapes. Exhaust pagination before assembling the snapshot; record
-   terminal-read attestations only after corresponding native reads completed. A missing page, failed
-   terminal read, or ambiguous/foreign identity blocks.
-3. Normalize every native issue into its canonical URL plus numeric REST `id`, GraphQL `node_id`,
-   number, state, resource, title, body, native parent, and complete contract. Do not substitute
-   issue numbers for REST IDs or GraphQL node IDs. Parent mode requires a top-level open issue and
-   each direct child `actual_parent` equal to the selected parent. Project mode requires the
-   selected Project identity, owner/type/state, all five unique lifecycle mappings, complete
-   membership, a distinct non-empty native `item_id` bound during admission on every member, and
-   each member's `declared_parent` equal to independently read `actual_parent`.
-4. Carry the complete parent specification and repository rules as strings in the snapshot. A
-   contract is complete only when it includes `goal`, `scope`, `non_goals`, `acceptance`, `checks`,
-   `smoke`, `decisions`, and `risks` with the types specified in
-   [scheduling](references/scheduling.md). Containers may omit a contract only in Project mode
-   and are never executable. Native blocked-by dependencies are separate from hierarchy and Git
-   ancestry; external prerequisites remain blocked and never widen scope.
+2. Resolve the canonical Git repository and integration branch/SHA with direct Git and
+   authorized native GitHub capabilities or host-authenticated `gh` evidence. Read the selected parent, Project, or every explicitly
+   selected issue and every relevant native page. Exhaust pagination before assembling the snapshot;
+   record terminal-read attestations only after the corresponding native reads completed. A missing
+   page, failed terminal read, or ambiguous/foreign identity blocks.
+3. Normalize every selected issue into its canonical URL plus numeric REST `id`, GraphQL `node_id`,
+   number, state, resource, title, body, independently read native parent, and complete contract.
+   Do not substitute issue numbers for REST IDs or GraphQL node IDs. Parent mode still requires
+   top-level direct children; Project mode still requires its complete membership/item/parent
+   contract; list mode requires exact selected-set coverage and never imports siblings or containers.
+4. Carry complete repository rules and either the approved parent specification or each list issue's
+   complete worker context. A contract is complete only when it includes `goal`, `scope`,
+   `non_goals`, `acceptance`, `checks`, `smoke`, `decisions`, and `risks` with the types specified
+   in [scheduling](references/scheduling.md). Native blocked-by dependencies remain separate from
+   hierarchy and Git ancestry; external prerequisites remain blocked and never widen scope.
 5. Invoke `admit` only with that assembled snapshot. Admission rejects missing native IDs,
-   malformed contracts, incomplete pagination, nested children, duplicate/ambiguous identities,
-   missing endpoints, cycles, foreign scope, and a parent with no executable children (reported as
-   `no-work`, never executed as one task).
+   malformed contracts, incomplete pagination/graph coverage, nested children, duplicate/ambiguous
+   identities or edges, missing endpoints, cycles, foreign scope, and a parent with no executable
+   children (reported as `no-work`, never executed as one task).
 
-The admission fingerprint binds mode, selector, canonical repository, native parent/Project and
-specification identity, repository rules, and every immutable task field including native
-hierarchy, IDs (including Project `item_id`), titles/bodies, contract, dependencies, and
-workspace. It excludes the host cap,
-mutable integration SHA, and runtime delivery evidence. A fresh snapshot with a changed fingerprint
-returns `snapshot-drift` and preserves running work; it never launches a duplicate or silently
-adopts a new child.
+The admission fingerprint binds mode, canonical selector or normalized selected issue set, canonical
+repository, native parent/Project or selected issue identities, repository rules, graph provenance,
+and every immutable task field including native hierarchy, IDs (including Project `item_id`),
+titles/bodies, contract, dependencies, and workspace. It excludes the host cap, mutable integration
+SHA, and runtime delivery evidence. A fresh snapshot with changed scope, contract, identity, or
+effective graph returns `snapshot-drift` and preserves running work; it never launches a duplicate,
+silently adopts a new issue, or erases an inferred edge.
 
 ## Reserve, create worktrees, and dispatch
 
@@ -270,6 +288,9 @@ repeated native evidence only when every immutable field, including `item_id`, a
 imports nonmembers or flattens nested containers. Project synchronization is limited to the
 configured `inReview` option
 for verified child deliveries; never set `planned`, `executing`, `done`, or `blocked` as an
-orchestration shortcut. Neither mode closes issues, removes dependencies, marks acceptance, marks
-PRs ready, enables auto-merge, queues, force-pushes, or merges. When all deliverable PRs are
-verified, leave the scope open and report that review/merge remains human authority.
+orchestration shortcut.
+List mode keeps only the normalized explicit issue set, retains existing parent/Project relationships
+as read-only context, and never imports external prerequisites or publishes inferred edges. Neither
+mode closes issues, removes dependencies, marks acceptance, marks PRs ready, enables auto-merge,
+queues, force-pushes, or merges. When all deliverable PRs are verified, leave the scope open and
+report that review/merge remains human authority.
