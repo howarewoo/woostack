@@ -91,8 +91,10 @@ GitHub graph.
 
 Without a GitHub publication scope, Build retains its transitional local drafting responsibility:
 draft complete tasks against [Plan's issue contract](../woostack-plan/SKILL.md#direct-issue-contract),
-then pass the candidate to public Harden. Write its complete reconciled handback as the local plan.
-This is not draft-only Plan, a second GitHub publisher, or permission to fabricate remote identities.
+then pass the complete candidate and repository evidence to public Harden as plain content. Harden
+returns its reconciled handback without manifest mutation; Build admits and persists that handback
+as the local plan. This is not draft-only Plan, a second GitHub publisher, or permission to fabricate
+remote identities.
 
 Apply the [least-code doctrine](../woostack-bootstrap/references/patterns.md#7-least-code--comments)
 at both boundaries. Ideate owns user verification of the complete specification, including technical
