@@ -27,7 +27,6 @@ export const PUBLIC_ORDER = [
   'woostack-visualize',
   'woostack-design',
   'woostack-debug',
-  'woostack-tdd',
   'woostack-doctor',
   'woostack-qa',
   'woostack-eval',

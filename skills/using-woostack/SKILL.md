@@ -55,7 +55,7 @@ provider-specific scope, capabilities, identities, and lifecycle behavior.
 | Render verified source as audience-tailored HTML | `woostack-visualize` |
 | Organize multi-step UI design flows | `woostack-design` |
 | Investigate a root cause without implementing a fix | `woostack-debug` |
-| Add appropriate tests to a bounded target | `woostack-tdd` |
+| Add or strengthen tests for a bounded target | `woostack-execute` (apply its [testing guidance](../woostack-execute/references/tdd.md)) |
 | Diagnose or explicitly repair workspace health | `woostack-doctor` |
 | Explore a running app and report browser QA findings | `woostack-qa` |
 | Evaluate an approved skill corpus without editing the skill | `woostack-eval` |
@@ -65,6 +65,10 @@ Every explicit `/woostack-*` command loads its namesake skill. Intent-equivalent
 the same route. Change stays non-bug and one-PR; Fix owns diagnosis and chooses bounded delivery or
 project planning after proof. Build owns multi-increment preparation. Ideate and Harden are internal
 Build/Fix phases, not public commands.
+
+The former `/woostack-tdd` test-work command is retired. Send a complete bounded test task
+directly to `/woostack-execute`; it keeps the test-only scope, focused verification, and normal
+one-PR delivery path without a separate router or project handoff.
 
 ## AGENTS.md usage
 

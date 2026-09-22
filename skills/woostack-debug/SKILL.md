@@ -25,6 +25,11 @@ applies the fix. This holds for every issue, especially under time pressure.
 Use for test failures, production defects, unexpected behavior, performance problems, build
 failures, and integration issues. A simple-looking symptom does not waive root-cause proof.
 
+
+For a test-related diagnosis, use the canonical [Execute testing guidance](../woostack-execute/references/tdd.md)
+to distinguish an expected Red result, a Green regression, a characterization observation, and a
+missing concrete check. Debug remains read-only and does not add or rewrite tests.
+
 ## Optional artifact-context resolution (one path, read-only)
 
 Load the shared [artifact contract](../woostack-init/references/artifact-backends.md), only the
