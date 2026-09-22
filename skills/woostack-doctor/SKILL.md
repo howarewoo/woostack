@@ -31,8 +31,9 @@ It has two layers:
 - `/woostack-doctor [path] --live` — resolve the target and its effective layered policy first.
   When `artifacts.provider` is `"local"` or omitted, provider preflight is skipped.
   When `artifacts.provider: "github"`, discover an authorized host GitHub capability, preferring native
-  GitHub tools when suitable and supporting host-authenticated `gh`; verify the semantic capabilities
-  required by the selected operation, owner login/type, canonical repository, and independent read-back.
+  GitHub tools when suitable and supporting host-authenticated `gh`; verify the fixed read-only Doctor
+  requirements (`projectRead`, `statusFieldRead`, `pagination`, and `independentReadBack`), owner
+  login/type, canonical repository, and independent read-back. Unrelated writes need not be supported.
   When `artifacts.provider: "linear"`, discover the host's official Linear MCP tools, authenticate,
   and verify Linear availability plus required project/update/issue/comment/relation/owner read and
   mutation capabilities (and label capabilities when `projectLabels` is configured), then verify
@@ -57,12 +58,10 @@ the `templates/` shipped there; the woostack collection installs both as sibling
    effective committed plus primary-checkout local policy to determine the selected `artifacts.provider`.
 3. **Preflight the configured provider in live mode.** For explicit `--live`:
    - When `artifacts.provider: "github"`, discover an authorized host GitHub capability (prefer native
-     GitHub tools when suitable; host-authenticated `gh` remains supported). Verify only the semantic
-     capabilities required by the selected provider operation: project/issue reads and writes, native
-     dependency reads and writes, Status reads and writes, complete pagination, and independent
-     read-back. Read-only discovery requires only its read capabilities; Project membership/Status and
-     native dependency capabilities remain distinct. Resolve `owner`, `ownerType` (when configured),
-     canonical repository, and native Status field/option mappings without test mutations.
+     GitHub tools when suitable; host-authenticated `gh` remains supported). Verify the fixed read-only
+     Doctor requirements `projectRead`, `statusFieldRead`, `pagination`, and `independentReadBack`,
+     owner, `ownerType` (when configured), canonical repository, native Status field/option mappings,
+     and independent read-back without provider writes.
    - When `artifacts.provider: "linear"`, discover and authenticate official Linear MCP (`official-linear-mcp`).
      Verify Linear availability and required `projectRead`, `projectWrite`, `projectUpdateRead`,
      `projectUpdateWrite`, `issueRead`, `issueWrite`, `commentRead`, `commentWrite`, `relationRead`,

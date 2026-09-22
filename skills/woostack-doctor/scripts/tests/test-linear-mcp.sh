@@ -45,7 +45,7 @@ complete_github_config() {
   jq -cn '{models:{},review:{},status:{staleDays:14},artifacts:{provider:"github",github:{owner:"acme",ownerType:"organization",statusField:"Status",visibility:"private",projectStatuses:{planned:"Todo",executing:"In Progress",inReview:"In Review",done:"Done",blocked:"Blocked"}}}}'
 }
 complete_github_receipt() {
-  jq -cn '{schemaVersion:1,provider:"authorized-github",interfaceAvailable:true,authenticated:true,ready:true,viewer:{login:"octocat",id:"MDQ6VXNlcjE="},owner:"acme",ownerResolution:{status:"unique",login:"acme",type:"organization",id:"MDEyOk9yZ2FuaXphdGlvbjEyMzQ1"},repository:"https://github.com/acme/widgets",projectStatuses:{complete:true,statusField:"Status",fieldId:"PVTSSF_12345",fieldType:"SINGLE_SELECT",resolved:{planned:{name:"Todo",id:"opt_1"},executing:{name:"In Progress",id:"opt_2"},inReview:{name:"In Review",id:"opt_3"},done:{name:"Done",id:"opt_4"},blocked:{name:"Blocked",id:"opt_5"}}},requiredCapabilities:["independentReadBack","pagination","projectRead","statusFieldRead"],capabilities:{projectRead:true,projectWrite:false,issueRead:true,issueWrite:false,dependencyRead:true,dependencyWrite:false,statusFieldRead:true,statusFieldWrite:false,pagination:true,independentReadBack:true},readBack:{status:"verified",complete:true,independent:true}}'
+  jq -cn '{schemaVersion:1,provider:"authorized-github",interfaceAvailable:true,authenticated:true,ready:true,viewer:{login:"octocat",id:"MDQ6VXNlcjE="},owner:"acme",ownerResolution:{status:"unique",login:"acme",type:"organization",id:"MDEyOk9yZ2FuaXphdGlvbjEyMzQ1"},repository:"https://github.com/acme/widgets",projectStatuses:{complete:true,statusField:"Status",fieldId:"PVTSSF_12345",fieldType:"SINGLE_SELECT",resolved:{planned:{name:"Todo",id:"opt_1"},executing:{name:"In Progress",id:"opt_2"},inReview:{name:"In Review",id:"opt_3"},done:{name:"Done",id:"opt_4"},blocked:{name:"Blocked",id:"opt_5"}}},capabilities:{projectRead:true,projectWrite:false,issueRead:true,issueWrite:false,dependencyRead:true,dependencyWrite:false,statusFieldRead:true,statusFieldWrite:false,pagination:true,independentReadBack:true},readBack:{status:"verified",complete:true,independent:true}}'
 }
 
 complete_plane_receipt() {
@@ -359,7 +359,8 @@ test_receipt_mutation() {
   assert_exit 1 "$RC" "$desc"
   assert_contains "$OUTPUT" "$expected_substring" "$desc is actionable"
 }
-test_receipt_mutation '.requiredCapabilities += ["dependencyWrite"]' 'missing GitHub capability: dependencyWrite' 'requested capability fails when unavailable'
+test_receipt_mutation 'del(.capabilities.projectRead)' 'missing GitHub capability: projectRead' 'omitted required read capability fails'
+test_receipt_mutation '.capabilities.projectRead=false' 'missing GitHub capability: projectRead' 'false required read capability fails'
 test_receipt_mutation '.owner="other-org"' 'receipt owner does not match configured GitHub policy' 'owner mismatch fails'
 test_receipt_mutation '.ownerResolution.type="user"' 'receipt ownerType does not match configured GitHub policy' 'ownerType mismatch fails'
 test_receipt_mutation '.repository="https://github.com/acme/other-repo"' 'receipt repository does not match target repository derived from Git' 'repo mismatch fails'

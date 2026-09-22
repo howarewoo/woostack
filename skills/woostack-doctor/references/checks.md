@@ -53,10 +53,9 @@ Static diagnosis is provider-free. It validates:
 `--live` is controller-owned. The skill controller resolves effective configuration to determine the selected
 `artifacts.provider`. When `artifacts.provider: "github"`, it discovers an authorized host GitHub capability
 (prefer native GitHub tools when suitable; host-authenticated `gh` remains supported), resolves owner login/type,
-validates native Status field/option mappings, and proves only the semantic capabilities required by the selected
-operation: `projectRead`, `projectWrite`, `issueRead`, `issueWrite`, `dependencyRead`, `dependencyWrite`,
-`statusFieldRead`, `statusFieldWrite`, `pagination`, and `independentReadBack`. Read-only operations require only
-their read capabilities; Project membership/Status and native dependency operations are separate capabilities.
+validates native Status field/option mappings, and proves the fixed read-only Doctor requirements: `projectRead`,
+`statusFieldRead`, `pagination`, and `independentReadBack`. It never derives requirements from receipt data or
+requests provider writes; unrelated write and dependency capabilities may be unavailable.
 When `artifacts.provider: "linear"`, it discovers official Linear MCP tools (`official-linear-mcp`), authenticates,
 resolves exactly one workspace and team, validates native project categories and issue states, and proves
 required `projectRead`, `projectWrite`, `projectUpdateRead`, `projectUpdateWrite`, `issueRead`, `issueWrite`,
@@ -73,11 +72,10 @@ For GitHub, the normalized non-secret receipt supplies `schemaVersion: 1`, `prov
 `interfaceAvailable: true`, `authenticated: true`, `ready: true`, `viewer` (`login`, `id`), `owner`,
 `ownerResolution` (`login`, `type`, `status: "unique"`, `id`), canonical `repository` (compared to target
 repository independently derived from Git), `projectStatuses` (`complete: true`, `statusField`, `fieldId`,
-`fieldType: "SINGLE_SELECT"`, `resolved` with 5 distinct option `id`s and `name`s), a nonempty unique
-`requiredCapabilities` list of allowed semantic operation names, capability booleans for the names present,
-and `readBack` (`status: "verified"`, `complete: true`, `independent: true`). The shell always requires
-the base read/pagination/read-back capabilities and only requires additional capabilities declared for the
-selected operation; unrelated writes may be false and extra/secret keys are rejected.
+`fieldType: "SINGLE_SELECT"`, `resolved` with 5 distinct option `id`s and `name`s), capability booleans for
+the allowed semantic names, and `readBack` (`status: "verified", complete: true, independent: true`).
+The shell always requires the fixed read-only Doctor capabilities above; it never trusts a receipt-declared
+requirement set. Unrelated writes may be false and extra/secret keys are rejected.
 For Linear, the receipt's top level supplies `schemaVersion: 1`, `provider: "official-linear-mcp"`, `ready`, canonical `repository`, resolved `workspace` and `team`,
 and capability booleans. `workspaceResolution` contains the unique OAuth-scoped workspace `name` and `status`.
 `teamResolution` retains the independently read native team ID and key.
@@ -86,8 +84,8 @@ For Plane, the receipt supplies `schemaVersion: 1`, `provider: "official-plane-m
 The controller derives these non-secret outcomes from official host tools; raw provider responses are not receipt input.
 The shell engine validates only the normalized receipt and reports exact missing capabilities or
 fields. It never calls a provider or adapter and never reads a
-provider credential. Missing authentication, missing/ambiguous workspace, instance, or team, a capability
-receipt incomplete for the selected operation, missing project-label capability, or an unknown
+provider credential. Missing authentication, missing/ambiguous workspace, instance, or team, an incomplete
+capability receipt for the selected provider contract, missing project-label capability, or an unknown
 mutation/read-back outcome is an error. There is no local-development-record, alternate-transport, or
 empty-success fallback. Every provider finding is report-only; no `--fix` path mutates the provider.
 

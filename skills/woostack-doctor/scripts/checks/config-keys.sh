@@ -84,9 +84,9 @@ issue_categories='{"planned":"backlog","executing":"started","inReview":"started
 linear_allowed='["repository","workspace","team","projectLabels","projectStatuses","issueStates"]'
 plane_allowed='["baseUrl","workspace","repository","project","projectLabels","issueStates"]'
 github_allowed='["owner","ownerType","statusField","visibility","projectStatuses"]'
-github_receipt_keys='["authenticated","capabilities","interfaceAvailable","owner","ownerResolution","projectStatuses","provider","readBack","ready","repository","requiredCapabilities","schemaVersion","viewer"]'
+github_receipt_keys='["authenticated","capabilities","interfaceAvailable","owner","ownerResolution","projectStatuses","provider","readBack","ready","repository","schemaVersion","viewer"]'
 github_capability_names='["dependencyRead","dependencyWrite","independentReadBack","issueRead","issueWrite","pagination","projectRead","projectWrite","statusFieldRead","statusFieldWrite"]'
-github_base_caps='["independentReadBack","pagination","projectRead","statusFieldRead"]'
+github_required_caps='["independentReadBack","pagination","projectRead","statusFieldRead"]'
 if [ "$provider" = "github" ]; then
   if ! jq -e '.artifacts | (has("github") | not) or (.github | type == "object")' "$EFFECTIVE_CFG" >/dev/null 2>&1; then
     emit error linear-policy report ".woostack/config.json" "github policy must be an object"
@@ -325,7 +325,6 @@ elif [ "$provider" = "github" ]; then
   if [ ! -r "$receipt" ] || ! jq -e \
     --argjson allowed_keys "$github_receipt_keys" \
     --argjson capability_names "$github_capability_names" \
-    --argjson base_caps "$github_base_caps" \
     --argjson issue_keys "$issue_keys" \
     --slurpfile config "$EFFECTIVE_CFG" '
       . as $receipt
@@ -356,11 +355,6 @@ elif [ "$provider" = "github" ]; then
               and (.name == $config[0].artifacts.github.projectStatuses[$key])
               and (.id | type == "string" and test("\\S"))))
         and ([$receipt.projectStatuses.resolved[].id] | unique | length) == ($issue_keys | length)
-        and (.requiredCapabilities
-          | type == "array"
-          and length > 0
-          and (unique | length) == length
-          and all(.[]; . as $cap | ($capability_names | index($cap)) != null))
         and (.capabilities
           | type == "object"
           and ((keys - $capability_names) | length) == 0
@@ -402,7 +396,7 @@ elif [ "$provider" = "github" ]; then
     emit error linear-live report ".woostack/config.json" "receipt repository does not match target repository derived from Git"
   fi
 
-  for capability in $(jq -r --argjson base_caps "$github_base_caps" '($base_caps + .requiredCapabilities) | unique | .[]' "$receipt"); do
+  for capability in $(jq -r --argjson required_caps "$github_required_caps" '$required_caps[]' "$receipt"); do
     if ! jq -e --arg capability "$capability" '.capabilities[$capability] == true' "$receipt" >/dev/null 2>&1; then
       emit error linear-live report ".woostack/config.json" "missing GitHub capability: $capability"
     fi
