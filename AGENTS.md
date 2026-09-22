@@ -10,14 +10,13 @@ This is a published collection of skills, not an application codebase. It packag
 decisions for building new web, mobile, and API projects so agents can install it with
 `pnpx skills add howarewoo/woostack`.
 
-The public command/adoption surface has twenty skills:
+The public command/adoption surface has nineteen skills:
 
 - [`using-woostack`](skills/using-woostack/SKILL.md)
 - [`woostack-init`](skills/woostack-init/SKILL.md)
 - [`woostack-bootstrap`](skills/woostack-bootstrap/SKILL.md)
 - [`woostack-build`](skills/woostack-build/SKILL.md)
 - [`woostack-fix`](skills/woostack-fix/SKILL.md)
-- [`woostack-change`](skills/woostack-change/SKILL.md)
 - [`woostack-plan`](skills/woostack-plan/SKILL.md)
 - [`woostack-orchestrate`](skills/woostack-orchestrate/SKILL.md)
 - [`woostack-execute`](skills/woostack-execute/SKILL.md)
@@ -37,7 +36,7 @@ The collection also installs two internal sub-skills:
 [`woostack-ideate`](skills/woostack-ideate/SKILL.md) and
 [`woostack-harden`](skills/woostack-harden/SKILL.md). `woostack-build` delegates its ideate
 phase to the former and its harden phase to the latter. Both are bundled building blocks, not
-`/woostack-*` commands: they have no routing row and are absent from the twenty-skill command
+`/woostack-*` commands: they have no routing row and are absent from the nineteen-skill command
 surface above.
 
 There is no application source code, app lockfile, build, or CI for this repo's own
@@ -91,11 +90,11 @@ authority. Git and GitHub own source, branches, commits, pull requests, reviews,
 authenticated read-only discovery of non-secret repository/workspace/team/native-name defaults; it never
 selects persistence or authorizes a provider write. `.woostack/config.json` supplies validated defaults
 only after artifact selection. Credentials remain in the host secret store, and local diagnostic
-reports remain non-authoritative. Goal-only `woostack-change` remains provider-free; an explicitly
-selected exact GitHub issue permits only the read-only `gh` admission defined in the
-[Change issue contract](skills/woostack-change/SKILL.md#admit-an-exact-github-issue), even with
-`artifacts.provider` local or omitted. That exception does not select artifact mirroring or authorize
-work. Handoff, replanning, and blockers leave project status unchanged.
+reports remain non-authoritative. Goal-only Execute makes no development-artifact provider calls;
+an explicitly selected exact GitHub issue permits only the read-only host-authenticated `gh`
+admission defined by Execute's optional issue contract, even with `artifacts.provider` local or
+omitted. That exception does not select artifact mirroring or authorize work. Handoff, replanning,
+and blockers leave project status unchanged.
 
 Explicit [`woostack-orchestrate`](skills/woostack-orchestrate/SKILL.md) execution selects either one
 GitHub specification parent with native task children or one configured GitHub Project. Parent-issue
@@ -111,7 +110,7 @@ retained unchanged local run artifacts does not require the original process to 
 contract lives in the authored [Hermes guide](site/content/docs/hermes.mdx); it does not make Hermes a supported host
 or grant it implementation authority.
 
-This collection has twenty public command/adoption skills at twenty-two fixed `SKILL.md`
+This collection has nineteen public command/adoption skills at twenty-one fixed `SKILL.md`
 locations. Remote provider support adds neither a command-routing row nor a per-provider skill.
 ## Modes
 
@@ -124,11 +123,12 @@ do not add application code, app build configs, or app lockfiles **outside the s
 `site/` is also Mode A.
 
 **Mode B: run a woostack command.** Use this when the user asks for `/woostack-init`,
-`/woostack-bootstrap`, `/woostack-build`, `/woostack-fix`, `/woostack-change`, `/woostack-plan`, `/woostack-orchestrate`, `/woostack-execute`, `/woostack-commit`,
-`/woostack-address-comments`, `/woostack-status`, `/woostack-visualize`, `/woostack-design`, `/woostack-debug`,
-`/woostack-tdd`, `/woostack-doctor`, `/woostack-qa`, `/woostack-eval`, or `/woostack-reflect`, including intent-equivalent wording. Load the matching skill
-before acting. For bootstrap work, the output belongs in a fresh repo in a different
-directory, not in this repo.
+`/woostack-bootstrap`, `/woostack-build`, `/woostack-fix`, `/woostack-plan`, `/woostack-orchestrate`,
+`/woostack-execute`, `/woostack-commit`, `/woostack-address-comments`, `/woostack-status`,
+`/woostack-visualize`, `/woostack-design`, `/woostack-debug`, `/woostack-tdd`, `/woostack-doctor`,
+`/woostack-qa`, `/woostack-eval`, or `/woostack-reflect`, including intent-equivalent wording.
+Load the matching skill before acting. For bootstrap work, the output belongs in a fresh repo in a
+different directory, not in this repo.
 
 ## Hard constraints
 
@@ -176,8 +176,9 @@ the repository's simplify/comments guidance.
   pages need no manual edit: they regenerate from each `SKILL.md` at build time (see the
   documentation-site exception above). When in doubt, run `pnpm -C site build` to confirm the
   site still builds.
-- Do not move or rename any of the twenty-two `SKILL.md` files (the twenty public command/adoption
-  skills plus internal `woostack-ideate` and `woostack-harden`).
+- **Fixed skill paths.** Do not move or rename any fixed `SKILL.md` file. The approved retirement of
+  `skills/woostack-change/SKILL.md` and its supporting directory is the only exception in this task;
+  all unrelated fixed paths remain protected.
 - Do not rename files under
   [`skills/woostack-bootstrap/references/`](skills/woostack-bootstrap/references/) without
   updating every cross-link and the bootstrap skill table.
@@ -195,8 +196,8 @@ the repository's simplify/comments guidance.
   [`skills/woostack-build/SKILL.md`](skills/woostack-build/SKILL.md)
 - Bug-fix workflow (public command; prove cause → informed approval → bounded delivery or project planning):
   [`skills/woostack-fix/SKILL.md`](skills/woostack-fix/SKILL.md)
-- Bounded non-bug change loop (public command; one reviewable PR, no approval gate or persisted plan):
-  [`skills/woostack-change/SKILL.md`](skills/woostack-change/SKILL.md)
+- Bounded task execution engine delivering one task through one PR (public command):
+  [`skills/woostack-execute/SKILL.md`](skills/woostack-execute/SKILL.md)
 - Plan-writing engine for the build loop (public command):
   [`skills/woostack-plan/SKILL.md`](skills/woostack-plan/SKILL.md)
 - GitHub parent-issue or explicit Project orchestration (public command):

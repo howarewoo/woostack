@@ -766,13 +766,13 @@
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "A one-file bounded non-bug request in an existing repository routes to woostack-change before bootstrap design, MCP preflight, project creation, target access, or local development-artifact creation.",
+      "expected": "A one-file bounded enhancement/refactor request in an existing repository routes to woostack-execute before bootstrap design, MCP preflight, project creation, target access, or local development-artifact creation.",
       "assertions": [
         {
-          "id": "routes-to-change",
+          "id": "routes-to-execute",
           "kind": "final-json-path-equals",
           "pointer": "/route",
-          "expected": "woostack-change",
+          "expected": "woostack-execute",
           "critical": true
         },
         {

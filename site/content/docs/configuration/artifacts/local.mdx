@@ -63,15 +63,15 @@ With `artifacts.provider` omitted or set to `"local"`:
 
 - Build and project-backed Fix make no artifact-provider reads or writes.
 - Standalone Plan without requested persistence makes no provider call.
-- Goal-only [Change](/docs/skills/woostack-change) makes no artifact-provider reads or writes.
-- Issue-backed Change performs the required read of the explicitly selected exact canonical GitHub issue
-  through host-authenticated `gh`; it does not require provider configuration, a Project, a mirror, or a
-  persisted plan.
+- Goal-only [Execute](/docs/skills/woostack-execute) makes no artifact-provider reads or writes.
+- Execute with an explicitly selected exact canonical GitHub issue performs the required read of that
+  issue through host-authenticated `gh`; it does not require provider configuration, a Project, a
+  mirror, or a persisted plan.
 - `--project` fails before provider access because it requires a configured non-local provider.
   Plan's `--parent-issue` also fails: it requires `artifacts.provider: "github"`, though no Project.
 
 Automatic read-only Linear discovery during `woostack-init` (or GitHub discovery when
-`artifacts.provider: "github"`) is a setup operation. An issue-backed Change read is driven by
+`artifacts.provider: "github"`) is a setup operation. An exact Execute issue read is driven by
 explicit command input, not provider discovery. These reads do not select remote storage or
 authorize later provider access.
 

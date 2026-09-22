@@ -32,9 +32,9 @@ for the exact role mapping and worker lifecycle.
 ## Goal-derived session naming
 
 When a woostack skill is invoked, OMP uses a concise session title based on the user's input. For
-`/woostack-change`, `/woostack-build`, and `/woostack-fix`, it uses the input goal; an issue-backed
-Change invocation may use its explicit goal or exact issue input. A resume-only Build or Fix uses the
-exact verified run goal.
+`/woostack-build` and `/woostack-fix`, it uses the input goal; a resume-only Build or Fix uses the
+exact verified run goal. Execute likewise derives its title from the bounded input and never from an
+untrusted remote title.
 
 A local extension handles session naming inside OMP:
 
@@ -69,8 +69,8 @@ retained state. See [Execute retired inputs](/docs/skills/woostack-execute#retir
 
 Saved records do not grant permission to assign workers, edit code, commit, review, or accept a
 product. They also do not prove delivery. Fix makes no provider call before proving the cause, and
-goal-only Change never contacts an artifact provider. Issue-backed Change performs the required read of
-the explicitly selected exact GitHub issue through host-authenticated `gh`; no artifact-provider
+goal-only Execute makes no artifact-provider call. An explicitly selected exact GitHub issue for
+Execute performs the required read through host-authenticated `gh`; no artifact-provider
 configuration or Project is required.
 
 Bootstrap and Commit write optional provider records only when explicitly requested: persistence

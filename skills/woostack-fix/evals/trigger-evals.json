@@ -24,7 +24,7 @@
       "id": "nondefect-parser-api-cleanup",
       "query": "Replace the parser's two boolean options with a single mode enum and update its internal callers. The current behavior is correct, the package is unreleased, and the cleanup can ship in one pull request.",
       "shouldTrigger": false,
-      "expectedSkill": "woostack-change",
+      "expectedSkill": "woostack-execute",
       "conflictsWith": ["woostack-fix"]
     },
     {

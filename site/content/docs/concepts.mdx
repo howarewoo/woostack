@@ -10,11 +10,13 @@ commits it came from, and whether its pull requests (PRs) have been reviewed or 
 
 ## Two delivery shapes
 
-- Bounded work fits one PR. Change handles a non-bug enhancement or refactor. Fix first proves the
-  cause of a defect and gets explicit approval of the complete correction and verification plan.
-  Goal-only Change and bounded Fix make no artifact-provider calls or require a project run. Change
-  with an explicit exact canonical GitHub issue input performs the required read of that issue through
-  host-authenticated `gh`; it still requires no provider configuration, project, mirror, or persisted plan.
+- Bounded work fits one PR. Execute handles a complete enhancement, refactor, test-only task, or
+  authorized understood correction. Fix first proves the cause of a defect and gets explicit
+  approval of the complete correction and verification plan. Goal-only Execute and bounded Fix make
+  no artifact-provider calls unless an exact issue association or requested provider operation is
+  selected. Execute with an explicit exact canonical GitHub issue input performs the required read
+  of that issue through host-authenticated `gh`; it still requires no provider configuration, project,
+  mirror, or persisted plan.
 - Project-backed work needs a specification and an ordered plan. Build and larger, uncertain, or
   explicitly project-backed fixes keep those files and a manifest under
   `.woostack/tmp/runs/<run-id>/`. The manifest records the run's tasks and recovery state. These local
@@ -62,10 +64,8 @@ still check the implementation.
 `/woostack-reflect` invocation. An ordinary final reply loads it only when the session already
 contains a concrete observed preventable instruction gap; otherwise it has no reflection headings.
 Its candidate gate defines that condition, and the first pass is report-only.
-
-
 Diagnostic outputs from QA or production-response workflows can support a decision but cannot
-authorize a fix. Repairs use the appropriate Fix, Change, or Build workflow and its rules.
+authorize a fix. Repairs use the appropriate Fix, Execute, or Build workflow and its rules.
 
 ### Tools compute, agents read compact results
 
@@ -85,9 +85,8 @@ resume.
 <Cards>
   <Card title="Getting started" href="/docs/getting-started" description="Install the skills, initialize local support, and check the installation." />
   <Card title="Building rules" href="/docs/concepts/building-rules" description="Understand workflow scope, the build lifecycle, and authority boundaries." />
-  <Card title="Repository structure and rules" href="/docs/concepts/repository-rules" description="Read the complete app-local code, shared extraction, dependencies, production, testing, Git, and scaffold contract." />
+  <Card title="Workflow maps" href="/docs/concepts/workflows" description="Compare Bootstrap, Build, Fix, and Execute under one authority model." />
   <Card title="Status board reference" href="/docs/concepts/status-tracking" description="Look up repository inputs, derived state, and failure behavior." />
-  <Card title="Workflow maps" href="/docs/concepts/workflows" description="Compare Bootstrap, Build, Fix, and Change under one authority model." />
   <Card title="Context management" href="/docs/concepts/context-management" description="Keep sessions compact and turn durable lessons into reviewed instruction suggestions." />
   <Card title="All skills" href="/docs/skills/using-woostack" description="Per-skill reference, generated from each SKILL.md." />
 </Cards>

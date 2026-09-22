@@ -15,6 +15,18 @@
       "expectedSkill": "woostack-execute"
     },
     {
+      "id": "bounded-enhancement",
+      "query": "Add one bounded preference control in the existing app in a single reviewable pull request; no planning project or sibling scheduling is needed.",
+      "shouldTrigger": true,
+      "expectedSkill": "woostack-execute"
+    },
+    {
+      "id": "authorized-understood-correction",
+      "query": "Apply this already-proven, explicitly authorized one-PR correction in the existing repository, with the diagnosis, allowed paths, acceptance, and checks supplied.",
+      "shouldTrigger": true,
+      "expectedSkill": "woostack-execute"
+    },
+    {
       "id": "retired-run-input",
       "query": "Execute the run run-20260815-123456-abcdef with --run and --recheck through woostack-execute.",
       "shouldTrigger": true,

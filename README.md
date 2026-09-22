@@ -76,12 +76,10 @@ For the full policy surface, see the authored
 
 Build and larger Fix workflows save specifications, plans, and resume state in
 `.woostack/tmp/runs/<run-id>/`. These local files are the primary records. You can configure
-Linear, Plane, or GitHub to keep remote copies. Bounded Fix and goal-only Change workflows do not
-contact these planning providers. Change's exact GitHub issue admission is the read-only exception
-defined in the [Change issue contract](skills/woostack-change/SKILL.md#admit-an-exact-github-issue);
-it remains available with local/omitted `artifacts.provider` and does not create a planning-provider
-mirror.
-
+Linear, Plane, or GitHub to keep remote copies. Bounded Execute work does not contact these
+planning providers unless an exact issue association or requested provider operation is selected.
+The optional exact GitHub issue association is a read-only exception through host-authenticated
+`gh`; it does not create a planning-provider mirror.
 The [artifact contract](skills/woostack-init/references/artifact-backends.md) explains storage,
 synchronization, and recovery. Saved plans and remote copies record your decisions; they do not
 authorize new work or prove that code was delivered.
@@ -98,9 +96,7 @@ in the coding assistant.
 | A new application | [/woostack-bootstrap](skills/woostack-bootstrap/SKILL.md) | Checks the target directory, asks you to approve the design, then creates the project. |
 | A feature that needs several PRs | [/woostack-build](skills/woostack-build/SKILL.md) | Works through requirements with you, saves a specification and plan, then retains the artifacts for you to select one bounded task for Execute. |
 | A bug fix | [/woostack-fix](skills/woostack-fix/SKILL.md) | Proves the cause and asks you to approve the correction before delivering a small fix or planning larger work. |
-| A small enhancement or refactor | [/woostack-change](skills/woostack-change/SKILL.md) | Delivers one PR without creating a planning project. |
-| Execute an approved GitHub issue graph | [/woostack-orchestrate](skills/woostack-orchestrate/SKILL.md) | Takes one exact parent issue or explicit Project, runs ready tasks in isolated Execute workers, and verifies submitted draft PRs without merging. |
-
+| A bounded enhancement, refactor, test-only task, or authorized understood correction | [/woostack-execute](skills/woostack-execute/SKILL.md) | Accepts one complete bounded task, verifies it, and delivers one PR without planning-provider calls. |
 Fix does not contact a planning provider during diagnosis. Configuring a provider does not make
 every fix a project. Selecting a project, provider work item, or saved run explicitly uses the
 project-backed route.

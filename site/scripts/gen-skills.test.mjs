@@ -126,7 +126,6 @@ test('navOrder places orchestration between planning and bounded execution', () 
     'woostack-bootstrap',
     'woostack-build',
     'woostack-fix',
-    'woostack-change',
     'woostack-plan',
     'woostack-orchestrate',
     'woostack-execute',

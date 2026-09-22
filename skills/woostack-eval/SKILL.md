@@ -301,7 +301,7 @@ and evidence in the artifact ledger.
 
 ## Terminal handback
 
-Hand back execution status, critical failures, noncritical deltas, telemetry availability, and evidence paths; never edit target implementation files, commit, merge, or chain another command, and only name `/woostack-change` or `/woostack-build` as an advisory next action.
+Hand back execution status, critical failures, noncritical deltas, telemetry availability, and evidence paths; never edit target implementation files, commit, merge, submit, invoke another skill, or chain a command, and only name `/woostack-execute` or `/woostack-build` as an advisory next action.
 
 Always include a stopping phase and artifact ledger. For each of approval snapshot, run root, manifest,
 aggregate JSON, and HTML report, provide the exact path when created; otherwise say `not created` and
@@ -317,7 +317,7 @@ unrendered, or incomplete run green.
 
 This handback is terminal. Do not edit the target based on findings, rerun with changed cases, commit,
 merge, submit, invoke another skill, or start a follow-up command. The user chooses whether to invoke
-`/woostack-change` or `/woostack-build` later.
+`/woostack-execute` or `/woostack-build` later.
 
 ## Hard constraints
 

@@ -167,7 +167,7 @@ leave any mirrored Project unchanged.
 | [woostack-status](/docs/skills/woostack-status) | Adds read-only context only after verifying repository/PR identity. Provider records cannot create rows or override repository evidence. |
 | [woostack-bootstrap](/docs/skills/woostack-bootstrap) | Optional persistence only after explicit design approval and approval to write to the verified filesystem target. |
 | [woostack-doctor](/docs/skills/woostack-doctor) | Checks config types locally. Explicit live checks verify Project-mirroring identity and required capabilities, including deletion capability needed for smoke testing, without storing secrets; they are not a parent-mode capability receipt. |
-| [woostack-change](/docs/skills/woostack-change) | Goal-only Change is provider-free. An explicit exact canonical GitHub issue input performs the required read of that issue through host-authenticated `gh`; it requires no artifact-provider configuration, Project, or mirror, and performs no issue lifecycle writes. |
+| [woostack-execute](/docs/skills/woostack-execute) | Goal-only Execute is provider-free. An explicit exact canonical GitHub issue input performs the required read of that issue through host-authenticated `gh`; it requires no artifact-provider configuration, Project, or mirror, and performs no issue lifecycle writes. |
 
 See the [GitHub provider contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-providers/github.md)
 for exact capability, resource identity, and recovery requirements.
