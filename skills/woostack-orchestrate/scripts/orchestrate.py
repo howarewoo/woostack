@@ -186,6 +186,7 @@ def admit(snapshot, mode, selector, limit):
         if mode == "issue":
             require(entry["actual_parent"] == selector, "foreign-parent", "child belongs to another parent")
         else:
+            require(text(entry.get("item_id")), "invalid-project-item", "native Project item identity required")
             require("declared_parent" in entry and entry["declared_parent"] == entry["actual_parent"],
                     "foreign-parent", "Project member parent evidence conflicts")
         require(entry.get("nested_children") is False or (mode == "project" and entry.get("container") is True),
@@ -201,8 +202,6 @@ def admit(snapshot, mode, selector, limit):
     for entry in by_url.values():
         if entry["url"] in containers:
             continue
-        if mode == "project":
-            require(text(entry.get("item_id")), "invalid-project-item", "native Project item identity required")
         task = entry.get("task_id", "")
         require(isinstance(task, str) and TASK_RE.fullmatch(task) and ".." not in task
                 and not task.endswith((".", ".lock")), "invalid-identity", "Git-safe stable task ID required")
@@ -217,7 +216,7 @@ def admit(snapshot, mode, selector, limit):
         record["workspace"] = workspace_relative(entry.get("workspace"), task)
         record["contract_hash"] = digest(entry["contract"])
         tasks.append(record)
-    for key in ("id", "node_id"):
+    for key in (("id", "node_id", "item_id") if mode == "project" else ("id", "node_id")):
         require(len({entry[key] for entry in by_url.values()}) == len(by_url),
                 "duplicate-identity", "native membership contains conflicting " + key)
     task_order = check_graph(tasks, parent_url)
@@ -712,7 +711,6 @@ def cmd_reconcile(args):
         require("pr_url" in evidence and evidence["pr_url"] is None and evidence.get("open") is False,
                 "evidence-mismatch", "PR absence requires an explicit null URL and closed readback")
         require(not item.get("verified_pr"), "evidence-mismatch", "verified PR cannot silently disappear")
-        item["status"] = "repair-ready"
     else:
         match = PR_RE.fullmatch(evidence.get("pr_url", ""))
         require(match and "https://github.com/" + "/".join(match.groups()[:2]) == admitted["canonical_repo"]
@@ -721,7 +719,7 @@ def cmd_reconcile(args):
                 "evidence-mismatch", "retained PR differs")
         item["report"] = {"pr_url": evidence["pr_url"], "head_sha": evidence["head_sha"]}
         item["verified_pr"] = evidence["pr_url"]
-        item["status"] = "running"
+    item["status"] = "repair-ready"
     if not any(t["status"] == "unknown" for t in state["tasks"].values()):
         state["halt_new_dispatch"], state["halt_reason"] = False, None
     write_json(args.state_out, state)

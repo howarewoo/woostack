@@ -263,6 +263,7 @@ class FakeGitHub:
             "container": True,
             "task_id": "spec-p",
             "ordinal": 1,
+            "item_id": "PVTI_project_item_p",
             "actual_parent": None,
             "declared_parent": None,
         })

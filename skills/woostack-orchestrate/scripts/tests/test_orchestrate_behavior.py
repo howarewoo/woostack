@@ -562,7 +562,7 @@ class OrchestrateBehavior(unittest.TestCase):
         )
         self.assertEqual(reconciled_code, 0, reconciled_output)
         self.assertEqual(reconciled_output.get("status"), "reconciled", reconciled_output)
-        self.assertEqual(json.loads(reconciled_state.read_text())["tasks"]["task-a"]["status"], "running")
+        self.assertEqual(json.loads(reconciled_state.read_text())["tasks"]["task-a"]["status"], "repair-ready")
 
     def _reconcile(
         self, admitted_path: Path, state: Path, task_id: str, evidence: Dict[str, Any], name: str
@@ -591,7 +591,7 @@ class OrchestrateBehavior(unittest.TestCase):
             admitted_path,
             state,
             "task-a",
-            {"outcome": "unknown", "worker": report["worker"]},
+            {"outcome": "unknown"},
             "reconcile-pr-unknown",
         )
         self.assertEqual(halted.get("status"), "halted", halted)
@@ -637,28 +637,15 @@ class OrchestrateBehavior(unittest.TestCase):
         self.assertEqual(reconciled_code, 0, reconciled)
         self.assertEqual(reconciled.get("status"), "reconciled", reconciled)
         reconciled_saved = json.loads(reconciled_state.read_text())
-        self.assertEqual(reconciled_saved["tasks"]["task-a"]["status"], "running")
+        self.assertEqual(reconciled_saved["tasks"]["task-a"]["status"], "repair-ready")
         self.assertEqual(reconciled_saved["tasks"]["task-a"]["verified_pr"], evidence["pr_url"])
         self.assertFalse(reconciled_saved["halt_new_dispatch"])
         self.assertIsNone(reconciled_saved["halt_reason"])
 
-        failed = make_result(self.github, "task-a", report, admitted)
-        failed["checks"]["passed"] = False
-        repair_ready_state, repair_ready, _ = self._apply(
-            admitted_path,
-            reconciled_state,
-            "task-a",
-            failed,
-            "reconcile-pr-repair-ready",
-        )
-        self.assertEqual(repair_ready.get("status"), "repair-ready", repair_ready)
-        repair_ready_saved = json.loads(repair_ready_state.read_text())
-        self.assertEqual(repair_ready_saved["tasks"]["task-a"]["verified_pr"], evidence["pr_url"])
-
         resumed_state, resumed = self._schedule(
             admitted_path,
             admitted,
-            repair_ready_state,
+            reconciled_state,
             self._single_task_snapshot(),
             "reconcile-pr-repair-resume",
             cap="1",
@@ -667,6 +654,7 @@ class OrchestrateBehavior(unittest.TestCase):
         repaired_entry = resumed["dispatch"][0]
         self.assertTrue(repaired_entry["repair"], repaired_entry)
         self.assertEqual(repaired_entry["retained_pr"], evidence["pr_url"])
+        self.assertEqual(self._reservation(repaired_entry), self._reservation(original))
         host.dispatch([repaired_entry])
         repaired_report = host.wait_for_report("task-a")
         repaired_result = make_result(self.github, "task-a", repaired_report, admitted)
@@ -939,6 +927,15 @@ class OrchestrateBehavior(unittest.TestCase):
             prerequisites=["task-a"],
         )
         project_snapshot["members"].append(dependent)
+        for conflicting_member in (0, 1):
+            conflicting = copy.deepcopy(project_snapshot)
+            conflicting["members"][2]["item_id"] = conflicting["members"][conflicting_member]["item_id"]
+            path = self._write_json("project-duplicate-item-%s.json" % conflicting_member, conflicting)
+            code, payload = invoke_cli(
+                "admit", "--project", conflicting["project"]["url"], "--snapshot", str(path)
+            )
+            self.assertNotEqual(code, 0, payload)
+            self.assertEqual(payload.get("error"), "duplicate-identity", payload)
         admitted_path, admitted = self._admit_project(project_snapshot)
         state, scheduled = self._schedule(
             admitted_path, admitted, None, project_snapshot, "project-item-initial", cap="1"

@@ -217,8 +217,10 @@ and the same canonical branch/head/base/repository/head-repository facts plus
 non-null `pr_url` or `open: true` alongside `pr_absent: true`) as `evidence-mismatch` and
 preserves state. The helper returns same-branch `repair-ready`; it never allocates a new
 identity. For an existing canonical PR, `pr_url`, `open`, and `unique` must describe that exact PR
-and match the retained report/reservation; follow the helper's returned state and do not dispatch
-until it says the reservation is safe. Any branch/head/base/repository/PR mismatch, absent stopped
+and match the retained report/reservation. Successful reconciliation returns `repair-ready`,
+retaining the exact reservation and any recovered PR. A fresh Execute worker can then repair
+that same branch/PR and supply its own complete result; no missing worker identity is invented.
+All delivery gates still apply before dependent release. Any branch/head/base/repository/PR mismatch, absent stopped
 proof, arbitrary report, contradictory absence evidence, duplicate/closed/foreign PR, or missing
 admitted/git-repo input blocks reconciliation and leaves the halt in place.
 

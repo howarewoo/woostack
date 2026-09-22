@@ -204,9 +204,10 @@ Add a complete native Project record and complete member issue records:
 }
 ```
 The Project owner type is exactly `organization` or `user`; the Project and all member issues are
-open and canonical. Read Project membership and native parents independently. Every executable
-member carries a non-empty native `item_id` bound during admission; missing or empty `item_id`
-blocks as `invalid-project-item`. Each member's `declared_parent` must equal its independently
+open and canonical. Read Project membership and native parents independently. Every member
+carries a non-empty native `item_id` bound during admission; missing or empty `item_id` blocks as
+`invalid-project-item`, and distinct members sharing an item ID block as `duplicate-identity`.
+Each member's `declared_parent` must equal its independently
 read `actual_parent` (either `null` or a canonical issue URL). Containers may omit `contract`
 only when the native member record is otherwise complete; containers are preserved but excluded
 from execution. Do not import nonmembers, flatten nested containers, or infer a parent from

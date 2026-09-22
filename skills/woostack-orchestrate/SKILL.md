@@ -121,7 +121,7 @@ Project owner/repository, specification, membership, and lifecycle admission.
    issue numbers for REST IDs or GraphQL node IDs. Parent mode requires a top-level open issue and
    each direct child `actual_parent` equal to the selected parent. Project mode requires the
    selected Project identity, owner/type/state, all five unique lifecycle mappings, complete
-   membership, a non-empty native `item_id` bound during admission on every executable member, and
+   membership, a distinct non-empty native `item_id` bound during admission on every member, and
    each member's `declared_parent` equal to independently read `actual_parent`.
 4. Carry the complete parent specification and repository rules as strings in the snapshot. A
    contract is complete only when it includes `goal`, `scope`, `non_goals`, `acceptance`, `checks`,
