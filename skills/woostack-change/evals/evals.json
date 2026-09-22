@@ -4,19 +4,19 @@
   "cases": [
     {
       "id": "bounded-admission-creates-one-isolated-worktree",
-      "prompt": "Evaluate fixtures/change-contract-a.json at admission in explicitly selected Graphite mode. Do not mutate Git or files. Explain whether the request is admitted, what must be verified before mutation, and whether valid behavior creates and checks out the task branch atomically in the new worktree at the exact start SHA before `gt track --parent <verified-integration-base>`, rejects `git worktree add --detach` plus task-worktree `gt create`, avoids switching or repurposing the primary checkout, and permits one isolated worktree and Graphite branch.",
+      "prompt": "Evaluate fixtures/change-contract-a.json at admission in explicitly selected Graphite mode. Do not mutate Git or files. Explain whether the request is admitted, what must be verified before mutation, and whether valid behavior uses the selected isolated workspace and task branch at the exact start SHA before `gt track --parent <verified-integration-base>`, rejects detached or unlinked checkouts plus switching or repurposing the primary checkout, and permits any collision-free workspace location, branch, and one isolated PR.",
       "fixtures": [
         "change-contract-a.json"
       ],
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "A bounded non-bug request is admitted only after repository, base, dirty-state, and collision facts are checked; valid creation uses `git worktree add -b <task-branch> <task-worktree> <exact-start-sha>` to create and check out the task branch atomically at the exact start SHA before `gt track --parent <verified-integration-base>`, rejects `git worktree add --detach` plus task-worktree `gt create`, leaves the primary checkout untouched, and preserves one isolated worktree, one PR, and no merge.",
+      "expected": "A bounded non-bug request is admitted only after repository, base, dirty-state, and collision facts are checked; valid behavior uses the selected linked isolated workspace and task branch at the exact start SHA before selected Graphite tracking, rejects detached or unlinked checkouts, leaves the primary checkout untouched, and preserves one isolated worktree, one PR, and no merge.",
       "assertions": [
         {
           "id": "admission-boundary",
           "kind": "qualitative",
-          "rubric": "Does the response keep classification and repository preflight read-only, identify the bounded scope, require `git worktree add -b` to create/check out the task branch atomically in the new worktree at the exact start SHA before `gt track --parent <verified-integration-base>`, reject `git worktree add --detach` plus task-worktree `gt create`, and avoid switching or repurposing the primary checkout?",
+          "rubric": "Does the response keep classification and repository preflight read-only, identify the bounded scope, require the selected linked workspace and task branch to be checked out atomically at the exact start SHA before selected Graphite tracking, reject detached or unlinked checkouts, and avoid switching or repurposing the primary checkout?",
           "critical": true
         },
         {
@@ -86,7 +86,7 @@
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "Verification and an independent review must bind to the same complete task/repository/parent/diff before selected-backend delivery. Exactly one complete PR is read back at the verified commit/head/base, and only a verified clean successful worktree is removed.",
+      "expected": "Verification and an independent review must bind to the same complete task/repository/parent/diff before selected-backend delivery. Exactly one complete PR is read back at the verified commit/head/base, and the selected workspace is retained unless its owner explicitly supplies a safe lifecycle operation.",
       "assertions": [
         {
           "id": "one-pr-delivery",
@@ -103,7 +103,7 @@
         {
           "id": "success-cleanup",
           "kind": "qualitative",
-          "rubric": "Does the response remove only the isolated worktree after successful delivery and independently verified cleanliness, while retaining the branch?",
+          "rubric": "Does the response retain the selected isolated workspace after successful delivery unless its owner explicitly supplies a safe lifecycle operation, while retaining the branch and PR?",
           "critical": true
         }
       ]

@@ -54,12 +54,12 @@ reset, clean, stash, delete, overwrite, or create around state.
 
 ## Create or modify
 
-Create/adopt worktrees under the [worktree contract](../../woostack-init/references/worktrees.md).
-When a collision-free task checkout is at the exact approved start point but has no task branch:
-
-- Native: `git switch -c <task-branch> <exact-start-sha>`, then `git commit -m <subject>`.
-- Graphite: `gt create <task-branch> -m <subject>` after verifying its intended parent.
-
+Use the selected isolated workspace and branch supplied by the caller or host under the
+[workspace guidance](../../woostack-init/references/worktrees.md). Do not require a fixed path,
+branch-name recipe, creation/adoption mode, or cleanup operation. Before any mutation, verify the
+checkout's canonical repository, branch, HEAD, parent ancestry, and collision-free physical path.
+When a collision-free task checkout is at the exact approved start point, use the selected backend's
+ordinary branch/commit operation and preserve its identity.
 On an existing verified task branch:
 
 - Native: append the staged task change using `git commit -m <subject>`; do not automatically amend.

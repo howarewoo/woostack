@@ -26,7 +26,7 @@ artifact from a title, issue key, branch, trailer, recent activity, current user
 ## Repository snapshot
 
 1. Resolve the physical repository root and canonical remote.
-2. Read the configured integration branch, deterministic task paths from any active approved
+2. Read the configured integration branch and selected task workspaces from any active approved
    contracts, filesystem state, `git worktree list --porcelain`, local/remote branches and commits,
    complete dirty/index/diff state, and available parent intent and retained start/old parent SHAs.
 3. Fetch canonical GitHub PR metadata for candidate branches with complete pagination: number/URL,
@@ -36,7 +36,7 @@ artifact from a title, issue key, branch, trailer, recent activity, current user
 4. Match branch to PR by canonical repository plus exact head ref/SHA. Reject duplicate checkouts,
    branches, commits, or PRs; ambiguous matches; stale heads; moved bases; or incomplete required
    non-check pages.
-5. Reconcile each deterministic path and retained task/run contract directly against Git, worktree,
+5. Reconcile each selected workspace and retained task/run contract directly against Git, worktree,
    dirty-state, and GitHub facts. Follow the
    [source-control and ancestry contract](../woostack-commit/references/graphite.md); consult
    Graphite only for explicitly selected or already verified managed work. Its absence never blocks

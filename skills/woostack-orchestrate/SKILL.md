@@ -9,7 +9,7 @@ Run one exact GitHub scope through the shipped scheduling helper and real host d
 primitive. The parent-issue form admits one top-level specification issue and its direct native
 sub-issues. The Project form admits one explicitly selected Project and its complete native member
 set. Each runnable child receives one bounded [`woostack-execute`](../woostack-execute/SKILL.md)
-worker, one reserved branch/workspace, and one draft PR. Independent children may run together;
+worker, one selected isolated workspace/branch, and one draft PR. Independent children may run together;
 dependents wait for independently proved delivery. Orchestrate owns admission, reservation,
 post-submission validation, evidence notes, and joins. It never implements task source inline,
 changes hierarchy, closes issues, marks a PR ready, or merges.
@@ -20,8 +20,8 @@ host's capability evidence are the authorities for repository, ancestry, PR, wor
 facts. There is no Linear, Plane, local-run, or implicit Project mode.
 
 Use the shared [source-control contract](../woostack-commit/references/graphite.md),
-[canonical worktree contract](../woostack-init/references/worktrees.md),
-[least-code standard](../woostack-bootstrap/references/patterns.md#7-least-code--comments), and
+the outcome-level [worktree guidance](references/scheduling.md#runtime-workspace-and-branch-evidence),
+the [least-code standard](../woostack-bootstrap/references/patterns.md#7-least-code--comments), and
 [model tiers](../using-woostack/references/model-tiers.md). Host mechanics remain in the
 [allowlisted host references](../using-woostack/references/hosts/README.md); do not copy a host's
 spawn implementation here. Delivery notes use the canonical
@@ -136,31 +136,32 @@ Project owner/repository, specification, membership, and lifecycle admission.
 
 The admission fingerprint binds mode, selector, canonical repository, native parent/Project and
 specification identity, repository rules, and every immutable task field including native
-hierarchy, IDs (including Project `item_id`), titles/bodies, contract, dependencies, and
-workspace. It excludes the host cap,
+hierarchy, IDs (including Project `item_id`), titles/bodies, contract, and dependencies. Runtime
+workspace and branch evidence is deliberately excluded. It excludes the host cap,
 mutable integration SHA, and runtime delivery evidence. A fresh snapshot with a changed fingerprint
 returns `snapshot-drift` and preserves running work; it never launches a duplicate or silently
 adopts a new child.
 
-## Reserve, create worktrees, and dispatch
+## Select an isolated workspace and dispatch
 
 After admission, call `schedule` with the required Git repository and fresh snapshot while holding
-exclusive scope ownership. The helper persists each ready task's reservation before any caller
-creates a worktree. It emits an **absolute** workspace under the primary Git common root:
-`<primary-root>/.woostack/worktrees/tasks/<task-id>`, unless a safe relative snapshot override is
-resolved under that same root. It also emits `branch: woostack/<task-id>`, the selected
-`parent_branch`/`parent_sha`, repair/retained-PR facts, and the complete bounded packet.
+exclusive scope ownership. The helper persists each ready task's actual reservation before dispatch.
+The fresh snapshot may carry a repository-, host-, or agent-selected `workspace` and `branch` for
+the task. No path layout, branch prefix, or creation command is required; the selected workspace
+may be inside or outside the primary checkout when it is a real isolated checkout for the admitted
+repository. A missing allocation is reported as `workspace-unassigned` until the host supplies one.
+The helper emits the selected absolute workspace and branch, the selected `parent_branch`/`parent_sha`,
+repair/retained-PR facts, and the complete bounded packet.
 
-Before dispatch, the caller applies the [canonical worktree contract](../woostack-init/references/worktrees.md):
-resolve the primary common root, canonicalize paths, inspect `git worktree list --porcelain`, and
-prove no pending/running reservation, alias, ancestor/descendant path, checked-out branch, or
-unclaimed existing branch/worktree collides. An existing unclaimed branch or workspace is a
-blocker, not permission to claim it. For fresh work, create exactly the emitted branch at exactly
-the emitted parent SHA (for example `git worktree add -b <branch> <absolute-workspace> <parent-sha>`)
-and read back path, branch, HEAD, common root, and ancestry. The actual local parent branch ref
-must equal the selected SHA. Run `git merge-base --is-ancestor <parent-sha> <head-sha>` even when
-hashes are equal. A failed/partial create or ownership check is an unknown boundary: preserve the
-reservation and do not recreate, retarget, reset, clean, or dispatch another writer.
+Before dispatch, the caller verifies the selected checkout against its actual repository remote,
+physical path, branch, HEAD, parent ancestry, complete worktree inventory, and current dirty state.
+Canonicalize paths and reject aliases, ancestor/descendant collisions, an active prior writer,
+wrong-repository checkouts, mismatched branches, and unclaimed existing branches/workspaces. A
+pre-existing suitable linked task worktree may be reused; otherwise the host's supported capability
+creates one linked worktree at the selected location. The caller must not create a nested checkout
+merely to satisfy a Woostack layout, rename a valid branch, reset, clean, delete, or take over unknown
+state. A failed/partial create or ownership check is an unknown boundary: preserve the reservation and do not
+recreate, retarget, or dispatch another writer.
 
 A repair reservation preserves the exact original workspace, branch, parent branch/SHA, and
 retained PR. It never reparents, creates a replacement PR, or uses a different checkout. A worker

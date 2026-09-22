@@ -5,8 +5,8 @@ ordinary Execute report is evidence to check, never delivery by itself. The help
 transitions; this reference defines the facts the skill must collect before invoking it.
 
 Use the shared [source-control contract](../../woostack-commit/references/graphite.md),
-[canonical worktree contract](../../woostack-init/references/worktrees.md),
-[least-code standard](../../woostack-bootstrap/references/patterns.md#7-least-code--comments),
+the outcome-level [runtime workspace guidance](scheduling.md#runtime-workspace-and-branch-evidence),
+the [least-code standard](../../woostack-bootstrap/references/patterns.md#7-least-code--comments),
 and canonical [`#artifact-delivery-note`](../../woostack-commit/references/provider-attribution.md#artifact-delivery-note)
 contract. Host mechanics remain in the allowlisted host references.
 
@@ -23,6 +23,7 @@ values to invent:
     "worker_id": "<runtime-substituted worker identity>",
     "pr_url": "<runtime-substituted canonical PR URL>",
     "branch": "<runtime-substituted worker branch>",
+    "workspace": "<runtime-substituted actual selected isolated workspace>",
     "head_sha": "<runtime-substituted head SHA>",
     "base_branch": "<runtime-substituted PR base branch>",
     "commit_sha": "<runtime-substituted commit SHA>",
@@ -91,14 +92,16 @@ missing reference, foreign repository, foreign head repository, wrong branch/hea
 PR, or closed PR is an identity failure, not permission to retarget or create a replacement.
 
 ## Evidence calculations
-
-All evidence is for the exact reservation currently in controller state:
+All evidence is for the exact reservation currently in controller state. The worker's selected
+workspace must equal the reserved physical path and its checkout must resolve to the admitted
+canonical repository:
 
 - `worker.commit_sha == worker.head_sha == readback.commit_sha == readback.head_sha`;
-- the actual local worker branch ref resolves to `head_sha` and the canonical PR head branch/SHA
+- the selected workspace branch resolves to `head_sha`, and the canonical PR head branch/SHA
   resolves to the same branch/SHA;
 - the reserved parent SHA is an ancestor of `head_sha`, proved with
-  `git merge-base --is-ancestor <reserved-parent-sha> <head-sha>` even when hashes are equal;
+  `git merge-base --is-ancestor <reserved-parent-sha> <head-sha>` in the selected workspace even when
+  hashes are equal;
 - `readback.repo` and `readback.head_repo` are the admitted canonical repository, and the PR URL
   is exactly one canonical PR in that repository;
 - `readback.base_branch` and `worker.base_branch` equal the reserved `parent_branch`;

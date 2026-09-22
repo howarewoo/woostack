@@ -23,7 +23,7 @@ ISSUE_RE = re.compile(r"https://github\.com/([\w.-]+)/([\w.-]+)/issues/([1-9][0-
 PR_RE = re.compile(r"https://github\.com/([\w.-]+)/([\w.-]+)/pull/([1-9][0-9]*)\Z")
 PROJECT_RE = re.compile(r"https://github\.com/(orgs|users)/([\w.-]+)/projects/([1-9][0-9]*)\Z")
 REPO_RE = re.compile(r"https://github\.com/([\w.-]+)/([\w.-]+)\Z")
-TASK_RE = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]*\Z")
+TASK_RE = re.compile(r"[^\x00-\x1f\x7f]+")
 SHA_RE = re.compile(r"(?:[0-9a-f]{40}|[0-9a-f]{64})\Z")
 
 
@@ -118,11 +118,24 @@ def pagination(snapshot, families):
             "incomplete-hierarchy", "required native reads have not reached terminal pagination")
 
 
-def workspace_relative(value, task):
-    value = value if value is not None else ".woostack/worktrees/tasks/" + task
-    require(text(value) and not Path(value).is_absolute() and ".." not in Path(value).parts,
-            "invalid-workspace", "workspace must be a contained relative path")
-    return value
+def runtime_workspace(value, root):
+    """Resolve a caller/host-selected workspace without prescribing its layout."""
+    require(text(value), "invalid-workspace", "runtime workspace is required")
+    path = Path(value).expanduser()
+    if not path.is_absolute():
+        path = Path(root) / path
+    path = path.resolve()
+    require(path != Path(root).resolve(), "shared-workspace", "primary checkout is not an isolated task workspace")
+    return str(path)
+
+
+def runtime_allocation(snapshot, task_id, root):
+    """Return runtime workspace and branch evidence on the selected task."""
+    task = next((item for item in snapshot.get("tasks", []) if item.get("task_id") == task_id), None)
+    require(isinstance(task, dict), "workspace-unassigned", "runtime task evidence is missing")
+    require(text(task.get("branch")), "invalid-branch", "runtime task branch is required")
+    workspace = runtime_workspace(task.get("workspace"), root)
+    return {"workspace": workspace, "branch": task["branch"]}
 
 
 def check_graph(tasks, parent_url):
@@ -203,8 +216,7 @@ def admit(snapshot, mode, selector, limit):
         if entry["url"] in containers:
             continue
         task = entry.get("task_id", "")
-        require(isinstance(task, str) and TASK_RE.fullmatch(task) and ".." not in task
-                and not task.endswith((".", ".lock")), "invalid-identity", "Git-safe stable task ID required")
+        require(text(task) and TASK_RE.fullmatch(task), "invalid-identity", "non-empty stable task ID required")
         require(type(entry.get("ordinal")) is int and entry["ordinal"] > 0,
                 "malformed-ordinal", "positive ordinal required")
         contract_check(entry.get("contract"))
@@ -213,7 +225,9 @@ def admit(snapshot, mode, selector, limit):
         require(all(ISSUE_RE.fullmatch(url) for url in entry["external_prerequisites"]),
                 "missing-endpoint", "external prerequisites need exact issue identities")
         record = copy.deepcopy(entry)
-        record["workspace"] = workspace_relative(entry.get("workspace"), task)
+        # Workspace and branch are runtime allocation evidence.  They may be
+        # supplied by a repository, host, or agent on a fresh refill, but must
+        # never become issue/publication identity or snapshot drift.
         record["contract_hash"] = digest(entry["contract"])
         tasks.append(record)
     for key in (("id", "node_id", "item_id") if mode == "project" else ("id", "node_id")):
@@ -226,11 +240,13 @@ def admit(snapshot, mode, selector, limit):
         require(set(expected) == {t["task_id"] for t in tasks}, "incomplete-index", "native scope and approved task index differ")
     host = snapshot.get("host", {})
     require(isinstance(host, dict), "no-subagent-capability", "host capability evidence missing")
+    host_cap = positive(host.get("max_parallel", 1))
     if tasks:
         require(host.get("delivery_capable") is True, "no-subagent-capability", "delivery-capable subagent required")
-    host_cap = positive(host.get("max_parallel", 1))
-    immutable_tasks = [{k: v for k, v in t.items() if k != "existing_delivery"}
-                       for t in sorted(tasks, key=lambda t: t["task_id"])]
+    immutable_tasks = []
+    for task in sorted(tasks, key=lambda t: t["task_id"]):
+        immutable_tasks.append({k: v for k, v in task.items()
+                                if k not in ("existing_delivery", "workspace", "branch")})
     binding = {"mode": mode, "selector_url": selector, "canonical_repo": canonical,
                "scope": scope, "specification": snapshot["specification"],
                "repository_rules": snapshot["repository_rules"], "integration_branch": integration["branch"],
@@ -277,6 +293,92 @@ def branch_tip(repo, branch):
     result = git(repo, "rev-parse", "--verify", "refs/heads/" + branch + "^{commit}", allow_missing=True)
     return result.decode().strip() if result else None
 
+
+
+def remote_matches(path, canonical):
+    output = git(path, "remote", "-v", allow_missing=True)
+    if output is None:
+        return False
+    matches = []
+    for line in output.decode().splitlines():
+        parts = line.split()
+        if len(parts) >= 2:
+            url = parts[1].removesuffix(".git").rstrip("/")
+            if url.startswith("git@github.com:"):
+                url = "https://github.com/" + url.split(":", 1)[1]
+            matches.append(url)
+    return canonical in matches
+
+
+def workspace_identity(repo, canonical, workspace, branch):
+    """Read the selected linked checkout's repository, branch, and HEAD."""
+    path = Path(workspace).resolve()
+    common_dir = Path(git(repo, "rev-parse", "--path-format=absolute", "--git-common-dir")
+                      .decode().strip()).resolve()
+    require(path.exists() and path.is_dir(), "workspace-missing",
+            "selected task workspace does not exist")
+    top = git(path, "rev-parse", "--show-toplevel", allow_missing=True)
+    require(top is not None, "workspace-repository", "selected workspace is not a Git checkout")
+    top_path = Path(top.decode().strip()).resolve()
+    require(top_path == path, "workspace-mismatch", "selected path is not the checkout root")
+    selected_common = Path(git(path, "rev-parse", "--path-format=absolute", "--git-common-dir")
+                           .decode().strip()).resolve()
+    selected_git_dir = Path(git(path, "rev-parse", "--path-format=absolute", "--git-dir")
+                            .decode().strip()).resolve()
+    require(selected_common == common_dir and selected_git_dir != selected_common,
+            "workspace-not-linked", "selected workspace is not a linked checkout of the canonical repository")
+    require(any(Path(item["worktree"]).resolve() == path for item in worktree_inventory(repo)),
+            "workspace-not-linked", "selected workspace is absent from canonical worktree inventory")
+    require(remote_matches(path, canonical), "foreign-repository",
+            "selected workspace remote does not match the admitted repository")
+    actual_branch = git(path, "branch", "--show-current").decode().strip()
+    require(actual_branch == branch, "wrong-branch",
+            "selected workspace is not checked out on the selected task branch")
+    head = git(path, "rev-parse", "HEAD").decode().strip()
+    require(SHA_RE.fullmatch(head) is not None, "git-evidence",
+            "selected workspace HEAD is not a full commit SHA")
+    return {"workspace": str(path), "branch": actual_branch, "head_sha": head}
+
+
+def allocation_collision(repo, canonical, allocation, inventory, state, task_id):
+    workspace = Path(allocation["workspace"]).resolve()
+    branch = allocation["branch"]
+    git(repo, "check-ref-format", "--branch", branch)
+    primary = Path(git(repo, "rev-parse", "--path-format=absolute", "--git-common-dir")
+                   .decode().strip()).resolve().parent
+    for other, item in state["tasks"].items():
+        if other != task_id and item.get("reservation"):
+            reservation = item["reservation"]
+            if reservation.get("branch") == branch:
+                return "branch-reservation-collision"
+            if overlaps(workspace, reservation["workspace"]):
+                return "workspace-alias-collision"
+    matching_paths = [Path(wt["worktree"]).resolve() for wt in inventory]
+    for wt in inventory:
+        wt_path = Path(wt["worktree"]).resolve()
+        if wt_path != primary and overlaps(workspace, wt_path) and wt_path != workspace:
+            return "workspace-alias-collision"
+        if wt.get("branch") == "refs/heads/" + branch and wt_path != workspace:
+            return "branch-checkout-collision"
+    known_branch = branch_tip(repo, branch)
+    if known_branch is not None and workspace not in matching_paths:
+        return "branch-already-exists"
+    if workspace.exists():
+        if workspace.is_file():
+            return "workspace-collision"
+        top = git(workspace, "rev-parse", "--show-toplevel", allow_missing=True)
+        if top is None:
+            try:
+                if any(workspace.iterdir()):
+                    return "workspace-collision"
+            except OSError:
+                return "workspace-collision"
+        else:
+            try:
+                workspace_identity(repo, canonical, workspace, branch)
+            except InputError as error:
+                return error.code
+    return None
 
 def contains(repo, ancestor, head):
     require(SHA_RE.fullmatch(ancestor or "") and SHA_RE.fullmatch(head or ""),
@@ -435,7 +537,7 @@ def parent_readiness(scope, task, state, reservation, decision, repo, retained=F
 
 def validate_delivery(admitted, task, reservation, result, repo):
     require(result.get("outcome") in ("ok", "needs-repair"), "unknown-response", "worker outcome unknown")
-    worker = field_object(result.get("worker"), ("worker_id", "pr_url", "branch", "head_sha",
+    worker = field_object(result.get("worker"), ("worker_id", "pr_url", "branch", "workspace", "head_sha",
                           "base_branch", "commit_sha", "association"), "worker")
     readback = field_object(result.get("readback"), ("repo", "head_repo", "pr_url", "branch", "head_sha",
                             "base_branch", "commit_sha", "association", "closing_references", "open", "draft",
@@ -443,6 +545,9 @@ def validate_delivery(admitted, task, reservation, result, repo):
     require(text(worker["worker_id"]), "invalid-worker", "native host worker identity required")
     for key in ("pr_url", "branch", "head_sha", "base_branch", "commit_sha", "association"):
         require(worker[key] == readback[key], "evidence-mismatch", "worker/readback disagree on " + key)
+    require(Path(worker["workspace"]).is_absolute()
+            and Path(worker["workspace"]).resolve() == Path(reservation["workspace"]).resolve(),
+            "workspace-mismatch", "worker used a different selected workspace")
     require(readback["repo"] == admitted["canonical_repo"] == readback["head_repo"],
             "foreign-repo", "PR repository mismatch")
     match = PR_RE.fullmatch(readback["pr_url"])
@@ -456,15 +561,12 @@ def validate_delivery(admitted, task, reservation, result, repo):
     require(readback["base_branch"] == reservation["parent_branch"], "wrong-base", "PR base is not admitted parent")
     require(readback["association"] == task["url"] and readback["closing_references"] == [task["url"]],
             "wrong-association", "exactly the task issue may be a closing reference")
-    require(readback["commit_sha"] == readback["head_sha"] == branch_tip(repo, reservation["branch"]),
-            "wrong-head", "commit and actual branch head must agree")
-    require(contains(repo, reservation["parent_sha"], readback["head_sha"]),
+    identity = workspace_identity(repo, admitted["canonical_repo"], reservation["workspace"], reservation["branch"])
+    require(readback["commit_sha"] == readback["head_sha"] == identity["head_sha"],
+            "wrong-head", "commit and actual workspace head must agree")
+    require(contains(reservation["workspace"], reservation["parent_sha"], readback["head_sha"]),
             "wrong-ancestry", "admitted start is not an ancestor")
-    inventory = worktree_inventory(repo)
-    owned = [wt for wt in inventory if wt.get("branch") == "refs/heads/" + reservation["branch"]]
-    require(len(owned) == 1 and Path(owned[0]["worktree"]).resolve() == Path(reservation["workspace"]).resolve(),
-            "workspace-mismatch", "delivered branch must have exactly its reserved worktree")
-    actual_diff = "sha256:" + hashlib.sha256(git(repo, "diff", "--no-ext-diff", "--no-textconv",
+    actual_diff = "sha256:" + hashlib.sha256(git(reservation["workspace"], "diff", "--no-ext-diff", "--no-textconv",
                                                 "--no-color", "--binary",
                                                 reservation["parent_sha"], readback["head_sha"])).hexdigest()
     require(readback["diff_identity"] == actual_diff, "diff-mismatch", "PR diff differs from Git evidence")
@@ -496,7 +598,8 @@ def validate_delivery(admitted, task, reservation, result, repo):
                 and progress["status"] == admitted["lifecycle"]["inReview"],
                 "project-status-mismatch", "verified Project inReview readback required")
     return {"status": "delivered", "delivery": {"pr_url": readback["pr_url"], "head_sha": readback["head_sha"],
-            "branch": readback["branch"], "base_branch": readback["base_branch"], "commit_sha": readback["commit_sha"],
+            "branch": readback["branch"], "workspace": reservation["workspace"],
+            "base_branch": readback["base_branch"], "commit_sha": readback["commit_sha"],
             "association": task["url"], "validated_diff": actual_diff, "contract_hash": task["contract_hash"],
             "checkpoint": copy.deepcopy(result)}}
 
@@ -575,10 +678,9 @@ def cmd_schedule(args):
                 reservation = retained["reservation"]
                 if item["reservation"] is not None:
                     require(reservation == item["reservation"], "reservation-mismatch", "retained workspace/parent changed")
-                expected_workspace = (root / task["workspace"]).resolve()
-                require(Path(reservation["workspace"]).resolve() == expected_workspace,
-                        "reservation-mismatch", "retained workspace does not match admitted task")
-                require(reservation["branch"] == "woostack/" + task["task_id"], "reservation-mismatch", "retained branch differs")
+                require(Path(reservation["workspace"]).is_absolute(),
+                        "reservation-mismatch", "retained workspace must be absolute")
+                require(text(reservation.get("branch")), "reservation-mismatch", "retained branch is missing")
                 decision = decisions.get(tid) or item.get("parent_decision")
                 parent_readiness(fresh, task, state, reservation, decision, args.git_repo, retained=True)
                 proof = validate_delivery(admitted, task, reservation, retained["result"], args.git_repo)
@@ -615,32 +717,53 @@ def cmd_schedule(args):
         repair = item["status"] == "repair-ready"
         if repair:
             reservation = item["reservation"]
-            require(contains(args.git_repo, reservation["parent_sha"], branch_tip(args.git_repo, reservation["branch"])),
-                    "wrong-ancestry", "repair branch no longer contains admitted start")
+            try:
+                identity = workspace_identity(args.git_repo, admitted["canonical_repo"],
+                                              reservation["workspace"], reservation["branch"])
+                require(contains(reservation["workspace"], reservation["parent_sha"], identity["head_sha"]),
+                        "wrong-ancestry", "repair workspace no longer contains admitted start")
+            except InputError as error:
+                blocked.append({"task_id": tid, "reason": getattr(error, "code", "workspace-conflict")})
+                continue
         else:
             parent = choose_parent(admitted, task, state, decisions, args.git_repo)
             if parent is None:
                 paused.append({"task_id": tid, "reason": "join-no-containing-parent",
                                "prerequisite_branches": [state["tasks"][p]["delivery"]["branch"] for p in task["prerequisites"]]})
                 continue
-            workspace = (root / task["workspace"]).resolve()
-            require(root in workspace.parents and workspace != root / ".git" and root / ".git" not in workspace.parents,
-                    "invalid-workspace", "workspace escapes repository task area")
-            reservation = {"branch": "woostack/" + tid, "workspace": str(workspace),
+            try:
+                allocation = runtime_allocation(fresh, tid, root)
+            except InputError as error:
+                blocked.append({"task_id": tid, "reason": getattr(error, "code", "workspace-unassigned")})
+                continue
+            reservation = {"branch": allocation["branch"], "workspace": allocation["workspace"],
                            "parent_branch": parent["branch"], "parent_sha": parent["sha"]}
-        workspace = reservation["workspace"]
-        collision = any(other != tid and other_item.get("reservation")
-                        and overlaps(workspace, other_item["reservation"]["workspace"])
-                        for other, other_item in state["tasks"].items())
-        if not repair:
-            collision = collision or Path(workspace).exists() or branch_tip(args.git_repo, reservation["branch"]) is not None
-            collision = collision or any(overlaps(workspace, wt["worktree"]) and Path(wt["worktree"]).resolve() != root for wt in inventory)
-        else:
-            collision = collision or not any(Path(wt["worktree"]).resolve() == Path(workspace).resolve()
-                and wt.get("branch") == "refs/heads/" + reservation["branch"] for wt in inventory)
-        if collision:
-            blocked.append({"task_id": tid, "reason": "workspace-collision"})
+        if any(other != tid and other_item.get("reservation")
+               and overlaps(reservation["workspace"], other_item["reservation"]["workspace"])
+               for other, other_item in state["tasks"].items()):
+            blocked.append({"task_id": tid, "reason": "workspace-alias-collision"})
             continue
+        try:
+            collision = allocation_collision(args.git_repo, admitted["canonical_repo"], reservation,
+                                             inventory, state, tid) if not repair else None
+        except InputError as error:
+            blocked.append({"task_id": tid, "reason": getattr(error, "code", "workspace-conflict")})
+            continue
+        if collision:
+            blocked.append({"task_id": tid, "reason": collision})
+            continue
+        existing_checkout = (Path(reservation["workspace"]).exists()
+                             and git(reservation["workspace"], "rev-parse", "--show-toplevel",
+                                     allow_missing=True) is not None)
+        if not repair and existing_checkout:
+            try:
+                current = workspace_identity(args.git_repo, admitted["canonical_repo"],
+                                             reservation["workspace"], reservation["branch"])
+                require(contains(reservation["workspace"], reservation["parent_sha"], current["head_sha"]),
+                        "wrong-ancestry", "existing task workspace does not contain selected parent")
+            except InputError as error:
+                blocked.append({"task_id": tid, "reason": getattr(error, "code", "workspace-conflict")})
+                continue
         if slots == 0:
             continue
         retained_pr = item.get("verified_pr")
@@ -701,11 +824,23 @@ def cmd_reconcile(args):
     require(evidence.get("worker_stopped") is True, "worker-liveness", "old writer must be proved stopped")
     require(evidence.get("repo") == evidence.get("head_repo") == admitted["canonical_repo"],
             "foreign-repo", "canonical repository readback required")
+    observed_workspace = evidence.get("workspace")
+    if observed_workspace is not None:
+        require(Path(observed_workspace).resolve() == Path(reservation["workspace"]).resolve(),
+                "evidence-mismatch", "workspace discovery conflicts with reservation")
+    if Path(reservation["workspace"]).exists():
+        identity = workspace_identity(args.git_repo, admitted["canonical_repo"],
+                                      reservation["workspace"], reservation["branch"])
+        actual_head = identity["head_sha"]
+        ancestry_repo = reservation["workspace"]
+    else:
+        actual_head = branch_tip(args.git_repo, reservation["branch"])
+        ancestry_repo = args.git_repo
     require(evidence.get("branch") == reservation["branch"]
             and evidence.get("base_branch") == reservation["parent_branch"]
-            and evidence.get("head_sha") == branch_tip(args.git_repo, reservation["branch"])
+            and evidence.get("head_sha") == actual_head
             and evidence.get("unique") is True, "evidence-mismatch", "branch/head/base discovery conflicts")
-    require(contains(args.git_repo, reservation["parent_sha"], evidence["head_sha"]),
+    require(contains(ancestry_repo, reservation["parent_sha"], evidence["head_sha"]),
             "wrong-ancestry", "retained branch ancestry differs")
     if evidence.get("pr_absent") is True:
         require("pr_url" in evidence and evidence["pr_url"] is None and evidence.get("open") is False,

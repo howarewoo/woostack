@@ -11,9 +11,9 @@ or override repository status.
 Take one logical snapshot:
 
 1. resolve the canonical repository and configured integration base;
-2. inventory deterministic paths from any active approved contracts, filesystem state,
-   `git worktree list --porcelain`, local/remote branches and commits, and complete
-   dirty/index/diff state;
+2. inventory selected task workspaces from active approved contracts, filesystem state,
+   `git worktree list --porcelain`, local/remote branches and commits, and complete dirty/index/diff
+   state;
 3. inventory approved parent intent and retained parent SHAs, proving ancestry with Git and canonical
    PR bases under the [shared source-control contract](../../woostack-commit/references/graphite.md);
    consult Graphite only for explicitly selected or already verified managed work; and
@@ -74,17 +74,17 @@ Check outcomes and check-read completeness are observable-only and do not alter 
 Display unknown, pending, and failed checks separately. Treat an unresolved thread as blocking when the review
 contract or thread disposition says it blocks; never silently dismiss it from title or age.
 
-## Worktrees and collisions
+## Workspaces and collisions
 
-Validate each observed worktree against the
-[canonical worktree contract](../../woostack-init/references/worktrees.md). Report:
+Validate each observed isolated workspace against the
+[workspace guidance](../../woostack-init/references/worktrees.md). Report:
 
-- deterministic and actual path;
-- complete `git worktree list --porcelain` entry, branch/head, and verified parent or missing proof;
+- the selected physical path and actual checkout identity;
+- complete `git worktree list --porcelain` entry, branch/HEAD, and verified parent or missing proof;
 - dirty/index/diff state;
-- duplicate checkout, branch, commit, or PR;
+- duplicate or aliased checkout, branch, commit, or PR;
 - conflict with an active approved task/run contract; and
-- first safe recovery boundary.
+- the first safe recovery boundary.
 
 Never repair, remove, clean, reset, stash, reassign, attach, or create from status.
 

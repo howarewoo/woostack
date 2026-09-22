@@ -506,7 +506,7 @@
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "The exact direct receipt authorizes one direct branch creation from the retained Graphite parent, binds the canonical task worktree, and does not run gt modify.",
+      "expected": "The exact direct receipt authorizes one direct branch creation from the retained Graphite parent, binds the selected task workspace, and does not run gt modify.",
       "assertions": [
         {
           "id": "direct-branch-ready",
@@ -594,7 +594,7 @@
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "The exact caller task contract, branch, deterministic worktree, and parent agree with direct repository evidence and are reused in place; verification and gt modify are selected while every creation command remains absent.",
+      "expected": "The exact caller task contract, selected branch, workspace, and parent agree with direct repository evidence and are reused in place; verification and gt modify are selected while every creation command remains absent.",
       "assertions": [
         {
           "id": "reuse-branch-ready",
@@ -681,7 +681,7 @@
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "The conflicting display branch and foreign checkout at a non-deterministic path fail closed without selecting an identity, parent, worktree, branch command, commit, PR write, or provider mutation.",
+      "expected": "The conflicting display branch and foreign checkout at an alternate path fail closed without selecting an identity, parent, workspace, branch command, commit, PR write, or provider mutation.",
       "assertions": [
         {
           "id": "collision-branch-blocked",
@@ -775,7 +775,7 @@
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "The run identity drift between the active task contract and the branch handoff fails closed without selecting its otherwise matching branch, parent, or deterministic path and without any downstream mutation.",
+      "expected": "The run identity drift between the active task contract and the branch handoff fails closed without selecting its otherwise matching branch, parent, or selected workspace and without any downstream mutation.",
       "assertions": [
         {
           "id": "run-drift-branch-blocked",
@@ -869,7 +869,7 @@
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "The branch checked out outside the deterministic task path fails closed rather than being adopted, attached, recreated, or committed, with no PR or provider mutation.",
+      "expected": "The branch checked out outside the recorded selected workspace path fails closed rather than being adopted, attached, recreated, or committed, with no PR or provider mutation.",
       "assertions": [
         {
           "id": "worktree-drift-branch-blocked",
