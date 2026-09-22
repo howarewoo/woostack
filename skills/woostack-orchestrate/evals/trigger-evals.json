@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "skill": "woostack-orchestrate",
+  "cases": [
+    {
+      "id": "parent-execution",
+      "query": "/woostack-orchestrate --issue https://github.com/acme/app/issues/10",
+      "shouldTrigger": true,
+      "expectedSkill": "woostack-orchestrate"
+    },
+    {
+      "id": "project-execution",
+      "query": "/woostack-orchestrate --project https://github.com/orgs/acme/projects/7 --max-parallel 3",
+      "shouldTrigger": true,
+      "expectedSkill": "woostack-orchestrate"
+    },
+    {
+      "id": "native-children-concurrent",
+      "query": "Execute the approved native children of this exact GitHub parent issue concurrently, stack dependent PRs without merging, and validate every submitted task.",
+      "shouldTrigger": true,
+      "expectedSkill": "woostack-orchestrate"
+    },
+    {
+      "id": "sequential-capability",
+      "query": "Run the approved GitHub Project tasks through delivery-capable subagents even though this host can run only one worker at a time.",
+      "shouldTrigger": true,
+      "expectedSkill": "woostack-orchestrate"
+    },
+    {
+      "id": "single-task",
+      "query": "Implement this one complete bounded task and submit its one PR; do not schedule any siblings.",
+      "shouldTrigger": false,
+      "expectedSkill": "woostack-execute",
+      "conflictsWith": [
+        "woostack-orchestrate"
+      ]
+    },
+    {
+      "id": "planning-only",
+      "query": "Plan the approved specification into native GitHub child issues and dependencies; do not implement them.",
+      "shouldTrigger": false,
+      "expectedSkill": "woostack-plan",
+      "conflictsWith": [
+        "woostack-orchestrate"
+      ]
+    },
+    {
+      "id": "feature-decisions",
+      "query": "Work through this undecided multi-PR feature and retain a specification and execution plan for my decision.",
+      "shouldTrigger": false,
+      "expectedSkill": "woostack-build",
+      "conflictsWith": [
+        "woostack-orchestrate"
+      ]
+    },
+    {
+      "id": "bounded-enhancement",
+      "query": "Add one small preference control in a single PR with no multi-task project.",
+      "shouldTrigger": false,
+      "expectedSkill": "woostack-change",
+      "conflictsWith": [
+        "woostack-orchestrate"
+      ]
+    },
+    {
+      "id": "invalid-selector-still-owned",
+      "query": "/woostack-orchestrate --issue https://github.com/acme/app/issues/10 --project https://github.com/orgs/acme/projects/7",
+      "shouldTrigger": true,
+      "expectedSkill": "woostack-orchestrate"
+    }
+  ]
+}

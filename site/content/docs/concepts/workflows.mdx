@@ -87,11 +87,27 @@ GitHub planning supports [prerequisite DAGs and parent-issue hierarchy](/docs/co
 Standalone Plan selects either `--project` (Project membership) or `--parent-issue new`
 or an exact parent issue URL (parent-issue mode, native parent/child issues); the selectors are
 exclusive, parent-issue mode needs `artifacts.provider: "github"` but no Project settings, and
-Build/Fix optional mirrors never select it automatically. The complete DAG remains retained for
-future Orchestrate; there is no Orchestrate command yet. A caller may select one task for
-[bounded Execute admission](/docs/skills/woostack-execute#admit-one-task) with its concrete parent
-and complete prerequisite-readiness evidence. Execute does not dispatch the graph; its own
-exact-issue admission still applies.
+Build/Fix optional mirrors never select it automatically. A caller may select one task for
+[bounded Execute admission](/docs/skills/woostack-execute#admit-one-task), or explicitly invoke
+[Orchestrate](/docs/skills/woostack-orchestrate) for a GitHub scope. Execute does not dispatch graphs.
+
+## Orchestrate
+
+```text
+/woostack-orchestrate --issue <canonical GitHub parent issue URL> [--max-parallel <positive integer>]
+/woostack-orchestrate --project <canonical GitHub Project URL> [--max-parallel <positive integer>]
+```
+
+Select exactly one scope. The recommended ChatGPT-to-Codex handoff is a specification parent with
+native PR-sized children; this execution mode needs no Project or provider-mirror configuration.
+The parent supplies context, not an extra implementation task. Explicit Project execution retains
+its configured membership and lifecycle checks.
+
+Orchestrate keeps up to three delivery-capable Execute workers active by default, bounded by host
+capability. Verified submission and independent specification validation release dependents without
+waiting for a whole wave or a merge. A dependent PR targets its verified prerequisite branch; a join
+pauses if no permitted single parent contains all prerequisite changes. Unrelated tasks continue.
+The final result is submitted PRs awaiting review/merge, not closed issues or product acceptance.
 
 ## Change
 
@@ -115,8 +131,8 @@ calls. The issue-backed path performs the required read of the selected issue th
 
 > **Retired automatic handoff.** Build and project-backed Fix stop at retained artifacts; the caller
 > selects one complete bounded task and supplies it to
-> [woostack-execute](/docs/skills/woostack-execute#retired-inputs). Final orchestration automation is
-> later work.
+> [woostack-execute](/docs/skills/woostack-execute#retired-inputs). Automatic Build/Fix-to-Orchestrate
+> handoff remains separate from an explicit Orchestrate invocation.
 
 Each bounded [woostack-execute](/docs/skills/woostack-execute) task then:
 

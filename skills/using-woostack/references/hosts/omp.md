@@ -4,7 +4,7 @@
 
 Use this adapter inside an active Oh My Pi session. Discover the actual `task`, `hub`, and related
 capabilities available in the session. Discover official host-exposed Linear or Plane MCP tools via registered session
-tools / tool routes or host-authenticated GitHub CLI (`gh`), selected strictly by `artifacts.provider`. Never use custom HTTP/REST/GraphQL
+tools / tool routes or host-authenticated GitHub CLI (`gh`) under the selected workflow's artifact admission. Never use custom HTTP/REST/GraphQL
 transport or fallback tokens. Artifact operations follow the canonical
 [artifact backends contract](../../../woostack-init/references/artifact-backends.md).
 
@@ -70,6 +70,13 @@ worktree isolation, or treating absent evidence as success.
 
 - `woostack-execute`: works inline by default; optional subagents it spawns map the selected
   effective tier through the host-owned worker table above. Delegation is optional, never required.
+- **woostack-orchestrate (parallel dispatch):** for each schedule packet, dispatch one
+  delivery-capable Execute worker via the `task` primitive with the most specific available worker
+  role. Pass its exact `workspace`, `branch`, `parent_branch`, `parent_sha`, child issue URL, and
+  packet `bounded_input`/`acceptance`/`checks` as the complete contract. Clamp the schedule's
+  `effective_cap` to real host capability, batch up to that cap, and refill as workers complete.
+  A host mode that serializes runs at concurrency one gets a clear notice; without a
+  delivery-capable subagent primitive, block rather than executing inline.
 - `woostack-commit`: map optional fast drafting to `agent: woostack-fast`; draft inline if
   unavailable.
 - **woostack-eval (comparative dispatch):** map the candidate and baseline's common effective tier

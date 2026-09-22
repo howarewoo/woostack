@@ -4,7 +4,7 @@
 
 The OpenCode runtime; subagent dispatch via `@subagent` with per-call model selection.
 Discover official Linear or Plane MCP tools exposed via OpenCode runtime MCP configuration or
-host-authenticated GitHub CLI (`gh`), selected strictly by `artifacts.provider`. Never use custom HTTP/REST/GraphQL transport or
+host-authenticated GitHub CLI (`gh`) under the selected workflow's artifact admission. Never use custom HTTP/REST/GraphQL transport or
 fallback tokens. Artifact operations follow the canonical
 [artifact backends contract](../../../woostack-init/references/artifact-backends.md).
 
@@ -33,6 +33,13 @@ host — no spawn-time auth probe exists; switch manually by promoting an entry 
 
 ## Per-skill notes
 
+- **woostack-orchestrate (parallel dispatch):** for each schedule packet, dispatch one
+  delivery-capable `@subagent` worker with the dispatch-prompt worktree pin (plus per-call cwd when
+  accepted). Pass `workspace`, `branch`, `parent_branch`, `parent_sha`, child issue URL, and packet
+  `bounded_input`/`acceptance`/`checks` as the complete Execute contract; pin the resolved model,
+  clamp `effective_cap` to host capability, and refill as workers complete. An `N=1` or queue-only
+  build runs at concurrency one with a clear notice; without delivery-capable subagents, block rather
+  than executing inline.
 - **woostack-eval (comparative dispatch):** submit the candidate and baseline as two isolated
   `@subagent` workers in the same parallel dispatch, keeping every inseparable pair intact.
   Pin the same concrete model on both calls. `session-default` is provable only when the runtime

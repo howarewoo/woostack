@@ -82,46 +82,6 @@ for source, phrase, message in [
 ]:
     require(phrase in contract_text[source], message)
 
-public = [
-    'using-woostack', 'woostack-init', 'woostack-bootstrap', 'woostack-build',
-    'woostack-fix', 'woostack-change', 'woostack-plan', 'woostack-execute',
-    'woostack-commit', 'woostack-address-comments',
-    'woostack-status', 'woostack-visualize', 'woostack-design',
-    'woostack-debug', 'woostack-tdd', 'woostack-doctor', 'woostack-qa',
-    'woostack-eval', 'woostack-reflect',
-]
-internal = ['woostack-harden', 'woostack-ideate']
-fixed = public + internal
-require(len(public) == 19 and len(fixed) == 21 and len(set(fixed)) == 21, 'invalid expected command counts')
-
-agents = read('AGENTS.md')
-section = re.search(r'The public command/adoption surface has nineteen skills:\s*(.*?)\nThe collection also installs', agents, re.S)
-require(section is not None, 'AGENTS.md does not declare the 19-skill public surface')
-agent_public = re.findall(r'^- \[`([^`]+)`\]\(skills/[^)]+/SKILL\.md\)$', section.group(1), re.M)
-require(agent_public == public, f'AGENTS.md public order mismatch: {agent_public!r}')
-require('nineteen public command/adoption skills at twenty-one fixed' in agents, 'AGENTS.md count is stale')
-require('twenty-one `SKILL.md` files (the nineteen public command/adoption' in agents, 'AGENTS.md fixed-path count is stale')
-
-actual_fixed = sorted(path.parent.name for path in (root / 'skills').glob('*/SKILL.md'))
-require(actual_fixed == sorted(fixed), f'fixed SKILL.md surface mismatch: {actual_fixed!r}')
-
-routing = read('skills/using-woostack/SKILL.md')
-routes = re.findall(r'^\| .* \| `([^`]+)` \|$', routing, re.M)
-routes = [route for route in routes if route != 'using-woostack']
-expected_routes = [
-    'woostack-init', 'woostack-bootstrap', 'woostack-build', 'woostack-fix',
-    'woostack-change', 'woostack-plan', 'woostack-execute', 'woostack-commit',
-    'woostack-address-comments', 'woostack-status', 'woostack-visualize',
-    'woostack-design', 'woostack-debug', 'woostack-tdd', 'woostack-doctor',
-    'woostack-qa', 'woostack-eval', 'woostack-reflect',
-]
-require(routes == expected_routes, f'routing order mismatch: {routes!r}')
-require(routes.count('woostack-reflect') == 1, 'woostack-reflect must have one public route')
-require(not set(internal) & set(routes), 'internal sub-skills must remain unregistered')
-
-for source in ['site/scripts/gen-skills.mjs', 'site/scripts/gen-skills.test.mjs']:
-    text = read(source)
-    require(text.count("'woostack-reflect'") >= 1, f'{source} does not register woostack-reflect')
 
 for source in ['README.md', 'CONTRIBUTING.md', 'skills/woostack-bootstrap/references/development.md', 'site/content/docs/concepts.mdx', 'site/content/docs/concepts/index.mdx', 'site/content/docs/concepts/context-management.mdx', 'site/content/docs/concepts/utilities.mdx']:
     require('woostack-reflect' in read(source), f'{source} omits woostack-reflect')

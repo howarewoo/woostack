@@ -10,7 +10,7 @@ This is a published collection of skills, not an application codebase. It packag
 decisions for building new web, mobile, and API projects so agents can install it with
 `pnpx skills add howarewoo/woostack`.
 
-The public command/adoption surface has nineteen skills:
+The public command/adoption surface has twenty skills:
 
 - [`using-woostack`](skills/using-woostack/SKILL.md)
 - [`woostack-init`](skills/woostack-init/SKILL.md)
@@ -19,6 +19,7 @@ The public command/adoption surface has nineteen skills:
 - [`woostack-fix`](skills/woostack-fix/SKILL.md)
 - [`woostack-change`](skills/woostack-change/SKILL.md)
 - [`woostack-plan`](skills/woostack-plan/SKILL.md)
+- [`woostack-orchestrate`](skills/woostack-orchestrate/SKILL.md)
 - [`woostack-execute`](skills/woostack-execute/SKILL.md)
 - [`woostack-commit`](skills/woostack-commit/SKILL.md)
 - [`woostack-address-comments`](skills/woostack-address-comments/SKILL.md)
@@ -36,7 +37,7 @@ The collection also installs two internal sub-skills:
 [`woostack-ideate`](skills/woostack-ideate/SKILL.md) and
 [`woostack-harden`](skills/woostack-harden/SKILL.md). `woostack-build` delegates its ideate
 phase to the former and its harden phase to the latter. Both are bundled building blocks, not
-`/woostack-*` commands: they have no routing row and are absent from the nineteen-skill command
+`/woostack-*` commands: they have no routing row and are absent from the twenty-skill command
 surface above.
 
 There is no application source code, app lockfile, build, or CI for this repo's own
@@ -96,6 +97,12 @@ selected exact GitHub issue permits only the read-only `gh` admission defined in
 `artifacts.provider` local or omitted. That exception does not select artifact mirroring or authorize
 work. Handoff, replanning, and blockers leave project status unchanged.
 
+Explicit [`woostack-orchestrate`](skills/woostack-orchestrate/SKILL.md) execution selects either one
+GitHub specification parent with native task children or one configured GitHub Project. Parent-issue
+execution does not require provider mirroring or Project configuration. Orchestrate owns scheduling
+and independent post-submission validation; each Execute worker owns one task's delivery through
+Commit. This does not change Build/Fix handoff or grant merge authority.
+
 External engineers such as Hermes are outside the installed woostack host/runtime surface. Hermes
 may drive one persistent OMP session as an external decision-maker and reviewer, but woostack is
 installed only in OMP or another coding harness. When Hermes participates in an active conversation,
@@ -104,7 +111,7 @@ retained unchanged local run artifacts does not require the original process to 
 contract lives in the authored [Hermes guide](site/content/docs/hermes.mdx); it does not make Hermes a supported host
 or grant it implementation authority.
 
-This collection still has nineteen public command/adoption skills at twenty-one fixed `SKILL.md`
+This collection has twenty public command/adoption skills at twenty-two fixed `SKILL.md`
 locations. Remote provider support adds neither a command-routing row nor a per-provider skill.
 ## Modes
 
@@ -117,7 +124,7 @@ do not add application code, app build configs, or app lockfiles **outside the s
 `site/` is also Mode A.
 
 **Mode B: run a woostack command.** Use this when the user asks for `/woostack-init`,
-`/woostack-bootstrap`, `/woostack-build`, `/woostack-fix`, `/woostack-change`, `/woostack-plan`, `/woostack-execute`, `/woostack-commit`,
+`/woostack-bootstrap`, `/woostack-build`, `/woostack-fix`, `/woostack-change`, `/woostack-plan`, `/woostack-orchestrate`, `/woostack-execute`, `/woostack-commit`,
 `/woostack-address-comments`, `/woostack-status`, `/woostack-visualize`, `/woostack-design`, `/woostack-debug`,
 `/woostack-tdd`, `/woostack-doctor`, `/woostack-qa`, `/woostack-eval`, or `/woostack-reflect`, including intent-equivalent wording. Load the matching skill
 before acting. For bootstrap work, the output belongs in a fresh repo in a different
@@ -169,7 +176,7 @@ the repository's simplify/comments guidance.
   pages need no manual edit: they regenerate from each `SKILL.md` at build time (see the
   documentation-site exception above). When in doubt, run `pnpm -C site build` to confirm the
   site still builds.
-- Do not move or rename any of the twenty-one `SKILL.md` files (the nineteen public command/adoption
+- Do not move or rename any of the twenty-two `SKILL.md` files (the twenty public command/adoption
   skills plus internal `woostack-ideate` and `woostack-harden`).
 - Do not rename files under
   [`skills/woostack-bootstrap/references/`](skills/woostack-bootstrap/references/) without
@@ -192,6 +199,8 @@ the repository's simplify/comments guidance.
   [`skills/woostack-change/SKILL.md`](skills/woostack-change/SKILL.md)
 - Plan-writing engine for the build loop (public command):
   [`skills/woostack-plan/SKILL.md`](skills/woostack-plan/SKILL.md)
+- GitHub parent-issue or explicit Project orchestration (public command):
+  [`skills/woostack-orchestrate/SKILL.md`](skills/woostack-orchestrate/SKILL.md)
 - Bounded task execution engine delivering one task through one PR (public command):
   [`skills/woostack-execute/SKILL.md`](skills/woostack-execute/SKILL.md)
 - Exploratory browser QA engine (public command; drives a running app via the `agent-browser`

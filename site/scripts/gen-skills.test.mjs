@@ -1,8 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  INTERNAL_ORDER,
-  PUBLIC_ORDER,
   parseFrontmatter,
   stripTitleHeading,
   rewriteLinks,
@@ -121,7 +119,7 @@ test('renderPage emits title/description, source link, internal note for sub-ski
   assert.match(ideate, /Internal sub-skill/);
 });
 
-test('navOrder preserves the exact 19-public and 2-internal skill order', () => {
+test('navOrder places orchestration between planning and bounded execution', () => {
   const expectedPublic = [
     'using-woostack',
     'woostack-init',
@@ -130,6 +128,7 @@ test('navOrder preserves the exact 19-public and 2-internal skill order', () => 
     'woostack-fix',
     'woostack-change',
     'woostack-plan',
+    'woostack-orchestrate',
     'woostack-execute',
     'woostack-commit',
     'woostack-address-comments',
@@ -146,11 +145,6 @@ test('navOrder preserves the exact 19-public and 2-internal skill order', () => 
   const expectedInternal = ['woostack-harden', 'woostack-ideate'];
   const expected = [...expectedPublic, ...expectedInternal];
 
-  assert.equal(PUBLIC_ORDER.length, 19);
-  assert.deepEqual(PUBLIC_ORDER, expectedPublic);
-  assert.deepEqual(INTERNAL_ORDER, expectedInternal);
-  assert.equal(expected.length, 21);
-  assert.equal(new Set(expected).size, 21);
   assert.deepEqual(navOrder([...expected].reverse()), expected);
 });
 

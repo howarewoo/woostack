@@ -27,6 +27,7 @@ This guide covers common edits. Read [AGENTS.md](AGENTS.md) for the full reposit
 | Change requirements gathering (Ideate) | `skills/woostack-ideate/SKILL.md` |
 | Change the check of requirements against the repository (Harden) | `skills/woostack-harden/SKILL.md` |
 | Change the plan phase (the build loop's planning step) | `skills/woostack-plan/SKILL.md` |
+| Change GitHub issue-graph dispatch and stacked delivery | `skills/woostack-orchestrate/SKILL.md`, `skills/woostack-orchestrate/scripts/` |
 | Change the execute phase (the build loop's implementation step) | `skills/woostack-execute/SKILL.md` |
 | Change browser-based app checks (`/woostack-qa`) | `skills/woostack-qa/SKILL.md`, `skills/woostack-qa/references/` |
 | Change skill evaluation (`/woostack-eval`) | `skills/woostack-eval/SKILL.md`, `skills/woostack-eval/references/`, `skills/woostack-eval/scripts/` |

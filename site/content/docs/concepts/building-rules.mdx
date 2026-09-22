@@ -36,6 +36,9 @@ mirrors never select it automatically. Its native parent hierarchy only groups t
 distinct from `blocked-by` edges and Git branch ancestry; the parent is never a task, dependency
 endpoint, execution, or PR, and unsupported nested or partial hierarchy fails closed.
 Execute accepts one selected bounded task under its [admission contract](/docs/skills/woostack-execute#admit-one-task), not a whole plan.
+An explicit [Orchestrate](/docs/skills/woostack-orchestrate) invocation selects a GitHub parent issue
+or Project and dispatches ready tasks to Execute. Unlike parent-issue planning, parent-issue
+execution requires no provider-mirror configuration.
 
 Build and project-backed Fix use the
 [verified handoff](/docs/skills/woostack-build#verified-handoff). The user sees the complete artifacts
@@ -58,7 +61,8 @@ integration branch's tip has changed since planning, the user must choose what t
 - Each active task has one branch, one collision-safe worktree, one allowed set of paths, and
   one current head commit.
 - Focused checks, a smoke test of the changed behavior, and comparison against the approved task
-  precede delivery. Implementation subagents and independent validators are optional.
+  precede delivery. Orchestrate requires delivery-capable Execute subagents and independent
+  post-submission specification validation before releasing dependents.
 - Git and GitHub prove parent-child branch relationships, PRs, commits, reviews, and merge
   state. Graphite supplies additional stack evidence only when selected. Required repository checks remain
   mandatory delivery gates; non-required available CI checks are observation-only.

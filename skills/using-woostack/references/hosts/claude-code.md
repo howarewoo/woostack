@@ -5,7 +5,7 @@
 The `Task` tool with named subagent profiles (`general-purpose` is the plain worker) and a
 per-call `model` parameter; project rules load from `CLAUDE.md`.
 Discover official Linear or Plane MCP tools exposed via Claude Code MCP configuration (`mcp__linear_*` or
-`mcp__plane_*`) or host-authenticated GitHub CLI (`gh`), selected strictly by `artifacts.provider`. Never use custom HTTP/REST/GraphQL
+`mcp__plane_*`) or host-authenticated GitHub CLI (`gh`) under the selected workflow's artifact admission. Never use custom HTTP/REST/GraphQL
 transport or fallback tokens. Artifact operations follow the canonical
 [artifact backends contract](../../../woostack-init/references/artifact-backends.md).
 
@@ -42,6 +42,13 @@ to entry 0, or re-run after editing config).
   is the normal path here.
 - **woostack-commit (fast drafting):** route the drafting subagent at the `fast` tier
   per-call.
+- **woostack-orchestrate (parallel dispatch):** for each schedule packet, dispatch one
+  delivery-capable `general-purpose` worker through `Task` with the prompt worktree pin. Pass
+  `workspace`, `branch`, `parent_branch`, `parent_sha`, child issue URL, and packet
+  `bounded_input`/`acceptance`/`checks` as the complete Execute contract. Clamp `effective_cap`
+  to host capability, batch and refill as workers complete; the self-pin guard applies per worker.
+  A serialize-only mode runs at concurrency one with a clear notice; without `Task`, block rather
+  than executing inline.
 - **woostack-eval (comparative dispatch):** place both isolated `general-purpose` workers for
   each candidate/baseline inseparable pair in the same `Task` dispatch turn, alongside other
   intact pairs within capacity. Pin the same concrete `model` (and exposed effort) on both

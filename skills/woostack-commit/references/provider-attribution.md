@@ -24,7 +24,11 @@ independently read its native identity, current title/body/comments needed for a
 and claimed canonical repository. Verify it is an issue rather than a PR, matches the active canonical
 repository, and agrees with the bounded task. Do not discover Projects, status fields, graph relations,
 siblings, assignments, or lifecycle state. This path requires no provider profile or project
-configuration.
+configuration. A verified native sub-issue of an explicitly selected Orchestrate specification
+parent is valid task context: accept it with only this exact read-only child identity, regardless of its
+non-null native parent state; never normalize it to parentless, require the parent issue as a second
+association, or reference that parent as the PR's closing issue. Keep hierarchy discovery and scheduling
+outside Execute and Commit.
 
 For an exact Linear issue or Plane work item, resolve only the caller-supplied resource through the
 selected official MCP and provider profile, then independently read its native/stable identity, current
@@ -41,8 +45,9 @@ blocks only association/synchronization unless the caller explicitly made it par
 Artifact-free PRs have no provider reference requirement. For an exact caller-supplied issue or
 work item, add one `Resolves <issue identifier>` line to the PR body (for example `Resolves WOO-144`
 for Linear, `Resolves PROJ-144` / canonical readable identifier for Plane, or `Resolves https://github.com/owner/repo/issues/42`
-for GitHub). Use the canonical independently read closing identifier from the verified artifact.
-Preserve existing PR text. Do not add a project reference. The closing keyword lets the repository's provider
+for GitHub). Use the canonical independently read closing identifier from the verified exact child or
+work item the PR implements, never the Orchestrate specification parent. Preserve existing PR text.
+Do not add a project reference. The closing keyword lets the repository's provider
 integration move the associated issue or work item to its configured merged state only after the PR
 merges; it does not itself prove lifecycle state, authority, ownership, acceptance, or merge.
 Preserve existing human-authored PR content.

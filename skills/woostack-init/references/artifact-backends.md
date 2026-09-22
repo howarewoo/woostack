@@ -18,7 +18,7 @@ Every Build and project-backed Fix allocates or resumes exactly one local run. A
 exact run only by its run ID; fuzzy names, recent history, titles, branch names, and search ranking are
 never selection mechanisms.
 
-`artifacts.provider` gates every provider call made for development artifacts.
+`artifacts.provider` gates development-artifact calls except the explicitly selected GitHub scopes below.
 
 When it is `"local"` or omitted:
 
@@ -29,6 +29,9 @@ When it is `"local"` or omitted:
   [exact GitHub issue admission](../../woostack-change/SKILL.md#admit-an-exact-github-issue) is a
   read-only host-authenticated `gh` exception that remains available with local/omitted
   `artifacts.provider`; it does not select artifact mirroring or require project configuration.
+- explicit Orchestrate parent-issue execution uses host-authenticated `gh` for its admitted hierarchy
+  and verified child delivery notes under the [Orchestrate lifecycle boundary](artifact-providers/github.md#orchestrate-lifecycle-boundary);
+  it does not select a Project, another provider, or provider mirroring.
 
 Legacy `linear.saveArtifacts` configurations are rejected with explicit migration guidance to
 `artifacts.provider` and the selected provider configuration.
@@ -349,6 +352,10 @@ or PR-base safeguards, and never authorizes silently rebasing, resetting, or rec
 For a non-root task, the caller supplies every declared prerequisite's delivered checkpoint,
 commit, canonical PR head/base, reviews, and available current-head checks as complete parent-readiness
 evidence; the bounded task verifies them as ordinary evidence rather than discovering dependencies.
+
+For Orchestrate stacked delivery, a prerequisite PR need not be merged when the supplied concrete
+parent branch/SHA is independently verified to contain that prerequisite's admitted changes; merge
+authority remains human-only and no integration branch is created automatically.
 Keep that logical prerequisite set separate from the exactly one concrete Git parent used for checkout.
 Apply the selected profile's parent-selection policy and require recorded parent-branch/SHA ancestry
 proof that contains every required predecessor before dispatch. A join without that proof records the
