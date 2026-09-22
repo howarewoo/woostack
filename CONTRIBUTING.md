@@ -35,7 +35,7 @@ This guide covers common edits. Read [AGENTS.md](AGENTS.md) for the full reposit
 | Change the systematic-debugging behavior (`/woostack-debug`) | `skills/woostack-debug/SKILL.md` |
 | Change test-writing guidance or the add-tests command | `skills/woostack-tdd/SKILL.md` |
 | Change how review comments are addressed | `skills/woostack-address-comments/SKILL.md` |
-| Change the status board / feature-state conventions | `skills/woostack-status/SKILL.md`, `skills/woostack-status/references/conventions.md`, `skills/woostack-status/scripts/` |
+| Change the status board / feature-state conventions | `skills/woostack-status/SKILL.md`, `skills/woostack-status/references/conventions.md` |
 | Change workspace checks and repairs (`/woostack-doctor`) | `skills/woostack-doctor/SKILL.md` |
 | Update agent instructions (Claude or any) | `AGENTS.md` (`.claude/CLAUDE.md` is a symlink to it) |
 | Update reader-facing guides | `site/content/docs/` |

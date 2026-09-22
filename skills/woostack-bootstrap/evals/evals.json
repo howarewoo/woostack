@@ -3,6 +3,7 @@
   "skill": "woostack-bootstrap",
   "cases": [
     {
+
       "id": "routes-bounded-brownfield-before-bootstrap",
       "prompt": "Classify this request using the packaged woostack-bootstrap routing contract. Do not call a provider, use the network, invoke Git, or access/write the workspace. The user has an existing production repository and asks to change one cache configuration file so a default TTL becomes configurable. Nothing is broken, the work is bounded, and it fits one reviewable pull request. Return exactly one JSON object with keys route, reasonCode, bootstrapStarted, designStarted, mcpPreflightStarted.",
       "capabilities": [
