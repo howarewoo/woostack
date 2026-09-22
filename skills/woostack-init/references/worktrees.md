@@ -82,9 +82,13 @@ Git parent for checkout: a declared predecessor or an explicitly approved integr
 containing every prerequisite change. The integration parent need not represent a predecessor task.
 The caller supplies the prerequisite and parent-readiness evidence; the bounded task verifies it as
 ordinary evidence rather than discovering dependencies.
-Require that parent's canonical branch identity, complete delivery checkpoint, commit, canonical PR
-identity/head/base, fully paginated current-head reviews, merge state, and approved parent ancestry
-to agree; the selected parent branch and SHA must contain every required predecessor change.
+For every prerequisite, require its complete delivery checkpoint, branch/commit, canonical PR
+identity/head/base, fully paginated current-head reviews, merge state, and approved ancestry to agree.
+Independently verify the concrete parent's canonical branch/SHA and ancestry containing every required
+predecessor change. A predecessor parent retains its prerequisite PR evidence. An approved integration
+parent need not have its own delivery checkpoint or PR; verify its canonical PR head/base, reviews,
+and merge state whenever such a PR exists. Proven absence of an integration-parent PR is not missing
+prerequisite evidence.
 Read available checks for
 observation only (incomplete or unavailable check reads never block). Apply the shared repository
 advancement contract before using a newly observed descendant head for fresh child work. Start

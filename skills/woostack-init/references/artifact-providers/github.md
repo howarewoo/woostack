@@ -70,9 +70,11 @@ delivered predecessor branches or an explicitly approved integration parent at d
 Orchestrate resolves that parent for graph dispatch; a caller selecting one bounded task supplies
 the parent and readiness evidence. Plan never chooses it speculatively or creates an integration
 branch or artificial chain.
-One verified parent must contain all required predecessor changes, proved by delivered branch,
-commit/SHA, canonical PR head/base, and merge-state evidence. A join lacking that proof
-remains valid but pauses that issue for an explicit parent/integration decision before dispatch.
+One verified parent must contain all required predecessor changes. The
+[parent-admission contract](../worktrees.md#plan-dependency-child) requires canonical branch/SHA
+ancestry and every prerequisite's complete delivery evidence; an integration parent's own PR evidence
+is required only when that PR exists. A join lacking the required proof remains valid but pauses that
+issue for an explicit parent/integration decision before dispatch.
 
 Ordinal edits never change edges. Existing chain edges are preserved unless the approved specification
 explicitly changes them; never add or remove edges to match ordinal adjacency. Preserve unrelated issue

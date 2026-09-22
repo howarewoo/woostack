@@ -84,10 +84,11 @@ normalize back into the same order with both endpoints verified. Stable ordinals
 tie-breaking, not dependencies or Git ancestry. Existing chain edges are preserved unless the approved plan explicitly changes them.
 
 Each root records its approved integration parent. Dependents record their prerequisites and a
-parent-selection policy; a concrete Git parent and SHA require verified delivered-branch evidence
-(branch, commit/SHA, canonical PR head/base, merge state). The parent may be a declared predecessor
-or an explicitly approved integration branch/SHA containing every prerequisite change; the latter
-need not itself be a predecessor task. Before checkout, the caller selecting a bounded task must
+parent-selection policy. The concrete parent may be a declared predecessor or an explicitly approved
+integration branch/SHA containing every prerequisite change. The latter need not itself be a
+predecessor task or have its own PR: verify canonical branch/SHA ancestry and every prerequisite's
+complete delivery evidence, plus the integration parent's PR evidence whenever that PR exists.
+Before checkout, the caller selecting a bounded task must
 supply that parent and complete prerequisite-readiness evidence under the
 [worktree contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/worktrees.md#plan-dependency-child).
 A join without one parent containing all required changes remains valid but cannot run until an
