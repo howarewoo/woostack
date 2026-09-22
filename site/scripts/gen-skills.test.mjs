@@ -11,11 +11,11 @@ import {
 
 
 test('parseFrontmatter extracts name + description and returns the body', () => {
-  const raw = '---\nname: woostack-build\ndescription: Use when building a feature.\n---\n\n# woostack-build\n\nbody';
-  const { fm, body } = parseFrontmatter(raw, 'woostack-build');
-  assert.equal(fm.name, 'woostack-build');
-  assert.equal(fm.description, 'Use when building a feature.');
-  assert.match(body, /# woostack-build/);
+  const raw = '---\nname: woostack-prepare\ndescription: Prepare a feature.\n---\n\n# woostack-prepare\n\nbody';
+  const { fm, body } = parseFrontmatter(raw, 'woostack-prepare');
+  assert.equal(fm.name, 'woostack-prepare');
+  assert.equal(fm.description, 'Prepare a feature.');
+  assert.match(body, /# woostack-prepare/);
 });
 
 test('parseFrontmatter throws when name is missing', () => {
@@ -50,14 +50,14 @@ test('parseFrontmatter rejects colon-space in a plain description deterministica
 });
 
 test('stripTitleHeading removes only the first exact "# <name>" H1', () => {
-  const body = '\n# woostack-build\n\n## Overview\n\n# woostack-build\n';
-  const out = stripTitleHeading(body, 'woostack-build');
-  assert.equal((out.match(/^# woostack-build$/gm) || []).length, 1); // one removed, one stays
+  const body = '\n# woostack-prepare\n\n## Overview\n\n# woostack-prepare\n';
+  const out = stripTitleHeading(body, 'woostack-prepare');
+  assert.equal((out.match(/^# woostack-prepare$/gm) || []).length, 1); // one removed, one stays
   assert.match(out, /## Overview/);
 });
 
 test('rewriteLinks maps skill links to routes, refs to GitHub, leaves absolute/anchors', () => {
-  const r = (s) => rewriteLinks(s, 'woostack-build');
+  const r = (s) => rewriteLinks(s, 'woostack-plan');
   assert.equal(r('see [plan](../woostack-plan/SKILL.md)'), 'see [plan](/docs/skills/woostack-plan)');
   assert.equal(r('[a](../woostack-plan/SKILL.md#x)'), '[a](/docs/skills/woostack-plan#x)');
   assert.equal(
@@ -65,8 +65,8 @@ test('rewriteLinks maps skill links to routes, refs to GitHub, leaves absolute/a
     '[wt](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/worktrees.md)'
   );
   assert.equal(
-    r('[self](references/linear-procedure.md)'),
-    '[self](https://github.com/howarewoo/woostack/blob/main/skills/woostack-build/references/linear-procedure.md)'
+    r('[self](references/github-procedure.md)'),
+    '[self](https://github.com/howarewoo/woostack/blob/main/skills/woostack-plan/references/github-procedure.md)'
   );
   assert.equal(r('[ext](https://example.com)'), '[ext](https://example.com)');
   assert.equal(r('[here](#section)'), '[here](#section)');
@@ -105,13 +105,13 @@ test('neutralizeTags: block tag -> Callout, prose tag escaped, code-span/fence p
 });
 
 test('renderPage emits title/description and source links for public phases', () => {
-  const fm = { name: 'woostack-build', description: 'Build a feature: end to end.' };
-  const page = renderPage('woostack-build', fm, '## Overview\n\nbody');
-  assert.match(page, /^---\ntitle: woostack-build\n/);
-  assert.match(page, /description: "Build a feature: end to end\."/); // JSON-quoted, colon-safe
+  const fm = { name: 'woostack-prepare', description: 'Prepare a feature: end to end.' };
+  const page = renderPage('woostack-prepare', fm, '## Overview\n\nbody');
+  assert.match(page, /^---\ntitle: woostack-prepare\n/);
+  assert.match(page, /description: "Prepare a feature: end to end\."/); // JSON-quoted, colon-safe
   assert.match(
     page,
-    /\[View source on GitHub\]\(https:\/\/github\.com\/howarewoo\/woostack\/blob\/main\/skills\/woostack-build\/SKILL\.md\)/
+    /\[View source on GitHub\]\(https:\/\/github\.com\/howarewoo\/woostack\/blob\/main\/skills\/woostack-prepare\/SKILL\.md\)/
   );
   assert.doesNotMatch(page, /Internal sub-skill/);
 
@@ -121,15 +121,14 @@ test('renderPage emits title/description and source links for public phases', ()
   assert.doesNotMatch(harden, /Internal sub-skill/);
 });
 
-test('navOrder places public planning phases before build and orchestration', () => {
+test('navOrder places public planning phases before orchestration', () => {
   const expectedPublic = [
     'using-woostack',
     'woostack-init',
     'woostack-bootstrap',
     'woostack-ideate',
     'woostack-harden',
-    'woostack-build',
-    'woostack-fix',
+    'woostack-prepare',
     'woostack-change',
     'woostack-plan',
     'woostack-orchestrate',

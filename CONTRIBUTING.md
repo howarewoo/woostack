@@ -2,8 +2,8 @@
 
 This repo publishes skills for AI coding assistants, their supporting files, and a documentation
 site. [AGENTS.md](AGENTS.md#what-this-repo-is) lists the public commands, including the standalone
-Ideate and Harden phases. The [command index](skills/using-woostack/SKILL.md#command-routing) explains
-when to use each one.
+Ideate, Harden, and planning-only Prepare phases. The [command index](skills/using-woostack/SKILL.md#command-routing)
+explains when to use each one.
 
 This guide covers common edits. Read [AGENTS.md](AGENTS.md) for the full repository rules.
 
@@ -22,14 +22,13 @@ This guide covers common edits. Read [AGENTS.md](AGENTS.md) for the full reposit
 | Update the branching model | `skills/woostack-bootstrap/references/development.md` |
 | Refine the bootstrap procedure | `skills/woostack-bootstrap/references/bootstrap.md` |
 | Change the bootstrap skill entry / discovery description | `skills/woostack-bootstrap/SKILL.md` |
-| Change requirements, planning, or the choice to start execution | `skills/woostack-build/SKILL.md` |
-| Change bug diagnosis, fix approval, or delivery | `skills/woostack-fix/SKILL.md` |
+| Prepare a feature or proved defect for issue planning | `skills/woostack-prepare/SKILL.md` |
 | Change the one-PR enhancement or refactor workflow | `skills/woostack-change/SKILL.md` |
 | Change requirements gathering (Ideate) | `skills/woostack-ideate/SKILL.md` |
 | Change the check of requirements against the repository (Harden) | `skills/woostack-harden/SKILL.md` |
-| Change the plan phase (the build loop's planning step) | `skills/woostack-plan/SKILL.md` |
+| Change the Plan publisher and issue graph contract | `skills/woostack-plan/SKILL.md` |
 | Change GitHub issue-graph dispatch and stacked delivery | `skills/woostack-orchestrate/SKILL.md`, `skills/woostack-orchestrate/scripts/` |
-| Change the execute phase (the build loop's implementation step) | `skills/woostack-execute/SKILL.md` |
+| Change the execute phase implementation step | `skills/woostack-execute/SKILL.md` |
 | Change browser-based app checks (`/woostack-qa`) | `skills/woostack-qa/SKILL.md`, `skills/woostack-qa/references/` |
 | Change skill evaluation (`/woostack-eval`) | `skills/woostack-eval/SKILL.md`, `skills/woostack-eval/references/`, `skills/woostack-eval/scripts/` |
 | Change session reflection (`/woostack-reflect`) | `skills/woostack-reflect/SKILL.md`, `skills/woostack-reflect/scripts/` |
@@ -68,9 +67,10 @@ no-application-code rule. Its [README](site/README.md) covers local development 
 - Resolve package versions from the registry when needed (`npm view <pkg> version`).
   Name frameworks without versions, except where a known incompatibility requires a pin in
   `skills/woostack-bootstrap/references/frameworks.md`.
-- Keep plan storage, optional remote copies, and recovery rules in the
+- Keep surviving provider configuration and historical record handling in the
   [artifact contract](skills/woostack-init/references/artifact-backends.md).
-  Link to the relevant provider profile for Linear, Plane, or GitHub details.
+  Link to the relevant provider profile for Linear, Plane, or GitHub details; Prepare and Plan do
+  not require those providers.
 - Use tables to compare options and numbered lists for steps.
 - Keep examples short. Skills explain the workflow; project-local docs cover project details.
 - Link to the document that owns a fact instead of repeating it elsewhere.

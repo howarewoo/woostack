@@ -5,10 +5,10 @@ description: Public phase for turning a goal or existing specification into a co
 
 # woostack-ideate
 
-Ideate turns a goal, a partial specification, or a proved diagnosis into a complete specification
-through an explicit decision conversation. It is a public phase and may also be composed by Build,
-Fix, or a future preparation workflow. It does not own persistence, publication, implementation, or
-automatic handoff.
+`woostack-ideate` is the public specification phase. It is directly callable and is also composed by
+[`woostack-prepare`](../woostack-prepare/SKILL.md) for a feature or defect whose user-owned
+decisions are incomplete. It returns one complete plain packet; it does not create runs, publish
+issues, edit source, or invoke another phase.
 
 ## Command and input
 
@@ -16,13 +16,12 @@ automatic handoff.
 /woostack-ideate <goal-or-specification>
 ```
 
-Pass the complete plain packet described in
-[`planning-inputs.md`](../using-woostack/references/planning-inputs.md), including the exact
-repository and evidence identity when repository-grounded decisions or evidence are supplied. The
-content may be a goal, an existing specification, or a proved diagnosis. A caller may pass a prior
-handback verbatim. There is no required `--run`, project selector, provider configuration, or
-permission-restricted manifest. Build/Fix may adapt their retained run content into this packet;
-their local record remains their own persistence boundary, not Ideate admission.
+Callers pass a complete plain input packet with the goal or diagnosis, exact repository and evidence
+identity, known decisions, constraints, exclusions, and any retained content. A Prepare caller may
+start here with a goal; a direct caller may provide an existing specification. No writable checkout,
+provider, project, or permission-restricted run is required merely to elicit decisions. If an
+existing packet is complete and its settled choices are fresh, preserve them instead of repeating
+approval questions.
 
 When content or a material decision is missing, ask for that specific input. Establish repository
 and evidence identity through the shared input contract before relying on repository observations.

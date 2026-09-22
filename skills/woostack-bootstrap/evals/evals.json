@@ -8,7 +8,7 @@
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "Explicit approval precedes deterministic identity derivation and complete official-MCP discovery; exactly one managed feature project is created only after absence is proven; complete pre-append update pagination proves designApproved absent before one append/read-back that matches exact initial base intent; bounded early inspection grants no write authority and fresh post-approval and pre-write collision checks pass; scaffolding and the woostack-build handoff then receive the identical project identity with no local spec/plan, custom Linear call, or credential request.",
+      "expected": "Explicit approval precedes deterministic identity derivation and complete official-MCP discovery; exactly one managed feature project is created only after absence is proven; complete pre-append update pagination proves designApproved absent before one append/read-back that matches exact initial base intent; bounded early inspection grants no write authority and fresh post-approval and pre-write collision checks pass; scaffolding and the preparation handoff then receive the identical project identity with no local spec/plan, custom Linear call, or credential request.",
       "assertions": [
         {
           "id": "approved-flow-complete",
@@ -40,7 +40,7 @@
             "read-only-target-collision-check",
             "target-directory-create",
             "scaffold",
-            "handoff-to-woostack-build-with-exact-project-identity"
+            "handoff-to-preparation-with-exact-project-identity"
           ],
           "critical": true
         },

@@ -58,9 +58,10 @@ change while classifying or clarifying.
 Reject or reroute before any mutation:
 
 - a bug, regression, incident, production fault, or root-cause investigation goes to
-  [`woostack-fix`](../woostack-fix/SKILL.md);
+  [`woostack-debug`](../woostack-debug/SKILL.md) for diagnosis or
+  [`woostack-prepare`](../woostack-prepare/SKILL.md) for a proved issue graph;
 - work that needs multiple PRs, dependency increments, or coordinated phases goes to
-  [`woostack-build`](../woostack-build/SKILL.md); and
+  [`woostack-prepare`](../woostack-prepare/SKILL.md); and
 - genuinely greenfield creation goes to [`woostack-bootstrap`](../woostack-bootstrap/SKILL.md).
 
 Proceed only when the complete safe scope is a non-bug change that fits one PR. If the request

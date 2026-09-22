@@ -3,8 +3,8 @@
 This procedure is the single write/read-back path for `woostack-plan` in both direct and composed
 use. It publishes one approved specification as either an explicitly selected GitHub Project graph
 or one native GitHub specification parent with direct children and native `blocked-by` edges. A
-transitional Build/Fix caller may retain local run artifacts, but it does not own a second issue or
-relationship writer. The shared [artifact contract](../../woostack-init/references/artifact-backends.md)
+Prepare caller may retain packet artifacts, but it does not own a second issue or relationship
+writer. The shared [artifact contract](../../woostack-init/references/artifact-backends.md)
 and [GitHub profile](../../woostack-init/references/artifact-providers/github.md) own common identity,
 capability, recovery, and read-back invariants; [github-context.md](github-context.md) owns the
 optional Project baseline.
@@ -126,9 +126,9 @@ plan. Plan drafts the smallest coherent PR-sized candidate when one is not suppl
 complete candidate through the public Harden content interface once, and pauses for explicit user
 resolution of every material discrepancy. Harden is read-only and never calls Plan; Plan never calls
 Plan recursively. Publication starts only from Harden's complete handback with no unresolved
-questions. A transitional Build/Fix caller passes that same packet to Plan and records the returned
-publication evidence in its own retained artifacts if needed; it does not perform a draft-only Plan
-call or a second provider/mirror synchronization.
+questions. A Prepare caller passes that same packet to Plan and records the returned publication
+evidence if needed; it does not perform a draft-only Plan call or a second provider/mirror
+synchronization.
 
 Every boundary retains confirmed mutation identities, exact URLs/native IDs, and the last verified
 operation. A partial or unknown result returns confirmed parent/children and the missing links,

@@ -10,17 +10,17 @@
       "conflictsWith": ["woostack-debug"]
     },
     {
-      "id": "confirmed-qa-report-remediation-belongs-to-fix",
-      "query": "The browser defect is already reproduced and documented. Implement the bounded correction under the exact managed work-item at https://linear.app/acme/issue/11111111-1111-4111-8111-111111111111.",
+      "id": "confirmed-qa-report-remediation-belongs-to-prepare",
+      "query": "The browser defect is already reproduced and documented. Prepare the proved correction as a verified GitHub issue graph under the exact evidence identity; do not implement it.",
       "shouldTrigger": false,
-      "expectedSkill": "woostack-fix",
+      "expectedSkill": "woostack-prepare",
       "conflictsWith": ["woostack-qa"]
     },
     {
       "id": "local-qa-report-is-not-remediation-authority",
-      "query": "Take .woostack/qa/2026-07-27-onboarding.md as the acceptance contract and implement every recommendation now without creating or binding a Linear issue.",
+      "query": "Take .woostack/qa/2026-07-27-onboarding.md as evidence, independently prove the cause, and prepare any confirmed correction for issue planning without creating or binding a provider item.",
       "shouldTrigger": false,
-      "expectedSkill": "woostack-fix",
+      "expectedSkill": "woostack-prepare",
       "conflictsWith": ["woostack-qa"]
     }
   ]

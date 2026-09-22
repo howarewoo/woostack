@@ -1,0 +1,101 @@
+{
+  "schemaVersion": 1,
+  "skill": "woostack-prepare",
+  "cases": [
+    {
+      "id": "feature-composes-public-phases-and-plan",
+      "prompt": "Reason only from the recorded fixture feature.json. No live phase or GitHub operation has run in this evaluation; do not mutate files, contact remote services, or claim a simulated step was executed. The feature is new and no complete specification or published issue graph has been supplied. Explain the next phases, remaining evidence needed before publication, and the eventual stopping boundary.",
+      "fixtures": [
+        "feature.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "Use public Ideate and Harden, then the single public Plan publisher. Resolve missing material decisions and command/source evidence; do not invent an issue URL or describe publication as already performed. The eventual result is a verified parent/child/native-prerequisite handoff, never implementation.",
+      "assertions": [
+        {
+          "id": "feature-composes-public-phases-and-plan-boundary",
+          "kind": "qualitative",
+          "rubric": "Does the response use the public phases and sole Plan publisher, require complete approved decisions and independent native read-back before an Orchestrate-ready handoff, and refuse source changes, implementation dispatch, or invented publication results?",
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "proved-defect-reuses-diagnosis",
+      "prompt": "Reason only from the recorded fixture proved-bug.json. No live phase or GitHub operation has run in this evaluation; do not mutate files, contact remote services, or claim a simulated step was executed. A supplied Debug diagnosis has source and runtime evidence at the fixture revision. Explain what must be revalidated and how the correction reaches planning without repeating settled proof.",
+      "fixtures": [
+        "proved-bug.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "Reuse the diagnosis after scoped freshness/identity validation, carry the causal chain, correction and regression evidence into Harden and Plan, and stop at verified issues. Do not mechanically repeat Debug/Ideate, claim an unrun command passed, or implement the fix because the request says fix.",
+      "assertions": [
+        {
+          "id": "proved-defect-reuses-diagnosis-boundary",
+          "kind": "qualitative",
+          "rubric": "Does the response preserve and revalidate the supplied causal evidence without unnecessarily repeating proof or settled decisions, retain correction/verification scope, and keep Prepare planning-only with Plan-owned publication?",
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "missing-diagnosis-stops-before-publication",
+      "prompt": "Reason only from the recorded fixture missing-diagnosis.json. No live phase or GitHub operation has run in this evaluation; do not mutate files, contact remote services, or claim a simulated step was executed. The defect report has symptoms and a reproduction claim but no causal proof. Explain what can proceed and what must remain blocked.",
+      "fixtures": [
+        "missing-diagnosis.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "Return a diagnosis blocker and the evidence needed by read-only Debug; do not invent a correction contract, publish executable guessed work, mutate source, or schedule implementation.",
+      "assertions": [
+        {
+          "id": "missing-diagnosis-stops-before-publication-boundary",
+          "kind": "qualitative",
+          "rubric": "Does the response distinguish a symptom/report from proved cause, stop correction publication until the missing evidence is obtained, and reject guessed remediation and implementation?",
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "approved-input-revalidates-without-repeat",
+      "prompt": "Reason only from the recorded fixture approved-specification.json. No live phase or GitHub operation has run in this evaluation; do not mutate files, contact remote services, or claim a simulated step was executed. The specification decisions are settled and an exact existing parent is selected. The candidate task entries contain only IDs, outcomes and prerequisite IDs. Explain which settled work to reuse and what still prevents publication readiness.",
+      "fixtures": [
+        "approved-specification.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "Reuse approved decisions and the selected parent without repeated Ideate or a new approval gate. Harden/reconcile missing self-contained child contracts, command provenance and actual native identities; Plan owns any writes/read-back. Do not treat abbreviated task entries or logical IDs as verified native children.",
+      "assertions": [
+        {
+          "id": "approved-input-revalidates-without-repeat-boundary",
+          "kind": "qualitative",
+          "rubric": "Does the response preserve settled decisions and the exact parent while requiring complete fresh-worker contracts and verified native read-back, rather than inventing missing details, duplicate identities, or Orchestrate readiness?",
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "partial-publication-resumes-plan",
+      "prompt": "Reason only from the recorded fixture partial-publication.json. No live phase or GitHub operation has run in this evaluation; do not mutate files, contact remote services, or claim a simulated step was executed. A publication has confirmed a parent and one child, while another create identity and required relationships remain unknown. Explain the exact recovery boundary and whether execution is ready.",
+      "fixtures": [
+        "partial-publication.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "Preserve parent504 and child505 plus both creation markers. Resume Plan with discovery of the unknown child outcome and missing native relationships/read-back; do not replay known creates, allocate replacements, or present an Orchestrate command as ready.",
+      "assertions": [
+        {
+          "id": "partial-publication-resumes-plan-boundary",
+          "kind": "qualitative",
+          "rubric": "Does the response retain the confirmed identities, require duplicate-safe discovery and exact missing relationship verification through Plan, and withhold execution readiness rather than downgrade partial publication to a harmless warning?",
+          "critical": true
+        }
+      ]
+    }
+  ]
+}

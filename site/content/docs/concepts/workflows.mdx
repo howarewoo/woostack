@@ -1,12 +1,12 @@
 ---
 title: Workflow maps
-description: "Choose bounded delivery or a complete user-verified project workflow."
+description: "Choose preparation, bounded delivery, or a complete greenfield workflow."
 ---
 
 Start with the user's explicit goal. Change may also take an exact canonical GitHub issue URL as
 explicit issue-backed input. Bounded work fits one pull request (PR) and uses the agreed scope in the
-current conversation. Project-backed work keeps a local specification and ordered plan, with optional
-copies in a provider. Git and GitHub show what was implemented and delivered.
+current conversation. Prepared work ends at a verified GitHub issue graph. Git and GitHub show what
+was implemented and delivered.
 
 ## Routing by work shape
 
@@ -15,19 +15,19 @@ copies in a provider. Git and GitHub show what was implemented and delivered.
 | Fresh project in a new target | [Bootstrap](/docs/skills/woostack-bootstrap) |
 | Elicit or complete a specification | [Ideate](/docs/skills/woostack-ideate) |
 | Reconcile a specification or candidate issue plan | [Harden](/docs/skills/woostack-harden) |
-| Bug or regression to fix | [Fix](/docs/skills/woostack-fix) |
+| Root-cause investigation without a correction | [Debug](/docs/skills/woostack-debug) |
+| Feature or proved defect needing a verified issue graph | [Prepare](/docs/skills/woostack-prepare) |
 | Bounded non-bug work for one coherent PR | [Change](/docs/skills/woostack-change) |
-| Coordinated feature requiring a complete specification and plan | [Build](/docs/skills/woostack-build) |
+| Approved issue graph publication | [Plan](/docs/skills/woostack-plan) |
 
 Ideate and Harden are complete public phases, not hidden run steps. They accept plain packets with
-explicit repository/evidence identity and return reusable plain handbacks. Build and project-backed
-Fix may compose those phases through their own retained records, but no run, provider mirror, or
-wrapper admission is required for direct use. For root-cause investigation without changes, use
-[Debug](/docs/skills/woostack-debug).
+explicit repository/evidence identity and return reusable plain handbacks. Prepare composes Debug for
+defects, then Ideate, Harden, and Plan as needed; a complete input may start at the relevant phase
+without repeating settled approval. For root-cause investigation without changes, use Debug directly.
 
 Choosing a workflow does not approve its design or authorize extra work. If the scope grows, the
-workflow preserves repository state and reports where to resume. Work then moves to the matching
-workflow instead of silently expanding the agreed scope.
+workflow preserves repository state and reports where to resume. Work moves to the matching workflow
+instead of silently expanding the agreed scope.
 
 ## Bootstrap
 
@@ -37,86 +37,50 @@ approve design → refresh collision check → scaffold → run and verify
 ```
 
 Bootstrap is greenfield-only: it creates a new codebase. It writes nothing to the target before
-explicit design approval and a fresh check that the path is safe to create. After approval and
-that check, an exact Linear, Plane, or GitHub project may store the approved design when selected.
-The project record cannot authorize target writes.
+explicit design approval and a fresh check that the path is safe to create. After approval and that
+check, an exact Linear, Plane, or GitHub project may store the approved design when selected. The
+project record cannot authorize target writes.
 
-Validate a user-specified stack directly. Compare alternatives when an unresolved material tradeoff
-requires a choice; a stack preference is not approval of the complete design.
-
-## Build
+## Prepare
 
 ```text
-allocate/resume local run and admit baseline (if a remaining provider path needs it) → adapt plain
-input to public Ideate → adapt its complete handback to public Harden → write `project-spec.md`
-(and any remaining bounded Linear/Plane mirror sync) → for GitHub scope, invoke Plan's public
-Harden-backed direct publisher and read back the issue graph; for remaining provider paths, use their
-transitional procedure → write `execution-plan.md` → retain run artifacts → verified
-`Stop here`/`Execute`/`Abandon` handoff
+classify feature/defect → Debug defect evidence when needed → Ideate decisions when needed →
+Harden repository facts → Plan one native issue graph → independently read back → stop
 ```
 
-The user verifies the complete specification, including technical details, through Ideate and Harden.
-Those public phases can also run independently without Build or Fix. An increment is a piece of the
-plan that fits one independently reviewable PR. Each increment records its outcome, scope,
-acceptance criteria, verification, risks, prerequisites, and Git parent-selection policy.
+Use `/woostack-prepare <goal-or-defect> [--parent-issue new|<exact canonical parent URL>]` for
+planning-only preparation. Defects require observed/expected behavior, a causal chain, exact source
+or runtime evidence, a bounded correction, risks, and verification. A symptom or plausible theory
+blocks before Plan; Prepare never guesses a correction.
 
-The [artifact contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-backends.md)
-owns local run storage and optional provider profiles. Run IDs remain exact, artifacts are retained,
-and mirror failures do not replace or invalidate local authority. Build stops before automatic Execute
-dispatch; the caller supplies one selected complete bounded task to Execute.
+Prepare's public phases exchange complete plain packets. Plan is the sole publisher and supports one
+exact GitHub parent selector or one exact Project selector. It creates no source branch, worktree,
+commit, PR, implementation worker, local run, or provider mirror. It reports the verified parent,
+children, native prerequisite edges, and the separate next suggestion:
+`/woostack-orchestrate --issue <verified-parent-url>` (or the applicable Project command).
+Partial publication preserves exact confirmed identities and resumes Plan at the first unproved
+boundary; it is not Orchestrate-ready.
 
-## Fix
+## Plan and Orchestrate
 
-```text
-reproduce → prove cause → admit writable target → choose bounded or project-backed delivery
-```
-
-For an understood one-PR fix, present the complete diagnosis, correction, technical consequences,
-and verification for explicit approval. Then implement, verify, independently review, and submit the
-PR through [bounded delivery](https://github.com/howarewoo/woostack/blob/main/skills/woostack-change/references/bounded-delivery.md).
-No project manifest or artifact-provider call is needed.
-
-Multi-increment or materially uncertain fixes, explicit project/run context, explicitly required
-provider context, and requested coordinated persistence use the project-backed Build sequence. A
-configured provider alone does not force that route. Source issues provide context; they do not become
-execution plans or grant permission.
-
-### Project-backed handoff
-
-Build and project-backed Fix display the complete verified artifacts, run and task identities,
-dependencies, parent branch/tip, optional mirror status, and retained artifact paths, then stop.
-The user may stop, execute, or abandon in natural language. On `Execute`, the caller must select one
-complete bounded task and supply it to [woostack-execute](/docs/skills/woostack-execute#retired-inputs);
-there is no automatic dispatch. Ambiguous responses ask again; material scope changes return to
-explicit verification. The [Build handoff](/docs/skills/woostack-build#verified-handoff) owns the
-detailed transition and recovery rules.
-
-GitHub planning supports [prerequisite DAGs and parent-issue hierarchy](/docs/configuration/artifacts/github#identities-hierarchy-and-graph).
-Plan selects exactly one `--project` (explicit Project membership) or `--parent-issue new` or an
-exact parent issue URL (native parent/child issues). Parent mode needs only the exact canonical
-repository and native relationship capabilities; it needs no provider selector, Project, mirror, or
-Build/Fix run. Direct and composed Plan use one Harden reconciliation and one publisher. A caller may
-select one task for [bounded Execute admission](/docs/skills/woostack-execute#admit-one-task), or
-explicitly invoke [Orchestrate](/docs/skills/woostack-orchestrate) for a GitHub scope. Execute does
-not dispatch graphs.
-
-## Orchestrate
+Plan publishes the approved issue graph and independently reads every issue, hierarchy, and edge.
+The specification parent is a scope container, not an executable task or dependency endpoint.
+Ordinals never imply edges. A join without one verified parent containing every prerequisite remains a
+valid plan with an explicit execution-time integration decision.
 
 ```text
 /woostack-orchestrate --issue <canonical GitHub parent issue URL> [--max-parallel <positive integer>]
 /woostack-orchestrate --project <canonical GitHub Project URL> [--max-parallel <positive integer>]
 ```
 
-Select exactly one scope. The recommended ChatGPT-to-Codex handoff is a specification parent with
-native PR-sized children; this execution mode needs no Project or provider-mirror configuration.
-The parent supplies context, not an extra implementation task. Explicit Project execution retains
-its configured membership and lifecycle checks.
-
-Orchestrate keeps up to three delivery-capable Execute workers active by default, bounded by host
-capability. Verified submission and independent specification validation release dependents without
-waiting for a whole wave or a merge. A dependent PR targets its verified prerequisite branch; a join
-pauses if no permitted single parent contains all prerequisite changes. Unrelated tasks continue.
-The final result is submitted PRs awaiting review/merge, not closed issues or product acceptance.
+Orchestrate is a separate explicit command. Select exactly one scope. The specification parent with
+native PR-sized children needs no Project or provider-mirror configuration; explicit Project execution
+retains its configured membership and lifecycle checks. Orchestrate keeps up to three
+ delivery-capable Execute workers active by default, bounded by host capability. Verified submission
+and independent specification validation release dependents without waiting for a whole wave or a
+merge. A dependent PR targets its verified prerequisite branch; a join pauses if no permitted single
+parent contains all prerequisite changes. The final result is submitted PRs awaiting review/merge,
+not closed issues or product acceptance.
 
 ## Change
 
@@ -128,8 +92,7 @@ Change handles one bounded non-bug enhancement/refactor and has no hard approval
 goal-only request or an exact canonical GitHub issue input; either path still requires one coherent
 PR boundary, verification, smoke testing, and review. The goal-only path makes no artifact-provider
 calls. The issue-backed path performs the required read of the selected issue through host-authenticated
-`gh`; it requires no artifact-provider configuration, Project, mirror, or persisted plan. Use the canonical
-[Change skill](/docs/skills/woostack-change) for its supported syntax and admission/delivery rules:
+`gh`; it requires no artifact-provider configuration, Project, mirror, or persisted plan.
 
 ```text
 /woostack-change <goal>
@@ -138,12 +101,7 @@ calls. The issue-backed path performs the required read of the selected issue th
 
 ## Shared execution boundary
 
-> **Retired automatic handoff.** Build and project-backed Fix stop at retained artifacts; the caller
-> selects one complete bounded task and supplies it to
-> [woostack-execute](/docs/skills/woostack-execute#retired-inputs). Automatic Build/Fix-to-Orchestrate
-> handoff remains separate from an explicit Orchestrate invocation.
-
-Each bounded [woostack-execute](/docs/skills/woostack-execute) task then:
+Each bounded [woostack-execute](/docs/skills/woostack-execute) task:
 
 1. verifies the repository and base branch, then creates or resumes a collision-safe worktree for its task;
 2. implements inline or in an optional worker using the [delegation guidance](/docs/concepts/context-management#isolated-agents-receive-bounded-envelopes);
@@ -151,14 +109,16 @@ Each bounded [woostack-execute](/docs/skills/woostack-execute) task then:
 4. compares the complete uncommitted diff with the approved task;
 5. uses [woostack-commit](/docs/skills/woostack-commit) to submit its PR; and
 6. independently reads back the PR, its exact head and base, and its review state. Required repository
-   checks remain mandatory delivery gates; other available CI checks are reported for observation, and
-   their result or availability alone does not block delivery.
+   checks remain mandatory delivery gates; other available CI checks are observation-only.
 
-Separate bounded tasks may proceed concurrently only with disjoint
-worktrees, branches, and responsibility surfaces. An optional worker must stay within the admitted
-task; a workflow that owns delivery retains its normal boundaries, while an Execute implementation
-worker may use Execute's Commit path to submit its own admitted task PR rather than returning
-uncommitted work for a parent to deliver.
+Retired run/project/recheck inputs are rejected. A retained historical planning record is evidence
+only and must be converted by supplying one complete bounded task contract; Execute has no run
+controller or automatic graph dispatch.
+
+Separate bounded tasks may proceed concurrently only with disjoint worktrees, branches, and
+responsibility surfaces. An optional worker must stay within the admitted task; an Execute
+implementation worker may use Execute's Commit path to submit its own admitted task PR rather than
+returning uncommitted work for a parent to deliver.
 
 ## Review and corrections
 
@@ -173,9 +133,7 @@ independent safe work.
 
 ## Terminal outcomes
 
-Depending on the command, the result is a verified scaffold, a reviewable PR or reviewed stack,
-an approved handoff before implementation, or a blocker that states exactly where work can safely
-resume. Explicit abandonment preserves recoverable work and any retained run artifacts.
-
-No woostack workflow merges, marks a PR ready, enables auto-merge, or queues a PR for merge.
-Those decisions remain with the human.
+Depending on the command, the result is a verified scaffold, a verified issue graph, a reviewable PR
+or reviewed stack, or a blocker that states exactly where work can safely resume. Existing retained
+records remain unchanged. No woostack workflow merges, marks a PR ready, enables auto-merge, or queues
+a PR for merge. Those decisions remain with the human.

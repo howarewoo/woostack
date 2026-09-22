@@ -31,10 +31,9 @@ or token fallback is allowed.
 
 Resolve the exact configured `artifacts.plane.project` by URL or native UUID and independently verify
 its configured `baseUrl`, workspace, and canonical repository association before mutation. Never infer,
-select by name, or create a Plane project. Build and Fix attach their specification and increment
-work items to this exact project. Plan does not use Plane. Fix reaches proved root cause and verifies
-the writable target repository before project resolution. When `--project` is supplied, it must identify
-the same configured project; a mismatch fails closed before any mutation.
+select by name, or create a Plane project. Prepare and Plan do not use Plane; when `--project` is
+supplied to an explicit provider workflow, it must identify the same configured project and a mismatch
+fails closed before any mutation.
 
 Project description is never overwritten with feature specifications. Plane projects have native
 UUIDs and no assumed stable human-readable project identifier.
@@ -68,11 +67,10 @@ receipts retain native UUID and external identity separately.
 Every complete work-item read requests native UUID, readable identifier, repository, baseUrl,
 workspace, direct project membership, and parent.
 
-1. **Specification work items:** Build and Fix create one top-level specification work item in the
-   configured project named `[Build] <goal>` (for Build) or `[Fix] <goal>` (for Fix), with its full
-   specification content in its description and `parent = null`. It has separate native UUID,
-   readable identifier, and external identity. It binds to `mirror.specItem` in the manifest and never
-   enters `stableTaskMappings`.
+1. **Historical specification work items:** Retained provider records may reference one top-level
+   specification work item and its increment work items. New Prepare and Plan operations do not create
+   Plane work items or mirror packets. The references retain separate native UUID, readable identifier,
+   and external identity, and never become Execute task authority.
 2. **Increment work items:** Increment work items are created directly in the configured project as
    exact children of that specification work item (`parent = <spec-item-UUID>`). Each has direct
    project membership, preallocated external identity, native UUID, readable identifier, and its
@@ -108,8 +106,8 @@ unparented child increments from enrichment.
 
 Exact-source attribution and provenance distinguish:
 
-- **Specification parent:** `[Build] <goal>` or `[Fix] <goal>` (`parent = null`, URL or UUID)
-  represents specification provenance and aggregate delivery lifecycle;
+- **Specification parent:** a retained preparation goal (`parent = null`, URL or UUID) represents
+  specification provenance and aggregate delivery lifecycle;
 - **Child increment:** `parent = <spec-item-UUID>` (URL, UUID, or readable identifier such as `ENG-42`)
   represents exact increment task attribution and state.
 
@@ -118,9 +116,8 @@ Exact-source attribution and provenance distinguish:
 > **Retired.** Execute no longer accepts Plane work-item `--issue` scope, resolves Plane project
 > membership, mutates work-item states, runs a project/run controller, or closes provider resources.
 > Its only optional provider input is an exact canonical GitHub issue URL, read through `gh` and
-> associated by Commit. The retained Plane project/work-item/state schema and historical records
-> support Build/Fix mirroring only; see
-> [`woostack-execute`](../../../woostack-execute/SKILL.md#retired-inputs).
+> associated by Commit. The retained Plane project/work-item/state schema and historical records are
+> reference data only; see [`woostack-execute`](../../../woostack-execute/SKILL.md#retired-inputs).
 
 The configured Plane project remains repository association context; its status is never changed by
 woostack. Handoff, abandonment, blockers, and completion leave the project unchanged.
@@ -130,15 +127,13 @@ woostack. Handoff, abandonment, blockers, and completion leave the project uncha
 Legacy migration and doctor preserve existing local artifacts and remote Plane resources; they never
 rewrite, reparent, or migrate existing Plane projects or work items in place.
 
-When an incompatible retained Plane run manifest (e.g. from an older schema where project was treated as
-a per-feature spec, missing `specItem` in mirror metadata, or treating project as executable scope) is
-encountered during validation or resume, block with precise regeneration guidance: do not mutate or attempt
-to auto-migrate the retained run; instruct the user to regenerate the run via `/woostack-build <goal>` or
-`/woostack-fix <prompt>`.
+When an incompatible retained Plane run manifest (e.g. from an older schema where project was treated
+as a per-feature spec, missing `specItem` in mirror metadata, or treating project as executable scope)
+is encountered during validation or resume, block with precise regeneration guidance: do not mutate or
+attempt to auto-migrate the retained run. Reuse only after explicit identity and freshness validation.
 
 ## Workflow procedures
 
-Build and Fix use the detailed [Plane context](../../../woostack-build/references/plane-context.md)
-and [Plane synchronization procedure](../../../woostack-build/references/plane-procedure.md).
-Plan does not use this provider profile. Bootstrap and Commit retain their workflow gates and use this
-profile only for selected-provider identity, capability, mutation, and read-back behavior.
+No active Prepare or Plan path uses Plane publication procedures. Bootstrap and Commit retain their
+workflow gates and use this profile only for selected-provider identity, capability, mutation, and
+read-back behavior.

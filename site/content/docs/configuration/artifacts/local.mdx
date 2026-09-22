@@ -1,23 +1,15 @@
 ---
 title: Local
-description: Reference for the default local artifact store, run layout, authority, retention, and recovery behavior.
+description: Reference for retained local planning records, preservation, and recovery boundaries.
 ---
 
-Local artifacts are the default. Select them explicitly with:
+`artifacts.provider` omitted or set to `"local"` is the default configuration. It does not create a
+new planning run. Prepare and Plan use complete plain packets and direct GitHub issue publication;
+Ideate and Harden are read-only public phases.
 
-```json
-{
-  "artifacts": {
-    "provider": "local"
-  }
-}
-```
+## Retained storage layout
 
-Omitting `artifacts.provider` has the same effect.
-
-## Storage layout
-
-Build and project-backed Fix create one run directory. After planning finishes, it contains:
+Existing records from retired planning wrappers may contain:
 
 ```text
 .woostack/tmp/runs/<run-id>/
@@ -27,64 +19,48 @@ Build and project-backed Fix create one run directory. After planning finishes, 
 └── execution-plan.md
 ```
 
-New run IDs start with their UTC creation timestamp, followed by a short goal slug:
-`20260908T143052Z-timestamp-first-run-ids`. Sorting directories by name orders these runs
-chronologically to the second. Existing runs retain their exact IDs and resume commands.
 The [run-store contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-backends.md#owner-only-local-run-store)
-defines naming and collision handling.
+defines historical naming, permissions, compare-and-swap revisions, and collision handling. Do not
+create, rewrite, migrate, or delete a retained record as part of Prepare or Plan.
 
-| Entry | Purpose |
+| Entry | Historical purpose |
 | --- | --- |
-| `.lock` | Prevents concurrent run-store operations from overwriting each other. |
-| `manifest.json` | Resume state, stable task mappings, mirror results, and revision numbers that increase on each update. |
-| `project-spec.md` | The complete approved specification. For Fix, this includes the proved root cause. |
-| `execution-plan.md` | Ordered increments, each sized for one PR, and their dependencies. |
+| `.lock` | Prevents concurrent legacy run-store operations from overwriting each other. |
+| `manifest.json` | Retained resume state, stable task mappings, mirror results, and revisions. |
+| `project-spec.md` | Retained approved specification and, where applicable, proved diagnosis. |
+| `execution-plan.md` | Retained increments, contracts, and dependencies. |
 
-The run directory uses owner-only `0700` permissions. Run files use owner-only `0600` permissions.
-Before replacing the manifest, the run store checks that its revision still matches the expected
-value. This compare-and-swap check prevents overwriting a newer update. Replacement is atomic,
-so readers do not see a partly written manifest.
+Historical records use owner-only permissions and atomic compare-and-swap writes when their owning
+legacy operation is explicitly selected. Their presence is evidence, not permission or authority.
 
-The final specification and plan are each written once. Revisions require a new run; the old run
-is retained.
+## Authority and provider behavior
 
-## Authority
+Git and GitHub own source, branches, commits, pull requests, reviews, and merge state. A retained
+artifact records decisions and evidence; it does not authorize publication, implementation,
+assignment, ownership, acceptance, or merge.
 
-The local run is the source of truth for Build and project-backed Fix development artifacts. Git
-and GitHub own source, branches, commits, pull requests, reviews, and merge state.
-Artifacts record work; they do not authorize it.
+With local or omitted configuration:
 
-Remote mirroring does not transfer authority away from the local run. A mirror failure is recorded in
-`manifest.json` and does not invalidate complete local artifacts.
+- Prepare, Ideate, Harden, and Plan make no provider-mirror calls;
+- Plan still reads and publishes the exact GitHub scope selected by `--parent-issue` or `--project`;
+  parent mode needs no provider selector, local run, Project settings, or mirror;
+- goal-only [Change](/docs/skills/woostack-change) makes no artifact-provider calls; and
+- issue-backed Change reads only its explicitly selected exact canonical GitHub issue through
+  host-authenticated `gh`.
 
-## Provider behavior
-
-With `artifacts.provider` omitted or set to `"local"`:
-
-- Build and project-backed Fix make no artifact-provider reads or writes.
-- Direct Plan still publishes the exact GitHub scope selected by `--parent-issue` or `--project`;
-  parent mode needs no provider selector, local run, Project settings, or mirror.
-- Goal-only [Change](/docs/skills/woostack-change) makes no artifact-provider reads or writes.
-- Issue-backed Change performs the required read of the explicitly selected exact canonical GitHub issue
-  through host-authenticated `gh`; it does not require provider configuration, a Project, a mirror, or a
-  persisted plan.
-- Build/Fix `--project` fails before provider access because it requires a configured non-local
-  provider; this does not change Plan's direct GitHub publication path.
-
-Automatic read-only Linear discovery during `woostack-init` (or GitHub discovery when
-`artifacts.provider: "github"`) is a setup operation. An issue-backed Change read is driven by
-explicit command input, not provider discovery. These reads do not select remote storage or
-authorize later provider access.
+Automatic read-only discovery during `woostack-init` is setup only. It never selects remote storage or
+authorizes later provider access.
 
 ## Retention and recovery
 
-Completed and explicitly abandoned runs are retained. Explicit abandonment records
-`status: "abandoned"` in the manifest and does not mutate a mirrored provider project.
+Completed and explicitly abandoned records remain unchanged. To continue from a retained record,
+supply its exact identity and complete content to Prepare, Harden, or Plan after fresh repository and
+evidence validation. An issue or run ID alone is insufficient; no automatic conversion or publication
+is performed.
 
-The retired `/woostack-execute --run <exact-run-id> [--recheck]` resume command is rejected. To
-continue, select one complete bounded task from the retained artifacts and supply it as
-`/woostack-execute <bounded input>` (see
+The retired `/woostack-execute --run <exact-run-id> [--recheck]` input is rejected. Select one
+complete bounded task and supply it as `/woostack-execute <bounded input>` (see
 [Execute retired inputs](/docs/skills/woostack-execute#retired-inputs)). Titles, recent history,
-branch names, and search ranking are not run selectors. Legacy tracked records remain unchanged unless
+branch names, and search ranking are not selectors. Legacy tracked records remain unchanged unless
 the user explicitly invokes the guarded
 [woostack-init migration route](/docs/skills/woostack-init#optional-guarded-legacy-migration).

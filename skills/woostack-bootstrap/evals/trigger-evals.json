@@ -18,7 +18,7 @@
       "id": "existing-clinic-care-pathways-initiative",
       "query": "Our deployed clinic portal needs configurable care pathways across scheduling, notifications, permissions, and reporting. The architecture is still open and the work will land as several dependent pull requests; help us settle the approach and deliver it.",
       "shouldTrigger": false,
-      "expectedSkill": "woostack-build",
+      "expectedSkill": "woostack-prepare",
       "conflictsWith": ["woostack-bootstrap"]
     },
     {

@@ -44,10 +44,9 @@ provider-specific scope, capabilities, identities, and lifecycle behavior.
 | Create a genuinely greenfield codebase | `woostack-bootstrap` |
 | Elicit a complete user-verified specification from a goal or existing specification | `woostack-ideate` |
 | Reconcile a supplied specification or candidate issue plan against repository evidence | `woostack-harden` |
-| Prepare a multi-increment feature and execution handoff | `woostack-build` |
-| Diagnose and fix a defect, bounded or project-backed | `woostack-fix` |
+| Prepare a feature or proved defect for a verified GitHub issue graph without implementation | `woostack-prepare` |
 | Implement a bounded non-bug enhancement or refactor in one PR | `woostack-change` |
-| Turn an approved specification into reviewable increments | `woostack-plan` |
+| Turn an approved specification into reviewable increments and publish the native issue graph | `woostack-plan` |
 | Execute native children of one GitHub parent issue or tasks in an exact GitHub Project with parallel workers and stacked PRs | `woostack-orchestrate` |
 | Implement one bounded task and deliver one PR | `woostack-execute` |
 | Commit current changes and submit or update their PR | `woostack-commit` |
@@ -63,14 +62,17 @@ provider-specific scope, capabilities, identities, and lifecycle behavior.
 | Evaluate an approved skill corpus without editing the skill | `woostack-eval` |
 | Reflect on this conversation for durable instruction suggestions | `woostack-reflect` |
 
-Every explicit `/woostack-*` command loads its namesake skill. Intent-equivalent wording follows
-the same route. Ideate and Harden are public, directly callable phases that exchange the complete
-plain packets defined in [planning-inputs.md](references/planning-inputs.md); Build and Fix may
-compose them through their own retained records but do not make a run manifest, provider mirror, or
-wrapper admission a prerequisite for standalone use. Change stays non-bug and one-PR; Fix owns
-diagnosis and chooses bounded delivery or project planning after proof. Build owns multi-increment
-preparation. None of these phases automatically invokes another phase, creates issues, edits source,
-commits, or submits a PR.
+`woostack-build` and `woostack-fix` are retired, not missing installations. For either old command,
+explain the [Prepare and retained-input boundary](../woostack-prepare/SKILL.md#command) rather than
+loading or reinstalling it. Do not translate old resume arguments or invoke a replacement automatically.
+
+Every supported explicit `/woostack-*` command loads its namesake skill. Intent-equivalent wording follows
+the same route. Ideate and Harden are public, directly callable phases that exchange complete plain
+packets. Prepare composes Debug for defects, Ideate, Harden, and Plan as needed and ends at a fully
+read-back GitHub issue graph; it never implements, creates source branches, dispatches workers, or
+invokes Execute or Orchestrate. Plan is the sole issue publisher. Change remains non-bug and one-PR;
+Execute remains the explicit bounded implementation and draft-PR path. None of these planning phases
+automatically edits source, commits, submits a PR, or grants merge authority.
 
 ## AGENTS.md usage
 

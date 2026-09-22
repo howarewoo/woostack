@@ -24,7 +24,7 @@ pnpx skills add howarewoo/woostack
 
 
 The public commands are listed in [AGENTS.md](AGENTS.md#what-this-repo-is), including the directly
-callable Ideate and Harden planning phases.
+callable Ideate, Harden, and planning-only Prepare composition.
 
 For frontend work, you can also install [impeccable](https://github.com/pbakaus/impeccable).
 woostack recommends it for design reviews:
@@ -73,19 +73,17 @@ For the full policy surface, see the authored
 [configuration reference](site/content/docs/configuration/index.mdx).
 
 
-### 5. Choose where to keep plans
+Prepare is the planning-only entrypoint for features and proved defects. It composes public Ideate,
+Harden, Debug, and Plan from complete plain packets and ends at a verified GitHub parent/child
+graph; it does not create local run state, provider mirrors, source branches, or implementation.
+Plan is the sole GitHub issue publisher. An explicit GitHub Project remains a direct Plan selector.
+Existing `.woostack/tmp/runs/<run-id>/` records from retired workflows remain readable historical
+user data and are never migrated or mutated. A retained draft may be supplied explicitly after
+identity and freshness revalidation, but it never authorizes publication or code changes.
 
-Build and larger Fix workflows save specifications, plans, and resume state in
-`.woostack/tmp/runs/<run-id>/`. These local files are the primary records. You can configure
-Linear, Plane, or GitHub to keep remote copies. Bounded Fix and goal-only Change workflows do not
-contact these planning providers. Change's exact GitHub issue admission is the read-only exception
-defined in the [Change issue contract](skills/woostack-change/SKILL.md#admit-an-exact-github-issue);
-it remains available with local/omitted `artifacts.provider` and does not create a planning-provider
-mirror.
-
-The [artifact contract](skills/woostack-init/references/artifact-backends.md) explains storage,
-synchronization, and recovery. Saved plans and remote copies record your decisions; they do not
-authorize new work or prove that code was delivered.
+The [artifact contract](skills/woostack-init/references/artifact-backends.md) explains surviving
+provider configuration and historical record handling. Saved plans and remote copies record decisions;
+they do not authorize new work or prove that code was delivered.
 
 If you use Hermes to coordinate an OMP session, follow the
 [Hermes guide](site/content/docs/hermes.mdx). Install woostack in OMP or another supported coding
@@ -99,14 +97,13 @@ in the coding assistant.
 | A new application | [/woostack-bootstrap](skills/woostack-bootstrap/SKILL.md) | Checks the target directory, asks you to approve the design, then creates the project. |
 | Elicit a complete specification | [/woostack-ideate](skills/woostack-ideate/SKILL.md) | Takes a goal or existing specification, asks only for missing user-owned decisions, and returns complete plain content. |
 | Reconcile a specification or candidate issue plan | [/woostack-harden](skills/woostack-harden/SKILL.md) | Checks supplied content against bounded repository/evidence identity and returns complete reconciled content after explicit corrections. |
+| Prepare a feature or proved defect for issue planning | [/woostack-prepare](skills/woostack-prepare/SKILL.md) | Composes the relevant public phases and ends at one fully read-back GitHub parent/child graph without implementing or dispatching it. |
 | Publish an approved GitHub issue plan | [/woostack-plan](skills/woostack-plan/SKILL.md) | Publishes one verified GitHub parent/child hierarchy or explicit Project graph with native prerequisite edges, without implementing it. |
-| A feature that needs several PRs | [/woostack-build](skills/woostack-build/SKILL.md) | Composes the public phases, calls Plan's direct publisher, then retains artifacts for you to select one bounded task for Execute. |
-| A bug fix | [/woostack-fix](skills/woostack-fix/SKILL.md) | Proves the cause and asks you to approve the correction before delivering a small fix or composing Plan's direct publisher. |
 | A small enhancement or refactor | [/woostack-change](skills/woostack-change/SKILL.md) | Delivers one PR without creating a planning project. |
 | Execute an approved GitHub issue graph | [/woostack-orchestrate](skills/woostack-orchestrate/SKILL.md) | Takes one exact parent issue or explicit Project, runs ready tasks in isolated Execute workers, and verifies submitted draft PRs without merging. |
-Fix does not contact a planning provider during diagnosis. Configuring a provider does not make
-every fix a project. Selecting a project, provider work item, or saved run explicitly uses the
-project-backed route.
+
+Prepare stops at planning. Direct bounded implementation remains an explicit Execute request; a
+separate `/woostack-orchestrate --issue <verified-parent-url>` is only a suggested next command.
 
 See the [workflow maps](site/content/docs/concepts/workflows.mdx) for the full sequences.
 
@@ -114,10 +111,10 @@ See the [workflow maps](site/content/docs/concepts/workflows.mdx) for the full s
 
 | What you need | Tool |
 | --- | --- |
-| Review a pull request | [Pullfrog](https://pullfrog.com/) |
 | Investigate and address every unresolved review thread | [/woostack-address-comments](skills/woostack-address-comments/SKILL.md) |
 | Explore a running web app and reproduce browser bugs | [/woostack-qa](skills/woostack-qa/SKILL.md) |
-| Investigate and fix a production error | [/woostack-fix](skills/woostack-fix/SKILL.md) |
+| Prove a root cause without implementing a correction | [/woostack-debug](skills/woostack-debug/SKILL.md) |
+| Prepare a proved defect for issue planning | [/woostack-prepare](skills/woostack-prepare/SKILL.md) |
 | Compare skill behavior against an approved set of evaluation cases | [/woostack-eval](skills/woostack-eval/SKILL.md) |
 | Find concrete improvements to instructions from this conversation | [/woostack-reflect](skills/woostack-reflect/SKILL.md) |
 

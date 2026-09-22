@@ -346,20 +346,20 @@ def validate_retained_plane_run(manifest):
     if manifest.get("mirror", {}).get("provider") == "plane":
         canon = manifest.get("canonicalRepository")
         if not canon or not isinstance(canon, str) or canon.strip() == "":
-            raise ValueError("incompatible legacy Plane run schema; regenerate via /woostack-build or /woostack-fix")
+            raise ValueError("incompatible retained Plane record; revalidate complete content via /woostack-prepare")
         mirror = manifest.get("mirror", {})
         proj = mirror.get("project", {})
         if not isinstance(proj, dict) or proj.get("name") != f"[Repo] {canon}":
-            raise ValueError("incompatible legacy Plane run schema; regenerate via /woostack-build or /woostack-fix")
+            raise ValueError("incompatible retained Plane record; revalidate complete content via /woostack-prepare")
         status = mirror.get("status")
         if status not in ("unstarted", "synced", "failed"):
-            raise ValueError("incompatible legacy Plane run schema; regenerate via /woostack-build or /woostack-fix")
+            raise ValueError("incompatible retained Plane record; revalidate complete content via /woostack-prepare")
         spec_item = mirror.get("specItem")
         if not isinstance(spec_item, dict) or not spec_item.get("externalId"):
-            raise ValueError("incompatible legacy Plane run schema; regenerate via /woostack-build or /woostack-fix")
+            raise ValueError("incompatible retained Plane record; revalidate complete content via /woostack-prepare")
         if status == "synced":
             if not spec_item.get("canonicalRef") or not spec_item.get("nativeId"):
-                raise ValueError("incompatible legacy Plane run schema; regenerate via /woostack-build or /woostack-fix")
+                raise ValueError("incompatible retained Plane record; revalidate complete content via /woostack-prepare")
     return True
 
 # Scenario 1: Baseline repository snapshot (no artifact)
@@ -653,7 +653,7 @@ try:
     validate_retained_plane_run(legacy_run_fixture)
     assert False, "expected ValueError on incompatible legacy Plane run"
 except ValueError as exc:
-    assert "incompatible legacy Plane run schema; regenerate via /woostack-build or /woostack-fix" in str(exc)
+    assert "incompatible retained Plane record; revalidate complete content via /woostack-prepare" in str(exc)
 assert legacy_run_fixture == manifest_before, "Incompatible legacy run validation must perform ZERO mutation"
 
 # Valid canonical mirror.specItem passes validation cleanly

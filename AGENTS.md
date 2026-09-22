@@ -10,15 +10,14 @@ This is a published collection of skills, not an application codebase. It packag
 decisions for building new web, mobile, and API projects so agents can install it with
 `pnpx skills add howarewoo/woostack`.
 
-The public command/adoption surface has twenty-two skills:
+The public command/adoption surface has twenty-one skills:
 
 - [`using-woostack`](skills/using-woostack/SKILL.md)
 - [`woostack-init`](skills/woostack-init/SKILL.md)
 - [`woostack-bootstrap`](skills/woostack-bootstrap/SKILL.md)
 - [`woostack-ideate`](skills/woostack-ideate/SKILL.md)
 - [`woostack-harden`](skills/woostack-harden/SKILL.md)
-- [`woostack-build`](skills/woostack-build/SKILL.md)
-- [`woostack-fix`](skills/woostack-fix/SKILL.md)
+- [`woostack-prepare`](skills/woostack-prepare/SKILL.md)
 - [`woostack-change`](skills/woostack-change/SKILL.md)
 - [`woostack-plan`](skills/woostack-plan/SKILL.md)
 - [`woostack-orchestrate`](skills/woostack-orchestrate/SKILL.md)
@@ -35,9 +34,13 @@ The public command/adoption surface has twenty-two skills:
 - [`woostack-eval`](skills/woostack-eval/SKILL.md)
 - [`woostack-reflect`](skills/woostack-reflect/SKILL.md)
 
-Ideate and Harden are public standalone phases as well as composable callers for Build/Fix. They
-exchange complete plain content with explicit repository/evidence identity; no run manifest,
-provider mirror, or wrapper admission is required to invoke either one.
+Ideate and Harden are public standalone phases and composable callers for Prepare. They exchange
+complete plain content with explicit repository/evidence identity; no run manifest, provider mirror,
+or wrapper admission is required to invoke either one.
+
+Prepare is the planning-only composition for feature and defect preparation. It invokes the relevant
+public phases and ends at a verified GitHub issue graph; it never implements work or invokes
+Execute/Orchestrate.
 
 There is no application source code, app lockfile, build, or CI for this repo's own
 push/PR events. `skills-lock.json` is the dev-skill manifest and is currently empty.
@@ -49,72 +52,48 @@ not stray app code. Its `package.json`, `pnpm-lock.yaml`, and build config are t
 exception to the "no application source code / no app lockfile" rule above. Its per-skill reference
 pages are **generated** from `skills/*/SKILL.md` at build time and are gitignored; only the app shell
 and authored framing pages are committed. Deploy notes live in [`site/README.md`](site/README.md).
+Prepare and Plan use complete plain packets and GitHub's native parent/child issues as the planning
+handoff. They do not create a local run, provider mirror, replacement work board, source branch,
+worktree, commit, pull request, or implementation worker. Existing `.woostack/tmp/runs/<run-id>/`
+records from retired workflows remain readable user data and are never migrated or mutated.
 
-## Consumer development artifacts
+An existing retained draft or issue may be supplied explicitly only with its exact identity,
+complete content, and fresh repository/evidence validation. It does not authorize publication,
+implementation, assignment, ownership, acceptance, or source-control action. Plan owns direct
+GitHub issue and relationship publication; Orchestrate owns scheduling and Execute owns bounded
+implementation and PR delivery.
 
-The canonical persistent artifact store for `woostack-build` and project-backed `woostack-fix` is
-local in `.woostack/tmp/runs/<run-id>/`. Workflows operate with default zero-provider local authority
-(`artifacts.provider: "local"` or omitted). When `artifacts.provider` is `"linear"`, `"plane"`, or `"github"`,
-local artifacts mirror in bounded post-drafting cycles. Supplying `--project` when `artifacts.provider` is not
-configured for provider mirroring fails closed immediately.
+Bounded non-bug Change remains provider-free except for its documented exact issue read. Provider
+profiles and configuration remain available only for surviving explicit provider-aware workflows and
+historical records until the separately scoped provider cleanup; Prepare never relies on them.
 
-Bounded Fix presents the proved diagnosis, complete proposed correction, material technical
-consequences, and verification for explicit user approval, then uses the shared bounded delivery
-workflow without a project run or provider calls. Multi-increment, materially uncertain, or explicitly
-project-backed fixes use the retained planning workflow below.
-
-Public Ideate and Harden use complete plain packets with explicit repository/evidence identity and
-return complete plain handbacks; neither requires a Build/Fix run, provider configuration, or
-permission-restricted manifest. Plan consumes that same packet and directly publishes the exact
-GitHub parent or Project graph; its publication identity and read-back are not a mirror of local
-artifacts and do not require a provider selector or Build/Fix run. Build and project-backed Fix may
-adapt retained run content to those public calls, then write plain `project-spec.md` and
-`execution-plan.md` directly under `.woostack/tmp/runs/<run-id>` and proceed to a user-controlled
-handoff (`Stop here`, `Execute`, `Abandon`). The handoff stops at retained artifacts and the caller
-supplies one selected complete bounded task to `/woostack-execute <bounded input>` (see
-[Execute retired inputs](skills/woostack-execute/SKILL.md#retired-inputs)). When
-`artifacts.provider` selects a configured provider, remaining Build/Fix artifact paths may mirror in
-bounded post-drafting cycles; those records never create a second Plan publisher. Mirror failure is
-recorded in the owning manifest and is nonblocking only for that local authority.
-Resuming planning work uses `/woostack-build --run <exact-run-id>` or
-`/woostack-fix --run <exact-run-id>`. All run artifacts in
-`.woostack/tmp/runs/<run-id>/` are retained upon completion and upon explicit abandonment to preserve
-an unbroken audit trail. Explicit abandonment sets `status: "abandoned"` in the manifest and does not
-mutate a mirrored provider project. The selected
-[Linear](skills/woostack-init/references/artifact-providers/linear.md),
-[Plane](skills/woostack-init/references/artifact-providers/plane.md), or
-[GitHub](skills/woostack-init/references/artifact-providers/github.md) profile owns provider-specific
-configuration, capabilities, identities, labels, graph operations, and lifecycle semantics for
-remaining provider-aware workflows. The user's request and explicit conversation choices authorize
-repository work; artifacts record that work and never grant permission, assignment, ownership,
-acceptance, or source-control authority. Git and GitHub own source, branches, commits, pull requests,
-reviews, and merge evidence.
-
+The user's request and explicit conversation choices authorize repository work. Git and GitHub own
+source, branches, commits, pull requests, reviews, and merge evidence. Issue lifecycle alone never
+proves implementation, delivery, passing checks, review, or merge.
 `/woostack-init` may use only the official Linear MCP or host-authenticated gh for narrow automatic
-authenticated read-only discovery of non-secret repository/workspace/team/native-name defaults; it never
-selects persistence or authorizes a provider write. `.woostack/config.json` supplies validated defaults
-only after artifact selection. Credentials remain in the host secret store, and local diagnostic
-reports remain non-authoritative. Goal-only `woostack-change` remains provider-free; an explicitly
-selected exact GitHub issue permits only the read-only `gh` admission defined in the
-[Change issue contract](skills/woostack-change/SKILL.md#admit-an-exact-github-issue), even with
-`artifacts.provider` local or omitted. That exception does not select artifact mirroring or authorize
-work. Handoff, replanning, and blockers leave project status unchanged.
+authenticated read-only discovery of non-secret repository/workspace/team/native-name defaults; it
+never selects persistence or authorizes a provider write. `.woostack/config.json` supplies validated
+defaults only after artifact selection. Credentials remain in the host secret store, and local
+diagnostic reports remain non-authoritative. Goal-only `woostack-change` remains provider-free; an
+explicit exact GitHub issue permits only its documented read-only admission, even with local
+artifacts. That exception does not select artifact mirroring or authorize work. Handoff, replanning,
+and blockers leave project status unchanged.
 
 Explicit [`woostack-orchestrate`](skills/woostack-orchestrate/SKILL.md) execution selects either one
 GitHub specification parent with native task children or one configured GitHub Project. Parent-issue
 execution does not require provider mirroring or Project configuration. Orchestrate owns scheduling
 and independent post-submission validation; each Execute worker owns one task's delivery through
-Commit. This does not change Build/Fix handoff or grant merge authority.
+Commit. This does not change Prepare's planning-only boundary or grant merge authority.
 
 External engineers such as Hermes are outside the installed woostack host/runtime surface. Hermes
 may drive one persistent OMP session as an external decision-maker and reviewer, but woostack is
 installed only in OMP or another coding harness. When Hermes participates in an active conversation,
-the responsible user's live response must be relayed verbatim; cross-session resume against
-retained unchanged local run artifacts does not require the original process to stay alive.
-contract lives in the authored [Hermes guide](site/content/docs/hermes.mdx); it does not make Hermes a supported host
-or grant it implementation authority.
+the responsible user's live response must be relayed verbatim; cross-session resume against retained
+unchanged local run artifacts does not require the original process to stay alive. The contract lives
+in the authored [Hermes guide](site/content/docs/hermes.mdx); it does not make Hermes a supported
+host or grant it implementation authority.
 
-This collection has twenty-two public command/adoption skills at twenty-two fixed `SKILL.md`
+This collection has twenty-one public command/adoption skills at twenty-one fixed `SKILL.md`
 locations. Remote provider support adds neither a command-routing row nor a per-provider skill.
 
 Identify the mode before acting.
@@ -126,10 +105,12 @@ do not add application code, app build configs, or app lockfiles **outside the s
 `site/` is also Mode A.
 
 **Mode B: run a woostack command.** Use this when the user asks for `/woostack-init`,
-`/woostack-bootstrap`, `/woostack-build`, `/woostack-fix`, `/woostack-change`, `/woostack-plan`, `/woostack-orchestrate`, `/woostack-execute`, `/woostack-commit`,
-`/woostack-address-comments`, `/woostack-status`, `/woostack-visualize`, `/woostack-design`, `/woostack-debug`,
-`/woostack-tdd`, `/woostack-doctor`, `/woostack-qa`, `/woostack-eval`, or `/woostack-reflect`, including intent-equivalent wording. Load the matching skill
-before acting. For bootstrap work, the output belongs in a fresh repo in a different
+`/woostack-bootstrap`, `/woostack-ideate`, `/woostack-harden`, `/woostack-prepare`,
+`/woostack-change`, `/woostack-plan`, `/woostack-orchestrate`, `/woostack-execute`,
+`/woostack-commit`, `/woostack-address-comments`, `/woostack-status`, `/woostack-visualize`,
+`/woostack-design`, `/woostack-debug`, `/woostack-tdd`, `/woostack-doctor`, `/woostack-qa`,
+`/woostack-eval`, or `/woostack-reflect`, including intent-equivalent wording. Load the matching
+skill before acting. For bootstrap work, the output belongs in a fresh repo in a different
 directory, not in this repo.
 
 ## Hard constraints
@@ -178,13 +159,19 @@ the repository's simplify/comments guidance.
   pages need no manual edit: they regenerate from each `SKILL.md` at build time (see the
   documentation-site exception above). When in doubt, run `pnpm -C site build` to confirm the
   site still builds.
-- Do not move or rename any of the twenty-two `SKILL.md` files. Public command/adoption names and
-  fixed paths are part of the installed interface.
+- Do not move or rename any of the twenty-one `SKILL.md` files. Approved retirement of the former
+  Build/Fix entrypoints is an exception: remove those installed locations and add the replacement
+  `woostack-prepare` location without compatibility aliases.
 - Do not rename files under
   [`skills/woostack-bootstrap/references/`](skills/woostack-bootstrap/references/) without
   updating every cross-link and the bootstrap skill table.
 - Do not commit `.env*`, secrets, generated app files, or personal compressed prose.
-- **Mode A Fix/Build self-hosted Eval corpus/fixture changes.** This is deterministic repository policy, not a Harden question: if a Mode A Fix/Build execution plan changes self-hosted Eval corpus or referenced fixture bytes, use deterministic validation only and defer full `/woostack-eval` to a separate explicit invocation after those bytes are committed and byte-identical to `HEAD`; otherwise, direct explicit `/woostack-eval` retains its existing approval path, including normal Eval for tracked bytes byte-identical to `HEAD`.
+- **Mode A Prepare self-hosted Eval corpus/fixture changes.** This is deterministic repository policy,
+  not a Harden question: if a Mode A Prepare execution plan changes self-hosted Eval corpus or
+  referenced fixture bytes, use deterministic validation only and defer full `/woostack-eval` to a
+  separate explicit invocation after those bytes are committed and byte-identical to `HEAD`;
+  otherwise, direct explicit `/woostack-eval` retains its existing approval path, including normal
+  Eval for tracked bytes byte-identical to `HEAD`.
 
 ## Quick file map
 
@@ -193,19 +180,17 @@ the repository's simplify/comments guidance.
 - Bootstrap decisions, architecture, frameworks, infrastructure, patterns, development, and
   procedure:
   [`skills/woostack-bootstrap/references/`](skills/woostack-bootstrap/references/)
-- Build loop:
-  [`skills/woostack-build/SKILL.md`](skills/woostack-build/SKILL.md)
+- Preparation and publication composition:
+  [`skills/woostack-prepare/SKILL.md`](skills/woostack-prepare/SKILL.md)
 - Public specification elicitation phase:
   [`skills/woostack-ideate/SKILL.md`](skills/woostack-ideate/SKILL.md)
 - Public repository reconciliation phase:
   [`skills/woostack-harden/SKILL.md`](skills/woostack-harden/SKILL.md)
 - Shared plain planning input and handback contract:
   [`skills/using-woostack/references/planning-inputs.md`](skills/using-woostack/references/planning-inputs.md)
-- Bug-fix workflow (public command; prove cause → informed approval → bounded delivery or project planning):
-  [`skills/woostack-fix/SKILL.md`](skills/woostack-fix/SKILL.md)
 - Bounded non-bug change loop (public command; one reviewable PR, no approval gate or persisted plan):
   [`skills/woostack-change/SKILL.md`](skills/woostack-change/SKILL.md)
-- Plan-writing engine for the build loop (public command):
+- Plan-owned GitHub issue publication engine (public command):
   [`skills/woostack-plan/SKILL.md`](skills/woostack-plan/SKILL.md)
 - Bounded task execution engine delivering one task through one PR (public command):
   [`skills/woostack-execute/SKILL.md`](skills/woostack-execute/SKILL.md)

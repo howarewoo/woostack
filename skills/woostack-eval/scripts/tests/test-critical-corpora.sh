@@ -18,9 +18,9 @@ fail() {
 
 packages=(
   skills/woostack-eval
-  skills/woostack-build
+  skills/woostack-prepare
   skills/woostack-plan
-  skills/woostack-fix
+  skills/woostack-change
   skills/woostack-execute
   skills/woostack-commit
   skills/woostack-address-comments
@@ -53,9 +53,9 @@ const path = require('node:path');
 const [repositoryRoot, resultsRoot, ...packages] = process.argv.slice(2);
 const expectedPackages = [
   'skills/woostack-eval',
-  'skills/woostack-build',
+  'skills/woostack-prepare',
   'skills/woostack-plan',
-  'skills/woostack-fix',
+  'skills/woostack-change',
   'skills/woostack-execute',
   'skills/woostack-commit',
   'skills/woostack-address-comments',

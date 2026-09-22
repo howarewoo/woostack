@@ -8,11 +8,13 @@ Each skill owns its procedure:
 
 | Phase | Skill |
 |---|---|
-| Plan a feature that needs several PRs, then choose whether to execute | `woostack-build` |
-| Diagnose a bug and obtain approval for its correction | `woostack-fix` |
+| Elicit and reconcile a feature or proved defect for issue planning | `woostack-prepare` |
+| Elicit a complete user-verified specification | `woostack-ideate` |
+| Reconcile a supplied specification or candidate issue plan | `woostack-harden` |
+| Publish an approved GitHub parent/child or Project issue graph | `woostack-plan` |
 | Deliver a small enhancement or refactor in one PR | `woostack-change` |
 | Check a running app in a browser | `woostack-qa` |
-| Production errors, Sentry issues, and monitoring defects | `woostack-fix` |
+| Prove a root cause without applying a correction | `woostack-debug` |
 | Evaluate approved behavior and trigger corpora for a skill without editing it | `woostack-eval` |
 | Reflect on the fixed active-conversation snapshot for concrete durable instruction suggestions | `woostack-reflect` |
 
@@ -21,31 +23,23 @@ Follow the selected command's handoff rules. Only a human can merge a PR.
 
 ## Artifact provider records
 
-Build and project-backed Fix save a local run under `.woostack/tmp/runs/<run-id>/`.
-The run contains the manifest, `project-spec.md`, and `execution-plan.md`.
-Linear, Plane, and GitHub can hold optional remote copies. A failed mirror operation is recorded
-and does not block local planning.
+Prepare and Plan exchange complete plain packets and publish only the verified GitHub issue graph;
+they do not create `.woostack/tmp/runs/<run-id>/`, local provider mirrors, source branches, or
+implementation workers. Existing run artifacts and optional provider records are historical user data,
+remain readable, and are never migrated or rewritten. A supplied retained record is evidence only
+after exact identity, complete content, and freshness validation.
 
-The [artifact contract](../../woostack-init/references/artifact-backends.md) defines storage,
-provider selection, synchronization, and recovery. Use the selected provider's linked profile
+The [artifact contract](../../woostack-init/references/artifact-backends.md) defines surviving
+provider configuration and historical record handling. Use the selected provider's linked profile
 for its resource types and authentication requirements. Keep credentials in the host's
-authentication store, not in repository configuration.
+authentication store, not in repository configuration. Plan's GitHub publication is direct and does
+not require provider mirroring.
 
-[`woostack-build`](../../woostack-build/SKILL.md) verifies requirements with the user, writes the
-specification and plan, then offers `Stop here`, `Execute`, or `Abandon`. Follow its current handoff
-procedure: automatic Execute dispatch is retired, so `Execute` stops at retained artifacts and the
-caller supplies one selected complete bounded task to
-[`woostack-execute`](../../woostack-execute/SKILL.md#retired-inputs). Saved files and provider records
-do not grant permission to start work.
-Bounded Fix and goal-only Change do not contact an artifact provider. Change's exact GitHub issue
-admission is the read-only exception defined in
-[`woostack-change`](../../woostack-change/SKILL.md#admit-an-exact-github-issue); it remains available
-with local/omitted `artifacts.provider` and does not select artifact mirroring.
-
-[`woostack-bootstrap`](../SKILL.md) owns greenfield routing and complete-design approval;
-its [filesystem procedure](bootstrap.md#filesystem-write-barrier-and-collision-check) owns bounded
+[`woostack-bootstrap`](../SKILL.md) owns greenfield routing and complete-design approval; its
+[filesystem procedure](bootstrap.md#filesystem-write-barrier-and-collision-check) owns bounded
 target inspection and fresh collision-safe write admission. Optional project persistence remains
-separate from write authority. Init persists only non-secret policy, never local specs, plans, or fixes.
+separate from write authority. Init persists only non-secret policy, never local specs or plans.
+
 
 Implementation branches begin from verified repository base evidence and follow the
 [canonical worktree contract](../../woostack-init/references/worktrees.md). Bootstrap's initial

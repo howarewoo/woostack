@@ -70,7 +70,7 @@ This page covers five top-level settings. The init template writes `artifacts`, 
 
 | Setting | Read by | Purpose |
 | --- | --- | --- |
-| [`artifacts`](/docs/configuration/artifacts) | Init, Build, Fix, Plan, and selected artifact-aware workflows | Selects local storage or optional GitHub, Linear, or Plane mirroring. |
+| [`artifacts`](/docs/configuration/artifacts) | Init and selected surviving artifact-aware workflows | Selects local storage or optional GitHub, Linear, or Plane configuration for supported workflows and historical records. |
 | `models` | Host subagent drivers | Shared fast, standard, and deep model leaves for hosts that consume repository model policy. OMP ignores this setting. |
 | `commit` | [woostack-commit](/docs/skills/woostack-commit) | Command to run before staging. |
 | `status` | [woostack-status](/docs/skills/woostack-status) | Age threshold for stale active rows. |
@@ -243,13 +243,14 @@ worktrees are cut from.
 
 <Callout type="info">
   Init scaffolds `artifacts`, `models`, and `status`, and automatically adds validated
-  Linear defaults when safe authenticated discovery succeeds. When `artifacts.provider: "github"`,
-  Init discovers GitHub defaults via `gh`. Missing connectivity never blocks
-  local initialization. Build and project-backed Fix use
-  [local run authority](/docs/configuration/artifacts/local) with optional configured provider
-  mirrors. Bounded Fix and goal-only Change remain provider-free. Change with explicit exact
-  canonical GitHub issue input performs the required read of that issue through host-authenticated
-  `gh`; no artifact-provider configuration, Project, mirror, or persisted plan is required.
+  Linear defaults when safe authenticated discovery succeeds. When `artifacts.provider: "github"` is
+  explicitly selected, Init discovers GitHub defaults via `gh`; missing connectivity never blocks
+  local initialization.
+  Prepare and Plan use complete plain packets and direct GitHub issue publication; they do not
+  require local run authority, provider mirrors, or a Project in parent mode. Goal-only Change remains
+  provider-free. Change with an explicit exact canonical GitHub issue input performs the required read
+  of that issue through host-authenticated `gh`; no artifact-provider configuration, Project, mirror,
+  or persisted plan is required.
   [woostack-doctor](/docs/skills/woostack-doctor) validates effective runtime policy; explicit live checks
   prove optional artifact connectivity.
 </Callout>

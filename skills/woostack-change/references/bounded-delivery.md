@@ -1,16 +1,15 @@
 # Bounded one-PR delivery
 
-Shared implementation and delivery mechanics for [`woostack-change`](../SKILL.md) and the
-[direct bounded Fix path](../../woostack-fix/SKILL.md#direct-bounded-fix). The calling skill owns
-admission and user authority: Change accepts only non-bug work; Fix requires causal proof and
-explicit informed approval. This reference cannot widen either contract or replace those gates.
+Shared implementation and delivery mechanics for [`woostack-change`](../SKILL.md). Change owns
+admission and user authority for one non-bug PR; planning-only Prepare and Plan never call this
+reference. This contract cannot widen Change's bounded scope or replace its gates.
 
 The calling skill owns delivery directly, without invoking another woostack workflow. Create no
 project manifest, specification, or execution plan. Development-artifact provider calls are limited
 to the exact issue reads explicitly admitted by
-[Change's GitHub issue input](../SKILL.md#admit-an-exact-github-issue); goal-only Change and bounded
-Fix make none. Git and canonical GitHub repository/PR operations supply source-control evidence,
-not development-artifact authority.
+[Change's GitHub issue input](../SKILL.md#admit-an-exact-github-issue); goal-only Change makes none.
+Git and canonical GitHub repository/PR operations supply source-control evidence, not development-
+artifact authority.
 
 Before mutation, apply the shared [source-control selection and ancestry contract](../../woostack-commit/references/graphite.md).
 Git+gh is the complete default path. Use Graphite only when explicitly selected or already verified
@@ -21,11 +20,10 @@ for this task/stack; unknown selection blocks, and `gt` failure never authorizes
 Keep the following explicit in the active conversation or completely verified handoff packet:
 
 - stable task identity, goal, exact repository/target, allowed paths, non-goals, and acceptance;
-- intended correction or change, relevant technical consequences, risks, focused verification,
-  and changed-path smoke scenario;
+- intended change, relevant technical consequences, risks, focused verification, and changed-path
+  smoke scenario;
 - integration base commit, approved parent-branch intent, and retained start/old parent SHA;
-- current worktree, branch, head, complete diff identity, and PR facts;
-- for Fix, the evidence-bound diagnosis, full presented scope, and the user's explicit approval; and
+- current worktree, branch, head, complete diff identity, and PR facts; and
 - for issue-backed Change, the independently verified canonical issue URL, native identity, and
   accepted issue-derived scope.
 
@@ -66,18 +64,16 @@ When considering optional implementation delegation, use the shared
 cost considerations for simple tasks. The calling skill retains delivery ownership.
 
 Inspect the complete diff and changed paths. Run focused verification and the changed-path smoke
-scenario, retaining exact commands and observed results. For Fix, confirm the proved reproduction
-no longer triggers and retain a regression test when it defends the failure; if impractical, report
-why and the direct smoke evidence. A failed or incomplete required check blocks delivery.
+scenario, retaining exact commands and observed results. A failed or incomplete required check
+blocks delivery.
 
 An independent read-only reviewer, distinct from the implementer, must check the full accepted
-contract against the complete diff, relevant safety/edge cases, and observed verification. For Fix,
-include whether the correction addresses the proved cause rather than masking its symptom. Bind
+contract against the complete diff, relevant safety/edge cases, and observed verification. Bind
 review evidence to reviewer identity, task, repository, parent, and the same complete diff identity
 as verification. The implementer cannot approve their own work; unavailable independent review
 blocks delivery rather than becoming self-review. Correct in-scope findings, rerun affected checks,
-and obtain fresh independent review for the changed diff. Material scope changes return to the
-calling skill before more implementation; Fix approval never carries over to a changed correction.
+and obtain fresh independent review for the changed diff. Material scope changes return to Change
+admission before more implementation.
 
 ## Deliver and read back one PR
 
@@ -117,8 +113,8 @@ unproved boundary without duplicating a branch, commit, PR, or cleanup.
 
 ## Return
 
-Return the stable task identity, accepted scope and Fix approval when applicable, worktree/branch,
-base/parent, changed paths, verification/smoke and independent-review results, commit SHA, canonical
-PR URL/head/base/state, and cleanup result. For issue-backed Change, include the canonical issue URL
-and verified closing-reference outcome. For a reroute or retained failure, name the destination
-or blocker and exact safe resume boundary. Never claim evidence not directly observed.
+Return the stable task identity, accepted scope, worktree/branch, base/parent, changed paths,
+verification/smoke and independent-review results, commit SHA, canonical PR URL/head/base/state,
+and cleanup result. For issue-backed Change, include the canonical issue URL and verified closing-
+reference outcome. For a reroute or retained failure, name the destination or blocker and exact safe
+resume boundary. Never claim evidence not directly observed.

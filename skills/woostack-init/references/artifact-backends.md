@@ -6,27 +6,24 @@ request and each workflow's explicit conversation choices authorize the workflow
 GitHub reads prove source, ancestry, pull-request, review, and merge facts. Backend selection follows
 the [source-control contract](../../woostack-commit/references/graphite.md).
 
-The canonical persistent store for `woostack-build` and project-backed `woostack-fix` is
-`.woostack/tmp/runs/<run-id>/`. It contains ordinary Markdown artifacts and a small recovery manifest.
-Workflows operate with default zero-provider local authority (`artifacts.provider: "local"` or omitted).
-When a non-local provider is selected, local artifacts may be mirrored through that provider's
-profile; the local run remains canonical.
+Retained run artifacts under `.woostack/tmp/runs/<run-id>/` are historical user data from retired
+planning wrappers. Prepare and Plan do not allocate or resume them; they exchange complete plain
+packets and use GitHub's native parent/child issue graph as the active planning handoff. Historical
+Markdown artifacts and recovery manifests remain readable and are never migrated or mutated.
 
 ## Selection and provider gating
 
-Every Build and project-backed Fix allocates or resumes exactly one local run. A caller may select an
-exact run only by its run ID; fuzzy names, recent history, titles, branch names, and search ranking are
-never selection mechanisms.
+Retired wrapper records are selected only by an exact caller-supplied run ID for inspection and
+freshness validation; fuzzy names, recent history, titles, branch names, and search ranking are never
+selection mechanisms. Prepare has no run selector or provider gate.
 
-`artifacts.provider` gates development-artifact calls for Build and project-backed Fix. Direct Plan
-publication is a separate explicit GitHub scope: it uses host-authenticated `gh` for the exact
-`--parent-issue` or `--project` selector and does not require a provider selector or local run.
+Plan publication is a separate explicit GitHub scope: it uses host-authenticated `gh` for the exact
+`--parent-issue` or `--project` selector and does not require a provider selector, local run, or
+mirror setting.
 
-When it is `"local"` or omitted:
+When artifacts are `"local"` or omitted:
 
-- Build and project-backed Fix make zero provider reads or writes;
-- Build/Fix `--project` fails closed before provider access and explains that it requires configured
-  provider mirroring;
+- Prepare, Ideate, Harden, and Plan make no provider-mirror calls;
 - direct Plan still requires its exact GitHub scope and performs the required issue/Project reads and
   writes; and
 - goal-only `woostack-change` makes no development-artifact provider call. Its
@@ -39,8 +36,6 @@ When it is `"local"` or omitted:
 
 Legacy `linear.saveArtifacts` configurations are rejected with explicit migration guidance to
 `artifacts.provider` and the selected provider configuration.
-
-The supported provider profiles are parallel implementations of this shared contract:
 
 | `artifacts.provider` | Provider profile |
 | --- | --- |
@@ -55,22 +50,19 @@ authority, local persistence, mutation ordering, failure, and independent read-b
 Adding a provider requires a new profile implementing those same boundaries plus explicit workflow
 routing and deterministic contract coverage; it does not weaken or modify the shared invariants.
 
-Build resolves one exact caller-supplied or profile-configured project and creates one only when the
-selected provider profile permits it. Fix reaches proved root cause before project resolution or
-creation. An exact Fix source resource is preserved context, not the Fix plan or permission to work.
+Surviving explicit provider-aware workflows resolve one exact caller-supplied or profile-configured
+project only when that workflow's contract permits it. Prepare and Plan do not select provider
+mirroring, and an exact source resource remains evidence rather than permission to work.
 Plan publishes only to its exact explicitly selected GitHub parent or Project scope and never uses a
-Build/Fix run, local mirror, or hidden persistence boundary. A caller may retain a plain handback for
-its own transition, but it is not Plan's publication authority.
+retired wrapper run, local mirror, or hidden persistence boundary. A caller may retain a plain
+handback for its own transition, but it is not Plan's publication authority.
 
-A provider failure in a Build/Fix transitional artifact path is recorded in that run's manifest and
-is nonblocking only for that local workflow. Direct Plan relationship or read-back failure blocks
-publication and is returned with the confirmed identity boundary. Supplying a project never relaxes
-repository, provider scope, pagination, capability, or read-back checks. Init discovery, optional
-provider writers, lifecycle support, and unsupported operations are defined by the selected profile
-and remain bounded by this contract.
-
-## Effective repository configuration and precedence
-
+A provider failure in a historical or explicitly selected provider path is reported with the
+confirmed identity boundary. Direct Plan relationship or read-back failure blocks publication and is
+returned with the confirmed identity boundary. Supplying a project never relaxes repository,
+provider scope, pagination, capability, or read-back checks. Init discovery, optional provider
+writers, lifecycle support, and unsupported operations are defined by the selected profile and
+remain bounded by this contract.
 Resolve non-secret policy through one layered configuration:
 
 1. `.woostack/config.json` in the target repository root;
@@ -290,11 +282,10 @@ partially converts it.
 ## Task mappings and delivery checkpoints (retained planning schema)
 
 > **Retired execution path.** The task-mapping/`taskExecutions` run controller below is retained
-> planning-artifact schema only. Execute no longer runs projects, ordinals, sibling progression,
-> or worker checkpoints; it takes one complete bounded task per invocation under
-> [`woostack-execute`](../../woostack-execute/SKILL.md#retired-inputs). Build/Fix stop at retained
-> artifacts and ask the caller to supply one selected complete bounded task. Final orchestration
-> automation is later work; do not treat this schema as an execution protocol.
+> planning-artifact schema only. Execute no longer runs projects, ordinals, sibling progression, or
+> worker checkpoints; it takes one complete bounded task per invocation under
+> [`woostack-execute`](../../woostack-execute/SKILL.md#retired-inputs). Retired preparation wrappers
+> stopped at retained artifacts; no local-run orchestration is introduced by this schema.
 
 The retained schema records each task key once in the display-ordered plan, mappings, and `taskExecutions`.
 Dependencies reference only known keys and satisfy the selected planning profile; they preserve the planning order for historical artifacts. No Execute invocation schedules siblings or advances a run. Persisting a GitHub DAG does not make it executable; retain its artifacts and edges unchanged. No local-run orchestration is introduced by provider graph support.
@@ -449,9 +440,9 @@ Creation and mutation are separate:
   intended patch and preservation of all unrelated text.
 
 A description patch changes no unrelated title, assignment, delegate, status, labels, archival state,
-relations, or project membership. Build/Fix uses this only during its optional bounded artifact
-cycle. Ideate and Harden remain provider-free. Plan's direct GitHub publisher owns its own exact
-issue/graph mutation and read-back invariants.
+relations, or project membership. This rule is retained only for existing mirrored records. Ideate
+and Harden remain provider-free. Plan's direct GitHub publisher owns its own exact issue/graph
+mutation and read-back invariants.
 
 ## Retired Execute provider lifecycle and closure
 
@@ -460,8 +451,8 @@ issue/graph mutation and read-back invariants.
 > already-mirrored provider state only. A bounded Execute task makes no development-artifact
 > provider calls without `--issue`, and with it uses only the exact issue's read-only admission
 > plus Commit association under
-> [`woostack-execute`](../../woostack-execute/SKILL.md#optional-exact-github-issue). Build/Fix
-> provider closure is not a live Execute path.
+> [`woostack-execute`](../../woostack-execute/SKILL.md#optional-exact-github-issue). Provider closure
+> is not a live Execute path.
 
 Historical provider-mode Execute lifecycle mappings and project-start transitions are retained only as
 schema/provenance context for existing mirrored records; they are not a live workflow. Bounded Execute

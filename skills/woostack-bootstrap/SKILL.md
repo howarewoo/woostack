@@ -41,10 +41,11 @@ Use bootstrap only when there is no existing codebase whose conventions or histo
 An empty remote repository may be the intended destination, but an existing repository request
 routes before requirements gathering, MCP preflight, or project creation:
 
-- bugs, regressions, incidents, and root-cause work → [`woostack-fix`](../woostack-fix/SKILL.md);
+- bugs, regressions, incidents, and root-cause work → [`woostack-debug`](../woostack-debug/SKILL.md)
+  for diagnosis or [`woostack-prepare`](../woostack-prepare/SKILL.md) for a proved issue graph;
 - a bounded non-bug enhancement or refactor that fits one reviewable PR, including a one-file
   request → [`woostack-change`](../woostack-change/SKILL.md);
-- a multi-PR feature or architectural initiative → [`woostack-build`](../woostack-build/SKILL.md).
+- a multi-PR feature or architectural initiative → [`woostack-prepare`](../woostack-prepare/SKILL.md).
 
 Single-surface throwaway scripts are also outside bootstrap.
 
@@ -71,11 +72,11 @@ preference, partial agreement, or approval inferred by the agent does not clear 
 approval, perform no official-MCP development mutation and create no development artifact.
 </HARD-GATE>
 
-5. **Establish repository/base intent and stable run identity.** Only after approval, retain the
-   exact canonical future `https://github.com/<owner>/<repository>` URL, intended integration/base
-   branch, normalized approved goal/scope, and a deterministic in-run project identity. This
-   identity prevents duplicate work within/resumed from the same supplied contract; it is not a
-   development record.
+5. **Establish repository/base intent and a stable approved-contract identity.** Only after approval,
+   retain the exact canonical future `https://github.com/<owner>/<repository>` URL, intended
+   integration/base branch, normalized approved goal/scope, and deterministic contract identity. This
+   identity prevents duplicate work within/resumed from the same supplied contract; it is not a run,
+   provider, or development record.
 6. **Admit the filesystem write barrier.** Follow the canonical
    [collision-check procedure](references/bootstrap.md#filesystem-write-barrier-and-collision-check)
    after approval and repository/base intent are retained. Early inspection cannot replace the
@@ -114,8 +115,9 @@ approval, perform no official-MCP development mutation and create no development
 
 These are non-negotiable. Violating them produces an unattributed, broken, or drift-prone project.
 
-- **Greenfield only.** Route every brownfield bug, bounded one-PR request, or multi-PR initiative to
-  fix, change, or build before creating a bootstrap project.
+- **Brownfield routing.** Route every existing-repository bug or regression to Debug or Prepare,
+  every bounded one-PR non-bug request to Change, and every multi-PR initiative to Prepare before
+  creating a bootstrap project.
 - **Artifact-free until explicit approval.** Requirements, research, options, and design stay in
   the run context. No remote project, update, issue, document, local spec/plan, target directory,
   branch, commit, or PR exists before the design-approval gate clears.
@@ -129,9 +131,9 @@ These are non-negotiable. Violating them produces an unattributed, broken, or dr
 - **Artifact failure is scoped.** Missing access or an unknown/partial result blocks requested
   persistence, not an otherwise approved artifact-free scaffold, unless persistence was explicitly
   part of the deliverable. Never claim synchronization without direct read-back.
-- **Pass stable run identity.** Scaffolding and later build/planning continuation reuse the
-  normalized approved contract and deterministic task/project identity. Optional artifact IDs are
-  carried only when persistence was selected.
+- **Pass stable approved-contract identity.** Scaffolding reuses the normalized approved contract
+  and deterministic target identity. It does not create or resume a Prepare/Plan run, and optional
+  artifact IDs are carried only when persistence was explicitly selected.
 - **Always resolve latest versions live.** Never use hardcoded versions from memory. Query the
   registry live during research and exact resolution.
 - **Keep code app-local until shared.** Follow

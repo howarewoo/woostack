@@ -1,10 +1,11 @@
 ---
 title: Plane
-description: Reference for Plane artifact mirroring, configuration fields, hierarchy, and lifecycle behavior.
+description: Reference for retained Plane configuration, historical mirrors, hierarchy, and lifecycle boundaries.
 ---
 
-Select Plane artifact mirroring with `artifacts.provider: "plane"`. For Build and project-backed
-Fix, the [local run](/docs/configuration/artifacts/local) remains the source of truth.
+Plane is a surviving explicit provider for workflows that select it. Prepare and Plan do not mirror
+packets to Plane; Plan publishes directly to GitHub. Historical records remain readable and are not
+migrated.
 
 ## Configuration
 
@@ -49,18 +50,18 @@ manual; Init does not discover Plane defaults.
 ## Identities and hierarchy
 
 Woostack resolves the configured project and checks its instance, workspace, and repository
-association. Build and project-backed Fix create top-level `[Build]` or `[Fix]` specification work
-items in that project. Plan does not use Plane. Each increment is a child of its specification item.
-Native blocking relations connect adjacent increments in order. Readable work-item references,
-internal UUIDs, and external recovery IDs are kept separately. Woostack never guesses or creates
-the project.
+association for an explicitly selected surviving provider workflow. Historical specification and
+increment items remain associated with that project. Prepare, Change, and Plan do not contact Plane;
+Plan's direct GitHub publisher owns parent/child/dependency publication. Readable work-item references,
+internal UUIDs, and external recovery IDs remain separate. Woostack never guesses or creates the
+project.
 
-## Lifecycle behavior (retired Execute reference)
+## Lifecycle behavior (retained-record reference)
 
-> **Retired.** Execute no longer accepts Plane work-item scope, performs work-item state transitions,
-> reads a project/run controller, or closes provider resources. Its only optional provider input is an
-> exact canonical GitHub issue URL; the retained Plane schema and historical records support Build/Fix
-> mirroring only. See [Execute retired inputs](/docs/skills/woostack-execute#retired-inputs).
+> **Boundary.** Execute no longer accepts Plane work-item scope or performs provider state
+> transitions. Its only optional provider input is an exact canonical GitHub issue URL; retained Plane
+> schema and historical records do not grant lifecycle authority to a new command. See
+> [Execute retired inputs](/docs/skills/woostack-execute#retired-inputs).
 
 The configured Plane project remains repository association context; its status is never changed by
 woostack. Handoff, abandonment, blockers, and completion leave the project unchanged.

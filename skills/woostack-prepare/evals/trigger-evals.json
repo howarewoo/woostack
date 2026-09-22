@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "skill": "woostack-prepare",
+  "cases": [
+    {
+      "id": "feature-needs-issue-preparation",
+      "query": "Prepare this existing repository feature as a complete GitHub parent with PR-sized child issues and native prerequisite edges; do not implement it yet.",
+      "shouldTrigger": true,
+      "expectedSkill": "woostack-prepare"
+    },
+    {
+      "id": "production-defect-needs-proof-and-plan",
+      "query": "A production regression needs root-cause evidence first, then a verified GitHub issue graph for the correction; stop before source changes.",
+      "shouldTrigger": true,
+      "expectedSkill": "woostack-prepare"
+    },
+    {
+      "id": "approved-spec-goes-directly-to-plan",
+      "query": "I already have an approved complete specification and exact parent issue. Reuse settled decisions and publish the verified child graph without repeating discovery.",
+      "shouldTrigger": true,
+      "expectedSkill": "woostack-prepare"
+    },
+    {
+      "id": "direct-debug-only",
+      "query": "Investigate this reproduction, prove the causal root, and propose the smallest correction without planning or editing anything.",
+      "shouldTrigger": false,
+      "expectedSkill": "woostack-debug",
+      "conflictsWith": ["woostack-prepare"]
+    },
+    {
+      "id": "direct-approved-plan",
+      "query": "Publish this already-approved specification into the exact GitHub parent and its native child/dependency graph.",
+      "shouldTrigger": false,
+      "expectedSkill": "woostack-plan",
+      "conflictsWith": ["woostack-prepare"]
+    },
+    {
+      "id": "bounded-implementation",
+      "query": "Implement this one complete bounded task, run focused checks, commit it, and submit its draft pull request.",
+      "shouldTrigger": false,
+      "expectedSkill": "woostack-execute",
+      "conflictsWith": ["woostack-prepare"]
+    },
+    {
+      "id": "greenfield-bootstrap",
+      "query": "Create a genuinely new application in an empty target directory after approving its stack and architecture.",
+      "shouldTrigger": false,
+      "expectedSkill": "woostack-bootstrap",
+      "conflictsWith": ["woostack-prepare"]
+    }
+  ]
+}

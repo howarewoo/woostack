@@ -37,14 +37,14 @@
       "id": "existing-platform-retention-controls",
       "query": "Our existing compliance product needs tenant-specific retention rules spanning policy design, schema changes, background deletion, audit evidence, and administrator controls. It will take multiple dependent pull requests and still has unresolved behavior decisions.",
       "shouldTrigger": false,
-      "expectedSkill": "woostack-build",
+      "expectedSkill": "woostack-prepare",
       "conflictsWith": ["woostack-change"]
     },
     {
       "id": "unknown-pdf-preview-regression",
-      "query": "PDF previews have been blank since the rendering library update, and we do not know why. Reproduce the failure, identify the cause, and restore previews with coverage for the regression.",
+      "query": "PDF previews have been blank since the rendering library update, and we do not know why. Reproduce the failure and identify the cause without applying a correction.",
       "shouldTrigger": false,
-      "expectedSkill": "woostack-fix",
+      "expectedSkill": "woostack-debug",
       "conflictsWith": ["woostack-change"]
     }
   ]

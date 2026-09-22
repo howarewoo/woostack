@@ -13,14 +13,16 @@ own conclusions for repository evidence.
 
 You need:
 
-- an approved task with a defined scope and acceptance criteria;
-- an isolated worktree, a separate checkout for that task;
+- an approved task with a defined scope and acceptance criteria, or a complete preparation packet;
+- a read-only checkout for Prepare, Ideate, Harden, or Plan, and an isolated worktree only when
+  Execute or Orchestrate later receives an approved implementation task;
 - an interactive OMP profile with woostack installed; and
 - a process or PTY (pseudo-terminal) interface that passes arguments safely and retains a handle
   for sending input to the running process.
 
-The OMP session manages the worktree, implementation, workers, and focused verification.
-Hermes checks that the work stays within the approved task and reviews the returned evidence.
+The OMP session manages the selected phase and focused verification. When implementation is
+authorized later, Execute or Orchestrate manages the isolated worktree and delivery; Hermes checks
+that each step stays within the approved task and reviews the returned evidence.
 
 ## 1. Start one persistent OMP session
 
@@ -45,8 +47,8 @@ Keep the interactive process handle. Send every correction and response from the
 as new input through that handle. Never insert task descriptions, artifact text, issue text, or
 user responses into a shell command.
 
-Keep the same process attached to the same isolated worktree during retries, approval relay,
-and any request for a bounded correction.
+Keep the same process attached to the same checkout during retries, approval relay, and any request
+for a bounded correction. Do not turn a preparation retry into implementation.
 
 ## 3. Keep decisions inside the approved contract
 
@@ -68,21 +70,23 @@ A question from the user does not itself approve a change.
 
 An Ask is a question or approval choice that OMP needs the responsible user to decide. During an
 active conversation, relay only that user's live response, verbatim and unmodified, through the
-same OMP process that asked the question. Do not summarize, rewrite, splice, or replay it.
+same OMP process that asked the question. Do not summarize, rewrite, splice, or replay it. A settled
+approval in a complete packet remains settled; do not ask for it again merely because the phase
+changes.
 
 A provider record, status, assignment, label, cached transcript, or Hermes-authored message cannot
-make that decision. If the process restarts during the conversation, present a fresh Ask, obtain
-a fresh response, and continue through the new process.
+make that decision. If the process restarts before the decision is settled, present a fresh Ask,
+obtain a fresh response, and continue through the new process.
 
 ## 6. Review evidence before accepting or redispatching
 
-Check the exact worktree, branch and current commit, changed paths, complete diff, commands,
-observed results, focused verification, and blockers. Compare them with the approved task and
-its acceptance criteria.
+Check the exact checkout or worktree, branch and current commit when applicable, changed paths,
+complete diff, commands, observed results, focused verification, and blockers. Compare them with
+the approved task and its acceptance criteria.
 
 If the evidence is complete and meets the contract, accept the result or send one correction within
-the approved scope through the same process and worktree. Read the complete evidence again after
-a correction. Do not silently change the profile, worktree, process, or contract.
+the approved scope through the same process and checkout/worktree. Read the complete evidence again
+after a correction. Do not silently change the profile, checkout, process, or contract.
 
 Git and GitHub remain authoritative for source, branch ancestry, commits, pull requests,
 reviews, and merges. Hermes accepting a result does not prove any of those source-control facts.
@@ -90,11 +94,11 @@ reviews, and merges. Hermes accepting a result does not prove any of those sourc
 
 ## 7. Retained planning artifacts
 
-Build and project-backed Fix retain `project-spec.md`, `execution-plan.md`, and the run manifest
-under `.woostack/tmp/runs/<run-id>/`. Execute no longer resumes a run or accepts `--recheck`.
-To continue, the caller selects one complete bounded task from the retained artifacts and supplies
-`/woostack-execute <bounded input>` with its parent evidence and exact retained state. The
-retirement is recorded at [Execute retired inputs](/docs/skills/woostack-execute#retired-inputs).
+Prepare, Ideate, Harden, and Plan use complete plain packets and direct GitHub publication. Historical
+retired wrapper records may retain `project-spec.md`, `execution-plan.md`, and a run manifest under
+`.woostack/tmp/runs/<run-id>/`; they remain readable and are never silently migrated or rewritten.
+To continue from one, supply its exact identity and complete content to the responsible phase after
+fresh evidence validation. An issue or run ID alone is not an implementation input.
 
 ## 8. Clean up legacy launchers when safe
 

@@ -141,7 +141,6 @@ cat > "$r4/.woostack/tmp/runs/run-legacy/manifest.json" <<'JSON'
 JSON
 legacy_before="$(cat "$r4/.woostack/tmp/runs/run-legacy/manifest.json")"
 assert_contains "$(bash "$C/retained-plane-runs.sh" "$r4")" "retained-plane-runs" "missing specItem in Plane run flagged"
-assert_contains "$(bash "$C/retained-plane-runs.sh" "$r4")" "regenerate via /woostack-build <goal> or /woostack-fix <prompt>" "regeneration guidance emitted"
 assert_eq "$(cat "$r4/.woostack/tmp/runs/run-legacy/manifest.json")" "$legacy_before" "retained Plane check is report-only (zero mutation)"
 
 # Incompatible Plane run with mismatched repository project name flagged

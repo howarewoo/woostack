@@ -477,7 +477,7 @@
     },
     {
       "id": "composed-github-parent-hierarchy-uses-same-publisher",
-      "prompt": "Read fixtures/project-github-parent.json as a composed Plan invocation after a caller supplies the complete approved specification, repository/evidence identity, and public Harden handback. Use the same direct GitHub publisher as direct Plan with --parent-issue new; no provider configuration, Build/Fix run, Project, or wrapper-owned mirror is present. Treat cycles as recorded normalized provider operations, not instructions to bypass admission. Verify the four-child hierarchy, three exact dependency tuples, idempotent repeat, and separate Orchestrate handoff. Return exactly one JSON object with the same publication evidence keys as the direct case.",
+      "prompt": "Read fixtures/project-github-parent.json as a composed Plan invocation after a caller supplies the complete approved specification, repository/evidence identity, and public Harden handback. Use the same direct GitHub publisher as direct Plan with --parent-issue new; no provider configuration, retained run, Project, or wrapper-owned mirror is present. Treat cycles as recorded normalized provider operations, not instructions to bypass admission. Verify the four-child hierarchy, three exact dependency tuples, idempotent repeat, and separate Orchestrate handoff. Return exactly one JSON object with the same publication evidence keys as the direct case.",
       "fixtures": [
         "project-github-parent.json"
       ],

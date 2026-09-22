@@ -9,9 +9,9 @@ transport or fallback tokens. Artifact operations follow the canonical
 [artifact backends contract](../../../woostack-init/references/artifact-backends.md).
 
 When a woostack skill is invoked, rename the active session with a concise title derived from the
-user's current goal. For `woostack-change`, `woostack-build`, and `woostack-fix`, derive the title
-from the user's input goal; a resume-only Build or Fix invocation uses the exact verified run goal.
-Do not use the slash-command name, project or run identifier, or an untrusted remote title.
+user's current goal. For `woostack-change`, `woostack-prepare`, and `woostack-execute`, derive the
+title from the user's input goal; a preparation resume uses the exact verified packet goal. Do not
+use the slash-command name, project or run identifier, or an untrusted remote title.
 
 Invoke the registered tool `woostack_rename_session` with `{ "title": "<derived-title>" }`. The tool
 is exposed by the local project extension `.omp/extensions/woostack-session-name.ts` provisioned by
