@@ -45,9 +45,9 @@ primary_root="$(cd "$git_common_dir/.." && pwd -P)"
    source directory.
 
 In-process subagents: all subagents spawned via the host harness (such as OMP `task` or Claude Code
-`Task`) run within the host's session context and receive the resolved task workspace path
-(`$current_toplevel` or the managed worktree path). They pin their working directory to that workspace
-and communicate with the calling workflow through the host's in-process IPC.
+`Task`) run within the host's session context. The caller supplies the resolved task workspace path
+(`$current_toplevel` or the managed worktree path) in the dispatch prompt; the worker verifies and
+pins its operations to that workspace and communicates through the host's in-process IPC.
 
 Optional exact GitHub issue association may be recorded as descriptive context alongside the stable
 task ID (see [`woostack-execute`](../../woostack-execute/SKILL.md#optional-exact-github-issue)), but it
