@@ -535,6 +535,9 @@ class FakeHost:
         self.reservations = {}
         self.hold_before_pr = False
         self.before_pr = threading.Event()
+        self.hold_before_mutation = False
+        self.before_mutation = threading.Event()
+        self.mutation_hold = threading.Event()
 
     def dispatch(self, entries: Sequence[Dict[str, Any]]) -> None:
         if not self.futures and {entry["task_id"] for entry in entries} == {
@@ -561,7 +564,9 @@ class FakeHost:
                 "parent_branch": entry.get("parent_branch"),
                 "packet": entry.get("packet"),
             })
-            self.futures[task_id] = self.executor.submit(self._execute_packet, copy.deepcopy(entry))
+            self.futures[task_id] = self.executor.submit(
+                self._execute_packet, copy.deepcopy(entry), copy.deepcopy(self.identities[task_id])
+            )
             if self.on_launch:
                 self.on_launch(entry, self.identities[task_id])
 
@@ -586,7 +591,7 @@ class FakeHost:
             "inventory_digest": contract_hash(inventory),
         }
 
-    def _execute_packet(self, entry: Dict[str, Any]) -> Dict[str, Any]:
+    def _execute_packet(self, entry: Dict[str, Any], identity: Dict[str, str]) -> Dict[str, Any]:
         task_id = entry["task_id"]
         packet = entry["packet"]
         # This assertion is intentionally about the consumer boundary, not
@@ -611,6 +616,10 @@ class FakeHost:
             self.b_started.set()
         if task_id == "task-c":
             self.c_started.set()
+
+        if self.hold_before_mutation:
+            self.before_mutation.set()
+            self.mutation_hold.wait()
 
         workspace = Path(entry["workspace"])
         branch = entry["branch"]
@@ -667,7 +676,7 @@ class FakeHost:
         report = {
             "outcome": "ok",
             "worker": {
-                "worker_id": self.identities[task_id]["worker_id"],
+                **identity,
                 "pr_url": pr_url,
                 "branch": branch,
                 "workspace": str(workspace.resolve()),
@@ -698,6 +707,7 @@ class FakeHost:
 
     def shutdown(self) -> None:
         self.release_b()
+        self.mutation_hold.set()
         self.executor.shutdown(wait=True)
 
 

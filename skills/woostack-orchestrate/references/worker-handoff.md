@@ -140,8 +140,9 @@ After `schedule` returns, the caller must, before host dispatch:
    overlapping redispatch until the original worker is proved stopped.
 
 After the launch, [record the native writer](validation.md#record-the-native-writer) against the
-reservation. Preserve that host/session/worker identity independently of delivery reports so a
-timeout cannot be reconciled using another worker's stopped receipt.
+reservation. Preserve that host/session/worker identity with the originating native handle,
+independently of delivery reports, so a cached completion or timeout cannot be attributed to a
+later repair launch or reconciled using another worker's stopped receipt.
 
 The worker must not create its own alternate workspace, switch to another branch, infer a parent
 from ordinal order, read/write a sibling workspace, alter hierarchy/dependencies, or own Project
@@ -168,13 +169,22 @@ helper entry; do not hand-author a weaker prose packet.
 
 ## Worker result envelope
 
-The worker returns ordinary Execute evidence. The controller adds independent canonical reads,
+The worker returns ordinary Execute evidence. The controller binds the nested `worker` report to
+the actual originating native handle's `host_id`, `session_id`, and `worker_id`, never by copying
+the task's current `host_worker` into a cached result. It adds independent canonical reads,
 focused verification, and read-only specification validation using the single
 [result schema and gates](validation.md#result-schema), then persists/read-backs the child note
 and any explicitly selected Project status before `apply-result`. Do not invent missing evidence
 or let the worker approve its own result. Failed checks/specification validation preserve the
-same reservation and PR for repair; missing note/Project receipts are retried without replaying
-repository delivery; unknown outcomes retain ownership and block only that task and descendants.
+same reservation and PR for repair; note/evidence-only retries keep the same recorded native
+identity without replaying repository delivery. A new repair launch has its own native identity.
+
+For a missing or malformed response, construct a valid envelope from the originating native handle
+with `outcome: "unknown"` or the malformed report fields. Only a bound envelope may transition the
+task to unknown and retain ownership. Unreadable/unparseable or unbound envelopes, including stale
+repair completions, return `worker-identity` without changing the current reservation or status.
+Follow [native identity recovery](validation.md#record-the-native-writer) when the handle is lost;
+never relabel an old completion using current task state.
 
 The child PR carries exactly one `Resolves <child URL>` reference. It never closes or references
 the specification parent. New PRs remain drafts and no workflow step marks ready, merges, queues,
@@ -183,7 +193,9 @@ force-pushes, or silently retargets a PR.
 ## Existing delivery and resume
 
 A fresh snapshot that includes a delivered task must include `existing_delivery.reservation` and
-`existing_delivery.result` with this same complete result shape. The skill re-reads the canonical
+`existing_delivery.result` with the complete delivery evidence above. Without an active launch,
+admission does not require the active-result `host_id`/`session_id` binding; its existing
+`worker_id` and independent delivery checks remain required. The skill re-reads the canonical
 branch/ref, PR/head/base/repository, focused checks, binary diff, independent validation, note, and
 selected Project status immediately before assembly. The helper restores `delivered` only when the
 reservation and every result identity/evidence field match; stale or partial evidence blocks. Never
