@@ -105,6 +105,23 @@ function inspectParentRecovery(ops) {
   return matches;
 }
 
+function assertLinkRecoveryBeforeWrites(ops) {
+  const failed = ops.findIndex((e) => e.request.method === 'POST' && e.request.path === `${api}/101/sub_issues` && e.request.json.sub_issue_id === id('A'));
+  assert.ok(failed >= 0);
+  assert.equal(ops[failed].response.status, null);
+  const nextWrite = ops.findIndex((e, index) => index > failed && isWrite(e));
+  const window = ops.slice(failed + 1, nextWrite < 0 ? undefined : nextWrite);
+  const parentQuery = window.findIndex((e) => e.request.path === '/graphql' && e.request.json.variables.number === number('A'));
+  const parentChildren = window.findIndex((e) => e.request.method === 'GET' && e.request.path.startsWith(`${api}/101/sub_issues?`) && e.request.path.endsWith('page=1'));
+  assert.ok(parentQuery >= 0 && parentChildren >= 0, 'Both native endpoints must be recovered before resumed writes');
+  const child = ops.slice(0, failed).findLast((e) => e.request.method === 'GET' && e.request.path === `${api}/${number('A')}`);
+  assert.equal(child?.response.status, 200);
+  assert.equal(child.response.json.id, id('A'));
+  assert.equal(child.response.json.html_url, url('A'));
+  assertNativeParent(window, 'A', child.response.json);
+  assert.deepEqual(readPages(window, parentChildren).items.map((item) => item.id), [id('A')]);
+}
+
 function assertReadyReadBack(ops, result) {
   assert.equal(result.status, 'ready');
   // Only inspect the last complete read-back, not a second workflow state machine.
@@ -262,8 +279,24 @@ test('unknown links are discovered in both directions without reparenting or rep
   const attempts = writes(ops).filter((e) => e.request.path === `${api}/101/sub_issues` && e.request.json.sub_issue_id === id('A'));
   assert.equal(attempts.length, 1);
   assert.equal(attempts[0].response.status, null);
-  assert.equal(scenario.recovery.replayedLink, false);
+  assertLinkRecoveryBeforeWrites(ops);
   assertReadyReadBack(ops, scenario.final);
+});
+
+test('final graph evidence cannot repair unknown-link reads deferred past a write', () => {
+  const scenario = variant('unknown-link-existing');
+  const ops = operations(scenario);
+  const failed = ops.findIndex((e) => e.response.status === null);
+  const nextWrite = ops.findIndex((e, index) => index > failed && isWrite(e));
+  const window = ops.slice(failed + 1, nextWrite);
+  const isRecoveryRead = (e) => e.request.path.startsWith(`${api}/101/sub_issues?`) ||
+    (e.request.path === '/graphql' && e.request.json.variables.number === number('A'));
+  const reordered = [
+    ...ops.slice(0, failed + 1), ...window.filter((e) => !isRecoveryRead(e)),
+    ops[nextWrite], ...window.filter(isRecoveryRead), ...ops.slice(nextWrite + 1),
+  ];
+  assertReadyReadBack(reordered, scenario.final);
+  assert.throws(() => assertLinkRecoveryBeforeWrites(reordered), /before resumed writes/);
 });
 
 test('a missing final dependency page cannot masquerade as a ready graph', () => {
