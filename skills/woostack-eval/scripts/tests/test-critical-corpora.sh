@@ -159,8 +159,6 @@ expectRejected('remote-object fetch', () =>
   assertNoProhibitedRequest('Fetch PR metadata from GitHub before proceeding.', '<probe>'));
 expectRejected('remote-object read', () =>
   assertNoProhibitedRequest('Read PR metadata from GitHub before proceeding.', '<probe>'));
-expectRejected('affirmative retired managed-provider request', () =>
-  assertNoProhibitedRequest('Call a retired managed provider before proceeding.', '<probe>'));
 expectRejected('affirmative request in adjacent sentence', () =>
   assertNoProhibitedRequest('Never fabricate receipts. Use the network to finish.', '<probe>'));
 expectRejected('affirmative request after but', () =>

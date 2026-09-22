@@ -53,7 +53,7 @@ fi
 
 resolver_error="$(mktemp)"
 if ! effective_config="$(bash "$CONFIG_RESOLVER" "$WOO_ROOT" 2>"$resolver_error")"; then
-  detail="$(cat "$resolver_error")"
+  detail="$(tr '\t\r\n' '   ' <"$resolver_error")"
   rm -f "$resolver_error"
   [ -n "$detail" ] || detail="canonical configuration resolver is unavailable"
   emit error config-policy report ".woostack/config.json" "$detail"
