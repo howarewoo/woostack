@@ -51,7 +51,7 @@ scope. Require native reads in both directions after a link write.
 Owner admission verifies `artifacts.github.owner` login, type, and node ID. Build and Fix resolve one
 supplied Project or create one `[Build]/[Fix] <goal>` Project after zero matches across owner pagination.
 Newly created Projects use configured visibility with private default; supplied Projects retain existing visibility.
-Standalone Plan's Project mode uses only an exact supplied Project.
+Plan's Project mode, whether invoked directly or composed by a caller, uses only an exact supplied Project.
 
 The specification is written inside `ProjectV2.readme` between markers `<!-- woostack-spec-start -->` and
 `<!-- woostack-spec-end -->`, preserving unrelated README bytes. Every Project create preallocates one UUID
@@ -60,7 +60,7 @@ and recovery. Projects v2 does not require project labels; repository labels and
 
 ## Specification parent and native children
 
-Standalone Plan explicitly selects `--parent-issue new` or one canonical existing parent issue URL,
+Direct and composed Plan calls explicitly select `--parent-issue new` or one canonical existing parent issue URL,
 exclusive with `--project`. Verify canonical repository/owner/native identities from trusted Git and
 GitHub evidence. For an existing parent, independently read its open issue state (not a PR), actual
 parent, complete body and relevant comments, every native sub-issue page, and every child's actual
@@ -153,7 +153,7 @@ Before issue creation, membership, parent linkage, or relation mutation, complet
 retained issue and relation page, round-trip every endpoint in its required identity form, and
 verify canonical repository and selected scope: exact native parent links for parent mode, or
 direct membership and the admitted parent state for Project mode. Use the manifest's preallocated
-stable mutation identities in mirror mode, or retained standalone mutation identities. Creation
+stable mutation identities in mirror mode, or retained Plan publication identities. Creation
 binds once after independent read-back; required parent links and selected memberships follow
 binding; dependencies follow verified scope membership.
 After an unknown create outcome, recover only by repeating complete discovery for the same marker UUID;
@@ -162,7 +162,7 @@ candidate before writes: unchanged fields, memberships, parent links, and edges 
 only when the approved specification explicitly changes that prerequisite; unexpected drift blocks,
 never silently pruning a chain. Independently read back every specification/task issue, description,
 native parent link, selected membership, and complete exact predecessor→successor edge set.
-Mirror mismatches record failure without changing local artifacts; standalone mismatches block
+Mirror mismatches record failure without changing local artifacts; Plan publication mismatches block
 without claiming synchronization.
 
 Retain the complete DAG for explicit Orchestrate execution; Execute cannot accept or dispatch it as a graph.
@@ -175,7 +175,7 @@ without schema migration or edge rewriting; workflow admission validates the DAG
 
 Reuse existing task/dependency/mapping representations. A specification parent is retained separately
 as `specItem` (in `mirror.specItem` when a run manifest applies), never in `stableTaskMappings`.
-Standalone Plan retains the same canonical/native/marker identities and last verified mutation
+Direct and composed Plan calls retain the same canonical/native/marker identities and last verified mutation
 boundary in its handback, not a new Build/Fix run, hidden ledger, or storage schema. Incomplete
 identity recovery blocks further publication rather than allocating a replacement.
 

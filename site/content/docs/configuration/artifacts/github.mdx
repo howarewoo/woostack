@@ -82,9 +82,9 @@ nonmember children automatically. No implicit conversion or reparenting occurs. 
 resources, allocate recovery markers (`<!-- woostack-project-mutation:<UUID> -->` and
 `<!-- woostack-issue-mutation:<UUID> -->`) to recover uncertain creation without duplicates.
 
-### Parent-issue planning (standalone Plan only)
+### Parent-issue planning
 
-Standalone Plan accepts an explicit parent-issue selector instead of `--project`:
+Direct and composed Plan calls accept an explicit parent-issue selector instead of `--project`:
 
 ```text
 /woostack-plan <approved specification> --parent-issue new
@@ -106,8 +106,8 @@ actual parent. New IDs reuse the existing marker recovery without replay on unce
 or human-owned fields are preserved and children are never reparented. Nested containers, cycles,
 missing endpoints, foreign parents, and partial pagination or capabilities fail closed. Repeating an
 unchanged sync performs zero mutations. Task, dependency, and mapping shapes match Project mode,
-with the parent stored separately in the spec item when applicable; standalone parent-issue Plan
-creates no Build/Fix run.
+with the parent stored separately in the spec item when applicable. Direct and composed Plan calls
+retain publication identities and the last verified boundary in their handback without creating a Build/Fix run.
 
 Parent-issue planning is planning only. Explicit Orchestrate execution consumes the admitted native
 child scope; bounded Execute still admits one complete task.
