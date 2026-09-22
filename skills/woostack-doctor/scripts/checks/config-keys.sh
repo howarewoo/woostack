@@ -87,27 +87,29 @@ github_allowed='["owner","ownerType","statusField","visibility","projectStatuses
 github_receipt_keys='["authenticated","capabilities","ghAvailable","owner","ownerResolution","projectStatuses","provider","readBack","ready","repository","schemaVersion","scopes","viewer"]'
 github_required_caps='["dependencyRead","dependencyWrite","independentReadBack","issueClose","issueDelete","issueRead","issueWrite","pagination","projectDelete","projectRead","projectWrite","statusFieldRead","statusFieldWrite"]'
 if [ "$provider" = "github" ]; then
-  if ! jq -e 'has("artifacts") and (.artifacts | type == "object") and (.artifacts | has("github")) and (.artifacts.github | type == "object")' "$EFFECTIVE_CFG" >/dev/null 2>&1; then
-    emit error linear-policy report ".woostack/config.json" "github policy requires owner, projectStatuses, and optional ownerType, statusField, visibility only"
+  if ! jq -e '.artifacts | (has("github") | not) or (.github | type == "object")' "$EFFECTIVE_CFG" >/dev/null 2>&1; then
+    emit error linear-policy report ".woostack/config.json" "github policy must be an object"
   elif ! jq -e --argjson allowed "$github_allowed" '
-    .artifacts.github | type == "object" and ((keys - $allowed) | length == 0)
+    (if .artifacts | has("github") then .artifacts.github else {} end) | ((keys - $allowed) | length == 0)
   ' "$EFFECTIVE_CFG" >/dev/null 2>&1; then
-    emit error linear-policy report ".woostack/config.json" "github policy requires owner, projectStatuses, and optional ownerType, statusField, visibility only"
+    emit error linear-policy report ".woostack/config.json" "github policy permits only owner, ownerType, statusField, visibility, and projectStatuses"
   elif ! jq -e '
-    .artifacts.github
-    and (.artifacts.github.owner | type == "string"
-      and test("^[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?$"))
-    and (if .artifacts.github | has("ownerType") then (.artifacts.github.ownerType == "organization" or .artifacts.github.ownerType == "user") else true end)
-    and (if .artifacts.github | has("statusField") then (.artifacts.github.statusField | type == "string" and test("\\S")) else true end)
-    and (if .artifacts.github | has("visibility") then (.artifacts.github.visibility == "private" or .artifacts.github.visibility == "public") else true end)
-    and (.artifacts.github.projectStatuses | type == "object")
+    (if .artifacts | has("github") then .artifacts.github else {} end)
+    | (if has("owner") then (.owner | type == "string"
+        and test("^[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?$")) else true end)
+      and (if has("ownerType") then (.ownerType == "organization" or .ownerType == "user") else true end)
+      and (if has("statusField") then (.statusField | type == "string" and test("\\S")) else true end)
+      and (if has("visibility") then (.visibility == "private" or .visibility == "public") else true end)
+      and (if has("projectStatuses") then (.projectStatuses | type == "object") else true end)
   ' "$EFFECTIVE_CFG" >/dev/null 2>&1; then
-    emit error linear-policy report ".woostack/config.json" "github policy requires owner, projectStatuses, and optional ownerType, statusField, visibility only"
+    emit error linear-policy report ".woostack/config.json" "github policy contains invalid values"
   else
     if ! jq -e --argjson keys "$issue_keys" '
-      (.artifacts.github.projectStatuses | keys | sort) == ($keys | sort)
-      and all(.artifacts.github.projectStatuses[]; type == "string" and test("\\S"))
-      and ((.artifacts.github.projectStatuses | [.[]] | unique | length) == ($keys | length))
+      if (.artifacts.github // {}) | has("projectStatuses") then
+        (.artifacts.github.projectStatuses | keys | sort) == ($keys | sort)
+        and all(.artifacts.github.projectStatuses[]; type == "string" and test("\\S"))
+        and ((.artifacts.github.projectStatuses | [.[]] | unique | length) == ($keys | length))
+      else true end
     ' "$EFFECTIVE_CFG" >/dev/null 2>&1; then
       emit error linear-policy report ".woostack/config.json" "projectStatuses mapping is incomplete or contains invalid values"
     fi

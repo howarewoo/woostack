@@ -56,7 +56,7 @@ if command -v jq >/dev/null 2>&1; then
   jq -c '.artifacts = {provider:"github",github:{owner:"acme",ownerType:"organization",statusField:"Status",visibility:"private",projectStatuses:{planned:"Todo",executing:"In Progress",inReview:"In Review",done:"Done",blocked:"Blocked"}}}' "$r2/.woostack/config.json" >"$tmp" && mv "$tmp" "$r2/.woostack/config.json"
   assert_eq "$(bash "$C/config-keys.sh" "$r2")" "" "after configuring full provider fields with provider github, clean"
   jq 'del(.artifacts.github.owner)' "$r2/.woostack/config.json" >"$tmp" && mv "$tmp" "$r2/.woostack/config.json"
-  assert_contains "$(bash "$C/config-keys.sh" "$r2")" "github policy requires owner, projectStatuses, and optional ownerType, statusField, visibility only" "missing owner under github fails"
+  assert_eq "$(bash "$C/config-keys.sh" "$r2")" "" "absent Project owner is valid for parent-only planning"
   jq '.artifacts = {provider: "linear"}' "$r2/.woostack/config.json" >"$tmp" && mv "$tmp" "$r2/.woostack/config.json"
   assert_contains "$(bash "$C/config-keys.sh" "$r2")" "linear policy requires repository, workspace, team, projectLabels, projectStatuses, and issueStates only" "provider linear requires full provider fields"
   jq '.artifacts = {

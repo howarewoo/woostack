@@ -83,10 +83,15 @@ there is no automatic dispatch. Ambiguous responses ask again; material scope ch
 explicit verification. The [Build handoff](/docs/skills/woostack-build#verified-handoff) owns the
 detailed transition and recovery rules.
 
-GitHub planning supports [prerequisite DAGs](/docs/configuration/artifacts/github#identities-hierarchy-and-graph).
-The complete DAG remains retained for future Orchestrate. A caller may select one task for
+GitHub planning supports [prerequisite DAGs and parent-issue hierarchy](/docs/configuration/artifacts/github#identities-hierarchy-and-graph).
+Standalone Plan selects either `--project` (Project membership) or `--parent-issue new`
+or an exact parent issue URL (parent-issue mode, native parent/child issues); the selectors are
+exclusive, parent-issue mode needs `artifacts.provider: "github"` but no Project settings, and
+Build/Fix optional mirrors never select it automatically. The complete DAG remains retained for
+future Orchestrate; there is no Orchestrate command yet. A caller may select one task for
 [bounded Execute admission](/docs/skills/woostack-execute#admit-one-task) with its concrete parent
-and complete prerequisite-readiness evidence; Execute does not dispatch the graph.
+and complete prerequisite-readiness evidence. Execute does not dispatch the graph; its own
+exact-issue admission still applies.
 
 ## Change
 

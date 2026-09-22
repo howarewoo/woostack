@@ -50,9 +50,10 @@ routing and deterministic contract coverage; it does not weaken or modify the sh
 
 Build resolves one exact caller-supplied or profile-configured project and creates one only when the
 selected provider profile permits it. Fix reaches proved root cause before project resolution or creation.
-An exact Fix source resource is preserved context, not the Fix plan or permission to work. Standalone Plan writes only to
-an exact selected or profile-configured project when persistence is requested. Local artifacts may be
-mirrored once after they are complete.
+An exact Fix source resource is preserved context, not the Fix plan or permission to work. Standalone
+Plan writes only to its explicitly selected profile-defined scope: an exact project or specification
+resource, or a new specification resource when the profile permits explicit creation. Local artifacts
+may be mirrored once after they are complete; standalone publication does not select mirroring.
 
 A mirror failure is recorded in the manifest and is nonblocking for local workflow authority.
 Supplying a project never relaxes repository, provider scope, pagination, capability, or read-back
@@ -85,7 +86,9 @@ workspace. Missing, ambiguous, foreign, or conflicting values block that provide
 
 Prefer provider-native operation identities. When unavailable, the selected provider profile defines
 one stable external identity representation for each created entity. Preallocate that identity before
-the first creation attempt and persist it in manifest mirror mappings through compare-and-swap.
+the first creation attempt and persist it in manifest mirror mappings through compare-and-swap when
+a run applies. Standalone publication retains the same identities and last verified boundary in its
+active contract and handback without creating a run; missing recovery context blocks further writes.
 
 Before one create, completely paginate every active and archived provider scope named by the profile,
 require terminal pagination, and prove zero exact external-identity matches. Recover an unknown result
@@ -121,27 +124,28 @@ After one creation succeeds and the resource is independently read back, bind th
 Never remap it or infer it from prose.
 
 Every complete resource read requests the selected profile's canonical and native identity,
-canonical repository, complete provider scope, direct project membership, and parent. The selected
-provider profile defines its direct or parented hierarchy rules (for direct parentless resources,
+canonical repository, complete selected provider scope, parent, and project membership when applicable.
+The selected provider profile defines its direct or parented hierarchy rules (for direct parentless resources,
 `parent = null`; for parented specification-and-increment hierarchies, top-level specification
 resources have `parent = null` while increment child resources have their exact specification parent
 identity). Omission is null only when the field was explicitly requested and both the response and
 pagination are complete; otherwise parent state is unknown and blocks. Preserve and exclude historical
-parent/container resources from the current direct graph.
+containers from task mappings; a profile-defined specification resource is bound separately.
 
 Before membership, parent linkage, or dependency mutation:
 
 1. completely read every retained resource and relation page;
 2. round-trip every endpoint using the profile's required endpoint identity;
-3. verify repository, provider scope, exact project, direct membership, and profile-defined parent state;
+3. verify repository, selected scope, profile-defined parent state, and project membership where selected;
 4. reject duplicates, mixed identity forms, foreign scope, incomplete pagination, or ambiguity; and
 5. perform one mutation, then independently read the complete affected fields and graph back.
 
 An explicitly new resource has no usable endpoint until its one creation succeeds. Complete all
 retained-endpoint checks first. After creation, read the resource through the profile's canonical
-identity, bind its task key (or specification root) once, write and read back direct project membership
-and parent linkage, and only then write relations. A failure stops without duplicate creation or later
-mutations. Do not create synthetic parent plan resources beyond what the selected profile defines.
+identity, bind its task key (or specification root) once, write and read back the profile-required
+parent linkage and selected project membership, and only then write prerequisite relations. A failure
+stops without duplicate creation or later mutations. Do not create synthetic parent plan resources
+beyond what the selected profile defines.
 ## Exact Fix source preservation
 
 An exact Fix source resource is context only. Read and round-trip its canonical and native identity,
@@ -461,9 +465,9 @@ disabled, make no provider closure call.
 Retain `manifest.json`, `project-spec.md`, `execution-plan.md`, and `.lock` on completion, explicit
 abandonment, and every blocked boundary. Never delete or rewrite a prior run to revise its artifacts.
 
-Report repository delivery and mirror synchronization separately. Include an exact provider project
-URL/native ID or canonical issue reference and its read-back result only when mirroring was selected
-and observed. Report compared base tips and the impact assessment; include the user's choice only
-when one was required.
+Report repository delivery, standalone publication, and mirror synchronization separately. Include
+an exact selected specification/project URL/native ID or canonical issue reference and its read-back
+result only for the admitted provider operation actually observed. Report compared base tips and the
+impact assessment; include the user's choice only when one was required.
 Never claim a read, write, checkpoint, synchronization, or delivery result that was not independently
 observed.

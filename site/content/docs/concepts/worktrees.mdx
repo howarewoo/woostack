@@ -48,7 +48,8 @@ without silently rebasing, resetting, or recreating it.
 | Independent feature root | latest compatible tip of the approved parent branch | approved parent branch |
 | Dependency child admitted to Execute | latest compatible tip/head of its declared Git parent | declared parent branch |
 
-A GitHub DAG dependent's logical prerequisites never select a Git parent by themselves. The caller
+A GitHub DAG dependent's logical prerequisites never select a Git parent by themselves. A GitHub
+issue parent likewise never selects one: it only groups the plan. The caller
 must supply one explicit parent branch/SHA containing every required predecessor change and complete
 readiness evidence under the
 [worktree contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/worktrees.md#plan-dependency-child).
