@@ -24,8 +24,7 @@ valid_config='{
     }
   },
   "models": {},
-  "review": {},
-  "status": {"staleDays": 14}
+  "review": {}
 }'
 clean="$(mktemp -d)"; mkdir -p "$clean/.woostack"
 printf '%s\n' "$valid_config" >"$clean/.woostack/config.json"

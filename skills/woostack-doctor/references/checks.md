@@ -33,6 +33,7 @@ inspect credentials or invoke a provider, adapter, HTTP, GraphQL, or hard-coded 
 | `retired-provider` | legacy provider selector/profile is present as opaque inactive data | warn | report | — |
 | `retained-data` | historical local draft/manifest directory is present | warn | report | — |
 | `github-live` | trusted receipt is missing, malformed, foreign, or lacks a fixed read-only capability | error | report | — |
+| `retired-status-config` | legacy top-level `status.staleDays` is present | warn | report | — |
 
 Legacy provider settings and retained records are not active policy and are never migration input
 for this engine. Their findings are actionable retirement guidance, not local-operation blockers.

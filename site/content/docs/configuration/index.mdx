@@ -75,7 +75,6 @@ requirements below.
 | `github` | Init and explicit GitHub Project workflows | Optional owner, owner type, Status field, and Project Status option mapping. |
 | `models` | Host subagent drivers | Shared fast, standard, and deep model leaves for hosts that consume repository model policy. OMP selects existing host agents and does not use this setting to create or rename them. |
 | `commit` | [woostack-commit](/docs/skills/woostack-commit) | Command to run before staging. |
-| `status` | [woostack-status](/docs/skills/woostack-status) | Age threshold for stale active rows. |
 | `base_branch` | Init and worktree workflows | Trunk branch used for worktrees and pull requests. |
 
 ## Artifact references
@@ -112,7 +111,6 @@ JSON has no comments, so the tables below explain each setting.
     "deep": { "model": "anthropic/claude-opus-4-8", "effort": "xhigh" }
   },
   "commit": { "command": "pnpm format && pnpm test" },
-  "status": { "staleDays": 14 },
   "base_branch": "main"
 }
 ```
@@ -230,15 +228,6 @@ formatter, linter, or test runner.
 | --- | --- | --- | --- |
 | `commit.command` | string | absent (no command) | Nonempty command run exactly once before staging. Failure blocks the commit. If it changes files, prior verification is invalidated and Commit returns to the calling workflow. |
 
-## Status board
-
-[woostack-status](/docs/skills/woostack-status) flags an active repository row that has remained
-unchanged past the configured threshold.
-
-| Key | Type | Default | Meaning |
-| --- | --- | --- | --- |
-| `status.staleDays` | integer | `14` | Days of inactivity before an active repository row is flagged stale. |
-
 ## Base branch
 
 `base_branch` is a top-level string (not nested) naming the trunk branch that PRs target and that
@@ -265,3 +254,6 @@ worktrees are cut from.
 
 - Remove obsolete `review`, `audit`, and `review_sweep` keys from existing configuration; Pullfrog
   handles pull-request review.
+- The former top-level `status.staleDays` setting is retired. Existing configurations are left
+  intact; remove that key when convenient. It never described GitHub Project Status fields, issue
+  lifecycle, or delivery evidence.

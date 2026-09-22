@@ -16,7 +16,6 @@ read-only context; utility skills never mutate them.
 | --- | --- | --- | --- |
 | [woostack-visualize](/docs/skills/woostack-visualize) | Renders an exact GitHub Project, issue, PR, repository source, or repository-grounded concept as one self-contained HTML view. Repository claims must be pinned to immutable Git content or an exact PR. | disposable HTML view | `/woostack-visualize <source>` |
 | [woostack-design](/docs/skills/woostack-design) | Arranges multi-step UI flows and screen sequences into a standardized horizontal layout with aligned branches. | design layout updates | `/woostack-design [target]` |
-| [woostack-status](/docs/skills/woostack-status) | Computes a fresh branch/PR board from Git and GitHub, plus Graphite when selected, optionally enriched by exact GitHub context. | no | `/woostack-status` |
 | [woostack-debug](/docs/skills/woostack-debug) | Runs root-cause analysis and returns a proposed correction. | no | `/woostack-debug <target>` |
 | [woostack-qa](/docs/skills/woostack-qa) | Explores a running app and writes a sanitized report. | non-authoritative report | `/woostack-qa <url> [focus…]` |
 | Production errors, Sentry issues, and monitoring defects | [woostack-debug](/docs/skills/woostack-debug) then [woostack-prepare](/docs/skills/woostack-prepare) for a verified issue graph. | report and planning handback | `/woostack-debug <target>` or `/woostack-prepare <goal-or-defect>` |
@@ -51,5 +50,4 @@ Remote resources and legacy development records remain report-only.
 
 <Cards>
   <Card title="Building rules" href="/docs/concepts/building-rules" description="How approved work moves through gates." />
-  <Card title="Status board reference" href="/docs/concepts/status-tracking" description="Look up how repository evidence becomes board state." />
 </Cards>

@@ -135,7 +135,6 @@ test('navOrder places public planning phases before orchestration', () => {
     'woostack-execute',
     'woostack-commit',
     'woostack-address-comments',
-    'woostack-status',
     'woostack-visualize',
     'woostack-design',
     'woostack-debug',

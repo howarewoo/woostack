@@ -48,11 +48,9 @@ new-repository scaffold is the one pre-base worktree exception. Later PRs requir
 Git/GitHub identity and may include an ordinary optional artifact link. Git and GitHub remain the
 source of truth for commits, branches, PRs, reviews, and merges.
 
-Every `/woostack-status` run derives rows from current Git/GitHub evidence, plus Graphite when selected.
-Exact caller-supplied GitHub Project or issue context may enrich a row with linked specification,
-plan, or fix notes; missing GitHub access affects only that enrichment. The
-[feature-state conventions](../../woostack-status/references/conventions.md) define rendering,
-reconciliation, and failure behavior.
+Work tracking uses canonical GitHub parent/child issues, native dependency relations, and linked
+pull requests. GitHub Project Status fields may describe provider records, but issue lifecycle or
+Project state never proves that a PR was submitted, verified, or merged.
 
 Legacy local development records are retained data only. They are never adopted as authority,
 automatically imported, or rewritten. Init reports actionable retirement guidance when an obsolete

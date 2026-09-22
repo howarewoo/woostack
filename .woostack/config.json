@@ -10,8 +10,5 @@
     }
   },
   "models": {},
-  "review": {},
-  "status": {
-    "staleDays": 14
-  }
+  "review": {}
 }

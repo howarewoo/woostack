@@ -24,7 +24,6 @@ The public command/adoption surface has twenty-one skills:
 - [`woostack-execute`](skills/woostack-execute/SKILL.md)
 - [`woostack-commit`](skills/woostack-commit/SKILL.md)
 - [`woostack-address-comments`](skills/woostack-address-comments/SKILL.md)
-- [`woostack-status`](skills/woostack-status/SKILL.md)
 - [`woostack-visualize`](skills/woostack-visualize/SKILL.md)
 - [`woostack-design`](skills/woostack-design/SKILL.md)
 - [`woostack-debug`](skills/woostack-debug/SKILL.md)
@@ -217,9 +216,10 @@ the repository's simplify/comments guidance.
   [`skills/woostack-doctor/SKILL.md`](skills/woostack-doctor/SKILL.md)
 - Address-comments delegator:
   [`skills/woostack-address-comments/SKILL.md`](skills/woostack-address-comments/SKILL.md)
-- Derived feature board (status command) and its canonical feature-state conventions:
-  [`skills/woostack-status/SKILL.md`](skills/woostack-status/SKILL.md),
-  [`skills/woostack-status/references/conventions.md`](skills/woostack-status/references/conventions.md)
+- The work-tracking source of truth is canonical GitHub parent/child issues, native dependency
+  relations, and associated pull requests; GitHub Project Status fields remain provider metadata.
+  Inspect those records directly. Local run manifests remain workflow progress and recovery
+  artifacts, not a replacement work board.
 - Init workspace and repository policy contract:
   [`skills/woostack-init/`](skills/woostack-init/)
 - Docs site — shipped Fumadocs app; authored framing pages plus the per-`SKILL.md` generator
