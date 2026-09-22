@@ -15,7 +15,7 @@ Keep only in active run context:
 5. researched stack and live-resolved package/tool versions;
 6. complete approved architecture, scope, and initial feature set;
 7. intended canonical future repository URL and integration branch; and
-8. deterministic stable run/project identity.
+8. deterministic stable approved-contract identity.
 
 ## Filesystem write barrier and collision check
 
@@ -29,7 +29,7 @@ No GitHub operation occurs before design approval and collision admission.
 All of these must hold before target admission:
 
 1. complete design explicitly approved in the current conversation;
-2. stable run identity plus intended canonical repository/base retained; and
+2. stable approved-contract identity plus intended canonical repository/base retained; and
 3. a fresh read-only collision check proves the target is absent or an empty non-Git directory.
 
 Reject a symlink, non-directory object, unreadable/ambiguous result, existing Git worktree or
@@ -44,7 +44,7 @@ a changed or uncertain result blocks mutation.
 Only after explicit design approval and successful collision admission, and only when the caller
 selected an exact canonical GitHub Project URL, follow the shared
 [artifact contract](../../woostack-init/references/artifact-backends.md#direct-publication-and-recovery)
-and [GitHub profile](../../woostack-init/references/artifact-providers/github.md#configuration-and-scope):
+and [Project content contract](../../woostack-init/references/artifact-providers/github.md#selected-project-content):
 
 - prove the authorized GitHub capability and exact Project scope;
 - resolve the exact selected Project;

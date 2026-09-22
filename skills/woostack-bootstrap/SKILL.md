@@ -84,7 +84,7 @@ approval, perform no official-MCP development mutation and create no development
 7. **Optionally publish the approved design.** Only after design approval and target collision checks pass,
    and only when the caller explicitly selects an exact canonical GitHub Project URL, apply the shared
    [artifact contract](../woostack-init/references/artifact-backends.md#direct-publication-and-recovery),
-   load the [GitHub profile](../woostack-init/references/artifact-providers/github.md#configuration-and-scope),
+   load the [Project content contract](../woostack-init/references/artifact-providers/github.md#selected-project-content),
    and follow the [bootstrap publication procedure](references/bootstrap.md). No GitHub operation occurs
    before design approval and collision/filesystem admission. Resolve the exact selected Project and
    append/read back `designApproved` under its actual scope, identity, capability, and read-back rules.
@@ -101,7 +101,7 @@ approval, perform no official-MCP development mutation and create no development
 | File | What it defines |
 |---|---|
 | [references/decisions.md](references/decisions.md) | Questionnaire guide and explicit design-confirmation protocol |
-| [references/bootstrap.md](references/bootstrap.md) | Project-first bootstrap procedure and filesystem barrier |
+| [references/bootstrap.md](references/bootstrap.md) | Collision-safe bootstrap and optional GitHub publication |
 | [references/architecture.md](references/architecture.md) | App-local code placement, optional shared packages, and naming |
 | [references/frameworks.md](references/frameworks.md) | Version-resolution rules, app-scoped dependencies, and gotchas |
 | [references/infrastructure.md](references/infrastructure.md) | Production-readiness patterns: hosting, CI/CD, env vars, migrations, observability |
