@@ -78,10 +78,25 @@ native/Git reads; the markers below are not fabricated evidence.
     "parents": true,
     "dependencies": true,
     "contracts": true
+  },
+  "recovery": {
+    "checkpoints": ["<runtime-substituted controller/worker checkpoint evidence>"],
+    "processes": ["<runtime-substituted worker process liveness evidence>"],
+    "sessions": ["<runtime-substituted host session liveness evidence>"],
+    "worktrees": ["<runtime-substituted canonical Git worktree inventory>"],
+    "refs": ["<runtime-substituted branch/ref and dirty-state evidence>"],
+    "prs": ["<runtime-substituted canonical PR evidence>"],
+    "contracts": ["<runtime-substituted admitted contract revisions>"],
+    "dependencies": ["<runtime-substituted hierarchy/dependency pagination evidence>"]
   }
 }
 ```
 
+Every admission snapshot and every fresh schedule refill MUST carry a complete `recovery` inventory
+object: every listed family is present and terminally read. An incomplete inventory is unknown
+evidence and blocks admission/scheduling; it is never treated as an empty collection. A host that
+cannot expose a family records the inability in its direct recovery evidence rather than fabricating
+a clean result.
 `repository_rules` and `specification` are complete strings from the admitted repository/scope;
 they are not summaries. Every boolean in `pagination` must correspond to a terminal native read.
 Issue-mode snapshots require all four keys. Project-mode snapshots require `members`, `parents`,
@@ -240,10 +255,16 @@ compact separators) over the immutable scope view. It binds:
 
 It deliberately excludes host capability/cap, integration branch SHA, fresh `parent_prs`, and
 runtime reservation/delivery evidence. These mutable facts are checked separately: changing the
-admitted integration SHA requires readmission. A changed immutable scope returns `snapshot-drift`; preserve all
-running reservations and launch no fresh worker. The skill must re-read native state and assemble
-`--fresh` for **every** refill, including immediately after a worker result and after a
-reconciliation.
+admitted integration SHA requires readmission. A changed immutable scope returns `snapshot-drift`;
+preserve all running reservations and launch no fresh worker. The skill must re-read native state
+and assemble `--fresh` for **every** refill, including immediately after a worker result and after
+a reconciliation.
+
+Every fresh refill also carries the completed recovery inventory described above: checkpoint/state
+identities, worker processes/sessions, Git worktrees/refs/dirty state, canonical PRs, contract
+revisions, and native hierarchy/dependency pagination. Missing or incomplete native pages are
+unknown, never an empty child set. The helper records the inventory as recovery evidence; it never
+ treats a worker assertion, selector, branch name, or prior success sentence as ownership.
 
 A fresh snapshot for a task already delivered must carry complete `existing_delivery` evidence:
 
@@ -268,36 +289,53 @@ blockers, requires every prerequisite's independently verified delivery, and re-
 intent and containment. Roots retain the admitted integration parent. An alternate integration
 choice requires the original state's preserved explicit decision or a current `--parent-decision`
 matching the retained reservation, plus fresh `parent_prs` evidence. A historical PR alone cannot
-waive these gates. Missing/stale/partial proof preserves ownership and halts; it never redispatches
-a duplicate or releases descendants.
+waive these gates. Missing/stale/partial proof preserves ownership and blocks only that task and
+its descendants; it never redispatches a duplicate or releases descendants.
 
 ## State, reservations, and joins
 
-State is one explicit private session-local controller file, not a retained-artifact ledger. The
-caller must externally enforce exclusive ownership of the selected canonical scope/state for the
-controller session, covering every `schedule`, `apply-result`, and `reconcile` call. If exclusive
-ownership cannot be proved, block at controller preflight before invoking the helper.
+State is one explicit private session-local controller file, not a provider ledger. It carries
+`version`, the immutable `fingerprint`, exact `scope_identity`, a random controller owner token,
+stop/halt flags, last recovery inventory, and one task entry per admitted child. Each task entry
+keeps its native membership/dependency and contract revisions, claim provenance, worker identity,
+reservation/worktree/branch/parent start, current source/diff identity, checks/validator receipts,
+PR identity, delivery checkpoint, and first uncertain boundary distinct. The caller must still
+externally enforce exclusive ownership of the selected canonical scope/state for the controller
+session.
 
-The helper's atomic `--state-out` replacement prevents torn JSON, including when input and output
-paths are the same. It does not lock or detect concurrent controllers. A normal state contains
-the admitted `fingerprint`, halt flags/reason and one entry per admitted task with a status and
-reservation/delivery evidence. Legal task states are `pending`, `running`, `delivered`,
-`repair-ready`, and `unknown`; external prerequisites and unresolved joins are reported as
-blocked/waiting outputs, not new states.
+The helper additionally takes owner-only atomic claims under
+`<primary-root>/.woostack/tmp/orchestrate-claims/`: one exact scope claim and one claim keyed by
+the canonical repository plus canonical child issue URL (with native REST/GraphQL IDs retained in
+the claim record). A second controller selecting a parent
+issue and a Project that overlap on a child therefore blocks before reservation; a stale or
+unreadable claim is a blocker, never permission to take over. Existing active issue/PR/checkpoint
+evidence without the current owner claim is likewise a blocker. Claims remain retained as recovery
+evidence until explicit human cleanup; they are not a scheduler/database or a replacement for the
+owner-only checkpoint contract.
+Each mutation acquires an owner-owned per-scope checkpoint lock derived from the canonical repository
+and scope fingerprint, then compares the loaded digest with the durable checkpoint head while holding
+that lock before replacing `--state-out`; stale/concurrent writers fail closed as `stale-state`, and
+the previous checkpoint remains intact. Before replacing `--state-out`, the helper also atomically
+records an owner-only pending generation containing the prior head/output digest and the next
+state/head pair. Recovery accepts only the exact prior pair (discarding the pending record) or the
+exact next pair (finishing the head publication); if next state bytes are present with the prior
+head, only a caller that loaded those next bytes may finish recovery. Any other pairing blocks as
+checkpoint recovery evidence and never adopts arbitrary bytes. The head is independent of
+input/output filenames, so a second writer using the same stale `--state` cannot advance a different
+`--state-out`.
+The first schedule omits `--state` and creates state. Every later schedule, apply-result,
+reconcile, or stop names an existing state and matching admission. Missing state, malformed JSON,
+state/fingerprint/scope mismatch, missing durable checkpoint head, or a state task set that differs
+from the admission blocks; never silently reinitialize. Keep the state path private and use the
+helper's atomic `--state-out` replace.
 
-The first schedule omits `--state` and creates state. Every later schedule, apply-result, or
-reconcile names an existing state and matching admission. Missing state, malformed JSON,
-state/fingerprint mismatch, or a state task set that differs from the
-admission blocks; never silently reinitialize. Keep the state path private and use the helper's
-atomic `--state-out` replace.
-
-Under that exclusive ownership, the helper persists each ready task's branch, absolute workspace,
-parent branch, and parent SHA before the caller creates a worktree. Fresh branches are exactly
-`woostack/<task-id>`.
-Repairs reuse the exact original reservation and retained PR. Before creation, compare canonical
-physical paths (including aliases and ancestor/descendant paths) and the complete Git worktree
-inventory. An existing unclaimed branch/worktree blocks. The caller creates and reads back the
-reserved worktree under the shared contract; helper reservation does not itself create Git state.
+Under that ownership, the helper persists each ready task's branch, absolute workspace, parent
+branch, and parent SHA before the caller creates a worktree. Fresh branches are exactly
+`woostack/<task-id>`. Repairs reuse the exact original reservation and retained PR. Before creation,
+compare canonical physical paths (including aliases and ancestor/descendant paths) and the complete
+Git worktree inventory. An existing unclaimed branch/worktree blocks. The caller creates and reads
+back the reserved worktree under the shared contract; helper reservation does not itself create Git
+state.
 
 Roots use the admitted integration branch/SHA. A dependent may use a delivered prerequisite branch
 or the admitted integration branch only when local
@@ -310,8 +348,11 @@ checks. An unresolved join pauses only that task.
 ## Helper status meanings
 
 The helper writes machine-readable JSON and exits zero for controlled workflow statuses such as
-`no-work`, `snapshot-drift`, and `halted`; it exits one with `{"ok":false,"error":...}` for
-blocked input. The skill must inspect the status and retain output, not treat process exit zero as
-delivery. `schedule` output includes dispatch entries, running/delivered IDs, and paused/blocked/
-waiting reasons. `apply-result` and `reconcile` outputs are authoritative state transitions; never
-invent a success response around them.
+`no-work`, `snapshot-drift`, `halted`, `stopped`, and per-task `unknown`; it exits one with
+`{"ok":false,"error":...}` for blocked input. The skill must inspect the status and retain output,
+not treat process exit zero as delivery. `schedule` output includes dispatch entries, delivered,
+active, unknown, evidence-pending, repair-ready, pending, and paused/blocked/waiting IDs with exact
+next actions.
+`apply-result`, `reconcile`, and `stop` outputs are authoritative state transitions; never invent a
+success response around them. A user stop prevents new dispatch but does not declare active workers
+stopped or discard their worktrees.

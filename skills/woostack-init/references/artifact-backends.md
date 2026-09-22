@@ -142,3 +142,8 @@ anything copied into a local report.
 Artifacts, status, labels, assignees, delegates, comments, Project membership, and remote lifecycle
 state never grant permission to edit, assign, commit, push, review, mark ready, enable auto-merge,
 enqueue, merge, or declare delivery. GitHub/Git remain authoritative and merge authority is human-only.
+
+Orchestrate's private controller checkpoint uses the same owner-only, no-follow, complete-byte,
+atomic compare-and-swap discipline for recovery evidence. Canonical issue/Project reads and Git
+remain authoritative. Shared-checkout claims derive from canonical repository and native issue
+identity, retain exact selector provenance, and never permit taking over another controller's work.
