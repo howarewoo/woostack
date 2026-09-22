@@ -12,7 +12,7 @@ repo="$TMP/repo"
 mkdir -p "$repo/.woostack"
 git -C "$repo" init -q
 cat >"$repo/.woostack/config.json" <<'JSON'
-{"artifacts":{"provider":"local","linear":{"repository":"https://github.com/acme/widgets","workspace":"acme","team":"ENG","projectLabels":[],"projectStatuses":{"backlog":"Backlog","planned":"Planned","started":"Started","completed":"Completed","canceled":"Canceled"},"issueStates":{"planned":"Backlog","executing":"In Progress","inReview":"In Progress","done":"Done","blocked":"In Progress"}}},"models":{},"status":{"staleDays":14}}
+{"artifacts":{"provider":"local","linear":{"repository":"https://github.com/acme/widgets","workspace":"acme","team":"ENG","projectLabels":[],"projectStatuses":{"backlog":"Backlog","planned":"Planned","started":"Started","completed":"Completed","canceled":"Canceled"},"issueStates":{"planned":"Backlog","executing":"In Progress","inReview":"In Progress","done":"Done","blocked":"In Progress"}}},"models":{}}
 JSON
 
 run_doctor() {
@@ -25,6 +25,12 @@ run_doctor() {
 run_doctor "$repo"
 assert_exit 0 "$CODE" "valid static workspace exits zero"
 assert_not_contains "$OUT" "linear-live" "static workspace does not claim provider validation"
+printf '%s\n' '{"artifacts":{"provider":"local"},"models":{},"status":{"staleDays":14}}' >"$repo/.woostack/legacy-config.json"
+mv "$repo/.woostack/legacy-config.json" "$repo/.woostack/config.json"
+run_doctor "$repo"
+assert_exit 0 "$CODE" "legacy status config remains non-blocking"
+assert_contains "$OUT" "retired-status-config" "legacy status config receives retirement guidance"
+assert_eq "$(jq -r '.status.staleDays' "$repo/.woostack/config.json")" "14" "legacy status config is preserved"
 
 
 mkdir -p "$TMP/missing"

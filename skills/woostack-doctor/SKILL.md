@@ -7,8 +7,8 @@ description: Diagnose and, after approval, repair a repo's `.woostack/` workspac
 
 Diagnose — and, with your approval, repair — the health of a repo's `.woostack/` workspace.
 This is the **workspace-integrity + convention** quadrant of woostack health:
-`woostack-init` scaffolds missing structure, `woostack-status` reconciles the feature board, and
-**`woostack-doctor` lints and repairs local policy and conventions**.
+`woostack-init` scaffolds missing structure, and **`woostack-doctor` lints and repairs local
+policy and conventions**.
 
 It has two layers:
 
@@ -108,8 +108,9 @@ the `templates/` shipped there; the woostack collection installs both as sibling
 ## Hard constraints
 
 - **Never scaffold.** Absent `.woostack/` → point at `woostack-init`; never create the workspace.
-- **Never reconcile the board** (that is `woostack-status`). Doctor repairs static config/workspace
-  drift and reports judgment-only signals; it never computes or writes lifecycle state.
+- Doctor does not derive work-tracking state. Work tracking comes from canonical GitHub
+  parent/child issues, native dependency relations, and associated pull requests; GitHub Project
+  Status fields remain provider metadata.
 - **Artifacts are optional.** Static diagnosis validates non-secret policy. Local legacy
   development-record directories are migration blockers, not a backend and not normal lint input.
   Doctor preserves old local and remote artifacts; it never creates, repairs, adopts, rewrites, reparents,
@@ -127,8 +128,8 @@ the `templates/` shipped there; the woostack collection installs both as sibling
   a present worktree dir that may hold work is always `report`, never auto-removed.
 - **Never merge.** Approved file repairs enter `woostack-change` before mutation; doctor never
   invokes `woostack-commit` directly.
-- **Cross-link, don't restate.** Repository-derived board rules live in
-  [`../woostack-status/references/conventions.md`](../woostack-status/references/conventions.md).
+- **Cross-link, don't restate.** Repository work and delivery evidence remain owned by Git and
+  GitHub; provider-specific Project Status semantics remain in the selected artifact profile.
 
 
 Wall time: 0.20 seconds

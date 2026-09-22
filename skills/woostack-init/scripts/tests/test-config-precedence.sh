@@ -36,15 +36,15 @@ assert_eq "$(jq -r '.artifacts.linear.workspace' <<<"$actual")" "acme" "sibling 
 assert_eq "$(jq -r '.models.standard.effort' <<<"$actual")" "low" "nested setting overridden"
 assert_eq "$(jq -r '.models.standard.nits' <<<"$actual")" "true" "sibling model keys preserved"
 assert_eq "$(jq -r '.models.standard.custom' <<<"$actual")" "opt" "local additions preserved"
-assert_eq "$(jq -r '.status.staleDays' <<<"$actual")" "7" "top additions preserved"
+assert_eq "$(jq -r '.status.staleDays' <<<"$actual")" "7" "retired status key preserved"
 assert_eq "$(jq -r '.models.standard.model' <<<"$actual")" "gpt-5.5" "base objects preserved"
 # 3. Scalar/array/null replacement & 4. Linked worktrees
 cat >"$repo/.woostack/config.local.json" <<'JSON'
-{"models":{"standard":{"angles":{"skip":["database"]}}},"status":null}
+{"models":{"standard":{"angles":{"skip":["database"]}}},"commit":null}
 JSON
 actual="$(bash "$RESOLVER" "$repo")"
 assert_eq "$(jq -c '.models.standard.angles.skip' <<<"$actual")" '["database"]' "local array replaces"
-assert_eq "$(jq -r '.status' <<<"$actual")" "null" "local null replaces"
+assert_eq "$(jq -r '.commit' <<<"$actual")" "null" "local null replaces"
 git -C "$repo" worktree add -q "$worktree"
 actual="$(bash "$RESOLVER" "$worktree")"
 assert_eq "$(jq -c '.models.standard.angles.skip' <<<"$actual")" '["database"]' "worktree inherits local"

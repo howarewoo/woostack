@@ -24,11 +24,10 @@
       "conflictsWith": ["woostack-init"]
     },
     {
-      "id": "current-feature-board-request",
-      "query": "I've been away for a week. Which work items are active, how far has each pull-request stack progressed, and what should I pick up next?",
+      "id": "progress-question-uses-github-directly",
+      "query": "I've been away for a week. Read the authorized GitHub parent and child issues, dependencies, and linked pull requests to explain progress and what I should pick up next; do not start implementation.",
       "shouldTrigger": false,
-      "expectedSkill": "woostack-status",
-      "conflictsWith": ["woostack-init"]
+      "expectedSkill": "none"
     }
   ]
 }
