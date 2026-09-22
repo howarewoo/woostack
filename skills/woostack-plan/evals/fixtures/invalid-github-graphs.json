@@ -1,6 +1,14 @@
 {
   "caller": {
-    "exactProjectUrl": "https://github.com/orgs/acme/projects/7"
+    "exactProjectUrl": "https://github.com/orgs/acme/projects/7",
+    "retainedProjectPublication": {
+      "projectId": "project-7",
+      "projectUrl": "https://github.com/orgs/acme/projects/7",
+      "approvedContractIdentity": "declared-output-spec",
+      "mutationId": "70000000-0000-4000-8000-000000000007",
+      "repository": "https://github.com/acme/app",
+      "integrationParentBranch": "refs/heads/main"
+    }
   },
   "repository": {
     "canonicalUrl": "https://github.com/acme/app",
@@ -17,7 +25,9 @@
     "id": "project-7",
     "owner": "acme",
     "canonicalRepository": "https://github.com/acme/app",
-    "readme": "Human prefix\n<!-- woostack-spec-start -->\nAdd the declared outputs, retaining existing outputs.\n<!-- woostack-spec-end -->\nHuman suffix",
+    "url": "https://github.com/orgs/acme/projects/7",
+    "public": false,
+    "readme": "Human prefix\n<!-- woostack-spec-start -->\n<!-- woostack-project-mutation:70000000-0000-4000-8000-000000000007 -->\nApproved contract: declared-output-spec\nProject: https://github.com/orgs/acme/projects/7 (project-7)\nRepository: https://github.com/acme/app\nBase: refs/heads/main\nAdd the declared outputs, retaining existing outputs.\n<!-- woostack-spec-end -->\nHuman suffix",
     "statusOptions": {
       "planned": "todo",
       "executing": "active",
@@ -985,6 +995,67 @@
         }
       ],
       "events": []
+    },
+    {
+      "id": "unbound-project-specification",
+      "requestedOperation": "Reconcile the existing Project specification span with the approved candidate.",
+      "candidateTasks": [
+        {
+          "taskId": "task-a",
+          "ordinal": 1,
+          "predecessors": [],
+          "outcome": "Add a output consuming declared prerequisite outputs.",
+          "scope": [
+            "src/a.txt"
+          ],
+          "nonGoals": [
+            "Change other outputs or schedule execution"
+          ],
+          "acceptance": [
+            "src/a.txt contains exactly a followed by a newline; prerequisite outputs remain unchanged."
+          ],
+          "verification": {
+            "command": "python3 scripts/check.py src/a.txt",
+            "commandSource": "scripts/check.py at admitted base",
+            "pathSources": {
+              "src/a.txt": "same increment"
+            }
+          },
+          "smoke": "Run the focused command and read the new output; repeat without changing prerequisite files.",
+          "risks": [
+            "Missing prerequisite output prevents execution."
+          ],
+          "intendedPRs": 1,
+          "parentSelection": {
+            "integrationParent": "refs/heads/main"
+          }
+        }
+      ],
+      "events": [
+        {
+          "operation": "read-project",
+          "item": {
+            "id": "project-7",
+            "url": "https://github.com/orgs/acme/projects/7",
+            "owner": "acme",
+            "public": false,
+            "canonicalRepository": "https://github.com/acme/app",
+            "readme": "Human prefix\n<!-- woostack-spec-start -->\nApproved contract: declared-output-spec\nProject: https://github.com/orgs/acme/projects/7 (project-7)\nRepository: https://github.com/acme/app\nBase: refs/heads/main\nAdd the declared outputs, retaining existing outputs.\n<!-- woostack-spec-end -->\nHuman suffix",
+            "statusOptions": {
+              "planned": "todo",
+              "executing": "active",
+              "inReview": "review",
+              "done": "done",
+              "blocked": "blocked"
+            }
+          },
+          "complete": true,
+          "pageInfo": {
+            "hasNextPage": false,
+            "endCursor": null
+          }
+        }
+      ]
     }
   ]
 }
