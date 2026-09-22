@@ -3,7 +3,7 @@
 ## Detection
 
 Use this adapter inside an active Oh My Pi session. Discover the actual `task`, `hub`, and related
-capabilities available in the session. Use the host-authenticated GitHub CLI (`gh`) only for explicit
+capabilities available in the session. Prefer authorized native GitHub capabilities when suitable; host-authenticated `gh` remains supported for explicit
 GitHub operations under the selected workflow's artifact admission. Never use custom HTTP/REST/GraphQL
 transport or fallback tokens. GitHub operations follow the canonical
 [artifact backends contract](../../../woostack-init/references/artifact-backends.md) and
@@ -119,6 +119,6 @@ work. Never claim worker coverage, test success, GitHub success, or delivery wit
 Session-naming degradation is non-blocking: if `woostack_rename_session` is unavailable or fails,
 emit one concise warning and proceed with the workflow.
 
-When the host-authenticated GitHub interface (`gh`) or a required capability is absent, fail closed
+When no authorized GitHub interface supports a required operation capability, fail closed
 for required GitHub boundaries or report the missing capability for optional operations per the
 canonical artifact contract.

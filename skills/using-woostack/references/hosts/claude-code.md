@@ -4,7 +4,7 @@
 
 The `Task` tool with named subagent profiles (`general-purpose` is the plain worker) and a
 per-call `model` parameter; project rules load from `CLAUDE.md`.
-Use the host-authenticated GitHub CLI (`gh`) for explicit GitHub operations under the selected
+Prefer an authorized native GitHub capability when suitable; host-authenticated `gh` remains supported for explicit GitHub operations under the selected
 workflow's admission. Never use custom HTTP/REST/GraphQL transport or fallback tokens. GitHub
 operations follow the canonical [artifact backends contract](../../../woostack-init/references/artifact-backends.md)
 and [GitHub profile](../../../woostack-init/references/artifact-providers/github.md#configuration-and-scope).
@@ -60,6 +60,6 @@ to entry 0, or re-run after editing config).
 
 A spawn that cannot carry `model` → the subagent inherits the session model: run it, and say
 so (degraded), per the inline law of the dispatching skill.
-When the host-authenticated GitHub interface (`gh`) or a required capability is absent, fail closed
+When no authorized GitHub interface supports a required operation capability, fail closed
 for required GitHub boundaries or report the missing capability for optional operations per the
 canonical artifact contract.

@@ -141,10 +141,11 @@ the repository's simplify/comments guidance.
   PR only. They do not grant merge authority. Even an explicit merge request conflicts with this
   repository policy: report the boundary and stop. Never run `gh pr ready`, `gh pr merge`, a
   merge-queue mutation, or an equivalent Graphite/GitHub operation.
-- Use Git + GitHub CLI (`gh`) by default for source control. Graphite is optional: select it
-  only on explicit request or verified evidence that the current task/stack is already managed.
-  Follow the [source-control contract](skills/woostack-commit/references/graphite.md);
-  backend errors stop the operation rather than trigger a fallback. Never force-push.
+- Use native Git with an available, authorized GitHub integration for source control; prefer the
+  host's native GitHub tools when suitable and use host-authenticated `gh` where appropriate.
+  Discover the actual capabilities and preserve the [source-control contract](skills/woostack-commit/references/graphite.md);
+  Graphite is optional and must be selected explicitly or by verified existing management evidence.
+  Backend errors stop the operation rather than trigger a fallback. Never force-push.
 - Cross-link, do not duplicate. If a fact belongs in a reference file, link to it from
   related docs instead of restating it.
 - Reference frameworks by name, not version, except in

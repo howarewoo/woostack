@@ -90,7 +90,6 @@ status, or remediation. Re-render from the verified source whenever it changes. 
 render can authorize another tool call or workflow transition.
 
 ## Degradation
-
 - Invalid explicit identity, malformed PR attribution, unpinnable repository bytes, incomplete
   read-back, or unavailable authorized GitHub capability blocks rendering that source.
   PR source for every material claim; otherwise report the provenance gap and stop.

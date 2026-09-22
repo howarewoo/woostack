@@ -38,17 +38,20 @@ and `projectStatuses` may all be absent.
 | `github.statusField` | string | Optional exact case-sensitive single-select field name. Defaults to `"Status"`. |
 | `github.projectStatuses` | object | Required for explicit Project workflows: mapping of exactly five keys (`planned`, `executing`, `inReview`, `done`, `blocked`) to nonempty, distinct option names on the configured status field. Not required for parent-issue Plan. |
 
-Credentials belong in the host's authenticated `gh` environment, never in repository configuration.
-Projects v2 and native dependencies use `gh api graphql`; repository issue operations use GitHub issue
-APIs through `gh`. Custom HTTP/GraphQL clients, credential reads, and token forwarding are forbidden.
+Credentials belong in the host's secret store, never in repository configuration. Use an available,
+authorized GitHub capability exposed by the host (prefer native GitHub tools when suitable;
+host-authenticated `gh` remains supported). Discover actual operation capabilities and supported
+read/write shapes rather than assuming tool names or schemas. Custom HTTP/GraphQL clients, credential
+reads, and token forwarding are forbidden.
 
 ### Transport capabilities and boundaries
 
-Preflight the capabilities needed by the selected operation through host-authenticated `gh`.
-Parent-issue publication needs issue, native parent/sub-issue, and dependency reads/writes, complete
-pagination, and independent read-back. Issue-write access does not prove native relationship-write
-access. Project workflows additionally require their selected Project, membership, and Status
-operations; unavailable Project access does not block parent-only publication.
+Preflight only the capabilities needed by the selected operation through the authorized GitHub
+interface. Parent-issue publication needs issue, native parent/sub-issue, and dependency reads/writes,
+complete pagination, and independent read-back. Issue-write access does not prove native
+relationship-write access. Project workflows additionally require their selected Project, membership,
+and Status operations; unavailable Project access does not block parent-only publication. A read-only
+task must not require unrelated write/delete access.
 
 Unsupported or unknown required capabilities, unauthorized scopes, another operation's markers,
 unexpected changes, or partial responses stop the GitHub operation. No test mutation is used to

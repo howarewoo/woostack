@@ -4,7 +4,7 @@
 
 The `agy` CLI; reads `AGENTS.md` natively; authenticates via system keyring / Google Sign-In
 (no documented non-interactive API-key path, so it cannot run headless in ephemeral CI).
-Use the host-authenticated GitHub CLI (`gh`) for explicit GitHub operations under the selected
+Prefer an authorized native GitHub capability when suitable; host-authenticated `gh` remains supported for explicit GitHub operations under the selected
 workflow's admission. Never use custom HTTP/REST/GraphQL transport or fallback tokens. GitHub
 operations follow the canonical [artifact backends contract](../../../woostack-init/references/artifact-backends.md)
 and [GitHub profile](../../../woostack-init/references/artifact-providers/github.md#configuration-and-scope).
@@ -52,6 +52,6 @@ host — no spawn-time auth probe exists; switch manually by promoting an entry 
 
 Single-session collapse is the documented mode, not a degradation. A run that cannot resolve
 any model → session default + say so, per the inline law of the dispatching skill.
-When the host-authenticated GitHub interface (`gh`) or a required capability is absent, fail closed
+When no authorized GitHub interface supports a required operation capability, fail closed
 for required GitHub boundaries or report the missing capability for optional operations per the
 canonical artifact contract.

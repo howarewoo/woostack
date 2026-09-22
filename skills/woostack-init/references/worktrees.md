@@ -3,8 +3,9 @@
 Worktrees isolate tracked implementation writes and make collisions/recovery explicit. They do not
 own scope, allocation, dependencies, approval, acceptance, or merge authority. The approved
 workflow contract owns those decisions; Git and canonical GitHub reads own repository state.
-Select native Git + `gh` by default, or Graphite only when explicitly selected or verified as already
-managing this task/stack, under the
+Select native Git plus an authorized GitHub capability (prefer native GitHub tools when suitable;
+host-authenticated `gh` is supported), or Graphite only when explicitly selected or verified as
+already managing this task/stack, under the
 [source-control contract](../../woostack-commit/references/graphite.md).
 Direct Git/GitHub publication owns artifact scope; no provider-specific artifact context is selected here.
 
