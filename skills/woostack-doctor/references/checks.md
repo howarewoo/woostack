@@ -19,11 +19,11 @@ overloaded):
 - **repair:** `bash checks/<name>.sh --fix <WOO_ROOT> <extra-args...>` → applies the fix.
 
 The orchestrator exports `WOOSTACK_DOCTOR_LIVE=0` for ordinary runs. On explicit `--live`, the
-skill controller resolves effective configuration first, discovers/authenticates the configured
-provider transport (`gh` for GitHub, or the official provider MCP for Linear or Plane), performs
-preflight once, and invokes the engine with `--live-receipt <path>`. The receipt is normalized and
-non-secret. Static checks never inspect credentials or invoke HTTP, GraphQL, provider adapters, or
-hard-coded MCP tools.
+skill controller resolves effective configuration first, discovers/authenticates the selected provider
+interface (an authorized GitHub capability, preferring native tools when suitable and supporting
+host-authenticated `gh`, or the official provider MCP for Linear or Plane), performs preflight once,
+and invokes the engine with `--live-receipt <path>`. The receipt is normalized and non-secret. Static
+checks never inspect credentials or invoke HTTP, GraphQL, provider adapters, or hard-coded MCP tools.
 ## Checks
 
 | code | check | severity | fixable | `--fix` args |
@@ -50,11 +50,13 @@ Static diagnosis is provider-free. It validates:
   active or ambiguous set, without running document type/status/source/backlink checks. Old artifacts are
   preserved without in-place mutation or reparenting; incompatible retained Plane runs block with precise
   regeneration guidance.
-`--live` is controller-owned. The skill controller resolves effective configuration to determine `artifacts.provider`.
-When `artifacts.provider: "github"`, it discovers and authenticates host `gh` CLI (`official-gh-cli`),
-resolves owner login/type, validates native Status field/option mappings, and proves required `projectRead`,
-`projectWrite`, `projectDelete`, `issueRead`, `issueWrite`, `issueClose`, `issueDelete`, `dependencyRead`,
-`dependencyWrite`, `statusFieldRead`, `statusFieldWrite`, `pagination`, and `independentReadBack` capabilities.
+`--live` is controller-owned. The skill controller resolves effective configuration to determine the selected
+`artifacts.provider`. When `artifacts.provider: "github"`, it discovers an authorized host GitHub capability
+(prefer native GitHub tools when suitable; host-authenticated `gh` remains supported), resolves owner login/type,
+validates native Status field/option mappings, and proves only the semantic capabilities required by the selected
+operation: `projectRead`, `projectWrite`, `issueRead`, `issueWrite`, `dependencyRead`, `dependencyWrite`,
+`statusFieldRead`, `statusFieldWrite`, `pagination`, and `independentReadBack`. Read-only operations require only
+their read capabilities; Project membership/Status and native dependency operations are separate capabilities.
 When `artifacts.provider: "linear"`, it discovers official Linear MCP tools (`official-linear-mcp`), authenticates,
 resolves exactly one workspace and team, validates native project categories and issue states, and proves
 required `projectRead`, `projectWrite`, `projectUpdateRead`, `projectUpdateWrite`, `issueRead`, `issueWrite`,
@@ -67,14 +69,15 @@ required `projectRead`, `projectWrite`, `issueRead`, `issueWrite`, `relationRead
 It writes exactly one normalized non-secret outcome to a mode-0600 temporary file, passes that path to
 `doctor.sh --live-receipt <path>`, and deletes it after consumption.
 
-For GitHub, the normalized non-secret receipt supplies `schemaVersion: 1`, `provider: "official-gh-cli"`,
-`ghAvailable: true`, `authenticated: true`, `ready: true`, `viewer` (`login`, `id`), `scopes` (exact
-`["project", "read:org", "repo"]`), `owner`, `ownerResolution` (`login`, `type`, `status: "unique"`, `id`), canonical
-`repository` (compared to target repository independently derived from Git), `projectStatuses` (`complete: true`,
-`statusField`, `fieldId`, `fieldType: "SINGLE_SELECT"`, `resolved` with 5 distinct option `id`s and `name`s),
-exact capability booleans (`projectRead`, `projectWrite`, `projectDelete`, `issueRead`, `issueWrite`, `issueClose`,
-`issueDelete`, `dependencyRead`, `dependencyWrite`, `statusFieldRead`, `statusFieldWrite`, `pagination`,
-`independentReadBack`), and `readBack` (`status: "verified"`, `complete: true`, `independent: true`), rejecting extra/secret keys.
+For GitHub, the normalized non-secret receipt supplies `schemaVersion: 1`, `provider: "authorized-github"`,
+`interfaceAvailable: true`, `authenticated: true`, `ready: true`, `viewer` (`login`, `id`), `owner`,
+`ownerResolution` (`login`, `type`, `status: "unique"`, `id`), canonical `repository` (compared to target
+repository independently derived from Git), `projectStatuses` (`complete: true`, `statusField`, `fieldId`,
+`fieldType: "SINGLE_SELECT"`, `resolved` with 5 distinct option `id`s and `name`s), a nonempty unique
+`requiredCapabilities` list of allowed semantic operation names, capability booleans for the names present,
+and `readBack` (`status: "verified"`, `complete: true`, `independent: true`). The shell always requires
+the base read/pagination/read-back capabilities and only requires additional capabilities declared for the
+selected operation; unrelated writes may be false and extra/secret keys are rejected.
 For Linear, the receipt's top level supplies `schemaVersion: 1`, `provider: "official-linear-mcp"`, `ready`, canonical `repository`, resolved `workspace` and `team`,
 and capability booleans. `workspaceResolution` contains the unique OAuth-scoped workspace `name` and `status`.
 `teamResolution` retains the independently read native team ID and key.
@@ -83,10 +86,10 @@ For Plane, the receipt supplies `schemaVersion: 1`, `provider: "official-plane-m
 The controller derives these non-secret outcomes from official host tools; raw provider responses are not receipt input.
 The shell engine validates only the normalized receipt and reports exact missing capabilities or
 fields. It never calls a provider or adapter and never reads a
-provider credential. Missing authentication, missing/ambiguous workspace, instance, or team, bad state
-mappings, read-only access, an incomplete receipt, missing project-label capability, or an unknown mutation/read-back outcome is an
-error. There is no local-development-record, alternate-transport, or empty-success fallback. Every
-provider finding is report-only; no `--fix` path mutates the provider.
+provider credential. Missing authentication, missing/ambiguous workspace, instance, or team, a capability
+receipt incomplete for the selected operation, missing project-label capability, or an unknown
+mutation/read-back outcome is an error. There is no local-development-record, alternate-transport, or
+empty-success fallback. Every provider finding is report-only; no `--fix` path mutates the provider.
 
 ## Adding a check
 

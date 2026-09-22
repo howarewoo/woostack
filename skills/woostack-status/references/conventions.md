@@ -92,8 +92,8 @@ Never repair, remove, clean, reset, stash, reassign, attach, or create from stat
 
 Artifact mode starts only from an exact caller-supplied Linear, Plane, or GitHub project URL/stable UUID or canonical
 issue/work-item reference. Read that resource through official host-exposed capabilities (MCP for Linear or Plane;
-host-authenticated gh for GitHub), complete relevant pagination, verify its identity and claimed canonical repository,
-and retain the revision used.
+an authorized GitHub capability, preferring native tools when suitable and supporting host-authenticated `gh`),
+complete relevant pagination, verify its identity and claimed canonical repository, and retain the revision used.
 
 For Linear, an artifact represents a feature project or direct issue. For Plane, the configured project
 represents repository association only; top-level work items (`parent = null`) are specification

@@ -4,14 +4,21 @@ This shared contract applies to Commit, worktrees, delivery, planning, Status, a
 Git and canonical GitHub reads prove repository state. Graphite is an optional stack tool;
 provider artifacts never select or authorize source-control mutations.
 
+GitHub submission is capability-based: use an available, authorized GitHub integration that supports
+the required operation and verification. Prefer the host's native GitHub tools when suitable;
+host-authenticated official `gh` remains supported where appropriate. Discover actual capabilities
+and supported read/write shapes rather than assuming tool names or schemas, and keep credentials in
+the host. The selected interface must preserve the exact repository, branch, parent/base, draft, and
+read-back boundaries below; unsupported or unknown capability blocks only the GitHub operation.
+
 ## Select one mode before mutation
 
-Use native Git and GitHub CLI by default. Use Graphite when the user explicitly selects it or
-fresh repository evidence verifies that the task's branch/stack is already Graphite-managed.
-An installed `gt` binary alone does not select Graphite. Inspect available repository-local
-Graphite metadata and retained task evidence before choosing; do not initialize Graphite to
-perform discovery. If evidence indicates Graphite management but cannot be verified, stop before
-staging rather than silently treating the branch as native. Missing `gt` in a native repository
+Use native Git and the selected authorized GitHub interface by default. Use Graphite when the user
+explicitly selects it or fresh repository evidence verifies that the task's branch/stack is already
+Graphite-managed. An installed `gt` binary alone does not select Graphite. Inspect available
+repository-local Graphite metadata and retained task evidence before choosing; do not initialize
+Graphite to perform discovery. If evidence indicates Graphite management but cannot be verified, stop
+before staging rather than silently treating the branch as native. Missing `gt` in a native repository
 is not a blocker. Explicitly selected Graphite requires a working, initialized CLI and verified
 parent graph; missing access blocks that mode.
 
@@ -81,27 +88,36 @@ Before submission re-read exact branch/head/parent, selected-mode ancestry, remo
 fully paginated canonical PR inventory. Use only the verified remote pointing to the canonical
 repository, not a guessed `origin`. New PRs are drafts; existing draft/readiness state is preserved.
 
-### Native Git and GitHub CLI
+### GitHub submission
 
-1. Push exactly the task branch: `git push <remote> HEAD:refs/heads/<task-branch>`.
-   A non-fast-forward rejection blocks; never force, rebase, reset, or pull implicitly.
-2. Independently read the remote ref and verify it equals the intended commit before PR creation.
-3. Reuse the one matching open PR. Only after complete discovery proves none exists, run
-   `gh pr create --repo <owner/repo> --head <task-branch> --base <parent-branch> --draft --title <title> --body-file <body-file>`.
-   Prepare the complete body under the [PR-body contract](pr-body.md) before creation.
-   A foreign head repository or conflicting base blocks; do not retarget silently.
-4. Update existing PR title/body with `gh pr edit` only after exact identity verification.
+Use the selected authorized GitHub interface to publish exactly the verified task branch without
+force, then independently read the remote ref and verify it equals the intended commit. Discover
+the complete canonical PR inventory before creating anything. Reuse one matching open PR; only a
+complete absence proof permits creation of one draft PR with the exact canonical repository, head,
+and intended parent/base. A foreign head repository or conflicting base blocks; never retarget
+silently. Update an existing PR's title/body only after exact identity verification, preserving
+unrelated human-authored content.
+
+For hosts using authenticated `gh`, the following are illustrative equivalents of those outcomes,
+not the only valid execution path:
+
+1. `git push <remote> HEAD:refs/heads/<task-branch>` publishes the exact task branch. A
+   non-fast-forward rejection blocks; never force, rebase, reset, or pull implicitly.
+2. `gh pr create --repo <owner/repo> --head <task-branch> --base <parent-branch> --draft --title <title> --body-file <body-file>`
+   creates the one draft PR after the complete absence proof. Prepare the body under the
+   [PR-body contract](pr-body.md).
+3. `gh pr edit` is an illustrative update operation for an existing, identity-verified PR.
 
 ### Graphite
 
-Choose submission transport before mutation by inspecting installed CLI help and a read-only
-dry run. `gt submit` may include ancestors even without `--stack`, and versions that default to
-force-with-lease violate this contract's no-force-push rule. Use `gt submit --draft` only when
-the installed version supports a verified non-force, exactly scoped submission without changing
-existing PR readiness. Otherwise use the native Git/gh submission sequence above while retaining
-Graphite parent tracking and independently reading its graph back. This preselected transport is
-not a mode switch or an error fallback. Never silently sync, restack, publish, or submit unrelated
-ancestors/descendants.
+Choose the Graphite submission capability before mutation by inspecting the installed CLI's
+documented support and a read-only dry run. `gt submit` may include ancestors even without `--stack`,
+and versions that default to force-with-lease violate this contract's no-force-push rule. Use a
+Graphite submit operation only when it supports a verified non-force, exactly scoped submission
+without changing existing PR readiness. Otherwise use the GitHub submission capability above while
+retaining Graphite parent tracking and independently reading its graph back. This preselected
+transport is not a mode switch or an error fallback. Never silently sync, restack, publish, or
+submit unrelated ancestors/descendants.
 
 ### Read-back and recovery
 

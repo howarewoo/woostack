@@ -72,8 +72,9 @@ journeys from, in order:
    [optional artifact contract](../woostack-init/references/artifact-backends.md) and only the selected
    [GitHub](../woostack-init/references/artifact-providers/github.md),
    [Linear](../woostack-init/references/artifact-providers/linear.md), or
-   [Plane](../woostack-init/references/artifact-providers/plane.md) profile, use official
-   host-exposed capability (MCP for Linear/Plane, host-authenticated gh for GitHub), fully paginate relevant fields, and extract only requested
+   [Plane](../woostack-init/references/artifact-providers/plane.md) profile, use the selected
+   authorized host capability (MCP for Linear/Plane, a suitable native GitHub integration or
+   host-authenticated `gh` for GitHub), fully paginate relevant fields, and extract only requested
    specification/fix/plan criteria. Missing artifact access blocks those criteria only.
 4. **Repository source.** Inspect routes/source serving the app. Local diagnostic reports never
    establish intended behavior or acceptance.

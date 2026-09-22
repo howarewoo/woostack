@@ -70,15 +70,16 @@ retained state. See [Execute retired inputs](/docs/skills/woostack-execute#retir
 Saved records do not grant permission to assign workers, edit code, commit, review, or accept a
 product. They also do not prove delivery. Fix makes no provider call before proving the cause, and
 goal-only Change never contacts an artifact provider. Issue-backed Change performs the required read of
-the explicitly selected exact GitHub issue through host-authenticated `gh`; no artifact-provider
-configuration or Project is required.
+the explicitly selected exact GitHub issue through the selected authorized GitHub capability (native
+host tools where suitable or host-authenticated `gh`); no artifact-provider configuration or Project is
+required.
 
 Bootstrap and Commit write optional provider records only when explicitly requested: persistence
-after design approval and target collision checks for Bootstrap, or `--issue` for Commit.
-They use the official interface for `artifacts.provider`: host-authenticated `gh` for GitHub,
-or official Linear/Plane MCP tools. Each write requires a separate read to confirm its result.
-Optional synchronization failures do not block repository work unless synchronization was
-explicitly required as part of the deliverable.
+after design approval and target collision checks for Bootstrap, or `--issue` for Commit. They use the
+authorized host capability for `artifacts.provider` (native GitHub tools where suitable or
+host-authenticated `gh` for GitHub, or official Linear/Plane MCP tools). Each write requires a
+separate read to confirm its result. Optional synchronization failures do not block repository work
+unless synchronization was explicitly required as part of the deliverable.
 Git and GitHub remain authoritative for repository results.
 
 ## Recovery

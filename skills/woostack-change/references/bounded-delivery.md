@@ -13,8 +13,11 @@ Fix make none. Git and canonical GitHub repository/PR operations supply source-c
 not development-artifact authority.
 
 Before mutation, apply the shared [source-control selection and ancestry contract](../../woostack-commit/references/graphite.md).
-Git+gh is the complete default path. Use Graphite only when explicitly selected or already verified
-for this task/stack; unknown selection blocks, and `gt` failure never authorizes backend switching.
+Use native Git and an authorized GitHub capability for repository delivery (prefer native GitHub
+tools when suitable; host-authenticated `gh` is supported). Discover actual operation capabilities,
+read shapes, pagination, and independent readback before any consequential operation. Optional
+Graphite selection follows the shared contract; unknown selection blocks, and `gt` failure never
+authorizes backend switching.
 
 ## Keep one bounded contract
 
@@ -84,8 +87,10 @@ calling skill before more implementation; Fix approval never carries over to a c
 Only after verification and independent review pass on the same complete diff, commit and submit
 at most one PR using the selected backend under the shared source-control contract. In native mode,
 add a Git commit (never automatically amend), explicitly push only the task branch without force,
-and use `gh pr create --draft` with the exact repository/head/base only after excluding an existing
-matching PR; update an existing PR body with `gh pr edit`. Preserve its identity and intended base.
+and use the selected authorized GitHub submission capability to create a draft only after excluding
+an existing matching PR; host-authenticated `gh pr create --draft` and `gh pr edit` are supported
+equivalents for draft creation and body updates. Preserve the exact repository/head/base identity and
+intended base.
 Never merge, mark ready, enable auto-merge, enqueue, or force-push.
 
 For issue-backed Change, re-read the exact issue before submission and on resume to verify its

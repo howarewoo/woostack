@@ -83,11 +83,13 @@ write.
 
 ## Selected-provider GitHub discovery
 
-When `artifacts.provider: "github"` is selected in configuration, Init may use the host-authenticated
-`gh` CLI only for narrow read-only discovery and validation of missing or unverified non-secret `owner`,
-`ownerType`, canonical Git repository identity, and Project Status field/options. Authenticated read-only
-access is sufficient: Init never selects persistence, reads development artifact content, probes writes,
-tests connectivity with a mutation, or modifies GitHub Projects or repository issues.
+When `artifacts.provider: "github"` is selected in configuration, Init may use an authorized
+host-exposed GitHub read capability (prefer native GitHub tools when suitable; host-authenticated
+`gh` remains supported) only for narrow read-only discovery and validation of missing or unverified
+non-secret `owner`, `ownerType`, canonical Git repository identity, and Project Status field/options.
+Discover actual capability names and read shapes from the host. Authenticated read-only access is
+sufficient: Init never selects persistence, reads development artifact content, probes writes, tests
+connectivity with a mutation, or modifies GitHub Projects or repository issues.
 
 ## Optional guarded legacy migration
 

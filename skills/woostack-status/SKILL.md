@@ -58,7 +58,7 @@ Only for an exact caller-supplied provider project or direct-resource reference,
 [Plane](../woostack-init/references/artifact-providers/plane.md), or
 [GitHub](../woostack-init/references/artifact-providers/github.md) profile:
 
-- discover the selected profile's official host-exposed capabilities (MCP for Linear or Plane; host-authenticated gh for GitHub);
+- discover the selected profile's official host-exposed capabilities (MCP for Linear or Plane; an authorized GitHub capability, preferring native tools when suitable and supporting host-authenticated `gh`);
 - resolve the exact project or direct-resource identity in complete profile-defined scope (for Plane:
   resolve the configured project, top-level `[Build]/[Fix]/[Plan]` specification items, and exact child
   increment graphs with complete paginated read-back and identity checks);
