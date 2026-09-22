@@ -29,11 +29,29 @@
       "conflictsWith": ["woostack-plan"]
     },
     {
+      "id": "new-parent-needs-hierarchy-plan",
+      "query": "Plan this approved specification with --parent-issue new; create one specification parent with native sub-issues and wire the prerequisite DAG, no Project involved.",
+      "shouldTrigger": true,
+      "expectedSkill": "woostack-plan"
+    },
+    {
+      "id": "existing-parent-needs-hierarchy-plan",
+      "query": "Plan against this exact https://github.com/acme/app/issues/90 parent URL; reconcile its native children and blocked-by edges without touching any Project.",
+      "shouldTrigger": true,
+      "expectedSkill": "woostack-plan"
+    },
+    {
       "id": "bounded-change-needs-direct-workflow",
       "query": "Add one bounded preference in a single pull request; no sequential multi-increment project is needed.",
       "shouldTrigger": false,
       "expectedSkill": "woostack-change",
       "conflictsWith": ["woostack-plan"]
+    },
+    {
+      "id": "parent-plus-project-selector-conflict",
+      "query": "/woostack-plan with --parent-issue https://github.com/acme/app/issues/90 and --project https://github.com/orgs/acme/projects/7 together.",
+      "shouldTrigger": true,
+      "expectedSkill": "woostack-plan"
     }
   ]
 }

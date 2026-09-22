@@ -1901,6 +1901,270 @@
           "critical": true
         }
       ]
+    },
+    {
+      "id": "synchronizes-github-parent-hierarchy",
+      "prompt": "Read fixtures/project-github-parent.json under standalone Plan with artifacts.provider \"github\" and --parent-issue new. Treat cycles as recorded normalized provider operations, not instructions to bypass admission. The candidate has four tasks with ordinals 20, 10, 40, and 30: roots task-a and task-b, task-c depending on task-a, and task-d depending on task-b and task-c. Validate complete candidate contracts against repository baseFiles and declared predecessors; verify the specification parent stays outside task mappings, every child carries the canonical parent URL, exact native parent links are distinct from blocked-by tuples, and no Project operation occurs. Report whether the two recorded synchronizations comply. Return exactly one JSON object with keys status, provider, selector, admitted, specParent, specParentNativeId, parentOutsideTaskMappings, childTaskIds, childIssueIds, ordinals, nativeParentLinks, nativeDependencies, childContractsComplete, canonicalRepository, projectCallCount, cycleMutationCounts, completeReadBack, readbackIdentitiesStable, approvalOwned, executionOwned, and repositoryMutationCount. Do not contact any provider or mutate repository files.",
+      "fixtures": [
+        "project-github-parent.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "New native parent publication creates one specification parent with four native children, keeps parent links distinct from the three blocked-by edges, performs 13 provider writes then zero on repeat, and leaves Project untouched.",
+      "assertions": [
+        {
+          "id": "parent-status",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "planned",
+          "critical": true
+        },
+        {
+          "id": "parent-selector",
+          "kind": "final-json-path-equals",
+          "pointer": "/selector",
+          "expected": "parent-issue-new"
+        },
+        {
+          "id": "parent-admitted",
+          "kind": "final-json-path-equals",
+          "pointer": "/admitted",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "parent-spec-url",
+          "kind": "final-json-path-equals",
+          "pointer": "/specParent",
+          "expected": "https://github.com/acme/app/issues/90",
+          "critical": true
+        },
+        {
+          "id": "parent-spec-native-id",
+          "kind": "final-json-path-equals",
+          "pointer": "/specParentNativeId",
+          "expected": "issue-90",
+          "critical": true
+        },
+        {
+          "id": "parent-outside-task-mappings",
+          "kind": "final-json-path-equals",
+          "pointer": "/parentOutsideTaskMappings",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "parent-child-tasks",
+          "kind": "final-json-path-equals",
+          "pointer": "/childTaskIds",
+          "expected": [
+            "task-a",
+            "task-b",
+            "task-c",
+            "task-d"
+          ],
+          "critical": true
+        },
+        {
+          "id": "parent-child-issues",
+          "kind": "final-json-path-equals",
+          "pointer": "/childIssueIds",
+          "expected": [
+            "issue-91",
+            "issue-92",
+            "issue-93",
+            "issue-94"
+          ],
+          "critical": true
+        },
+        {
+          "id": "parent-ordinals-display-only",
+          "kind": "final-json-path-equals",
+          "pointer": "/ordinals",
+          "expected": {
+            "task-a": 20,
+            "task-b": 10,
+            "task-c": 40,
+            "task-d": 30
+          },
+          "critical": true
+        },
+        {
+          "id": "parent-exact-links",
+          "kind": "final-json-path-equals",
+          "pointer": "/nativeParentLinks",
+          "expected": [
+            [
+              "issue-90",
+              "issue-91"
+            ],
+            [
+              "issue-90",
+              "issue-92"
+            ],
+            [
+              "issue-90",
+              "issue-93"
+            ],
+            [
+              "issue-90",
+              "issue-94"
+            ]
+          ],
+          "critical": true
+        },
+        {
+          "id": "parent-exact-edges",
+          "kind": "final-json-path-equals",
+          "pointer": "/nativeDependencies",
+          "expected": [
+            [
+              "issue-91",
+              "issue-93"
+            ],
+            [
+              "issue-92",
+              "issue-94"
+            ],
+            [
+              "issue-93",
+              "issue-94"
+            ]
+          ],
+          "critical": true
+        },
+        {
+          "id": "parent-contracts-complete",
+          "kind": "final-json-path-equals",
+          "pointer": "/childContractsComplete",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "parent-canonical-repository",
+          "kind": "final-json-path-equals",
+          "pointer": "/canonicalRepository",
+          "expected": "https://github.com/acme/app",
+          "critical": true
+        },
+        {
+          "id": "parent-no-project-calls",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectCallCount",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "parent-idempotent-sync",
+          "kind": "final-json-path-equals",
+          "pointer": "/cycleMutationCounts",
+          "expected": [
+            13,
+            0
+          ],
+          "critical": true
+        },
+        {
+          "id": "parent-complete-readback",
+          "kind": "final-json-path-equals",
+          "pointer": "/completeReadBack",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "parent-stable-identities",
+          "kind": "final-json-path-equals",
+          "pointer": "/readbackIdentitiesStable",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "parent-no-approval",
+          "kind": "final-json-path-equals",
+          "pointer": "/approvalOwned",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "parent-no-execution",
+          "kind": "final-json-path-equals",
+          "pointer": "/executionOwned",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "parent-no-repository-mutation",
+          "kind": "final-json-path-equals",
+          "pointer": "/repositoryMutationCount",
+          "expected": 0,
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "rejects-invalid-github-parent-graph-before-writes",
+      "prompt": "Read fixtures/invalid-github-parent-graphs.json. Evaluate each independent scenario against standalone GitHub parent-issue Plan using the shared caller/repository context and each complete candidate contract. events are normalized provider reads. Unknown-create scenarios resume after priorAttempt; its create is historical and must not be repeated. Stop recovery at identity read-back, before child creation or parent-link writes. The unavailable-project-capability scenario carries its own capabilities record and performs zero Project operations. Return exactly one JSON object with keys canAdvance (scenario ID to boolean), newProviderWrites, replayedCreates, and repositoryMutationCount. Validate verification provenance using repository.baseFiles and explicit predecessor contracts. Do not contact providers or mutate files.",
+      "fixtures": [
+        "invalid-github-parent-graphs.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "Only the retained existing-parent hierarchy, the Project-unavailable parent-only read, and complete single-marker parent/child recoveries advance to the requested read-back boundary; text checklists, foreign/nested/conflicting parents, partial pagination, missing write capabilities, malformed graphs, duplicate identities, conflicting selectors, and missing expected children block without writes, and no create is replayed.",
+      "assertions": [
+        {
+          "id": "parent-admission-decisions",
+          "kind": "final-json-path-equals",
+          "pointer": "/canAdvance",
+          "expected": {
+            "existing-parent-reuse": true,
+            "text-checklist-without-native-children": false,
+            "foreign-parent": false,
+            "nested-container": false,
+            "conflicting-child-parent": false,
+            "parent-not-top-level": false,
+            "incomplete-sub-issue-pagination": false,
+            "missing-subissue-write-capability": false,
+            "missing-dependency-write-capability": false,
+            "unavailable-project-capability": true,
+            "unknown-parent-zero-match": false,
+            "unknown-parent-single-match": true,
+            "unknown-parent-duplicate-match": false,
+            "unknown-child-zero-match": false,
+            "unknown-child-single-match": true,
+            "unknown-child-duplicate-match": false,
+            "cycle": false,
+            "parent-as-dependency-endpoint": false,
+            "duplicate-task-id": false,
+            "ambiguous-marker-identity": false,
+            "conflicting-selectors": false,
+            "missing-expected-child": false
+          },
+          "critical": true
+        },
+        {
+          "id": "parent-admission-no-provider-writes",
+          "kind": "final-json-path-equals",
+          "pointer": "/newProviderWrites",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "parent-recovery-never-replays",
+          "kind": "final-json-path-equals",
+          "pointer": "/replayedCreates",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "parent-admission-no-repository-writes",
+          "kind": "final-json-path-equals",
+          "pointer": "/repositoryMutationCount",
+          "expected": 0,
+          "critical": true
+        }
+      ]
     }
   ]
 }

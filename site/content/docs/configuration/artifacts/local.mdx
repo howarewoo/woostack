@@ -67,7 +67,8 @@ With `artifacts.provider` omitted or set to `"local"`:
 - Issue-backed Change performs the required read of the explicitly selected exact canonical GitHub issue
   through host-authenticated `gh`; it does not require provider configuration, a Project, a mirror, or a
   persisted plan.
-- `--project` fails before provider access because project selection requires remote mirroring.
+- `--project` fails before provider access because it requires a configured non-local provider.
+  Plan's `--parent-issue` also fails: it requires `artifacts.provider: "github"`, though no Project.
 
 Automatic read-only Linear discovery during `woostack-init` (or GitHub discovery when
 `artifacts.provider: "github"`) is a setup operation. An issue-backed Change read is driven by

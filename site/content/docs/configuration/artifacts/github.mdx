@@ -1,16 +1,19 @@
 ---
 title: GitHub
-description: Reference for GitHub Projects and repository issues artifact mirroring, configuration fields, hierarchy, and lifecycle behavior.
+description: Reference for GitHub Projects and repository issues artifact mirroring, configuration fields, Project and parent-issue hierarchy, and lifecycle behavior.
 ---
 
 Select GitHub artifact mirroring with `artifacts.provider: "github"`. For Build and project-backed
 Fix, the [local run](/docs/configuration/artifacts/local) remains the source of truth.
+Standalone parent-issue Plan (`--parent-issue`) also requires `artifacts.provider: "github"`
+but needs no Project settings, Project access, or mirror.
 
 ## Configuration
 
-Replace the example owner and status options with verified values from your GitHub account or
-organization. The five status options must exist on the selected single-select field and have
-distinct names.
+For Project workflows, replace the example owner and status options with verified values from
+your GitHub account or organization. The five status options must exist on the selected
+single-select field and have distinct names. Parent-issue Plan needs none of these:
+the `github` object, `owner`, and `projectStatuses` may all be absent.
 
 ```json
 {
@@ -35,11 +38,11 @@ distinct names.
 
 | Field | Type | Constraint |
 | --- | --- | --- |
-| `artifacts.github.owner` | string | Required nonempty GitHub organization or user login. |
+| `artifacts.github.owner` | string | Required for Project workflows: nonempty GitHub organization or user login. Optional for parent-issue Plan; when present it must match the canonical repository owner. |
 | `artifacts.github.ownerType` | string | Optional `"organization"` or `"user"`. Resolved via discovery when omitted. |
 | `artifacts.github.statusField` | string | Optional exact case-sensitive single-select field name. Defaults to `"Status"`. |
 | `artifacts.github.visibility` | string | Optional `"private"` or `"public"`. Defaults to `"private"`; applies only to newly created Projects. |
-| `artifacts.github.projectStatuses` | object | Required mapping of exactly five keys (`planned`, `executing`, `inReview`, `done`, `blocked`) to nonempty, distinct option names on the configured status field. |
+| `artifacts.github.projectStatuses` | object | Required for Project workflows: mapping of exactly five keys (`planned`, `executing`, `inReview`, `done`, `blocked`) to nonempty, distinct option names on the configured status field. Not required for parent-issue Plan. |
 
 Credentials belong in the host's authenticated `gh` environment, never in repository configuration.
 Projects v2 and native dependencies use `gh api graphql`; repository issue operations use GitHub issue
@@ -47,15 +50,15 @@ APIs through `gh`. Custom HTTP/GraphQL clients, credential reads, and token forw
 
 ### Transport capabilities and boundaries
 
-The GitHub provider requires host-authenticated `gh` with these verified capabilities:
-- Projects: `projectRead`, `projectWrite`, and `projectDelete` (deletion is used for smoke testing).
-- Issues: `issueRead`, `issueWrite`, `issueClose`, and `issueDelete` (deletion is used for smoke testing).
-- Dependencies: `dependencyRead` and `dependencyWrite`.
-- Status field: `statusFieldRead` and `statusFieldWrite`.
-- Reads: complete `pagination` and `independentReadBack`.
+Preflight the capabilities needed by the selected operation through host-authenticated `gh`.
+Parent-issue publication needs issue, native parent/sub-issue, and dependency reads/writes, complete
+pagination, and independent read-back. Issue-write access does not prove native relationship-write
+access. Project workflows additionally require their selected Project, membership, and Status
+operations; unavailable Project access does not block parent-only publication.
 
-Missing capabilities, unauthorized scopes, another run's markers, unexpected changes, or partial
-responses stop the provider operation.
+Unsupported or unknown required capabilities, unauthorized scopes, another run's markers,
+unexpected changes, or partial responses stop the provider operation. No test mutation is used
+to prove publication permissions.
 
 ## Identities, hierarchy, and graph
 
@@ -71,11 +74,41 @@ Project under the configured owner. The complete specification is written inside
 between markers `<!-- woostack-spec-start -->` and `<!-- woostack-spec-end -->`, preserving unrelated
 README bytes. `shortDescription` contains a concise goal summary.
 
-Each increment is a normal repository issue with no parent (`parent = null`), added directly to the
-Project. Woostack does not create an extra parent plan issue or draft item. Before creating resources,
-it allocates recovery markers (`<!-- woostack-project-mutation:<UUID> -->` and
-`<!-- woostack-issue-mutation:<UUID> -->`) so later reads can detect an uncertain creation result
-without creating a duplicate.
+Existing Project plans retain parentless repository issues (`parent = null`) with direct membership.
+An explicitly admitted specification parent and its member children may also be represented in a
+Project; verify native links separately and never count a container as an extra task or import
+nonmember children automatically. No implicit conversion or reparenting occurs. Before creating
+resources, allocate recovery markers (`<!-- woostack-project-mutation:<UUID> -->` and
+`<!-- woostack-issue-mutation:<UUID> -->`) to recover uncertain creation without duplicates.
+
+### Parent-issue planning (standalone Plan only)
+
+Standalone Plan accepts an explicit parent-issue selector instead of `--project`:
+
+```text
+/woostack-plan <approved specification> --parent-issue new
+/woostack-plan [<approved specification>] --parent-issue <exact canonical GitHub issue URL>
+```
+
+`--parent-issue` is exclusive with `--project` and standalone only; delegated Plan stays
+provider-free. It requires `artifacts.provider: "github"` but needs no Project settings, Project
+access, Project capabilities, or mirror. The canonical repository comes from trusted Git/GitHub
+evidence; when `artifacts.github.owner` is configured, it must match that repository's owner.
+
+Publication creates or reuses one selected specification parent and reconciles one native direct
+PR-sized child issue per planned task, then wires the prerequisite `blocked-by` DAG separately. The native parent hierarchy
+is distinct from `blocked-by` edges and from Git branch ancestry: it groups the plan, it never
+orders delivery or selects a branch parent. The parent is never a task or dependency endpoint, has
+no execution, and gets no PR. Child reads verify complete parent/child pagination and each child's
+actual parent. New IDs reuse the existing marker recovery without replay on uncertainty. Unrelated
+or human-owned fields are preserved and children are never reparented. Nested containers, cycles,
+missing endpoints, foreign parents, and partial pagination or capabilities fail closed. Repeating an
+unchanged sync performs zero mutations. Task, dependency, and mapping shapes match Project mode,
+with the parent stored separately in the spec item when applicable; standalone parent-issue Plan
+creates no Build/Fix run.
+
+Parent-issue planning is planning only. There is no Orchestrate command yet, and bounded Execute
+still admits one complete bounded task under its existing issue admission constraints.
 
 GitHub plans use explicit prerequisite graphs. Independent roots, forks, chains, and joins are valid;
 only genuine prerequisites become native `blocked-by` edges. Each edge is a `[prerequisite, dependent]`
@@ -95,8 +128,8 @@ A join without one parent containing all required changes remains valid but cann
 explicit parent/integration decision is made. Planning never creates an automatic integration branch.
 
 Synchronization validates the complete graph before mutations and independently reads back every
-issue, membership, and exact edge. Missing or foreign endpoints, ambiguous identities, cycles, and
-incomplete pagination block; they do not expand Project scope.
+issue, native hierarchy, selected membership, and exact edge. Missing or foreign endpoints,
+ambiguous identities, cycles, and incomplete pagination block; they do not expand selected scope.
 
 Execute accepts one selected bounded task, not a complete DAG. A task from any valid DAG may use
 [ordinary Execute admission](/docs/skills/woostack-execute#admit-one-task) when its concrete parent and
@@ -112,7 +145,8 @@ Execute. Linear, Plane, and local-only planning keep their existing sequence.
 > [Execute retired inputs](/docs/skills/woostack-execute#retired-inputs).
 
 Standalone provider-backed Plan remains the only workflow that closes an exact admitted Project.
-Build/Fix handoff, abandonment, blockers, and completion leave any mirrored Project unchanged.
+Parent-issue Plan has no Project to close. Build/Fix handoff, abandonment, blockers, and completion
+leave any mirrored Project unchanged.
 
 ## Workflow matrix
 
@@ -120,13 +154,12 @@ Build/Fix handoff, abandonment, blockers, and completion leave any mirrored Proj
 | --- | --- |
 | [woostack-build](/docs/skills/woostack-build) | Resolves an exact supplied Project or creates one `[Build] <goal>` Project; writes specification to managed README; creates parentless issues with direct Project membership; and wires explicit prerequisite edges. |
 | [woostack-fix](/docs/skills/woostack-fix) | Bounded Fix is provider-free. Project-backed Fix proves root cause before provider access, preserves an exact source `--issue` as context with a direct Project link, and creates/reconciles a separate increment DAG. |
-| [woostack-plan](/docs/skills/woostack-plan) | Standalone Plan requires an exact existing canonical Project URL (`orgs/<owner>/projects/<N>` or `users/<owner>/projects/<N>`) and synchronizes the direct issue graph; delegated Plan is provider-free. |
+| [woostack-plan](/docs/skills/woostack-plan) | Standalone Plan with `--project` requires an exact existing canonical Project URL (`orgs/<owner>/projects/<N>` or `users/<owner>/projects/<N>`) and synchronizes the direct issue graph; standalone Plan with `--parent-issue new` or an exact parent issue URL synchronizes the native parent/child graph with no Project; delegated Plan is provider-free. |
 | [woostack-execute](/docs/skills/woostack-execute) | Accepts one complete bounded task plus an optional exact GitHub issue URL; retired `--project`, `--run`, and `--recheck` are rejected. |
 | [woostack-init](/docs/skills/woostack-init) | Discovers owner, ownerType, canonical repository, and status options through read-only `gh` calls only when `artifacts.provider: "github"`. Never selects persistence or probes writes. |
 | [woostack-status](/docs/skills/woostack-status) | Adds read-only context only after verifying repository/PR identity. Provider records cannot create rows or override repository evidence. |
 | [woostack-bootstrap](/docs/skills/woostack-bootstrap) | Optional persistence only after explicit design approval and approval to write to the verified filesystem target. |
-| [woostack-init](/docs/skills/woostack-init) | Discovers owner, ownerType, canonical repository, and status options through read-only `gh` calls only when `artifacts.provider: "github"`. Never selects persistence or probes writes. |
-| [woostack-doctor](/docs/skills/woostack-doctor) | Checks config types locally. Explicit live checks verify authenticated identity and required capabilities, including deletion capability needed for smoke testing, without storing secrets. |
+| [woostack-doctor](/docs/skills/woostack-doctor) | Checks config types locally. Explicit live checks verify Project-mirroring identity and required capabilities, including deletion capability needed for smoke testing, without storing secrets; they are not a parent-mode capability receipt. |
 | [woostack-change](/docs/skills/woostack-change) | Goal-only Change is provider-free. An explicit exact canonical GitHub issue input performs the required read of that issue through host-authenticated `gh`; it requires no artifact-provider configuration, Project, or mirror, and performs no issue lifecycle writes. |
 
 See the [GitHub provider contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-providers/github.md)

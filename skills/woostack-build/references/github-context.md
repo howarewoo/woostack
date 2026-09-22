@@ -5,7 +5,9 @@ canonical GitHub Project for [`woostack-build`](../SKILL.md) and admits each exa
 `artifacts.provider` is "local" or omitted, default local mode makes zero provider calls and `--project` fails closed.
 The shared [artifact contract](../../woostack-init/references/artifact-backends.md) and
 [GitHub profile](../../woostack-init/references/artifact-providers/github.md) own shared and GitHub invariants;
-use the [GitHub synchronization procedure](github-procedure.md) for mirror saves and standalone Plan.
+use the [GitHub synchronization procedure](github-procedure.md) for mirror saves and standalone
+Project Plan. Standalone `--parent-issue` instead uses that procedure's
+[parent admission](github-procedure.md#parent-issue-synchronization) without Project resolution.
 
 ## Resolution
 1. Resolve canonical repository URL `https://github.com/owner/repo` from trusted Git/GitHub evidence.
@@ -22,9 +24,12 @@ Read the complete Project title, shortDescription, and managed README section (`
 ## Direct increment graph baseline
 
 Read all Project items and native `blocked-by` relations through terminal pagination before admitting
-the baseline. Retained increments must round-trip as parentless canonical-repository issues with direct
-membership in the exact Project. Preserve and exclude historical parent/container resources; missing
-or foreign endpoints do not authorize expanding scope.
+the baseline. Retained increments must round-trip as canonical-repository issues with direct
+membership in the exact Project and their admitted parent state under the
+[GitHub hierarchy contract](../../woostack-init/references/artifact-providers/github.md#specification-parent-and-native-children).
+Preserve existing parentless plans; distinguish specification containers from executable members,
+enumerate each admitted task once, and do not expand membership to nonmember children.
+Missing or foreign endpoints do not authorize expanding scope.
 
 Map each retained increment to exactly one stable task key using its verified canonical URL and native
 identity, never its title or ordinal. Ambiguous, duplicate, or unmatched retained identities block
