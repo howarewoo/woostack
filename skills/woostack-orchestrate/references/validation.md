@@ -70,14 +70,16 @@ values to invent:
   "project_status": {
     "project_url": "<runtime-substituted selected Project URL>",
     "issue_url": "<runtime-substituted exact child issue URL>",
-    "item_id": "<runtime-substituted native Project item ID>",
-    "status": "<runtime-substituted admitted lifecycle.inReview option>"
+    "item_id": "<runtime-substituted admission-bound native Project item ID>",
+    "status": "<runtime-substituted exactly the admitted lifecycle.inReview option>"
   }
 }
 ```
 
 `project_status` is required only in explicit Project mode, after the configured `inReview` write
-and canonical readback; it is forbidden as a fabricated receipt in parent-issue mode. The result
+and canonical readback; its `item_id` must equal the admission-bound native Project item ID and
+its `status` must equal the admitted `lifecycle.inReview` option. `project_status` is forbidden
+as a fabricated receipt in parent-issue mode. The result
 example's markers mean “runtime-substituted fact required”, not a successful fixture. A repair
 result may omit `note` when no validated delivery note exists. It must not replace missing fields
 with another task's evidence.
@@ -139,9 +141,9 @@ alternate acceptance path:
    retargeting, replacement PRs, or a new branch. An ambiguous result is not a repair success.
 4. **All evidence pass:** require the note to have been written and read back under the canonical
    [`#artifact-delivery-note`](../../woostack-commit/references/provider-attribution.md#artifact-delivery-note)
-   contract. In explicit Project mode also require the selected configured `inReview` status
-   readback in `project_status`. Only then may the helper transition to `delivered` and release
-   dependents.
+   contract. In explicit Project mode also require the `project_status` delivery readback to carry
+   exactly the admission-bound `item_id` and the admitted `lifecycle.inReview` option. Only then
+   may the helper transition to `delivered` and release dependents.
 
 `outcome: "needs-repair"` requests the second gate. `outcome: "ok"` must pass every gate; it
 cannot waive a failed check, stale validation, absent note, Project mismatch, or identity issue.
@@ -175,7 +177,8 @@ before dependent release; an intent, mutation response, or worker claim is not a
 
 Only an explicitly selected Project may receive a lifecycle write, and only to the admitted
 configured `lifecycle.inReview` option. Read the Project item/status back and include exactly the
-selected Project URL, child issue URL, native item ID, and selected status in `project_status`.
+selected Project URL, child issue URL, admission-bound native `item_id`, and exactly the admitted
+`lifecycle.inReview` status in `project_status`.
 Parent-issue mode performs no Project call. Never set another lifecycle option, create a Project,
 claim a status from a schedule intent, or use Project progress as evidence of PR delivery.
 
@@ -210,13 +213,17 @@ The evidence must be a direct canonical read, not a worker assertion, and includ
 
 For a proven no-PR path, use `pr_absent: true`, `pr_url: null`, `open: false`, `unique: true`,
 and the same canonical branch/head/base/repository/head-repository facts plus
-`worker_stopped: true`. The helper returns same-branch `repair-ready`; it never allocates a new
+`worker_stopped: true`; the helper rejects contradictory absence evidence (for example a
+non-null `pr_url` or `open: true` alongside `pr_absent: true`) as `evidence-mismatch` and
+preserves state. The helper returns same-branch `repair-ready`; it never allocates a new
 identity. For an existing canonical PR, `pr_url`, `open`, and `unique` must describe that exact PR
 and match the retained report/reservation; follow the helper's returned state and do not dispatch
 until it says the reservation is safe. Any branch/head/base/repository/PR mismatch, absent stopped
-proof, arbitrary report, duplicate/closed/foreign PR, or missing admitted/git-repo input blocks
-reconciliation and leaves the halt in place.
+proof, arbitrary report, contradictory absence evidence, duplicate/closed/foreign PR, or missing
+admitted/git-repo input blocks reconciliation and leaves the halt in place.
 
 After a successful reconciliation, assemble a new fully paginated fresh snapshot and invoke
-`schedule` again with the existing state, `--fresh`, and `--git-repo`. Never run a second
-controller, recreate missing state, or redispatch while worker ownership is unknown.
+`schedule` again with the existing state, `--fresh`, and `--git-repo`. The caller holds the same
+externally enforced exclusive scope ownership across `schedule`, `apply-result`, and `reconcile`;
+never run a second controller, recreate missing state, or redispatch while worker ownership is
+unknown.

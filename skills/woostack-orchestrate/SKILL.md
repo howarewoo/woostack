@@ -55,11 +55,12 @@ network calls, and spawns no workers. The skill assembles JSON only from direct 
 the selected allowlisted host adapter. There is no prose-only bypass and no alternate scheduler.
 
 The controller uses one explicit private state file per selected scope and one controller session.
-Create the state file through the helper's atomic `--state-out` write, keep it private to the
-controller, and do not run concurrent controllers against the same state/scope. State is not a
-provider ledger or hidden run store. A missing state file is allowed only on the initial schedule
-call, where `--state` is omitted; every later call must name an existing state file and must stop on
-missing/corrupt/mismatched state rather than reinitializing it.
+Before invoking the helper, prove externally enforced exclusive scope ownership under the
+[single-controller contract](references/scheduling.md#state-reservations-and-joins); otherwise
+block at preflight. Atomic state writes do not provide controller serialization. A missing state
+file is allowed only on the initial schedule call, where `--state` is omitted; every later call
+must name an existing state file and stop on missing/corrupt/mismatched state rather than
+reinitializing it.
 
 The four bridge commands are:
 
@@ -120,7 +121,8 @@ Project owner/repository, specification, membership, and lifecycle admission.
    issue numbers for REST IDs or GraphQL node IDs. Parent mode requires a top-level open issue and
    each direct child `actual_parent` equal to the selected parent. Project mode requires the
    selected Project identity, owner/type/state, all five unique lifecycle mappings, complete
-   membership, and each member's `declared_parent` equal to independently read `actual_parent`.
+   membership, a non-empty native `item_id` bound during admission on every executable member, and
+   each member's `declared_parent` equal to independently read `actual_parent`.
 4. Carry the complete parent specification and repository rules as strings in the snapshot. A
    contract is complete only when it includes `goal`, `scope`, `non_goals`, `acceptance`, `checks`,
    `smoke`, `decisions`, and `risks` with the types specified in
@@ -134,16 +136,17 @@ Project owner/repository, specification, membership, and lifecycle admission.
 
 The admission fingerprint binds mode, selector, canonical repository, native parent/Project and
 specification identity, repository rules, and every immutable task field including native
-hierarchy, IDs, titles/bodies, contract, dependencies, and workspace. It excludes the host cap,
+hierarchy, IDs (including Project `item_id`), titles/bodies, contract, dependencies, and
+workspace. It excludes the host cap,
 mutable integration SHA, and runtime delivery evidence. A fresh snapshot with a changed fingerprint
 returns `snapshot-drift` and preserves running work; it never launches a duplicate or silently
 adopts a new child.
 
 ## Reserve, create worktrees, and dispatch
 
-After admission, call `schedule` with the required Git repository and fresh snapshot. The helper
-atomically reserves each ready task before any caller creates a worktree. It emits an **absolute**
-workspace under the primary Git common root:
+After admission, call `schedule` with the required Git repository and fresh snapshot while holding
+exclusive scope ownership. The helper persists each ready task's reservation before any caller
+creates a worktree. It emits an **absolute** workspace under the primary Git common root:
 `<primary-root>/.woostack/worktrees/tasks/<task-id>`, unless a safe relative snapshot override is
 resolved under that same root. It also emits `branch: woostack/<task-id>`, the selected
 `parent_branch`/`parent_sha`, repair/retained-PR facts, and the complete bounded packet.
@@ -210,7 +213,8 @@ Submit the complete result to `apply-result --git-repo`. The result schema is ex
 [validation](references/validation.md). `ok` is deliverable only when worker/readback/checks/
 validation/note evidence all agree, the independent reviewer is distinct from the worker, the
 contract hash and checked head match, the exact child closing reference appears once, and any
-selected Project `inReview` status has a canonical readback. Focused-check or spec-validation
+selected Project `inReview` status readback carries the admission-bound native `item_id` and
+exactly the admitted `lifecycle.inReview` option. Focused-check or spec-validation
 failure returns `repair-ready` on the same reservation and PR (the note may not exist yet).
 Wrong repository, head/branch identity, base, duplicate PR, closed PR, or other canonical identity
 conflict is `halted`/blocked, never an automatic retarget or replacement.
@@ -224,9 +228,10 @@ Project mode only, and only when its configured lifecycle mapping was admitted, 
 For `unknown`, missing, or malformed worker/result evidence, the helper retains the complete
 reservation and halts fresh dispatch. Run `reconcile` only with the admitted scope, existing state,
 canonical Git repository, and direct evidence that includes `worker_stopped: true` plus the reserved
-branch/workspace/parent and canonical PR/readback identity. A no-PR recovery must explicitly prove
-`pr_absent: true`, `unique: true`, and the same canonical branch/head/base/repository facts; it
-returns same-branch `repair-ready`, not a new identity. Reconciliation never clears a reservation
+branch/workspace/parent and canonical PR/readback identity. A no-PR recovery must satisfy the
+complete [absence evidence contract](references/validation.md#unknown-reconciliation); contradictory
+evidence leaves the halt in place. Proven absence returns same-branch `repair-ready`, not a new
+identity. Reconciliation never clears a reservation
 from an arbitrary report and never authorizes a duplicate worker. Follow the helper's returned
 status, then refill with a newly assembled `--fresh` snapshot.
 
@@ -241,8 +246,9 @@ containment checks pass.
 ## Project and completion boundaries
 
 Project mode distinguishes specification/container members from executable issues and deduplicates
-repeated native evidence only when every immutable field agrees. It never imports nonmembers or
-flattens nested containers. Project synchronization is limited to the configured `inReview` option
+repeated native evidence only when every immutable field, including `item_id`, agrees. It never
+imports nonmembers or flattens nested containers. Project synchronization is limited to the
+configured `inReview` option
 for verified child deliveries; never set `planned`, `executing`, `done`, or `blocked` as an
 orchestration shortcut. Neither mode closes issues, removes dependencies, marks acceptance, marks
 PRs ready, enables auto-merge, queues, force-pushes, or merges. When all deliverable PRs are

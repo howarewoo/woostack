@@ -576,6 +576,154 @@ class OrchestrateBehavior(unittest.TestCase):
         code, payload = invoke_cli(*args)
         return out, payload, code
 
+    def test_reconcile_rejects_conflicting_pr_absence_and_preserves_same_pr_repair(self) -> None:
+        snapshot = self._single_task_snapshot()
+        admitted_path, admitted = self._admit_issue(snapshot)
+        state, scheduled = self._schedule(
+            admitted_path, admitted, None, snapshot, "reconcile-pr-initial", cap="1"
+        )
+        original = scheduled["dispatch"][0]
+        host = self._start_host(workers=1)
+        host.dispatch([original])
+        report = host.wait_for_report("task-a")
+
+        unknown_state, halted, _ = self._apply(
+            admitted_path,
+            state,
+            "task-a",
+            {"outcome": "unknown", "worker": report["worker"]},
+            "reconcile-pr-unknown",
+        )
+        self.assertEqual(halted.get("status"), "halted", halted)
+        unknown_saved = json.loads(unknown_state.read_text())
+        self.assertEqual(unknown_saved["tasks"]["task-a"]["status"], "unknown")
+        self.assertTrue(unknown_saved["halt_new_dispatch"])
+        self.assertEqual(unknown_saved["halt_reason"], "unknown-response")
+
+        evidence = self.github.readback("task-a")
+        evidence["worker_stopped"] = True
+        conflicting_absence = copy.deepcopy(evidence)
+        conflicting_absence["pr_absent"] = True
+        _, conflict_output, conflict_code = self._reconcile(
+            admitted_path,
+            unknown_state,
+            "task-a",
+            conflicting_absence,
+            "reconcile-pr-conflicting-absence",
+        )
+        self.assertNotEqual(conflict_code, 0, conflict_output)
+        self.assertEqual(conflict_output.get("error"), "evidence-mismatch", conflict_output)
+        self.assertEqual(json.loads(unknown_state.read_text()), unknown_saved)
+
+        for missing in ("pr_url", "open"):
+            incomplete_absence = copy.deepcopy(evidence)
+            incomplete_absence["pr_absent"] = True
+            incomplete_absence.update(pr_url=None, open=False)
+            incomplete_absence.pop(missing)
+            _, missing_output, missing_code = self._reconcile(
+                admitted_path,
+                unknown_state,
+                "task-a",
+                incomplete_absence,
+                "reconcile-pr-missing-" + missing,
+            )
+            self.assertNotEqual(missing_code, 0, missing_output)
+            self.assertEqual(missing_output.get("error"), "evidence-mismatch", missing_output)
+            self.assertEqual(json.loads(unknown_state.read_text()), unknown_saved)
+
+        reconciled_state, reconciled, reconciled_code = self._reconcile(
+            admitted_path, unknown_state, "task-a", evidence, "reconcile-pr-present"
+        )
+        self.assertEqual(reconciled_code, 0, reconciled)
+        self.assertEqual(reconciled.get("status"), "reconciled", reconciled)
+        reconciled_saved = json.loads(reconciled_state.read_text())
+        self.assertEqual(reconciled_saved["tasks"]["task-a"]["status"], "running")
+        self.assertEqual(reconciled_saved["tasks"]["task-a"]["verified_pr"], evidence["pr_url"])
+        self.assertFalse(reconciled_saved["halt_new_dispatch"])
+        self.assertIsNone(reconciled_saved["halt_reason"])
+
+        failed = make_result(self.github, "task-a", report, admitted)
+        failed["checks"]["passed"] = False
+        repair_ready_state, repair_ready, _ = self._apply(
+            admitted_path,
+            reconciled_state,
+            "task-a",
+            failed,
+            "reconcile-pr-repair-ready",
+        )
+        self.assertEqual(repair_ready.get("status"), "repair-ready", repair_ready)
+        repair_ready_saved = json.loads(repair_ready_state.read_text())
+        self.assertEqual(repair_ready_saved["tasks"]["task-a"]["verified_pr"], evidence["pr_url"])
+
+        resumed_state, resumed = self._schedule(
+            admitted_path,
+            admitted,
+            repair_ready_state,
+            self._single_task_snapshot(),
+            "reconcile-pr-repair-resume",
+            cap="1",
+        )
+        self.assertEqual(len(resumed["dispatch"]), 1, resumed)
+        repaired_entry = resumed["dispatch"][0]
+        self.assertTrue(repaired_entry["repair"], repaired_entry)
+        self.assertEqual(repaired_entry["retained_pr"], evidence["pr_url"])
+        host.dispatch([repaired_entry])
+        repaired_report = host.wait_for_report("task-a")
+        repaired_result = make_result(self.github, "task-a", repaired_report, admitted)
+        _, delivered, delivered_code = self._apply(
+            admitted_path,
+            resumed_state,
+            "task-a",
+            repaired_result,
+            "reconcile-pr-repaired",
+        )
+        self.assertEqual(delivered_code, 0, delivered)
+        self.assertEqual(delivered.get("status"), "delivered", delivered)
+        self.assertEqual(self.github.prs["task-a"]["pr_url"], evidence["pr_url"])
+
+    def test_reconcile_explicit_pr_absence_recovers_to_repair_ready(self) -> None:
+        snapshot = self._single_task_snapshot()
+        admitted_path, admitted = self._admit_issue(snapshot)
+        state, scheduled = self._schedule(
+            admitted_path, admitted, None, snapshot, "reconcile-no-pr-initial", cap="1"
+        )
+        host = self._start_host(workers=1)
+        entry = scheduled["dispatch"][0]
+        host.dispatch([entry])
+        report = host.wait_for_report("task-a")
+        unknown_state, halted, _ = self._apply(
+            admitted_path,
+            state,
+            "task-a",
+            {"outcome": "unknown", "worker": report["worker"]},
+            "reconcile-no-pr-unknown",
+        )
+        self.assertEqual(halted.get("status"), "halted", halted)
+        self.github.prs.pop("task-a")
+        worker = report["worker"]
+        evidence = {
+            "repo": self.github.canonical,
+            "head_repo": self.github.canonical,
+            "branch": worker["branch"],
+            "base_branch": worker["base_branch"],
+            "head_sha": worker["head_sha"],
+            "unique": True,
+            "pr_absent": True,
+            "pr_url": None,
+            "open": False,
+            "worker_stopped": True,
+        }
+        reconciled_state, reconciled, reconciled_code = self._reconcile(
+            admitted_path, unknown_state, "task-a", evidence, "reconcile-no-pr-valid"
+        )
+        self.assertEqual(reconciled_code, 0, reconciled)
+        self.assertEqual(reconciled.get("status"), "reconciled", reconciled)
+        saved = json.loads(reconciled_state.read_text())
+        self.assertEqual(saved["tasks"]["task-a"]["status"], "repair-ready")
+        self.assertIsNone(saved["tasks"]["task-a"]["verified_pr"])
+        self.assertFalse(saved["halt_new_dispatch"])
+        self.assertIsNone(saved["halt_reason"])
+
     def test_evidence_identity_diff_contract_reviewer_and_validation_gates(self) -> None:
         snapshot = self._single_task_snapshot()
         admitted_path, admitted = self._admit_issue(snapshot)
@@ -765,6 +913,72 @@ class OrchestrateBehavior(unittest.TestCase):
             "admit", "--project", mismatched_parent["project"]["url"], "--snapshot", str(path)
         )
         self.assertNotEqual(code, 0, payload)
+
+    def test_project_item_identity_is_required_and_substituted_receipt_halts_dependents(self) -> None:
+        base_project = self.github.project_snapshot()
+        for label, value in (("missing", None), ("empty", "")):
+            broken = copy.deepcopy(base_project)
+            if label == "missing":
+                broken["members"][1].pop("item_id")
+            else:
+                broken["members"][1]["item_id"] = value
+            path = self._write_json("project-item-%s.json" % label, broken)
+            code, payload = invoke_cli(
+                "admit", "--project", broken["project"]["url"], "--snapshot", str(path)
+            )
+            self.assertNotEqual(code, 0, payload)
+            self.assertEqual(payload.get("error"), "invalid-project-item", payload)
+
+        project_snapshot = copy.deepcopy(base_project)
+        dependent = copy.deepcopy(self.github.children[1])
+        dependent.update(
+            ordinal=3,
+            item_id="PVTI_project_item_b",
+            actual_parent=self.github.parent_url,
+            declared_parent=self.github.parent_url,
+            prerequisites=["task-a"],
+        )
+        project_snapshot["members"].append(dependent)
+        admitted_path, admitted = self._admit_project(project_snapshot)
+        state, scheduled = self._schedule(
+            admitted_path, admitted, None, project_snapshot, "project-item-initial", cap="1"
+        )
+        self.assertEqual([entry["task_id"] for entry in scheduled["dispatch"]], ["task-a"])
+        host = self._start_host(workers=1)
+        entry = scheduled["dispatch"][0]
+        host.dispatch([entry])
+        report = host.wait_for_report("task-a")
+        result = make_result(self.github, "task-a", report, admitted)
+        substituted = copy.deepcopy(result)
+        substituted["project_status"]["item_id"] = "PVTI_project_item_substituted"
+        variant_state = self.tmp / "project-item-substituted-input.state.json"
+        variant_state.write_text(state.read_text(), encoding="utf-8")
+        rejected_state, rejected, _ = self._apply(
+            admitted_path,
+            variant_state,
+            "task-a",
+            substituted,
+            "project-item-substituted",
+            expect_code=None,
+        )
+        self.assertEqual(rejected.get("status"), "halted", rejected)
+        self.assertEqual(rejected.get("reason"), "project-status-mismatch", rejected)
+        rejected_saved = json.loads(rejected_state.read_text())
+        self.assertEqual(rejected_saved["tasks"]["task-a"]["status"], "unknown")
+        self.assertEqual(rejected_saved["tasks"]["task-b"]["status"], "pending")
+        self.assertTrue(rejected_saved["halt_new_dispatch"])
+
+        _, halted = self._schedule(
+            admitted_path,
+            admitted,
+            rejected_state,
+            project_snapshot,
+            "project-item-dependent-blocked",
+            cap="1",
+        )
+        self.assertEqual(halted.get("status"), "halted", halted)
+        self.assertEqual(halted.get("reason"), "project-status-mismatch", halted)
+        self.assertEqual(halted.get("dispatch"), [], halted)
 
     def test_existing_delivery_resume_validates_same_evidence_without_duplicate(self) -> None:
         self._seed_prior_delivery("task-a")

@@ -179,6 +179,7 @@ Add a complete native Project record and complete member issue records:
       "url": "<runtime-substituted canonical member issue URL>",
       "id": "<runtime-substituted positive native REST issue ID>",
       "node_id": "<runtime-substituted opaque GraphQL issue node ID>",
+      "item_id": "<runtime-substituted non-empty native Project item ID bound during admission>",
       "state": "open",
       "resource": "issue",
       "title": "<runtime-substituted native title>",
@@ -202,14 +203,15 @@ Add a complete native Project record and complete member issue records:
   ]
 }
 ```
-
 The Project owner type is exactly `organization` or `user`; the Project and all member issues are
-open and canonical. Read Project membership and native parents independently. Each member's
-`declared_parent` must equal its independently read `actual_parent` (either `null` or a canonical
-issue URL). Containers may omit `contract` only when the native member record is otherwise complete;
-containers are preserved but excluded from execution. Do not import nonmembers, flatten nested
-containers, or infer a parent from Project position. Repeated evidence for one URL is deduplicated
-only when every immutable field agrees; any disagreement blocks as ambiguous identity.
+open and canonical. Read Project membership and native parents independently. Every executable
+member carries a non-empty native `item_id` bound during admission; missing or empty `item_id`
+blocks as `invalid-project-item`. Each member's `declared_parent` must equal its independently
+read `actual_parent` (either `null` or a canonical issue URL). Containers may omit `contract`
+only when the native member record is otherwise complete; containers are preserved but excluded
+from execution. Do not import nonmembers, flatten nested containers, or infer a parent from
+Project position. Repeated evidence for one URL is deduplicated only when every immutable field,
+including `item_id`, agrees; any disagreement blocks as ambiguous identity.
 
 ## Invoking the bridge
 
@@ -229,7 +231,8 @@ compact separators) over the immutable scope view. It binds:
 - canonical repository;
 - native parent or Project identity and the parent specification identity/body binding;
 - complete `specification` and `repository_rules`;
-- every immutable child/member field: task ID, ordinal, URL, native IDs, state/resource, title/body,
+- every immutable child/member field: task ID, ordinal, URL, native IDs (including Project
+  `item_id`), state/resource, title/body,
   actual and declared parent, nested flag, workspace, full contract, and prerequisite/external
   prerequisite sets; and
 - Project lifecycle identity/configuration when Project mode is selected.
@@ -269,21 +272,27 @@ a duplicate or releases descendants.
 
 ## State, reservations, and joins
 
-State is one explicit controller-session file. It is private, written atomically by the helper, and
-must not be shared by two controllers. A normal state contains the admitted `fingerprint`, halt
-flags/reason and one entry per admitted task with a status and
+State is one explicit private session-local controller file, not a provider ledger. The caller
+must externally enforce exclusive ownership of the selected canonical scope/state for the
+controller session, covering every `schedule`, `apply-result`, and `reconcile` call. If exclusive
+ownership cannot be proved, block at controller preflight before invoking the helper.
+
+The helper's atomic `--state-out` replacement prevents torn JSON, including when input and output
+paths are the same. It does not lock or detect concurrent controllers. A normal state contains
+the admitted `fingerprint`, halt flags/reason and one entry per admitted task with a status and
 reservation/delivery evidence. Legal task states are `pending`, `running`, `delivered`,
 `repair-ready`, and `unknown`; external prerequisites and unresolved joins are reported as
 blocked/waiting outputs, not new states.
 
 The first schedule omits `--state` and creates state. Every later schedule, apply-result, or
 reconcile names an existing state and matching admission. Missing state, malformed JSON,
-state/fingerprint mismatch, duplicate controller use, or a state task set that differs from the
+state/fingerprint mismatch, or a state task set that differs from the
 admission blocks; never silently reinitialize. Keep the state path private and use the helper's
-atomic `--state-out` write, including when input and output paths are the same.
+atomic `--state-out` replace.
 
-For each ready task, the helper reserves branch, absolute workspace, parent branch, and parent SHA
-atomically before the caller creates a worktree. Fresh branches are exactly `woostack/<task-id>`.
+Under that exclusive ownership, the helper persists each ready task's branch, absolute workspace,
+parent branch, and parent SHA before the caller creates a worktree. Fresh branches are exactly
+`woostack/<task-id>`.
 Repairs reuse the exact original reservation and retained PR. Before creation, compare canonical
 physical paths (including aliases and ancestor/descendant paths) and the complete Git worktree
 inventory. An existing unclaimed branch/worktree blocks. The caller creates and reads back the

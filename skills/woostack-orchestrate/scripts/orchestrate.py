@@ -201,6 +201,8 @@ def admit(snapshot, mode, selector, limit):
     for entry in by_url.values():
         if entry["url"] in containers:
             continue
+        if mode == "project":
+            require(text(entry.get("item_id")), "invalid-project-item", "native Project item identity required")
         task = entry.get("task_id", "")
         require(isinstance(task, str) and TASK_RE.fullmatch(task) and ".." not in task
                 and not task.endswith((".", ".lock")), "invalid-identity", "Git-safe stable task ID required")
@@ -490,7 +492,7 @@ def validate_delivery(admitted, task, reservation, result, repo):
         require(note[key] == expected, "note-mismatch", "delivery note differs on " + key)
     if admitted["mode"] == "project":
         progress = field_object(result.get("project_status"), ("project_url", "issue_url", "item_id", "status"), "Project status readback")
-        require(text(progress["item_id"]) and progress["project_url"] == admitted["selector_url"]
+        require(progress["item_id"] == task["item_id"] and progress["project_url"] == admitted["selector_url"]
                 and progress["issue_url"] == task["url"]
                 and progress["status"] == admitted["lifecycle"]["inReview"],
                 "project-status-mismatch", "verified Project inReview readback required")
@@ -707,6 +709,8 @@ def cmd_reconcile(args):
     require(contains(args.git_repo, reservation["parent_sha"], evidence["head_sha"]),
             "wrong-ancestry", "retained branch ancestry differs")
     if evidence.get("pr_absent") is True:
+        require("pr_url" in evidence and evidence["pr_url"] is None and evidence.get("open") is False,
+                "evidence-mismatch", "PR absence requires an explicit null URL and closed readback")
         require(not item.get("verified_pr"), "evidence-mismatch", "verified PR cannot silently disappear")
         item["status"] = "repair-ready"
     else:
