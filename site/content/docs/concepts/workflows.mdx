@@ -84,7 +84,9 @@ explicit verification. The [Build handoff](/docs/skills/woostack-build#verified-
 detailed transition and recovery rules.
 
 GitHub planning supports [prerequisite DAGs](/docs/configuration/artifacts/github#identities-hierarchy-and-graph).
-Current Execute remains sequential; unsupported DAGs are retained, not linearized or dispatched.
+The complete DAG remains retained for future Orchestrate. A caller may select one task for
+[bounded Execute admission](/docs/skills/woostack-execute#admit-one-task) with its concrete parent
+and complete prerequisite-readiness evidence; Execute does not dispatch the graph.
 
 ## Change
 

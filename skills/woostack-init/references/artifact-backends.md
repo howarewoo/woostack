@@ -349,7 +349,7 @@ Keep that logical prerequisite set separate from the exactly one concrete Git pa
 Apply the selected profile's parent-selection policy and require recorded parent-branch/SHA ancestry
 proof that contains every required predecessor before dispatch. A join without that proof records the
 parent/integration decision as unresolved and pauses for an explicit decision; it must not invent an
-integration branch or ordinal chain. Current sequential Execute admission is unchanged.
+integration branch or ordinal chain. Apply the [bounded task parent-admission contract](worktrees.md#plan-dependency-child).
 Report failed, pending, unavailable, or incomplete checks for observation only. Check outcomes do not
 mutate prerequisites, choose a base, or create a blocker by themselves.
 

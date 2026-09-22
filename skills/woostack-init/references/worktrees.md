@@ -77,9 +77,11 @@ responsibility surfaces, runs, worktrees, branches, and PRs are disjoint.
 
 ### Plan dependency child
 
-A child admitted to Execute declares its complete logical prerequisite set and exactly one predecessor
-as its concrete Git parent for checkout. The caller supplies the prerequisite and parent-readiness
-evidence; the bounded task verifies it as ordinary evidence rather than discovering dependencies.
+A child admitted to Execute declares its complete logical prerequisite set and exactly one concrete
+Git parent for checkout: a declared predecessor or an explicitly approved integration branch/SHA
+containing every prerequisite change. The integration parent need not represent a predecessor task.
+The caller supplies the prerequisite and parent-readiness evidence; the bounded task verifies it as
+ordinary evidence rather than discovering dependencies.
 Require that parent's canonical branch identity, complete delivery checkpoint, commit, canonical PR
 identity/head/base, fully paginated current-head reviews, merge state, and approved parent ancestry
 to agree; the selected parent branch and SHA must contain every required predecessor change.
@@ -93,11 +95,11 @@ contains all prerequisites, pause for an explicit integration-parent decision be
 not invent an integration branch or ordinal chain. Reject inferred order, rewritten heads, open
 non-parent dependencies, duplicate ancestry, conflicts, or partial proof.
 
-For a GitHub DAG dependent, the logical prerequisite set does not select a Git parent. No checkout
-starts until Orchestrate records one explicit selected Git parent branch and SHA with ancestry proof
-containing every required predecessor change; a join without that proof pauses before dispatch and
-stays outside Execute, which still rejects branching, multi-root, or join graphs before worktree,
-source, or provider mutation.
+For a GitHub DAG dependent, the logical prerequisite set does not select a Git parent. Before
+checkout, the caller must supply the explicit parent branch/SHA and complete readiness evidence
+above. A join without that proof pauses that task before admission. Execute accepts one selected
+bounded task, not its retained graph; other roots, forks, or joins in that graph do not disqualify
+the task. Future Orchestrate owns graph dispatch.
 
 ## 3. Direct identity and collision evidence
 

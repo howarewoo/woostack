@@ -48,9 +48,12 @@ without silently rebasing, resetting, or recreating it.
 | Independent feature root | latest compatible tip of the approved parent branch | approved parent branch |
 | Dependency child admitted to Execute | latest compatible tip/head of its declared Git parent | declared parent branch |
 
-A GitHub DAG dependent's logical prerequisites never select a Git parent by themselves. No checkout
-starts until Orchestrate records one explicit selected parent with ancestry proof containing every
-required predecessor change; an unresolved join pauses before dispatch and stays outside Execute.
+A GitHub DAG dependent's logical prerequisites never select a Git parent by themselves. The caller
+must supply one explicit parent branch/SHA containing every required predecessor change and complete
+readiness evidence under the
+[worktree contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/worktrees.md#plan-dependency-child).
+That parent may be an explicitly approved integration branch rather than a predecessor task's branch.
+An unresolved join pauses that task; Execute admits a selected bounded task, not the whole DAG.
 
 ## The primary tree stays clean
 

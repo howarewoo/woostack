@@ -66,9 +66,11 @@ endpoint and blocks. No check silently broadens repository or Project scope.
 
 A root records the approved integration parent branch. Each dependent records its complete prerequisite
 set and a parent-selection policy for resolving one concrete Git parent branch and SHA from verified
-delivered predecessor branches at dispatch. The concrete branch and SHA are resolved by future
-Orchestrate, never speculatively by Plan and never as an auto-created integration branch or artificial
-chain. One verified parent must contain all required predecessor changes, proved by delivered branch,
+delivered predecessor branches or an explicitly approved integration parent at dispatch. Future
+Orchestrate resolves that parent for graph dispatch; a caller selecting one bounded task supplies
+the parent and readiness evidence. Plan never chooses it speculatively or creates an integration
+branch or artificial chain.
+One verified parent must contain all required predecessor changes, proved by delivered branch,
 commit/SHA, canonical PR head/base, and merge-state evidence. A join lacking that proof
 remains valid but pauses that issue for an explicit parent/integration decision before dispatch.
 
@@ -92,11 +94,13 @@ never silently pruning a chain. Independently read back every issue, membership,
 complete exact predecessor→successor edge set after mutation. Mirror mismatches record failure without
 changing local artifacts; standalone mismatches block without claiming synchronization.
 
-Persisting a DAG does not make it runnable by current Execute. Current Execute remains sequential,
-admits only the strict sequential contract, and must reject branching, multi-root, or join graphs
-before worktree, source, or provider mutation, retaining artifacts and edges unchanged. Run-store
-storage retains the existing task/dependency/mapping forms without schema migration or edge rewriting;
-workflow admission validates the DAG.
+Retain the complete DAG for future Orchestrate; Execute cannot accept or dispatch it as a graph.
+A caller may select one task from any valid DAG for
+[bounded Execute admission](../../../woostack-execute/SKILL.md#admit-one-task), supplying its concrete
+parent and complete prerequisite-readiness evidence under the
+[worktree contract](../worktrees.md#plan-dependency-child). An unresolved join parent blocks that
+task, not unrelated tasks. Run-store storage retains the existing task/dependency/mapping forms
+without schema migration or edge rewriting; workflow admission validates the DAG.
 
 ## Lifecycle and closure (retired Execute reference)
 

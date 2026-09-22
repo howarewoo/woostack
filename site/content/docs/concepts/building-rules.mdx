@@ -29,7 +29,7 @@ Plan divides the work into increments, each small enough for one PR. It records 
 acceptance criteria, verification, risks, explicit prerequisites, and parent-selection policy. It does
 not prescribe every coding step or estimate changed lines. [GitHub plans](/docs/configuration/artifacts/github#identities-hierarchy-and-graph)
 support dependency DAGs; Linear, Plane, and local-only plans retain their sequential contract.
-Current Execute is still sequential: planning a GitHub DAG does not make its execution supported.
+Execute accepts one selected bounded task under its [admission contract](/docs/skills/woostack-execute#admit-one-task), not a whole plan.
 
 Build and project-backed Fix use the
 [verified handoff](/docs/skills/woostack-build#verified-handoff). The user sees the complete artifacts
