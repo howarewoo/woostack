@@ -269,19 +269,28 @@ List mode uses `--issues` and carries no aggregate specification parent or Proje
 
 The caller must read exactly the selected issue set and set terminal `pagination.issues`,
 `pagination.parents`, `pagination.dependencies`, and `pagination.contracts` only after those reads
-complete. Repeated selectors and repeated native evidence for one canonical URL are deduplicated
+complete. Every selected issue must include both `prerequisites` and
+`external_prerequisites`, including explicit empty arrays for a verified empty dependency read.
+Repeated selectors and repeated native evidence for one canonical URL are deduplicated
 only when immutable identity, body, parent, contract, and dependency evidence agree. The helper
 sorts normalized selectors and task identities before computing the fingerprint, so reordering the
 same explicit set is equivalent.
 
+List admission requires the graph to carry explicit successful terminal receipts:
+`graph.coverage: "complete"`, `graph.model_inference: "complete"`, and `graph.complete: true`.
+Missing, failed, unknown, or other non-terminal values block admission even when the supplied
+edge list is empty; an empty edge list is valid only with those receipts. Model inference is
+required to complete even when no edge is ultimately inferred. The helper never performs model
+inference or native reads.
+
 `graph.edges` may also be supplied as top-level `edges`, `dependency_edges`, or
 `edge_provenance`; the helper normalizes all accepted forms to the schema above and rejects
 duplicate endpoint pairs, missing evidence, unknown selected endpoints, self-dependencies, and
-cycles. Native, declared, and inferred edges are distinct evidence classes. A model does not run in
-the helper: `graph.model_inference` records the caller's evidence (`not-run` is valid only when no
-inferred edge is supplied), while `graph.coverage` records deterministic supplied-graph coverage.
-An external prerequisite stays on the affected task's blocker list and is never imported into the
-admitted task set.
+cycles. When a task's documented `prerequisites` repeats an annotated graph edge, the graph
+record remains authoritative and its provenance/evidence is retained; conflicting explicit edge
+records still block as contradictory evidence. Native, declared, and inferred edges are distinct
+evidence classes. An external prerequisite stays on the affected task's blocker list and is never
+imported into the admitted task set.
 
 ## Invoking the bridge
 

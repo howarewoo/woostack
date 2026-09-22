@@ -114,14 +114,19 @@ canonical, independently readable, and carry a complete bounded contract; its bo
 complete `specification` field) supplies worker context. Existing parent links are preserved as
 context, not as scope.
 
-The list snapshot carries a complete supplied graph. Each effective edge is normalized to
-`predecessor`, `dependent`, `provenance` (`native`, `declared`, or `inferred`), and non-empty
-`evidence`. Native blocked-by reads, unambiguous declarations in issue data, and model-produced
-technical prerequisites remain distinguishable. The skill owns model inference; the helper only
-validates the supplied graph and records `graph.coverage`/`graph.model_inference`, never claiming
-to have run inference. Missing or incomplete reads, ambiguous direction, duplicate endpoints,
-unknown external requirements, self-dependencies, cycles, or unsupported scope changes block the
-affected work. An external prerequisite remains a blocker and never widens the explicit list.
+The list snapshot carries a complete supplied graph. Each selected issue includes explicit
+`prerequisites` and `external_prerequisites` arrays, including empty arrays only for verified empty
+reads. Each effective edge is normalized to `predecessor`, `dependent`, `provenance`
+(`native`, `declared`, or `inferred`), and non-empty `evidence`. Native blocked-by reads,
+unambiguous declarations in issue data, and model-produced technical prerequisites remain
+distinguishable. The skill owns model inference; the helper only validates the supplied graph and
+requires explicit successful `graph.coverage: "complete"`, `graph.model_inference: "complete"`,
+and `graph.complete: true` receipts, never claiming to have run inference. When a documented task
+prerequisite duplicates an annotated graph edge, the annotated graph record remains authoritative;
+conflicting explicit edge evidence blocks. Missing or incomplete reads, ambiguous direction,
+duplicate endpoints, unknown external requirements, self-dependencies, cycles, or unsupported
+scope changes block the affected work. An external prerequisite remains a blocker and never
+widens the explicit list.
 
 
 1. Resolve the current host against the exact allowlist before provider access. Prove a

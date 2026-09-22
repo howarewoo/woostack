@@ -400,14 +400,74 @@ class OrchestrateBehavior(unittest.TestCase):
         )
         self.assertNotEqual(code, 0, payload)
 
-        unrun = copy.deepcopy(snapshot)
-        unrun["graph"]["model_inference"] = "not-run"
-        unrun_path = self._write_json("issue-list-unrun.json", unrun)
+        documented = copy.deepcopy(snapshot)
+        next(item for item in documented["issues"] if item["task_id"] == "task-c")["prerequisites"] = ["task-a"]
+        _, documented_admitted = self._admit_issues(documented)
+        c_edge = next(edge for edge in documented_admitted["edge_provenance"]
+                      if edge["predecessor"] == "task-a" and edge["dependent"] == "task-c")
+        self.assertEqual(c_edge["provenance"], "inferred")
+        self.assertEqual(c_edge["evidence"], snapshot["graph"]["edges"][0]["evidence"])
+
+        contradictory = copy.deepcopy(documented)
+        contradictory["graph"]["edges"].append({
+            "predecessor": "task-a",
+            "dependent": "task-c",
+            "provenance": "declared",
+            "evidence": {"reason": "contradictory duplicate evidence"},
+        })
+        contradictory_path = self._write_json("issue-list-contradictory-edge.json", contradictory)
         code, payload = invoke_cli(
-            "admit", "--issues", *selectors[:-1], "--snapshot", str(unrun_path),
+            "admit", "--issues", *[item["url"] for item in contradictory["issues"]],
+            "--snapshot", str(contradictory_path),
         )
         self.assertNotEqual(code, 0, payload)
-        self.assertEqual(payload.get("error"), "inference-unrun", payload)
+        self.assertEqual(payload.get("error"), "duplicate-edge", payload)
+
+        invalid_receipts = (
+            ("missing-coverage", "coverage", None, "incomplete-graph"),
+            ("failed-coverage", "coverage", "failed", "incomplete-graph"),
+            ("unknown-coverage", "coverage", "unknown", "incomplete-graph"),
+            ("missing-inference", "model_inference", None, "inference-unrun"),
+            ("failed-inference", "model_inference", "failed", "inference-unrun"),
+            ("unknown-inference", "model_inference", "unknown", "inference-unrun"),
+        )
+        for label, field, value, expected_error in invalid_receipts:
+            invalid = copy.deepcopy(snapshot)
+            if value is None:
+                invalid["graph"].pop(field)
+            else:
+                invalid["graph"][field] = value
+            invalid_path = self._write_json("issue-list-%s.json" % label, invalid)
+            code, payload = invoke_cli(
+                "admit", "--issues", *[item["url"] for item in invalid["issues"]],
+                "--snapshot", str(invalid_path),
+            )
+            self.assertNotEqual(code, 0, (label, payload))
+            self.assertEqual(payload.get("error"), expected_error, (label, payload))
+        missing_graph_complete = copy.deepcopy(snapshot)
+        missing_graph_complete["graph"].pop("complete")
+        missing_graph_complete_path = self._write_json(
+            "issue-list-missing-graph-complete.json", missing_graph_complete
+        )
+        code, payload = invoke_cli(
+            "admit", "--issues", *[item["url"] for item in missing_graph_complete["issues"]],
+            "--snapshot", str(missing_graph_complete_path),
+        )
+        self.assertNotEqual(code, 0, payload)
+        self.assertEqual(payload.get("error"), "incomplete-graph", payload)
+
+
+        missing_dependency_attestation = copy.deepcopy(snapshot)
+        missing_dependency_attestation["issues"][0].pop("prerequisites")
+        missing_dependency_path = self._write_json(
+            "issue-list-missing-dependency-attestation.json", missing_dependency_attestation
+        )
+        code, payload = invoke_cli(
+            "admit", "--issues", *[item["url"] for item in missing_dependency_attestation["issues"]],
+            "--snapshot", str(missing_dependency_path),
+        )
+        self.assertNotEqual(code, 0, payload)
+        self.assertEqual(payload.get("error"), "incomplete-graph", payload)
 
     def test_issue_list_external_blocker_stays_outside_scope(self) -> None:
         snapshot = self.github.issue_list_snapshot()

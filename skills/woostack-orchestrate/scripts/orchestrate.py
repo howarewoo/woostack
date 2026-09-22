@@ -216,32 +216,20 @@ def edge_records(raw, default_dependent=None, default_kind=None, default_evidenc
 def graph_metadata(snapshot, edges):
     metadata = snapshot.get("graph", snapshot.get("graph_evidence", {}))
     require(isinstance(metadata, dict), "incomplete-graph", "graph evidence must be an object")
-    coverage = metadata.get("coverage", metadata.get("status"))
-    if coverage is None:
-        coverage = "supplied" if edges or snapshot.get("issues") or snapshot.get("selected_issues") else "native"
-    require(text(coverage), "incomplete-graph", "graph coverage evidence is required")
-    require(coverage.lower() not in ("partial", "incomplete", "unknown", "missing"),
-            "incomplete-graph", "graph coverage is incomplete")
-    inference = metadata.get("model_inference", metadata.get("inference_status",
-                                                              snapshot.get("model_inference", "not-run")))
-    if isinstance(inference, dict):
-        inference = inference.get("status", inference.get("state"))
-    if isinstance(inference, bool):
-        inference = "complete" if inference else "not-run"
-    require(text(inference), "incomplete-graph", "model inference status is required")
-    if any(edge["provenance"] == "inferred" for edge in edges):
-        require(inference.lower() not in
-                ("not-run", "unrun", "unknown", "missing", "partial", "incomplete"),
-                "inference-unrun", "inferred edges require completed model evidence")
-    if "complete" in metadata:
-        require(metadata["complete"] is True, "incomplete-graph", "graph read is not complete")
+    coverage = metadata.get("coverage")
+    require(text(coverage) and coverage.strip().lower() == "complete",
+            "incomplete-graph", "graph coverage must have an explicit complete receipt")
+    inference = metadata.get("model_inference")
+    require(text(inference) and inference.strip().lower() == "complete",
+            "inference-unrun", "model inference must have an explicit complete receipt")
+    require(metadata.get("complete") is True,
+            "incomplete-graph", "graph read must have an explicit complete receipt")
     if "edge_count" in metadata:
         require(type(metadata["edge_count"]) is int and metadata["edge_count"] == len(edges),
                 "incomplete-graph", "graph edge count does not match supplied evidence")
-    return {"coverage": coverage, "model_inference": inference,
+    return {"coverage": coverage.strip().lower(), "model_inference": inference.strip().lower(),
             "source": metadata.get("source", "controller-supplied"),
-            "complete": metadata.get("complete", True),
-            "edges": copy.deepcopy(edges)}
+            "complete": True, "edges": copy.deepcopy(edges)}
 
 
 def check_graph(tasks, parent_url, edges=None):
@@ -280,10 +268,12 @@ def collect_edges(snapshot, tasks, mode, canonical):
     entries_by_id = {task["task_id"]: task for task in tasks}
     candidates = []
 
-    def add(raw, default_dependent=None, default_kind=None, default_evidence=None):
+    def add(raw, default_dependent=None, default_kind=None, default_evidence=None,
+            authoritative=True):
         if isinstance(raw, str):
             raw = {"predecessor": raw, "dependent": default_dependent}
         for record in edge_records(raw, default_dependent, default_kind, default_evidence):
+            record["_authoritative"] = authoritative
             candidates.append(record)
 
     for key in ("edges", "dependency_edges", "edge_provenance"):
@@ -314,9 +304,10 @@ def collect_edges(snapshot, tasks, mode, canonical):
         for predecessor in prerequisites:
             add({"predecessor": predecessor, "dependent": source},
                 default_kind="native" if mode != "issues" else "declared",
-                default_evidence={"issue_url": task["url"], "field": "prerequisites"})
+                default_evidence={"issue_url": task["url"], "field": "prerequisites"},
+                authoritative=False)
 
-    edges, seen = [], {}
+    edges, seen, edge_indexes, seen_authoritative = [], {}, {}, {}
     for candidate in candidates:
         predecessor, external = normalize_edge_ref(candidate["predecessor"], by_id, by_url, canonical)
         dependent, dependent_external = normalize_edge_ref(candidate["dependent"], by_id, by_url, canonical)
@@ -332,12 +323,22 @@ def collect_edges(snapshot, tasks, mode, canonical):
                       "provenance": candidate["provenance"],
                       "evidence": copy.deepcopy(candidate["evidence"])}
         pair = (endpoint, dependent)
+        authoritative = candidate["_authoritative"]
         previous = seen.get(pair)
         if previous is not None:
             if previous == normalized:
                 continue
+            if authoritative and not seen_authoritative[pair]:
+                edges[edge_indexes[pair]] = normalized
+                seen[pair] = normalized
+                seen_authoritative[pair] = True
+                continue
+            if not authoritative and seen_authoritative[pair]:
+                continue
             raise InputError("duplicate-edge", "conflicting dependency evidence for " + str(pair))
         seen[pair] = normalized
+        edge_indexes[pair] = len(edges)
+        seen_authoritative[pair] = authoritative
         edges.append(normalized)
 
     # A selected issue named in an external prerequisite is internal to this
@@ -356,6 +357,8 @@ def collect_edges(snapshot, tasks, mode, canonical):
                             "provenance": "native" if mode != "issues" else "declared",
                             "evidence": {"issue_url": task["url"], "field": "external_prerequisites"}}
                     seen[pair] = edge
+                    edge_indexes[pair] = len(edges)
+                    seen_authoritative[pair] = False
                     edges.append(edge)
             else:
                 remaining.append(external)
@@ -480,7 +483,10 @@ def admit(snapshot, mode, selector, limit):
             ordinal = index
         require(type(ordinal) is int and ordinal > 0, "malformed-ordinal", "positive ordinal required")
         contract_check(entry.get("contract"))
-        if mode != "issues":
+        if mode == "issues":
+            require("prerequisites" in entry and "external_prerequisites" in entry,
+                    "incomplete-graph", "selected issue dependency evidence is required")
+        elif mode != "issues":
             require("prerequisites" in entry and "external_prerequisites" in entry,
                     "incomplete-hierarchy", "native dependency evidence is required")
         prerequisites = entry.get("prerequisites", [])
