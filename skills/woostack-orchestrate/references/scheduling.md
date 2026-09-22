@@ -424,8 +424,8 @@ head, only a caller that loaded those next bytes may finish recovery. Any other 
 checkpoint recovery evidence and never adopts arbitrary bytes. The head is independent of
 input/output filenames, so a second writer using the same stale `--state` cannot advance a different
 `--state-out`.
-The first schedule omits `--state` and creates state. Every later schedule, apply-result,
-reconcile, or stop names an existing state and matching admission. Missing state, malformed JSON,
+The first schedule omits `--state` and creates state. Every later schedule, record-worker,
+apply-result, reconcile, or stop names an existing state and matching admission. Missing state, malformed JSON,
 state/fingerprint/scope mismatch, missing durable checkpoint head, or a state task set that differs
 from the admission blocks; never silently reinitialize. Keep the state path private and use the
 helper's atomic `--state-out` replace.
@@ -437,6 +437,9 @@ original reservation and retained PR. Before reuse, compare canonical physical p
 aliases and ancestor/descendant paths), repository identity, current branch/HEAD, and complete Git
 worktree inventory. A suitable existing worktree may be retained; an incompatible or unclaimed
 branch/workspace blocks. The helper reservation does not itself create Git state.
+After launch, checkpoint the [native writer identity](validation.md#record-the-native-writer)
+separately from the worker's delivery report. Missing or uncorrelated native identity keeps unknown
+work reserved; no stopped receipt may substitute a foreign session or previous repair attempt.
 
 Roots use the admitted integration branch/SHA. A dependent may use a delivered prerequisite branch
 or the admitted integration branch only when local
@@ -454,6 +457,6 @@ The helper writes machine-readable JSON and exits zero for controlled workflow s
 not treat process exit zero as delivery. `schedule` output includes dispatch entries, delivered,
 active, unknown, evidence-pending, repair-ready, pending, and paused/blocked/waiting IDs with exact
 next actions.
-`apply-result`, `reconcile`, and `stop` outputs are authoritative state transitions; never invent a
+`record-worker`, `apply-result`, `reconcile`, and `stop` outputs are authoritative state transitions; never invent a
 success response around them. A user stop prevents new dispatch but does not declare active workers
 stopped or discard their worktrees.

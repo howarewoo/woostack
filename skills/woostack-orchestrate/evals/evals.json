@@ -216,7 +216,7 @@
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "Returns snapshot-drift for changed immutable contract/graph, preserves running reservations and does not dispatch the changed scope; retains the lost worker reservation and globally halts fresh dispatch until direct stopped-worker/branch/PR reconciliation proves whether the same identity can repair. It never duplicates work or treats an inferred edge as native publication.",
+      "expected": "Returns snapshot-drift for changed immutable contract/graph, preserves running reservations and does not dispatch the changed scope. Separately isolates the lost worker task and its descendants, retains and counts its reservation against capacity, and allows unrelated ready work within proven spare capacity. Same-identity repair requires direct stopped-worker evidence bound to the recorded worker/session and current recovery inventory plus branch/PR reconciliation. It never duplicates work or treats an inferred edge as native publication.",
       "assertions": [
         {
           "id": "explicit-list-drift-and-recovery-boundary",
