@@ -56,9 +56,10 @@ creates an edge.
 
 `--project` accepts one exact canonical GitHub Project URL. Resolve that Project, verify its owner and
 canonical repository association, and preserve its existing title, visibility, unrelated README
-bytes, views, labels, and fields. The selected Project's managed specification span and `shortDescription`
-may be reconciled under the existing-description invariant; no replacement Project or hidden planning
-container is created.
+bytes, views, labels, and fields. The managed specification span follows the
+[Project content contract](../../woostack-init/references/artifact-providers/github.md#selected-project-content).
+Reconcile only the approved span and any explicitly approved `shortDescription` change; preserve
+the existing description otherwise. No replacement Project or hidden planning container is created.
 
 After the complete Project baseline is admitted, synchronize exactly one direct Project member per
 increment. Retained parentless issues stay parentless; intentionally parented members retain and
