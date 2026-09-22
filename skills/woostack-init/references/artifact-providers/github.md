@@ -207,7 +207,7 @@ closes parent/child issues or the Project, sets Done, removes dependencies, or c
 ## Workflow procedures
 
 Plan owns direct GitHub publication in both direct and composed use through the
-[Plan publication procedure](../../../woostack-plan/references/github-procedure.md). Parent-issue
+[Plan publication procedure](../../../woostack-plan/references/github-procedure.md).
 Parent-issue execution in Orchestrate reuses the hierarchy and dependency rules without Project
 configuration. Bootstrap, Commit, and Status retain their own workflow gates; planning support alone
 does not widen their inputs or authorize execution.
