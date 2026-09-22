@@ -1,6 +1,14 @@
 {
   "caller": {
-    "exactProjectUrl": "https://github.com/orgs/acme/projects/7"
+    "exactProjectUrl": "https://github.com/orgs/acme/projects/7",
+    "retainedProjectPublication": {
+      "projectId": "project-7",
+      "projectUrl": "https://github.com/orgs/acme/projects/7",
+      "approvedContractIdentity": "declared-output-spec",
+      "mutationId": "70000000-0000-4000-8000-000000000007",
+      "repository": "https://github.com/acme/app",
+      "integrationParentBranch": "refs/heads/main"
+    }
   },
   "repository": {
     "canonicalUrl": "https://github.com/acme/app",
@@ -28,7 +36,9 @@
     "id": "project-7",
     "owner": "acme",
     "canonicalRepository": "https://github.com/acme/app",
-    "readme": "Human prefix\n<!-- woostack-spec-start -->\nAdd the declared outputs, retaining existing outputs.\n<!-- woostack-spec-end -->\nHuman suffix",
+    "url": "https://github.com/orgs/acme/projects/7",
+    "public": false,
+    "readme": "Human prefix\n<!-- woostack-spec-start -->\n<!-- woostack-project-mutation:70000000-0000-4000-8000-000000000007 -->\nApproved contract: declared-output-spec\nProject: https://github.com/orgs/acme/projects/7 (project-7)\nRepository: https://github.com/acme/app\nBase: refs/heads/main\nAdd the declared outputs, retaining existing outputs.\n<!-- woostack-spec-end -->\nHuman suffix",
     "statusOptions": {
       "planned": "todo",
       "executing": "active",
@@ -190,7 +200,9 @@
             "id": "project-7",
             "owner": "acme",
             "canonicalRepository": "https://github.com/acme/app",
-            "readme": "Human prefix\n<!-- woostack-spec-start -->\nAdd the declared outputs, retaining existing outputs.\n<!-- woostack-spec-end -->\nHuman suffix",
+            "url": "https://github.com/orgs/acme/projects/7",
+            "public": false,
+            "readme": "Human prefix\n<!-- woostack-spec-start -->\n<!-- woostack-project-mutation:70000000-0000-4000-8000-000000000007 -->\nApproved contract: declared-output-spec\nProject: https://github.com/orgs/acme/projects/7 (project-7)\nRepository: https://github.com/acme/app\nBase: refs/heads/main\nAdd the declared outputs, retaining existing outputs.\n<!-- woostack-spec-end -->\nHuman suffix",
             "statusOptions": {
               "planned": "todo",
               "executing": "active",
@@ -981,7 +993,9 @@
             "id": "project-7",
             "owner": "acme",
             "canonicalRepository": "https://github.com/acme/app",
-            "readme": "Human prefix\n<!-- woostack-spec-start -->\nAdd the declared outputs, retaining existing outputs.\n<!-- woostack-spec-end -->\nHuman suffix",
+            "url": "https://github.com/orgs/acme/projects/7",
+            "public": false,
+            "readme": "Human prefix\n<!-- woostack-spec-start -->\n<!-- woostack-project-mutation:70000000-0000-4000-8000-000000000007 -->\nApproved contract: declared-output-spec\nProject: https://github.com/orgs/acme/projects/7 (project-7)\nRepository: https://github.com/acme/app\nBase: refs/heads/main\nAdd the declared outputs, retaining existing outputs.\n<!-- woostack-spec-end -->\nHuman suffix",
             "statusOptions": {
               "planned": "todo",
               "executing": "active",
@@ -1144,7 +1158,9 @@
             "id": "project-7",
             "owner": "acme",
             "canonicalRepository": "https://github.com/acme/app",
-            "readme": "Human prefix\n<!-- woostack-spec-start -->\nAdd the declared outputs, retaining existing outputs.\n<!-- woostack-spec-end -->\nHuman suffix",
+            "url": "https://github.com/orgs/acme/projects/7",
+            "public": false,
+            "readme": "Human prefix\n<!-- woostack-spec-start -->\n<!-- woostack-project-mutation:70000000-0000-4000-8000-000000000007 -->\nApproved contract: declared-output-spec\nProject: https://github.com/orgs/acme/projects/7 (project-7)\nRepository: https://github.com/acme/app\nBase: refs/heads/main\nAdd the declared outputs, retaining existing outputs.\n<!-- woostack-spec-end -->\nHuman suffix",
             "statusOptions": {
               "planned": "todo",
               "executing": "active",

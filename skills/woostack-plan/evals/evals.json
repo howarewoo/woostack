@@ -203,6 +203,7 @@
             "partial-pagination": false,
             "foreign-repository": false,
             "foreign-project": false,
+            "unbound-project-specification": false,
             "unknown-create-recovery": true,
             "unknown-create-zero-match": false,
             "unknown-create-duplicate-match": false,
