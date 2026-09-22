@@ -558,6 +558,74 @@ class OrchestrateBehavior(unittest.TestCase):
         self.assertTrue(Path(args.state_out).exists())
         self.assertFalse(Path(stale_args.state_out).exists())
 
+    def test_same_path_checkpoint_recovery_preserves_generation_and_cas(self) -> None:
+        snapshot = self._single_task_snapshot()
+        admitted_path, admitted = self._admit_issue(snapshot)
+        state, scheduled = self._schedule(
+            admitted_path, admitted, None, snapshot, "same-path-initial", cap="1"
+        )
+        self.assertTrue(scheduled["dispatch"], scheduled)
+
+        helper_path = Path(__file__).resolve().parents[1] / "orchestrate.py"
+        spec = importlib.util.spec_from_file_location("orchestrate_same_path", helper_path)
+        self.assertIsNotNone(spec)
+        self.assertIsNotNone(spec.loader)
+        helper = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(helper)
+        args = type("StateArgs", (), {
+            "state": str(state),
+            "state_out": str(state),
+            "git_repo": str(self.repo),
+        })()
+        loaded = helper.state_read(str(state), admitted)
+        stale = helper.state_read(str(state), admitted)
+        _, head_path = helper._checkpoint_paths(args, loaded)
+        pending_path = helper._checkpoint_pending_path(head_path)
+        old_head = helper._checkpoint_head(head_path)
+        original_write_json = helper.write_json
+
+        def fail_after_state(path, value):
+            original_write_json(path, value)
+            if Path(path).resolve() == state.resolve():
+                raise RuntimeError("fault after same-path state publication")
+
+        helper.write_json = fail_after_state
+        loaded["stop_requested"] = True
+        with self.assertRaises(RuntimeError):
+            helper.write_state(args, loaded)
+        self.assertTrue(pending_path.exists())
+        self.assertEqual(helper._checkpoint_head(head_path), old_head)
+        current = helper.state_read(str(state), admitted)
+        self.assertTrue(current["stop_requested"])
+
+        with self.assertRaises(helper.InputError) as raised:
+            helper.write_state(args, stale)
+        self.assertEqual(raised.exception.code, "stale-state")
+        self.assertTrue(pending_path.exists())
+        helper.write_json = original_write_json
+        helper.write_state(args, current)
+        self.assertFalse(pending_path.exists())
+        self.assertEqual(
+            helper._checkpoint_head(head_path)["digest"],
+            helper._state_digest(state),
+        )
+
+        def fail_after_head(path, value):
+            original_write_json(path, value)
+            if Path(path).resolve() == head_path.resolve():
+                raise RuntimeError("fault after same-path head publication")
+
+        helper.write_json = fail_after_head
+        next_state = helper.state_read(str(state), admitted)
+        next_state["halt_new_dispatch"] = True
+        with self.assertRaises(RuntimeError):
+            helper.write_state(args, next_state)
+        self.assertTrue(pending_path.exists())
+        helper.write_json = original_write_json
+        helper.write_state(args, helper.state_read(str(state), admitted))
+        self.assertFalse(pending_path.exists())
+        self.assertTrue(helper.state_read(str(state), admitted)["halt_new_dispatch"])
+
     def test_state_symlink_is_rejected_before_read_or_write(self) -> None:
         snapshot = self._single_task_snapshot()
         admitted_path, admitted = self._admit_issue(snapshot)

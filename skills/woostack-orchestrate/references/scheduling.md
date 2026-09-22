@@ -315,8 +315,14 @@ owner-only checkpoint contract.
 Each mutation acquires an owner-owned per-scope checkpoint lock derived from the canonical repository
 and scope fingerprint, then compares the loaded digest with the durable checkpoint head while holding
 that lock before replacing `--state-out`; stale/concurrent writers fail closed as `stale-state`, and
-the previous checkpoint remains intact. The head is independent of input/output filenames, so a
-second writer using the same stale `--state` cannot advance a different `--state-out`.
+the previous checkpoint remains intact. Before replacing `--state-out`, the helper also atomically
+records an owner-only pending generation containing the prior head/output digest and the next
+state/head pair. Recovery accepts only the exact prior pair (discarding the pending record) or the
+exact next pair (finishing the head publication); if next state bytes are present with the prior
+head, only a caller that loaded those next bytes may finish recovery. Any other pairing blocks as
+checkpoint recovery evidence and never adopts arbitrary bytes. The head is independent of
+input/output filenames, so a second writer using the same stale `--state` cannot advance a different
+`--state-out`.
 The first schedule omits `--state` and creates state. Every later schedule, apply-result,
 reconcile, or stop names an existing state and matching admission. Missing state, malformed JSON,
 state/fingerprint/scope mismatch, missing durable checkpoint head, or a state task set that differs

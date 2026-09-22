@@ -63,6 +63,26 @@ def load_json(path):
         raise InputError("unreadable-input", str(error)) from error
 
 
+def _json_bytes(value):
+    return (json.dumps(value, indent=2, sort_keys=True) + "\n").encode()
+
+
+def _fsync_parent(path):
+    try:
+        descriptor = os.open(Path(path).parent, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+    except OSError as error:
+        raise InputError("state-directory", str(error)) from error
+    try:
+        info = os.fstat(descriptor)
+        require((info.st_mode & 0o170000) == 0o40000,
+                "unsafe-state", "state parent must be a directory")
+        os.fsync(descriptor)
+    except OSError as error:
+        raise InputError("state-directory", str(error)) from error
+    finally:
+        os.close(descriptor)
+
+
 def write_json(path, value):
     destination = Path(path)
     require(not destination.is_symlink(), "unsafe-state", "state cannot be a symlink")
@@ -74,15 +94,17 @@ def write_json(path, value):
     # A failed write must leave the previous reservations intact.
     descriptor, temporary = tempfile.mkstemp(prefix=destination.name + ".", dir=destination.parent)
     try:
-        with os.fdopen(descriptor, "w", encoding="utf-8") as stream:
-            json.dump(value, stream, indent=2, sort_keys=True)
-            stream.write("\n")
+        with os.fdopen(descriptor, "wb") as stream:
+            stream.write(_json_bytes(value))
             stream.flush()
             os.fsync(stream.fileno())
         os.replace(temporary, destination)
+        _fsync_parent(destination)
     finally:
         if os.path.exists(temporary):
             os.unlink(temporary)
+
+
 def _state_bytes(path):
     require(not Path(path).is_symlink(), "unsafe-state", "state cannot be a symlink")
     try:
@@ -107,9 +129,107 @@ def _state_digest(path):
     return hashlib.sha256(_state_bytes(path)).hexdigest()
 
 
+def _checkpoint_pending_path(head_path):
+    return head_path.with_name(head_path.name + ".pending.json")
+
+
+def _optional_state_digest(path):
+    destination = Path(path)
+    require(not destination.is_symlink(), "unsafe-state", "state cannot be a symlink")
+    if not destination.exists():
+        return None
+    return _state_digest(destination)
+
+
+def _remove_checkpoint_pending(path):
+    if path.is_symlink():
+        raise InputError("unsafe-state", "checkpoint recovery record cannot be a symlink")
+    if path.exists():
+        path.unlink()
+        _fsync_parent(path)
+
+
+def _validated_checkpoint_head(value, label):
+    require(isinstance(value, dict)
+            and value.get("version") == 1
+            and text(value.get("fingerprint"))
+            and text(value.get("digest"))
+            and SHA_RE.fullmatch(value["digest"])
+            and text(value.get("state_path")),
+            "invalid-state", label + " is incomplete")
+    return value
+
+
+def _checkpoint_pending(path):
+    if path.is_symlink():
+        raise InputError("unsafe-state", "checkpoint recovery record cannot be a symlink")
+    if not path.exists():
+        return None
+    try:
+        value = json.loads(_state_bytes(path))
+    except ValueError as error:
+        raise InputError("invalid-state", "checkpoint recovery record is malformed") from error
+    require(isinstance(value, dict) and value.get("version") == 1
+            and text(value.get("fingerprint"))
+            and re.fullmatch(r"sha256:[0-9a-f]{64}", value["fingerprint"])
+            and isinstance(value.get("scope_identity"), dict)
+            and "prior_head" in value and "next_head" in value and "destination" in value,
+            "invalid-state", "checkpoint recovery record is incomplete")
+    prior = value["prior_head"]
+    if prior is not None:
+        _validated_checkpoint_head(prior, "prior checkpoint head")
+        require(prior["fingerprint"] == value["fingerprint"]
+                and prior.get("scope_identity") == value["scope_identity"],
+                "invalid-state", "prior checkpoint head does not match recovery record")
+    next_head = _validated_checkpoint_head(value["next_head"], "next checkpoint head")
+    require(next_head["fingerprint"] == value["fingerprint"]
+            and next_head.get("scope_identity") == value["scope_identity"],
+            "invalid-state", "next checkpoint head does not match recovery record")
+    destination = value["destination"]
+    prior_digest = destination.get("prior_digest") if isinstance(destination, dict) else None
+    next_digest = destination.get("next_digest") if isinstance(destination, dict) else None
+    require(isinstance(destination, dict) and text(destination.get("path"))
+            and destination["path"] == next_head["state_path"]
+            and (prior_digest is None or (text(prior_digest) and SHA_RE.fullmatch(prior_digest)))
+            and text(next_digest) and SHA_RE.fullmatch(next_digest)
+            and next_digest == next_head["digest"],
+            "invalid-state", "checkpoint recovery destination is incomplete")
+    return value
+
+
+def _recover_checkpoint(head_path, pending_path, head, expected):
+    pending = _checkpoint_pending(pending_path)
+    if pending is None:
+        return head
+    destination = pending["destination"]
+    current_digest = _optional_state_digest(destination["path"])
+    prior_head = pending["prior_head"]
+    next_head = pending["next_head"]
+    if head == next_head:
+        require(current_digest == destination["next_digest"],
+                "checkpoint-recovery", "committed checkpoint bytes are missing")
+        _remove_checkpoint_pending(pending_path)
+        return head
+    if head == prior_head:
+        if current_digest == destination["prior_digest"]:
+            _remove_checkpoint_pending(pending_path)
+            return head
+        if current_digest == destination["next_digest"]:
+            require(text(expected) and expected == destination["next_digest"],
+                    "stale-state", "checkpoint publication is ahead of loaded state")
+            write_json(head_path, next_head)
+            require(_optional_state_digest(destination["path"]) == destination["next_digest"],
+                    "checkpoint-recovery", "checkpoint bytes changed during recovery")
+            _remove_checkpoint_pending(pending_path)
+            return next_head
+    raise InputError("checkpoint-recovery",
+                     "checkpoint head and state bytes do not form a committed generation")
+
+
 def write_state(args, state):
     expected = state.pop("_loaded_digest", None)
     lock_path, head_path = _checkpoint_paths(args, state)
+    pending_path = _checkpoint_pending_path(head_path)
     require(not lock_path.is_symlink(), "unsafe-state", "checkpoint lock cannot be a symlink")
     try:
         descriptor = os.open(lock_path, os.O_RDWR | os.O_CREAT | os.O_NOFOLLOW, 0o600)
@@ -122,6 +242,7 @@ def write_state(args, state):
                 "unsafe-state", "checkpoint lock must be owner-only")
         fcntl.flock(descriptor, fcntl.LOCK_EX)
         head = _checkpoint_head(head_path)
+        head = _recover_checkpoint(head_path, pending_path, head, expected)
         if args.state:
             require(head is not None, "missing-checkpoint",
                     "durable checkpoint head is missing; reconcile before mutation")
@@ -132,18 +253,37 @@ def write_state(args, state):
                     "stale-state", "controller checkpoint changed; reread and reconcile before mutation")
         else:
             require(head is None, "existing-state", "checkpoint already exists; resume it")
-        write_json(args.state_out, state)
-        next_digest = _state_digest(args.state_out)
-        write_json(head_path, {
+        destination = Path(args.state_out).resolve()
+        prior_digest = _optional_state_digest(destination)
+        next_digest = hashlib.sha256(_json_bytes(state)).hexdigest()
+        next_head = {
             "version": 1,
             "fingerprint": state["fingerprint"],
             "scope_identity": copy.deepcopy(state["scope_identity"]),
             "digest": next_digest,
-            "state_path": str(Path(args.state_out).resolve()),
+            "state_path": str(destination),
+        }
+        write_json(pending_path, {
+            "version": 1,
+            "fingerprint": state["fingerprint"],
+            "scope_identity": copy.deepcopy(state["scope_identity"]),
+            "prior_head": copy.deepcopy(head),
+            "destination": {
+                "path": str(destination),
+                "prior_digest": prior_digest,
+                "next_digest": next_digest,
+            },
+            "next_head": next_head,
         })
+        write_json(args.state_out, state)
+        require(_state_digest(args.state_out) == next_digest,
+                "checkpoint-recovery", "state bytes changed during publication")
+        write_json(head_path, next_head)
+        _remove_checkpoint_pending(pending_path)
     finally:
         fcntl.flock(descriptor, fcntl.LOCK_UN)
         os.close(descriptor)
+
 
 def _claims_root(repo):
     root = Path(repo).resolve()
@@ -184,7 +324,7 @@ def _checkpoint_root(repo):
 def _checkpoint_paths(args, state):
     root = _checkpoint_root(repository(args.git_repo, state["scope_identity"]["canonical_repo"]))
     fingerprint = state.get("fingerprint", "")
-    require(re.fullmatch(r"sha256:[0-9a-f]{64}", fingerprint),
+    require(text(fingerprint) and re.fullmatch(r"sha256:[0-9a-f]{64}", fingerprint),
             "invalid-state", "checkpoint fingerprint missing")
     key = fingerprint.split(":", 1)[1]
     return root / (key + ".lock"), root / (key + ".head.json")
@@ -198,13 +338,7 @@ def _checkpoint_head(path):
         value = json.loads(_state_bytes(path))
     except ValueError as error:
         raise InputError("invalid-state", "checkpoint head is malformed") from error
-    require(isinstance(value, dict)
-            and value.get("version") == 1
-            and text(value.get("fingerprint"))
-            and SHA_RE.fullmatch(value.get("digest", ""))
-            and text(value.get("state_path")),
-            "invalid-state", "checkpoint head is incomplete")
-    return value
+    return _validated_checkpoint_head(value, "checkpoint head")
 
 
 def _claim_key(admitted, task=None):
