@@ -24,7 +24,7 @@ does not install in Hermes. The coding harness runs the implementation and its w
 
 | Harness | Model and effort routing | Working directory | Host behavior |
 | --- | --- | --- | --- |
-| [omp (Oh My Pi)](/docs/harnesses/omp) | Selects an existing host agent; no per-call model setting | Passed in the task prompt and verified by the worker | OMP manages models and recovery |
+| [omp (Oh My Pi)](/docs/harnesses/omp) | Selects an existing host agent; model and effort are host-owned, and Woostack leaves the conditional effort knob unset | Passed in the task prompt and verified by the worker | OMP manages models and recovery |
 | [opencode](/docs/harnesses/opencode) | Model selection for each worker | Passed when supported; always included in the prompt | Provider usage-limit errors stop the worker |
 | [Claude Code](/docs/harnesses/claude-code) | Model and supported effort selection for each worker | Worker uses and checks the directory named in the prompt | Provider usage-limit errors stop the worker |
 | [Codex](/docs/harnesses/codex) | Model selection for local workers; one model per Codex Action job | Passed when supported; always included in the prompt | Local and CI routing differ |

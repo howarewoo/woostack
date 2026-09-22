@@ -23,8 +23,22 @@ blocking.
 
 ## Subagent spawn
 
-OMP's `task` primitive accepts an existing worker selector but no per-call model, tier, effort, or
-working-directory argument. All subagents spawned via `task` run in-process within the same OMP
+OMP's `task` primitive accepts an existing worker selector. It does not expose a per-call model,
+tier, or working-directory argument to Woostack. Effort is conditional: when the host setting
+`task.enableEffort` is enabled, the active schema adds optional `effort` with exactly `"lo"`,
+`"med"`, or `"hi"`; otherwise that field is absent. Inspect the active task schema or tool
+description before dispatch. Woostack does not enable host settings or set this optional effort
+field. OMP owns effort selection; record verified host effort evidence separately rather than
+translating repository model-tier values into the host knob. A selector is not evidence of the
+model or effort actually used.
+
+The conditional schema and setting are documented in OMP's [task-agent discovery reference](https://github.com/can1357/oh-my-pi/blob/main/docs/task-agent-discovery.md)
+and implemented by [`task/types.ts`](https://github.com/can1357/oh-my-pi/blob/main/packages/coding-agent/src/task/types.ts).
+The dispatch-time setting and rejection path are in
+[`task/index.ts`](https://github.com/can1357/oh-my-pi/blob/main/packages/coding-agent/src/task/index.ts).
+For evidence-bearing workflows, verify returned effort evidence against the resolved configuration;
+absent or mismatched evidence blocks a required comparison.
+All subagents spawned via `task` run in-process within the same OMP
 harness session, sharing in-memory IPC, queues, and tool bridges. External tools (such as Orca)
 cannot manage subagent processes because inter-agent coordination depends on this in-process
 harness.
@@ -40,13 +54,17 @@ persist a replacement catalog. If the active session exposes a different name, u
 name only when its observed capabilities satisfy the task. A read-only agent is never suitable for
 a write task.
 
-- Batch dependency-independent bounded tasks in one `tasks` call.
-- Pass the exact resolved task workspace path in the dispatch prompt. The worker must verify that
-  path, branch, parent/start SHA, and allowed paths before reading or writing; `task` cannot receive
-  a `cwd` argument.
-- Pass the complete task contract: repository rules, authority limits, non-goals, acceptance,
-  required checks and smoke scenario, and result-evidence requirements. Do not duplicate a worker
-  definition in the prompt.
+Inspect the active task tool schema or description before choosing a wire shape. When `task.batch`
+is enabled and the schema exposes `{ context, tasks[] }`, send dependency-independent bounded
+tasks in that one call. When it is disabled, send one flat `{ agent?, task, ... }` call at a time
+where the workflow permits it. Do not send `tasks` or `context` in that mode; OMP rejects those
+fields before a worker starts.
+Pass the exact resolved task workspace path in the dispatch prompt. The worker must verify that
+path, branch, parent/start SHA, and allowed paths before reading or writing; `task` cannot receive
+a `cwd` argument.
+Pass the complete task contract: repository rules, authority limits, non-goals, acceptance,
+required checks and smoke scenario, and result-evidence requirements. Do not duplicate a worker
+definition in the prompt.
 - A worker must not expand its task, edit another workspace, review or accept itself, merge, or
   infer hidden context.
 
@@ -75,23 +93,26 @@ subagent and Execute must not gain orchestration responsibilities.
 - `woostack-execute`: works inline by default; an optional discovered write-capable worker may
   implement the one supplied bounded task. Execute still owns admission, verification, Commit, and
   delivery; it does not discover or schedule additional tasks.
-- **woostack-orchestrate (parallel dispatch):** for each schedule packet, dispatch one
-  delivery-capable discovered write agent through `task`. Pass its exact `workspace`, `branch`,
-  `parent_branch`, `parent_sha`, child issue URL, and packet `bounded_input`/`acceptance`/`checks` as
-  the complete contract. Clamp the schedule's `effective_cap` to real host capability, batch up to
-  that cap, and refill as workers complete. A host mode that serializes runs at concurrency one
-  gets a clear notice; without a delivery-capable subagent, block rather than executing inline.
+- **woostack-orchestrate (parallel dispatch):** preflight whether the active schema exposes the
+  batch shape and whether host capacity supports the required concurrency. If batch is exposed,
+  dispatch up to the effective cap in one `tasks[]` call and refill as workers complete. If it is
+  not exposed, use the supported single-call shape only where Orchestrate's own contract permits
+  it; never describe sequential calls as same-wave or parallel. A host mode that serializes runs at
+  concurrency one gets a clear notice; without a delivery-capable subagent, block rather than
+  executing inline.
 - `woostack-commit`: optional fast drafting may use the discovered write-capable worker; draft
   inline when that optional capability is unavailable. Commit remains responsible for its own
   source-control and PR evidence.
-- **woostack-eval (comparative dispatch):** dispatch candidate and baseline siblings through the
-  same discovered worker in one `tasks[]` call. The selector is not proof of model or effort
-  identity. Require OMP completion evidence proving both actions used the same host, runner,
+- **woostack-eval (comparative dispatch):** preflight the active batch schema before dispatch. When
+  it exposes `{ context, tasks[] }`, dispatch candidate and baseline siblings through the same
+  discovered worker in one intact `tasks[]` wave. If `task.batch` is unavailable, stop comparative
+  preflight before either sibling starts; only Eval's explicitly accepted candidate-only qualitative
+  smoke branch may degrade. Leave the optional effort knob unset and freeze verified host effort
+  evidence where available; `null` represents unavailable evidence, not proof of equal effort.
+  The selector is not proof of model or effort identity. Require evidence for the same host, runner,
   completion identity, model/session identity, tier, and effort required by the frozen manifest.
   An unprovable identity, host fallback divergence, model/effort divergence, incomplete receipt, or
-  missing output/evidence blocks comparative success. A host unable to start both siblings in the
-  same bounded wave fails comparative preflight; only Eval's explicitly accepted candidate-only
-  qualitative smoke branch may degrade.
+  missing output/evidence blocks comparative success.
 
 ## Safe cleanup of retired generated definitions
 

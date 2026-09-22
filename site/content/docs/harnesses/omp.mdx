@@ -10,23 +10,42 @@ agent catalog.
 
 ## Native OMP agent routing
 
-OMP's `task` tool accepts a worker selector but no model, tier, effort, or per-call working-directory
-setting. The current inventory exposes `task` as a write-capable general-purpose agent, `scout` as
-read-only exploration, and `reviewer` / `security-reviewer` as read-only review. Discovery remains
-authoritative: invoke only names actually exposed in the active session, and never create aliases or
-project definitions to fill a missing name.
+OMP's `task` tool accepts a worker selector but does not expose a per-call model, tier, or working
+directory setting to Woostack. Effort is conditional. When the host setting `task.enableEffort` is
+enabled, the active task schema exposes optional `effort` with exactly `"lo"`, `"med"`, or `"hi"`.
+When it is disabled, that field is absent. Woostack inspects the active schema or tool description
+before dispatch and does not enable host settings or set the optional effort field. OMP owns effort
+selection. Woostack records verified host effort evidence separately; it does not translate
+repository model-tier values into this knob. A selector is not proof of the model or effort used.
 
-- Use a write-capable discovered agent for implementation and delivery; a read-only agent must not
-  receive a write task.
+The conditional schema and setting are documented in OMP's [task-agent discovery reference](https://github.com/can1357/oh-my-pi/blob/main/docs/task-agent-discovery.md)
+and implemented by [`task/types.ts`](https://github.com/can1357/oh-my-pi/blob/main/packages/coding-agent/src/task/types.ts).
+The dispatch-time setting and rejection path are in
+[`task/index.ts`](https://github.com/can1357/oh-my-pi/blob/main/packages/coding-agent/src/task/index.ts).
+
+- Use only names actually exposed by the active session. The current inventory exposes `task` as a
+  write-capable general-purpose agent, `scout` for read-only exploration, and `reviewer` /
+  `security-reviewer` for read-only review. Do not create aliases or project definitions to fill a
+  missing name.
+- Inspect the active task schema before choosing a wire shape. When `task.batch` is enabled, OMP
+  exposes `{ context, tasks[] }`; send dependency-independent bounded tasks in that shape. When
+  it is disabled, send one flat `{ agent?, task, ... }` call at a time where the workflow permits
+  it. Do not send `tasks` or `context` in that mode because OMP rejects those fields before a
+  worker starts.
 - Pass the exact workspace, branch, parent/start SHA, allowed paths, authority limits, acceptance,
   required checks, smoke scenario, and result-evidence requirements in the task prompt. The `task`
   primitive does not accept `cwd`; the worker verifies the prompt-pinned workspace before editing.
 - Execute remains one bounded task and does not schedule a project graph. Orchestrate requires a
-  delivery-capable worker and blocks when the host cannot provide one.
-- Eval dispatches candidate and baseline siblings through the same discovered worker only when the
-  host can prove matching completion identity, model/session identity, tier, effort, isolation, and
-  complete receipts. A selector alone never proves comparable execution; missing proof blocks the
-  comparative run, with only the explicitly accepted candidate-only qualitative smoke path available.
+  delivery-capable worker and blocks when the host cannot provide one. If batch is unavailable,
+  Orchestrate may use supported single-call dispatch only where its own contract permits it; a
+  sequence of calls does not prove same-wave or parallel execution.
+- Eval comparative dispatch requires the active batch shape so candidate and baseline siblings can
+  start through the same discovered worker in one intact `tasks[]` wave. If `task.batch` is
+  unavailable, comparative preflight stops before either sibling starts. Only the explicitly
+  accepted candidate-only qualitative smoke path may degrade. Eval leaves the optional effort knob
+  unset and freezes verified host effort evidence where available; `null` means unavailable
+  evidence, not equal effort. A selector alone never proves comparable execution. Missing required
+  evidence blocks the comparative run.
 - Missing capabilities and missing result evidence are reported as blockers. Woostack does not
   switch profiles, weaken isolation, or treat absent evidence as success.
 
