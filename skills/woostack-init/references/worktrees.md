@@ -83,27 +83,31 @@ containing every prerequisite change. The integration parent need not represent 
 The caller supplies the prerequisite and parent-readiness evidence; the bounded task verifies it as
 ordinary evidence rather than discovering dependencies.
 For every prerequisite, require its complete delivery checkpoint, branch/commit, canonical PR
-identity/head/base, fully paginated current-head reviews, merge state, and approved ancestry to agree.
-Independently verify the concrete parent's canonical branch/SHA and ancestry containing every required
+identity/head/base, fully paginated current-head reviews, current PR state when a PR exists, and
+approved ancestry to agree. A prerequisite PR need not be merged for Orchestrate stacked delivery:
+independently verify the concrete parent's canonical branch/SHA and ancestry containing every required
 predecessor change. A predecessor parent retains its prerequisite PR evidence. An approved integration
 parent need not have its own delivery checkpoint or PR; verify its canonical PR head/base, reviews,
-and merge state whenever such a PR exists. Proven absence of an integration-parent PR is not missing
+and current state whenever such a PR exists. Proven absence of an integration-parent PR is not missing
 prerequisite evidence.
 Read available checks for
 observation only (incomplete or unavailable check reads never block). Apply the shared repository
 advancement contract before using a newly observed descendant head for fresh child work. Start
 retained work from its recorded state and revalidate ancestry, diff, and PR base; never silently
-rebase, reset, recreate, or attach it to a different branch. Every non-parent predecessor must have
-canonical GitHub merge evidence represented in the child's permitted ancestry. If no delivered branch
-contains all prerequisites, pause for an explicit integration-parent decision before admission; do
-not invent an integration branch or ordinal chain. Reject inferred order, rewritten heads, open
-non-parent dependencies, duplicate ancestry, conflicts, or partial proof.
+rebase, reset, recreate, or attach it to a different branch. Verified single-parent ancestry
+containment of all prerequisite changes satisfies the parent requirement without PR merge: a
+predecessor branch that already contains every required change is a permitted parent. If no single
+verified parent branch contains all prerequisites, pause that task for an explicit parent/integration
+decision before admission; an explicit decision alone still requires re-verified containment before
+resume. Preserve the explicit decision, never invent an integration branch, and never require a merge
+automatically. Reject inferred order, rewritten heads, unverified prerequisites, duplicate ancestry,
+conflicts, or partial proof.
 
 For a GitHub DAG dependent, the logical prerequisite set does not select a Git parent. Before
 checkout, the caller must supply the explicit parent branch/SHA and complete readiness evidence
 above. A join without that proof pauses that task before admission. Execute accepts one selected
 bounded task, not its retained graph; other roots, forks, or joins in that graph do not disqualify
-the task. Future Orchestrate owns graph dispatch.
+the task. [Orchestrate](../../woostack-orchestrate/SKILL.md) owns graph dispatch.
 
 ## 3. Direct identity and collision evidence
 
@@ -206,6 +210,10 @@ An optional coding worker never:
   its admitted task because Execute owns that delivery;
 - accesses optional artifact credentials or mutates artifacts; or
 - moves, removes, or repairs a task worktree.
+
+A worker dispatched by Orchestrate through Execute uses only that Execute/Commit path for its own task
+and never schedules siblings, modifies the parent/child hierarchy, or writes parent/Project progress.
+
 An unexpected file, branch, checkout, worktree, dirty-state, or ancestry change blocks. Recovery is
 decided only from the approved task contract, any retained planning-run evidence, and fresh direct
 repository evidence.

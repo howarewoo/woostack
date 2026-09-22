@@ -3,6 +3,20 @@
   "skill": "woostack-commit",
   "cases": [
     {
+      "id": "native-child-association-without-project",
+      "prompt": "Reason only from this supplied snapshot; do not run commands, mutate files, or contact remote services. Execute hands Commit one complete bounded task for native child https://github.com/acme/app/issues/11. Its specification parent is issue 10. The canonical remote is acme/app; exact child identity, open state, contract, branch, diff, and PR evidence are independently verified. artifacts.provider is local, no Project is selected, and no mirror exists. Explain the permitted association and treatment of parent context.",
+      "capabilities": ["read-workspace"],
+      "expected": "Associates the PR with exactly one Resolves https://github.com/acme/app/issues/11 line and independently reads it back, without rejecting native child context or requiring Project/mirror access. Parent 10 is not a closing reference; Commit does not discover hierarchy, schedule siblings, or change issue lifecycle.",
+      "assertions": [
+        {
+          "id": "child-not-parent",
+          "kind": "qualitative",
+          "rubric": "Does Commit permit exact native-child attribution without Project/mirror requirements, close-reference only child 11, and leave hierarchy scheduling and lifecycle outside its authority?",
+          "critical": true
+        }
+      ]
+    },
+    {
       "id": "submits-standalone-work-item-with-merge-closing-reference",
       "prompt": "Classify a bounded /woostack-commit invocation with exact Linear issue reference APP-41 (--issue APP-41). Configuration selects artifacts.provider: \"linear\" on workspace acme and repository https://github.com/acme/widgets. Official Linear MCP resolves APP-41 to native UUID 11111111-1111-4111-8111-111111111141, verifies work-item state in started, repository ownership, requires only exact work-item read, delivery note read, and delivery note write/read-back capabilities (issueRead, commentRead, commentWrite), while unrelated capabilities (relationWrite, projectLabelRead, projectLabelWrite) are absent and do not block. It appends Resolves APP-41 to the PR body, executes delivery note with independent read-back, preserves started work-item state without state mutation, forbids relation/label mutation, and leaves merge authority with GitHub. Return exactly one JSON object with keys status, provider, workItemSequenceId, workItemUuid, closingReference, requiredCapabilitiesVerified, unrelatedCapabilitiesIgnored, readBackComplete, finalWorkItemState, stateMutations, relationMutations, and mergeAllowed.",
       "fixtures": [],

@@ -5,7 +5,7 @@
 The `agy` CLI; reads `AGENTS.md` natively; authenticates via system keyring / Google Sign-In
 (no documented non-interactive API-key path, so it cannot run headless in ephemeral CI).
 Discover official Linear or Plane MCP tools via `AGENTS.md` / Antigravity MCP runtime or host-authenticated
-GitHub CLI (`gh`), selected strictly by `artifacts.provider`. Never use custom HTTP/REST/GraphQL transport
+GitHub CLI (`gh`) under the selected workflow's artifact admission. Never use custom HTTP/REST/GraphQL transport
 or fallback tokens. Artifact operations follow the canonical
 [artifact backends contract](../../../woostack-init/references/artifact-backends.md).
 
@@ -34,6 +34,13 @@ host — no spawn-time auth probe exists; switch manually by promoting an entry 
 
 ## Per-skill notes
 
+- **woostack-orchestrate (parallel dispatch):** for each schedule packet, instantiate one
+  delivery-capable isolated-context subagent with the dispatch-prompt worktree pin. Pass `workspace`,
+  `branch`, `parent_branch`, `parent_sha`, child issue URL, and packet
+  `bounded_input`/`acceptance`/`checks` as the complete Execute contract. Clamp `effective_cap` to
+  host capability, refill as workers complete, and keep one concrete run model for all workers.
+  A serializing mode runs at concurrency one with a clear notice; without delivery-capable subagents,
+  block rather than executing inline.
 - **woostack-eval (comparative dispatch):** instantiate the two isolated-context workers for
   each candidate/baseline inseparable pair in the same dynamic orchestration turn. There is no
   concrete per-call model pin; choose one concrete run model before the session.

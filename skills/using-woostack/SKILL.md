@@ -46,6 +46,7 @@ provider-specific scope, capabilities, identities, and lifecycle behavior.
 | Diagnose and fix a defect, bounded or project-backed | `woostack-fix` |
 | Implement a bounded non-bug enhancement or refactor in one PR | `woostack-change` |
 | Turn an approved specification into reviewable increments | `woostack-plan` |
+| Execute native children of one GitHub parent issue or tasks in an exact GitHub Project with parallel workers and stacked PRs | `woostack-orchestrate` |
 | Implement one bounded task and deliver one PR | `woostack-execute` |
 | Commit current changes and submit or update their PR | `woostack-commit` |
 | Review a pull request | Use [Pullfrog](https://pullfrog.com/). |

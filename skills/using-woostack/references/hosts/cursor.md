@@ -4,7 +4,7 @@
 
 Cursor's Composer agent runtime; project rules load from `.cursorrules`.
 Discover official Linear or Plane MCP tools exposed via Cursor Composer / `.cursorrules` MCP configuration or
-host-authenticated GitHub CLI (`gh`), selected strictly by `artifacts.provider`. Never use custom
+host-authenticated GitHub CLI (`gh`) under the selected workflow's artifact admission. Never use custom
 HTTP/REST/GraphQL transport or fallback tokens. Artifact operations follow the canonical
 [artifact backends contract](../../../woostack-init/references/artifact-backends.md).
 
@@ -33,6 +33,12 @@ host — no spawn-time auth probe exists; switch manually by promoting an entry 
 
 ## Per-skill notes
 
+- **woostack-orchestrate (parallel dispatch):** for each schedule packet, submit one delivery-capable
+  parallel-subagent worker with the dispatch-prompt worktree pin. Pass `workspace`, `branch`,
+  `parent_branch`, `parent_sha`, child issue URL, and packet `bounded_input`/`acceptance`/`checks`
+  as the complete Execute contract; clamp `effective_cap` to host capability and refill as workers
+  complete. Workers run on the host-selected model. A queue-only runtime runs at concurrency one
+  with a clear notice; without delivery-capable subagents, block rather than executing inline.
 - **woostack-eval (comparative dispatch):** submit the two isolated workers for each
   candidate/baseline inseparable pair together through Composer's parallel-subagent primitive.
   Cursor exposes no concrete per-call model pin; `session-default` is provable only when the

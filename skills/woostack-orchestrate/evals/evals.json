@@ -1,0 +1,198 @@
+{
+  "schemaVersion": 1,
+  "skill": "woostack-orchestrate",
+  "cases": [
+    {
+      "id": "ready-queue-without-project",
+      "prompt": "Reason only from the supplied snapshot. Do not run commands, mutate files, or contact remote services. The user invokes --issue https://github.com/acme/app/issues/10 only. Complete native hierarchy evidence admits A, B, C, D and E. A/B/E are independent; C depends on A; D depends on A/B. Three delivery-capable workers exist. A has finished, its exact child-associated draft PR passes independent contract/diff validation and focused checks, its delivery note is persisted and read back, and B is still running. No Project is configured. Later B passes the same delivery gates without merging, but no permitted branch contains both A and B. Describe the immediate refill and the later join behavior.",
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "Dispatches C on the verified A branch without waiting for B or a merge, allows E to progress, and pauses only D when no permitted parent contains A/B. No Project is required and parent 10 receives no worker, worktree, PR or dependency edge.",
+      "assertions": [
+        {
+          "id": "ready-queue-without-project-boundary",
+          "kind": "qualitative",
+          "rubric": "Does the response apply this contract: Dispatches C on the verified A branch without waiting for B or a merge, allows E to progress, and pauses only D when no permitted parent contains A/B. No Project is required and parent 10 receives no worker, worktree, PR or dependency edge?",
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "selector-and-limit-admission",
+      "prompt": "Reason only from the supplied snapshot. Do not run commands, mutate files, or contact remote services. Compare invocations with both --issue and --project, neither selector, --max-parallel 0, --max-parallel 1.5, and an exact issue with --max-parallel 1. The selected parent has complete native children and all other admission evidence. What can proceed before mutation?",
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "Rejects conflicting/missing selectors and non-positive/non-integer limits before dispatch. A valid single selector with limit one retains the same task and validation contract, running sequential subagents rather than inline implementation.",
+      "assertions": [
+        {
+          "id": "selector-and-limit-admission-boundary",
+          "kind": "qualitative",
+          "rubric": "Does the response apply this contract: Rejects conflicting/missing selectors and non-positive/non-integer limits before dispatch. A valid single selector with limit one retains the same task and validation contract, running sequential subagents rather than inline implementation?",
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "native-hierarchy-not-text",
+      "prompt": "Reason only from the supplied snapshot. Do not run commands, mutate files, or contact remote services. Parent issue 10 has a body checklist naming A and B. Fully exhausted native sub-issue pages list only A; B independently reports parent 99. Explain admission, including whether body prose or Project access can repair the evidence.",
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "Blocks incomplete/conflicting native membership before dispatch, does not infer hierarchy from text, adopt B, replace its parent, or require a Project to compensate.",
+      "assertions": [
+        {
+          "id": "native-hierarchy-not-text-boundary",
+          "kind": "qualitative",
+          "rubric": "Does the response apply this contract: Blocks incomplete/conflicting native membership before dispatch, does not infer hierarchy from text, adopt B, replace its parent, or require a Project to compensate?",
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "snapshot-drift",
+      "prompt": "Reason only from the supplied snapshot. Do not run commands, mutate files, or contact remote services. An admitted hierarchy snapshot contains A and B with complete contracts. A is running. Fresh native hierarchy evidence adds child C and changes B acceptance. The user has not admitted this changed scope. What may the controller dispatch and how does it preserve current work?",
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "Stops fresh dispatch pending scope/contract readmission, preserves running A and its eventual delivery evidence, and does not silently execute C or changed B or launch duplicate workers.",
+      "assertions": [
+        {
+          "id": "snapshot-drift-boundary",
+          "kind": "qualitative",
+          "rubric": "Does the response apply this contract: Stops fresh dispatch pending scope/contract readmission, preserves running A and its eventual delivery evidence, and does not silently execute C or changed B or launch duplicate workers?",
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "nested-and-empty-scope",
+      "prompt": "Reason only from the supplied snapshot. Do not run commands, mutate files, or contact remote services. In one snapshot P has no native children and no expected task index entries. In another P contains A plus child Q whose native children are non-PR-sized nested work. Compare outcomes.",
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "Reports no work for the genuinely empty parent, without executing P or declaring product completion. Rejects the unsupported nested scope without flattening or skipping Q.",
+      "assertions": [
+        {
+          "id": "nested-and-empty-scope-boundary",
+          "kind": "qualitative",
+          "rubric": "Does the response apply this contract: Reports no work for the genuinely empty parent, without executing P or declaring product completion. Rejects the unsupported nested scope without flattening or skipping Q?",
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "project-membership-dedup",
+      "prompt": "Reason only from the supplied snapshot. Do not run commands, mutate files, or contact remote services. The caller explicitly selects https://github.com/orgs/acme/projects/7 with configured lifecycle mappings. Complete membership lists specification parent P and direct task A twice through repeated evidence; P also has native child B outside Project membership. A has one canonical identity and matching contract. Describe executable scope and verified-submission progress.",
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "Distinguishes P from executable tasks, deduplicates A by canonical task identity, does not import B, and uses the selected configured inReview state only after verified delivery; no Done, closure, merge or reparenting.",
+      "assertions": [
+        {
+          "id": "project-membership-dedup-boundary",
+          "kind": "qualitative",
+          "rubric": "Does the response apply this contract: Distinguishes P from executable tasks, deduplicates A by canonical task identity, does not import B, and uses the selected configured inReview state only after verified delivery; no Done, closure, merge or reparenting?",
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "capability-and-workspace-gates",
+      "prompt": "Reason only from the supplied snapshot. Do not run commands, mutate files, or contact remote services. A host exposes sequential delivery-capable subagents only; another has no delivery-capable subagent; a third can run three but A and B claim the same physical worktree. Compare dispatch safety for each.",
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "Uses concurrency one with notice on the sequential host; blocks instead of inline execution when suitable subagents are absent; rejects conflicting ownership before a second worker can write the same workspace.",
+      "assertions": [
+        {
+          "id": "capability-and-workspace-gates-boundary",
+          "kind": "qualitative",
+          "rubric": "Does the response apply this contract: Uses concurrency one with notice on the sequential host; blocks instead of inline execution when suitable subagents are absent; rejects conflicting ownership before a second worker can write the same workspace?",
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "validation-before-dependent-release",
+      "prompt": "Reason only from the supplied snapshot. Do not run commands, mutate files, or contact remote services. Worker A reports success and gives a PR URL. Canonical readback shows the wrong PR base in one case; focused verification failed in another; independent spec validation rejects the submitted diff in a third. C depends on A and E is unrelated. What transitions are valid?",
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "Does not release C for any failed gate, preserves the submitted PR/workspace, routes in-scope repairs to Execute on the same branch/PR, and allows unrelated E when scope certainty remains intact. Worker success alone never establishes delivery.",
+      "assertions": [
+        {
+          "id": "validation-before-dependent-release-boundary",
+          "kind": "qualitative",
+          "rubric": "Does the response apply this contract: Does not release C for any failed gate, preserves the submitted PR/workspace, routes in-scope repairs to Execute on the same branch/PR, and allows unrelated E when scope certainty remains intact. Worker success alone never establishes delivery?",
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "unknown-worker-no-duplicate",
+      "prompt": "Reason only from the supplied snapshot. Do not run commands, mutate files, or contact remote services. A reserved task worker times out after it may have pushed and submitted. Its response lacks exact head/base and PR identity. A sibling is ready. The host offers a retry button. Describe the safe boundary.",
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "Retains reservation and workspace, reconciles direct Git/PR evidence before any retry, stops fresh dispatch on unresolved outcome uncertainty, and never launches a replacement merely because the response is missing.",
+      "assertions": [
+        {
+          "id": "unknown-worker-no-duplicate-boundary",
+          "kind": "qualitative",
+          "rubric": "Does the response apply this contract: Retains reservation and workspace, reconciles direct Git/PR evidence before any retry, stops fresh dispatch on unresolved outcome uncertainty, and never launches a replacement merely because the response is missing?",
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "child-closing-reference",
+      "prompt": "Reason only from the supplied snapshot. Do not run commands, mutate files, or contact remote services. Parent P=10 supplies specification context; Execute implements native child A=11. artifacts.provider is local and no Project exists. The verified task PR body has Resolves https://github.com/acme/app/issues/10 instead of child 11. What must validation require?",
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "Rejects parent-closing association, requires exactly the independently verified child URL as the task closing reference and readback, and does not require a Project/mirror or put hierarchy discovery inside Execute/Commit.",
+      "assertions": [
+        {
+          "id": "child-closing-reference-boundary",
+          "kind": "qualitative",
+          "rubric": "Does the response apply this contract: Rejects parent-closing association, requires exactly the independently verified child URL as the task closing reference and readback, and does not require a Project/mirror or put hierarchy discovery inside Execute/Commit?",
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "external-prerequisite-and-cycle",
+      "prompt": "Reason only from the supplied snapshot. Do not run commands, mutate files, or contact remote services. P admits A/B/C only. A has a native prerequisite X outside P; B/C form a native dependency cycle. Consider first the entire graph and then a corrected acyclic graph where only A still depends on X. What is admitted?",
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "Rejects cyclic graph before dispatch. With acyclic graph, external X blocks A without expanding scope; unrelated admitted ready children may proceed. Ordinals and parent hierarchy never substitute for dependency edges.",
+      "assertions": [
+        {
+          "id": "external-prerequisite-and-cycle-boundary",
+          "kind": "qualitative",
+          "rubric": "Does the response apply this contract: Rejects cyclic graph before dispatch. With acyclic graph, external X blocks A without expanding scope; unrelated admitted ready children may proceed. Ordinals and parent hierarchy never substitute for dependency edges?",
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "contract-bound-review-and-notes",
+      "prompt": "Reason only from the supplied snapshot. Do not run commands, mutate files, or contact remote services. A child-associated PR is open at head h1 and base main, with focused checks and an independent spec review for h1. Before evidence persistence, the head changes to h2. The parent-issue execution has no Project. Describe evidence handling and final aggregate state.",
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "Requires fresh checks/readback and independent validation bound to the actual contract and diff before release; persists and reads back child delivery evidence without Project custom Status, leaves issues open, and reports submitted PRs awaiting review/merge rather than acceptance.",
+      "assertions": [
+        {
+          "id": "contract-bound-review-and-notes-boundary",
+          "kind": "qualitative",
+          "rubric": "Does the response apply this contract: Requires fresh checks/readback and independent validation bound to the actual contract and diff before release; persists and reads back child delivery evidence without Project custom Status, leaves issues open, and reports submitted PRs awaiting review/merge rather than acceptance?",
+          "critical": true
+        }
+      ]
+    }
+  ]
+}

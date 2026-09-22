@@ -1,8 +1,10 @@
 # GitHub artifact provider profile
 
 This profile implements the provider-specific side of the shared
-[local run artifact and provider mirror contract](../artifact-backends.md). Load it only when
-`artifacts.provider: "github"`. The shared contract owns authority, local artifacts, ordering,
+[local run artifact and provider mirror contract](../artifact-backends.md). Load it for
+`artifacts.provider: "github"` or explicit Orchestrate parent-issue execution; the latter loads
+only hierarchy, dependency, identity, and delivery-note rules, not Project/mirror configuration.
+The shared contract owns authority, local artifacts, ordering,
 recovery, failure handling, and read-back invariants; this profile owns GitHub identities, owner and
 selected Project or specification-parent admission, native issue hierarchy, blocked-by dependencies,
 and Project membership/Status lifecycle mappings where a Project is selected.
@@ -31,7 +33,8 @@ native parent/sub-issue reads/writes, dependency reads/writes, terminal paginati
 read-back. Issue-write access alone does not prove sub-issue or dependency-write access. Before
 publication, preflight every required write family without a test mutation; unsupported or unknown
 capability blocks. Project read/write, membership, and Status capabilities are required only for
-selected Project operations. Unavailable Project access does not block parent-only planning.
+selected Project operations. Unavailable Project access does not block parent-only planning or
+explicitly selected Orchestrate parent-hierarchy reads.
 
 Use GitHub's [native sub-issue API](https://docs.github.com/en/rest/issues/sub-issues) through `gh api`.
 `GET repos/{owner}/{repo}/issues/{number}/sub_issues` must exhaust all pages; read the actual
@@ -64,6 +67,13 @@ top-level specification parent (`parent = null`) and one level of direct PR-size
 Nested containers, foreign/conflicting parents, missing expected children, incomplete pagination,
 duplicate task mappings, or ambiguous identity block before mutation. Do not silently flatten,
 skip work, infer a parent from omission, or convert a historical Project plan.
+
+Explicit Orchestrate parent-issue admission reuses these exact canonical/native hierarchy reads but
+does not require a GitHub Project, Project membership, Status configuration, or provider mirror. It
+reads the selected parent and fully paginated direct children, each child's actual parent, contract,
+prerequisites, and delivery evidence; it never broadens scope, runs the specification parent, or
+changes hierarchy or lifecycle state. A missing or unavailable Project capability is irrelevant in
+this mode.
 
 The parent retains the approved specification, constraints, non-goals, overall acceptance,
 inspected repository revision, and canonical child task index. Each child carries the canonical
@@ -120,8 +130,8 @@ endpoint and blocks. No check silently broadens repository, parent, or Project s
 
 A root records the approved integration parent branch. Each dependent records its complete prerequisite
 set and a parent-selection policy for resolving one concrete Git parent branch and SHA from verified
-delivered predecessor branches or an explicitly approved integration parent at dispatch. Future
-Orchestrate resolves that parent for graph dispatch; a caller selecting one bounded task supplies
+delivered predecessor branches or an explicitly approved integration parent at dispatch.
+[Orchestrate](../../../woostack-orchestrate/SKILL.md) resolves that parent for graph dispatch; a caller selecting one bounded task supplies
 the parent and readiness evidence. Plan never chooses it speculatively or creates an integration
 branch or artificial chain.
 One verified parent must contain all required predecessor changes. The
@@ -153,7 +163,7 @@ native parent link, selected membership, and complete exact predecessor→succes
 Mirror mismatches record failure without changing local artifacts; standalone mismatches block
 without claiming synchronization.
 
-Retain the complete DAG for future Orchestrate; Execute cannot accept or dispatch it as a graph.
+Retain the complete DAG for explicit Orchestrate execution; Execute cannot accept or dispatch it as a graph.
 A caller may select one task from any valid DAG for
 [bounded Execute admission](../../../woostack-execute/SKILL.md#admit-one-task), supplying its concrete
 parent and complete prerequisite-readiness evidence under the
@@ -172,7 +182,7 @@ identity recovery blocks further publication rather than allocating a replacemen
 > **Retired.** Execute no longer performs GitHub Project/issue lifecycle transitions, run-controller
 > reads, or closure. It accepts one bounded task and an optional exact GitHub issue URL; the issue
 > path is read-only until Commit adds the verified closing reference. The retained `projectStatuses`
-> fields and historical records support Build/Plan mirroring only; see
+> fields support Build/Plan mirroring and explicit Orchestrate Project progress; see
 > [`woostack-execute`](../../../woostack-execute/SKILL.md#retired-inputs).
 
 An explicitly requested provider-backed standalone Plan closure uses only the retained exact
@@ -180,6 +190,19 @@ Project. Independently verify its canonical identity and current state, update o
 state, and read back that same Project as closed. An already-closed Project is an independently
 verified no-op. Do not create a replacement, close issues, alter membership or dependencies, or
 bulk-change resources. An unknown outcome requires fresh discovery before retry.
+
+### Orchestrate lifecycle boundary
+
+After independent submission/spec validation, persist the child delivery evidence using the existing
+[delivery-note mechanism](../../../woostack-commit/references/provider-attribution.md#artifact-delivery-note)
+and independently read it back. Orchestrate owns this note, not its Execute worker; the explicit
+parent-issue invocation permits these scoped note reads/writes without mirror configuration.
+Reuse the same task/PR/head identity on recovery; an unknown note outcome requires discovery before retry.
+
+In explicit Project mode, also set the verified task item's configured `inReview` status and read
+it back. Project synchronization requires explicit selection/configuration and is never a gate for
+parent-issue execution. Report aggregate parent progress from verified child evidence. Neither mode
+closes parent/child issues or the Project, sets Done, removes dependencies, or claims product acceptance.
 
 ## Workflow procedures
 

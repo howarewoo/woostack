@@ -5,7 +5,7 @@
 Codex CLI locally (subagent spawns accept a `model` override); Codex Action in CI
 (single-session, no subagent model overrides).
 Discover official Linear or Plane MCP tools exposed via Codex MCP configuration or host-authenticated
-GitHub CLI (`gh`), selected strictly by `artifacts.provider`. Never use custom HTTP/REST/GraphQL transport or
+GitHub CLI (`gh`) under the selected workflow's artifact admission. Never use custom HTTP/REST/GraphQL transport or
 fallback tokens. Artifact operations follow the canonical
 [artifact backends contract](../../../woostack-init/references/artifact-backends.md).
 
@@ -36,6 +36,12 @@ host — no spawn-time auth probe exists; switch manually by promoting an entry 
 
 ## Per-skill notes
 
+- **woostack-orchestrate (parallel dispatch):** for each schedule packet, dispatch one
+  delivery-capable subagent with the dispatch-prompt worktree pin. Pass `workspace`, `branch`,
+  `parent_branch`, `parent_sha`, child issue URL, and packet `bounded_input`/`acceptance`/`checks`
+  as the complete Execute contract; use the tier routing above and clamp `effective_cap`
+  to real capability, refilling as workers complete. Codex Action's single session cannot fan out
+  and blocks rather than executing inline.
 - **woostack-eval (comparative dispatch):** local Codex can start the two isolated workers in
   each candidate/baseline inseparable pair together and pin the same concrete `model` plus
   `reasoning_effort` on both calls. `session-default` is provable only when both calls omit

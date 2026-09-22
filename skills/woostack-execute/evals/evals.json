@@ -3,6 +3,20 @@
   "skill": "woostack-execute",
   "cases": [
     {
+      "id": "orchestrated-native-child-remains-one-task",
+      "prompt": "Reason only from this supplied snapshot; do not run commands, mutate files, or contact remote services. Orchestrate dispatches Execute with one complete bounded contract for https://github.com/acme/app/issues/11, native child of specification issue 10. The packet contains repository rules, allowed paths, acceptance, checks, an exclusive worktree, exact verified prerequisite branch and start SHA, and parent specification context. No Project or mirror is selected. The parent PR is open, with admitted prerequisite changes contained in the selected branch. Describe Execute's delivery authority and boundaries.",
+      "capabilities": ["read-workspace"],
+      "expected": "Executes only child 11 in its verified workspace, runs focused checks and smoke, commits/pushes/submits through Commit with the child association, and returns exact PR/head/base evidence. Does not require parent PR merge, Project membership or mirror, discover/schedule siblings, implement parent 10, or write parent progress.",
+      "assertions": [
+        {
+          "id": "bounded-child-delivery",
+          "kind": "qualitative",
+          "rubric": "Does Execute retain one-task delivery through Commit for child 11 without adding Project/merge gates or taking over parent/sibling orchestration?",
+          "critical": true
+        }
+      ]
+    },
+    {
       "id": "bounded-task-admission-proceeds",
       "prompt": "Reason only from this supplied snapshot; do not run commands, mutate files, or contact remote services. A caller asks /woostack-execute to make slug.py collapse interior whitespace to hyphens, preserving lowercase and empty-input behavior. The one-PR contract includes allowed paths, non-goals, stable task ID, repository conventions, focused check.py and a whitespace smoke check. Git evidence identifies a clean linked task checkout, main as the intended parent, unchanged admitted start, and no matching PR. There is no issue flag, provider configuration, run manifest, or project. What should Execute do next and what evidence does successful completion need?",
       "capabilities": [

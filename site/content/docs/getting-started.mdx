@@ -90,6 +90,11 @@ ask for approval before changing anything. Provider connectivity checks require 
 Use the workflow map to choose a command for your next task. The configuration reference explains
 how to change repository policy or enable optional provider mirroring.
 
+For an approved GitHub plan, hand the coding agent one exact specification parent issue with native
+PR-sized children using `/woostack-orchestrate --issue <canonical parent issue URL>`. No GitHub
+Project is required. See [Orchestrate](/docs/skills/woostack-orchestrate) for admission, worker
+capabilities, and the explicit Project alternative.
+
 <Cards>
   <Card title="Workflow maps" href="/docs/concepts/workflows" description="Choose Bootstrap, Build, Fix, or Change based on the shape of the work." />
   <Card title="Configuration" href="/docs/configuration" description="Look up repository policy, local run settings, and optional provider mirroring." />
