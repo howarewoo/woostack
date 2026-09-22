@@ -80,9 +80,10 @@ After `project-spec.md` is written (and optional mirror synchronization complete
 failure), invoke [`woostack-plan`](../woostack-plan/SKILL.md) with the readable specification, baseline
 identity, and verified run manifest. When delegated by Build, Plan returns only a candidate graph
 under its [selected-provider invariants](../woostack-plan/SKILL.md#graph-invariants) and performs no
-provider read or mutation. Harden admits the candidate
-into the manifest and reconciles it with repository evidence. Build writes `execution-plan.md` directly
-under the run directory and performs optional bounded mirror synchronization when `artifacts.provider: "linear"`, `artifacts.provider: "plane"`, or `artifacts.provider: "github"`.
+provider read or mutation. Build passes the complete candidate graph and repository evidence to
+public Harden as plain content. Harden returns its reconciled handback without manifest mutation;
+Build admits and persists that handback, writes `execution-plan.md` under the run directory, and
+performs optional bounded mirror synchronization when `artifacts.provider` selects a remote provider.
 
 Apply the [least-code doctrine](../woostack-bootstrap/references/patterns.md#7-least-code--comments)
 at both boundaries. Ideate owns user verification of the complete specification, including technical
