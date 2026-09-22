@@ -31,7 +31,9 @@ identity, never its title or ordinal. Ambiguous, duplicate, or unmatched retaine
 instead of falling through to creation. An explicitly new key retains a `null` mapping and one
 preallocated marker UUID until canonical read-back permits binding.
 
-Normalize blocked-by relations into prerequisite→dependent tuples and admit the complete graph under
+Normalize blocked-by relations into prerequisite→dependent tuples in `[prerequisite, dependent]`
+order: the dependent carries the native edge pointing at the prerequisite (blocking) issue.
+Normalize provider reads back into the same order and verify both endpoint identities under
 the [GitHub graph and parent-selection contract](../../woostack-init/references/artifact-providers/github.md#issue-identity-and-graph).
 Store complete issue identities/revisions/content, membership, and dependency evidence in the manifest.
 Delegated Plan and Harden make zero provider calls while drafting. After `execution-plan.md` is written,

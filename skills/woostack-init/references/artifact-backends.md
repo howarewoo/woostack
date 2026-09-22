@@ -346,7 +346,9 @@ For a non-root task, the caller supplies every declared prerequisite's delivered
 commit, canonical PR head/base, reviews, and available current-head checks as complete parent-readiness evidence; the
 bounded task verifies them as ordinary evidence rather than discovering dependencies. Logical prerequisites
 do not select a Git parent; apply the selected profile's parent-selection policy and require concrete
-parent/SHA ancestry proof before dispatch. Report failed, pending, unavailable, or incomplete checks
+parent/SHA ancestry proof before dispatch. A join with no verified parent containing every required
+predecessor change records that parent/integration decision as unresolved and pauses before dispatch;
+current sequential Execute admission is unchanged. Report failed, pending, unavailable, or incomplete checks
 for observation only. Check outcomes do not mutate prerequisites, choose a base, or create a blocker
 by themselves.
 

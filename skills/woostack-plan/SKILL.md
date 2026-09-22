@@ -107,10 +107,11 @@ admission: ordinal proximity does not prove that a task supplies a command or fi
 When `artifacts.provider: "github"`, including delegated planning for a GitHub mirror, use the
 [GitHub graph and parent-selection contract](../woostack-init/references/artifact-providers/github.md#issue-identity-and-graph).
 Independent roots, forks, chains, and joins are valid. Record each task's complete explicit
-prerequisite set; only those prerequisites become native blocked-by edges. Ordinals are stable
-display/tie-break order, not dependencies or ancestry; gaps or an edge against display order do not
-invalidate an otherwise valid DAG. Preserve existing chain edges unless the approved specification
-explicitly changes them; never add or remove edges merely to match ordinal adjacency.
+prerequisite set; only those prerequisites become native blocked-by edges. Normalize each edge as a
+`[prerequisite, dependent]` tuple and read provider relations back in the same order, verifying both
+endpoint identities. Ordinals are stable display/tie-break order, not dependencies or ancestry; gaps or
+an edge against display order do not invalidate an otherwise valid DAG. Preserve existing chain edges
+unless the approved specification explicitly changes them; never add or remove edges merely to match ordinal adjacency.
 
 A root records its approved integration parent. A dependent records its prerequisites and the policy
 for resolving one concrete Git parent and SHA from verified delivered branches at dispatch.

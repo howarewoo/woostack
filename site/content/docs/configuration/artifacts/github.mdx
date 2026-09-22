@@ -77,13 +77,17 @@ it allocates recovery markers (`<!-- woostack-project-mutation:<UUID> -->` and
 `<!-- woostack-issue-mutation:<UUID> -->`) so later reads can detect an uncertain creation result
 without creating a duplicate.
 
-GitHub plans use explicit prerequisite graphs. Independent roots, forks, chains, and joins are
-valid; only genuine prerequisites become native `blocked-by` edges. Stable ordinals control display
-and tie-breaking, not dependencies or Git ancestry. Existing chain edges are preserved unless the
-approved plan explicitly changes them.
+GitHub plans use explicit prerequisite graphs. Independent roots, forks, chains, and joins are valid;
+only genuine prerequisites become native `blocked-by` edges. Each edge is a `[prerequisite, dependent]`
+tuple: the dependent carries the native edge pointing at the prerequisite (blocking) issue, and reads
+normalize back into the same order with both endpoints verified. Stable ordinals control display and
+tie-breaking, not dependencies or Git ancestry. Existing chain edges are preserved unless the approved plan explicitly changes them.
 
 Each root records its approved integration parent. Dependents record their prerequisites and a
-parent-selection policy; a concrete Git parent and SHA require verified delivered-branch evidence.
+parent-selection policy; a concrete Git parent and SHA require verified delivered-branch evidence
+(branch, commit/SHA, canonical PR head/base, merge state). A GitHub DAG dependent's logical
+prerequisites never select a Git parent by themselves: no checkout starts until Orchestrate records
+one explicit selected parent with ancestry proof containing every required predecessor change.
 A join without one parent containing all required changes remains valid but cannot run until an
 explicit parent/integration decision is made. Planning never creates an automatic integration branch.
 

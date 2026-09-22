@@ -77,7 +77,7 @@ responsibility surfaces, runs, worktrees, branches, and PRs are disjoint.
 
 ### Plan dependency child
 
-A child declares exactly one predecessor as its Git parent. The caller supplies that predecessor's
+A child admitted to Execute declares exactly one predecessor as its Git parent. The caller supplies that predecessor's
 canonical branch identity, complete delivery checkpoint, commit, canonical PR identity/head/base, fully
 paginated current-head reviews, merge state, and approved parent ancestry as complete
 parent-readiness evidence; the bounded task verifies them as ordinary evidence rather than
@@ -89,6 +89,12 @@ rebase, reset, recreate, or attach it to a different branch. Every non-parent
 predecessor must have canonical GitHub merge evidence represented in the child's permitted ancestry.
 Reject inferred order, rewritten heads, open non-parent dependencies, duplicate ancestry, conflicts,
 or partial proof.
+
+For a GitHub DAG dependent, the logical prerequisite set does not select a Git parent. No checkout
+starts until Orchestrate records one explicit selected Git parent branch and SHA with ancestry proof
+containing every required predecessor change; a join without that proof pauses before dispatch and
+stays outside Execute, which still rejects branching, multi-root, or join graphs before worktree,
+source, or provider mutation.
 
 ## 3. Direct identity and collision evidence
 

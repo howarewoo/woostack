@@ -35,10 +35,14 @@ Perform one bounded synchronization in strict order:
    read back its item identity and initialize/read back `planned` Status. Retained items preserve
    their existing status and unrelated fields. Unknown membership outcomes require fresh discovery,
    not a second blind add. A missing retained membership is drift and blocks.
-3. Compare the complete observed edge set with the explicit prerequisite sets. Existing exact edges
-   are no-ops; create only missing declared edges. Remove an edge only for an explicitly approved
-   prerequisite change, never to fit display order. Round-trip both native issue endpoints before
-   each relation mutation and independently read back the affected graph afterward.
+3. Compare the complete observed edge set, normalized as `[prerequisite, dependent]` tuples, with the
+   explicit prerequisite sets. Existing exact tuples are no-ops; create only missing declared edges by
+   adding a native `blocked-by` edge on the dependent pointing at the prerequisite (the dependent is the
+   current issue and the prerequisite is the blocking issue). Remove an edge only for an explicitly approved
+   prerequisite change, never to fit display order. Round-trip both native issue endpoints in their required
+   identity forms before each relation mutation, normalize provider reads back into the same
+   `[prerequisite, dependent]` order, and independently read back the affected graph afterward with both
+   endpoint identities verified.
 
 Apply the [canonical graph preflight and recovery rules](../../woostack-init/references/artifact-providers/github.md#issue-identity-and-graph)
 before every create, membership, or edge mutation. Unknown issue creates retain the same marker UUID
@@ -47,8 +51,9 @@ binding through run-store CAS before advancing; standalone Plan retains its stab
 creating a Build/Fix run.
 
 Finally independently read every issue contract, canonical/native mapping, direct membership, and
-all dependency pages. Require exact prerequisite→dependent tuples, not an edge count. Only a complete
-match sets `mirror.status = "synced"`; otherwise record failure without changing local artifacts.
+all dependency pages. Require exact `[prerequisite, dependent]` tuples with both endpoint identities
+verified, not an edge count. Only a complete match sets `mirror.status = "synced"`; otherwise record
+failure without changing local artifacts.
 Repeating synchronization of an unchanged admitted graph performs no provider mutations.
 
 ## Standalone plan
@@ -57,9 +62,10 @@ Standalone `woostack-plan` with `artifacts.provider: "github"` requires an exact
 verifies canonical repository association (rejecting foreign repositories), updates the managed README section and
 `shortDescription`, reads both back, then reconciles exactly one parentless direct repository issue
 (`parent = null`) per admitted task with direct Project membership and only the admitted prerequisite
-`blocked-by` edges. It applies the same retained-or-new reconciliation, preflight, stable-identity
+`blocked-by` edges (each `[prerequisite, dependent]` tuple maps to one native edge on the dependent pointing
+at the prerequisite). It applies the same retained-or-new reconciliation, preflight, stable-identity
 recovery, preservation, parent-policy, and complete independent graph read-back above, accepts only a
-complete exact predecessor→successor match, and owns no execution authorization.
+complete exact prerequisite→dependent match, and owns no execution authorization.
 
 ## Delivery notes and abandonment
 

@@ -46,11 +46,11 @@ without silently rebasing, resetting, or recreating it.
 | --- | --- | --- |
 | Standalone task | latest compatible tip of the integration branch | integration branch |
 | Independent feature root | latest compatible tip of the approved parent branch | approved parent branch |
-| Dependency child | latest compatible tip/head of its declared Git parent | declared parent branch |
+| Dependency child admitted to Execute | latest compatible tip/head of its declared Git parent | declared parent branch |
 
-A changed branch identity, rewritten history, conflict, duplicate ancestry, delivery-evidence
-mismatch, or missing required evidence stops the task. Titles, nearby branches, artifact links, and
-task order cannot replace approved dependencies and verified Git ancestry.
+A GitHub DAG dependent's logical prerequisites never select a Git parent by themselves. No checkout
+starts until Orchestrate records one explicit selected parent with ancestry proof containing every
+required predecessor change; an unresolved join pauses before dispatch and stays outside Execute.
 
 ## The primary tree stays clean
 

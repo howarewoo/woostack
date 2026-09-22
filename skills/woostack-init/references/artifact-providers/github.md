@@ -50,7 +50,12 @@ Every increment has a unique stable task ID, a unique positive display ordinal, 
 predecessor set naming admitted task IDs. Ordinals are stable display and tie-break order only; they are not
 dependency or ancestry order, and gaps or edges against display order do not invalidate the graph.
 Independent roots, forks, chains, and joins are valid; only declared predecessors become native
-`blocked-by` edges. An exact Fix source issue is read-only context; after admission it receives only one direct Project link.
+`blocked-by` edges. Normalize every edge as one prerequisite→dependent tuple in `[prerequisite, dependent]`
+order. A tuple maps to exactly one native `blocked-by` edge on the dependent pointing at the prerequisite:
+the dependent is the current issue and the prerequisite is the blocking issue. Normalize provider reads
+back into the same `[prerequisite, dependent]` order and require independent read-back to verify both
+endpoint identities, not an edge count. An exact Fix source issue is read-only context; after admission it
+receives only one direct Project link.
 
 Admission validates the complete graph before persistence or provider mutation and rejects duplicate
 task IDs, ordinals or prerequisites, self-dependencies, cycles, missing endpoints, ambiguous identities, incomplete
@@ -62,7 +67,8 @@ A root records the approved integration parent branch. Each dependent records it
 set and a parent-selection policy for resolving one concrete Git parent branch and SHA from verified
 delivered predecessor branches at dispatch. The concrete branch and SHA are resolved by future
 Orchestrate, never speculatively by Plan and never as an auto-created integration branch or artificial
-chain. One verified parent must contain all required predecessor changes. A join lacking that proof
+chain. One verified parent must contain all required predecessor changes, proved by delivered branch,
+commit/SHA, canonical PR head/base, and merge-state evidence. A join lacking that proof
 remains valid but pauses that issue for an explicit parent/integration decision before dispatch.
 
 Ordinal edits never change edges. Existing chain edges are preserved unless the approved specification

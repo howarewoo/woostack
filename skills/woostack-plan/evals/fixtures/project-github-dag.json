@@ -163,6 +163,11 @@
     "task-c": null,
     "task-d": null
   },
+  "edgeNotation": {
+    "order": ["prerequisite", "dependent"],
+    "nativeMapping": "Each [prerequisite, dependent] pair maps to one native blocked-by edge on the dependent (current issue) pointing at the prerequisite (blocking issue).",
+    "readback": "Provider dependency reads are normalized into the same [prerequisite, dependent] order with both endpoint identities verified, not an edge count."
+  },
   "cycles": [
     {
       "events": [
@@ -1301,7 +1306,8 @@
           ]
         }
       ],
-      "selectedParent": null
+      "selectedParent": null,
+      "parentDecision": "unresolved: no verified parent contains both task-b and task-c changes; explicit parent/integration decision required before dispatch"
     }
   }
 }
