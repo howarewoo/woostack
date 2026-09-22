@@ -343,14 +343,15 @@ to the compared tips and assessed work. Admission never bypasses ancestry, colli
 or PR-base safeguards, and never authorizes silently rebasing, resetting, or recreating retained work.
 
 For a non-root task, the caller supplies every declared prerequisite's delivered checkpoint,
-commit, canonical PR head/base, reviews, and available current-head checks as complete parent-readiness evidence; the
-bounded task verifies them as ordinary evidence rather than discovering dependencies. Logical prerequisites
-do not select a Git parent; apply the selected profile's parent-selection policy and require concrete
-parent/SHA ancestry proof before dispatch. A join with no verified parent containing every required
-predecessor change records that parent/integration decision as unresolved and pauses before dispatch;
-current sequential Execute admission is unchanged. Report failed, pending, unavailable, or incomplete checks
-for observation only. Check outcomes do not mutate prerequisites, choose a base, or create a blocker
-by themselves.
+commit, canonical PR head/base, reviews, and available current-head checks as complete parent-readiness
+evidence; the bounded task verifies them as ordinary evidence rather than discovering dependencies.
+Keep that logical prerequisite set separate from the exactly one concrete Git parent used for checkout.
+Apply the selected profile's parent-selection policy and require recorded parent-branch/SHA ancestry
+proof that contains every required predecessor before dispatch. A join without that proof records the
+parent/integration decision as unresolved and pauses for an explicit decision; it must not invent an
+integration branch or ordinal chain. Current sequential Execute admission is unchanged.
+Report failed, pending, unavailable, or incomplete checks for observation only. Check outcomes do not
+mutate prerequisites, choose a base, or create a blocker by themselves.
 
 When a non-local provider is selected, a completed local artifact may be mirrored in one bounded
 cycle. Immediately re-read the exact project, every retained direct resource, complete memberships

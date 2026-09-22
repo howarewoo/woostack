@@ -52,8 +52,9 @@ dependency or ancestry order, and gaps or edges against display order do not inv
 Independent roots, forks, chains, and joins are valid; only declared predecessors become native
 `blocked-by` edges. Normalize every edge as one prerequisite→dependent tuple in `[prerequisite, dependent]`
 order. A tuple maps to exactly one native `blocked-by` edge on the dependent pointing at the prerequisite:
-the dependent is the current issue and the prerequisite is the blocking issue. Normalize provider reads
-back into the same `[prerequisite, dependent]` order and require independent read-back to verify both
+the second identity is GitHub's current dependent issue and the first is its `blockedBy` issue.
+Read both native endpoint collections independently and normalize them back into the same
+`[prerequisite, dependent]` order before comparing the complete edge set. Require read-back to verify both
 endpoint identities, not an edge count. An exact Fix source issue is read-only context; after admission it
 receives only one direct Project link.
 

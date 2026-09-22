@@ -38,7 +38,7 @@ Perform one bounded synchronization in strict order:
 3. Compare the complete observed edge set, normalized as `[prerequisite, dependent]` tuples, with the
    explicit prerequisite sets. Existing exact tuples are no-ops; create only missing declared edges by
    adding a native `blocked-by` edge on the dependent pointing at the prerequisite (the dependent is the
-   current issue and the prerequisite is the blocking issue). Remove an edge only for an explicitly approved
+   current issue and the prerequisite is its `blockedBy` issue). Remove an edge only for an explicitly approved
    prerequisite change, never to fit display order. Round-trip both native issue endpoints in their required
    identity forms before each relation mutation, normalize provider reads back into the same
    `[prerequisite, dependent]` order, and independently read back the affected graph afterward with both
