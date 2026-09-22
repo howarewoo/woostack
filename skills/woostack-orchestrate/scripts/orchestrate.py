@@ -340,6 +340,15 @@ def workspace_identity(repo, canonical, workspace, branch):
     return {"workspace": str(path), "branch": actual_branch, "head_sha": head}
 
 
+def fresh_workspace_state(workspace, parent_sha, head_sha):
+    """Allow fresh dispatch only for an untouched checkout at its selected parent."""
+    require(head_sha == parent_sha, "workspace-unclaimed",
+            "existing task workspace contains commits without task ownership evidence")
+    status = git(workspace, "status", "--porcelain=v2", "--untracked-files=all").decode()
+    require(not status, "workspace-unclaimed",
+            "existing task workspace contains uncommitted or conflicted changes without task ownership evidence")
+
+
 def allocation_collision(repo, canonical, allocation, inventory, state, task_id):
     workspace = Path(allocation["workspace"]).resolve()
     branch = allocation["branch"]
@@ -761,6 +770,7 @@ def cmd_schedule(args):
                                              reservation["workspace"], reservation["branch"])
                 require(contains(reservation["workspace"], reservation["parent_sha"], current["head_sha"]),
                         "wrong-ancestry", "existing task workspace does not contain selected parent")
+                fresh_workspace_state(reservation["workspace"], reservation["parent_sha"], current["head_sha"])
             except InputError as error:
                 blocked.append({"task_id": tid, "reason": getattr(error, "code", "workspace-conflict")})
                 continue

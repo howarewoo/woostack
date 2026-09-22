@@ -507,6 +507,53 @@ class OrchestrateBehavior(unittest.TestCase):
             [item for item in output["blocked"] if item["task_id"] == "task-b"],
         )
 
+    def test_fresh_reuse_blocks_unowned_dirty_existing_worktree(self) -> None:
+        snapshot = self._single_task_snapshot()
+        task = snapshot["children"][0]
+        workspace = self.tmp / "existing-dirty"
+        branch = "host/reused-dirty"
+        git(self.repo, "worktree", "add", "-q", "-b", branch, str(workspace), self.base_sha)
+        task["workspace"] = str(workspace)
+        task["branch"] = branch
+        (workspace / "staged.txt").write_text("staged user state\n", encoding="utf-8")
+        git(workspace, "add", "staged.txt")
+        (workspace / "dirty.txt").write_text("uncommitted user state\n", encoding="utf-8")
+
+        admitted_path, admitted = self._admit_issue(snapshot)
+        _, output = self._schedule(admitted_path, admitted, None, snapshot, "fresh-dirty", cap="1")
+
+        self.assertEqual(output["dispatch"], [], output)
+        self.assertEqual(
+            [{"task_id": "task-a", "reason": "workspace-unclaimed"}],
+            [item for item in output["blocked"] if item["task_id"] == "task-a"],
+        )
+        self.assertTrue((workspace / "staged.txt").exists())
+        self.assertTrue((workspace / "dirty.txt").exists())
+
+    def test_fresh_reuse_blocks_unowned_committed_existing_branch(self) -> None:
+        snapshot = self._single_task_snapshot()
+        task = snapshot["children"][0]
+        workspace = self.tmp / "existing-committed"
+        branch = "host/reused-committed"
+        git(self.repo, "worktree", "add", "-q", "-b", branch, str(workspace), self.base_sha)
+        task["workspace"] = str(workspace)
+        task["branch"] = branch
+        (workspace / "unrelated.txt").write_text("unrelated user commit\n", encoding="utf-8")
+        git(workspace, "add", "unrelated.txt")
+        git(workspace, "commit", "-m", "Unrelated retained work")
+
+        admitted_path, admitted = self._admit_issue(snapshot)
+        _, output = self._schedule(admitted_path, admitted, None, snapshot, "fresh-committed", cap="1")
+
+        self.assertEqual(output["dispatch"], [], output)
+        self.assertEqual(
+            [{"task_id": "task-a", "reason": "workspace-unclaimed"}],
+            [item for item in output["blocked"] if item["task_id"] == "task-a"],
+        )
+        self.assertNotEqual(git(workspace, "rev-parse", "HEAD"), self.base_sha)
+        self.assertTrue((workspace / "unrelated.txt").exists())
+
+
     def test_runtime_rejects_unlinked_clone_even_with_matching_remote_and_branch(self) -> None:
         clone = self.tmp / "external-clone"
         self._run(["git", "clone", "-q", str(self.repo), str(clone)])
@@ -1025,6 +1072,7 @@ class OrchestrateBehavior(unittest.TestCase):
         self.assertNotIn(".woostack", retained_workspace.parts)
         self.assertEqual(retained["reservation"]["branch"], "feature/task-a")
         self.assertEqual(git(retained_workspace, "status", "--porcelain"), "")
+        self.assertNotEqual(git(retained_workspace, "rev-parse", "HEAD"), self.base_sha)
         snapshot = self.github.snapshot()
         admitted_path, admitted = self._admit_issue(snapshot)
         state, resumed = self._schedule(admitted_path, admitted, None, snapshot, "resume-valid", cap="1")
