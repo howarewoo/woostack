@@ -9,8 +9,9 @@ Turn one approved specification into one complete execution plan. Standalone Pla
 GitHub specification parent, GitHub Project, Linear project, or canonical Plane repository project,
 derives and hardens a candidate graph, synchronizes the selected hierarchy and dependencies,
 independently reads them back, and returns the verified result. When
-delegated by Build or project-backed Fix, Plan instead drafts the same complete candidate into the
-owning workflow's run-scoped manifest with zero provider calls and returns before synchronization.
+delegated by Build or project-backed Fix, Plan instead returns the same complete candidate as plain
+content with zero provider calls or manifest writes. The wrapper owns admission and persistence
+after public Harden returns its reconciled handback.
 ## Command
 
 ```text
@@ -51,9 +52,9 @@ to identify that same native project. Wrong resource type, missing selected reso
 incomplete read, or conflicting content blocks before mutation.
 There is no fuzzy-discovery or alternate-provider path. Standalone Plan also reads the repository,
 canonical parent branch and last admitted tip, existing patterns, and relevant tests.
-Build/Fix-delegated Plan instead obeys the shared
-[manifest contract](../woostack-init/references/artifact-backends.md#minimal-resumable-manifest-schema);
-it reads no provider context or synchronization procedure during the delegated phase.
+For Build/Fix-delegated Plan, the wrapper owns the shared
+[manifest contract](../woostack-init/references/artifact-backends.md#minimal-resumable-manifest-schema).
+Plan consumes its plain packet and reads no provider context or synchronization procedure.
 Repository parent-tip admission follows the shared
 [repository ancestry contract](../woostack-init/references/artifact-backends.md#repository-ancestry-and-base-change-detection);
 Plan owns the approved root parent intent, dependent parent-selection policy, and last-admitted-tip handoff.
@@ -189,8 +190,9 @@ outcomes for recovery without allocating replacements. This standalone synchroni
 provider-owned, owns no approval gate, and does not use the Build/Fix run manifest.
 
 When delegated by Build or Fix, stop before every provider read or synchronization. Return the
-complete manifest-backed candidate contracts and selected graph to the wrapper. The wrapper hardens
-the manifest, writes `execution-plan.md`, displays every concise stable task and dependency mapping,
+complete candidate contracts and selected graph as plain content to the wrapper. The wrapper passes
+that content to public Harden, then admits and persists its reconciled handback, writes
+`execution-plan.md`, displays every concise stable task and dependency mapping,
 and owns optional post-drafting mirror synchronization (when `artifacts.provider: "linear"`,
 `artifacts.provider: "plane"`, or `artifacts.provider: "github"`) and exact read-back.
 
@@ -202,7 +204,7 @@ verification strategy, read-back evidence, provider mutation/read counts, and st
 identities. Parent mode includes the canonical specification parent separately from its child task
 index, plus actual verified objects and missing relations after partial publication. A parent with
 no planned tasks is reported as no work, not an executable increment or completed delivery.
-Delegated Plan returns its run/process/manifest identity and makes no provider claim. No execution claim.
+Delegated Plan returns the complete candidate and supplied wrapper correlation identity, with no provider or execution claim.
 
 ## Hard constraints
 
