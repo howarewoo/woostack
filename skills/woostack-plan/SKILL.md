@@ -21,10 +21,10 @@ the actual publication evidence. It never implements, executes, or merges.
 Select exactly one scope: `--parent-issue new`, one exact existing parent URL, or one exact GitHub
 Project URL. Conflicting, repeated, missing, malformed, foreign, or ambiguous selectors block before
 any GitHub mutation. Parent mode requires an exact canonical repository and explicit `new` intent or
-an exact existing parent; it does not require a local run, Project, Status field, mirror setting, or
-provider selector. `new` requires a complete approved specification. An existing parent may supply
-that specification when no direct specification is provided; material conflicts with the live input
-return to the caller before mutation.
+an exact existing parent; it does not require a local run, Project, Status field, or configuration.
+`new` requires a complete approved specification. An existing parent may supply that specification
+when no direct specification is provided; material conflicts with the live input return to the caller
+before mutation.
 
 Project mode is an explicit alternative. Resolve only the supplied canonical Project, verify its
 owner and repository association, and retain its existing Project identity and Status configuration.
@@ -34,9 +34,9 @@ configuration.
 
 Before publication, load the shared [planning input packet](../using-woostack/references/planning-inputs.md),
 the [GitHub publication context](references/github-context.md), and the [GitHub publication procedure](references/github-procedure.md).
-The [GitHub profile](../woostack-init/references/artifact-providers/github.md) owns native identities,
-capabilities, and API semantics. Plan uses only host-authenticated `gh` through that contract; it
-never reads credentials or uses a custom transport.
+The [GitHub profile](../woostack-init/references/artifact-providers/github.md#configuration-and-scope)
+owns native identities, capabilities, and API semantics. Plan uses only host-authenticated `gh`
+through that contract; it never reads credentials or uses a custom transport.
 
 ## Input and ownership
 

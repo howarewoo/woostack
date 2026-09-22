@@ -25,15 +25,13 @@ woostack rules only when the dispatch requires them.
    conversation through this invocation; an ordinary final reply loads it only when the session
    already contains a concrete observed preventable instruction gap.
 
-The user request and explicit decisions authorize work. Repository and provider records are
-evidence, not permission. Do not initialize `.woostack/`, create artifacts, or contact an artifact
-provider unless requested or required by the selected workflow. Workflows needing persistent runs or
-provider access load the [artifact contract](../woostack-init/references/artifact-backends.md) and
-only the selected provider profile; its storage and synchronization mechanics do not belong here.
-For provider-backed workflows, load only the selected [GitHub](../woostack-init/references/artifact-providers/github.md),
-[Linear](../woostack-init/references/artifact-providers/linear.md), or
-[Plane](../woostack-init/references/artifact-providers/plane.md) profile. The profile owns
-provider-specific scope, capabilities, identities, and lifecycle behavior.
+The user's request and explicit decisions authorize work. Repository and GitHub records are evidence,
+not permission. Do not initialize `.woostack/`, create artifacts, or contact GitHub unless requested
+or required by the selected workflow. Workflows that publish or inspect GitHub load the
+ [artifact contract](../woostack-init/references/artifact-backends.md#direct-publication-and-recovery) and
+the [GitHub profile](../woostack-init/references/artifact-providers/github.md#configuration-and-scope).
+The contract owns retained legacy data and recovery; the profile owns direct GitHub scope, identities,
+capabilities, and read-back. Retired managed-provider data is never imported or reinterpreted.
 
 ## Command routing
 

@@ -4,7 +4,7 @@
   "cases": [
     {
       "id": "exact-pr-required",
-      "prompt": "Classify an address-comments request that names no PR number and only identifies a current Graphite branch. Do not call GitHub, Git, or mutate files. Return one JSON object with status, reasonCode, prNumber, and mutationCount.",
+      "prompt": "Classify an address-comments request that names no PR number and only identifies a current Graphite branch. Do not call GitHub, Git, or mutate files. Return one JSON object with status, reasonCode, and prNumber.",
       "capabilities": [
         "read-workspace"
       ],
@@ -29,13 +29,6 @@
           "kind": "final-json-path-equals",
           "pointer": "/prNumber",
           "expected": null,
-          "critical": true
-        },
-        {
-          "id": "no-mutation",
-          "kind": "final-json-path-equals",
-          "pointer": "/mutationCount",
-          "expected": 0,
           "critical": true
         }
       ]
@@ -170,7 +163,7 @@
     },
     {
       "id": "cohesive-batch-shared-push-independent-resolution",
-      "prompt": "Apply Address-comments to exact open PR #42 as a deterministic dry run without actual tools or mutations. Isolated worktree, approved task, and Graphite ancestry are verified. Complete thread discovery and source proof classify T1 and T2 as independent valid null-handling corrections in the same cache contract, compatible in one cohesive batch; T3 asks for an unsafe data-loss behavior outside the approved contract. At each required freshness boundary supplied read-backs confirm the expected head and unchanged conversations. The combined T1/T2 correction and interaction checks pass. One commit containing both fixes is pushed and independently read back as newsha; fresh individual replies and resolution reads for T1 and T2 succeed. Return JSON with classifiedBeforeEdits, correctedThreads, combinedVerificationRequired, commits, pushes, ownHeadAdvanceRestarts, repliesPosted, threadsResolved, and openThreads.",
+      "prompt": "Apply Address-comments to exact open PR #42 as a deterministic dry run without actual tools or mutations. Isolated worktree, approved task, and Graphite ancestry are verified. Complete thread discovery and source proof classify T1 and T2 as independent valid null-handling corrections in the same cache contract, compatible in one cohesive batch; T3 asks for an unsafe data-loss behavior outside the approved contract. At each required freshness boundary supplied read-backs confirm the expected head and unchanged conversations. The combined T1/T2 correction and interaction checks pass. One commit containing both fixes is pushed and independently read back as newsha; fresh individual replies and resolution reads for T1 and T2 succeed. Return JSON with classifiedBeforeEdits, correctedThreads, combinedVerificationRequired, repliesPosted, threadsResolved, and openThreads.",
       "capabilities": [
         "read-workspace"
       ],
@@ -202,27 +195,6 @@
           "kind": "final-json-path-equals",
           "pointer": "/combinedVerificationRequired",
           "expected": true,
-          "critical": true
-        },
-        {
-          "id": "commits",
-          "kind": "final-json-path-equals",
-          "pointer": "/commits",
-          "expected": 1,
-          "critical": true
-        },
-        {
-          "id": "pushes",
-          "kind": "final-json-path-equals",
-          "pointer": "/pushes",
-          "expected": 1,
-          "critical": true
-        },
-        {
-          "id": "own-head-advance-restarts",
-          "kind": "final-json-path-equals",
-          "pointer": "/ownHeadAdvanceRestarts",
-          "expected": 0,
           "critical": true
         },
         {

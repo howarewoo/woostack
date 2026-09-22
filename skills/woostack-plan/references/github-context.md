@@ -3,13 +3,13 @@
 `woostack-plan` publishes directly to one exact GitHub scope. Parent mode needs only a verified
 canonical repository and an explicit `--parent-issue new` or existing-parent URL. Explicit Project
 mode resolves one exact supplied Project and applies its Project-specific settings. A caller's local
-run, mirror setting, provider selector, or retained artifact is never required for parent publication
-and never becomes a second authority.
+run, retained record, or unrelated configuration is never required for parent publication and never
+becomes a second authority.
 
-The shared [artifact contract](../../woostack-init/references/artifact-backends.md) and [GitHub
-profile](../../woostack-init/references/artifact-providers/github.md) own common identity,
-capability, pagination, mutation, recovery, and read-back rules. The [GitHub publication procedure](github-procedure.md)
-owns Plan's direct synchronization.
+The shared [artifact contract](../../woostack-init/references/artifact-backends.md#direct-publication-and-recovery)
+and [GitHub profile](../../woostack-init/references/artifact-providers/github.md#configuration-and-scope)
+own common identity, capability, pagination, mutation, recovery, and read-back rules. The [GitHub
+publication procedure](github-procedure.md) owns Plan's direct synchronization.
 
 ## Repository and scope resolution
 
@@ -59,7 +59,7 @@ replacement identity. A missing link on a retained child is drift, not permissio
 The caller supplies complete specification, candidate content when available, repository identity,
 admitted immutable baseline, and evidence identity through the shared [planning input packet](../../using-woostack/references/planning-inputs.md).
 Plan validates command/path provenance before publication and uses public Harden once for candidate
-reconciliation. Repository conventions or provider responses can expose a discrepancy but cannot
+reconciliation. Repository conventions or GitHub responses can expose a discrepancy but cannot
 silently answer a user-owned decision.
 
 Immediately before each write, re-read the admitted scope and preserve unrelated human content. A

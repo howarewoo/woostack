@@ -121,11 +121,11 @@ merge and never grants human-only merge authority.
 Graphite mode uses its guarded stack restack path. Neither mode may force-push; a rewritten
 published head requiring a non-fast-forward push blocks for human resolution.
 
-## Optional artifact context and return
+## Optional GitHub issue context and return
 
-An exact caller-selected provider artifact may be carried as context or receive a delivery note
-under [provider-attribution.md](provider-attribution.md). It never selects the branch, worktree,
-parent, commit, PR, or submission authority.
+An exact caller-selected GitHub issue may be carried as context or receive a delivery note under
+[provider-attribution.md](provider-attribution.md). It never selects the branch, worktree, parent,
+commit, PR, or submission authority.
 
 Return selected mode, exact worktree, branch, parent/base, commit SHA/message/diff identity,
 PR URL/head/base (or `not submitted`), and the first unknown boundary. Never claim a history or

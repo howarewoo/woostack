@@ -148,16 +148,16 @@
     },
     {
       "id": "child-closing-reference",
-      "prompt": "Reason only from the supplied snapshot. Do not run commands, mutate files, or contact remote services. Parent P=10 supplies specification context; Execute implements native child A=11. artifacts.provider is local and no Project exists. The verified task PR body has Resolves https://github.com/acme/app/issues/10 instead of child 11. What must validation require?",
+      "prompt": "Reason only from the supplied snapshot. Do not run commands, mutate files, or contact remote services. Parent P=10 supplies specification context; Execute implements native child A=11. no Project configuration or membership exists. The verified task PR body has Resolves https://github.com/acme/app/issues/10 instead of child 11. What must validation require?",
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "Rejects parent-closing association, requires exactly the independently verified child URL as the task closing reference and readback, and does not require a Project/mirror or put hierarchy discovery inside Execute/Commit.",
+      "expected": "Rejects parent-closing association, requires exactly the independently verified child URL as the task closing reference and readback, and does not require a Project or remote artifact publication or put hierarchy discovery inside Execute/Commit.",
       "assertions": [
         {
           "id": "child-closing-reference-boundary",
           "kind": "qualitative",
-          "rubric": "Does the response apply this contract: Rejects parent-closing association, requires exactly the independently verified child URL as the task closing reference and readback, and does not require a Project/mirror or put hierarchy discovery inside Execute/Commit?",
+          "rubric": "Does the response apply this contract: Rejects parent-closing association, requires exactly the independently verified child URL as the task closing reference and readback, and does not require a Project or remote artifact publication or put hierarchy discovery inside Execute/Commit?",
           "critical": true
         }
       ]

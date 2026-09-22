@@ -1,213 +1,100 @@
-# GitHub artifact provider profile
+# GitHub direct publication profile
 
-This profile implements the provider-specific side of the shared
-[local run artifact and provider mirror contract](../artifact-backends.md). Load it for direct
-`woostack-plan` GitHub publication, explicitly selected `artifacts.provider: "github"` workflows,
-or explicit Orchestrate parent-issue execution; Orchestrate loads only hierarchy, dependency,
-identity, and delivery-note rules, not Project/mirror configuration.
-The shared contract owns authority, local artifacts, ordering,
-recovery, failure handling, and read-back invariants; this profile owns GitHub identities, owner and
-selected Project or specification-parent admission, native issue hierarchy, blocked-by dependencies,
-and Project membership/Status lifecycle mappings where a Project is selected.
+This profile owns GitHub identities, exact scope, native issue hierarchy, prerequisite edges, Project
+membership/Status operations, and direct-publication recovery. The shared [artifact contract](../artifact-backends.md)
+owns local authority, retained data, filesystem safety, ordering, and independent read-back. There is
+no provider selector and no remote mirror of a local plan.
 
 ## Configuration and scope
 
-Select the scope before resolving scope-specific configuration. Parent-issue planning requires an
-exact canonical GitHub repository and an explicit `--parent-issue new` or canonical existing-parent
-URL; it does not require a provider selector, Project configuration, or Status fields. A configured
-`owner` must match the canonical repository when one is supplied. Explicit Project mode requires a
-validated `artifacts.github` object containing `owner` and `projectStatuses`, plus optional `ownerType`
-(`"organization"` | `"user"`), `statusField` (default `"Status"`), and `visibility`
-(`"private"` | `"public"`, default `"private"`). `projectStatuses` maps exactly five unique option
-names: `planned`, `executing`, `inReview`, `done`, and `blocked`.
+The optional canonical policy is the top-level `github` object described by
+[canonical GitHub configuration](../artifact-backends.md#canonical-github-configuration). It contains
+only `owner`, `ownerType`, `statusField`, and `projectStatuses`; `visibility` is not a setting. The
+resolver validates this object once. Existing Projects retain and report their actual visibility.
 
-Use only the host-authenticated official `gh` CLI (`gh api graphql` for Projects v2 and dependencies;
-issue APIs for repository issues). Custom HTTP/REST/GraphQL clients, credential reads, and token forwarding
-remain forbidden. Scope operations strictly to the canonical repository and explicitly selected
-parent issue or Project; parent selection never selects a Project or provider mirroring.
-When GitHub is selected, Init may use `gh` only for narrow read-only discovery of owner, owner type,
-canonical repository, and Status field/options without selecting persistence or mutating GitHub.
+Select the exact GitHub scope before any provider read or write:
 
-## Capabilities
+- Plan parent-issue publication uses the canonical repository plus `--parent-issue new` or one
+  exact existing parent issue URL; Orchestrate parent execution uses `--issue <exact-parent-url>`.
+  Neither path requires `github`, a Project, Status configuration, or Project capabilities.
+- Explicit Project operations require one exact caller-supplied Project and the actual Project
+  mappings/capabilities needed by that operation. They never infer a Project from configuration,
+  create a destination from a goal, or treat a missing Project capability as a parent-mode failure.
+- Exact issue association is read-only context until the owning Commit path records its verified
+  closing reference. It never selects a publication destination.
 
-Prove each operation's capabilities independently through host-authenticated `gh`: issue reads/writes,
-native parent/sub-issue reads/writes, dependency reads/writes, terminal pagination, and independent
-read-back. Issue-write access alone does not prove sub-issue or dependency-write access. Before
-publication, preflight every required write family without a test mutation; unsupported or unknown
-capability blocks. Project read/write, membership, and Status capabilities are required only for
-selected Project operations. Unavailable Project access does not block parent-only planning or
-explicitly selected Orchestrate parent-hierarchy reads.
+Use an authorized native GitHub capability when the host exposes a suitable interface; the
+host-authenticated `gh` CLI is supported. Do not invent tool names, read credentials, forward tokens,
+or add another transport layer. Scope every operation to the canonical repository and exact selected
+parent, issue, or Project.
 
-Use GitHub's [native sub-issue API](https://docs.github.com/en/rest/issues/sub-issues) through `gh api`.
-`GET repos/{owner}/{repo}/issues/{number}/sub_issues` must exhaust all pages; read the actual
-parent independently (`GET .../parent` or an explicitly selected nullable GraphQL `parent`).
-An HTTP error is not proof of `parent = null`. `POST .../sub_issues` takes the child's numeric
-REST `id` as `sub_issue_id`, not its issue number or GraphQL node ID. Never set `replace_parent`
-to true. API permission to link another repository's issue does not widen the canonical-repository
-scope. Require native reads in both directions after a link write.
+## Capabilities and native graph
 
-## Projects and labels
+Prove the minimum capabilities for the selected operation independently. Issue reads/writes do not
+prove native sub-issue or dependency writes. Project reads/writes, membership, and Status capabilities
+are required only for explicit Project operations. Unknown, partial, foreign, or unavailable
+capabilities fail closed at that operation; unrelated writes need not be available for Doctor's fixed
+read-only receipt.
 
-Owner admission verifies `artifacts.github.owner` login, type, and node ID. Explicit Project workflows
-resolve one exact supplied Project; they do not create a Project from a goal. Prepare and parent-issue
-Plan do not require Project configuration or provider mirroring. Selected Projects retain existing
-visibility and configuration. Direct and composed Plan calls use the same exact Project selection.
+Use GitHub's native sub-issue API through the admitted host interface. Exhaust every page, read the
+parent independently, and pass a child's numeric REST `id` when linking. Never use an HTTP error as
+proof that a parent is null and never set `replace_parent` to true. Read both sides after a link write.
 
-The specification is written inside `ProjectV2.readme` between markers `<!-- woostack-spec-start -->` and
-`<!-- woostack-spec-end -->`, preserving unrelated README bytes. Every Project create preallocates one UUID
-and embeds `<!-- woostack-project-mutation:<UUID> -->` in the managed section for duplicate-safe discovery
-and recovery. Projects v2 does not require project labels; repository labels and existing views are preserved.
+Normalize each prerequisite as `[prerequisite, dependent]`. Read both endpoint collections completely,
+verify repository and scope, then write only the declared edge and independently read both endpoint
+identities back. Do not flatten nested containers, infer missing edges from prose, or silently adopt a
+foreign issue.
 
-## Specification parent and native children
+Planning and orchestration normalize every direct child with a stable task identity, a positive
+ordinal, and a complete declared predecessor set. Ordinals are display/order metadata, not an
+implicit dependency chain. Reject duplicate or missing task identities, foreign predecessor
+references, self-dependencies, cycles, and edges whose endpoints were not independently read in
+the admitted exact scope. A blocked external prerequisite remains blocked; it never widens the
+scope or becomes an invented task.
 
-Direct and composed Plan calls explicitly select `--parent-issue new` or one canonical existing parent issue URL,
-exclusive with `--project`. Verify canonical repository/owner/native identities from trusted Git and
-GitHub evidence. For an existing parent, independently read its open issue state (not a PR), actual
-parent, complete body and relevant comments, every native sub-issue page, and every child's actual
-parent, identity, full contract, dependency pages, and existing delivery evidence. Require a
-top-level specification parent (`parent = null`) and one level of direct PR-sized children.
-Nested containers, foreign/conflicting parents, missing expected children, incomplete pagination,
-duplicate task mappings, or ambiguous identity block before mutation. Do not silently flatten,
-skip work, infer a parent from omission, or convert a historical Project plan.
+## Direct issue publication
 
-Explicit Orchestrate parent-issue admission reuses these exact canonical/native hierarchy reads but
-does not require a GitHub Project, Project membership, Status configuration, or provider mirror. It
-reads the selected parent and fully paginated direct children, each child's actual parent, contract,
-prerequisites, and delivery evidence; it never broadens scope, runs the specification parent, or
-changes hierarchy or lifecycle state. A missing or unavailable Project capability is irrelevant in
-this mode.
+Plan publishes the complete specification and one-level PR-sized children directly to the exact new
+or existing parent, or synchronizes only the exact explicit Project span. A specification parent is
+not an executable task. Existing unrelated issue fields, Project state, labels, views, parent links,
+and historical resources are preserved. Publication never closes issues or Projects, changes product
+acceptance, or grants merge authority.
 
-The parent retains the approved specification, constraints, non-goals, overall acceptance,
-inspected repository revision, and canonical child task index. Each child carries the canonical
-parent URL and the full [Plan task contract](../../../woostack-plan/SKILL.md#direct-issue-contract).
-The readable index and `Parent: #N` prose are not native membership evidence. New publication may
-fill explicitly planned missing links only for newly allocated children under the synchronization
-procedure; missing retained links are drift, not permission to adopt unrelated issues.
+For an existing parent, read its open issue state, actual parent, complete body/comments, every native
+child page, each child's actual parent, contract, prerequisite pages, and delivery evidence before any
+mutation. Require a top-level parent (`parent = null`), complete pagination, unique task identities,
+and one direct child level. A changed or incomplete read blocks rather than expanding scope.
 
-Containment, prerequisites, and Git ancestry are separate: native direct children define parent-mode
-scope; native blocked-by edges between tasks define prerequisites; Git branches define eventual PR
-bases. The specification parent never enters task mappings or dependency endpoints and receives no
-implementation worker, worktree, or PR. A parent with no planned tasks is no work; an index naming
-children absent from native reads is incomplete publication, not a ready hierarchy.
+Every newly created issue uses a preallocated mutation marker in its body. Before creation, completely
+search the exact scope for that marker; recover an unknown outcome by repeating that discovery and
+reading the one ownership-valid match. Never allocate another marker or replay a create. Bind each
+native identity once after independent read-back. Existing missing links are drift, not permission to
+adopt unrelated issues.
 
-Retain the fully admitted hierarchy snapshot, including native IDs and complete contracts. New,
-removed, or changed children require fresh admission before another synchronization; never expand
-scope from a changed response. External prerequisites do not expand the selected scope and block
-publication readiness until the missing endpoint contract is resolved.
+## Doctor live receipt
 
-Existing explicit Project plans remain supported with no automatic conversion or reparenting.
-In Project mode, completely paginate membership and distinguish specification containers from
-executable items. A container is not an extra task; only explicitly admitted member tasks execute
-as increments, each once. Do not pull nonmember children into scope automatically. For intentionally
-parented members, verify the exact declared parent and native link separately from Project membership.
-Unmatched containers remain preserved and excluded, not flattened.
+The optional controller-owned receipt is normalized, mode 0600, non-secret, and consumed by the shell
+engine without provider calls. It has exactly these semantic requirements:
 
-## Issue identity and graph
+- `schemaVersion: 1`, `provider: "authorized-github"`, `interfaceAvailable: true`, authenticated
+  ready state, a non-secret viewer, unique owner resolution, and a canonical repository URL;
+- complete single-select `projectStatuses` with five distinct option IDs and names for `planned`,
+  `executing`, `inReview`, `done`, and `blocked`, plus the resolved Status field; and
+- boolean capability evidence including fixed read-only requirements `projectRead`, `statusFieldRead`,
+  `pagination`, and `independentReadBack`.
 
-Canonical issue URLs (`https://github.com/owner/repo/issues/<N>`) are displayed task mappings and Commit
-references; native GraphQL and REST IDs are retained separately for the APIs that require each form.
-Every increment is a normal repository issue in the selected scope: a verified native child in
-parent mode or a direct Project member in Project mode. Existing parentless Project issues retain
-`parent = null`. Issue creation embeds `<!-- woostack-issue-mutation:<UUID> -->` in the body for
-duplicate-safe pagination recovery; specification parents use that same issue marker convention
-with their own distinct UUID and separate specification binding.
+The shell rejects extra/secret keys, malformed or foreign identity/read-back evidence, and any missing
+fixed capability. It never trusts receipt-declared required-capability lists. `projectWrite`,
+`statusFieldWrite`, `issueWrite`, and dependency writes may be false. A parent-issue operation does not
+need this Project-oriented receipt.
 
-Every increment has a unique stable task ID, a unique positive display ordinal, and an explicit
-predecessor set naming admitted task IDs. Ordinals are stable display and tie-break order only; they are not
-dependency or ancestry order, and gaps or edges against display order do not invalidate the graph.
-Independent roots, forks, chains, and joins are valid; only declared predecessors become native
-`blocked-by` edges. Normalize every edge as one prerequisite→dependent tuple in `[prerequisite, dependent]`
-order. A tuple maps to exactly one native `blocked-by` edge on the dependent pointing at the prerequisite:
-the second identity is GitHub's current dependent issue and the first is its `blockedBy` issue.
-Read both native endpoint collections independently and normalize them back into the same
-`[prerequisite, dependent]` order before comparing the complete edge set. Require read-back to verify both
-endpoint identities, not an edge count. An exact Fix source issue is read-only context; after admission it
-receives only one direct Project link.
+## Recovery and delivery boundary
 
-Admission validates the complete graph before persistence or provider mutation and rejects duplicate
-task IDs, ordinals or prerequisites, self-dependencies, cycles, missing endpoints, ambiguous identities, incomplete
-pagination, and foreign repository or selected scope. An explicitly new task key (mapping `null` with a
-preallocated UUID) is the only case that may create; any other unmapped endpoint is an invalid missing
-endpoint and blocks. No check silently broadens repository, parent, or Project scope.
+Retain the exact issue/Project identity, marker, repository, scope, last independently read boundary,
+and delivery note needed to recover an interrupted publication. Unknown create, link, relation, or
+read-back outcomes stop at that boundary; rediscovery uses the same identity and never duplicates work.
+Persist local checkpoints with the shared run-store locking/CAS contract when a caller requires them.
 
-A root records the approved integration parent branch. Each dependent records its complete prerequisite
-set and a parent-selection policy for resolving one concrete Git parent branch and SHA from verified
-delivered predecessor branches or an explicitly approved integration parent at dispatch.
-[Orchestrate](../../../woostack-orchestrate/SKILL.md) resolves that parent for graph dispatch; a caller selecting one bounded task supplies
-the parent and readiness evidence. Plan never chooses it speculatively or creates an integration
-branch or artificial chain.
-One verified parent must contain all required predecessor changes. The
-[parent-admission contract](../worktrees.md#plan-dependency-child) requires canonical branch/SHA
-ancestry and every prerequisite's complete delivery evidence; an integration parent's own PR evidence
-is required only when that PR exists. A join lacking the required proof remains valid but pauses that
-issue for an explicit parent/integration decision before dispatch.
-
-Ordinal edits never change edges. Existing chain edges are preserved unless the approved specification
-explicitly changes them; never add or remove edges to match ordinal adjacency. Preserve unrelated issue
-fields, unrelated Project state, historical parent/container resources, and stable marker identities.
-Verification scripts follow explicit predecessors only: each named repository-local script or path must
-already exist at the last admitted parent tip, be created by a declared predecessor ordered before use,
-or be created by the same increment before use.
-
-Before issue creation, membership, parent linkage, or relation mutation, completely read every
-retained issue and relation page, round-trip every endpoint in its required identity form, and
-verify canonical repository and selected scope: exact native parent links for parent mode, or
-direct membership and the admitted parent state for Project mode. Use the manifest's preallocated
-stable mutation identities in mirror mode, or retained Plan publication identities. Creation
-binds once after independent read-back; required parent links and selected memberships follow
-binding; dependencies follow verified scope membership.
-After an unknown create outcome, recover only by repeating complete discovery for the same marker UUID;
-never allocate another identity or replay the create. Compare complete current reads with the admitted
-candidate before writes: unchanged fields, memberships, parent links, and edges are no-ops. Remove an existing edge
-only when the approved specification explicitly changes that prerequisite; unexpected drift blocks,
-never silently pruning a chain. Independently read back every specification/task issue, description,
-native parent link, selected membership, and complete exact predecessor→successor edge set.
-Mirror mismatches record failure without changing local artifacts; Plan publication mismatches block
-without claiming synchronization.
-
-Retain the complete DAG for explicit Orchestrate execution; Execute cannot accept or dispatch it as a graph.
-A caller may select one task from any valid DAG for
-[bounded Execute admission](../../../woostack-execute/SKILL.md#admit-one-task), supplying its concrete
-parent and complete prerequisite-readiness evidence under the
-[worktree contract](../worktrees.md#plan-dependency-child). An unresolved join parent blocks that
-task, not unrelated tasks. Run-store storage retains the existing task/dependency/mapping forms
-without schema migration or edge rewriting; workflow admission validates the DAG.
-
-Reuse existing task/dependency/mapping representations. A specification parent is retained separately
-as `specItem` (in `mirror.specItem` when a historical run manifest applies), never in
-`stableTaskMappings`. Direct and composed Plan calls retain the same canonical/native/marker identities
-and last verified mutation boundary in their handback, not a new run, hidden ledger, or storage schema. Incomplete
-identity recovery blocks further publication rather than allocating a replacement.
-
-## Lifecycle and closure (retired Execute reference)
-
-> **Retired.** Execute no longer performs GitHub Project/issue lifecycle transitions, run-controller
-> reads, or closure. It accepts one bounded task and an optional exact GitHub issue URL; the issue
-> path is read-only until Commit adds the verified closing reference. Retained `projectStatuses`
-> fields support explicit Orchestrate Project progress; see
-> [`woostack-execute`](../../../woostack-execute/SKILL.md#retired-inputs).
-
-Plan never closes issues or Projects, changes lifecycle state, or performs a provider/mirror closure
-operation. Explicit Project mode preserves its selected Project state while publication synchronizes
-only the admitted specification span, members, and prerequisite graph.
-
-### Orchestrate lifecycle boundary
-
-After independent submission/spec validation, persist the child delivery evidence using the existing
-[delivery-note mechanism](../../../woostack-commit/references/provider-attribution.md#artifact-delivery-note)
-and independently read it back. Orchestrate owns this note, not its Execute worker; the explicit
-parent-issue invocation permits these scoped note reads/writes without mirror configuration.
-Reuse the same task/PR/head identity on recovery; an unknown note outcome requires discovery before retry.
-
-In explicit Project mode, also set the verified task item's configured `inReview` status and read
-it back. Project synchronization requires explicit selection/configuration and is never a gate for
-parent-issue execution. Report aggregate parent progress from verified child evidence. Neither mode
-closes parent/child issues or the Project, sets Done, removes dependencies, or claims product acceptance.
-
-## Workflow procedures
-
-Plan owns direct GitHub publication in both direct and composed use through the
-[Plan publication procedure](../../../woostack-plan/references/github-procedure.md). Parent-issue
-Parent-issue execution in Orchestrate reuses the hierarchy and dependency rules without Project
-configuration. Bootstrap, Commit, and Status retain their own workflow gates; planning support alone
-does not widen their inputs or authorize execution.
+Orchestrate owns scheduling and independent delivery-note recovery for an admitted parent hierarchy.
+Execute owns one bounded task through one PR. Git, branches, commits, pull requests, reviews, and merge
+evidence remain authoritative; merge authority is human-only.

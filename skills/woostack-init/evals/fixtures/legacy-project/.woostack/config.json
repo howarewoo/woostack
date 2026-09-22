@@ -1,0 +1,10 @@
+{
+  "artifacts": {
+    "provider": "linear",
+    "linear": {"workspace": "legacy", "team": "ENG"},
+    "plane": {"workspace": "legacy-plane"}
+  },
+  "models": {},
+  "review": {"required": false},
+  "status": {"staleDays": 14}
+}

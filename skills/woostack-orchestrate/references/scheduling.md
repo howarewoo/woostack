@@ -16,7 +16,7 @@ contract.
 
 ## Native reads before JSON assembly
 
-Resolve host capability before provider access. The selected host must expose a real
+Resolve host capability before GitHub access. The selected host must expose a real
 delivery-capable subagent primitive. Record `delivery_capable: true` and its observed positive
 `max_parallel` in the snapshot. A smaller host cap is a scheduling clamp, not a scope-admission
 failure; absence of a delivery primitive blocks before `admit` rather than degrading to inline
@@ -25,7 +25,7 @@ implementation. Host mechanics and tier routing remain in the allowlisted host r
 Resolve the canonical Git repository and admitted integration branch/SHA from direct Git and
 host-authenticated `gh` evidence. For GitHub, use only the official authenticated `gh` CLI and the
 native issue, sub-issue, parent, dependency, Project membership, and Project field reads described
-by the [GitHub provider profile](../../woostack-init/references/artifact-providers/github.md).
+by the [GitHub profile](../../woostack-init/references/artifact-providers/github.md#configuration-and-scope).
 Exhaust every page (`--paginate` or the equivalent native pagination operation), then independently
 read each endpoint needed for identity, hierarchy, contracts, dependencies, checks, PRs, notes, or
 Project status. A missing/failed page is incomplete evidence, not an empty collection. The
@@ -273,8 +273,8 @@ a duplicate or releases descendants.
 
 ## State, reservations, and joins
 
-State is one explicit private session-local controller file, not a provider ledger. The caller
-must externally enforce exclusive ownership of the selected canonical scope/state for the
+State is one explicit private session-local controller file, not a retained-artifact ledger. The
+caller must externally enforce exclusive ownership of the selected canonical scope/state for the
 controller session, covering every `schedule`, `apply-result`, and `reconcile` call. If exclusive
 ownership cannot be proved, block at controller preflight before invoking the helper.
 

@@ -6,7 +6,7 @@ workflow contract owns those decisions; Git and canonical GitHub reads own repos
 Select native Git + `gh` by default, or Graphite only when explicitly selected or verified as already
 managing this task/stack, under the
 [source-control contract](../../woostack-commit/references/graphite.md).
-Linear is optional artifact context only.
+Direct Git/GitHub publication owns artifact scope; no provider-specific artifact context is selected here.
 
 `<wi>` below means the installed `woostack-init` skill directory. Its worktree helper is:
 

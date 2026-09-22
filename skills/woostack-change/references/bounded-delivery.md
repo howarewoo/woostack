@@ -5,11 +5,10 @@ admission and user authority for one non-bug PR; planning-only Prepare and Plan 
 reference. This contract cannot widen Change's bounded scope or replace its gates.
 
 The calling skill owns delivery directly, without invoking another woostack workflow. Create no
-project manifest, specification, or execution plan. Development-artifact provider calls are limited
-to the exact issue reads explicitly admitted by
-[Change's GitHub issue input](../SKILL.md#admit-an-exact-github-issue); goal-only Change makes none.
-Git and canonical GitHub repository/PR operations supply source-control evidence, not development-
-artifact authority.
+project manifest, specification, or execution plan. GitHub operations are limited to the exact issue
+reads explicitly admitted by [Change's GitHub issue input](../SKILL.md#admit-an-exact-github-issue);
+goal-only Change makes none. Git and canonical GitHub repository/PR operations supply source-control
+evidence, not development-artifact authority.
 
 Before mutation, apply the shared [source-control selection and ancestry contract](../../woostack-commit/references/graphite.md).
 Git+gh is the complete default path. Use Graphite only when explicitly selected or already verified
@@ -92,9 +91,9 @@ Apply the canonical
 [PR association rules](../../woostack-commit/references/provider-attribution.md#pr-association):
 preserve human-authored PR text, add exactly one `Resolves <canonical GitHub issue URL>` line, and
 verify the full PR body and intended reference on read-back alongside head/base/SHA. This uses only
-the selected issue's reads and GitHub PR operations, not provider mirroring or issue writes. Do not
-claim the issue is closed or close it directly. An unknown submission or association outcome
-requires discovery before retry; report repository delivery and association separately.
+the selected issue's reads and GitHub PR operations, not Project writes or issue writes. Do not claim
+the issue is closed or close it directly. An unknown submission or association outcome requires
+discovery before retry; report repository delivery and association separately.
 
 Independently read back the exact repository, branch, parent, commit, changed paths, PR URL,
 PR head/base, and open state. The success boundary is one complete reviewable PR whose verified

@@ -3,441 +3,67 @@
   "skill": "woostack-doctor",
   "cases": [
     {
-      "id": "diagnoses-before-local-repair-approval",
-      "prompt": "Apply the packaged /woostack-doctor interactive repair procedure to the host-produced static diagnosis in fixtures/diagnosis.json. Do not use --live and do not modify any file. Diagnose first, present the auto-fixable changeset, and because approval is absent stop before repair. Return exactly one JSON object using the keys findingCodes, diagnosisCompleted, approvalRequired, repairApplied, and liveValidationInvoked.",
-      "fixtures": [
-        "incomplete-project/.woostack/config.json",
-        "diagnosis.json"
-      ],
-      "capabilities": [
-        "read-workspace"
-      ],
-      "expected": "Static diagnosis completes first, reports config-key, leaves explicit repair approval pending, applies no repair, does not invoke live validation, and preserves local files.",
+      "id": "missing-github-policy-is-local",
+      "prompt": "Apply `/woostack-doctor --check` to fixtures/local-project. Do not contact a provider, read credentials, or mutate files. Return exactly one JSON object with findingCodes and exitCode.",
+      "fixtures": ["local-project/.woostack/config.json"],
+      "capabilities": ["read-workspace"],
+      "expected": "An absent top-level github policy is valid local configuration and requires no provider preflight.",
       "assertions": [
-        {
-          "id": "config-key-diagnosed",
-          "kind": "final-json-path-equals",
-          "pointer": "/findingCodes",
-          "expected": [
-            "config-key"
-          ],
-          "critical": true
-        },
-        {
-          "id": "diagnosis-completed-first",
-          "kind": "final-json-path-equals",
-          "pointer": "/diagnosisCompleted",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "repair-approval-pending",
-          "kind": "final-json-path-equals",
-          "pointer": "/approvalRequired",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "repair-not-applied",
-          "kind": "final-json-path-equals",
-          "pointer": "/repairApplied",
-          "expected": false,
-          "critical": true
-        },
-        {
-          "id": "remote-doctor-not-invoked",
-          "kind": "final-json-path-equals",
-          "pointer": "/liveValidationInvoked",
-          "expected": false,
-          "critical": true
-        },
-        {
-          "id": "doctor-config-not-repaired",
-          "kind": "file-contains",
-          "file": "fixtures/incomplete-project/.woostack/config.json",
-          "substring": "\"linear\":",
-          "critical": true
-        },
-        {
-          "id": "missing-status-key-stays-missing",
-          "kind": "file-excludes",
-          "file": "fixtures/incomplete-project/.woostack/config.json",
-          "substring": "\"status\"",
-          "critical": true
-        }
+        {"id":"no-findings","kind":"final-json-path-equals","pointer":"/findingCodes","expected":[],"critical":true},
+        {"id":"local-exit-zero","kind":"final-json-path-equals","pointer":"/exitCode","expected":0,"critical":true},
+        {"id":"no-repair","kind":"final-json-path-equals","pointer":"/repairApplied","expected":false,"critical":true}
       ]
     },
     {
-      "id": "check-live-consumes-one-normalized-receipt-without-provider-calls",
-      "fixturePassthroughAssertions": [
-        {
-          "assertionId": "check-live-mode-reported",
-          "fixture": "ci-diagnosis.json",
-          "pointer": "/mode"
-        },
-        {
-          "assertionId": "ci-nonzero-reported",
-          "fixture": "ci-diagnosis.json",
-          "pointer": "/exitCode"
-        }
-      ],
-      "prompt": "Apply the packaged /woostack-doctor --check live-receipt boundary to fixtures/ci-diagnosis.json and fixtures/receipts/provenance-drift.json. Treat that mode-0600-style normalized non-secret receipt as the only host-MCP input. Never call a network, provider, custom adapter, hard-coded MCP tool, or remote mutation, and do not modify files. Return exactly one JSON object with keys findingCodes, exitCode, receiptValidated, providerInvocationCount, legacyAdapterInvocationCount, remoteMutationCount, repairApplied, and mode.",
-      "fixtures": [
-        "ci-project/.woostack/config.json",
-        "ci-diagnosis.json",
-        "receipts/provenance-drift.json"
-      ],
-      "capabilities": [
-        "read-workspace"
-      ],
-      "expected": "Check-live reports the invalid normalized receipt while invoking no provider, legacy adapter, or mutation and applying no repair.",
+      "id": "canonical-config-is-authoritative",
+      "prompt": "Apply `/woostack-doctor --check` to fixtures/incomplete-project. Diagnose only; do not approve or apply repairs. Return exactly one JSON object with findingCodes, diagnosisCompleted, approvalRequired, and repairApplied.",
+      "fixtures": ["incomplete-project/.woostack/config.json"],
+      "capabilities": ["read-workspace"],
+      "expected": "Doctor reports a missing template key through the local check without duplicating or inventing a provider schema, and applies no repair without approval.",
       "assertions": [
-        {
-          "id": "ci-finding-codes",
-          "kind": "final-json-path-equals",
-          "pointer": "/findingCodes",
-          "expected": [
-            "linear-live"
-          ],
-          "critical": true
-        },
-        {
-          "id": "ci-nonzero-reported",
-          "kind": "final-json-path-equals",
-          "pointer": "/exitCode",
-          "expected": 1,
-          "critical": true
-        },
-        {
-          "id": "receipt-rejected",
-          "kind": "final-json-path-equals",
-          "pointer": "/receiptValidated",
-          "expected": false,
-          "critical": true
-        },
-        {
-          "id": "no-provider-invocation",
-          "kind": "final-json-path-equals",
-          "pointer": "/providerInvocationCount",
-          "expected": 0,
-          "critical": true
-        },
-        {
-          "id": "no-legacy-adapter-invocation",
-          "kind": "final-json-path-equals",
-          "pointer": "/legacyAdapterInvocationCount",
-          "expected": 0,
-          "critical": true
-        },
-        {
-          "id": "remote-mutation-boundary",
-          "kind": "final-json-path-equals",
-          "pointer": "/remoteMutationCount",
-          "expected": 0,
-          "critical": true
-        },
-        {
-          "id": "live-failure-report-only",
-          "kind": "final-json-path-equals",
-          "pointer": "/repairApplied",
-          "expected": false,
-          "critical": true
-        },
-        {
-          "id": "check-live-mode-reported",
-          "kind": "final-json-path-equals",
-          "pointer": "/mode",
-          "expected": "check-live",
-          "critical": true
-        }
+        {"id":"config-key","kind":"final-json-path-equals","pointer":"/findingCodes","expected":["config-key"],"critical":true},
+        {"id":"diagnosed","kind":"final-json-path-equals","pointer":"/diagnosisCompleted","expected":true,"critical":true},
+        {"id":"approval-required","kind":"final-json-path-equals","pointer":"/approvalRequired","expected":true,"critical":true},
+        {"id":"not-repaired","kind":"final-json-path-equals","pointer":"/repairApplied","expected":false,"critical":true}
       ]
     },
     {
-      "id": "verified-receipt-passes-without-adapter-fallback",
-      "prompt": "Apply the packaged /woostack-doctor --check live-receipt boundary to fixtures/project/.woostack/config.json and fixtures/receipts/success.json. Validate that normalized receipt locally without invoking a provider, custom adapter, hard-coded MCP tool, or remote mutation, and do not modify files. Return exactly one JSON object with keys findingCodes, exitCode, receiptValidated, providerInvocationCount, legacyAdapterInvocationCount, remoteMutationCount, repairApplied, and mode.",
-      "fixtures": [
-        "project/.woostack/config.json",
-        "receipts/success.json"
-      ],
-      "capabilities": [
-        "read-workspace"
-      ],
-      "expected": "Check-live passes valid normalized receipts without provider calls, adapter fallbacks, or repairs.",
+      "id": "legacy-settings-and-manifests-stay-inactive",
+      "prompt": "Apply `/woostack-doctor --check` to fixtures/legacy-project. Treat the old provider settings and retained manifest as opaque user data. Do not import, rewrite, delete, or contact any retired provider. Return exactly one JSON object with findingCodes, exitCode, and repairApplied.",
+      "fixtures": ["legacy-project/.woostack/config.json","legacy-project/.woostack/tmp/runs/retained/manifest.json"],
+      "capabilities": ["read-workspace"],
+      "expected": "Retirement guidance is report-only, local diagnosis succeeds, and retained bytes remain unchanged.",
       "assertions": [
-        {
-          "id": "success-no-findings",
-          "kind": "final-json-path-equals",
-          "pointer": "/findingCodes",
-          "expected": [],
-          "critical": true
-        },
-        {
-          "id": "success-exit-code",
-          "kind": "final-json-path-equals",
-          "pointer": "/exitCode",
-          "expected": 0,
-          "critical": true
-        },
-        {
-          "id": "success-receipt-validated",
-          "kind": "final-json-path-equals",
-          "pointer": "/receiptValidated",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "success-no-provider",
-          "kind": "final-json-path-equals",
-          "pointer": "/providerInvocationCount",
-          "expected": 0,
-          "critical": true
-        },
-        {
-          "id": "success-no-legacy-adapter",
-          "kind": "final-json-path-equals",
-          "pointer": "/legacyAdapterInvocationCount",
-          "expected": 0,
-          "critical": true
-        },
-        {
-          "id": "success-no-remote-mutation",
-          "kind": "final-json-path-equals",
-          "pointer": "/remoteMutationCount",
-          "expected": 0,
-          "critical": true
-        },
-        {
-          "id": "success-no-repair",
-          "kind": "final-json-path-equals",
-          "pointer": "/repairApplied",
-          "expected": false,
-          "critical": true
-        },
-        {
-          "id": "success-mode",
-          "kind": "final-json-path-equals",
-          "pointer": "/mode",
-          "expected": "check-live",
-          "critical": true
-        }
+        {"id":"retirement-guidance","kind":"final-json-path-equals","pointer":"/findingCodes","expected":["retired-provider","retained-data"],"critical":true},
+        {"id":"legacy-exit-zero","kind":"final-json-path-equals","pointer":"/exitCode","expected":0,"critical":true},
+        {"id":"not-repaired","kind":"final-json-path-equals","pointer":"/repairApplied","expected":false,"critical":true},
+        {"id":"manifest-preserved","kind":"file-contains","file":"fixtures/legacy-project/.woostack/tmp/runs/retained/manifest.json","substring":"retain-byte-for-byte","critical":true}
       ]
     },
     {
-      "id": "local-provider-skips-live-preflight",
-      "prompt": "Apply the packaged /woostack-doctor --check --live procedure to fixtures/local-project where artifacts.provider is configured as \"local\". Because local authority is selected, provider discovery, credentials, and live preflight are skipped. Ensure exit code is 0, live preflight is marked skipped, findingCodes is empty, and zero provider invocations occur. Return exactly one JSON object with keys findingCodes, exitCode, liveSkipped, unselectedProviderIgnored, providerInvocationCount, mode, and repairApplied.",
-      "fixtures": [
-        "local-project/.woostack/config.json"
-      ],
-      "capabilities": [
-        "read-workspace"
-      ],
-      "expected": "Local provider selection safely skips live provider preflight with zero findings and zero provider calls.",
+      "id": "authorized-github-receipt-requires-fixed-read-only-capabilities",
+      "prompt": "Apply `/woostack-doctor --check --live` receipt validation to fixtures/ci-project and fixtures/receipts/github-success.json. Validate only the normalized non-secret receipt locally; do not invoke a provider, adapter, network, or mutation. Return exactly one JSON object with findingCodes, exitCode, receiptValidated, and repairApplied.",
+      "fixtures": ["ci-project/.woostack/config.json","receipts/github-success.json"],
+      "capabilities": ["read-workspace"],
+      "expected": "Semantic authorized-github receipt validation passes with projectRead, statusFieldRead, pagination, and independentReadBack while unrelated write/dependency capabilities are false.",
       "assertions": [
-        {
-          "id": "local-live-skip-findings",
-          "kind": "final-json-path-equals",
-          "pointer": "/findingCodes",
-          "expected": [],
-          "critical": true
-        },
-        {
-          "id": "local-live-skip-exit",
-          "kind": "final-json-path-equals",
-          "pointer": "/exitCode",
-          "expected": 0,
-          "critical": true
-        },
-        {
-          "id": "local-live-skip-skipped",
-          "kind": "final-json-path-equals",
-          "pointer": "/liveSkipped",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "local-live-skip-unselected-ignored",
-          "kind": "final-json-path-equals",
-          "pointer": "/unselectedProviderIgnored",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "local-live-skip-no-calls",
-          "kind": "final-json-path-equals",
-          "pointer": "/providerInvocationCount",
-          "expected": 0,
-          "critical": true
-        },
-        {
-          "id": "local-live-skip-mode",
-          "kind": "final-json-path-equals",
-          "pointer": "/mode",
-          "expected": "check-live",
-          "critical": true
-        },
-        {
-          "id": "local-live-skip-no-repair",
-          "kind": "final-json-path-equals",
-          "pointer": "/repairApplied",
-          "expected": false,
-          "critical": true
-        }
+        {"id":"receipt-clean","kind":"final-json-path-equals","pointer":"/findingCodes","expected":[],"critical":true},
+        {"id":"receipt-exit-zero","kind":"final-json-path-equals","pointer":"/exitCode","expected":0,"critical":true},
+        {"id":"receipt-validated","kind":"final-json-path-equals","pointer":"/receiptValidated","expected":true,"critical":true},
+        {"id":"not-repaired","kind":"final-json-path-equals","pointer":"/repairApplied","expected":false,"critical":true}
       ]
     },
     {
-      "id": "plane-live-consumes-normalized-receipt-and-rejects-invalid-drift",
-      "prompt": "Apply the packaged /woostack-doctor --check live-receipt boundary to fixtures/plane-project and fixtures/receipts/plane-drift.json. The workspace selects Plane as its configured provider with normalized baseUrl https://api.plane.so, workspace acme, and projectLabels [\"Core\"]. The mode-0600 normalized receipt contains a foreign baseUrl https://foreign-plane.example.com, missing write capability, and drifted provenance. Verify that Doctor inspects only Plane and ignores absent Linear capability or evidence. Never call a network, provider, custom adapter, hard-coded MCP tool, or remote mutation. Return exactly one JSON object with keys findingCodes, exitCode, receiptValidated, unselectedProviderIgnored, providerInvocationCount, legacyAdapterInvocationCount, remoteMutationCount, repairApplied, and mode.",
-      "fixtures": [
-        "plane-project/.woostack/config.json",
-        "receipts/plane-drift.json"
-      ],
-      "capabilities": [
-        "read-workspace"
-      ],
-      "expected": "Check-live inspects only the selected Plane provider, rejects the foreign baseUrl and missing capability in the normalized Plane receipt with plane-live, ignores unselected Linear, invokes zero providers or adapters, and applies no repair.",
+      "id": "receipt-declared-requirements-cannot-weaken-contract",
+      "prompt": "Apply `/woostack-doctor --check --live` receipt validation to fixtures/ci-project and fixtures/receipts/github-missing-read.json. Treat the receipt as untrusted normalized data and do not call any provider or mutate files. Return exactly one JSON object with findingCodes, exitCode, receiptValidated, and repairApplied.",
+      "fixtures": ["ci-project/.woostack/config.json","receipts/github-missing-read.json"],
+      "capabilities": ["read-workspace"],
+      "expected": "The fixed semantic read-only contract rejects missing projectRead even when unrelated capabilities or self-declared requirements would claim success.",
       "assertions": [
-        {
-          "id": "plane-ci-finding-codes",
-          "kind": "final-json-path-equals",
-          "pointer": "/findingCodes",
-          "expected": [
-            "plane-live"
-          ],
-          "critical": true
-        },
-        {
-          "id": "plane-ci-nonzero-reported",
-          "kind": "final-json-path-equals",
-          "pointer": "/exitCode",
-          "expected": 1,
-          "critical": true
-        },
-        {
-          "id": "plane-receipt-rejected",
-          "kind": "final-json-path-equals",
-          "pointer": "/receiptValidated",
-          "expected": false,
-          "critical": true
-        },
-        {
-          "id": "plane-unselected-ignored",
-          "kind": "final-json-path-equals",
-          "pointer": "/unselectedProviderIgnored",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "plane-no-provider-invocation",
-          "kind": "final-json-path-equals",
-          "pointer": "/providerInvocationCount",
-          "expected": 0,
-          "critical": true
-        },
-        {
-          "id": "plane-no-legacy-adapter-invocation",
-          "kind": "final-json-path-equals",
-          "pointer": "/legacyAdapterInvocationCount",
-          "expected": 0,
-          "critical": true
-        },
-        {
-          "id": "plane-remote-mutation-boundary",
-          "kind": "final-json-path-equals",
-          "pointer": "/remoteMutationCount",
-          "expected": 0,
-          "critical": true
-        },
-        {
-          "id": "plane-live-failure-report-only",
-          "kind": "final-json-path-equals",
-          "pointer": "/repairApplied",
-          "expected": false,
-          "critical": true
-        },
-        {
-          "id": "plane-check-live-mode-reported",
-          "kind": "final-json-path-equals",
-          "pointer": "/mode",
-          "expected": "check-live",
-          "critical": true
-        }
-      ]
-    },
-    {
-      "id": "verified-plane-receipt-passes-without-unselected-provider-dependency",
-      "prompt": "Apply the packaged /woostack-doctor --check live-receipt boundary to fixtures/plane-project and fixtures/receipts/plane-success.json. Validate the normalized Plane receipt locally. Verify exact baseUrl https://api.plane.so, workspace acme, project 33333333-3333-4333-8333-333333333330, projectLabels [\"Core\"], capabilities (projectRead, projectWrite, issueRead, issueWrite, relationRead, relationWrite, projectLabelRead, projectLabelWrite, independentReadBack), issueStates, and read-back. Assert that doctor operates only on the selected Plane provider, ignoring absent Linear credentials, evidence, or capabilities. Never invoke a provider, legacy adapter, or remote mutation. Return exactly one JSON object with keys findingCodes, exitCode, receiptValidated, unselectedProviderIgnored, providerInvocationCount, legacyAdapterInvocationCount, remoteMutationCount, repairApplied, and mode.",
-      "fixtures": [
-        "plane-project/.woostack/config.json",
-        "receipts/plane-success.json"
-      ],
-      "capabilities": [
-        "read-workspace"
-      ],
-      "expected": "A complete normalized Plane receipt passes validation; unselected Linear provider evidence is ignored, and doctor remains provider- and adapter-free.",
-      "assertions": [
-        {
-          "id": "plane-success-no-findings",
-          "kind": "final-json-path-equals",
-          "pointer": "/findingCodes",
-          "expected": [],
-          "critical": true
-        },
-        {
-          "id": "plane-success-exit-code",
-          "kind": "final-json-path-equals",
-          "pointer": "/exitCode",
-          "expected": 0,
-          "critical": true
-        },
-        {
-          "id": "plane-success-receipt-validated",
-          "kind": "final-json-path-equals",
-          "pointer": "/receiptValidated",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "plane-success-unselected-ignored",
-          "kind": "final-json-path-equals",
-          "pointer": "/unselectedProviderIgnored",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "plane-success-no-provider",
-          "kind": "final-json-path-equals",
-          "pointer": "/providerInvocationCount",
-          "expected": 0,
-          "critical": true
-        },
-        {
-          "id": "plane-success-no-legacy-adapter",
-          "kind": "final-json-path-equals",
-          "pointer": "/legacyAdapterInvocationCount",
-          "expected": 0,
-          "critical": true
-        },
-        {
-          "id": "plane-success-no-remote-mutation",
-          "kind": "final-json-path-equals",
-          "pointer": "/remoteMutationCount",
-          "expected": 0,
-          "critical": true
-        },
-        {
-          "id": "plane-success-no-repair",
-          "kind": "final-json-path-equals",
-          "pointer": "/repairApplied",
-          "expected": false,
-          "critical": true
-        },
-        {
-          "id": "plane-success-mode",
-          "kind": "final-json-path-equals",
-          "pointer": "/mode",
-          "expected": "check-live",
-          "critical": true
-        }
+        {"id":"receipt-finding","kind":"final-json-path-equals","pointer":"/findingCodes","expected":["github-live"],"critical":true},
+        {"id":"receipt-exit-one","kind":"final-json-path-equals","pointer":"/exitCode","expected":1,"critical":true},
+        {"id":"receipt-rejected","kind":"final-json-path-equals","pointer":"/receiptValidated","expected":false,"critical":true},
+        {"id":"not-repaired","kind":"final-json-path-equals","pointer":"/repairApplied","expected":false,"critical":true}
       ]
     }
   ]

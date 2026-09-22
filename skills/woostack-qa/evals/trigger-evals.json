@@ -4,7 +4,7 @@
   "cases": [
     {
       "id": "running-onboarding-browser-exploration",
-      "query": "The onboarding branch has a preview at http://localhost:5173. Use it like a new team owner—invite members, go backward, refresh midway, and retry failed submissions—and tell me which problems you can reproduce in a sanitized local report labeled non-authoritative. Do not change code or Linear; propose a bounded remediation contract for each confirmed bug instead.",
+      "query": "The onboarding branch has a preview at http://localhost:5173. Use it like a new team owner—invite members, go backward, refresh midway, and retry failed submissions—and tell me which problems you can reproduce in a sanitized local report labeled non-authoritative. Do not change code or GitHub; propose a bounded remediation contract for each confirmed bug instead.",
       "shouldTrigger": true,
       "expectedSkill": "woostack-qa",
       "conflictsWith": ["woostack-debug"]
@@ -18,7 +18,7 @@
     },
     {
       "id": "local-qa-report-is-not-remediation-authority",
-      "query": "Take .woostack/qa/2026-07-27-onboarding.md as evidence, independently prove the cause, and prepare any confirmed correction for issue planning without creating or binding a provider item.",
+      "query": "Take .woostack/qa/2026-07-27-onboarding.md as evidence, independently prove the cause, and prepare any confirmed correction for issue planning without creating or binding a GitHub issue.",
       "shouldTrigger": false,
       "expectedSkill": "woostack-prepare",
       "conflictsWith": ["woostack-qa"]

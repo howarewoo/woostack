@@ -1,45 +1,38 @@
 ---
 title: Artifacts
-description: Look up retained planning records and the guarantees shared by surviving provider-aware workflows.
+description: Direct GitHub publication, retained local records, and recovery boundaries.
 ---
 
-Development artifacts are specifications, plans, and records retained for history or explicit
-provider-aware workflows. Prepare and Plan exchange complete plain packets and use GitHub's native
-parent/child graph as the active planning handoff; they do not allocate a local run or mirror record.
-Existing `.woostack/tmp/runs/<run-id>/` files remain readable user data and are never migrated or
-mutated. Execute accepts one complete bounded task and does not consume a Project or run as executable
+Development records are specifications, plans, and evidence retained for history. Prepare and Plan
+exchange complete plain packets and use GitHub's native parent/child graph as the active planning
+handoff; they do not allocate a run or create a second remote record. Existing
+`.woostack/tmp/runs/<run-id>/` files remain readable user data and are never migrated or mutated.
+Execute accepts one complete bounded task and does not consume a Project or retained run as executable
 scope.
 
 <Cards>
-  <Card title="Local" href="/docs/configuration/artifacts/local" description="Retained files, run directories, preservation, and historical authority boundaries." />
-  <Card title="GitHub" href="/docs/configuration/artifacts/github" description="Direct GitHub parent/child publication, Project graphs, and lifecycle boundaries." />
-  <Card title="Linear" href="/docs/configuration/artifacts/linear" description="Surviving Linear configuration, identities, and historical lifecycle records." />
-  <Card title="Plane" href="/docs/configuration/artifacts/plane" description="Surviving Plane configuration, identities, and historical lifecycle records." />
+  <Card title="Local" href="/docs/configuration/artifacts/local" description="Retained files, preservation, and historical recovery boundaries." />
+  <Card title="GitHub" href="/docs/configuration/artifacts/github" description="Direct issue-graph and Project publication, recovery, and lifecycle boundaries." />
 </Cards>
-
-| `artifacts.provider` | Storage/configuration | Effect |
-| --- | --- | --- |
-| omitted or `"local"` | [Local](/docs/configuration/artifacts/local) | No provider calls for Prepare, Plan, Ideate, Harden, or goal-only Change; retained historical files are not rewritten. |
-| `"github"` | [GitHub](/docs/configuration/artifacts/github) | Explicit provider-aware workflows use host-authenticated `gh`; Plan's direct issue publication remains its own contract. |
-| `"linear"` | [Linear](/docs/configuration/artifacts/linear) | Explicit surviving provider-aware workflows use the authenticated official Linear MCP; Prepare and Plan do not mirror. |
-| `"plane"` | [Plane](/docs/configuration/artifacts/plane) | Explicit surviving provider-aware workflows use the authenticated official Plane MCP; Prepare and Plan do not mirror. |
 
 ## Guarantees
 
-Configuration is non-secret policy. It never grants permission to access a provider, approve artifact
-content, or perform repository work. Credentials remain in the host's MCP, OAuth, or `gh` secret store.
+Configuration is non-secret policy. The optional top-level `github` object is the only active remote
+configuration surface. Its allowed fields are `owner`, `ownerType`, `statusField`, and
+`projectStatuses`; visibility is not an active setting. Missing GitHub configuration is valid, and
+parent-issue or exact-issue workflows do not require Project or Status settings.
 
-Before each supported provider operation, woostack checks that the official interface supports it.
-Paginated reads must include every page. Before creating a resource, woostack allocates a stable
-identity so it can recover an uncertain result without creating a duplicate. It reads each created or
-recovered resource independently before making further changes. Missing, partial, ambiguous,
-duplicate, or out-of-scope results stop that provider operation.
+A direct GitHub operation uses the exact caller-selected parent issue or Project. Before publication,
+woostack checks the capabilities required by that operation, reads every paginated result, allocates
+stable recovery markers before uncertain creation, and independently reads created or recovered
+resources before continuing. Missing, partial, ambiguous, duplicate, foreign, or out-of-scope results
+stop at the last safe boundary. No Project destination is guessed.
 
-A provider failure is reported with the confirmed identity boundary. Provider synchronization never
-grants permission to merge a PR; agents never merge. Goal-only [Change](/docs/skills/woostack-change)
-performs no artifact-provider call. Issue-backed Change performs the required read of its explicitly
-selected exact GitHub issue through host-authenticated `gh`; it does not select an artifact provider
-or require provider configuration, a Project, a mirror, or a persisted plan.
+A GitHub failure is reported with its confirmed identity boundary. Project status never grants
+permission to merge a PR; agents never merge. Goal-only Change makes no GitHub call, while an
+explicit exact GitHub issue permits only its documented read. Retained managed-provider configuration
+and records remain opaque and inactive; they are not imported or rewritten.
 
 The canonical implementation rules live in the
-[local run artifact and provider mirror contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-backends.md).
+[artifact contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-backends.md#direct-publication-and-recovery)
+and the [GitHub profile](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-providers/github.md#configuration-and-scope).

@@ -1,7 +1,4 @@
 {
-  "artifacts": {
-    "provider": "local"
-  },
   "models": {},
   "status": {
     "staleDays": 14

@@ -20,18 +20,17 @@ only in selected Graphite mode.
 /woostack-change [<goal>] --issue <exact canonical GitHub issue URL>
 ```
 
-A bare exact GitHub issue URL in the goal position selects the same issue-backed path. Accept
-one `https://github.com/<owner>/<repo>/issues/<number>` URL; do not infer an issue from a bare
-number, title, branch, PR, recent activity, or search. Conflicting or multiple issue selections
-must be clarified before any mutation. Other providers are not accepted by this command.
+Accept one `https://github.com/<owner>/<repo>/issues/<number>` URL; do not infer an issue from a
+bare number, title, branch, PR, recent activity, or search. Conflicting or multiple issue selections
+must be clarified before any mutation. Legacy managed-provider references are rejected with actionable
+retirement guidance; they are never converted into GitHub identity.
 
 ## Admit an exact GitHub issue
 
 When an issue is selected, use host-authenticated `gh` to read only that exact resource before
-repository mutation. This explicit selection permits the required issue reads even when
-`artifacts.provider` is `"local"` or omitted; no provider configuration, project membership,
-mirror, or persisted plan is required. Without an issue selection, make no development-artifact
-provider calls. Goal-only Change never reads or writes Linear or another development-artifact provider.
+repository mutation. This explicit selection requires no GitHub Project or configuration. Without an
+issue selection, make no development-artifact calls. Retired configuration and records remain opaque
+and inactive; Change never reads or writes them.
 
 Verify the canonical repository against the target Git remote, native issue identity and canonical
 URL, open state, and that the resource is an issue rather than a pull request. Read its complete

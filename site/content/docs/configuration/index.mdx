@@ -3,12 +3,12 @@ title: Configuration
 description: Reference for woostack repository policy, configuration precedence, supported keys, types, and defaults.
 ---
 
-This page lists the non-secret repository settings read by woostack. Artifact storage has its own
-[reference section](/docs/configuration/artifacts) because local storage and remote mirroring have
-different fields and guarantees.
+This page lists the non-secret repository settings read by woostack. Retained local records and direct
+GitHub publication have their own [reference section](/docs/configuration/artifacts) because they
+have different fields and recovery guarantees.
 
 Configuration never contains credentials, grants permission to perform repository work, or approves
-artifact content.
+remote content.
 
 ## Configuration files
 
@@ -27,23 +27,26 @@ the tracked base file stops configuration loading with an error.
 | Object merge | Objects merge recursively. |
 | Scalar, array, or `null` override | The local value replaces the base value. Arrays do not concatenate. `null` does not delete a key. |
 | Invalid input | Empty, malformed, non-object, unreadable, symlinked, non-regular, orphaned, or credential-like configuration fails closed with the offending path. |
-| Secrets | Provider authentication stays in the host secret store. Both configuration files contain non-secret policy only. |
-| Doctor | `woostack-doctor` validates effective runtime configuration. Template presence checks and repairs apply only to `.woostack/config.json`. |
+| Secrets | GitHub authentication stays in the host secret store. Configuration files contain non-secret policy only. |
 | OMP models | OMP ignores `models`. Its profile and fixed role workers own model selection and recovery. |
 
-This partial example shows how the two files merge. It is not a complete Linear configuration;
-the [Linear page](/docs/configuration/artifacts/linear) lists the required fields.
+This partial example shows how the two files merge. It is not a complete GitHub Project
+configuration; the [GitHub page](/docs/configuration/artifacts/github) lists the supported fields.
 
 Given this base configuration:
 
 ```json
 {
-  "artifacts": {
-    "provider": "linear",
-    "linear": {
-      "repository": "https://github.com/acme/widgets",
-      "workspace": "acme",
-      "team": "ENG"
+  "github": {
+    "owner": "acme",
+    "ownerType": "organization",
+    "statusField": "Status",
+    "projectStatuses": {
+      "planned": "Todo",
+      "executing": "In Progress",
+      "inReview": "In Review",
+      "done": "Done",
+      "blocked": "Blocked"
     }
   }
 }
@@ -53,38 +56,35 @@ and this local override:
 
 ```json
 {
-  "artifacts": {
-    "linear": {
-      "team": "LOCAL-ENG"
-    }
+  "github": {
+    "statusField": "Workflow Status"
   }
 }
 ```
 
-keeps `repository` and `workspace`, and sets `team` to `LOCAL-ENG`.
+keeps the owner and status options while replacing only `statusField`.
 
 ## Top-level settings
 
-This page covers five top-level settings. The init template writes `artifacts`, `models`, and
-`status`. Consumers supply defaults for omitted settings, subject to the requirements below.
+This page covers five top-level settings. Init validates the optional `github` object and scaffolds
+the other shared settings when needed. Consumers supply defaults for omitted settings, subject to the
+requirements below.
 
 | Setting | Read by | Purpose |
 | --- | --- | --- |
-| [`artifacts`](/docs/configuration/artifacts) | Init and selected surviving artifact-aware workflows | Selects local storage or optional GitHub, Linear, or Plane configuration for supported workflows and historical records. |
+| `github` | Init and explicit GitHub Project workflows | Optional owner, owner type, Status field, and Project Status option mapping. |
 | `models` | Host subagent drivers | Shared fast, standard, and deep model leaves for hosts that consume repository model policy. OMP ignores this setting. |
 | `commit` | [woostack-commit](/docs/skills/woostack-commit) | Command to run before staging. |
 | `status` | [woostack-status](/docs/skills/woostack-status) | Age threshold for stale active rows. |
 | `base_branch` | Init and worktree workflows | Trunk branch used for worktrees and pull requests. |
 
-## Artifact providers
+## Artifact references
 
 <Cards>
-  <Card title="Artifact overview" href="/docs/configuration/artifacts" description="Provider selection and authority boundaries." />
-  <Card title="Local" href="/docs/configuration/artifacts/local" description="Default files, run layout, retention, and recovery." />
-  <Card title="GitHub" href="/docs/configuration/artifacts/github" description="GitHub fields, Project README specification, parent and parentless issue graphs, and lifecycle behavior." />
-  <Card title="Linear" href="/docs/configuration/artifacts/linear" description="Linear fields, identities, project hierarchy, and lifecycle behavior." />
-  <Card title="Plane" href="/docs/configuration/artifacts/plane" description="Plane fields, identities, work-item hierarchy, and lifecycle behavior." />
+  <Card title="Retained local records" href="/docs/configuration/artifacts/local" description="Historical files, preservation, and recovery boundaries." />
+  <Card title="GitHub" href="/docs/configuration/artifacts/github" description="Direct issue graphs, Projects, and capability/read-back requirements." />
 </Cards>
+
 
 ## A complete example
 
@@ -94,8 +94,17 @@ JSON has no comments, so the tables below explain each setting.
 
 ```json
 {
-  "artifacts": {
-    "provider": "local"
+  "github": {
+    "owner": "acme",
+    "ownerType": "organization",
+    "statusField": "Status",
+    "projectStatuses": {
+      "planned": "Todo",
+      "executing": "In Progress",
+      "inReview": "In Review",
+      "done": "Done",
+      "blocked": "Blocked"
+    }
   },
   "models": {
     "fast": { "model": "google/gemini-3-5-flash", "effort": "low" },
@@ -242,17 +251,14 @@ worktrees are cut from.
 ## Defaults and doctor
 
 <Callout type="info">
-  Init scaffolds `artifacts`, `models`, and `status`, and automatically adds validated
-  Linear defaults when safe authenticated discovery succeeds. When `artifacts.provider: "github"` is
-  explicitly selected, Init discovers GitHub defaults via `gh`; missing connectivity never blocks
-  local initialization.
-  Prepare and Plan use complete plain packets and direct GitHub issue publication; they do not
-  require local run authority, provider mirrors, or a Project in parent mode. Goal-only Change remains
-  provider-free. Change with an explicit exact canonical GitHub issue input performs the required read
-  of that issue through host-authenticated `gh`; no artifact-provider configuration, Project, mirror,
-  or persisted plan is required.
-  [woostack-doctor](/docs/skills/woostack-doctor) validates effective runtime policy; explicit live checks
-  prove optional artifact connectivity.
+  Init scaffolds shared `models` and `status` settings and validates an optional top-level
+  `github` object. Authorized native GitHub capabilities or host-authenticated `gh` may provide
+  narrow non-secret defaults; missing GitHub configuration or connectivity never blocks local
+  initialization. Prepare and parent-issue Plan use complete plain packets and direct GitHub issue
+  publication; they need no Project configuration, local run, or second remote record. Goal-only
+  Change makes no GitHub call, while an explicit exact GitHub issue input performs only its required
+  read through host-authenticated `gh`. Doctor validates policy locally; its explicit live request is
+  a separate fixed read-only GitHub contract.
 </Callout>
 
 ## Migration notes

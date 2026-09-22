@@ -1,8 +1,8 @@
 # Bootstrap procedure
 
 This reference owns the collision-safe greenfield filesystem procedure. The design-approval gate in
-[`../SKILL.md`](../SKILL.md) is the authority boundary. Optional Linear, Plane, or GitHub persistence records the
-approved design; it never releases a write barrier.
+[`../SKILL.md`](../SKILL.md) is the authority boundary. Optional direct GitHub Project publication
+records the approved design; it never releases a write barrier.
 
 ## Inputs retained for scaffolding
 
@@ -23,8 +23,8 @@ Before design approval, bounded read-only inspection may establish target existe
 stat, complete directory listing, and no-follow symlink checks only. Do not follow symlinks, read
 project contents, invoke Git, or mutate the target. A discovered existing codebase routes through
 [`../SKILL.md#routing`](../SKILL.md#routing). Inspection grants no approval or write authority.
-Create no local specification/plan, provider resource, branch, commit, or PR before design approval.
-Zero GitHub, Linear, or Plane operations occur before design approval and collision admission.
+Create no local specification/plan, remote Project, branch, commit, or PR before design approval.
+No GitHub operation occurs before design approval and collision admission.
 
 All of these must hold before target admission:
 
@@ -35,31 +35,31 @@ All of these must hold before target admission:
 Reject a symlink, non-directory object, unreadable/ambiguous result, existing Git worktree or
 repository, populated directory, or path owned by another process/run. Never reset, clean, delete,
 overwrite, reuse, or scaffold around an existing path.
-Early inspection cannot satisfy the post-approval barrier. Immediately before the first mkdir,
-write, or scaffold operation, repeat the no-follow collision check, including after any provider
-synchronization; a changed or uncertain result blocks mutation.
+Early inspection cannot satisfy the post-approval barrier. Immediately before the first mkdir, write,
+or scaffold operation, repeat the no-follow collision check, including after any GitHub publication;
+a changed or uncertain result blocks mutation.
 
-## Optional design artifact
+## Optional design publication
 
 Only after explicit design approval and successful collision admission, and only when the caller
-requested persistence or supplied an exact Linear/Plane project URL-or-UUID or canonical GitHub Project URL, follow the shared
-[artifact contract](../../woostack-init/references/artifact-backends.md) and load only the configured
-[GitHub](../../woostack-init/references/artifact-providers/github.md),
-[Linear](../../woostack-init/references/artifact-providers/linear.md), or
-[Plane](../../woostack-init/references/artifact-providers/plane.md) profile:
+selected an exact canonical GitHub Project URL, follow the shared
+[artifact contract](../../woostack-init/references/artifact-backends.md#direct-publication-and-recovery)
+and [GitHub profile](../../woostack-init/references/artifact-providers/github.md#configuration-and-scope):
 
-- prove the selected profile's official capability (MCP for Linear or Plane; host-authenticated gh for GitHub) and exact scope;
-- resolve the exact supplied project or create one only when requested;
+- prove the authorized GitHub capability and exact Project scope;
+- resolve the exact selected Project;
 - write the approved goal, architecture, scope, decisions, and repository/base intent;
-- use the profile's stable operation identity;
+- use the stable operation identity;
 - preserve unrelated human content; and
-- independently read the exact resource, labels, identity, scope, and content back.
+- independently read the exact resource, fields, identity, scope, and content back.
 
-Missing, partial, ambiguous, or unknown artifact outcomes block that requested synchronization only
-unless persistence was explicitly part of the deliverable. Without artifact mode make no provider
-call. Never create a provider document or increment issue/work-item during bootstrap. Zero provider
-operations occur before collision admission. Artifact metadata, native status, provider response,
-remembered approval, or target-path availability cannot substitute for design approval.
+Missing, partial, ambiguous, or unknown GitHub outcomes block that requested publication only unless
+publication was explicitly part of the deliverable. Without a selected Project make no GitHub call.
+Never create a second Project, remote record, issue, or document during bootstrap. Artifact metadata,
+status, response text, remembered approval, or target-path availability cannot substitute for design
+approval. Retired legacy configuration and records remain on disk as opaque user data, are omitted
+from active configuration, and receive actionable guidance at their owning boundary; they are never
+imported.
 
 ## Scaffold the approved architecture
 
@@ -142,12 +142,12 @@ output, stray examples, premature or duplicated shared packages, unexpected file
 lockfiles, or dirty formatter output. A command that does not exist is not a passing check; fix the
 scaffold or report the explicit gap.
 
-## Optional artifact delivery note
+## Optional GitHub delivery note
 
-When selected, append the verified repository URL, branch, resolved stack/versions, created
-surfaces, and observed checks to the exact project artifact in the configured provider and independently read it back. Do not
-create issues/work-items, assign owners, transition lifecycle, accept work, or claim source state from the provider.
-Artifact failure remains separate from scaffold verification.
+When selected, append the verified repository URL, branch, resolved stack/versions, created surfaces,
+and observed checks to the exact GitHub Project record and independently read it back. Do not create
+issues, assign owners, transition lifecycle, accept work, or claim source state from GitHub. Publication
+failure remains separate from scaffold verification.
 
 ## Handoff
 

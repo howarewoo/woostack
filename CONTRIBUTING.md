@@ -12,7 +12,7 @@ This guide covers common edits. Read [AGENTS.md](AGENTS.md) for the full reposit
 | You want to... | Edit |
 |---|---|
 | Change project adoption / command routing guidance | `skills/using-woostack/SKILL.md` |
-| Change local run storage or optional provider mirroring | `skills/woostack-init/references/artifact-backends.md` and the selected provider profile |
+| Change retained run handling or direct GitHub publication | `skills/woostack-init/references/artifact-backends.md` and the GitHub profile |
 | Add/revise a bootstrap decision or its default | `skills/woostack-bootstrap/references/decisions.md` |
 | Swap a default framework | `skills/woostack-bootstrap/references/frameworks.md` |
 | Document a new gotcha | `skills/woostack-bootstrap/references/frameworks.md` (Known gotchas section) |
@@ -67,15 +67,15 @@ no-application-code rule. Its [README](site/README.md) covers local development 
 - Resolve package versions from the registry when needed (`npm view <pkg> version`).
   Name frameworks without versions, except where a known incompatibility requires a pin in
   `skills/woostack-bootstrap/references/frameworks.md`.
-- Keep surviving provider configuration and historical record handling in the
-  [artifact contract](skills/woostack-init/references/artifact-backends.md).
-  Link to the relevant provider profile for Linear, Plane, or GitHub details; Prepare and Plan do
-  not require those providers.
+- Keep retained run data and direct GitHub publication in the
+  [artifact contract](skills/woostack-init/references/artifact-backends.md). Link to the
+  [GitHub profile](skills/woostack-init/references/artifact-providers/github.md) for configuration
+  and capability details; Prepare and parent-issue Plan do not require Project configuration.
 - Use tables to compare options and numbered lists for steps.
 - Keep examples short. Skills explain the workflow; project-local docs cover project details.
 - Link to the document that owns a fact instead of repeating it elsewhere.
 - Keep the command names and fixed skill paths listed in [AGENTS.md](AGENTS.md).
-  Provider integrations do not add commands.
+- GitHub operations do not add commands.
 - Keep each `SKILL.md` consistent with its references. Its `description` should explain when to
   use the skill; put the procedure in the body and linked references.
 - Update affected authored site guides when behavior changes. Do not edit generated skill pages;

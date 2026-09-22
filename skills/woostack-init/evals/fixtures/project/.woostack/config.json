@@ -1,24 +1,18 @@
 {
-  "linear": {
-    "repository": "https://github.com/acme/widgets",
-    "workspace": "acme",
-    "team": "ENG",
+  "github": {
+    "owner": "acme",
+    "ownerType": "organization",
+    "statusField": "Status",
     "projectStatuses": {
-      "backlog": "Backlog",
-      "planned": "Planned",
-      "started": "Started",
-      "completed": "Completed",
-      "canceled": "Canceled"
-    },
-    "issueStates": {
-      "planned": "Backlog",
+      "planned": "Todo",
       "executing": "In Progress",
-      "inReview": "In Progress",
+      "inReview": "In Review",
       "done": "Done",
-      "blocked": "In Progress"
+      "blocked": "Blocked"
     }
   },
   "models": {},
+  "review": {"required": true},
   "status": {"staleDays": 14},
   "owner": "platform"
 }

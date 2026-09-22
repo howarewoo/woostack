@@ -1,8 +1,0 @@
-{
-  "mode": "check-live",
-  "exitCode": 1,
-  "findings": [
-    {"severity": "error", "code": "linear-live", "fixable": "report", "path": ".woostack/config.json", "message": "normalized receipt is incomplete or inconsistent"}
-  ],
-  "repairs": []
-}

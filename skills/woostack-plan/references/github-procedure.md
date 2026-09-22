@@ -3,11 +3,11 @@
 This procedure is the single write/read-back path for `woostack-plan` in both direct and composed
 use. It publishes one approved specification as either an explicitly selected GitHub Project graph
 or one native GitHub specification parent with direct children and native `blocked-by` edges. A
-Prepare caller may retain packet artifacts, but it does not own a second issue or relationship
-writer. The shared [artifact contract](../../woostack-init/references/artifact-backends.md)
-and [GitHub profile](../../woostack-init/references/artifact-providers/github.md) own common identity,
-capability, recovery, and read-back invariants; [github-context.md](github-context.md) owns the
-optional Project baseline.
+Prepare caller may retain packet artifacts, but it does not own a second issue or relationship writer.
+The shared [artifact contract](../../woostack-init/references/artifact-backends.md#direct-publication-and-recovery)
+and [GitHub profile](../../woostack-init/references/artifact-providers/github.md#configuration-and-scope)
+own common identity, capability, recovery, and read-back invariants; [github-context.md](github-context.md)
+owns the optional Project baseline.
 
 Plan never invokes Orchestrate or Execute. It performs no repository source mutation, branch, worktree,
 commit, PR, review, merge, approval, or lifecycle transition.
@@ -137,8 +137,7 @@ complete candidate through the public Harden content interface once, and pauses 
 resolution of every material discrepancy. Harden is read-only and never calls Plan; Plan never calls
 Plan recursively. Publication starts only from Harden's complete handback with no unresolved
 questions. A Prepare caller passes that same packet to Plan and records the returned publication
-evidence if needed; it does not perform a draft-only Plan call or a second provider/mirror
-synchronization.
+evidence if needed; it does not perform a draft-only Plan call or a second publication.
 
 Every boundary retains confirmed mutation identities, exact URLs/native IDs, and the last verified
 operation. A partial or unknown result returns confirmed parent/children and the missing links,

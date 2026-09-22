@@ -29,9 +29,9 @@ test('parseFrontmatter strips surrounding YAML quotes (some descriptions are quo
 });
 
 test('parseFrontmatter accepts safe placeholders in plain descriptions', () => {
-  const raw = '---\nname: woostack-plan\ndescription: Plan the approved Linear project at <project-url>.\n---\nbody';
+  const raw = '---\nname: woostack-plan\ndescription: Plan the approved project at <project-url>.\n---\nbody';
   const { fm } = parseFrontmatter(raw, 'woostack-plan');
-  assert.equal(fm.description, 'Plan the approved Linear project at <project-url>.');
+  assert.equal(fm.description, 'Plan the approved project at <project-url>.');
 });
 
 test('parseFrontmatter accepts quoted colon-space descriptions with safe placeholders', () => {

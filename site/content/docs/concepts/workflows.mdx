@@ -38,8 +38,8 @@ approve design → refresh collision check → scaffold → run and verify
 
 Bootstrap is greenfield-only: it creates a new codebase. It writes nothing to the target before
 explicit design approval and a fresh check that the path is safe to create. After approval and that
-check, an exact Linear, Plane, or GitHub project may store the approved design when selected. The
-project record cannot authorize target writes.
+check, an exact GitHub Project may store the approved design when explicitly selected. The Project
+record cannot authorize target writes.
 
 ## Prepare
 
@@ -55,7 +55,7 @@ blocks before Plan; Prepare never guesses a correction.
 
 Prepare's public phases exchange complete plain packets. Plan is the sole publisher and supports one
 exact GitHub parent selector or one exact Project selector. It creates no source branch, worktree,
-commit, PR, implementation worker, local run, or provider mirror. It reports the verified parent,
+commit, PR, implementation worker, local run, or remote record. It reports the verified parent,
 children, native prerequisite edges, and the separate next suggestion:
 `/woostack-orchestrate --issue <verified-parent-url>` (or the applicable Project command).
 Partial publication preserves exact confirmed identities and resumes Plan at the first unproved
@@ -74,8 +74,8 @@ valid plan with an explicit execution-time integration decision.
 ```
 
 Orchestrate is a separate explicit command. Select exactly one scope. The specification parent with
-native PR-sized children needs no Project or provider-mirror configuration; explicit Project execution
-retains its configured membership and lifecycle checks. Orchestrate keeps up to three
+native PR-sized children needs no Project configuration; explicit Project execution retains its
+configured membership and lifecycle checks. Orchestrate keeps up to three
  delivery-capable Execute workers active by default, bounded by host capability. Verified submission
 and independent specification validation release dependents without waiting for a whole wave or a
 merge. A dependent PR targets its verified prerequisite branch; a join pauses if no permitted single
@@ -90,9 +90,9 @@ classify → scope → repository preflight → execute → verify → review �
 
 Change handles one bounded non-bug enhancement/refactor and has no hard approval gate. It accepts a
 goal-only request or an exact canonical GitHub issue input; either path still requires one coherent
-PR boundary, verification, smoke testing, and review. The goal-only path makes no artifact-provider
-calls. The issue-backed path performs the required read of the selected issue through host-authenticated
-`gh`; it requires no artifact-provider configuration, Project, mirror, or persisted plan.
+PR boundary, verification, smoke testing, and review. The goal-only path makes no remote calls. The
+issue-backed path performs the required read of the selected issue through host-authenticated `gh`;
+it requires no Project configuration, second remote record, or persisted plan.
 
 ```text
 /woostack-change <goal>

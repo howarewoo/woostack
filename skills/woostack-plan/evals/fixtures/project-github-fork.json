@@ -200,7 +200,7 @@
       "dependent"
     ],
     "nativeMapping": "Each [prerequisite, dependent] pair maps to one native blocked-by edge on the dependent (current issue) pointing at the prerequisite (blocking issue).",
-    "readback": "Provider dependency reads are normalized into the same [prerequisite, dependent] order with both endpoint identities verified, not an edge count."
+    "readback": "GitHub dependency reads are normalized into the same [prerequisite, dependent] order with both endpoint identities verified, not an edge count."
   },
   "cycles": [
     {

@@ -3,10 +3,10 @@
 ## Detection
 
 The OpenCode runtime; subagent dispatch via `@subagent` with per-call model selection.
-Discover official Linear or Plane MCP tools exposed via OpenCode runtime MCP configuration or
-host-authenticated GitHub CLI (`gh`) under the selected workflow's artifact admission. Never use custom HTTP/REST/GraphQL transport or
-fallback tokens. Artifact operations follow the canonical
-[artifact backends contract](../../../woostack-init/references/artifact-backends.md).
+Use the host-authenticated GitHub CLI (`gh`) for explicit GitHub operations under the selected
+workflow's admission. Never use custom HTTP/REST/GraphQL transport or fallback tokens. GitHub
+operations follow the canonical [artifact backends contract](../../../woostack-init/references/artifact-backends.md)
+and [GitHub profile](../../../woostack-init/references/artifact-providers/github.md#configuration-and-scope).
 
 ## Subagent spawn
 
@@ -50,6 +50,6 @@ host — no spawn-time auth probe exists; switch manually by promoting an entry 
 
 A spawn that cannot carry the resolved model → session model + say so (degraded), per the
 inline law of the dispatching skill.
-When the configured provider's official interface (Linear/Plane MCP, or host-authenticated gh for GitHub) or a required capability is absent on this host, fail
-closed for required provider boundaries or report the missing capability for optional operations per
-canonical artifact law.
+When the host-authenticated GitHub interface (`gh`) or a required capability is absent, fail closed
+for required GitHub boundaries or report the missing capability for optional operations per the
+canonical artifact contract.

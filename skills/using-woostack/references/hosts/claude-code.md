@@ -4,10 +4,10 @@
 
 The `Task` tool with named subagent profiles (`general-purpose` is the plain worker) and a
 per-call `model` parameter; project rules load from `CLAUDE.md`.
-Discover official Linear or Plane MCP tools exposed via Claude Code MCP configuration (`mcp__linear_*` or
-`mcp__plane_*`) or host-authenticated GitHub CLI (`gh`) under the selected workflow's artifact admission. Never use custom HTTP/REST/GraphQL
-transport or fallback tokens. Artifact operations follow the canonical
-[artifact backends contract](../../../woostack-init/references/artifact-backends.md).
+Use the host-authenticated GitHub CLI (`gh`) for explicit GitHub operations under the selected
+workflow's admission. Never use custom HTTP/REST/GraphQL transport or fallback tokens. GitHub
+operations follow the canonical [artifact backends contract](../../../woostack-init/references/artifact-backends.md)
+and [GitHub profile](../../../woostack-init/references/artifact-providers/github.md#configuration-and-scope).
 
 ## Subagent spawn
 
@@ -60,6 +60,6 @@ to entry 0, or re-run after editing config).
 
 A spawn that cannot carry `model` → the subagent inherits the session model: run it, and say
 so (degraded), per the inline law of the dispatching skill.
-When the configured provider's official interface (Linear/Plane MCP, or host-authenticated gh for GitHub) or a required capability is absent on this host, fail
-closed for required provider boundaries or report the missing capability for optional operations per
-canonical artifact law.
+When the host-authenticated GitHub interface (`gh`) or a required capability is absent, fail closed
+for required GitHub boundaries or report the missing capability for optional operations per the
+canonical artifact contract.

@@ -3,8 +3,6 @@
   "pages": [
     "index",
     "local",
-    "github",
-    "linear",
-    "plane"
+    "github"
   ]
 }

@@ -80,5 +80,6 @@ is the exact Git root it was assigned.
   and safe next action. A timeout proves neither success nor absence.
 - When reopening for review, attach only the verified existing branch and head. Its expected path
   must be free and the branch checked out nowhere else. Never adopt an unrelated checkout.
-Optional provider failure does not weaken collision or ancestry checks. A failed mirror operation
-does not block delivery that has been verified against the local task evidence and repository.
+An unavailable optional GitHub read does not weaken collision or ancestry checks. A failed
+GitHub delivery-note operation is reported separately and does not block delivery already verified
+against local task evidence and repository.
