@@ -1,96 +1,109 @@
 ---
 name: woostack-harden
-description: Internal workflow phase that reconciles a Build/Fix run draft against bounded repository evidence and hands back complete plain local content. It is not a public command.
+description: Public read-only phase for reconciling a supplied specification or candidate issue plan against bounded repository evidence with explicit user-owned corrections.
 ---
 
 # woostack-harden
 
-An internal building block of [`woostack-build`](../woostack-build/SKILL.md), also used by its
-project-backed Fix wrapper. Harden reconciles the user's local draft specification and, after
-delegated planning, its local direct-issue plan against bounded repository evidence. It asks before
-every material correction, records only what the user validates, and stops when no inconsistency
-remains. It owns no provider call, approval gate, planning, execution, review, Git mutation, or
-implementation.
+Harden reconciles complete supplied planning content against bounded repository evidence. It accepts
+a specification or a candidate issue plan, exposes material inconsistencies, asks before changing an
+approved decision, and returns complete reusable content. It is a public phase and may also be
+composed by Build, Fix, or a future preparation workflow. Plan has its own standalone reconciliation
+boundary and never invokes Harden automatically. Harden owns no persistence, publication, approval,
+implementation, or automatic routing.
 
-## Exact manifest admission
+## Command and input
 
-Build/Fix admits its baseline and supplies the permission-restricted run manifest defined by the shared
-[artifact contract](../woostack-init/references/artifact-backends.md#minimal-resumable-manifest-schema).
-For project-spec hardening, admit its local specification. For plan hardening, admit the complete
-local set of candidate direct issues, stable task keys, and dependency tuples; a parent plan issue is
-not a current plan record.
+```text
+/woostack-harden <specification-or-issue-plan>
+```
 
-Verify run identity, owner-only permissions (`0700` directory and `0600` regular file), monotonic
-revision, stable-key uniqueness, complete draft content, unresolved questions, and atomic
-compare-and-swap state. A missing, foreign, ambiguous, conflicting, partial, stale, overly permissive,
-symlinked, or malformed manifest blocks at the last verified boundary.
+Pass the complete plain packet described in
+[`planning-inputs.md`](../using-woostack/references/planning-inputs.md), including an exact
+repository identity, immutable baseline, and the evidence identity to inspect. The content must be
+a complete specification or candidate issue plan; a prior Ideate or Debug handback may be passed
+verbatim. A caller may supply a candidate plan before publication. There is no required Build/Fix
+run, project selector, provider configuration, or permission-restricted manifest. Build/Fix may
+adapt their retained run content into this packet; their local record remains their own persistence
+boundary, not Harden admission.
 
-Harden performs zero provider reads and writes. It never creates a second project/plan, infers a
-native resource, or substitutes conversation history or repository evidence for the verified local
-manifest. The local run manifest is the canonical authority.
+Resolve available repository and baseline facts through the shared input contract. Ask for missing
+content or a target/evidence scope only when it remains ambiguous or inaccessible after those reads.
+Do not discover a run by title, branch, recent activity, or search ranking. If a supplied handback
+is stale, foreign, incomplete, or conflicting, preserve its decisions and identify the affected
+evidence; revalidation does not authorize silently replacing approved content.
 
-## Reconciliation loop
+An exact GitHub issue or pull request may be supplied as read-only evidence when the user explicitly
+selects it and the authorized host capability can read and independently verify it completely. A
+provider or mirror configuration is never required for public Harden. Unsupported, unavailable,
+partial, or stale selected context is a blocker for that evidence path, not permission to guess or
+fall back to a different resource.
 
-Work one discrepancy at a time and ask **one question per message**. Begin with the exact manifest
-draft, then inspect only the bounded repository files, configuration, tests, documentation, and
-conventions that can bear on its decisions. Apply relevant repository conventions, least-code checks,
-and provider constraints as reconciliation prompts. Harden must return complete plain artifacts;
-it must not add scope, invent approval, or turn a draft into source-control authority.
+## Reconciliation invariant
 
-At both specification and planning boundaries, Harden performs the removal-first check before
-accepting additive work: it verifies that the proposal removes, reuses, simplifies, or generalizes
-existing code before proposing additions. It challenges an additive draft when bounded evidence
-shows the same contract can be met by deletion or simplification, then asks the user to validate the
-safe removal—or the bounded reason addition remains necessary—without dropping behavior or safety
-requirements.
-[least-code doctrine](../woostack-bootstrap/references/patterns.md#7-least-code--comments) rather
-than duplicating it.
+Repository evidence can expose a question; it cannot answer a user-owned decision. Existing
+conventions, issue text, recommendations, and apparently safer alternatives are observations or
+unverified recommendations only. Harden never silently changes scope, behavior, architecture,
+compatibility, security boundaries, acceptance, verification, or plan dependencies.
 
-During specification reconciliation, Harden validates the Ideate-owned conditional `## Data models`
-section against bounded repository evidence (existing schemas, migrations, route definitions, and data-layer
-conventions). If bounded evidence indicates table changes (entities/tables, fields/types, constraints,
-relationships, indexes, or migration/backfill) or API changes (method/path, authorization,
-request/response/error shapes, or compatibility), Harden verifies that the single `## Data models` section
-is present and complete across all applicable categories. If the section is missing when table or API changes
-apply, omits applicable details, conflicts with repository conventions, or is present when neither applies,
-Harden treats that condition as a material discrepancy. Present the discrepancy and evidence to the user,
-ask for their decision, and wait for explicit validation. Harden never synthesizes or silently modifies
-the `## Data models` section or any specification content from repository evidence.
+At both specification and candidate-plan boundaries, perform the removal-first check: verify whether
+safe deletion, reuse, simplification, or generalization can satisfy the supplied contract before
+accepting additive work. If evidence supports simplification, present it and ask the user to keep
+or correct the content. Preserve required safety and compatibility protections.
 
-For the first material inconsistency:
+For a specification, validate the conditional `## Data models` section against bounded schemas,
+migrations, routes, and data-layer conventions. If evidence indicates storage/table or public/internal
+API changes, the one section must be present and complete across all applicable entities/tables,
+fields/types, constraints, relationships, indexes, migration/backfill, method/path, authorization,
+request/response/error shapes, and compatibility details. If neither applies, the section must be
+omitted. A missing, extra, incomplete, or conflicting section is a material discrepancy; report it
+and ask for explicit user validation. Harden never synthesizes its contents.
 
-1. State the exact manifest field or stable task key and the bounded repository evidence,
-   separating observation from interpretation.
-2. Ask the user whether to correct the specification/plan, keep the current decision, or clarify
-   the evidence. Offer a recommendation only as an explicitly unverified recommendation.
-3. Wait for explicit user validation. **Never silently change a specification or plan from
-   repository evidence, even when the repository convention appears unambiguous or safer.**
-4. After a correction is validated, atomically replace the affected manifest draft content and
-   unresolved-question state, preserving unrelated user-authored content, before asking the next question.
-5. For plan changes, verify the affected stable task mappings (canonical issue references for
-   retained tasks and explicit `null` entries for new tasks) and complete local dependency set;
-   never simulate dependencies in prose, infer issue endpoints, or infer parent absence.
+For a candidate issue plan, reconcile each stable task key and ordinal, outcome, scope, non-goals,
+affected paths/interfaces, acceptance, check and smoke scenario, risks, prerequisites, and
+Git-parent-selection policy against the supplied specification and repository evidence. Preserve
+real dependency edges; never infer an issue endpoint, parent, prerequisite, or publication identity.
+Plan owns any later issue publication.
 
-A user choice to keep an inconsistency is itself a decision, not permission to rewrite it. Record a
-rationale only when the user explicitly asks for that material to be part of the specification or
-plan. Repository evidence can expose a question; it cannot answer one.
+## Reconciliation dialogue
 
-## Completion and single handoff
+Inspect only bounded files, configuration, tests, documentation, and explicitly selected remote
+context that can bear on the supplied content. Work one material discrepancy at a time:
 
-Continue until the bounded inspection finds no remaining material inconsistency, every recorded
-correction agrees with explicit user validation, the conditional `## Data models` section is validated
-(present with all applicable details when table or API changes apply, or omitted when neither applies),
-and the unresolved-question set is empty. Then verify the complete manifest once more:
+1. state the exact content section, task key, or evidence identity involved;
+2. separate the observed repository fact from its interpretation and recommendation;
+3. ask whether to correct the content, keep the approved decision, or clarify the evidence;
+4. wait for explicit user validation before changing anything; and
+5. preserve unrelated user-authored content while returning to the next discrepancy.
 
-- for a project specification, return the baseline project identity/revision, local specification, and
-  run/process/manifest identity;
-- for a plan, return the baseline project identity/revision, sorted stable task mappings (canonical
-  issue references for retained tasks and explicit `null` entries for new tasks), exact local dependency
-  set, and run/process/manifest identity.
+A choice to keep an inconsistency is itself a user decision. Record its rationale only when the user
+asks for that rationale in the returned content. Reusing a complete approved handback does not repeat
+settled decisions; revalidate only stale, conflicting, or newly exposed evidence. Never speculate
+about an unobserved check or report a command as passing because it appears in the plan.
 
-Hand this one local result back to the owning Build/Fix wrapper. This is not approval and does not
-transition phases. The wrapper writes `project-spec.md` or `execution-plan.md` directly under the run
-directory, handles optional mirror synchronization and retention, and owns the `Stop here`/`Execute`/`Abandon`
-handoff. On `Execute`, it stops at retained artifacts; the caller supplies one selected complete bounded
-task to [`woostack-execute`](../woostack-execute/SKILL.md#retired-inputs). Harden invokes none of those
-activities and never edits implementation source.
+## Read-only boundary
+
+Harden performs no provider or remote writes, issue creation, source edit, implementation-worker
+dispatch, commit, branch, worktree, Plan, Execute, Orchestrate, or PR action. It may perform
+read-only repository inspection and an explicitly selected exact remote read. It does not create a
+manifest, canonical planning ledger, mirror, or hidden compatibility wrapper. A user may explicitly
+save the plain handback, but saving is not approval or authority.
+
+## Complete handback
+
+When bounded reconciliation finds no remaining material discrepancy and every correction has explicit
+user validation, return the complete plain handback from
+[`planning-inputs.md`](../using-woostack/references/planning-inputs.md), not a patch or delta:
+
+- the exact repository identity and admitted baseline;
+- all evidence identities, observations, and read-back limitations;
+- the complete revised specification or candidate issue plan, including unchanged sections;
+- confirmed corrections and preserved user decisions;
+- an empty unresolved-question/discrepancy section; or, if blocked, every remaining discrepancy and
+  the exact evidence or decision needed; and
+- the read-only boundary plus the separate possible next consumer, such as Plan or Execute.
+
+This handback is composable content. Harden never invokes Plan automatically, creates GitHub issues,
+selects a publication destination, dispatches implementation, commits, or submits a PR. The caller
+explicitly decides whether to save it, pass it to Plan, pass one already-authorized bounded task to
+Execute, or stop.

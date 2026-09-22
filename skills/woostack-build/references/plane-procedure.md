@@ -11,10 +11,10 @@ identity, scope, capabilities, membership, relations, and lifecycle behavior. Th
 
 ## Build project lifecycle
 
-Build allocates or resumes the canonical run under `.woostack/tmp/runs/<run-id>/` and admits the
-baseline before ideation when mirroring is enabled. Ideate and specification Harden update only the
-permission-restricted run manifest and make zero provider calls. This procedure is not invoked until
-`project-spec.md` is written.
+Build allocates or resumes the canonical run under `.woostack/tmp/runs/<run-id>` and admits the
+baseline before mirroring. It adapts the retained content, baseline, and evidence identity into the
+public Ideate/Harden packets, then persists their complete plain handbacks in the manifest. The
+public phases make zero provider calls; this procedure is not invoked until `project-spec.md` is written.
 
 When `artifacts.provider: "plane"`, perform only the shared immediate pre-save drift read and one
 bounded synchronization after `project-spec.md` is written. Write the specification to the top-level
@@ -25,9 +25,11 @@ is nonblocking. Do not save intermediate decisions, question replies, or hardeni
 
 ## Increment graph synchronization
 
-Build-delegated `woostack-plan` and Harden populate only the manifest with a complete candidate
-graph. They make zero provider calls. Build writes `execution-plan.md` directly under the run directory.
-This procedure runs after `execution-plan.md` is written when `artifacts.provider: "plane"`.
+Build-delegated `woostack-plan` returns a candidate graph without provider calls. The wrapper adapts
+it, with the complete specification and evidence identity, into public Harden and persists the
+complete plain handback in the manifest. The graph keeps stable task IDs and dependencies. Build
+writes `execution-plan.md` directly under the run directory. This procedure runs after that file is
+written when `artifacts.provider: "plane"`.
 After the immediate baseline drift read matches, run the shared
 [graph-write preflight](../../woostack-init/references/artifact-backends.md#canonical-issue-references-nullable-parents-and-graph-write-preflight).
 Failure before work item creation has zero provider and repository mutation; a failed post-create

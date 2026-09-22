@@ -19,7 +19,7 @@ Project Plan. Standalone `--parent-issue` instead uses that procedure's
 
 ## Project specification baseline
 
-Read the complete Project title, shortDescription, and managed README section (`<!-- woostack-spec-start -->` to `<!-- woostack-spec-end -->`) that Build owns. Preserve unrelated README prefix, suffix, and metadata outside the markers. Record baseline in the manifest. Ideate and Harden make zero provider calls while drafting. After `project-spec.md` is written, perform drift comparison, one bounded synchronization, and content read-back. Mirror failures are nonblocking.
+Read the complete Project title, shortDescription, and managed README section (`<!-- woostack-spec-start -->` to `<!-- woostack-spec-end -->`) that Build owns. Preserve unrelated README prefix, suffix, and metadata. Record baseline in the manifest. Build adapts that baseline and its admitted goal/specification into the public plain Ideate/Harden packets; those phases make zero provider calls. After `project-spec.md` is written, perform drift comparison, one bounded synchronization, and content read-back. Mirror failures are nonblocking.
 
 ## Direct increment graph baseline
 

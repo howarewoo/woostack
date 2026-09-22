@@ -8,18 +8,22 @@ publication uses the separate admission below; it does not run Project resolutio
 
 ## Build project lifecycle
 
-Build allocates or resumes the canonical run under `.woostack/tmp/runs/<run-id>/` and admits the baseline.
-Ideate and Harden update only the manifest with zero provider calls while drafting.
-After `project-spec.md` is written, perform immediate pre-save drift read and one bounded synchronization:
+Build allocates or resumes the canonical run under `.woostack/tmp/runs/<run-id>` and admits the
+baseline. It adapts the retained goal/specification, baseline, and evidence identity into the public
+Ideate/Harden packets, then persists their complete plain handbacks in the run manifest. The public
+phases make zero provider calls. The synchronization procedure starts only after `project-spec.md` is written:
+Perform immediate pre-save drift read and one bounded synchronization:
 write the specification inside `ProjectV2.readme` between `<!-- woostack-spec-start -->` and `<!-- woostack-spec-end -->`
 and update `shortDescription` with the concise goal summary, preserving unrelated README prefix/suffix and metadata.
 Read content back and set `mirror.status = "synced"`; mirror failures record `mirror.status = "failed"` and are nonblocking.
 
 ## Increment graph synchronization
 
-Build/Fix-delegated `woostack-plan` and Harden populate only the manifest with zero provider calls
-and return the admitted DAG: stable task IDs, unique positive display ordinals, and explicit
-predecessor sets under the [GitHub graph and parent-selection contract](../../woostack-init/references/artifact-providers/github.md#issue-identity-and-graph).
+Build/Fix-delegated `woostack-plan` returns a candidate DAG without provider calls. The wrapper
+adapts that candidate, the complete specification, and evidence identity into public Harden, then
+persists Harden's complete plain handback in the manifest. The returned DAG keeps stable task IDs,
+unique positive display ordinals, and explicit predecessor sets under the
+[GitHub graph and parent-selection contract](../../woostack-init/references/artifact-providers/github.md#issue-identity-and-graph).
 Reuse the existing manifest task/dependency/mapping forms; run-store storage does not validate the DAG.
 After `execution-plan.md` is written, run the shared graph-write preflight. Failure before issue
 creation has zero provider and repository mutation; a failed post-create read-back retains exactly one

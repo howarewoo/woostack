@@ -64,18 +64,25 @@ to install or track with Graphite. Unknown selection blocks mutation; `gt` failu
 
 ## Input and ownership
 
-The input is one complete specification containing goal, users, behavior, constraints, exclusions,
-architecture decisions, acceptance criteria, and verification expectations. Missing or conflicting
-product decisions return to the owning workflow; Plan never invents product decisions and never
-creates an approval event.
+Standalone and composed Plan consume one complete plain packet from
+[`planning-inputs.md`](../using-woostack/references/planning-inputs.md). Its content is an approved
+specification containing goal, users, behavior, constraints, exclusions, architecture decisions,
+acceptance criteria, and verification expectations, plus exact repository/baseline and evidence
+identity. A composed caller may additionally supply a complete candidate issue plan for
+reconciliation. Missing or conflicting product decisions return to the caller or public
+[`woostack-ideate`](../woostack-ideate/SKILL.md); repository inconsistencies may be passed through
+public [`woostack-harden`](../woostack-harden/SKILL.md). Plan never invents product decisions and
+never creates an approval event.
 
-Build or Fix delegates candidate planning with the readable specification, baseline identity, and
-verified run manifest. Delegated planning performs no provider read or mutation; it atomically
-records complete candidate contracts, stable local task keys, dependencies, and unresolved questions
-in that manifest. The owning wrapper hardens the manifest and writes `execution-plan.md` directly
-under `.woostack/tmp/runs/<run-id>/`. In standalone use, Plan itself hardens and synchronizes the
-graph. In every mode, Plan owns no implementation, source edit, commit, branch, PR, review, merge,
-or execution handoff authority.
+Build or Fix may still delegate candidate planning with readable specification, baseline identity,
+and their verified run manifest during the transition. That wrapper adapter is a retained caller
+boundary; the public phase contracts do not require a manifest. Delegated planning performs no
+provider read or mutation; the owning wrapper hardens the candidate and writes its retained artifact.
+In standalone use, Plan itself hardens and synchronizes the graph. Plan never invokes Harden
+automatically, and Harden never invokes Plan, so composition remains acyclic.
+
+In every mode, Plan owns no implementation, source edit, commit, branch, PR, review, merge, or
+execution handoff authority.
 
 ## Direct issue contract
 

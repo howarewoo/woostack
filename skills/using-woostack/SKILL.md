@@ -42,6 +42,8 @@ provider-specific scope, capabilities, identities, and lifecycle behavior.
 | Adopt woostack or choose a workflow | `using-woostack` |
 | Initialize or repair local woostack support | `woostack-init` |
 | Create a genuinely greenfield codebase | `woostack-bootstrap` |
+| Elicit a complete user-verified specification from a goal or existing specification | `woostack-ideate` |
+| Reconcile a supplied specification or candidate issue plan against repository evidence | `woostack-harden` |
 | Prepare a multi-increment feature and execution handoff | `woostack-build` |
 | Diagnose and fix a defect, bounded or project-backed | `woostack-fix` |
 | Implement a bounded non-bug enhancement or refactor in one PR | `woostack-change` |
@@ -62,9 +64,13 @@ provider-specific scope, capabilities, identities, and lifecycle behavior.
 | Reflect on this conversation for durable instruction suggestions | `woostack-reflect` |
 
 Every explicit `/woostack-*` command loads its namesake skill. Intent-equivalent wording follows
-the same route. Change stays non-bug and one-PR; Fix owns diagnosis and chooses bounded delivery or
-project planning after proof. Build owns multi-increment preparation. Ideate and Harden are internal
-Build/Fix phases, not public commands.
+the same route. Ideate and Harden are public, directly callable phases that exchange the complete
+plain packets defined in [planning-inputs.md](references/planning-inputs.md); Build and Fix may
+compose them through their own retained records but do not make a run manifest, provider mirror, or
+wrapper admission a prerequisite for standalone use. Change stays non-bug and one-PR; Fix owns
+diagnosis and chooses bounded delivery or project planning after proof. Build owns multi-increment
+preparation. None of these phases automatically invokes another phase, creates issues, edits source,
+commits, or submits a PR.
 
 ## AGENTS.md usage
 

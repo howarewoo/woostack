@@ -110,7 +110,7 @@ incomplete direct delivery.
 
 After proof and writable-target admission, load the shared
 [artifact contract](../woostack-init/references/artifact-backends.md), the
-[Build wrapper](../woostack-build/SKILL.md), internal [`woostack-ideate`](../woostack-ideate/SKILL.md)
+[Build wrapper](../woostack-build/SKILL.md), public [`woostack-ideate`](../woostack-ideate/SKILL.md)
 and [`woostack-harden`](../woostack-harden/SKILL.md), and only the selected
 [GitHub](../woostack-init/references/artifact-providers/github.md),
 [Linear](../woostack-init/references/artifact-providers/linear.md), or
@@ -154,10 +154,14 @@ admit its direct linked issues under its own contract.
 
 ### Ideate, Harden, and write the specification
 
-Admit the baseline/manifest and pass the proved diagnosis to Ideate, then Harden. They work only in
-that manifest, make zero provider calls while drafting, and own no repository mutation. Preserve
-their full user verification of the specification and technical details and Harden's one-question
-reconciliation protocol unchanged.
+Adapt the proved diagnosis, complete correction intent, exact repository/baseline identity, and
+evidence into the public [`woostack-ideate`](../woostack-ideate/SKILL.md) plain input packet, then
+pass Ideate's complete handback to public [`woostack-harden`](../woostack-harden/SKILL.md). They
+perform user verification and repository reconciliation through complete plain content and make no
+provider calls or repository mutations. Fix may retain its run manifest and baseline records for
+the project-backed path, but that wrapper-owned state is not required by either public phase.
+Preserve their full user verification of the specification and technical details and Harden's
+explicit correction protocol unchanged.
 
 The specification includes observed/expected behavior, causal evidence, complete intended correction,
 goal/acceptance, in/out-of-scope surfaces, relevant technical consequences and material risks,

@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "skill": "woostack-harden",
+  "cases": [
+    {
+      "id": "specification-reconciles-against-exact-evidence",
+      "query": "Use /woostack-harden on this complete specification with the exact repository baseline and bounded evidence. Identify material inconsistencies, ask before correcting approved decisions, and return the complete reconciled plain content.",
+      "shouldTrigger": true,
+      "expectedSkill": "woostack-harden"
+    },
+    {
+      "id": "candidate-issue-plan-is-composable-input",
+      "query": "Harden this candidate issue plan against the supplied specification and exact repository evidence. Preserve stable task identities, check real prerequisite edges, and ask before changing scope; do not publish issues.",
+      "shouldTrigger": true,
+      "expectedSkill": "woostack-harden"
+    },
+    {
+      "id": "missing-specification-needs-ideate",
+      "query": "I only have a broad feature goal and need questions to establish users, behavior, constraints, acceptance, and any data model decisions before checking the repository.",
+      "shouldTrigger": false,
+      "expectedSkill": "woostack-ideate",
+      "conflictsWith": ["woostack-harden"]
+    },
+    {
+      "id": "publication-belongs-to-plan",
+      "query": "Take this approved specification and create the GitHub parent, native children, and prerequisite dependency edges, then return their verified URLs.",
+      "shouldTrigger": false,
+      "expectedSkill": "woostack-plan",
+      "conflictsWith": ["woostack-harden"]
+    },
+    {
+      "id": "diagnosis-belongs-to-debug",
+      "query": "Investigate this known reproduction, trace the causal chain to its source, and propose the smallest correction without editing the repository.",
+      "shouldTrigger": false,
+      "expectedSkill": "woostack-debug",
+      "conflictsWith": ["woostack-harden"]
+    }
+  ]
+}
