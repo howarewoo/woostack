@@ -70,7 +70,7 @@ without overwriting prior evidence. A missing state file is allowed only on the 
 where `--state` is omitted; every later call must name an existing state file and stop on
 missing/corrupt/mismatched state rather than reinitializing it.
 
-The five bridge commands are:
+The six bridge commands are:
 
 ```text
 python3 <orchestrate-skill>/scripts/orchestrate.py admit \
@@ -91,6 +91,11 @@ python3 <orchestrate-skill>/scripts/orchestrate.py schedule \
   --git-repo <canonical-git-repository> --fresh <fresh-snapshot.json> \
   [--cap <host-cap>] [--parent-decision <decision.json>]
 
+python3 <orchestrate-skill>/scripts/orchestrate.py record-worker \
+  --admitted admitted.json --state controller-state.json \
+  --state-out controller-state.json --git-repo <canonical-git-repository> \
+  --task <task-id> --evidence <native-host-launch-readback.json>
+
 python3 <orchestrate-skill>/scripts/orchestrate.py apply-result \
   --admitted admitted.json --state controller-state.json \
   --state-out controller-state.json --git-repo <canonical-git-repository> \
@@ -99,7 +104,8 @@ python3 <orchestrate-skill>/scripts/orchestrate.py apply-result \
 python3 <orchestrate-skill>/scripts/orchestrate.py reconcile \
   --admitted admitted.json --state controller-state.json \
   --state-out controller-state.json --git-repo <canonical-git-repository> \
-  --task <task-id> --evidence <canonical-reconciliation-evidence.json>
+  --task <task-id> --inventory <fresh-recovery-inventory.json> \
+  --evidence <canonical-reconciliation-evidence.json>
 python3 <orchestrate-skill>/scripts/orchestrate.py stop \
   --admitted admitted.json --state controller-state.json \
   --state-out controller-state.json --git-repo <canonical-git-repository> \
@@ -211,6 +217,9 @@ host file; do not invent a transport or silently run inline. The worker may edit
 workspace and may not schedule siblings, modify hierarchy/Project progress, or write another task's
 surface. Never copy secrets into worker prompts or synthesize credentials; use the host's existing
 authenticated tools.
+Read back the native launched worker/session and persist it with
+[`record-worker`](references/validation.md#record-the-native-writer) before processing its result.
+If launch identity is lost, discover it from the actual host; never invent one from artifact prose.
 
 ## Continuously refill on completion
 
@@ -264,8 +273,9 @@ For `unknown`, missing, or malformed worker/result evidence, the helper retains 
 reservation, dirty worktree, branch, PR evidence, and first uncertain boundary. Unknown blocks only
 that task and its descendants; unrelated ready tasks remain dispatchable only within proven spare
 capacity because a possibly-live unknown worker still occupies its slot. Run `reconcile` only with
-the admitted scope, existing state, canonical Git repository, and direct evidence that includes
-`worker_stopped: true` plus the reserved branch/workspace/parent and canonical PR/readback identity.
+the admitted scope, existing state, canonical Git repository, freshly read host recovery inventory,
+and [bound stopped-worker evidence](references/validation.md#unknown-reconciliation) plus the
+reserved branch/workspace/parent and canonical PR/readback identity.
 A canonical open PR with exact identity returns `evidence-pending`: assemble and apply the
 independent full result/check/note evidence without dispatching another Execute worker. A no-PR
 recovery must satisfy the complete [absence evidence contract](references/validation.md#unknown-reconciliation);

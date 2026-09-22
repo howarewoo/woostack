@@ -203,23 +203,70 @@ selected Project URL, child issue URL, admission-bound native `item_id`, and exa
 Parent-issue mode performs no Project call. Never set another lifecycle option, create a Project,
 claim a status from a schedule intent, or use Project progress as evidence of PR delivery.
 
+## Record the native writer
+
+Immediately after dispatch, read the actual host's worker handle and its owning session back,
+correlate that launch with the complete reserved task packet, and checkpoint it:
+
+```text
+python3 skills/woostack-orchestrate/scripts/orchestrate.py record-worker \
+  --admitted admitted.json --state controller-state.json \
+  --state-out controller-state.json --git-repo <canonical-repository> \
+  --task <task-id> --evidence host-launch-readback.json
+```
+
+The launch receipt contains `worker` (exactly nonempty `host_id`, `session_id`, `worker_id`),
+`reservation` (the complete unchanged scheduled reservation), and `state_digest` (lowercase
+SHA-256 hex of the exact current checkpoint file bytes, without a prefix). Use native runtime
+identities, including the session/host incarnation, not a model-chosen label or reusable PID alone.
+The helper records this identity separately as `host_worker`; worker result prose cannot replace
+it. Another identity is rejected until the controller emits a new repair dispatch. Each dispatch
+clears the prior native identity; record the new launch even when branch/workspace stay unchanged.
+
+If the dispatch reply was lost, direct host discovery may supply the missing identity against the
+still-running or unknown reservation through the same command. Correlate the actual launch/session
+and workspace, not just a similarly named worker. If that correlation is unavailable, leave the task
+unknown and occupied; neither a stopped receipt nor a PR can substitute for a recorded native writer.
+`record-worker` uses the same durable claims and checkpoint CAS as other controller mutations.
+
 ## Unknown reconciliation
 
-An unknown task remains reserved and blocks only that task and its descendants. Reconcile only
-after the worker is stopped and with both `--admitted` and `--git-repo`:
+An unknown task remains reserved and blocks only that task and its descendants. Before reconciling,
+use the host's native status/wait/session/process readback to establish that the recorded writer and
+all of its writer processes have terminated. Timeout, cancellation request, missing poll result,
+model assertion, saved artifact, and a worker's own finish message are not termination proof.
+Hold the exclusive controller/task claims while obtaining a fresh complete recovery inventory and
+reconciling; do not resume or relaunch that session between the read and reconciliation.
 
 ```text
 python3 skills/woostack-orchestrate/scripts/orchestrate.py reconcile \
   --admitted admitted.json --state controller-state.json \
   --state-out controller-state.json --git-repo <canonical-repository> \
-  --task <task-id> --evidence canonical-reconciliation-evidence.json
+  --task <task-id> --inventory current-recovery-inventory.json \
+  --evidence canonical-reconciliation-evidence.json
 ```
+
+The separately supplied inventory contains all eight recovery families. `sessions` is a list of
+host-read rows, with exactly one row matching the recorded writer, task, or full reservation:
+`{"worker": <recorded host_worker>, "task_id": <task-id>, "reservation": <full reservation>,
+"status": "stopped"}`. Conflicting or duplicate rows fail closed. `processes` is a list of native
+process readbacks; every row matching that writer, task, or reservation must also say `stopped`.
+Include all writer descendants in that read, not only the session leader. Other task rows may remain
+running. The remaining inventory families retain their normal complete-read requirements.
 
 The evidence must be a direct canonical read, not a worker assertion, and include:
 
 ```json
 {
-  "worker_stopped": true,
+  "worker_stop": {
+    "worker": {
+      "host_id": "<recorded native host incarnation>",
+      "session_id": "<recorded native session incarnation>",
+      "worker_id": "<recorded native worker handle>"
+    },
+    "state_digest": "<SHA-256 hex of current checkpoint bytes, without prefix>",
+    "inventory_digest": "sha256:<SHA-256 hex of canonical JSON inventory>"
+  },
   "branch": "<runtime-substituted exact reserved branch>",
   "head_sha": "<runtime-substituted exact observed branch head>",
   "base_branch": "<runtime-substituted exact reserved parent branch>",
@@ -232,9 +279,18 @@ The evidence must be a direct canonical read, not a worker assertion, and includ
 }
 ```
 
+The inventory digest uses the helper's existing canonical JSON convention: sorted keys, compact
+`,`/`:` separators, ASCII-escaped strings, UTF-8 bytes. The stop receipt must match the recorded
+identity, current checkpoint digest, and supplied inventory digest. An old checkpoint/repair
+attempt, foreign worker/session/host, bare `worker_stopped: true`, or current running inventory
+cannot release the reservation. The helper checks these bindings; it cannot query or authenticate
+an arbitrary host itself. JSON and its hashes do not prove liveness or freshness. The caller must
+perform the native readback above and must not manufacture a matching stopped inventory. If the
+host cannot expose reliable terminal/session/process evidence, reconciliation stays blocked.
+
 For a proven no-PR path, use `pr_absent: true`, `pr_url: null`, `open: false`, `unique: true`,
-and the same canonical branch/head/base/repository/head-repository facts plus
-`worker_stopped: true`; the helper rejects contradictory absence evidence (for example a
+and the same canonical branch/head/base/repository/head-repository facts and bound `worker_stop`
+receipt; the helper rejects contradictory absence evidence (for example a
 non-null `pr_url` or `open: true` alongside `pr_absent: true`) as `evidence-mismatch` and
 preserves state. The helper returns same-branch `repair-ready` only for proven absence; an exact
 canonical PR returns `evidence-pending` until the caller supplies independent full result evidence.
@@ -245,6 +301,6 @@ or missing admitted/git-repo input blocks reconciliation and leaves that task's 
 
 After a successful reconciliation, assemble a new fully paginated fresh snapshot and invoke
 `schedule` again with the existing state, `--fresh`, and `--git-repo`. The caller holds the same
-externally enforced exclusive scope and canonical task claims across `schedule`, `apply-result`,
-and `reconcile`; never run a second controller, recreate missing state, or redispatch while worker
+externally enforced exclusive scope and canonical task claims across `schedule`, `record-worker`,
+`apply-result`, and `reconcile`; never run a second controller, recreate missing state, or redispatch while worker
 ownership is unknown.

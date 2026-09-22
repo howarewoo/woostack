@@ -1698,6 +1698,7 @@ def cmd_schedule(args):
             paused.append({"task_id": tid, "reason": error.code})
             continue
         item.update(status="running", reservation=reservation, parent_decision=copy.deepcopy(decision),
+                    host_worker=None,
                     first_uncertain_boundary=None,
                     last_evidence={"parent_readiness": copy.deepcopy(readiness)})
         dispatch.append({"task_id": tid, "ordinal": task["ordinal"], "child_url": task["url"],
@@ -1710,6 +1711,33 @@ def cmd_schedule(args):
             "notice": fresh["notice"], "dispatch": dispatch, **_state_summary(
                 state, blocked=blocked, waiting=waiting, paused=paused,
                 unknown_details=unknown)}
+
+
+def cmd_record_worker(args):
+    admitted = load_json(args.admitted)
+    repository(args.git_repo, admitted["canonical_repo"])
+    state = state_read(args.state, admitted)
+    require(args.task in state["tasks"], "unknown-task", "task outside admitted scope")
+    item = state["tasks"][args.task]
+    require(item["status"] in ("running", "unknown"), "not-running", "worker needs an active reservation")
+    receipt = load_json(args.evidence)
+    worker = receipt.get("worker")
+    require(isinstance(worker, dict)
+            and set(worker) == {"host_id", "session_id", "worker_id"}
+            and all(text(value) for value in worker.values()),
+            "worker-liveness", "native host/session/worker identity required")
+    require(receipt.get("reservation") == item["reservation"],
+            "evidence-mismatch", "host launch readback must match the reservation")
+    require(item.get("host_worker") in (None, worker),
+            "worker-liveness", "recorded writer cannot be replaced")
+    require(receipt.get("state_digest") == state["_loaded_digest"],
+            "worker-liveness", "host launch readback must bind the current checkpoint")
+    task = next(t for t in admitted["tasks"] if t["task_id"] == args.task)
+    claim_scope(args.git_repo, admitted, state)
+    claim_task(args.git_repo, admitted, task, state, item)
+    item["host_worker"] = copy.deepcopy(worker)
+    write_state(args, state)
+    return {"status": "worker-recorded", "task_id": args.task}
 
 
 def cmd_apply_result(args):
@@ -1761,8 +1789,30 @@ def cmd_reconcile(args):
     claim_task(args.git_repo, admitted, task, state, item)
     evidence = load_json(args.evidence)
     reservation = item["reservation"]
-    require(evidence.get("worker_stopped") is True,
-            "worker-liveness", "old writer must be proved stopped")
+    stopped = evidence.get("worker_stop")
+    worker = item.get("host_worker")
+    require(isinstance(worker, dict) and isinstance(stopped, dict),
+            "worker-liveness", "recorded host writer and bound stop readback required")
+    inventory = recovery_inventory(load_json(args.inventory))
+    require(stopped.get("worker") == worker
+            and stopped.get("state_digest") == state["_loaded_digest"]
+            and stopped.get("inventory_digest") == digest(inventory),
+            "worker-liveness", "stop readback must bind the current writer, checkpoint and inventory")
+    sessions = inventory["sessions"]
+    require(isinstance(sessions, list) and all(isinstance(row, dict) for row in sessions),
+            "worker-liveness", "host session inventory must be an explicit list")
+    matching = [row for row in sessions if row.get("worker") == worker
+                or row.get("task_id") == args.task
+                or row.get("reservation") == reservation]
+    require(len(matching) == 1 and matching[0] == {
+        "worker": worker, "task_id": args.task, "reservation": reservation, "status": "stopped",
+    }, "worker-liveness", "current host readback must prove the reserved writer stopped")
+    processes = inventory["processes"]
+    require(isinstance(processes, list) and all(isinstance(row, dict) for row in processes)
+            and all(row.get("status") == "stopped" for row in processes
+                    if row.get("worker") == worker or row.get("task_id") == args.task
+                    or row.get("reservation") == reservation),
+            "worker-liveness", "reserved writer processes must also be stopped")
     require(evidence.get("repo") == evidence.get("head_repo") == admitted["canonical_repo"],
             "foreign-repo", "canonical repository readback required")
     observed_workspace = evidence.get("workspace")
@@ -1815,6 +1865,7 @@ def cmd_reconcile(args):
         }
     item["status"] = "repair-ready" if evidence.get("pr_absent") is True else "evidence-pending"
     item["failure_reason"] = None if evidence.get("pr_absent") is True else "delivery-evidence-pending"
+    state.setdefault("recovery", {})["last_inventory"] = inventory
     if state.get("halt_reason") in (None, "unknown-response"):
         state["halt_new_dispatch"], state["halt_reason"] = False, None
     write_state(args, state)
@@ -1879,6 +1930,14 @@ def parser():
     apply.add_argument("--task", required=True)
     apply.add_argument("--result", required=True)
     apply.set_defaults(run=cmd_apply_result)
+    record_worker = commands.add_parser("record-worker")
+    record_worker.add_argument("--admitted", required=True)
+    record_worker.add_argument("--state", required=True)
+    record_worker.add_argument("--state-out", required=True)
+    record_worker.add_argument("--git-repo", required=True)
+    record_worker.add_argument("--task", required=True)
+    record_worker.add_argument("--evidence", required=True)
+    record_worker.set_defaults(run=cmd_record_worker)
     reconcile = commands.add_parser("reconcile")
     reconcile.add_argument("--admitted", required=True)
     reconcile.add_argument("--state", required=True)
@@ -1886,6 +1945,7 @@ def parser():
     reconcile.add_argument("--git-repo", required=True)
     reconcile.add_argument("--task", required=True)
     reconcile.add_argument("--evidence", required=True)
+    reconcile.add_argument("--inventory", required=True)
     reconcile.set_defaults(run=cmd_reconcile)
     stop = commands.add_parser("stop")
     stop.add_argument("--admitted", required=True)

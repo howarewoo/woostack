@@ -139,6 +139,10 @@ After `schedule` returns, the caller must, before host dispatch:
    there. One writer owns one physical workspace; a timeout or missing receipt does not authorize
    overlapping redispatch until the original worker is proved stopped.
 
+After the launch, [record the native writer](validation.md#record-the-native-writer) against the
+reservation. Preserve that host/session/worker identity independently of delivery reports so a
+timeout cannot be reconciled using another worker's stopped receipt.
+
 The worker must not create its own alternate workspace, switch to another branch, infer a parent
 from ordinal order, read/write a sibling workspace, alter hierarchy/dependencies, or own Project
 progress. It may use Execute/Commit for its one task and one child-associated draft PR.
