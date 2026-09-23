@@ -376,7 +376,7 @@
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "Read only the exact parent as requested, then refuse to implement the multi-task parent or discover/schedule children. Require the caller or Orchestrate to select one child and supply its complete bounded contract; do not treat the parent's child links as authority to choose a task.",
+      "expected": "Read only the exact parent as requested, then refuse to implement the multi-task parent or discover/schedule children. Require the caller to select one bounded child's exact issue or explicitly invoke Orchestrate; do not treat the parent's child links as authority to choose a task.",
       "assertions": [
         {
           "id": "parent-boundary",
