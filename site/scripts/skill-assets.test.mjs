@@ -3,7 +3,7 @@ import { mkdtemp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
-import { validateSkillAssets } from './skill-assets.mjs';
+import { parseFrontmatter, validateSkillAssets } from './skill-assets.mjs';
 
 async function makeRoot(t) {
   const root = await mkdtemp(path.join(os.tmpdir(), 'woostack-skill-assets-'));
@@ -33,6 +33,20 @@ test('structural validation accepts corpus-free skills, local references, JSON, 
   assert.match(skills[0].body, /\[Guide\]\(references\/guide\.md\)/);
 });
 
+test('frontmatter validation rejects decimal scalars and SVG markup', () => {
+  const cases = [
+    ['0.5', 'frontmatter-non-string-scalar'],
+    ['-0.5', 'frontmatter-non-string-scalar'],
+    ['<svg>', 'frontmatter-xml-markup'],
+  ];
+  for (const [description, code] of cases) {
+    assert.throws(
+      () => parseFrontmatter(`---\nname: sample-skill\ndescription: ${description}\n---\n`, 'sample-skill'),
+      (error) => error.code === code,
+    );
+  }
+});
+
 test('structural validation rejects invalid JSON and missing local references', async (t) => {
   const root = await makeRoot(t);
   const skillRoot = await writeSkill(root, 'sample-skill');
@@ -43,6 +57,15 @@ test('structural validation rejects invalid JSON and missing local references', 
   await writeFile(jsonPath, '{}\n');
   await writeFile(path.join(skillRoot, 'SKILL.md'), `${await readFile(path.join(skillRoot, 'SKILL.md'), 'utf8')}\n[Missing](references/missing.md)\n`);
   await assert.rejects(validateSkillAssets(root, ['sample-skill']), /local link target does not exist/);
+});
+
+test('local reference validation preserves escaped backticks and uppercase Markdown files', async (t) => {
+  const root = await makeRoot(t);
+  const skillRoot = await writeSkill(root, 'sample-skill', 'Literal \\` [Missing](references/missing.md) \\` text');
+  await assert.rejects(validateSkillAssets(root, ['sample-skill']), /local link target does not exist/);
+
+  await writeFile(path.join(skillRoot, 'references', 'guide.MD'), '[Missing](references/missing.md)\n');
+  await assert.rejects(validateSkillAssets(root, ['sample-skill']), /guide\.MD: local link target does not exist/);
 });
 
 test('structural validation rejects mismatched metadata and catalog discovery', async (t) => {
