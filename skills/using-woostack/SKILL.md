@@ -72,6 +72,11 @@ implementation and draft-PR path, including proven corrections and test-only tas
 [testing guidance](../woostack-execute/references/tdd.md). Unknown defects require Debug's causal
 proof before correction. Planning phases never edit source, commit, submit a PR, or grant merge authority.
 
+An exact task-bearing GitHub issue URL alone, or `/woostack-execute --issue <url>`, routes to
+Execute: it reads the selected issue and resolves one bounded task before implementation. Inline
+task instructions remain valid with or without an issue association; a specification parent with
+multiple tasks requires explicit Orchestrate or bounded child selection.
+
 Ordinary questions about work progress use available authorized GitHub reads or the GitHub UI:
 parent/child issues and native dependency relations define planned work, while linked pull requests
 and Git evidence establish delivery. A Project Status field is provider metadata, not proof of

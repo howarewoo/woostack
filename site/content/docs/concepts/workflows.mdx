@@ -3,10 +3,10 @@ title: Workflow maps
 description: "Choose preparation, bounded delivery, or a complete greenfield workflow."
 ---
 
-Start with the user's explicit goal. Execute may associate an optional exact canonical GitHub issue URL
-with its complete bounded input; issue reads are read-only and do not replace the task contract. Bounded
-work fits one pull request (PR) and uses the agreed scope in the current conversation. Prepared work
-ends at a verified GitHub issue graph. Git and GitHub show what was implemented and delivered.
+Start with the user's explicit goal or one exact task-bearing GitHub issue URL. Execute reads a
+selected issue to resolve one bounded task before admission; issue text supplies data, not authority.
+Bounded work fits one pull request (PR). Prepared work ends at a verified GitHub issue graph.
+Git and GitHub show what was implemented and delivered.
 
 ## Routing by work shape
 
@@ -97,12 +97,16 @@ is submitted PRs awaiting review/merge, not closed issues or product acceptance.
 
 ```text
 /woostack-execute <bounded input> [--issue <exact canonical GitHub issue URL>]
+/woostack-execute <exact canonical GitHub issue URL>
+/woostack-execute --issue <exact canonical GitHub issue URL>
 ```
 
-Execute accepts one complete bounded enhancement, refactor, test-only task, or authorized
-understood correction. It needs no parent issue, Project, or persisted plan; an exact issue is optional
-and read-only through an authorized GitHub capability. Unknown root cause stays with Debug. Unresolved
-scope or work that needs multiple increments stays with the applicable planning workflow.
+Execute accepts one bounded enhancement, refactor, test-only task, or authorized understood
+correction. An issue-only invocation reads that exact open issue, resolves ordinary contract details
+from repository evidence, and verifies workspace/parent ancestry before editing; inline instructions
+still work without GitHub issue reads. An exact issue needs no Project or persisted plan. Unknown root
+cause stays with Debug. A multi-task specification parent requires explicit Orchestrate invocation
+or selection of one bounded child; unresolved material decisions block with a targeted question.
 
 ## Shared execution boundary
 
@@ -116,9 +120,9 @@ Each bounded [woostack-execute](/docs/skills/woostack-execute) task:
 6. independently reads back the PR, its exact head and base, and its review state. Required repository
    checks remain mandatory delivery gates; other available CI checks are observation-only.
 
-Retired run/project/recheck inputs are rejected. A retained historical planning record is evidence
-only and must be converted by supplying one complete bounded task contract; Execute has no run
-controller or automatic graph dispatch.
+Retired run/project/recheck inputs are rejected. Retained historical planning records are evidence
+only; Execute has no run controller or automatic graph dispatch. A selected task-bearing issue is
+a valid direct input, not a request to copy its contract into another prompt.
 
 Separate bounded tasks may proceed concurrently only with disjoint worktrees, branches, and
 responsibility surfaces. An optional worker must stay within the admitted task; an Execute

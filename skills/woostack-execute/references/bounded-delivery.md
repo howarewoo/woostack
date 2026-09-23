@@ -4,7 +4,7 @@ Shared implementation and delivery safeguards owned by [Execute](../SKILL.md). E
 complete bounded enhancement, refactor, test task, or authorized correction with causal evidence.
 This reference cannot widen the accepted task or replace its admission gates.
 
-Create no project manifest, specification, or execution plan. Optional issue context follows
+Create no project manifest, specification, or execution plan. Selected issue input follows
 [Execute's exact GitHub issue admission](../SKILL.md#optional-exact-github-issue). Repository
 delivery goes through Commit; Git and canonical GitHub reads supply source-control evidence, not
 permission to implement or authority to merge.
@@ -18,15 +18,15 @@ authorizes backend switching.
 
 ## Keep one bounded contract
 
-Keep the following explicit in the active conversation or completely verified handoff packet:
+Keep the following resolved contract explicit in the active conversation or completely verified
+handoff packet; derive it from a selected exact issue and repository evidence when applicable:
 
-- stable task identity, goal, exact repository/target, allowed paths, non-goals, and acceptance;
-- intended change, relevant technical consequences, risks, focused verification, and changed-path
-  smoke scenario;
-- integration base commit, approved parent-branch intent, and retained start/old parent SHA;
+- stable task identity, goal, exact repository/target, bounded paths, non-goals, and acceptance;
+- intended change, relevant technical consequences, risks, finite checks, and changed-path smoke;
+- integration base commit, approved parent-branch intent, and retained start/old-parent SHA;
 - for a correction, evidence-bound diagnosis and the user's authorization for the complete scope; and
-- for an exact caller-supplied issue, the independently verified canonical issue URL, native identity,
-  and accepted issue-derived scope.
+- for a selected issue, the independently verified canonical URL, native identity, and accepted
+  issue-derived scope.
 
 Do not create hidden workflow state. Repository defaults cannot widen the accepted scope. If
 scope expands, retain the workspace and return to the calling skill's planning/admission boundary;
@@ -85,7 +85,7 @@ equivalents for draft creation and body updates. Preserve the exact repository/h
 intended base.
 Never merge, mark ready, enable auto-merge, enqueue, or force-push.
 
-For an exact caller-supplied issue, re-read it before submission and on resume to verify its
+For a selected exact issue, re-read it before submission and on resume to verify its
 identity, repository, open state, and continued agreement with the accepted contract. Changed scope
 returns to the calling skill's admission boundary. An unavailable or invalid issue blocks associated
 delivery; retain any verified repository progress rather than dropping the association.

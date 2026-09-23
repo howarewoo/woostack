@@ -15,6 +15,27 @@
       "expectedSkill": "woostack-execute"
     },
     {
+      "id": "url-only-exact-issue",
+      "query": "https://github.com/fixture/execute-smoke/issues/43",
+      "shouldTrigger": true,
+      "expectedSkill": "woostack-execute"
+    },
+    {
+      "id": "issue-option-only",
+      "query": "/woostack-execute --issue https://github.com/fixture/execute-smoke/issues/44",
+      "shouldTrigger": true,
+      "expectedSkill": "woostack-execute"
+    },
+    {
+      "id": "parent-issue-routes-to-orchestrate",
+      "query": "Execute all child tasks described by the parent GitHub issue, including independent child scheduling and stacked PRs.",
+      "shouldTrigger": false,
+      "expectedSkill": "woostack-orchestrate",
+      "conflictsWith": [
+        "woostack-execute"
+      ]
+    },
+    {
       "id": "bounded-characterization-tests",
       "query": "Add characterization tests for this existing function, preserve production code, run the focused check, and submit one draft PR.",
       "shouldTrigger": true,
