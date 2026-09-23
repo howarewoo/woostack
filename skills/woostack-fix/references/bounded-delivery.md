@@ -1,20 +1,22 @@
 # Bounded one-PR delivery
 
-Shared implementation and delivery mechanics for [`woostack-change`](../SKILL.md) and the
-[direct bounded Fix path](../../woostack-fix/SKILL.md#direct-bounded-fix). The calling skill owns
-admission and user authority: Change accepts only non-bug work; Fix requires causal proof and
-explicit informed approval. This reference cannot widen either contract or replace those gates.
+Shared implementation and delivery mechanics for the
+[direct bounded Fix path](../SKILL.md#direct-bounded-fix). The calling skill owns admission and
+user authority: Fix requires causal proof and explicit informed approval. This reference cannot
+widen that contract or replace its gates.
 
 The calling skill owns delivery directly, without invoking another woostack workflow. Create no
 project manifest, specification, or execution plan. Development-artifact provider calls are limited
-to the exact issue reads explicitly admitted by
-[Change's GitHub issue input](../SKILL.md#admit-an-exact-github-issue); goal-only Change and bounded
-Fix make none. Git and canonical GitHub repository/PR operations supply source-control evidence,
-not development-artifact authority.
+to the exact issue reads explicitly admitted by the caller's GitHub issue input; bounded Fix makes
+none. Git and canonical GitHub repository/PR operations supply source-control evidence, not
+development-artifact authority.
 
 Before mutation, apply the shared [source-control selection and ancestry contract](../../woostack-commit/references/graphite.md).
-Git+gh is the complete default path. Use Graphite only when explicitly selected or already verified
-for this task/stack; unknown selection blocks, and `gt` failure never authorizes backend switching.
+Use native Git and an authorized GitHub capability for repository delivery (prefer native GitHub
+tools when suitable; host-authenticated `gh` is supported). Discover actual operation capabilities,
+read shapes, pagination, and independent readback before any consequential operation. Optional
+Graphite selection follows the shared contract; unknown selection blocks, and `gt` failure never
+authorizes backend switching.
 
 ## Keep one bounded contract
 
@@ -24,10 +26,9 @@ Keep the following explicit in the active conversation or completely verified ha
 - intended correction or change, relevant technical consequences, risks, focused verification,
   and changed-path smoke scenario;
 - integration base commit, approved parent-branch intent, and retained start/old parent SHA;
-- current worktree, branch, head, complete diff identity, and PR facts;
 - for Fix, the evidence-bound diagnosis, full presented scope, and the user's explicit approval; and
-- for issue-backed Change, the independently verified canonical issue URL, native identity, and
-  accepted issue-derived scope.
+- for an exact caller-supplied issue, the independently verified canonical issue URL, native identity,
+  and accepted issue-derived scope.
 
 Do not create hidden workflow state. Repository defaults cannot widen the accepted scope. If
 scope expands, retain the workspace and return to the calling skill's planning/admission boundary;
@@ -35,20 +36,21 @@ never silently change the contract or split it into additional PRs.
 
 ## Create or resume one isolated workspace
 
-Apply the [canonical worktree contract](../../woostack-init/references/worktrees.md#1-identity-workspace-resolution-and-placement)
-for identity, workspace resolution, base admission, collision discovery, creation/adoption, and
-task-only writes. Independently read the physical repository root, canonical remote, configured
-integration base and exact commit, complete worktree/branch/status/diff inventory, Git ancestry,
-and canonical GitHub PR state. Require either no task state or one exact recoverable state. Never
-reset, clean, stash, overwrite, or create around unexpected user work.
+Apply the [isolated-workspace guidance](../../woostack-init/references/worktrees.md) for identity,
+workspace evidence, base admission, collision discovery, and task-only writes. Independently read the
+physical repository root, canonical remote, configured integration base and exact commit, complete
+worktree/branch/status/diff inventory, Git ancestry, and canonical GitHub PR state. Require either no
+task state or one exact recoverable state. Never reset, clean, stash, overwrite, or create around
+unexpected user work.
 
-Create, assert, or adopt one isolated task workspace under the
-[canonical creation contract](../../woostack-init/references/worktrees.md#5-create-assert-or-adopt):
-adopt an existing linked/external worktree in-place (`managed_worktree = false`) or create a managed
-task worktree (`managed_worktree = true`) when starting in the primary checkout, with one
-task branch whose parent is the verified integration base. Track it with Graphite only in selected Graphite mode. Resume an exact existing
-task/worktree/branch/parent/head instead of creating a duplicate. Revalidate the approved contract and
-direct repository evidence before each mutation boundary and after interruptions.
+The repository, host, or caller selects one isolated task workspace and branch. It may reuse a suitable
+linked checkout, including an external or host-managed worktree, or create a new linked checkout using
+its supported capabilities. Do not require a fixed path, branch recipe, creation command, or
+managed-worktree flag.
+Resume an exact existing task/workspace/branch/parent/head instead of creating a duplicate. Revalidate
+the approved contract and direct repository evidence before each mutation boundary and after
+interruptions.
+
 ## Implement, verify, and independently review
 
 Implement every change needed for the accepted bounded scope and no other change. Before choosing
@@ -84,13 +86,15 @@ calling skill before more implementation; Fix approval never carries over to a c
 Only after verification and independent review pass on the same complete diff, commit and submit
 at most one PR using the selected backend under the shared source-control contract. In native mode,
 add a Git commit (never automatically amend), explicitly push only the task branch without force,
-and use `gh pr create --draft` with the exact repository/head/base only after excluding an existing
-matching PR; update an existing PR body with `gh pr edit`. Preserve its identity and intended base.
+and use the selected authorized GitHub submission capability to create a draft only after excluding
+an existing matching PR; host-authenticated `gh pr create --draft` and `gh pr edit` are supported
+equivalents for draft creation and body updates. Preserve the exact repository/head/base identity and
+intended base.
 Never merge, mark ready, enable auto-merge, enqueue, or force-push.
 
-For issue-backed Change, re-read the exact issue before submission and on resume to verify its
+For an exact caller-supplied issue, re-read it before submission and on resume to verify its
 identity, repository, open state, and continued agreement with the accepted contract. Changed scope
-returns to Change admission before more mutation. An unavailable or invalid issue blocks associated
+returns to the calling skill's admission boundary. An unavailable or invalid issue blocks associated
 delivery; retain any verified repository progress rather than dropping the association.
 Apply the canonical
 [PR association rules](../../woostack-commit/references/provider-attribution.md#pr-association):
@@ -104,21 +108,19 @@ Independently read back the exact repository, branch, parent, commit, changed pa
 PR head/base, and open state. The success boundary is one complete reviewable PR whose verified
 commit contains every requested bounded change.
 
-Remove only a managed task worktree created by Woostack (`managed_worktree = true`) after successful
-delivery and independently verified cleanliness, following
-[canonical teardown](../../woostack-init/references/worktrees.md#8-teardown). Preserve pre-isolated or
-external worktrees (`managed_worktree = false`), and keep its branch, commits, and PR; never remove a
-user-owned or external checkout.
-If implementation, verification, review, commit, submission, read-back, or cleanup fails, is blocked,
-or has an unknown outcome, retain the worktree. Return exact Git, GitHub, and selected-backend resume
-evidence: repository/base, task/worktree, branch/parent, head/commit, status/diff, verification/review
-results, and PR URL/state when known. On resume, reread those facts and continue at the first
-unproved boundary without duplicating a branch, commit, PR, or cleanup.
+After delivery, retain the selected workspace unless its owner explicitly supplies a safe lifecycle
+operation. Never remove a user-owned, host-managed, or external checkout as workflow cleanup.
+Publication does not create a workspace obligation. If implementation, verification, review, commit,
+submission, read-back, or lifecycle handling fails, is blocked, or has an unknown outcome, retain the
+workspace and return exact Git, GitHub, and selected-backend resume evidence: repository/base,
+task/workspace, branch/parent, head/commit, status/diff, verification/review results, and PR
+URL/state when known. On resume, reread those facts and continue at the first unproved boundary
+without duplicating a branch, commit, PR, or cleanup.
 
 ## Return
 
 Return the stable task identity, accepted scope and Fix approval when applicable, worktree/branch,
 base/parent, changed paths, verification/smoke and independent-review results, commit SHA, canonical
-PR URL/head/base/state, and cleanup result. For issue-backed Change, include the canonical issue URL
-and verified closing-reference outcome. For a reroute or retained failure, name the destination
-or blocker and exact safe resume boundary. Never claim evidence not directly observed.
+PR URL/head/base/state, and cleanup result. For an exact issue association, include the canonical
+issue URL and verified closing-reference outcome. For a reroute or retained failure, name the
+destination or blocker and exact safe resume boundary. Never claim evidence not directly observed.

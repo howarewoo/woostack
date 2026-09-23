@@ -12,7 +12,7 @@ work fits one pull request (PR) and uses the agreed scope in the current convers
 | Shape | Commands | Active contract | Provider/input behavior |
 | --- | --- | --- | --- |
 | Bounded bug or regression | [woostack-fix](/docs/skills/woostack-fix) | proved diagnosis and complete user-approved correction/verification | none |
-| Bounded non-bug change | [woostack-change](/docs/skills/woostack-change) | one explicit goal/contract, or an exact GitHub issue plus bounded contract | none for goal-only; issue-backed input reads only the selected GitHub issue |
+| Bounded enhancement, refactor, test-only task, or authorized understood correction | [woostack-execute](/docs/skills/woostack-execute) | one complete bounded input, with an optional exact GitHub issue | none for goal-only; issue-backed input reads only the selected GitHub issue |
 | Larger or explicitly project-backed fix | [woostack-fix](/docs/skills/woostack-fix) | complete user-verified specification and increment plan | optional mirror |
 | Multi-increment feature | [woostack-build](/docs/skills/woostack-build) | user-verified specification and ordered local increment plan | optional Linear, Plane, or GitHub mirror |
 | Greenfield codebase | [woostack-bootstrap](/docs/skills/woostack-bootstrap) | complete approved design | exact artifact or explicit persistence request only |
@@ -42,9 +42,11 @@ Harden reconciliation and publisher. Its native parent hierarchy only groups the
 from `blocked-by` edges and Git branch ancestry; the parent is never a task, dependency endpoint,
 execution, or PR, and unsupported nested or partial hierarchy fails closed.
 Execute accepts one selected bounded task under its [admission contract](/docs/skills/woostack-execute#admit-one-task), not a whole plan.
-An explicit [Orchestrate](/docs/skills/woostack-orchestrate) invocation selects a GitHub parent issue
-or Project and dispatches ready tasks to Execute. Unlike parent-issue planning, parent-issue
-execution requires no provider-mirror configuration.
+An explicit [Orchestrate](/docs/skills/woostack-orchestrate) invocation selects a GitHub parent issue,
+Project, or exact canonical issue list and dispatches ready tasks to Execute. List mode keeps the
+selected set closed, validates native/declared/inferred edge provenance, and does not publish
+inferred dependencies. Unlike parent-issue planning, parent-issue and list execution require no
+provider-mirror configuration.
 
 Build and project-backed Fix use the
 [verified handoff](/docs/skills/woostack-build#verified-handoff). The user sees the complete artifacts
@@ -78,9 +80,10 @@ integration branch's tip has changed since planning, the user must choose what t
 ## Canonical local records and optional remote mirroring
 
 Build and project-backed Fix use local records as the source of truth for the plan. Goal-only
-[Change](/docs/skills/woostack-change) and bounded Fix make no artifact-provider calls. Issue-backed
-Change performs the required read of its exact selected GitHub issue through host-authenticated `gh`; it
-does not require provider configuration, a Project, a mirror, or a persisted plan.
+Execute and bounded Fix make no artifact-provider calls unless an exact issue association or
+requested provider operation is selected. Execute's exact GitHub issue input performs the required
+read of that issue through an authorized GitHub capability (native tools preferred; host-authenticated
+`gh` supported); it does not require provider configuration, a Project, a mirror, or a persisted plan.
 
 Run artifacts are retained after completion or abandonment. Abandoning a local run leaves its mirror
 unchanged. Standalone provider lifecycle operations follow the selected profile and never confer

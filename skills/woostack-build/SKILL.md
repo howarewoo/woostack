@@ -11,8 +11,10 @@ success/Stop/Abandon artifacts, and stops at a verified handoff where the caller
 selected complete bounded task to Execute. Local run
 authority is unconditional; Linear, Plane, or GitHub is an optional mirror flow gated by
 `artifacts.provider: "linear"`, `artifacts.provider: "plane"`, or `artifacts.provider: "github"`. Git
-and canonical GitHub reads remain the authority for repository delivery. Git + `gh` is the default;
-optional Graphite selection follows the [source-control contract](../woostack-commit/references/graphite.md).
+and canonical GitHub reads remain the authority for repository delivery. Use native Git with an
+authorized GitHub capability (prefer native GitHub tools when suitable; host-authenticated `gh` is
+supported); discover the actual operation capabilities and read shapes. Optional Graphite selection
+follows the [source-control contract](../woostack-commit/references/graphite.md).
 Build adapts its retained content and baseline/evidence identity into the public phase input packet;
 the run manifest is Build's persistence boundary, not an Ideate or Harden admission requirement.
 Merge authority is human-only: never auto-merge, never enqueue, never merge.

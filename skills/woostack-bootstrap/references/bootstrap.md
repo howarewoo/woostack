@@ -48,7 +48,8 @@ requested persistence or supplied an exact Linear/Plane project URL-or-UUID or c
 [Linear](../../woostack-init/references/artifact-providers/linear.md), or
 [Plane](../../woostack-init/references/artifact-providers/plane.md) profile:
 
-- prove the selected profile's official capability (MCP for Linear or Plane; host-authenticated gh for GitHub) and exact scope;
+- prove the selected profile's authorized capability (MCP for Linear or Plane; a suitable native
+  GitHub capability or host-authenticated `gh` for GitHub) and exact scope;
 - resolve the exact supplied project or create one only when requested;
 - write the approved goal, architecture, scope, decisions, and repository/base intent;
 - use the profile's stable operation identity;

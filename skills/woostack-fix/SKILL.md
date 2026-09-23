@@ -95,12 +95,12 @@ the revised complete contract for fresh approval; use the project-backed path wh
 a fully understood one-PR correction.
 
 After approval, own implementation, verification, independent review, and one PR directly
-through the shared [bounded-delivery contract](../woostack-change/references/bounded-delivery.md).
+through the shared [bounded-delivery contract](references/bounded-delivery.md).
 Keep diagnosis and approval bound to that exact task/repository/scope. Create no mandatory local
 project manifest, specification, or plan and make zero development-artifact provider calls, even
-when optional provider mirroring is configured. This is Fix, not a reroute to the non-bug Change
-command. Scope expansion returns to planning before additional implementation; it never inherits
-approval automatically.
+when optional provider mirroring is configured. This is Fix's direct path, not a planning reroute.
+Scope expansion returns to planning before additional implementation; it never inherits approval
+automatically.
 
 Return the shared delivery evidence with the proved diagnosis and explicit approval. A blocker
 retains exact worktree/branch/diff/PR resume facts; never manufacture a project run to hide an
@@ -125,7 +125,8 @@ for parent intent and base changes.
 Allocate one canonical run or resume only the supplied exact run under `.woostack/tmp/runs/<run-id>/`
 using the shared [run-store mechanics](../woostack-init/references/artifact-backends.md#owner-only-local-run-store).
 Local mode makes zero provider calls. For provider mode, preflight the selected official capability
-(MCP for Linear/Plane; host-authenticated `gh` for GitHub) and exact scope before provider effects.
+(MCP for Linear/Plane; an authorized GitHub capability, preferring native tools when suitable and
+supporting host-authenticated `gh`) and exact scope before provider effects.
 
 - **Linear/GitHub:** an exact supplied project retains its existing name/title and visibility. If
   absent, create one project named `[Fix] <proved correction>` under validated scope/defaults

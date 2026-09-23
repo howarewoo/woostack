@@ -556,7 +556,7 @@
         {
           "id": "direct-approved-delivery",
           "kind": "qualitative",
-          "rubric": "Does the response accept the explicit post-presentation approval, retain Fix identity rather than reroute through Change/Execute, and allow a single PR without project run files or Linear calls?",
+          "rubric": "Does the response accept the explicit post-presentation approval, retain Fix identity rather than reroute through Execute, and allow a single PR without project run files or Linear calls?",
           "critical": true
         },
         {

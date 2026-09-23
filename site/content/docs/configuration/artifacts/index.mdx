@@ -18,7 +18,7 @@ consume a Project or run as executable scope.
 | `artifacts.provider` | Storage | Effect |
 | --- | --- | --- |
 | omitted or `"local"` | [Local](/docs/configuration/artifacts/local) | Stores Build and project-backed Fix artifacts under `.woostack/tmp/runs/`. Makes no artifact-provider calls. |
-| `"github"` | [GitHub](/docs/configuration/artifacts/github) | Keeps the local run authoritative and mirrors through the host-authenticated official GitHub CLI (`gh`). |
+| `"github"` | [GitHub](/docs/configuration/artifacts/github) | Keeps the local run authoritative and mirrors through an authorized GitHub capability (prefer host-native tools; authenticated `gh` remains supported). |
 | `"linear"` | [Linear](/docs/configuration/artifacts/linear) | Keeps the local run authoritative and mirrors through the authenticated official Linear MCP. |
 | `"plane"` | [Plane](/docs/configuration/artifacts/plane) | Keeps the local run authoritative and mirrors through the authenticated official Plane MCP. |
 
@@ -35,10 +35,11 @@ duplicate, or out-of-scope results stop that provider operation.
 
 A failed mirror operation is recorded in the local manifest but does not block work based on a
 complete local run. Provider synchronization never grants permission to merge a PR; agents never
-merge. Goal-only [Change](/docs/skills/woostack-change) and bounded Fix make no artifact-provider
-calls. Issue-backed Change performs the required read of its explicitly selected exact GitHub issue through
-host-authenticated `gh`; it does not select an artifact provider or require provider configuration, a
-Project, a mirror, or a persisted plan.
+merge. Goal-only [Execute](/docs/skills/woostack-execute) and bounded Fix make no artifact-provider
+calls unless an exact issue association or requested provider operation is selected. Execute with an
+explicit exact GitHub issue input performs the required read of that issue through an authorized
+GitHub capability (native tools preferred; host-authenticated `gh` supported); it does not select an
+artifact provider or require provider configuration, a Project, a mirror, or a persisted plan.
 
 The canonical implementation rules live in the
 [local run artifact and provider mirror contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-backends.md).

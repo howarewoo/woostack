@@ -30,10 +30,7 @@ valid_config='{
       "blocked": "In Progress"
     }
   },
-  "models": {},
-  "status": {
-    "staleDays": 14
-  }
+  "models": {}
 }'
 clean="$(mktemp -d)"; mkdir -p "$clean/.woostack"
 printf '%s\n' "$valid_config" >"$clean/.woostack/config.json"

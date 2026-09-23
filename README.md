@@ -43,9 +43,10 @@ Open your coding assistant in the project root and enter:
 /woostack-init
 ```
 
-Init creates `.woostack/` configuration and diagnostic folders, worktree support, and managed OMP
-agents and session-naming files. It also attempts read-only Linear setup when the host provides
-the official Linear integration. Missing provider access does not block local setup.
+Init creates `.woostack/` configuration and diagnostic folders, worktree support, and the local
+OMP session-naming extension. OMP delegation uses agents already exposed by the active session;
+Init does not create a parallel project agent catalog. It also attempts read-only Linear setup when
+the host provides the official Linear integration. Missing provider access does not block local setup.
 Init does not create remote issues or projects. See [Init](skills/woostack-init/SKILL.md) for details.
 
 ### 3. Tell your assistant to use woostack
@@ -77,12 +78,10 @@ For the full policy surface, see the authored
 
 Build and larger Fix workflows save specifications, plans, and resume state in
 `.woostack/tmp/runs/<run-id>/`. These local files are the primary records. You can configure
-Linear, Plane, or GitHub to keep remote copies. Bounded Fix and goal-only Change workflows do not
-contact these planning providers. Change's exact GitHub issue admission is the read-only exception
-defined in the [Change issue contract](skills/woostack-change/SKILL.md#admit-an-exact-github-issue);
-it remains available with local/omitted `artifacts.provider` and does not create a planning-provider
-mirror.
-
+Linear, Plane, or GitHub to keep remote copies. Bounded Execute work does not contact these
+planning providers unless an exact issue association or requested provider operation is selected.
+The optional exact GitHub issue association is a read-only exception through host-authenticated
+`gh`; it does not create a planning-provider mirror.
 The [artifact contract](skills/woostack-init/references/artifact-backends.md) explains storage,
 synchronization, and recovery. Saved plans and remote copies record your decisions; they do not
 authorize new work or prove that code was delivered.
@@ -102,8 +101,8 @@ in the coding assistant.
 | Publish an approved GitHub issue plan | [/woostack-plan](skills/woostack-plan/SKILL.md) | Publishes one verified GitHub parent/child hierarchy or explicit Project graph with native prerequisite edges, without implementing it. |
 | A feature that needs several PRs | [/woostack-build](skills/woostack-build/SKILL.md) | Composes the public phases, calls Plan's direct publisher, then retains artifacts for you to select one bounded task for Execute. |
 | A bug fix | [/woostack-fix](skills/woostack-fix/SKILL.md) | Proves the cause and asks you to approve the correction before delivering a small fix or composing Plan's direct publisher. |
-| A small enhancement or refactor | [/woostack-change](skills/woostack-change/SKILL.md) | Delivers one PR without creating a planning project. |
-| Execute an approved GitHub issue graph | [/woostack-orchestrate](skills/woostack-orchestrate/SKILL.md) | Takes one exact parent issue or explicit Project, runs ready tasks in isolated Execute workers, and verifies submitted draft PRs without merging. |
+| A bounded enhancement, refactor, test-only task, or authorized understood correction | [/woostack-execute](skills/woostack-execute/SKILL.md) | Accepts one complete bounded task, verifies it, and delivers one PR without planning-provider calls. |
+| Execute an approved GitHub issue graph | [/woostack-orchestrate](skills/woostack-orchestrate/SKILL.md) | Takes one exact parent issue, explicit Project, or explicit issue list, runs ready tasks in isolated Execute workers, and verifies submitted draft PRs without merging. |
 Fix does not contact a planning provider during diagnosis. Configuring a provider does not make
 every fix a project. Selecting a project, provider work item, or saved run explicitly uses the
 project-backed route.
