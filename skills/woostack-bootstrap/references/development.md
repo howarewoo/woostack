@@ -73,9 +73,10 @@ a branch such as `staging` before a human merges a release into `main`.
 | First feature branch | First PR in a plan | Verified integration branch |
 | Dependent feature branch | Next PR in a stack | The approved predecessor's branch |
 
-Use Git + `gh` by default; Graphite is optional for explicitly selected or verified already-managed
-tasks/stacks. The [source-control contract](../../woostack-commit/references/graphite.md) owns
-backend selection and delivery mechanics. Follow the
+Use native Git with an authorized GitHub interface for delivery; host-authenticated `gh` remains
+supported where appropriate. Graphite is optional for explicitly selected or verified already-managed
+tasks/stacks. The [source-control contract](../../woostack-commit/references/graphite.md) owns backend
+selection and delivery mechanics. Follow the
 [worktree/base-branch contract](../../woostack-init/references/worktrees.md) to resolve the base
 and verify each predecessor before starting dependent work. Never force-push.
 

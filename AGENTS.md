@@ -85,12 +85,12 @@ The user's request and explicit conversation choices authorize repository work; 
 record that work and never grant permission, assignment, ownership, acceptance, or source-control
 authority. Git and GitHub own source, branches, commits, pull requests, reviews, and merge evidence.
 
-`/woostack-init` may use only the official Linear MCP or host-authenticated gh for narrow automatic
-authenticated read-only discovery of non-secret repository/workspace/team/native-name defaults; it never
-selects persistence or authorizes a provider write. `.woostack/config.json` supplies validated defaults
-only after artifact selection. Credentials remain in the host secret store, and local diagnostic
-reports remain non-authoritative. Goal-only `woostack-change` remains provider-free; an explicitly
-selected exact GitHub issue permits only the read-only `gh` admission defined in the
+`/woostack-init` may use only the official Linear MCP or an authorized GitHub read capability for
+narrow automatic authenticated read-only discovery of non-secret repository/workspace/team/native-name
+defaults; it never selects persistence or authorizes a provider write. `.woostack/config.json` supplies
+validated defaults only after artifact selection. Credentials remain in the host secret store, and
+local diagnostic reports remain non-authoritative. Goal-only `woostack-change` remains provider-free;
+an explicitly selected exact GitHub issue permits only the read-only GitHub capability defined in the
 [Change issue contract](skills/woostack-change/SKILL.md#admit-an-exact-github-issue), even with
 `artifacts.provider` local or omitted. That exception does not select artifact mirroring or authorize
 work. Handoff, replanning, and blockers leave project status unchanged.
@@ -156,10 +156,11 @@ the repository's simplify/comments guidance.
   PR only. They do not grant merge authority. Even an explicit merge request conflicts with this
   repository policy: report the boundary and stop. Never run `gh pr ready`, `gh pr merge`, a
   merge-queue mutation, or an equivalent Graphite/GitHub operation.
-- Use Git + GitHub CLI (`gh`) by default for source control. Graphite is optional: select it
-  only on explicit request or verified evidence that the current task/stack is already managed.
-  Follow the [source-control contract](skills/woostack-commit/references/graphite.md);
-  backend errors stop the operation rather than trigger a fallback. Never force-push.
+- Use native Git with an available, authorized GitHub integration for source control; prefer the
+  host's native GitHub tools when suitable and use host-authenticated `gh` where appropriate.
+  Discover the actual capabilities and preserve the [source-control contract](skills/woostack-commit/references/graphite.md);
+  Graphite is optional and must be selected explicitly or by verified existing management evidence.
+  Backend errors stop the operation rather than trigger a fallback. Never force-push.
 - Cross-link, do not duplicate. If a fact belongs in a reference file, link to it from
   related docs instead of restating it.
 - Reference frameworks by name, not version, except in

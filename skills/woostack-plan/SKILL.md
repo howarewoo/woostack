@@ -58,9 +58,11 @@ Repository parent-tip admission follows the shared
 [repository ancestry contract](../woostack-init/references/artifact-backends.md#repository-ancestry-and-base-change-detection);
 Plan owns the approved root parent intent, dependent parent-selection policy, and last-admitted-tip handoff.
 Use the shared [source-control selection and ancestry contract](../woostack-commit/references/graphite.md):
-Git+gh is the default delivery path; Graphite is opt-in for an explicitly selected or verified
-Graphite-managed task/stack. Planning records backend-neutral `parentBranch` intent, not a requirement
-to install or track with Graphite. Unknown selection blocks mutation; `gt` failure never selects native mode.
+native Git with an authorized GitHub interface is the default delivery path; host-authenticated `gh`
+remains supported where appropriate. Graphite is opt-in for an explicitly selected or verified
+Graphite-managed task/stack. Planning records backend-neutral `parentBranch` intent, not a
+requirement to install or track with Graphite. Unknown selection blocks mutation; `gt` failure never
+selects native mode.
 
 ## Input and ownership
 

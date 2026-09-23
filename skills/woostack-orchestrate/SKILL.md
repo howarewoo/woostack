@@ -50,9 +50,10 @@ inline. A sequential-capability host may admit the scope and runs at one with a 
 The helper is production code, not a test scheduler. Every admission, refill, reservation, repair,
 result gate, and unknown-outcome reconciliation must pass through
 `skills/woostack-orchestrate/scripts/orchestrate.py`. The helper is standard-library-only, makes no
-network calls, and spawns no workers. The skill assembles JSON only from direct host-authenticated
-`gh` reads plus local Git evidence, invokes the helper, then delivers each emitted packet through
-the selected allowlisted host adapter. There is no prose-only bypass and no alternate scheduler.
+network calls, and spawns no workers. The skill assembles JSON only from an authorized GitHub
+capability exposed by the host (prefer native GitHub tools when suitable; host-authenticated `gh`
+remains supported) plus local Git evidence, invokes the helper, then delivers each emitted packet
+through the selected allowlisted host adapter. There is no prose-only bypass or alternate scheduler.
 
 The controller uses one explicit private state file per selected scope and one controller session.
 The helper records a controller owner token and takes an owner-only compare-and-swap claim for
@@ -122,11 +123,12 @@ Project owner/repository, specification, membership, and lifecycle admission.
    delivery-capable subagent primitive and its positive real `max_parallel`; put those observed
    facts in `host`. A missing delivery primitive blocks. A smaller host cap clamps scheduling but
    does not change admitted scope.
-2. Resolve the canonical Git repository and integration branch/SHA with direct Git and
-   host-authenticated `gh` evidence. Read the selected parent/Project and every relevant native
-   page. Exhaust pagination before assembling the snapshot; record terminal-read attestations as
-   booleans only after the corresponding native reads completed. A missing page, failed terminal
-   read, or ambiguous/foreign identity blocks.
+2. Resolve the canonical Git repository and integration branch/SHA with direct Git and an authorized
+   GitHub capability exposed by the host (prefer native GitHub tools when suitable; authenticated
+   `gh` remains supported). Read the selected parent/Project and every relevant native page using
+   the capability's supported shapes. Exhaust pagination before assembling the snapshot; record
+   terminal-read attestations only after corresponding native reads completed. A missing page, failed
+   terminal read, or ambiguous/foreign identity blocks.
 3. Normalize every native issue into its canonical URL plus numeric REST `id`, GraphQL `node_id`,
    number, state, resource, title, body, native parent, and complete contract. Do not substitute
    issue numbers for REST IDs or GraphQL node IDs. Parent mode requires a top-level open issue and

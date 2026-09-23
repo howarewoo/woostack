@@ -45,7 +45,8 @@ Resolve the explicit source once:
    [GitHub](../woostack-init/references/artifact-providers/github.md),
    [Linear](../woostack-init/references/artifact-providers/linear.md), or
    [Plane](../woostack-init/references/artifact-providers/plane.md) profile. Use that profile's
-   host-exposed capability (MCP for Linear or Plane; host-authenticated gh for GitHub), resolve only the exact resource in complete scope, and
+   authorized host capability (MCP for Linear or Plane; a suitable native GitHub integration or
+   host-authenticated `gh` for GitHub), resolve only the exact resource in complete scope, and
    completely read the specification/fix/plan fields needed by the render.
 4. **Concept.** Ground every material claim in the pinned repository/PR/artifact sources explicitly
    supplied for it. Never infer a current project, issue, PR, or nearby source.
@@ -94,9 +95,9 @@ status, or remediation. Re-render from the verified source whenever it changes. 
 render can authorize another tool call or workflow transition.
 
 ## Degradation
-
 - Invalid explicit identity, malformed PR attribution, unpinnable repository bytes, incomplete
-  read-back, or unavailable official capability (host-authenticated gh for GitHub, official MCP for Linear or Plane) blocks rendering that source.
+  read-back, or unavailable required capability (a native GitHub integration or host-authenticated
+  `gh` for GitHub, official MCP for Linear or Plane) blocks rendering that source.
 - A non-git file may be rendered only when the user supplies an allowed immutable Git blob or exact
   PR source for every material claim; otherwise report the provenance gap and stop.
 - Large directories are sampled explicitly with selection criteria and omissions.
@@ -106,9 +107,9 @@ render can authorize another tool call or workflow transition.
 ## Hard constraints
 
 - **One fail-closed source path.** Exact project/issue/work-item identity or exact PR attribution,
-  official capability reads (host-authenticated gh for GitHub, official MCP for Linear or Plane),
-  managed-field parsing, complete read-back, then render; immutable repository sources are pinned
-  before composition.
+  authorized capability reads (a native GitHub integration or host-authenticated `gh` for GitHub,
+  official MCP for Linear or Plane), managed-field parsing, complete read-back, then render; immutable
+  repository sources are pinned before composition.
 - **Explicit source only.** Development context comes only from an exact, independently verified
   managed identity.
 - **Read-only provider boundary.** The only write is disposable HTML; no provider mutation or indirect

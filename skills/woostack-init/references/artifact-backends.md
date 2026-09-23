@@ -27,10 +27,12 @@ When it is `"local"` or omitted:
 - standalone Plan without requested persistence makes no provider call; and
 - goal-only `woostack-change` makes no development-artifact provider call. Its
   [exact GitHub issue admission](../../woostack-change/SKILL.md#admit-an-exact-github-issue) is a
-  read-only host-authenticated `gh` exception that remains available with local/omitted
-  `artifacts.provider`; it does not select artifact mirroring or require project configuration.
-- explicit Orchestrate parent-issue execution uses host-authenticated `gh` for its admitted hierarchy
-  and verified child delivery notes under the [Orchestrate lifecycle boundary](artifact-providers/github.md#orchestrate-lifecycle-boundary);
+  read-only authorized GitHub capability (host-native tools where suitable or host-authenticated
+  `gh`) exception that remains available with local/omitted `artifacts.provider`; it does not select
+  artifact mirroring or require project configuration.
+- explicit Orchestrate parent-issue execution uses an authorized GitHub capability (host-native tools
+  where suitable or host-authenticated `gh`) for its admitted hierarchy and verified child delivery
+  notes under the [Orchestrate lifecycle boundary](artifact-providers/github.md#orchestrate-lifecycle-boundary);
   it does not select a Project, another provider, or provider mirroring.
 
 Legacy `linear.saveArtifacts` configurations are rejected with explicit migration guidance to
@@ -399,14 +401,21 @@ Merge authority remains human-only and outside every woostack workflow.
 
 ## Provider and credential boundary
 
-Use only the host-authenticated official MCP named by the selected provider profile, or the
-host-authenticated official `gh` CLI for GitHub. Discover capabilities from the host after provider
-selection. Never request API keys, read repository credentials, use custom HTTP/GraphQL/REST
-transport, or copy host tokens into a worker, subprocess, prompt, report, or file.
+Use an available, authorized capability exposed by the selected provider's host integration for the
+exact operation and its verification. For GitHub, prefer the host's native GitHub tools when they
+support the operation; host-authenticated official `gh` remains a supported interface where
+appropriate. Discover the actual operation capabilities, supported read/query shapes, pagination
+behavior, and schemas from the host rather than assuming tool names or request forms. Keep
+credentials in the host secret store. Never request API keys, read repository credentials, forward
+host tokens, or introduce a custom HTTP/GraphQL/REST client or alternate authority.
 
-Prove the minimum exact-read, pagination, requested-mutation, and independent read-back capabilities
-before an operation. Missing capability blocks only the selected provider operation. Provider-specific
-instance and workspace scope plus supported Init discovery are defined by the selected profile.
+Prove the minimum capabilities for the operation before mutating: exact reads, complete pagination,
+the requested mutation family, and independent read-back. Read-only work requires only its required
+read capabilities; issue operations, Project membership/status operations, and native dependency
+operations are distinct capabilities. Missing support blocks only the provider operation that needs
+it, while unrelated local or repository work may report a separately successful outcome. An
+unsupported, partial, or unknown capability never authorizes approximation, a different scope, or a
+blind retry.
 
 ## Untrusted remote content
 

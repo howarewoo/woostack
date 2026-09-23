@@ -73,8 +73,9 @@ integration branch's tip has changed since planning, the user must choose what t
 
 Build and project-backed Fix use local records as the source of truth for the plan. Goal-only
 [Change](/docs/skills/woostack-change) and bounded Fix make no artifact-provider calls. Issue-backed
-Change performs the required read of its exact selected GitHub issue through host-authenticated `gh`; it
-does not require provider configuration, a Project, a mirror, or a persisted plan.
+Change performs the required read of its exact selected GitHub issue through an authorized GitHub
+capability (native tools preferred; host-authenticated `gh` supported); it does not require provider
+configuration, a Project, a mirror, or a persisted plan.
 
 Run artifacts are retained after completion or abandonment. Abandoning a local run leaves its mirror
 unchanged. Standalone provider lifecycle operations follow the selected profile and never confer

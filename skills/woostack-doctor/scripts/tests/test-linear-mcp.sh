@@ -45,7 +45,7 @@ complete_github_config() {
   jq -cn '{models:{},review:{},artifacts:{provider:"github",github:{owner:"acme",ownerType:"organization",statusField:"Status",visibility:"private",projectStatuses:{planned:"Todo",executing:"In Progress",inReview:"In Review",done:"Done",blocked:"Blocked"}}}}'
 }
 complete_github_receipt() {
-  jq -cn '{schemaVersion:1,provider:"official-gh-cli",ghAvailable:true,authenticated:true,ready:true,viewer:{login:"octocat",id:"MDQ6VXNlcjE="},scopes:["project","read:org","repo"],owner:"acme",ownerResolution:{status:"unique",login:"acme",type:"organization",id:"MDEyOk9yZ2FuaXphdGlvbjEyMzQ1"},repository:"https://github.com/acme/widgets",projectStatuses:{complete:true,statusField:"Status",fieldId:"PVTSSF_12345",fieldType:"SINGLE_SELECT",resolved:{planned:{name:"Todo",id:"opt_1"},executing:{name:"In Progress",id:"opt_2"},inReview:{name:"In Review",id:"opt_3"},done:{name:"Done",id:"opt_4"},blocked:{name:"Blocked",id:"opt_5"}}},capabilities:{projectRead:true,projectWrite:true,projectDelete:true,issueRead:true,issueWrite:true,issueClose:true,issueDelete:true,dependencyRead:true,dependencyWrite:true,statusFieldRead:true,statusFieldWrite:true,pagination:true,independentReadBack:true},readBack:{status:"verified",complete:true,independent:true}}'
+  jq -cn '{schemaVersion:1,provider:"authorized-github",interfaceAvailable:true,authenticated:true,ready:true,viewer:{login:"octocat",id:"MDQ6VXNlcjE="},owner:"acme",ownerResolution:{status:"unique",login:"acme",type:"organization",id:"MDEyOk9yZ2FuaXphdGlvbjEyMzQ1"},repository:"https://github.com/acme/widgets",projectStatuses:{complete:true,statusField:"Status",fieldId:"PVTSSF_12345",fieldType:"SINGLE_SELECT",resolved:{planned:{name:"Todo",id:"opt_1"},executing:{name:"In Progress",id:"opt_2"},inReview:{name:"In Review",id:"opt_3"},done:{name:"Done",id:"opt_4"},blocked:{name:"Blocked",id:"opt_5"}}},capabilities:{projectRead:true,projectWrite:false,issueRead:true,issueWrite:false,dependencyRead:true,dependencyWrite:false,statusFieldRead:true,statusFieldWrite:false,pagination:true,independentReadBack:true},readBack:{status:"verified",complete:true,independent:true}}'
 }
 
 complete_plane_receipt() {
@@ -359,15 +359,16 @@ test_receipt_mutation() {
   assert_exit 1 "$RC" "$desc"
   assert_contains "$OUTPUT" "$expected_substring" "$desc is actionable"
 }
-test_receipt_mutation '.capabilities.dependencyWrite=false' 'missing GitHub CLI capability: dependencyWrite' 'missing capability fails'
+test_receipt_mutation 'del(.capabilities.projectRead)' 'missing GitHub capability: projectRead' 'omitted required read capability fails'
+test_receipt_mutation '.capabilities.projectRead=false' 'missing GitHub capability: projectRead' 'false required read capability fails'
 test_receipt_mutation '.owner="other-org"' 'receipt owner does not match configured GitHub policy' 'owner mismatch fails'
 test_receipt_mutation '.ownerResolution.type="user"' 'receipt ownerType does not match configured GitHub policy' 'ownerType mismatch fails'
 test_receipt_mutation '.repository="https://github.com/acme/other-repo"' 'receipt repository does not match target repository derived from Git' 'repo mismatch fails'
 test_receipt_mutation '.projectStatuses.statusField="CustomStatus"' 'receipt statusField does not match configured GitHub policy' 'statusField mismatch fails'
-test_receipt_mutation '.projectStatuses.resolved.inReview.id="opt_2"' 'normalized GitHub CLI receipt is missing, malformed, partial, or not ready' 'duplicate option IDs fail'
-test_receipt_mutation '.token="ghp_secret_token"' 'normalized GitHub CLI receipt is missing, malformed, partial, or not ready' 'extra token fails'
-test_receipt_mutation '.scopes=["repo","project"]' 'normalized GitHub CLI receipt is missing, malformed, partial, or not ready' 'missing scope fails'
-test_receipt_mutation '.projectStatuses.extraField="invalid"' 'normalized GitHub CLI receipt is missing, malformed, partial, or not ready' 'extra nested key fails'
+test_receipt_mutation '.projectStatuses.resolved.inReview.id="opt_2"' 'normalized GitHub capability receipt is missing, malformed, partial, or not ready' 'duplicate option IDs fail'
+test_receipt_mutation '.token="ghp_secret_token"' 'normalized GitHub capability receipt is missing, malformed, partial, or not ready' 'extra token fails'
+test_receipt_mutation '.capabilityEvidence=["repo"]' 'normalized GitHub capability receipt is missing, malformed, partial, or not ready' 'unexpected capability evidence fails'
+test_receipt_mutation '.projectStatuses.extraField="invalid"' 'normalized GitHub capability receipt is missing, malformed, partial, or not ready' 'extra nested key fails'
 
 github_no_remote_repo="$(make_repo github-no-remote)"
 complete_github_config >"$github_no_remote_repo/.woostack/config.json"

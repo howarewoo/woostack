@@ -22,10 +22,11 @@ delivery-capable subagent primitive. Record `delivery_capable: true` and its obs
 failure; absence of a delivery primitive blocks before `admit` rather than degrading to inline
 implementation. Host mechanics and tier routing remain in the allowlisted host references.
 
-Resolve the canonical Git repository and admitted integration branch/SHA from direct Git and
-host-authenticated `gh` evidence. For GitHub, use only the official authenticated `gh` CLI and the
-native issue, sub-issue, parent, dependency, Project membership, and Project field reads described
-by the [GitHub provider profile](../../woostack-init/references/artifact-providers/github.md).
+Resolve the canonical Git repository and admitted integration branch/SHA from direct Git and an
+authorized GitHub capability exposed by the host (prefer native GitHub tools when suitable;
+host-authenticated `gh` remains supported). Discover actual operation capabilities and read shapes
+from the host. Use the native issue, sub-issue, parent, dependency, Project membership, and Project
+field reads described by the [GitHub provider profile](../../woostack-init/references/artifact-providers/github.md).
 Exhaust every page (`--paginate` or the equivalent native pagination operation), then independently
 read each endpoint needed for identity, hierarchy, contracts, dependencies, checks, PRs, notes, or
 Project status. A missing/failed page is incomplete evidence, not an empty collection. The

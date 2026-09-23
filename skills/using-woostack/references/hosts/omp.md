@@ -3,9 +3,11 @@
 ## Detection
 
 Use this adapter inside an active Oh My Pi session. Discover the actual `task`, `hub`, and related
-capabilities available in the session. Discover official host-exposed Linear or Plane MCP tools via registered session
-tools / tool routes or host-authenticated GitHub CLI (`gh`) under the selected workflow's artifact admission. Never use custom HTTP/REST/GraphQL
-transport or fallback tokens. Artifact operations follow the canonical
+capabilities available in the session. Discover official host-exposed Linear or Plane MCP tools via registered
+session tools / tool routes or an authorized GitHub capability exposed by the host (prefer native GitHub
+tools; host-authenticated `gh` remains supported). Discover actual operation capabilities and read/write
+shapes rather than assuming tool names or schemas. Never use custom HTTP/REST/GraphQL transport or
+fallback tokens. Artifact operations follow the canonical
 [artifact backends contract](../../../woostack-init/references/artifact-backends.md).
 
 When a woostack skill is invoked, rename the active session with a concise title derived from the
@@ -161,6 +163,7 @@ read-back.
 Session-naming degradation is non-blocking: if `woostack_rename_session` is unavailable or fails,
 emit one concise warning and proceed with the workflow.
 
-When the configured provider's official interface (Linear/Plane MCP, or host-authenticated gh for GitHub) or a required capability is absent
-in the session, fail closed for required provider boundaries or report the missing capability for
-optional operations per canonical artifact law.
+When the configured provider's authorized interface (official Linear/Plane MCP, or a native GitHub
+capability / host-authenticated `gh`) or a required operation capability is absent in the session,
+fail closed for required provider boundaries or report the missing capability for optional operations
+per canonical artifact law.
