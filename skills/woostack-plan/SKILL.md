@@ -94,7 +94,6 @@ wire/API compatibility, and focused boundary-check obligations under the canonic
 [application-boundary adapters rule](../woostack-bootstrap/references/patterns.md#3-application-boundary-adapters).
 Do not demand identity-only wrappers when an existing shared application/domain contract is correct.
 
-
 Before admitting a check or smoke scenario, independently verify every named repository-local script
 or path exists at the admitted parent tip, is created by an admitted prerequisite before use, or is
 created by the same increment before use. A missing or invented command blocks publication; inspection

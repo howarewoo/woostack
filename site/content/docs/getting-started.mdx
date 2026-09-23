@@ -7,6 +7,13 @@ This tutorial installs woostack in an existing Git repository and sets up its lo
 Run the terminal command in step 1 yourself, then send the slash commands in steps 2 and 3 to
 your coding agent.
 
+If you want to discover requirements in ChatGPT before using your coding allowance, follow
+[Plan in ChatGPT, implement in Codex](/docs/chatgpt-to-codex). Its copyable prompt works without
+installed chat skills. The standard GitHub app is read-only; actual authorized write-capable tools
+are needed to publish the approved parent/children and native dependencies. A planning-only draft
+is still useful when those tools are missing. Install woostack in the coding host for the separate
+execution step, not as a prerequisite for that conversation.
+
 ## Before you start
 
 You need:
@@ -94,6 +101,11 @@ Use the workflow map to choose a command for your next task. Prepare ends at a v
 graph; the configuration reference explains surviving repository policy and optional direct GitHub
 Project configuration.
 
+For planning in the coding host, use [Prepare](/docs/skills/woostack-prepare), or call the public
+Debug, Ideate, Harden, and Plan phases directly. Plan is the sole skill-owned publisher. Both the
+chat recipe and Prepare stop after publication; neither starts execution. An already-complete
+bounded task can go straight to [Execute](/docs/skills/woostack-execute) without a planning graph.
+
 For an approved GitHub plan, hand the coding agent one exact specification parent issue with native
 PR-sized children using `/woostack-orchestrate --issue <canonical parent issue URL>`. If no common
 parent or Project exists, supply the exact selected issues with
@@ -103,6 +115,7 @@ required for either form. See [Orchestrate](/docs/skills/woostack-orchestrate) f
 worker capabilities, graph evidence, and recovery boundaries.
 
 <Cards>
+  <Card title="Plan in ChatGPT, implement in Codex" href="/docs/chatgpt-to-codex" description="Copy a complete planning prompt, verify native GitHub relationships, then request execution separately." />
   <Card title="Workflow maps" href="/docs/concepts/workflows" description="Choose Bootstrap, Prepare, Ideate, Harden, Plan, Orchestrate, or Execute based on the shape of the work." />
   <Card title="Configuration" href="/docs/configuration" description="Look up repository policy and optional direct GitHub Project configuration." />
   <Card title="How to use Hermes as an external engineer" href="/docs/hermes" description="Drive one persistent OMP process without installing woostack in Hermes." />

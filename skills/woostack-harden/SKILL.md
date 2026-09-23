@@ -25,8 +25,8 @@ a complete specification or candidate issue plan; a prior Ideate or Debug handba
 The caller supplies the complete specification or diagnosis, exact repository/baseline and evidence
 identity, and any candidate task plan. Harden may inspect bounded repository facts read-only and
 reconcile contradictions, missing acceptance, risks, removal/reuse, or verification boundaries. It
-does not require a Prepare run, writable checkout, GitHub configuration, or Project. Retained historical content
-is evidence only until its identity and freshness are revalidated.
+does not require a Prepare run, writable checkout, GitHub configuration, or Project. Retained
+historical content is evidence only until its identity and freshness are revalidated.
 
 Resolve available repository and baseline facts through the shared input contract. Ask for missing
 content or a target/evidence scope only when it remains ambiguous or inaccessible after those reads.

@@ -4,9 +4,9 @@ woostack is a collection of skills that teach AI coding assistants how to plan w
 change code. You make the product decisions. The assistant checks the repository and GitHub
 before reporting what changed or what is ready for review.
 
-Use one PR for a small change or a well-understood fix. For larger work, woostack saves a
-specification and step-by-step plan so you can resume later. Changes still need verification and
-independent review, whether the assistant works alone or delegates parts to other agents.
+Use one PR for a small change or a well-understood fix. For larger work, settle the specification
+and publish a verified GitHub parent with PR-sized native children before requesting execution.
+Changes still need verification and independent review.
 
 Start with the [getting-started guide](site/content/docs/getting-started.mdx), or use the
 [command index](skills/using-woostack/SKILL.md#command-routing) to choose a workflow.
@@ -94,6 +94,15 @@ assistant, not in Hermes. Hermes can relay decisions and review evidence; implem
 in the coding assistant.
 
 ## Choose a development workflow
+
+To plan in a normal ChatGPT chat, start with the complete
+[ChatGPT-to-Codex prompt](site/content/docs/chatgpt-to-codex.mdx). It requires no installed chat
+skills. The default GitHub app is read-only: publication needs actual authorized issue, native
+sub-issue, and dependency tools; otherwise keep a planning-only draft or explicitly use Plan in a
+coding host. After approved publication, the chat stops. Separately invoke
+`/woostack-orchestrate --issue <verified canonical parent URL>` in Codex to execute the children.
+No Project is required, and the parent gets no worker or PR. See the guide for dated product/usage
+rules, capability gaps, native graph recovery, and join decisions.
 
 | What you need | Command | What happens |
 | --- | --- | --- |

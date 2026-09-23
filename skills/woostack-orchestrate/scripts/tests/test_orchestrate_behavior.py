@@ -1056,7 +1056,6 @@ class OrchestrateBehavior(unittest.TestCase):
         code, payload = invoke_cli(*args, "--state", str(state_out))
         self.assertEqual(code, 0, payload)
         self.assertTrue(payload.get("dispatch"), payload)
-
     def test_state_symlink_is_rejected_before_read_or_write(self) -> None:
         snapshot = self._single_task_snapshot()
         admitted_path, admitted = self._admit_issue(snapshot)

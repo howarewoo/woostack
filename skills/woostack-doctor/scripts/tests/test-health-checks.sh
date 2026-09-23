@@ -70,7 +70,6 @@ r2c="$(mktemp -d)"
 mkdir -p "$r2c/.woostack"
 out="$(bash "$C/config-keys.sh" "$r2c")"
 assert_not_contains "$out" $'error\tconfig-policy' "missing config is not a policy error"
-
 # Repairs reject arbitrary keys and never create a symlink target.
 set +e
 bash "$C/config-keys.sh" --fix "$r2c" provider >/dev/null 2>&1
