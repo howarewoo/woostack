@@ -123,9 +123,11 @@ These are non-negotiable. Violating them produces an unattributed, broken, or dr
   [filesystem barrier](references/bootstrap.md#filesystem-write-barrier-and-collision-check);
   early read-only inspection and provider receipts never authorize mutation.
 - **Artifacts are opt-in.** Without explicit selection, make no provider call. When selected, use
-  only the configured official capability (MCP for Linear or Plane; host-authenticated gh for GitHub),
-  exact identities, stable mutation IDs, complete pagination, and independent read-back. Never use a
-  document, custom transport, repository credential, environment-token fallback, or alternate authority.
+  the configured provider's authorized capability (MCP for Linear or Plane; a suitable native GitHub
+  capability or host-authenticated `gh` for GitHub), exact identities, complete pagination, and
+  independent read-back. Discover actual operation capabilities rather than assuming tool names or
+  schemas. Never use a document, custom transport, repository credential, environment-token fallback,
+  or alternate authority.
 - **Artifact failure is scoped.** Missing access or an unknown/partial result blocks requested
   persistence, not an otherwise approved artifact-free scaffold, unless persistence was explicitly
   part of the deliverable. Never claim synchronization without direct read-back.

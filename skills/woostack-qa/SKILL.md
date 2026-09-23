@@ -20,8 +20,9 @@ fix contract, acceptance record, lifecycle state, or permission to remediate. Ea
 includes a proposed bounded remediation contract and may link an exact caller-supplied issue
 artifact. Neither form establishes scope, acceptance, assignment, or implementation authority.
 QA is an on-demand local engine with no CI delivery or gate. It is not a test-suite author
-([`woostack-tdd`](../woostack-tdd/SKILL.md) owns durable test work), not a load/perf/security
-scanner, and it never starts, builds, or restarts the target app.
+([`woostack-execute`](../woostack-execute/SKILL.md) owns durable test work under its
+[testing guidance](../woostack-execute/references/tdd.md)), not a load/perf/security scanner,
+and it never starts, builds, or restarts the target app.
 
 ## Commands
 
@@ -72,8 +73,9 @@ journeys from, in order:
    [optional artifact contract](../woostack-init/references/artifact-backends.md) and only the selected
    [GitHub](../woostack-init/references/artifact-providers/github.md),
    [Linear](../woostack-init/references/artifact-providers/linear.md), or
-   [Plane](../woostack-init/references/artifact-providers/plane.md) profile, use official
-   host-exposed capability (MCP for Linear/Plane, host-authenticated gh for GitHub), fully paginate relevant fields, and extract only requested
+   [Plane](../woostack-init/references/artifact-providers/plane.md) profile, use the selected
+   authorized host capability (MCP for Linear/Plane, a suitable native GitHub integration or
+   host-authenticated `gh` for GitHub), fully paginate relevant fields, and extract only requested
    specification/fix/plan criteria. Missing artifact access blocks those criteria only.
 4. **Repository source.** Inspect routes/source serving the app. Local diagnostic reports never
    establish intended behavior or acceptance.

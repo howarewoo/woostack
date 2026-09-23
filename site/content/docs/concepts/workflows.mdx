@@ -16,6 +16,7 @@ copies in a provider. Git and GitHub show what was implemented and delivered.
 | Bug or regression to fix | [Fix](/docs/skills/woostack-fix) |
 | Bounded non-bug work for one coherent PR | [Change](/docs/skills/woostack-change) |
 | Coordinated feature requiring a complete specification and plan | [Build](/docs/skills/woostack-build) |
+| Add or strengthen tests for a bounded target | [Execute](/docs/skills/woostack-execute) with its [testing guidance](https://github.com/howarewoo/woostack/blob/main/skills/woostack-execute/references/tdd.md) |
 
 For root-cause investigation without changes, use [Debug](/docs/skills/woostack-debug).
 
@@ -118,9 +119,9 @@ classify → scope → repository preflight → execute → verify → review �
 Change handles one bounded non-bug enhancement/refactor and has no hard approval gate. It accepts a
 goal-only request or an exact canonical GitHub issue input; either path still requires one coherent
 PR boundary, verification, smoke testing, and review. The goal-only path makes no artifact-provider
-calls. The issue-backed path performs the required read of the selected issue through host-authenticated
-`gh`; it requires no artifact-provider configuration, Project, mirror, or persisted plan. Use the canonical
-[Change skill](/docs/skills/woostack-change) for its supported syntax and admission/delivery rules:
+calls. The issue-backed path performs the required read of the selected issue through an authorized
+GitHub capability (native tools preferred; host-authenticated `gh` supported); it requires no
+artifact-provider configuration, Project, mirror, or persisted plan. Use the canonical
 
 ```text
 /woostack-change <goal>

@@ -161,7 +161,8 @@ focused verification, and read-only specification validation using the single
 [result schema and gates](validation.md#result-schema), then persists/read-backs the child note
 and any explicitly selected Project status before `apply-result`. Do not invent missing evidence
 or let the worker approve its own result. Failed checks/specification validation preserve the
-same reservation and PR for repair; unknown outcomes retain ownership and halt fresh dispatch.
+same reservation and PR for repair; missing note/Project receipts are retried without replaying
+repository delivery; unknown outcomes retain ownership and block only that task and descendants.
 
 The child PR carries exactly one `Resolves <child URL>` reference. It never closes or references
 the specification parent. New PRs remain drafts and no workflow step marks ready, merges, queues,

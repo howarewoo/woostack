@@ -27,11 +27,12 @@ must be clarified before any mutation. Other providers are not accepted by this 
 
 ## Admit an exact GitHub issue
 
-When an issue is selected, use host-authenticated `gh` to read only that exact resource before
+When an issue is selected, use an authorized GitHub read capability (prefer native GitHub tools when
+available; host-authenticated `gh` remains supported) to read only that exact resource before
 repository mutation. This explicit selection permits the required issue reads even when
-`artifacts.provider` is `"local"` or omitted; no provider configuration, project membership,
-mirror, or persisted plan is required. Without an issue selection, make no development-artifact
-provider calls. Goal-only Change never reads or writes Linear or another development-artifact provider.
+`artifacts.provider` is `"local"` or omitted; no provider configuration, project membership, mirror,
+or persisted plan is required. Without an issue selection, make no development-artifact provider
+calls. Goal-only Change never reads or writes Linear or another development-artifact provider.
 
 Verify the canonical repository against the target Git remote, native issue identity and canonical
 URL, open state, and that the resource is an issue rather than a pull request. Read its complete

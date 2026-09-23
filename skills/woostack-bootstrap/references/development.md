@@ -53,11 +53,9 @@ initial new-repository scaffold is the one pre-base worktree exception. Later PR
 Git/GitHub identity and may include an ordinary optional artifact link. Git and GitHub remain the
 source of truth for commits, branches, PRs, reviews, and merges.
 
-Every `/woostack-status` run derives rows from current Git/GitHub evidence, plus Graphite when selected. Exact
-caller-supplied provider context may enrich a row with linked specification, plan, or fix-artifact
-notes; missing artifact access affects only that enrichment. The
-[feature-state conventions](../../woostack-status/references/conventions.md) define rendering,
-reconciliation, and failure behavior.
+Work tracking uses canonical GitHub parent/child issues, native dependency relations, and linked
+pull requests. GitHub Project Status fields may describe provider records, but issue lifecycle or
+Project state never proves that a PR was submitted, verified, or merged.
 
 Legacy local development records are migration input only. They are never adopted as authority.
 `/woostack-init --migrate-legacy` is the sole routed owner of the explicit one-way
@@ -75,9 +73,10 @@ a branch such as `staging` before a human merges a release into `main`.
 | First feature branch | First PR in a plan | Verified integration branch |
 | Dependent feature branch | Next PR in a stack | The approved predecessor's branch |
 
-Use Git + `gh` by default; Graphite is optional for explicitly selected or verified already-managed
-tasks/stacks. The [source-control contract](../../woostack-commit/references/graphite.md) owns
-backend selection and delivery mechanics. Follow the selected
+Use native Git with an authorized GitHub interface for delivery; host-authenticated `gh` remains
+supported where appropriate. Graphite is optional for explicitly selected or verified already-managed
+tasks/stacks. The [source-control contract](../../woostack-commit/references/graphite.md) owns backend
+selection and delivery mechanics. Follow the selected
 [workspace/base-branch guidance](../../woostack-init/references/worktrees.md) to resolve the base,
 select an isolated workspace, and verify each predecessor before starting dependent work. Never
 force-push.
