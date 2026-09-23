@@ -143,15 +143,14 @@ remain read-only and no Project status is written.
    any worker is reserved.
 
 The admission fingerprint binds the canonical repository, sorted canonical executable issue URLs,
-native task identities, complete issue title/body, resolved contracts, repository rules, effective
-dependency endpoint pairs, and optional Project/lifecycle identity when explicitly selected. Edge
-provenance remains available in the admitted graph without changing task identity when the same
-dependency is described through another source. The fingerprint excludes the host cap, mutable
-integration SHA, runtime workspace/branch allocation, and delivery state. A changed issue set,
-contract, identity, edge, or blocker returns `snapshot-drift`; the
-controller preserves running reservations, recovery inventory, claims, and worker identity while
-requiring a fresh interpreted snapshot. It never launches a duplicate, silently adopts a new issue,
-or erases a running task's recovery boundary.
+native task identities, complete issue title/body, each task's effective `specification` and
+`actual_parent`, resolved contracts, repository rules, effective dependency endpoint pairs plus
+normalized edge `provenance` and `evidence`, and optional Project/lifecycle identity when explicitly
+selected. A changed issue set, contract, identity, specification, actual parent, edge endpoint,
+edge provenance/evidence, or blocker returns `snapshot-drift`; the controller preserves running
+reservations, recovery inventory, claims, and worker identity while requiring a fresh interpreted
+snapshot. It never launches a duplicate, silently adopts a new issue, or erases a running task's
+recovery boundary.
 
 ## Select an isolated workspace and dispatch
 

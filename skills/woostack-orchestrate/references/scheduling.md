@@ -202,18 +202,20 @@ Admission computes a `fingerprint` as `sha256:` plus the SHA-256 of canonical JS
 compact separators) over the immutable normalized scope view. It binds:
 
 - the canonical repository and sorted canonical executable issue URLs;
-- each task's stable task ID, URL, native IDs, state/resource, complete title/body, resolved
-  bounded contract, and external blockers;
-- complete repository rules and effective dependency endpoint pairs; and
+- each task's stable task ID, URL, native IDs, state/resource, complete title/body, effective
+  `specification` and `actual_parent`, resolved bounded contract, and external blockers;
+- complete repository rules, effective dependency endpoint pairs, and normalized edge `provenance`
+  and `evidence`; and
 - optional Project/lifecycle identity only when the user explicitly selected that Project for
   status mutation.
 
 It deliberately excludes the host capability/cap, mutable integration SHA, fresh `parent_prs`,
 runtime workspace/branch allocation, and delivery evidence. Those mutable facts are checked on every
-refill. A changed issue set, contract, identity, edge, or blocker returns `snapshot-drift`; preserve
-all running reservations, claims, recovery inventory, and worker identity, and launch no fresh
-worker. The controller must re-read native state and assemble `--fresh` for every refill, including
-immediately after a worker result and after reconciliation.
+refill. A changed issue set, contract, identity, specification, actual parent, edge endpoint,
+edge provenance/evidence, or blocker returns `snapshot-drift`; preserve all running reservations,
+claims, recovery inventory, and worker identity, and launch no fresh worker. The controller must
+re-read native state and assemble `--fresh` for every refill, including immediately after a worker
+result and after reconciliation.
 
 Every fresh refill carries the complete recovery inventory described above: checkpoint/state
 identities, worker processes/sessions, Git worktrees/refs/dirty state, canonical PRs, contract
