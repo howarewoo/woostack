@@ -1,0 +1,32 @@
+{
+  "requestType": "defect",
+  "command": "/woostack-prepare Fix stale cursor responses --parent-issue new",
+  "repository": {
+    "canonical": "https://github.com/acme/widgets",
+    "baseline": "main@2222222222222222222222222222222222222222",
+    "checkout": "/tmp/widgets"
+  },
+  "diagnosis": {
+    "source": "woostack-debug",
+    "status": "proved",
+    "observed": "A resumed export sometimes returns the previous page after a cursor expires.",
+    "reproduction": "npm run export-smoke -- --expired-cursor",
+    "causalChain": "cursor middleware accepts an expired token, bypasses the restart branch, and reuses the cached page key",
+    "evidence": [
+      "commit 2222222222222222222222222222222222222222:src/export/cursor.ts:44-71",
+      "runtime observation 2026-09-22T03:00:00Z: export-smoke returned page-4 for expired cursor",
+      "existing test fixture fixtures/expired-cursor.json"
+    ],
+    "correction": "Reject expired cursors before cache lookup and preserve the documented restart response.",
+    "risks": [
+      "clients that relied on stale pages will receive the documented restart response"
+    ],
+    "verification": [
+      "rerun the expired-cursor reproduction and the existing export checks"
+    ],
+    "smoke": "run the export command with a known expired cursor and inspect the restart response",
+    "expectedBehavior": "An expired cursor returns the documented restart response and never reuses stale page data."
+  },
+  "approvedSpecification": true,
+  "selector": "new"
+}

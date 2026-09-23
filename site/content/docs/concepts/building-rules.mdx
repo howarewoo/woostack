@@ -1,35 +1,37 @@
 ---
 title: Building rules
-description: The plain-artifact local-authority build loop, optional Linear, Plane, or GitHub mirroring, and bounded one-PR routes.
+description: Planning packets, verified GitHub issue graphs, and bounded one-PR execution routes.
 ---
 
 The user decides the product and authorizes work. Git and GitHub show what was delivered.
-Project-backed work keeps a specification, ordered plan, and recovery state locally. Bounded
-work fits one pull request (PR) and uses the agreed scope in the current conversation.
+Preparation produces a verified issue graph; implementation is a separate explicit workflow.
 
 ## Workflow scope
 
 | Shape | Commands | Active contract | Provider/input behavior |
 | --- | --- | --- | --- |
-| Bounded bug or regression | [woostack-fix](/docs/skills/woostack-fix) | proved diagnosis and complete user-approved correction/verification | none |
-| Bounded enhancement, refactor, test-only task, or authorized understood correction | [woostack-execute](/docs/skills/woostack-execute) | one complete bounded input, with an optional exact GitHub issue | none for goal-only; issue-backed input reads only the selected GitHub issue |
-| Larger or explicitly project-backed fix | [woostack-fix](/docs/skills/woostack-fix) | complete user-verified specification and increment plan | optional mirror |
-| Multi-increment feature | [woostack-build](/docs/skills/woostack-build) | user-verified specification and ordered local increment plan | optional Linear, Plane, or GitHub mirror |
+| Feature or proved defect needing several increments | [woostack-prepare](/docs/skills/woostack-prepare) | complete user-verified specification, evidence-bound diagnosis when applicable, and read-back GitHub graph | no local run or mirror; exact parent or Project selector belongs to Plan |
+| Specification elicitation | [woostack-ideate](/docs/skills/woostack-ideate) | complete plain user-verified decisions | no provider or run required |
+| Repository reconciliation | [woostack-harden](/docs/skills/woostack-harden) | complete plain candidate after bounded evidence checks | no provider or run required |
+| Approved issue publication | [woostack-plan](/docs/skills/woostack-plan) | one exact GitHub parent/child or Project graph with native prerequisite edges | direct host-authenticated GitHub reads/writes; no mirror required |
+| Bounded task for one PR | [woostack-execute](/docs/skills/woostack-execute) | one complete bounded contract and one PR | goal-only is provider-free; exact issue input is read-only |
 | Greenfield codebase | [woostack-bootstrap](/docs/skills/woostack-bootstrap) | complete approved design | exact artifact or explicit persistence request only |
 
-The shape of the work determines the workflow. Development records cannot turn ambiguous scope
-into a complete contract or replace direct repository evidence.
+The shape of the work determines the workflow. Historical development records cannot turn ambiguous
+scope into a complete contract or replace direct repository evidence.
 
 ## Planning and informed approval
 
-The [workflow map](/docs/concepts/workflows) shows the Build/Fix sequence. Public [Ideate](/docs/skills/woostack-ideate)
-collects decisions that the user verifies and returns complete plain content. Public
-[Harden](/docs/skills/woostack-harden) checks supplied specification or candidate-plan content
-against bounded repository evidence and raises each material discrepancy before changing it. Both
-phases accept explicit repository/evidence identity without a Build/Fix run or provider mirror.
-Build/Fix may adapt their retained records into those packets, but a manifest remains wrapper
-persistence, not phase admission. Technical details do not become approved just because they match
-existing code.
+Prepare is the thin composition for a feature or defect. A defect first uses [Debug](/docs/skills/woostack-debug)
+or independently revalidates a complete diagnosis: observed and expected behavior, causal chain,
+immutable source/runtime evidence, correction boundary, risks, and verification. Missing proof blocks;
+Prepare never guesses a correction.
+
+Public [Ideate](/docs/skills/woostack-ideate) collects decisions the user verifies and returns
+complete plain content. Public [Harden](/docs/skills/woostack-harden) checks supplied specification or
+candidate-plan content against bounded repository evidence and raises each material discrepancy before
+changing it. Both accept explicit repository/evidence identity without a Prepare run or provider
+mirror. Complete input may start at the relevant phase, so settled approvals are not repeated.
 
 Plan divides the work into increments, each small enough for one PR. It records outcomes, scope,
 acceptance criteria, verification, risks, explicit prerequisites, and parent-selection policy. It does
@@ -48,53 +50,40 @@ selected set closed, validates native/declared/inferred edge provenance, and doe
 inferred dependencies. Unlike parent-issue planning, parent-issue and list execution require no
 provider-mirror configuration.
 
-Build and project-backed Fix use the
-[verified handoff](/docs/skills/woostack-build#verified-handoff). The user sees the complete artifacts
-before choosing whether to execute, stop, or abandon. Clear natural-language choices are accepted;
-ambiguity or a material change to the approved contract cannot start execution.
-
-The [artifact contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-backends.md)
-defines storage, optional mirrors, recovery, and how to handle a changed base branch. If the
-integration branch's tip has changed since planning, the user must choose what to do before mutation.
+Plan is the sole issue publisher. It independently reads every parent, child, hierarchy, and edge back.
+A partial graph preserves exact identities and resumes at the first unproved Plan boundary; it is not
+Orchestrate-ready. Prepare reports the separate suggestion
+`/woostack-orchestrate --issue <verified-parent-url>` (or the applicable Project command) but never
+invokes it.
 
 ## Execution invariants
 
 - Each increment fits at most one PR.
-- Execute takes one complete bounded task per invocation: `/woostack-execute <bounded input>`
-  with an optional exact canonical GitHub issue URL. Retired `--run`, `--project`, and `--recheck`
-  inputs are rejected (see [Execute](/docs/skills/woostack-execute#retired-inputs)). Build/Fix stop at
-  retained artifacts; the caller selects one task and supplies its complete bounded contract.
+- Execute takes one complete bounded task per invocation: `/woostack-execute <bounded input>` with an
+  optional exact canonical GitHub issue URL. Retired `--run`, `--project`, and `--recheck` inputs are
+  rejected (see [Execute](/docs/skills/woostack-execute#retired-inputs)).
 - Each bounded task runs its own worktree, branch, allowed paths, and PR. Separate tasks may proceed
   concurrently only when their paths, branches, worktrees, PRs, and responsibilities do not overlap.
-- Each active task has one branch, one collision-safe worktree, one allowed set of paths, and
-  one current head commit.
-- Focused checks, a smoke test of the changed behavior, and comparison against the approved task
-  precede delivery. Orchestrate requires delivery-capable Execute subagents and independent
-  post-submission specification validation before releasing dependents.
-- Git and GitHub prove parent-child branch relationships, PRs, commits, reviews, and merge
-  state. Graphite supplies additional stack evidence only when selected. Required repository checks remain
+- Focused checks, a smoke test of changed behavior, and comparison against the approved task precede
+  delivery. Orchestrate requires delivery-capable Execute workers and independent post-submission
+  validation before releasing dependents.
+- Git and GitHub prove parent-child branch relationships, PRs, commits, reviews, and merge state.
+  Graphite supplies additional stack evidence only when selected. Required repository checks remain
   mandatory delivery gates; non-required available CI checks are observation-only.
 - Unresolved scope, ancestry, collision, required-evidence, or review conflicts stop the workflow.
   Agents never merge, mark a PR ready, enable auto-merge, or queue a PR for merge.
 
-## Canonical local records and optional remote mirroring
+## Retained records and authority boundaries
 
-Build and project-backed Fix use local records as the source of truth for the plan. Goal-only
-Execute and bounded Fix make no artifact-provider calls unless an exact issue association or
-requested provider operation is selected. Execute's exact GitHub issue input performs the required
-read of that issue through an authorized GitHub capability (native tools preferred; host-authenticated
-`gh` supported); it does not require provider configuration, a Project, a mirror, or a persisted plan.
-
-Run artifacts are retained after completion or abandonment. Abandoning a local run leaves its mirror
-unchanged. Standalone provider lifecycle operations follow the selected profile and never confer
-source-control authority.
-
-## Authority boundaries
-
+Existing `.woostack/tmp/runs/<run-id>/` artifacts from retired planning wrappers remain readable
+historical user data and are never migrated or mutated. A supplied record is evidence only after exact
+identity, complete content, and freshness validation. It does not authorize publication, assignment,
+implementation, or ownership. Provider profiles remain available for surviving explicit workflows and
+historical records; Prepare and Plan do not rely on them.
 | Surface | Authority |
 | --- | --- |
-| User request and decisions | initiates the selected workflow and authorizes decisions |
-| Local run manifest (`.woostack/tmp/runs/<run-id>/`) | records project-backed scope, plans, task contracts, and recovery state; does not grant permission |
+| Prepare/Ideate/Harden plain packets | complete planning content and evidence handbacks; no source or issue authority |
+| Plan's verified GitHub graph | publication identity, child contracts, and native prerequisite read-back |
 | Git and GitHub | source, ancestry, commits, PRs, checks, reviews, merge evidence |
 | Graphite (optional) | stack and branch operations when explicitly selected or already managed |
 | Audit, QA, response reports | sanitized non-authoritative diagnostic evidence |

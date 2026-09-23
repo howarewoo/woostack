@@ -15,7 +15,7 @@ type WorkflowBranch = Readonly<{
   steps: readonly WorkflowStep[];
 }>;
 
-type WorkflowId = 'execute' | 'fix' | 'build' | 'bootstrap';
+type WorkflowId = 'execute' | 'prepare' | 'bootstrap';
 
 type Workflow = Readonly<{
   id: WorkflowId;
@@ -45,46 +45,27 @@ const workflows: readonly Workflow[] = [
     ],
   },
   {
-    id: 'fix',
-    title: 'Fix',
-    useWhen: 'Use when a bug or regression needs root-cause diagnosis before implementation.',
-    href: '/docs/skills/woostack-fix',
+    id: 'prepare',
+    title: 'Prepare',
+    useWhen: 'Use for a feature or proved defect that needs a verified issue graph, not implementation.',
+    href: '/docs/skills/woostack-prepare',
     gateCount: 1,
     steps: [
-      { label: 'Diagnose root cause', kind: 'work' },
-      { label: 'Write combined fix plan', kind: 'work' },
-      { label: 'Harden and commit', kind: 'work' },
-      { label: 'Approve-to-execute', kind: 'gate' },
-    ],
-    branches: [
-      { label: 'Go', steps: [{ label: 'Execute → one reviewed PR', kind: 'terminal' }] },
-      { label: 'Hand off', steps: [{ label: 'Approved plan PR with no code', kind: 'terminal' }] },
-      { label: 'Revise', steps: [{ label: 'Update and re-present committed plan', kind: 'terminal' }] },
-      { label: 'Abandon', steps: [{ label: 'Close/remove temporary artifacts', kind: 'terminal' }] },
-    ],
-  },
-  {
-    id: 'build',
-    title: 'Build',
-    useWhen: 'Use for a feature that needs a complete specification, plan, and retained handoff.',
-    href: '/docs/skills/woostack-build',
-    gateCount: 3,
-    steps: [
-      { label: 'Adapt plain input to Ideate', kind: 'work' },
+      { label: 'Classify feature or defect', kind: 'work' },
+      { label: 'Prove defect cause when needed', kind: 'work' },
       { label: 'Verify user-owned decisions', kind: 'gate' },
-      { label: 'Adapt complete handback to Harden', kind: 'work' },
-      { label: 'Resolve repository discrepancies', kind: 'gate' },
-      { label: 'Plan, decompose, and harden', kind: 'work' },
+      { label: 'Reconcile repository evidence', kind: 'work' },
+      { label: 'Plan and publish one issue graph', kind: 'work' },
       {
-        label: 'Prepare backend handoff',
-        detail: 'Retained plain specification and plan with optional provider mirror.',
+        label: 'Read back parent, children, and edges',
+        detail: 'Plan is the sole publisher; no source branch or implementation worker.',
         kind: 'handoff',
       },
-      { label: 'Execution handoff', kind: 'gate' },
+      { label: 'Verified graph plus Orchestrate suggestion', kind: 'terminal' },
     ],
     branches: [
-      { label: 'Go', steps: [{ label: 'Reviewed PR stack', kind: 'terminal' }] },
-      { label: 'Hand off', steps: [{ label: 'Ready artifacts with no implementation PR', kind: 'terminal' }] },
+      { label: 'Ready', steps: [{ label: 'Separate /woostack-orchestrate suggestion', kind: 'terminal' }] },
+      { label: 'Blocked', steps: [{ label: 'Preserve exact identities and resume Plan at the first unproved boundary', kind: 'terminal' }] },
     ],
   },
   {
@@ -173,7 +154,7 @@ export function WorkflowAtlas() {
         ))}
       </div>
 
-      <figcaption id="workflow-atlas-caption">Four woostack workflows from first action to outcome.</figcaption>
+      <figcaption id="workflow-atlas-caption">Three woostack workflows from first action to outcome.</figcaption>
     </figure>
   );
 }

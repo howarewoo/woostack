@@ -18,9 +18,8 @@ fail() {
 
 packages=(
   skills/woostack-eval
-  skills/woostack-build
+  skills/woostack-prepare
   skills/woostack-plan
-  skills/woostack-fix
   skills/woostack-execute
   skills/woostack-commit
   skills/woostack-address-comments
@@ -52,9 +51,8 @@ const path = require('node:path');
 const [repositoryRoot, resultsRoot, ...packages] = process.argv.slice(2);
 const expectedPackages = [
   'skills/woostack-eval',
-  'skills/woostack-build',
+  'skills/woostack-prepare',
   'skills/woostack-plan',
-  'skills/woostack-fix',
   'skills/woostack-execute',
   'skills/woostack-commit',
   'skills/woostack-address-comments',
@@ -65,7 +63,7 @@ const expectedPackages = [
   'skills/woostack-bootstrap',
 ];
 const same = (left, right) => JSON.stringify(left) === JSON.stringify(right);
-if (!same(packages, expectedPackages) || new Set(packages).size !== 12) {
+if (!same(packages, expectedPackages) || new Set(packages).size !== 11) {
   throw new Error(`critical package enumeration changed: ${JSON.stringify(packages)}`);
 }
 
@@ -267,4 +265,4 @@ for (let index = 0; index < packages.length; index += 1) {
 
 NODE
 
-printf 'PASS: validated critical behavior corpora for exactly 12 required packages\n'
+printf 'PASS: validated critical behavior corpora for exactly 11 required packages\n'

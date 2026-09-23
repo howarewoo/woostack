@@ -83,8 +83,9 @@ the `templates/` shipped there; the woostack collection installs both as sibling
    doctor does not run normal lifecycle lint on them and points at the explicit
    [legacy migration procedure](../woostack-init/references/legacy-migration.md). Old local artifacts
    and existing provider resources are preserved; doctor never rewrites, reparents, or migrates
-   remote Linear or Plane resources in place. Incompatible retained Plane runs block with precise
-   regeneration guidance via `/woostack-build <goal>` or `/woostack-fix <prompt>` without mutation.
+   remote Linear or Plane resources in place. Incompatible retained Plane records block with precise
+   guidance to revalidate the complete content through `/woostack-prepare` or the responsible phase
+   without mutation.
 4. **No workspace?** If the engine exits 2 with "no `.woostack/`", **stop** and tell the user to
    run [`woostack-init`](../woostack-init/SKILL.md). Doctor never scaffolds.
 5. **Propose a changeset.** Group the local `fixable=auto` findings into a proposed repair set —

@@ -1,29 +1,27 @@
 ---
 title: Core concepts
-description: Repository delivery evidence, local run authority with optional Linear, Plane, or GitHub mirroring, and plain artifact project loops.
+description: Repository delivery evidence, plain planning packets, and the verified GitHub issue graph that precedes implementation.
 ---
 
 import { ContextEconomy } from '@/components/concepts/context-economy';
 
-The user decides what woostack may build. Git and GitHub show what code changed, which branches and
+The user decides what woostack may change. Git and GitHub show what code changed, which branches and
 commits it came from, and whether its pull requests (PRs) have been reviewed or merged.
 
-## Two delivery shapes
+## Planning before implementation
 
-- Bounded work fits one PR. Execute handles a complete enhancement, refactor, test-only task, or
-  authorized understood correction. Fix first proves the cause of a defect and gets explicit
-  approval of the complete correction and verification plan. Goal-only Execute and bounded Fix make
-  no artifact-provider calls unless an exact issue association or requested provider operation is
-  selected. Execute with an explicit exact canonical GitHub issue input performs the required read
-  of that issue through host-authenticated `gh`; it still requires no provider configuration, project,
-  mirror, or persisted plan.
-- Project-backed work needs a specification and an ordered plan. Build and larger, uncertain, or
-  explicitly project-backed fixes keep those files and a manifest under
-  `.woostack/tmp/runs/<run-id>/`. The manifest records the run's tasks and recovery state. These local
-  records are the source of truth for the plan; Linear, Plane, or GitHub can hold optional copies.
+- **Bounded work** fits one PR. Change handles a non-bug enhancement or refactor after its bounded
+  contract is admitted. Execute is the explicit implementation and draft-PR path for one complete
+  task.
+- **Prepared work** needs a specification, evidence, and a reviewable issue graph. Prepare composes
+  Debug for defects, Ideate for user-owned decisions, Harden for repository reconciliation, and Plan
+  for the sole GitHub parent/child publisher. It stops before source edits, branches, workers, or PRs.
+- **Execution** is separate. The user may pass the verified parent to Orchestrate as a separate next
+  command, or select one complete bounded task for Execute. Issue lifecycle alone never proves code
+  delivery, review, acceptance, or merge.
 
 See [Workflow maps](/docs/concepts/workflows) for the sequences and
-[Building rules](/docs/concepts/building-rules) for the approval and delivery boundaries.
+[Building rules](/docs/concepts/building-rules) for the planning and delivery boundaries.
 
 ## Complete user understanding
 
@@ -35,25 +33,32 @@ confirmed decisions, evidence, and unresolved questions.
 
 Harden is also directly callable: `/woostack-harden <specification-or-issue-plan>`. It checks supplied
 content against bounded repository evidence, raises material discrepancies before changing approved
-decisions, and returns complete reconciled content. Neither phase requires Build, Fix, a run
-manifest, provider configuration, or a remote mirror. Existing conventions and plausible defaults
-never replace the user's decision.
+decisions, and returns complete reconciled content. Neither phase requires a Prepare run, provider
+configuration, writable checkout, or remote mirror. Existing conventions and plausible defaults never
+replace the user's decision.
+
+Prepare is the thin composition for feature and defect planning:
+`/woostack-prepare <goal-or-defect> [--parent-issue new|<exact-url>]`. Complete input may start at
+any relevant phase without repeating settled approval. A defect must carry Debug's observed/expected
+behavior, causal chain, exact evidence, correction boundary, risks, and verification. Missing or stale
+causal proof blocks before Plan; Prepare never guesses a fix.
+
+Plan consumes one complete approved packet and publishes one exact GitHub parent/child hierarchy or
+explicit Project graph with native prerequisite edges. It independently reads every identity and
+relationship back. A partial graph is a recoverable planning result, not Orchestrate-ready success.
+The suggested `/woostack-orchestrate --issue <verified-parent-url>` is separate and is never invoked by
+Prepare or Plan.
 
 Plans describe outcomes and acceptance criteria: the conditions the finished work must meet. They
 leave coding steps to the implementer without changing the agreed scope.
 
-## Retained artifacts and optional mirrors
+## Retained records and provider configuration
 
-Project-backed workflows keep `project-spec.md`, `execution-plan.md`, and recovery state across
-completion, interruption, and abandonment. The
-[artifact contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-backends.md)
-defines storage, resuming an exact run, mirroring, and lifecycle details. A provider mirror is a
-remote copy; it cannot authorize repository work or override the local run.
-
-Build and project-backed Fix present the verified artifacts before the user chooses whether to
-execute, stop, or abandon. Clear natural-language intent is accepted; changed scope returns to
-explicit verification. The [Build handoff](/docs/skills/woostack-build#verified-handoff) is canonical.
-
+Existing `.woostack/tmp/runs/<run-id>/` records from retired planning wrappers remain readable
+historical user data. They are never migrated or mutated. A caller may supply a complete retained
+packet and exact identity for fresh validation, but a record does not authorize publication,
+implementation, assignment, or ownership. Plan's GitHub issue publication is direct; provider
+profiles remain reference/configuration surfaces for surviving workflows and historical records.
 
 ## Context economy
 
@@ -62,8 +67,8 @@ explicit verification. The [Build handoff](/docs/skills/woostack-build#verified-
 Keep only the workflow and references needed for the current decision in the agent's context.
 Choose inline or delegated implementation using the
 [delegation guidance](/docs/concepts/context-management#isolated-agents-receive-bounded-envelopes),
-which weighs speed, cost, isolation, overhead, and risk. Verification and independent review
-still check the implementation.
+which weighs speed, cost, isolation, overhead, and risk. Verification and independent review still
+check implementation.
 
 ### Session reflection becomes instruction suggestions
 
@@ -71,14 +76,16 @@ still check the implementation.
 `/woostack-reflect` invocation. An ordinary final reply loads it only when the session already
 contains a concrete observed preventable instruction gap; otherwise it has no reflection headings.
 Its candidate gate defines that condition, and the first pass is report-only.
+
 Diagnostic outputs from QA or production-response workflows can support a decision but cannot
-authorize a fix. Repairs use the appropriate Fix, Execute, or Build workflow and its rules.
+authorize a correction. Repairs first use Debug for causal proof, then Prepare for a verified issue
+graph, or Change for an admitted bounded non-bug change.
 
 ### Tools compute, agents read compact results
 
-Helpers gather and check evidence that can be processed mechanically. Run-store operations protect
-the files used to resume work. The user still verifies workflow decisions.
-
+Helpers gather and check evidence that can be processed mechanically. Historical run-store operations
+protect retained files; they are not a new Prepare authority. The user still verifies workflow
+decisions.
 
 ### External engineers and coding harnesses
 
@@ -91,9 +98,9 @@ resume.
 
 <Cards>
   <Card title="Getting started" href="/docs/getting-started" description="Install the skills, initialize local support, and check the installation." />
-  <Card title="Building rules" href="/docs/concepts/building-rules" description="Understand workflow scope, the build lifecycle, and authority boundaries." />
+  <Card title="Building rules" href="/docs/concepts/building-rules" description="Understand workflow scope, preparation, issue publication, and authority boundaries." />
   <Card title="Repository structure and rules" href="/docs/concepts/repository-rules" description="Read the complete app-local code, shared extraction, dependencies, production, testing, Git, and scaffold contract." />
-  <Card title="Workflow maps" href="/docs/concepts/workflows" description="Compare Bootstrap, Build, Fix, and Execute under one authority model." />
+  <Card title="Workflow maps" href="/docs/concepts/workflows" description="Compare Bootstrap, Prepare, Plan, Orchestrate, and Execute under one authority model." />
   <Card title="Context management" href="/docs/concepts/context-management" description="Keep sessions compact and turn durable lessons into reviewed instruction suggestions." />
   <Card title="All skills" href="/docs/skills/using-woostack" description="Per-skill reference, generated from each SKILL.md." />
 </Cards>

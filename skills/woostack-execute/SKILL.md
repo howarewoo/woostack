@@ -29,12 +29,13 @@ read-only admission and Commit association below, regardless of `artifacts.provi
 `--project`, `--run`, and `--recheck` are retired. Reject them before project/run reads or mutation,
 including combinations with otherwise valid input. Do not invoke Orchestrate implicitly.
 
-For an old project or multi-task run invocation, ask the caller to select one task and supply its
-complete bounded contract, required decisions, intended parent, and any exact retained repository
+For an old project or multi-task preparation invocation, ask the caller to select one task and supply
+its complete bounded contract, required decisions, intended parent, and any exact retained repository
 state using the command above. A run ID, project URL, or issue URL alone is not that contract.
-Retained Build/Fix artifacts stay intact; their owning planning workflow may be used to inspect or
-revise them. Automatic project/run execution is unavailable through Execute. Existing delivery
-recovery uses the same bounded input and fresh Git/GitHub evidence, not a run controller.
+Retained historical preparation artifacts stay intact; their complete content may be revalidated by
+Prepare, Harden, or Plan, but it never silently becomes an Execute input. Automatic project/run
+execution is unavailable through Execute. Existing delivery recovery uses the same bounded input and
+fresh Git/GitHub evidence, not a run controller.
 
 ### Test-only tasks
 

@@ -44,11 +44,10 @@ provider-specific scope, capabilities, identities, and lifecycle behavior.
 | Create a genuinely greenfield codebase | `woostack-bootstrap` |
 | Elicit a complete user-verified specification from a goal or existing specification | `woostack-ideate` |
 | Reconcile a supplied specification or candidate issue plan against repository evidence | `woostack-harden` |
-| Prepare a multi-increment feature and execution handoff | `woostack-build` |
-| Diagnose and fix a defect, bounded or project-backed | `woostack-fix` |
-| Turn an approved specification into reviewable increments | `woostack-plan` |
-| Execute one exact GitHub parent, Project, or explicit issue list with parallel workers and stacked PRs | `woostack-orchestrate` |
-| Implement one bounded task — enhancement, refactor, test-only work, or authorized understood correction — and deliver one PR | `woostack-execute` |
+| Prepare a feature or proved defect for a verified GitHub issue graph without implementation | `woostack-prepare` |
+| Implement a bounded task and deliver one PR | `woostack-execute` |
+| Turn an approved specification into reviewable increments and publish the native issue graph | `woostack-plan` |
+| Execute native children of one GitHub parent issue, tasks in an exact GitHub Project, or an explicit canonical issue list with parallel workers and stacked PRs | `woostack-orchestrate` |
 | Commit current changes and submit or update their PR | `woostack-commit` |
 | Review a pull request | Use [Pullfrog](https://pullfrog.com/). |
 | Address every unresolved thread on one exact existing PR | `woostack-address-comments` |
@@ -61,28 +60,19 @@ provider-specific scope, capabilities, identities, and lifecycle behavior.
 | Evaluate an approved skill corpus without editing it | `woostack-eval` |
 | Reflect on this conversation for durable instruction suggestions | `woostack-reflect` |
 
-Every explicit `/woostack-*` command loads its namesake skill. Intent-equivalent wording follows
-the same route. Ideate and Harden are public, directly callable phases that exchange the complete
-plain packets defined in [planning-inputs.md](references/planning-inputs.md); Build and Fix may
-compose them through their own retained records but do not make a run manifest, provider mirror, or
-wrapper admission a prerequisite for standalone use. Execute owns complete bounded implementation
-and delivery; Fix owns diagnosis and chooses bounded delivery or project planning after proof. Build
-owns multi-increment preparation. None of these phases automatically invokes another phase, creates
-issues, edits source, commits, or submits a PR.
+`woostack-build`, `woostack-fix`, `woostack-change`, `woostack-status`, and `woostack-tdd` are
+retired, not missing installations. Do not invoke them. For old Build/Fix planning inputs, explain
+Prepare's retained-input boundary rather than loading or reinstalling a retired wrapper; for bounded
+enhancements or test-only work, route to Execute. Ordinary work progress is read from GitHub issues,
+pull requests, and Git evidence.
 
-The retired `woostack-change` command has no compatibility alias. Supply the complete bounded
-enhancement, refactor, test-only task, or authorized understood correction to
-[`woostack-execute`](../woostack-execute/SKILL.md); use the applicable planning workflow when the
-scope is not complete or needs multiple increments.
-
-The former `/woostack-tdd` test-work command is retired. Send a complete bounded test task
-directly to `/woostack-execute`; it keeps the test-only scope, focused verification, and normal
-one-PR delivery path without a separate router or project handoff.
-
-Ordinary questions about work progress use available authorized GitHub reads or the GitHub UI:
-parent/child issues and native dependency relations define planned work, while linked pull requests
-and Git evidence establish delivery. A Project Status field is provider metadata, not proof of
-implementation, verification, or merge.
+Every supported explicit `/woostack-*` command loads its namesake skill. Intent-equivalent wording follows
+the same route. Ideate and Harden are public, directly callable phases that exchange complete plain
+packets. Prepare composes Debug for defects, Ideate, Harden, and Plan as needed and ends at a fully
+read-back GitHub issue graph; it never implements, creates source branches, dispatches workers, or
+invokes Execute or Orchestrate. Plan is the sole issue publisher. Execute owns bounded implementation
+and draft-PR delivery; none of the planning phases automatically edits source, commits, submits a PR,
+or grants merge authority.
 
 ## AGENTS.md usage
 

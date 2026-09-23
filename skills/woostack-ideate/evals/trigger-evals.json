@@ -10,7 +10,7 @@
     },
     {
       "id": "existing-spec-revalidates-only-open-decisions",
-      "query": "I have an existing specification plus its exact repository and immutable evidence references. Run Ideate without a Build/Fix run, preserve settled decisions, ask about only the unresolved material choices, and return the complete reusable content.",
+      "query": "I have an existing specification plus its exact repository and immutable evidence references. Run Ideate without a Prepare run, preserve settled decisions, ask about only the unresolved material choices, and return the complete reusable content.",
       "shouldTrigger": true,
       "expectedSkill": "woostack-ideate"
     },

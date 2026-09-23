@@ -165,9 +165,10 @@ The local report never becomes a development record or decision corpus, issue sc
 assignment, lifecycle state, or permission to edit. Any artifact it names is evidence only and
 must be re-read for drift. Report-only QA performs zero provider mutation.
 
-Repository remediation enters [`woostack-fix`](../woostack-fix/SKILL.md). That controller re-proves
-the root cause, hardens the bounded fix contract, and obtains explicit approval before repository
-mutation. No issue, owner, assignment receipt, or provider lifecycle state is required.
+Repository remediation first enters [`woostack-debug`](../woostack-debug/SKILL.md) for causal proof,
+then [`woostack-prepare`](../woostack-prepare/SKILL.md) for a verified issue graph. The local report
+never authorizes a correction, implementation, issue ownership, assignment, or provider lifecycle
+state.
 
 ## Hard constraints
 

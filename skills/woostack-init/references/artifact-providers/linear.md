@@ -62,23 +62,22 @@ round-trip endpoints by canonical issue reference, and verify exact scope, membe
 parent state. For a new issue: create once, read by canonical reference, bind its stable task key once,
 write relations. Never create a parent plan issue; direct GitHub parent/child/dependency publication
 is owned by Plan's GitHub procedure.
-An exact Fix source issue is context only. Preserve its title, description, status, assignment,
-labels, relations, comments, and lifecycle. After canonical Fix project admission, the only supported
-source-issue mutation is one direct project link followed by exact membership read-back.
+An exact source issue is context only. Preserve its title, description, status, assignment, labels,
+relations, comments, and lifecycle. Any explicitly supported source-resource mutation remains bounded
+by the selected provider contract and requires exact identity plus independent read-back.
 
 ## Lifecycle and closure (retired Execute reference)
 
 > **Retired.** Execute no longer performs Linear lifecycle transitions, project/run-controller reads,
 > or closure. It accepts one bounded task and no Linear/Plane issue scope. The retained
-> `issueStates`/`projectStatuses` fields and historical records support Build/Fix mirroring only;
-> see [`woostack-execute`](../../../woostack-execute/SKILL.md#retired-inputs).
+> `issueStates`/`projectStatuses` fields and historical records are reference data only; see
+> [`woostack-execute`](../../../woostack-execute/SKILL.md#retired-inputs).
 
-Build/Fix handoff, blockage, and local-run abandonment leave a mirrored project unchanged. Plan does
+Historical handoff, blockage, and local-run abandonment leave a mirrored project unchanged. Plan does
 not perform Linear lifecycle or closure operations.
 
 ## Workflow procedures
 
-Build and Fix use the detailed [Linear context](../../../woostack-build/references/linear-context.md)
-and [Linear synchronization procedure](../../../woostack-build/references/linear-procedure.md).
-Bootstrap and Commit retain their workflow gates and use this profile only for selected-provider
-identity, capability, mutation, and read-back behavior.
+No active Prepare or Plan path uses Linear publication procedures. Bootstrap and Commit retain their
+workflow gates and use this profile only for selected-provider identity, capability, mutation, and
+read-back behavior.

@@ -3,11 +3,10 @@ title: GitHub
 description: Reference for GitHub Projects and direct repository-issue publication, configuration fields, native parent/child hierarchy, and lifecycle behavior.
 ---
 
-Build/Fix GitHub artifact paths select `artifacts.provider: "github"` only for their transitional
-project-artifact synchronization; their [local run](/docs/configuration/artifacts/local) remains the
-source of truth. `woostack-plan` publishes directly to an explicitly selected GitHub parent or
-Project and does not require a provider selector, local run, or mirror for parent mode. Other
-provider-aware workflows retain their own explicit persistence gates.
+Prepare and Plan use complete plain packets and direct GitHub issue publication. Plan publishes to an
+explicit parent or Project selector and does not require a local run, mirror, or provider selector in
+parent mode. Other provider-aware workflows retain their own explicit persistence gates; existing
+historical records are not migrated or rewritten.
 
 ## Configuration
 
@@ -73,10 +72,10 @@ Accepted canonical URL forms are:
 Use these URLs to select resources and associate them with a PR. GitHub's internal GraphQL node
 IDs and Project item IDs are kept separately for API changes.
 
-Build and project-backed Fix resolve an exact supplied Project URL or create one `[Build]/[Fix] <goal>`
-Project under the configured owner. The complete specification is written inside `ProjectV2.readme`
-between markers `<!-- woostack-spec-start -->` and `<!-- woostack-spec-end -->`, preserving unrelated
-README bytes. `shortDescription` contains a concise goal summary.
+Explicit Project workflows resolve an exact supplied Project URL under the configured owner. The
+complete specification may be represented in `ProjectV2.readme` between markers
+`<!-- woostack-spec-start -->` and `<!-- woostack-spec-end -->`, preserving unrelated README bytes.
+`shortDescription` contains a concise goal summary.
 
 Existing Project plans retain parentless repository issues (`parent = null`) with direct membership.
 An explicitly admitted specification parent and its member children may also be represented in a
@@ -95,10 +94,10 @@ Direct and composed Plan calls accept an explicit parent-issue selector instead 
 ```
 
 `--parent-issue` is exclusive with `--project`. It requires only the exact canonical repository,
-the explicit `new` intent or exact existing parent URL, and the native relationship capabilities.
-It does not require a provider selector, Project settings/access, Project capabilities, mirror, or a
-Build/Fix run. The canonical repository comes from trusted Git/GitHub evidence; when
-`artifacts.github.owner` is configured, it must match that repository's owner.
+the explicit `new` intent or exact existing parent URL, and native relationship capabilities. It does
+not require a provider selector, Project settings/access, Project capabilities, mirror, or local run.
+The canonical repository comes from trusted Git/GitHub evidence; when `artifacts.github.owner` is
+configured, it must match that repository's owner.
 
 Publication creates or reuses one selected specification parent and reconciles one native direct
 PR-sized child issue per planned task, then wires the prerequisite `blocked-by` DAG separately. The native parent hierarchy
@@ -110,7 +109,7 @@ or human-owned fields are preserved and children are never reparented. Nested co
 missing endpoints, foreign parents, and partial pagination or capabilities fail closed. Repeating an
 unchanged sync performs zero mutations. Task, dependency, and mapping shapes match Project mode,
 with the parent stored separately in the spec item when applicable. Direct and composed Plan calls
-retain publication identities and the last verified boundary in their handback without creating a Build/Fix run.
+retain publication identities and the last verified boundary in their handback without creating a local run.
 
 Parent-issue planning is planning only. Explicit Orchestrate execution consumes the admitted native
 child scope; bounded Execute still admits one complete task.
@@ -161,18 +160,16 @@ Child delivery notes preserve evidence, and only explicitly selected Project exe
 > [Execute retired inputs](/docs/skills/woostack-execute#retired-inputs).
 
 Explicit Project lifecycle operations use only the retained exact Project and its configured fields.
-Parent-issue Plan has no Project lifecycle to close. Build/Fix handoff, abandonment, blockers, and
-completion leave any transitional Project artifact unchanged.
+Parent-issue Plan has no Project lifecycle to close. Historical handoff, abandonment, blockers, and
+completion leave any retained Project artifact unchanged.
 
 ## Workflow matrix
 
 | Skill | GitHub provider behavior |
 | --- | --- |
 | [woostack-orchestrate](/docs/skills/woostack-orchestrate) | Executes one exact native child scope, configured Project member set, or explicit canonical issue list; validates graph evidence, verifies worker PRs, and records delivery without closing issues or merging. |
-| [woostack-fix](/docs/skills/woostack-fix) | Bounded Fix is provider-free. Project-backed Fix proves root cause before provider access, preserves an exact source `--issue` as context with a direct Project link, and creates/reconciles a separate increment DAG. |
+| [woostack-prepare](/docs/skills/woostack-prepare) | Produces or accepts a complete packet without provider mirroring. It delegates native graph publication to Plan and does not create implementation work, branches, PRs, or execution. |
 | [woostack-plan](/docs/skills/woostack-plan) | Plan with `--project` requires an exact existing canonical Project URL (`orgs/<owner>/projects/<N>` or `users/<owner>/projects/<N>`) and synchronizes the direct issue graph; Plan with `--parent-issue new` or an exact parent issue URL synchronizes the native parent/child graph with no Project. Direct and composed Plan use the same publisher; there is no draft-only mode. |
-| [woostack-orchestrate](/docs/skills/woostack-orchestrate) | Executes one exact native child scope, configured Project member set, or explicit canonical issue list; validates graph evidence, verifies worker PRs, and records delivery without closing issues or merging. |
-| [woostack-execute](/docs/skills/woostack-execute) | Accepts one complete bounded task plus an optional exact GitHub issue URL; retired `--project`, `--run`, and `--recheck` are rejected. |
 | [woostack-init](/docs/skills/woostack-init) | Discovers owner, ownerType, canonical repository, and status options through the selected authorized read-only GitHub capability only when `artifacts.provider: "github"`. Never selects persistence or probes writes. |
 | [woostack-bootstrap](/docs/skills/woostack-bootstrap) | Optional persistence only after explicit design approval and approval to write to the verified filesystem target. |
 | [woostack-doctor](/docs/skills/woostack-doctor) | Checks config types locally. Explicit live checks verify Project-mirroring identity and the fixed read-only Project/Status, pagination, and independent read-back capabilities without storing secrets; they are not a parent-mode capability receipt. |

@@ -15,17 +15,16 @@
       "expectedSkill": "woostack-plan"
     },
     {
-      "id": "direct-spec-without-scope-is-blocked-not-artifact-free-plan",
+      "id": "direct-spec-without-scope-is-blocked-not-rerouted",
       "query": "Plan this approved multi-increment specification, but no exact GitHub Project or parent-issue selector was supplied.",
-      "shouldTrigger": false,
-      "expectedSkill": "woostack-build",
-      "conflictsWith": ["woostack-plan"]
+      "shouldTrigger": true,
+      "expectedSkill": "woostack-plan"
     },
     {
-      "id": "unapproved-feature-idea-needs-design",
+      "id": "unapproved-feature-idea-needs-preparation",
       "query": "I have a multi-part feature idea, but its behavior and architecture are not designed or approved yet.",
       "shouldTrigger": false,
-      "expectedSkill": "woostack-build",
+      "expectedSkill": "woostack-prepare",
       "conflictsWith": ["woostack-plan"]
     },
     {

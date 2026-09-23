@@ -5,12 +5,12 @@ description: Public read-only phase for reconciling a supplied specification or 
 
 # woostack-harden
 
-Harden reconciles complete supplied planning content against bounded repository evidence. It accepts
-a specification or a candidate issue plan, exposes material inconsistencies, asks before changing an
-approved decision, and returns complete reusable content. It is a public phase and may be composed by
-a preparation caller or invoked once by Plan before direct publication. Harden owns no persistence,
-publication, approval, implementation, or automatic routing. Composition is one-way: Harden never
-invokes Plan, and a Plan caller must not recursively invoke either phase.
+`woostack-harden` is the public repository-reconciliation phase. It is directly callable and may be
+composed by [`woostack-prepare`](../woostack-prepare/SKILL.md) after Ideate or Debug or invoked once by
+[`woostack-plan`](../woostack-plan/SKILL.md) before direct publication. It returns a complete plain
+candidate packet; it does not publish issues, create runs, edit source, or invoke a downstream phase.
+Composition is one-way: Harden never invokes Plan, and a Plan caller must not recursively invoke
+either phase.
 
 ## Command and input
 
@@ -21,11 +21,12 @@ invokes Plan, and a Plan caller must not recursively invoke either phase.
 Pass the complete plain packet described in
 [`planning-inputs.md`](../using-woostack/references/planning-inputs.md), including an exact
 repository identity, immutable baseline, and the evidence identity to inspect. The content must be
-a complete specification or candidate issue plan; a prior Ideate or Debug handback may be passed
-verbatim. A caller may supply a candidate plan before publication. There is no required Build/Fix
-run, project selector, provider configuration, or permission-restricted manifest. Build/Fix may
-adapt their retained run content into this packet; their local record remains their own persistence
-boundary, not Harden admission.
+a complete specification or candidate issue plan; a prior Ideate or Debug handback may be passed.
+The caller supplies the complete specification or diagnosis, exact repository/baseline and evidence
+identity, and any candidate task plan. Harden may inspect bounded repository facts read-only and
+reconcile contradictions, missing acceptance, risks, removal/reuse, or verification boundaries. It
+does not require a Prepare run, writable checkout, provider, or project. Retained historical content
+is evidence only until its identity and freshness are revalidated.
 
 Resolve available repository and baseline facts through the shared input contract. Ask for missing
 content or a target/evidence scope only when it remains ambiguous or inaccessible after those reads.

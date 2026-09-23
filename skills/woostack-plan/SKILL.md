@@ -59,13 +59,16 @@ unresolved discrepancies. Plan pauses for user resolution of every material corr
 only a complete handback with no unresolved questions. Harden never calls Plan, Plan never calls Plan
 recursively, and Plan does not create a hidden planning record to replace either phase.
 
-A transitional Build/Fix or future preparation caller supplies this same packet and invokes Plan's
-publisher. It may retain its own local artifacts for compatibility, but it does not perform a
-draft-only Plan call, write a second issue graph, or perform a second synchronization. Direct and
-composed calls therefore share the same publication owner and recovery boundary.
+Prepare supplies this same packet when it composes Plan. Prepare may retain no local planning
+authority, and Plan remains the sole publisher: do not perform a draft-only issue call, write a second
+graph, or synchronize a second record. Direct and composed calls therefore share one publication owner
+and recovery boundary.
 
 Plan owns no implementation, source edit, commit, branch, worktree, PR, review, merge, approval,
-Orchestrate dispatch, Execute dispatch, or execution handoff authority.
+Orchestrate dispatch, Execute dispatch, or execution handoff authority. When a Mode A Plan packet
+changes this repository's self-hosted Eval corpus or referenced fixture bytes, use deterministic
+validation only and defer full `/woostack-eval` to a separate explicit invocation after those bytes
+are committed and byte-identical to `HEAD`.
 
 ## Direct issue contract
 

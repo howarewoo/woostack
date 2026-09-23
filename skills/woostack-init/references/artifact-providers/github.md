@@ -2,9 +2,9 @@
 
 This profile implements the provider-specific side of the shared
 [local run artifact and provider mirror contract](../artifact-backends.md). Load it for direct
-`woostack-plan` GitHub publication, `artifacts.provider: "github"` transitional Build/Fix paths, or
-explicit Orchestrate parent-issue execution; Orchestrate loads only hierarchy, dependency, identity,
-and delivery-note rules, not Project/mirror configuration.
+`woostack-plan` GitHub publication, explicitly selected `artifacts.provider: "github"` workflows,
+or explicit Orchestrate parent-issue execution; Orchestrate loads only hierarchy, dependency,
+identity, and delivery-note rules, not Project/mirror configuration.
 The shared contract owns authority, local artifacts, ordering,
 recovery, failure handling, and read-back invariants; this profile owns GitHub identities, owner and
 selected Project or specification-parent admission, native issue hierarchy, blocked-by dependencies,
@@ -54,10 +54,10 @@ native reads in both directions after a link write.
 
 ## Projects and labels
 
-Owner admission verifies `artifacts.github.owner` login, type, and node ID. Build and Fix resolve one
-supplied Project or create one `[Build]/[Fix] <goal>` Project after zero matches across owner pagination.
-Newly created Projects use configured visibility with private default; supplied Projects retain existing visibility.
-Plan's Project mode, whether invoked directly or composed by a caller, uses only an exact supplied Project.
+Owner admission verifies `artifacts.github.owner` login, type, and node ID. Explicit Project workflows
+resolve one exact supplied Project; they do not create a Project from a goal. Prepare and parent-issue
+Plan do not require Project configuration or provider mirroring. Selected Projects retain existing
+visibility and configuration. Direct and composed Plan calls use the same exact Project selection.
 
 The specification is written inside `ProjectV2.readme` between markers `<!-- woostack-spec-start -->` and
 `<!-- woostack-spec-end -->`, preserving unrelated README bytes. Every Project create preallocates one UUID
@@ -181,17 +181,17 @@ task/dependency/mapping forms without schema migration or edge rewriting; workfl
 the DAG.
 
 Reuse existing task/dependency/mapping representations. A specification parent is retained separately
-as `specItem` (in `mirror.specItem` when a run manifest applies), never in `stableTaskMappings`.
-Direct and composed Plan calls retain the same canonical/native/marker identities and last verified mutation
-boundary in its handback, not a new Build/Fix run, hidden ledger, or storage schema. Incomplete
+as `specItem` (in `mirror.specItem` when a historical run manifest applies), never in
+`stableTaskMappings`. Direct and composed Plan calls retain the same canonical/native/marker identities
+and last verified mutation boundary in their handback, not a new run, hidden ledger, or storage schema. Incomplete
 identity recovery blocks further publication rather than allocating a replacement.
 
 ## Lifecycle and closure (retired Execute reference)
 
 > **Retired.** Execute no longer performs GitHub Project/issue lifecycle transitions, run-controller
 > reads, or closure. It accepts one bounded task and an optional exact GitHub issue URL; the issue
-> path is read-only until Commit adds the verified closing reference. The retained `projectStatuses`
-> fields support Build/Fix mirroring and explicit Orchestrate Project progress; see
+> path is read-only until Commit adds the verified closing reference. Retained `projectStatuses`
+> fields support explicit Orchestrate Project progress; see
 > [`woostack-execute`](../../../woostack-execute/SKILL.md#retired-inputs).
 
 Plan never closes issues or Projects, changes lifecycle state, or performs a provider/mirror closure
@@ -213,8 +213,8 @@ closes parent/child issues or the Project, sets Done, removes dependencies, or c
 
 ## Workflow procedures
 
-Build/Fix retain their transitional project-artifact paths. `woostack-plan` owns direct GitHub
-publication in both direct and composed use through the [Plan publication procedure](../../../woostack-plan/references/github-procedure.md).
+Plan owns direct GitHub publication in both direct and composed use through the
+[Plan publication procedure](../../../woostack-plan/references/github-procedure.md).
 Parent-issue execution in Orchestrate reuses the hierarchy and dependency rules without Project
 configuration. Bootstrap, Commit, and Status retain their own workflow gates; planning support alone
 does not widen their inputs or authorize execution.

@@ -17,8 +17,7 @@ export const PUBLIC_ORDER = [
   'woostack-bootstrap',
   'woostack-ideate',
   'woostack-harden',
-  'woostack-build',
-  'woostack-fix',
+  'woostack-prepare',
   'woostack-plan',
   'woostack-orchestrate',
   'woostack-execute',
@@ -32,10 +31,7 @@ export const PUBLIC_ORDER = [
   'woostack-eval',
   'woostack-reflect',
 ];
-export const INTERNAL_ORDER = [];
-
-const ORDER = [...PUBLIC_ORDER, ...INTERNAL_ORDER];
-const INTERNAL = new Set(INTERNAL_ORDER);
+const ORDER = [...PUBLIC_ORDER];
 
 export function stripTitleHeading(body, name) {
   const lines = body.split('\n');
@@ -102,11 +98,8 @@ export function neutralizeTags(body) {
 
 export function renderPage(name, fm, body) {
   const front = `---\ntitle: ${name}\ndescription: ${JSON.stringify(fm.description)}\n---\n\n`;
-  const internal = INTERNAL.has(name)
-    ? `<Callout type="info" title="Internal sub-skill">Building block of [woostack-build](/docs/skills/woostack-build); not a directly-invocable \`/woostack-*\` command.</Callout>\n\n`
-    : '';
   const source = `[View source on GitHub](${GH_BASE}/skills/${name}/SKILL.md)\n\n`;
-  return front + internal + source + body.replace(/^\n+/, '') + '\n';
+  return front + source + body.replace(/^\n+/, '') + '\n';
 }
 
 export function navOrder(names) {

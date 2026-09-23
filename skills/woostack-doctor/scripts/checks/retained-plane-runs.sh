@@ -76,6 +76,6 @@ for m in "${manifests[@]}"; do
 
   if [ "$is_incompatible" = "true" ]; then
     emit error retained-plane-runs report "$rel_path" \
-      "incompatible retained Plane run: missing or invalid mirror.specItem; regenerate via /woostack-build <goal> or /woostack-fix <prompt>"
+      "incompatible retained Plane run: missing or invalid mirror.specItem; preserve unchanged and supply complete content to /woostack-prepare, /woostack-harden, or /woostack-plan after identity revalidation"
   fi
 done

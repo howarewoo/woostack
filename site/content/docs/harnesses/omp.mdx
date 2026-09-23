@@ -67,9 +67,9 @@ For the exact cleanup boundary and the retained session-naming extension, see th
 ## Goal-derived session naming
 
 When a woostack skill is invoked, OMP uses a concise session title based on the user's input. For
-`/woostack-build` and `/woostack-fix`, it uses the input goal; a resume-only Build or Fix uses the
-exact verified run goal. Execute likewise derives its title from the bounded input and never from an
-untrusted remote title.
+`/woostack-prepare` and `/woostack-execute`, it uses the input goal; an issue-backed Execute
+invocation may use its explicit goal or exact issue input. A Prepare continuation uses the exact
+verified packet goal, never a guessed run title.
 
 A local extension handles session naming inside OMP:
 
@@ -84,23 +84,23 @@ A local extension handles session naming inside OMP:
   to load the extension. If `.omp/settings.json` is tracked by Git or malformed, provisioning stops
   without changing it to protect shared configuration.
 
-## Local run artifacts and optional remote mirroring
+## Plain packets and retained records
 
-Build and project-backed Fix save their authoritative planning records under
-`.woostack/tmp/runs/<run-id>/`. By default, `artifacts.provider` is `"local"` or omitted and these
-workflows make no provider calls. Selecting `"github"`, `"linear"`, or `"plane"` enables copies in
-the configured provider; the local records remain authoritative.
+Prepare, Ideate, Harden, and Plan exchange complete plain packets. Plan publishes the selected native
+GitHub graph directly; parent mode needs no provider selector, local run, Project settings, or mirror.
+Explicit Project mode remains available when Plan receives an exact Project selector. Historical
+records under `.woostack/tmp/runs/<run-id>/` remain readable and are not migrated or rewritten.
 
 Credentials stay in the host's secret store and never enter repository config, prompts, logs, or
 generated output. The
 [Local run artifact and provider mirror contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-backends.md)
 defines storage, synchronization, and recovery.
 
-The run contains plain Markdown `project-spec.md` and `execution-plan.md` files and a recovery
-manifest. These records are retained on completion and abandonment. They are planning artifacts only;
-Execute does not resume them or accept `--recheck`. To continue, the caller selects one complete
-bounded task and supplies `/woostack-execute <bounded input>` with its parent evidence and exact
-retained state. See [Execute retired inputs](/docs/skills/woostack-execute#retired-inputs).
+Retained records contain plain Markdown `project-spec.md` and `execution-plan.md` files plus a recovery
+manifest. They are planning evidence only; Execute does not resume them or accept `--recheck`. To
+continue, supply exact retained identity and complete content to the responsible phase, or select one
+complete bounded task and supply `/woostack-execute <bounded input>` with its parent evidence. See
+[Execute retired inputs](/docs/skills/woostack-execute#retired-inputs).
 
 Saved records do not grant permission to assign workers, edit code, commit, review, or accept a
 product. They also do not prove delivery. Fix makes no provider call before proving the cause, and
