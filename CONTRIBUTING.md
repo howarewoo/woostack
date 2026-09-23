@@ -33,7 +33,7 @@ This guide covers common edits. Read [AGENTS.md](AGENTS.md) for the full reposit
 | Change skill evaluation (`/woostack-eval`) | `skills/woostack-eval/SKILL.md`, `skills/woostack-eval/references/`, `skills/woostack-eval/scripts/` |
 | Change session reflection (`/woostack-reflect`) | `skills/woostack-reflect/SKILL.md`, `skills/woostack-reflect/scripts/` |
 | Change the systematic-debugging behavior (`/woostack-debug`) | `skills/woostack-debug/SKILL.md` |
-| Change test-writing guidance or the add-tests command | `skills/woostack-tdd/SKILL.md` |
+| Change test-writing guidance | `skills/woostack-execute/SKILL.md`, `skills/woostack-execute/references/tdd.md` |
 | Change how review comments are addressed | `skills/woostack-address-comments/SKILL.md` |
 | Change workspace checks and repairs (`/woostack-doctor`) | `skills/woostack-doctor/SKILL.md` |
 | Update agent instructions (Claude or any) | `AGENTS.md` (`.claude/CLAUDE.md` is a symlink to it) |

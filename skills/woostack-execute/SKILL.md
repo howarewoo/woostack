@@ -35,6 +35,17 @@ Retained Build/Fix artifacts stay intact; their owning planning workflow may be 
 revise them. Automatic project/run execution is unavailable through Execute. Existing delivery
 recovery uses the same bounded input and fresh Git/GitHub evidence, not a run controller.
 
+### Test-only tasks
+
+Requests to add or strengthen tests for one bounded target use this Execute path directly. The
+caller supplies the exact target, observable behavior and boundaries, acceptance-defined outcomes,
+and focused checks in the bounded input. Apply the canonical [testing guidance](references/tdd.md)
+without creating a test-work router, project, provider requirement, subagent plan, or handoff.
+Keep test-only scope explicit; report a discovered production-behavior discrepancy for a scope
+decision instead of fixing it outside the admitted task.
+
+Old `/woostack-tdd` requests are retired. Replace them with `/woostack-execute <bounded test task>`.
+
 ## Admit one task
 
 Before mutation, establish:
@@ -101,13 +112,13 @@ are safe only when all task hunks can be staged without touching or hiding unrel
 ambiguous mixed hunks block and remain preserved.
 
 Run the finite mandatory checks and the real changed-path smoke scenario, recording exact commands,
-observed results, and the verified diff identity. Apply
-[the TDD kernel](../woostack-tdd/SKILL.md#the-tdd-kernel) where relevant. Failed or incomplete
-mandatory verification blocks delivery. If an environment problem prevents a check, try one
-materially different recovery; absent new evidence, report the unverified criterion instead of
-claiming success or silently waiving it. Changes after verification invalidate affected proof.
-Track temporary servers, helpers, and recorders; stop task-owned resources when their scenario ends.
-Never publish screenshots or logs containing secrets or personal data.
+observed results, and the verified diff identity. Apply the canonical [testing guidance](references/tdd.md)
+where relevant. Failed or incomplete mandatory verification blocks delivery. If an environment
+problem prevents a check, try one materially different recovery; absent new evidence, report the
+unverified criterion instead of claiming success or silently waiving it. Changes after verification
+invalidate affected proof. Track temporary servers, helpers, and recorders; stop task-owned
+resources when their scenario ends. Never publish screenshots or logs containing secrets or
+personal data.
 
 Subagents and independent validators are optional, not delivery prerequisites. Execute retains
 responsibility for the complete task, required verification, and PR submission; no pre-commit
