@@ -79,7 +79,8 @@ Empty, malformed, non-object, unreadable, symlinked, non-regular, orphaned, or c
 configuration fails closed with the offending path. Both files contain non-secret policy only;
 provider authentication stays in the host secret store. Doctor validates effective configuration at
 runtime, while template presence and repair apply only to the tracked base file. OMP ignores model
-settings in both layers because role routing is host-owned.
+settings in both layers because active-session agent selection and role routing are host-owned; the
+repository does not create or rename worker definitions.
 
 After a workflow selects provider mirroring, resolve and compare every configured repository,
 workspace, team, native-status, and presentation value with the canonical repository and authenticated
@@ -216,6 +217,13 @@ bytes and revision before another mutation. Never blindly replay a write or allo
 hide uncertainty. The helper removes only its own uncommitted temporary file on a handled failure;
 process-loss leftovers are retained and unexpected entries block for explicit recovery. Completed,
 abandoned, and blocked runs retain `manifest.json`, both final artifacts when written, and `.lock`.
+
+`woostack-orchestrate` does not create a Build/Fix run or a second planning ledger. Its private
+controller checkpoint uses the same owner-only, no-follow, complete-byte, atomic compare-and-swap
+discipline for recovery evidence, while canonical issue/Project reads and Git remain authoritative.
+Its shared-checkout claims are derived from the canonical repository and native child issue identity,
+retain the exact selector provenance, and are never a provider artifact, scheduler service, or
+permission to take over another controller's work.
 
 ## Minimal resumable manifest schema
 

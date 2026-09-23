@@ -22,7 +22,6 @@ entrypoints = {
     "fix": root / "skills/woostack-fix/SKILL.md",
     "plan": root / "skills/woostack-plan/SKILL.md",
     "commit": root / "skills/woostack-commit/references/provider-attribution.md",
-    "status": root / "skills/woostack-status/SKILL.md",
     "visualize": root / "skills/woostack-visualize/SKILL.md",
 }
 failures = []

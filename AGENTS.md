@@ -10,7 +10,7 @@ This is a published collection of skills, not an application codebase. It packag
 decisions for building new web, mobile, and API projects so agents can install it with
 `pnpx skills add howarewoo/woostack`.
 
-The public command/adoption surface has nineteen skills:
+The public command/adoption surface has eighteen skills:
 
 - [`using-woostack`](skills/using-woostack/SKILL.md)
 - [`woostack-init`](skills/woostack-init/SKILL.md)
@@ -23,7 +23,6 @@ The public command/adoption surface has nineteen skills:
 - [`woostack-execute`](skills/woostack-execute/SKILL.md)
 - [`woostack-commit`](skills/woostack-commit/SKILL.md)
 - [`woostack-address-comments`](skills/woostack-address-comments/SKILL.md)
-- [`woostack-status`](skills/woostack-status/SKILL.md)
 - [`woostack-visualize`](skills/woostack-visualize/SKILL.md)
 - [`woostack-design`](skills/woostack-design/SKILL.md)
 - [`woostack-debug`](skills/woostack-debug/SKILL.md)
@@ -36,7 +35,7 @@ The collection also installs two internal sub-skills:
 [`woostack-ideate`](skills/woostack-ideate/SKILL.md) and
 [`woostack-harden`](skills/woostack-harden/SKILL.md). `woostack-build` delegates its ideate
 phase to the former and its harden phase to the latter. Both are bundled building blocks, not
-`/woostack-*` commands: they have no routing row and are absent from the nineteen-skill command
+`/woostack-*` commands: they have no routing row and are absent from the eighteen-skill command
 surface above.
 
 There is no application source code, app lockfile, build, or CI for this repo's own
@@ -110,7 +109,7 @@ retained unchanged local run artifacts does not require the original process to 
 contract lives in the authored [Hermes guide](site/content/docs/hermes.mdx); it does not make Hermes a supported host
 or grant it implementation authority.
 
-This collection has nineteen public command/adoption skills at twenty-one fixed `SKILL.md`
+This collection has eighteen public command/adoption skills at twenty fixed `SKILL.md`
 locations. Remote provider support adds neither a command-routing row nor a per-provider skill.
 ## Modes
 
@@ -124,7 +123,7 @@ do not add application code, app build configs, or app lockfiles **outside the s
 
 **Mode B: run a woostack command.** Use this when the user asks for `/woostack-init`,
 `/woostack-bootstrap`, `/woostack-build`, `/woostack-fix`, `/woostack-change`, `/woostack-plan`, `/woostack-orchestrate`, `/woostack-execute`, `/woostack-commit`,
-`/woostack-address-comments`, `/woostack-status`, `/woostack-visualize`, `/woostack-design`, `/woostack-debug`,
+`/woostack-address-comments`, `/woostack-visualize`, `/woostack-design`, `/woostack-debug`,
 `/woostack-doctor`, `/woostack-qa`, `/woostack-eval`, or `/woostack-reflect`, including intent-equivalent wording. Load the matching skill
 before acting. For bootstrap work, the output belongs in a fresh repo in a different
 directory, not in this repo.
@@ -175,10 +174,9 @@ the repository's simplify/comments guidance.
   pages need no manual edit: they regenerate from each `SKILL.md` at build time (see the
   documentation-site exception above). When in doubt, run `pnpm -C site build` to confirm the
   site still builds.
-- Do not move or rename any of the twenty-one remaining `SKILL.md` files (the nineteen public command/adoption
-  skills plus internal `woostack-ideate` and `woostack-harden`).
-- The explicitly requested retirement of `skills/woostack-tdd/SKILL.md` is the sole permitted deletion;
-  do not delete or relocate another fixed skill.
+- Do not move or rename any of the twenty `SKILL.md` files (the eighteen public command/adoption
+  skills plus internal `woostack-ideate` and `woostack-harden`), except for an explicitly approved
+  retirement that removes the complete skill and its references.
 - Do not rename files under
   [`skills/woostack-bootstrap/references/`](skills/woostack-bootstrap/references/) without
   updating every cross-link and the bootstrap skill table.
@@ -230,9 +228,10 @@ the repository's simplify/comments guidance.
   [`skills/woostack-doctor/SKILL.md`](skills/woostack-doctor/SKILL.md)
 - Address-comments delegator:
   [`skills/woostack-address-comments/SKILL.md`](skills/woostack-address-comments/SKILL.md)
-- Derived feature board (status command) and its canonical feature-state conventions:
-  [`skills/woostack-status/SKILL.md`](skills/woostack-status/SKILL.md),
-  [`skills/woostack-status/references/conventions.md`](skills/woostack-status/references/conventions.md)
+- The work-tracking source of truth is canonical GitHub parent/child issues, native dependency
+  relations, and associated pull requests; GitHub Project Status fields remain provider metadata.
+  Inspect those records directly. Local run manifests remain workflow progress and recovery
+  artifacts, not a replacement work board.
 - Init workspace and repository policy contract:
   [`skills/woostack-init/`](skills/woostack-init/)
 - Docs site — shipped Fumadocs app; authored framing pages plus the per-`SKILL.md` generator

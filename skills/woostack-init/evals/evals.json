@@ -128,7 +128,10 @@
         {"id":"config-before-hash","kind":"final-json-path-equals","pointer":"/configBeforeSha256","expected":"d1a86a0c99685edc836adbc5269d9f411f91d529dda93f88833defff2ce0a819","critical":true},
         {"id":"config-after-hash","kind":"final-json-path-equals","pointer":"/configAfterSha256","expected":"d1a86a0c99685edc836adbc5269d9f411f91d529dda93f88833defff2ce0a819","critical":true},
         {"id":"config-preserved","kind":"file-sha256-equals","file":"fixtures/project/.woostack/config.json","sha256":"sha256:d1a86a0c99685edc836adbc5269d9f411f91d529dda93f88833defff2ce0a819","critical":true},
-        {"id":"existing-note-preserved","kind":"file-sha256-equals","file":"fixtures/project/.woostack/existing-note.txt","sha256":"sha256:60ba63428d6029222a9d092142fcdc64d045d93650e0c25cb25cd7f319351fae","critical":true}
+        {"id":"existing-note-preserved","kind":"file-sha256-equals","file":"fixtures/project/.woostack/existing-note.txt","sha256":"sha256:60ba63428d6029222a9d092142fcdc64d045d93650e0c25cb25cd7f319351fae","critical":true},
+        {"id":"no-managed-omp-agents","kind":"path-absent","path":"fixtures/project/.omp/agents","critical":true},
+        {"id":"no-agent-specific-ignore","kind":"path-absent","path":"fixtures/project/.omp/agents/.gitignore","critical":true},
+        {"id":"session-naming-extension-preserved","kind":"path-exists","path":"fixtures/project/.omp/extensions/woostack-session-name.ts","critical":true}
       ]
     },
     {

@@ -31,9 +31,9 @@ hard-coded MCP tools.
 | `orphan-worktree` (present) | unregistered dir under `.woostack/worktrees/` (may hold work) | warn | report | — |
 | `orphan-worktree` (stale) | registered worktree whose dir is gone | warn | auto | `<root>` (runs `git worktree prune`) |
 | `gitignore-drift` | a shipped-template managed line missing from `.woostack/.gitignore` | warn | auto | `<root>` (appends missing lines) |
-| `omp-agent` | a managed project OMP role definition is missing, malformed, drifted, or mapped to the wrong host role, or its scoped ignore rule is missing/drifted | warn | auto | `<root>` (reinstalls only the three managed definitions and their scoped ignore rule) |
 | `omp-session-name` | a managed project OMP session-naming extension or local settings entry is missing, malformed, drifted, or unsafe, or its scoped ignore rule is missing/drifted | warn | auto | `<root>` (reinstalls only the managed extension, settings entry, and scoped ignore rules) |
 | `config-key` | a required non-secret config key (per the init template) is absent from tracked base config | warn | auto | `<root> <key>` (merges template default into `.woostack/config.json`) |
+| `retired-status-config` | legacy top-level `status.staleDays` is present | warn | report | — |
 | `linear-policy` | backend selector, credential-like key, incomplete repository/workspace/team or baseUrl/workspace, or incomplete category/state mapping in effective config | error | report | — |
 | `legacy-development-records` | active or ambiguous local spec/plan/fix/overnight set requires one-way migration | error | report | — |
 | `linear-live` | normalized live receipt is missing, malformed, partial, stale, foreign, read-only, or lacks an exact required capability/read-back | error | report | — |
