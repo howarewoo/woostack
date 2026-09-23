@@ -6,8 +6,8 @@ description: A complete planning prompt, verified GitHub issue handoff, and sepa
 Use a normal ChatGPT conversation to settle requirements, check repository evidence, and draft
 PR-sized work. Once you approve the complete plan, an authorized write-capable connection can
 publish a specification parent, native child issues, and their genuine prerequisites. Stop there.
-In a separate Codex session, you decide whether to run Orchestrate against that parent.
-
+In a separate Codex session, hand Orchestrate the verified graph or equivalent understandable work
+context and decide whether to run it.
 This route can reserve Codex allowance for implementation by keeping discovery and planning in
 Chat. It does not promise savings, fewer total tokens, free work, or unlimited use. Chat and
 Work/Codex allowances differ; model availability and limits depend on your current plan and
@@ -52,7 +52,7 @@ inspection and questions, not issue creation. It asks you to approve complete co
 before publication and stops when the issue handoff is complete.
 
 ```text title="Starter prompt"
-Act as my Woostack planning partner in this normal ChatGPT chat. Use the connected GitHub app for repository reads and actual authorized write-capable tools, if available, to publish, after I approve the complete plan, one specification parent with executable native child issues. We will separately pass the parent to woostack-orchestrate in Codex; Execute subagents will implement the children and submit their PRs. This chat ends with the issues. Do not invoke Codex, implementation subagents, or installed Woostack skills here. Do not implement source, create source branches/commits/PRs, or merge.
+Act as my Woostack planning partner in this normal ChatGPT chat. Use the connected GitHub app for repository reads and actual authorized write-capable tools, if available, to publish, after I approve the complete plan, one specification parent with executable native child issues. We will separately hand the verified planning context to woostack-orchestrate in Codex; Execute subagents will implement the children and submit their PRs. This chat ends with the issues. Do not invoke Codex, implementation subagents, or installed Woostack skills here. Do not implement source, create source branches/commits/PRs, or merge.
 
 Repository: <owner/repository>
 Goal or defect: <what I want to achieve or investigate>
@@ -96,11 +96,20 @@ Project membership/status operations are optional and apply only to my explicitl
 Independently read back the specification, complete native child set, each child's actual parent/body/identity, and complete prerequisite graph. Exhaust every child/dependency page to its terminal page; a partial page is never complete evidence. On a timeout or unknown issue create, fully rediscover open and closed issues for the same marker and independently read the one ownership-valid match. Zero, multiple, foreign, partial, or ambiguous matches block: do not replay creation or allocate another marker. On unknown link/dependency writes, read both sides and resume only the first unproved operation after fresh drift admission. Preserve confirmed URLs, native IDs, markers, creation intent, and the last verified boundary in the handback. If issues exist but hierarchy/dependency operations are unavailable or unverified, return the confirmed parent/child URLs and exact missing steps; publication is incomplete, not a successful local plan with a harmless mirror warning. Never call an unverified checklist-only graph ready. Missing optional Project access alone does not invalidate a complete native hierarchy.
 Do not assign people, alter unrelated records, start execution, or close parent/child issues or Projects.
 
-6. Stop with the parent-issue handoff.
-Return the verified parent URL, child links, graph, independently runnable children, any join decisions, and setup gaps. Only when required native relationships and contracts are verified, provide the separate coding-host command:
+6. Stop with the planning handoff.
+Return the verified parent URL, child links, graph, independently runnable children, any join
+decisions, complete handback, and setup gaps. When the native graph is verified, this is a convenient
+separate coding-host command:
 /woostack-orchestrate --issue <verified canonical GitHub parent issue URL>
-Then STOP. Do not invoke it. The user supplies only the parent; Orchestrate loads and schedules the children via Execute, never the specification parent. Explicit Project orchestration remains an alternative for a separately selected valid Project. Missing required linkage must be explained before presenting any command as ready.
-Planning/publication authorizes neither implementation in this chat nor merging. Execute later owns each selected child's implementation, checks, and PR submission under repository policy. In a coding host, the preparation wrapper or independently invoked public phases ending in Plan produce the same issue handoff; those are alternatives, not prerequisites for this chat prompt.
+Then STOP. Do not invoke it. The user supplies the planning handback; Orchestrate resolves executable
+tasks and dependencies from the available context, with or without native links, and asks about
+material ambiguity. A separately selected Project may provide status-lifecycle context when
+explicitly requested; it is not required for this parent handoff. Missing Plan linkage must be
+explained before presenting the publication as verified.
+Planning/publication authorizes neither implementation in this chat nor merging. Execute later owns
+each selected child's implementation, checks, and PR submission under repository policy. In a coding
+host, the preparation wrapper or independently invoked public phases ending in Plan produce the same
+issue handoff; those are alternatives, not prerequisites for this chat prompt.
 
 Begin with bounded repository inspection and missing decisions. Do not create issues yet.
 ```
@@ -109,7 +118,10 @@ Begin with bounded repository inspection and missing decisions. Do not create is
 
 The issue bodies follow [Plan's direct issue contract](/docs/skills/woostack-plan#direct-issue-contract).
 There is no chat-specific issue schema, local run manifest, provider selector, or nonblocking mirror.
-A checklist, `Parent: #N`, or `Depends on #N` documents intent but does not establish a native link.
+For Plan publication, a checklist, `Parent: #N`, or `Depends on #N` documents intent but does not
+establish a native link; the publication procedure still requires its own native read-back. After
+publication, Orchestrate may interpret tracker prose or other understandable context without treating
+those links as an admission gate.
 
 In this **hypothetical fixture**, P contains the specification. Its direct children A and B are
 independent; C needs A; D needs both B and C. Arrows below mean “is a prerequisite of,” not containment.
@@ -212,18 +224,21 @@ Implement only this bounded child after a separate authorized execution request.
 ## Stop, then invoke Codex separately
 
 After required native read-back succeeds, the chat returns the parent URL, child links and stable
-identities, graph, runnable roots, join decisions, and any optional setup gap, then **STOP**.
-For a real publication, you open a separately configured [Codex session](/docs/harnesses/codex)
-and supply the verified canonical parent URL:
+identities, graph, runnable roots, join decisions, complete handback, and any optional setup gap,
+then **STOP**. For a real publication, open a separately configured [Codex
+session](/docs/harnesses/codex) and hand it the verified planning context. A canonical parent URL is
+a convenient interpretation hint:
 
 ```text
 /woostack-orchestrate --issue <verified canonical parent URL>
 ```
 
-Do not substitute the example URL. Orchestrate reads and schedules the children through Execute;
+Do not substitute the example URL. Orchestrate interprets the handback or other understandable
+issue/task context, resolves executable tasks and dependencies, and schedules them through Execute;
 it does not implement the specification parent. Execute owns each selected child's implementation,
-checks, and PR submission. Neither the planning chat nor Orchestrate has merge authority. A missing
-required relationship must be resolved before this command is presented as ready.
+checks, and PR submission. Neither the planning chat nor Orchestrate has merge authority. Missing
+required Plan relationships must be resolved before presenting the publication as verified; later
+Orchestrate interpretation does not require native links to be present in tracker prose.
 
 ### Coding-host alternatives
 
@@ -252,10 +267,11 @@ For an already-complete bounded enhancement or understood authorized correction,
 /woostack-execute <complete bounded task>
 ```
 
-An explicitly selected valid GitHub Project remains a separate Plan/Orchestrate alternative via
-`--project`. Optional Project membership alongside the chat's parent publication does not replace
-the parent specification or block parent readiness if Project access is absent. A Project's privacy
-does not change issue visibility. Neither route uses Build, Fix, Change, Linear/Plane, or mirroring.
+An explicitly selected valid GitHub Project remains an optional Plan publication and status-lifecycle
+choice; it is not required for the parent handoff. Optional Project membership alongside the chat's
+parent publication does not replace the parent specification or block parent readiness if Project
+access is absent. A Project's privacy does not change issue visibility. Neither route uses Build,
+Fix, Change, Linear/Plane, or mirroring.
 
 ## Incomplete publication and recovery
 

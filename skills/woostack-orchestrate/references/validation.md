@@ -79,13 +79,13 @@ values to invent:
 }
 ```
 
-`project_status` is required only in explicit Project mode, after the configured `inReview` write
-and canonical readback; its `item_id` must equal the admission-bound native Project item ID and
-its `status` must equal the admitted `lifecycle.inReview` option. `project_status` is forbidden
-as a fabricated receipt in parent-issue mode. The result
-example's markers mean “runtime-substituted fact required”, not a successful fixture. A repair
-result may omit `note` when no validated delivery note exists. It must not replace missing fields
-with another task's evidence.
+`project_status` is required only when the normalized snapshot explicitly admitted a Project and
+lifecycle for status mutation, after the configured `inReview` write and canonical readback. Its
+`item_id` must equal the admission-bound native Project item ID and its `status` must equal the
+admitted `lifecycle.inReview` option. When no such Project was selected, omit `project_status`; never
+fabricate a receipt. The result example's markers mean “runtime-substituted fact required”, not a
+successful fixture. A repair result may omit `note` when no validated delivery note exists. It must
+not replace missing fields with another task's evidence.
 
 Every active `apply-result` envelope carries `worker.host_id`, `worker.session_id`, and
 `worker.worker_id`, all nonempty strings matching the task's recorded `host_worker` exactly.
@@ -122,14 +122,14 @@ exactly one entry, the canonical child URL, and the PR body must carry exactly o
 missing reference, foreign repository, foreign head repository, wrong branch/head/base, duplicate
 PR, or closed PR is an identity failure, not permission to retarget or create a replacement.
 
-In explicit issue-list mode, `readback.association` and the sole closing reference remain the
-individual selected issue URL; the normalized selector list and inferred graph never receive a PR,
+For every normalized task, `readback.association` and the sole closing reference remain that task's
+canonical issue URL. The scope identity, source context, and inferred DAG never receive a PR,
 delivery note, Project status, or issue-closing mutation. A worker packet carries the complete
 caller-supplied edge provenance for its task, but Execute does not discover, reverse, or publish
-edges. Native, declared, and inferred evidence must remain distinguishable through admission and
-resume. A changed selected identity, contract, external blocker, edge endpoint, provenance, or
-inference/coverage evidence changes the immutable fingerprint and returns `snapshot-drift`;
-reservations and running workers are retained.
+edges. Native, declared, and inferred evidence remain distinguishable through admission and resume.
+A changed executable issue identity, contract, external blocker, edge endpoint, provenance, or
+supporting context changes the immutable fingerprint and returns `snapshot-drift`; reservations,
+running workers, and recovery evidence are retained.
 
 ## Evidence calculations
 All evidence is for the exact reservation currently in controller state. The worker's selected
@@ -194,9 +194,10 @@ skill must not implement an alternate acceptance path:
    readback is an identity failure, never permission to retarget or create a replacement.
 6. **All evidence pass:** require the note to have been written and read back under the canonical
    [`#artifact-delivery-note`](../../woostack-commit/references/provider-attribution.md#artifact-delivery-note)
-   contract. In explicit Project mode also require the `project_status` delivery readback to carry
-   exactly the admission-bound `item_id` and the admitted `lifecycle.inReview` option. Only then
-   may the helper transition to `delivered` and release dependents.
+   contract. When the snapshot admitted a Project and lifecycle for status mutation, also require
+   the `project_status` delivery readback to carry exactly the admission-bound `item_id` and the
+   admitted `lifecycle.inReview` option. Only then may the helper transition to `delivered` and
+   release dependents.
 
 `outcome: "needs-repair"` requests the second gate. `outcome: "ok"` must pass every gate; it
 cannot waive a failed check, stale validation, absent note, Project mismatch, or identity issue.
@@ -206,12 +207,12 @@ blocked outcomes retain all recoverable Git, PR, workspace, and evidence state f
 ## Independent read-only specification validation
 
 After the worker stops and before `apply-result`, the Orchestrate controller performs a separate
-read-only review. It loads the admitted child contract and exact specification/rules context,
+read-only review. It loads the task's admitted contract and exact task-specification/repository context,
 reads the canonical PR/diff at the current head, and verifies:
 
 - every acceptance criterion is addressed by the binary diff;
 - no changed path escapes `contract.scope` or repository rules;
-- non-goals, decisions, and risks are respected;
+- any retained non-goals, decisions, risks, or other bounded context are respected;
 - required checks and the real smoke scenario cover the changed paths; and
 - the calculated contract hash, head SHA, and diff identity match the result fields.
 
@@ -230,12 +231,12 @@ back and include its `id`, child issue URL, PR URL, head, contract hash, and dif
 Preserve unrelated issue content and managed markers. Note write/readback is before dependent
 release; an intent, mutation response, or worker claim is not a receipt.
 
-Only an explicitly selected Project may receive a lifecycle write, and only to the admitted
-configured `lifecycle.inReview` option. Read the Project item/status back and include exactly the
-selected Project URL, child issue URL, admission-bound native `item_id`, and exactly the admitted
-`lifecycle.inReview` status in `project_status`.
-Parent-issue mode performs no Project call. Never set another lifecycle option, create a Project,
-claim a status from a schedule intent, or use Project progress as evidence of PR delivery.
+Only a Project explicitly selected for status mutation may receive a lifecycle write, and only to
+the admitted configured `lifecycle.inReview` option. Read the Project item/status back and include
+exactly the selected Project URL, task issue URL, admission-bound native `item_id`, and exactly the
+admitted `lifecycle.inReview` status in `project_status`. Without that selection, perform no Project
+call. Never set another lifecycle option, create a Project, claim a status from a schedule intent,
+or use Project progress as evidence of PR delivery.
 
 ## Record the native writer
 

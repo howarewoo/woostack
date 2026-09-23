@@ -194,12 +194,6 @@ class FakeGitHub:
             [{"task_id": "task-d", "blocked_by": ["task-a", "task-b"]}],
         ]
         self.contract_pages = [self.children[:2], self.children[2:]]
-        self.pagination = {
-            "sub_issues": True,
-            "parents": True,
-            "dependencies": True,
-            "contracts": True,
-        }
         self.prs: Dict[str, Dict[str, Any]] = {}
         self.notes: Dict[str, Dict[str, Any]] = {}
         self.delivery: Dict[str, Dict[str, Any]] = {}
@@ -229,7 +223,7 @@ class FakeGitHub:
             record("github", "read-parent-prs", result[branch])
         return result
 
-    def snapshot(self, *, pagination: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    def snapshot(self) -> Dict[str, Any]:
         """Read all fake native pages and assemble one controller snapshot."""
 
         parent_pages = self._read_pages("parent", self.parent_pages)
@@ -252,9 +246,8 @@ class FakeGitHub:
             "specification": self.specification,
             "host": {"delivery_capable": True, "max_parallel": self.max_parallel},
             "parent": parent,
-            "expected_index": [child["task_id"] for child in self.children],
             "children": snapshot_children,
-            "pagination": copy.deepcopy(self.pagination if pagination is None else pagination),
+            "tasks": snapshot_children,
             "recovery": {
                 "checkpoints": [],
                 "processes": [],
@@ -272,18 +265,8 @@ class FakeGitHub:
         })
         return result
 
-    def issue_list_snapshot(
-        self,
-        selected: Optional[Sequence[str]] = None,
-        *,
-        pagination: Optional[Dict[str, Any]] = None,
-        model_inference: str = "complete",
-    ) -> Dict[str, Any]:
-        """Assemble standalone selected issues plus supplied DAG evidence.
-
-        This is a recording of native reads and a caller-supplied graph, not a
-        second scheduler or an inference engine.
-        """
+    def issue_list_snapshot(self, selected: Optional[Sequence[str]] = None) -> Dict[str, Any]:
+        """Assemble selected issue evidence and an interpreted DAG for scheduling."""
         issues = []
         for child in self.children:
             item = copy.deepcopy(child)
@@ -311,29 +294,18 @@ class FakeGitHub:
             "host": {"delivery_capable": True, "max_parallel": self.max_parallel},
             "recovery": self.snapshot()["recovery"],
             "issues": issues,
-            "graph": {
-                "coverage": "complete",
-                "model_inference": model_inference,
-                "source": "recording-driver",
-                "complete": True,
-                "edges": edges,
-            },
-            "pagination": copy.deepcopy(pagination or {
-                "issues": True,
-                "parents": True,
-                "dependencies": True,
-                "contracts": True,
-            }),
+            "graph": {"edges": edges},
 
         }
         result["selected_issues"] = [item for item in issues if item["url"] in selected]
         result["issues"] = result["selected_issues"]
+        result["tasks"] = result["issues"]
         record("github", "assemble-issue-list-snapshot", {
-            "issues": selected, "edges": len(edges), "model_inference": model_inference,
+            "issues": selected, "edges": len(edges),
         })
         return result
 
-    def project_snapshot(self, *, pagination: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    def project_snapshot(self) -> Dict[str, Any]:
         project_url = "https://github.com/orgs/acme/projects/7"
         parent = copy.deepcopy(self.parent)
         container = copy.deepcopy(parent)
@@ -345,8 +317,6 @@ class FakeGitHub:
             "actual_parent": None,
             "declared_parent": None,
         })
-        # A parented Project member carries both independently read parent
-        # claims.  The helper must require these to agree.
         member = copy.deepcopy(self.children[0])
         member.update({
             "ordinal": 2,
@@ -377,12 +347,7 @@ class FakeGitHub:
                 "done": "Done",
             },
             "members": [container, member],
-            "pagination": copy.deepcopy(pagination or {
-                "members": True,
-                "parents": True,
-                "dependencies": True,
-                "contracts": True,
-            }),
+            "tasks": [member],
             "recovery": {
                 "checkpoints": [],
                 "processes": [],
@@ -749,7 +714,7 @@ def make_result(github: FakeGitHub, task_id: str, report: Dict[str, Any], admitt
         },
         "note": github.note(task_id, result={}),
     }
-    if admitted["mode"] == "project":
+    if admitted.get("project") is not None:
         # The controller writes the status and independently reads it back
         # before invoking apply-result.  The helper only gates this receipt.
         result["project_status"] = github.read_project_status(task_id)

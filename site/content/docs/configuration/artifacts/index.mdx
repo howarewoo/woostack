@@ -4,11 +4,12 @@ description: Direct GitHub publication, retained local records, and recovery bou
 ---
 
 Development records are specifications, plans, and evidence retained for history. Prepare and Plan
-exchange complete plain packets and use GitHub's native parent/child graph as the active planning
-handoff; they do not allocate a run or create a second remote record. Existing
-`.woostack/tmp/runs/<run-id>/` files remain readable user data and are never migrated or mutated.
-Execute accepts one complete bounded task and does not consume a Project or retained run as executable
-scope.
+exchange complete plain packets and use GitHub's native parent/child graph as the active Plan
+publication handoff; they do not allocate a run or create a second remote record. Orchestrate may
+interpret that handback or other understandable tracker context without requiring native links.
+Existing `.woostack/tmp/runs/<run-id>/` files remain readable user data and are never migrated or
+mutated. Execute accepts one complete bounded task and does not consume a Project or retained run as
+executable scope.
 
 <Cards>
   <Card title="Local" href="/docs/configuration/artifacts/local" description="Retained files, preservation, and historical recovery boundaries." />
@@ -23,11 +24,13 @@ configuration surface. Its allowed fields are `owner`, `ownerType`, `statusField
 `projectStatuses`; visibility is not an active setting. Missing GitHub configuration is valid, and
 parent-issue or exact-issue workflows do not require Project or Status settings.
 
-A direct GitHub operation uses the exact caller-selected parent issue or Project. Before publication,
+A direct Plan publication uses the exact caller-selected parent issue or Project. Before publication,
 woostack checks the capabilities required by that operation, reads every paginated result, allocates
 stable recovery markers before uncertain creation, and independently reads created or recovered
 resources before continuing. Missing, partial, ambiguous, duplicate, foreign, or out-of-scope results
-stop at the last safe boundary. No Project destination is guessed.
+stop at the last safe boundary. No Project destination is guessed. Orchestrate admission is
+model-led from the available context and does not turn this Plan destination choice into an exclusive
+input type.
 
 A GitHub failure is reported with its confirmed identity boundary. Project status never grants
 permission to merge a PR; agents never merge. Goal-only Execute makes no remote calls. An explicit

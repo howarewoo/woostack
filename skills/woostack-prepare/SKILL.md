@@ -6,10 +6,11 @@ description: Prepare a feature or proved defect for GitHub issue planning throug
 # woostack-prepare
 
 `woostack-prepare` is the thin planning-only composition for feature and defect requests. It ends
-with one verified GitHub specification parent, PR-sized native children, and their real prerequisite
-edges so the user can explicitly pass that parent to Orchestrate. It never edits implementation
-source, creates a source branch or worktree, commits, opens a pull request, dispatches workers, or
-invokes Execute or Orchestrate.
+with one verified GitHub specification parent, PR-sized native children, their real prerequisite
+edges, and a complete planning handback. The handback can be passed to Orchestrate as work context;
+Orchestrate may also interpret other understandable tracker content. Prepare never edits
+implementation source, creates a source branch or worktree, commits, opens a pull request, dispatches
+workers, or invokes Execute or Orchestrate.
 
 ## Command
 
@@ -21,7 +22,8 @@ The optional selector is passed unchanged to public [`woostack-plan`](../woostac
 `new` requests one new specification parent; an existing selector must be one exact canonical
 GitHub issue URL. Conflicting, repeated, malformed, foreign, or missing publication scope blocks
 before Plan publication. For an explicit GitHub Project, invoke Plan directly with its exact
-selector; Prepare does not invent a second destination or configuration.
+selector; Prepare does not invent a second destination or configuration. This selector configures
+Plan's publication destination, not Orchestrate's later admission.
 
 Prepare has no `--run`, `--project`, remote-sync selector, compatibility alias, or local planning
 ledger. It does not discover or mutate `.woostack/tmp/runs/`; retained historical runs remain
@@ -88,18 +90,22 @@ successful result reports:
 2. display-ordered child URLs and stable task identities;
 3. the normalized native prerequisite graph and any expected execution-time join decision;
 4. the repository/baseline and evidence identities used for the read-back; and
-5. this separate next action, without invoking it:
+5. the complete planning handback and, when available, this separate convenience action:
 
    ```text
    /woostack-orchestrate --issue <verified specification-parent-URL>
    ```
 
-Report only the applicable command. A parent-only result, missing child, missing native hierarchy
-link, missing prerequisite capability, partial pagination, unknown mutation outcome, or incomplete
-read-back is not Orchestrate-ready. Preserve every confirmed URL/ID and resume Plan at the first
-unproved relationship or read-back boundary; never replay a create, allocate a replacement, or call
-partial publication a harmless mirror warning. The exact existing parent and child IDs are the
-recovery identity.
+The command is a handoff hint, not an exhaustive Orchestrate admission type. The user may instead
+provide the complete handback or understandable tracker content in conversation. Orchestrate resolves
+executable tasks and a bounded dependency DAG from the available evidence, preserves edge
+provenance, and asks a focused question when material ambiguity remains; native links are not
+required for that interpretation. A parent-only result, missing child, missing native hierarchy link,
+missing prerequisite capability, partial pagination, unknown mutation outcome, or incomplete
+read-back is not a complete Plan publication or verified handoff. Preserve every confirmed URL/ID and
+resume Plan at the first unproved relationship or read-back boundary; never replay a create, allocate
+a replacement, or call partial publication a harmless mirror warning. The exact existing parent and
+child IDs are the recovery identity.
 
 A valid graph may contain independent roots, forks, chains, and joins. Ordinals never imply edges.
 The parent is a scope container, not a task or dependency endpoint. A join that lacks one verified

@@ -55,35 +55,38 @@ planning-only preparation. Defects require observed/expected behavior, a causal 
 or runtime evidence, a bounded correction, risks, and verification. A symptom or plausible theory
 blocks before Plan; Prepare never guesses a correction.
 
-Prepare's public phases exchange complete plain packets. Plan is the sole publisher and supports one
-exact GitHub parent selector or one exact Project selector. It creates no source branch, worktree,
-commit, PR, implementation worker, local run, or second remote record. It reports the verified parent,
-children, native prerequisite edges, and the separate next suggestion:
-`/woostack-orchestrate --issue <verified-parent-url>` (or the applicable Project command).
+Prepare's public phases exchange complete plain packets. Plan is the sole publisher and its exact
+parent or Project selector defines only the publication destination; it does not define an
+exhaustive Orchestrate admission taxonomy. It creates no source branch, worktree, commit, PR,
+implementation worker, local run, or second remote record. It reports the verified parent, children,
+native prerequisite edges, complete planning handback, and any separate convenience suggestion.
 Partial publication preserves exact confirmed identities and resumes Plan at the first unproved
-boundary; it is not Orchestrate-ready.
+boundary; it is not a complete planning handoff.
 
 ## Plan and Orchestrate
 
 Plan publishes the approved issue graph and independently reads every issue, hierarchy, and edge.
 The specification parent is a scope container, not an executable task or dependency endpoint.
-Ordinals never imply edges. A join without one verified parent containing every prerequisite remains a
-valid plan with an explicit execution-time integration decision.
+Ordinals never imply edges. A join without one verified parent containing every prerequisite remains
+a valid plan with an explicit execution-time integration decision.
+
+After planning, hand Orchestrate the complete planning handback or other understandable work
+context. It interprets the conversation, repository, and available GitHub records; resolves the
+canonical repository, issue/task identities, executable tasks, and context; constructs a bounded DAG
+with native, declared, or inferred edge provenance; and asks a focused question when material
+ambiguity remains. Native links are evidence when present, not a prerequisite for understanding
+tracker content. Issue, issue-list, and Project arguments are convenience hints rather than an
+exhaustive admission taxonomy. For Orchestrate, a Project is included only when explicitly selected;
+its status lifecycle is used only when that selection requests status mutation. Inferred relationships
+are not published back to GitHub.
+
+Examples of convenience hints, not an exhaustive route:
 
 ```text
 /woostack-orchestrate --issue <canonical GitHub parent issue URL> [--max-parallel <positive integer>]
 /woostack-orchestrate --project <canonical GitHub Project URL> [--max-parallel <positive integer>]
 /woostack-orchestrate --issues <canonical issue URL> <canonical issue URL> ... [--max-parallel <positive integer>]
 ```
-
-Select exactly one scope family. The recommended ChatGPT-to-Codex handoff remains a specification
-parent with native PR-sized children; this mode needs no Project or provider-mirror configuration.
-Explicit Project execution retains its configured membership and lifecycle checks. Explicit list
-execution reads exactly the supplied open issues, normalizes repeated or reordered URLs, and validates
-complete contracts plus a supplied dependency DAG. Native, declared, and model-inferred edges keep
-separate provenance and evidence; inference belongs to the skill, not the deterministic helper, and
-inferred relationships are never published back to GitHub. External prerequisites block only their
-affected tasks and never expand the list.
 
 Orchestrate keeps up to three delivery-capable Execute workers active by default, bounded by host
 capability. Verified submission and independent specification validation release dependents without
@@ -105,8 +108,9 @@ Execute accepts one bounded enhancement, refactor, test-only task, or authorized
 correction. An issue-only invocation reads that exact open issue, resolves ordinary contract details
 from repository evidence, and verifies workspace/parent ancestry before editing; inline instructions
 still work without GitHub issue reads. An exact issue needs no Project or persisted plan. Unknown root
-cause stays with Debug. A multi-task specification parent requires explicit Orchestrate invocation
-or selection of one bounded child; unresolved material decisions block with a targeted question.
+cause stays with Debug. Multi-task work routes to Orchestrate, which interprets the available
+planning handback, repository, and tracker context; a single bounded task can go directly to Execute.
+Unresolved material decisions block with a targeted question.
 
 ## Shared execution boundary
 

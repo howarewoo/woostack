@@ -43,8 +43,8 @@ capabilities, and read-back. Retired managed-provider data is never imported or 
 | Elicit a complete user-verified specification from a goal or existing specification | `woostack-ideate` |
 | Reconcile a supplied specification or candidate issue plan against repository evidence | `woostack-harden` |
 | Prepare a feature or proved defect for a verified GitHub issue graph without implementation | `woostack-prepare` |
-| Turn an approved specification into reviewable increments and publish the native issue graph | `woostack-plan` |
-| Execute native children of one GitHub parent issue, tasks in an exact GitHub Project, or an explicit canonical issue list with parallel workers and stacked PRs | `woostack-orchestrate` |
+| Turn an approved specification into reviewable increments and publish the selected GitHub issue graph | `woostack-plan` |
+| Interpret understandable multi-task work, resolve executable tasks and dependencies, and schedule verified bounded work | `woostack-orchestrate` |
 | Implement one bounded task — enhancement, refactor, test-only work, or authorized understood correction — and deliver one PR | `woostack-execute` |
 | Commit current changes and submit or update their PR | `woostack-commit` |
 | Review a pull request | Use [Pullfrog](https://pullfrog.com/). |
@@ -74,13 +74,18 @@ proof before correction. Planning phases never edit source, commit, submit a PR,
 
 An exact task-bearing GitHub issue URL alone, or `/woostack-execute --issue <url>`, routes to
 Execute: it reads the selected issue and resolves one bounded task before implementation. Inline
-task instructions remain valid with or without an issue association; a specification parent with
-multiple tasks requires explicit Orchestrate or bounded child selection.
+task instructions remain valid with or without an issue association. For work that spans
+multiple tasks, Orchestrate interprets the conversation, repository, and available GitHub records,
+separates executable tasks from context, constructs a bounded dependency DAG with provenance, and
+asks a focused question when material ambiguity remains. Issue, issue-list, and Project arguments are
+convenience interpretation hints, not exhaustive admission types; native links and declared edges are
+evidence when present, not prerequisites for understanding tracker content. A Project is included only
+when explicitly selected; its status lifecycle is used only when that selection requests status mutation.
 
 Ordinary questions about work progress use available authorized GitHub reads or the GitHub UI:
-parent/child issues and native dependency relations define planned work, while linked pull requests
-and Git evidence establish delivery. A Project Status field is provider metadata, not proof of
-implementation, verification, or merge.
+issues, native relationships when present, and linked pull requests and Git evidence describe planned
+work and delivery. A Project Status field is provider metadata, not proof of implementation,
+verification, or merge.
 
 ## AGENTS.md usage
 

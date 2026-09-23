@@ -1,11 +1,13 @@
 ---
 title: GitHub
-description: Reference for GitHub Projects and direct repository-issue publication, configuration fields, native parent/child hierarchy, and lifecycle behavior.
+description: Reference for GitHub configuration, direct issue publication, model-led orchestration context, and lifecycle behavior.
 ---
 
-Prepare and Plan use complete plain packets and direct GitHub issue publication. Plan publishes to an
-explicit parent or Project selector and does not require a local run or second remote record in parent
-mode. Legacy managed-provider configuration and historical records are not migrated or rewritten.
+Prepare and Plan use complete plain packets and direct GitHub issue publication. Plan publishes to
+its exact parent or Project destination and does not require a local run or second remote record in
+parent mode. Orchestrate may later interpret the complete handback or understandable tracker context
+without requiring native links. Legacy managed-provider configuration and historical records are not
+migrated or rewritten.
 
 ## Configuration
 
@@ -49,9 +51,10 @@ reads, and token forwarding are forbidden.
 Preflight only the capabilities needed by the selected operation through the authorized GitHub
 interface. Parent-issue publication needs issue, native parent/sub-issue, and dependency reads/writes,
 complete pagination, and independent read-back. Issue-write access does not prove native
-relationship-write access. Project workflows additionally require their selected Project, membership,
-and Status operations; unavailable Project access does not block parent-only publication. A read-only
-task must not require unrelated write/delete access.
+relationship-write access. Project publication additionally requires the selected Project and
+membership operations; Status operations are required only when status mutation is explicitly
+selected. Unavailable Project access does not block parent-only publication. A read-only task must
+not require unrelated write/delete access.
 
 Unsupported or unknown required capabilities, unauthorized scopes, another operation's markers,
 unexpected changes, or partial responses stop the GitHub operation. No test mutation is used to
@@ -104,8 +107,9 @@ unchanged sync performs zero mutations. Task, dependency, and mapping shapes mat
 with the parent stored separately in the spec item when applicable. Direct and composed Plan calls
 retain publication identities and the last verified boundary in their handback without creating a local run.
 
-Parent-issue planning is planning only. Explicit Orchestrate execution consumes the admitted native
-child scope; bounded Execute still admits one complete task.
+Parent-issue planning is planning only. Orchestrate interprets the planning handback or other
+understandable issue/task context; native child links are evidence, not an admission requirement.
+Bounded Execute still admits one complete task.
 
 GitHub plans use explicit prerequisite graphs. Independent roots, forks, chains, and joins are valid;
 only genuine prerequisites become native `blocked-by` edges. Each edge is a `[prerequisite, dependent]`
@@ -131,19 +135,20 @@ identities, cycles, and incomplete pagination block; they do not expand selected
 Execute accepts one selected bounded task, not a complete DAG. A task from any valid DAG may use
 [ordinary Execute admission](/docs/skills/woostack-execute#admit-one-task) when its concrete parent and
 complete prerequisite-readiness evidence are supplied; an unresolved join parent blocks that task.
-An explicit [Orchestrate](/docs/skills/woostack-orchestrate) invocation dispatches the admitted graph
-through isolated Execute workers.
-Plan's only supported publication scopes are the explicit GitHub Project and parent-issue selectors
-above; both retain the same prerequisite DAG and read-back contract.
+An explicit [Orchestrate](/docs/skills/woostack-orchestrate) invocation interprets the complete
+planning handback or other understandable work context, resolves executable tasks and a bounded DAG,
+and dispatches ready tasks through isolated Execute workers.
 
-Orchestrate's `--issue` form selects the complete native child scope without requiring Project access
-or configuration. Its `--project` form selects only admitted Project members. Its explicit
-`--issues` form selects exactly the supplied open canonical issues, even when they have different
-parents or Project memberships; it validates a caller-supplied DAG with native, declared, and
-inferred provenance without publishing inferred edges or requiring native dependency-write access.
-Independently validated PR delivery releases dependents; no issue closure or merge is required.
-Child delivery notes preserve evidence, and only explicitly selected Project execution uses configured
-`inReview` status. All forms leave the scope open for human review/merge.
+Plan's only supported publication scopes are the explicit GitHub Project and parent-issue selectors
+above; both retain the same prerequisite DAG and read-back contract. For Orchestrate, `--issue`,
+`--issues`, and `--project` are convenience hints rather than an exhaustive admission taxonomy. The
+model uses conversation, repository, and GitHub evidence to resolve canonical identities, separate
+tasks from context, preserve native/declared/inferred edge provenance, and ask about material
+ambiguity. Tracker content without native links can still be interpreted. For Orchestrate, a Project
+is included only when explicitly selected; its status lifecycle is used only when that selection
+requests status mutation, and inferred relationships are never published back to GitHub. Independently
+validated PR delivery releases dependents; no issue closure or merge is required. Child delivery notes
+preserve evidence, and all work leaves the scope open for human review/merge.
 
 ## Lifecycle and closure (retired Execute reference)
 
@@ -162,7 +167,7 @@ completion leave any retained Project artifact unchanged.
 | --- | --- |
 | [woostack-prepare](/docs/skills/woostack-prepare) | Produces or accepts a complete packet and delegates direct native graph publication to Plan; it does not create implementation work, branches, PRs, or execution. |
 | [woostack-plan](/docs/skills/woostack-plan) | `--project` requires an exact existing canonical Project URL and direct issue-graph publication; `--parent-issue new` or an exact parent URL publishes the native parent/child graph without a Project. Direct and composed Plan use the same publisher; there is no draft-only mode. |
-| [woostack-orchestrate](/docs/skills/woostack-orchestrate) | Executes one exact native child scope, configured Project member set, or explicit canonical issue list; validates graph evidence, verifies worker PRs, and records delivery without closing issues or merging. |
+| [woostack-orchestrate](/docs/skills/woostack-orchestrate) | Interprets a complete planning handback or other understandable work context, resolves executable tasks and a bounded dependency DAG with provenance, dispatches ready tasks, verifies worker PRs, and records delivery without closing issues or merging. Issue, issue-list, and Project arguments are convenience hints; native links are evidence when present. |
 | [woostack-execute](/docs/skills/woostack-execute) | Accepts inline bounded instructions or one canonical task-bearing issue URL as the complete input; retired `--project`, `--run`, and `--recheck` are rejected. Goal-only Execute makes no remote calls; an exact issue permits only its documented read through authorized GitHub capabilities (native tools preferred; host-authenticated `gh` supported), with no Project configuration or issue lifecycle writes. Commit owns repository/PR delivery. |
 | [woostack-init](/docs/skills/woostack-init) | Validates optional `github` configuration once and may discover non-secret owner/status defaults through authorized native GitHub capabilities or host-authenticated `gh`; it never selects persistence or probes writes. |
 | [woostack-bootstrap](/docs/skills/woostack-bootstrap) | May publish an approved design only to an exact explicitly selected Project after target approval and collision checks. |
