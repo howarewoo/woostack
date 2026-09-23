@@ -19,11 +19,11 @@ assert_eq "$(wc -l <"$r/.woostack/.gitignore")" "$before" "gitignore repair is i
 # config-keys delegates canonical GitHub validation to Init's resolver.
 r2="$(mktemp -d)"
 mkdir -p "$r2/.woostack"
-printf '%s\n' '{"models":{},"status":{"staleDays":14}}' >"$r2/.woostack/config.json"
+printf '%s\n' '{"models":{}}' >"$r2/.woostack/config.json"
 assert_eq "$(bash "$C/config-keys.sh" "$r2")" "" "minimal config is clean"
 printf '%s\n' '{"github":{"visibility":"private"}}' >"$r2/.woostack/config.json"
 assert_contains "$(bash "$C/config-keys.sh" "$r2")" "github policy permits only" "unknown canonical key is rejected by resolver"
-printf '%s\n' '{"artifacts":{"provider":"plane","plane":{"workspace":"legacy"}},"models":{},"status":{"staleDays":14}}' >"$r2/.woostack/config.json"
+printf '%s\n' '{"artifacts":{"provider":"plane","plane":{"workspace":"legacy"}},"models":{}}' >"$r2/.woostack/config.json"
 out="$(bash "$C/config-keys.sh" "$r2")"
 assert_contains "$out" "retired-provider" "legacy provider settings are report-only"
 assert_not_contains "$out" $'error\t' "legacy provider settings do not block local config"
