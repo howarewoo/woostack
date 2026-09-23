@@ -3,6 +3,7 @@
     "owner": "acme",
     "ownerType": "organization",
     "statusField": "Status",
+    "visibility": "private",
     "projectStatuses": {
       "planned": "Todo",
       "executing": "In Progress",

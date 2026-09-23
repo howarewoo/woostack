@@ -12,7 +12,7 @@ Each skill owns its procedure:
 | Elicit a complete user-verified specification | `woostack-ideate` |
 | Reconcile a supplied specification or candidate issue plan | `woostack-harden` |
 | Publish an approved GitHub parent/child or Project issue graph | `woostack-plan` |
-| Deliver a small enhancement or refactor in one PR | `woostack-change` |
+| Deliver one bounded task in one PR | `woostack-execute` |
 | Check a running app in a browser | `woostack-qa` |
 | Prove a root cause without applying a correction | `woostack-debug` |
 | Evaluate approved behavior and trigger corpora for a skill without editing it | `woostack-eval` |
@@ -42,17 +42,15 @@ target inspection and fresh collision-safe write admission. Optional project per
 separate from write authority. Init persists only non-secret policy, never local specs or plans.
 
 
-Implementation branches begin from verified repository base evidence and follow the
-[canonical worktree contract](../../woostack-init/references/worktrees.md). Bootstrap's initial
-new-repository scaffold is the one pre-base worktree exception. Later PRs require direct
+Implementation branches begin from verified repository base evidence and use one selected isolated
+workspace under the [workspace guidance](../../woostack-init/references/worktrees.md). Bootstrap's
+initial new-repository scaffold is the one pre-base worktree exception. Later PRs require direct
 Git/GitHub identity and may include an ordinary optional artifact link. Git and GitHub remain the
 source of truth for commits, branches, PRs, reviews, and merges.
 
-Every `/woostack-status` run derives rows from current Git/GitHub evidence, plus Graphite when selected.
-Exact caller-supplied GitHub Project or issue context may enrich a row with linked specification,
-plan, or fix notes; missing GitHub access affects only that enrichment. The
-[feature-state conventions](../../woostack-status/references/conventions.md) define rendering,
-reconciliation, and failure behavior.
+Work tracking uses canonical GitHub parent/child issues, native dependency relations, and linked
+pull requests. GitHub Project Status fields may describe provider records, but issue lifecycle or
+Project state never proves that a PR was submitted, verified, or merged.
 
 Legacy local development records are retained data only. They are never adopted as authority,
 automatically imported, or rewritten. Init reports actionable retirement guidance when an obsolete
@@ -70,11 +68,13 @@ a branch such as `staging` before a human merges a release into `main`.
 | First feature branch | First PR in a plan | Verified integration branch |
 | Dependent feature branch | Next PR in a stack | The approved predecessor's branch |
 
-Use Git + `gh` by default; Graphite is optional for explicitly selected or verified already-managed
-tasks/stacks. The [source-control contract](../../woostack-commit/references/graphite.md) owns
-backend selection and delivery mechanics. Follow the
-[worktree/base-branch contract](../../woostack-init/references/worktrees.md) to resolve the base
-and verify each predecessor before starting dependent work. Never force-push.
+Use native Git with an authorized GitHub interface for delivery; host-authenticated `gh` remains
+supported where appropriate. Graphite is optional for explicitly selected or verified already-managed
+tasks/stacks. The [source-control contract](../../woostack-commit/references/graphite.md) owns backend
+selection and delivery mechanics. Follow the selected
+[workspace/base-branch guidance](../../woostack-init/references/worktrees.md) to resolve the base,
+select an isolated workspace, and verify each predecessor before starting dependent work. Never
+force-push.
 
 ## When to deviate
 

@@ -15,7 +15,7 @@ type WorkflowBranch = Readonly<{
   steps: readonly WorkflowStep[];
 }>;
 
-type WorkflowId = 'change' | 'prepare' | 'bootstrap';
+type WorkflowId = 'execute' | 'prepare' | 'bootstrap';
 
 type Workflow = Readonly<{
   id: WorkflowId;
@@ -29,17 +29,16 @@ type Workflow = Readonly<{
 
 const workflows: readonly Workflow[] = [
   {
-    id: 'change',
-    title: 'Change',
-    useWhen: 'Use for a bounded non-bug enhancement or refactor.',
-    href: '/docs/skills/woostack-change',
+    id: 'execute',
+    title: 'Execute',
+    useWhen: 'Use for one bounded enhancement, refactor, test-only task, or authorized correction.',
+    href: '/docs/skills/woostack-execute',
     gateCount: 0,
     steps: [
-      { label: 'Classify scope', kind: 'work' },
+      { label: 'Admit task scope', kind: 'work' },
       { label: 'Isolate worktree', kind: 'work' },
       { label: 'Implement', kind: 'work' },
       { label: 'Verify and smoke-test', kind: 'work' },
-      { label: 'Two-lens inline review', kind: 'work' },
       { label: 'Commit and submit', kind: 'work' },
       { label: 'Verify PR and tear down', kind: 'work' },
       { label: 'One reviewed PR', kind: 'terminal' },

@@ -26,12 +26,16 @@ applies the fix. This holds for every issue, especially under time pressure.
 Use for test failures, production defects, unexpected behavior, performance problems, build
 failures, and integration issues. A simple-looking symptom does not waive root-cause proof.
 
+For a test-related diagnosis, use the canonical [Execute testing guidance](../woostack-execute/references/tdd.md)
+to distinguish an expected Red result, a Green regression, a characterization observation, and a
+missing concrete check. Debug remains read-only and does not add or rewrite tests.
+
 ## Optional GitHub context resolution (one path, read-only)
 
-Load the shared [artifact contract](../woostack-init/references/artifact-backends.md#direct-publication-and-recovery),
-the [GitHub profile](../woostack-init/references/artifact-providers/github.md#configuration-and-scope),
-and the [status conventions](../woostack-status/references/conventions.md). Those references own
-transport, identity, scope, trust, read-back, and status derivation; do not duplicate them here.
+Load the shared [artifact contract](../woostack-init/references/artifact-backends.md#direct-publication-and-recovery)
+and the [GitHub profile](../woostack-init/references/artifact-providers/github.md#configuration-and-scope).
+Those references own transport, identity, scope, trust, and read-back. Git and GitHub remain the
+source of truth for repository, PR, review, check, and merge evidence.
 
 A code/runtime target may always be investigated without GitHub context. When the caller explicitly
 supplies context material to the diagnosis, follow exactly this path:

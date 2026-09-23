@@ -20,6 +20,7 @@ The orchestrator exports `WOOSTACK_DOCTOR_LIVE=0` for ordinary runs. An explicit
 live run supplies one normalized, non-secret receipt through `--live-receipt`; static checks never
 inspect credentials or invoke a provider, adapter, HTTP, GraphQL, or hard-coded tool name.
 
+
 ## Checks
 
 | code | check | severity | fixable | `--fix` args |
@@ -34,6 +35,11 @@ inspect credentials or invoke a provider, adapter, HTTP, GraphQL, or hard-coded 
 | `retained-data` | historical local draft/manifest directory is present | warn | report | — |
 | `github-live` | trusted receipt is missing, malformed, foreign, or lacks a fixed read-only capability | error | report | — |
 
+OMP agent selection is host-owned. Doctor checks and repairs only its managed session-naming
+asset; it never inspects, creates, repairs, or removes project agent definitions. A present
+unregistered worktree directory may hold work and remains report-only; only a stale worktree
+registration whose directory is gone can be pruned.
+
 Legacy provider settings and retained records are not active policy and are never migration input
 for this engine. Their findings are actionable retirement guidance, not local-operation blockers.
 
@@ -44,8 +50,9 @@ only the optional top-level `github` object; `artifacts.provider`, `artifacts.li
 `artifacts.plane`, and older root provider settings remain opaque and inactive. Template presence
 and repair apply only to the tracked base file.
 
-The controller may provide a receipt only for an explicit Project operation. Its fixed semantic
-contract is defined at
+The controller resolves an authorized GitHub capability for an explicit Project operation, preferring
+native host tools when suitable and supporting host-authenticated `gh`. Its fixed semantic contract
+is defined at
 [`artifact-providers/github.md#doctor-live-receipt`](../../woostack-init/references/artifact-providers/github.md#doctor-live-receipt).
 It contains canonical owner/repository and Status-option evidence, and these capabilities:
 `projectRead`, `statusFieldRead`, `pagination`, and `independentReadBack`. It never derives

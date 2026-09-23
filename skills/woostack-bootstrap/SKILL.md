@@ -43,11 +43,9 @@ routes before requirements gathering, MCP preflight, or project creation:
 
 - bugs, regressions, incidents, and root-cause work → [`woostack-debug`](../woostack-debug/SKILL.md)
   for diagnosis or [`woostack-prepare`](../woostack-prepare/SKILL.md) for a proved issue graph;
-- a bounded non-bug enhancement or refactor that fits one reviewable PR, including a one-file
-  request → [`woostack-change`](../woostack-change/SKILL.md);
+- a bounded enhancement or refactor that fits one reviewable PR, including a one-file
+  request → [`woostack-execute`](../woostack-execute/SKILL.md);
 - a multi-PR feature or architectural initiative → [`woostack-prepare`](../woostack-prepare/SKILL.md).
-
-Single-surface throwaway scripts are also outside bootstrap.
 
 ## Procedure
 
@@ -105,7 +103,7 @@ approval, perform no official-MCP development mutation and create no development
 | [references/architecture.md](references/architecture.md) | App-local code placement, optional shared packages, and naming |
 | [references/frameworks.md](references/frameworks.md) | Version-resolution rules, app-scoped dependencies, and gotchas |
 | [references/infrastructure.md](references/infrastructure.md) | Production-readiness patterns: hosting, CI/CD, env vars, migrations, observability |
-| [references/patterns.md](references/patterns.md) | Standard implementation and TDD guidelines |
+| [references/patterns.md](references/patterns.md) | Standard implementation patterns; canonical testing guidance is in [Execute](../woostack-execute/references/tdd.md) |
 | [references/development.md](references/development.md) | Repository authority, retained data, routing, and branching model |
 
 ## Hard constraints
@@ -113,7 +111,7 @@ approval, perform no official-MCP development mutation and create no development
 These are non-negotiable. Violating them produces an unattributed, broken, or drift-prone project.
 
 - **Brownfield routing.** Route every existing-repository bug or regression to Debug or Prepare,
-  every bounded one-PR non-bug request to Change, and every multi-PR initiative to Prepare before
+  every bounded one-PR non-bug request to Execute, and every multi-PR initiative to Prepare before
   creating a bootstrap project.
 - **Artifact-free until explicit approval.** Requirements, research, options, and design stay in
   the run context. No remote project, update, issue, document, local spec/plan, target directory,
@@ -145,9 +143,9 @@ These are non-negotiable. Violating them produces an unattributed, broken, or dr
   development instructions into the project root `README.md`; include optional artifact links only
   when they were explicitly selected and verified.
 - **Initial scaffold is the one worktree exemption.** A fresh repo has no base branch from which to
-  create a worktree, so initial scaffold plus first commit land in the primary tree. All subsequent
-  feature/fix work follows the
-  [worktree contract](../woostack-init/references/worktrees.md).
+  create an isolated workspace, so initial scaffold plus first commit land in the primary tree. All
+  subsequent feature/fix work follows the shared
+  [isolated-workspace guidance](../woostack-init/references/worktrees.md).
 
 ## SPEC_VERSION
 

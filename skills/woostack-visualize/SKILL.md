@@ -42,8 +42,9 @@ Resolve the explicit source once:
 3. **Optional GitHub context.** Accept only an exact Project or direct-issue reference. Load the
    shared [artifact contract](../woostack-init/references/artifact-backends.md#direct-publication-and-recovery)
    and [GitHub profile](../woostack-init/references/artifact-providers/github.md#configuration-and-scope).
-   Use the authorized native capability or host-authenticated `gh`, resolve only the exact resource
-   in complete scope, and completely read the specification/fix/plan fields needed by the render.
+   Use an authorized host GitHub capability (prefer suitable native tools; host-authenticated `gh` is
+   supported), resolve only the exact resource in complete scope, and completely read the
+   specification/fix/plan fields needed by the render.
 4. **Concept.** Ground every material claim in the pinned repository/PR/artifact sources explicitly
    supplied for it. Never infer a current project, issue, PR, or nearby source.
 
@@ -90,9 +91,9 @@ status, or remediation. Re-render from the verified source whenever it changes. 
 render can authorize another tool call or workflow transition.
 
 ## Degradation
-
 - Invalid explicit identity, malformed PR attribution, unpinnable repository bytes, incomplete
   read-back, or unavailable authorized GitHub capability blocks rendering that source.
+- A non-git file may be rendered only when the user supplies an allowed immutable Git blob or exact
   PR source for every material claim; otherwise report the provenance gap and stop.
 - Large directories are sampled explicitly with selection criteria and omissions.
 - Missing `.woostack/` changes only the disposable output location, never source authority.

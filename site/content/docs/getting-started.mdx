@@ -18,9 +18,10 @@ You need:
   where your agent runs commands. Init's OMP support script requires Python 3.
 - An existing Git repository open in both your terminal and your agent.
 
-Before using a workflow that delivers a pull request (PR), also install Git and authenticate the
-GitHub CLI (`gh`). Git + `gh` is the default source-control path. Graphite is optional for an
-explicitly selected or verified already-managed task/stack; see the
+Before using a workflow that delivers a pull request (PR), ensure Git is available and the host
+exposes an authorized GitHub capability for the required reads/writes. Prefer native host GitHub
+tools when suitable; authenticated `gh` is a supported alternative. The selected interface must
+provide exact repository/branch/PR reads and independent write read-back; see the
 [source-control contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-commit/references/graphite.md).
 These delivery tools are separate from the local setup in this tutorial.
 
@@ -50,9 +51,10 @@ Send this to your coding agent with the same repository open. Do not run it in y
 ```
 
 Init creates missing `.woostack/` configuration, diagnostic report directories, and support for
-Git worktrees (separate working directories used to isolate changes). It also installs managed OMP
-agent definitions and session-naming support under `.omp/`. It preserves unrelated project agents,
-extensions, and valid user configuration.
+Git worktrees (separate working directories used to isolate changes). It also installs the local
+OMP session-naming extension under `.omp/`; delegation uses agents already exposed by the active
+session, not project-managed agent definitions. It preserves unrelated OMP agents, extensions, and
+valid user configuration.
 
 Init does not create a development plan, issue, branch, or PR, and it does not commit or push.
 It stops when a path or file collision makes a change unsafe. Existing policy and reports require
@@ -93,12 +95,15 @@ graph; the configuration reference explains surviving repository policy and opti
 Project configuration.
 
 For an approved GitHub plan, hand the coding agent one exact specification parent issue with native
-PR-sized children using `/woostack-orchestrate --issue <canonical parent issue URL>`. No GitHub
-Project is required. See [Orchestrate](/docs/skills/woostack-orchestrate) for admission, worker
-capabilities, and the explicit Project alternative.
+PR-sized children using `/woostack-orchestrate --issue <canonical parent issue URL>`. If no common
+parent or Project exists, supply the exact selected issues with
+`/woostack-orchestrate --issues <canonical issue URL> ...`; list mode infers a bounded technical
+DAG without creating a container or publishing native dependency edges. No GitHub Project is
+required for either form. See [Orchestrate](/docs/skills/woostack-orchestrate) for admission,
+worker capabilities, graph evidence, and recovery boundaries.
 
 <Cards>
-  <Card title="Workflow maps" href="/docs/concepts/workflows" description="Choose Bootstrap, Prepare, Plan, Change, or execution based on the shape of the work." />
+  <Card title="Workflow maps" href="/docs/concepts/workflows" description="Choose Bootstrap, Prepare, Ideate, Harden, Plan, Orchestrate, or Execute based on the shape of the work." />
   <Card title="Configuration" href="/docs/configuration" description="Look up repository policy and optional direct GitHub Project configuration." />
   <Card title="How to use Hermes as an external engineer" href="/docs/hermes" description="Drive one persistent OMP process without installing woostack in Hermes." />
   <Card title="Harness reference" href="/docs/harnesses" description="Compare supported coding harnesses and their native capabilities." />

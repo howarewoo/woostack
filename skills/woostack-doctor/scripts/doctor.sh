@@ -14,7 +14,7 @@ while [ "$#" -gt 0 ]; do
       [ "$#" -ge 2 ] || { echo "doctor: --live-receipt requires a path" >&2; exit 2; }
       LIVE_RECEIPT="$2"; shift 2 ;;
     --live)
-      echo "doctor: --live is controller-owned; supply --live-receipt <path> after the explicit Project capability preflight" >&2
+      echo "doctor: --live is controller-owned; supply --live-receipt <path> after the authorized GitHub Project capability preflight" >&2
       exit 2 ;;
     -*) echo "doctor: unknown flag: $1" >&2; exit 2 ;;
     *) TARGET="$1"; shift ;;

@@ -1,6 +1,6 @@
 ---
 name: woostack-commit
-description: Commit current session-relevant changes and submit or update their PR using Git and GitHub CLI, with optional Graphite. Include a goal, summary, and test plan. An optional exact GitHub issue receives a merge-closing reference. Use for /woostack-commit, "commit this", or "update the PR".
+description: Commit current session-relevant changes and submit or update their PR through an authorized GitHub integration or host-authenticated gh, with optional Graphite. Include a goal, summary, and test plan. An optional exact GitHub issue receives a merge-closing reference. Use for /woostack-commit, "commit this", or "update the PR".
 ---
 
 # woostack-commit
@@ -94,8 +94,9 @@ staged, preserve the worktree, and stop with the exact mismatch.
 ### 4. Create or update the task commit
 
 Follow the [source-control branch and submission boundary](references/graphite.md) for mode
-selection, exact branch, collision, commands, and read-back. Git and GitHub CLI are the default;
-Graphite is optional. Resolve the mode before staging, not after a command fails.
+selection, exact branch, collision, capabilities, commands, and read-back. Use the authorized
+GitHub interface that supports the required operation; host-authenticated `gh` remains supported
+where appropriate. Graphite is optional. Resolve the mode before staging, not after a command fails.
 
 Use `git commit -m <subject>` to append a native Git commit; use the reference's Graphite path
 only for a selected Graphite task. Never amend or restack an unrelated branch.
@@ -106,9 +107,11 @@ working-tree state after the mutation. Unrelated unstaged changes may remain; st
 
 ### 5. Submit the task branch
 
-Follow the selected mode's submission commands in the same reference. Do not force-push, submit
-unrelated descendants, or create a duplicate PR. After submission, independently read the canonical GitHub PR and verify its
-repository, number/URL, head branch/SHA, base branch, and open state.
+Follow the selected mode's submission boundary in the same reference. Use the authorized GitHub
+capability that supports exact branch publication, complete PR discovery, draft creation or reuse,
+and independent read-back. Do not force-push, submit unrelated descendants, or create a duplicate
+PR. After submission, independently read the canonical GitHub PR and verify its repository, number/URL,
+head branch/SHA, base branch, and open state.
 
 Unknown submission outcome is not permission to retry blindly or switch tools. Re-read Git,
 GitHub, and Graphite when selected; resume from the first unproved boundary.

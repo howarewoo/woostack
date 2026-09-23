@@ -20,8 +20,9 @@ acceptance record, lifecycle state, or permission to remediate. Each verified de
 proposed bounded remediation contract and may link an exact caller-supplied GitHub issue. Neither
 form establishes scope, acceptance, assignment, or implementation authority.
 QA is an on-demand local engine with no CI delivery or gate. It is not a test-suite author
-([`woostack-tdd`](../woostack-tdd/SKILL.md) owns durable test work), not a load/perf/security
-scanner, and it never starts, builds, or restarts the target app.
+([`woostack-execute`](../woostack-execute/SKILL.md) owns durable test work under its
+[testing guidance](../woostack-execute/references/tdd.md)), not a load/perf/security scanner,
+and it never starts, builds, or restarts the target app.
 
 ## Commands
 
@@ -71,10 +72,10 @@ from, in order:
 3. **Exact optional GitHub Project or issue.** When explicitly supplied, load the
    [artifact contract](../woostack-init/references/artifact-backends.md#direct-publication-and-recovery)
    and [GitHub profile](../woostack-init/references/artifact-providers/github.md#configuration-and-scope),
-   use the authorized native capability or host-authenticated `gh`, fully paginate relevant fields,
-   and extract only requested specification/fix/plan criteria. Missing GitHub access blocks those
-   criteria only. A retired managed-provider reference is rejected with actionable guidance and
-   never converted.
+   use an authorized host GitHub capability (prefer suitable native tools; host-authenticated `gh` is
+   supported), fully paginate relevant fields, and extract only requested specification/fix/plan
+   criteria. Missing GitHub access blocks those criteria only. A retired managed-provider reference is
+   rejected with actionable guidance and never converted.
 4. **Repository source.** Inspect routes/source serving the app. Local diagnostic reports never
    establish intended behavior or acceptance.
 5. **Blind exploration.** With no explicit focus or verified context, discover the visible

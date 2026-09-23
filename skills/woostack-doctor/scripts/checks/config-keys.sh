@@ -77,6 +77,9 @@ while IFS= read -r key; do
     emit warn config-key auto ".woostack/config.json" "missing required config key: $key"
   fi
 done < <(jq -r 'keys[]' "$TEMPLATE")
+if jq -e 'has("status") and (.status | type == "object" and has("staleDays"))' "$EFFECTIVE_CFG" >/dev/null 2>&1; then
+  emit warn retired-status-config report ".woostack/config.json" "top-level status.staleDays is retired; existing configuration is preserved and may be removed manually"
+fi
 
 
 retained_dir_has_data() {

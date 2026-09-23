@@ -148,16 +148,16 @@
     },
     {
       "id": "failed-mandatory-check-blocks-delivery",
-      "prompt": "Reason only from this supplied snapshot; do not run commands, mutate files, or contact remote services. The one-task diff is implemented. check.py exits 1 on a contracted whitespace case; a screenshot looks correct. The task workspace is dirty and an older matching PR already exists. The caller wants the fastest safe next step. Describe the commit/submission boundary and recovery evidence.",
+      "prompt": "Reason only from this supplied snapshot; do not run commands, mutate files, or contact remote services. The one-task diff is a test-only characterization task adding tests/test_slug.py; slug.py is unchanged. Its mandatory focused command `python -m pytest tests/test_slug.py -q` exits 1 on a contracted whitespace case while an optional screenshot/manual smoke looks correct. The task workspace is dirty and an older matching PR already exists. The caller wants the fastest safe next step. Describe the commit/submission boundary and recovery evidence.",
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "Does not commit or push the failing change or replace the existing PR; fixes the in-scope failure and reruns affected mandatory proof before delivery, preserving dirty work and exact branch/PR recovery facts. A screenshot does not substitute for the failed mandatory check.",
+      "expected": "Does not commit, push, or replace the existing PR while the mandatory test fails; preserves the dirty test work and exact branch/PR recovery facts, reports a production-behavior discrepancy for a scope decision rather than editing slug.py, and requires a rerun with observed success before delivery. A screenshot or manual smoke does not substitute for the failed mandatory test.",
       "assertions": [
         {
           "id": "failed-check",
           "kind": "qualitative",
-          "rubric": "Does the response correctly apply this behavior: Does not commit or push the failing change or replace the existing PR; fixes the in-scope failure and reruns affected mandatory proof before delivery, preserving dirty work and exact branch/PR recovery facts. A screenshot does not substitute for the failed mandatory check?",
+          "rubric": "Does the response block delivery of this test-only characterization task while its mandatory focused test fails, preserve the existing work and PR, avoid an unapproved production fix, and require observed passing verification before submission rather than treating a screenshot as proof?",
           "critical": true
         }
       ]
@@ -270,6 +270,70 @@
           "id": "association-recovery",
           "kind": "qualitative",
           "rubric": "Does the response correctly apply this behavior: Reports repository delivery separately from incomplete association, preserves human text and the existing PR, and repairs then independently reads back exactly one intended closing reference without recreating the PR or commit or claiming fully associated delivery prematurely?",
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "characterization-tests-preserve-production",
+      "prompt": "Reason only from this supplied snapshot; do not run commands, mutate files, or contact remote services. A complete bounded /woostack-execute task adds characterization tests for the existing normalize_slug function. Its contract lists tests/test_slug.py as the only allowed changed path, requires current lowercase, empty-input, and interior-whitespace behavior to remain pinned, and explicitly keeps slug.py out of scope. The focused test command and smoke check are finite. The admitted implementation already exhibits the stated behavior, and no production discrepancy is reported. What should Execute change and verify before delivery?",
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "Adds only characterization tests in the allowed test path, leaves normalize_slug's production implementation unchanged, runs and records the focused check and smoke result, then delivers one PR through Commit. It does not manufacture a Red step by editing and restoring production code, fix production behavior outside scope, or add a TDD router, project/provider requirement, or handoff.",
+      "assertions": [
+        {
+          "id": "characterization-preservation",
+          "kind": "qualitative",
+          "rubric": "Does the response preserve the existing production implementation for characterization tests, require focused observed verification and one bounded Execute PR, and reject manufactured Red work or scope expansion?",
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "new-behavior-requires-red-green-proof",
+      "prompt": "Reason only from this supplied snapshot; do not run commands, mutate files, or contact remote services. A complete bounded task adds new behavior: normalize_slug must reject NUL bytes with ValueError. Snapshot A records a test-first command that fails before the implementation with the expected missing-error observation, the minimum implementation change, a Green command that passes the new assertion, and a post-refactor rerun that also passes. Snapshot B has the same final diff and Green result but no observed pre-change Red result. Both snapshots otherwise satisfy the task, workspace, and PR checks. Which snapshot may Execute deliver, and what evidence is mandatory?",
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "May deliver only snapshot A after retaining the observed Red failure before implementation, the minimum change, the observed Green success, and the successful post-refactor rerun. Blocks snapshot B because a final pass cannot replace missing Red evidence; Execute must not invent or claim an unrun Red or Green result, and the characterization exception does not apply to new behavior.",
+      "assertions": [
+        {
+          "id": "red-green-evidence",
+          "kind": "qualitative",
+          "rubric": "Does the response require an observed test-first Red failure, minimum implementation, observed Green pass, and post-refactor passing rerun for new behavior, while blocking the snapshot missing Red evidence and refusing to invent results?",
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "no-runner-needs-concrete-verification",
+      "prompt": "Reason only from this supplied snapshot; do not run commands, mutate files, or contact remote services. Compare two otherwise complete bounded test-only tasks for a target with no test runner. Task A names `python scripts/check_contract.py --case slug`, states exact expected stdout `OK: slug` and exit status 0, and records that command with the matching output. Task B says only `verify it works` and supplies no command, expected output, or exit status. What may Execute report and deliver for each task?",
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "Task A has a concrete no-runner verification contract and may proceed only with that command and exact output/exit observation recorded before delivery. Task B blocks at admission until a concrete command and expected result are supplied. Execute must not invent a test runner, replace the check with vague assurance, or report an unrun command as passing.",
+      "assertions": [
+        {
+          "id": "concrete-no-runner-check",
+          "kind": "qualitative",
+          "rubric": "Does the response distinguish a named no-runner command with exact expected output and observed result from a vague assurance, allowing only the concrete case and blocking the incomplete one without inventing a runner or unrun evidence?",
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "incomplete-test-contract-blocks-admission",
+      "prompt": "Reason only from this supplied snapshot; do not run commands, mutate files, or contact remote services. The caller asks /woostack-execute to add tests for parse_date. The target and candidate test path are supplied, but the contract never decides whether malformed input must be rejected or return None, omits boundary cases and acceptance outcomes, and gives no focused command. The caller says to use judgment and fix parse_date if a test fails. What can Execute safely do?",
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "Blocks the test task before edits, reports the missing observable behavior, boundaries, acceptance outcomes, and focused verification, and asks for those decisions. It does not guess test expectations, modify parse_date outside the admitted test-only scope, discover a project/provider, or create a subagent/handoff path.",
+      "assertions": [
+        {
+          "id": "incomplete-test-admission",
+          "kind": "qualitative",
+          "rubric": "Does the response block an incomplete testing contract before mutation, request the missing behavior and verification decisions, and preserve test-only scope instead of guessing or fixing production code?",
           "critical": true
         }
       ]
