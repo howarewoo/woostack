@@ -34,8 +34,9 @@ missing concrete check. Debug remains read-only and does not add or rewrite test
 
 Load the shared [artifact contract](../woostack-init/references/artifact-backends.md#direct-publication-and-recovery)
 and the [GitHub profile](../woostack-init/references/artifact-providers/github.md#configuration-and-scope).
-Those references own transport, identity, scope, trust, and read-back. Git and GitHub remain the
-source of truth for repository, PR, review, check, and merge evidence.
+Those references own transport, identity, scope, trust, and read-back; do not duplicate them. Git and
+GitHub remain the source of truth for repository, PR, review, check, and merge evidence. Issue
+lifecycle and Project Status metadata never prove implementation or delivery.
 
 A code/runtime target may always be investigated without GitHub context. When the caller explicitly
 supplies context material to the diagnosis, follow exactly this path:

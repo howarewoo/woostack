@@ -7,8 +7,8 @@ import {
   neutralizeTags,
   renderPage,
   navOrder,
+  PUBLIC_ORDER,
 } from './gen-skills.mjs';
-
 
 test('parseFrontmatter extracts name + description and returns the body', () => {
   const raw = '---\nname: woostack-prepare\ndescription: Prepare a feature.\n---\n\n# woostack-prepare\n\nbody';
@@ -113,15 +113,9 @@ test('renderPage emits title/description and source links for public phases', ()
     page,
     /\[View source on GitHub\]\(https:\/\/github\.com\/howarewoo\/woostack\/blob\/main\/skills\/woostack-prepare\/SKILL\.md\)/
   );
-  assert.doesNotMatch(page, /Internal sub-skill/);
-
-  const ideate = renderPage('woostack-ideate', { name: 'woostack-ideate', description: 'x' }, 'b');
-  const harden = renderPage('woostack-harden', { name: 'woostack-harden', description: 'x' }, 'b');
-  assert.doesNotMatch(ideate, /Internal sub-skill/);
-  assert.doesNotMatch(harden, /Internal sub-skill/);
 });
 
-test('navOrder places public planning phases before orchestration', () => {
+test('public skill routing retains the 18-skill order', () => {
   const expectedPublic = [
     'using-woostack',
     'woostack-init',
@@ -143,6 +137,7 @@ test('navOrder places public planning phases before orchestration', () => {
     'woostack-reflect',
   ];
 
+  assert.equal(PUBLIC_ORDER.length, 18);
+  assert.deepEqual(PUBLIC_ORDER, expectedPublic);
   assert.deepEqual(navOrder([...expectedPublic].reverse()), expectedPublic);
 });
-

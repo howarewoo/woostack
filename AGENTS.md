@@ -71,10 +71,10 @@ proves implementation, delivery, passing checks, review, or merge.
 narrow automatic authenticated read-only discovery of non-secret repository/native-name defaults;
 it never selects persistence or authorizes a remote write. `.woostack/config.json` supplies
 validated GitHub defaults only after configuration is selected. Credentials remain in the host
-secret store, and local diagnostic reports remain non-authoritative. Goal-only Execute makes no
-development-artifact provider calls; an explicitly selected exact GitHub issue permits only its
-documented read-only GitHub admission. That exception does not select Project publication or
-authorize work. Handoff, replanning, and blockers leave Project status unchanged.
+secret store, and local diagnostic reports remain non-authoritative. Goal-only `/woostack-execute`
+makes no development-artifact provider calls; an explicitly selected exact GitHub issue permits
+only its documented read-only GitHub admission. That exception does not select Project publication
+or authorize work. Handoff, replanning, and blockers leave Project status unchanged.
 
 Explicit [`woostack-orchestrate`](skills/woostack-orchestrate/SKILL.md) execution selects either one
 GitHub specification parent with native task children, one configured GitHub Project, or an
@@ -95,6 +95,8 @@ host or grant it implementation authority.
 This collection has eighteen public command/adoption skills at eighteen fixed `SKILL.md`
 locations. Direct GitHub integration adds neither a command-routing row nor a per-provider skill.
 
+## Modes
+
 Identify the mode before acting.
 
 **Mode A: edit this skill collection.** Use this when updating skill Markdown, reference
@@ -105,11 +107,12 @@ do not add application code, app build configs, or app lockfiles **outside the s
 
 **Mode B: run a woostack command.** Use this when the user asks for `/woostack-init`,
 `/woostack-bootstrap`, `/woostack-ideate`, `/woostack-harden`, `/woostack-prepare`,
-`/woostack-plan`, `/woostack-orchestrate`, `/woostack-execute`, `/woostack-commit`,
-`/woostack-address-comments`, `/woostack-visualize`, `/woostack-design`, `/woostack-debug`,
-`/woostack-doctor`, `/woostack-qa`, `/woostack-eval`, or `/woostack-reflect`, including
-intent-equivalent wording. Load the matching skill before acting. For bootstrap work, the output
-belongs in a fresh repo in a different directory, not in this repo.
+`/woostack-plan`, `/woostack-orchestrate`, `/woostack-execute`,
+`/woostack-commit`, `/woostack-address-comments`, `/woostack-visualize`,
+`/woostack-design`, `/woostack-debug`, `/woostack-doctor`, `/woostack-qa`,
+`/woostack-eval`, or `/woostack-reflect`, including intent-equivalent wording. Load the matching
+skill before acting. For bootstrap work, the output belongs in a fresh repo in a different
+directory, not in this repo.
 
 ## Hard constraints
 
@@ -158,9 +161,10 @@ the repository's simplify/comments guidance.
   pages need no manual edit: they regenerate from each `SKILL.md` at build time (see the
   documentation-site exception above). When in doubt, run `pnpm -C site build` to confirm the
   site still builds.
-- Do not move or rename any of the eighteen `SKILL.md` files. Public command/adoption names and
-  fixed paths are part of the installed interface, except for an explicitly approved
-  retirement that removes the complete skill and its references.
+- Do not move or rename any of the eighteen `SKILL.md` files without explicit approval. Public
+  command/adoption names and fixed paths are part of the installed interface. An explicitly
+  approved retirement removes the complete skill and its references. Retired Build, Fix, Change,
+  Status, and TDD packages have no compatibility aliases.
 - Do not rename files under
   [`skills/woostack-bootstrap/references/`](skills/woostack-bootstrap/references/) without
   updating every cross-link and the bootstrap skill table.
@@ -217,8 +221,9 @@ the repository's simplify/comments guidance.
   [`skills/woostack-address-comments/SKILL.md`](skills/woostack-address-comments/SKILL.md)
 - The work-tracking source of truth is canonical GitHub parent/child issues, native dependency
   relations, and associated pull requests; GitHub Project Status fields remain provider metadata.
-  Inspect those records directly. Local run manifests remain workflow progress and recovery
-  artifacts, not a replacement work board.
+  Inspect those records directly. Retained local drafts and controller checkpoints record recovery
+  evidence; local run manifests record workflow progress and remain recovery artifacts. They are
+  not a replacement work board or permission to implement.
 - Init workspace and repository policy contract:
   [`skills/woostack-init/`](skills/woostack-init/)
 - Docs site — shipped Fumadocs app; authored framing pages plus the per-`SKILL.md` generator

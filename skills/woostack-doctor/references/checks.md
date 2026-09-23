@@ -34,6 +34,7 @@ inspect credentials or invoke a provider, adapter, HTTP, GraphQL, or hard-coded 
 | `retired-provider` | legacy provider selector/profile is present as opaque inactive data | warn | report | — |
 | `retained-data` | historical local draft/manifest directory is present | warn | report | — |
 | `github-live` | trusted receipt is missing, malformed, foreign, or lacks a fixed read-only capability | error | report | — |
+| `retired-status-config` | legacy top-level `status.staleDays` is present | warn | report | — |
 
 OMP agent selection is host-owned. Doctor checks and repairs only its managed session-naming
 asset; it never inspects, creates, repairs, or removes project agent definitions. A present

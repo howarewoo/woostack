@@ -3,10 +3,10 @@ title: Workflow maps
 description: "Choose preparation, bounded delivery, or a complete greenfield workflow."
 ---
 
-Start with the user's explicit goal. Execute accepts an optional exact canonical GitHub issue URL as
-issue-backed input. Bounded work fits one pull request (PR) and uses the agreed scope in the
-current conversation. Prepared work ends at a verified GitHub issue graph. Git and GitHub show what
-was implemented and delivered.
+Start with the user's explicit goal. Execute may associate an optional exact canonical GitHub issue URL
+with its complete bounded input; issue reads are read-only and do not replace the task contract. Bounded
+work fits one pull request (PR) and uses the agreed scope in the current conversation. Prepared work
+ends at a verified GitHub issue graph. Git and GitHub show what was implemented and delivered.
 
 ## Routing by work shape
 
@@ -17,9 +17,10 @@ was implemented and delivered.
 | Reconcile a specification or candidate issue plan | [Harden](/docs/skills/woostack-harden) |
 | Root-cause investigation without a correction | [Debug](/docs/skills/woostack-debug) |
 | Feature or proved defect needing a verified issue graph | [Prepare](/docs/skills/woostack-prepare) |
-| A complete bounded task for one coherent PR | [Execute](/docs/skills/woostack-execute) |
+| Bounded enhancement, refactor, tests, or authorized correction for one PR | [Execute](/docs/skills/woostack-execute) |
 | Approved issue graph publication | [Plan](/docs/skills/woostack-plan) |
 | Execute an approved GitHub issue graph | [Orchestrate](/docs/skills/woostack-orchestrate) |
+| Add or strengthen tests for a bounded target | [Execute](/docs/skills/woostack-execute) with its [testing guidance](https://github.com/howarewoo/woostack/blob/main/skills/woostack-execute/references/tdd.md) |
 
 Ideate and Harden are complete public phases, not hidden run steps. They accept plain packets with
 explicit repository/evidence identity and return reusable plain handbacks. Prepare composes Debug for
@@ -56,7 +57,7 @@ blocks before Plan; Prepare never guesses a correction.
 
 Prepare's public phases exchange complete plain packets. Plan is the sole publisher and supports one
 exact GitHub parent selector or one exact Project selector. It creates no source branch, worktree,
-commit, PR, implementation worker, local run, or remote record. It reports the verified parent,
+commit, PR, implementation worker, local run, or second remote record. It reports the verified parent,
 children, native prerequisite edges, and the separate next suggestion:
 `/woostack-orchestrate --issue <verified-parent-url>` (or the applicable Project command).
 Partial publication preserves exact confirmed identities and resumes Plan at the first unproved
@@ -92,7 +93,6 @@ Graph/scope drift preserves running reservations and stops fresh dispatch; unkno
 require direct stopped-worker/branch/PR reconciliation before same-identity repair. The final result
 is submitted PRs awaiting review/merge, not closed issues or product acceptance.
 
-
 ## Execute
 
 ```text
@@ -101,8 +101,8 @@ is submitted PRs awaiting review/merge, not closed issues or product acceptance.
 
 Execute accepts one complete bounded enhancement, refactor, test-only task, or authorized
 understood correction. It needs no parent issue, Project, or persisted plan; an exact issue is optional
-and read-only through an authorized GitHub capability. Unknown root cause, unresolved scope, or work
-that needs multiple increments stays at Debug or Prepare, the applicable planning workflow.
+and read-only through an authorized GitHub capability. Unknown root cause stays with Debug. Unresolved
+scope or work that needs multiple increments stays with the applicable planning workflow.
 
 ## Shared execution boundary
 
@@ -127,10 +127,9 @@ returning uncommitted work for a parent to deliver.
 
 ## Review and corrections
 
-Local Review uses one reviewer across all relevant concerns for bounded low-risk changes and
-specialists for broader or riskier changes. An independent adjudicator checks each proposed finding
-against the evidence. CI and audit keep specialist coverage. Review receipts record what was checked
-and bind the result to the exact source.
+PR review uses [Pullfrog](https://pullfrog.com/). Execute does not require an independent pre-commit
+review receipt. Orchestrate independently validates each submitted task against its contract before
+releasing dependents; this is not permission to mark ready or merge.
 
 Address-comments investigates every thread, batches coherent corrections and verification, then
 replies and resolves each thread independently. Unsafe decisions stay open without discarding

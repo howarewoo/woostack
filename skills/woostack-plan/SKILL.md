@@ -35,7 +35,7 @@ configuration.
 Before publication, load the shared [planning input packet](../using-woostack/references/planning-inputs.md),
 the [GitHub publication context](references/github-context.md), and the [GitHub publication procedure](references/github-procedure.md).
 The [GitHub profile](../woostack-init/references/artifact-providers/github.md#configuration-and-scope)
-owns native identities, capabilities, and API semantics. Plan uses only host-authenticated `gh`
+owns native identities, capabilities, and API semantics. Plan prefers suitable authorized native GitHub capabilities and supports host-authenticated `gh`
 through that contract; it never reads credentials or uses a custom transport.
 
 ## Input and ownership
@@ -93,6 +93,7 @@ boundary, adapter mapping, validation/narrowing, transport error translation, ap
 wire/API compatibility, and focused boundary-check obligations under the canonical
 [application-boundary adapters rule](../woostack-bootstrap/references/patterns.md#3-application-boundary-adapters).
 Do not demand identity-only wrappers when an existing shared application/domain contract is correct.
+
 
 Before admitting a check or smoke scenario, independently verify every named repository-local script
 or path exists at the admitted parent tip, is created by an admitted prerequisite before use, or is

@@ -70,7 +70,7 @@ without overwriting prior evidence. A missing state file is allowed only on the 
 where `--state` is omitted; every later call must name an existing state file and stop on
 missing/corrupt/mismatched state rather than reinitializing it.
 
-The five bridge commands are:
+The six bridge commands are:
 
 ```text
 python3 <orchestrate-skill>/scripts/orchestrate.py admit \
@@ -91,6 +91,11 @@ python3 <orchestrate-skill>/scripts/orchestrate.py schedule \
   --git-repo <canonical-git-repository> --fresh <fresh-snapshot.json> \
   [--cap <host-cap>] [--parent-decision <decision.json>]
 
+python3 <orchestrate-skill>/scripts/orchestrate.py record-worker \
+  --admitted admitted.json --state controller-state.json \
+  --state-out controller-state.json --git-repo <canonical-git-repository> \
+  --task <task-id> --evidence <native-host-launch-readback.json>
+
 python3 <orchestrate-skill>/scripts/orchestrate.py apply-result \
   --admitted admitted.json --state controller-state.json \
   --state-out controller-state.json --git-repo <canonical-git-repository> \
@@ -99,7 +104,8 @@ python3 <orchestrate-skill>/scripts/orchestrate.py apply-result \
 python3 <orchestrate-skill>/scripts/orchestrate.py reconcile \
   --admitted admitted.json --state controller-state.json \
   --state-out controller-state.json --git-repo <canonical-git-repository> \
-  --task <task-id> --evidence <canonical-reconciliation-evidence.json>
+  --task <task-id> --inventory <fresh-recovery-inventory.json> \
+  --evidence <canonical-reconciliation-evidence.json>
 python3 <orchestrate-skill>/scripts/orchestrate.py stop \
   --admitted admitted.json --state controller-state.json \
   --state-out controller-state.json --git-repo <canonical-git-repository> \
@@ -167,13 +173,7 @@ widens the explicit list.
    children (reported as `no-work`, never executed as one task).
 
 The admission fingerprint binds mode, canonical selector or normalized selected issue set, canonical
-repository, native parent/Project and specification identity or selected issue identities,
-repository rules, graph provenance, and every immutable task field including native hierarchy, IDs
-(including Project `item_id`), titles/bodies, contract, and dependencies. Runtime workspace and
-branch evidence is deliberately excluded. It excludes the host cap, mutable integration SHA, and
-runtime delivery evidence. A fresh snapshot with changed scope, contract, identity, or effective
-graph returns `snapshot-drift` and preserves running work; it never launches a duplicate, silently
-adopts a new issue, or erases an inferred edge.
+repository, native parent/Project identity and its specification identity/body, or each selected issue's identity/body, repository rules, graph provenance, and every immutable task field including native hierarchy, IDs (including Project `item_id`), titles/bodies, contract, and dependencies. Runtime workspace and branch evidence is excluded. It excludes the host cap, mutable integration SHA, and runtime delivery evidence. A fresh snapshot with changed scope, contract, identity, or effective graph returns `snapshot-drift` and preserves running work; it never launches a duplicate, silently adopts a new issue, or erases an inferred edge.
 
 ## Select an isolated workspace and dispatch
 
@@ -213,14 +213,19 @@ host file; do not invent a transport or silently run inline. The worker may edit
 workspace and may not schedule siblings, modify hierarchy/Project progress, or write another task's
 surface. Never copy secrets into worker prompts or synthesize credentials; use the host's existing
 authenticated tools.
+Read back the native launched worker/session and persist it with
+[`record-worker`](references/validation.md#record-the-native-writer) before processing its result.
+If launch identity is lost, discover it from the actual host; never invent one from artifact prose.
 
 ## Continuously refill on completion
 
 1. Dispatch all entries from the current `schedule` response up to its effective cap, then wait
    for **one** worker completion or actionable host event—not the whole batch.
 2. Process that completion through the independent result, validation, note, and optional Project
-   gates below. Use `apply-result` even for unknown/malformed outcomes so the reservation, evidence,
-   and first uncertain boundary are retained. A worker's finish alone never releases its dependents.
+   gates below. Bind every `apply-result` envelope to the originating native handle under the
+   [result contract](references/validation.md#result-schema), never to current task state. Use a
+   valid bound envelope for unknown/malformed worker responses; unparseable/unbound envelopes are
+   rejected without changing the current reservation. A worker's finish never releases dependents.
 3. Immediately assemble fresh scope and delivery evidence, invoke `schedule` with the existing
    state, and launch newly emitted workers while unrelated workers remain active. Thus verified A
    can release C while B is still running. Do not order by ordinal or introduce wave barriers.
@@ -262,12 +267,15 @@ canonical [`#artifact-delivery-note`](../woostack-commit/references/provider-att
 mechanism. Release dependents only after that readback is included in the result. In explicit
 Project mode only, and only when its configured lifecycle mapping was admitted, write and read back
 `inReview`; a schedule intent is not a status receipt. Parent-issue mode performs no Project call.
-For `unknown`, missing, or malformed worker/result evidence, the helper retains the complete
-reservation, dirty worktree, branch, PR evidence, and first uncertain boundary. Unknown blocks only
-that task and its descendants; unrelated ready tasks remain dispatchable only within proven spare
-capacity because a possibly-live unknown worker still occupies its slot. Run `reconcile` only with
-the admitted scope, existing state, canonical Git repository, and direct evidence that includes
-`worker_stopped: true` plus the reserved branch/workspace/parent and canonical PR/readback identity.
+For a bound `unknown`, missing, or malformed worker response, the helper retains the complete
+reservation, dirty worktree, branch, PR evidence, and first uncertain boundary. An unparseable or
+unbound envelope returns `worker-identity` without changing claims, checkpoint, reservation, or
+status. Unknown blocks only that task and its descendants; unrelated ready tasks remain dispatchable
+only within proven spare capacity because a possibly-live unknown worker still occupies its slot.
+Run `reconcile` only with
+the admitted scope, existing state, canonical Git repository, freshly read host recovery inventory,
+and [bound stopped-worker evidence](references/validation.md#unknown-reconciliation) plus the
+reserved branch/workspace/parent and canonical PR/readback identity.
 A canonical open PR with exact identity returns `evidence-pending`: assemble and apply the
 independent full result/check/note evidence without dispatching another Execute worker. A no-PR
 recovery must satisfy the complete [absence evidence contract](references/validation.md#unknown-reconciliation);

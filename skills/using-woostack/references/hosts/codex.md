@@ -4,11 +4,11 @@
 
 Codex CLI locally (subagent spawns accept a `model` override); Codex Action in CI
 (single-session, no subagent model overrides).
-Discover authorized native GitHub capabilities exposed through Codex MCP configuration, or use the
-host-authenticated GitHub CLI (`gh`), for explicit GitHub operations under the selected workflow's
-admission. Discover actual GitHub operation capabilities and read/write shapes rather than assuming
-tool names or schemas. Never use custom HTTP/REST/GraphQL transport or fallback tokens. GitHub
-operations follow the canonical
+Discover authorized native GitHub capabilities exposed through Codex MCP configuration. Prefer a
+suitable native capability; host-authenticated GitHub CLI (`gh`) remains supported for explicit
+GitHub operations under the selected workflow's admission. Discover actual GitHub operation
+capabilities and read/write shapes rather than assuming tool names or schemas. Never use custom
+HTTP/REST/GraphQL transport or fallback tokens. GitHub operations follow the canonical
 [artifact backends contract](../../../woostack-init/references/artifact-backends.md) and
 [GitHub profile](../../../woostack-init/references/artifact-providers/github.md#configuration-and-scope).
 
@@ -57,6 +57,6 @@ host — no spawn-time auth probe exists; switch manually by promoting an entry 
 Single-session context (Codex Action) is not a degradation — it is the documented
 one-run-model collapse. A local spawn that cannot carry `model` → session model + say so
 (degraded), per the inline law of the dispatching skill.
-When an authorized native GitHub capability or host-authenticated `gh`, or a required operation
-capability, is absent, fail closed for required GitHub boundaries or report the missing capability
-for optional operations per the canonical artifact contract.
+If no authorized GitHub interface (native capability or host-authenticated `gh`) supports a
+required operation capability, fail closed for required GitHub boundaries; for optional operations,
+report the missing capability per the canonical artifact contract.

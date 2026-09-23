@@ -105,7 +105,7 @@
     },
     {
       "id": "resumes-after-unknown-submit-without-replaying-exact-boundaries",
-      "prompt": "Classify this bounded repository resume snapshot after a prior gt submit timeout without running commands. Fresh complete Git, Graphite, and GitHub reads verify finalized local commit c45, submitted branch change/cache-recovery, and canonical GitHub PR https://github.com/acme/widgets/pull/45 with exact head/base and merge-closing reference. PR fields and submission already match. Because the PR is already open and up-to-date, resume skips gt modify, gt submit, and gh pr edit, and proceeds to optional GitHub issue delivery note. Return exactly one JSON object using keys status, resumeBoundary, skippedOperations, resubmitAllowed, and mergeAllowed.",
+      "prompt": "Classify this bounded repository resume snapshot after a prior stack-submission timeout without running commands. Fresh complete Git, Graphite, and GitHub reads verify finalized local commit c45, submitted branch change/cache-recovery, and canonical GitHub PR https://github.com/acme/widgets/pull/45 with exact head/base and merge-closing reference. PR fields and submission already match. Because the PR is already open and up-to-date, resume skips duplicate stack modification, submission, and PR field-update operations, and proceeds to optional GitHub issue delivery note. Return exactly one JSON object using keys status, resumeBoundary, skippedMutations, resubmitAllowed, and mergeAllowed.",
       "fixtures": [],
       "capabilities": [
         "read-workspace"
@@ -124,6 +124,17 @@
           "kind": "final-json-path-equals",
           "pointer": "/resumeBoundary",
           "expected": "github-issue-delivery-note",
+          "critical": true
+        },
+        {
+          "id": "resume-skips-exact-mutations",
+          "kind": "final-json-path-equals",
+          "pointer": "/skippedMutations",
+          "expected": [
+            "stack modification",
+            "submission",
+            "PR field update"
+          ],
           "critical": true
         },
         {

@@ -15,6 +15,7 @@ scope.
   <Card title="GitHub" href="/docs/configuration/artifacts/github" description="Direct issue-graph and Project publication, recovery, and lifecycle boundaries." />
 </Cards>
 
+
 ## Guarantees
 
 Configuration is non-secret policy. The optional top-level `github` object is the only active remote
@@ -29,9 +30,11 @@ resources before continuing. Missing, partial, ambiguous, duplicate, foreign, or
 stop at the last safe boundary. No Project destination is guessed.
 
 A GitHub failure is reported with its confirmed identity boundary. Project status never grants
-permission to merge a PR; agents never merge. Goal-only Execute makes no remote calls; an explicit
-exact GitHub issue permits only its documented read. Retained legacy configuration and records
-remain opaque and inactive; they are not imported or rewritten.
+permission to merge a PR; agents never merge. Goal-only Execute makes no remote calls. An explicit
+exact GitHub issue permits only its documented read through authorized native GitHub capabilities or
+host-authenticated `gh`, not Project access or issue lifecycle writes. Execute needs no
+planning-provider call; Commit separately owns repository/PR delivery. Retired managed-provider
+configuration and records remain opaque and inactive; they are not imported or rewritten.
 
 The canonical implementation rules live in the
 [artifact contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-backends.md#direct-publication-and-recovery)

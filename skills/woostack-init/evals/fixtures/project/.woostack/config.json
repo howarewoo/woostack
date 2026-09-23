@@ -13,6 +13,5 @@
   },
   "models": {},
   "review": {"required": true},
-  "status": {"staleDays": 14},
   "owner": "platform"
 }

@@ -405,9 +405,10 @@ def _claim(repo, admitted, owner, task=None):
     }
     if path.is_symlink():
         raise InputError("unsafe-ownership", "orchestration claim cannot be a symlink")
-    try:
-        descriptor = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600)
-    except FileExistsError:
+
+    def existing_claim():
+        if path.is_symlink():
+            raise InputError("unsafe-ownership", "orchestration claim cannot be a symlink")
         try:
             existing = load_json(path)
         except InputError as error:
@@ -420,21 +421,30 @@ def _claim(repo, admitted, owner, task=None):
             and existing.get("issue_url") == record["issue_url"]
         ), "ownership-conflict", "task or scope is owned by another controller")
         return existing
-    except OSError as error:
-        raise InputError("ownership-unavailable", str(error)) from error
+
+    if path.exists():
+        return existing_claim()
+
+    descriptor, temporary = tempfile.mkstemp(prefix=path.name + ".", dir=claims)
     try:
-        with os.fdopen(descriptor, "w", encoding="utf-8") as stream:
-            json.dump(record, stream, indent=2, sort_keys=True)
-            stream.write("\n")
+        with os.fdopen(descriptor, "wb") as stream:
+            stream.write(_json_bytes(record))
             stream.flush()
             os.fsync(stream.fileno())
-    except OSError as error:
         try:
-            path.unlink()
-        except OSError:
-            pass
+            os.link(temporary, path, follow_symlinks=False)
+        except FileExistsError:
+            return existing_claim()
+        _fsync_parent(path)
+        return record
+    except OSError as error:
         raise InputError("ownership-write", str(error)) from error
-    return record
+    finally:
+        try:
+            os.unlink(temporary)
+        except FileNotFoundError:
+            pass
+
 
 
 def claim_scope(repo, admitted, state):
@@ -753,6 +763,7 @@ def admit(snapshot, mode, selector, limit):
             "missing-integration", "admitted integration branch and commit required")
     parent_url = None
     selector_urls = None
+    scope = {}
     if mode == "issue":
         require(ISSUE_RE.fullmatch(selector) is not None, "invalid-issue-url", "exact issue URL required")
         selector = canonical_issue_url(selector, canonical)
@@ -785,7 +796,6 @@ def admit(snapshot, mode, selector, limit):
     else:
         selector_urls = canonical_issue_selectors(selector, canonical)
         selector = " ".join(selector_urls)
-        scope = {"selector_urls": selector_urls}
         entries = snapshot.get("selected_issues", snapshot.get("issues"))
         require(isinstance(entries, list), "incomplete-selection", "selected issue records are missing")
         pagination(snapshot, ("issues", "parents", "dependencies", "contracts"))
@@ -840,7 +850,8 @@ def admit(snapshot, mode, selector, limit):
         task = entry.get("task_id")
         if mode == "issues" and not task:
             task = "issue-" + ISSUE_RE.fullmatch(entry["url"]).group(3)
-        require(text(task) and TASK_RE.fullmatch(task), "invalid-identity", "non-empty stable task ID required")
+        require(isinstance(task, str) and TASK_RE.fullmatch(task) and ".." not in task
+                and not task.endswith((".", ".lock")), "invalid-identity", "Git-safe stable task ID required")
         ordinal = entry.get("ordinal")
         if mode == "issues" and ordinal is None:
             ordinal = index
@@ -865,14 +876,10 @@ def admit(snapshot, mode, selector, limit):
         # supplied by a repository, host, or agent on a fresh refill, but must
         # never become issue/publication identity or snapshot drift.
         record["contract_hash"] = digest(entry["contract"])
+        record["contract_revision"] = record["contract_hash"]
         if mode == "issues":
             record["specification"] = entry.get("specification", entry["body"])
             require(text(record["specification"]), "malformed-contract", "selected issue specification missing")
-        record["contract_revision"] = record["contract_hash"]
-        record["dependency_snapshot"] = {
-            "prerequisites": list(record["prerequisites"]),
-            "external_prerequisites": list(record["external_prerequisites"]),
-        }
         tasks.append(record)
     identity_entries = list(by_url.values())
     for key in (("id", "node_id", "item_id") if mode == "project" else ("id", "node_id")):
@@ -881,6 +888,11 @@ def admit(snapshot, mode, selector, limit):
     tasks_by_id = {task["task_id"]: task for task in tasks}
     require(len(tasks_by_id) == len(tasks), "duplicate-identity", "duplicate task_id")
     edges = collect_edges(snapshot, tasks, mode, canonical)
+    for task in tasks:
+        task["dependency_snapshot"] = {
+            "prerequisites": list(task["prerequisites"]),
+            "external_prerequisites": list(task["external_prerequisites"]),
+        }
     graph = graph_metadata(snapshot, edges) if mode == "issues" else {
         "coverage": "native", "model_inference": "not-applicable",
         "source": "native-read", "complete": True}
@@ -896,10 +908,8 @@ def admit(snapshot, mode, selector, limit):
     if tasks:
         require(host.get("delivery_capable") is True, "no-subagent-capability", "delivery-capable subagent required")
     ordered_tasks = sorted(tasks, key=lambda task: task["task_id"]) if mode == "issues" else tasks
-    immutable_tasks = []
-    for task in sorted(tasks, key=lambda t: t["task_id"]):
-        immutable_tasks.append({k: v for k, v in task.items()
-                                if k not in ("existing_delivery", "workspace", "branch")})
+    immutable_tasks = [{k: v for k, v in t.items() if k not in ("existing_delivery", "workspace", "branch")}
+                       for t in sorted(tasks, key=lambda t: t["task_id"])]
     scope_identity = {
         "mode": mode,
         "selector_url": selector,
@@ -909,7 +919,7 @@ def admit(snapshot, mode, selector, limit):
         "number": scope.get("number") if mode == "project" else None,
     }
     binding = {"mode": mode, "selector_url": selector, "canonical_repo": canonical,
-               "scope": scope, "scope_identity": scope_identity,
+               "scope": scope if mode != "issues" else {"selector_urls": selector_urls}, "scope_identity": scope_identity,
                "repository_rules": snapshot["repository_rules"], "integration_branch": integration["branch"],
                "tasks": immutable_tasks, "edges": copy.deepcopy(edges),
                "edge_provenance": copy.deepcopy(edges), "graph": copy.deepcopy(graph),
@@ -1461,6 +1471,12 @@ def cmd_schedule(args):
     state = state_read(args.state, admitted) if args.state else new_state(admitted)
     if not args.state:
         require(not Path(args.state_out).exists(), "existing-state", "initial state already exists; resume it")
+        # Publish the owner-bearing initial state before acquiring the claim: the
+        # claim's random owner is only recoverable from durable state, so a claim
+        # must never exist at a point where an interruption would lose its owner.
+        write_state(args, state)
+        state["_loaded_digest"] = hashlib.sha256(_json_bytes(state)).hexdigest()
+        args.state = args.state_out
     claim_scope(args.git_repo, admitted, state)
     try:
         selected = admitted.get("selector_urls") if admitted["mode"] == "issues" else admitted["selector_url"]
@@ -1628,106 +1644,118 @@ def cmd_schedule(args):
             })
             continue
         repair = item["status"] == "repair-ready"
-        try:
-            if repair:
-                reservation = item["reservation"]
-                try:
-                    identity = workspace_identity(args.git_repo, admitted["canonical_repo"],
-                                                  reservation["workspace"], reservation["branch"])
-                    require(contains(reservation["workspace"], reservation["parent_sha"],
-                                     identity["head_sha"]),
-                            "wrong-ancestry", "repair workspace no longer contains admitted start")
-                except InputError as error:
-                    blocked.append({"task_id": tid,
-                                    "reason": getattr(error, "code", "workspace-conflict")})
-                    continue
-            else:
+        if repair:
+            reservation = item["reservation"]
+            try:
+                identity = workspace_identity(args.git_repo, admitted["canonical_repo"],
+                                              reservation["workspace"], reservation["branch"])
+                require(contains(reservation["workspace"], reservation["parent_sha"], identity["head_sha"]),
+                        "wrong-ancestry", "repair workspace no longer contains admitted start")
+            except InputError as error:
+                blocked.append({"task_id": tid, "reason": getattr(error, "code", "workspace-conflict")})
+                continue
+        else:
+            try:
                 parent = choose_parent(admitted, task, state, decisions, args.git_repo)
-                if parent is None:
-                    paused.append({"task_id": tid, "reason": "join-no-containing-parent",
-                                   "prerequisite_branches": [
-                                       state["tasks"][p]["delivery"]["branch"]
-                                       for p in task["prerequisites"]]})
-                    continue
-                try:
-                    allocation = runtime_allocation(fresh, tid, root)
-                except InputError as error:
-                    blocked.append({"task_id": tid,
-                                    "reason": getattr(error, "code", "workspace-unassigned")})
-                    continue
-                reservation = {"branch": allocation["branch"],
-                               "workspace": allocation["workspace"],
-                               "parent_branch": parent["branch"], "parent_sha": parent["sha"],
-                               "task_url": task["url"],
-                               "scope": copy.deepcopy(admitted["scope_identity"]),
-                               "contract_hash": task["contract_hash"]}
-            workspace = reservation["workspace"]
-            if any(other != tid and other_item.get("reservation")
-                   and overlaps(workspace, other_item["reservation"]["workspace"])
-                   for other, other_item in state["tasks"].items()):
-                blocked.append({"task_id": tid, "reason": "workspace-alias-collision"})
+            except InputError as error:
+                paused.append({"task_id": tid, "reason": error.code})
+                continue
+            if parent is None:
+                paused.append({"task_id": tid, "reason": "join-no-containing-parent",
+                               "prerequisite_branches": [state["tasks"][p]["delivery"]["branch"] for p in task["prerequisites"]]})
                 continue
             try:
-                collision = (allocation_collision(args.git_repo, admitted["canonical_repo"],
-                                                  reservation, inventory, state, tid)
-                             if not repair else None)
+                allocation = runtime_allocation(fresh, tid, root)
             except InputError as error:
-                blocked.append({"task_id": tid,
-                                "reason": getattr(error, "code", "workspace-conflict")})
+                blocked.append({"task_id": tid, "reason": getattr(error, "code", "workspace-unassigned")})
                 continue
-            if collision:
-                blocked.append({"task_id": tid, "reason": collision})
+            reservation = {"branch": allocation["branch"], "workspace": allocation["workspace"],
+                           "parent_branch": parent["branch"], "parent_sha": parent["sha"],
+                           "task_url": task["url"], "scope": copy.deepcopy(admitted["scope_identity"]),
+                           "contract_hash": task["contract_hash"]}
+        if any(other != tid and other_item.get("reservation")
+               and overlaps(reservation["workspace"], other_item["reservation"]["workspace"])
+               for other, other_item in state["tasks"].items()):
+            blocked.append({"task_id": tid, "reason": "workspace-alias-collision"})
+            continue
+        try:
+            collision = allocation_collision(args.git_repo, admitted["canonical_repo"], reservation,
+                                             inventory, state, tid) if not repair else None
+        except InputError as error:
+            blocked.append({"task_id": tid, "reason": getattr(error, "code", "workspace-conflict")})
+            continue
+        if collision:
+            blocked.append({"task_id": tid, "reason": collision})
+            continue
+        existing_checkout = (Path(reservation["workspace"]).exists()
+                             and git(reservation["workspace"], "rev-parse", "--show-toplevel",
+                                     allow_missing=True) is not None)
+        if not repair and existing_checkout:
+            try:
+                current = workspace_identity(args.git_repo, admitted["canonical_repo"],
+                                             reservation["workspace"], reservation["branch"])
+                require(contains(reservation["workspace"], reservation["parent_sha"], current["head_sha"]),
+                        "wrong-ancestry", "existing task workspace does not contain selected parent")
+                fresh_workspace_state(reservation["workspace"], reservation["parent_sha"], current["head_sha"])
+            except InputError as error:
+                blocked.append({"task_id": tid, "reason": getattr(error, "code", "workspace-conflict")})
                 continue
-            existing_checkout = (Path(workspace).exists()
-                                 and git(workspace, "rev-parse", "--show-toplevel",
-                                         allow_missing=True) is not None)
-            if not repair and existing_checkout:
-                try:
-                    current = workspace_identity(args.git_repo, admitted["canonical_repo"],
-                                                 reservation["workspace"], reservation["branch"])
-                    require(contains(reservation["workspace"], reservation["parent_sha"],
-                                     current["head_sha"]),
-                            "wrong-ancestry",
-                            "existing task workspace does not contain selected parent")
-                    fresh_workspace_state(reservation["workspace"], reservation["parent_sha"],
-                                           current["head_sha"])
-                except InputError as error:
-                    blocked.append({"task_id": tid,
-                                    "reason": getattr(error, "code", "workspace-conflict")})
-                    continue
-            if slots == 0:
-                continue
+        if slots == 0:
+            continue
+        try:
             claim_task(args.git_repo, admitted, task, state, item)
-            retained_pr = item.get("verified_pr")
-            decision = decisions.get(tid) or item.get("parent_decision")
-            readiness = parent_readiness(fresh, task, state, reservation, decision,
-                                         args.git_repo, retained=repair)
-            item.update(status="running", reservation=reservation,
-                        parent_decision=copy.deepcopy(decision),
-                        first_uncertain_boundary=None,
-                        last_evidence={"parent_readiness": copy.deepcopy(readiness)})
-            dispatch.append({"task_id": tid, "ordinal": task["ordinal"], "child_url": task["url"],
-                             "repair": repair, "retained_pr": retained_pr, **reservation,
-                             "packet": packet(admitted, task, reservation, repair, retained_pr,
-                                              readiness)})
-            occupied.append(tid)
-            slots -= 1
-        except (InputError, KeyError, TypeError) as error:
-            reason = _safe_reason(error)
-            if reason == "ownership-conflict":
-                blocked.append({"task_id": tid, "reason": reason,
-                                "next_action": "reconcile the other controller's canonical task claim"})
-            elif reason in ("parent-tip-drift", "wrong-ancestry", "decision-rejected",
-                            "unapproved-parent", "uncontained-prerequisite"):
-                paused.append({"task_id": tid, "reason": reason,
-                               "next_action": "make an explicit parent/base decision and re-read Git ancestry"})
-            else:
-                blocked.append({"task_id": tid, "reason": reason})
+        except InputError as error:
+            blocked.append({"task_id": tid, "reason": error.code,
+                            "next_action": "reconcile the other controller's canonical task claim"})
+            continue
+        retained_pr = item.get("verified_pr")
+        decision = decisions.get(tid) or item.get("parent_decision")
+        try:
+            readiness = parent_readiness(fresh, task, state, reservation, decision, args.git_repo, retained=repair)
+        except InputError as error:
+            paused.append({"task_id": tid, "reason": error.code})
+            continue
+        item.update(status="running", reservation=reservation, parent_decision=copy.deepcopy(decision),
+                    host_worker=None,
+                    first_uncertain_boundary=None,
+                    last_evidence={"parent_readiness": copy.deepcopy(readiness)})
+        dispatch.append({"task_id": tid, "ordinal": task["ordinal"], "child_url": task["url"],
+                         "repair": repair, "retained_pr": retained_pr, **reservation,
+                         "packet": packet(admitted, task, reservation, repair, retained_pr, readiness)})
+        occupied.append(tid)
+        slots -= 1
     write_state(args, state)
     return {"status": "no-work" if not admitted["tasks"] else "ok", "effective_cap": cap,
             "notice": fresh["notice"], "dispatch": dispatch, **_state_summary(
                 state, blocked=blocked, waiting=waiting, paused=paused,
                 unknown_details=unknown)}
+
+
+def cmd_record_worker(args):
+    admitted = load_json(args.admitted)
+    repository(args.git_repo, admitted["canonical_repo"])
+    state = state_read(args.state, admitted)
+    require(args.task in state["tasks"], "unknown-task", "task outside admitted scope")
+    item = state["tasks"][args.task]
+    require(item["status"] in ("running", "unknown"), "not-running", "worker needs an active reservation")
+    receipt = load_json(args.evidence)
+    worker = receipt.get("worker")
+    require(isinstance(worker, dict)
+            and set(worker) == {"host_id", "session_id", "worker_id"}
+            and all(text(value) for value in worker.values()),
+            "worker-liveness", "native host/session/worker identity required")
+    require(receipt.get("reservation") == item["reservation"],
+            "evidence-mismatch", "host launch readback must match the reservation")
+    require(item.get("host_worker") in (None, worker),
+            "worker-liveness", "recorded writer cannot be replaced")
+    require(receipt.get("state_digest") == state["_loaded_digest"],
+            "worker-liveness", "host launch readback must bind the current checkpoint")
+    task = next(t for t in admitted["tasks"] if t["task_id"] == args.task)
+    claim_scope(args.git_repo, admitted, state)
+    claim_task(args.git_repo, admitted, task, state, item)
+    item["host_worker"] = copy.deepcopy(worker)
+    write_state(args, state)
+    return {"status": "worker-recorded", "task_id": args.task}
 
 
 def cmd_apply_result(args):
@@ -1738,12 +1766,22 @@ def cmd_apply_result(args):
     item = state["tasks"][args.task]
     require(item["status"] in ("running", "note-pending", "evidence-pending"),
             "not-running", "task has no active reservation or receipt retry")
+
+    try:
+        result = load_json(args.result)
+    except InputError as error:
+        raise InputError("worker-identity", "parseable completion envelope with native worker identity required") from error
+    worker = result.get("worker")
+    host_worker = item.get("host_worker")
+    identity_fields = ("host_id", "session_id", "worker_id")
+    require(isinstance(host_worker, dict) and isinstance(worker, dict)
+            and all(text(host_worker.get(key)) for key in identity_fields)
+            and host_worker == {key: worker.get(key) for key in identity_fields},
+            "worker-identity", "completion must match the recorded native host/session/worker identity")
     task = next(t for t in admitted["tasks"] if t["task_id"] == args.task)
     claim_scope(args.git_repo, admitted, state)
     claim_task(args.git_repo, admitted, task, state, item)
-    result = {}
     try:
-        result = load_json(args.result)
         proof = validate_delivery(admitted, task, item["reservation"], result, args.git_repo)
         pr_url = result["worker"]["pr_url"]
         require(not any(tid != args.task and other.get("verified_pr") == pr_url
@@ -1779,8 +1817,30 @@ def cmd_reconcile(args):
     claim_task(args.git_repo, admitted, task, state, item)
     evidence = load_json(args.evidence)
     reservation = item["reservation"]
-    require(evidence.get("worker_stopped") is True,
-            "worker-liveness", "old writer must be proved stopped")
+    stopped = evidence.get("worker_stop")
+    worker = item.get("host_worker")
+    require(isinstance(worker, dict) and isinstance(stopped, dict),
+            "worker-liveness", "recorded host writer and bound stop readback required")
+    inventory = recovery_inventory(load_json(args.inventory))
+    require(stopped.get("worker") == worker
+            and stopped.get("state_digest") == state["_loaded_digest"]
+            and stopped.get("inventory_digest") == digest(inventory),
+            "worker-liveness", "stop readback must bind the current writer, checkpoint and inventory")
+    sessions = inventory["sessions"]
+    require(isinstance(sessions, list) and all(isinstance(row, dict) for row in sessions),
+            "worker-liveness", "host session inventory must be an explicit list")
+    matching = [row for row in sessions if row.get("worker") == worker
+                or row.get("task_id") == args.task
+                or row.get("reservation") == reservation]
+    require(len(matching) == 1 and matching[0] == {
+        "worker": worker, "task_id": args.task, "reservation": reservation, "status": "stopped",
+    }, "worker-liveness", "current host readback must prove the reserved writer stopped")
+    processes = inventory["processes"]
+    require(isinstance(processes, list) and all(isinstance(row, dict) for row in processes)
+            and all(row.get("status") == "stopped" for row in processes
+                    if row.get("worker") == worker or row.get("task_id") == args.task
+                    or row.get("reservation") == reservation),
+            "worker-liveness", "reserved writer processes must also be stopped")
     require(evidence.get("repo") == evidence.get("head_repo") == admitted["canonical_repo"],
             "foreign-repo", "canonical repository readback required")
     observed_workspace = evidence.get("workspace")
@@ -1833,6 +1893,7 @@ def cmd_reconcile(args):
         }
     item["status"] = "repair-ready" if evidence.get("pr_absent") is True else "evidence-pending"
     item["failure_reason"] = None if evidence.get("pr_absent") is True else "delivery-evidence-pending"
+    state.setdefault("recovery", {})["last_inventory"] = inventory
     if state.get("halt_reason") in (None, "unknown-response"):
         state["halt_new_dispatch"], state["halt_reason"] = False, None
     write_state(args, state)
@@ -1898,6 +1959,14 @@ def parser():
     apply.add_argument("--task", required=True)
     apply.add_argument("--result", required=True)
     apply.set_defaults(run=cmd_apply_result)
+    record_worker = commands.add_parser("record-worker")
+    record_worker.add_argument("--admitted", required=True)
+    record_worker.add_argument("--state", required=True)
+    record_worker.add_argument("--state-out", required=True)
+    record_worker.add_argument("--git-repo", required=True)
+    record_worker.add_argument("--task", required=True)
+    record_worker.add_argument("--evidence", required=True)
+    record_worker.set_defaults(run=cmd_record_worker)
     reconcile = commands.add_parser("reconcile")
     reconcile.add_argument("--admitted", required=True)
     reconcile.add_argument("--state", required=True)
@@ -1905,6 +1974,7 @@ def parser():
     reconcile.add_argument("--git-repo", required=True)
     reconcile.add_argument("--task", required=True)
     reconcile.add_argument("--evidence", required=True)
+    reconcile.add_argument("--inventory", required=True)
     reconcile.set_defaults(run=cmd_reconcile)
     stop = commands.add_parser("stop")
     stop.add_argument("--admitted", required=True)

@@ -49,9 +49,10 @@ it was assigned.
 ## Recovery and lifecycle
 
 - After success, the calling workflow verifies the finalized commit, selected workspace cleanliness,
-  and canonical PR identity when submission was requested. Woostack removes only an exact task
-  worktree it created; host-managed, external, or user-owned workspaces remain intact unless their
-  owner explicitly supplies a safe lifecycle operation.
+  and canonical PR identity when submission was requested. It retains the selected workspace unless
+  its owner explicitly supplies a safe lifecycle operation; publication does not create a workspace
+  obligation. Host-managed, external, or user-owned workspaces remain intact unless their owner
+  explicitly supplies a safe lifecycle operation.
 - On failure, handoff, collision, or an unknown result, preserve the workspace and report the task,
   retained parent/ancestry evidence, worktree inventory, branch/head, uncommitted changes, first
   unverified step, and safe next action. A timeout proves neither success nor absence.
@@ -61,4 +62,4 @@ it was assigned.
 
 An unavailable optional GitHub read does not weaken collision or ancestry checks. A failed GitHub
 delivery-note operation is reported separately and does not block delivery already verified against
-local task evidence and repository state.
+local task evidence and repository state; it never grants merge authority.

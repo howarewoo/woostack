@@ -396,25 +396,24 @@ its descendants; it never redispatches a duplicate or releases descendants.
 
 ## State, reservations, and joins
 
-State is one explicit private session-local controller file, not a retained-artifact ledger. It carries
+State is one explicit private session-local controller file, not a provider or retained-artifact ledger. It carries
 `version`, the immutable `fingerprint`, exact `scope_identity`, a random controller owner token,
 stop/halt flags, last recovery inventory, and one task entry per admitted child. Each task entry
 keeps its native membership/dependency and contract revisions, claim provenance, worker identity,
 reservation/worktree/branch/parent start, current source/diff identity, checks/validator receipts,
-PR identity, delivery checkpoint, and first uncertain boundary distinct. The caller must externally
-enforce exclusive ownership of the selected canonical scope/state for the controller session,
-covering every `schedule`, `apply-result`, and `reconcile` call. If exclusive ownership cannot be
-proved, block at controller preflight before invoking the helper.
+PR identity, delivery checkpoint, and first uncertain boundary distinct. The caller must externally enforce exclusive ownership of the selected canonical scope/state for the controller session, covering every `schedule`, `record-worker`, `apply-result`, and `reconcile` call. If exclusive ownership cannot be proved, block at controller preflight before invoking the helper.
 
 The helper additionally takes owner-only atomic claims under
 `<primary-root>/.woostack/tmp/orchestrate-claims/`: one exact scope claim and one claim keyed by
 the canonical repository plus canonical child issue URL (with native REST/GraphQL IDs retained in
-the claim record). A second controller selecting a parent
-issue and a Project that overlap on a child therefore blocks before reservation; a stale or
-unreadable claim is a blocker, never permission to take over. Existing active issue/PR/checkpoint
-evidence without the current owner claim is likewise a blocker. Claims remain retained as recovery
-evidence until explicit human cleanup; they are not a scheduler/database or a replacement for the
-owner-only checkpoint contract.
+the claim record). Each record is serialized and fsynced in an owner-only same-directory temp file,
+then atomically hard-linked to its final path without replacement and followed by a claims-directory
+fsync. A second controller selecting a parent issue and a Project that overlap on a child therefore
+blocks before reservation. An interruption leaves either no final claim or a complete claim; a
+stale, foreign, or unreadable claim is a blocker, never permission to take over. Existing active
+issue/PR/checkpoint evidence without the current owner claim is likewise a blocker. Claims remain
+retained as recovery evidence until explicit human cleanup; they are not a scheduler/database or a
+replacement for the owner-only checkpoint contract.
 Each mutation acquires an owner-owned per-scope checkpoint lock derived from the canonical repository
 and scope fingerprint, then compares the loaded digest with the durable checkpoint head while holding
 that lock before replacing `--state-out`; stale/concurrent writers fail closed as `stale-state`, and
@@ -426,11 +425,14 @@ head, only a caller that loaded those next bytes may finish recovery. Any other 
 checkpoint recovery evidence and never adopts arbitrary bytes. The head is independent of
 input/output filenames, so a second writer using the same stale `--state` cannot advance a different
 `--state-out`.
-The first schedule omits `--state` and creates state. Every later schedule, apply-result,
-reconcile, or stop names an existing state and matching admission. Missing state, malformed JSON,
+The first schedule omits `--state` and creates state. Every later schedule, record-worker,
+apply-result, reconcile, or stop names an existing state and matching admission. Missing state, malformed JSON,
 state/fingerprint/scope mismatch, missing durable checkpoint head, or a state task set that differs
-from the admission blocks; never silently reinitialize. Keep the state path private and use the
-helper's atomic `--state-out` replace.
+from the admission blocks; never silently reinitialize. The initial state is published before the
+scope claim is acquired, and the claim becomes visible only after its complete owner-bearing record
+is durable. A first-schedule interruption therefore leaves resumable owner-bearing state with either
+no claim or one complete same-owner claim. Keep the state path private and use the helper's atomic
+`--state-out` replace.
 
 Under that exclusive ownership, the helper persists the actual selected task branch, absolute
 workspace, parent branch, and parent SHA before host dispatch. The branch and workspace are runtime
@@ -439,6 +441,9 @@ original reservation and retained PR. Before reuse, compare canonical physical p
 aliases and ancestor/descendant paths), repository identity, current branch/HEAD, and complete Git
 worktree inventory. A suitable existing worktree may be retained; an incompatible or unclaimed
 branch/workspace blocks. The helper reservation does not itself create Git state.
+After launch, checkpoint the [native writer identity](validation.md#record-the-native-writer)
+separately from the worker's delivery report. Missing or uncorrelated native identity keeps unknown
+work reserved; no stopped receipt may substitute a foreign session or previous repair attempt.
 
 Roots use the admitted integration branch/SHA. A dependent may use a delivered prerequisite branch
 or the admitted integration branch only when local
@@ -456,6 +461,6 @@ The helper writes machine-readable JSON and exits zero for controlled workflow s
 not treat process exit zero as delivery. `schedule` output includes dispatch entries, delivered,
 active, unknown, evidence-pending, repair-ready, pending, and paused/blocked/waiting IDs with exact
 next actions.
-`apply-result`, `reconcile`, and `stop` outputs are authoritative state transitions; never invent a
+`record-worker`, `apply-result`, `reconcile`, and `stop` outputs are authoritative state transitions; never invent a
 success response around them. A user stop prevents new dispatch but does not declare active workers
 stopped or discard their worktrees.

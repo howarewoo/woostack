@@ -7,9 +7,8 @@ not converted into GitHub identity; report the owning boundary's actionable reti
 For an exact canonical GitHub issue, use an authorized GitHub read capability exposed by the host
 (prefer native host tools when suitable; host-authenticated `gh` remains supported) to read that
 issue's native identity, canonical URL/repository, open state, title/body, and needed comments, plus
-the canonical PR facts below. This exact read-only association needs no GitHub Project configuration
-and follows Execute's optional exact-issue contract.
-
+the canonical PR facts below. This exact read-only association needs no Project selection or GitHub
+configuration. It follows the [Execute issue contract](../../woostack-execute/SKILL.md#optional-exact-github-issue).
 Git and canonical GitHub reads remain authoritative for repositories, branches, commits, ancestry,
 PRs, reviews, and merge state; Graphite supplies additional ancestry evidence only when selected.
 

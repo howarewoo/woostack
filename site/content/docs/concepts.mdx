@@ -10,9 +10,9 @@ commits it came from, and whether its pull requests (PRs) have been reviewed or 
 
 ## Planning before implementation
 
-- **Bounded work** fits one PR. Change handles a non-bug enhancement or refactor after its bounded
-  contract is admitted. Execute is the explicit implementation and draft-PR path for one complete
-  task.
+- **Bounded work** fits one PR. Execute admits an enhancement, refactor, test-only task, or
+  authorized correction with causal evidence, then implements, verifies, and delivers a draft PR.
+  It requires no preparatory project or planning workflow.
 - **Prepared work** needs a specification, evidence, and a reviewable issue graph. Prepare composes
   Debug for defects, Ideate for user-owned decisions, Harden for repository reconciliation, and Plan
   for the sole GitHub parent/child publisher. It stops before source edits, branches, workers, or PRs.
@@ -78,8 +78,8 @@ contains a concrete observed preventable instruction gap; otherwise it has no re
 Its candidate gate defines that condition, and the first pass is report-only.
 
 Diagnostic outputs from QA or production-response workflows can support a decision but cannot
-authorize a correction. Repairs first use Debug for causal proof, then Prepare for a verified issue
-graph, or Change for an admitted bounded non-bug change.
+authorize a correction. Repairs first use Debug for causal proof, then Prepare if an issue graph is
+needed, or Execute for an authorized bounded correction.
 
 ### Tools compute, agents read compact results
 

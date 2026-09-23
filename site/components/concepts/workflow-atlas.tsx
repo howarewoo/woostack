@@ -40,8 +40,8 @@ const workflows: readonly Workflow[] = [
       { label: 'Implement', kind: 'work' },
       { label: 'Verify and smoke-test', kind: 'work' },
       { label: 'Commit and submit', kind: 'work' },
-      { label: 'Verify PR and tear down', kind: 'work' },
-      { label: 'One reviewed PR', kind: 'terminal' },
+      { label: 'Verify PR and retain workspace', kind: 'work' },
+      { label: 'One draft PR awaiting human review', kind: 'terminal' },
     ],
   },
   {

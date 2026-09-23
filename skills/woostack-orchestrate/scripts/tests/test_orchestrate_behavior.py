@@ -10,11 +10,13 @@ packets, and provide independent Git/GitHub evidence.
 from __future__ import annotations
 
 import copy
+import hashlib
 import json
 import importlib.util
 import os
 import shutil
 import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -29,6 +31,54 @@ from recording_driver import (
     invoke_cli,
     make_result,
 )
+
+FAULT_RUNNER = '''"""Run the shipped helper with one deterministic interruption installed.
+
+The behavioral suite crosses a real subprocess boundary for every controller
+operation; this wrapper keeps that property while killing the helper process at
+an exact durability point instead of a timing-dependent one.
+"""
+import importlib.util
+import os
+import sys
+
+spec = importlib.util.spec_from_file_location("orchestrate_fault", sys.argv[1])
+helper = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(helper)
+fault, helper_args = sys.argv[2], sys.argv[3:]
+
+
+def die(*args, **kwargs):
+    raise SystemExit(97)
+
+
+if fault == "die-before-state-publication":
+    helper.write_state = die
+elif fault == "die-before-claim":
+    helper.claim_scope = die
+elif fault == "die-before-claim-publication":
+    original_link = os.link
+
+    def die_before_link(source, target, **kwargs):
+        if str(target).endswith(".json"):
+            die()
+        return original_link(source, target, **kwargs)
+
+    helper.os.link = die_before_link
+elif fault == "die-after-claim-publication":
+    original_fsync_parent = helper._fsync_parent
+
+    def die_after_fsync(path):
+        original_fsync_parent(path)
+        if path.parent.name == "orchestrate-claims" and path.name.endswith(".json"):
+            die()
+
+    helper._fsync_parent = die_after_fsync
+else:
+    raise SystemExit("unknown fault: " + fault)
+sys.argv = ["orchestrate.py", *helper_args]
+raise SystemExit(helper.main())
+'''
 
 
 class OrchestrateBehavior(unittest.TestCase):
@@ -51,6 +101,7 @@ class OrchestrateBehavior(unittest.TestCase):
         self.old_transport_log = os.environ.get("WOOSTACK_ORCHESTRATE_TRANSPORT_LOG")
         os.environ["WOOSTACK_ORCHESTRATE_TRANSPORT_LOG"] = str(self.transport_log)
         self.hosts = []
+        self.launch_context = {}
 
     def tearDown(self) -> None:
         for host in self.hosts:
@@ -150,6 +201,8 @@ class OrchestrateBehavior(unittest.TestCase):
             args += ["--parent-decision", str(decision)]
         code, payload = invoke_cli(*args)
         self.assertEqual(code, 0, payload)
+        for entry in payload.get("dispatch", []):
+            self.launch_context[entry["branch"]] = (admitted_path, state_out)
         return state_out, payload
 
     def _apply(
@@ -237,9 +290,25 @@ class OrchestrateBehavior(unittest.TestCase):
 
 
     def _start_host(self, workers: int = 3) -> FakeHost:
-        host = FakeHost(self.repo, self.github, max_workers=workers)
+        host = FakeHost(self.repo, self.github, max_workers=workers, on_launch=self._record_launch)
         self.hosts.append(host)
         return host
+
+    def _record_launch(self, entry, worker) -> None:
+        admitted_path, state = self.launch_context[entry["branch"]]
+        receipt = self._write_json("launch-" + worker["worker_id"] + ".json", {
+            "worker": worker, "reservation": self._reservation(entry),
+            "state_digest": hashlib.sha256(state.read_bytes()).hexdigest(),
+        })
+        code, payload = invoke_cli(
+            "record-worker", "--admitted", str(admitted_path), "--state", str(state),
+            "--state-out", str(state), "--git-repo", str(self.repo),
+            "--task", entry["task_id"], "--evidence", str(receipt),
+        )
+        self.assertEqual(code, 0, payload)
+
+    def _stop_receipt(self, host, task_id, state):
+        return host.stopped_receipt(task_id, state, host.recovery_inventory())
 
     def _seed_prior_delivery(self, task_id: str, parent_branch: str = "main", parent_sha: Optional[str] = None) -> Dict[str, Any]:
         """Create actual historical PR bytes, without declaring their current readiness."""
@@ -874,6 +943,120 @@ class OrchestrateBehavior(unittest.TestCase):
         self.assertFalse(pending_path.exists())
         self.assertTrue(helper.state_read(str(state), admitted)["halt_new_dispatch"])
 
+    def _interrupted_schedule(self, fault: str, schedule_args: Sequence[str]) -> None:
+        """Run one real first-schedule attempt that dies at an exact durability point."""
+        runner = self.tmp / "fault-runner.py"
+        runner.write_text(FAULT_RUNNER, encoding="utf-8")
+        helper_path = Path(__file__).resolve().parents[1] / "orchestrate.py"
+        proc = subprocess.run(
+            [sys.executable, str(runner), str(helper_path), fault, *schedule_args],
+            capture_output=True,
+            text=True,
+        )
+        self.assertNotEqual(proc.returncode, 0, proc)
+        self.assertEqual(proc.stdout, "", "interruption must precede any command result")
+
+    def _scope_claims(self) -> list:
+        root = self.repo / ".woostack" / "tmp" / "orchestrate-claims"
+        if not root.exists():
+            return []
+        records = [
+            json.loads(path.read_text(encoding="utf-8"))
+            for path in sorted(root.glob("*.json"))
+        ]
+        return [record for record in records if record["kind"] == "scope"]
+
+    @staticmethod
+    def _first_schedule_args(
+        admitted_path: Path, fresh_path: Path, state_out: Path, git_repo: Path
+    ) -> list:
+        return [
+            "schedule",
+            "--admitted", str(admitted_path),
+            "--state-out", str(state_out),
+            "--git-repo", str(git_repo),
+            "--fresh", str(fresh_path),
+        ]
+
+    def test_interruption_before_durable_state_leaves_a_retry_that_recovers(self) -> None:
+        """A kill before state publication may never strand an unrecoverable scope claim."""
+        snapshot = self._single_task_snapshot()
+        admitted_path, _ = self._admit_issue(snapshot)
+        fresh_path = self._write_json("interrupt-before-state-fresh.json", snapshot)
+        state_out = self.tmp / "interrupt-before-state.json"
+        args = self._first_schedule_args(admitted_path, fresh_path, state_out, self.repo)
+        self._interrupted_schedule("die-before-state-publication", args)
+
+        code, payload = invoke_cli(*args)
+        self.assertEqual(code, 0, payload)
+        self.assertTrue(payload.get("dispatch"), payload)
+        state = json.loads(state_out.read_text(encoding="utf-8"))
+        claims = self._scope_claims()
+        self.assertEqual(len(claims), 1, claims)
+        self.assertEqual(claims[0]["owner"], state["owner"]["controller_id"])
+
+    def test_initial_state_precedes_the_claim_and_a_claim_gap_resumes_with_state(self) -> None:
+        """The owner-bearing state is durable before the claim, so a --state resume reclaims it."""
+        snapshot = self._single_task_snapshot()
+        admitted_path, _ = self._admit_issue(snapshot)
+        fresh_path = self._write_json("interrupt-before-claim-fresh.json", snapshot)
+        state_out = self.tmp / "interrupt-before-claim.json"
+        args = self._first_schedule_args(admitted_path, fresh_path, state_out, self.repo)
+        self._interrupted_schedule("die-before-claim", args)
+
+        self.assertTrue(
+            state_out.exists(),
+            "owner-bearing initial state must be durable before the claim is attempted",
+        )
+        state = json.loads(state_out.read_text(encoding="utf-8"))
+        self.assertEqual(self._scope_claims(), [], "claim must never precede state publication")
+
+        blocked_code, blocked = invoke_cli(*args)
+        self.assertNotEqual(blocked_code, 0, blocked)
+        self.assertEqual(blocked.get("error"), "existing-state", blocked)
+
+        code, payload = invoke_cli(*args, "--state", str(state_out))
+        self.assertEqual(code, 0, payload)
+        self.assertTrue(payload.get("dispatch"), payload)
+        claims = self._scope_claims()
+        self.assertEqual(len(claims), 1, claims)
+        self.assertEqual(claims[0]["owner"], state["owner"]["controller_id"])
+
+    def test_claim_publication_failure_leaves_no_final_claim_and_resumes(self) -> None:
+        """Failure before final-path publication leaves only resumable owner state."""
+        snapshot = self._single_task_snapshot()
+        admitted_path, _ = self._admit_issue(snapshot)
+        fresh_path = self._write_json("interrupt-before-claim-publication-fresh.json", snapshot)
+        state_out = self.tmp / "interrupt-before-claim-publication.json"
+        args = self._first_schedule_args(admitted_path, fresh_path, state_out, self.repo)
+        self._interrupted_schedule("die-before-claim-publication", args)
+
+        state = json.loads(state_out.read_text(encoding="utf-8"))
+        self.assertEqual(self._scope_claims(), [])
+        code, payload = invoke_cli(*args, "--state", str(state_out))
+        self.assertEqual(code, 0, payload)
+        self.assertTrue(payload.get("dispatch"), payload)
+        claims = self._scope_claims()
+        self.assertEqual(len(claims), 1, claims)
+        self.assertEqual(claims[0]["owner"], state["owner"]["controller_id"])
+
+    def test_claim_publication_failure_leaves_complete_owner_claim_and_resumes(self) -> None:
+        """Failure after final-path publication leaves a complete same-owner claim."""
+        snapshot = self._single_task_snapshot()
+        admitted_path, _ = self._admit_issue(snapshot)
+        fresh_path = self._write_json("interrupt-after-claim-publication-fresh.json", snapshot)
+        state_out = self.tmp / "interrupt-after-claim-publication.json"
+        args = self._first_schedule_args(admitted_path, fresh_path, state_out, self.repo)
+        self._interrupted_schedule("die-after-claim-publication", args)
+
+        state = json.loads(state_out.read_text(encoding="utf-8"))
+        claims = self._scope_claims()
+        self.assertEqual(len(claims), 1, claims)
+        self.assertEqual(claims[0]["owner"], state["owner"]["controller_id"])
+        code, payload = invoke_cli(*args, "--state", str(state_out))
+        self.assertEqual(code, 0, payload)
+        self.assertTrue(payload.get("dispatch"), payload)
+
     def test_state_symlink_is_rejected_before_read_or_write(self) -> None:
         snapshot = self._single_task_snapshot()
         admitted_path, admitted = self._admit_issue(snapshot)
@@ -910,11 +1093,14 @@ class OrchestrateBehavior(unittest.TestCase):
         dispatch = scheduled["dispatch"][0]
         self.assertEqual(dispatch["task_id"], "task-a")
         reservation = self._reservation(dispatch)
+        host = self._start_host()
+        host.dispatch([dispatch])
+        report = host.wait_for_report("task-a")
         unknown_state, unknown_output, _ = self._apply(
             admitted_path,
             state,
             "task-a",
-            {"outcome": "unknown"},
+            {"outcome": "unknown", "worker": report["worker"]},
             "unknown",
         )
         self.assertEqual(unknown_output.get("status"), "unknown", unknown_output)
@@ -932,12 +1118,15 @@ class OrchestrateBehavior(unittest.TestCase):
         )
         self.assertEqual([item["task_id"] for item in spare["dispatch"]], ["task-b"], spare)
         self.assertTrue(spare_state.exists())
+        host.dispatch(spare["dispatch"])
+        self.assertTrue(host.b_started.wait(30))
+        observed_worker = copy.deepcopy(host.identities["task-b"])
 
         malformed_state, malformed, _ = self._apply(
             admitted_path,
             spare_state,
             "task-b",
-            {"outcome": "ok", "worker": {"worker_id": "execute-task-b"}},
+            {"outcome": "ok", "worker": observed_worker},
             "malformed",
         )
         self.assertEqual(malformed.get("status"), "unknown", malformed)
@@ -961,8 +1150,10 @@ class OrchestrateBehavior(unittest.TestCase):
         host.dispatch(scheduled["dispatch"])
         self.assertTrue(host.b_started.wait(30))
         self.assertFalse(host.futures["task-b"].done())
+        observed_worker = copy.deepcopy(host.identities["task-b"])
         unknown_state, unknown, _ = self._apply(
-            admitted_path, state, "task-b", {"outcome": "unknown"}, "live-timeout"
+            admitted_path, state, "task-b",
+            {"outcome": "unknown", "worker": observed_worker}, "live-timeout"
         )
         self.assertEqual(unknown["status"], "unknown", unknown)
         _, rejected, code = self._reconcile(
@@ -977,27 +1168,280 @@ class OrchestrateBehavior(unittest.TestCase):
         self.assertEqual(resumed["unknown"], ["task-b"], resumed)
         self.assertFalse(host.futures["task-b"].done())
 
-    def test_overlapping_selector_cannot_claim_canonical_task(self) -> None:
+    def test_live_no_pr_writer_rejects_unbound_stale_foreign_and_contradictory_stop(self) -> None:
+        snapshot = self._single_task_snapshot("task-b")
+        admitted_path, admitted = self._admit_issue(snapshot)
+        state, scheduled = self._schedule(
+            admitted_path, admitted, None, snapshot, "positive-live-initial", cap="1"
+        )
+        entry = scheduled["dispatch"][0]
+        host = self._start_host(workers=1)
+        host.hold_before_pr = True
+        host.dispatch([entry])
+        self.assertTrue(host.before_pr.wait(30))
+        self.assertNotIn("task-b", self.github.prs)
+        self.assertFalse(host.futures["task-b"].done())
+        observed_worker = copy.deepcopy(host.identities["task-b"])
+        state, unknown, _ = self._apply(
+            admitted_path, state, "task-b",
+            {"outcome": "unknown", "worker": observed_worker}, "positive-live-timeout"
+        )
+        self.assertEqual(unknown["status"], "unknown")
+        original = state.read_bytes()
+        inventory = host.recovery_inventory()
+        stop = {
+            "worker": copy.deepcopy(host.identities["task-b"]),
+            "state_digest": hashlib.sha256(original).hexdigest(),
+            "inventory_digest": contract_hash(inventory),
+        }
+        canonical = {
+            "repo": self.github.canonical, "head_repo": self.github.canonical,
+            "branch": entry["branch"], "base_branch": entry["parent_branch"],
+            "head_sha": git(Path(entry["workspace"]), "rev-parse", "HEAD"),
+            "workspace": entry["workspace"], "unique": True,
+            "pr_absent": True, "pr_url": None, "open": False,
+        }
+        variants = {
+            "bare-positive": {"worker_stopped": True},
+            "stale-checkpoint": {"worker_stop": {**stop, "state_digest": "0" * 64}},
+            "stale-inventory": {"worker_stop": {**stop, "inventory_digest": "sha256:" + "0" * 64}},
+            "foreign-worker": {"worker_stop": {**stop, "worker": {**stop["worker"], "worker_id": "other"}}},
+            "foreign-session": {"worker_stop": {**stop, "worker": {**stop["worker"], "session_id": "other"}}},
+            "foreign-host": {"worker_stop": {**stop, "worker": {**stop["worker"], "host_id": "other"}}},
+            "current-but-live": {"worker_stop": stop},
+        }
+        for label, positive in variants.items():
+            with self.subTest(receipt=label):
+                out, rejected, code = self._reconcile(
+                    admitted_path, state, "task-b", {**canonical, **positive}, label, inventory=inventory,
+                )
+                self.assertNotEqual(code, 0, rejected)
+                self.assertEqual(rejected["error"], "worker-liveness", rejected)
+                self.assertFalse(out.exists())
+                self.assertEqual(state.read_bytes(), original)
+                self.assertFalse(host.futures["task-b"].done())
+        _, resumed = self._schedule(
+            admitted_path, admitted, state, snapshot, "positive-live-resume", cap="1"
+        )
+        self.assertEqual(resumed["dispatch"], [])
+        self.assertEqual(resumed["unknown"], ["task-b"])
+        self.assertEqual(host.consumed_packets, ["task-b"])
+        self.assertFalse(host.futures["task-b"].done())
+
+    def test_replayed_needs_repair_cannot_release_live_repair_worker(self) -> None:
         snapshot = self._single_task_snapshot()
         admitted_path, admitted = self._admit_issue(snapshot)
-        state, scheduled = self._schedule(admitted_path, admitted, None, snapshot, "claim-issue")
-        self.assertEqual([item["task_id"] for item in scheduled["dispatch"]], ["task-a"], scheduled)
-        project_admitted_path, project_admitted = self._admit_project()
-        project_state, project = self._schedule(
-            project_admitted_path,
-            project_admitted,
-            None,
-            self.github.project_snapshot(),
-            "claim-project",
-            cap="1",
+        state, scheduled = self._schedule(
+            admitted_path, admitted, None, snapshot, "replay-initial", cap="1"
         )
-        self.assertEqual(project["dispatch"], [], project)
-        self.assertIn(
-            {"task_id": "task-a", "reason": "ownership-conflict",
-             "next_action": "reconcile the other controller's canonical task claim"},
-            project["blocked"],
+        entry_a = scheduled["dispatch"][0]
+        host = self._start_host(workers=2)
+        host.dispatch([entry_a])
+        report_a = host.wait_for_report("task-a")
+        cached_a = make_result(self.github, "task-a", report_a, admitted)
+        cached_a["outcome"] = "needs-repair"
+        state, repair_ready, _ = self._apply(
+            admitted_path, state, "task-a", cached_a, "replay-first-completion"
         )
-        self.assertTrue(project_state.exists())
+        self.assertEqual(repair_ready["status"], "repair-ready", repair_ready)
+
+        state, repair = self._schedule(
+            admitted_path, admitted, state, snapshot, "replay-repair", cap="1"
+        )
+        self.assertEqual([entry["task_id"] for entry in repair["dispatch"]], ["task-a"])
+        entry_b = repair["dispatch"][0]
+        self.assertTrue(entry_b["repair"])
+        self.assertEqual(self._reservation(entry_b), self._reservation(entry_a))
+        host.hold_before_mutation = True
+        host.dispatch([entry_b])
+        self.assertTrue(host.before_mutation.wait(30))
+        future_b = host.futures["task-a"]
+        self.assertTrue(future_b.running())
+        identity_b = copy.deepcopy(host.identities["task-a"])
+        self.assertNotEqual(identity_b["worker_id"], report_a["worker"]["worker_id"])
+        self.assertEqual(
+            {key: cached_a["worker"][key] for key in identity_b},
+            {key: report_a["worker"][key] for key in identity_b},
+        )
+        before = state.read_bytes()
+        current = json.loads(before)["tasks"]["task-a"]
+        self.assertEqual(current["status"], "running")
+        self.assertEqual(current["host_worker"], identity_b)
+        self.assertEqual(current["reservation"], self._reservation(entry_b))
+        # B has started but cannot alter A's valid Git/PR evidence until released.
+        self.assertEqual(git(Path(entry_b["workspace"]), "rev-parse", "HEAD"), report_a["worker"]["head_sha"])
+        self.assertEqual(self.github.readback("task-a"), cached_a["readback"])
+        self.assertEqual(make_result(self.github, "task-a", report_a, admitted)["checks"], cached_a["checks"])
+
+        out, rejected, code = self._apply(
+            admitted_path, state, "task-a", cached_a, "replay-stale-completion", expect_code=None
+        )
+        self.assertNotEqual(code, 0, rejected)
+        self.assertEqual(rejected["error"], "worker-identity", rejected)
+        self.assertFalse(out.exists())
+        self.assertEqual(state.read_bytes(), before)
+        self.assertTrue(future_b.running())
+        state, no_third_worker = self._schedule(
+            admitted_path, admitted, state, snapshot, "replay-no-third-worker", cap="2"
+        )
+        self.assertEqual(no_third_worker["dispatch"], [], no_third_worker)
+        retained = json.loads(state.read_text())["tasks"]["task-a"]
+        self.assertEqual(retained["status"], "running")
+        self.assertEqual(retained["host_worker"], identity_b)
+        self.assertEqual(retained["reservation"], self._reservation(entry_b))
+        self.assertEqual(host.consumed_packets, ["task-a", "task-a"])
+        self.assertTrue(future_b.running())
+
+        host.mutation_hold.set()
+        report_b = host.wait_for_report("task-a")
+        self.assertEqual({key: report_b["worker"][key] for key in identity_b}, identity_b)
+        self.assertNotEqual(report_b["worker"]["head_sha"], report_a["worker"]["head_sha"])
+        result_b = make_result(self.github, "task-a", report_b, admitted)
+        delivered_state, delivered, _ = self._apply(
+            admitted_path, state, "task-a", result_b, "replay-current-completion"
+        )
+        self.assertEqual(delivered["status"], "delivered", delivered)
+        self.assertEqual(json.loads(delivered_state.read_text())["tasks"]["task-a"]["status"], "delivered")
+
+    def test_unbound_and_foreign_unknown_envelopes_leave_live_launch_untouched(self) -> None:
+        snapshot = self._single_task_snapshot()
+        admitted_path, admitted = self._admit_issue(snapshot)
+        state, scheduled = self._schedule(
+            admitted_path, admitted, None, snapshot, "binding-initial", cap="1"
+        )
+        host = self._start_host(workers=1)
+        host.hold_before_mutation = True
+        host.dispatch(scheduled["dispatch"])
+        self.assertTrue(host.before_mutation.wait(30))
+        identity = copy.deepcopy(host.identities["task-a"])
+        before = state.read_bytes()
+        variants = {
+            "missing-worker": {"outcome": "unknown"},
+            "malformed-worker": {"outcome": "unknown", "worker": []},
+            "incomplete-identity": {
+                "outcome": "unknown", "worker": {"worker_id": identity["worker_id"]},
+            },
+        }
+        for field in ("host_id", "session_id", "worker_id"):
+            variants["foreign-" + field] = {
+                "outcome": "unknown", "worker": {**identity, field: "another-native-launch"},
+            }
+        for label, envelope in variants.items():
+            with self.subTest(envelope=label):
+                out, rejected, code = self._apply(
+                    admitted_path, state, "task-a", envelope, "binding-" + label, expect_code=None
+                )
+                self.assertNotEqual(code, 0, rejected)
+                self.assertEqual(rejected["error"], "worker-identity", rejected)
+                self.assertFalse(out.exists())
+                self.assertEqual(state.read_bytes(), before)
+                self.assertTrue(host.futures["task-a"].running())
+
+        # Unparseable transport bytes cannot enter the bound malformed-report transition.
+        result_path = self.tmp / "binding-unparseable.json"
+        result_path.write_text("{", encoding="utf-8")
+        out = self.tmp / "binding-unparseable-state.json"
+        code, rejected = invoke_cli(
+            "apply-result", "--admitted", str(admitted_path), "--state", str(state),
+            "--state-out", str(out), "--git-repo", str(self.repo),
+            "--task", "task-a", "--result", str(result_path),
+        )
+        self.assertNotEqual(code, 0, rejected)
+        self.assertEqual(rejected["error"], "worker-identity", rejected)
+        self.assertFalse(out.exists())
+        self.assertEqual(state.read_bytes(), before)
+        self.assertTrue(host.futures["task-a"].running())
+        _, resumed = self._schedule(
+            admitted_path, admitted, state, snapshot, "binding-no-takeover", cap="2"
+        )
+        self.assertEqual(resumed["dispatch"], [], resumed)
+        self.assertEqual(host.consumed_packets, ["task-a"])
+
+    def test_unrecorded_completion_is_rejected_until_native_discovery_and_current_stop(self) -> None:
+        snapshot = self._single_task_snapshot()
+        admitted_path, admitted = self._admit_issue(snapshot)
+        state, scheduled = self._schedule(admitted_path, admitted, None, snapshot, "unrecorded")
+        host = self._start_host(workers=1)
+        host.on_launch = None  # Lost host launch receipt, not a worker completion report.
+        host.dispatch(scheduled["dispatch"])
+        report = host.wait_for_report("task-a")
+        observation = {"outcome": "unknown", "worker": report["worker"]}
+        original = state.read_bytes()
+        out, rejected, code = self._apply(
+            admitted_path, state, "task-a", observation, "unrecorded-unknown", expect_code=None
+        )
+        self.assertNotEqual(code, 0, rejected)
+        self.assertEqual(rejected["error"], "worker-identity", rejected)
+        self.assertFalse(out.exists())
+        self.assertEqual(state.read_bytes(), original)
+        evidence = self.github.readback("task-a")
+        evidence["worker_stop"] = self._stop_receipt(host, "task-a", state)
+        # Actual host discovery can bind the missing launch, but cannot reuse the old receipt.
+        self.launch_context[scheduled["dispatch"][0]["branch"]] = (admitted_path, state)
+        self._record_launch(scheduled["dispatch"][0], host.identities["task-a"])
+        state, unknown, _ = self._apply(
+            admitted_path, state, "task-a", observation, "discovered-unknown"
+        )
+        self.assertEqual(unknown["status"], "unknown", unknown)
+        _, rejected, code = self._reconcile(admitted_path, state, "task-a", evidence, "unrecorded-stale")
+        self.assertNotEqual(code, 0, rejected)
+        self.assertEqual(rejected["error"], "worker-liveness")
+        evidence["worker_stop"] = self._stop_receipt(host, "task-a", state)
+        _, reconciled, code = self._reconcile(admitted_path, state, "task-a", evidence, "discovered-stop")
+        self.assertEqual(code, 0, reconciled)
+        self.assertEqual(reconciled["evidence_pending"], ["task-a"])
+
+    def test_cross_selector_claim_prevents_second_physical_worker_and_keeps_owned_recovery(self) -> None:
+        snapshot = self._single_task_snapshot()
+        admitted_path, admitted = self._admit_issue(snapshot)
+        state, scheduled = self._schedule(admitted_path, admitted, None, snapshot, "claim-parent")
+        original = scheduled["dispatch"][0]
+        host = self._start_host(workers=1)
+        host.dispatch([original])
+        report = host.wait_for_report("task-a")
+        state, outcome, _ = self._apply(
+            admitted_path, state, "task-a",
+            {"outcome": "unknown", "worker": report["worker"]}, "claim-lost-response"
+        )
+        self.assertEqual(outcome["status"], "unknown", outcome)
+
+        listed = self.github.issue_list_snapshot(selected=[original["child_url"]])
+        listed["graph"]["edges"] = []
+        project = self.github.project_snapshot()
+        for mode, fresh, entries, admit_scope in (
+            ("list", listed, listed["issues"], self._admit_issues),
+            ("project", project, project["members"], self._admit_project),
+        ):
+            # Different valid host allocations must not evade repository+issue ownership.
+            task = next(item for item in entries if item.get("task_id") == "task-a")
+            task["workspace"] = str(self.tmp / ("second-" + mode))
+            task["branch"] = "host/second-" + mode
+            other_path, other = admit_scope(fresh)
+            _, blocked = self._schedule(other_path, other, None, fresh, "claim-" + mode, cap="1")
+            self.assertEqual(blocked["dispatch"], [], blocked)
+            self.assertIn("ownership-conflict", [item["reason"] for item in blocked["blocked"]])
+            self.assertFalse(Path(task["workspace"]).exists())
+            self.assertEqual(git(self.repo, "branch", "--list", task["branch"]), "")
+
+        evidence = self.github.readback("task-a")
+        evidence["worker_stop"] = self._stop_receipt(host, "task-a", state)
+        state, reconciled, code = self._reconcile(
+            admitted_path, state, "task-a", evidence, "claim-owned-recovery"
+        )
+        self.assertEqual(code, 0, reconciled)
+        result = make_result(self.github, "task-a", report, admitted)
+        state, delivered, _ = self._apply(admitted_path, state, "task-a", result, "claim-delivered")
+        self.assertEqual(delivered["status"], "delivered", delivered)
+        self._persist("task-a", result, original)
+        _, resumed = self._schedule(
+            admitted_path, admitted, state, self._single_task_snapshot(), "claim-resumed"
+        )
+        self.assertEqual(resumed["dispatch"], [], resumed)
+        self.assertEqual(resumed["delivered"], ["task-a"])
+        self.assertEqual(self.github.prs["task-a"]["pr_url"], evidence["pr_url"])
+        workers = [json.loads(line) for line in self.transport_log.read_text().splitlines()
+                   if json.loads(line).get("operation") == "dispatch-worker"]
+        self.assertEqual(len(workers), 1)
 
     def test_stop_preserves_running_reservation_and_blocks_new_dispatch(self) -> None:
         snapshot = self._two_task_snapshot()
@@ -1069,14 +1513,14 @@ class OrchestrateBehavior(unittest.TestCase):
         saved = json.loads(unknown_state.read_text())
         self.assertEqual(saved["tasks"]["task-a"]["status"], "unknown")
         evidence = self.github.readback("task-a")
-        evidence["worker_stopped"] = True
+        evidence["worker_stop"] = self._stop_receipt(host, "task-a", unknown_state)
         wrong_branch = copy.deepcopy(evidence)
         wrong_branch["branch"] = "other/branch"
         _, wrong_output, wrong_code = self._reconcile(admitted_path, unknown_state, "task-a", wrong_branch, "reconcile-wrong")
         self.assertNotEqual(wrong_code, 0, wrong_output)
         self.assertEqual(json.loads(unknown_state.read_text())["tasks"]["task-a"]["status"], "unknown")
         missing_stop = copy.deepcopy(evidence)
-        missing_stop.pop("worker_stopped")
+        missing_stop.pop("worker_stop")
         _, missing_output, missing_code = self._reconcile(admitted_path, unknown_state, "task-a", missing_stop, "reconcile-no-stop")
         self.assertNotEqual(missing_code, 0, missing_output)
         reconciled_state, reconciled_output, reconciled_code = self._reconcile(
@@ -1087,13 +1531,19 @@ class OrchestrateBehavior(unittest.TestCase):
         self.assertEqual(json.loads(reconciled_state.read_text())["tasks"]["task-a"]["status"], "evidence-pending")
 
     def _reconcile(
-        self, admitted_path: Path, state: Path, task_id: str, evidence: Dict[str, Any], name: str
+        self, admitted_path: Path, state: Path, task_id: str, evidence: Dict[str, Any], name: str,
+        *, inventory=None,
     ) -> Tuple[Path, Dict[str, Any], int]:
         evidence_path = self._write_json(name + "-evidence.json", evidence)
+        if inventory is None:
+            host = next(host for host in reversed(self.hosts) if task_id in host.futures)
+            inventory = host.recovery_inventory()
+        inventory_path = self._write_json(name + "-inventory.json", inventory)
         out = self.tmp / (name + "-state.json")
         args = [
             "reconcile", "--admitted", str(admitted_path), "--state", str(state), "--state-out", str(out),
             "--git-repo", str(self.repo), "--task", task_id, "--evidence", str(evidence_path),
+            "--inventory", str(inventory_path),
         ]
         code, payload = invoke_cli(*args)
         return out, payload, code
@@ -1113,7 +1563,7 @@ class OrchestrateBehavior(unittest.TestCase):
             admitted_path,
             state,
             "task-a",
-            {"outcome": "unknown"},
+            {"outcome": "unknown", "worker": report["worker"]},
             "reconcile-pr-unknown",
         )
         self.assertEqual(unknown_output.get("status"), "unknown", unknown_output)
@@ -1123,7 +1573,7 @@ class OrchestrateBehavior(unittest.TestCase):
         self.assertIsNone(unknown_saved["halt_reason"])
 
         evidence = self.github.readback("task-a")
-        evidence["worker_stopped"] = True
+        evidence["worker_stop"] = self._stop_receipt(host, "task-a", unknown_state)
         conflicting_absence = copy.deepcopy(evidence)
         conflicting_absence["pr_absent"] = True
         _, conflict_output, conflict_code = self._reconcile(
@@ -1226,7 +1676,7 @@ class OrchestrateBehavior(unittest.TestCase):
             "pr_absent": True,
             "pr_url": None,
             "open": False,
-            "worker_stopped": True,
+            "worker_stop": self._stop_receipt(host, "task-a", unknown_state),
         }
         reconciled_state, reconciled, reconciled_code = self._reconcile(
             admitted_path, unknown_state, "task-a", evidence, "reconcile-no-pr-valid"
@@ -1238,6 +1688,18 @@ class OrchestrateBehavior(unittest.TestCase):
         self.assertIsNone(saved["tasks"]["task-a"]["verified_pr"])
         self.assertFalse(saved["halt_new_dispatch"])
         self.assertIsNone(saved["halt_reason"])
+        repair_state, repair = self._schedule(
+            admitted_path, admitted, reconciled_state, snapshot, "reconcile-no-pr-repair", cap="1"
+        )
+        self.assertEqual([item["task_id"] for item in repair["dispatch"]], ["task-a"])
+        self.assertEqual(self._reservation(repair["dispatch"][0]), self._reservation(entry))
+        prior_worker = copy.deepcopy(host.identities["task-a"])
+        host.dispatch(repair["dispatch"])
+        repair_report = host.wait_for_report("task-a")
+        self.assertNotEqual(host.identities["task-a"], prior_worker)
+        result = make_result(self.github, "task-a", repair_report, admitted)
+        _, delivered, _ = self._apply(admitted_path, repair_state, "task-a", result, "no-pr-repaired")
+        self.assertEqual(delivered["status"], "delivered", delivered)
 
     def test_evidence_identity_diff_contract_reviewer_and_validation_gates(self) -> None:
         snapshot = self._single_task_snapshot()
@@ -1307,7 +1769,7 @@ class OrchestrateBehavior(unittest.TestCase):
                     "unique": True,
                     "pr_url": report["worker"]["pr_url"],
                     "open": True,
-                    "worker_stopped": True,
+                    "worker_stop": self._stop_receipt(host, "task-a", state_out),
                 }
                 current_state, reconciled, reconcile_code = self._reconcile(
                     admitted_path, state_out, "task-a", evidence, "variant-" + label + "-reconcile"
@@ -1444,7 +1906,7 @@ class OrchestrateBehavior(unittest.TestCase):
             "unique": True,
             "pr_url": report["worker"]["pr_url"],
             "open": True,
-            "worker_stopped": True,
+            "worker_stop": self._stop_receipt(host, "task-a", current_state),
         }
         current_state, reconciled, reconcile_code = self._reconcile(
             admitted_path, current_state, "task-a", evidence, "project-status-reconcile"

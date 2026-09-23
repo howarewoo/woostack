@@ -4,11 +4,11 @@
 
 Cursor's Composer agent runtime; project rules load from `.cursorrules`.
 Discover authorized native GitHub capabilities exposed through Cursor Composer / `.cursorrules` MCP
-configuration, or use the host-authenticated GitHub CLI (`gh`), for explicit GitHub operations
-under the selected workflow's admission. Discover actual GitHub operation capabilities and
-read/write shapes rather than assuming tool names or schemas. Never use custom HTTP/REST/GraphQL
-transport or fallback tokens. GitHub operations follow the canonical
-[artifact backends contract](../../../woostack-init/references/artifact-backends.md) and
+configuration. Prefer a suitable native capability; host-authenticated GitHub CLI (`gh`) remains
+supported for explicit GitHub operations under the selected workflow's admission. Discover actual
+GitHub operation capabilities and read/write shapes rather than assuming tool names or schemas.
+Never use custom HTTP/REST/GraphQL transport or fallback tokens. GitHub operations follow the
+canonical [artifact backends contract](../../../woostack-init/references/artifact-backends.md) and
 [GitHub profile](../../../woostack-init/references/artifact-providers/github.md#configuration-and-scope).
 
 ## Subagent spawn
@@ -52,6 +52,6 @@ host — no spawn-time auth probe exists; switch manually by promoting an entry 
 
 Tier requested but not routable per call → run at the session model and say so (degraded),
 per the inline law of the dispatching skill.
-When an authorized native GitHub capability or host-authenticated `gh`, or a required operation
-capability, is absent, fail closed for required GitHub boundaries or report the missing capability
-for optional operations per the canonical artifact contract.
+If no authorized GitHub interface (native capability or host-authenticated `gh`) supports a
+required operation capability, fail closed for required GitHub boundaries; for optional operations,
+report the missing capability per the canonical artifact contract.

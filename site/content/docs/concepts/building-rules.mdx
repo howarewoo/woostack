@@ -14,7 +14,7 @@ Preparation produces a verified issue graph; implementation is a separate explic
 | Specification elicitation | [woostack-ideate](/docs/skills/woostack-ideate) | complete plain user-verified decisions | no provider or run required |
 | Repository reconciliation | [woostack-harden](/docs/skills/woostack-harden) | complete plain candidate after bounded evidence checks | no provider or run required |
 | Approved issue publication | [woostack-plan](/docs/skills/woostack-plan) | one exact GitHub parent/child or Project graph with native prerequisite edges | direct host-authenticated GitHub reads/writes; no mirror required |
-| Bounded task for one PR | [woostack-execute](/docs/skills/woostack-execute) | one complete bounded contract and one PR | goal-only is provider-free; exact issue input is read-only |
+| Bounded enhancement, refactor, tests, or authorized correction | [woostack-execute](/docs/skills/woostack-execute) | one complete bounded contract and one PR | goal-only is provider-free; optional exact issue context is read-only |
 | Greenfield codebase | [woostack-bootstrap](/docs/skills/woostack-bootstrap) | complete approved design | exact target only; direct GitHub Project publication is explicit |
 
 The shape of the work determines the workflow. Historical development records cannot turn ambiguous
@@ -43,6 +43,7 @@ provider selector, Project, mirror, or Build/Fix run. Direct and composed Plan u
 Harden reconciliation and publisher. Its native parent hierarchy only groups the plan and is distinct
 from `blocked-by` edges and Git branch ancestry; the parent is never a task, dependency endpoint,
 execution, or PR, and unsupported nested or partial hierarchy fails closed.
+
 Execute accepts one selected bounded task under its [admission contract](/docs/skills/woostack-execute#admit-one-task), not a whole plan.
 An explicit [Orchestrate](/docs/skills/woostack-orchestrate) invocation selects a GitHub parent issue,
 Project, or exact canonical issue list and dispatches ready tasks to Execute. List mode keeps the
@@ -74,6 +75,7 @@ invokes it.
   Agents never merge, mark a PR ready, enable auto-merge, or queue a PR for merge.
 
 ## Retained records and authority boundaries
+
 
 Existing `.woostack/tmp/runs/<run-id>/` artifacts from retired planning wrappers remain readable
 historical user data and are never migrated or mutated. A supplied record is evidence only after exact

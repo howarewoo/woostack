@@ -48,6 +48,7 @@ never promoted into `github`, and never used to select a destination. A boundary
 needed one reports retirement guidance and requires either local mode or the supported exact GitHub
 operation. No automatic cleanup, import, migration, credential acquisition, or provider fallback is
 allowed.
+
 - Prepare, Ideate, Harden, and Plan make no provider-mirror calls;
 - direct Plan still requires its exact GitHub scope and performs the required issue/Project reads and
   writes;
@@ -167,3 +168,8 @@ permission to take over another controller's work.
 Artifacts, status, labels, assignees, delegates, comments, Project membership, and remote lifecycle
 state never grant permission to edit, assign, commit, push, review, mark ready, enable auto-merge,
 enqueue, merge, or declare delivery. GitHub/Git remain authoritative and merge authority is human-only.
+
+Orchestrate's private controller checkpoint uses the same owner-only, no-follow, complete-byte,
+atomic compare-and-swap discipline for recovery evidence. Canonical issue/Project reads and Git
+remain authoritative. Shared-checkout claims derive from canonical repository and native issue
+identity, retain exact selector provenance, and never permit taking over another controller's work.

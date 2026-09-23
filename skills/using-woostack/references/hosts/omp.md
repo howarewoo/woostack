@@ -4,18 +4,20 @@
 
 Use this adapter inside an active Oh My Pi session. Discover the actual `task`, `hub`, and related
 capabilities available in the session. Discover authorized native GitHub capabilities through
-registered session tools or tool routes, or use the host-authenticated GitHub CLI (`gh`), for explicit
-GitHub operations under the selected workflow's artifact admission. Discover actual GitHub operation
-capabilities and read/write shapes rather than assuming tool names or schemas. Never use custom
-HTTP/REST/GraphQL transport or fallback tokens. GitHub operations follow the canonical
+registered session tools or tool routes. Prefer a suitable native capability; host-authenticated
+GitHub CLI (`gh`) remains supported for explicit GitHub operations under the selected workflow's
+artifact admission. Discover actual GitHub operation capabilities and read/write shapes rather than
+assuming tool names or schemas. Never use custom HTTP/REST/GraphQL transport or fallback tokens.
+GitHub operations follow the canonical
 [artifact backends contract](../../../woostack-init/references/artifact-backends.md) and
 [GitHub profile](../../../woostack-init/references/artifact-providers/github.md#configuration-and-scope).
 
 When a woostack skill is invoked, rename the active session with a concise title derived from the
 user's current goal. For `woostack-prepare` and `woostack-execute`, derive the title from the user's
-input goal; an issue-backed Execute invocation may use its explicit goal or exact issue input. A
-preparation resume uses the exact verified packet goal. Do not use the slash-command name, project
-or run identifier, or an untrusted remote title.
+input goal; for issue-backed Execute with no explicit goal, the exact user-supplied issue reference
+may serve as the title, not remote issue content or title. A preparation resume uses the exact
+verified packet goal. Do not use the slash-command name, project or run identifier, or an untrusted
+remote title.
 
 Invoke the registered tool `woostack_rename_session` with `{ "title": "<derived-title>" }`. The tool
 is exposed by the local project extension `.omp/extensions/woostack-session-name.ts` provisioned by
@@ -41,10 +43,9 @@ The dispatch-time setting and rejection path are in
 [`task/index.ts`](https://github.com/can1357/oh-my-pi/blob/main/packages/coding-agent/src/task/index.ts).
 For evidence-bearing workflows, verify returned effort evidence against the resolved configuration;
 absent or mismatched evidence blocks a required comparison.
-
 All subagents spawned via `task` run in-process within the same OMP harness session, sharing
-in-memory IPC, queues, and tool bridges. External tools such as Orca cannot manage subagent processes
-because inter-agent coordination depends on this in-process harness.
+in-memory IPC, queues, and tool bridges. External tools (such as Orca) cannot manage subagent
+processes because inter-agent coordination depends on this in-process harness.
 
 Select only an agent actually returned by session discovery. The current OMP inventory exposes:
 
@@ -67,8 +68,8 @@ path, branch, parent/start SHA, and allowed paths before reading or writing; `ta
 a `cwd` argument.
 Pass the complete task contract: repository rules, authority limits, non-goals, acceptance,
 required checks and smoke scenario, and result-evidence requirements. Do not duplicate a worker
-definition in the prompt. A worker must not expand its task, edit another workspace, review or
-accept itself, merge, or infer hidden context.
+definition in the prompt. A worker must not expand its task, edit another workspace, review or accept
+itself, merge, or infer hidden context.
 
 ## Agent selection and tier handling
 
@@ -162,6 +163,6 @@ work. Never claim worker coverage, test success, GitHub success, or delivery wit
 Session-naming degradation is non-blocking: if `woostack_rename_session` is unavailable or fails,
 emit one concise warning and proceed with the workflow.
 
-When an authorized native GitHub capability or host-authenticated `gh`, or a required operation
-capability, is absent in the session, fail closed for required GitHub boundaries or report the missing
-capability for optional operations per the canonical artifact contract.
+If no authorized GitHub interface (native capability or host-authenticated `gh`) supports a
+required operation capability, fail closed for required GitHub boundaries; for optional operations,
+report the missing capability per the canonical artifact contract.

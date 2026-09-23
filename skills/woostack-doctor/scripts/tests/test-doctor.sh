@@ -12,7 +12,7 @@ repo="$TMP/repo"
 mkdir -p "$repo/.woostack"
 git -C "$repo" init -q
 cat >"$repo/.woostack/config.json" <<'JSON'
-{"models":{},"review":{},"status":{"staleDays":14}}
+{"models":{},"review":{}}
 JSON
 
 run_doctor() {
@@ -24,9 +24,13 @@ run_doctor() {
 
 run_doctor "$repo"
 assert_exit 0 "$CODE" "valid local workspace exits zero"
+assert_not_contains "$OUT" "github-live" "static diagnosis does not emit live-receipt findings"
+
+printf '%s\n' '{"models":{},"status":{"staleDays":14}}' >"$repo/.woostack/config.json"
+run_doctor "$repo"
+assert_exit 0 "$CODE" "legacy status configuration remains non-blocking"
 assert_contains "$OUT" "retired-status-config" "legacy status configuration receives retirement guidance"
 assert_eq "$(jq -r '.status.staleDays' "$repo/.woostack/config.json")" "14" "legacy status configuration is preserved"
-assert_not_contains "$OUT" "github-live" "static workspace does not claim live validation"
 
 mkdir -p "$TMP/missing"
 run_doctor "$TMP/missing"

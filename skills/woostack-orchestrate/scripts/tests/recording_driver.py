@@ -15,6 +15,7 @@ import copy
 import hashlib
 import json
 import os
+import secrets
 import shlex
 import subprocess
 import sys
@@ -308,6 +309,7 @@ class FakeGitHub:
             "parent_prs": self.parent_pr_readbacks(),
             "repository_rules": self.repository_rules,
             "host": {"delivery_capable": True, "max_parallel": self.max_parallel},
+            "recovery": self.snapshot()["recovery"],
             "issues": issues,
             "graph": {
                 "coverage": "complete",
@@ -322,16 +324,7 @@ class FakeGitHub:
                 "dependencies": True,
                 "contracts": True,
             }),
-            "recovery": {
-                "checkpoints": [],
-                "processes": [],
-                "sessions": [],
-                "worktrees": [],
-                "refs": [],
-                "prs": [],
-                "contracts": [],
-                "dependencies": [],
-            },
+
         }
         result["selected_issues"] = [item for item in issues if item["url"] in selected]
         result["issues"] = result["selected_issues"]
@@ -518,7 +511,7 @@ def verify_execute_readiness(repo: Path, packet: Dict[str, Any], entry: Dict[str
 class FakeHost:
     """Real threaded host primitive consuming helper dispatch packets."""
 
-    def __init__(self, repo: Path, github: FakeGitHub, *, max_workers: int = 3) -> None:
+    def __init__(self, repo: Path, github: FakeGitHub, *, max_workers: int = 3, on_launch=None) -> None:
         self.repo = Path(repo)
         self.github = github
         self.executor = ThreadPoolExecutor(max_workers=max_workers)
@@ -537,6 +530,15 @@ class FakeHost:
         self.wave_barrier = None
         self.use_wave_barrier = False
         self.consumed_packets = []
+        self.on_launch = on_launch
+        self.host_id = secrets.token_hex(16)
+        self.identities = {}
+        self.reservations = {}
+        self.hold_before_pr = False
+        self.before_pr = threading.Event()
+        self.hold_before_mutation = False
+        self.before_mutation = threading.Event()
+        self.mutation_hold = threading.Event()
 
     def dispatch(self, entries: Sequence[Dict[str, Any]]) -> None:
         if not self.futures and {entry["task_id"] for entry in entries} == {
@@ -548,6 +550,14 @@ class FakeHost:
             task_id = entry["task_id"]
             self.started.setdefault(task_id, threading.Event())
             self.completed.setdefault(task_id, threading.Event())
+            self.identities[task_id] = {
+                "host_id": self.host_id, "session_id": secrets.token_hex(16),
+                "worker_id": "execute-%s-%s" % (task_id, secrets.token_hex(8)),
+            }
+            self.reservations[task_id] = {
+                key: entry[key] for key in ("branch", "workspace", "parent_branch", "parent_sha",
+                                           "task_url", "scope", "contract_hash")
+            }
             record("host", "dispatch-worker", {
                 "task_id": task_id,
                 "workspace": entry.get("workspace"),
@@ -555,10 +565,34 @@ class FakeHost:
                 "parent_branch": entry.get("parent_branch"),
                 "packet": entry.get("packet"),
             })
-            self.futures[task_id] = self.executor.submit(self._execute_packet, copy.deepcopy(entry))
+            self.futures[task_id] = self.executor.submit(
+                self._execute_packet, copy.deepcopy(entry), copy.deepcopy(self.identities[task_id])
+            )
+            if self.on_launch:
+                self.on_launch(entry, self.identities[task_id])
 
 
-    def _execute_packet(self, entry: Dict[str, Any]) -> Dict[str, Any]:
+    def recovery_inventory(self) -> Dict[str, Any]:
+        inventory = self.github.snapshot()["recovery"]
+        inventory["sessions"] = [
+            {"task_id": task_id, "worker": copy.deepcopy(self.identities[task_id]),
+             "reservation": copy.deepcopy(self.reservations[task_id]),
+             "status": "stopped" if future.done() else "running"}
+            for task_id, future in self.futures.items()
+        ]
+        record("host", "read-worker-liveness", inventory["sessions"])
+        return inventory
+
+    def stopped_receipt(self, task_id: str, state: Path, inventory: Dict[str, Any]) -> Dict[str, Any]:
+        if not self.futures[task_id].done():
+            raise AssertionError("live host future cannot produce a stopped receipt")
+        return {
+            "worker": copy.deepcopy(self.identities[task_id]),
+            "state_digest": hashlib.sha256(state.read_bytes()).hexdigest(),
+            "inventory_digest": contract_hash(inventory),
+        }
+
+    def _execute_packet(self, entry: Dict[str, Any], identity: Dict[str, str]) -> Dict[str, Any]:
         task_id = entry["task_id"]
         packet = entry["packet"]
         # This assertion is intentionally about the consumer boundary, not
@@ -583,6 +617,10 @@ class FakeHost:
             self.b_started.set()
         if task_id == "task-c":
             self.c_started.set()
+
+        if self.hold_before_mutation:
+            self.before_mutation.set()
+            self.mutation_hold.wait()
 
         workspace = Path(entry["workspace"])
         branch = entry["branch"]
@@ -632,11 +670,14 @@ class FakeHost:
             "draft": True,
             "diff_identity": diff_identity(self.repo, parent_sha_for_diff, head_sha),
         }
+        if task_id == "task-b" and self.hold_before_pr and not repair:
+            self.before_pr.set()
+            self.b_hold.wait()
         self.github.save_pr(task_id, pr)
         report = {
             "outcome": "ok",
             "worker": {
-                "worker_id": "execute-%s" % task_id,
+                **identity,
                 "pr_url": pr_url,
                 "branch": branch,
                 "workspace": str(workspace.resolve()),
@@ -667,6 +708,7 @@ class FakeHost:
 
     def shutdown(self) -> None:
         self.release_b()
+        self.mutation_hold.set()
         self.executor.shutdown(wait=True)
 
 
