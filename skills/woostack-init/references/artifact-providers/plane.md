@@ -115,9 +115,10 @@ Exact-source attribution and provenance distinguish:
 
 > **Retired.** Execute no longer accepts Plane work-item `--issue` scope, resolves Plane project
 > membership, mutates work-item states, runs a project/run controller, or closes provider resources.
-> Its only optional provider input is an exact canonical GitHub issue URL, read through `gh` and
-> associated by Commit. The retained Plane project/work-item/state schema and historical records are
-> reference data only; see [`woostack-execute`](../../../woostack-execute/SKILL.md#retired-inputs).
+> Its only optional provider input is an exact canonical GitHub issue URL, read through an authorized
+> host GitHub capability (prefer native tools when suitable; host-authenticated `gh` remains supported)
+> and associated by Commit. Retained Plane schemas and historical records are reference data only;
+> see [`woostack-execute`](../../../woostack-execute/SKILL.md#retired-inputs).
 
 The configured Plane project remains repository association context; its status is never changed by
 woostack. Handoff, abandonment, blockers, and completion leave the project unchanged.

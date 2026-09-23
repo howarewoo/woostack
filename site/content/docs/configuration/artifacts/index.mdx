@@ -19,7 +19,7 @@ scope.
 
 | `artifacts.provider` | Storage/configuration | Effect |
 | --- | --- | --- |
-| omitted or `"local"` | [Local](/docs/configuration/artifacts/local) | No provider calls for Prepare, Plan, Ideate, Harden, or goal-only Change; retained historical files are not rewritten. |
+| omitted or `"local"` | [Local](/docs/configuration/artifacts/local) | No provider calls for Prepare, Plan, Ideate, Harden, or goal-only Execute; retained historical files are not rewritten. |
 | `"github"` | [GitHub](/docs/configuration/artifacts/github) | Explicit provider-aware workflows use host-authenticated `gh`; Plan's direct issue publication remains its own contract. |
 | `"linear"` | [Linear](/docs/configuration/artifacts/linear) | Explicit surviving provider-aware workflows use the authenticated official Linear MCP; Prepare and Plan do not mirror. |
 | `"plane"` | [Plane](/docs/configuration/artifacts/plane) | Explicit surviving provider-aware workflows use the authenticated official Plane MCP; Prepare and Plan do not mirror. |
@@ -35,11 +35,13 @@ identity so it can recover an uncertain result without creating a duplicate. It 
 recovered resource independently before making further changes. Missing, partial, ambiguous,
 duplicate, or out-of-scope results stop that provider operation.
 
-A provider failure is reported with the confirmed identity boundary. Provider synchronization never
-grants permission to merge a PR; agents never merge. Goal-only [Change](/docs/skills/woostack-change)
-performs no artifact-provider call. Issue-backed Change performs the required read of its explicitly
-selected exact GitHub issue through host-authenticated `gh`; it does not select an artifact provider
-or require provider configuration, a Project, a mirror, or a persisted plan.
+A failed mirror operation is recorded in the local manifest but does not block work based on a
+complete local run. Provider synchronization never grants permission to merge a PR; agents never
+merge. Goal-only Execute makes no artifact-provider calls unless an exact issue association or requested
+provider operation is selected. Execute with an
+explicit exact GitHub issue input performs the required read of that issue through an authorized
+GitHub capability (native tools preferred; host-authenticated `gh` supported); it does not select an
+artifact provider or require provider configuration, a Project, a mirror, or a persisted plan.
 
 The canonical implementation rules live in the
 [local run artifact and provider mirror contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-backends.md).

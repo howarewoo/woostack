@@ -20,7 +20,6 @@ packages=(
   skills/woostack-eval
   skills/woostack-prepare
   skills/woostack-plan
-  skills/woostack-change
   skills/woostack-execute
   skills/woostack-commit
   skills/woostack-address-comments
@@ -28,7 +27,6 @@ packages=(
   skills/woostack-visualize
   skills/woostack-init
   skills/woostack-doctor
-  skills/woostack-status
   skills/woostack-bootstrap
 )
 for index in "${!packages[@]}"; do
@@ -55,7 +53,6 @@ const expectedPackages = [
   'skills/woostack-eval',
   'skills/woostack-prepare',
   'skills/woostack-plan',
-  'skills/woostack-change',
   'skills/woostack-execute',
   'skills/woostack-commit',
   'skills/woostack-address-comments',
@@ -63,11 +60,10 @@ const expectedPackages = [
   'skills/woostack-visualize',
   'skills/woostack-init',
   'skills/woostack-doctor',
-  'skills/woostack-status',
   'skills/woostack-bootstrap',
 ];
 const same = (left, right) => JSON.stringify(left) === JSON.stringify(right);
-if (!same(packages, expectedPackages) || new Set(packages).size !== 13) {
+if (!same(packages, expectedPackages) || new Set(packages).size !== 11) {
   throw new Error(`critical package enumeration changed: ${JSON.stringify(packages)}`);
 }
 
@@ -269,4 +265,4 @@ for (let index = 0; index < packages.length; index += 1) {
 
 NODE
 
-printf 'PASS: validated critical behavior corpora for exactly 13 required packages\n'
+printf 'PASS: validated critical behavior corpora for exactly 11 required packages\n'

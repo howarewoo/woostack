@@ -49,6 +49,9 @@ while IFS= read -r key; do
     emit warn config-key auto ".woostack/config.json" "missing required config key: $key"
   fi
 done < <(jq -r 'keys[]' "$TEMPLATE")
+if jq -e 'has("status") and (.status | type == "object" and has("staleDays"))' "$EFFECTIVE_CFG" >/dev/null 2>&1; then
+  emit warn retired-status-config report ".woostack/config.json" "top-level status.staleDays is retired; existing configuration is preserved and may be removed manually"
+fi
 
 if jq -e 'has("linear") and (.linear | type == "object") and (.linear | has("saveArtifacts")) or (has("artifacts") and (.artifacts | type == "object") and ((.artifacts | has("saveArtifacts")) or (.artifacts.linear? | type == "object" and has("saveArtifacts"))))' "$EFFECTIVE_CFG" >/dev/null 2>&1; then
   emit error linear-policy report ".woostack/config.json" "linear.saveArtifacts is deprecated; migrate to artifacts.provider and artifacts.linear"
@@ -84,8 +87,9 @@ issue_categories='{"planned":"backlog","executing":"started","inReview":"started
 linear_allowed='["repository","workspace","team","projectLabels","projectStatuses","issueStates"]'
 plane_allowed='["baseUrl","workspace","repository","project","projectLabels","issueStates"]'
 github_allowed='["owner","ownerType","statusField","visibility","projectStatuses"]'
-github_receipt_keys='["authenticated","capabilities","ghAvailable","owner","ownerResolution","projectStatuses","provider","readBack","ready","repository","schemaVersion","scopes","viewer"]'
-github_required_caps='["dependencyRead","dependencyWrite","independentReadBack","issueClose","issueDelete","issueRead","issueWrite","pagination","projectDelete","projectRead","projectWrite","statusFieldRead","statusFieldWrite"]'
+github_receipt_keys='["authenticated","capabilities","interfaceAvailable","owner","ownerResolution","projectStatuses","provider","readBack","ready","repository","schemaVersion","viewer"]'
+github_capability_names='["dependencyRead","dependencyWrite","independentReadBack","issueRead","issueWrite","pagination","projectRead","projectWrite","statusFieldRead","statusFieldWrite"]'
+github_required_caps='["independentReadBack","pagination","projectRead","statusFieldRead"]'
 if [ "$provider" = "github" ]; then
   if ! jq -e '.artifacts | (has("github") | not) or (.github | type == "object")' "$EFFECTIVE_CFG" >/dev/null 2>&1; then
     emit error linear-policy report ".woostack/config.json" "github policy must be an object"
@@ -323,18 +327,17 @@ elif [ "$provider" = "plane" ]; then
 elif [ "$provider" = "github" ]; then
   if [ ! -r "$receipt" ] || ! jq -e \
     --argjson allowed_keys "$github_receipt_keys" \
-    --argjson required_caps "$github_required_caps" \
+    --argjson capability_names "$github_capability_names" \
     --argjson issue_keys "$issue_keys" \
     --slurpfile config "$EFFECTIVE_CFG" '
       . as $receipt
       | ((. | keys | sort) == ($allowed_keys | sort))
         and .schemaVersion == 1
-        and .provider == "official-gh-cli"
-        and .ghAvailable == true
+        and .provider == "authorized-github"
+        and .interfaceAvailable == true
         and .authenticated == true
         and .ready == true
         and (.viewer | type == "object" and (keys | sort) == ["id", "login"] and (.login | type == "string" and test("\\S")) and (.id | type == "string" and test("\\S")))
-        and (.scopes | type == "array" and (sort == ["project", "read:org", "repo"]))
         and (.ownerResolution | type == "object" and (keys | sort) == ["id", "login", "status", "type"])
         and .ownerResolution.status == "unique"
         and (.ownerResolution.login | type == "string" and test("\\S"))
@@ -355,10 +358,13 @@ elif [ "$provider" = "github" ]; then
               and (.name == $config[0].artifacts.github.projectStatuses[$key])
               and (.id | type == "string" and test("\\S"))))
         and ([$receipt.projectStatuses.resolved[].id] | unique | length) == ($issue_keys | length)
-        and (.capabilities | type == "object" and (keys | sort) == ($required_caps | sort) and all(.[]; type == "boolean"))
+        and (.capabilities
+          | type == "object"
+          and ((keys - $capability_names) | length) == 0
+          and all(.[]; type == "boolean"))
         and (.readBack | type == "object" and (keys | sort) == ["complete", "independent", "status"] and .status == "verified" and .complete == true and .independent == true)
     ' "$receipt" >/dev/null 2>&1; then
-    emit error linear-live report ".woostack/config.json" "normalized GitHub CLI receipt is missing, malformed, partial, or not ready"
+    emit error linear-live report ".woostack/config.json" "normalized GitHub capability receipt is missing, malformed, partial, or not ready"
     exit 0
   fi
 
@@ -393,9 +399,9 @@ elif [ "$provider" = "github" ]; then
     emit error linear-live report ".woostack/config.json" "receipt repository does not match target repository derived from Git"
   fi
 
-  for capability in $(jq -r '.[]' <<<"$github_required_caps"); do
+  for capability in $(jq -r --argjson required_caps "$github_required_caps" '$required_caps[]' "$receipt"); do
     if ! jq -e --arg capability "$capability" '.capabilities[$capability] == true' "$receipt" >/dev/null 2>&1; then
-      emit error linear-live report ".woostack/config.json" "missing GitHub CLI capability: $capability"
+      emit error linear-live report ".woostack/config.json" "missing GitHub capability: $capability"
     fi
   done
 fi

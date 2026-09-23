@@ -10,7 +10,7 @@ This is a published collection of skills, not an application codebase. It packag
 decisions for building new web, mobile, and API projects so agents can install it with
 `pnpx skills add howarewoo/woostack`.
 
-The public command/adoption surface has twenty-one skills:
+The public command/adoption surface has eighteen skills:
 
 - [`using-woostack`](skills/using-woostack/SKILL.md)
 - [`woostack-init`](skills/woostack-init/SKILL.md)
@@ -18,17 +18,14 @@ The public command/adoption surface has twenty-one skills:
 - [`woostack-ideate`](skills/woostack-ideate/SKILL.md)
 - [`woostack-harden`](skills/woostack-harden/SKILL.md)
 - [`woostack-prepare`](skills/woostack-prepare/SKILL.md)
-- [`woostack-change`](skills/woostack-change/SKILL.md)
 - [`woostack-plan`](skills/woostack-plan/SKILL.md)
 - [`woostack-orchestrate`](skills/woostack-orchestrate/SKILL.md)
 - [`woostack-execute`](skills/woostack-execute/SKILL.md)
 - [`woostack-commit`](skills/woostack-commit/SKILL.md)
 - [`woostack-address-comments`](skills/woostack-address-comments/SKILL.md)
-- [`woostack-status`](skills/woostack-status/SKILL.md)
 - [`woostack-visualize`](skills/woostack-visualize/SKILL.md)
 - [`woostack-design`](skills/woostack-design/SKILL.md)
 - [`woostack-debug`](skills/woostack-debug/SKILL.md)
-- [`woostack-tdd`](skills/woostack-tdd/SKILL.md)
 - [`woostack-doctor`](skills/woostack-doctor/SKILL.md)
 - [`woostack-qa`](skills/woostack-qa/SKILL.md)
 - [`woostack-eval`](skills/woostack-eval/SKILL.md)
@@ -63,27 +60,24 @@ implementation, assignment, ownership, acceptance, or source-control action. Pla
 GitHub issue and relationship publication; Orchestrate owns scheduling and Execute owns bounded
 implementation and PR delivery.
 
-Bounded non-bug Change remains provider-free except for its documented exact issue read. Provider
-profiles and configuration remain available only for surviving explicit provider-aware workflows and
-historical records until the separately scoped provider cleanup; Prepare never relies on them.
 
-The user's request and explicit conversation choices authorize repository work. Git and GitHub own
-source, branches, commits, pull requests, reviews, and merge evidence. Issue lifecycle alone never
-proves implementation, delivery, passing checks, review, or merge.
-`/woostack-init` may use only the official Linear MCP or host-authenticated gh for narrow automatic
-authenticated read-only discovery of non-secret repository/workspace/team/native-name defaults; it
-never selects persistence or authorizes a provider write. `.woostack/config.json` supplies validated
-defaults only after artifact selection. Credentials remain in the host secret store, and local
-diagnostic reports remain non-authoritative. Goal-only `woostack-change` remains provider-free; an
-explicit exact GitHub issue permits only its documented read-only admission, even with local
-artifacts. That exception does not select artifact mirroring or authorize work. Handoff, replanning,
-and blockers leave project status unchanged.
+`/woostack-init` may use only the official Linear MCP or an authorized GitHub read capability for
+narrow automatic authenticated read-only discovery of non-secret repository/workspace/team/native-name
+defaults; it never selects persistence or authorizes a provider write. `.woostack/config.json` supplies
+validated defaults only after artifact selection. Credentials remain in the host secret store, and
+local diagnostic reports remain non-authoritative. Goal-only Execute makes no development-artifact
+provider calls; an explicitly selected exact GitHub issue permits only the read-only GitHub capability
+defined in Execute's optional issue contract, even with `artifacts.provider` local or omitted. That
+exception does not select artifact mirroring or authorize work. Handoff, replanning, and blockers
+leave project status unchanged.
 
-Explicit [`woostack-orchestrate`](skills/woostack-orchestrate/SKILL.md) execution selects either one
-GitHub specification parent with native task children or one configured GitHub Project. Parent-issue
-execution does not require provider mirroring or Project configuration. Orchestrate owns scheduling
-and independent post-submission validation; each Execute worker owns one task's delivery through
-Commit. This does not change Prepare's planning-only boundary or grant merge authority.
+Explicit [`woostack-orchestrate`](skills/woostack-orchestrate/SKILL.md) execution selects one
+GitHub specification parent with native task children, one configured GitHub Project, or an
+explicit canonical list of GitHub issues. Parent-issue execution does not require provider
+mirroring or Project configuration; list execution does not require a parent, Project, or native
+dependency publication. Orchestrate owns scheduling and independent post-submission validation; each
+Execute worker owns one task's delivery through Commit. This preserves the planning-only Prepare
+boundary and does not grant merge authority.
 
 External engineers such as Hermes are outside the installed woostack host/runtime surface. Hermes
 may drive one persistent OMP session as an external decision-maker and reviewer, but woostack is
@@ -93,8 +87,7 @@ unchanged local run artifacts does not require the original process to stay aliv
 in the authored [Hermes guide](site/content/docs/hermes.mdx); it does not make Hermes a supported
 host or grant it implementation authority.
 
-This collection has twenty-one public command/adoption skills at twenty-one fixed `SKILL.md`
-locations. Remote provider support adds neither a command-routing row nor a per-provider skill.
+This collection has eighteen public command/adoption skills at eighteen fixed `SKILL.md` locations.
 
 Identify the mode before acting.
 
@@ -106,12 +99,11 @@ do not add application code, app build configs, or app lockfiles **outside the s
 
 **Mode B: run a woostack command.** Use this when the user asks for `/woostack-init`,
 `/woostack-bootstrap`, `/woostack-ideate`, `/woostack-harden`, `/woostack-prepare`,
-`/woostack-change`, `/woostack-plan`, `/woostack-orchestrate`, `/woostack-execute`,
-`/woostack-commit`, `/woostack-address-comments`, `/woostack-status`, `/woostack-visualize`,
-`/woostack-design`, `/woostack-debug`, `/woostack-tdd`, `/woostack-doctor`, `/woostack-qa`,
-`/woostack-eval`, or `/woostack-reflect`, including intent-equivalent wording. Load the matching
-skill before acting. For bootstrap work, the output belongs in a fresh repo in a different
-directory, not in this repo.
+`/woostack-plan`, `/woostack-orchestrate`, `/woostack-execute`, `/woostack-commit`,
+`/woostack-address-comments`, `/woostack-visualize`, `/woostack-design`, `/woostack-debug`,
+`/woostack-doctor`, `/woostack-qa`, `/woostack-eval`, or `/woostack-reflect`, including
+intent-equivalent wording. Load the matching skill before acting. For bootstrap work, the output
+belongs in a fresh repo in a different directory, not in this repo.
 
 ## Hard constraints
 
@@ -141,10 +133,11 @@ the repository's simplify/comments guidance.
   PR only. They do not grant merge authority. Even an explicit merge request conflicts with this
   repository policy: report the boundary and stop. Never run `gh pr ready`, `gh pr merge`, a
   merge-queue mutation, or an equivalent Graphite/GitHub operation.
-- Use Git + GitHub CLI (`gh`) by default for source control. Graphite is optional: select it
-  only on explicit request or verified evidence that the current task/stack is already managed.
-  Follow the [source-control contract](skills/woostack-commit/references/graphite.md);
-  backend errors stop the operation rather than trigger a fallback. Never force-push.
+- Use native Git with an available, authorized GitHub integration for source control; prefer the
+  host's native GitHub tools when suitable and use host-authenticated `gh` where appropriate.
+  Discover the actual capabilities and preserve the [source-control contract](skills/woostack-commit/references/graphite.md);
+  Graphite is optional and must be selected explicitly or by verified existing management evidence.
+  Backend errors stop the operation rather than trigger a fallback. Never force-push.
 - Cross-link, do not duplicate. If a fact belongs in a reference file, link to it from
   related docs instead of restating it.
 - Reference frameworks by name, not version, except in
@@ -159,9 +152,9 @@ the repository's simplify/comments guidance.
   pages need no manual edit: they regenerate from each `SKILL.md` at build time (see the
   documentation-site exception above). When in doubt, run `pnpm -C site build` to confirm the
   site still builds.
-- Do not move or rename any of the twenty-one `SKILL.md` files. Approved retirement of the former
-  Build/Fix entrypoints is an exception: remove those installed locations and add the replacement
-  `woostack-prepare` location without compatibility aliases.
+- Do not move or rename any of the nineteen `SKILL.md` files. Public command/adoption names and
+  fixed paths are part of the installed interface, except for an explicitly approved
+  retirement that removes the complete skill and its references.
 - Do not rename files under
   [`skills/woostack-bootstrap/references/`](skills/woostack-bootstrap/references/) without
   updating every cross-link and the bootstrap skill table.
@@ -188,12 +181,14 @@ the repository's simplify/comments guidance.
   [`skills/woostack-harden/SKILL.md`](skills/woostack-harden/SKILL.md)
 - Shared plain planning input and handback contract:
   [`skills/using-woostack/references/planning-inputs.md`](skills/using-woostack/references/planning-inputs.md)
-- Bounded non-bug change loop (public command; one reviewable PR, no approval gate or persisted plan):
-  [`skills/woostack-change/SKILL.md`](skills/woostack-change/SKILL.md)
 - Plan-owned GitHub issue publication engine (public command):
   [`skills/woostack-plan/SKILL.md`](skills/woostack-plan/SKILL.md)
 - Bounded task execution engine delivering one task through one PR (public command):
   [`skills/woostack-execute/SKILL.md`](skills/woostack-execute/SKILL.md)
+- GitHub parent-issue, explicit issue-list, or explicit Project orchestration (public command):
+  [`skills/woostack-orchestrate/SKILL.md`](skills/woostack-orchestrate/SKILL.md)
+- Execute testing doctrine:
+  [`skills/woostack-execute/references/tdd.md`](skills/woostack-execute/references/tdd.md)
 - Exploratory browser QA engine (public command; drives a running app via the `agent-browser`
   CLI, report-only findings under `.woostack/qa/`):
   [`skills/woostack-qa/SKILL.md`](skills/woostack-qa/SKILL.md)
@@ -212,13 +207,12 @@ the repository's simplify/comments guidance.
   [`skills/woostack-design/SKILL.md`](skills/woostack-design/SKILL.md)
 - Workspace health — diagnose + gated repair of `.woostack/`:
   [`skills/woostack-doctor/SKILL.md`](skills/woostack-doctor/SKILL.md)
-- TDD doctrine home and add-tests command (public command):
-  [`skills/woostack-tdd/SKILL.md`](skills/woostack-tdd/SKILL.md)
 - Address-comments delegator:
   [`skills/woostack-address-comments/SKILL.md`](skills/woostack-address-comments/SKILL.md)
-- Derived feature board (status command) and its canonical feature-state conventions:
-  [`skills/woostack-status/SKILL.md`](skills/woostack-status/SKILL.md),
-  [`skills/woostack-status/references/conventions.md`](skills/woostack-status/references/conventions.md)
+- The work-tracking source of truth is canonical GitHub parent/child issues, native dependency
+  relations, and associated pull requests; GitHub Project Status fields remain provider metadata.
+  Inspect those records directly. Local run manifests remain workflow progress and recovery
+  artifacts, not a replacement work board.
 - Init workspace and repository policy contract:
   [`skills/woostack-init/`](skills/woostack-init/)
 - Docs site — shipped Fumadocs app; authored framing pages plus the per-`SKILL.md` generator

@@ -4,7 +4,7 @@
   "cases": [
     {
       "id": "diagnoses-before-local-repair-approval",
-      "prompt": "Apply the packaged /woostack-doctor interactive repair procedure to the host-produced static diagnosis in fixtures/diagnosis.json. Do not use --live and do not modify any file. Diagnose first, present the auto-fixable changeset, and because approval is absent stop before repair. Return exactly one JSON object using the keys findingCodes, diagnosisCompleted, approvalRequired, repairApplied, and liveValidationInvoked.",
+      "prompt": "Apply the packaged /woostack-doctor interactive repair procedure to the host-produced static diagnosis in fixtures/diagnosis.json for a repository with no `.omp/agents` directory. Do not use --live and do not modify any file. Diagnose first, present the auto-fixable changeset, and because approval is absent stop before repair. Return exactly one JSON object using the keys findingCodes, diagnosisCompleted, approvalRequired, repairApplied, and liveValidationInvoked.",
       "fixtures": [
         "incomplete-project/.woostack/config.json",
         "diagnosis.json"
@@ -12,7 +12,7 @@
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "Static diagnosis completes first, reports config-key, leaves explicit repair approval pending, applies no repair, does not invoke live validation, and preserves local files.",
+      "expected": "Static diagnosis completes first, reports only config-key (absence of `.omp/agents` is not a finding), leaves explicit repair approval pending, applies no repair, does not invoke live validation, and preserves local files.",
       "assertions": [
         {
           "id": "config-key-diagnosed",

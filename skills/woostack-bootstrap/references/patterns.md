@@ -36,10 +36,10 @@ When data crosses between applications, use explicit adapters at the receiving a
 
 ## 4. Test-Driven Development
 
-Red → Green → Refactor, test-first. The canonical TDD kernel — the workflow, coverage classes, and
-repository-runner rule — lives once in [woostack-tdd](../../woostack-tdd/SKILL.md); follow it.
-Use the repository's approved test runner, layout, and naming conventions. A change is incomplete
-until its required verification passes.
+Apply the canonical [testing guidance](../../woostack-execute/references/tdd.md) for
+Red → Green → Refactor, meaningful coverage, characterization tests, and concrete no-runner
+verification. Use the repository's approved test runner, file layout, and naming conventions. A
+change is incomplete until its required verification passes.
 
 ## 5. API stability
 

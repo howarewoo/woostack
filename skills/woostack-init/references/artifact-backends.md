@@ -25,13 +25,14 @@ When artifacts are `"local"` or omitted:
 
 - Prepare, Ideate, Harden, and Plan make no provider-mirror calls;
 - direct Plan still requires its exact GitHub scope and performs the required issue/Project reads and
-  writes; and
-- goal-only `woostack-change` makes no development-artifact provider call. Its
-  [exact GitHub issue admission](../../woostack-change/SKILL.md#admit-an-exact-github-issue) is a
-  read-only host-authenticated `gh` exception that remains available with local/omitted
-  `artifacts.provider`; it does not select artifact mirroring or require project configuration.
-- explicit Orchestrate parent-issue execution uses host-authenticated `gh` for its admitted hierarchy
-  and verified child delivery notes under the [Orchestrate lifecycle boundary](artifact-providers/github.md#orchestrate-lifecycle-boundary);
+  writes;
+- goal-only Execute makes no development-artifact provider call. Its optional exact GitHub issue
+  association is a read-only authorized GitHub capability (host-native tools where suitable or
+  host-authenticated `gh`) exception that remains available with local/omitted `artifacts.provider`;
+  it does not select artifact mirroring or require project configuration.
+- explicit Orchestrate parent-issue execution uses an authorized GitHub capability (host-native tools
+  where suitable or host-authenticated `gh`) for its admitted hierarchy and verified child delivery
+  notes under the [Orchestrate lifecycle boundary](artifact-providers/github.md#orchestrate-lifecycle-boundary);
   it does not select a Project, another provider, or provider mirroring.
 
 Legacy `linear.saveArtifacts` configurations are rejected with explicit migration guidance to
@@ -77,7 +78,8 @@ Empty, malformed, non-object, unreadable, symlinked, non-regular, orphaned, or c
 configuration fails closed with the offending path. Both files contain non-secret policy only;
 provider authentication stays in the host secret store. Doctor validates effective configuration at
 runtime, while template presence and repair apply only to the tracked base file. OMP ignores model
-settings in both layers because role routing is host-owned.
+settings in both layers because active-session agent selection and role routing are host-owned; the
+repository does not create or rename worker definitions.
 
 After a workflow selects provider mirroring, resolve and compare every configured repository,
 workspace, team, native-status, and presentation value with the canonical repository and authenticated
@@ -214,6 +216,13 @@ bytes and revision before another mutation. Never blindly replay a write or allo
 hide uncertainty. The helper removes only its own uncommitted temporary file on a handled failure;
 process-loss leftovers are retained and unexpected entries block for explicit recovery. Completed,
 abandoned, and blocked runs retain `manifest.json`, both final artifacts when written, and `.lock`.
+
+`woostack-orchestrate` does not create a Build/Fix run or a second planning ledger. Its private
+controller checkpoint uses the same owner-only, no-follow, complete-byte, atomic compare-and-swap
+discipline for recovery evidence, while canonical issue/Project reads and Git remain authoritative.
+Its shared-checkout claims are derived from the canonical repository and native child issue identity,
+retain the exact selector provenance, and are never a provider artifact, scheduler service, or
+permission to take over another controller's work.
 
 ## Minimal resumable manifest schema
 
@@ -357,7 +366,7 @@ Keep that logical prerequisite set separate from the exactly one concrete Git pa
 Apply the selected profile's parent-selection policy and require recorded parent-branch/SHA ancestry
 proof that contains every required predecessor before dispatch. A join without that proof records the
 parent/integration decision as unresolved and pauses for an explicit decision; it must not invent an
-integration branch or ordinal chain. Apply the [bounded task parent-admission contract](worktrees.md#plan-dependency-child).
+integration branch or ordinal chain. Apply the [bounded task parent-admission guidance](worktrees.md#repository-and-ancestry-evidence).
 Report failed, pending, unavailable, or incomplete checks for observation only. Check outcomes do not
 mutate prerequisites, choose a base, or create a blocker by themselves.
 
@@ -388,14 +397,21 @@ Merge authority remains human-only and outside every woostack workflow.
 
 ## Provider and credential boundary
 
-Use only the host-authenticated official MCP named by the selected provider profile, or the
-host-authenticated official `gh` CLI for GitHub. Discover capabilities from the host after provider
-selection. Never request API keys, read repository credentials, use custom HTTP/GraphQL/REST
-transport, or copy host tokens into a worker, subprocess, prompt, report, or file.
+Use an available, authorized capability exposed by the selected provider's host integration for the
+exact operation and its verification. For GitHub, prefer the host's native GitHub tools when they
+support the operation; host-authenticated official `gh` remains a supported interface where
+appropriate. Discover the actual operation capabilities, supported read/query shapes, pagination
+behavior, and schemas from the host rather than assuming tool names or request forms. Keep
+credentials in the host secret store. Never request API keys, read repository credentials, forward
+host tokens, or introduce a custom HTTP/GraphQL/REST client or alternate authority.
 
-Prove the minimum exact-read, pagination, requested-mutation, and independent read-back capabilities
-before an operation. Missing capability blocks only the selected provider operation. Provider-specific
-instance and workspace scope plus supported Init discovery are defined by the selected profile.
+Prove the minimum capabilities for the operation before mutating: exact reads, complete pagination,
+the requested mutation family, and independent read-back. Read-only work requires only its required
+read capabilities; issue operations, Project membership/status operations, and native dependency
+operations are distinct capabilities. Missing support blocks only the provider operation that needs
+it, while unrelated local or repository work may report a separately successful outcome. An
+unsupported, partial, or unknown capability never authorizes approximation, a different scope, or a
+blind retry.
 
 ## Untrusted remote content
 

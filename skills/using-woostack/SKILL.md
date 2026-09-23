@@ -45,34 +45,34 @@ provider-specific scope, capabilities, identities, and lifecycle behavior.
 | Elicit a complete user-verified specification from a goal or existing specification | `woostack-ideate` |
 | Reconcile a supplied specification or candidate issue plan against repository evidence | `woostack-harden` |
 | Prepare a feature or proved defect for a verified GitHub issue graph without implementation | `woostack-prepare` |
-| Implement a bounded non-bug enhancement or refactor in one PR | `woostack-change` |
+| Implement a bounded task and deliver one PR | `woostack-execute` |
 | Turn an approved specification into reviewable increments and publish the native issue graph | `woostack-plan` |
-| Execute native children of one GitHub parent issue or tasks in an exact GitHub Project with parallel workers and stacked PRs | `woostack-orchestrate` |
-| Implement one bounded task and deliver one PR | `woostack-execute` |
+| Execute native children of one GitHub parent issue, tasks in an exact GitHub Project, or an explicit canonical issue list with parallel workers and stacked PRs | `woostack-orchestrate` |
 | Commit current changes and submit or update their PR | `woostack-commit` |
 | Review a pull request | Use [Pullfrog](https://pullfrog.com/). |
 | Address every unresolved thread on one exact existing PR | `woostack-address-comments` |
-| Show the repository-derived work board | `woostack-status` |
 | Render verified source as audience-tailored HTML | `woostack-visualize` |
 | Organize multi-step UI design flows | `woostack-design` |
 | Investigate a root cause without implementing a fix | `woostack-debug` |
-| Add appropriate tests to a bounded target | `woostack-tdd` |
+| Add or strengthen tests for a bounded target | `woostack-execute` (apply its [testing guidance](../woostack-execute/references/tdd.md)) |
 | Diagnose or explicitly repair workspace health | `woostack-doctor` |
 | Explore a running app and report browser QA findings | `woostack-qa` |
-| Evaluate an approved skill corpus without editing the skill | `woostack-eval` |
+| Evaluate an approved skill corpus without editing it | `woostack-eval` |
 | Reflect on this conversation for durable instruction suggestions | `woostack-reflect` |
 
-`woostack-build` and `woostack-fix` are retired, not missing installations. For either old command,
-explain the [Prepare and retained-input boundary](../woostack-prepare/SKILL.md#command) rather than
-loading or reinstalling it. Do not translate old resume arguments or invoke a replacement automatically.
+`woostack-build`, `woostack-fix`, `woostack-change`, `woostack-status`, and `woostack-tdd` are
+retired, not missing installations. Do not invoke them. For old Build/Fix planning inputs, explain
+Prepare's retained-input boundary rather than loading or reinstalling a retired wrapper; for bounded
+enhancements or test-only work, route to Execute. Ordinary work progress is read from GitHub issues,
+pull requests, and Git evidence.
 
 Every supported explicit `/woostack-*` command loads its namesake skill. Intent-equivalent wording follows
 the same route. Ideate and Harden are public, directly callable phases that exchange complete plain
 packets. Prepare composes Debug for defects, Ideate, Harden, and Plan as needed and ends at a fully
 read-back GitHub issue graph; it never implements, creates source branches, dispatches workers, or
-invokes Execute or Orchestrate. Plan is the sole issue publisher. Change remains non-bug and one-PR;
-Execute remains the explicit bounded implementation and draft-PR path. None of these planning phases
-automatically edits source, commits, submits a PR, or grants merge authority.
+invokes Execute or Orchestrate. Plan is the sole issue publisher. Execute owns bounded implementation
+and draft-PR delivery; none of the planning phases automatically edits source, commits, submits a PR,
+or grants merge authority.
 
 ## AGENTS.md usage
 

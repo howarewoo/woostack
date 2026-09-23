@@ -8,7 +8,6 @@
     "least-code",
     "context-management",
     "worktrees",
-    "status-tracking",
     "utilities"
   ]
 }

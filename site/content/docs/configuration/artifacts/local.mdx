@@ -44,9 +44,10 @@ With local or omitted configuration:
 - Prepare, Ideate, Harden, and Plan make no provider-mirror calls;
 - Plan still reads and publishes the exact GitHub scope selected by `--parent-issue` or `--project`;
   parent mode needs no provider selector, local run, Project settings, or mirror;
-- goal-only [Change](/docs/skills/woostack-change) makes no artifact-provider calls; and
-- issue-backed Change reads only its explicitly selected exact canonical GitHub issue through
-  host-authenticated `gh`.
+- goal-only [Execute](/docs/skills/woostack-execute) makes no artifact-provider calls; and
+- an exact Execute issue association is read through the selected authorized GitHub capability
+  (native tools preferred; host-authenticated `gh` supported), without requiring artifact-provider
+  configuration, a Project, a mirror, or a persisted plan.
 
 Automatic read-only discovery during `woostack-init` is setup only. It never selects remote storage or
 authorizes later provider access.
