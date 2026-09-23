@@ -59,9 +59,11 @@ Repository parent-tip admission follows the shared
 [repository ancestry contract](../woostack-init/references/artifact-backends.md#repository-ancestry-and-base-change-detection);
 Plan owns the approved root parent intent, dependent parent-selection policy, and last-admitted-tip handoff.
 Use the shared [source-control selection and ancestry contract](../woostack-commit/references/graphite.md):
-Git+gh is the default delivery path; Graphite is opt-in for an explicitly selected or verified
-Graphite-managed task/stack. Planning records backend-neutral `parentBranch` intent, not a requirement
-to install or track with Graphite. Unknown selection blocks mutation; `gt` failure never selects native mode.
+native Git with an authorized GitHub interface is the default delivery path; host-authenticated `gh`
+remains supported where appropriate. Graphite is opt-in for an explicitly selected or verified
+Graphite-managed task/stack. Planning records backend-neutral `parentBranch` intent, not a
+requirement to install or track with Graphite. Unknown selection blocks mutation; `gt` failure never
+selects native mode.
 
 ## Input and ownership
 
@@ -114,6 +116,10 @@ increment whose dependency orders it before use, or will be created by the same 
 before use. Verify a manifest-defined command against its exact manifest entry and state any
 external runtime prerequisite. A missing or invented command blocks plan persistence; never defer
 existence checking to the bounded task.
+
+When an increment adds or strengthens tests, link its testing contract and focused checks to the
+canonical [Execute testing guidance](../woostack-execute/references/tdd.md). Plan records the
+observable contract and verification expectations only; it does not implement or execute the tests.
 
 
 ## Graph invariants

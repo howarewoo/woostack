@@ -42,11 +42,9 @@ An empty remote repository may be the intended destination, but an existing repo
 routes before requirements gathering, MCP preflight, or project creation:
 
 - bugs, regressions, incidents, and root-cause work → [`woostack-fix`](../woostack-fix/SKILL.md);
-- a bounded non-bug enhancement or refactor that fits one reviewable PR, including a one-file
-  request → [`woostack-change`](../woostack-change/SKILL.md);
+- a bounded enhancement, refactor, test-only task, or authorized understood correction that fits one
+  reviewable PR → [`woostack-execute`](../woostack-execute/SKILL.md);
 - a multi-PR feature or architectural initiative → [`woostack-build`](../woostack-build/SKILL.md).
-
-Single-surface throwaway scripts are also outside bootstrap.
 
 ## Procedure
 
@@ -115,7 +113,7 @@ approval, perform no official-MCP development mutation and create no development
 These are non-negotiable. Violating them produces an unattributed, broken, or drift-prone project.
 
 - **Greenfield only.** Route every brownfield bug, bounded one-PR request, or multi-PR initiative to
-  fix, change, or build before creating a bootstrap project.
+  fix, Execute, or build before creating a bootstrap project.
 - **Artifact-free until explicit approval.** Requirements, research, options, and design stay in
   the run context. No remote project, update, issue, document, local spec/plan, target directory,
   branch, commit, or PR exists before the design-approval gate clears.
@@ -123,9 +121,11 @@ These are non-negotiable. Violating them produces an unattributed, broken, or dr
   [filesystem barrier](references/bootstrap.md#filesystem-write-barrier-and-collision-check);
   early read-only inspection and provider receipts never authorize mutation.
 - **Artifacts are opt-in.** Without explicit selection, make no provider call. When selected, use
-  only the configured official capability (MCP for Linear or Plane; host-authenticated gh for GitHub),
-  exact identities, stable mutation IDs, complete pagination, and independent read-back. Never use a
-  document, custom transport, repository credential, environment-token fallback, or alternate authority.
+  the configured provider's authorized capability (MCP for Linear or Plane; a suitable native GitHub
+  capability or host-authenticated `gh` for GitHub), exact identities, complete pagination, and
+  independent read-back. Discover actual operation capabilities rather than assuming tool names or
+  schemas. Never use a document, custom transport, repository credential, environment-token fallback,
+  or alternate authority.
 - **Artifact failure is scoped.** Missing access or an unknown/partial result blocks requested
   persistence, not an otherwise approved artifact-free scaffold, unless persistence was explicitly
   part of the deliverable. Never claim synchronization without direct read-back.
@@ -143,9 +143,9 @@ These are non-negotiable. Violating them produces an unattributed, broken, or dr
   development instructions into the project root `README.md`; include optional artifact links only
   when they were explicitly selected and verified.
 - **Initial scaffold is the one worktree exemption.** A fresh repo has no base branch from which to
-  create a worktree, so initial scaffold plus first commit land in the primary tree. All subsequent
-  feature/fix work follows the
-  [worktree contract](../woostack-init/references/worktrees.md).
+  create an isolated workspace, so initial scaffold plus first commit land in the primary tree. All
+  subsequent feature/fix work follows the shared
+  [isolated-workspace guidance](../woostack-init/references/worktrees.md).
 
 ## SPEC_VERSION
 

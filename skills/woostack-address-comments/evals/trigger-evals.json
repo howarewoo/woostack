@@ -18,8 +18,7 @@
       "id": "branch-only-request",
       "query": "The current branch probably has review feedback. Find its pull request from recent activity and address the comments.",
       "shouldTrigger": false,
-      "expectedSkill": "woostack-status",
-      "conflictsWith": ["woostack-address-comments"]
+      "expectedSkill": "none"
     }
   ]
 }

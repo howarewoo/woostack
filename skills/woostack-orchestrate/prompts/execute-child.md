@@ -12,8 +12,10 @@ GitHub reads. It is a required runtime fact, not a value to invent or fill with 
 - Canonical repository: `$RUNTIME_CANONICAL_REPO`.
 - Specification scope selector: `$RUNTIME_SCOPE_URL` (context only; never close it).
 - Specification parent issue (issue mode): `$RUNTIME_PARENT_ISSUE_URL`; Project mode supplies the
-  selected member's independently read parent identity instead.
-- Complete approved specification: `$RUNTIME_SPECIFICATION`.
+  selected member's independently read parent identity; explicit issue-list mode may supply `null`
+  because the selected list is not a specification parent.
+- Full specification context: `$RUNTIME_SPECIFICATION` (the approved parent/Project specification,
+  or the selected issue's complete body/specification in explicit issue-list mode).
 - Complete repository rules: `$RUNTIME_REPOSITORY_RULES`.
 - Child issue: `$RUNTIME_CHILD_ISSUE_URL` (stable task `$RUNTIME_TASK_ID`, ordinal
   `$RUNTIME_ORDINAL`). This exact child is the only permitted Commit association.
@@ -34,12 +36,13 @@ GitHub reads. It is a required runtime fact, not a value to invent or fill with 
   PR; `false` starts the exact branch at the exact parent SHA).
 - Retained PR: `$RUNTIME_RETAINED_PR` (runtime canonical URL when repairing; otherwise no PR exists).
 
-Before editing, apply the [canonical worktree contract](../../woostack-init/references/worktrees.md):
-verify the physical workspace, branch, `HEAD`, parent branch ref, common root, complete worktree
-inventory, and `git merge-base --is-ancestor $RUNTIME_PARENT_SHA HEAD`. A missing/conflicting
-identity blocks. Write only inside `$RUNTIME_WORKSPACE`; do not create another checkout, switch
-parents, reset, clean, stash, overwrite, or touch another task's surface. Preserve unrelated user
-changes.
+Before editing, verify the selected workspace is a real isolated checkout for the canonical
+repository, is on `$RUNTIME_BRANCH`, has the expected `HEAD`/parent ancestry, and does not alias or
+overlap another active task workspace. Follow repository instructions first; where they leave a
+choice open, use the host's supported worktree capabilities and the selected runtime workspace
+without creating a nested checkout to satisfy a Woostack layout. A missing/conflicting identity
+blocks. Write only inside `$RUNTIME_WORKSPACE`; do not switch parents, reset, clean, stash, overwrite,
+remove, or touch another task's surface. Preserve unrelated user changes.
 
 Implement the complete bounded contract using existing repository patterns and the
 [least-code standard](../../woostack-bootstrap/references/patterns.md#7-least-code--comments).

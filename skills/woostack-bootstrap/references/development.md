@@ -10,7 +10,7 @@ Each skill owns its procedure:
 |---|---|
 | Plan a feature that needs several PRs, then choose whether to execute | `woostack-build` |
 | Diagnose a bug and obtain approval for its correction | `woostack-fix` |
-| Deliver a small enhancement or refactor in one PR | `woostack-change` |
+| Execute a bounded enhancement, refactor, test-only task, or authorized understood correction in one PR | `woostack-execute` |
 | Check a running app in a browser | `woostack-qa` |
 | Production errors, Sentry issues, and monitoring defects | `woostack-fix` |
 | Evaluate approved behavior and trigger corpora for a skill without editing it | `woostack-eval` |
@@ -37,27 +37,24 @@ procedure: automatic Execute dispatch is retired, so `Execute` stops at retained
 caller supplies one selected complete bounded task to
 [`woostack-execute`](../../woostack-execute/SKILL.md#retired-inputs). Saved files and provider records
 do not grant permission to start work.
-Bounded Fix and goal-only Change do not contact an artifact provider. Change's exact GitHub issue
-admission is the read-only exception defined in
-[`woostack-change`](../../woostack-change/SKILL.md#admit-an-exact-github-issue); it remains available
-with local/omitted `artifacts.provider` and does not select artifact mirroring.
-
+Execute and bounded Fix do not contact an artifact provider unless the caller explicitly selects an
+exact issue association or requested provider operation. Execute's exact GitHub issue admission is
+the read-only host-authenticated `gh` exception; it requires no provider configuration, Project,
+mirror, or persisted plan.
 [`woostack-bootstrap`](../SKILL.md) owns greenfield routing and complete-design approval;
 its [filesystem procedure](bootstrap.md#filesystem-write-barrier-and-collision-check) owns bounded
 target inspection and fresh collision-safe write admission. Optional project persistence remains
 separate from write authority. Init persists only non-secret policy, never local specs, plans, or fixes.
 
-Implementation branches begin from verified repository base evidence and follow the
-[canonical worktree contract](../../woostack-init/references/worktrees.md). Bootstrap's initial
-new-repository scaffold is the one pre-base worktree exception. Later PRs require direct
+Implementation branches begin from verified repository base evidence and use one selected isolated
+workspace under the [workspace guidance](../../woostack-init/references/worktrees.md). Bootstrap's
+initial new-repository scaffold is the one pre-base worktree exception. Later PRs require direct
 Git/GitHub identity and may include an ordinary optional artifact link. Git and GitHub remain the
 source of truth for commits, branches, PRs, reviews, and merges.
 
-Every `/woostack-status` run derives rows from current Git/GitHub evidence, plus Graphite when selected. Exact
-caller-supplied provider context may enrich a row with linked specification, plan, or fix-artifact
-notes; missing artifact access affects only that enrichment. The
-[feature-state conventions](../../woostack-status/references/conventions.md) define rendering,
-reconciliation, and failure behavior.
+Work tracking uses canonical GitHub parent/child issues, native dependency relations, and linked
+pull requests. GitHub Project Status fields may describe provider records, but issue lifecycle or
+Project state never proves that a PR was submitted, verified, or merged.
 
 Legacy local development records are migration input only. They are never adopted as authority.
 `/woostack-init --migrate-legacy` is the sole routed owner of the explicit one-way
@@ -75,11 +72,13 @@ a branch such as `staging` before a human merges a release into `main`.
 | First feature branch | First PR in a plan | Verified integration branch |
 | Dependent feature branch | Next PR in a stack | The approved predecessor's branch |
 
-Use Git + `gh` by default; Graphite is optional for explicitly selected or verified already-managed
-tasks/stacks. The [source-control contract](../../woostack-commit/references/graphite.md) owns
-backend selection and delivery mechanics. Follow the
-[worktree/base-branch contract](../../woostack-init/references/worktrees.md) to resolve the base
-and verify each predecessor before starting dependent work. Never force-push.
+Use native Git with an authorized GitHub interface for delivery; host-authenticated `gh` remains
+supported where appropriate. Graphite is optional for explicitly selected or verified already-managed
+tasks/stacks. The [source-control contract](../../woostack-commit/references/graphite.md) owns backend
+selection and delivery mechanics. Follow the selected
+[workspace/base-branch guidance](../../woostack-init/references/worktrees.md) to resolve the base,
+select an isolated workspace, and verify each predecessor before starting dependent work. Never
+force-push.
 
 ## When to deviate
 

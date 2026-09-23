@@ -3,10 +3,10 @@ title: Workflow maps
 description: "Choose bounded delivery or a complete user-verified project workflow."
 ---
 
-Start with the user's explicit goal. Change may also take an exact canonical GitHub issue URL as
-explicit issue-backed input. Bounded work fits one pull request (PR) and uses the agreed scope in the
-current conversation. Project-backed work keeps a local specification and ordered plan, with optional
-copies in a provider. Git and GitHub show what was implemented and delivered.
+Start with the user's explicit goal. Bounded Execute also accepts one exact canonical GitHub issue URL
+as explicit issue-backed input. Bounded work fits one pull request (PR) and uses the agreed scope in
+the current conversation. Project-backed work keeps a local specification and ordered plan, with
+optional copies in a provider. Git and GitHub show what was implemented and delivered.
 
 ## Routing by work shape
 
@@ -16,8 +16,9 @@ copies in a provider. Git and GitHub show what was implemented and delivered.
 | Elicit or complete a specification | [Ideate](/docs/skills/woostack-ideate) |
 | Reconcile a specification or candidate issue plan | [Harden](/docs/skills/woostack-harden) |
 | Bug or regression to fix | [Fix](/docs/skills/woostack-fix) |
-| Bounded non-bug work for one coherent PR | [Change](/docs/skills/woostack-change) |
+| Bounded enhancement, refactor, test-only task, or authorized understood correction | [Execute](/docs/skills/woostack-execute) |
 | Coordinated feature requiring a complete specification and plan | [Build](/docs/skills/woostack-build) |
+| Add or strengthen tests for a bounded target | [Execute](/docs/skills/woostack-execute) with its [testing guidance](https://github.com/howarewoo/woostack/blob/main/skills/woostack-execute/references/tdd.md) |
 
 Ideate and Harden are complete public phases, not hidden run steps. They accept plain packets with
 explicit repository/evidence identity and return reusable plain handbacks. Build and project-backed
@@ -71,7 +72,7 @@ reproduce → prove cause → admit writable target → choose bounded or projec
 
 For an understood one-PR fix, present the complete diagnosis, correction, technical consequences,
 and verification for explicit approval. Then implement, verify, independently review, and submit the
-PR through [bounded delivery](https://github.com/howarewoo/woostack/blob/main/skills/woostack-change/references/bounded-delivery.md).
+PR through the shared [bounded-delivery contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-fix/references/bounded-delivery.md).
 No project manifest or artifact-provider call is needed.
 
 Multi-increment or materially uncertain fixes, explicit project/run context, explicitly required
@@ -95,43 +96,46 @@ or an exact parent issue URL (parent-issue mode, native parent/child issues); th
 exclusive, parent-issue mode needs `artifacts.provider: "github"` but no Project settings, and
 Build/Fix optional mirrors never select it automatically. A caller may select one task for
 [bounded Execute admission](/docs/skills/woostack-execute#admit-one-task), or explicitly invoke
-[Orchestrate](/docs/skills/woostack-orchestrate) for a GitHub scope. Execute does not dispatch graphs.
+[Orchestrate](/docs/skills/woostack-orchestrate) for a GitHub scope. Execute does not dispatch graphs;
+the explicit `--issues` form is the Orchestrate-only route for a closed list without a common
+parent or Project.
 
 ## Orchestrate
 
 ```text
 /woostack-orchestrate --issue <canonical GitHub parent issue URL> [--max-parallel <positive integer>]
 /woostack-orchestrate --project <canonical GitHub Project URL> [--max-parallel <positive integer>]
+/woostack-orchestrate --issues <canonical issue URL> <canonical issue URL> ... [--max-parallel <positive integer>]
 ```
 
-Select exactly one scope. The recommended ChatGPT-to-Codex handoff is a specification parent with
-native PR-sized children; this execution mode needs no Project or provider-mirror configuration.
-The parent supplies context, not an extra implementation task. Explicit Project execution retains
-its configured membership and lifecycle checks.
+Select exactly one scope family. The recommended ChatGPT-to-Codex handoff remains a specification
+parent with native PR-sized children; this mode needs no Project or provider-mirror configuration.
+Explicit Project execution retains its configured membership and lifecycle checks. Explicit list
+execution reads exactly the supplied open issues, normalizes repeated/reordered URLs, and validates
+complete contracts plus a supplied dependency DAG. Native, declared, and model-inferred edges keep
+separate provenance/evidence; inference belongs to the skill, not the deterministic helper, and
+inferred relationships are never published back to GitHub. External prerequisites block only their
+affected tasks and never expand the list.
 
 Orchestrate keeps up to three delivery-capable Execute workers active by default, bounded by host
 capability. Verified submission and independent specification validation release dependents without
 waiting for a whole wave or a merge. A dependent PR targets its verified prerequisite branch; a join
 pauses if no permitted single parent contains all prerequisite changes. Unrelated tasks continue.
-The final result is submitted PRs awaiting review/merge, not closed issues or product acceptance.
+Graph/scope drift preserves running reservations and stops fresh dispatch; unknown worker outcomes
+require direct stopped-worker/branch/PR reconciliation before same-identity repair. The final result
+is submitted PRs awaiting review/merge, not closed issues or product acceptance.
 
-## Change
 
-```text
-classify → scope → repository preflight → execute → verify → review → hand back
-```
-
-Change handles one bounded non-bug enhancement/refactor and has no hard approval gate. It accepts a
-goal-only request or an exact canonical GitHub issue input; either path still requires one coherent
-PR boundary, verification, smoke testing, and review. The goal-only path makes no artifact-provider
-calls. The issue-backed path performs the required read of the selected issue through host-authenticated
-`gh`; it requires no artifact-provider configuration, Project, mirror, or persisted plan. Use the canonical
-[Change skill](/docs/skills/woostack-change) for its supported syntax and admission/delivery rules:
+## Execute
 
 ```text
-/woostack-change <goal>
-/woostack-change [<goal>] --issue <exact canonical GitHub issue URL>
+/woostack-execute <bounded input> [--issue <exact canonical GitHub issue URL>]
 ```
+
+Execute accepts one complete bounded enhancement, refactor, test-only task, or authorized
+understood correction. It needs no parent issue, Project, planning provider, or persisted plan; an
+exact issue is optional and read-only. Unknown root cause, unresolved scope, or work that needs
+multiple increments stays at Debug/Fix or the applicable planning workflow.
 
 ## Shared execution boundary
 

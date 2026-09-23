@@ -24,7 +24,7 @@ This guide covers common edits. Read [AGENTS.md](AGENTS.md) for the full reposit
 | Change the bootstrap skill entry / discovery description | `skills/woostack-bootstrap/SKILL.md` |
 | Change requirements, planning, or the choice to start execution | `skills/woostack-build/SKILL.md` |
 | Change bug diagnosis, fix approval, or delivery | `skills/woostack-fix/SKILL.md` |
-| Change the one-PR enhancement or refactor workflow | `skills/woostack-change/SKILL.md` |
+| Change bounded task execution and one-PR delivery | `skills/woostack-execute/SKILL.md` |
 | Change requirements gathering (Ideate) | `skills/woostack-ideate/SKILL.md` |
 | Change the check of requirements against the repository (Harden) | `skills/woostack-harden/SKILL.md` |
 | Change the plan phase (the build loop's planning step) | `skills/woostack-plan/SKILL.md` |
@@ -34,9 +34,8 @@ This guide covers common edits. Read [AGENTS.md](AGENTS.md) for the full reposit
 | Change skill evaluation (`/woostack-eval`) | `skills/woostack-eval/SKILL.md`, `skills/woostack-eval/references/`, `skills/woostack-eval/scripts/` |
 | Change session reflection (`/woostack-reflect`) | `skills/woostack-reflect/SKILL.md`, `skills/woostack-reflect/scripts/` |
 | Change the systematic-debugging behavior (`/woostack-debug`) | `skills/woostack-debug/SKILL.md` |
-| Change test-writing guidance or the add-tests command | `skills/woostack-tdd/SKILL.md` |
+| Change test-writing guidance | `skills/woostack-execute/SKILL.md`, `skills/woostack-execute/references/tdd.md` |
 | Change how review comments are addressed | `skills/woostack-address-comments/SKILL.md` |
-| Change the status board / feature-state conventions | `skills/woostack-status/SKILL.md`, `skills/woostack-status/references/conventions.md`, `skills/woostack-status/scripts/` |
 | Change workspace checks and repairs (`/woostack-doctor`) | `skills/woostack-doctor/SKILL.md` |
 | Update agent instructions (Claude or any) | `AGENTS.md` (`.claude/CLAUDE.md` is a symlink to it) |
 | Update reader-facing guides | `site/content/docs/` |
