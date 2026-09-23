@@ -95,12 +95,12 @@ the revised complete contract for fresh approval; use the project-backed path wh
 a fully understood one-PR correction.
 
 After approval, own implementation, verification, independent review, and one PR directly
-through the shared [bounded-delivery contract](../woostack-change/references/bounded-delivery.md).
+through the shared [bounded-delivery contract](references/bounded-delivery.md).
 Keep diagnosis and approval bound to that exact task/repository/scope. Create no mandatory local
 project manifest, specification, or plan and make zero development-artifact provider calls, even
-when optional provider mirroring is configured. This is Fix, not a reroute to the non-bug Change
-command. Scope expansion returns to planning before additional implementation; it never inherits
-approval automatically.
+when optional provider mirroring is configured. This is Fix's direct path, not a planning reroute.
+Scope expansion returns to planning before additional implementation; it never inherits approval
+automatically.
 
 Return the shared delivery evidence with the proved diagnosis and explicit approval. A blocker
 retains exact worktree/branch/diff/PR resume facts; never manufacture a project run to hide an

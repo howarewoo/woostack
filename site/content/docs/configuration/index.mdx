@@ -235,9 +235,10 @@ worktrees are cut from.
   Init discovers GitHub defaults via `gh`. Missing connectivity never blocks
   local initialization. Build and project-backed Fix use
   [local run authority](/docs/configuration/artifacts/local) with optional configured provider
-  mirrors. Bounded Fix and goal-only Change remain provider-free. Change with explicit exact
-  canonical GitHub issue input performs the required read of that issue through host-authenticated
-  `gh`; no artifact-provider configuration, Project, mirror, or persisted plan is required.
+  mirrors. Bounded Execute work and bounded Fix remain provider-free unless an exact issue
+  association or requested provider operation is selected. Execute with an explicit exact canonical
+  GitHub issue input performs the required read of that issue through host-authenticated `gh`; no
+  artifact-provider configuration, Project, mirror, or persisted plan is required.
   [woostack-doctor](/docs/skills/woostack-doctor) validates effective runtime policy; explicit live checks
   prove optional artifact connectivity.
 </Callout>

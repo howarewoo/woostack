@@ -25,7 +25,7 @@
       "id": "existing-feed-sort-preference",
       "query": "Add a newest-first versus most-relevant preference to the existing activity feed, store it with the user's settings, and cover the small UI and API adjustment in one pull request. This is not correcting a defect.",
       "shouldTrigger": false,
-      "expectedSkill": "woostack-change",
+      "expectedSkill": "woostack-execute",
       "conflictsWith": ["woostack-build"]
     },
     {

@@ -17,7 +17,7 @@ It has two layers:
   normalized, non-secret receipt supplied by the skill controller through
   `--live-receipt <path>`; the script never calls MCP, HTTP, GraphQL, or a hard-coded provider tool.
 - An **interactive repair layer** — proposes local auto-fixes, mutates nothing before approval,
-  routes approved tracked repairs through [`woostack-change`](../woostack-change/SKILL.md) before
+  routes approved tracked repairs through [`woostack-execute`](../woostack-execute/SKILL.md) before
   any file mutation, and runs filesystem-only repairs directly. Remote provider resources and legacy
   development records are report-only; doctor never merges.
 
@@ -94,17 +94,16 @@ the `templates/` shipped there; the woostack collection installs both as sibling
    may approve all, a subset, or none. `report`-only findings are never auto-applied.
 7. **Route tracked repairs before mutation.** If the approved set includes a file repair, hand its
    exact finding codes, paths, changes, target, and validation mode to
-   [`woostack-change`](../woostack-change/SKILL.md) before invoking any `--fix` path. That workflow
-   records the approved bounded contract in the active run, establishes its isolated worktree,
-   invokes each owning check as `<check> --fix <WOO_ROOT> <extra-args...>` (see
-   [references/checks.md](references/checks.md)), re-runs the same engine mode, and commits through
-   its repository-first delivery path. Doctor never hands tracked repairs directly to
-   `woostack-commit`. If every approved repair is filesystem-only, run `orphan-worktree --fix` (a
-   safe `git worktree prune`) directly after the gate; it needs no issue or commit. No repair shell
-   command calls a provider or mutates remote content.
-8. **Confirm.** Require the change workflow's retained re-run result for tracked repairs, or re-run
-   the same static or explicitly live engine mode after a filesystem-only repair, and report
-   residual findings.
+   [`woostack-execute`](../woostack-execute/SKILL.md) before invoking any `--fix` path. That workflow
+   establishes the complete bounded task, its isolated worktree, invokes each owning check as
+   `<check> --fix <WOO_ROOT> <extra-args...>` (see [references/checks.md](references/checks.md)), re-runs
+   the same engine mode, and delivers through its repository-first path. Doctor never hands tracked
+   repairs directly to `woostack-commit`. If every approved repair is filesystem-only, run
+   `orphan-worktree --fix` (a safe `git worktree prune`) directly after the gate; it needs no issue or
+   commit. No repair shell command calls a provider or mutates remote content.
+8. **Confirm.** Require the Execute workflow's retained re-run result for tracked repairs, or re-run
+   the same static or explicitly live engine mode after a filesystem-only repair, and report residual
+   findings.
 
 ## Hard constraints
 
@@ -117,7 +116,7 @@ the `templates/` shipped there; the woostack collection installs both as sibling
   Doctor preserves old local and remote artifacts; it never creates, repairs, adopts, rewrites, reparents,
   or deletes them. Incompatible retained Plane runs fail closed with regeneration guidance.
 - **Provider access belongs to skill controllers.** Diagnosis and every doctor shell repair remain
-  provider-free. Approved tracked repairs run through artifact-free `woostack-change` unless the
+  provider-free. Approved tracked repairs run through artifact-free `woostack-execute` unless the
   caller explicitly selected an exact artifact. Explicit `--live` may validate the selected-provider
   interface (authorized GitHub capability, including host-authenticated `gh`, or official MCP for
   Linear/Plane) for optional artifact use and passes only a normalized non-secret receipt to the shell
@@ -128,7 +127,7 @@ the `templates/` shipped there; the woostack collection installs both as sibling
   auto-applied.
 - **Safety is never relaxed.** The only filesystem repair is `git worktree prune` (admin-only);
   a present worktree dir that may hold work is always `report`, never auto-removed.
-- **Never merge.** Approved file repairs enter `woostack-change` before mutation; doctor never
+- **Never merge.** Approved file repairs enter `woostack-execute` before mutation; doctor never
   invokes `woostack-commit` directly.
 - **Cross-link, don't restate.** Repository work and delivery evidence remain owned by Git and
   GitHub; provider-specific Project Status semantics remain in the selected artifact profile.

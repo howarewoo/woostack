@@ -42,11 +42,9 @@ An empty remote repository may be the intended destination, but an existing repo
 routes before requirements gathering, MCP preflight, or project creation:
 
 - bugs, regressions, incidents, and root-cause work → [`woostack-fix`](../woostack-fix/SKILL.md);
-- a bounded non-bug enhancement or refactor that fits one reviewable PR, including a one-file
-  request → [`woostack-change`](../woostack-change/SKILL.md);
+- a bounded enhancement, refactor, test-only task, or authorized understood correction that fits one
+  reviewable PR → [`woostack-execute`](../woostack-execute/SKILL.md);
 - a multi-PR feature or architectural initiative → [`woostack-build`](../woostack-build/SKILL.md).
-
-Single-surface throwaway scripts are also outside bootstrap.
 
 ## Procedure
 
@@ -115,7 +113,7 @@ approval, perform no official-MCP development mutation and create no development
 These are non-negotiable. Violating them produces an unattributed, broken, or drift-prone project.
 
 - **Greenfield only.** Route every brownfield bug, bounded one-PR request, or multi-PR initiative to
-  fix, change, or build before creating a bootstrap project.
+  fix, Execute, or build before creating a bootstrap project.
 - **Artifact-free until explicit approval.** Requirements, research, options, and design stay in
   the run context. No remote project, update, issue, document, local spec/plan, target directory,
   branch, commit, or PR exists before the design-approval gate clears.

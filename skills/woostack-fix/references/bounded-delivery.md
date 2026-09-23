@@ -1,16 +1,15 @@
 # Bounded one-PR delivery
 
-Shared implementation and delivery mechanics for [`woostack-change`](../SKILL.md) and the
-[direct bounded Fix path](../../woostack-fix/SKILL.md#direct-bounded-fix). The calling skill owns
-admission and user authority: Change accepts only non-bug work; Fix requires causal proof and
-explicit informed approval. This reference cannot widen either contract or replace those gates.
+Shared implementation and delivery mechanics for the
+[direct bounded Fix path](../SKILL.md#direct-bounded-fix). The calling skill owns admission and
+user authority: Fix requires causal proof and explicit informed approval. This reference cannot
+widen that contract or replace its gates.
 
 The calling skill owns delivery directly, without invoking another woostack workflow. Create no
 project manifest, specification, or execution plan. Development-artifact provider calls are limited
-to the exact issue reads explicitly admitted by
-[Change's GitHub issue input](../SKILL.md#admit-an-exact-github-issue); goal-only Change and bounded
-Fix make none. Git and canonical GitHub repository/PR operations supply source-control evidence,
-not development-artifact authority.
+to the exact issue reads explicitly admitted by the caller's GitHub issue input; bounded Fix makes
+none. Git and canonical GitHub repository/PR operations supply source-control evidence, not
+development-artifact authority.
 
 Before mutation, apply the shared [source-control selection and ancestry contract](../../woostack-commit/references/graphite.md).
 Use native Git and an authorized GitHub capability for repository delivery (prefer native GitHub
@@ -27,10 +26,9 @@ Keep the following explicit in the active conversation or completely verified ha
 - intended correction or change, relevant technical consequences, risks, focused verification,
   and changed-path smoke scenario;
 - integration base commit, approved parent-branch intent, and retained start/old parent SHA;
-- current worktree, branch, head, complete diff identity, and PR facts;
 - for Fix, the evidence-bound diagnosis, full presented scope, and the user's explicit approval; and
-- for issue-backed Change, the independently verified canonical issue URL, native identity, and
-  accepted issue-derived scope.
+- for an exact caller-supplied issue, the independently verified canonical issue URL, native identity,
+  and accepted issue-derived scope.
 
 Do not create hidden workflow state. Repository defaults cannot widen the accepted scope. If
 scope expands, retain the workspace and return to the calling skill's planning/admission boundary;
@@ -94,9 +92,9 @@ equivalents for draft creation and body updates. Preserve the exact repository/h
 intended base.
 Never merge, mark ready, enable auto-merge, enqueue, or force-push.
 
-For issue-backed Change, re-read the exact issue before submission and on resume to verify its
+For an exact caller-supplied issue, re-read it before submission and on resume to verify its
 identity, repository, open state, and continued agreement with the accepted contract. Changed scope
-returns to Change admission before more mutation. An unavailable or invalid issue blocks associated
+returns to the calling skill's admission boundary. An unavailable or invalid issue blocks associated
 delivery; retain any verified repository progress rather than dropping the association.
 Apply the canonical
 [PR association rules](../../woostack-commit/references/provider-attribution.md#pr-association):
@@ -123,6 +121,6 @@ without duplicating a branch, commit, PR, or cleanup.
 
 Return the stable task identity, accepted scope and Fix approval when applicable, worktree/branch,
 base/parent, changed paths, verification/smoke and independent-review results, commit SHA, canonical
-PR URL/head/base/state, and cleanup result. For issue-backed Change, include the canonical issue URL
-and verified closing-reference outcome. For a reroute or retained failure, name the destination
-or blocker and exact safe resume boundary. Never claim evidence not directly observed.
+PR URL/head/base/state, and cleanup result. For an exact issue association, include the canonical
+issue URL and verified closing-reference outcome. For a reroute or retained failure, name the
+destination or blocker and exact safe resume boundary. Never claim evidence not directly observed.

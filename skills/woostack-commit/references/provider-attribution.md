@@ -7,9 +7,8 @@ For an exact canonical GitHub issue, use an authorized GitHub read capability ex
 (prefer native host tools when suitable; host-authenticated `gh` remains supported) to read that
 issue's native identity, canonical URL/repository, open state, title/body, and needed comments, plus
 the canonical PR facts below. This exact read-only association needs no `artifacts.provider`
-configuration, project admission, or profile-configured capabilities; it mirrors the goal-only
-[Change issue contract](../../woostack-change/SKILL.md#admit-an-exact-github-issue). Reserve profile
-loading for an expressly requested provider note or mirror write.
+configuration, project admission, or profile-configured capabilities; it mirrors Execute's optional exact-issue
+contract. Reserve profile loading for an expressly requested provider note or mirror write.
 
 For Linear, Plane, or any requested provider note/mirror write, follow the shared
 [artifact contract](../../woostack-init/references/artifact-backends.md), then load only the selected

@@ -44,10 +44,9 @@ provider-specific scope, capabilities, identities, and lifecycle behavior.
 | Create a genuinely greenfield codebase | `woostack-bootstrap` |
 | Prepare a multi-increment feature and execution handoff | `woostack-build` |
 | Diagnose and fix a defect, bounded or project-backed | `woostack-fix` |
-| Implement a bounded non-bug enhancement or refactor in one PR | `woostack-change` |
 | Turn an approved specification into reviewable increments | `woostack-plan` |
 | Execute native children of one GitHub parent issue or tasks in an exact GitHub Project with parallel workers and stacked PRs | `woostack-orchestrate` |
-| Implement one bounded task and deliver one PR | `woostack-execute` |
+| Implement one bounded task — enhancement, refactor, test-only work, or authorized understood correction — and deliver one PR | `woostack-execute` |
 | Commit current changes and submit or update their PR | `woostack-commit` |
 | Review a pull request | Use [Pullfrog](https://pullfrog.com/). |
 | Address every unresolved thread on one exact existing PR | `woostack-address-comments` |
@@ -57,13 +56,18 @@ provider-specific scope, capabilities, identities, and lifecycle behavior.
 | Add or strengthen tests for a bounded target | `woostack-execute` (apply its [testing guidance](../woostack-execute/references/tdd.md)) |
 | Diagnose or explicitly repair workspace health | `woostack-doctor` |
 | Explore a running app and report browser QA findings | `woostack-qa` |
-| Evaluate an approved skill corpus without editing the skill | `woostack-eval` |
+| Evaluate an approved skill corpus without editing it | `woostack-eval` |
 | Reflect on this conversation for durable instruction suggestions | `woostack-reflect` |
 
 Every explicit `/woostack-*` command loads its namesake skill. Intent-equivalent wording follows
-the same route. Change stays non-bug and one-PR; Fix owns diagnosis and chooses bounded delivery or
-project planning after proof. Build owns multi-increment preparation. Ideate and Harden are internal
-Build/Fix phases, not public commands.
+the same route. Execute owns complete bounded implementation and delivery; Fix owns diagnosis and
+chooses bounded delivery or project planning after proof. Build owns multi-increment preparation.
+Ideate and Harden are internal Build phases, not public commands.
+
+The retired `woostack-change` command has no compatibility alias. Supply the complete bounded
+enhancement, refactor, test-only task, or authorized understood correction to
+[`woostack-execute`](../woostack-execute/SKILL.md); use the applicable planning workflow when the
+scope is not complete or needs multiple increments.
 
 The former `/woostack-tdd` test-work command is retired. Send a complete bounded test task
 directly to `/woostack-execute`; it keeps the test-only scope, focused verification, and normal

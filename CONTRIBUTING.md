@@ -23,7 +23,7 @@ This guide covers common edits. Read [AGENTS.md](AGENTS.md) for the full reposit
 | Change the bootstrap skill entry / discovery description | `skills/woostack-bootstrap/SKILL.md` |
 | Change requirements, planning, or the choice to start execution | `skills/woostack-build/SKILL.md` |
 | Change bug diagnosis, fix approval, or delivery | `skills/woostack-fix/SKILL.md` |
-| Change the one-PR enhancement or refactor workflow | `skills/woostack-change/SKILL.md` |
+| Change bounded task execution and one-PR delivery | `skills/woostack-execute/SKILL.md` |
 | Change requirements gathering (Ideate) | `skills/woostack-ideate/SKILL.md` |
 | Change the check of requirements against the repository (Harden) | `skills/woostack-harden/SKILL.md` |
 | Change the plan phase (the build loop's planning step) | `skills/woostack-plan/SKILL.md` |

@@ -10,7 +10,7 @@ Each skill owns its procedure:
 |---|---|
 | Plan a feature that needs several PRs, then choose whether to execute | `woostack-build` |
 | Diagnose a bug and obtain approval for its correction | `woostack-fix` |
-| Deliver a small enhancement or refactor in one PR | `woostack-change` |
+| Execute a bounded enhancement, refactor, test-only task, or authorized understood correction in one PR | `woostack-execute` |
 | Check a running app in a browser | `woostack-qa` |
 | Production errors, Sentry issues, and monitoring defects | `woostack-fix` |
 | Evaluate approved behavior and trigger corpora for a skill without editing it | `woostack-eval` |
@@ -37,11 +37,10 @@ procedure: automatic Execute dispatch is retired, so `Execute` stops at retained
 caller supplies one selected complete bounded task to
 [`woostack-execute`](../../woostack-execute/SKILL.md#retired-inputs). Saved files and provider records
 do not grant permission to start work.
-Bounded Fix and goal-only Change do not contact an artifact provider. Change's exact GitHub issue
-admission is the read-only exception defined in
-[`woostack-change`](../../woostack-change/SKILL.md#admit-an-exact-github-issue); it remains available
-with local/omitted `artifacts.provider` and does not select artifact mirroring.
-
+Execute and bounded Fix do not contact an artifact provider unless the caller explicitly selects an
+exact issue association or requested provider operation. Execute's exact GitHub issue admission is
+the read-only host-authenticated `gh` exception; it requires no provider configuration, Project,
+mirror, or persisted plan.
 [`woostack-bootstrap`](../SKILL.md) owns greenfield routing and complete-design approval;
 its [filesystem procedure](bootstrap.md#filesystem-write-barrier-and-collision-check) owns bounded
 target inspection and fresh collision-safe write admission. Optional project persistence remains
