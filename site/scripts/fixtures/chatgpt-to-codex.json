@@ -1829,6 +1829,30 @@
       "publisher": "chat-planner",
       "request": {
         "method": "GET",
+        "path": "/repos/woostack-fixture/catalog/issues/101/dependencies/blocked_by?per_page=100&page=1"
+      },
+      "response": {
+        "status": 200,
+        "json": [],
+        "next": null
+      }
+    },
+    {
+      "publisher": "chat-planner",
+      "request": {
+        "method": "GET",
+        "path": "/repos/woostack-fixture/catalog/issues/101/dependencies/blocking?per_page=100&page=1"
+      },
+      "response": {
+        "status": 200,
+        "json": [],
+        "next": null
+      }
+    },
+    {
+      "publisher": "chat-planner",
+      "request": {
+        "method": "GET",
         "path": "/repos/woostack-fixture/catalog/issues/102"
       },
       "response": {
@@ -2895,7 +2919,7 @@
     },
     {
       "name": "incomplete-final-dependency-page",
-      "prefixThrough": 77,
+      "prefixThrough": 79,
       "operations": [],
       "final": {
         "status": "blocked",

@@ -141,7 +141,7 @@ function assertReadyReadBack(ops, result) {
   }
 
   assert.deepEqual(collection(`${api}/101/sub_issues?`), ['A', 'B', 'C', 'D'].map(id));
-  for (const key of keys.slice(1)) {
+  for (const key of keys) {
     const expectedBefore = fixture.final.edges.filter(([, after]) => after === key).map(([before]) => id(before)).sort((a, b) => a - b);
     const expectedAfter = fixture.final.edges.filter(([before]) => before === key).map(([, after]) => id(after)).sort((a, b) => a - b);
     assert.deepEqual(collection(`${api}/${number(key)}/dependencies/blocked_by?`), expectedBefore);
@@ -306,4 +306,23 @@ test('a missing final dependency page cannot masquerade as a ready graph', () =>
   assert.equal(scenario.final.command, null);
   assert.equal(scenario.final.status, 'blocked');
   assert.throws(() => assertReadyReadBack(ops, { ...fixture.final }), /Missing|Unfetched|Expected/);
+});
+
+test('a specification-parent dependency edge cannot pass ready-state validation', () => {
+  for (const relation of ['blocked_by', 'blocking']) {
+    const ops = operations(fixture);
+    ops.push({
+      publisher: 'chat-planner',
+      request: {
+        method: 'GET',
+        path: `${api}/101/dependencies/${relation}?per_page=100&page=1`,
+      },
+      response: {
+        status: 200,
+        json: [{ id: id('A') }],
+        next: null,
+      },
+    });
+    assert.throws(() => assertReadyReadBack(ops, fixture.final), assert.AssertionError);
+  }
 });
