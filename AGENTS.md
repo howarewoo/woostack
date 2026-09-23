@@ -153,7 +153,7 @@ the repository's simplify/comments guidance.
   pages need no manual edit: they regenerate from each `SKILL.md` at build time (see the
   documentation-site exception above). When in doubt, run `pnpm -C site build` to confirm the
   site still builds.
-- Do not move or rename any of the nineteen `SKILL.md` files. Public command/adoption names and
+- Do not move or rename any of the eighteen `SKILL.md` files. Public command/adoption names and
   fixed paths are part of the installed interface, except for an explicitly approved
   retirement that removes the complete skill and its references.
 - Do not rename files under
