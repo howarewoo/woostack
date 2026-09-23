@@ -42,17 +42,19 @@ assignment, ownership, acceptance, or merge.
 Retained local files do not select a GitHub destination. Plan publishes only to the exact caller-selected
 `--parent-issue` or `--project` scope; parent mode needs no Project settings or retained run, and
 Project mode follows the [GitHub configuration contract](/docs/configuration/artifacts/github).
-An exact Execute issue association is read through an authorized GitHub capability (native tools
-preferred; host-authenticated `gh` supported) and needs no Project settings or retained plan. Read-only
-discovery during `woostack-init` is setup only; it never selects a remote destination or authorizes
-later GitHub access.
+One exact canonical task-bearing Execute issue URL is read through an authorized GitHub capability
+(native tools preferred; host-authenticated `gh` supported) and needs no Project settings or retained
+plan. Execute resolves its bounded contract from that verified issue before normal admission. A
+retained run identity or historical record alone is not an implementation input. Read-only discovery
+during `woostack-init` is setup only; it never selects a remote destination or authorizes later
+GitHub access.
 
 ## Retention and recovery
 
 Completed and explicitly abandoned records remain unchanged. To continue from a retained record,
 supply its exact identity and complete content to the responsible phase after fresh repository and
-evidence validation. An issue or run ID alone is insufficient; no automatic conversion, import, or
-publication is performed.
+evidence validation. A retained run ID alone remains insufficient; no automatic conversion, import,
+or publication is performed.
 
 The retired `/woostack-execute --run <exact-run-id> [--recheck]` input is rejected. Select one
 complete bounded task and supply it as `/woostack-execute <bounded input>` (see

@@ -14,7 +14,7 @@ Preparation produces a verified issue graph; implementation is a separate explic
 | Specification elicitation | [woostack-ideate](/docs/skills/woostack-ideate) | complete plain user-verified decisions | no provider or run required |
 | Repository reconciliation | [woostack-harden](/docs/skills/woostack-harden) | complete plain candidate after bounded evidence checks | no provider or run required |
 | Approved issue publication | [woostack-plan](/docs/skills/woostack-plan) | one exact GitHub parent/child or Project graph with native prerequisite edges | direct host-authenticated GitHub reads/writes; no mirror required |
-| Bounded enhancement, refactor, tests, or authorized correction | [woostack-execute](/docs/skills/woostack-execute) | one complete bounded contract and one PR | goal-only is provider-free; optional exact issue context is read-only |
+| Bounded enhancement, refactor, tests, or authorized correction | [woostack-execute](/docs/skills/woostack-execute) | one complete bounded contract from inline input or one canonical task-bearing issue, and one PR | goal-only is provider-free; an exact issue is read-only task input and Commit association |
 | Greenfield codebase | [woostack-bootstrap](/docs/skills/woostack-bootstrap) | complete approved design | exact target only; direct GitHub Project publication is explicit |
 
 The shape of the work determines the workflow. Historical development records cannot turn ambiguous
@@ -60,9 +60,10 @@ invokes it.
 ## Execution invariants
 
 - Each increment fits at most one PR.
-- Execute takes one complete bounded task per invocation: `/woostack-execute <bounded input>` with an
-  optional exact canonical GitHub issue URL. Retired `--run`, `--project`, and `--recheck` inputs are
-  rejected (see [Execute](/docs/skills/woostack-execute#retired-inputs)).
+- Execute takes one complete bounded task per invocation: pass inline bounded input, one canonical
+  task-bearing issue URL, or inline instructions with an optional exact canonical GitHub issue URL.
+  Retired `--run`, `--project`, and `--recheck` inputs are rejected (see
+  [Execute](/docs/skills/woostack-execute#retired-inputs)).
 - Each bounded task runs its own worktree, branch, allowed paths, and PR. Separate tasks may proceed
   concurrently only when their paths, branches, worktrees, PRs, and responsibilities do not overlap.
 - Focused checks, a smoke test of changed behavior, and comparison against the approved task precede

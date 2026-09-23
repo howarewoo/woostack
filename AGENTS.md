@@ -72,9 +72,11 @@ narrow automatic authenticated read-only discovery of non-secret repository/nati
 it never selects persistence or authorizes a remote write. `.woostack/config.json` supplies
 validated GitHub defaults only after configuration is selected. Credentials remain in the host
 secret store, and local diagnostic reports remain non-authoritative. Goal-only `/woostack-execute`
-makes no development-artifact provider calls; an explicitly selected exact GitHub issue permits
-only its documented read-only GitHub admission. That exception does not select Project publication
-or authorize work. Handoff, replanning, and blockers leave Project status unchanged.
+makes no development-artifact provider calls; an explicitly selected exact GitHub issue, including
+a URL-only invocation, permits only its documented read-only admission and Commit association.
+That selection supplies task data, not independent authority, and does not select Project
+publication or authorize unrelated work. Handoff, replanning, and blockers leave Project status
+unchanged.
 
 Explicit [`woostack-orchestrate`](skills/woostack-orchestrate/SKILL.md) execution selects either one
 GitHub specification parent with native task children, one configured GitHub Project, or an
