@@ -8,17 +8,22 @@ identity, ancestry, worktree ownership, and diff hashes are checked here directl
 """
 import argparse
 import copy
-import hashlib
 from graphlib import CycleError, TopologicalSorter
+import hashlib
 import json
 import os
+import fcntl
 from pathlib import Path
 import re
+import secrets
 import subprocess
 import sys
 import tempfile
 
 DEFAULT_MAX_PARALLEL = 3
+STATE_VERSION = 2
+CLAIM_DIRECTORY = (".woostack", "tmp", "orchestrate-claims")
+
 ISSUE_RE = re.compile(r"https://github\.com/([\w.-]+)/([\w.-]+)/issues/([1-9][0-9]*)\Z")
 PR_RE = re.compile(r"https://github\.com/([\w.-]+)/([\w.-]+)/pull/([1-9][0-9]*)\Z")
 PROJECT_RE = re.compile(r"https://github\.com/(orgs|users)/([\w.-]+)/projects/([1-9][0-9]*)\Z")
@@ -58,21 +63,355 @@ def load_json(path):
         raise InputError("unreadable-input", str(error)) from error
 
 
+def _json_bytes(value):
+    return (json.dumps(value, indent=2, sort_keys=True) + "\n").encode()
+
+
+def _fsync_parent(path):
+    try:
+        descriptor = os.open(Path(path).parent, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+    except OSError as error:
+        raise InputError("state-directory", str(error)) from error
+    try:
+        info = os.fstat(descriptor)
+        require((info.st_mode & 0o170000) == 0o40000,
+                "unsafe-state", "state parent must be a directory")
+        os.fsync(descriptor)
+    except OSError as error:
+        raise InputError("state-directory", str(error)) from error
+    finally:
+        os.close(descriptor)
+
+
 def write_json(path, value):
     destination = Path(path)
     require(not destination.is_symlink(), "unsafe-state", "state cannot be a symlink")
+    if destination.exists():
+        info = destination.lstat()
+        require(info.st_uid == os.getuid() and info.st_nlink == 1
+                and destination.is_file() and (info.st_mode & 0o777) == 0o600,
+                "unsafe-state", "state destination must be owner-only regular file")
     # A failed write must leave the previous reservations intact.
     descriptor, temporary = tempfile.mkstemp(prefix=destination.name + ".", dir=destination.parent)
     try:
-        with os.fdopen(descriptor, "w", encoding="utf-8") as stream:
-            json.dump(value, stream, indent=2, sort_keys=True)
-            stream.write("\n")
+        with os.fdopen(descriptor, "wb") as stream:
+            stream.write(_json_bytes(value))
             stream.flush()
             os.fsync(stream.fileno())
         os.replace(temporary, destination)
+        _fsync_parent(destination)
     finally:
         if os.path.exists(temporary):
             os.unlink(temporary)
+
+
+def _state_bytes(path):
+    require(not Path(path).is_symlink(), "unsafe-state", "state cannot be a symlink")
+    try:
+        descriptor = os.open(path, os.O_RDONLY | os.O_NOFOLLOW)
+    except OSError as error:
+        raise InputError("unreadable-state", str(error)) from error
+    try:
+        info = os.fstat(descriptor)
+        require(info.st_uid == os.getuid() and info.st_nlink == 1
+                and (info.st_mode & 0o170000) == 0o100000
+                and (info.st_mode & 0o777) == 0o600,
+                "unsafe-state", "state must be an owner-only regular file")
+        with os.fdopen(descriptor, "rb") as stream:
+            descriptor = None
+            return stream.read()
+    finally:
+        if descriptor is not None:
+            os.close(descriptor)
+
+
+def _state_digest(path):
+    return hashlib.sha256(_state_bytes(path)).hexdigest()
+
+
+def _checkpoint_pending_path(head_path):
+    return head_path.with_name(head_path.name + ".pending.json")
+
+
+def _optional_state_digest(path):
+    destination = Path(path)
+    require(not destination.is_symlink(), "unsafe-state", "state cannot be a symlink")
+    if not destination.exists():
+        return None
+    return _state_digest(destination)
+
+
+def _remove_checkpoint_pending(path):
+    if path.is_symlink():
+        raise InputError("unsafe-state", "checkpoint recovery record cannot be a symlink")
+    if path.exists():
+        path.unlink()
+        _fsync_parent(path)
+
+
+def _validated_checkpoint_head(value, label):
+    require(isinstance(value, dict)
+            and value.get("version") == 1
+            and text(value.get("fingerprint"))
+            and text(value.get("digest"))
+            and SHA_RE.fullmatch(value["digest"])
+            and text(value.get("state_path")),
+            "invalid-state", label + " is incomplete")
+    return value
+
+
+def _checkpoint_pending(path):
+    if path.is_symlink():
+        raise InputError("unsafe-state", "checkpoint recovery record cannot be a symlink")
+    if not path.exists():
+        return None
+    try:
+        value = json.loads(_state_bytes(path))
+    except ValueError as error:
+        raise InputError("invalid-state", "checkpoint recovery record is malformed") from error
+    require(isinstance(value, dict) and value.get("version") == 1
+            and text(value.get("fingerprint"))
+            and re.fullmatch(r"sha256:[0-9a-f]{64}", value["fingerprint"])
+            and isinstance(value.get("scope_identity"), dict)
+            and "prior_head" in value and "next_head" in value and "destination" in value,
+            "invalid-state", "checkpoint recovery record is incomplete")
+    prior = value["prior_head"]
+    if prior is not None:
+        _validated_checkpoint_head(prior, "prior checkpoint head")
+        require(prior["fingerprint"] == value["fingerprint"]
+                and prior.get("scope_identity") == value["scope_identity"],
+                "invalid-state", "prior checkpoint head does not match recovery record")
+    next_head = _validated_checkpoint_head(value["next_head"], "next checkpoint head")
+    require(next_head["fingerprint"] == value["fingerprint"]
+            and next_head.get("scope_identity") == value["scope_identity"],
+            "invalid-state", "next checkpoint head does not match recovery record")
+    destination = value["destination"]
+    prior_digest = destination.get("prior_digest") if isinstance(destination, dict) else None
+    next_digest = destination.get("next_digest") if isinstance(destination, dict) else None
+    require(isinstance(destination, dict) and text(destination.get("path"))
+            and destination["path"] == next_head["state_path"]
+            and (prior_digest is None or (text(prior_digest) and SHA_RE.fullmatch(prior_digest)))
+            and text(next_digest) and SHA_RE.fullmatch(next_digest)
+            and next_digest == next_head["digest"],
+            "invalid-state", "checkpoint recovery destination is incomplete")
+    return value
+
+
+def _recover_checkpoint(head_path, pending_path, head, expected):
+    pending = _checkpoint_pending(pending_path)
+    if pending is None:
+        return head
+    destination = pending["destination"]
+    current_digest = _optional_state_digest(destination["path"])
+    prior_head = pending["prior_head"]
+    next_head = pending["next_head"]
+    if head == next_head:
+        require(current_digest == destination["next_digest"],
+                "checkpoint-recovery", "committed checkpoint bytes are missing")
+        _remove_checkpoint_pending(pending_path)
+        return head
+    if head == prior_head:
+        if current_digest == destination["prior_digest"]:
+            _remove_checkpoint_pending(pending_path)
+            return head
+        if current_digest == destination["next_digest"]:
+            require(text(expected) and expected == destination["next_digest"],
+                    "stale-state", "checkpoint publication is ahead of loaded state")
+            write_json(head_path, next_head)
+            require(_optional_state_digest(destination["path"]) == destination["next_digest"],
+                    "checkpoint-recovery", "checkpoint bytes changed during recovery")
+            _remove_checkpoint_pending(pending_path)
+            return next_head
+    raise InputError("checkpoint-recovery",
+                     "checkpoint head and state bytes do not form a committed generation")
+
+
+def write_state(args, state):
+    expected = state.pop("_loaded_digest", None)
+    lock_path, head_path = _checkpoint_paths(args, state)
+    pending_path = _checkpoint_pending_path(head_path)
+    require(not lock_path.is_symlink(), "unsafe-state", "checkpoint lock cannot be a symlink")
+    try:
+        descriptor = os.open(lock_path, os.O_RDWR | os.O_CREAT | os.O_NOFOLLOW, 0o600)
+    except OSError as error:
+        raise InputError("state-lock", str(error)) from error
+    try:
+        info = os.fstat(descriptor)
+        require(info.st_uid == os.getuid() and info.st_nlink == 1
+                and (info.st_mode & 0o777) == 0o600,
+                "unsafe-state", "checkpoint lock must be owner-only")
+        fcntl.flock(descriptor, fcntl.LOCK_EX)
+        head = _checkpoint_head(head_path)
+        head = _recover_checkpoint(head_path, pending_path, head, expected)
+        if args.state:
+            require(head is not None, "missing-checkpoint",
+                    "durable checkpoint head is missing; reconcile before mutation")
+            require(text(expected), "stale-state", "loaded controller state digest is missing")
+            require(head["fingerprint"] == state["fingerprint"]
+                    and head.get("scope_identity") == state["scope_identity"]
+                    and head["digest"] == expected,
+                    "stale-state", "controller checkpoint changed; reread and reconcile before mutation")
+        else:
+            require(head is None, "existing-state", "checkpoint already exists; resume it")
+        destination = Path(args.state_out).resolve()
+        prior_digest = _optional_state_digest(destination)
+        next_digest = hashlib.sha256(_json_bytes(state)).hexdigest()
+        next_head = {
+            "version": 1,
+            "fingerprint": state["fingerprint"],
+            "scope_identity": copy.deepcopy(state["scope_identity"]),
+            "digest": next_digest,
+            "state_path": str(destination),
+        }
+        write_json(pending_path, {
+            "version": 1,
+            "fingerprint": state["fingerprint"],
+            "scope_identity": copy.deepcopy(state["scope_identity"]),
+            "prior_head": copy.deepcopy(head),
+            "destination": {
+                "path": str(destination),
+                "prior_digest": prior_digest,
+                "next_digest": next_digest,
+            },
+            "next_head": next_head,
+        })
+        write_json(args.state_out, state)
+        require(_state_digest(args.state_out) == next_digest,
+                "checkpoint-recovery", "state bytes changed during publication")
+        write_json(head_path, next_head)
+        _remove_checkpoint_pending(pending_path)
+    finally:
+        fcntl.flock(descriptor, fcntl.LOCK_UN)
+        os.close(descriptor)
+
+
+def _claims_root(repo):
+    root = Path(repo).resolve()
+    current = root
+    for component in CLAIM_DIRECTORY:
+        current = current / component
+        if current.exists():
+            require(not current.is_symlink() and current.is_dir(), "unsafe-ownership",
+                    "orchestration ownership path must be a directory")
+            continue
+        try:
+            current.mkdir(mode=0o700)
+        except FileExistsError:
+            require(not current.is_symlink() and current.is_dir(), "unsafe-ownership",
+                    "orchestration ownership path must be a directory")
+    require(current.stat().st_uid == os.getuid() and current.stat().st_mode & 0o077 == 0,
+            "unsafe-ownership", "orchestration ownership directory must be owner-only")
+    return current
+
+
+def _checkpoint_root(repo):
+    root = _claims_root(repo).parent / "orchestrate-checkpoints"
+    if root.exists():
+        require(not root.is_symlink() and root.is_dir(), "unsafe-state",
+                "checkpoint path must be a directory")
+    else:
+        try:
+            root.mkdir(mode=0o700)
+        except FileExistsError:
+            require(not root.is_symlink() and root.is_dir(), "unsafe-state",
+                    "checkpoint path must be a directory")
+    info = root.stat()
+    require(info.st_uid == os.getuid() and info.st_mode & 0o077 == 0,
+            "unsafe-state", "checkpoint directory must be owner-only")
+    return root
+
+
+def _checkpoint_paths(args, state):
+    root = _checkpoint_root(repository(args.git_repo, state["scope_identity"]["canonical_repo"]))
+    fingerprint = state.get("fingerprint", "")
+    require(text(fingerprint) and re.fullmatch(r"sha256:[0-9a-f]{64}", fingerprint),
+            "invalid-state", "checkpoint fingerprint missing")
+    key = fingerprint.split(":", 1)[1]
+    return root / (key + ".lock"), root / (key + ".head.json")
+
+
+def _checkpoint_head(path):
+    if not path.exists():
+        require(not path.is_symlink(), "unsafe-state", "checkpoint head cannot be a symlink")
+        return None
+    try:
+        value = json.loads(_state_bytes(path))
+    except ValueError as error:
+        raise InputError("invalid-state", "checkpoint head is malformed") from error
+    return _validated_checkpoint_head(value, "checkpoint head")
+
+
+def _claim_key(admitted, task=None):
+    value = {
+        "canonical_repo": admitted["canonical_repo"],
+        "kind": "task" if task is not None else "scope",
+    }
+    if task is not None:
+        value["issue"] = {"url": task["url"]}
+    else:
+        value["scope"] = admitted["scope_identity"]
+    return digest(value).split(":", 1)[1]
+
+
+def _claim(repo, admitted, owner, task=None):
+    require(text(owner), "ownership-missing", "controller ownership identity required")
+    claims = _claims_root(repository(repo, admitted["canonical_repo"]))
+    key = _claim_key(admitted, task)
+    path = claims / (key + ".json")
+    record = {
+        "claim_key": key,
+        "kind": "task" if task is not None else "scope",
+        "canonical_repo": admitted["canonical_repo"],
+        "scope": copy.deepcopy(admitted["scope_identity"]),
+        "issue_url": task["url"] if task is not None else None,
+        "issue_id": task["id"] if task is not None else None,
+        "issue_node_id": task["node_id"] if task is not None else None,
+        "owner": owner,
+    }
+    if path.is_symlink():
+        raise InputError("unsafe-ownership", "orchestration claim cannot be a symlink")
+    try:
+        descriptor = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600)
+    except FileExistsError:
+        try:
+            existing = load_json(path)
+        except InputError as error:
+            raise InputError("ownership-conflict", "existing ownership claim is unreadable") from error
+        require(existing == record or (
+            existing.get("claim_key") == key
+            and existing.get("owner") == owner
+            and existing.get("canonical_repo") == record["canonical_repo"]
+            and existing.get("scope") == record["scope"]
+            and existing.get("issue_url") == record["issue_url"]
+        ), "ownership-conflict", "task or scope is owned by another controller")
+        return existing
+    except OSError as error:
+        raise InputError("ownership-unavailable", str(error)) from error
+    try:
+        with os.fdopen(descriptor, "w", encoding="utf-8") as stream:
+            json.dump(record, stream, indent=2, sort_keys=True)
+            stream.write("\n")
+            stream.flush()
+            os.fsync(stream.fileno())
+    except OSError as error:
+        try:
+            path.unlink()
+        except OSError:
+            pass
+        raise InputError("ownership-write", str(error)) from error
+    return record
+
+
+def claim_scope(repo, admitted, state):
+    record = _claim(repo, admitted, state["owner"]["controller_id"])
+    state["scope_claim"] = record
+    return record
+
+
+def claim_task(repo, admitted, task, state, item):
+    record = _claim(repo, admitted, state["owner"]["controller_id"], task)
+    item["claim"] = record
+    return record
 
 
 def positive(value):
@@ -116,6 +455,17 @@ def pagination(snapshot, families):
     proof = snapshot.get("pagination", {})
     require(isinstance(proof, dict) and all(proof.get(f) is True for f in families),
             "incomplete-hierarchy", "required native reads have not reached terminal pagination")
+
+def recovery_inventory(value):
+    require(value is not None, "incomplete-recovery",
+            "complete recovery inventory is required")
+    require(isinstance(value, dict), "malformed-recovery", "recovery inventory must be an object")
+    for key in ("checkpoints", "processes", "sessions", "worktrees", "refs",
+                "prs", "contracts", "dependencies"):
+        require(key in value and isinstance(value[key], (list, dict)),
+                "incomplete-recovery", "recovery inventory is missing " + key)
+    return copy.deepcopy(value)
+
 
 
 def workspace_relative(value, task):
@@ -215,6 +565,11 @@ def admit(snapshot, mode, selector, limit):
         record = copy.deepcopy(entry)
         record["workspace"] = workspace_relative(entry.get("workspace"), task)
         record["contract_hash"] = digest(entry["contract"])
+        record["contract_revision"] = record["contract_hash"]
+        record["dependency_snapshot"] = {
+            "prerequisites": list(record["prerequisites"]),
+            "external_prerequisites": list(record["external_prerequisites"]),
+        }
         tasks.append(record)
     for key in (("id", "node_id", "item_id") if mode == "project" else ("id", "node_id")):
         require(len({entry[key] for entry in by_url.values()}) == len(by_url),
@@ -231,17 +586,28 @@ def admit(snapshot, mode, selector, limit):
     host_cap = positive(host.get("max_parallel", 1))
     immutable_tasks = [{k: v for k, v in t.items() if k != "existing_delivery"}
                        for t in sorted(tasks, key=lambda t: t["task_id"])]
+    scope_identity = {
+        "mode": mode,
+        "selector_url": selector,
+        "canonical_repo": canonical,
+        "native_id": scope.get("id") if mode == "issue" else scope.get("node_id"),
+        "native_node_id": scope.get("node_id"),
+        "number": scope.get("number") if mode == "project" else None,
+    }
     binding = {"mode": mode, "selector_url": selector, "canonical_repo": canonical,
-               "scope": scope, "specification": snapshot["specification"],
+               "scope": scope, "scope_identity": scope_identity,
+               "specification": snapshot["specification"],
                "repository_rules": snapshot["repository_rules"], "integration_branch": integration["branch"],
                "tasks": immutable_tasks,
                "containers": [by_url[url] for url in sorted(containers)]}
     if mode == "project":
         binding["lifecycle"] = snapshot["lifecycle"]
+    recovery = recovery_inventory(snapshot.get("recovery", snapshot.get("inventory")))
     return {**binding, "status": "admitted" if tasks else "no-work", "tasks": tasks,
             "fingerprint": digest(binding), "integration": integration, "max_parallel": limit,
             "task_order": task_order, "parent_prs": copy.deepcopy(snapshot.get("parent_prs", {})),
-            "host_cap": host_cap, "notice": "Host runs sequential subagents (concurrency one)." if host_cap == 1 else None}
+            "host_cap": host_cap, "recovery": recovery,
+            "notice": "Host runs sequential subagents (concurrency one)." if host_cap == 1 else None}
 
 
 def git(repo, *args, allow_missing=False):
@@ -311,21 +677,74 @@ def overlaps(left, right):
 
 
 def new_state(admitted):
-    return {"fingerprint": admitted["fingerprint"], "halt_new_dispatch": False, "halt_reason": None,
-            "tasks": {t["task_id"]: {"status": "pending", "reservation": None,
-                                      "delivery": None, "report": None, "verified_pr": None,
-                                      "parent_decision": None} for t in admitted["tasks"]}}
+    return {
+        "version": STATE_VERSION,
+        "fingerprint": admitted["fingerprint"],
+        "scope_identity": copy.deepcopy(admitted["scope_identity"]),
+        "owner": {"controller_id": secrets.token_hex(16)},
+        "scope_claim": None,
+        "halt_new_dispatch": False,
+        "halt_reason": None,
+        "stop_requested": False,
+        "recovery": {
+            "last_snapshot": None,
+            "last_inventory": copy.deepcopy(admitted.get("recovery")),
+            "first_uncertain_boundary": None,
+        },
+        "tasks": {
+            t["task_id"]: {
+                "status": "pending",
+                "reservation": None,
+                "claim": None,
+                "delivery": None,
+                "report": None,
+                "verified_pr": None,
+                "parent_decision": None,
+                "contract_hash": t["contract_hash"],
+                "contract_revision": t.get("contract_revision", t["contract_hash"]),
+                "dependency_snapshot": copy.deepcopy(t.get("dependency_snapshot", {
+                    "prerequisites": t["prerequisites"],
+                    "external_prerequisites": t["external_prerequisites"],
+                })),
+                "source": None,
+                "diff_identity": None,
+                "checks": None,
+                "validation": None,
+                "pr": None,
+                "first_uncertain_boundary": None,
+                "last_evidence": None,
+            } for t in admitted["tasks"]
+        },
+    }
 
 
 def state_read(path, admitted):
-    state = load_json(path)
-    require(state.get("fingerprint") == admitted["fingerprint"], "state-mismatch", "state belongs to another scope")
-    require(isinstance(state.get("tasks"), dict) and set(state["tasks"]) == {t["task_id"] for t in admitted["tasks"]},
+    try:
+        raw = _state_bytes(path)
+        state = json.loads(raw)
+    except ValueError as error:
+        raise InputError("unreadable-state", str(error)) from error
+    require(isinstance(state, dict), "malformed-input", "JSON must be an object")
+    state["_loaded_digest"] = hashlib.sha256(raw).hexdigest()
+    require(state.get("version") == STATE_VERSION, "invalid-state", "unsupported controller state version")
+    require(state.get("fingerprint") == admitted["fingerprint"],
+            "state-mismatch", "state belongs to another scope")
+    require(state.get("scope_identity") == admitted["scope_identity"],
+            "state-mismatch", "state scope identity differs")
+    owner = state.get("owner")
+    require(isinstance(owner, dict) and text(owner.get("controller_id")),
+            "ownership-missing", "controller ownership identity missing")
+    require(isinstance(state.get("tasks"), dict)
+            and set(state["tasks"]) == {t["task_id"] for t in admitted["tasks"]},
             "invalid-state", "state task identities differ")
-    require(type(state.get("halt_new_dispatch")) is bool, "invalid-state", "halt state must be explicit")
+    require(type(state.get("halt_new_dispatch")) is bool
+            and type(state.get("stop_requested", False)) is bool,
+            "invalid-state", "halt/stop state must be explicit")
     for item in state["tasks"].values():
         require(isinstance(item, dict) and item.get("status") in
-                ("pending", "running", "delivered", "repair-ready", "unknown"), "invalid-state", "invalid task state")
+                ("pending", "running", "delivered", "repair-ready", "note-pending",
+                 "evidence-pending", "unknown"),
+                "invalid-state", "invalid task state")
         if item["status"] != "pending":
             require(isinstance(item.get("reservation"), dict), "invalid-state", "reservation missing")
             reservation = item["reservation"]
@@ -333,17 +752,36 @@ def state_read(path, admitted):
                     and SHA_RE.fullmatch(reservation["parent_sha"])
                     and Path(reservation["workspace"]).is_absolute(),
                     "invalid-state", "reservation identity incomplete")
+        if item.get("first_uncertain_boundary") is not None:
+            require(isinstance(item["first_uncertain_boundary"], dict),
+                    "invalid-state", "uncertain boundary must be an object")
     return state
 
 
-def halt(state, item, reason, report=None):
+def halt(state, item, reason, report=None, global_halt=False):
     if isinstance(item.get("reservation"), dict):
         item["status"] = "unknown"
     if isinstance(report, dict):
-        item["report"] = report
-    state["halt_new_dispatch"] = True
-    state["halt_reason"] = reason
-    return {"status": "halted", "reason": reason, "dispatch": []}
+        item["report"] = copy.deepcopy(report)
+        item["last_evidence"] = copy.deepcopy(report)
+    boundary = {
+        "reason": reason,
+        "status": "unknown",
+        "reservation": copy.deepcopy(item.get("reservation")),
+        "report": copy.deepcopy(report) if isinstance(report, dict) else None,
+    }
+    item["failure_reason"] = reason
+    item["first_uncertain_boundary"] = item.get("first_uncertain_boundary") or boundary
+    if global_halt:
+        state["halt_new_dispatch"] = True
+        state["halt_reason"] = reason
+        state.setdefault("recovery", {})["first_uncertain_boundary"] = copy.deepcopy(boundary)
+    return {
+        "status": "halted" if global_halt else "unknown",
+        "task_id": next((tid for tid, value in state["tasks"].items() if value is item), None),
+        "reason": reason,
+        "dispatch": [],
+    }
 
 
 def field_object(value, fields, name):
@@ -483,22 +921,33 @@ def validate_delivery(admitted, task, reservation, result, repo):
             "unknown-response", "verification/review outcome malformed")
     if result["outcome"] == "needs-repair" or not checks["passed"] or validation["verdict"] == "fail":
         return {"status": "repair-ready", "reason": "checks-failed" if not checks["passed"] else "validation-failed"}
-    note = field_object(result.get("note"), ("id", "issue_url", "pr_url", "head_sha", "contract_hash", "diff_identity"), "delivery note readback")
+    delivery = {"pr_url": readback["pr_url"], "head_sha": readback["head_sha"],
+                "branch": readback["branch"], "base_branch": readback["base_branch"],
+                "commit_sha": readback["commit_sha"], "association": task["url"],
+                "validated_diff": actual_diff, "contract_hash": task["contract_hash"],
+                "checkpoint": copy.deepcopy(result)}
+    if result.get("note") is None:
+        return {"status": "note-pending", "reason": "delivery-note-readback", "delivery": delivery}
+    note = field_object(result.get("note"), ("id", "issue_url", "pr_url", "head_sha",
+                                             "contract_hash", "diff_identity"),
+                        "delivery note readback")
     require(text(note["id"]) or (type(note["id"]) is int and note["id"] > 0),
             "invalid-note", "native note identity required")
     for key, expected in (("issue_url", task["url"]), ("pr_url", readback["pr_url"]),
-                          ("head_sha", readback["head_sha"]), ("contract_hash", task["contract_hash"]), ("diff_identity", actual_diff)):
+                          ("head_sha", readback["head_sha"]), ("contract_hash", task["contract_hash"]),
+                          ("diff_identity", actual_diff)):
         require(note[key] == expected, "note-mismatch", "delivery note differs on " + key)
     if admitted["mode"] == "project":
-        progress = field_object(result.get("project_status"), ("project_url", "issue_url", "item_id", "status"), "Project status readback")
+        if result.get("project_status") is None:
+            return {"status": "note-pending", "reason": "project-status-readback", "delivery": delivery}
+        progress = field_object(result.get("project_status"),
+                                ("project_url", "issue_url", "item_id", "status"),
+                                "Project status readback")
         require(progress["item_id"] == task["item_id"] and progress["project_url"] == admitted["selector_url"]
                 and progress["issue_url"] == task["url"]
                 and progress["status"] == admitted["lifecycle"]["inReview"],
                 "project-status-mismatch", "verified Project inReview readback required")
-    return {"status": "delivered", "delivery": {"pr_url": readback["pr_url"], "head_sha": readback["head_sha"],
-            "branch": readback["branch"], "base_branch": readback["base_branch"], "commit_sha": readback["commit_sha"],
-            "association": task["url"], "validated_diff": actual_diff, "contract_hash": task["contract_hash"],
-            "checkpoint": copy.deepcopy(result)}}
+    return {"status": "delivered", "delivery": delivery}
 
 
 def packet(admitted, task, reservation, repair, retained, readiness):
@@ -522,7 +971,8 @@ def choose_parent(admitted, task, state, decisions, repo):
         candidates.append(admitted["integration"])
     heads = [state["tasks"][p]["delivery"]["head_sha"] for p in task["prerequisites"]]
     for candidate in candidates:
-        require(isinstance(candidate, dict) and text(candidate.get("branch")) and SHA_RE.fullmatch(candidate.get("sha", "")),
+        require(isinstance(candidate, dict) and text(candidate.get("branch"))
+                and SHA_RE.fullmatch(candidate.get("sha", "")),
                 "decision-rejected", "parent decision needs branch and full SHA")
         if branch_tip(repo, candidate["branch"]) != candidate["sha"]:
             continue
@@ -530,11 +980,58 @@ def choose_parent(admitted, task, state, decisions, repo):
             return candidate
     return None
 
+def _state_summary(state, blocked=None, waiting=None, paused=None, unknown_details=None):
+    blocked = list(blocked or [])
+    waiting = list(waiting or [])
+    paused = list(paused or [])
+    unknown_details = list(unknown_details or [])
+    tasks = state["tasks"]
+    return {
+        "delivered": sorted(tid for tid, item in tasks.items() if item["status"] == "delivered"),
+        "running": sorted(tid for tid, item in tasks.items() if item["status"] == "running"),
+        "active": sorted(tid for tid, item in tasks.items() if item["status"] in ("running", "note-pending")),
+        "unknown": sorted(tid for tid, item in tasks.items() if item["status"] == "unknown"),
+        "unknown_details": unknown_details,
+        "evidence_pending": sorted(tid for tid, item in tasks.items() if item["status"] == "evidence-pending"),
+        "repair_ready": sorted(tid for tid, item in tasks.items() if item["status"] == "repair-ready"),
+        "pending": sorted(tid for tid, item in tasks.items() if item["status"] == "pending"),
+        "blocked": blocked,
+        "waiting": waiting,
+        "paused": paused,
+    }
 
-def cmd_admit(args):
-    require(bool(args.issue) != bool(args.project), "conflicting-selectors" if args.issue else "missing-selector", "select exactly one scope")
-    return admit(load_json(args.snapshot), "issue" if args.issue else "project",
-                 args.issue or args.project, positive(args.max_parallel))
+
+def _remember_result(item, result):
+    item["last_evidence"] = copy.deepcopy(result)
+    worker = result.get("worker") if isinstance(result, dict) else None
+    readback = result.get("readback") if isinstance(result, dict) else None
+    if isinstance(worker, dict):
+        item["report"] = copy.deepcopy(worker)
+        item["worker"] = copy.deepcopy(worker)
+    if isinstance(readback, dict):
+        item["source"] = {
+            "branch": readback.get("branch"),
+            "head_sha": readback.get("head_sha"),
+            "base_branch": readback.get("base_branch"),
+            "commit_sha": readback.get("commit_sha"),
+            "diff_identity": readback.get("diff_identity"),
+        }
+        item["pr"] = {
+            "pr_url": readback.get("pr_url"),
+            "head_sha": readback.get("head_sha"),
+            "base_branch": readback.get("base_branch"),
+            "open": readback.get("open"),
+            "draft": readback.get("draft"),
+            "unique": readback.get("unique"),
+        }
+    if isinstance(result.get("checks"), dict):
+        item["checks"] = copy.deepcopy(result["checks"])
+    if isinstance(result.get("validation"), dict):
+        item["validation"] = copy.deepcopy(result["validation"])
+
+
+def _safe_reason(error, default="blocked"):
+    return getattr(error, "code", default)
 
 
 def cmd_schedule(args):
@@ -544,119 +1041,252 @@ def cmd_schedule(args):
     state = state_read(args.state, admitted) if args.state else new_state(admitted)
     if not args.state:
         require(not Path(args.state_out).exists(), "existing-state", "initial state already exists; resume it")
+    claim_scope(args.git_repo, admitted, state)
     try:
         fresh = admit(load_json(args.fresh), admitted["mode"], admitted["selector_url"], admitted["max_parallel"])
-        require(fresh["fingerprint"] == admitted["fingerprint"], "snapshot-drift", "scope/native identity/contract changed")
-        require(fresh["integration"] == admitted["integration"], "parent-tip-drift", "integration tip requires readmission")
+        require(fresh.get("recovery") is not None, "incomplete-recovery",
+                "schedule requires a complete fresh recovery inventory")
+        require(fresh["fingerprint"] == admitted["fingerprint"],
+                "snapshot-drift", "scope/native identity/contract changed")
+        require(fresh["integration"] == admitted["integration"],
+                "parent-tip-drift", "integration tip requires readmission")
     except InputError as error:
         state["halt_new_dispatch"], state["halt_reason"] = True, error.code
-        write_json(args.state_out, state)
-        return {"status": "snapshot-drift", "reason": error.code, "dispatch": []}
+        state.setdefault("recovery", {})["first_uncertain_boundary"] = {
+            "reason": error.code, "status": "snapshot-drift",
+        }
+        write_state(args, state)
+        return {"status": "snapshot-drift", "reason": error.code, "dispatch": [],
+                **_state_summary(state)}
+    state.setdefault("recovery", {})["last_snapshot"] = {
+        "fingerprint": fresh["fingerprint"],
+        "scope_identity": copy.deepcopy(fresh["scope_identity"]),
+        "membership": [
+            {"url": task["url"], "id": task["id"], "node_id": task["node_id"],
+             "actual_parent": task.get("actual_parent"), "item_id": task.get("item_id")}
+            for task in fresh["tasks"]
+        ],
+        "dependencies": {
+            task["task_id"]: copy.deepcopy(task.get("dependency_snapshot", {
+                "prerequisites": task["prerequisites"],
+                "external_prerequisites": task["external_prerequisites"],
+            })) for task in fresh["tasks"]
+        },
+        "contract_revisions": {
+            task["task_id"]: task.get("contract_revision", task["contract_hash"])
+            for task in fresh["tasks"]
+        },
+    }
+    state.setdefault("recovery", {})["last_inventory"] = copy.deepcopy(fresh.get("recovery"))
+    if state.get("stop_requested"):
+        state["halt_new_dispatch"], state["halt_reason"] = True, "user-stop"
+        write_state(args, state)
+        return {"status": "stopped", "reason": "user-stop", "dispatch": [],
+                **_state_summary(state)}
     if state["halt_new_dispatch"]:
-        write_json(args.state_out, state)
-        return {"status": "halted", "reason": state["halt_reason"], "dispatch": []}
+        write_state(args, state)
+        return {"status": "halted", "reason": state["halt_reason"], "dispatch": [],
+                **_state_summary(state)}
     decisions = {}
     if args.parent_decision:
         entries = load_json(args.parent_decision).get("decisions")
         require(isinstance(entries, list), "malformed-decision", "decisions list required")
         for decision in entries:
             require(isinstance(decision, dict) and decision.get("task_id") in state["tasks"]
-                    and decision["task_id"] not in decisions, "malformed-decision", "ambiguous parent decision")
+                    and decision["task_id"] not in decisions,
+                    "malformed-decision", "ambiguous parent decision")
             decisions[decision["task_id"]] = decision
-    # Delivery is imported/revalidated from fresh independent evidence, never a saved success flag.
+    blocked, paused, waiting, unknown = [], [], [], []
+    ownership_unverified = set()
     fresh_tasks = {t["task_id"]: t for t in fresh["tasks"]}
+    # Delivery is imported/revalidated from fresh independent evidence, never a saved success flag.
     for tid in fresh["task_order"]:
         task = fresh_tasks[tid]
-        item = state["tasks"][task["task_id"]]
+        item = state["tasks"][tid]
         retained = task.get("existing_delivery")
-        if item["status"] == "delivered" or (item["status"] == "pending" and retained is not None):
-            try:
-                field_object(retained, ("reservation", "result"), "existing delivery")
-                reservation = retained["reservation"]
-                if item["reservation"] is not None:
-                    require(reservation == item["reservation"], "reservation-mismatch", "retained workspace/parent changed")
-                expected_workspace = (root / task["workspace"]).resolve()
-                require(Path(reservation["workspace"]).resolve() == expected_workspace,
-                        "reservation-mismatch", "retained workspace does not match admitted task")
-                require(reservation["branch"] == "woostack/" + task["task_id"], "reservation-mismatch", "retained branch differs")
-                decision = decisions.get(tid) or item.get("parent_decision")
-                parent_readiness(fresh, task, state, reservation, decision, args.git_repo, retained=True)
-                proof = validate_delivery(admitted, task, reservation, retained["result"], args.git_repo)
-                require(proof["status"] == "delivered", "delivery-invalidated", "retained delivery no longer verified")
-                require(not any(tid != task["task_id"] and other.get("verified_pr") == proof["delivery"]["pr_url"]
-                                for tid, other in state["tasks"].items()),
-                        "duplicate-pr", "retained deliveries claim the same PR")
-                item.update(status="delivered", reservation=reservation, delivery=proof["delivery"],
-                            report=retained["result"]["worker"], verified_pr=proof["delivery"]["pr_url"],
-                            parent_decision=copy.deepcopy(decision))
-            except (InputError, KeyError, TypeError) as error:
-                reason = getattr(error, "code", "invalid-retained-delivery")
-                if item["reservation"] is None and isinstance(retained, dict):
-                    item["reservation"] = retained.get("reservation")
-                outcome = halt(state, item, reason)
-                write_json(args.state_out, state)
-                return outcome
+        if not (item["status"] == "delivered" or (item["status"] == "pending" and retained is not None)):
+            continue
+        if item["status"] == "pending":
+            prior_claim = retained.get("claim") if isinstance(retained, dict) else None
+            if not (isinstance(prior_claim, dict)
+                    and prior_claim.get("owner") == state["owner"]["controller_id"]
+                    and prior_claim.get("canonical_repo") == admitted["canonical_repo"]
+                    and prior_claim.get("scope") == admitted["scope_identity"]
+                    and prior_claim.get("issue_url") == task["url"]):
+                ownership_unverified.add(tid)
+                blocked.append({"task_id": tid, "reason": "ownership-unverified",
+                                "next_action": "prove prior claim or perform explicit verified ownership transfer"})
+                continue
+        retained_reservation = retained.get("reservation") if isinstance(retained, dict) else None
+        if item["reservation"] is None and isinstance(retained_reservation, dict):
+            item["reservation"] = copy.deepcopy(retained_reservation)
+        if task["external_prerequisites"]:
+            if retained_reservation is not None:
+                item["status"] = "repair-ready"
+                item["failure_reason"] = "external-prerequisite"
+            blocked.append({"task_id": tid, "reason": "external-prerequisite"})
+            continue
+        if any(state["tasks"][p]["status"] != "delivered" for p in task["prerequisites"]):
+            if retained_reservation is not None:
+                item["status"] = "repair-ready"
+                item["failure_reason"] = "prerequisites-unmet"
+            waiting.append({"task_id": tid, "reason": "prerequisites-unmet"})
+            continue
+        try:
+            require(isinstance(retained, dict), "invalid-retained-delivery",
+                    "delivered task requires fresh delivery evidence")
+            field_object(retained, ("reservation", "result"), "existing delivery")
+            reservation = retained["reservation"]
+            if item["reservation"] is not None:
+                require(reservation == item["reservation"], "reservation-mismatch",
+                        "retained workspace/parent changed")
+            expected_workspace = (root / task["workspace"]).resolve()
+            require(Path(reservation["workspace"]).resolve() == expected_workspace,
+                    "reservation-mismatch", "retained workspace does not match admitted task")
+            require(reservation["branch"] == "woostack/" + task["task_id"],
+                    "reservation-mismatch", "retained branch differs")
+            claim_task(args.git_repo, admitted, task, state, item)
+            decision = decisions.get(tid) or item.get("parent_decision")
+            parent_readiness(fresh, task, state, reservation, decision, args.git_repo, retained=True)
+            proof = validate_delivery(admitted, task, reservation, retained["result"], args.git_repo)
+            require(proof["status"] in ("delivered", "note-pending"),
+                    "delivery-invalidated", "retained delivery no longer verified")
+            require(not any(tid != task["task_id"] and other.get("verified_pr") == proof["delivery"]["pr_url"]
+                            for tid, other in state["tasks"].items()),
+                    "duplicate-pr", "retained deliveries claim the same PR")
+            _remember_result(item, retained["result"])
+            item.update(status=proof["status"], reservation=reservation,
+                        delivery=proof["delivery"], verified_pr=proof["delivery"]["pr_url"],
+                        parent_decision=copy.deepcopy(decision))
+        except (InputError, KeyError, TypeError) as error:
+            reason = _safe_reason(error, "invalid-retained-delivery")
+            if reason == "ownership-conflict":
+                blocked.append({"task_id": tid, "reason": reason,
+                                 "next_action": "reconcile the other controller's canonical task claim"})
+                continue
+            if item["reservation"] is None and isinstance(retained, dict):
+                item["reservation"] = retained.get("reservation")
+            halt(state, item, reason)
+            unknown.append({"task_id": tid, "reason": reason,
+                            "next_action": "prove worker stopped and reconcile direct Git/PR evidence"})
+            item["last_evidence"] = copy.deepcopy(retained)
+            continue
     cap = min(positive(args.cap) if args.cap is not None else admitted["max_parallel"],
               admitted["max_parallel"], fresh["host_cap"])
-    running = [tid for tid, item in state["tasks"].items() if item["status"] == "running"]
-    slots = max(0, cap - len(running))
-    dispatch, paused, blocked, waiting = [], [], [], []
+    occupied = [tid for tid, item in state["tasks"].items()
+                if item["status"] in ("running", "unknown")]
+    slots = max(0, cap - len(occupied))
     inventory = worktree_inventory(args.git_repo)
+    dispatch = []
     for task in sorted(admitted["tasks"], key=lambda t: (t["ordinal"], t["task_id"])):
         tid, item = task["task_id"], state["tasks"][task["task_id"]]
+        if tid in ownership_unverified:
+            continue
+        if item["status"] == "unknown":
+            unknown.append({"task_id": tid, "reason": item.get("failure_reason", "unknown"),
+                            "next_action": "prove worker stopped and reconcile before repair"})
+            continue
+        if item["status"] == "note-pending":
+            blocked.append({"task_id": tid, "reason": item.get("failure_reason", "delivery-receipt-pending"),
+                             "next_action": "retry note/Project read-back; do not replay repository delivery"})
+            continue
+        if item["status"] == "evidence-pending":
+            blocked.append({"task_id": tid, "reason": item.get("failure_reason", "delivery-evidence-pending"),
+                            "next_action": "assemble and apply independent full delivery evidence; do not dispatch another worker"})
+            continue
         if item["status"] not in ("pending", "repair-ready"):
             continue
         if task["external_prerequisites"]:
             blocked.append({"task_id": tid, "reason": "external-prerequisite"})
             continue
-        if any(state["tasks"][p]["status"] != "delivered" for p in task["prerequisites"]):
-            waiting.append({"task_id": tid, "reason": "prerequisites-unmet"})
+        predecessor_states = [state["tasks"][p]["status"] for p in task["prerequisites"]]
+        if any(status != "delivered" for status in predecessor_states):
+            waiting.append({
+                "task_id": tid,
+                "reason": "prerequisite-unknown" if any(status == "unknown" for status in predecessor_states)
+                else "prerequisites-unmet",
+            })
             continue
         repair = item["status"] == "repair-ready"
-        if repair:
-            reservation = item["reservation"]
-            require(contains(args.git_repo, reservation["parent_sha"], branch_tip(args.git_repo, reservation["branch"])),
-                    "wrong-ancestry", "repair branch no longer contains admitted start")
-        else:
-            parent = choose_parent(admitted, task, state, decisions, args.git_repo)
-            if parent is None:
-                paused.append({"task_id": tid, "reason": "join-no-containing-parent",
-                               "prerequisite_branches": [state["tasks"][p]["delivery"]["branch"] for p in task["prerequisites"]]})
+        try:
+            if repair:
+                reservation = item["reservation"]
+                current = branch_tip(args.git_repo, reservation["branch"])
+                require(current is not None and contains(args.git_repo, reservation["parent_sha"], current),
+                        "wrong-ancestry", "repair branch no longer contains admitted start")
+            else:
+                parent = choose_parent(admitted, task, state, decisions, args.git_repo)
+                if parent is None:
+                    paused.append({"task_id": tid, "reason": "join-no-containing-parent",
+                                   "prerequisite_branches": [
+                                       state["tasks"][p]["delivery"]["branch"]
+                                       for p in task["prerequisites"]]})
+                    continue
+                workspace = (root / task["workspace"]).resolve()
+                require(root in workspace.parents and workspace != root / ".git"
+                        and root / ".git" not in workspace.parents,
+                        "invalid-workspace", "workspace escapes repository task area")
+                reservation = {
+                    "branch": "woostack/" + tid,
+                    "workspace": str(workspace),
+                    "parent_branch": parent["branch"],
+                    "parent_sha": parent["sha"],
+                    "task_url": task["url"],
+                    "scope": copy.deepcopy(admitted["scope_identity"]),
+                    "contract_hash": task["contract_hash"],
+                }
+            workspace = reservation["workspace"]
+            collision = any(other != tid and other_item.get("reservation")
+                            and overlaps(workspace, other_item["reservation"]["workspace"])
+                            for other, other_item in state["tasks"].items())
+            if not repair:
+                collision = collision or Path(workspace).exists()
+                collision = collision or branch_tip(args.git_repo, reservation["branch"]) is not None
+                collision = collision or any(
+                    overlaps(workspace, wt["worktree"]) and Path(wt["worktree"]).resolve() != root
+                    for wt in inventory
+                )
+            else:
+                collision = collision or not any(
+                    Path(wt["worktree"]).resolve() == Path(workspace).resolve()
+                    and wt.get("branch") == "refs/heads/" + reservation["branch"]
+                    for wt in inventory
+                )
+            if collision:
+                blocked.append({"task_id": tid, "reason": "workspace-collision"})
                 continue
-            workspace = (root / task["workspace"]).resolve()
-            require(root in workspace.parents and workspace != root / ".git" and root / ".git" not in workspace.parents,
-                    "invalid-workspace", "workspace escapes repository task area")
-            reservation = {"branch": "woostack/" + tid, "workspace": str(workspace),
-                           "parent_branch": parent["branch"], "parent_sha": parent["sha"]}
-        workspace = reservation["workspace"]
-        collision = any(other != tid and other_item.get("reservation")
-                        and overlaps(workspace, other_item["reservation"]["workspace"])
-                        for other, other_item in state["tasks"].items())
-        if not repair:
-            collision = collision or Path(workspace).exists() or branch_tip(args.git_repo, reservation["branch"]) is not None
-            collision = collision or any(overlaps(workspace, wt["worktree"]) and Path(wt["worktree"]).resolve() != root for wt in inventory)
-        else:
-            collision = collision or not any(Path(wt["worktree"]).resolve() == Path(workspace).resolve()
-                and wt.get("branch") == "refs/heads/" + reservation["branch"] for wt in inventory)
-        if collision:
-            blocked.append({"task_id": tid, "reason": "workspace-collision"})
-            continue
-        if slots == 0:
-            continue
-        retained_pr = item.get("verified_pr")
-        decision = decisions.get(tid) or item.get("parent_decision")
-        readiness = parent_readiness(fresh, task, state, reservation, decision, args.git_repo, retained=repair)
-        item.update(status="running", reservation=reservation, parent_decision=copy.deepcopy(decision))
-        dispatch.append({"task_id": tid, "ordinal": task["ordinal"], "child_url": task["url"],
-                         "repair": repair, "retained_pr": retained_pr, **reservation,
-                         "packet": packet(admitted, task, reservation, repair, retained_pr, readiness)})
-        running.append(tid)
-        slots -= 1
-    write_json(args.state_out, state)
+            if slots == 0:
+                continue
+            claim_task(args.git_repo, admitted, task, state, item)
+            retained_pr = item.get("verified_pr")
+            decision = decisions.get(tid) or item.get("parent_decision")
+            readiness = parent_readiness(fresh, task, state, reservation, decision,
+                                         args.git_repo, retained=repair)
+            item.update(status="running", reservation=reservation,
+                        parent_decision=copy.deepcopy(decision),
+                        first_uncertain_boundary=None,
+                        last_evidence={"parent_readiness": copy.deepcopy(readiness)})
+            dispatch.append({"task_id": tid, "ordinal": task["ordinal"], "child_url": task["url"],
+                             "repair": repair, "retained_pr": retained_pr, **reservation,
+                             "packet": packet(admitted, task, reservation, repair, retained_pr, readiness)})
+            occupied.append(tid)
+            slots -= 1
+        except (InputError, KeyError, TypeError) as error:
+            reason = _safe_reason(error)
+            if reason == "ownership-conflict":
+                blocked.append({"task_id": tid, "reason": reason,
+                                 "next_action": "reconcile the other controller's canonical task claim"})
+            elif reason in ("parent-tip-drift", "wrong-ancestry", "decision-rejected",
+                            "unapproved-parent", "uncontained-prerequisite"):
+                paused.append({"task_id": tid, "reason": reason,
+                                "next_action": "make an explicit parent/base decision and re-read Git ancestry"})
+            else:
+                blocked.append({"task_id": tid, "reason": reason})
+    write_state(args, state)
     return {"status": "no-work" if not admitted["tasks"] else "ok", "effective_cap": cap,
-            "notice": fresh["notice"], "dispatch": dispatch, "paused": paused, "blocked": blocked,
-            "waiting": waiting, "running": sorted(running),
-            "delivered": sorted(t for t, item in state["tasks"].items() if item["status"] == "delivered")}
+            "notice": fresh["notice"], "dispatch": dispatch, **_state_summary(
+                state, blocked=blocked, waiting=waiting, paused=paused,
+                unknown_details=unknown)}
 
 
 def cmd_apply_result(args):
@@ -665,29 +1295,36 @@ def cmd_apply_result(args):
     state = state_read(args.state, admitted)
     require(args.task in state["tasks"], "unknown-task", "task outside admitted scope")
     item = state["tasks"][args.task]
-    require(item["status"] == "running", "not-running", "task has no active reservation")
+    require(item["status"] in ("running", "note-pending", "evidence-pending"),
+            "not-running", "task has no active reservation or receipt retry")
     task = next(t for t in admitted["tasks"] if t["task_id"] == args.task)
+    claim_scope(args.git_repo, admitted, state)
+    claim_task(args.git_repo, admitted, task, state, item)
     result = {}
     try:
         result = load_json(args.result)
         proof = validate_delivery(admitted, task, item["reservation"], result, args.git_repo)
         pr_url = result["worker"]["pr_url"]
         require(not any(tid != args.task and other.get("verified_pr") == pr_url
-                        for tid, other in state["tasks"].items()), "duplicate-pr", "another task already owns this PR")
+                        for tid, other in state["tasks"].items()),
+                "duplicate-pr", "another task already owns this PR")
         retained_pr = item.get("verified_pr")
         if retained_pr:
             require(retained_pr == pr_url, "pr-replaced", "repair must preserve existing PR")
-        item["report"] = result["worker"]
+        _remember_result(item, result)
         item["verified_pr"] = pr_url
         item["status"] = proof["status"]
-        if proof["status"] == "delivered":
+        item["failure_reason"] = proof.get("reason") if proof["status"] == "note-pending" else None
+        if proof["status"] in ("delivered", "note-pending"):
             item["delivery"] = proof["delivery"]
+        if proof["status"] == "delivered":
+            item["first_uncertain_boundary"] = None
         outcome = {"task_id": args.task, **proof}
     except (InputError, KeyError, TypeError, ValueError) as error:
-        outcome = halt(state, item, getattr(error, "code", "unknown-response"), result.get("worker"))
-    write_json(args.state_out, state)
+        outcome = halt(state, item, getattr(error, "code", "unknown-response"),
+                       result.get("worker") if isinstance(result, dict) else None)
+    write_state(args, state)
     return outcome
-
 
 def cmd_reconcile(args):
     admitted = load_json(args.admitted)
@@ -696,35 +1333,86 @@ def cmd_reconcile(args):
     require(args.task in state["tasks"], "unknown-task", "task outside admitted scope")
     item = state["tasks"][args.task]
     require(item["status"] == "unknown", "not-unknown", "task has no uncertain outcome")
+    task = next(t for t in admitted["tasks"] if t["task_id"] == args.task)
+    claim_scope(args.git_repo, admitted, state)
+    claim_task(args.git_repo, admitted, task, state, item)
     evidence = load_json(args.evidence)
     reservation = item["reservation"]
-    require(evidence.get("worker_stopped") is True, "worker-liveness", "old writer must be proved stopped")
+    require(evidence.get("worker_stopped") is True,
+            "worker-liveness", "old writer must be proved stopped")
     require(evidence.get("repo") == evidence.get("head_repo") == admitted["canonical_repo"],
             "foreign-repo", "canonical repository readback required")
     require(evidence.get("branch") == reservation["branch"]
             and evidence.get("base_branch") == reservation["parent_branch"]
             and evidence.get("head_sha") == branch_tip(args.git_repo, reservation["branch"])
-            and evidence.get("unique") is True, "evidence-mismatch", "branch/head/base discovery conflicts")
+            and evidence.get("unique") is True,
+            "evidence-mismatch", "branch/head/base discovery conflicts")
     require(contains(args.git_repo, reservation["parent_sha"], evidence["head_sha"]),
             "wrong-ancestry", "retained branch ancestry differs")
+    item["last_evidence"] = copy.deepcopy(evidence)
+    item["source"] = {
+        "branch": evidence["branch"],
+        "head_sha": evidence["head_sha"],
+        "base_branch": evidence["base_branch"],
+        "commit_sha": evidence["head_sha"],
+        "diff_identity": evidence.get("diff_identity"),
+    }
     if evidence.get("pr_absent") is True:
         require("pr_url" in evidence and evidence["pr_url"] is None and evidence.get("open") is False,
                 "evidence-mismatch", "PR absence requires an explicit null URL and closed readback")
         require(not item.get("verified_pr"), "evidence-mismatch", "verified PR cannot silently disappear")
+        item["pr"] = {
+            "pr_url": None, "head_sha": evidence["head_sha"],
+            "base_branch": evidence["base_branch"], "open": False, "unique": True,
+        }
     else:
         match = PR_RE.fullmatch(evidence.get("pr_url", ""))
         require(match and "https://github.com/" + "/".join(match.groups()[:2]) == admitted["canonical_repo"]
-                and evidence.get("open") is True, "invalid-pr", "one canonical open PR required")
+                and evidence.get("open") is True,
+                "invalid-pr", "one canonical open PR required")
         require(not item.get("verified_pr") or item["verified_pr"] == evidence["pr_url"],
                 "evidence-mismatch", "retained PR differs")
         item["report"] = {"pr_url": evidence["pr_url"], "head_sha": evidence["head_sha"]}
+        item["worker"] = copy.deepcopy(item["report"])
         item["verified_pr"] = evidence["pr_url"]
-    item["status"] = "repair-ready"
-    if not any(t["status"] == "unknown" for t in state["tasks"].values()):
+        item["pr"] = {
+            "pr_url": evidence["pr_url"], "head_sha": evidence["head_sha"],
+            "base_branch": evidence["base_branch"], "open": True, "unique": True,
+        }
+    item["status"] = "repair-ready" if evidence.get("pr_absent") is True else "evidence-pending"
+    item["failure_reason"] = None if evidence.get("pr_absent") is True else "delivery-evidence-pending"
+    if state.get("halt_reason") in (None, "unknown-response"):
         state["halt_new_dispatch"], state["halt_reason"] = False, None
-    write_json(args.state_out, state)
+    write_state(args, state)
     return {"status": "reconciled", "task_id": args.task,
-            "detail": "Same task retained; full apply-result gates still required."}
+            "detail": "Same task retained; full apply-result gates still required.",
+            **_state_summary(state)}
+def cmd_stop(args):
+    admitted = load_json(args.admitted)
+    repository(args.git_repo, admitted["canonical_repo"])
+    state = state_read(args.state, admitted)
+    claim_scope(args.git_repo, admitted, state)
+    require(text(args.reason), "invalid-stop", "stop reason required")
+    state["stop_requested"] = True
+    state["halt_new_dispatch"] = True
+    state["halt_reason"] = args.reason
+    state.setdefault("recovery", {})["first_uncertain_boundary"] = {
+        "reason": args.reason,
+        "status": "stop-requested",
+        "running": sorted(tid for tid, item in state["tasks"].items()
+                          if item["status"] == "running"),
+    }
+    write_state(args, state)
+    return {"status": "stop-requested", "reason": args.reason, "dispatch": [],
+            **_state_summary(state)}
+
+
+
+
+def cmd_admit(args):
+    require(bool(args.issue) != bool(args.project), "conflicting-selectors" if args.issue else "missing-selector", "select exactly one scope")
+    return admit(load_json(args.snapshot), "issue" if args.issue else "project",
+                 args.issue or args.project, positive(args.max_parallel))
 
 
 def parser():
@@ -736,22 +1424,39 @@ def parser():
     admission.add_argument("--snapshot", required=True)
     admission.add_argument("--max-parallel", default=str(DEFAULT_MAX_PARALLEL))
     admission.set_defaults(run=cmd_admit)
-    for name, handler in (("schedule", cmd_schedule), ("apply-result", cmd_apply_result), ("reconcile", cmd_reconcile)):
-        command = commands.add_parser(name)
-        command.add_argument("--admitted", required=True)
-        command.add_argument("--state", required=name != "schedule")
-        command.add_argument("--state-out", required=True)
-        command.add_argument("--git-repo", required=True)
-        if name == "schedule":
-            command.add_argument("--fresh", required=True)
-            command.add_argument("--cap")
-            command.add_argument("--parent-decision")
-        else:
-            command.add_argument("--task", required=True)
-            command.add_argument("--result" if name == "apply-result" else "--evidence", required=True)
-        command.set_defaults(run=handler)
+    schedule = commands.add_parser("schedule")
+    schedule.add_argument("--admitted", required=True)
+    schedule.add_argument("--state")
+    schedule.add_argument("--state-out", required=True)
+    schedule.add_argument("--git-repo", required=True)
+    schedule.add_argument("--fresh", required=True)
+    schedule.add_argument("--cap")
+    schedule.add_argument("--parent-decision")
+    schedule.set_defaults(run=cmd_schedule)
+    apply = commands.add_parser("apply-result")
+    apply.add_argument("--admitted", required=True)
+    apply.add_argument("--state", required=True)
+    apply.add_argument("--state-out", required=True)
+    apply.add_argument("--git-repo", required=True)
+    apply.add_argument("--task", required=True)
+    apply.add_argument("--result", required=True)
+    apply.set_defaults(run=cmd_apply_result)
+    reconcile = commands.add_parser("reconcile")
+    reconcile.add_argument("--admitted", required=True)
+    reconcile.add_argument("--state", required=True)
+    reconcile.add_argument("--state-out", required=True)
+    reconcile.add_argument("--git-repo", required=True)
+    reconcile.add_argument("--task", required=True)
+    reconcile.add_argument("--evidence", required=True)
+    reconcile.set_defaults(run=cmd_reconcile)
+    stop = commands.add_parser("stop")
+    stop.add_argument("--admitted", required=True)
+    stop.add_argument("--state", required=True)
+    stop.add_argument("--state-out", required=True)
+    stop.add_argument("--git-repo", required=True)
+    stop.add_argument("--reason", default="user-stop")
+    stop.set_defaults(run=cmd_stop)
     return root
-
 
 def main():
     args = parser().parse_args()
