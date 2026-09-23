@@ -271,6 +271,7 @@
       ]
     },
     {
+
       "id": "native-commit-without-graphite",
       "prompt": "Classify a Commit invocation without running commands: approved task branch and isolated worktree, parent intent and retained start SHA, Git ancestry, exact reviewed staged diff, and complete canonical GitHub evidence all agree. There is no Graphite metadata or management evidence and gt is absent; an authorized GitHub submission capability is available (authenticated gh is also supported). The task has no PR and its remote branch is absent. Explain the selected mode, commit/push/PR creation sequence, draft state, parent proof, and required read-backs. Do not execute mutations.",
       "fixtures": [],

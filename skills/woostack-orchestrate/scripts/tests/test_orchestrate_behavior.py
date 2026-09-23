@@ -16,6 +16,7 @@ import importlib.util
 import os
 import shutil
 import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -30,6 +31,35 @@ from recording_driver import (
     invoke_cli,
     make_result,
 )
+
+FAULT_RUNNER = '''"""Run the shipped helper with one deterministic interruption installed.
+
+The behavioral suite crosses a real subprocess boundary for every controller
+operation; this wrapper keeps that property while killing the helper process at
+an exact durability point instead of a timing-dependent one.
+"""
+import importlib.util
+import sys
+
+spec = importlib.util.spec_from_file_location("orchestrate_fault", sys.argv[1])
+helper = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(helper)
+fault, helper_args = sys.argv[2], sys.argv[3:]
+
+
+def die(*args, **kwargs):
+    raise SystemExit(97)
+
+
+if fault == "die-before-state-publication":
+    helper.write_state = die
+elif fault == "die-before-claim":
+    helper.claim_scope = die
+else:
+    raise SystemExit("unknown fault: " + fault)
+sys.argv = ["orchestrate.py", *helper_args]
+raise SystemExit(helper.main())
+'''
 
 
 class OrchestrateBehavior(unittest.TestCase):
@@ -663,6 +693,10 @@ class OrchestrateBehavior(unittest.TestCase):
         self.assertEqual(unchanged["status"], "ok", unchanged)
         self.assertEqual(unchanged["dispatch"], [], unchanged)
         self.assertTrue(state.exists())
+
+        # Runtime allocation is not fingerprint-bound: workspace/branch changes
+        # must schedule cleanly while immutable scope facts drift below. This
+        # has to run before the drift cases, which deliberately halt the state.
         changed_workspace = copy.deepcopy(snapshot)
         changed_workspace["children"][0]["workspace"] = str(self.repo.parent / "agent-selected" / "task-a")
         changed_workspace["children"][0]["branch"] = "agent/task-a"
@@ -890,6 +924,84 @@ class OrchestrateBehavior(unittest.TestCase):
         self.assertFalse(pending_path.exists())
         self.assertTrue(helper.state_read(str(state), admitted)["halt_new_dispatch"])
 
+    def _interrupted_schedule(self, fault: str, schedule_args: Sequence[str]) -> None:
+        """Run one real first-schedule attempt that dies at an exact durability point."""
+        runner = self.tmp / "fault-runner.py"
+        runner.write_text(FAULT_RUNNER, encoding="utf-8")
+        helper_path = Path(__file__).resolve().parents[1] / "orchestrate.py"
+        proc = subprocess.run(
+            [sys.executable, str(runner), str(helper_path), fault, *schedule_args],
+            capture_output=True,
+            text=True,
+        )
+        self.assertNotEqual(proc.returncode, 0, proc)
+        self.assertEqual(proc.stdout, "", "interruption must precede any command result")
+
+    def _scope_claims(self) -> list:
+        root = self.repo / ".woostack" / "tmp" / "orchestrate-claims"
+        if not root.exists():
+            return []
+        records = [
+            json.loads(path.read_text(encoding="utf-8"))
+            for path in sorted(root.glob("*.json"))
+        ]
+        return [record for record in records if record["kind"] == "scope"]
+
+    @staticmethod
+    def _first_schedule_args(
+        admitted_path: Path, fresh_path: Path, state_out: Path, git_repo: Path
+    ) -> list:
+        return [
+            "schedule",
+            "--admitted", str(admitted_path),
+            "--state-out", str(state_out),
+            "--git-repo", str(git_repo),
+            "--fresh", str(fresh_path),
+        ]
+
+    def test_interruption_before_durable_state_leaves_a_retry_that_recovers(self) -> None:
+        """A kill before state publication may never strand an unrecoverable scope claim."""
+        snapshot = self._single_task_snapshot()
+        admitted_path, _ = self._admit_issue(snapshot)
+        fresh_path = self._write_json("interrupt-before-state-fresh.json", snapshot)
+        state_out = self.tmp / "interrupt-before-state.json"
+        args = self._first_schedule_args(admitted_path, fresh_path, state_out, self.repo)
+        self._interrupted_schedule("die-before-state-publication", args)
+
+        code, payload = invoke_cli(*args)
+        self.assertEqual(code, 0, payload)
+        self.assertTrue(payload.get("dispatch"), payload)
+        state = json.loads(state_out.read_text(encoding="utf-8"))
+        claims = self._scope_claims()
+        self.assertEqual(len(claims), 1, claims)
+        self.assertEqual(claims[0]["owner"], state["owner"]["controller_id"])
+
+    def test_initial_state_precedes_the_claim_and_a_claim_gap_resumes_with_state(self) -> None:
+        """The owner-bearing state is durable before the claim, so a --state resume reclaims it."""
+        snapshot = self._single_task_snapshot()
+        admitted_path, _ = self._admit_issue(snapshot)
+        fresh_path = self._write_json("interrupt-before-claim-fresh.json", snapshot)
+        state_out = self.tmp / "interrupt-before-claim.json"
+        args = self._first_schedule_args(admitted_path, fresh_path, state_out, self.repo)
+        self._interrupted_schedule("die-before-claim", args)
+
+        self.assertTrue(
+            state_out.exists(),
+            "owner-bearing initial state must be durable before the claim is attempted",
+        )
+        state = json.loads(state_out.read_text(encoding="utf-8"))
+        self.assertEqual(self._scope_claims(), [], "claim must never precede state publication")
+
+        blocked_code, blocked = invoke_cli(*args)
+        self.assertNotEqual(blocked_code, 0, blocked)
+        self.assertEqual(blocked.get("error"), "existing-state", blocked)
+
+        code, payload = invoke_cli(*args, "--state", str(state_out))
+        self.assertEqual(code, 0, payload)
+        self.assertTrue(payload.get("dispatch"), payload)
+        claims = self._scope_claims()
+        self.assertEqual(len(claims), 1, claims)
+        self.assertEqual(claims[0]["owner"], state["owner"]["controller_id"])
     def test_state_symlink_is_rejected_before_read_or_write(self) -> None:
         snapshot = self._single_task_snapshot()
         admitted_path, admitted = self._admit_issue(snapshot)
@@ -1856,7 +1968,13 @@ class OrchestrateBehavior(unittest.TestCase):
         self.assertEqual(resumed.get("dispatch"), [], resumed)
 
     def test_existing_delivery_without_owner_claim_cannot_be_adopted(self) -> None:
-        self._seed_prior_delivery("task-a")
+        retained = self._seed_prior_delivery("task-a")
+        retained_workspace = Path(retained["reservation"]["workspace"])
+        self.assertTrue(retained_workspace.is_absolute())
+        self.assertNotIn(".woostack", retained_workspace.parts)
+        self.assertEqual(retained["reservation"]["branch"], "feature/task-a")
+        self.assertEqual(git(retained_workspace, "status", "--porcelain"), "")
+        self.assertNotEqual(git(retained_workspace, "rev-parse", "HEAD"), self.base_sha)
         snapshot = self.github.snapshot()
         admitted_path, admitted = self._admit_issue(snapshot)
         state, resumed = self._schedule(admitted_path, admitted, None, snapshot, "resume-valid", cap="1")

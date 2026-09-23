@@ -27,7 +27,7 @@ the tracked base file stops configuration loading with an error.
 | Object merge | Objects merge recursively. |
 | Scalar, array, or `null` override | The local value replaces the base value. Arrays do not concatenate. `null` does not delete a key. |
 | Invalid input | Empty, malformed, non-object, unreadable, symlinked, non-regular, orphaned, or credential-like configuration fails closed with the offending path. |
-| Secrets | GitHub authentication stays in the host secret store. Configuration files contain non-secret policy only. |
+| Secrets | GitHub authentication stays in the host secret store. Both configuration files contain non-secret policy only. |
 | OMP agents | OMP discovers and selects host-owned agents; repository model settings do not create or rename them. |
 
 This partial example shows how the two files merge. It is not a complete GitHub Project
@@ -240,14 +240,16 @@ worktrees are cut from.
 ## Defaults and doctor
 
 <Callout type="info">
-  Init scaffolds shared `models` settings and validates an optional top-level
-  `github` object. Authorized native GitHub capabilities or host-authenticated `gh` may provide
-  narrow non-secret defaults; missing GitHub configuration or connectivity never blocks local
-  initialization. Prepare and parent-issue Plan use complete plain packets and direct GitHub issue
-  publication; they need no Project configuration, local run, or second remote record. Goal-only
-  Execute needs no planning-provider call; optional exact GitHub issue context uses authorized
-  native capabilities or host-authenticated `gh`. Doctor validates policy locally; its explicit live request is
-  a separate fixed read-only GitHub contract.
+  Init scaffolds shared `models` settings and validates an optional top-level `github` object.
+  Authorized native GitHub capabilities or host-authenticated `gh` may provide narrow non-secret
+  defaults; missing GitHub configuration or connectivity never blocks local initialization. Prepare
+  and parent-issue Plan use complete plain packets. Prepare delegates direct GitHub issue publication
+  to Plan; neither requires Project configuration, a local run, or a second remote record. Goal-only
+  Execute makes no remote calls;
+  an exact GitHub issue permits only its documented read through authorized GitHub capabilities
+  (native tools preferred; host-authenticated `gh` supported), without Project configuration or issue
+  lifecycle writes or a planning-provider call. [woostack-doctor](/docs/skills/woostack-doctor)
+  validates policy locally; its explicit live request is a separate fixed read-only GitHub contract.
 </Callout>
 
 ## Migration notes

@@ -12,7 +12,7 @@ Each skill owns its procedure:
 | Elicit a complete user-verified specification | `woostack-ideate` |
 | Reconcile a supplied specification or candidate issue plan | `woostack-harden` |
 | Publish an approved GitHub parent/child or Project issue graph | `woostack-plan` |
-| Deliver a small enhancement or refactor in one PR | `woostack-execute` |
+| Deliver one bounded task in one PR | `woostack-execute` |
 | Check a running app in a browser | `woostack-qa` |
 | Prove a root cause without applying a correction | `woostack-debug` |
 | Evaluate approved behavior and trigger corpora for a skill without editing it | `woostack-eval` |
@@ -71,9 +71,10 @@ a branch such as `staging` before a human merges a release into `main`.
 Use native Git with an authorized GitHub interface for delivery; host-authenticated `gh` remains
 supported where appropriate. Graphite is optional for explicitly selected or verified already-managed
 tasks/stacks. The [source-control contract](../../woostack-commit/references/graphite.md) owns backend
-selection and delivery mechanics. Follow the
-[worktree/base-branch contract](../../woostack-init/references/worktrees.md) to resolve the base
-and verify each predecessor before starting dependent work. Never force-push.
+selection and delivery mechanics. Follow the selected
+[workspace/base-branch guidance](../../woostack-init/references/worktrees.md) to resolve the base,
+select an isolated workspace, and verify each predecessor before starting dependent work. Never
+force-push.
 
 ## When to deviate
 

@@ -324,6 +324,7 @@ class FakeGitHub:
                 "dependencies": True,
                 "contracts": True,
             }),
+
         }
         result["selected_issues"] = [item for item in issues if item["url"] in selected]
         result["issues"] = result["selected_issues"]

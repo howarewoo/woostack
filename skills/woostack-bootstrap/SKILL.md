@@ -43,8 +43,9 @@ routes before requirements gathering, MCP preflight, or project creation:
 
 - unresolved bugs, regressions, incidents, and root-cause work → [`woostack-debug`](../woostack-debug/SKILL.md)
   for diagnosis or [`woostack-prepare`](../woostack-prepare/SKILL.md) for a proved issue graph;
-- a bounded enhancement, refactor, test task, or authorized correction with causal proof that fits
-  one reviewable PR → [`woostack-execute`](../woostack-execute/SKILL.md);
+- a bounded enhancement, refactor, or test task that fits one reviewable PR (including a one-file
+  request), or an authorized defect correction with causal proof that fits one reviewable PR →
+  [`woostack-execute`](../woostack-execute/SKILL.md);
 - a multi-PR feature or architectural initiative → [`woostack-prepare`](../woostack-prepare/SKILL.md).
 
 ## Procedure
@@ -103,15 +104,16 @@ approval, perform no official-MCP development mutation and create no development
 | [references/architecture.md](references/architecture.md) | App-local code placement, optional shared packages, and naming |
 | [references/frameworks.md](references/frameworks.md) | Version-resolution rules, app-scoped dependencies, and gotchas |
 | [references/infrastructure.md](references/infrastructure.md) | Production-readiness patterns: hosting, CI/CD, env vars, migrations, observability |
-| [references/patterns.md](references/patterns.md) | Standard implementation and TDD guidelines |
+| [references/patterns.md](references/patterns.md) | Standard implementation patterns; canonical testing guidance is in [Execute](../woostack-execute/references/tdd.md) |
 | [references/development.md](references/development.md) | Repository authority, retained data, routing, and branching model |
 
 ## Hard constraints
 
 These are non-negotiable. Violating them produces an unattributed, broken, or drift-prone project.
 
-- **Brownfield routing.** Route unresolved defects to Debug, complete bounded tasks to Execute,
-  and multi-increment work to Prepare before creating a bootstrap project.
+- **Brownfield routing.** Route unresolved defects to Debug for diagnosis or Prepare for a proved
+  issue graph; route one-PR enhancements, refactors, and test tasks, plus authorized defect
+  corrections with causal proof, to Execute; route multi-PR features to Prepare before bootstrap.
 - **Artifact-free until explicit approval.** Requirements, research, options, and design stay in
   the run context. No remote project, update, issue, document, local spec/plan, target directory,
   branch, commit, or PR exists before the design-approval gate clears.

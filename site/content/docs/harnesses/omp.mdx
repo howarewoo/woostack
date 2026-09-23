@@ -23,6 +23,10 @@ and implemented by [`task/types.ts`](https://github.com/can1357/oh-my-pi/blob/ma
 The dispatch-time setting and rejection path are in
 [`task/index.ts`](https://github.com/can1357/oh-my-pi/blob/main/packages/coding-agent/src/task/index.ts).
 
+- Run `woostack-init` before relying on session naming. It provisions only the session-name extension,
+  settings entry, and ignore lines while preserving other project content. Init and Doctor never
+  create or repair OMP agent definitions; delegated work selects agents already exposed by the host.
+
 - Use only names actually exposed by the active session. The current inventory exposes `task` as a
   write-capable general-purpose agent, `scout` for read-only exploration, and `reviewer` /
   `security-reviewer` for read-only review. Do not create aliases or project definitions to fill a
@@ -67,9 +71,9 @@ For the exact cleanup boundary and the retained session-naming extension, see th
 ## Goal-derived session naming
 
 When a woostack skill is invoked, OMP uses a concise session title based on the user's input. For
-`/woostack-execute` and `/woostack-prepare`, it uses the input goal; an
-issue-backed Execute or Prepare invocation may use its explicit goal or exact issue input. A
-preparation resume uses the exact verified packet goal, never a guessed run title.
+`/woostack-prepare` and `/woostack-execute`, it uses the input goal; an issue-backed Execute
+invocation may use its explicit goal or exact issue input. A Prepare continuation uses the exact
+verified packet goal, never a guessed run title.
 
 A local extension handles session naming inside OMP:
 
@@ -102,9 +106,11 @@ complete bounded task and supply `/woostack-execute <bounded input>` with its pa
 [Execute retired inputs](/docs/skills/woostack-execute#retired-inputs).
 
 Saved records do not grant permission to assign workers, edit code, commit, review, or accept a
-product. They also do not prove delivery. Prepare delegates publication only to Plan. Execute needs
-no planning-provider call; optional exact issue context uses authorized native GitHub capabilities
-or host-authenticated `gh` and requires no Project configuration.
+product. They also do not prove delivery. Prepare does not publish directly; Plan owns its GitHub
+issue-graph publication. Goal-only Execute makes no remote calls and needs no planning-provider call.
+An explicitly selected exact GitHub issue permits only its required read through an authorized GitHub
+capability (native host tools preferred; host-authenticated `gh` supported), with no Project
+configuration or issue lifecycle writes. Commit owns repository/PR delivery.
 
 Bootstrap and Commit use direct GitHub operations only when explicitly requested: Project publication
 after design approval and target collision checks for Bootstrap, or an exact issue association for

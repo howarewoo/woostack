@@ -95,8 +95,9 @@ Execute does not request an artifact note or mutate issue/project content, membe
 
 Apply the [source-control contract](../woostack-commit/references/graphite.md) and
 [isolated-workspace guidance](../woostack-init/references/worktrees.md) for task-level identity,
-parent/base admission, collision discovery, and task-only writes. Native Git with authorized native GitHub capabilities or host-authenticated `gh` is the
-default; use Graphite only when explicitly selected or verified for this task. A backend failure
+parent/base admission, collision discovery, and task-only writes. Use native Git
+with an authorized GitHub interface by default; host-authenticated `gh` remains supported where
+appropriate. Use Graphite only when explicitly selected or verified for this task. A backend failure
 never permits switching or force-pushing.
 
 For a direct invocation, the repository, host, or caller supplies one isolated workspace and branch

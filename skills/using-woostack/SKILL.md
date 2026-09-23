@@ -44,7 +44,7 @@ capabilities, and read-back. Retired managed-provider data is never imported or 
 | Reconcile a supplied specification or candidate issue plan against repository evidence | `woostack-harden` |
 | Prepare a feature or proved defect for a verified GitHub issue graph without implementation | `woostack-prepare` |
 | Turn an approved specification into reviewable increments and publish the native issue graph | `woostack-plan` |
-| Execute one exact GitHub parent, Project, or explicit issue list with parallel workers and stacked PRs | `woostack-orchestrate` |
+| Execute native children of one GitHub parent issue, tasks in an exact GitHub Project, or an explicit canonical issue list with parallel workers and stacked PRs | `woostack-orchestrate` |
 | Implement one bounded task — enhancement, refactor, test-only work, or authorized understood correction — and deliver one PR | `woostack-execute` |
 | Commit current changes and submit or update their PR | `woostack-commit` |
 | Review a pull request | Use [Pullfrog](https://pullfrog.com/). |
@@ -57,9 +57,11 @@ capabilities, and read-back. Retired managed-provider data is never imported or 
 | Evaluate an approved skill corpus without editing it | `woostack-eval` |
 | Reflect on this conversation for durable instruction suggestions | `woostack-reflect` |
 
-`woostack-build` and `woostack-fix` are retired, not missing installations. For either old command,
-explain the [Prepare and retained-input boundary](../woostack-prepare/SKILL.md#command) rather than
-loading or reinstalling it. Do not translate old resume arguments or invoke a replacement automatically.
+`woostack-build`, `woostack-fix`, `woostack-change`, `woostack-status`, and
+`woostack-tdd` are retired, not missing installations, and have no aliases. Do not invoke them.
+For old Build/Fix planning inputs, explain Prepare's retained-input boundary rather than loading or
+reinstalling a retired wrapper. Route bounded enhancements, corrections, or test-only work to
+Execute; unresolved scope belongs in the public planning phases.
 
 Every supported explicit `/woostack-*` command loads its namesake skill. Intent-equivalent wording follows
 the same route. Ideate and Harden are public, directly callable phases that exchange complete plain
@@ -69,10 +71,6 @@ invokes Execute or Orchestrate. Plan is the sole issue publisher. Execute is the
 implementation and draft-PR path, including proven corrections and test-only tasks under its
 [testing guidance](../woostack-execute/references/tdd.md). Unknown defects require Debug's causal
 proof before correction. Planning phases never edit source, commit, submit a PR, or grant merge authority.
-
-The former `woostack-change`, `woostack-tdd`, and `woostack-status` commands are retired without
-aliases. Supply a complete bounded enhancement, correction, or test task directly to Execute;
-unresolved scope belongs in the public planning phases. Never invoke a replacement automatically.
 
 Ordinary questions about work progress use available authorized GitHub reads or the GitHub UI:
 parent/child issues and native dependency relations define planned work, while linked pull requests

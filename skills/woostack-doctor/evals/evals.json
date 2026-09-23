@@ -4,12 +4,12 @@
   "cases": [
     {
       "id": "missing-github-policy-is-local",
-      "prompt": "Apply `/woostack-doctor --check` to fixtures/local-project. Do not contact a provider, read credentials, or mutate files. Return exactly one JSON object with findingCodes and exitCode.",
+      "prompt": "Apply `/woostack-doctor --check` to fixtures/local-project. Do not contact a provider, read credentials, or mutate files. Return exactly one JSON object with findingCodes, exitCode, and repairApplied.",
       "fixtures": ["local-project/.woostack/config.json"],
       "capabilities": ["read-workspace"],
-      "expected": "An absent top-level github policy is valid local configuration and requires no provider preflight.",
+      "expected": "An absent top-level github policy is valid local configuration; the retired status key receives report-only guidance and requires no provider preflight.",
       "assertions": [
-        {"id":"no-findings","kind":"final-json-path-equals","pointer":"/findingCodes","expected":[],"critical":true},
+        {"id":"retirement-guidance","kind":"final-json-path-equals","pointer":"/findingCodes","expected":["retired-status-config"],"critical":true},
         {"id":"local-exit-zero","kind":"final-json-path-equals","pointer":"/exitCode","expected":0,"critical":true},
         {"id":"no-repair","kind":"final-json-path-equals","pointer":"/repairApplied","expected":false,"critical":true}
       ]

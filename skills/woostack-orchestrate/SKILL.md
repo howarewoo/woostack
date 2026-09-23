@@ -36,7 +36,7 @@ contract.
 /woostack-orchestrate --issues <canonical issue URL> <canonical issue URL> ... [--max-parallel <positive integer>]
 ```
 
-Require exactly one selector family before any provider read. `--issue` and `--project` retain
+Require exactly one selector family before any GitHub read. `--issue` and `--project` retain
 their strict canonical single-scope contracts. `--issues` is an explicit nonempty list of
 canonical issue URLs in the admitted repository; repeated URLs are normalized and deduplicated,
 and list order is never a dependency. Reject mixed selector families, malformed/foreign URLs,
@@ -151,11 +151,12 @@ widens the explicit list.
    delivery-capable subagent primitive and its positive real `max_parallel`; put those observed
    facts in `host`. A missing delivery primitive blocks. A smaller host cap clamps scheduling but
    does not change admitted scope.
-2. Resolve the canonical Git repository and integration branch/SHA with direct Git and
-   authorized native GitHub capabilities or host-authenticated `gh` evidence. Read the selected parent, Project, or every explicitly
-   selected issue and every relevant native page. Exhaust pagination before assembling the snapshot;
-   record terminal-read attestations only after the corresponding native reads completed. A missing
-   page, failed terminal read, or ambiguous/foreign identity blocks.
+2. Resolve the canonical Git repository and integration branch/SHA with direct Git and an authorized
+   GitHub capability exposed by the host (prefer native GitHub tools when suitable; authenticated
+   `gh` remains supported). Read the selected parent/Project or every explicitly selected issue and
+   every relevant native page using the capability's supported shapes. Exhaust pagination before
+   assembling the snapshot; record terminal-read attestations only after corresponding native reads
+   completed. A missing page, failed terminal read, or ambiguous/foreign identity blocks.
 3. Normalize every selected issue into its canonical URL plus numeric REST `id`, GraphQL `node_id`,
    number, state, resource, title, body, independently read native parent, and complete contract.
    Do not substitute issue numbers for REST IDs or GraphQL node IDs. Parent mode still requires
@@ -172,12 +173,7 @@ widens the explicit list.
    children (reported as `no-work`, never executed as one task).
 
 The admission fingerprint binds mode, canonical selector or normalized selected issue set, canonical
-repository, native parent/Project or selected issue identities, repository rules, graph provenance,
-and every immutable task field including native hierarchy, IDs (including Project `item_id`),
-titles/bodies, contract, dependencies. Runtime workspace and branch evidence is excluded. It excludes the host cap, mutable integration
-SHA, and runtime delivery evidence. A fresh snapshot with changed scope, contract, identity, or
-effective graph returns `snapshot-drift` and preserves running work; it never launches a duplicate,
-silently adopts a new issue, or erases an inferred edge.
+repository, native parent/Project identity and its specification identity/body, or each selected issue's identity/body, repository rules, graph provenance, and every immutable task field including native hierarchy, IDs (including Project `item_id`), titles/bodies, contract, and dependencies. Runtime workspace and branch evidence is excluded. It excludes the host cap, mutable integration SHA, and runtime delivery evidence. A fresh snapshot with changed scope, contract, identity, or effective graph returns `snapshot-drift` and preserves running work; it never launches a duplicate, silently adopts a new issue, or erases an inferred edge.
 
 ## Select an isolated workspace and dispatch
 

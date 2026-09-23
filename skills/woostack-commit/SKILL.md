@@ -1,6 +1,6 @@
 ---
 name: woostack-commit
-description: Commit current session-relevant changes and submit or update their PR using an authorized GitHub integration or host-authenticated gh, with optional Graphite. Include a goal, summary, and test plan. An optional exact GitHub issue receives a merge-closing reference. Use for /woostack-commit, "commit this", or "update the PR".
+description: Commit current session-relevant changes and submit or update their PR through an authorized GitHub integration or host-authenticated gh, with optional Graphite. Include a goal, summary, and test plan. An optional exact GitHub issue receives a merge-closing reference. Use for /woostack-commit, "commit this", or "update the PR".
 ---
 
 # woostack-commit

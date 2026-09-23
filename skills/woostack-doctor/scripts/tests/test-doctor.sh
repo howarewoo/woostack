@@ -24,14 +24,13 @@ run_doctor() {
 
 run_doctor "$repo"
 assert_exit 0 "$CODE" "valid local workspace exits zero"
-assert_not_contains "$OUT" "live" "static workspace does not claim live validation"
-printf '%s\n' '{"models":{},"status":{"staleDays":14}}' >"$repo/.woostack/legacy-config.json"
-mv "$repo/.woostack/legacy-config.json" "$repo/.woostack/config.json"
-run_doctor "$repo"
-assert_exit 0 "$CODE" "legacy status config remains non-blocking"
-assert_contains "$OUT" "retired-status-config" "legacy status config receives retirement guidance"
-assert_eq "$(jq -r '.status.staleDays' "$repo/.woostack/config.json")" "14" "legacy status config is preserved"
+assert_not_contains "$OUT" "github-live" "static diagnosis does not emit live-receipt findings"
 
+printf '%s\n' '{"models":{},"status":{"staleDays":14}}' >"$repo/.woostack/config.json"
+run_doctor "$repo"
+assert_exit 0 "$CODE" "legacy status configuration remains non-blocking"
+assert_contains "$OUT" "retired-status-config" "legacy status configuration receives retirement guidance"
+assert_eq "$(jq -r '.status.staleDays' "$repo/.woostack/config.json")" "14" "legacy status configuration is preserved"
 
 mkdir -p "$TMP/missing"
 run_doctor "$TMP/missing"
@@ -40,6 +39,7 @@ assert_contains "$OUT" "run woostack-init first" "missing workspace points to in
 
 run_doctor --live "$repo"
 assert_exit 2 "$CODE" "raw live mode cannot make a provider call"
+assert_contains "$OUT" "controller-owned" "raw live mode explains the receipt boundary"
 
 cat >"$repo/.woostack/config.json" <<'JSON'
 {"artifacts":{"provider":"linear"},"github":null}

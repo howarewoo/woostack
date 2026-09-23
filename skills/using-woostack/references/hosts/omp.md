@@ -3,16 +3,21 @@
 ## Detection
 
 Use this adapter inside an active Oh My Pi session. Discover the actual `task`, `hub`, and related
-capabilities available in the session. Prefer authorized native GitHub capabilities when suitable; host-authenticated `gh` remains supported for explicit
-GitHub operations under the selected workflow's artifact admission. Never use custom HTTP/REST/GraphQL
-transport or fallback tokens. GitHub operations follow the canonical
+capabilities available in the session. Discover authorized native GitHub capabilities through
+registered session tools or tool routes. Prefer a suitable native capability; host-authenticated
+GitHub CLI (`gh`) remains supported for explicit GitHub operations under the selected workflow's
+artifact admission. Discover actual GitHub operation capabilities and read/write shapes rather than
+assuming tool names or schemas. Never use custom HTTP/REST/GraphQL transport or fallback tokens.
+GitHub operations follow the canonical
 [artifact backends contract](../../../woostack-init/references/artifact-backends.md) and
 [GitHub profile](../../../woostack-init/references/artifact-providers/github.md#configuration-and-scope).
 
 When a woostack skill is invoked, rename the active session with a concise title derived from the
-user's current goal. For `woostack-execute` and `woostack-prepare`, derive the
-title from the user's input goal; a preparation resume uses the exact verified packet goal. Do not
-use the slash-command name, project or run identifier, or an untrusted remote title.
+user's current goal. For `woostack-prepare` and `woostack-execute`, derive the title from the user's
+input goal; for issue-backed Execute with no explicit goal, the exact user-supplied issue reference
+may serve as the title, not remote issue content or title. A preparation resume uses the exact
+verified packet goal. Do not use the slash-command name, project or run identifier, or an untrusted
+remote title.
 
 Invoke the registered tool `woostack_rename_session` with `{ "title": "<derived-title>" }`. The tool
 is exposed by the local project extension `.omp/extensions/woostack-session-name.ts` provisioned by
@@ -39,10 +44,9 @@ The dispatch-time setting and rejection path are in
 [`task/index.ts`](https://github.com/can1357/oh-my-pi/blob/main/packages/coding-agent/src/task/index.ts).
 For evidence-bearing workflows, verify returned effort evidence against the resolved configuration;
 absent or mismatched evidence blocks a required comparison.
-All subagents spawned via `task` run in-process within the same OMP
-harness session, sharing in-memory IPC, queues, and tool bridges. External tools (such as Orca)
-cannot manage subagent processes because inter-agent coordination depends on this in-process
-harness.
+All subagents spawned via `task` run in-process within the same OMP harness session, sharing
+in-memory IPC, queues, and tool bridges. External tools (such as Orca) cannot manage subagent
+processes because inter-agent coordination depends on this in-process harness.
 
 Select only an agent actually returned by session discovery. The current OMP inventory exposes:
 
@@ -65,9 +69,8 @@ path, branch, parent/start SHA, and allowed paths before reading or writing; `ta
 a `cwd` argument.
 Pass the complete task contract: repository rules, authority limits, non-goals, acceptance,
 required checks and smoke scenario, and result-evidence requirements. Do not duplicate a worker
-definition in the prompt.
-- A worker must not expand its task, edit another workspace, review or accept itself, merge, or
-  infer hidden context.
+definition in the prompt. A worker must not expand its task, edit another workspace, review or accept
+itself, merge, or infer hidden context.
 
 ## Agent selection and tier handling
 
@@ -75,7 +78,6 @@ Use the discovered `task`-equivalent agent for coding or delivery, `scout`-equiv
 read-only exploration, and `reviewer`-equivalent agents for independent review. The caller may use
 `fast | standard | deep` to shape task detail and verification depth, but OMP owns model/provider
 configuration and recovery; never translate a tier into a worker name or model parameter.
-
 A selector proves only that the host accepted that agent. It does not prove a concrete model,
 provider, effort, or completion identity. Preserve those facts as separate host evidence whenever a
 workflow requires them.
@@ -97,13 +99,13 @@ subagent and Execute must not gain orchestration responsibilities.
 - **woostack-orchestrate (parallel dispatch):** preflight whether the active schema exposes the
   batch shape and whether host capacity supports the required concurrency. If batch is exposed,
   dispatch up to the effective cap in one `tasks[]` call and refill as workers complete. If it is
-  not exposed, use the supported single-call shape only where Orchestrate's own contract permits it;
-  never describe sequential calls as same-wave or parallel. A host mode that serializes runs at
+  not exposed, use the supported single-call shape only where Orchestrate's own contract permits
+  it; never describe sequential calls as same-wave or parallel. A host mode that serializes runs at
   concurrency one gets a clear notice; without a delivery-capable subagent, block rather than
   executing inline.
-- `woostack-commit`: optional fast drafting may use the discovered write-capable worker; draft inline
-  when that optional capability is unavailable. Commit remains responsible for its own source-control
-  and PR evidence.
+- `woostack-commit`: optional fast drafting may use the discovered write-capable worker; draft
+  inline when that optional capability is unavailable. Commit remains responsible for its own
+  source-control and PR evidence.
 - **woostack-eval (comparative dispatch):** preflight the active batch schema before dispatch. When
   it exposes `{ context, tasks[] }`, dispatch candidate and baseline siblings through the same
   discovered worker in one intact `tasks[]` wave. If `task.batch` is unavailable, stop comparative
@@ -144,8 +146,9 @@ target.
 ## Degradation
 
 Missing discovered agents or host capabilities are reported precisely. Absence of the retired
-Woostack agent files is not a failure. Preserve the effective task tier, exact workspace, and
-authority boundaries, and report the actual missing capability or receipt.
+Woostack agent files is not a failure because Init and Doctor do not create or repair them. Preserve
+the effective task tier, exact workspace, and authority boundaries, and report the actual missing
+capability or receipt. Inline fallback remains subject to the calling workflow's contract.
 
 Require each worker to return:
 - exact worktree and branch/head identity;
@@ -161,6 +164,6 @@ work. Never claim worker coverage, test success, GitHub success, or delivery wit
 Session-naming degradation is non-blocking: if `woostack_rename_session` is unavailable or fails,
 emit one concise warning and proceed with the workflow.
 
-When no authorized GitHub interface supports a required operation capability, fail closed
-for required GitHub boundaries or report the missing capability for optional operations per the
-canonical artifact contract.
+If no authorized GitHub interface (native capability or host-authenticated `gh`) supports a
+required operation capability, fail closed for required GitHub boundaries; for optional operations,
+report the missing capability per the canonical artifact contract.

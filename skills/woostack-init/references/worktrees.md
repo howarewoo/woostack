@@ -3,8 +3,11 @@
 This reference defines outcome-level safeguards for isolated implementation workspaces. It does not
 select task scope, dependencies, approval, acceptance, publication, or merge authority. Those
 boundaries belong to the active workflow; Git and canonical provider reads own repository state.
-Use native Git with authorized native GitHub capabilities or host-authenticated `gh` by default, or Graphite only when explicitly selected or already managing the
-current stack, under the [source-control contract](../../woostack-commit/references/graphite.md).
+Select native Git plus an authorized GitHub capability (prefer native GitHub tools when suitable;
+host-authenticated `gh` is supported), or Graphite only when explicitly selected or verified as
+already managing this task/stack, under the
+[source-control contract](../../woostack-commit/references/graphite.md).
+Direct Git/GitHub publication owns artifact scope; no provider-specific artifact context is selected here.
 
 ## Required isolation and identity
 
@@ -51,6 +54,10 @@ approved task contract, selected workspace/branch, complete Git worktree invento
 repository identity, filesystem state, dirty/index/conflict/diff state, branch/HEAD facts, parent
 ancestry, and applicable canonical PR/review/thread evidence. A material change invalidates the
 snapshot; rediscover rather than combining observations from different states.
+
+Orchestrate additionally claims the canonical repository plus exact native child issue identity
+before reservation. Parent-issue and Project selectors sharing a child therefore cannot claim one
+physical workspace concurrently; a claim without the current controller owner token is a blocker.
 
 An unknown or partial create, checkout, commit, push, publication, handoff, or recovery boundary
 preserves all observed state and blocks. Never delete, overwrite, reset, clean, stash, reassign,
