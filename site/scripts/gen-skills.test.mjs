@@ -23,9 +23,9 @@ test('parseFrontmatter throws when name is missing', () => {
 });
 
 test('parseFrontmatter strips surrounding YAML quotes (some descriptions are quoted)', () => {
-  const raw = '---\nname: woostack-tdd\ndescription: "TDD home: red→green. Quoted in source."\n---\nb';
-  const { fm } = parseFrontmatter(raw, 'woostack-tdd');
-  assert.equal(fm.description, 'TDD home: red→green. Quoted in source.'); // no leading/trailing "
+  const raw = '---\nname: woostack-execute\ndescription: "Execute task: red→green. Quoted in source."\n---\nb';
+  const { fm } = parseFrontmatter(raw, 'woostack-execute');
+  assert.equal(fm.description, 'Execute task: red→green. Quoted in source.'); // no leading/trailing "
 });
 
 test('parseFrontmatter accepts safe placeholders in plain descriptions', () => {
@@ -132,11 +132,9 @@ test('navOrder places orchestration between planning and bounded execution', () 
     'woostack-execute',
     'woostack-commit',
     'woostack-address-comments',
-    'woostack-status',
     'woostack-visualize',
     'woostack-design',
     'woostack-debug',
-    'woostack-tdd',
     'woostack-doctor',
     'woostack-qa',
     'woostack-eval',

@@ -10,7 +10,6 @@ tests=(
   test-models-leaf-shape.sh
   test-repair-handoff.sh
   test-no-stale-paths.sh
-  test-omp-agents.sh
   test-omp-session-name.sh
 )
 for t in "${tests[@]}"; do

@@ -49,6 +49,9 @@ while IFS= read -r key; do
     emit warn config-key auto ".woostack/config.json" "missing required config key: $key"
   fi
 done < <(jq -r 'keys[]' "$TEMPLATE")
+if jq -e 'has("status") and (.status | type == "object" and has("staleDays"))' "$EFFECTIVE_CFG" >/dev/null 2>&1; then
+  emit warn retired-status-config report ".woostack/config.json" "top-level status.staleDays is retired; existing configuration is preserved and may be removed manually"
+fi
 
 if jq -e 'has("linear") and (.linear | type == "object") and (.linear | has("saveArtifacts")) or (has("artifacts") and (.artifacts | type == "object") and ((.artifacts | has("saveArtifacts")) or (.artifacts.linear? | type == "object" and has("saveArtifacts"))))' "$EFFECTIVE_CFG" >/dev/null 2>&1; then
   emit error linear-policy report ".woostack/config.json" "linear.saveArtifacts is deprecated; migrate to artifacts.provider and artifacts.linear"

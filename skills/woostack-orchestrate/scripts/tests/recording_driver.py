@@ -248,6 +248,16 @@ class FakeGitHub:
             "expected_index": [child["task_id"] for child in self.children],
             "children": snapshot_children,
             "pagination": copy.deepcopy(self.pagination if pagination is None else pagination),
+            "recovery": {
+                "checkpoints": [],
+                "processes": [],
+                "sessions": [],
+                "worktrees": [],
+                "refs": [],
+                "prs": [],
+                "contracts": [],
+                "dependencies": [],
+            },
         }
         record("github", "assemble-issue-snapshot", {
             "pages": len(self.child_pages),
@@ -305,6 +315,16 @@ class FakeGitHub:
                 "dependencies": True,
                 "contracts": True,
             }),
+            "recovery": {
+                "checkpoints": [],
+                "processes": [],
+                "sessions": [],
+                "worktrees": [],
+                "refs": [],
+                "prs": [],
+                "contracts": [],
+                "dependencies": [],
+            },
         }
         if "task-a" in self.delivery:
             result["members"][1]["existing_delivery"] = copy.deepcopy(self.delivery["task-a"])
@@ -518,7 +538,8 @@ class FakeHost:
             handle.write("Execute consumed packet for %s%s\n" % (task_id, " repair" if repair else ""))
         run_verification(workspace, bounded)
         git(workspace, "add", str(task_file.relative_to(workspace)))
-        git(workspace, "commit", "-m", "Implement %s%s" % (task_id, " repair" if repair else ""))
+        if git(workspace, "diff", "--cached", "--name-only"):
+            git(workspace, "commit", "-m", "Implement %s%s" % (task_id, " repair" if repair else ""))
         head_sha = git(workspace, "rev-parse", "HEAD")
         base_branch = entry["parent_branch"]
         parent_sha_for_diff = entry["parent_sha"]
@@ -636,7 +657,7 @@ def main(argv: Sequence[str]) -> int:
             parsed = {"raw": proc.stdout}
         if command == "schedule" and isinstance(parsed, dict):
             for entry in parsed.get("dispatch", []):
-                record("host", "dispatch-worker", {
+                record("controller", "reserve-worker", {
                     "task_id": entry.get("task_id"),
                     "workspace": entry.get("workspace"),
                     "branch": entry.get("branch"),

@@ -1,12 +1,12 @@
 # Model Tiers (shared, host-agnostic)
 
-Canonical tier→model mapping for the woostack collection. Consumers resolve tiers through this file.
+Canonical tier guidance for the woostack collection. Consumers resolve tiers through this file.
 Each consumer keeps only its own **runtime bindings** (env vars, config paths, dispatch calls)
 and points at the precedence rules below — there is no second copy of this table.
 
 Tiers are `fast | standard | deep`. The caller selects an effective tier or uses a prompt's `tier:`
-frontmatter; the runtime resolves it to a concrete model or host-owned role according to the
-current host's capability class. The context/summary helper subagent is implicitly `fast`.
+frontmatter; the runtime resolves it to a concrete model or host-owned agent capability according
+to the current host's capability class. The context/summary helper subagent is implicitly `fast`.
 
 For simple, fully specified tasks, delegating to `fast` is often much faster and cheaper than
 implementing in the main session. Consider that benefit alongside dispatch, context preparation,
@@ -29,14 +29,15 @@ optional; keep work inline when the total cost or risk favors it.
 
 Three capability classes: **per-call model routing** (the spawn accepts an explicit model/effort;
 resolve the effective tier and pass everything it specifies), **single model per session**
-(resolve one run model up front; per-tier behavior collapses onto it), and **host-owned role
-routing** (the spawn selects a role-backed worker; the host owns the concrete model).
-Host-owned role routing is non-degraded and bypasses repository model resolution. The canonical
-[supported coding-host allowlist](hosts/README.md) gates routing before capability classification:
-only an exact allowlisted slug may load its linked host mechanics. File presence alone never makes
-a host routable. For an allowlisted host, its capability class, spawn mechanics, fixed role
-mapping where applicable, per-skill notes, and host-level fallback behavior live in that linked
-host file. The provider table remains the source of truth for hosts that consume repository model
+(resolve one run model up front; per-tier behavior collapses onto it), and **host-owned agent
+routing** (the spawn selects an agent exposed by the host; the host owns the concrete model).
+Host-owned routing is non-degraded only when the host proves the selected agent's capabilities;
+the host adapter owns agent discovery, selection, and fallback. It never creates a repository
+catalog or aliases. The canonical [supported coding-host allowlist](hosts/README.md) gates routing
+before capability classification: only an exact allowlisted slug may load its linked host mechanics.
+File presence alone never makes a host routable. For an allowlisted host, its capability class,
+spawn mechanics, per-skill notes, and host-level fallback behavior live in that linked host file.
+The provider table remains the source of truth for hosts that consume repository model
 configuration.
 
 ## Override precedence (generic)
@@ -49,11 +50,11 @@ When a host supports per-repo / per-run overrides, resolve highest-precedence fi
 4. **Flat per-tier** override key.
 5. **Table default** (above).
 
-A forced tier still determines the effective tier on every host. A host-owned role-routing host
-then stops at its fixed tier-to-role map: it does not resolve model-specific items 2–5, read
-repository model leaves, or invoke a model resolver. The host owns role configuration, concrete
-model identity, credentials, and fallback. Per-call and single-session hosts continue through the
-full precedence above.
+A forced tier still determines the effective tier on every host. A host-owned agent-routing host
+does not resolve model-specific items 2–5 or construct a tier-to-agent map unless its host adapter
+explicitly documents that capability. The caller passes the effective tier as task context and
+verification depth; the host owns agent selection, concrete model identity, credentials, and
+fallback. Per-call and single-session hosts continue through the full precedence above.
 
 On repository-model hosts, each consumer binds these precedence levels to its own runtime surface.
 Consumers must keep any canonicalized effective configuration and resolver defaults in sync with
@@ -69,6 +70,6 @@ config-first.
 bare value — each repository-model consumer reads entry 0; a one-element array equals the bare
 form. Entries 1..n declare a static preference order owned by woostack; runtime enactment is
 per-host. Each host file's "Host-level fallback" section under [`hosts/`](hosts/README.md) states
-what that host does. Host-owned role-routing hosts bypass these leaves; hosts with repository model
-routing preserve their documented resolution and fallback behavior. An empty array is a hard config
-error.
+what that host does. Host-owned agent-routing hosts bypass these leaves when their adapter says
+model configuration is host-owned; hosts with repository model routing preserve their documented
+resolution and fallback behavior. An empty array is a hard config error.

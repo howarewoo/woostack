@@ -109,6 +109,10 @@ before use. Verify a manifest-defined command against its exact manifest entry a
 external runtime prerequisite. A missing or invented command blocks plan persistence; never defer
 existence checking to the bounded task.
 
+When an increment adds or strengthens tests, link its testing contract and focused checks to the
+canonical [Execute testing guidance](../woostack-execute/references/tdd.md). Plan records the
+observable contract and verification expectations only; it does not implement or execute the tests.
+
 
 ## Graph invariants
 

@@ -45,9 +45,9 @@ primary_root="$(cd "$git_common_dir/.." && pwd -P)"
    source directory.
 
 In-process subagents: all subagents spawned via the host harness (such as OMP `task` or Claude Code
-`Task`) run within the host's session context and receive the resolved task workspace path
-(`$current_toplevel` or the managed worktree path). They pin their working directory to that workspace
-and communicate with the calling workflow through the host's in-process IPC.
+`Task`) run within the host's session context. The caller supplies the resolved task workspace path
+(`$current_toplevel` or the managed worktree path) in the dispatch prompt; the worker verifies and
+pins its operations to that workspace and communicates through the host's in-process IPC.
 
 Optional exact GitHub issue association may be recorded as descriptive context alongside the stable
 task ID (see [`woostack-execute`](../../woostack-execute/SKILL.md#optional-exact-github-issue)), but it
@@ -134,7 +134,10 @@ ancestry. A material change while the snapshot is assembled invalidates it; repe
 than combining observations from different states.
 ## 4. Discovery and recovery
 
-Classify the complete direct-evidence snapshot:
+Before resume or takeover, take one complete direct-evidence snapshot of the approved contract,
+controller/task checkpoint, worker process/session liveness where available, Git worktree/branch/
+dirty state, canonical PRs, current contract and dependency revisions, and native hierarchy/
+membership pagination. Classify the snapshot:
 
 1. **All absent:** for managed worktrees, the deterministic path is absent from the filesystem and
    worktree inventory; in all modes, no local/remote branch, commit, or canonical PR already
@@ -143,15 +146,21 @@ Classify the complete direct-evidence snapshot:
    branch and dirty/diff state match the approved task contract, and ancestry/parent facts agree.
 3. **One exact retained state:** resume only when the deterministic path, worktree listing, branch,
    recorded start SHA/head, parent branch, ancestry, dirty/index/diff state, commits, and PR facts
-   agree with the same approved task contract (and any retained planning-run evidence) or a completely
-   verified handoff successor. A compatible descendant tip on the same canonical parent branch does
-   not invalidate content receipts: preserve the retained start/head and freshly revalidate ancestry,
-   diff, and PR base.
+   agree with the same approved task contract (and any retained planning-run evidence) or a
+   completely verified handoff successor. A compatible descendant tip on the same canonical parent
+   branch does not invalidate content receipts: preserve the retained start/head and freshly
+   revalidate ancestry, diff, and PR base.
 4. **Verified review-reopen:** the prior implementation worktree is absent (or pre-isolated workspace
-   is clean), the same canonical branch and PR/head remain, the approved review-fix contract names the
-   same stable task, the workspace path is free, and the branch is not checked out elsewhere.
-5. **Partial or competing state:** stop. Preserve everything and report the exact conflicting
-   paths, checkouts, branches, heads, ancestry, dirty state, or PRs.
+   is clean), the same canonical branch and PR/head remain, the approved review-fix contract names
+   the same stable task, the workspace path is free, and the branch is not checked out elsewhere.
+5. **Partial or competing state:** stop. Preserve everything and report the exact conflicting paths,
+   checkouts, branches, heads, ancestry, dirty state, or PRs.
+
+Orchestrate additionally claims the canonical repository plus exact native child issue identity
+before reservation. Parent-issue and Project selectors sharing a child therefore cannot claim one
+physical workspace concurrently; a claim without the current controller owner token is a blocker.
+An interrupted worker is `unknown` until direct evidence proves it stopped; never redispatch around
+an uncertain response.
 
 Never delete, overwrite, reset, clean, stash, reassign, invent a new task ID, attach an unexplained
 branch, or create around a collision.
@@ -197,10 +206,12 @@ Before the first tracked edit and every optional worker redispatch, recheck the 
 contract and, when present, retained planning-run evidence, workspace path, `git worktree list
 --porcelain`, branch, parent, allowed surface, and complete dirty/index/diff identity.
 
-Keep one writer per overlapping task surface. A timeout or lost worker response leaves ownership
+Keep one writer per overlapping task surface. A timeout or lost worker response leaves that task
 unknown: before overlapping redispatch, inline takeover, staging, or delivery, establish that the
-previous writer stopped or relinquished ownership, then refresh the repository evidence above.
-If liveness or ownership remains unknown, preserve the workspace and block overlapping mutation.
+previous writer stopped or relinquished ownership, reconcile its exact branch/worktree/diff/PR
+identity, then refresh the repository evidence above. Unrelated task surfaces may continue. If
+liveness or ownership remains unknown, preserve the workspace and block only that task and its
+descendants.
 
 An optional coding worker never:
 
@@ -227,15 +238,15 @@ Unknown commit/push/submit/reconciliation outcome requires direct rediscovery be
 duplicate a branch, commit, PR, or operation merely because a command returned unclearly, or switch
 backends as error recovery.
 
-## 8. Teardown
-
 Teardown applies only after direct reads prove the task's workflow-owned boundary is complete:
 finalized commit, clean task workspace, canonical PR/head/base when submission was requested, and no
-unresolved local mutation.
+unresolved local mutation. A dirty retained worktree or an uncertain worker/receipt is evidence to
+preserve, not cleanup input.
 
 1. **Managed worktrees (`managed_worktree = true`):**
    Re-resolve and verify the exact deterministic path immediately before
-   `git worktree remove <path>`.
+   `git worktree remove <path>`. Remove only when complete delivery evidence is independently
+   recorded and no dependent still names that branch as its verified stack parent.
 2. **Pre-isolated or external worktrees (`managed_worktree = false`):**
    Verify cleanliness, the finalized commit, and PR read-back, but **leave the workspace intact**.
    Never run `git worktree remove` on a user-owned, Orca-managed, or external checkout.
