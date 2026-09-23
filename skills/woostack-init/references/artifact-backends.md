@@ -48,7 +48,6 @@ never promoted into `github`, and never used to select a destination. A boundary
 needed one reports retirement guidance and requires either local mode or the supported exact GitHub
 operation. No automatic cleanup, import, migration, credential acquisition, or provider fallback is
 allowed.
-
 - Prepare, Ideate, Harden, and Plan make no provider-mirror calls;
 - direct Plan still requires its exact GitHub scope and performs the required issue/Project reads and
   writes;
