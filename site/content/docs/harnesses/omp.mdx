@@ -43,13 +43,6 @@ The dispatch-time setting and rejection path are in
   delivery-capable worker and blocks when the host cannot provide one. If batch is unavailable,
   Orchestrate may use supported single-call dispatch only where its own contract permits it; a
   sequence of calls does not prove same-wave or parallel execution.
-- Eval comparative dispatch requires the active batch shape so candidate and baseline siblings can
-  start through the same discovered worker in one intact `tasks[]` wave. If `task.batch` is
-  unavailable, comparative preflight stops before either sibling starts. Only the explicitly
-  accepted candidate-only qualitative smoke path may degrade. Eval leaves the optional effort knob
-  unset and freezes verified host effort evidence where available; `null` means unavailable
-  evidence, not equal effort. A selector alone never proves comparable execution. Missing required
-  evidence blocks the comparative run.
 - Missing capabilities and missing result evidence are reported as blockers. Woostack does not
   switch profiles, weaken isolation, or treat absent evidence as success.
 

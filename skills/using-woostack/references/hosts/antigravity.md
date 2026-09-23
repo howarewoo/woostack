@@ -44,12 +44,6 @@ host — no spawn-time auth probe exists; switch manually by promoting an entry 
   host capability, refill as workers complete, and keep one concrete run model for all workers.
   A serializing mode runs at concurrency one with a clear notice; without delivery-capable subagents,
   block rather than executing inline.
-- **woostack-eval (comparative dispatch):** instantiate the two isolated-context workers for
-  each candidate/baseline inseparable pair in the same dynamic orchestration turn. There is no
-  concrete per-call model pin; choose one concrete run model before the session.
-  `session-default` is provable when both workers inherit that same identified session model.
-  Parallel dynamic subagents can satisfy comparative concurrency; a host mode that serializes
-  the pair cannot.
 
 ## Degradation
 
