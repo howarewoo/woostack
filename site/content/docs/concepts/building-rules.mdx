@@ -36,9 +36,11 @@ mirrors never select it automatically. Its native parent hierarchy only groups t
 distinct from `blocked-by` edges and Git branch ancestry; the parent is never a task, dependency
 endpoint, execution, or PR, and unsupported nested or partial hierarchy fails closed.
 Execute accepts one selected bounded task under its [admission contract](/docs/skills/woostack-execute#admit-one-task), not a whole plan.
-An explicit [Orchestrate](/docs/skills/woostack-orchestrate) invocation selects a GitHub parent issue
-or Project and dispatches ready tasks to Execute. Unlike parent-issue planning, parent-issue
-execution requires no provider-mirror configuration.
+An explicit [Orchestrate](/docs/skills/woostack-orchestrate) invocation selects a GitHub parent issue,
+Project, or exact canonical issue list and dispatches ready tasks to Execute. List mode keeps the
+selected set closed, validates native/declared/inferred edge provenance, and does not publish
+inferred dependencies. Unlike parent-issue planning, parent-issue and list execution require no
+provider-mirror configuration.
 
 Build and project-backed Fix use the
 [verified handoff](/docs/skills/woostack-build#verified-handoff). The user sees the complete artifacts

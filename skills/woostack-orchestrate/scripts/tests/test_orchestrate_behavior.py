@@ -84,6 +84,31 @@ class OrchestrateBehavior(unittest.TestCase):
         admitted_path = self._write_json("admitted-%d.json" % len(list(self.tmp.glob("admitted-*.json"))), payload)
         return admitted_path, payload
 
+    def _admit_issues(
+        self,
+        snapshot: Optional[Dict[str, Any]] = None,
+        *,
+        selectors: Optional[Sequence[str]] = None,
+        max_parallel: Optional[str] = None,
+    ) -> Tuple[Path, Dict[str, Any]]:
+        snapshot = snapshot or self.github.issue_list_snapshot()
+        selected = list(selectors or [item["url"] for item in snapshot["issues"]])
+        snapshot_path = self._write_json(
+            "issue-list-snapshot-%d.json" % len(list(self.tmp.glob("issue-list-snapshot-*.json"))),
+            snapshot,
+        )
+        args = ["admit", "--issues", *selected, "--snapshot", str(snapshot_path)]
+        if max_parallel is not None:
+            args += ["--max-parallel", max_parallel]
+        code, payload = invoke_cli(*args)
+        self.assertEqual(code, 0, payload)
+        self.assertEqual(payload.get("status"), "admitted", payload)
+        admitted_path = self._write_json(
+            "issue-list-admitted-%d.json" % len(list(self.tmp.glob("issue-list-admitted-*.json"))),
+            payload,
+        )
+        return admitted_path, payload
+
     def _admit_project(self, snapshot: Optional[Dict[str, Any]] = None) -> Tuple[Path, Dict[str, Any]]:
         project_url = "https://github.com/orgs/acme/projects/7"
         snapshot_path = self._write_json("project-snapshot.json", snapshot or self.github.project_snapshot())
@@ -362,6 +387,7 @@ class OrchestrateBehavior(unittest.TestCase):
         self.assertEqual(d_entries[0]["parent_branch"], "join-ab")
         self.assertEqual(d_entries[0]["parent_sha"], join_sha)
         self.assertEqual(d_entries[0]["packet"]["parent_readiness"]["logical_prerequisites"], ["task-a", "task-b"])
+
         host.dispatch(d_entries)
         report_d = host.wait_for_report("task-d")
         result_d = make_result(self.github, "task-d", report_d, admitted)
@@ -386,6 +412,118 @@ class OrchestrateBehavior(unittest.TestCase):
         self.assertIn(("sub_issues", 1), self.github.calls)
         self.assertIn(("sub_issues", 2), self.github.calls)
         self.assertIn(("dependencies", 2), self.github.calls)
+
+    def test_explicit_issue_list_normalizes_order_and_preserves_edge_provenance(self) -> None:
+        snapshot = self.github.issue_list_snapshot()
+        selectors = [item["url"] for item in reversed(snapshot["issues"])]
+        selectors.append(selectors[0])
+        admitted_path, admitted = self._admit_issues(snapshot, selectors=selectors)
+        self.assertEqual(admitted["mode"], "issues")
+        self.assertEqual(admitted["selector_urls"], sorted(set(selectors)))
+        self.assertEqual(
+            [(edge["predecessor"], edge["dependent"], edge["provenance"])
+             for edge in admitted["edge_provenance"]],
+            [("task-a", "task-c", "inferred"), ("task-b", "task-d", "inferred"),
+             ("task-c", "task-d", "inferred")],
+        )
+        self.assertEqual(admitted["graph"]["model_inference"], "complete")
+        self.assertNotIn("spec-p", [task["task_id"] for task in admitted["tasks"]])
+        reordered_path, reordered = self._admit_issues(
+            snapshot,
+            selectors=[item["url"] for item in snapshot["issues"]],
+        )
+        self.assertEqual(admitted["fingerprint"], reordered["fingerprint"])
+        self.assertEqual(admitted["task_order"], reordered["task_order"])
+        self.assertTrue(admitted_path.exists())
+        self.assertTrue(reordered_path.exists())
+
+        mixed = self._write_json("issue-list-mixed.json", snapshot)
+        code, payload = invoke_cli(
+            "admit", "--issues", selectors[0], "--issue", self.github.parent_url,
+            "--snapshot", str(mixed),
+        )
+        self.assertNotEqual(code, 0, payload)
+
+        documented = copy.deepcopy(snapshot)
+        next(item for item in documented["issues"] if item["task_id"] == "task-c")["prerequisites"] = ["task-a"]
+        _, documented_admitted = self._admit_issues(documented)
+        c_edge = next(edge for edge in documented_admitted["edge_provenance"]
+                      if edge["predecessor"] == "task-a" and edge["dependent"] == "task-c")
+        self.assertEqual(c_edge["provenance"], "inferred")
+        self.assertEqual(c_edge["evidence"], snapshot["graph"]["edges"][0]["evidence"])
+
+        contradictory = copy.deepcopy(documented)
+        contradictory["graph"]["edges"].append({
+            "predecessor": "task-a",
+            "dependent": "task-c",
+            "provenance": "declared",
+            "evidence": {"reason": "contradictory duplicate evidence"},
+        })
+        contradictory_path = self._write_json("issue-list-contradictory-edge.json", contradictory)
+        code, payload = invoke_cli(
+            "admit", "--issues", *[item["url"] for item in contradictory["issues"]],
+            "--snapshot", str(contradictory_path),
+        )
+        self.assertNotEqual(code, 0, payload)
+        self.assertEqual(payload.get("error"), "duplicate-edge", payload)
+
+        invalid_receipts = (
+            ("missing-coverage", "coverage", None, "incomplete-graph"),
+            ("failed-coverage", "coverage", "failed", "incomplete-graph"),
+            ("unknown-coverage", "coverage", "unknown", "incomplete-graph"),
+            ("missing-inference", "model_inference", None, "inference-unrun"),
+            ("failed-inference", "model_inference", "failed", "inference-unrun"),
+            ("unknown-inference", "model_inference", "unknown", "inference-unrun"),
+        )
+        for label, field, value, expected_error in invalid_receipts:
+            invalid = copy.deepcopy(snapshot)
+            if value is None:
+                invalid["graph"].pop(field)
+            else:
+                invalid["graph"][field] = value
+            invalid_path = self._write_json("issue-list-%s.json" % label, invalid)
+            code, payload = invoke_cli(
+                "admit", "--issues", *[item["url"] for item in invalid["issues"]],
+                "--snapshot", str(invalid_path),
+            )
+            self.assertNotEqual(code, 0, (label, payload))
+            self.assertEqual(payload.get("error"), expected_error, (label, payload))
+        missing_graph_complete = copy.deepcopy(snapshot)
+        missing_graph_complete["graph"].pop("complete")
+        missing_graph_complete_path = self._write_json(
+            "issue-list-missing-graph-complete.json", missing_graph_complete
+        )
+        code, payload = invoke_cli(
+            "admit", "--issues", *[item["url"] for item in missing_graph_complete["issues"]],
+            "--snapshot", str(missing_graph_complete_path),
+        )
+        self.assertNotEqual(code, 0, payload)
+        self.assertEqual(payload.get("error"), "incomplete-graph", payload)
+
+
+        missing_dependency_attestation = copy.deepcopy(snapshot)
+        missing_dependency_attestation["issues"][0].pop("prerequisites")
+        missing_dependency_path = self._write_json(
+            "issue-list-missing-dependency-attestation.json", missing_dependency_attestation
+        )
+        code, payload = invoke_cli(
+            "admit", "--issues", *[item["url"] for item in missing_dependency_attestation["issues"]],
+            "--snapshot", str(missing_dependency_path),
+        )
+        self.assertNotEqual(code, 0, payload)
+        self.assertEqual(payload.get("error"), "incomplete-graph", payload)
+
+    def test_issue_list_external_blocker_stays_outside_scope(self) -> None:
+        snapshot = self.github.issue_list_snapshot()
+        issue = next(item for item in snapshot["issues"] if item["task_id"] == "task-a")
+        issue["external_prerequisites"] = [self.github.canonical + "/issues/999"]
+        issue["prerequisites"] = []
+        admitted_path, admitted = self._admit_issues(snapshot)
+        state, scheduled = self._schedule(admitted_path, admitted, None, snapshot, "issue-list-external")
+        self.assertNotIn("task-a", [entry["task_id"] for entry in scheduled["dispatch"]])
+        self.assertIn({"task_id": "task-a", "reason": "external-prerequisite"}, scheduled["blocked"])
+        self.assertNotIn("issue-999", [task["task_id"] for task in admitted["tasks"]])
+        self.assertTrue(state.exists())
 
     def test_serial_host_blocks_external_prerequisites_without_expanding_scope(self) -> None:
         snapshot = self.github.snapshot()
@@ -426,6 +564,9 @@ class OrchestrateBehavior(unittest.TestCase):
         missing_endpoint = copy.deepcopy(base)
         missing_endpoint["children"][2]["prerequisites"] = ["task-z"]
         cases.append(("missing dependency endpoint", missing_endpoint))
+        missing_native_evidence = copy.deepcopy(base)
+        missing_native_evidence["children"][0].pop("prerequisites")
+        cases.append(("missing native dependency evidence", missing_native_evidence))
         malformed_contract = copy.deepcopy(base)
         malformed_contract["children"][0]["contract"].pop("non_goals")
         cases.append(("malformed contract", malformed_contract))
@@ -472,6 +613,21 @@ class OrchestrateBehavior(unittest.TestCase):
         path = self._write_json("project-no-parents-page.json", project)
         code, payload = invoke_cli("admit", "--project", project["project"]["url"], "--snapshot", str(path))
         self.assertNotEqual(code, 0, payload)
+
+    def test_native_member_reordering_and_missing_project_dependencies_are_rejected_or_equivalent(self) -> None:
+        base = self.github.snapshot()
+        _, admitted = self._admit_issue(base)
+        reordered = copy.deepcopy(base)
+        reordered["children"] = list(reversed(reordered["children"]))
+        _, reordered_admitted = self._admit_issue(reordered)
+        self.assertEqual(admitted["fingerprint"], reordered_admitted["fingerprint"])
+
+        project = self.github.project_snapshot()
+        project["members"][1].pop("external_prerequisites")
+        path = self._write_json("project-missing-dependency-evidence.json", project)
+        code, payload = invoke_cli("admit", "--project", project["project"]["url"], "--snapshot", str(path))
+        self.assertNotEqual(code, 0, payload)
+        self.assertEqual(payload.get("error"), "incomplete-hierarchy", payload)
 
     def test_fingerprint_binds_scope_parent_spec_rules_and_identity_not_runtime_allocation(self) -> None:
         snapshot = self.github.snapshot()

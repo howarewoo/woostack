@@ -91,6 +91,15 @@ exactly one entry, the canonical child URL, and the PR body must carry exactly o
 missing reference, foreign repository, foreign head repository, wrong branch/head/base, duplicate
 PR, or closed PR is an identity failure, not permission to retarget or create a replacement.
 
+In explicit issue-list mode, `readback.association` and the sole closing reference remain the
+individual selected issue URL; the normalized selector list and inferred graph never receive a PR,
+delivery note, Project status, or issue-closing mutation. A worker packet carries the complete
+caller-supplied edge provenance for its task, but Execute does not discover, reverse, or publish
+edges. Native, declared, and inferred evidence must remain distinguishable through admission and
+resume. A changed selected identity, contract, external blocker, edge endpoint, provenance, or
+inference/coverage evidence changes the immutable fingerprint and returns `snapshot-drift`;
+reservations and running workers are retained.
+
 ## Evidence calculations
 All evidence is for the exact reservation currently in controller state. The worker's selected
 workspace must equal the reserved physical path and its checkout must resolve to the admitted

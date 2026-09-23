@@ -45,7 +45,7 @@ provider-specific scope, capabilities, identities, and lifecycle behavior.
 | Prepare a multi-increment feature and execution handoff | `woostack-build` |
 | Diagnose and fix a defect, bounded or project-backed | `woostack-fix` |
 | Turn an approved specification into reviewable increments | `woostack-plan` |
-| Execute native children of one GitHub parent issue or tasks in an exact GitHub Project with parallel workers and stacked PRs | `woostack-orchestrate` |
+| Execute one exact GitHub parent, Project, or explicit issue list with parallel workers and stacked PRs | `woostack-orchestrate` |
 | Implement one bounded task — enhancement, refactor, test-only work, or authorized understood correction — and deliver one PR | `woostack-execute` |
 | Commit current changes and submit or update their PR | `woostack-commit` |
 | Review a pull request | Use [Pullfrog](https://pullfrog.com/). |
