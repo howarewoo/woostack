@@ -788,6 +788,8 @@ class OrchestrateBehavior(unittest.TestCase):
         (workspace / "staged.txt").write_text("staged user state\n", encoding="utf-8")
         git(workspace, "add", "staged.txt")
         (workspace / "dirty.txt").write_text("uncommitted user state\n", encoding="utf-8")
+        staged_bytes = (workspace / "staged.txt").read_bytes()
+        dirty_bytes = (workspace / "dirty.txt").read_bytes()
 
         admitted_path, admitted = self._admit_issue(snapshot)
         _, output = self._schedule(admitted_path, admitted, None, snapshot, "fresh-dirty", cap="1")
@@ -797,8 +799,8 @@ class OrchestrateBehavior(unittest.TestCase):
             [{"task_id": "task-a", "reason": "workspace-unclaimed"}],
             [item for item in output["blocked"] if item["task_id"] == "task-a"],
         )
-        self.assertTrue((workspace / "staged.txt").exists())
-        self.assertTrue((workspace / "dirty.txt").exists())
+        self.assertEqual((workspace / "staged.txt").read_bytes(), staged_bytes)
+        self.assertEqual((workspace / "dirty.txt").read_bytes(), dirty_bytes)
 
     def test_fresh_reuse_blocks_unowned_committed_existing_branch(self) -> None:
         snapshot = self._single_task_snapshot()
@@ -811,6 +813,8 @@ class OrchestrateBehavior(unittest.TestCase):
         (workspace / "unrelated.txt").write_text("unrelated user commit\n", encoding="utf-8")
         git(workspace, "add", "unrelated.txt")
         git(workspace, "commit", "-m", "Unrelated retained work")
+        retained_head = git(workspace, "rev-parse", "HEAD")
+        retained_bytes = (workspace / "unrelated.txt").read_bytes()
 
         admitted_path, admitted = self._admit_issue(snapshot)
         _, output = self._schedule(admitted_path, admitted, None, snapshot, "fresh-committed", cap="1")
@@ -820,8 +824,8 @@ class OrchestrateBehavior(unittest.TestCase):
             [{"task_id": "task-a", "reason": "workspace-unclaimed"}],
             [item for item in output["blocked"] if item["task_id"] == "task-a"],
         )
-        self.assertNotEqual(git(workspace, "rev-parse", "HEAD"), self.base_sha)
-        self.assertTrue((workspace / "unrelated.txt").exists())
+        self.assertEqual(git(workspace, "rev-parse", "HEAD"), retained_head)
+        self.assertEqual((workspace / "unrelated.txt").read_bytes(), retained_bytes)
 
 
     def test_runtime_rejects_unlinked_clone_even_with_matching_remote_and_branch(self) -> None:
