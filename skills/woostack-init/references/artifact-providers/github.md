@@ -19,30 +19,36 @@ plus optional `ownerType` (`"organization"` | `"user"`), `statusField` (default 
 `visibility` (`"private"` | `"public"`, default `"private"`). `projectStatuses` maps exactly five unique option names:
 `planned`, `executing`, `inReview`, `done`, and `blocked`.
 
-Use only the host-authenticated official `gh` CLI (`gh api graphql` for Projects v2 and dependencies;
-issue APIs for repository issues). Custom HTTP/REST/GraphQL clients, credential reads, and token forwarding
-remain forbidden. Scope operations strictly to the canonical repository and explicitly selected
-parent issue or Project; parent selection never selects a Project or provider mirroring.
-When GitHub is selected, Init may use `gh` only for narrow read-only discovery of owner, owner type,
-canonical repository, and Status field/options without selecting persistence or mutating GitHub.
+Use an available, authorized GitHub capability that supports the selected operation and its
+verification. Prefer the host's native GitHub tools when suitable; host-authenticated official `gh`
+remains supported where appropriate. Discover actual capabilities, supported read/query shapes, and
+schemas from the host rather than assuming tool names or request forms. Custom HTTP/REST/GraphQL
+clients, credential reads, and token forwarding remain forbidden. Scope operations strictly to the
+canonical repository and explicitly selected parent issue or Project; parent selection never selects
+a Project or provider mirroring.
+When GitHub is selected, Init may use only the required read capabilities for narrow discovery of
+owner, owner type, canonical repository, and Status field/options; discovery never selects
+persistence or mutates GitHub.
 
 ## Capabilities
 
-Prove each operation's capabilities independently through host-authenticated `gh`: issue reads/writes,
-native parent/sub-issue reads/writes, dependency reads/writes, terminal pagination, and independent
-read-back. Issue-write access alone does not prove sub-issue or dependency-write access. Before
-publication, preflight every required write family without a test mutation; unsupported or unknown
-capability blocks. Project read/write, membership, and Status capabilities are required only for
-selected Project operations. Unavailable Project access does not block parent-only planning or
-explicitly selected Orchestrate parent-hierarchy reads.
+Prove each operation's capabilities independently through the selected authorized GitHub interface:
+issue reads/writes, native parent/sub-issue reads/writes, dependency reads/writes, terminal
+pagination, and independent read-back. Issue-write access alone does not prove sub-issue or
+dependency-write access. Before publication, preflight every required write family without a test
+mutation; unsupported or unknown capability blocks only the operation that requires it. Project
+read/write, membership, and Status capabilities are required only for selected Project operations.
+Unavailable Project access does not block parent-only planning or explicitly selected Orchestrate
+parent-hierarchy reads.
 
-Use GitHub's [native sub-issue API](https://docs.github.com/en/rest/issues/sub-issues) through `gh api`.
-`GET repos/{owner}/{repo}/issues/{number}/sub_issues` must exhaust all pages; read the actual
-parent independently (`GET .../parent` or an explicitly selected nullable GraphQL `parent`).
-An HTTP error is not proof of `parent = null`. `POST .../sub_issues` takes the child's numeric
-REST `id` as `sub_issue_id`, not its issue number or GraphQL node ID. Never set `replace_parent`
-to true. API permission to link another repository's issue does not widen the canonical-repository
-scope. Require native reads in both directions after a link write.
+Use GitHub's native sub-issue semantics through the selected host capability. The REST route forms
+below describe the required resource and identity semantics, not a mandatory transport:
+`GET repos/{owner}/{repo}/issues/{number}/sub_issues` must exhaust all pages; read the actual parent
+independently (`GET .../parent` or an explicitly selected nullable GraphQL `parent`). An HTTP or
+tool error is not proof of `parent = null`. A link operation takes the child's numeric REST `id` as
+`sub_issue_id`, not its issue number or GraphQL node ID. Never set `replace_parent` to true. API
+permission to link another repository's issue does not widen the canonical-repository scope. Require
+native reads in both directions after a link write.
 
 ## Projects and labels
 
@@ -135,10 +141,10 @@ delivered predecessor branches or an explicitly approved integration parent at d
 the parent and readiness evidence. Plan never chooses it speculatively or creates an integration
 branch or artificial chain.
 One verified parent must contain all required predecessor changes. The
-[parent-admission contract](../worktrees.md#plan-dependency-child) requires canonical branch/SHA
-ancestry and every prerequisite's complete delivery evidence; an integration parent's own PR evidence
-is required only when that PR exists. A join lacking the required proof remains valid but pauses that
-issue for an explicit parent/integration decision before dispatch.
+[parent-admission guidance](../worktrees.md#repository-and-ancestry-evidence) requires canonical
+branch/SHA ancestry and every prerequisite's complete delivery evidence; an integration parent's own
+PR evidence is required only when that PR exists. A join lacking the required proof remains valid but
+pauses that issue for an explicit parent/integration decision before dispatch.
 
 Ordinal edits never change edges. Existing chain edges are preserved unless the approved specification
 explicitly changes them; never add or remove edges to match ordinal adjacency. Preserve unrelated issue
@@ -163,13 +169,14 @@ native parent link, selected membership, and complete exact predecessor→succes
 Mirror mismatches record failure without changing local artifacts; standalone mismatches block
 without claiming synchronization.
 
-Retain the complete DAG for explicit Orchestrate execution; Execute cannot accept or dispatch it as a graph.
-A caller may select one task from any valid DAG for
+Retain the complete DAG for explicit Orchestrate execution; Execute cannot accept or dispatch it as a
+graph. A caller may select one task from any valid DAG for
 [bounded Execute admission](../../../woostack-execute/SKILL.md#admit-one-task), supplying its concrete
 parent and complete prerequisite-readiness evidence under the
-[worktree contract](../worktrees.md#plan-dependency-child). An unresolved join parent blocks that
-task, not unrelated tasks. Run-store storage retains the existing task/dependency/mapping forms
-without schema migration or edge rewriting; workflow admission validates the DAG.
+[workspace/ancestry guidance](../worktrees.md#repository-and-ancestry-evidence). An unresolved join
+parent blocks that task, not unrelated tasks. Run-store storage retains the existing
+task/dependency/mapping forms without schema migration or edge rewriting; workflow admission validates
+the DAG.
 
 Reuse existing task/dependency/mapping representations. A specification parent is retained separately
 as `specItem` (in `mirror.specItem` when a run manifest applies), never in `stableTaskMappings`.

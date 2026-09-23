@@ -74,8 +74,8 @@ integration branch's tip has changed since planning, the user must choose what t
 Build and project-backed Fix use local records as the source of truth for the plan. Goal-only
 Execute and bounded Fix make no artifact-provider calls unless an exact issue association or
 requested provider operation is selected. Execute's exact GitHub issue input performs the required
-read of that issue through host-authenticated `gh`; it does not require provider configuration, a
-Project, a mirror, or a persisted plan.
+read of that issue through an authorized GitHub capability (native tools preferred; host-authenticated
+`gh` supported); it does not require provider configuration, a Project, a mirror, or a persisted plan.
 
 Run artifacts are retained after completion or abandonment. Abandoning a local run leaves its mirror
 unchanged. Standalone provider lifecycle operations follow the selected profile and never confer

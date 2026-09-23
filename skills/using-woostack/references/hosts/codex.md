@@ -4,9 +4,11 @@
 
 Codex CLI locally (subagent spawns accept a `model` override); Codex Action in CI
 (single-session, no subagent model overrides).
-Discover official Linear or Plane MCP tools exposed via Codex MCP configuration or host-authenticated
-GitHub CLI (`gh`) under the selected workflow's artifact admission. Never use custom HTTP/REST/GraphQL transport or
-fallback tokens. Artifact operations follow the canonical
+Discover official Linear or Plane MCP tools exposed via Codex MCP configuration, or an authorized
+GitHub capability exposed by the host (prefer native GitHub tools; host-authenticated `gh` remains
+supported). Discover actual operation capabilities and read/write shapes rather than assuming tool
+names or schemas. Never use custom HTTP/REST/GraphQL transport or fallback tokens. Artifact operations
+follow the canonical
 [artifact backends contract](../../../woostack-init/references/artifact-backends.md).
 
 ## Subagent spawn
@@ -54,6 +56,7 @@ host — no spawn-time auth probe exists; switch manually by promoting an entry 
 Single-session context (Codex Action) is not a degradation — it is the documented
 one-run-model collapse. A local spawn that cannot carry `model` → session model + say so
 (degraded), per the inline law of the dispatching skill.
-When the configured provider's official interface (Linear/Plane MCP, or host-authenticated gh for GitHub) or a required capability is absent on this host, fail
+When the configured provider's authorized interface (official Linear/Plane MCP, or a native GitHub
+capability / host-authenticated `gh`) or a required operation capability is absent on this host, fail
 closed for required provider boundaries or report the missing capability for optional operations per
 canonical artifact law.

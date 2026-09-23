@@ -102,8 +102,8 @@ Use the existing information architecture rather than adding a second naming sch
 
 - `content/docs/getting-started.mdx` is the primary tutorial.
 - Task procedures, including the Hermes workflow, are how-to guides.
-- `content/docs/configuration/`, `content/docs/harnesses/`, generated `content/docs/skills/`,
-  the `status-tracking.mdx` and `utilities.mdx` catalog pages are reference.
+- `content/docs/configuration/`, `content/docs/harnesses/`, generated `content/docs/skills/`, and
+  `utilities.mdx` are reference.
 - `content/docs/concepts.mdx` and the remaining topic pages under `content/docs/concepts/` are
   explanation.
 - `content/docs/index.mdx` and section index pages are navigation surfaces.

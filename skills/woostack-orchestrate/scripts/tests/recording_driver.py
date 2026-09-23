@@ -3,9 +3,9 @@
 
 The behavioral suite imports this module for fixture assembly and for a real
 ThreadPoolExecutor-backed host.  The helper remains the only scheduler: the
-host consumes emitted Execute packets, creates the requested Git worktrees and
-branches, commits a small task file, and records a canonical fake PR.  When
-invoked as a script this module is a thin recording wrapper around the shipped
+host consumes emitted Execute packets, uses the selected runtime workspace and
+branch evidence, commits a small task file, and records a canonical fake PR.
+When invoked as a script this module is a thin recording wrapper around the shipped
 ``scripts/orchestrate.py`` CLI.
 """
 
@@ -177,6 +177,12 @@ class FakeGitHub:
             issue_record(self.parent_url, "task-d", 4, 104, ["task-a", "task-b"]),
             issue_record(self.parent_url, "task-e", 5, 105),
         ]
+        # Runtime allocation is supplied by the host-facing snapshot, not the
+        # admitted issue contract.  These paths deliberately live outside the
+        # checkout and use ordinary repository branch names.
+        for child in self.children:
+            child["workspace"] = str(self.repo.parent / "host-worktrees" / child["task_id"])
+            child["branch"] = "feature/" + child["task_id"]
         # Multiple native pages are deliberately assembled before a snapshot is
         # emitted.  These are not scheduler decisions; they model paginated gh
         # reads and leave an auditable transport log.
@@ -248,6 +254,16 @@ class FakeGitHub:
             "expected_index": [child["task_id"] for child in self.children],
             "children": snapshot_children,
             "pagination": copy.deepcopy(self.pagination if pagination is None else pagination),
+            "recovery": {
+                "checkpoints": [],
+                "processes": [],
+                "sessions": [],
+                "worktrees": [],
+                "refs": [],
+                "prs": [],
+                "contracts": [],
+                "dependencies": [],
+            },
         }
         record("github", "assemble-issue-snapshot", {
             "pages": len(self.child_pages),
@@ -305,6 +321,16 @@ class FakeGitHub:
                 "dependencies": True,
                 "contracts": True,
             }),
+            "recovery": {
+                "checkpoints": [],
+                "processes": [],
+                "sessions": [],
+                "worktrees": [],
+                "refs": [],
+                "prs": [],
+                "contracts": [],
+                "dependencies": [],
+            },
         }
         if "task-a" in self.delivery:
             result["members"][1]["existing_delivery"] = copy.deepcopy(self.delivery["task-a"])
@@ -518,7 +544,8 @@ class FakeHost:
             handle.write("Execute consumed packet for %s%s\n" % (task_id, " repair" if repair else ""))
         run_verification(workspace, bounded)
         git(workspace, "add", str(task_file.relative_to(workspace)))
-        git(workspace, "commit", "-m", "Implement %s%s" % (task_id, " repair" if repair else ""))
+        if git(workspace, "diff", "--cached", "--name-only"):
+            git(workspace, "commit", "-m", "Implement %s%s" % (task_id, " repair" if repair else ""))
         head_sha = git(workspace, "rev-parse", "HEAD")
         base_branch = entry["parent_branch"]
         parent_sha_for_diff = entry["parent_sha"]
@@ -543,6 +570,7 @@ class FakeHost:
                 "worker_id": "execute-%s" % task_id,
                 "pr_url": pr_url,
                 "branch": branch,
+                "workspace": str(workspace.resolve()),
                 "head_sha": head_sha,
                 "base_branch": base_branch,
                 "commit_sha": head_sha,
@@ -636,7 +664,7 @@ def main(argv: Sequence[str]) -> int:
             parsed = {"raw": proc.stdout}
         if command == "schedule" and isinstance(parsed, dict):
             for entry in parsed.get("dispatch", []):
-                record("host", "dispatch-worker", {
+                record("controller", "reserve-worker", {
                     "task_id": entry.get("task_id"),
                     "workspace": entry.get("workspace"),
                     "branch": entry.get("branch"),

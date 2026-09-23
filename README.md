@@ -42,9 +42,10 @@ Open your coding assistant in the project root and enter:
 /woostack-init
 ```
 
-Init creates `.woostack/` configuration and diagnostic folders, worktree support, and managed OMP
-agents and session-naming files. It also attempts read-only Linear setup when the host provides
-the official Linear integration. Missing provider access does not block local setup.
+Init creates `.woostack/` configuration and diagnostic folders, worktree support, and the local
+OMP session-naming extension. OMP delegation uses agents already exposed by the active session;
+Init does not create a parallel project agent catalog. It also attempts read-only Linear setup when
+the host provides the official Linear integration. Missing provider access does not block local setup.
 Init does not create remote issues or projects. See [Init](skills/woostack-init/SKILL.md) for details.
 
 ### 3. Tell your assistant to use woostack

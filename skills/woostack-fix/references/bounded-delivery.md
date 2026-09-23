@@ -12,8 +12,11 @@ none. Git and canonical GitHub repository/PR operations supply source-control ev
 development-artifact authority.
 
 Before mutation, apply the shared [source-control selection and ancestry contract](../../woostack-commit/references/graphite.md).
-Git+gh is the complete default path. Use Graphite only when explicitly selected or already verified
-for this task/stack; unknown selection blocks, and `gt` failure never authorizes backend switching.
+Use native Git and an authorized GitHub capability for repository delivery (prefer native GitHub
+tools when suitable; host-authenticated `gh` is supported). Discover actual operation capabilities,
+read shapes, pagination, and independent readback before any consequential operation. Optional
+Graphite selection follows the shared contract; unknown selection blocks, and `gt` failure never
+authorizes backend switching.
 
 ## Keep one bounded contract
 
@@ -33,21 +36,20 @@ never silently change the contract or split it into additional PRs.
 
 ## Create or resume one isolated workspace
 
-Apply the [canonical worktree contract](../../woostack-init/references/worktrees.md#1-identity-workspace-resolution-and-placement)
-for identity, workspace resolution, base admission, collision discovery, creation/adoption, and
-task-only writes. Independently read the physical repository root, canonical remote, configured
-integration base and exact commit, complete worktree/branch/status/diff inventory, Git ancestry,
-and canonical GitHub PR state. Require either no task state or one exact recoverable state. Never
-reset, clean, stash, overwrite, or create around unexpected user work.
+Apply the [isolated-workspace guidance](../../woostack-init/references/worktrees.md) for identity,
+workspace evidence, base admission, collision discovery, and task-only writes. Independently read the
+physical repository root, canonical remote, configured integration base and exact commit, complete
+worktree/branch/status/diff inventory, Git ancestry, and canonical GitHub PR state. Require either no
+task state or one exact recoverable state. Never reset, clean, stash, overwrite, or create around
+unexpected user work.
 
-Create, assert, or adopt one isolated task workspace under the
-[canonical creation contract](../../woostack-init/references/worktrees.md#5-create-assert-or-adopt):
-adopt an existing linked/external worktree in-place (`managed_worktree = false`) or create a managed
-task worktree (`managed_worktree = true`) when starting in the primary checkout, with one
-task branch whose parent is the verified integration base. Track it with Graphite only in selected
-Graphite mode. Resume an exact existing task/worktree/branch/parent/head instead of creating a
-duplicate. Revalidate the approved contract and direct repository evidence before each mutation
-boundary and after interruptions.
+The repository, host, or caller selects one isolated task workspace and branch. It may reuse a suitable
+linked checkout, including an external or host-managed worktree, or create a new linked checkout using
+its supported capabilities. Do not require a fixed path, branch recipe, creation command, or
+managed-worktree flag.
+Resume an exact existing task/workspace/branch/parent/head instead of creating a duplicate. Revalidate
+the approved contract and direct repository evidence before each mutation boundary and after
+interruptions.
 
 ## Implement, verify, and independently review
 
@@ -84,8 +86,10 @@ calling skill before more implementation; Fix approval never carries over to a c
 Only after verification and independent review pass on the same complete diff, commit and submit
 at most one PR using the selected backend under the shared source-control contract. In native mode,
 add a Git commit (never automatically amend), explicitly push only the task branch without force,
-and use `gh pr create --draft` with the exact repository/head/base only after excluding an existing
-matching PR; update an existing PR body with `gh pr edit`. Preserve its identity and intended base.
+and use the selected authorized GitHub submission capability to create a draft only after excluding
+an existing matching PR; host-authenticated `gh pr create --draft` and `gh pr edit` are supported
+equivalents for draft creation and body updates. Preserve the exact repository/head/base identity and
+intended base.
 Never merge, mark ready, enable auto-merge, enqueue, or force-push.
 
 For an exact caller-supplied issue, re-read it before submission and on resume to verify its
@@ -104,16 +108,14 @@ Independently read back the exact repository, branch, parent, commit, changed pa
 PR head/base, and open state. The success boundary is one complete reviewable PR whose verified
 commit contains every requested bounded change.
 
-Remove only a managed task worktree created by Woostack (`managed_worktree = true`) after successful
-delivery and independently verified cleanliness, following
-[canonical teardown](../../woostack-init/references/worktrees.md#8-teardown). Preserve pre-isolated or
-external worktrees (`managed_worktree = false`), and keep its branch, commits, and PR; never remove
-a user-owned or external checkout.
-If implementation, verification, review, commit, submission, read-back, or cleanup fails, is blocked,
-or has an unknown outcome, retain the worktree. Return exact Git, GitHub, and selected-backend resume
-evidence: repository/base, task/worktree, branch/parent, head/commit, status/diff, verification/review
-results, and PR URL/state when known. On resume, reread those facts and continue at the first
-unproved boundary without duplicating a branch, commit, PR, or cleanup.
+After delivery, retain the selected workspace unless its owner explicitly supplies a safe lifecycle
+operation. Never remove a user-owned, host-managed, or external checkout as workflow cleanup.
+Publication does not create a workspace obligation. If implementation, verification, review, commit,
+submission, read-back, or lifecycle handling fails, is blocked, or has an unknown outcome, retain the
+workspace and return exact Git, GitHub, and selected-backend resume evidence: repository/base,
+task/workspace, branch/parent, head/commit, status/diff, verification/review results, and PR
+URL/state when known. On resume, reread those facts and continue at the first unproved boundary
+without duplicating a branch, commit, PR, or cleanup.
 
 ## Return
 

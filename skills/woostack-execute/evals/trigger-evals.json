@@ -27,6 +27,12 @@
       "expectedSkill": "woostack-execute"
     },
     {
+      "id": "bounded-characterization-tests",
+      "query": "Add characterization tests for this existing function, preserve production code, run the focused check, and submit one draft PR.",
+      "shouldTrigger": true,
+      "expectedSkill": "woostack-execute"
+    },
+    {
       "id": "retired-run-input",
       "query": "Execute the run run-20260815-123456-abcdef with --run and --recheck through woostack-execute.",
       "shouldTrigger": true,

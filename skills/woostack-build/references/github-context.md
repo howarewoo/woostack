@@ -12,9 +12,12 @@ Project Plan. Standalone `--parent-issue` instead uses that procedure's
 ## Resolution
 1. Resolve canonical repository URL `https://github.com/owner/repo` from trusted Git/GitHub evidence.
 2. Resolve configured `artifacts.github.owner`, `ownerType`, `statusField` (default `"Status"`), and `visibility` (default `"private"`).
-3. Preflight host-authenticated `gh` capabilities (`projectRead`, `projectWrite`, `issueRead`, `issueWrite`, `dependencyRead`, `dependencyWrite`, `statusFieldRead`, `statusFieldWrite`, `pagination`, `independentReadBack`).
+3. Discover the selected host's authorized GitHub capabilities for the operation: project read/write,
+   issue read/write, dependency read/write, Status read/write, complete pagination, and independent
+   read-back. Read-only resolution needs only the read capabilities it uses; a Project operation does
+   not grant native dependency or issue-write capability.
 4. An exact `--project` URL (`https://github.com/orgs/<owner>/projects/<N>` or `/users/`) resolves that Project and verifies owner and canonical repository association (rejecting foreign repository), retaining existing title and visibility.
-5. Otherwise reserve marker `<!-- woostack-project-mutation:<UUID> -->`, paginate all active and closed Projects for the owner via `gh api graphql`, prove zero marker matches, create one `[Build] <goal>` Project with configured visibility, and link/verify its canonical repository association. An unknown create outcome before marker write fails closed; complete marker discovery may recover exactly one match, while zero or duplicate matches block without create replay.
+5. Otherwise reserve marker `<!-- woostack-project-mutation:<UUID> -->`, completely paginate all active and closed Projects for the owner through the selected supported GitHub operation, prove zero marker matches, create one `[Build] <goal>` Project with configured visibility, and link/verify its canonical repository association. An unknown create outcome before marker write fails closed; complete marker discovery may recover exactly one match, while zero or duplicate matches block without create replay.
 6. Read the Project back, verify the Status field and five option IDs (`planned`, `executing`, `inReview`, `done`, `blocked`), and retain native identity in the manifest.
 
 ## Project specification baseline

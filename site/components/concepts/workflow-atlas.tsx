@@ -57,7 +57,7 @@ const workflows: readonly Workflow[] = [
       { label: 'Approve-to-execute', kind: 'gate' },
     ],
     branches: [
-      { label: 'Go', steps: [{ label: 'TDD execute → one reviewed PR', kind: 'terminal' }] },
+      { label: 'Go', steps: [{ label: 'Execute → one reviewed PR', kind: 'terminal' }] },
       { label: 'Hand off', steps: [{ label: 'Approved plan PR with no code', kind: 'terminal' }] },
       { label: 'Revise', steps: [{ label: 'Update and re-present committed plan', kind: 'terminal' }] },
       { label: 'Abandon', steps: [{ label: 'Close/remove temporary artifacts', kind: 'terminal' }] },

@@ -9,7 +9,7 @@ Run one exact GitHub scope through the shipped scheduling helper and real host d
 primitive. The parent-issue form admits one top-level specification issue and its direct native
 sub-issues. The Project form admits one explicitly selected Project and its complete native member
 set. Each runnable child receives one bounded [`woostack-execute`](../woostack-execute/SKILL.md)
-worker, one reserved branch/workspace, and one draft PR. Independent children may run together;
+worker, one selected isolated workspace/branch, and one draft PR. Independent children may run together;
 dependents wait for independently proved delivery. Orchestrate owns admission, reservation,
 post-submission validation, evidence notes, and joins. It never implements task source inline,
 changes hierarchy, closes issues, marks a PR ready, or merges.
@@ -20,8 +20,8 @@ host's capability evidence are the authorities for repository, ancestry, PR, wor
 facts. There is no Linear, Plane, local-run, or implicit Project mode.
 
 Use the shared [source-control contract](../woostack-commit/references/graphite.md),
-[canonical worktree contract](../woostack-init/references/worktrees.md),
-[least-code standard](../woostack-bootstrap/references/patterns.md#7-least-code--comments), and
+the outcome-level [worktree guidance](references/scheduling.md#runtime-workspace-and-branch-evidence),
+the [least-code standard](../woostack-bootstrap/references/patterns.md#7-least-code--comments), and
 [model tiers](../using-woostack/references/model-tiers.md). Host mechanics remain in the
 [allowlisted host references](../using-woostack/references/hosts/README.md); do not copy a host's
 spawn implementation here. Delivery notes use the canonical
@@ -50,19 +50,26 @@ inline. A sequential-capability host may admit the scope and runs at one with a 
 The helper is production code, not a test scheduler. Every admission, refill, reservation, repair,
 result gate, and unknown-outcome reconciliation must pass through
 `skills/woostack-orchestrate/scripts/orchestrate.py`. The helper is standard-library-only, makes no
-network calls, and spawns no workers. The skill assembles JSON only from direct host-authenticated
-`gh` reads plus local Git evidence, invokes the helper, then delivers each emitted packet through
-the selected allowlisted host adapter. There is no prose-only bypass and no alternate scheduler.
+network calls, and spawns no workers. The skill assembles JSON only from an authorized GitHub
+capability exposed by the host (prefer native GitHub tools when suitable; host-authenticated `gh`
+remains supported) plus local Git evidence, invokes the helper, then delivers each emitted packet
+through the selected allowlisted host adapter. There is no prose-only bypass or alternate scheduler.
 
 The controller uses one explicit private state file per selected scope and one controller session.
-Before invoking the helper, prove externally enforced exclusive scope ownership under the
+The helper records a controller owner token and takes an owner-only compare-and-swap claim for
+the canonical repository plus exact scope, then one additional claim for each canonical child issue
+before reservation. A parent selector and a Project selector that overlap on one child therefore
+cannot claim that child's shared checkout concurrently. Existing claims, branches, PRs, or
+checkpoints without the current owner token are blockers, never takeover permission. Before invoking
+the helper, prove externally enforced exclusive scope ownership under the
 [single-controller contract](references/scheduling.md#state-reservations-and-joins); otherwise
-block at preflight. Atomic state writes do not provide controller serialization. A missing state
-file is allowed only on the initial schedule call, where `--state` is omitted; every later call
-must name an existing state file and stop on missing/corrupt/mismatched state rather than
-reinitializing it.
+block at preflight. Checkpoint mutations use an owner-only per-scope lock and durable expected-digest
+compare-and-swap derived from the canonical repository/scope key; stale/concurrent writers fail closed
+without overwriting prior evidence. A missing state file is allowed only on the initial schedule call,
+where `--state` is omitted; every later call must name an existing state file and stop on
+missing/corrupt/mismatched state rather than reinitializing it.
 
-The four bridge commands are:
+The five bridge commands are:
 
 ```text
 python3 <orchestrate-skill>/scripts/orchestrate.py admit \
@@ -92,7 +99,12 @@ python3 <orchestrate-skill>/scripts/orchestrate.py reconcile \
   --admitted admitted.json --state controller-state.json \
   --state-out controller-state.json --git-repo <canonical-git-repository> \
   --task <task-id> --evidence <canonical-reconciliation-evidence.json>
+python3 <orchestrate-skill>/scripts/orchestrate.py stop \
+  --admitted admitted.json --state controller-state.json \
+  --state-out controller-state.json --git-repo <canonical-git-repository> \
+  [--reason <safe-stop-reason>]
 ```
+
 
 Do not omit `--fresh` on an initial or subsequent refill. Do not pass a newly created replacement
 state after admission. The detailed JSON schemas, native-read requirements, and controlled status
@@ -111,11 +123,12 @@ Project owner/repository, specification, membership, and lifecycle admission.
    delivery-capable subagent primitive and its positive real `max_parallel`; put those observed
    facts in `host`. A missing delivery primitive blocks. A smaller host cap clamps scheduling but
    does not change admitted scope.
-2. Resolve the canonical Git repository and integration branch/SHA with direct Git and
-   host-authenticated `gh` evidence. Read the selected parent/Project and every relevant native
-   page. Exhaust pagination before assembling the snapshot; record terminal-read attestations as
-   booleans only after the corresponding native reads completed. A missing page, failed terminal
-   read, or ambiguous/foreign identity blocks.
+2. Resolve the canonical Git repository and integration branch/SHA with direct Git and an authorized
+   GitHub capability exposed by the host (prefer native GitHub tools when suitable; authenticated
+   `gh` remains supported). Read the selected parent/Project and every relevant native page using
+   the capability's supported shapes. Exhaust pagination before assembling the snapshot; record
+   terminal-read attestations only after corresponding native reads completed. A missing page, failed
+   terminal read, or ambiguous/foreign identity blocks.
 3. Normalize every native issue into its canonical URL plus numeric REST `id`, GraphQL `node_id`,
    number, state, resource, title, body, native parent, and complete contract. Do not substitute
    issue numbers for REST IDs or GraphQL node IDs. Parent mode requires a top-level open issue and
@@ -136,31 +149,32 @@ Project owner/repository, specification, membership, and lifecycle admission.
 
 The admission fingerprint binds mode, selector, canonical repository, native parent/Project and
 specification identity, repository rules, and every immutable task field including native
-hierarchy, IDs (including Project `item_id`), titles/bodies, contract, dependencies, and
-workspace. It excludes the host cap,
+hierarchy, IDs (including Project `item_id`), titles/bodies, contract, and dependencies. Runtime
+workspace and branch evidence is deliberately excluded. It excludes the host cap,
 mutable integration SHA, and runtime delivery evidence. A fresh snapshot with a changed fingerprint
 returns `snapshot-drift` and preserves running work; it never launches a duplicate or silently
 adopts a new child.
 
-## Reserve, create worktrees, and dispatch
+## Select an isolated workspace and dispatch
 
 After admission, call `schedule` with the required Git repository and fresh snapshot while holding
-exclusive scope ownership. The helper persists each ready task's reservation before any caller
-creates a worktree. It emits an **absolute** workspace under the primary Git common root:
-`<primary-root>/.woostack/worktrees/tasks/<task-id>`, unless a safe relative snapshot override is
-resolved under that same root. It also emits `branch: woostack/<task-id>`, the selected
-`parent_branch`/`parent_sha`, repair/retained-PR facts, and the complete bounded packet.
+exclusive scope ownership. The helper persists each ready task's actual reservation before dispatch.
+The fresh snapshot may carry a repository-, host-, or agent-selected `workspace` and `branch` for
+the task. No path layout, branch prefix, or creation command is required; the selected workspace
+may be inside or outside the primary checkout when it is a real isolated checkout for the admitted
+repository. A missing allocation is reported as `workspace-unassigned` until the host supplies one.
+The helper emits the selected absolute workspace and branch, the selected `parent_branch`/`parent_sha`,
+repair/retained-PR facts, and the complete bounded packet.
 
-Before dispatch, the caller applies the [canonical worktree contract](../woostack-init/references/worktrees.md):
-resolve the primary common root, canonicalize paths, inspect `git worktree list --porcelain`, and
-prove no pending/running reservation, alias, ancestor/descendant path, checked-out branch, or
-unclaimed existing branch/worktree collides. An existing unclaimed branch or workspace is a
-blocker, not permission to claim it. For fresh work, create exactly the emitted branch at exactly
-the emitted parent SHA (for example `git worktree add -b <branch> <absolute-workspace> <parent-sha>`)
-and read back path, branch, HEAD, common root, and ancestry. The actual local parent branch ref
-must equal the selected SHA. Run `git merge-base --is-ancestor <parent-sha> <head-sha>` even when
-hashes are equal. A failed/partial create or ownership check is an unknown boundary: preserve the
-reservation and do not recreate, retarget, reset, clean, or dispatch another writer.
+Before dispatch, the caller verifies the selected checkout against its actual repository remote,
+physical path, branch, HEAD, parent ancestry, complete worktree inventory, and current dirty state.
+Canonicalize paths and reject aliases, ancestor/descendant collisions, an active prior writer,
+wrong-repository checkouts, mismatched branches, and unclaimed existing branches/workspaces. A
+pre-existing suitable linked task worktree may be reused; otherwise the host's supported capability
+creates one linked worktree at the selected location. The caller must not create a nested checkout
+merely to satisfy a Woostack layout, rename a valid branch, reset, clean, delete, or take over unknown
+state. A failed/partial create or ownership check is an unknown boundary: preserve the reservation and do not
+recreate, retarget, or dispatch another writer.
 
 A repair reservation preserves the exact original workspace, branch, parent branch/SHA, and
 retained PR. It never reparents, creates a replacement PR, or uses a different checkout. A worker
@@ -185,19 +199,21 @@ authenticated tools.
 1. Dispatch all entries from the current `schedule` response up to its effective cap, then wait
    for **one** worker completion or actionable host event—not the whole batch.
 2. Process that completion through the independent result, validation, note, and optional Project
-   gates below. Use `apply-result` even for unknown/malformed outcomes so the reservation and halt
-   are retained. A worker's finish alone never releases its dependents.
+   gates below. Use `apply-result` even for unknown/malformed outcomes so the reservation, evidence,
+   and first uncertain boundary are retained. A worker's finish alone never releases its dependents.
 3. Immediately assemble fresh scope and delivery evidence, invoke `schedule` with the existing
    state, and launch newly emitted workers while unrelated workers remain active. Thus verified A
    can release C while B is still running. Do not order by ordinal or introduce wave barriers.
 4. An in-scope repair uses a fresh Execute worker on the same reserved branch/workspace and PR,
-   after the previous writer has stopped. An unknown outcome halts fresh dispatch until the
-   reconciliation gate succeeds; retain running workers and their evidence.
+   after the previous writer has stopped. An unknown outcome blocks only that task and its
+   descendants; reconcile its direct Git/PR/process evidence before same-identity repair while
+   unrelated ready work continues.
 5. An unresolved join pauses only that task and its descendants; continue unrelated ready work.
-   If no task is runnable and no worker remains, report delivered, paused, blocked, and unfinished
-   children with the exact missing parent decision or evidence. An empty ready queue never proves
-   the parent completed. Leave issues/dependencies open and report awaiting review/merge only for
-   the PRs actually delivered.
+   A stop request prevents new dispatch and safely inventories active workers without declaring
+   them stopped or discarding dirty worktrees. If no task is runnable and no worker remains, report
+   delivered, active, unknown, repair-ready, blocked, waiting, and unfinished children with the exact
+   next safe action. An empty ready queue never proves the parent completed. Leave
+   issues/dependencies open and report awaiting review/merge only for the PRs actually delivered.
 
 ## Result, validation, notes, and joins
 
@@ -216,24 +232,29 @@ contract hash and checked head match, the exact child closing reference appears 
 selected Project `inReview` status readback carries the admission-bound native `item_id` and
 exactly the admitted `lifecycle.inReview` option. Focused-check or spec-validation
 failure returns `repair-ready` on the same reservation and PR (the note may not exist yet).
-Wrong repository, head/branch identity, base, duplicate PR, closed PR, or other canonical identity
-conflict is `halted`/blocked, never an automatic retarget or replacement.
+Missing note or optional Project read-back is `note-pending`: retry only that receipt with the
+same result/PR and never replay repository delivery. Wrong repository, head/branch identity, base,
+duplicate PR, closed PR, or other canonical identity conflict is blocked for that task, never an
+automatic retarget or replacement.
 
 Persist the child delivery note only after independent validation and read it back using the
 canonical [`#artifact-delivery-note`](../woostack-commit/references/provider-attribution.md#artifact-delivery-note)
 mechanism. Release dependents only after that readback is included in the result. In explicit
 Project mode only, and only when its configured lifecycle mapping was admitted, write and read back
 `inReview`; a schedule intent is not a status receipt. Parent-issue mode performs no Project call.
-
 For `unknown`, missing, or malformed worker/result evidence, the helper retains the complete
-reservation and halts fresh dispatch. Run `reconcile` only with the admitted scope, existing state,
-canonical Git repository, and direct evidence that includes `worker_stopped: true` plus the reserved
-branch/workspace/parent and canonical PR/readback identity. A no-PR recovery must satisfy the
-complete [absence evidence contract](references/validation.md#unknown-reconciliation); contradictory
-evidence leaves the halt in place. Proven absence returns same-branch `repair-ready`, not a new
-identity. Reconciliation never clears a reservation
-from an arbitrary report and never authorizes a duplicate worker. Follow the helper's returned
-status, then refill with a newly assembled `--fresh` snapshot.
+reservation, dirty worktree, branch, PR evidence, and first uncertain boundary. Unknown blocks only
+that task and its descendants; unrelated ready tasks remain dispatchable only within proven spare
+capacity because a possibly-live unknown worker still occupies its slot. Run `reconcile` only with
+the admitted scope, existing state, canonical Git repository, and direct evidence that includes
+`worker_stopped: true` plus the reserved branch/workspace/parent and canonical PR/readback identity.
+A canonical open PR with exact identity returns `evidence-pending`: assemble and apply the
+independent full result/check/note evidence without dispatching another Execute worker. A no-PR
+recovery must satisfy the complete [absence evidence contract](references/validation.md#unknown-reconciliation);
+contradictory evidence leaves that task blocked. Proven absence returns same-branch `repair-ready`,
+not a new identity. Reconciliation never clears a reservation from an arbitrary report and never
+authorizes a duplicate worker. Follow the helper's returned status, then refill with a newly
+assembled `--fresh` snapshot.
 
 For a dependent, readiness requires every admitted prerequisite's verified delivery and persisted
 note, plus a single concrete parent containing all prerequisite heads. Prove each with local Git

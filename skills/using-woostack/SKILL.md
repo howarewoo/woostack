@@ -50,11 +50,10 @@ provider-specific scope, capabilities, identities, and lifecycle behavior.
 | Commit current changes and submit or update their PR | `woostack-commit` |
 | Review a pull request | Use [Pullfrog](https://pullfrog.com/). |
 | Address every unresolved thread on one exact existing PR | `woostack-address-comments` |
-| Show the repository-derived work board | `woostack-status` |
 | Render verified source as audience-tailored HTML | `woostack-visualize` |
 | Organize multi-step UI design flows | `woostack-design` |
 | Investigate a root cause without implementing a fix | `woostack-debug` |
-| Add appropriate tests to a bounded target | `woostack-tdd` |
+| Add or strengthen tests for a bounded target | `woostack-execute` (apply its [testing guidance](../woostack-execute/references/tdd.md)) |
 | Diagnose or explicitly repair workspace health | `woostack-doctor` |
 | Explore a running app and report browser QA findings | `woostack-qa` |
 | Evaluate an approved skill corpus without editing it | `woostack-eval` |
@@ -69,6 +68,15 @@ The retired `woostack-change` command has no compatibility alias. Supply the com
 enhancement, refactor, test-only task, or authorized understood correction to
 [`woostack-execute`](../woostack-execute/SKILL.md); use the applicable planning workflow when the
 scope is not complete or needs multiple increments.
+
+The former `/woostack-tdd` test-work command is retired. Send a complete bounded test task
+directly to `/woostack-execute`; it keeps the test-only scope, focused verification, and normal
+one-PR delivery path without a separate router or project handoff.
+
+Ordinary questions about work progress use available authorized GitHub reads or the GitHub UI:
+parent/child issues and native dependency relations define planned work, while linked pull requests
+and Git evidence establish delivery. A Project Status field is provider metadata, not proof of
+implementation, verification, or merge.
 
 ## AGENTS.md usage
 

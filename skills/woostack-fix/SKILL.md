@@ -125,7 +125,8 @@ for parent intent and base changes.
 Allocate one canonical run or resume only the supplied exact run under `.woostack/tmp/runs/<run-id>/`
 using the shared [run-store mechanics](../woostack-init/references/artifact-backends.md#owner-only-local-run-store).
 Local mode makes zero provider calls. For provider mode, preflight the selected official capability
-(MCP for Linear/Plane; host-authenticated `gh` for GitHub) and exact scope before provider effects.
+(MCP for Linear/Plane; an authorized GitHub capability, preferring native tools when suitable and
+supporting host-authenticated `gh`) and exact scope before provider effects.
 
 - **Linear/GitHub:** an exact supplied project retains its existing name/title and visibility. If
   absent, create one project named `[Fix] <proved correction>` under validated scope/defaults

@@ -332,7 +332,7 @@
     },
     {
       "id": "resumes-after-unknown-submit-without-replaying-exact-boundaries",
-      "prompt": "Classify this bounded repository resume snapshot after a prior gt submit timeout without running commands. Fresh complete Git, Graphite, and GitHub reads verify finalized local commit c45, submitted branch change/cache-recovery, and canonical GitHub PR https://github.com/acme/widgets/pull/45 with exact head/base and merge-closing reference. PR fields and submission already match. Because the PR is already open and up-to-date, resume skips gt modify, gt submit, and gh pr edit, and proceeds to optional provider delivery note. Return exactly one JSON object using keys status, resumeBoundary, skippedMutations, resubmitAllowed, and mergeAllowed.",
+      "prompt": "Classify this bounded repository resume snapshot after a prior stack-submission timeout without running commands. Fresh complete Git, Graphite, and GitHub reads verify finalized local commit c45, submitted branch change/cache-recovery, and canonical GitHub PR https://github.com/acme/widgets/pull/45 with exact head/base and merge-closing reference. PR fields and submission already match. Because the PR is already open and up-to-date, resume skips duplicate stack modification, submission, and PR field-update operations, and proceeds to optional provider delivery note. Return exactly one JSON object using keys status, resumeBoundary, skippedMutations, resubmitAllowed, and mergeAllowed.",
       "fixtures": [],
       "capabilities": [
         "read-workspace"
@@ -358,9 +358,9 @@
           "kind": "final-json-path-equals",
           "pointer": "/skippedMutations",
           "expected": [
-            "gt modify",
-            "gt submit",
-            "gh pr edit"
+            "stack modification",
+            "submission",
+            "PR field update"
           ],
           "critical": true
         },
@@ -382,7 +382,7 @@
     },
     {
       "id": "unknown-submit-resubmits-only-after-complete-absence",
-      "prompt": "Classify this bounded native Git/gh repository resume snapshot after a prior single-branch git push timeout without running commands. Exact finalized commit c46 exists locally, no Graphite management evidence exists, and the selected native mode is retained. Fresh complete Git remote-ref and GitHub reads, including all required pages, prove the remote task branch and canonical PR are absent. All parent, scope, and verification gates pass. Return exactly one JSON object using keys status, resumeBoundary, resubmitAllowed, commitAllowed, reasonCode, and mergeAllowed; name the submission boundary native-submit.",
+      "prompt": "Classify this bounded native Git/authorized-GitHub-capability repository resume snapshot after a prior single-branch push timeout without running commands. Exact finalized commit c46 exists locally, no Graphite management evidence exists, and the selected native mode is retained. Fresh complete Git remote-ref and GitHub reads, including all required pages, prove the remote task branch and canonical PR are absent. All parent, scope, and verification gates pass. Return exactly one JSON object using keys status, resumeBoundary, resubmitAllowed, commitAllowed, reasonCode, and mergeAllowed; name the submission boundary native-submit.",
       "fixtures": [],
       "capabilities": [
         "read-workspace"
@@ -485,7 +485,7 @@
           "id": "stale-pr-edit-next",
           "kind": "final-json-path-equals",
           "pointer": "/nextMutation",
-          "expected": "gh pr edit",
+          "expected": "PR field update",
           "critical": true
         },
         {
@@ -506,7 +506,7 @@
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "The exact direct receipt authorizes one direct branch creation from the retained Graphite parent, binds the canonical task worktree, and does not run gt modify.",
+      "expected": "The exact direct receipt authorizes one direct branch creation from the retained Graphite parent, binds the selected task workspace, and does not run gt modify.",
       "assertions": [
         {
           "id": "direct-branch-ready",
@@ -594,7 +594,7 @@
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "The exact caller task contract, branch, deterministic worktree, and parent agree with direct repository evidence and are reused in place; verification and gt modify are selected while every creation command remains absent.",
+      "expected": "The exact caller task contract, selected branch, workspace, and parent agree with direct repository evidence and are reused in place; verification and gt modify are selected while every creation command remains absent.",
       "assertions": [
         {
           "id": "reuse-branch-ready",
@@ -681,7 +681,7 @@
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "The conflicting display branch and foreign checkout at a non-deterministic path fail closed without selecting an identity, parent, worktree, branch command, commit, PR write, or provider mutation.",
+      "expected": "The conflicting display branch and foreign checkout at an alternate path fail closed without selecting an identity, parent, workspace, branch command, commit, PR write, or provider mutation.",
       "assertions": [
         {
           "id": "collision-branch-blocked",
@@ -775,7 +775,7 @@
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "The run identity drift between the active task contract and the branch handoff fails closed without selecting its otherwise matching branch, parent, or deterministic path and without any downstream mutation.",
+      "expected": "The run identity drift between the active task contract and the branch handoff fails closed without selecting its otherwise matching branch, parent, or selected workspace and without any downstream mutation.",
       "assertions": [
         {
           "id": "run-drift-branch-blocked",
@@ -869,7 +869,7 @@
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "The branch checked out outside the deterministic task path fails closed rather than being adopted, attached, recreated, or committed, with no PR or provider mutation.",
+      "expected": "The branch checked out outside the recorded selected workspace path fails closed rather than being adopted, attached, recreated, or committed, with no PR or provider mutation.",
       "assertions": [
         {
           "id": "worktree-drift-branch-blocked",
@@ -1370,15 +1370,15 @@
     },
     {
       "id": "native-commit-without-graphite",
-      "prompt": "Classify a Commit invocation without running commands: approved task branch and isolated worktree, parent intent and retained start SHA, Git ancestry, exact reviewed staged diff, and complete canonical GitHub evidence all agree. There is no Graphite metadata or management evidence and gt is absent; Git and gh are available and authenticated. The task has no PR and its remote branch is absent. Explain the selected mode, commit/push/PR creation sequence, draft state, parent proof, and required read-backs. Do not execute mutations.",
+      "prompt": "Classify a Commit invocation without running commands: approved task branch and isolated worktree, parent intent and retained start SHA, Git ancestry, exact reviewed staged diff, and complete canonical GitHub evidence all agree. There is no Graphite metadata or management evidence and gt is absent; an authorized GitHub submission capability is available (authenticated gh is also supported). The task has no PR and its remote branch is absent. Explain the selected mode, commit/push/PR creation sequence, draft state, parent proof, and required read-backs. Do not execute mutations.",
       "fixtures": [],
       "capabilities": ["read-workspace"],
-      "expected": "Admit native Git+gh without gt; append the staged commit, push exactly the verified branch without force, create one draft PR with exact repository/head/base after proving absence, then independently verify remote and PR identity.",
+      "expected": "Admit native Git with the available authorized GitHub submission capability; append the staged commit, push exactly the verified branch without force, create one draft PR with exact repository/head/base after proving absence, then independently verify remote and PR identity.",
       "assertions": [
         {
           "id": "native-no-gt-dependency",
           "kind": "qualitative",
-          "rubric": "Does Commit proceed without installing or initializing gt, preserve parent/ancestry and staging gates, append a Git commit, use exact single-branch non-force push and gh draft PR creation after duplicate discovery, and require independent read-backs?",
+          "rubric": "Does Commit proceed without installing or initializing gt, preserve parent/ancestry and staging gates, append a Git commit, use the authorized GitHub capability for exact single-branch non-force publication and draft PR creation after duplicate discovery, and require independent read-backs?",
           "critical": true
         }
       ]
