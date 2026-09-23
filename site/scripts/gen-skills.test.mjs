@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { parseFrontmatter } from './skill-assets.mjs';
 import {
-  parseFrontmatter,
   stripTitleHeading,
   rewriteLinks,
   neutralizeTags,
@@ -11,15 +11,44 @@ import {
 } from './gen-skills.mjs';
 
 test('parseFrontmatter extracts name + description and returns the body', () => {
-  const raw = '---\nname: woostack-prepare\ndescription: Prepare a feature.\n---\n\n# woostack-prepare\n\nbody';
+  const raw = '---\nname: woostack-prepare\ndescription: Prepare a feature.\nplugin: preserved-for-site\n---\n\n# woostack-prepare\n\nbody';
   const { fm, body } = parseFrontmatter(raw, 'woostack-prepare');
   assert.equal(fm.name, 'woostack-prepare');
   assert.equal(fm.description, 'Prepare a feature.');
   assert.match(body, /# woostack-prepare/);
+  assert.equal(fm.plugin, 'preserved-for-site');
 });
 
 test('parseFrontmatter throws when name is missing', () => {
   assert.throws(() => parseFrontmatter('---\ndescription: x\n---\nbody', 'f'), /missing 'name'/);
+});
+
+test('parseFrontmatter throws when description is missing', () => {
+  assert.throws(
+    () => parseFrontmatter('---\nname: f\n---\nbody', 'f'),
+    (error) => error.code === 'frontmatter-description-missing' && /description/.test(error.message),
+  );
+});
+
+test('parseFrontmatter rejects duplicate fields', () => {
+  assert.throws(
+    () => parseFrontmatter('---\nname: f\nname: g\ndescription: x\n---\nbody', 'f'),
+    (error) => error.code === 'frontmatter-duplicate-field' && /duplicate.*name/.test(error.message),
+  );
+});
+
+test('parseFrontmatter rejects malformed quoted metadata', () => {
+  assert.throws(
+    () => parseFrontmatter('---\nname: f\ndescription: "unterminated\n---\nbody', 'f'),
+    (error) => error.code === 'frontmatter-invalid-scalar' && /quoted description/.test(error.message),
+  );
+});
+
+test('parseFrontmatter accepts only an opening unfenced block', () => {
+  assert.throws(
+    () => parseFrontmatter('```yaml\n---\nname: f\ndescription: x\n---\n```\n', 'f'),
+    (error) => error.code === 'frontmatter-missing',
+  );
 });
 
 test('parseFrontmatter strips surrounding YAML quotes (some descriptions are quoted)', () => {
@@ -45,7 +74,7 @@ test('parseFrontmatter rejects colon-space in a plain description deterministica
   assert.throws(
     () => parseFrontmatter(raw, 'woostack-plan'),
     (error) => error.code === 'frontmatter-plain-colon-space' &&
-      error.message === 'woostack-plan: description contains colon-space in a plain scalar; quote the value',
+      /description.*colon-space.*plain scalar/i.test(error.message),
   );
 });
 

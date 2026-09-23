@@ -1,10 +1,8 @@
-import { readdir, readFile, writeFile, mkdir, rm } from 'node:fs/promises';
+import { writeFile, mkdir, rm } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { parseFrontmatter } from '../../skills/woostack-eval/scripts/validate.mjs';
-
-export { parseFrontmatter };
+import { validateSkillAssets } from './skill-assets.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, '..', '..'); // site/scripts -> repo root
@@ -114,22 +112,15 @@ async function main() {
     );
     process.exit(1);
   }
+  const skills = await validateSkillAssets(SKILLS_DIR, PUBLIC_ORDER);
   await rm(OUT_DIR, { recursive: true, force: true });
   await mkdir(OUT_DIR, { recursive: true });
-  const names = (await readdir(SKILLS_DIR, { withFileTypes: true }))
-    .filter((e) => e.isDirectory())
-    .map((e) => e.name)
-    .sort();
   const written = [];
-  for (const name of names) {
-    const file = path.join(SKILLS_DIR, name, 'SKILL.md');
-    if (!existsSync(file)) continue;
-    const raw = await readFile(file, 'utf8');
-    const { fm, body } = parseFrontmatter(raw, name);
-    let b = stripTitleHeading(body, fm.name);
-    b = neutralizeTags(b);
-    b = rewriteLinks(b, name);
-    await writeFile(path.join(OUT_DIR, `${name}.mdx`), renderPage(name, fm, b), 'utf8');
+  for (const { name, fm, body } of skills) {
+    let renderedBody = stripTitleHeading(body, fm.name);
+    renderedBody = neutralizeTags(renderedBody);
+    renderedBody = rewriteLinks(renderedBody, name);
+    await writeFile(path.join(OUT_DIR, `${name}.mdx`), renderPage(name, fm, renderedBody), 'utf8');
     written.push(name);
   }
   await writeFile(
