@@ -10,11 +10,13 @@ This is a published collection of skills, not an application codebase. It packag
 decisions for building new web, mobile, and API projects so agents can install it with
 `pnpx skills add howarewoo/woostack`.
 
-The public command/adoption surface has seventeen skills:
+The public command/adoption surface has nineteen skills:
 
 - [`using-woostack`](skills/using-woostack/SKILL.md)
 - [`woostack-init`](skills/woostack-init/SKILL.md)
 - [`woostack-bootstrap`](skills/woostack-bootstrap/SKILL.md)
+- [`woostack-ideate`](skills/woostack-ideate/SKILL.md)
+- [`woostack-harden`](skills/woostack-harden/SKILL.md)
 - [`woostack-build`](skills/woostack-build/SKILL.md)
 - [`woostack-fix`](skills/woostack-fix/SKILL.md)
 - [`woostack-plan`](skills/woostack-plan/SKILL.md)
@@ -30,12 +32,9 @@ The public command/adoption surface has seventeen skills:
 - [`woostack-eval`](skills/woostack-eval/SKILL.md)
 - [`woostack-reflect`](skills/woostack-reflect/SKILL.md)
 
-The collection also installs two internal sub-skills:
-[`woostack-ideate`](skills/woostack-ideate/SKILL.md) and
-[`woostack-harden`](skills/woostack-harden/SKILL.md). `woostack-build` delegates its ideate
-phase to the former and its harden phase to the latter. Both are bundled building blocks, not
-`/woostack-*` commands: they have no routing row and are absent from the seventeen-skill command
-surface above.
+Ideate and Harden are public standalone phases as well as composable callers for Build/Fix. They
+exchange complete plain content with explicit repository/evidence identity; no run manifest,
+provider mirror, or wrapper admission is required to invoke either one.
 
 There is no application source code, app lockfile, build, or CI for this repo's own
 push/PR events. `skills-lock.json` is the dev-skill manifest and is currently empty.
@@ -61,15 +60,18 @@ consequences, and verification for explicit user approval, then uses the shared 
 workflow without a project run or provider calls. Multi-increment, materially uncertain, or explicitly
 project-backed fixes use the retained planning workflow below.
 
-Gated Ideate, Harden, and delegated Plan work is managed in one permission-restricted run manifest
-with zero provider cycles. Build and project-backed Fix write plain `project-spec.md` and `execution-plan.md`
-directly under `.woostack/tmp/runs/<run-id>/` and proceed directly to a user-controlled handoff
-(`Stop here`, `Execute`, `Abandon`); the handoff stops at retained artifacts and the caller supplies
-one selected complete bounded task to `/woostack-execute <bounded input>` (see
-[Execute retired inputs](skills/woostack-execute/SKILL.md#retired-inputs)). When `artifacts.provider` selects a configured provider, local
-artifacts mirror in bounded post-drafting cycles; mirror failure is recorded in the manifest and is
-nonblocking for local authority. Resuming planning work uses
-`/woostack-build --run <exact-run-id>` or `/woostack-fix --run <exact-run-id>`. All run artifacts in
+Public Ideate and Harden use complete plain packets with explicit repository/evidence identity and
+return complete plain handbacks; neither requires a Build/Fix run, provider configuration, or
+permission-restricted manifest. Build and project-backed Fix may adapt their retained run content to
+those public calls, then write plain `project-spec.md` and `execution-plan.md` directly under
+`.woostack/tmp/runs/<run-id>/` and proceed to a user-controlled handoff (`Stop here`, `Execute`,
+`Abandon`). The handoff stops at retained artifacts and the caller supplies one selected complete
+bounded task to `/woostack-execute <bounded input>` (see
+[Execute retired inputs](skills/woostack-execute/SKILL.md#retired-inputs)). When `artifacts.provider`
+selects a configured provider, local artifacts mirror in bounded post-drafting cycles; mirror failure
+is recorded in the manifest and is nonblocking for local authority.
+Resuming planning work uses `/woostack-build --run <exact-run-id>` or
+`/woostack-fix --run <exact-run-id>`. All run artifacts in
 `.woostack/tmp/runs/<run-id>/` are retained upon completion and upon explicit abandonment to preserve
 an unbroken audit trail. Explicit abandonment sets `status: "abandoned"` in the manifest and does not
 mutate a mirrored provider project. Standalone Plan synchronization remains direct and unchanged. The
@@ -110,9 +112,8 @@ retained unchanged local run artifacts does not require the original process to 
 contract lives in the authored [Hermes guide](site/content/docs/hermes.mdx); it does not make Hermes a supported host
 or grant it implementation authority.
 
-This collection has seventeen public command/adoption skills at nineteen fixed `SKILL.md`
+This collection has nineteen public command/adoption skills at nineteen fixed `SKILL.md`
 locations. Remote provider support adds neither a command-routing row nor a per-provider skill.
-## Modes
 
 Identify the mode before acting.
 
@@ -176,8 +177,8 @@ the repository's simplify/comments guidance.
   pages need no manual edit: they regenerate from each `SKILL.md` at build time (see the
   documentation-site exception above). When in doubt, run `pnpm -C site build` to confirm the
   site still builds.
-- Do not move or rename any of the nineteen `SKILL.md` files (the seventeen public command/adoption
-  skills plus internal `woostack-ideate` and `woostack-harden`), except for an explicitly approved
+- Do not move or rename any of the nineteen `SKILL.md` files. Public command/adoption names and
+  fixed paths are part of the installed interface, except for an explicitly approved
   retirement that removes the complete skill and its references.
 - Do not rename files under
   [`skills/woostack-bootstrap/references/`](skills/woostack-bootstrap/references/) without
@@ -194,6 +195,12 @@ the repository's simplify/comments guidance.
   [`skills/woostack-bootstrap/references/`](skills/woostack-bootstrap/references/)
 - Build loop:
   [`skills/woostack-build/SKILL.md`](skills/woostack-build/SKILL.md)
+- Public specification elicitation phase:
+  [`skills/woostack-ideate/SKILL.md`](skills/woostack-ideate/SKILL.md)
+- Public repository reconciliation phase:
+  [`skills/woostack-harden/SKILL.md`](skills/woostack-harden/SKILL.md)
+- Shared plain planning input and handback contract:
+  [`skills/using-woostack/references/planning-inputs.md`](skills/using-woostack/references/planning-inputs.md)
 - Bug-fix workflow (public command; prove cause → informed approval → bounded delivery or project planning):
   [`skills/woostack-fix/SKILL.md`](skills/woostack-fix/SKILL.md)
 - Bounded task execution engine delivering one task through one PR (public command):
@@ -214,10 +221,6 @@ the repository's simplify/comments guidance.
   [`skills/woostack-eval/SKILL.md`](skills/woostack-eval/SKILL.md)
 - Session reflection (public report and internal final-reply hook):
   [`skills/woostack-reflect/SKILL.md`](skills/woostack-reflect/SKILL.md)
-- Ideate phase engine for the build loop (internal sub-skill):
-  [`skills/woostack-ideate/SKILL.md`](skills/woostack-ideate/SKILL.md)
-- Harden phase engine for the build loop (internal sub-skill):
-  [`skills/woostack-harden/SKILL.md`](skills/woostack-harden/SKILL.md)
 - Commit and PR update flow:
   [`skills/woostack-commit/SKILL.md`](skills/woostack-commit/SKILL.md)
 - Systematic-debugging engine (public command + internal hook invoked by execute):

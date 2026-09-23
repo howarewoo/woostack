@@ -1210,17 +1210,19 @@ assert_catalog "$RUN_ROOT/cases/alpha-trigger/1/baseline/catalog.json" \
 
 PUBLIC_CATALOG="$TMP_ROOT/public-catalog"
 write_public_authority "$PUBLIC_CATALOG/using-woostack" unknown-support
+printf '| Reconcile supplied planning content | `woostack-harden` |\n| Discover specification decisions | `woostack-ideate` |\n' \
+  >>"$PUBLIC_CATALOG/using-woostack/SKILL.md"
 write_skill "$PUBLIC_CATALOG/catalog-peer" catalog-peer 'Public catalog peer.'
-write_skill "$PUBLIC_CATALOG/woostack-harden" woostack-harden 'Internal hardening utility.'
-write_skill "$PUBLIC_CATALOG/woostack-ideate" woostack-ideate 'Internal design utility.'
+write_skill "$PUBLIC_CATALOG/woostack-harden" woostack-harden 'Public hardening phase.'
+write_skill "$PUBLIC_CATALOG/woostack-ideate" woostack-ideate 'Public specification phase.'
 write_skill "$PUBLIC_CATALOG/unknown-support" unknown-support 'Unknown directory must not become public.'
 expect_success 'selected catalog root owns its public command authority' \
   --target "$NON_GIT_TARGET" --mode triggers --runs 1 --catalog-root "$PUBLIC_CATALOG" \
   --baseline-path "$NON_GIT_BASELINE" --out-root "$TMP_ROOT/runs" --run-id public-catalog
 assert_catalog "$RUN_ROOT/cases/alpha-trigger/1/candidate/catalog.json" \
-  '{"schemaVersion":1,"skills":[{"name":"catalog-peer","description":"Public catalog peer."},{"name":"external-target","description":"External target description."},{"name":"unknown-support","description":"Unknown directory must not become public."},{"name":"using-woostack","description":"Installed public command-routing authority."}]}'
+  '{"schemaVersion":1,"skills":[{"name":"catalog-peer","description":"Public catalog peer."},{"name":"external-target","description":"External target description."},{"name":"unknown-support","description":"Unknown directory must not become public."},{"name":"using-woostack","description":"Installed public command-routing authority."},{"name":"woostack-harden","description":"Public hardening phase."},{"name":"woostack-ideate","description":"Public specification phase."}]}'
 assert_catalog "$RUN_ROOT/cases/alpha-trigger/1/baseline/catalog.json" \
-  '{"schemaVersion":1,"skills":[{"name":"catalog-peer","description":"Public catalog peer."},{"name":"external-target","description":"External baseline description."},{"name":"unknown-support","description":"Unknown directory must not become public."},{"name":"using-woostack","description":"Installed public command-routing authority."}]}'
+  '{"schemaVersion":1,"skills":[{"name":"catalog-peer","description":"Public catalog peer."},{"name":"external-target","description":"External baseline description."},{"name":"unknown-support","description":"Unknown directory must not become public."},{"name":"using-woostack","description":"Installed public command-routing authority."},{"name":"woostack-harden","description":"Public hardening phase."},{"name":"woostack-ideate","description":"Public specification phase."}]}'
 
 MISSING_CATALOG="$TMP_ROOT/missing-catalog"
 write_public_authority "$MISSING_CATALOG/using-woostack" broken-entry

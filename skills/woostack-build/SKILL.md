@@ -5,7 +5,7 @@ description: Prepare a multi-increment feature with plain retained artifacts and
 
 # woostack-build
 
-Build is a thin controller wrapper around the internal decision and planning phases. It always owns
+Build is a thin controller wrapper around the public Ideate and Harden phases plus planning. It owns
 persistent local runs under `.woostack/tmp/runs/<run-id>/`, supports exact `--run`, retains
 success/Stop/Abandon artifacts, and stops at a verified handoff where the caller supplies one
 selected complete bounded task to Execute. Local run
@@ -15,6 +15,8 @@ and canonical GitHub reads remain the authority for repository delivery. Use nat
 authorized GitHub capability (prefer native GitHub tools when suitable; host-authenticated `gh` is
 supported); discover the actual operation capabilities and read shapes. Optional Graphite selection
 follows the [source-control contract](../woostack-commit/references/graphite.md).
+Build adapts its retained content and baseline/evidence identity into the public phase input packet;
+the run manifest is Build's persistence boundary, not an Ideate or Harden admission requirement.
 Merge authority is human-only: never auto-merge, never enqueue, never merge.
 ## Commands
 
@@ -55,8 +57,10 @@ governs parent-branch intent and base movement detection; this wrapper does not 
 ## Fixed chain
 
 ```text
-allocate or resume canonical local run `.woostack/tmp/runs/<run-id>/` (and admit baseline when mirroring) →
-draft Ideate/Harden locally with zero provider calls →
+allocate or resume canonical local run `.woostack/tmp/runs/<run-id>` (and admit baseline when mirroring) →
+adapt the admitted goal/specification and identity into a plain Ideate packet →
+receive the complete Ideate handback and adapt it into a plain Harden packet →
+receive the complete Harden handback →
 writes plain Markdown `project-spec.md` (and perform optional bounded mirror sync/read-back) →
 draft delegated Plan/Harden locally with zero provider calls →
 writes plain Markdown `execution-plan.md` (and perform optional bounded mirror sync/read-back) →
@@ -67,23 +71,27 @@ retain run artifacts → present verified handoff and ask `Stop here`/`Execute`/
 > handoff. Build stops at retained artifacts; the caller selects one complete bounded task and
 > supplies it to [`woostack-execute`](../woostack-execute/SKILL.md#retired-inputs) with its decisions,
 > parent evidence, and exact retained state. Final orchestration automation is later work.
-Invoke [`woostack-ideate`](../woostack-ideate/SKILL.md) for exhaustive user-verified decisions and
-[`woostack-harden`](../woostack-harden/SKILL.md) to reconcile bounded repository evidence. Both work
-only in the shared run-scoped manifest after baseline admission, make no provider call while gated,
-and own no approval gate.
+Invoke public [`woostack-ideate`](../woostack-ideate/SKILL.md) for exhaustive user-verified decisions
+and public [`woostack-harden`](../woostack-harden/SKILL.md) to reconcile bounded repository
+evidence. Build supplies each phase with the complete plain packet from
+[`planning-inputs.md`](../using-woostack/references/planning-inputs.md), including the exact baseline
+and evidence identity. While Build retains its manifest and may mirror final plain artifacts, these
+phase calls make no provider call and do not admit or mutate the manifest as a phase prerequisite.
 
 After `project-spec.md` is written (and optional mirror synchronization completes or records nonblocking
 failure), invoke [`woostack-plan`](../woostack-plan/SKILL.md) with the readable specification, baseline
 identity, and verified run manifest. When delegated by Build, Plan returns only a candidate graph
 under its [selected-provider invariants](../woostack-plan/SKILL.md#graph-invariants) and performs no
-provider read or mutation. Harden admits the candidate
-into the manifest and reconciles it with repository evidence. Build writes `execution-plan.md` directly
-under the run directory and performs optional bounded mirror synchronization when `artifacts.provider: "linear"`, `artifacts.provider: "plane"`, or `artifacts.provider: "github"`.
+provider read or mutation. Build passes the complete candidate graph and repository evidence to
+public Harden as plain content. Harden returns its reconciled handback without manifest mutation;
+Build admits and persists that handback, writes `execution-plan.md` under the run directory, and
+performs optional bounded mirror synchronization when `artifacts.provider` selects a remote provider.
 
 Apply the [least-code doctrine](../woostack-bootstrap/references/patterns.md#7-least-code--comments)
 at both boundaries. Ideate owns user verification of the complete specification, including technical
 details and removal opportunities; Harden owns repository reconciliation. Neither repository evidence
 nor a proposed default replaces the user's decisions.
+
 
 ## Readable plain artifacts
 

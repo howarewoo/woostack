@@ -23,7 +23,8 @@ pnpx skills add howarewoo/woostack
 ```
 
 
-The public commands and bundled internal phases are listed in [AGENTS.md](AGENTS.md#what-this-repo-is).
+The public commands are listed in [AGENTS.md](AGENTS.md#what-this-repo-is), including the directly
+callable Ideate and Harden planning phases.
 
 For frontend work, you can also install [impeccable](https://github.com/pbakaus/impeccable).
 woostack recommends it for design reviews:
@@ -95,7 +96,10 @@ in the coding assistant.
 | What you need | Command | What happens |
 | --- | --- | --- |
 | A new application | [/woostack-bootstrap](skills/woostack-bootstrap/SKILL.md) | Checks the target directory, asks you to approve the design, then creates the project. |
-| A feature that needs several PRs | [/woostack-build](skills/woostack-build/SKILL.md) | Works through requirements with you, saves a specification and plan, then retains the artifacts for you to select one bounded task for Execute. |
+| Elicit a complete specification | [/woostack-ideate](skills/woostack-ideate/SKILL.md) | Takes a goal or existing specification, asks only for missing user-owned decisions, and returns complete plain content. |
+| Reconcile a specification or candidate issue plan | [/woostack-harden](skills/woostack-harden/SKILL.md) | Checks supplied content against bounded repository/evidence identity and returns complete reconciled content after explicit corrections. |
+| Publish an approved issue plan | [/woostack-plan](skills/woostack-plan/SKILL.md) | Turns an approved specification into reviewable increments under its provider contract without implementing them. |
+| A feature that needs several PRs | [/woostack-build](skills/woostack-build/SKILL.md) | Composes the public phases, saves a specification and plan, then retains the artifacts for you to select one bounded task for Execute. |
 | A bug fix | [/woostack-fix](skills/woostack-fix/SKILL.md) | Proves the cause and asks you to approve the correction before delivering a small fix or planning larger work. |
 | A bounded enhancement, refactor, test-only task, or authorized understood correction | [/woostack-execute](skills/woostack-execute/SKILL.md) | Accepts one complete bounded task, verifies it, and delivers one PR without planning-provider calls. |
 | Execute an approved GitHub issue graph | [/woostack-orchestrate](skills/woostack-orchestrate/SKILL.md) | Takes one exact parent issue, explicit Project, or explicit issue list, runs ready tasks in isolated Execute workers, and verifies submitted draft PRs without merging. |

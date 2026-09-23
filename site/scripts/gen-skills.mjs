@@ -15,6 +15,8 @@ export const PUBLIC_ORDER = [
   'using-woostack',
   'woostack-init',
   'woostack-bootstrap',
+  'woostack-ideate',
+  'woostack-harden',
   'woostack-build',
   'woostack-fix',
   'woostack-plan',
@@ -30,7 +32,7 @@ export const PUBLIC_ORDER = [
   'woostack-eval',
   'woostack-reflect',
 ];
-export const INTERNAL_ORDER = ['woostack-harden', 'woostack-ideate'];
+export const INTERNAL_ORDER = [];
 
 const ORDER = [...PUBLIC_ORDER, ...INTERNAL_ORDER];
 const INTERNAL = new Set(INTERNAL_ORDER);

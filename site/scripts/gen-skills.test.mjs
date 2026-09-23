@@ -104,7 +104,7 @@ test('neutralizeTags: block tag -> Callout, prose tag escaped, code-span/fence p
   assert.equal(neutralizeTags(marker), '');
 });
 
-test('renderPage emits title/description, source link, internal note for sub-skills', () => {
+test('renderPage emits title/description and source links for public phases', () => {
   const fm = { name: 'woostack-build', description: 'Build a feature: end to end.' };
   const page = renderPage('woostack-build', fm, '## Overview\n\nbody');
   assert.match(page, /^---\ntitle: woostack-build\n/);
@@ -116,14 +116,18 @@ test('renderPage emits title/description, source link, internal note for sub-ski
   assert.doesNotMatch(page, /Internal sub-skill/);
 
   const ideate = renderPage('woostack-ideate', { name: 'woostack-ideate', description: 'x' }, 'b');
-  assert.match(ideate, /Internal sub-skill/);
+  const harden = renderPage('woostack-harden', { name: 'woostack-harden', description: 'x' }, 'b');
+  assert.doesNotMatch(ideate, /Internal sub-skill/);
+  assert.doesNotMatch(harden, /Internal sub-skill/);
 });
 
-test('navOrder places orchestration between planning and bounded execution', () => {
+test('navOrder places public planning phases before build and orchestration', () => {
   const expectedPublic = [
     'using-woostack',
     'woostack-init',
     'woostack-bootstrap',
+    'woostack-ideate',
+    'woostack-harden',
     'woostack-build',
     'woostack-fix',
     'woostack-plan',
@@ -139,9 +143,7 @@ test('navOrder places orchestration between planning and bounded execution', () 
     'woostack-eval',
     'woostack-reflect',
   ];
-  const expectedInternal = ['woostack-harden', 'woostack-ideate'];
-  const expected = [...expectedPublic, ...expectedInternal];
 
-  assert.deepEqual(navOrder([...expected].reverse()), expected);
+  assert.deepEqual(navOrder([...expectedPublic].reverse()), expectedPublic);
 });
 

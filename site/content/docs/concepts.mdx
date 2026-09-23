@@ -27,10 +27,17 @@ See [Workflow maps](/docs/concepts/workflows) for the sequences and
 
 ## Complete user understanding
 
-Ideate is the planning conversation. The user verifies the goals, behavior, exclusions, architecture,
-data models, API details, and verification expectations that matter to the work. Harden checks
-those decisions against the repository and raises one discrepancy at a time. Existing conventions
-and plausible defaults never replace the user's decision.
+Ideate is a public planning conversation. Invoke it as `/woostack-ideate <goal-or-specification>` with
+complete plain content and the exact repository/evidence identity when repository-grounded decisions
+are needed. The user verifies goals, behavior, exclusions, architecture, data models, API details,
+and verification expectations that matter to the work. Ideate returns the complete specification,
+confirmed decisions, evidence, and unresolved questions.
+
+Harden is also directly callable: `/woostack-harden <specification-or-issue-plan>`. It checks supplied
+content against bounded repository evidence, raises material discrepancies before changing approved
+decisions, and returns complete reconciled content. Neither phase requires Build, Fix, a run
+manifest, provider configuration, or a remote mirror. Existing conventions and plausible defaults
+never replace the user's decision.
 
 Plans describe outcomes and acceptance criteria: the conditions the finished work must meet. They
 leave coding steps to the implementer without changing the agreed scope.

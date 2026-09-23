@@ -1,8 +1,9 @@
 # Contributing
 
 This repo publishes skills for AI coding assistants, their supporting files, and a documentation
-site. [AGENTS.md](AGENTS.md#what-this-repo-is) lists the public commands and internal skills.
-The [command index](skills/using-woostack/SKILL.md#command-routing) explains when to use each one.
+site. [AGENTS.md](AGENTS.md#what-this-repo-is) lists the public commands, including the standalone
+Ideate and Harden phases. The [command index](skills/using-woostack/SKILL.md#command-routing) explains
+when to use each one.
 
 This guide covers common edits. Read [AGENTS.md](AGENTS.md) for the full repository rules.
 

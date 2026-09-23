@@ -13,12 +13,18 @@ optional copies in a provider. Git and GitHub show what was implemented and deli
 | Work shape | Workflow |
 | --- | --- |
 | Fresh project in a new target | [Bootstrap](/docs/skills/woostack-bootstrap) |
+| Elicit or complete a specification | [Ideate](/docs/skills/woostack-ideate) |
+| Reconcile a specification or candidate issue plan | [Harden](/docs/skills/woostack-harden) |
 | Bug or regression to fix | [Fix](/docs/skills/woostack-fix) |
 | Bounded enhancement, refactor, test-only task, or authorized understood correction | [Execute](/docs/skills/woostack-execute) |
 | Coordinated feature requiring a complete specification and plan | [Build](/docs/skills/woostack-build) |
 | Add or strengthen tests for a bounded target | [Execute](/docs/skills/woostack-execute) with its [testing guidance](https://github.com/howarewoo/woostack/blob/main/skills/woostack-execute/references/tdd.md) |
 
-For root-cause investigation without changes, use [Debug](/docs/skills/woostack-debug).
+Ideate and Harden are complete public phases, not hidden run steps. They accept plain packets with
+explicit repository/evidence identity and return reusable plain handbacks. Build and project-backed
+Fix may compose those phases through their own retained records, but no run, provider mirror, or
+wrapper admission is required for direct use. For root-cause investigation without changes, use
+[Debug](/docs/skills/woostack-debug).
 
 Choosing a workflow does not approve its design or authorize extra work. If the scope grows, the
 workflow preserves repository state and reports where to resume. Work then moves to the matching
@@ -42,21 +48,21 @@ requires a choice; a stack preference is not approval of the complete design.
 ## Build
 
 ```text
-allocate/resume local run and admit baseline (if mirroring) → local Ideate/Harden →
-write `project-spec.md` (and optional bounded mirror sync) → local Plan/Harden →
-write `execution-plan.md` (and optional bounded mirror sync) → retain run artifacts →
-verified `Stop here`/`Execute`/`Abandon` handoff
+allocate/resume local run and admit baseline (if mirroring) → adapt plain input to public Ideate →
+adapt its complete handback to public Harden → write `project-spec.md` (and optional bounded mirror
+sync) → local Plan/Harden → write `execution-plan.md` (and optional bounded mirror sync) → retain
+run artifacts → verified `Stop here`/`Execute`/`Abandon` handoff
 ```
 
 The user verifies the complete specification, including technical details, through Ideate and Harden.
-An increment is a piece of the plan that fits one independently reviewable PR. Each increment records
-its outcome, scope, acceptance criteria, verification, risks, prerequisites, and Git parent-selection policy.
+Those public phases can also run independently without Build or Fix. An increment is a piece of the
+plan that fits one independently reviewable PR. Each increment records its outcome, scope,
+acceptance criteria, verification, risks, prerequisites, and Git parent-selection policy.
 
 The [artifact contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-backends.md)
 owns local run storage and optional provider profiles. Run IDs remain exact, artifacts are retained,
 and mirror failures do not replace or invalidate local authority. Build stops before automatic Execute
 dispatch; the caller supplies one selected complete bounded task to Execute.
-
 
 ## Fix
 

@@ -41,11 +41,14 @@ The standard applies during planning, implementation, and review:
 
 - The full generated-code standard is
   [`patterns.md §7`](https://github.com/howarewoo/woostack/blob/main/skills/woostack-bootstrap/references/patterns.md#7-least-code--comments).
-- [woostack-build](/docs/skills/woostack-build) and project-backed
-  [woostack-fix](/docs/skills/woostack-fix) prepare the specification and plan through
-  [woostack-ideate](/docs/skills/woostack-ideate), [woostack-harden](/docs/skills/woostack-harden),
-  and delegated [woostack-plan](/docs/skills/woostack-plan). Harden checks whether safe deletion,
-  reuse, or simplification can satisfy the scope before accepting additions.
+- Public [woostack-ideate](/docs/skills/woostack-ideate) owns explicit user verification and
+  [woostack-harden](/docs/skills/woostack-harden) owns evidence reconciliation; each can be called
+  directly with a complete plain packet. [woostack-build](/docs/skills/woostack-build) and
+  project-backed [woostack-fix](/docs/skills/woostack-fix) adapt their retained content into these
+  phases and delegated [woostack-plan](/docs/skills/woostack-plan). Harden checks whether safe
+  deletion, reuse, or simplification can satisfy the scope before accepting additions.
+- [woostack-plan](/docs/skills/woostack-plan) applies the ladder before fixing increment scope,
+  recording concrete reuse opportunities and material reasons for additions in the existing contract.
   [woostack-execute](/docs/skills/woostack-execute) loads it before choosing an implementation and
   carries it into any delegated implementation packet. A smaller solution must still satisfy the
   complete accepted scope and required verification.

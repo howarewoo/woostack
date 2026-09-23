@@ -1,126 +1,106 @@
 ---
 name: woostack-ideate
-description: Internal Build/Fix phase that records only user-verified decisions in a permission-restricted run draft and hands back a plain local specification. It is not a public command.
+description: Public phase for turning a goal or existing specification into a complete user-verified specification with explicit repository and evidence identity; read-only and composable.
 ---
 
 # woostack-ideate
 
-An internal building block of [`woostack-build`](../woostack-build/SKILL.md), also used by its
-project-backed Fix wrapper. Ideate turns a feature request or proved fix into a complete high-level
-project specification through exhaustive brainstorming. It has no approval gate, makes no provider
-call, and makes no implementation or planning handoff of its own.
+Ideate turns a goal, a partial specification, or a proved diagnosis into a complete specification
+through an explicit decision conversation. It is a public phase and may also be composed by Build,
+Fix, or a future preparation workflow. It does not own persistence, publication, implementation, or
+automatic handoff.
 
-## Entry: admitted baseline and run manifest
+## Command and input
 
-The owning Build/Fix wrapper supplies the exact baseline and permission-restricted run-scoped JSON
-manifest admitted under the shared
-[artifact contract](../woostack-init/references/artifact-backends.md#minimal-resumable-manifest-schema).
-Ideate verifies the manifest's run identity, restrictive permissions (`0700` directory and `0600`
-regular file), draft content, monotonic revision, unresolved questions, and atomic compare-and-swap
-boundary before using it.
+```text
+/woostack-ideate <goal-or-specification>
+```
 
-Ideate never resolves, creates, reads, patches, or independently reads back a provider record.
-Missing, stale, foreign, overly permissive, symlinked, or malformed manifest state blocks and returns
-to the owning wrapper. The local run manifest is the canonical local authority and makes zero provider
-calls.
+Pass the complete plain packet described in
+[`planning-inputs.md`](../using-woostack/references/planning-inputs.md), including the exact
+repository and evidence identity when repository-grounded decisions or evidence are supplied. The
+content may be a goal, an existing specification, or a proved diagnosis. A caller may pass a prior
+handback verbatim. There is no required `--run`, project selector, provider configuration, or
+permission-restricted manifest. Build/Fix may adapt their retained run content into this packet;
+their local record remains their own persistence boundary, not Ideate admission.
 
-## Non-negotiable content invariant
+When content or a material decision is missing, ask for that specific input. Establish repository
+and evidence identity through the shared input contract before relying on repository observations.
+Resolve available checkout facts with read-only tools; do not discover a fuzzy run or replace an
+explicit target with a different repository. Revalidate stale evidence without silently changing
+the user's decisions, and ask only for an unresolved target or material choice.
 
-**No inferred, repository-derived, agent-preferred, or merely plausible content enters the project
-specification until the user explicitly verifies it.** Repository inspection, existing provider text,
-and recommendations are evidence or prompts only. A user must verify every material goal, user,
-behavior, constraint, exclusion, architecture decision, acceptance criterion, and verification
-expectation before it is persisted. Silence, a plausible answer, or an agent-authored summary is
-not verification.
+## Decision ownership invariant
 
-At the specification boundary, Ideate records viable removal opportunities before additive
-proposals. For each opportunity, capture the user's verified choice of safe deletion or
-simplification, or the bounded reason it cannot meet the contract; never infer that addition is
-necessary. Carry this removal-first analysis into the complete specification, using the canonical
-[least-code doctrine](../woostack-bootstrap/references/patterns.md#7-least-code--comments) without
-dropping its safety requirements.
+**No inferred, repository-derived, agent-preferred, or merely plausible content enters the
+specification until the user explicitly verifies it.** Repository inspection, existing issue text,
+conventions, and recommendations are evidence or prompts only. Silence is not verification. The
+user verifies every material goal, user, behavior, constraint, exclusion, architecture decision,
+acceptance criterion, verification expectation, and applicable technical detail.
 
-Ideate owns the conditional collection of the specification's `## Data models` section. When the
-feature or fix modifies or introduces database or storage tables, the section is required and must
-capture all applicable entities/tables, fields/types, constraints, relationships, indexes, and
-migration/backfill details. When the change modifies or introduces public or internal APIs, the
-section is required and must capture all applicable method/path, authorization, request/response/error
-shapes, and compatibility details. If both table and API changes apply, capture both in that single
-`## Data models` section. When neither table nor API changes apply, omit the `## Data models` section
-entirely. A table change or an API change may not omit the section. Like all other specification content,
-every data model and API detail must be explicitly user-verified; never infer, synthesize, or default
-schemas, migrations, or endpoints from repository inspection.
+At the specification boundary, identify removal, reuse, simplification, and generalization
+opportunities before additive proposals. For each opportunity, ask the user to verify safe deletion
+or simplification, or to state the bounded reason addition remains necessary. Keep required safety,
+compatibility, accessibility, and data-loss protections while applying the
+[least-code doctrine](../woostack-bootstrap/references/patterns.md#7-least-code--comments).
 
-## Dialogue and local drafting
+When the change modifies or introduces storage/tables or public/internal APIs, the specification
+must contain one `## Data models` section. It must capture all applicable entities/tables,
+fields/types, constraints, relationships, indexes, migration/backfill details, method/path,
+authorization, request/response/error shapes, and compatibility details. When neither storage nor
+API changes apply, omit that section. Every detail is explicitly user-verified; never infer a
+schema, migration, endpoint, or compatibility default from repository inspection.
 
-Use the active harness's native ask/question tool for every decision batch. Select the supported
-adapter through the [host index](../using-woostack/references/hosts/README.md) and discover the
-question tool and its schema from the live session; never assume another harness's tool name or
-arguments. Submit the eligible questions together using the tool's batch support. If its schema
-limits batch size, split only at that limit without postponing known independent questions.
-If the tool is unavailable or cannot represent a required question, state that limitation and ask
-the affected questions in a clearly numbered chat batch instead. Tool defaults, preselected options,
-and recommendations are not user verification; only explicit user answers may enter the draft.
+## Elicitation
 
-Brainstorm exhaustively within the requested feature, ask only for missing decisions, and resolve
-upstream decisions first. Use this progressive coverage order to expose dependencies and keep the
-conversation anchored to the contract:
+Use the active host's supported ask/question capability when available. Load the host adapter through
+the [host index](../using-woostack/references/hosts/README.md); do not assume a tool name or schema.
+Submit currently independent questions together, subject only to host batch limits. If the host
+cannot represent a required question, ask a clearly numbered chat batch instead. Recommendations
+and preselected options help explain a choice but never settle it.
 
-1. **Problem and users:** establish the evidence, intended outcome, actors, and prioritized
-   functional behavior.
-2. **System qualities:** quantify only relevant non-functional requirements, then capture
-   constraints, compatibility, and non-goals.
-3. **Removal before addition:** identify viable deletion or simplification opportunities and
-   resolve them before proposing additive architecture.
-4. **Entities and interfaces:** when applicable, identify the domain entities and define each
-   changed storage or API contract required by the conditional `## Data models` section.
-5. **Flows and state:** when behavior spans meaningful steps, capture the request, event, or data
-   flow and the state transitions necessary to produce each outcome.
-6. **Architecture decisions:** capture only material user-owned boundaries, tradeoffs, and choices;
-   leave repository reconciliation to Harden and implementation decomposition to Plan.
-7. **Deep risks:** examine capacity only when it can change the design, then cover bottlenecks,
-   failure and security cases, data-loss risks, operational effects, and relevant edge behavior.
-8. **Completion:** define observable acceptance criteria and verification expectations.
+Ask only questions whose answers can affect the selected work. Resolve upstream decisions before
+dependent ones, while asking all currently known independent questions together. Use this coverage
+order when relevant:
 
-Apply each category only when it is relevant to the project and its answer can affect the
-specification or design. Architecture, interface, and technology choices still require explicit
-user verification. The ordering does not justify serializing independent decisions: ask every
-currently known independent question together
-in one clearly numbered batch through that tool, subject only to its schema limits, including
-questions from later categories when their upstream decisions are already verified or unnecessary.
-Outside tool-imposed splits, a batch may contain one question only when it is the sole currently
-eligible question. Do not ask a dependent question until its upstream decision is
-verified. A later batch may contain only questions that become dependent after verified answers or
-questions that remained unresolved or ambiguous in an earlier batch; do not defer a question that
-was already known to be independent. Options and an explicit recommendation may help the user decide,
-but the recommendation is not a decision. Inspect only bounded relevant repository context to find
-questions; never turn a convention or inconsistency into a decision without asking.
+1. establish the problem, users, evidence, intended outcome, and prioritized behavior;
+2. quantify relevant system qualities, constraints, compatibility, and non-goals;
+3. resolve removal and reuse before additive architecture;
+4. define entities and the conditional `## Data models` section;
+5. define meaningful request, event, or data flows and state transitions;
+6. capture material user-owned architecture and interface choices, leaving repository reconciliation
+to Harden and issue decomposition to Plan;
+7. examine capacity, failure, security, data-loss, operational, and edge risks when they can change
+the design; and
+8. define observable acceptance and verification expectations.
 
-After each user reply, persist no provider content. If it contains one or more explicit,
-unambiguous verified decisions, atomically replace the manifest draft once with those decisions and
-the resulting unresolved-question set before asking the next eligible batch. A reply with no verified
-decision causes no draft-content change.
+After each answer, distinguish explicitly verified decisions from unresolved or ambiguous material.
+Do not add placeholders, defaults, or summaries that the user did not verify. Reusing an approved
+specification or diagnosis does not repeat settled decisions; revalidate only a stale, conflicting,
+or newly exposed item.
 
-Partial or ambiguous answers remain unresolved and stay in the manifest for a later eligible batch.
-Never write placeholders, inferred defaults, recommendations, or repository-derived guesses.
-Continue only from the complete current manifest content. A manifest permission, ownership,
-identity, atomic-write, or process-continuity failure blocks; Ideate never repairs the boundary by
-contacting a remote provider or using conversation history as authority.
+## Read-only boundary
 
-When exhaustive brainstorming is complete and the latest specification has no unresolved user
-decision, hand back to the owning wrapper:
+Ideate reads only the bounded repository and evidence needed to ask or explain a decision. It makes
+no provider calls, remote writes, issue creation, source edits, implementation-worker dispatch,
+commit, branch, worktree, Plan, Execute, Orchestrate, or PR action. An explicit user request to save
+the plain handback may write that user-selected document through the host, but that is not a
+canonical planning ledger and does not authorize later work.
 
-- the exact baseline project identity and revision;
-- the permission-restricted manifest containing the local specification (including the user-verified
-  conditional `## Data models` section when table or API changes apply, or omitting it when neither
-  applies);
-- the empty unresolved-question set; and
-- the exact run/process and manifest identity.
+## Complete handback
 
-This handoff is not approval. The owning Build or project-backed Fix wrapper owns project-spec
-hardening, writes `project-spec.md` directly under the run directory, and manages optional mirror
-synchronization. The wrapper then owns planning, writing `execution-plan.md`, and the user-controlled
-`Stop here`/`Execute`/`Abandon` handoff. On `Execute`, it stops at retained artifacts; the caller
-supplies one selected complete bounded task to
-[`woostack-execute`](../woostack-execute/SKILL.md#retired-inputs). Ideate never invokes execution,
-writes implementation source, or becomes a public command.
+When every material decision is explicitly verified, return the complete plain handback from
+[`planning-inputs.md`](../using-woostack/references/planning-inputs.md), not only the latest answers:
+
+- exact repository identity and admitted baseline;
+- every evidence identity and the observations used;
+- the complete specification, including the removal/reuse result and the conditional `## Data
+  models` section;
+- confirmed user decisions;
+- an empty unresolved-question section; or, if incomplete, every unresolved question and why it
+  blocks completion; and
+- the read-only boundary plus a separate suggested next consumer such as Harden or Plan.
+
+This is a reusable input, not approval, issue authority, or an automatic transition. The caller
+explicitly decides whether to save it, pass it to Harden, pass an approved specification to Plan,
+or stop.
