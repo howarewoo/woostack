@@ -36,12 +36,13 @@ GitHub reads. It is a required runtime fact, not a value to invent or fill with 
   PR; `false` starts the exact branch at the exact parent SHA).
 - Retained PR: `$RUNTIME_RETAINED_PR` (runtime canonical URL when repairing; otherwise no PR exists).
 
-Before editing, apply the [canonical worktree contract](../../woostack-init/references/worktrees.md):
-verify the physical workspace, branch, `HEAD`, parent branch ref, common root, complete worktree
-inventory, and `git merge-base --is-ancestor $RUNTIME_PARENT_SHA HEAD`. A missing/conflicting
-identity blocks. Write only inside `$RUNTIME_WORKSPACE`; do not create another checkout, switch
-parents, reset, clean, stash, overwrite, or touch another task's surface. Preserve unrelated user
-changes.
+Before editing, verify the selected workspace is a real isolated checkout for the canonical
+repository, is on `$RUNTIME_BRANCH`, has the expected `HEAD`/parent ancestry, and does not alias or
+overlap another active task workspace. Follow repository instructions first; where they leave a
+choice open, use the host's supported worktree capabilities and the selected runtime workspace
+without creating a nested checkout to satisfy a Woostack layout. A missing/conflicting identity
+blocks. Write only inside `$RUNTIME_WORKSPACE`; do not switch parents, reset, clean, stash, overwrite,
+remove, or touch another task's surface. Preserve unrelated user changes.
 
 Implement the complete bounded contract using existing repository patterns and the
 [least-code standard](../../woostack-bootstrap/references/patterns.md#7-least-code--comments).

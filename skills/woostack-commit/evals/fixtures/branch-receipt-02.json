@@ -7,7 +7,7 @@
     "runId": "run-62",
     "projectArgument": null,
     "branchHandoff": {
-      "workflow": "woostack-change",
+      "workflow": "woostack-execute",
       "stableTaskId": "task-cache-refresh",
       "runId": "run-62",
       "branch": "change/cache-refresh",

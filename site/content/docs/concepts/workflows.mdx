@@ -3,10 +3,10 @@ title: Workflow maps
 description: "Choose bounded delivery or a complete user-verified project workflow."
 ---
 
-Start with the user's explicit goal. Change may also take an exact canonical GitHub issue URL as
-explicit issue-backed input. Bounded work fits one pull request (PR) and uses the agreed scope in the
-current conversation. Project-backed work keeps a local specification and ordered plan, with optional
-copies in a provider. Git and GitHub show what was implemented and delivered.
+Start with the user's explicit goal. Bounded Execute also accepts one exact canonical GitHub issue URL
+as explicit issue-backed input. Bounded work fits one pull request (PR) and uses the agreed scope in
+the current conversation. Project-backed work keeps a local specification and ordered plan, with
+optional copies in a provider. Git and GitHub show what was implemented and delivered.
 
 ## Routing by work shape
 
@@ -14,8 +14,9 @@ copies in a provider. Git and GitHub show what was implemented and delivered.
 | --- | --- |
 | Fresh project in a new target | [Bootstrap](/docs/skills/woostack-bootstrap) |
 | Bug or regression to fix | [Fix](/docs/skills/woostack-fix) |
-| Bounded non-bug work for one coherent PR | [Change](/docs/skills/woostack-change) |
+| Bounded enhancement, refactor, test-only task, or authorized understood correction | [Execute](/docs/skills/woostack-execute) |
 | Coordinated feature requiring a complete specification and plan | [Build](/docs/skills/woostack-build) |
+| Add or strengthen tests for a bounded target | [Execute](/docs/skills/woostack-execute) with its [testing guidance](https://github.com/howarewoo/woostack/blob/main/skills/woostack-execute/references/tdd.md) |
 
 For root-cause investigation without changes, use [Debug](/docs/skills/woostack-debug).
 
@@ -65,7 +66,7 @@ reproduce → prove cause → admit writable target → choose bounded or projec
 
 For an understood one-PR fix, present the complete diagnosis, correction, technical consequences,
 and verification for explicit approval. Then implement, verify, independently review, and submit the
-PR through [bounded delivery](https://github.com/howarewoo/woostack/blob/main/skills/woostack-change/references/bounded-delivery.md).
+PR through the shared [bounded-delivery contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-fix/references/bounded-delivery.md).
 No project manifest or artifact-provider call is needed.
 
 Multi-increment or materially uncertain fixes, explicit project/run context, explicitly required
@@ -118,23 +119,17 @@ Graph/scope drift preserves running reservations and stops fresh dispatch; unkno
 require direct stopped-worker/branch/PR reconciliation before same-identity repair. The final result
 is submitted PRs awaiting review/merge, not closed issues or product acceptance.
 
-## Change
+
+## Execute
 
 ```text
-classify → scope → repository preflight → execute → verify → review → hand back
+/woostack-execute <bounded input> [--issue <exact canonical GitHub issue URL>]
 ```
 
-Change handles one bounded non-bug enhancement/refactor and has no hard approval gate. It accepts a
-goal-only request or an exact canonical GitHub issue input; either path still requires one coherent
-PR boundary, verification, smoke testing, and review. The goal-only path makes no artifact-provider
-calls. The issue-backed path performs the required read of the selected issue through host-authenticated
-`gh`; it requires no artifact-provider configuration, Project, mirror, or persisted plan. Use the canonical
-[Change skill](/docs/skills/woostack-change) for its supported syntax and admission/delivery rules:
-
-```text
-/woostack-change <goal>
-/woostack-change [<goal>] --issue <exact canonical GitHub issue URL>
-```
+Execute accepts one complete bounded enhancement, refactor, test-only task, or authorized
+understood correction. It needs no parent issue, Project, planning provider, or persisted plan; an
+exact issue is optional and read-only. Unknown root cause, unresolved scope, or work that needs
+multiple increments stays at Debug/Fix or the applicable planning workflow.
 
 ## Shared execution boundary
 

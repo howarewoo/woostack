@@ -2,13 +2,14 @@
 
 This reference defines the exact bridge between helper output and a real
 [`woostack-execute`](../../woostack-execute/SKILL.md) worker. The helper emits data; it never
-contacts a host. The skill reserves and creates the Git worktree, then invokes only the selected
-allowlisted host's documented subagent primitive. Scheduling and state rules are in
-[scheduling](scheduling.md); delivery gates are in [validation](validation.md).
+contacts a host. The skill supplies the selected isolated workspace/branch through the host's
+supported mechanism, then invokes only the selected allowlisted host's documented subagent
+primitive. Scheduling and state rules are in [scheduling](scheduling.md); delivery gates are in
+[validation](validation.md).
 
 Use the shared [source-control contract](../../woostack-commit/references/graphite.md),
-[canonical worktree contract](../../woostack-init/references/worktrees.md),
-[least-code standard](../../woostack-bootstrap/references/patterns.md#7-least-code--comments),
+the outcome-level [worktree guidance](scheduling.md#runtime-workspace-and-branch-evidence),
+the [least-code standard](../../woostack-bootstrap/references/patterns.md#7-least-code--comments),
 and [model tiers](../../using-woostack/references/model-tiers.md). Host mechanics do not belong in
 this file.
 
@@ -25,8 +26,8 @@ invent:
   "child_url": "<runtime-substituted canonical child issue URL>",
   "parent_branch": "<runtime-substituted selected local parent branch>",
   "parent_sha": "<runtime-substituted selected parent SHA>",
-  "branch": "woostack/<runtime-substituted task ID>",
-  "workspace": "<runtime-substituted absolute primary-common-root worktree path>",
+  "branch": "<runtime-substituted actual task branch selected by repository/host/agent>",
+  "workspace": "<runtime-substituted absolute selected isolated workspace>",
   "repair": false,
   "retained_pr": null,
   "packet": {
@@ -72,8 +73,8 @@ invent:
     "execute_skill": "woostack-execute",
     "repair": false,
     "retained_pr": null,
-    "branch": "woostack/<runtime-substituted task ID>",
-    "workspace": "<runtime-substituted absolute primary-common-root worktree path>",
+    "branch": "<runtime-substituted actual task branch>",
+    "workspace": "<runtime-substituted absolute selected isolated workspace>",
     "parent_branch": "<runtime-substituted selected parent branch>",
     "parent_sha": "<runtime-substituted selected parent SHA>"
   }
@@ -115,33 +116,25 @@ A repair entry keeps the same `branch`, absolute `workspace`, `parent_branch`, `
 retained PR as its original reservation and sets `repair: true`. It never receives a new parent or
 replacement PR. The child URL is the only issue association and closing reference.
 
-## Reserve then create the actual worktree
+## Verify the selected workspace before dispatch
 
-The helper reservation is not a Git worktree. After `schedule` returns, the caller must, before
-host dispatch:
+The helper reservation records the runtime workspace and branch; it is not itself a Git worktree.
+After `schedule` returns, the caller must, before host dispatch:
 
-1. Resolve the primary Git common root using the shared worktree contract. Canonicalize the emitted
-   workspace and every existing `git worktree list --porcelain` path with physical path resolution.
-2. Compare the emitted workspace against every running/pending reservation, including aliases and
-   ancestor/descendant paths. Compare the emitted branch against every local/remote branch and
-   checkout. An existing unclaimed branch, path, checkout, or competing writer blocks; do not claim,
-   delete, reset, or create around it.
-3. For fresh work only, create the exact emitted branch at the exact emitted parent SHA, using the
-   canonical worktree procedure (native Git is the default):
-
-   ```sh
-   git -C <canonical-repository> worktree add -b <emitted-branch> \
-     <emitted-absolute-workspace> <emitted-parent-sha>
-   ```
-
-   A relative override from the snapshot is resolved beneath the primary common root; an absolute
-   path or traversal is invalid. Repairs reopen/adopt only the already verified reservation and
-   branch/PR; they never create a replacement checkout or reparent.
-4. Read back the physical workspace, common root, branch, `HEAD`, and parent branch ref. The local
-   parent branch ref must equal the emitted `parent_sha`; then run
-   `git -C <canonical-repository> merge-base --is-ancestor <parent-sha> <head-sha>` even if the
-   two hashes are equal. A failed or partial create/read-back is an unknown mutation boundary:
-   retain the helper reservation and stop.
+1. Verify that the selected path is a real linked isolated checkout for the admitted repository (or a
+   safe host-created linked-worktree location), and canonicalize it plus every existing `git worktree
+   list --porcelain` path with physical path resolution.
+2. Compare it against every running/pending reservation, including aliases and ancestor/descendant
+   paths. Compare the selected branch against existing checkouts and refs. An active writer,
+   wrong-repository checkout, mismatched branch, dirty unrelated workspace, or competing branch
+   blocks; do not claim, delete, reset, or create around it.
+3. Reuse a suitable existing task worktree when its repository, branch, parent, and ownership facts
+   agree. Otherwise let the repository/host/agent create the checkout at the selected location with
+   its supported command. No path layout, branch prefix, or universal creation API is required.
+4. Read back the physical workspace, repository identity, branch, `HEAD`, selected parent, and
+   ancestry. Run `git merge-base --is-ancestor <parent-sha> <head-sha>` in the selected repository
+   even when the two hashes are equal. A failed or partial create/read-back is an unknown mutation
+   boundary: retain the helper reservation and stop.
 5. Pass only that exact workspace to the selected host primitive. The worker writes source only
    there. One writer owns one physical workspace; a timeout or missing receipt does not authorize
    overlapping redispatch until the original worker is proved stopped.
@@ -176,7 +169,8 @@ focused verification, and read-only specification validation using the single
 [result schema and gates](validation.md#result-schema), then persists/read-backs the child note
 and any explicitly selected Project status before `apply-result`. Do not invent missing evidence
 or let the worker approve its own result. Failed checks/specification validation preserve the
-same reservation and PR for repair; unknown outcomes retain ownership and halt fresh dispatch.
+same reservation and PR for repair; missing note/Project receipts are retried without replaying
+repository delivery; unknown outcomes retain ownership and block only that task and descendants.
 
 The child PR carries exactly one `Resolves <child URL>` reference. It never closes or references
 the specification parent. New PRs remain drafts and no workflow step marks ready, merges, queues,

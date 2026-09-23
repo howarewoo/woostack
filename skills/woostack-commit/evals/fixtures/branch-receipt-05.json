@@ -7,7 +7,7 @@
     "runId": "run-65",
     "projectArgument": null,
     "branchHandoff": {
-      "workflow": "woostack-change",
+      "workflow": "woostack-execute",
       "stableTaskId": "task-cache-locking",
       "runId": "run-65",
       "branch": "change/cache-locking",

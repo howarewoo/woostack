@@ -25,14 +25,14 @@
       "id": "existing-worker-retry-cap-option",
       "query": "In the existing job worker, expose the maximum retry delay as a configuration option and update its tests and operator guide. Nothing is broken, and the work is confined to that package and its documentation.",
       "shouldTrigger": false,
-      "expectedSkill": "woostack-change",
+      "expectedSkill": "woostack-execute",
       "conflictsWith": ["woostack-bootstrap"]
     },
     {
       "id": "brownfield-single-file-cache-setting",
-      "query": "In our existing production repository, update one cache configuration file so the default TTL is configurable. This is a bounded non-bug change that fits one reviewable pull request; do not redesign the application.",
+      "query": "In our existing production repository, update one cache configuration file so the default TTL is configurable. This is a bounded enhancement that fits one reviewable pull request; do not redesign the application.",
       "shouldTrigger": false,
-      "expectedSkill": "woostack-change",
+      "expectedSkill": "woostack-execute",
       "conflictsWith": ["woostack-bootstrap"]
     }
   ]

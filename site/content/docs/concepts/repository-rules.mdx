@@ -7,7 +7,7 @@ description: Technology-neutral ownership, dependency, production, testing, Git,
 projects without prescribing a technology stack. It researches current options, gets explicit
 approval, and records the selected technologies and versions checked against live registries.
 Greenfield means a new codebase; brownfield means an existing one. For brownfield work, follow
-the repository's conventions and history and use Build, Fix, or Change.
+the repository's conventions and history and use Build, Fix, or Execute.
 
 ## Repository-owned structure
 
@@ -145,12 +145,11 @@ data.
 
 ## Testing
 
-- Follow Red → Green → Refactor: first write a failing test, implement the behavior, then improve
-  the code while keeping the test passing.
-- Use the repository's approved test runner, file layout, and naming conventions.
-- Test observable behavior, boundaries, conditions that must hold, state transitions, rule
-  precedence, and real failures.
-- A change is incomplete until its required verification passes.
+For implementation work, follow the canonical
+[Execute testing guidance](https://github.com/howarewoo/woostack/blob/main/skills/woostack-execute/references/tdd.md).
+It defines Red → Green → Refactor, meaningful coverage, characterization tests for existing code,
+repository conventions, and concrete verification when no test runner exists. A change is
+incomplete until its required verification passes.
 
 ## Least code, still safe
 
@@ -230,8 +229,9 @@ For every approved surface:
 - Do not open a PR directly against `main` except for an emergency hotfix.
 - Cherry-pick an emergency hotfix back into the integration branch immediately.
 - Never force-push.
-- Use Git + `gh` by default. Graphite is optional for an explicitly selected or verified
-  already-managed task/stack, following the
+- Use Git with an authorized GitHub interface for delivery; prefer native host tools when suitable
+  and use authenticated `gh` where appropriate. Graphite is optional for an explicitly selected or
+  verified already-managed task/stack, following the
   [source-control contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-commit/references/graphite.md).
 - Agents never merge, mark a PR ready, enable auto-merge, or queue it for merge.
 
@@ -268,7 +268,8 @@ Do not apply new-project architecture rules to an existing repository without an
 Follow its established conventions and history:
 
 - bugs, regressions, and root-cause work route to [Fix](/docs/skills/woostack-fix);
-- bounded one-PR enhancements and refactors route to [Change](/docs/skills/woostack-change); and
+- bounded one-PR enhancements, refactors, test-only tasks, and authorized understood corrections
+  route to [Execute](/docs/skills/woostack-execute); and
 - larger initiatives route to [Build](/docs/skills/woostack-build).
 
 ## Canonical sources

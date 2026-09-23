@@ -5,8 +5,8 @@ ordinary Execute report is evidence to check, never delivery by itself. The help
 transitions; this reference defines the facts the skill must collect before invoking it.
 
 Use the shared [source-control contract](../../woostack-commit/references/graphite.md),
-[canonical worktree contract](../../woostack-init/references/worktrees.md),
-[least-code standard](../../woostack-bootstrap/references/patterns.md#7-least-code--comments),
+the outcome-level [runtime workspace guidance](scheduling.md#runtime-workspace-and-branch-evidence),
+the [least-code standard](../../woostack-bootstrap/references/patterns.md#7-least-code--comments),
 and canonical [`#artifact-delivery-note`](../../woostack-commit/references/provider-attribution.md#artifact-delivery-note)
 contract. Host mechanics remain in the allowlisted host references.
 
@@ -23,6 +23,7 @@ values to invent:
     "worker_id": "<runtime-substituted worker identity>",
     "pr_url": "<runtime-substituted canonical PR URL>",
     "branch": "<runtime-substituted worker branch>",
+    "workspace": "<runtime-substituted actual selected isolated workspace>",
     "head_sha": "<runtime-substituted head SHA>",
     "base_branch": "<runtime-substituted PR base branch>",
     "commit_sha": "<runtime-substituted commit SHA>",
@@ -100,14 +101,16 @@ inference/coverage evidence changes the immutable fingerprint and returns `snaps
 reservations and running workers are retained.
 
 ## Evidence calculations
-
-All evidence is for the exact reservation currently in controller state:
+All evidence is for the exact reservation currently in controller state. The worker's selected
+workspace must equal the reserved physical path and its checkout must resolve to the admitted
+canonical repository:
 
 - `worker.commit_sha == worker.head_sha == readback.commit_sha == readback.head_sha`;
-- the actual local worker branch ref resolves to `head_sha` and the canonical PR head branch/SHA
+- the selected workspace branch resolves to `head_sha`, and the canonical PR head branch/SHA
   resolves to the same branch/SHA;
 - the reserved parent SHA is an ancestor of `head_sha`, proved with
-  `git merge-base --is-ancestor <reserved-parent-sha> <head-sha>` even when hashes are equal;
+  `git merge-base --is-ancestor <reserved-parent-sha> <head-sha>` in the selected workspace even when
+  hashes are equal;
 - `readback.repo` and `readback.head_repo` are the admitted canonical repository, and the PR URL
   is exactly one canonical PR in that repository;
 - `readback.base_branch` and `worker.base_branch` equal the reserved `parent_branch`;
@@ -136,19 +139,26 @@ The helper must apply these gates against the current reservation; the skill mus
 alternate acceptance path:
 
 1. **Missing, malformed, or `unknown` result:** persist the task as `unknown` with its complete
-   reservation/workspace intact, set the controller halt for fresh dispatch, and return `unknown`/
-   `halted`. Do not guess fields, dispatch another worker, or clear identity from a report. This
-   includes an unreadable/missing result, incomplete worker/readback/check/validation evidence,
-   missing stopped-worker reconciliation evidence, and a result for a non-running task.
+   reservation/workspace, direct evidence, and first uncertain boundary intact. Unknown blocks that
+   task and its descendants; unrelated ready tasks remain dispatchable. Do not guess fields,
+   dispatch another worker, or clear identity from a report. This includes an unreadable/missing
+   result, incomplete worker/readback/check/validation evidence, missing stopped-worker
+   reconciliation evidence, and a result for a non-running task.
 2. **Focused checks or independent specification review fail:** return `repair-ready`, preserving
    the exact original branch, absolute workspace, parent branch/SHA, reservation, and retained PR.
    The note may be absent. Repairs return through the same branch/PR and may not be reparents or
    replacements.
-3. **Worker/readback or canonical identity conflict:** wrong repository/head repository, PR URL,
-   branch/head, base, child association, duplicate/closed PR, or a non-unique readback returns a
-   blocked `halted` result. Preserve the reservation and stop fresh dispatch. Never auto-authorize
-   retargeting, replacement PRs, or a new branch. An ambiguous result is not a repair success.
-4. **All evidence pass:** require the note to have been written and read back under the canonical
+3. **Exact PR recovered after unknown:** return `evidence-pending`, retaining the same reservation and
+   canonical PR/source evidence. Accept the independent full result through `apply-result`; do not
+   dispatch a second Execute worker for repository work already represented by that PR.
+4. **Note or optional Project receipt missing:** return `note-pending`, retaining the validated
+   PR, checks, diff, and complete result. Retry only the failed note/Project read-back with the same
+   result and identity; never replay repository delivery or dispatch a worker.
+5. **Worker/readback or canonical identity conflict:** return a blocked `unknown` result for that
+   task, preserving its reservation and stopping only its descendants. Wrong repository/head
+   repository, PR URL, branch/head, base, child association, duplicate/closed PR, or a non-unique
+   readback is an identity failure, never permission to retarget or create a replacement.
+6. **All evidence pass:** require the note to have been written and read back under the canonical
    [`#artifact-delivery-note`](../../woostack-commit/references/provider-attribution.md#artifact-delivery-note)
    contract. In explicit Project mode also require the `project_status` delivery readback to carry
    exactly the admission-bound `item_id` and the admitted `lifecycle.inReview` option. Only then
@@ -156,8 +166,8 @@ alternate acceptance path:
 
 `outcome: "needs-repair"` requests the second gate. `outcome: "ok"` must pass every gate; it
 cannot waive a failed check, stale validation, absent note, Project mismatch, or identity issue.
-Worker success output alone is never delivery. `unknown` and `halted` retain all recoverable Git,
-PR, workspace, and evidence state for reconciliation.
+Worker success output alone is never delivery. `unknown`, `evidence-pending`, `note-pending`, and
+blocked outcomes retain all recoverable Git, PR, workspace, and evidence state for reconciliation.
 
 ## Independent read-only specification validation
 
@@ -193,8 +203,8 @@ claim a status from a schedule intent, or use Project progress as evidence of PR
 
 ## Unknown reconciliation
 
-An unknown task remains reserved and globally halts fresh dispatch. Reconcile only after the worker
-is stopped and with both `--admitted` and `--git-repo`:
+An unknown task remains reserved and blocks only that task and its descendants. Reconcile only
+after the worker is stopped and with both `--admitted` and `--git-repo`:
 
 ```text
 python3 skills/woostack-orchestrate/scripts/orchestrate.py reconcile \
@@ -224,17 +234,15 @@ For a proven no-PR path, use `pr_absent: true`, `pr_url: null`, `open: false`, `
 and the same canonical branch/head/base/repository/head-repository facts plus
 `worker_stopped: true`; the helper rejects contradictory absence evidence (for example a
 non-null `pr_url` or `open: true` alongside `pr_absent: true`) as `evidence-mismatch` and
-preserves state. The helper returns same-branch `repair-ready`; it never allocates a new
-identity. For an existing canonical PR, `pr_url`, `open`, and `unique` must describe that exact PR
-and match the retained report/reservation. Successful reconciliation returns `repair-ready`,
-retaining the exact reservation and any recovered PR. A fresh Execute worker can then repair
-that same branch/PR and supply its own complete result; no missing worker identity is invented.
-All delivery gates still apply before dependent release. Any branch/head/base/repository/PR mismatch, absent stopped
-proof, arbitrary report, contradictory absence evidence, duplicate/closed/foreign PR, or missing
-admitted/git-repo input blocks reconciliation and leaves the halt in place.
+preserves state. The helper returns same-branch `repair-ready` only for proven absence; an exact
+canonical PR returns `evidence-pending` until the caller supplies independent full result evidence.
+It never allocates a new identity or a second worker for repository work already represented by that PR.
+All delivery gates still apply before dependent release. Any branch/head/base/repository/PR mismatch,
+absent stopped proof, arbitrary report, contradictory absence evidence, duplicate/closed/foreign PR,
+or missing admitted/git-repo input blocks reconciliation and leaves that task's halt in place.
 
 After a successful reconciliation, assemble a new fully paginated fresh snapshot and invoke
 `schedule` again with the existing state, `--fresh`, and `--git-repo`. The caller holds the same
-externally enforced exclusive scope ownership across `schedule`, `apply-result`, and `reconcile`;
-never run a second controller, recreate missing state, or redispatch while worker ownership is
-unknown.
+externally enforced exclusive scope and canonical task claims across `schedule`, `apply-result`,
+and `reconcile`; never run a second controller, recreate missing state, or redispatch while worker
+ownership is unknown.

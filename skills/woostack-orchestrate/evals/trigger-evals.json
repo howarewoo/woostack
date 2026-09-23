@@ -63,7 +63,7 @@
       "id": "bounded-enhancement",
       "query": "Add one small preference control in a single PR with no multi-task project.",
       "shouldTrigger": false,
-      "expectedSkill": "woostack-change",
+      "expectedSkill": "woostack-execute",
       "conflictsWith": [
         "woostack-orchestrate"
       ]

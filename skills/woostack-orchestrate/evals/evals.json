@@ -136,12 +136,12 @@
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "Retains reservation and workspace, reconciles direct Git/PR evidence before any retry, stops fresh dispatch on unresolved outcome uncertainty, and never launches a replacement merely because the response is missing.",
+      "expected": "Retains reservation and workspace, marks only the uncertain task and its descendants blocked, reconciles direct Git/PR evidence before any repair, allows the ready sibling to continue without claiming the uncertain task's workspace, and never launches a replacement merely because the response is missing.",
       "assertions": [
         {
           "id": "unknown-worker-no-duplicate-boundary",
           "kind": "qualitative",
-          "rubric": "Does the response apply this contract: Retains reservation and workspace, reconciles direct Git/PR evidence before any retry, stops fresh dispatch on unresolved outcome uncertainty, and never launches a replacement merely because the response is missing?",
+          "rubric": "Does the response apply this contract: Retains reservation and workspace, marks only the uncertain task and its descendants blocked, reconciles direct Git/PR evidence before any repair, allows the ready sibling to continue without claiming the uncertain task's workspace, and never launches a replacement merely because the response is missing?",
           "critical": true
         }
       ]
