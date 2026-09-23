@@ -1,3 +1,4 @@
 {
-  "models": {}
+  "models": {},
+  "status": {"staleDays": 14}
 }

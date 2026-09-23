@@ -39,6 +39,7 @@ operation; this wrapper keeps that property while killing the helper process at
 an exact durability point instead of a timing-dependent one.
 """
 import importlib.util
+import os
 import sys
 
 spec = importlib.util.spec_from_file_location("orchestrate_fault", sys.argv[1])
@@ -55,6 +56,24 @@ if fault == "die-before-state-publication":
     helper.write_state = die
 elif fault == "die-before-claim":
     helper.claim_scope = die
+elif fault == "die-before-claim-publication":
+    original_link = os.link
+
+    def die_before_link(source, target, **kwargs):
+        if str(target).endswith(".json"):
+            die()
+        return original_link(source, target, **kwargs)
+
+    helper.os.link = die_before_link
+elif fault == "die-after-claim-publication":
+    original_fsync_parent = helper._fsync_parent
+
+    def die_after_fsync(path):
+        original_fsync_parent(path)
+        if path.parent.name == "orchestrate-claims" and path.name.endswith(".json"):
+            die()
+
+    helper._fsync_parent = die_after_fsync
 else:
     raise SystemExit("unknown fault: " + fault)
 sys.argv = ["orchestrate.py", *helper_args]
@@ -1002,6 +1021,42 @@ class OrchestrateBehavior(unittest.TestCase):
         claims = self._scope_claims()
         self.assertEqual(len(claims), 1, claims)
         self.assertEqual(claims[0]["owner"], state["owner"]["controller_id"])
+
+    def test_claim_publication_failure_leaves_no_final_claim_and_resumes(self) -> None:
+        """Failure before final-path publication leaves only resumable owner state."""
+        snapshot = self._single_task_snapshot()
+        admitted_path, _ = self._admit_issue(snapshot)
+        fresh_path = self._write_json("interrupt-before-claim-publication-fresh.json", snapshot)
+        state_out = self.tmp / "interrupt-before-claim-publication.json"
+        args = self._first_schedule_args(admitted_path, fresh_path, state_out, self.repo)
+        self._interrupted_schedule("die-before-claim-publication", args)
+
+        state = json.loads(state_out.read_text(encoding="utf-8"))
+        self.assertEqual(self._scope_claims(), [])
+        code, payload = invoke_cli(*args, "--state", str(state_out))
+        self.assertEqual(code, 0, payload)
+        self.assertTrue(payload.get("dispatch"), payload)
+        claims = self._scope_claims()
+        self.assertEqual(len(claims), 1, claims)
+        self.assertEqual(claims[0]["owner"], state["owner"]["controller_id"])
+
+    def test_claim_publication_failure_leaves_complete_owner_claim_and_resumes(self) -> None:
+        """Failure after final-path publication leaves a complete same-owner claim."""
+        snapshot = self._single_task_snapshot()
+        admitted_path, _ = self._admit_issue(snapshot)
+        fresh_path = self._write_json("interrupt-after-claim-publication-fresh.json", snapshot)
+        state_out = self.tmp / "interrupt-after-claim-publication.json"
+        args = self._first_schedule_args(admitted_path, fresh_path, state_out, self.repo)
+        self._interrupted_schedule("die-after-claim-publication", args)
+
+        state = json.loads(state_out.read_text(encoding="utf-8"))
+        claims = self._scope_claims()
+        self.assertEqual(len(claims), 1, claims)
+        self.assertEqual(claims[0]["owner"], state["owner"]["controller_id"])
+        code, payload = invoke_cli(*args, "--state", str(state_out))
+        self.assertEqual(code, 0, payload)
+        self.assertTrue(payload.get("dispatch"), payload)
+
     def test_state_symlink_is_rejected_before_read_or_write(self) -> None:
         snapshot = self._single_task_snapshot()
         admitted_path, admitted = self._admit_issue(snapshot)

@@ -4,6 +4,5 @@
     "linear": {"workspace": "legacy", "team": "ENG"},
     "plane": {"workspace": "legacy-plane"}
   },
-  "models": {},
-  "status": {"staleDays": 14}
+  "models": {}
 }

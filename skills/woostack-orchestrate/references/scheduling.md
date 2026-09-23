@@ -406,12 +406,14 @@ PR identity, delivery checkpoint, and first uncertain boundary distinct. The cal
 The helper additionally takes owner-only atomic claims under
 `<primary-root>/.woostack/tmp/orchestrate-claims/`: one exact scope claim and one claim keyed by
 the canonical repository plus canonical child issue URL (with native REST/GraphQL IDs retained in
-the claim record). A second controller selecting a parent
-issue and a Project that overlap on a child therefore blocks before reservation; a stale or
-unreadable claim is a blocker, never permission to take over. Existing active issue/PR/checkpoint
-evidence without the current owner claim is likewise a blocker. Claims remain retained as recovery
-evidence until explicit human cleanup; they are not a scheduler/database or a replacement for the
-owner-only checkpoint contract.
+the claim record). Each record is serialized and fsynced in an owner-only same-directory temp file,
+then atomically hard-linked to its final path without replacement and followed by a claims-directory
+fsync. A second controller selecting a parent issue and a Project that overlap on a child therefore
+blocks before reservation. An interruption leaves either no final claim or a complete claim; a
+stale, foreign, or unreadable claim is a blocker, never permission to take over. Existing active
+issue/PR/checkpoint evidence without the current owner claim is likewise a blocker. Claims remain
+retained as recovery evidence until explicit human cleanup; they are not a scheduler/database or a
+replacement for the owner-only checkpoint contract.
 Each mutation acquires an owner-owned per-scope checkpoint lock derived from the canonical repository
 and scope fingerprint, then compares the loaded digest with the durable checkpoint head while holding
 that lock before replacing `--state-out`; stale/concurrent writers fail closed as `stale-state`, and
@@ -427,9 +429,10 @@ The first schedule omits `--state` and creates state. Every later schedule, reco
 apply-result, reconcile, or stop names an existing state and matching admission. Missing state, malformed JSON,
 state/fingerprint/scope mismatch, missing durable checkpoint head, or a state task set that differs
 from the admission blocks; never silently reinitialize. The initial state is published before the
-scope claim is acquired, so a first-schedule interruption at any point leaves either nothing durable
-or owner-bearing state that a `--state` resume reclaims under the same owner. Keep the state path private and use the
-helper's atomic `--state-out` replace.
+scope claim is acquired, and the claim becomes visible only after its complete owner-bearing record
+is durable. A first-schedule interruption therefore leaves resumable owner-bearing state with either
+no claim or one complete same-owner claim. Keep the state path private and use the helper's atomic
+`--state-out` replace.
 
 Under that exclusive ownership, the helper persists the actual selected task branch, absolute
 workspace, parent branch, and parent SHA before host dispatch. The branch and workspace are runtime
