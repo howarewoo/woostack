@@ -74,9 +74,9 @@ the `templates/` shipped there; the woostack collection installs both as sibling
      mappings, and independent read-back.
    - When `artifacts.provider: "local"` or omitted, live provider preflight is skipped.
    Write the normalized non-secret mode-0600 receipt matching the resolved provider schema, and run
-   `doctor.sh --live-receipt <path> [path]`. Otherwise run `doctor.sh [path]`. The engine validates policy,
-   diagnostics, managed project OMP role-agent definitions, and local worktree hygiene. OMP diagnosis is
-   read-only; only the approved, auto-fixable doctor path may invoke the init provisioner.
+  `doctor.sh --live-receipt <path> [path]`. Otherwise run `doctor.sh [path]`. The engine validates
+  policy, diagnostics, OMP session-naming support, and local worktree hygiene. OMP agent selection
+  is host-owned and Doctor does not inspect, create, repair, or remove project agent definitions.
    Legacy `.woostack/specs/`, `.woostack/plans/`, `.woostack/fixes/`, or
    `.woostack/overnight/` sets produce one blocking migration finding per active or ambiguous set;
    doctor does not run normal lifecycle lint on them and points at the explicit

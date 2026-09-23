@@ -24,7 +24,7 @@ does not install in Hermes. The coding harness runs the implementation and its w
 
 | Harness | Model and effort routing | Working directory | Host behavior |
 | --- | --- | --- | --- |
-| [omp (Oh My Pi)](/docs/harnesses/omp) | OMP roles through project workers created by Init; no per-call model setting | Passed when supported; otherwise verified from the task prompt | OMP manages models and recovery |
+| [omp (Oh My Pi)](/docs/harnesses/omp) | Selects an existing host agent; model and effort are host-owned, and Woostack leaves the conditional effort knob unset | Passed in the task prompt and verified by the worker | OMP manages models and recovery |
 | [opencode](/docs/harnesses/opencode) | Model selection for each worker | Passed when supported; always included in the prompt | Provider usage-limit errors stop the worker |
 | [Claude Code](/docs/harnesses/claude-code) | Model and supported effort selection for each worker | Worker uses and checks the directory named in the prompt | Provider usage-limit errors stop the worker |
 | [Codex](/docs/harnesses/codex) | Model selection for local workers; one model per Codex Action job | Passed when supported; always included in the prompt | Local and CI routing differ |
@@ -32,16 +32,16 @@ does not install in Hermes. The coding harness runs the implementation and its w
 | [Antigravity CLI](/docs/harnesses/antigravity) | One model per session | Worker uses the directory named in the prompt | Requires interactive login; cannot run in temporary headless CI |
 
 For OMP,
-[host-owned role routing](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/hosts/omp.md)
-selects project workers created by Init. OMP controls the models behind those roles, provider
-credentials, and fallback policy, including when Hermes coordinates the work.
+[host-owned agent routing](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/hosts/omp.md)
+selects a suitable agent already exposed in the active session. OMP controls the models behind
+those agents, provider credentials, and fallback policy, including when Hermes coordinates the work.
 
 The [model-tier reference](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/model-tiers.md)
 defines the shared `fast`, `standard`, and `deep` policy. Each host page links to its adapter for
 the exact tool calls and rules.
 
 <Cards>
-  <Card title="omp (Oh My Pi)" href="/docs/harnesses/omp" description="Use project workers while OMP controls their models." />
+  <Card title="omp (Oh My Pi)" href="/docs/harnesses/omp" description="Use existing OMP agents while OMP controls their models." />
   <Card title="opencode" href="/docs/harnesses/opencode" description="Choose a model for each delegated task." />
   <Card title="Claude Code" href="/docs/harnesses/claude-code" description="Assign workers a model and a specific working directory." />
   <Card title="Codex" href="/docs/harnesses/codex" description="Compare local workers with the single-model CI setup." />
