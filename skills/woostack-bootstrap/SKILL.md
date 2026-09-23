@@ -145,9 +145,9 @@ These are non-negotiable. Violating them produces an unattributed, broken, or dr
   development instructions into the project root `README.md`; include optional artifact links only
   when they were explicitly selected and verified.
 - **Initial scaffold is the one worktree exemption.** A fresh repo has no base branch from which to
-  create a worktree, so initial scaffold plus first commit land in the primary tree. All subsequent
-  feature/fix work follows the
-  [worktree contract](../woostack-init/references/worktrees.md).
+  create an isolated workspace, so initial scaffold plus first commit land in the primary tree. All
+  subsequent feature/fix work follows the shared
+  [isolated-workspace guidance](../woostack-init/references/worktrees.md).
 
 ## SPEC_VERSION
 

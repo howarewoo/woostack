@@ -31,7 +31,7 @@ does not change the setup or artifact-selection boundaries below.
 3. Create missing local support paths only:
    - `.woostack/config.json` from the shipped non-secret template;
    - local diagnostic report roots for doctor, audit, and QA;
-   - worktree/recovery support declared by the canonical worktree contract; and
+   - isolated-workspace and recovery support declared by the active workflow; and
    - the managed project OMP session-naming extension, settings entry, and ignore rules by running
      `bash <wi>/scripts/provision-omp-session-name.sh <canonical-repository>`. This
      deterministic provisioner updates only `.omp/extensions/woostack-session-name.ts`,

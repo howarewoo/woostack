@@ -141,10 +141,10 @@ delivered predecessor branches or an explicitly approved integration parent at d
 the parent and readiness evidence. Plan never chooses it speculatively or creates an integration
 branch or artificial chain.
 One verified parent must contain all required predecessor changes. The
-[parent-admission contract](../worktrees.md#plan-dependency-child) requires canonical branch/SHA
-ancestry and every prerequisite's complete delivery evidence; an integration parent's own PR evidence
-is required only when that PR exists. A join lacking the required proof remains valid but pauses that
-issue for an explicit parent/integration decision before dispatch.
+[parent-admission guidance](../worktrees.md#repository-and-ancestry-evidence) requires canonical
+branch/SHA ancestry and every prerequisite's complete delivery evidence; an integration parent's own
+PR evidence is required only when that PR exists. A join lacking the required proof remains valid but
+pauses that issue for an explicit parent/integration decision before dispatch.
 
 Ordinal edits never change edges. Existing chain edges are preserved unless the approved specification
 explicitly changes them; never add or remove edges to match ordinal adjacency. Preserve unrelated issue
@@ -169,13 +169,14 @@ native parent link, selected membership, and complete exact predecessor→succes
 Mirror mismatches record failure without changing local artifacts; standalone mismatches block
 without claiming synchronization.
 
-Retain the complete DAG for explicit Orchestrate execution; Execute cannot accept or dispatch it as a graph.
-A caller may select one task from any valid DAG for
+Retain the complete DAG for explicit Orchestrate execution; Execute cannot accept or dispatch it as a
+graph. A caller may select one task from any valid DAG for
 [bounded Execute admission](../../../woostack-execute/SKILL.md#admit-one-task), supplying its concrete
 parent and complete prerequisite-readiness evidence under the
-[worktree contract](../worktrees.md#plan-dependency-child). An unresolved join parent blocks that
-task, not unrelated tasks. Run-store storage retains the existing task/dependency/mapping forms
-without schema migration or edge rewriting; workflow admission validates the DAG.
+[workspace/ancestry guidance](../worktrees.md#repository-and-ancestry-evidence). An unresolved join
+parent blocks that task, not unrelated tasks. Run-store storage retains the existing
+task/dependency/mapping forms without schema migration or edge rewriting; workflow admission validates
+the DAG.
 
 Reuse existing task/dependency/mapping representations. A specification parent is retained separately
 as `specItem` (in `mirror.specItem` when a run manifest applies), never in `stableTaskMappings`.

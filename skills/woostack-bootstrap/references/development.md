@@ -47,9 +47,9 @@ its [filesystem procedure](bootstrap.md#filesystem-write-barrier-and-collision-c
 target inspection and fresh collision-safe write admission. Optional project persistence remains
 separate from write authority. Init persists only non-secret policy, never local specs, plans, or fixes.
 
-Implementation branches begin from verified repository base evidence and follow the
-[canonical worktree contract](../../woostack-init/references/worktrees.md). Bootstrap's initial
-new-repository scaffold is the one pre-base worktree exception. Later PRs require direct
+Implementation branches begin from verified repository base evidence and use one selected isolated
+workspace under the [workspace guidance](../../woostack-init/references/worktrees.md). Bootstrap's
+initial new-repository scaffold is the one pre-base worktree exception. Later PRs require direct
 Git/GitHub identity and may include an ordinary optional artifact link. Git and GitHub remain the
 source of truth for commits, branches, PRs, reviews, and merges.
 
@@ -76,9 +76,10 @@ a branch such as `staging` before a human merges a release into `main`.
 Use native Git with an authorized GitHub interface for delivery; host-authenticated `gh` remains
 supported where appropriate. Graphite is optional for explicitly selected or verified already-managed
 tasks/stacks. The [source-control contract](../../woostack-commit/references/graphite.md) owns backend
-selection and delivery mechanics. Follow the
-[worktree/base-branch contract](../../woostack-init/references/worktrees.md) to resolve the base
-and verify each predecessor before starting dependent work. Never force-push.
+selection and delivery mechanics. Follow the selected
+[workspace/base-branch guidance](../../woostack-init/references/worktrees.md) to resolve the base,
+select an isolated workspace, and verify each predecessor before starting dependent work. Never
+force-push.
 
 ## When to deviate
 
