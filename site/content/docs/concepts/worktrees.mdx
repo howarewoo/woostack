@@ -49,7 +49,8 @@ it was assigned.
 ## Recovery and lifecycle
 
 - After success, the calling workflow verifies the finalized commit, selected workspace cleanliness,
-  and canonical PR identity when submission was requested. Publication does not create a workspace
+  and canonical PR identity when submission was requested. It retains the selected workspace unless
+  its owner explicitly supplies a safe lifecycle operation; publication does not create a workspace
   obligation. Host-managed, external, or user-owned workspaces remain intact unless their owner
   explicitly supplies a safe lifecycle operation.
 - On failure, handoff, collision, or an unknown result, preserve the workspace and report the task,

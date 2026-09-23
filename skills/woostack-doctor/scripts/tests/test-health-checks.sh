@@ -28,6 +28,23 @@ out="$(bash "$C/config-keys.sh" "$r2")"
 assert_contains "$out" "retired-provider" "legacy provider settings are report-only"
 assert_not_contains "$out" $'error\t' "legacy provider settings do not block local config"
 
+# Eval fixtures keep every exact finding contract satisfiable.
+eval_root="$(mktemp -d)"
+for fixture in local-project incomplete-project legacy-project ci-project; do
+  cp -R "$HERE/../../evals/fixtures/$fixture" "$eval_root/$fixture"
+done
+finding_codes() {
+  bash "$C/config-keys.sh" "$1" | cut -f2 | paste -sd, -
+}
+assert_eq "$(finding_codes "$eval_root/local-project")" "retired-status-config" "local-policy fixture emits retirement guidance"
+assert_eq "$(finding_codes "$eval_root/incomplete-project")" "config-key" "incomplete fixture emits its required config finding"
+assert_eq "$(finding_codes "$eval_root/legacy-project")" $'retired-provider,retained-data' "legacy fixture emits only its exact findings"
+assert_eq "$(finding_codes "$eval_root/ci-project")" "" "receipt fixture stays free of unrelated findings"
+git -C "$eval_root/ci-project" init -q
+git -C "$eval_root/ci-project" remote add origin https://github.com/acme/widgets.git
+assert_eq "$(WOOSTACK_DOCTOR_LIVE=1 WOOSTACK_DOCTOR_LIVE_CONTEXT="$HERE/../../evals/fixtures/receipts/github-success.json" finding_codes "$eval_root/ci-project")" "" "successful receipt fixture remains clean"
+assert_eq "$(WOOSTACK_DOCTOR_LIVE=1 WOOSTACK_DOCTOR_LIVE_CONTEXT="$HERE/../../evals/fixtures/receipts/github-missing-read.json" finding_codes "$eval_root/ci-project")" "github-live" "rejected receipt emits only the live finding"
+
 # --fix only adds a template key and is idempotent.
 r2b="$(mktemp -d)"
 mkdir -p "$r2b/.woostack"
@@ -53,7 +70,6 @@ r2c="$(mktemp -d)"
 mkdir -p "$r2c/.woostack"
 out="$(bash "$C/config-keys.sh" "$r2c")"
 assert_not_contains "$out" $'error\tconfig-policy' "missing config is not a policy error"
-
 # Repairs reject arbitrary keys and never create a symlink target.
 set +e
 bash "$C/config-keys.sh" --fix "$r2c" provider >/dev/null 2>&1

@@ -102,11 +102,6 @@ When an increment adds or strengthens tests, link its testing contract and focus
 canonical [Execute testing guidance](../woostack-execute/references/tdd.md). Plan records the
 observable contract and verification expectations only; it does not implement or execute the tests.
 
-When an increment adds or strengthens tests, link its testing contract and focused checks to the
-canonical [Execute testing guidance](../woostack-execute/references/tdd.md). Plan records the
-observable contract and verification expectations only; it does not implement or execute the tests.
-
-
 ## Graph invariants
 
 Every task ID and positive ordinal is unique, every prerequisite names an admitted task, every

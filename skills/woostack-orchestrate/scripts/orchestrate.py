@@ -405,9 +405,10 @@ def _claim(repo, admitted, owner, task=None):
     }
     if path.is_symlink():
         raise InputError("unsafe-ownership", "orchestration claim cannot be a symlink")
-    try:
-        descriptor = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600)
-    except FileExistsError:
+
+    def existing_claim():
+        if path.is_symlink():
+            raise InputError("unsafe-ownership", "orchestration claim cannot be a symlink")
         try:
             existing = load_json(path)
         except InputError as error:
@@ -420,21 +421,30 @@ def _claim(repo, admitted, owner, task=None):
             and existing.get("issue_url") == record["issue_url"]
         ), "ownership-conflict", "task or scope is owned by another controller")
         return existing
-    except OSError as error:
-        raise InputError("ownership-unavailable", str(error)) from error
+
+    if path.exists():
+        return existing_claim()
+
+    descriptor, temporary = tempfile.mkstemp(prefix=path.name + ".", dir=claims)
     try:
-        with os.fdopen(descriptor, "w", encoding="utf-8") as stream:
-            json.dump(record, stream, indent=2, sort_keys=True)
-            stream.write("\n")
+        with os.fdopen(descriptor, "wb") as stream:
+            stream.write(_json_bytes(record))
             stream.flush()
             os.fsync(stream.fileno())
-    except OSError as error:
         try:
-            path.unlink()
-        except OSError:
-            pass
+            os.link(temporary, path, follow_symlinks=False)
+        except FileExistsError:
+            return existing_claim()
+        _fsync_parent(path)
+        return record
+    except OSError as error:
         raise InputError("ownership-write", str(error)) from error
-    return record
+    finally:
+        try:
+            os.unlink(temporary)
+        except FileNotFoundError:
+            pass
+
 
 
 def claim_scope(repo, admitted, state):

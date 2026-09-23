@@ -12,6 +12,6 @@
     }
   },
   "models": {},
-  "review": {"required": true}
+  "review": {"required": true},
   "owner": "platform"
 }

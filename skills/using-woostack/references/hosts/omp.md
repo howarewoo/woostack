@@ -35,8 +35,7 @@ tier, or working-directory argument to Woostack. Effort is conditional: when the
 `"med"`, or `"hi"`; otherwise that field is absent. Inspect the active task schema or tool
 description before dispatch. Woostack does not enable host settings or set this optional effort
 field. OMP owns effort selection; record verified host effort evidence separately rather than
-translating repository model-tier values into the host knob. A selector is not evidence of the
-model or effort actually used.
+translating repository model-tier values into the host knob.
 
 The conditional schema and setting are documented in OMP's [task-agent discovery reference](https://github.com/can1357/oh-my-pi/blob/main/docs/task-agent-discovery.md)
 and implemented by [`task/types.ts`](https://github.com/can1357/oh-my-pi/blob/main/packages/coding-agent/src/task/types.ts).
