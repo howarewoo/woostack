@@ -1,5 +1,0 @@
-{
-  "runId": "retained",
-  "mirror": {"provider": "plane", "status": "synced"},
-  "sentinel": "retain-byte-for-byte"
-}

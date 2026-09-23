@@ -52,12 +52,6 @@ to entry 0, or re-run after editing config).
   to host capability, batch and refill as workers complete; the self-pin guard applies per worker.
   A serialize-only mode runs at concurrency one with a clear notice; without `Task`, block rather
   than executing inline.
-- **woostack-eval (comparative dispatch):** place both isolated `general-purpose` workers for
-  each candidate/baseline inseparable pair in the same `Task` dispatch turn, alongside other
-  intact pairs within capacity. Pin the same concrete `model` (and exposed effort) on both
-  calls. `session-default` is provable only when both calls omit `model` and the host confirms
-  inheritance from the same session identity. One-turn sibling `Task` dispatch supports
-  comparative concurrency; a Task mode that serializes the pair cannot.
 
 ## Degradation
 

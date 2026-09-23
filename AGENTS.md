@@ -10,7 +10,7 @@ This is a published collection of skills, not an application codebase. It packag
 decisions for building new web, mobile, and API projects so agents can install it with
 `pnpx skills add howarewoo/woostack`.
 
-The public command/adoption surface has eighteen skills:
+The public command/adoption surface has seventeen skills:
 
 - [`using-woostack`](skills/using-woostack/SKILL.md)
 - [`woostack-init`](skills/woostack-init/SKILL.md)
@@ -28,7 +28,6 @@ The public command/adoption surface has eighteen skills:
 - [`woostack-debug`](skills/woostack-debug/SKILL.md)
 - [`woostack-doctor`](skills/woostack-doctor/SKILL.md)
 - [`woostack-qa`](skills/woostack-qa/SKILL.md)
-- [`woostack-eval`](skills/woostack-eval/SKILL.md)
 - [`woostack-reflect`](skills/woostack-reflect/SKILL.md)
 
 Ideate and Harden are public standalone phases and composable callers for Prepare. They exchange
@@ -98,7 +97,7 @@ unchanged local run artifacts does not require the original process to stay aliv
 in the authored [Hermes guide](site/content/docs/hermes.mdx); it does not make Hermes a supported
 host or grant it implementation authority.
 
-This collection has eighteen public command/adoption skills at eighteen fixed `SKILL.md`
+This collection has seventeen public command/adoption skills at seventeen fixed `SKILL.md`
 locations. Direct GitHub integration adds neither a command-routing row nor a per-provider skill.
 
 ## Modes
@@ -115,10 +114,10 @@ do not add application code, app build configs, or app lockfiles **outside the s
 `/woostack-bootstrap`, `/woostack-ideate`, `/woostack-harden`, `/woostack-prepare`,
 `/woostack-plan`, `/woostack-orchestrate`, `/woostack-execute`,
 `/woostack-commit`, `/woostack-address-comments`, `/woostack-visualize`,
-`/woostack-design`, `/woostack-debug`, `/woostack-doctor`, `/woostack-qa`,
-`/woostack-eval`, or `/woostack-reflect`, including intent-equivalent wording. Load the matching
-skill before acting. For bootstrap work, the output belongs in a fresh repo in a different
-directory, not in this repo.
+`/woostack-design`, `/woostack-debug`, `/woostack-doctor`, `/woostack-qa`, or
+`/woostack-reflect`, including intent-equivalent wording. Load the matching skill before acting.
+For bootstrap work, the output belongs in a fresh repo in a different directory, not in this
+repo.
 
 ## Hard constraints
 
@@ -137,9 +136,6 @@ the repository's simplify/comments guidance.
   live with `npm view <pkg> version` or an equivalent registry command.
 - No hidden tools. Do not invent CI, app tests, package scripts, or app build steps for this
   repo.
-- Benchmark and evaluation workflows default to local temporary repositories. Creating remote
-  repositories requires the user's prior approval of the exact owner, names, count, purpose, and
-  cleanup plan.
 - Respect branch protection. `main` is protected and requires PRs; never force-push to
   `main`.
 - **Merge authority is human-only.** Agents never mark a PR ready, enable auto-merge, enqueue it,
@@ -167,7 +163,7 @@ the repository's simplify/comments guidance.
   pages need no manual edit: they regenerate from each `SKILL.md` at build time (see the
   documentation-site exception above). When in doubt, run `pnpm -C site build` to confirm the
   site still builds.
-- Do not move or rename any of the eighteen `SKILL.md` files without explicit approval. Public
+- Do not move or rename any of the seventeen `SKILL.md` files without explicit approval. Public
   command/adoption names and fixed paths are part of the installed interface. An explicitly
   approved retirement removes the complete skill and its references. Retired Build, Fix, Change,
   Status, and TDD packages have no compatibility aliases.
@@ -175,12 +171,6 @@ the repository's simplify/comments guidance.
   [`skills/woostack-bootstrap/references/`](skills/woostack-bootstrap/references/) without
   updating every cross-link and the bootstrap skill table.
 - Do not commit `.env*`, secrets, generated app files, or personal compressed prose.
-- **Mode A Prepare self-hosted Eval corpus/fixture changes.** This is deterministic repository policy,
-  not a Harden question: if a Mode A Prepare execution plan changes self-hosted Eval corpus or
-  referenced fixture bytes, use deterministic validation only and defer full `/woostack-eval` to a
-  separate explicit invocation after those bytes are committed and byte-identical to `HEAD`;
-  otherwise, direct explicit `/woostack-eval` retains its existing approval path, including normal
-  Eval for tracked bytes byte-identical to `HEAD`.
 
 ## Quick file map
 
@@ -208,9 +198,6 @@ the repository's simplify/comments guidance.
 - Exploratory browser QA engine (public command; drives a running app via the `agent-browser`
   CLI, report-only findings under `.woostack/qa/`):
   [`skills/woostack-qa/SKILL.md`](skills/woostack-qa/SKILL.md)
-- Skill behavior and trigger evaluation engine (public command; approved corpora, isolated paired
-  comparisons, transient reports, no target skill edits):
-  [`skills/woostack-eval/SKILL.md`](skills/woostack-eval/SKILL.md)
 - Session reflection (public report and internal final-reply hook):
   [`skills/woostack-reflect/SKILL.md`](skills/woostack-reflect/SKILL.md)
 - Commit and PR update flow:

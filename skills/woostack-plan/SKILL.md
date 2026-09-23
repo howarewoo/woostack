@@ -65,10 +65,7 @@ graph, or synchronize a second record. Direct and composed calls therefore share
 and recovery boundary.
 
 Plan owns no implementation, source edit, commit, branch, worktree, PR, review, merge, approval,
-Orchestrate dispatch, Execute dispatch, or execution handoff authority. When a Mode A Plan packet
-changes this repository's self-hosted Eval corpus or referenced fixture bytes, use deterministic
-validation only and defer full `/woostack-eval` to a separate explicit invocation after those bytes
-are committed and byte-identical to `HEAD`.
+Orchestrate dispatch, Execute dispatch, or execution handoff authority.
 
 ## Direct issue contract
 

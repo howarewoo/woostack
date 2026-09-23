@@ -125,9 +125,6 @@ Prepare does not create an integration branch or rewrite dependencies.
 - Existing user runs, issue records, remote Projects, and historical reports survive unchanged.
   Retained retired-wrapper drafts can be supplied explicitly after identity and freshness validation;
   there is no automatic conversion, old-command alias, or remote publication of a local draft.
-  For Mode A changes to self-hosted Eval corpora or referenced fixture bytes, use deterministic
-  validation only. Defer full `/woostack-eval` until those bytes are committed and byte-identical to
-  `HEAD`; a separate explicit Eval invocation retains the normal approval path.
 - Agents never mark a PR ready, enable auto-merge, enqueue, merge, force-push, or claim delivery,
   passing checks, review, product acceptance, or merge from issue lifecycle alone.
 

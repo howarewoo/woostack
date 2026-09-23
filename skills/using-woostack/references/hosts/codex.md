@@ -45,12 +45,6 @@ host — no spawn-time auth probe exists; switch manually by promoting an entry 
   as the complete Execute contract; use the tier routing above and clamp `effective_cap`
   to real capability, refilling as workers complete. Codex Action's single session cannot fan out
   and blocks rather than executing inline.
-- **woostack-eval (comparative dispatch):** local Codex can start the two isolated workers in
-  each candidate/baseline inseparable pair together and pin the same concrete `model` plus
-  `reasoning_effort` on both calls. `session-default` is provable only when both calls omit
-  overrides and the host confirms the same session identity. Local concurrent dispatch can
-  satisfy comparative mode; single-session Codex Action cannot create the required paired
-  workers and fails that mechanics preflight.
 
 ## Degradation
 

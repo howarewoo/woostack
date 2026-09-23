@@ -43,11 +43,6 @@ host — no spawn-time auth probe exists; switch manually by promoting an entry 
   clamp `effective_cap` to host capability, and refill as workers complete. An `N=1` or queue-only
   build runs at concurrency one with a clear notice; without delivery-capable subagents, block rather
   than executing inline.
-- **woostack-eval (comparative dispatch):** submit the candidate and baseline as two isolated
-  `@subagent` workers in the same parallel dispatch, keeping every inseparable pair intact.
-  Pin the same concrete model on both calls. `session-default` is provable only when the runtime
-  identifies both workers as inheriting the same session model. Builds with true parallel
-  subagents support comparative concurrency; an `N=1` or queue-only build cannot.
 
 ## Degradation
 

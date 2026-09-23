@@ -29,7 +29,6 @@ This guide covers common edits. Read [AGENTS.md](AGENTS.md) for the full reposit
 | Change GitHub issue-graph dispatch and stacked delivery | `skills/woostack-orchestrate/SKILL.md`, `skills/woostack-orchestrate/scripts/` |
 | Change the execute phase implementation step | `skills/woostack-execute/SKILL.md` |
 | Change browser-based app checks (`/woostack-qa`) | `skills/woostack-qa/SKILL.md`, `skills/woostack-qa/references/` |
-| Change skill evaluation (`/woostack-eval`) | `skills/woostack-eval/SKILL.md`, `skills/woostack-eval/references/`, `skills/woostack-eval/scripts/` |
 | Change session reflection (`/woostack-reflect`) | `skills/woostack-reflect/SKILL.md`, `skills/woostack-reflect/scripts/` |
 | Change the systematic-debugging behavior (`/woostack-debug`) | `skills/woostack-debug/SKILL.md` |
 | Change test-writing guidance | `skills/woostack-execute/SKILL.md`, `skills/woostack-execute/references/tdd.md` |
@@ -47,9 +46,15 @@ This guide covers common edits. Read [AGENTS.md](AGENTS.md) for the full reposit
    `main` is protected, so changes go through a pull request (PR).
 2. Edit the relevant files. Keep each PR focused on one concern where possible.
 3. Check that relative links and heading links still resolve (`[label](path.md#anchor)`).
-4. Run the changed asset's actual command or a focused smoke check, plus relevant behavioral
-   tests and syntax checks. Tests should check behavior, not exact instruction wording or a
-   test-only copy of the implementation. This repo has no universal test command or CI for its own PRs.
+4. Run the changed asset's actual command or focused smoke, plus relevant behavioral tests and
+   syntax checks. Tests should check behavior, not exact instruction wording or a test-only copy.
+   This repo has no universal test command or CI for its own PRs. For this collection, use
+   `pnpm -C site test` and `pnpm -C site build` for catalog/parser structure,
+   `bash skills/woostack-orchestrate/scripts/tests/run-tests.sh` for production-controller behavior,
+   and the [on-demand workflow smoke recipes](skills/using-woostack/references/workflow-smoke.md)
+   for material Plan/Execute/Orchestrate changes. Add a regression only after a valuable observed
+   failure, and report deterministic helper results separately from real host/model outcomes;
+   never report an unrun smoke as passed.
 5. Push the exact branch without force and open a draft PR with `gh`, filling out the PR template.
    Graphite is optional when explicitly selected or the task/stack is verified as already managed;
    follow the [source-control contract](skills/woostack-commit/references/graphite.md).
