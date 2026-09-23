@@ -61,6 +61,7 @@ GitHub issue and relationship publication; Orchestrate owns scheduling and Execu
 implementation and PR delivery.
 
 
+
 `/woostack-init` may use only the official Linear MCP or an authorized GitHub read capability for
 narrow automatic authenticated read-only discovery of non-secret repository/workspace/team/native-name
 defaults; it never selects persistence or authorizes a provider write. `.woostack/config.json` supplies

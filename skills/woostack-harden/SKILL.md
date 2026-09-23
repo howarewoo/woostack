@@ -6,9 +6,11 @@ description: Public read-only phase for reconciling a supplied specification or 
 # woostack-harden
 
 `woostack-harden` is the public repository-reconciliation phase. It is directly callable and may be
-composed by [`woostack-prepare`](../woostack-prepare/SKILL.md) after Ideate or Debug. It returns a
-complete plain candidate packet; it does not publish issues, create runs, edit source, or invoke a
-downstream phase.
+composed by [`woostack-prepare`](../woostack-prepare/SKILL.md) after Ideate or Debug or invoked once by
+[`woostack-plan`](../woostack-plan/SKILL.md) before direct publication. It returns a complete plain
+candidate packet; it does not publish issues, create runs, edit source, or invoke a downstream phase.
+Composition is one-way: Harden never invokes Plan, and a Plan caller must not recursively invoke
+either phase.
 
 ## Command and input
 
