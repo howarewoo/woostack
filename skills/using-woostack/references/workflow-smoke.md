@@ -31,6 +31,8 @@ printf '# Workflow smoke fixture\n' > README.md
 git add a.txt README.md
 git commit -m 'Create workflow smoke fixture'
 BASE_SHA=$(git rev-parse HEAD)
+git push --set-upstream origin HEAD:refs/heads/main
+test "$(git ls-remote origin refs/heads/main | cut -f1)" = "$BASE_SHA"
 ```
 
 Use this same complete packet for the Plan publication and its retry:
@@ -56,20 +58,20 @@ Candidate issue plan:
 
 1. Stable task ID A, ordinal 1. Goal: write `A` to a.txt.
    Scope: a.txt. Non-goals: b.txt, c.txt, siblings, Project state.
-   Acceptance: a.txt contains `A`.
-   Check: `python3 -c "from pathlib import Path; assert 'A' in Path('a.txt').read_text()"`.
+   Acceptance: a.txt is exactly the single line A.
+   Check: `python3 -c "from pathlib import Path; assert Path('a.txt').read_text() == 'A\n'"`.
    Smoke: the same command. Parent policy: admitted main baseline.
    Risk: none; the baseline file is intentionally empty.
 2. Stable task ID B, ordinal 2. Goal: write `B` to b.txt.
    Scope: b.txt. Non-goals: a.txt, c.txt, siblings, Project state.
-   Acceptance: b.txt contains `B`.
-   Check: `python3 -c "from pathlib import Path; assert 'B' in Path('b.txt').read_text()"`.
+   Acceptance: b.txt is exactly the single line B.
+   Check: `python3 -c "from pathlib import Path; assert Path('b.txt').read_text() == 'B\n'"`.
    Smoke: the same command. Prerequisite set: empty. Parent policy: admitted main baseline.
    Risk: none; b.txt is created by this task.
 3. Stable task ID C, ordinal 3. Goal: write `C` to c.txt while consuming A.
    Scope: a.txt, c.txt. Non-goals: b.txt, siblings, Project state.
-   Acceptance: a.txt still contains `A` and c.txt contains `C`.
-   Check: `python3 -c "from pathlib import Path; assert 'A' in Path('a.txt').read_text() and 'C' in Path('c.txt').read_text()"`.
+   Acceptance: a.txt is exactly the single line A and c.txt is exactly the single line C.
+   Check: `python3 -c "from pathlib import Path; assert Path('a.txt').read_text() == 'A\n' and Path('c.txt').read_text() == 'C\n'"`.
    Smoke: the same command. Prerequisite set: A. Parent policy: use the verified
    delivered A branch and SHA selected by Orchestrate; no merge is required.
    Risk: A and C both name a.txt, so C must not start before A is proved.
@@ -79,7 +81,7 @@ Keep credentials, host-private output, and personal data out of the fixture and 
 
 ## 1. Plan publication and stop
 
-**Prerequisites:** the shared fixture, separate live-test permission, a supported host that can load the actual Plan skill and use authorized GitHub issue, native parent/sub-issue, dependency, and complete read-back operations. This repository ships no deterministic Plan transport.
+**Prerequisites:** the shared fixture, separate live-test permission, a supported host that can load the actual Plan skill and use authorized GitHub issue, native parent/sub-issue, dependency, and complete read-back operations. This repository ships no deterministic Plan transport; an old normalized Eval fixture is not one.
 
 **Setup:** use the fresh clone and complete packet above. Record `BASE_SHA`, the installed Plan skill revision, and the canonical test repository before the first write.
 
@@ -142,10 +144,11 @@ PYTHONPATH=skills/woostack-orchestrate/scripts/tests \
 python3 -m unittest -v \
   test_orchestrate_behavior.OrchestrateBehavior.test_full_issue_smoke_uses_real_git_and_concurrent_execute_packets \
   test_orchestrate_behavior.OrchestrateBehavior.test_reconcile_existing_pr_verifies_without_second_worker \
-  test_orchestrate_behavior.OrchestrateBehavior.test_fresh_reuse_blocks_unowned_dirty_existing_worktree
+  test_orchestrate_behavior.OrchestrateBehavior.test_fresh_reuse_blocks_unowned_dirty_existing_worktree \
+  test_orchestrate_behavior.OrchestrateBehavior.test_fresh_reuse_blocks_unowned_committed_existing_branch
 ```
 
-This is **deterministic helper evidence**, not model evidence. It crosses `scripts/orchestrate.py` through `recording_driver.py` in temporary Git repositories and covers A/B scheduling, C stacking on unmerged A, unknown-result reconciliation with one existing PR and no second worker, and preservation of unrelated dirty work.
+This is **deterministic helper evidence**, not model evidence. It crosses `scripts/orchestrate.py` through `recording_driver.py` in temporary Git repositories and covers A/B scheduling, C stacking on unmerged A, unknown-result reconciliation with one existing PR and no second worker, and byte-for-byte preservation of unrelated dirty and committed work.
 
 **Invocation:** run the actual skill in the supported host:
 

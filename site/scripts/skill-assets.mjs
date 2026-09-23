@@ -11,7 +11,7 @@ const HTML_TAGS = new Set([
   'mark', 'menu', 'meta', 'meter', 'nav', 'noscript', 'object', 'ol', 'optgroup', 'option',
   'output', 'p', 'picture', 'pre', 'progress', 'q', 'rp', 'rt', 'ruby', 's', 'samp', 'script',
   'search', 'section', 'select', 'slot', 'small', 'source', 'span', 'strong', 'style',
-  'sub', 'summary', 'sup', 'table', 'tbody', 'td', 'template', 'textarea', 'tfoot', 'th',
+  'sub', 'summary', 'sup', 'svg', 'table', 'tbody', 'td', 'template', 'textarea', 'tfoot', 'th',
   'thead', 'time', 'title', 'tr', 'track', 'u', 'ul', 'var', 'video', 'wbr', 'xml',
 ]);
 
@@ -54,7 +54,7 @@ function decodeScalar(source, key, file) {
       value === '' ||
       /^[\[{]|^[|>](?:[-+])?$/.test(value) ||
       /^(?:~|null|true|false|yes|no|on|off)$/i.test(value) ||
-      /^[-+]?(?:(?:0|[1-9][0-9_]*|0o[0-7_]+|0x[0-9a-f_]+|0b[01_]+)|(?:(?:[1-9][0-9_]*)?\.[0-9_]+|[0-9][0-9_]*(?:\.[0-9_]*)?[eE][-+]?[0-9_]+|\.inf|\.nan))$/i.test(value)
+      /^[-+]?(?:(?:0|[1-9][0-9_]*|0o[0-7_]+|0x[0-9a-f_]+|0b[01_]+)|(?:(?:[0-9][0-9_]*)?\.[0-9_]+|[0-9][0-9_]*(?:\.[0-9_]*)?[eE][-+]?[0-9_]+|\.inf|\.nan))$/i.test(value)
     ) {
       throw new FrontmatterFault('frontmatter-non-string-scalar', `/${key}`, `${file}: ${key} must decode as a string`);
     }
@@ -259,6 +259,11 @@ function normalizeReferenceLabel(value) {
 function stripInlineCodeSpans(line) {
   let output = '';
   for (let index = 0; index < line.length;) {
+    if (line[index] === '\\' && index + 1 < line.length) {
+      output += line.slice(index, index + 2);
+      index += 2;
+      continue;
+    }
     if (line[index] !== '`') {
       output += line[index];
       index += 1;
@@ -439,7 +444,7 @@ export async function validateSkillAssets(skillsDir, publicOrder) {
         } catch (error) {
           throw new Error(`${sourcePath}: invalid JSON: ${error.message}`);
         }
-      } else if (file.endsWith('.md')) {
+      } else if (/\.md$/i.test(file)) {
         await validateLocalLinks(root, sourcePath, await readFile(absolute, 'utf8'));
       }
     }
