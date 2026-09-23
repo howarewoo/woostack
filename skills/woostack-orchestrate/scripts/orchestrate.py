@@ -1460,6 +1460,12 @@ def cmd_schedule(args):
     state = state_read(args.state, admitted) if args.state else new_state(admitted)
     if not args.state:
         require(not Path(args.state_out).exists(), "existing-state", "initial state already exists; resume it")
+        # Publish the owner-bearing initial state before acquiring the claim: the
+        # claim's random owner is only recoverable from durable state, so a claim
+        # must never exist at a point where an interruption would lose its owner.
+        write_state(args, state)
+        state["_loaded_digest"] = hashlib.sha256(_json_bytes(state)).hexdigest()
+        args.state = args.state_out
     claim_scope(args.git_repo, admitted, state)
     try:
         selected = admitted.get("selector_urls") if admitted["mode"] == "issues" else admitted["selector_url"]

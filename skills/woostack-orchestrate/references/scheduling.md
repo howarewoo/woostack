@@ -427,7 +427,9 @@ input/output filenames, so a second writer using the same stale `--state` cannot
 The first schedule omits `--state` and creates state. Every later schedule, record-worker,
 apply-result, reconcile, or stop names an existing state and matching admission. Missing state, malformed JSON,
 state/fingerprint/scope mismatch, missing durable checkpoint head, or a state task set that differs
-from the admission blocks; never silently reinitialize. Keep the state path private and use the
+from the admission blocks; never silently reinitialize. The initial state is published before the
+scope claim is acquired, so a first-schedule interruption at any point leaves either nothing durable
+or owner-bearing state that a `--state` resume reclaims under the same owner. Keep the state path private and use the
 helper's atomic `--state-out` replace.
 
 Under that exclusive ownership, the helper persists the actual selected task branch, absolute
