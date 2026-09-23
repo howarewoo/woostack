@@ -98,12 +98,11 @@ in the coding assistant.
 | A new application | [/woostack-bootstrap](skills/woostack-bootstrap/SKILL.md) | Checks the target directory, asks you to approve the design, then creates the project. |
 | Elicit a complete specification | [/woostack-ideate](skills/woostack-ideate/SKILL.md) | Takes a goal or existing specification, asks only for missing user-owned decisions, and returns complete plain content. |
 | Reconcile a specification or candidate issue plan | [/woostack-harden](skills/woostack-harden/SKILL.md) | Checks supplied content against bounded repository/evidence identity and returns complete reconciled content after explicit corrections. |
-| Publish an approved issue plan | [/woostack-plan](skills/woostack-plan/SKILL.md) | Turns an approved specification into reviewable increments under its provider contract without implementing them. |
-| A feature that needs several PRs | [/woostack-build](skills/woostack-build/SKILL.md) | Composes the public phases, saves a specification and plan, then retains the artifacts for you to select one bounded task for Execute. |
-| A bug fix | [/woostack-fix](skills/woostack-fix/SKILL.md) | Proves the cause and asks you to approve the correction before delivering a small fix or planning larger work. |
+| Publish an approved GitHub issue plan | [/woostack-plan](skills/woostack-plan/SKILL.md) | Publishes one verified GitHub parent/child hierarchy or explicit Project graph with native prerequisite edges, without implementing it. |
+| A feature that needs several PRs | [/woostack-build](skills/woostack-build/SKILL.md) | Composes the public phases, calls Plan's direct publisher, then retains artifacts for you to select one bounded task for Execute. |
+| A bug fix | [/woostack-fix](skills/woostack-fix/SKILL.md) | Proves the cause and asks you to approve the correction before delivering a small fix or composing Plan's direct publisher. |
 | A bounded enhancement, refactor, test-only task, or authorized understood correction | [/woostack-execute](skills/woostack-execute/SKILL.md) | Accepts one complete bounded task, verifies it, and delivers one PR without planning-provider calls. |
 | Execute an approved GitHub issue graph | [/woostack-orchestrate](skills/woostack-orchestrate/SKILL.md) | Takes one exact parent issue, explicit Project, or explicit issue list, runs ready tasks in isolated Execute workers, and verifies submitted draft PRs without merging. |
-
 Fix does not contact a planning provider during diagnosis. Configuring a provider does not make
 every fix a project. Selecting a project, provider work item, or saved run explicitly uses the
 project-backed route.

@@ -49,17 +49,17 @@ manual; Init does not discover Plane defaults.
 ## Identities and hierarchy
 
 Woostack resolves the configured project and checks its instance, workspace, and repository
-association. Build, project-backed Fix, and standalone Plan create top-level `[Build]`, `[Fix]`, or
-`[Plan]` specification work items in that project. Bounded Fix does not contact Plane.
-Each increment is a child of its specification item. Native blocking relations connect adjacent
-increments in order. Readable work-item references, internal UUIDs, and external recovery IDs
-are kept separately. Woostack never guesses or creates the project.
+association. Build and project-backed Fix create top-level `[Build]` or `[Fix]` specification work
+items in that project. Plan does not use Plane. Each increment is a child of its specification item.
+Native blocking relations connect adjacent increments in order. Readable work-item references,
+internal UUIDs, and external recovery IDs are kept separately. Woostack never guesses or creates
+the project.
 
 ## Lifecycle behavior (retired Execute reference)
 
 > **Retired.** Execute no longer accepts Plane work-item scope, performs work-item state transitions,
 > reads a project/run controller, or closes provider resources. Its only optional provider input is an
-> exact canonical GitHub issue URL; the retained Plane schema and historical records support Build/Plan
+> exact canonical GitHub issue URL; the retained Plane schema and historical records support Build/Fix
 > mirroring only. See [Execute retired inputs](/docs/skills/woostack-execute#retired-inputs).
 
 The configured Plane project remains repository association context; its status is never changed by

@@ -1,8 +1,8 @@
 # Plane project synchronization procedure
 
-This procedure applies provider mutations for Build optional mirror synchronization (when
-`artifacts.provider: "plane"`) or one standalone Plan graph. It owns no workflow gate, assignment,
-execution, acceptance, or repository authority. The shared
+This procedure applies provider mutations for Build/Fix optional mirror synchronization (when
+`artifacts.provider: "plane"`). It owns no workflow gate, assignment, execution, acceptance, or
+repository authority. The shared
 [artifact contract](../../woostack-init/references/artifact-backends.md) owns manifest state, mutation
 ordering, failure handling, retention, and read-back invariants. The
 [Plane provider profile](../../woostack-init/references/artifact-providers/plane.md) owns Plane
@@ -25,11 +25,10 @@ is nonblocking. Do not save intermediate decisions, question replies, or hardeni
 
 ## Increment graph synchronization
 
-Build-delegated `woostack-plan` returns a candidate graph without provider calls. The wrapper adapts
-it, with the complete specification and evidence identity, into public Harden and persists the
-complete plain handback in the manifest. The graph keeps stable task IDs and dependencies. Build
-writes `execution-plan.md` directly under the run directory. This procedure runs after that file is
-written when `artifacts.provider: "plane"`.
+Build/Fix writes the complete execution-plan content after the public Harden handback, then adapts
+that retained specification, evidence identity, and graph into the provider synchronization packet.
+The graph keeps stable task IDs and dependencies. This procedure runs after that file is written
+when `artifacts.provider: "plane"`.
 After the immediate baseline drift read matches, run the shared
 [graph-write preflight](../../woostack-init/references/artifact-backends.md#canonical-issue-references-nullable-parents-and-graph-write-preflight).
 Failure before work item creation has zero provider and repository mutation; a failed post-create
@@ -59,23 +58,15 @@ Then independently read the complete relation set and compare exact normalized p
 the local execution plan. That exact graph read-back verifies the mirror sync; update `mirror.status = "synced"`.
 Mirror failures are recorded in the manifest and are nonblocking for verified local authority or handoff.
 
-Standalone Plan uses the same native reference, complete-pagination, exact endpoint round-trip, scope, and
-specification parent preflight before its graph synchronization.
-Do not create an extra parent plan issue, child containment, placeholder work item, duplicate relation,
-replacement resource, or second synchronization cycle.
-## Standalone plan
+The direct GitHub parent/child/dependency publisher is owned by
+[Plan](../../woostack-plan/references/github-procedure.md), not this provider procedure. Plane
+remains a transitional Build/Fix mirror path until the provider cleanup owned by issue #741.
 
-Standalone `woostack-plan` with `artifacts.provider: "plane"` resolves the exact configured project
-(using it when `--project` is omitted, or requiring the supplied value to identify the same native
-project), creates or updates the top-level `[Plan] <goal>` specification work item (`parent = null`),
-creates child increment work items (`parent = <spec-item-UUID>`) with direct project membership, and
-creates `N-1` sibling blocking relations (`ordinal k-1` blocks `ordinal k`). It independently
-reads the complete graph back, and owns no execution authorization. It does not use the gated Build run manifest.
 ## Delivery notes (retired Execute reference)
 
 > **Retired.** Execute does not write Plane work items, states, comments, delivery checkpoints, or run
 > manifests. Repository delivery is through the bounded task's GitHub PR path; Plane records never prove
-> that delivery. Build/Plan synchronization rules below remain provider-specific, not Execute behavior.
+> that delivery. Build/Fix synchronization rules below remain provider-specific, not Execute behavior.
 > See [`woostack-execute`](../../woostack-execute/SKILL.md#retired-inputs).
 
 A missing local capability, failed local artifact read or write, conflicting manifest revision, process

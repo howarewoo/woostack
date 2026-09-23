@@ -3,1532 +3,8 @@
   "skill": "woostack-plan",
   "cases": [
     {
-      "id": "synchronizes-existing-exact-project-strict-chain",
-      "prompt": "Read fixtures/project-a.json as a standalone woostack-plan invocation. The caller supplies one exact existing Linear project and an approved specification. Reconcile exactly two direct project issues with task IDs storage and api, ordinals 1 and 2, one native dependency storage \u2192 api, complete outcome/scope/acceptance/verification contracts and parent branches, and independent read-back. Treat approved parent-branch intent in each issue as content and the last admitted parent tips under repository as separate mutable evidence. Do not mutate the repository. Return exactly one JSON object with keys status, invocationMode, artifactModeSelected, existingProjectRequired, projectCreated, directIssueIds, parentPlanIssueCount, ordinals, nativeDependencies, approvedParentBranchIntents, parentBranches, lastAdmittedParentTips, graphReadBackVerified, repositoryMutationCount, approvalOwned, and executionOwned.",
-      "fixtures": [
-        "project-a.json"
-      ],
-      "capabilities": [
-        "read-workspace"
-      ],
-      "expected": "The exact existing project is reused, two direct issues form the sole strict predecessor edge, the root parent branch is the approved integration branch, and the child parent branch is the immediately preceding increment branch. Stable branch intent remains content while each increment's last admitted tip is separate repository evidence. No parent issue or project is created; Plan neither approves nor executes.",
-      "assertions": [
-        {
-          "id": "plan-existing-project-required",
-          "kind": "final-json-path-equals",
-          "pointer": "/existingProjectRequired",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "plan-project-reused",
-          "kind": "final-json-path-equals",
-          "pointer": "/projectCreated",
-          "expected": false,
-          "critical": true
-        },
-        {
-          "id": "plan-two-direct-issues",
-          "kind": "final-json-path-equals",
-          "pointer": "/directIssueIds",
-          "expected": [
-            "issue-plan-a-storage",
-            "issue-plan-a-api"
-          ],
-          "critical": true
-        },
-        {
-          "id": "plan-no-parent-issue",
-          "kind": "final-json-path-equals",
-          "pointer": "/parentPlanIssueCount",
-          "expected": 0,
-          "critical": true
-        },
-        {
-          "id": "plan-contiguous-ordinals",
-          "kind": "final-json-path-equals",
-          "pointer": "/ordinals",
-          "expected": [
-            1,
-            2
-          ],
-          "critical": true
-        },
-        {
-          "id": "plan-strict-dependency",
-          "kind": "final-json-path-equals",
-          "pointer": "/nativeDependencies",
-          "expected": [
-            [
-              "issue-plan-a-storage",
-              "issue-plan-a-api"
-            ]
-          ],
-          "critical": true
-        },
-        {
-          "id": "plan-root-approved-parent-intent",
-          "kind": "final-json-path-equals",
-          "pointer": "/approvedParentBranchIntents/storage",
-          "expected": "refs/heads/main",
-          "critical": true
-        },
-        {
-          "id": "plan-child-approved-parent-intent",
-          "kind": "final-json-path-equals",
-          "pointer": "/approvedParentBranchIntents/api",
-          "expected": "refs/heads/plan-a-storage",
-          "critical": true
-        },
-        {
-          "id": "plan-root-parent-branch",
-          "kind": "final-json-path-equals",
-          "pointer": "/parentBranches/storage",
-          "expected": "refs/heads/main",
-          "critical": true
-        },
-        {
-          "id": "plan-child-parent-branch",
-          "kind": "final-json-path-equals",
-          "pointer": "/parentBranches/api",
-          "expected": "refs/heads/plan-a-storage",
-          "critical": true
-        },
-        {
-          "id": "plan-root-admitted-tip-separated",
-          "kind": "final-json-path-equals",
-          "pointer": "/lastAdmittedParentTips/storage",
-          "expected": "sha256:main-tip-17",
-          "critical": true
-        },
-        {
-          "id": "plan-child-admitted-tip-separated",
-          "kind": "final-json-path-equals",
-          "pointer": "/lastAdmittedParentTips/api",
-          "expected": "sha256:storage-tip-18",
-          "critical": true
-        },
-        {
-          "id": "plan-readback",
-          "kind": "final-json-path-equals",
-          "pointer": "/graphReadBackVerified",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "plan-no-repository-mutation",
-          "kind": "final-json-path-equals",
-          "pointer": "/repositoryMutationCount",
-          "expected": 0
-        },
-        {
-          "id": "plan-does-not-approve",
-          "kind": "final-json-path-equals",
-          "pointer": "/approvalOwned",
-          "expected": false,
-          "critical": true
-        },
-        {
-          "id": "plan-does-not-execute",
-          "kind": "final-json-path-equals",
-          "pointer": "/executionOwned",
-          "expected": false,
-          "critical": true
-        }
-      ]
-    },
-    {
-      "id": "synchronizes-plane-exact-project-strict-chain",
-      "prompt": "Read fixtures/project-plane.json under the packaged woostack-plan contract. The configured project has name Product Delivery, UUID 33333333-3333-4333-8333-333333333330, instance https://api.plane.so, and workspace acme; the caller omits --project and an approved specification fingerprint is available. Resolve that exact configured project without project creation. Execute complete zero-match absence discovery per candidate work item and relation across four identity discoveries (eight active and archived provider queries with null terminal cursors), reconcile one top-level specification work item ([Plan] Core storage and API layers, native UUID: dddddddd-dddd-4ddd-8ddd-dddddddddddd, parent = null) and two child increment work items (storage, api, parent = dddddddd-dddd-4ddd-8ddd-dddddddddddd) with continuous ordinals 1 and 2, strict built-in sibling blocking dependency graph, preallocated external UUIDs, distinct native work-item UUIDs, distinct readable work-item IDs, and distinct native relation UUID. Prove every provider write uses external_source 'woostack', captures native UUIDs, verifies exact repository provenance, verifies relation endpoints/type, validates exact project membership by independent read-back, verifies complete terminal relation read-back, and mutates zero repository resources. Return exactly one JSON object with keys status, provider, baseUrl, workspace, projectReused, projectId, specParentId, specParentTitle, specParentParent, zeroMatchDiscovery, candidateTaskIds, ordinals, parentPlanIssueCount, childParentId, nativeDependencies, externalIds, nativeWorkItemIds, readableWorkItemIds, projectMemberships, repository, relationEndpoints, nativeRelationId, nativeToExternalMapping, externalSource, providerWriteCount, graphReadBackVerified, approvalOwned, executionOwned, operationScope, and repositoryMutationCount.",
-      "fixtures": [
-        "project-plane.json"
-      ],
-      "capabilities": [
-        "read-workspace"
-      ],
-      "expected": "Plane exact project synchronization verifies complete zero-match absence discovery across eight active and archived terminal-cursor-null queries for four identities before creation, proves project reuse, verifies baseUrl and workspace scope on every provider operation, preallocates external UUIDs, executes exactly 7 provider writes (1 spec work item, 2 child work items, 3 direct project memberships, 1 relation), captures distinct native work-item UUIDs (including distinct native specification UUID dddddddd-dddd-4ddd-8ddd-dddddddddddd) and separate readableWorkItemIds, validates exact project membership by independent read-back, validates native\u2194external mappings with external_source woostack, and verifies exact repository provenance, relation endpoints/type, complete terminal relation read-back, spec item with null parent, child items parented to spec, and zero repository mutation.",
-      "assertions": [
-        {
-          "id": "plan-plane-status",
-          "kind": "final-json-path-equals",
-          "pointer": "/status",
-          "expected": "planned",
-          "critical": true
-        },
-        {
-          "id": "plan-plane-provider",
-          "kind": "final-json-path-equals",
-          "pointer": "/provider",
-          "expected": "plane",
-          "critical": true
-        },
-        {
-          "id": "plan-plane-base-url",
-          "kind": "final-json-path-equals",
-          "pointer": "/baseUrl",
-          "expected": "https://api.plane.so",
-          "critical": true
-        },
-        {
-          "id": "plan-plane-workspace",
-          "kind": "final-json-path-equals",
-          "pointer": "/workspace",
-          "expected": "acme",
-          "critical": true
-        },
-        {
-          "id": "plan-plane-project-reused",
-          "kind": "final-json-path-equals",
-          "pointer": "/projectReused",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "plan-plane-project-id",
-          "kind": "final-json-path-equals",
-          "pointer": "/projectId",
-          "expected": "33333333-3333-4333-8333-333333333330",
-          "critical": true
-        },
-        {
-          "id": "plan-plane-spec-parent-id",
-          "kind": "final-json-path-equals",
-          "pointer": "/specParentId",
-          "expected": "dddddddd-dddd-4ddd-8ddd-dddddddddddd",
-          "critical": true
-        },
-        {
-          "id": "plan-plane-spec-parent-title",
-          "kind": "final-json-path-equals",
-          "pointer": "/specParentTitle",
-          "expected": "[Plan] Core storage and API layers",
-          "critical": true
-        },
-        {
-          "id": "plan-plane-spec-parent-parent",
-          "kind": "final-json-path-equals",
-          "pointer": "/specParentParent",
-          "expected": null,
-          "critical": true
-        },
-        {
-          "id": "plan-plane-zero-match-discovery",
-          "kind": "final-json-path-equals",
-          "pointer": "/zeroMatchDiscovery",
-          "expected": {
-            "identityCount": 4,
-            "activeScopeSearched": true,
-            "archivedScopeSearched": true,
-            "scopes": [
-              "active",
-              "archived"
-            ],
-            "complete": true,
-            "matches": 0,
-            "terminalCursorsNull": true
-          },
-          "critical": true
-        },
-        {
-          "id": "plan-plane-two-direct-issues",
-          "kind": "final-json-path-equals",
-          "pointer": "/candidateTaskIds",
-          "expected": [
-            "storage",
-            "api"
-          ],
-          "critical": true
-        },
-        {
-          "id": "plan-plane-child-parent-id",
-          "kind": "final-json-path-equals",
-          "pointer": "/childParentId",
-          "expected": "dddddddd-dddd-4ddd-8ddd-dddddddddddd",
-          "critical": true
-        },
-        {
-          "id": "plan-plane-contiguous-ordinals",
-          "kind": "final-json-path-equals",
-          "pointer": "/ordinals",
-          "expected": [
-            1,
-            2
-          ],
-          "critical": true
-        },
-        {
-          "id": "plan-plane-no-parent-issue",
-          "kind": "final-json-path-equals",
-          "pointer": "/parentPlanIssueCount",
-          "expected": 0,
-          "critical": true
-        },
-        {
-          "id": "plan-plane-strict-dependency",
-          "kind": "final-json-path-equals",
-          "pointer": "/nativeDependencies",
-          "expected": {
-            "api": [
-              "storage"
-            ]
-          },
-          "critical": true
-        },
-        {
-          "id": "plan-plane-external-ids",
-          "kind": "final-json-path-equals",
-          "pointer": "/externalIds",
-          "expected": {
-            "spec": "00000000-0000-4000-8000-000000000000",
-            "storage": "11111111-1111-4111-8111-111111111111",
-            "api": "22222222-2222-4222-8222-222222222222",
-            "dependency": "33333333-3333-4333-8333-333333333333"
-          },
-          "critical": true
-        },
-        {
-          "id": "plan-plane-native-ids",
-          "kind": "final-json-path-equals",
-          "pointer": "/nativeWorkItemIds",
-          "expected": {
-            "spec": "dddddddd-dddd-4ddd-8ddd-dddddddddddd",
-            "storage": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
-            "api": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb"
-          },
-          "critical": true
-        },
-        {
-          "id": "plan-plane-readable-work-item-ids",
-          "kind": "final-json-path-equals",
-          "pointer": "/readableWorkItemIds",
-          "expected": {
-            "spec": "ENG-100",
-            "storage": "ENG-101",
-            "api": "ENG-102"
-          },
-          "critical": true
-        },
-        {
-          "id": "plan-plane-project-memberships",
-          "kind": "final-json-path-equals",
-          "pointer": "/projectMemberships",
-          "expected": {
-            "spec": {
-              "projectId": "33333333-3333-4333-8333-333333333330",
-              "workItemId": "dddddddd-dddd-4ddd-8ddd-dddddddddddd"
-            },
-            "storage": {
-              "projectId": "33333333-3333-4333-8333-333333333330",
-              "workItemId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"
-            },
-            "api": {
-              "projectId": "33333333-3333-4333-8333-333333333330",
-              "workItemId": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb"
-            }
-          },
-          "critical": true
-        },
-        {
-          "id": "plan-plane-repository",
-          "kind": "final-json-path-equals",
-          "pointer": "/repository",
-          "expected": "https://github.com/acme/widgets",
-          "critical": true
-        },
-        {
-          "id": "plan-plane-relation-endpoints",
-          "kind": "final-json-path-equals",
-          "pointer": "/relationEndpoints",
-          "expected": {
-            "issue": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
-            "relatesTo": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
-            "relationType": "blocked_by"
-          },
-          "critical": true
-        },
-        {
-          "id": "plan-plane-native-relation-id",
-          "kind": "final-json-path-equals",
-          "pointer": "/nativeRelationId",
-          "expected": "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
-          "critical": true
-        },
-        {
-          "id": "plan-plane-native-external-mapping",
-          "kind": "final-json-path-equals",
-          "pointer": "/nativeToExternalMapping",
-          "expected": {
-            "dddddddd-dddd-4ddd-8ddd-dddddddddddd": "00000000-0000-4000-8000-000000000000",
-            "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa": "11111111-1111-4111-8111-111111111111",
-            "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb": "22222222-2222-4222-8222-222222222222",
-            "cccccccc-cccc-4ccc-8ccc-cccccccccccc": "33333333-3333-4333-8333-333333333333"
-          },
-          "critical": true
-        },
-        {
-          "id": "plan-plane-external-source",
-          "kind": "final-json-path-equals",
-          "pointer": "/externalSource",
-          "expected": "woostack",
-          "critical": true
-        },
-        {
-          "id": "plan-plane-provider-write-count",
-          "kind": "final-json-path-equals",
-          "pointer": "/providerWriteCount",
-          "expected": 7,
-          "critical": true
-        },
-        {
-          "id": "plan-plane-readback",
-          "kind": "final-json-path-equals",
-          "pointer": "/graphReadBackVerified",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "plan-plane-does-not-approve",
-          "kind": "final-json-path-equals",
-          "pointer": "/approvalOwned",
-          "expected": false,
-          "critical": true
-        },
-        {
-          "id": "plan-plane-does-not-execute",
-          "kind": "final-json-path-equals",
-          "pointer": "/executionOwned",
-          "expected": false,
-          "critical": true
-        },
-        {
-          "id": "plan-plane-operation-base-url",
-          "kind": "final-json-path-equals",
-          "pointer": "/operationScope/baseUrl",
-          "expected": "https://api.plane.so",
-          "critical": true
-        },
-        {
-          "id": "plan-plane-operation-workspace",
-          "kind": "final-json-path-equals",
-          "pointer": "/operationScope/workspace",
-          "expected": "acme",
-          "critical": true
-        },
-        {
-          "id": "plan-plane-operation-project-id",
-          "kind": "final-json-path-equals",
-          "pointer": "/operationScope/projectId",
-          "expected": "33333333-3333-4333-8333-333333333330",
-          "critical": true
-        },
-        {
-          "id": "plan-plane-zero-repository-mutation",
-          "kind": "final-json-path-equals",
-          "pointer": "/repositoryMutationCount",
-          "expected": 0,
-          "critical": true
-        }
-      ],
-      "fixturePassthroughAssertions": [
-        {
-          "assertionId": "plan-plane-external-source",
-          "fixture": "project-plane.json",
-          "pointer": "/candidateSpec/externalSource"
-        },
-        {
-          "assertionId": "plan-plane-external-source",
-          "fixture": "project-plane.json",
-          "pointer": "/candidateTasks/0/externalSource"
-        },
-        {
-          "assertionId": "plan-plane-external-source",
-          "fixture": "project-plane.json",
-          "pointer": "/candidateTasks/1/externalSource"
-        },
-        {
-          "assertionId": "plan-plane-external-source",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/1/external_source"
-        },
-        {
-          "assertionId": "plan-plane-external-source",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/2/external_source"
-        },
-        {
-          "assertionId": "plan-plane-external-source",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/3/fresh/external_source"
-        },
-        {
-          "assertionId": "plan-plane-external-source",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/4/external_source"
-        },
-        {
-          "assertionId": "plan-plane-external-source",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/5/external_source"
-        },
-        {
-          "assertionId": "plan-plane-external-source",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/6/fresh/external_source"
-        },
-        {
-          "assertionId": "plan-plane-external-source",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/7/external_source"
-        },
-        {
-          "assertionId": "plan-plane-external-source",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/8/external_source"
-        },
-        {
-          "assertionId": "plan-plane-external-source",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/9/fresh/external_source"
-        },
-        {
-          "assertionId": "plan-plane-external-source",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/10/external_source"
-        },
-        {
-          "assertionId": "plan-plane-external-source",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/17/external_source"
-        },
-        {
-          "assertionId": "plan-plane-external-source",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/18/fresh/items/0/external_source"
-        },
-        {
-          "assertionId": "plan-plane-base-url",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/0/scope/baseUrl"
-        },
-        {
-          "assertionId": "plan-plane-workspace",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/0/scope/workspace"
-        },
-        {
-          "assertionId": "plan-plane-project-id",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/0/scope/projectId"
-        },
-        {
-          "assertionId": "plan-plane-operation-base-url",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/0/scope/baseUrl"
-        },
-        {
-          "assertionId": "plan-plane-operation-workspace",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/0/scope/workspace"
-        },
-        {
-          "assertionId": "plan-plane-operation-project-id",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/0/scope/projectId"
-        },
-        {
-          "assertionId": "plan-plane-base-url",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/1/scope/baseUrl"
-        },
-        {
-          "assertionId": "plan-plane-workspace",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/1/scope/workspace"
-        },
-        {
-          "assertionId": "plan-plane-project-id",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/1/scope/projectId"
-        },
-        {
-          "assertionId": "plan-plane-operation-base-url",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/1/scope/baseUrl"
-        },
-        {
-          "assertionId": "plan-plane-operation-workspace",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/1/scope/workspace"
-        },
-        {
-          "assertionId": "plan-plane-operation-project-id",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/1/scope/projectId"
-        },
-        {
-          "assertionId": "plan-plane-base-url",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/2/scope/baseUrl"
-        },
-        {
-          "assertionId": "plan-plane-workspace",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/2/scope/workspace"
-        },
-        {
-          "assertionId": "plan-plane-project-id",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/2/scope/projectId"
-        },
-        {
-          "assertionId": "plan-plane-operation-base-url",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/2/scope/baseUrl"
-        },
-        {
-          "assertionId": "plan-plane-operation-workspace",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/2/scope/workspace"
-        },
-        {
-          "assertionId": "plan-plane-operation-project-id",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/2/scope/projectId"
-        },
-        {
-          "assertionId": "plan-plane-base-url",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/3/scope/baseUrl"
-        },
-        {
-          "assertionId": "plan-plane-workspace",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/3/scope/workspace"
-        },
-        {
-          "assertionId": "plan-plane-project-id",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/3/scope/projectId"
-        },
-        {
-          "assertionId": "plan-plane-operation-base-url",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/3/scope/baseUrl"
-        },
-        {
-          "assertionId": "plan-plane-operation-workspace",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/3/scope/workspace"
-        },
-        {
-          "assertionId": "plan-plane-operation-project-id",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/3/scope/projectId"
-        },
-        {
-          "assertionId": "plan-plane-base-url",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/4/scope/baseUrl"
-        },
-        {
-          "assertionId": "plan-plane-workspace",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/4/scope/workspace"
-        },
-        {
-          "assertionId": "plan-plane-project-id",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/4/scope/projectId"
-        },
-        {
-          "assertionId": "plan-plane-operation-base-url",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/4/scope/baseUrl"
-        },
-        {
-          "assertionId": "plan-plane-operation-workspace",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/4/scope/workspace"
-        },
-        {
-          "assertionId": "plan-plane-operation-project-id",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/4/scope/projectId"
-        },
-        {
-          "assertionId": "plan-plane-base-url",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/5/scope/baseUrl"
-        },
-        {
-          "assertionId": "plan-plane-workspace",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/5/scope/workspace"
-        },
-        {
-          "assertionId": "plan-plane-project-id",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/5/scope/projectId"
-        },
-        {
-          "assertionId": "plan-plane-operation-base-url",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/5/scope/baseUrl"
-        },
-        {
-          "assertionId": "plan-plane-operation-workspace",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/5/scope/workspace"
-        },
-        {
-          "assertionId": "plan-plane-operation-project-id",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/5/scope/projectId"
-        },
-        {
-          "assertionId": "plan-plane-base-url",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/6/scope/baseUrl"
-        },
-        {
-          "assertionId": "plan-plane-workspace",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/6/scope/workspace"
-        },
-        {
-          "assertionId": "plan-plane-project-id",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/6/scope/projectId"
-        },
-        {
-          "assertionId": "plan-plane-operation-base-url",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/6/scope/baseUrl"
-        },
-        {
-          "assertionId": "plan-plane-operation-workspace",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/6/scope/workspace"
-        },
-        {
-          "assertionId": "plan-plane-operation-project-id",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/6/scope/projectId"
-        },
-        {
-          "assertionId": "plan-plane-base-url",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/7/scope/baseUrl"
-        },
-        {
-          "assertionId": "plan-plane-workspace",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/7/scope/workspace"
-        },
-        {
-          "assertionId": "plan-plane-project-id",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/7/scope/projectId"
-        },
-        {
-          "assertionId": "plan-plane-operation-base-url",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/7/scope/baseUrl"
-        },
-        {
-          "assertionId": "plan-plane-operation-workspace",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/7/scope/workspace"
-        },
-        {
-          "assertionId": "plan-plane-operation-project-id",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/7/scope/projectId"
-        },
-        {
-          "assertionId": "plan-plane-base-url",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/8/scope/baseUrl"
-        },
-        {
-          "assertionId": "plan-plane-workspace",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/8/scope/workspace"
-        },
-        {
-          "assertionId": "plan-plane-project-id",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/8/scope/projectId"
-        },
-        {
-          "assertionId": "plan-plane-operation-base-url",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/8/scope/baseUrl"
-        },
-        {
-          "assertionId": "plan-plane-operation-workspace",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/8/scope/workspace"
-        },
-        {
-          "assertionId": "plan-plane-operation-project-id",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/8/scope/projectId"
-        },
-        {
-          "assertionId": "plan-plane-base-url",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/9/scope/baseUrl"
-        },
-        {
-          "assertionId": "plan-plane-workspace",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/9/scope/workspace"
-        },
-        {
-          "assertionId": "plan-plane-project-id",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/9/scope/projectId"
-        },
-        {
-          "assertionId": "plan-plane-operation-base-url",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/9/scope/baseUrl"
-        },
-        {
-          "assertionId": "plan-plane-operation-workspace",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/9/scope/workspace"
-        },
-        {
-          "assertionId": "plan-plane-operation-project-id",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/9/scope/projectId"
-        },
-        {
-          "assertionId": "plan-plane-base-url",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/10/scope/baseUrl"
-        },
-        {
-          "assertionId": "plan-plane-workspace",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/10/scope/workspace"
-        },
-        {
-          "assertionId": "plan-plane-project-id",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/10/scope/projectId"
-        },
-        {
-          "assertionId": "plan-plane-operation-base-url",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/10/scope/baseUrl"
-        },
-        {
-          "assertionId": "plan-plane-operation-workspace",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/10/scope/workspace"
-        },
-        {
-          "assertionId": "plan-plane-operation-project-id",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/10/scope/projectId"
-        },
-        {
-          "assertionId": "plan-plane-base-url",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/11/scope/baseUrl"
-        },
-        {
-          "assertionId": "plan-plane-workspace",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/11/scope/workspace"
-        },
-        {
-          "assertionId": "plan-plane-project-id",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/11/scope/projectId"
-        },
-        {
-          "assertionId": "plan-plane-operation-base-url",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/11/scope/baseUrl"
-        },
-        {
-          "assertionId": "plan-plane-operation-workspace",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/11/scope/workspace"
-        },
-        {
-          "assertionId": "plan-plane-operation-project-id",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/11/scope/projectId"
-        },
-        {
-          "assertionId": "plan-plane-base-url",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/12/scope/baseUrl"
-        },
-        {
-          "assertionId": "plan-plane-workspace",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/12/scope/workspace"
-        },
-        {
-          "assertionId": "plan-plane-project-id",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/12/scope/projectId"
-        },
-        {
-          "assertionId": "plan-plane-operation-base-url",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/12/scope/baseUrl"
-        },
-        {
-          "assertionId": "plan-plane-operation-workspace",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/12/scope/workspace"
-        },
-        {
-          "assertionId": "plan-plane-operation-project-id",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/12/scope/projectId"
-        },
-        {
-          "assertionId": "plan-plane-base-url",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/13/scope/baseUrl"
-        },
-        {
-          "assertionId": "plan-plane-workspace",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/13/scope/workspace"
-        },
-        {
-          "assertionId": "plan-plane-project-id",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/13/scope/projectId"
-        },
-        {
-          "assertionId": "plan-plane-operation-base-url",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/13/scope/baseUrl"
-        },
-        {
-          "assertionId": "plan-plane-operation-workspace",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/13/scope/workspace"
-        },
-        {
-          "assertionId": "plan-plane-operation-project-id",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/13/scope/projectId"
-        },
-        {
-          "assertionId": "plan-plane-base-url",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/14/scope/baseUrl"
-        },
-        {
-          "assertionId": "plan-plane-workspace",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/14/scope/workspace"
-        },
-        {
-          "assertionId": "plan-plane-project-id",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/14/scope/projectId"
-        },
-        {
-          "assertionId": "plan-plane-operation-base-url",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/14/scope/baseUrl"
-        },
-        {
-          "assertionId": "plan-plane-operation-workspace",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/14/scope/workspace"
-        },
-        {
-          "assertionId": "plan-plane-operation-project-id",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/14/scope/projectId"
-        },
-        {
-          "assertionId": "plan-plane-base-url",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/15/scope/baseUrl"
-        },
-        {
-          "assertionId": "plan-plane-workspace",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/15/scope/workspace"
-        },
-        {
-          "assertionId": "plan-plane-project-id",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/15/scope/projectId"
-        },
-        {
-          "assertionId": "plan-plane-operation-base-url",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/15/scope/baseUrl"
-        },
-        {
-          "assertionId": "plan-plane-operation-workspace",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/15/scope/workspace"
-        },
-        {
-          "assertionId": "plan-plane-operation-project-id",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/15/scope/projectId"
-        },
-        {
-          "assertionId": "plan-plane-base-url",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/16/scope/baseUrl"
-        },
-        {
-          "assertionId": "plan-plane-workspace",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/16/scope/workspace"
-        },
-        {
-          "assertionId": "plan-plane-project-id",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/16/scope/projectId"
-        },
-        {
-          "assertionId": "plan-plane-operation-base-url",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/16/scope/baseUrl"
-        },
-        {
-          "assertionId": "plan-plane-operation-workspace",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/16/scope/workspace"
-        },
-        {
-          "assertionId": "plan-plane-operation-project-id",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/16/scope/projectId"
-        },
-        {
-          "assertionId": "plan-plane-base-url",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/17/scope/baseUrl"
-        },
-        {
-          "assertionId": "plan-plane-workspace",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/17/scope/workspace"
-        },
-        {
-          "assertionId": "plan-plane-project-id",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/17/scope/projectId"
-        },
-        {
-          "assertionId": "plan-plane-operation-base-url",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/17/scope/baseUrl"
-        },
-        {
-          "assertionId": "plan-plane-operation-workspace",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/17/scope/workspace"
-        },
-        {
-          "assertionId": "plan-plane-operation-project-id",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/17/scope/projectId"
-        },
-        {
-          "assertionId": "plan-plane-base-url",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/18/scope/baseUrl"
-        },
-        {
-          "assertionId": "plan-plane-workspace",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/18/scope/workspace"
-        },
-        {
-          "assertionId": "plan-plane-project-id",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/18/scope/projectId"
-        },
-        {
-          "assertionId": "plan-plane-operation-base-url",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/18/scope/baseUrl"
-        },
-        {
-          "assertionId": "plan-plane-operation-workspace",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/18/scope/workspace"
-        },
-        {
-          "assertionId": "plan-plane-operation-project-id",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/18/scope/projectId"
-        },
-        {
-          "assertionId": "plan-plane-repository",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/2/request/repository"
-        },
-        {
-          "assertionId": "plan-plane-repository",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/3/fresh/repository"
-        },
-        {
-          "assertionId": "plan-plane-repository",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/5/request/repository"
-        },
-        {
-          "assertionId": "plan-plane-repository",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/6/fresh/repository"
-        },
-        {
-          "assertionId": "plan-plane-repository",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/8/request/repository"
-        },
-        {
-          "assertionId": "plan-plane-repository",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/9/fresh/repository"
-        },
-        {
-          "assertionId": "plan-plane-workspace",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/2/request/workspace"
-        },
-        {
-          "assertionId": "plan-plane-workspace",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/3/fresh/workspace"
-        },
-        {
-          "assertionId": "plan-plane-workspace",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/5/request/workspace"
-        },
-        {
-          "assertionId": "plan-plane-workspace",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/6/fresh/workspace"
-        },
-        {
-          "assertionId": "plan-plane-workspace",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/8/request/workspace"
-        },
-        {
-          "assertionId": "plan-plane-workspace",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/9/fresh/workspace"
-        },
-        {
-          "assertionId": "plan-plane-operation-workspace",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/2/request/workspace"
-        },
-        {
-          "assertionId": "plan-plane-operation-workspace",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/3/fresh/workspace"
-        },
-        {
-          "assertionId": "plan-plane-operation-workspace",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/5/request/workspace"
-        },
-        {
-          "assertionId": "plan-plane-operation-workspace",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/6/fresh/workspace"
-        },
-        {
-          "assertionId": "plan-plane-operation-workspace",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/8/request/workspace"
-        },
-        {
-          "assertionId": "plan-plane-operation-workspace",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/9/fresh/workspace"
-        },
-        {
-          "assertionId": "plan-plane-project-id",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/2/request/project_id"
-        },
-        {
-          "assertionId": "plan-plane-operation-project-id",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/2/request/project_id"
-        },
-        {
-          "assertionId": "plan-plane-project-id",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/3/fresh/project_id"
-        },
-        {
-          "assertionId": "plan-plane-operation-project-id",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/3/fresh/project_id"
-        },
-        {
-          "assertionId": "plan-plane-project-id",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/5/request/project_id"
-        },
-        {
-          "assertionId": "plan-plane-operation-project-id",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/5/request/project_id"
-        },
-        {
-          "assertionId": "plan-plane-project-id",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/6/fresh/project_id"
-        },
-        {
-          "assertionId": "plan-plane-operation-project-id",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/6/fresh/project_id"
-        },
-        {
-          "assertionId": "plan-plane-project-id",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/8/request/project_id"
-        },
-        {
-          "assertionId": "plan-plane-operation-project-id",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/8/request/project_id"
-        },
-        {
-          "assertionId": "plan-plane-project-id",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/9/fresh/project_id"
-        },
-        {
-          "assertionId": "plan-plane-operation-project-id",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/9/fresh/project_id"
-        },
-        {
-          "assertionId": "plan-plane-project-id",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/11/project_id"
-        },
-        {
-          "assertionId": "plan-plane-operation-project-id",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/11/project_id"
-        },
-        {
-          "assertionId": "plan-plane-project-id",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/11/response/project_id"
-        },
-        {
-          "assertionId": "plan-plane-operation-project-id",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/11/response/project_id"
-        },
-        {
-          "assertionId": "plan-plane-project-id",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/12/fresh/project_id"
-        },
-        {
-          "assertionId": "plan-plane-operation-project-id",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/12/fresh/project_id"
-        },
-        {
-          "assertionId": "plan-plane-project-id",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/13/project_id"
-        },
-        {
-          "assertionId": "plan-plane-operation-project-id",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/13/project_id"
-        },
-        {
-          "assertionId": "plan-plane-project-id",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/13/response/project_id"
-        },
-        {
-          "assertionId": "plan-plane-operation-project-id",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/13/response/project_id"
-        },
-        {
-          "assertionId": "plan-plane-project-id",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/14/fresh/project_id"
-        },
-        {
-          "assertionId": "plan-plane-operation-project-id",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/14/fresh/project_id"
-        },
-        {
-          "assertionId": "plan-plane-project-id",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/15/project_id"
-        },
-        {
-          "assertionId": "plan-plane-operation-project-id",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/15/project_id"
-        },
-        {
-          "assertionId": "plan-plane-project-id",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/15/response/project_id"
-        },
-        {
-          "assertionId": "plan-plane-operation-project-id",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/15/response/project_id"
-        },
-        {
-          "assertionId": "plan-plane-project-id",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/16/fresh/project_id"
-        },
-        {
-          "assertionId": "plan-plane-operation-project-id",
-          "fixture": "project-plane.json",
-          "pointer": "/providerEvents/16/fresh/project_id"
-        }
-      ]
-    },
-    {
-      "id": "requires-exact-project-for-direct-specification",
-      "prompt": "Evaluate two independent woostack-plan inputs: a complete approved specification supplied directly without --project, and the same specification supplied with an exact project that is missing or foreign. Do not contact a provider or mutate the repository. Return exactly one JSON object with keys status, decisions, providerMutationCount, and repositoryMutationCount.",
-      "fixtures": [],
-      "capabilities": [],
-      "expected": "Both inputs are blocked before planning or mutation: Plan requires one exact existing project for a direct specification and never creates an implicit project or fuzzy-matches another resource.",
-      "assertions": [
-        {
-          "id": "plan-exact-project-blocked",
-          "kind": "final-json-path-equals",
-          "pointer": "/status",
-          "expected": "blocked",
-          "critical": true
-        },
-        {
-          "id": "plan-direct-project-decision",
-          "kind": "final-json-path-equals",
-          "pointer": "/decisions",
-          "expected": [
-            {
-              "id": "direct-specification-without-project",
-              "advance": false,
-              "reasonCode": "exact-existing-project-required"
-            },
-            {
-              "id": "missing-or-foreign-project",
-              "advance": false,
-              "reasonCode": "exact-existing-project-invalid"
-            }
-          ],
-          "critical": true
-        },
-        {
-          "id": "plan-no-provider-mutation",
-          "kind": "final-json-path-equals",
-          "pointer": "/providerMutationCount",
-          "expected": 0,
-          "critical": true
-        },
-        {
-          "id": "plan-no-repository-mutation",
-          "kind": "final-json-path-equals",
-          "pointer": "/repositoryMutationCount",
-          "expected": 0
-        }
-      ]
-    },
-    {
-      "id": "rejects-nonsequential-or-incomplete-contract",
-      "prompt": "Evaluate each scenario in fixtures/invalid-graphs.json independently against the packaged Plan Linear contract (`artifacts.provider: \"linear\"`). Return the admission decision before any provider or repository mutation for invalid task identity, noncontiguous ordinals, incorrect predecessor binding, or missing verification. Return exactly one JSON object with keys status, provider, decisions, providerMutationCount, and repositoryMutationCount.",
-      "fixtures": [
-        "invalid-graphs.json"
-      ],
-      "capabilities": [],
-      "expected": "Every invalid chain or incomplete outcome contract is rejected before persistence, with no provider or repository mutation.",
-      "assertions": [
-        {
-          "id": "plan-invalid-contracts-blocked",
-          "kind": "final-json-path-equals",
-          "pointer": "/status",
-          "expected": "blocked",
-          "critical": true
-        },
-        {
-          "id": "plan-invalid-contract-reasons",
-          "kind": "final-json-path-equals",
-          "pointer": "/decisions",
-          "expected": [
-            {
-              "id": "duplicate-task-id",
-              "valid": false,
-              "reasonCode": "duplicate-task-id"
-            },
-            {
-              "id": "ordinal-gap",
-              "valid": false,
-              "reasonCode": "ordinals-not-contiguous"
-            },
-            {
-              "id": "wrong-predecessor",
-              "valid": false,
-              "reasonCode": "strict-predecessor-chain-required"
-            },
-            {
-              "id": "missing-verification",
-              "valid": false,
-              "reasonCode": "incomplete-executor-contract"
-            }
-          ],
-          "critical": true
-        },
-        {
-          "id": "plan-invalid-no-provider-mutation",
-          "kind": "final-json-path-equals",
-          "pointer": "/providerMutationCount",
-          "expected": 0,
-          "critical": true
-        },
-        {
-          "id": "plan-invalid-no-repository-mutation",
-          "kind": "final-json-path-equals",
-          "pointer": "/repositoryMutationCount",
-          "expected": 0
-        }
-      ]
-    },
-    {
-      "id": "delegated-candidate-does-not-touch-provider",
-      "prompt": "Read fixtures/project-d.json as a woostack-build delegated planning invocation with the exact approved project fingerprint and read-only project context. The candidate has two increments and must be normalized to ordinals 1 and 2 with storage \u2192 api. Do not contact a provider. Return exactly one JSON object with keys status, invocationMode, candidateTaskIds, ordinals, nativeDependencies, executorContractsComplete, graphValid, providerReadCount, providerWriteCount, synchronizationOwner, graphHardeningOwner, and repositoryMutationCount.",
-      "fixtures": [
-        "project-d.json"
-      ],
-      "capabilities": [
-        "read-workspace"
-      ],
-      "expected": "Delegated planning returns a complete strict-chain candidate without provider reads or writes; the Build wrapper owns hardening and then synchronization.",
-      "assertions": [
-        {
-          "id": "plan-delegated-candidate",
-          "kind": "final-json-path-equals",
-          "pointer": "/status",
-          "expected": "candidate",
-          "critical": true
-        },
-        {
-          "id": "plan-delegated-mode",
-          "kind": "final-json-path-equals",
-          "pointer": "/invocationMode",
-          "expected": "build-delegated"
-        },
-        {
-          "id": "plan-delegated-tasks",
-          "kind": "final-json-path-equals",
-          "pointer": "/candidateTaskIds",
-          "expected": [
-            "storage",
-            "api"
-          ],
-          "critical": true
-        },
-        {
-          "id": "plan-delegated-ordinals",
-          "kind": "final-json-path-equals",
-          "pointer": "/ordinals",
-          "expected": [
-            1,
-            2
-          ],
-          "critical": true
-        },
-        {
-          "id": "plan-delegated-dependency",
-          "kind": "final-json-path-equals",
-          "pointer": "/nativeDependencies",
-          "expected": [
-            [
-              "storage",
-              "api"
-            ]
-          ],
-          "critical": true
-        },
-        {
-          "id": "plan-delegated-contracts",
-          "kind": "final-json-path-equals",
-          "pointer": "/executorContractsComplete",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "plan-delegated-valid",
-          "kind": "final-json-path-equals",
-          "pointer": "/graphValid",
-          "expected": true
-        },
-        {
-          "id": "plan-delegated-no-provider-reads",
-          "kind": "final-json-path-equals",
-          "pointer": "/providerReadCount",
-          "expected": 0
-        },
-        {
-          "id": "plan-delegated-no-provider-writes",
-          "kind": "final-json-path-equals",
-          "pointer": "/providerWriteCount",
-          "expected": 0,
-          "critical": true
-        },
-        {
-          "id": "plan-delegated-sync-owner",
-          "kind": "final-json-path-equals",
-          "pointer": "/synchronizationOwner",
-          "expected": "woostack-build",
-          "critical": true
-        },
-        {
-          "id": "plan-delegated-hardening-owner",
-          "kind": "final-json-path-equals",
-          "pointer": "/graphHardeningOwner",
-          "expected": "woostack-build"
-        },
-        {
-          "id": "plan-delegated-no-repository-mutation",
-          "kind": "final-json-path-equals",
-          "pointer": "/repositoryMutationCount",
-          "expected": 0
-        }
-      ]
-    },
-    {
       "id": "refuses-approval-or-execution-claims",
-      "prompt": "Given a valid exact-project strict-chain plan, return the Plan handoff record only. Do not approve a specification or execution graph, create implementation branches, execute tasks, commit, open or review PRs, or merge. Return exactly one JSON object with keys status, approvalOwned, executionOwned, commitOwned, reviewOwned, mergeOwned, repositoryMutationCount, and graphReadBackVerified.",
+      "prompt": "Given a valid direct GitHub parent-hierarchy plan, return the Plan handoff record only. Do not approve a specification or execution graph, create implementation branches, execute tasks, commit, open or review PRs, or merge. Return exactly one JSON object with keys status, approvalOwned, executionOwned, commitOwned, reviewOwned, mergeOwned, repositoryMutationCount, and graphReadBackVerified.",
       "fixtures": [],
       "capabilities": [],
       "expected": "Plan returns a verified planning handoff while owning none of the approval, implementation, commit, PR, review, or merge actions.",
@@ -1588,111 +64,8 @@
       ]
     },
     {
-      "id": "validates-linear-read-shapes-before-standalone-sync",
-      "prompt": "The workspace selects official Linear provider (`artifacts.provider: \"linear\"`). Classify two independent standalone Plan graph preflights without contacting a provider or mutating a repository. Scenario `canonical-parentless` has canonical reference `WOO-301`, matching workspace/team/project/repository scope, `parentFieldRequested: true`, omitted `parentId`, complete issue and relation pagination, and canonical relation endpoints that round-trip. Scenario `mixed-endpoint` has the same valid issue shape but resolves the target relation endpoint through a provider UUID instead of its canonical issue reference and fails the endpoint round trip. Return exactly one JSON object with keys status, provider, decisions, providerMutationCount, and repositoryMutationCount. Each decision must contain exactly id, advance, and reasonCode in scenario order.",
-      "fixtures": [],
-      "capabilities": [],
-      "expected": "Standalone Plan explicitly verifies the Linear provider, normalizes the requested omitted parent to null, and advances the fully canonical graph, while the mixed endpoint blocks before every provider or repository mutation.",
-      "assertions": [
-        {
-          "id": "plan-linear-shape-status",
-          "kind": "final-json-path-equals",
-          "pointer": "/status",
-          "expected": "blocked",
-          "critical": true
-        },
-        {
-          "id": "plan-linear-shape-provider",
-          "kind": "final-json-path-equals",
-          "pointer": "/provider",
-          "expected": "linear",
-          "critical": true
-        },
-        {
-          "id": "plan-linear-shape-decisions",
-          "kind": "final-json-path-equals",
-          "pointer": "/decisions",
-          "expected": [
-            {
-              "id": "canonical-parentless",
-              "advance": true,
-              "reasonCode": "canonical-parentless-graph-verified"
-            },
-            {
-              "id": "mixed-endpoint",
-              "advance": false,
-              "reasonCode": "relation-endpoint-does-not-round-trip"
-            }
-          ],
-          "critical": true
-        },
-        {
-          "id": "plan-linear-shape-zero-provider-mutation",
-          "kind": "final-json-path-equals",
-          "pointer": "/providerMutationCount",
-          "expected": 0,
-          "critical": true
-        },
-        {
-          "id": "plan-linear-shape-zero-repository-mutation",
-          "kind": "final-json-path-equals",
-          "pointer": "/repositoryMutationCount",
-          "expected": 0,
-          "critical": true
-        }
-      ]
-    },
-    {
-      "id": "outcome-contract-needs-no-coding-plan",
-      "prompt": "Evaluate this Build-delegated Plan candidate against the packaged contract without mutating anything. The user's complete verified specification is to remove an unreachable legacy help page, keep the current help route and content unchanged, and ship one reviewable PR. Task legacy-help, ordinal 1: outcome remove that page; scope docs/legacy-help.md; non-goals current help content, public routes, and other documentation; acceptance the legacy page is absent and all current help links still resolve; parent branch refs/heads/main; predecessor bindings empty. Captured repository evidence at admitted main tip abc123 proves the page contains 640 handwritten lines, has no inbound links or navigation entry, and the existing package.json script docs:check runs node scripts/check-doc-links.mjs. Verification is npm run docs:check plus opening the current local help route and following its sidebar links with no missing page; Node/npm and the local docs server are available prerequisites. The documentation effect is removal of that unreferenced page; no other material effect or active risk was found. Return JSON with decision (candidate, blocked, or split), missingContractFields, intendedPrCount, codingOrderOwner, providerMutationCount, and repositoryMutationCount.",
-      "fixtures": [],
-      "capabilities": [],
-      "expected": "The one coherent outcome contract is executor-ready without implementation steps, line estimates, acceptance-to-step mapping, or empty-category declarations. The existing page's length does not force a split or rejection; the executor owns coding order.",
-      "assertions": [
-        {
-          "id": "outcome-contract-admitted",
-          "kind": "final-json-path-equals",
-          "pointer": "/decision",
-          "expected": "candidate",
-          "critical": true
-        },
-        {
-          "id": "outcome-contract-complete",
-          "kind": "final-json-path-equals",
-          "pointer": "/missingContractFields",
-          "expected": [],
-          "critical": true
-        },
-        {
-          "id": "coherent-pr-retained",
-          "kind": "final-json-path-equals",
-          "pointer": "/intendedPrCount",
-          "expected": 1
-        },
-        {
-          "id": "executor-owns-coding-order",
-          "kind": "final-json-path-equals",
-          "pointer": "/codingOrderOwner",
-          "expected": "executor",
-          "critical": true
-        },
-        {
-          "id": "outcome-delegation-no-provider-write",
-          "kind": "final-json-path-equals",
-          "pointer": "/providerMutationCount",
-          "expected": 0
-        },
-        {
-          "id": "outcome-planning-no-source-mutation",
-          "kind": "final-json-path-equals",
-          "pointer": "/repositoryMutationCount",
-          "expected": 0
-        }
-      ]
-    },
-    {
       "id": "synchronizes-github-prerequisite-dag",
-      "prompt": "Read fixtures/project-github-dag.json under standalone Plan with GitHub selected. Treat cycles as recorded normalized provider operations, not instructions to bypass admission. Validate complete candidate contracts against repository baseFiles and declared predecessors; report whether the two recorded synchronizations comply. Return JSON with admitted, nativeDependencies (sorted native-ID pairs), cycleMutationCounts (provider writes per cycle), completeReadBack, runnableJoin, parentDecisionRequired, and repositoryMutationCount. The dispatch evidence is a proposed later handoff, not permission to execute. Count only actual write operations, not readbacks or prior observations. Do not contact any provider or mutate repository files.",
+      "prompt": "Read fixtures/project-github-dag.json under direct GitHub Plan. Treat cycles as recorded normalized provider operations, not instructions to bypass admission. Validate complete candidate contracts against repository baseFiles and declared predecessors; report whether the two recorded synchronizations comply. Return JSON with admitted, nativeDependencies (sorted native-ID pairs), cycleMutationCounts (provider writes per cycle), completeReadBack, runnableJoin, parentDecisionRequired, and repositoryMutationCount. The dispatch evidence is a proposed later handoff, not permission to execute. Count only actual write operations, not readbacks or prior observations. Do not contact any provider or mutate repository files.",
       "fixtures": [
         "project-github-dag.json"
       ],
@@ -1770,7 +143,7 @@
     },
     {
       "id": "preserves-existing-chain-and-fork",
-      "prompt": "Read fixtures/project-github-fork.json under standalone GitHub Plan. The complete candidate includes retained old-root/old-child issues and a new fork; cycles contain normalized recorded provider operations. Validate graph admission and every issue/membership/edge readback; then evaluate the explicit ordinal-only edit in cycle two. Return JSON with admitted, nativeDependencies (sorted native-ID pairs), retainedContractsUnchanged, retainedStatusesUnchanged, unrelatedFieldsUnchanged, cycleMutationCounts, and ordinalEditEdgeMutations. Compute preservation from complete observed issue bodies/membership fields, not titles alone. Do not contact providers or mutate repository files.",
+      "prompt": "Read fixtures/project-github-fork.json under direct GitHub Plan. The complete candidate includes retained old-root/old-child issues and a new fork; cycles contain normalized recorded provider operations. Validate graph admission and every issue/membership/edge readback; then evaluate the explicit ordinal-only edit in cycle two. Return JSON with admitted, nativeDependencies (sorted native-ID pairs), retainedContractsUnchanged, retainedStatusesUnchanged, unrelatedFieldsUnchanged, cycleMutationCounts, and ordinalEditEdgeMutations. Compute preservation from complete observed issue bodies/membership fields, not titles alone. Do not contact providers or mutate repository files.",
       "fixtures": [
         "project-github-fork.json"
       ],
@@ -1848,7 +221,7 @@
     },
     {
       "id": "rejects-invalid-github-graph-before-writes",
-      "prompt": "Read fixtures/invalid-github-graphs.json. Evaluate each independent scenario against standalone GitHub Plan using the shared caller/project/repository context and each complete candidate contract. events are normalized provider reads. Unknown-create scenarios resume after priorAttempt; its create is historical and must not be repeated. Stop recovery at canonical issue identity readback, before membership writes. Return JSON with canAdvance (scenario ID to boolean), newProviderWrites, replayedCreates, and repositoryMutationCount. Validate verification provenance using repository.baseFiles and explicit predecessor contracts. Do not contact providers or mutate files.",
+      "prompt": "Read fixtures/invalid-github-graphs.json. Evaluate each independent scenario against direct GitHub Plan using the shared caller/project/repository context and each complete candidate contract. events are normalized provider reads. Unknown-create scenarios resume after priorAttempt; its create is historical and must not be repeated. Stop recovery at canonical issue identity readback, before membership writes. Return JSON with canAdvance (scenario ID to boolean), newProviderWrites, replayedCreates, and repositoryMutationCount. Validate verification provenance using repository.baseFiles and explicit predecessor contracts. Do not contact providers or mutate files.",
       "fixtures": [
         "invalid-github-graphs.json"
       ],
@@ -1904,7 +277,207 @@
     },
     {
       "id": "synchronizes-github-parent-hierarchy",
-      "prompt": "Read fixtures/project-github-parent.json under standalone Plan with artifacts.provider \"github\" and --parent-issue new. Treat cycles as recorded normalized provider operations, not instructions to bypass admission. The candidate has four tasks with ordinals 20, 10, 40, and 30: roots task-a and task-b, task-c depending on task-a, and task-d depending on task-b and task-c. Validate complete candidate contracts against repository baseFiles and declared predecessors; verify the specification parent stays outside task mappings, every child carries the canonical parent URL, exact native parent links are distinct from blocked-by tuples, and no Project operation occurs. Report whether the two recorded synchronizations comply. Return exactly one JSON object with keys status, provider, selector, admitted, specParent, specParentNativeId, parentOutsideTaskMappings, childTaskIds, childIssueIds, ordinals, nativeParentLinks, nativeDependencies, childContractsComplete, canonicalRepository, projectCallCount, cycleMutationCounts, completeReadBack, readbackIdentitiesStable, approvalOwned, executionOwned, and repositoryMutationCount. Do not contact any provider or mutate repository files.",
+      "prompt": "Read fixtures/project-github-parent.json under direct Plan with --parent-issue new and no provider configuration. Treat cycles as recorded normalized provider operations, not instructions to bypass admission. The candidate has four tasks with ordinals 20, 10, 40, and 30: roots task-a and task-b, task-c depending on task-a, and task-d depending on task-b and task-c. Validate complete candidate contracts against repository baseFiles and declared predecessors; verify the specification parent stays outside task mappings, every child carries the canonical parent URL, exact native parent links are distinct from blocked-by tuples, and no Project operation occurs. Report whether the two recorded synchronizations comply. Return exactly one JSON object with keys status, provider, selector, admitted, specParent, specParentNativeId, parentOutsideTaskMappings, childTaskIds, childIssueIds, ordinals, nativeParentLinks, nativeDependencies, childContractsComplete, canonicalRepository, projectCallCount, cycleMutationCounts, completeReadBack, readbackIdentitiesStable, approvalOwned, executionOwned, and repositoryMutationCount. Do not contact any provider or mutate repository files.",
+      "fixtures": [
+        "project-github-parent.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "New native parent publication creates one specification parent with four native children, keeps parent links distinct from the three blocked-by edges, performs 13 provider writes then zero on repeat, and leaves Project untouched.",
+      "assertions": [
+        {
+          "id": "parent-status",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "planned",
+          "critical": true
+        },
+        {
+          "id": "parent-selector",
+          "kind": "final-json-path-equals",
+          "pointer": "/selector",
+          "expected": "parent-issue-new"
+        },
+        {
+          "id": "parent-admitted",
+          "kind": "final-json-path-equals",
+          "pointer": "/admitted",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "parent-spec-url",
+          "kind": "final-json-path-equals",
+          "pointer": "/specParent",
+          "expected": "https://github.com/acme/app/issues/90",
+          "critical": true
+        },
+        {
+          "id": "parent-spec-native-id",
+          "kind": "final-json-path-equals",
+          "pointer": "/specParentNativeId",
+          "expected": "issue-90",
+          "critical": true
+        },
+        {
+          "id": "parent-outside-task-mappings",
+          "kind": "final-json-path-equals",
+          "pointer": "/parentOutsideTaskMappings",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "parent-child-tasks",
+          "kind": "final-json-path-equals",
+          "pointer": "/childTaskIds",
+          "expected": [
+            "task-a",
+            "task-b",
+            "task-c",
+            "task-d"
+          ],
+          "critical": true
+        },
+        {
+          "id": "parent-child-issues",
+          "kind": "final-json-path-equals",
+          "pointer": "/childIssueIds",
+          "expected": [
+            "issue-91",
+            "issue-92",
+            "issue-93",
+            "issue-94"
+          ],
+          "critical": true
+        },
+        {
+          "id": "parent-ordinals-display-only",
+          "kind": "final-json-path-equals",
+          "pointer": "/ordinals",
+          "expected": {
+            "task-a": 20,
+            "task-b": 10,
+            "task-c": 40,
+            "task-d": 30
+          },
+          "critical": true
+        },
+        {
+          "id": "parent-exact-links",
+          "kind": "final-json-path-equals",
+          "pointer": "/nativeParentLinks",
+          "expected": [
+            [
+              "issue-90",
+              "issue-91"
+            ],
+            [
+              "issue-90",
+              "issue-92"
+            ],
+            [
+              "issue-90",
+              "issue-93"
+            ],
+            [
+              "issue-90",
+              "issue-94"
+            ]
+          ],
+          "critical": true
+        },
+        {
+          "id": "parent-exact-edges",
+          "kind": "final-json-path-equals",
+          "pointer": "/nativeDependencies",
+          "expected": [
+            [
+              "issue-91",
+              "issue-93"
+            ],
+            [
+              "issue-92",
+              "issue-94"
+            ],
+            [
+              "issue-93",
+              "issue-94"
+            ]
+          ],
+          "critical": true
+        },
+        {
+          "id": "parent-contracts-complete",
+          "kind": "final-json-path-equals",
+          "pointer": "/childContractsComplete",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "parent-canonical-repository",
+          "kind": "final-json-path-equals",
+          "pointer": "/canonicalRepository",
+          "expected": "https://github.com/acme/app",
+          "critical": true
+        },
+        {
+          "id": "parent-no-project-calls",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectCallCount",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "parent-idempotent-sync",
+          "kind": "final-json-path-equals",
+          "pointer": "/cycleMutationCounts",
+          "expected": [
+            13,
+            0
+          ],
+          "critical": true
+        },
+        {
+          "id": "parent-complete-readback",
+          "kind": "final-json-path-equals",
+          "pointer": "/completeReadBack",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "parent-stable-identities",
+          "kind": "final-json-path-equals",
+          "pointer": "/readbackIdentitiesStable",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "parent-no-approval",
+          "kind": "final-json-path-equals",
+          "pointer": "/approvalOwned",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "parent-no-execution",
+          "kind": "final-json-path-equals",
+          "pointer": "/executionOwned",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "parent-no-repository-mutation",
+          "kind": "final-json-path-equals",
+          "pointer": "/repositoryMutationCount",
+          "expected": 0,
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "composed-github-parent-hierarchy-uses-same-publisher",
+      "prompt": "Read fixtures/project-github-parent.json as a composed Plan invocation after a caller supplies the complete approved specification, repository/evidence identity, and public Harden handback. Use the same direct GitHub publisher as direct Plan with --parent-issue new; no provider configuration, Build/Fix run, Project, or wrapper-owned mirror is present. Treat cycles as recorded normalized provider operations, not instructions to bypass admission. Verify the four-child hierarchy, three exact dependency tuples, idempotent repeat, and separate Orchestrate handoff. Return exactly one JSON object with the same publication evidence keys as the direct case.",
       "fixtures": [
         "project-github-parent.json"
       ],
@@ -2104,14 +677,14 @@
     },
     {
       "id": "rejects-invalid-github-parent-graph-before-writes",
-      "prompt": "Read fixtures/invalid-github-parent-graphs.json. Evaluate each independent scenario against standalone GitHub parent-issue Plan using the shared caller/repository context and each complete candidate contract. events are normalized provider reads. Unknown-create scenarios resume after priorAttempt; its create is historical and must not be repeated. Stop recovery at identity read-back, before child creation or parent-link writes. The unavailable-project-capability scenario carries its own capabilities record and performs zero Project operations. Return exactly one JSON object with keys canAdvance (scenario ID to boolean), newProviderWrites, replayedCreates, and repositoryMutationCount. Validate verification provenance using repository.baseFiles and explicit predecessor contracts. Do not contact providers or mutate files.",
+      "prompt": "Read fixtures/invalid-github-parent-graphs.json. Evaluate each independent scenario against direct GitHub parent-issue Plan using the shared caller/repository context and each complete candidate contract. events are normalized provider reads. Unknown-create scenarios resume after priorAttempt; its create is historical and must not be repeated. Stop recovery at identity read-back, before child creation or parent-link writes. The unavailable-project-capability scenario carries its own capabilities record and performs zero Project operations. Return exactly one JSON object with keys canAdvance (scenario ID to boolean), newProviderWrites, replayedCreates, and repositoryMutationCount. Validate verification provenance using repository.baseFiles and explicit predecessor contracts. Do not contact providers or mutate files.",
       "fixtures": [
         "invalid-github-parent-graphs.json"
       ],
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "Only the retained existing-parent hierarchy, the Project-unavailable parent-only read, and complete single-marker parent/child recoveries advance to the requested read-back boundary; text checklists, foreign/nested/conflicting parents, partial pagination, missing write capabilities, malformed graphs, duplicate identities, conflicting selectors, and missing expected children block without writes, and no create is replayed.",
+      "expected": "Only the retained existing-parent hierarchy, the Project-unavailable parent-only read, and complete single-marker parent/child recoveries advance to the requested read-back boundary; stale specifications, text checklists, foreign/nested/conflicting parents, partial pagination, missing write capabilities, malformed graphs, duplicate identities, conflicting selectors, and missing expected children block without writes, and no create is replayed.",
       "assertions": [
         {
           "id": "parent-admission-decisions",
@@ -2139,7 +712,8 @@
             "duplicate-task-id": false,
             "ambiguous-marker-identity": false,
             "conflicting-selectors": false,
-            "missing-expected-child": false
+            "missing-expected-child": false,
+            "stale-specification": false
           },
           "critical": true
         },
@@ -2162,6 +736,28 @@
           "kind": "final-json-path-equals",
           "pointer": "/repositoryMutationCount",
           "expected": 0,
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "parent-capacity-before-publication",
+      "prompt": "Evaluate only native parent capacity admission; all other repository, approval, contract, identity, capability and graph checks have passed. Complete native pagination proves 99 distinct existing direct children. Scenario overfull proposes two additional unlinked children. Scenario recovered-link proposes one additional unlinked child plus a same-publication child whose recovered native identity is already among the 99 linked children. Scenario drift initially admits that recovered-link candidate, but a fresh pre-mutation read finds one unrelated newly linked child. Return exactly JSON with canWrite mapping these three scenario IDs to booleans, and actions for overfull and drift. Do not call any mutation tool or invent a replacement parent.",
+      "capabilities": ["read-workspace"],
+      "expected": "Overfull and drift stop before any parent-body update, child creation or link write. The recovered already-linked identity is counted once, so recovered-link fits exactly 100. No candidate truncation, child removal, or parent splitting occurs.",
+      "assertions": [
+        {
+          "id": "capacity-and-recovery-admission",
+          "kind": "final-json-path-equals",
+          "pointer": "/canWrite",
+          "expected": {"overfull": false, "recovered-link": true, "drift": false},
+          "critical": true
+        },
+        {
+          "id": "capacity-failure-no-mutations",
+          "kind": "final-json-path-equals",
+          "pointer": "/actions",
+          "expected": {"overfull": [], "drift": []},
           "critical": true
         }
       ]

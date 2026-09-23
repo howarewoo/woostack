@@ -267,11 +267,11 @@
     },
     {
       "id": "canonical-project-preserves-source-record",
-      "prompt": "The workspace selects official Linear provider (artifacts.provider: \"linear\"). The user supplied an exact source issue and requested coordinated planning for a correction spanning two increments. After root-cause proof and writable-target admission, Fix creates canonical project project-fix-241 named `[Fix] Prevent cache refresh stampedes` and independently reads it back. It adds only a supported projectLink to the source issue, preserves unrelated fields, and Plan returns direct issues WOO-242 and WOO-243. Return JSON with provider, projectId, projectName, projectReadBackVerified, sourceChangedFields, sourceUnrelatedFieldsPreserved, and directIssueIds.",
+      "prompt": "The workspace selects official Linear provider (artifacts.provider: \"linear\"). The user supplied an exact source issue and requested coordinated planning for a correction spanning two increments. After root-cause proof and writable-target admission, Fix creates canonical project project-fix-241 named `[Fix] Prevent cache refresh stampedes` and independently reads it back. It adds only a supported projectLink to the source issue, preserves unrelated fields, and the remaining Linear Fix provider path returns direct issues WOO-242 and WOO-243. Return JSON with provider, projectId, projectName, projectReadBackVerified, sourceChangedFields, sourceUnrelatedFieldsPreserved, and directIssueIds.",
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "Fix explicitly selects Linear, keeps one canonical project with the required `[Fix] ` name prefix, changes only the source issue's supported project link, and admits both direct plan issues.",
+      "expected": "Fix explicitly selects Linear, keeps one canonical project with the required `[Fix] ` name prefix, changes only the source issue's supported project link, and admits both direct provider issues through the transitional path.",
       "assertions": [
         {
           "id": "canonical-fix-provider",

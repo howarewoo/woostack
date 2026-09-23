@@ -38,7 +38,7 @@ provider row:
 
 | `artifacts.provider` | Provider profile | Build context | Synchronization |
 | --- | --- | --- | --- |
-| `"github"` | [GitHub](../woostack-init/references/artifact-providers/github.md) | [GitHub context](references/github-context.md) | [GitHub procedure](references/github-procedure.md) |
+| `"github"` | [GitHub](../woostack-init/references/artifact-providers/github.md) | [GitHub context](../woostack-plan/references/github-context.md) | [Plan publication](../woostack-plan/references/github-procedure.md) |
 | `"linear"` | [Linear](../woostack-init/references/artifact-providers/linear.md) | [Linear context](references/linear-context.md) | [Linear procedure](references/linear-procedure.md) |
 | `"plane"` | [Plane](../woostack-init/references/artifact-providers/plane.md) | [Plane context](references/plane-context.md) | [Plane procedure](references/plane-procedure.md) |
 
@@ -57,14 +57,18 @@ governs parent-branch intent and base movement detection; this wrapper does not 
 ## Fixed chain
 
 ```text
-allocate or resume canonical local run `.woostack/tmp/runs/<run-id>` (and admit baseline when mirroring) →
+allocate or resume canonical local run `.woostack/tmp/runs/<run-id>` (and admit baseline when a
+retained provider path still requires it) →
 adapt the admitted goal/specification and identity into a plain Ideate packet →
 receive the complete Ideate handback and adapt it into a plain Harden packet →
 receive the complete Harden handback →
-writes plain Markdown `project-spec.md` (and perform optional bounded mirror sync/read-back) →
-draft delegated Plan/Harden locally with zero provider calls →
-writes plain Markdown `execution-plan.md` (and perform optional bounded mirror sync/read-back) →
-retain run artifacts → present verified handoff and ask `Stop here`/`Execute`/`Abandon`
+write plain Markdown `project-spec.md` (and retain any still-supported project artifact) →
+for an explicit GitHub parent or Project scope, invoke Plan with the complete approved specification,
+evidence, and scope; Plan reconciles through public Harden once and directly publishes/read-backs the
+issue graph. Record Plan's complete publication handback as `execution-plan.md` without a second
+GitHub writer. Otherwise draft a local candidate against the canonical Plan issue contract and
+reconcile it through public Harden; local mode makes no provider call. A remaining Linear/Plane
+path may synchronize that candidate through its selected procedure without invoking Plan →
 ```
 
 > **Retired automatic execution.** There is no automatic Execute dispatch or run-controller
@@ -78,14 +82,21 @@ evidence. Build supplies each phase with the complete plain packet from
 and evidence identity. While Build retains its manifest and may mirror final plain artifacts, these
 phase calls make no provider call and do not admit or mutate the manifest as a phase prerequisite.
 
-After `project-spec.md` is written (and optional mirror synchronization completes or records nonblocking
-failure), invoke [`woostack-plan`](../woostack-plan/SKILL.md) with the readable specification, baseline
-identity, and verified run manifest. When delegated by Build, Plan returns only a candidate graph
-under its [selected-provider invariants](../woostack-plan/SKILL.md#graph-invariants) and performs no
-provider read or mutation. Build passes the complete candidate graph and repository evidence to
-public Harden as plain content. Harden returns its reconciled handback without manifest mutation;
-Build admits and persists that handback, writes `execution-plan.md` under the run directory, and
-performs optional bounded mirror synchronization when `artifacts.provider` selects a remote provider.
+For an explicit GitHub parent or Project scope after `project-spec.md` is written, invoke
+[`woostack-plan`](../woostack-plan/SKILL.md) with the complete specification, baseline/evidence
+identity, and selector. Plan uses the public Harden content interface once, then owns all GitHub issue,
+native parent, and dependency publication and independent read-back. Build no longer receives a
+draft-only candidate and never performs a second issue or relationship synchronization. It records
+Plan's complete handback in `execution-plan.md` for retained-run compatibility. Remaining non-GitHub
+provider paths are transitional Build/Fix procedures until issue #741 and do not create a competing
+GitHub graph.
+
+Without a GitHub publication scope, Build retains its transitional local drafting responsibility:
+draft complete tasks against [Plan's issue contract](../woostack-plan/SKILL.md#direct-issue-contract),
+then pass the complete candidate and repository evidence to public Harden as plain content. Harden
+returns its reconciled handback without manifest mutation; Build admits and persists that handback
+as the local plan. This is not draft-only Plan, a second GitHub publisher, or permission to fabricate
+remote identities.
 
 Apply the [least-code doctrine](../woostack-bootstrap/references/patterns.md#7-least-code--comments)
 at both boundaries. Ideate owns user verification of the complete specification, including technical
@@ -98,13 +109,13 @@ nor a proposed default replaces the user's decisions.
 Build writes plain Markdown `project-spec.md` and `execution-plan.md` directly under `.woostack/tmp/runs/<run-id>/` under the
 shared [plain artifact contract](../woostack-init/references/artifact-backends.md#readable-plain-artifact-writing):
 
-1. **Project specification.** Write `project-spec.md` containing the complete user-verified specification.
-   When `artifacts.provider: "linear"`, `artifacts.provider: "plane"`, or `artifacts.provider: "github"`, one bounded mirror synchronization writes the specification and
-   records mirror status in the manifest; mirror failures are nonblocking.
-2. **Execution plan.** Write `execution-plan.md` containing every ordered increment contract and
-   dependency tuple. When `artifacts.provider: "linear"`, `artifacts.provider: "plane"`, or `artifacts.provider: "github"`, one bounded mirror synchronization binds stable
-   local task keys to canonical provider references and records mirror status in the manifest; mirror failures
-   are nonblocking.
+1. **Project specification.** Write `project-spec.md` containing the complete user-verified
+   specification. Retained provider-specific project records may follow their existing bounded path
+   during the transition; they are not Plan's publication authority.
+2. **Execution plan.** In a GitHub scope, write Plan's complete returned child contracts,
+   identities, graph, and publication evidence without another writer. Otherwise write the complete
+   locally drafted, Harden-reconciled candidate; only an explicitly selected transitional provider
+   may synchronize it.
 
 Cross-session continuation is permitted for independently verified run state. All run artifacts in
 `.woostack/tmp/runs/<run-id>/` are retained upon successful completion and upon explicit abandonment.
@@ -113,18 +124,18 @@ boundary.
 
 ## Verified handoff
 
-This handoff is shared by Build and project-backed Fix. After both complete, user-verified
-`project-spec.md` and `execution-plan.md` are written (and optional mirroring completes or records
-nonblocking failure), the owning workflow displays the exact run ID, readable artifact paths,
-stable task mappings, dependency tuples, planning parent branch, planning parent tip, and optional mirror
-mappings and status (when mirroring was enabled). It then stops at retained artifacts:
+This handoff is shared by Build and project-backed Fix. After complete, user-verified
+`project-spec.md` and `execution-plan.md` are retained, display the exact run ID, readable artifact
+paths, task/dependency/parent evidence, and any observed publication identities. Local mode has no
+remote identities; a selected GitHub scope additionally requires Plan's complete publication
+handback. Then stop at retained artifacts:
 
 > **Retired:** `/woostack-execute --run <exact-run-id>` is retired (see
 > [`woostack-execute`](../woostack-execute/SKILL.md#retired-inputs)). To continue, the caller selects
 > one complete bounded task and supplies it as `/woostack-execute <bounded input>` with its
 > decisions, parent evidence, and exact retained state.
 
-A GitHub DAG outside the sequential contract is retained and mirrored without being linearized. The
+A branching GitHub DAG is retained without being linearized or written by a second publisher. The
 [GitHub parent-selection contract](../woostack-init/references/artifact-providers/github.md#issue-identity-and-graph)
 records the intended Orchestrate boundary and any unresolved join decision.
 

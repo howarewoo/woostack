@@ -7,10 +7,10 @@ description: Public read-only phase for reconciling a supplied specification or 
 
 Harden reconciles complete supplied planning content against bounded repository evidence. It accepts
 a specification or a candidate issue plan, exposes material inconsistencies, asks before changing an
-approved decision, and returns complete reusable content. It is a public phase and may also be
-composed by Build, Fix, or a future preparation workflow. Plan has its own standalone reconciliation
-boundary and never invokes Harden automatically. Harden owns no persistence, publication, approval,
-implementation, or automatic routing.
+approved decision, and returns complete reusable content. It is a public phase and may be composed by
+a preparation caller or invoked once by Plan before direct publication. Harden owns no persistence,
+publication, approval, implementation, or automatic routing. Composition is one-way: Harden never
+invokes Plan, and a Plan caller must not recursively invoke either phase.
 
 ## Command and input
 

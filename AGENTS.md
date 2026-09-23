@@ -62,29 +62,30 @@ project-backed fixes use the retained planning workflow below.
 
 Public Ideate and Harden use complete plain packets with explicit repository/evidence identity and
 return complete plain handbacks; neither requires a Build/Fix run, provider configuration, or
-permission-restricted manifest. Build and project-backed Fix may adapt their retained run content to
-those public calls, then write plain `project-spec.md` and `execution-plan.md` directly under
-`.woostack/tmp/runs/<run-id>/` and proceed to a user-controlled handoff (`Stop here`, `Execute`,
-`Abandon`). The handoff stops at retained artifacts and the caller supplies one selected complete
-bounded task to `/woostack-execute <bounded input>` (see
-[Execute retired inputs](skills/woostack-execute/SKILL.md#retired-inputs)). When `artifacts.provider`
-selects a configured provider, local artifacts mirror in bounded post-drafting cycles; mirror failure
-is recorded in the manifest and is nonblocking for local authority.
+permission-restricted manifest. Plan consumes that same packet and directly publishes the exact
+GitHub parent or Project graph; its publication identity and read-back are not a mirror of local
+artifacts and do not require a provider selector or Build/Fix run. Build and project-backed Fix may
+adapt retained run content to those public calls, then write plain `project-spec.md` and
+`execution-plan.md` directly under `.woostack/tmp/runs/<run-id>` and proceed to a user-controlled
+handoff (`Stop here`, `Execute`, `Abandon`). The handoff stops at retained artifacts and the caller
+supplies one selected complete bounded task to `/woostack-execute <bounded input>` (see
+[Execute retired inputs](skills/woostack-execute/SKILL.md#retired-inputs)). When
+`artifacts.provider` selects a configured provider, remaining Build/Fix artifact paths may mirror in
+bounded post-drafting cycles; those records never create a second Plan publisher. Mirror failure is
+recorded in the owning manifest and is nonblocking only for that local authority.
 Resuming planning work uses `/woostack-build --run <exact-run-id>` or
 `/woostack-fix --run <exact-run-id>`. All run artifacts in
 `.woostack/tmp/runs/<run-id>/` are retained upon completion and upon explicit abandonment to preserve
 an unbroken audit trail. Explicit abandonment sets `status: "abandoned"` in the manifest and does not
-mutate a mirrored provider project. Standalone Plan synchronization remains direct and unchanged. The
-shared
-[local run artifact and provider mirror contract](skills/woostack-init/references/artifact-backends.md#minimal-resumable-manifest-schema)
-owns local authority, manifest, ordering, recovery, and retention. The selected
+mutate a mirrored provider project. The selected
 [Linear](skills/woostack-init/references/artifact-providers/linear.md),
 [Plane](skills/woostack-init/references/artifact-providers/plane.md), or
 [GitHub](skills/woostack-init/references/artifact-providers/github.md) profile owns provider-specific
-configuration, capabilities, identities, labels, graph operations, and lifecycle semantics.
-The user's request and explicit conversation choices authorize repository work; artifacts
-record that work and never grant permission, assignment, ownership, acceptance, or source-control
-authority. Git and GitHub own source, branches, commits, pull requests, reviews, and merge evidence.
+configuration, capabilities, identities, labels, graph operations, and lifecycle semantics for
+remaining provider-aware workflows. The user's request and explicit conversation choices authorize
+repository work; artifacts record that work and never grant permission, assignment, ownership,
+acceptance, or source-control authority. Git and GitHub own source, branches, commits, pull requests,
+reviews, and merge evidence.
 
 `/woostack-init` may use only the official Linear MCP or an authorized GitHub read capability for
 narrow automatic authenticated read-only discovery of non-secret repository/workspace/team/native-name

@@ -34,13 +34,13 @@ existing code.
 Plan divides the work into increments, each small enough for one PR. It records outcomes, scope,
 acceptance criteria, verification, risks, explicit prerequisites, and parent-selection policy. It does
 not prescribe every coding step or estimate changed lines. [GitHub plans](/docs/configuration/artifacts/github#identities-hierarchy-and-graph)
-support dependency DAGs in both Project mode and standalone parent-issue mode
-(`--parent-issue new` or an exact parent issue URL, exclusive with `--project`); Linear, Plane, and
-local-only plans retain their sequential contract. Parent-issue mode requires
-`artifacts.provider: "github"` but no Project settings, access, or mirror, and Build/Fix optional
-mirrors never select it automatically. Its native parent hierarchy only groups the plan and is
-distinct from `blocked-by` edges and Git branch ancestry; the parent is never a task, dependency
-endpoint, execution, or PR, and unsupported nested or partial hierarchy fails closed.
+support dependency DAGs in explicit Project mode and parent-issue mode
+(`--parent-issue new` or an exact parent issue URL, exclusive with `--project`). Parent-issue mode
+needs only the exact canonical repository and native relationship capabilities; it does not require a
+provider selector, Project, mirror, or Build/Fix run. Direct and composed Plan use the same public
+Harden reconciliation and publisher. Its native parent hierarchy only groups the plan and is distinct
+from `blocked-by` edges and Git branch ancestry; the parent is never a task, dependency endpoint,
+execution, or PR, and unsupported nested or partial hierarchy fails closed.
 Execute accepts one selected bounded task under its [admission contract](/docs/skills/woostack-execute#admit-one-task), not a whole plan.
 An explicit [Orchestrate](/docs/skills/woostack-orchestrate) invocation selects a GitHub parent issue,
 Project, or exact canonical issue list and dispatches ready tasks to Execute. List mode keeps the

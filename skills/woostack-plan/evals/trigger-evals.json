@@ -4,19 +4,19 @@
   "cases": [
     {
       "id": "exact-project-needs-decomposition",
-      "query": "Reconcile this approved specification against the exact existing Linear project into one direct issue per sequential execution increment with native predecessor relations.",
+      "query": "Reconcile this approved specification against the exact existing GitHub Project into one direct issue per increment with native prerequisite relations.",
       "shouldTrigger": true,
       "expectedSkill": "woostack-plan"
     },
     {
       "id": "direct-spec-with-exact-project-needs-plan",
-      "query": "Plan this approved specification in the exact existing Linear project URL I supplied; return PR-sized direct issue contracts and synchronize the strict chain.",
+      "query": "Plan this approved specification in the exact existing GitHub Project URL I supplied; return PR-sized direct issue contracts and synchronize the explicit prerequisite DAG.",
       "shouldTrigger": true,
       "expectedSkill": "woostack-plan"
     },
     {
-      "id": "direct-spec-without-project-is-blocked-not-artifact-free-plan",
-      "query": "Plan this approved multi-increment specification, but no exact existing Linear project was supplied.",
+      "id": "direct-spec-without-scope-is-blocked-not-artifact-free-plan",
+      "query": "Plan this approved multi-increment specification, but no exact GitHub Project or parent-issue selector was supplied.",
       "shouldTrigger": false,
       "expectedSkill": "woostack-build",
       "conflictsWith": ["woostack-plan"]
@@ -30,13 +30,19 @@
     },
     {
       "id": "new-parent-needs-hierarchy-plan",
-      "query": "Plan this approved specification with --parent-issue new; create one specification parent with native sub-issues and wire the prerequisite DAG, no Project involved.",
+      "query": "Plan this approved specification with --parent-issue new; create one specification parent with native sub-issues and wire the prerequisite DAG, with no Project or provider configuration.",
       "shouldTrigger": true,
       "expectedSkill": "woostack-plan"
     },
     {
       "id": "existing-parent-needs-hierarchy-plan",
       "query": "Plan against this exact https://github.com/acme/app/issues/90 parent URL; reconcile its native children and blocked-by edges without touching any Project.",
+      "shouldTrigger": true,
+      "expectedSkill": "woostack-plan"
+    },
+    {
+      "id": "composed-preparation-uses-plan-publisher",
+      "query": "The preparation workflow has returned a complete approved specification and evidence; call Plan to publish one GitHub parent, native children, and the exact prerequisite DAG.",
       "shouldTrigger": true,
       "expectedSkill": "woostack-plan"
     },

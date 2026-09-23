@@ -1,7 +1,6 @@
 {
   "caller": {
     "parentIssue": "new",
-    "provider": "github",
     "configuredOwner": "acme"
   },
   "repository": {

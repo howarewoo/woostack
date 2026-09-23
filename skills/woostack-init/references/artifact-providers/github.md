@@ -1,9 +1,10 @@
 # GitHub artifact provider profile
 
 This profile implements the provider-specific side of the shared
-[local run artifact and provider mirror contract](../artifact-backends.md). Load it for
-`artifacts.provider: "github"` or explicit Orchestrate parent-issue execution; the latter loads
-only hierarchy, dependency, identity, and delivery-note rules, not Project/mirror configuration.
+[local run artifact and provider mirror contract](../artifact-backends.md). Load it for direct
+`woostack-plan` GitHub publication, `artifacts.provider: "github"` transitional Build/Fix paths, or
+explicit Orchestrate parent-issue execution; Orchestrate loads only hierarchy, dependency, identity,
+and delivery-note rules, not Project/mirror configuration.
 The shared contract owns authority, local artifacts, ordering,
 recovery, failure handling, and read-back invariants; this profile owns GitHub identities, owner and
 selected Project or specification-parent admission, native issue hierarchy, blocked-by dependencies,
@@ -11,13 +12,14 @@ and Project membership/Status lifecycle mappings where a Project is selected.
 
 ## Configuration and scope
 
-Select the scope before resolving scope-specific configuration. Parent-issue planning requires
-`artifacts.provider: "github"` and a verified canonical GitHub repository; a configured `owner`
-must match that repository, but missing Project configuration does not block this mode.
-Project mode requires a validated `artifacts.github` object containing `owner` and `projectStatuses`,
-plus optional `ownerType` (`"organization"` | `"user"`), `statusField` (default `"Status"`), and
-`visibility` (`"private"` | `"public"`, default `"private"`). `projectStatuses` maps exactly five unique option names:
-`planned`, `executing`, `inReview`, `done`, and `blocked`.
+Select the scope before resolving scope-specific configuration. Parent-issue planning requires an
+exact canonical GitHub repository and an explicit `--parent-issue new` or canonical existing-parent
+URL; it does not require a provider selector, Project configuration, or Status fields. A configured
+`owner` must match the canonical repository when one is supplied. Explicit Project mode requires a
+validated `artifacts.github` object containing `owner` and `projectStatuses`, plus optional `ownerType`
+(`"organization"` | `"user"`), `statusField` (default `"Status"`), and `visibility`
+(`"private"` | `"public"`, default `"private"`). `projectStatuses` maps exactly five unique option
+names: `planned`, `executing`, `inReview`, `done`, and `blocked`.
 
 Use an available, authorized GitHub capability that supports the selected operation and its
 verification. Prefer the host's native GitHub tools when suitable; host-authenticated official `gh`
@@ -55,7 +57,7 @@ native reads in both directions after a link write.
 Owner admission verifies `artifacts.github.owner` login, type, and node ID. Build and Fix resolve one
 supplied Project or create one `[Build]/[Fix] <goal>` Project after zero matches across owner pagination.
 Newly created Projects use configured visibility with private default; supplied Projects retain existing visibility.
-Standalone Plan's Project mode uses only an exact supplied Project.
+Plan's Project mode, whether invoked directly or composed by a caller, uses only an exact supplied Project.
 
 The specification is written inside `ProjectV2.readme` between markers `<!-- woostack-spec-start -->` and
 `<!-- woostack-spec-end -->`, preserving unrelated README bytes. Every Project create preallocates one UUID
@@ -64,7 +66,7 @@ and recovery. Projects v2 does not require project labels; repository labels and
 
 ## Specification parent and native children
 
-Standalone Plan explicitly selects `--parent-issue new` or one canonical existing parent issue URL,
+Direct and composed Plan calls explicitly select `--parent-issue new` or one canonical existing parent issue URL,
 exclusive with `--project`. Verify canonical repository/owner/native identities from trusted Git and
 GitHub evidence. For an existing parent, independently read its open issue state (not a PR), actual
 parent, complete body and relevant comments, every native sub-issue page, and every child's actual
@@ -157,7 +159,7 @@ Before issue creation, membership, parent linkage, or relation mutation, complet
 retained issue and relation page, round-trip every endpoint in its required identity form, and
 verify canonical repository and selected scope: exact native parent links for parent mode, or
 direct membership and the admitted parent state for Project mode. Use the manifest's preallocated
-stable mutation identities in mirror mode, or retained standalone mutation identities. Creation
+stable mutation identities in mirror mode, or retained Plan publication identities. Creation
 binds once after independent read-back; required parent links and selected memberships follow
 binding; dependencies follow verified scope membership.
 After an unknown create outcome, recover only by repeating complete discovery for the same marker UUID;
@@ -166,7 +168,7 @@ candidate before writes: unchanged fields, memberships, parent links, and edges 
 only when the approved specification explicitly changes that prerequisite; unexpected drift blocks,
 never silently pruning a chain. Independently read back every specification/task issue, description,
 native parent link, selected membership, and complete exact predecessor→successor edge set.
-Mirror mismatches record failure without changing local artifacts; standalone mismatches block
+Mirror mismatches record failure without changing local artifacts; Plan publication mismatches block
 without claiming synchronization.
 
 Retain the complete DAG for explicit Orchestrate execution; Execute cannot accept or dispatch it as a
@@ -180,7 +182,7 @@ the DAG.
 
 Reuse existing task/dependency/mapping representations. A specification parent is retained separately
 as `specItem` (in `mirror.specItem` when a run manifest applies), never in `stableTaskMappings`.
-Standalone Plan retains the same canonical/native/marker identities and last verified mutation
+Direct and composed Plan calls retain the same canonical/native/marker identities and last verified mutation
 boundary in its handback, not a new Build/Fix run, hidden ledger, or storage schema. Incomplete
 identity recovery blocks further publication rather than allocating a replacement.
 
@@ -189,14 +191,12 @@ identity recovery blocks further publication rather than allocating a replacemen
 > **Retired.** Execute no longer performs GitHub Project/issue lifecycle transitions, run-controller
 > reads, or closure. It accepts one bounded task and an optional exact GitHub issue URL; the issue
 > path is read-only until Commit adds the verified closing reference. The retained `projectStatuses`
-> fields support Build/Plan mirroring and explicit Orchestrate Project progress; see
+> fields support Build/Fix mirroring and explicit Orchestrate Project progress; see
 > [`woostack-execute`](../../../woostack-execute/SKILL.md#retired-inputs).
 
-An explicitly requested provider-backed standalone Plan closure uses only the retained exact
-Project. Independently verify its canonical identity and current state, update only its `closed`
-state, and read back that same Project as closed. An already-closed Project is an independently
-verified no-op. Do not create a replacement, close issues, alter membership or dependencies, or
-bulk-change resources. An unknown outcome requires fresh discovery before retry.
+Plan never closes issues or Projects, changes lifecycle state, or performs a provider/mirror closure
+operation. Explicit Project mode preserves its selected Project state while publication synchronizes
+only the admitted specification span, members, and prerequisite graph.
 
 ### Orchestrate lifecycle boundary
 
@@ -213,7 +213,8 @@ closes parent/child issues or the Project, sets Done, removes dependencies, or c
 
 ## Workflow procedures
 
-Build/Fix keep their optional Project mirrors. Standalone Plan also supports the explicitly selected
-native parent hierarchy through the [GitHub synchronization procedure](../../../woostack-build/references/github-procedure.md).
-Bootstrap, Commit, and Status retain their own workflow gates; planning support alone does not widen
-their inputs or authorize execution.
+Build/Fix retain their transitional project-artifact paths. `woostack-plan` owns direct GitHub
+publication in both direct and composed use through the [Plan publication procedure](../../../woostack-plan/references/github-procedure.md).
+Parent-issue execution in Orchestrate reuses the hierarchy and dependency rules without Project
+configuration. Bootstrap, Commit, and Status retain their own workflow gates; planning support alone
+does not widen their inputs or authorize execution.

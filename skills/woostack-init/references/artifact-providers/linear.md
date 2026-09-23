@@ -29,7 +29,7 @@ configured. Missing capability blocks only the selected provider boundary.
 
 Build resolves one exact caller-supplied project or creates one canonical project from validated
 repository/workspace/team defaults. Fix reaches proved root cause before resolving or creating its
-canonical project. Standalone Plan persists only to an exact selected project.
+canonical project. Plan does not use Linear.
 
 Completely paginate workspace project labels with a null terminal cursor. Resolve each configured
 label by exact native ID or exact case-sensitive name. Reject missing, ambiguous, duplicate, or
@@ -60,8 +60,8 @@ null only when the field was requested and the response and pagination are compl
 Before membership or relation mutation, completely read all retained issues and relation pages,
 round-trip endpoints by canonical issue reference, and verify exact scope, membership, and null
 parent state. For a new issue: create once, read by canonical reference, bind its stable task key once,
-write and read back direct project membership, then write relations. Never create a parent plan issue.
-
+write relations. Never create a parent plan issue; direct GitHub parent/child/dependency publication
+is owned by Plan's GitHub procedure.
 An exact Fix source issue is context only. Preserve its title, description, status, assignment,
 labels, relations, comments, and lifecycle. After canonical Fix project admission, the only supported
 source-issue mutation is one direct project link followed by exact membership read-back.
@@ -70,17 +70,15 @@ source-issue mutation is one direct project link followed by exact membership re
 
 > **Retired.** Execute no longer performs Linear lifecycle transitions, project/run-controller reads,
 > or closure. It accepts one bounded task and no Linear/Plane issue scope. The retained
-> `issueStates`/`projectStatuses` fields and historical records support Build/Plan mirroring only;
+> `issueStates`/`projectStatuses` fields and historical records support Build/Fix mirroring only;
 > see [`woostack-execute`](../../../woostack-execute/SKILL.md#retired-inputs).
 
-A provider-backed standalone Plan closure uses only the retained exact project. Resolve the configured
-canceled-category status, update only that status, and independently read it back. Never create, archive,
-or delete a project to close it. Build/Fix handoff, blockage, and local-run abandonment leave the
-mirrored project unchanged.
+Build/Fix handoff, blockage, and local-run abandonment leave a mirrored project unchanged. Plan does
+not perform Linear lifecycle or closure operations.
 
 ## Workflow procedures
 
-Build and Plan use the detailed [Linear context](../../../woostack-build/references/linear-context.md)
+Build and Fix use the detailed [Linear context](../../../woostack-build/references/linear-context.md)
 and [Linear synchronization procedure](../../../woostack-build/references/linear-procedure.md).
 Bootstrap and Commit retain their workflow gates and use this profile only for selected-provider
 identity, capability, mutation, and read-back behavior.

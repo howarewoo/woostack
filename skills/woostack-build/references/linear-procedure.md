@@ -1,8 +1,8 @@
 # Linear project synchronization procedure
 
 This procedure applies provider mutations for Build/Fix optional mirror synchronization (when
-`artifacts.provider: "linear"`) or one standalone Plan graph. It owns no workflow gate, assignment,
-execution, acceptance, or repository authority. The shared
+`artifacts.provider: "linear"`). It owns no workflow gate, assignment, execution, acceptance, or
+repository authority. The shared
 [artifact contract](../../woostack-init/references/artifact-backends.md) owns manifest state, mutation
 ordering, failure handling, retention, and read-back invariants. The
 [Linear provider profile](../../woostack-init/references/artifact-providers/linear.md) owns Linear
@@ -24,11 +24,10 @@ save intermediate decisions, question replies, or hardening corrections.
 
 ## Increment graph synchronization
 
-Build/Fix-delegated `woostack-plan` returns a candidate graph without provider calls. The wrapper
-adapts it, with the complete specification and evidence identity, into public Harden and persists
-the complete plain handback in the manifest. The graph keeps stable task IDs and dependencies.
-Build writes `execution-plan.md` directly under the run directory. This procedure runs after that
-file is written when `artifacts.provider: "linear"`.
+Build/Fix writes the complete execution-plan content after the public Harden handback, then adapts
+that retained specification, evidence identity, and graph into the provider synchronization packet.
+The graph keeps stable task IDs and dependencies. This procedure runs after that file is written
+when `artifacts.provider: "linear"`.
 
 After the immediate baseline drift read matches, run the shared
 [graph-write preflight](../../woostack-init/references/artifact-backends.md#canonical-issue-references-nullable-parents-and-graph-write-preflight).
@@ -61,18 +60,9 @@ normalized predecessor→successor tuples with the local execution plan. That ex
 verifies the mirror sync; update `mirror.status = "synced"`. Mirror failures are recorded in the manifest
 and are nonblocking for verified local authority or handoff.
 
-Standalone Plan uses the same canonical issue-reference, complete-pagination, exact endpoint
-round-trip, scope, and nullable-parent preflight before its direct graph synchronization.
-Do not create a parent plan issue, child containment, placeholder issue, duplicate relation,
-replacement resource, or second synchronization cycle.
-
-## Standalone plan
-
-Standalone `woostack-plan` keeps its existing behavior unchanged: it directly creates or updates
-the exact selected project's direct-issue dependency graph, independently reads the complete graph
-back, and owns no execution authorization. It does not use the gated Build/Fix run manifest.
-
-## Delivery notes
+The direct GitHub parent/child/dependency publisher is owned by
+[Plan](../../woostack-plan/references/github-procedure.md), not this provider procedure. Linear
+remains a transitional Build/Fix mirror path until the provider cleanup owned by issue #741.
 
 After repository execution, write only concise delivery evidence derived from Git/GitHub:
 canonical PR URLs, commit SHAs, changed paths, observed verification, review result, and blockers.
