@@ -797,6 +797,8 @@ def admit(snapshot, limit):
         "node_id": task["node_id"], "state": task["state"], "resource": task["resource"],
         "title": task["title"], "body": task["body"], "contract": task["contract"],
         "external_prerequisites": task["external_prerequisites"],
+        "specification": task["specification"], "actual_parent": task.get("actual_parent"),
+        "edge_provenance": copy.deepcopy(task["edge_provenance"]),
     } for task in tasks]
     binding = {
         "canonical_repo": canonical, "scope_identity": scope_identity,

@@ -704,6 +704,34 @@ class OrchestrateBehavior(unittest.TestCase):
                 self.assertEqual(payload.get("status"), "snapshot-drift", payload)
                 self.assertEqual(payload.get("dispatch"), [], payload)
 
+    def test_refill_rejects_changed_dispatch_context_before_dispatch(self) -> None:
+        snapshot = self.github.snapshot()
+        admitted_path, admitted = self._admit_issue(snapshot)
+        state = None
+
+        changed_specification = copy.deepcopy(snapshot)
+        changed_specification["tasks"][0]["specification"] = "Updated task specification"
+        changed_parent = copy.deepcopy(snapshot)
+        changed_parent["tasks"][0]["actual_parent"] = self.github.canonical + "/issues/200"
+        changed_evidence = copy.deepcopy(snapshot)
+        changed_evidence["tasks"][2]["declared_edges"] = [{
+            "predecessor": "task-a", "dependent": "task-c", "provenance": "declared",
+            "evidence": {"review": "updated"},
+        }]
+
+        for label, fresh in (
+            ("specification", changed_specification),
+            ("actual parent", changed_parent),
+            ("edge evidence", changed_evidence),
+        ):
+            with self.subTest(label=label):
+                state, payload = self._schedule(
+                    admitted_path, admitted, state, fresh, "dispatch-context-" + label.replace(" ", "-"),
+                )
+                self.assertEqual("snapshot-drift", payload.get("status"), payload)
+                self.assertEqual("snapshot-drift", payload.get("reason"), payload)
+                self.assertEqual([], payload.get("dispatch"), payload)
+
     def test_runtime_branch_collision_blocks_duplicate_reservations(self) -> None:
         snapshot = self.github.snapshot()
         snapshot["tasks"] = snapshot["children"] = snapshot["children"][:2]
