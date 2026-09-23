@@ -174,7 +174,8 @@ skill must not implement an alternate acceptance path:
 
 1. **Bound missing, malformed, or `unknown` worker result:** persist the task as `unknown` with its
    complete reservation/workspace, direct evidence, and first uncertain boundary intact. Unknown
-   blocks that task and its descendants; unrelated ready tasks remain dispatchable. This includes
+   blocks that task and its descendants; unrelated ready tasks remain dispatchable only within
+   proven spare capacity because a possibly-live unknown worker still occupies its slot. This includes
    incomplete worker/readback/check/validation evidence within a valid bound envelope. Do not guess
    report fields, dispatch another worker, or clear identity from a report.
 2. **Focused checks or independent specification review fail:** return `repair-ready`, preserving

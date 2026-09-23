@@ -3,10 +3,10 @@ title: Workflow maps
 description: "Choose preparation, bounded delivery, or a complete greenfield workflow."
 ---
 
-Start with the user's explicit goal. Execute may also associate an exact canonical GitHub issue
-URL with its complete bounded input. Bounded work fits one pull request (PR) and uses the agreed scope in the
-current conversation. Prepared work ends at a verified GitHub issue graph. Git and GitHub show what
-was implemented and delivered.
+Start with the user's explicit goal. Execute may associate an optional exact canonical GitHub issue URL
+with its complete bounded input; issue reads are read-only and do not replace the task contract. Bounded
+work fits one pull request (PR) and uses the agreed scope in the current conversation. Prepared work
+ends at a verified GitHub issue graph. Git and GitHub show what was implemented and delivered.
 
 ## Routing by work shape
 
@@ -17,8 +17,9 @@ was implemented and delivered.
 | Reconcile a specification or candidate issue plan | [Harden](/docs/skills/woostack-harden) |
 | Root-cause investigation without a correction | [Debug](/docs/skills/woostack-debug) |
 | Feature or proved defect needing a verified issue graph | [Prepare](/docs/skills/woostack-prepare) |
-| Bounded enhancement, refactor, or authorized correction for one PR | [Execute](/docs/skills/woostack-execute) |
+| Bounded enhancement, refactor, tests, or authorized correction for one PR | [Execute](/docs/skills/woostack-execute) |
 | Approved issue graph publication | [Plan](/docs/skills/woostack-plan) |
+| Execute an approved GitHub issue graph | [Orchestrate](/docs/skills/woostack-orchestrate) |
 | Add or strengthen tests for a bounded target | [Execute](/docs/skills/woostack-execute) with its [testing guidance](https://github.com/howarewoo/woostack/blob/main/skills/woostack-execute/references/tdd.md) |
 
 Ideate and Harden are complete public phases, not hidden run steps. They accept plain packets with
@@ -76,11 +77,11 @@ valid plan with an explicit execution-time integration decision.
 ```
 
 Select exactly one scope family. The recommended ChatGPT-to-Codex handoff remains a specification
-parent with native PR-sized children; this mode needs no Project configuration.
+parent with native PR-sized children; this mode needs no Project or provider-mirror configuration.
 Explicit Project execution retains its configured membership and lifecycle checks. Explicit list
-execution reads exactly the supplied open issues, normalizes repeated/reordered URLs, and validates
+execution reads exactly the supplied open issues, normalizes repeated or reordered URLs, and validates
 complete contracts plus a supplied dependency DAG. Native, declared, and model-inferred edges keep
-separate provenance/evidence; inference belongs to the skill, not the deterministic helper, and
+separate provenance and evidence; inference belongs to the skill, not the deterministic helper, and
 inferred relationships are never published back to GitHub. External prerequisites block only their
 affected tasks and never expand the list.
 
@@ -99,9 +100,9 @@ is submitted PRs awaiting review/merge, not closed issues or product acceptance.
 ```
 
 Execute accepts one complete bounded enhancement, refactor, test-only task, or authorized
-understood correction. It needs no parent issue, Project, planning provider, or persisted plan; an
-exact issue is optional and read-only. Unknown root cause, unresolved scope, or work that needs
-multiple increments stays at Debug or the applicable planning workflow.
+understood correction. It needs no parent issue, Project, or persisted plan; an exact issue is optional
+and read-only through an authorized GitHub capability. Unknown root cause stays with Debug. Unresolved
+scope or work that needs multiple increments stays with the applicable planning workflow.
 
 ## Shared execution boundary
 

@@ -23,7 +23,6 @@ This guide covers common edits. Read [AGENTS.md](AGENTS.md) for the full reposit
 | Refine the bootstrap procedure | `skills/woostack-bootstrap/references/bootstrap.md` |
 | Change the bootstrap skill entry / discovery description | `skills/woostack-bootstrap/SKILL.md` |
 | Prepare a feature or proved defect for issue planning | `skills/woostack-prepare/SKILL.md` |
-| Change the one-PR enhancement or refactor workflow | `skills/woostack-execute/SKILL.md` |
 | Change requirements gathering (Ideate) | `skills/woostack-ideate/SKILL.md` |
 | Change the check of requirements against the repository (Harden) | `skills/woostack-harden/SKILL.md` |
 | Change the Plan publisher and issue graph contract | `skills/woostack-plan/SKILL.md` |

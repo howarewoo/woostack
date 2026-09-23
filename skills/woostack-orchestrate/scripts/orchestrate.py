@@ -921,7 +921,8 @@ def admit(snapshot, mode, selector, limit):
     recovery = recovery_inventory(snapshot.get("recovery", snapshot.get("inventory")))
     return {**binding, "status": "admitted" if tasks else "no-work", "tasks": ordered_tasks,
             "fingerprint": digest(binding), "integration": integration, "max_parallel": limit,
-            "selector_urls": selector_urls, "task_order": task_order, "parent_prs": copy.deepcopy(snapshot.get("parent_prs", {})),
+            "selector_urls": selector_urls, "task_order": task_order,
+            "parent_prs": copy.deepcopy(snapshot.get("parent_prs", {})),
             "host_cap": host_cap, "recovery": recovery,
             "notice": "Host runs sequential subagents (concurrency one)." if host_cap == 1 else None}
 
@@ -1568,7 +1569,8 @@ def cmd_schedule(args):
                         "retained workspace/parent changed")
             require(Path(reservation["workspace"]).is_absolute(),
                     "reservation-mismatch", "retained workspace must be absolute")
-            require(text(reservation.get("branch")), "reservation-mismatch", "retained branch missing")
+            require(text(reservation.get("branch")), "reservation-mismatch",
+                    "retained branch is missing")
             claim_task(args.git_repo, admitted, task, state, item)
             decision = decisions.get(tid) or item.get("parent_decision")
             parent_readiness(fresh, task, state, reservation, decision, args.git_repo, retained=True)
@@ -1754,6 +1756,7 @@ def cmd_apply_result(args):
     item = state["tasks"][args.task]
     require(item["status"] in ("running", "note-pending", "evidence-pending"),
             "not-running", "task has no active reservation or receipt retry")
+
     try:
         result = load_json(args.result)
     except InputError as error:
@@ -1911,7 +1914,8 @@ def cmd_stop(args):
 
 def cmd_admit(args):
     selected = [bool(args.issue), bool(args.project), bool(args.issues)]
-    require(sum(selected) == 1, "conflicting-selectors" if any(selected) else "missing-selector", "select exactly one scope")
+    require(sum(selected) == 1, "conflicting-selectors" if any(selected) else "missing-selector",
+            "select exactly one scope")
     if args.issues:
         return admit(load_json(args.snapshot), "issues", args.issues, positive(args.max_parallel))
     return admit(load_json(args.snapshot), "issue" if args.issue else "project",

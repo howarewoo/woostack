@@ -693,6 +693,10 @@ class OrchestrateBehavior(unittest.TestCase):
         self.assertEqual(unchanged["status"], "ok", unchanged)
         self.assertEqual(unchanged["dispatch"], [], unchanged)
         self.assertTrue(state.exists())
+
+        # Runtime allocation is not fingerprint-bound: workspace/branch changes
+        # must schedule cleanly while immutable scope facts drift below. This
+        # has to run before the drift cases, which deliberately halt the state.
         changed_workspace = copy.deepcopy(snapshot)
         changed_workspace["children"][0]["workspace"] = str(self.repo.parent / "agent-selected" / "task-a")
         changed_workspace["children"][0]["branch"] = "agent/task-a"
@@ -998,7 +1002,6 @@ class OrchestrateBehavior(unittest.TestCase):
         claims = self._scope_claims()
         self.assertEqual(len(claims), 1, claims)
         self.assertEqual(claims[0]["owner"], state["owner"]["controller_id"])
-
     def test_state_symlink_is_rejected_before_read_or_write(self) -> None:
         snapshot = self._single_task_snapshot()
         admitted_path, admitted = self._admit_issue(snapshot)
@@ -1965,7 +1968,13 @@ class OrchestrateBehavior(unittest.TestCase):
         self.assertEqual(resumed.get("dispatch"), [], resumed)
 
     def test_existing_delivery_without_owner_claim_cannot_be_adopted(self) -> None:
-        self._seed_prior_delivery("task-a")
+        retained = self._seed_prior_delivery("task-a")
+        retained_workspace = Path(retained["reservation"]["workspace"])
+        self.assertTrue(retained_workspace.is_absolute())
+        self.assertNotIn(".woostack", retained_workspace.parts)
+        self.assertEqual(retained["reservation"]["branch"], "feature/task-a")
+        self.assertEqual(git(retained_workspace, "status", "--porcelain"), "")
+        self.assertNotEqual(git(retained_workspace, "rev-parse", "HEAD"), self.base_sha)
         snapshot = self.github.snapshot()
         admitted_path, admitted = self._admit_issue(snapshot)
         state, resumed = self._schedule(admitted_path, admitted, None, snapshot, "resume-valid", cap="1")

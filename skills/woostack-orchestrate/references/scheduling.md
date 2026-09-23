@@ -350,7 +350,8 @@ compact separators) over the immutable scope view. It binds:
 - complete `specification` (when required) and `repository_rules`;
 - every immutable child/member/list-issue field: task ID, ordinal, URL, native IDs (including
   Project `item_id`), state/resource, title/body, actual and declared parent, nested flag,
-  full contract, and prerequisite/external prerequisite sets; and
+  full contract, and prerequisite/external prerequisite sets. Runtime workspace and branch
+  evidence are excluded; and
 - effective graph edges and their provenance/evidence, plus Project lifecycle identity/configuration
   when Project mode is selected.
 
@@ -395,14 +396,12 @@ its descendants; it never redispatches a duplicate or releases descendants.
 
 ## State, reservations, and joins
 
-State is one explicit private session-local controller file, not a provider ledger. It carries
+State is one explicit private session-local controller file, not a provider or retained-artifact ledger. It carries
 `version`, the immutable `fingerprint`, exact `scope_identity`, a random controller owner token,
 stop/halt flags, last recovery inventory, and one task entry per admitted child. Each task entry
 keeps its native membership/dependency and contract revisions, claim provenance, worker identity,
 reservation/worktree/branch/parent start, current source/diff identity, checks/validator receipts,
-PR identity, delivery checkpoint, and first uncertain boundary distinct. The caller must still
-externally enforce exclusive ownership of the selected canonical scope/state for the controller
-session.
+PR identity, delivery checkpoint, and first uncertain boundary distinct. The caller must externally enforce exclusive ownership of the selected canonical scope/state for the controller session, covering every `schedule`, `record-worker`, `apply-result`, and `reconcile` call. If exclusive ownership cannot be proved, block at controller preflight before invoking the helper.
 
 The helper additionally takes owner-only atomic claims under
 `<primary-root>/.woostack/tmp/orchestrate-claims/`: one exact scope claim and one claim keyed by

@@ -3,10 +3,13 @@
 ## Detection
 
 The OpenCode runtime; subagent dispatch via `@subagent` with per-call model selection.
-Prefer an authorized native GitHub capability when suitable; host-authenticated `gh` remains supported for explicit GitHub operations under the selected
-workflow's admission. Never use custom HTTP/REST/GraphQL transport or fallback tokens. GitHub
-operations follow the canonical [artifact backends contract](../../../woostack-init/references/artifact-backends.md)
-and [GitHub profile](../../../woostack-init/references/artifact-providers/github.md#configuration-and-scope).
+Discover authorized native GitHub capabilities exposed through OpenCode runtime MCP configuration.
+Prefer a suitable native capability; host-authenticated GitHub CLI (`gh`) remains supported for
+explicit GitHub operations under the selected workflow's admission. Discover actual GitHub operation
+capabilities and read/write shapes rather than assuming tool names or schemas. Never use custom
+HTTP/REST/GraphQL transport or fallback tokens. GitHub operations follow the canonical
+[artifact backends contract](../../../woostack-init/references/artifact-backends.md) and
+[GitHub profile](../../../woostack-init/references/artifact-providers/github.md#configuration-and-scope).
 
 ## Subagent spawn
 
@@ -50,6 +53,6 @@ host — no spawn-time auth probe exists; switch manually by promoting an entry 
 
 A spawn that cannot carry the resolved model → session model + say so (degraded), per the
 inline law of the dispatching skill.
-When no authorized GitHub interface supports a required operation capability, fail closed
-for required GitHub boundaries or report the missing capability for optional operations per the
-canonical artifact contract.
+If no authorized GitHub interface (native capability or host-authenticated `gh`) supports a
+required operation capability, fail closed for required GitHub boundaries; for optional operations,
+report the missing capability per the canonical artifact contract.

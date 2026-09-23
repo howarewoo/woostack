@@ -49,6 +49,23 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const [repositoryRoot, resultsRoot, ...packages] = process.argv.slice(2);
+const expectedPackages = [
+  'skills/woostack-eval',
+  'skills/woostack-prepare',
+  'skills/woostack-plan',
+  'skills/woostack-execute',
+  'skills/woostack-commit',
+  'skills/woostack-address-comments',
+  'skills/woostack-debug',
+  'skills/woostack-visualize',
+  'skills/woostack-init',
+  'skills/woostack-doctor',
+  'skills/woostack-bootstrap',
+];
+const same = (left, right) => JSON.stringify(left) === JSON.stringify(right);
+if (!same(packages, expectedPackages) || new Set(packages).size !== 11) {
+  throw new Error(`critical package enumeration changed: ${JSON.stringify(packages)}`);
+}
 
 
 
@@ -56,9 +73,9 @@ const allowedCapabilities = new Set(['read-workspace', 'write-workspace', 'shell
 const placeholder = /^(?:todo|tbd|fixme|placeholder|coming soon|n\/?a|none|test|example|lorem ipsum)[.!?]*$/i;
 const embeddedPlaceholder = /\b(?:todo|tbd|fixme|placeholder(?:\s+(?:text|content|copy))?|lorem ipsum|replace me|coming soon)\b/i;
 const prohibitedRequests = [
-  ['network or remote service', /\b(?:fetch(?:ing)?|download(?:ing)?|retriev(?:e|ing)|query(?:ing)?|read(?:ing)?|load(?:ing)?|inspect(?:ing)?|open(?:ing)?)\b[^.!?;\n]{0,80}\b(?:from|via)\s+(?:an?\s+|the\s+)?(?:network|internet|web|remote services?|github)\b/gi],
-  ['network or remote service', /\b(?:call(?:ing)?|contact(?:ing)?|connect(?:ing)?\s+to|query(?:ing)?|send(?:ing)?\s+(?:an?\s+)?request\s+to|request(?:ing)?\s+access\s+to|use|using|access(?:ing)?)\s+(?:an?\s+|the\s+)?(?:network|internet|web|remote services?|github)\b/gi],
-  ['network access', /\b(?:request|requesting|obtain|obtaining|use|using)\s+(?:an?\s+|the\s+)?(?:network|internet|web|github)\s+access\b/gi],
+  ['network or remote service', /\b(?:fetch(?:ing)?|download(?:ing)?|retriev(?:e|ing)|query(?:ing)?|read(?:ing)?|load(?:ing)?|inspect(?:ing)?|open(?:ing)?)\b[^.!?;\n]{0,80}\b(?:from|via)\s+(?:an?\s+|the\s+)?(?:network|internet|web|remote services?|github|linear|plane)\b/gi],
+  ['network or remote service', /\b(?:call(?:ing)?|contact(?:ing)?|connect(?:ing)?\s+to|query(?:ing)?|send(?:ing)?\s+(?:an?\s+)?request\s+to|request(?:ing)?\s+access\s+to|use|using|access(?:ing)?)\s+(?:an?\s+|the\s+)?(?:network|internet|web|remote services?|github|linear|plane)\b/gi],
+  ['network access', /\b(?:request|requesting|obtain|obtaining|use|using)\s+(?:an?\s+|the\s+)?(?:network|internet|web|github|linear|plane)\s+access\b/gi],
   ['model provider', /\b(?:call(?:ing)?|contact(?:ing)?|query(?:ing)?|invoke|invoking|use|using|access|accessing|request(?:ing)?\s+access\s+to)\s+(?:an?\s+|the\s+)?(?:model\s+)?(?:providers?|openai|anthropic|gemini|claude)\b/gi],
   ['model provider access', /\b(?:request|requesting|obtain|obtaining|use|using)\s+(?:an?\s+|the\s+)?(?:model\s+)?providers?\s+access\b/gi],
   ['credentials', /\b(?:inspect|read|load|dump|print|expose|request|use|invent|discover|obtain)(?:ing)?\s+(?:the\s+|any\s+)?(?:credentials?|secrets?|api[_ -]?keys?|tokens?)\b/gi],
@@ -140,6 +157,8 @@ expectRejected('remote-object fetch', () =>
   assertNoProhibitedRequest('Fetch PR metadata from GitHub before proceeding.', '<probe>'));
 expectRejected('remote-object read', () =>
   assertNoProhibitedRequest('Read PR metadata from GitHub before proceeding.', '<probe>'));
+expectRejected('affirmative Plane request', () =>
+  assertNoProhibitedRequest('Call Plane before proceeding.', '<probe>'));
 expectRejected('affirmative request in adjacent sentence', () =>
   assertNoProhibitedRequest('Never fabricate receipts. Use the network to finish.', '<probe>'));
 expectRejected('affirmative request after but', () =>
@@ -246,4 +265,4 @@ for (let index = 0; index < packages.length; index += 1) {
 
 NODE
 
-printf 'PASS: validated critical behavior corpora for exactly 12 required packages\n'
+printf 'PASS: validated critical behavior corpora for exactly 11 required packages\n'

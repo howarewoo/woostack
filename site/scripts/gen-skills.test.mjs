@@ -6,6 +6,8 @@ import {
   rewriteLinks,
   neutralizeTags,
   renderPage,
+  navOrder,
+  PUBLIC_ORDER,
 } from './gen-skills.mjs';
 
 test('parseFrontmatter extracts name + description and returns the body', () => {
@@ -111,4 +113,31 @@ test('renderPage emits title/description and source links for public phases', ()
     page,
     /\[View source on GitHub\]\(https:\/\/github\.com\/howarewoo\/woostack\/blob\/main\/skills\/woostack-prepare\/SKILL\.md\)/
   );
+});
+
+test('public skill routing retains the 18-skill order', () => {
+  const expectedPublic = [
+    'using-woostack',
+    'woostack-init',
+    'woostack-bootstrap',
+    'woostack-ideate',
+    'woostack-harden',
+    'woostack-prepare',
+    'woostack-plan',
+    'woostack-orchestrate',
+    'woostack-execute',
+    'woostack-commit',
+    'woostack-address-comments',
+    'woostack-visualize',
+    'woostack-design',
+    'woostack-debug',
+    'woostack-doctor',
+    'woostack-qa',
+    'woostack-eval',
+    'woostack-reflect',
+  ];
+
+  assert.equal(PUBLIC_ORDER.length, 18);
+  assert.deepEqual(PUBLIC_ORDER, expectedPublic);
+  assert.deepEqual(navOrder([...expectedPublic].reverse()), expectedPublic);
 });

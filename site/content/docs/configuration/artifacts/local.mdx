@@ -39,9 +39,15 @@ Git and GitHub own source, branches, commits, pull requests, reviews, and merge 
 record preserves decisions and evidence; it does not authorize publication, implementation,
 assignment, ownership, acceptance, or merge.
 
-Parent-issue Plan and exact-issue workflows do not require retained runs or Project configuration.
-An explicit Project operation uses only its exact caller-selected GitHub destination and active
-configuration. Missing GitHub configuration does not block local setup.
+Retained local files do not select a GitHub destination. Plan publishes only to the exact caller-selected
+`--parent-issue` or `--project` scope; parent mode needs no Project settings or retained run, and
+Project mode follows the [GitHub configuration contract](/docs/configuration/artifacts/github).
+An exact Execute issue association is read through an authorized GitHub capability (native tools
+preferred; host-authenticated `gh` supported) and needs no Project settings or retained plan. Read-only
+discovery during `woostack-init` is setup only; it never selects a remote destination or authorizes
+later GitHub access.
+
+## Retention and recovery
 
 Completed and explicitly abandoned records remain unchanged. To continue from a retained record,
 supply its exact identity and complete content to the responsible phase after fresh repository and

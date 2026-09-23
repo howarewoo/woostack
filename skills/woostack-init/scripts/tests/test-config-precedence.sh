@@ -64,8 +64,18 @@ assert_eq "$(jq -r '.github.projectStatuses.done' <<<"$actual")" "Shipped" "loca
 assert_eq "$(jq -r '.github.projectStatuses.planned' <<<"$actual")" "Todo" "base Status options survive partial local mapping"
 assert_eq "$(jq -r '.models.standard.effort' <<<"$actual")" "low" "nested setting is overridden"
 assert_eq "$(jq -r '.models.standard.nits' <<<"$actual")" "true" "sibling model keys are preserved"
+assert_eq "$(jq -r '.models.standard.custom' <<<"$actual")" "opt" "local additions are preserved"
+assert_eq "$(jq -r '.models.standard.model' <<<"$actual")" "gpt-5.5" "base objects are preserved"
 assert_eq "$(jq -r '.review.required' <<<"$actual")" "true" "base review settings are preserved"
 assert_eq "$(jq -r '.status.staleDays' <<<"$actual")" "7" "top-level setting is overridden"
+
+# Scalar, array, null replacement and linked-worktree policy.
+cat >"$repo/.woostack/config.local.json" <<'JSON'
+{"github":{"owner":"local-org"},"models":{"standard":{"angles":{"skip":["database"]}}},"commit":null}
+JSON
+actual="$(bash "$RESOLVER" "$repo")"
+assert_eq "$(jq -c '.models.standard.angles.skip' <<<"$actual")" '["database"]' "local array replaces"
+assert_eq "$(jq -r '.commit' <<<"$actual")" "null" "local null replaces"
 git -C "$repo" worktree add -q "$worktree"
 actual="$(bash "$RESOLVER" "$worktree")"
 assert_eq "$(jq -r '.github.owner' <<<"$actual")" "local-org" "linked worktree inherits local policy"

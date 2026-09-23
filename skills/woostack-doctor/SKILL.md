@@ -15,8 +15,9 @@ It has two layers:
   reads no credentials and makes no network calls. An explicit controller-owned
   `--live-receipt <path>` is only a normalized, non-secret GitHub capability receipt.
 - The interactive repair layer proposes local auto-fixes, mutates nothing before approval, routes
-  approved tracked repairs through [`woostack-execute`](../woostack-execute/SKILL.md), and performs
-  only the safe filesystem repairs owned by a check. Remote and retained data are report-only.
+  approved tracked repairs through [`woostack-execute`](../woostack-execute/SKILL.md) in an isolated
+  task worktree, and performs only safe filesystem repairs owned by a check. Remote and retained data
+  are report-only.
 
 ## Commands
 
@@ -48,20 +49,22 @@ canonical resolver.
    [the receipt section](../woostack-init/references/artifact-providers/github.md#doctor-live-receipt):
    semantic provider `authorized-github`, `interfaceAvailable`, authentication/readiness, canonical
    repository and owner evidence, complete Status option evidence, and
-  `projectRead`, `statusFieldRead`, `pagination`, and `independentReadBack`. Receipt-declared
-  required-capability lists are not accepted as a contract; unrelated write and dependency
-  capabilities may be false.
-4. Run static checks for configuration, diagnostics, ignore drift, worktree hygiene, and retained
-   data. Legacy provider settings and mirror-era manifests are preserved and produce actionable
-   retirement guidance only; they never select a destination, recreate a wrapper, or block unrelated
-   local diagnosis.
+   `projectRead`, `statusFieldRead`, `pagination`, and `independentReadBack`. Receipt-declared
+   required-capability lists are not accepted as a contract; unrelated write and dependency
+   capabilities may be false.
+4. Run static checks for configuration, diagnostics, ignore drift, OMP session naming, worktree
+   hygiene, and retained data. OMP agent selection is host-owned; Doctor never inspects, creates,
+   repairs, or removes project agent definitions. Legacy provider settings and mirror-era manifests
+   are preserved and produce actionable retirement guidance only; they never select a destination,
+   recreate a wrapper, or block unrelated local diagnosis.
 5. If there is no `.woostack/`, stop and point the user to [`woostack-init`](../woostack-init/SKILL.md).
    Doctor never scaffolds.
 6. Propose a changeset grouped by finding code, path, and exact local change. Provider, legacy, and
    retained-data findings are report-only.
 7. **HARD GATE — approval.** Silence is not approval. Apply only the explicitly approved local
-   auto-fix findings. Route tracked repairs through `woostack-execute`; safe filesystem-only repairs
-   may use their owning check. No repair command contacts a provider or mutates retained data.
+   auto-fix findings. Route tracked repairs through `woostack-execute` in its isolated task worktree
+   before any file mutation; safe filesystem-only repairs may use their owning check. No repair
+   command contacts a provider or mutates retained data.
 8. Confirm with the same static or receipt-validation mode and report residual findings.
 
 ## Hard constraints
