@@ -33,9 +33,9 @@ confirmed decisions, evidence, and unresolved questions.
 
 Harden is also directly callable: `/woostack-harden <specification-or-issue-plan>`. It checks supplied
 content against bounded repository evidence, raises material discrepancies before changing approved
-decisions, and returns complete reconciled content. Neither phase requires a Prepare run, provider
-configuration, writable checkout, or remote mirror. Existing conventions and plausible defaults never
-replace the user's decision.
+decisions, and returns complete reconciled content. Neither phase requires a Prepare run, writable
+checkout, or GitHub Project configuration. Existing conventions and plausible defaults never replace
+the user's decision.
 
 Prepare is the thin composition for feature and defect planning:
 `/woostack-prepare <goal-or-defect> [--parent-issue new|<exact-url>]`. Complete input may start at
@@ -52,13 +52,13 @@ Prepare or Plan.
 Plans describe outcomes and acceptance criteria: the conditions the finished work must meet. They
 leave coding steps to the implementer without changing the agreed scope.
 
-## Retained records and provider configuration
+## Retained records and direct GitHub publication
 
 Existing `.woostack/tmp/runs/<run-id>/` records from retired planning wrappers remain readable
 historical user data. They are never migrated or mutated. A caller may supply a complete retained
 packet and exact identity for fresh validation, but a record does not authorize publication,
-implementation, assignment, or ownership. Plan's GitHub issue publication is direct; provider
-profiles remain reference/configuration surfaces for surviving workflows and historical records.
+implementation, assignment, or ownership. Plan's GitHub issue publication is direct; legacy
+managed-provider records remain opaque and inactive.
 
 ## Context economy
 

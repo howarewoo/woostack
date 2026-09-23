@@ -3,9 +3,9 @@ title: Local
 description: Reference for retained local planning records, preservation, and recovery boundaries.
 ---
 
-`artifacts.provider` omitted or set to `"local"` is the default configuration. It does not create a
-new planning run. Prepare and Plan use complete plain packets and direct GitHub issue publication;
-Ideate and Harden are read-only public phases.
+Local files are retained historical records, not an active publication selector. Prepare and Plan
+exchange complete plain packets and publish direct GitHub issue graphs; they do not create a new run
+or duplicate a remote record. Ideate and Harden are read-only public phases.
 
 ## Retained storage layout
 
@@ -19,49 +19,44 @@ Existing records from retired planning wrappers may contain:
 └── execution-plan.md
 ```
 
-The [run-store contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-backends.md#owner-only-local-run-store)
-defines historical naming, permissions, compare-and-swap revisions, and collision handling. Do not
-create, rewrite, migrate, or delete a retained record as part of Prepare or Plan.
+The [artifact contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-backends.md#retained-data-and-retirement)
+defines historical naming, owner-only permissions, locking, compare-and-swap revisions, and collision
+handling. Do not create, rewrite, migrate, or delete a retained record as part of Prepare or Plan.
 
 | Entry | Historical purpose |
 | --- | --- |
-| `.lock` | Prevents concurrent legacy run-store operations from overwriting each other. |
-| `manifest.json` | Retained resume state, stable task mappings, mirror results, and revisions. |
+| `.lock` | Prevents concurrent retained-record operations from overwriting each other. |
+| `manifest.json` | Retained resume state, stable task mappings, and revisions. |
 | `project-spec.md` | Retained approved specification and, where applicable, proved diagnosis. |
 | `execution-plan.md` | Retained increments, contracts, and dependencies. |
 
 Historical records use owner-only permissions and atomic compare-and-swap writes when their owning
 legacy operation is explicitly selected. Their presence is evidence, not permission or authority.
 
-## Authority and provider behavior
+## Authority and recovery
 
 Git and GitHub own source, branches, commits, pull requests, reviews, and merge state. A retained
-artifact records decisions and evidence; it does not authorize publication, implementation,
+record preserves decisions and evidence; it does not authorize publication, implementation,
 assignment, ownership, acceptance, or merge.
 
-With local or omitted configuration:
-
-- Prepare, Ideate, Harden, and Plan make no provider-mirror calls;
-- Plan still reads and publishes the exact GitHub scope selected by `--parent-issue` or `--project`;
-  parent mode needs no provider selector, local run, Project settings, or mirror;
-- goal-only [Execute](/docs/skills/woostack-execute) makes no artifact-provider calls; and
-- an exact Execute issue association is read through the selected authorized GitHub capability
-  (native tools preferred; host-authenticated `gh` supported), without requiring artifact-provider
-  configuration, a Project, a mirror, or a persisted plan.
-
-Automatic read-only discovery during `woostack-init` is setup only. It never selects remote storage or
-authorizes later provider access.
+Retained local files do not select a GitHub destination. Plan publishes only to the exact caller-selected
+`--parent-issue` or `--project` scope; parent mode needs no Project settings or retained run, and
+Project mode follows the [GitHub configuration contract](/docs/configuration/artifacts/github).
+An exact Execute issue association is read through an authorized GitHub capability (native tools
+preferred; host-authenticated `gh` supported) and needs no Project settings or retained plan. Read-only
+discovery during `woostack-init` is setup only; it never selects a remote destination or authorizes
+later GitHub access.
 
 ## Retention and recovery
 
 Completed and explicitly abandoned records remain unchanged. To continue from a retained record,
-supply its exact identity and complete content to Prepare, Harden, or Plan after fresh repository and
-evidence validation. An issue or run ID alone is insufficient; no automatic conversion or publication
-is performed.
+supply its exact identity and complete content to the responsible phase after fresh repository and
+evidence validation. An issue or run ID alone is insufficient; no automatic conversion, import, or
+publication is performed.
 
 The retired `/woostack-execute --run <exact-run-id> [--recheck]` input is rejected. Select one
 complete bounded task and supply it as `/woostack-execute <bounded input>` (see
 [Execute retired inputs](/docs/skills/woostack-execute#retired-inputs)). Titles, recent history,
 branch names, and search ranking are not selectors. Legacy tracked records remain unchanged unless
-the user explicitly invokes the guarded
-[woostack-init migration route](/docs/skills/woostack-init#optional-guarded-legacy-migration).
+the user explicitly requests the documented retirement guidance at the
+[artifact contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-backends.md#retained-data-and-retirement).

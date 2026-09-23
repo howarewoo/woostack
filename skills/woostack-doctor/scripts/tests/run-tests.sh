@@ -6,10 +6,10 @@ unset WOOSTACK_DOCTOR_LIVE WOOSTACK_DOCTOR_LIVE_CONTEXT
 rc=0
 tests=(
   test-doctor.sh
-  test-linear-mcp.sh
+  test-github-capability.sh
+  test-health-checks.sh
   test-models-leaf-shape.sh
-  test-repair-handoff.sh
-  test-no-stale-paths.sh
+  test-orchestrator.sh
   test-omp-session-name.sh
 )
 for t in "${tests[@]}"; do

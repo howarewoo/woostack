@@ -39,8 +39,8 @@ approve design → refresh collision check → scaffold → run and verify
 
 Bootstrap is greenfield-only: it creates a new codebase. It writes nothing to the target before
 explicit design approval and a fresh check that the path is safe to create. After approval and that
-check, an exact Linear, Plane, or GitHub project may store the approved design when selected. The
-project record cannot authorize target writes.
+check, an exact GitHub Project may store the approved design when explicitly selected. The Project
+record cannot authorize target writes.
 
 ## Prepare
 
@@ -56,7 +56,7 @@ blocks before Plan; Prepare never guesses a correction.
 
 Prepare's public phases exchange complete plain packets. Plan is the sole publisher and supports one
 exact GitHub parent selector or one exact Project selector. It creates no source branch, worktree,
-commit, PR, implementation worker, local run, or provider mirror. It reports the verified parent,
+commit, PR, implementation worker, local run, or remote record. It reports the verified parent,
 children, native prerequisite edges, and the separate next suggestion:
 `/woostack-orchestrate --issue <verified-parent-url>` (or the applicable Project command).
 Partial publication preserves exact confirmed identities and resumes Plan at the first unproved
@@ -78,9 +78,9 @@ valid plan with an explicit execution-time integration decision.
 Select exactly one scope family. The recommended ChatGPT-to-Codex handoff remains a specification
 parent with native PR-sized children; this mode needs no Project or provider-mirror configuration.
 Explicit Project execution retains its configured membership and lifecycle checks. Explicit list
-execution reads exactly the supplied open issues, normalizes repeated/reordered URLs, and validates
+execution reads exactly the supplied open issues, normalizes repeated or reordered URLs, and validates
 complete contracts plus a supplied dependency DAG. Native, declared, and model-inferred edges keep
-separate provenance/evidence; inference belongs to the skill, not the deterministic helper, and
+separate provenance and evidence; inference belongs to the skill, not the deterministic helper, and
 inferred relationships are never published back to GitHub. External prerequisites block only their
 affected tasks and never expand the list.
 
@@ -100,9 +100,9 @@ is submitted PRs awaiting review/merge, not closed issues or product acceptance.
 ```
 
 Execute accepts one complete bounded enhancement, refactor, test-only task, or authorized
-understood correction. It needs no parent issue, Project, planning provider, or persisted plan; an
-exact issue is optional and read-only. Unknown root cause, unresolved scope, or work that needs
-multiple increments stays at Debug or Prepare, the applicable planning workflow.
+understood correction. It needs no parent issue, Project, or persisted plan; an exact issue is optional
+and read-only through an authorized GitHub capability. Unknown root cause, unresolved scope, or work
+that needs multiple increments stays at Debug or Prepare, the applicable planning workflow.
 
 ## Shared execution boundary
 

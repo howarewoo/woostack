@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """Session-local orchestration gates; the skill supplies fresh gh/host evidence.
 
-This is the production scheduling path. It never calls a provider or implements
-source. The controller dispatches emitted packets through its native host, then
-returns independent GitHub, verification, review, and progress readbacks. Git
-identity, ancestry, worktree ownership, and diff hashes are checked here directly.
+This is the production scheduling path. It never calls GitHub or implements source.
+The controller dispatches emitted packets through its native host, then returns independent GitHub,
+verification, review, and progress readbacks. Git identity, ancestry, worktree ownership, and diff
+hashes are checked here directly.
 """
 import argparse
 import copy

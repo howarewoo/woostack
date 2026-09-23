@@ -603,7 +603,7 @@ async function loadPublicSkillNames(catalogRoot) {
   let inRouting = false;
   let routeCount = 0;
   for (const line of content.split(/\r?\n/)) {
-    if (line === '## Command Routing') {
+    if (/^##\s+Command routing\s*$/i.test(line)) {
       inRouting = true;
       continue;
     }

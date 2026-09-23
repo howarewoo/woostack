@@ -11,11 +11,35 @@ if [ "${1:-}" = "--fix" ]; then
   key="${3:-}"
   [ -n "$key" ] || { echo "config-keys.sh: --fix requires a key argument" >&2; exit 2; }
   command -v jq >/dev/null 2>&1 || exit 2
+  [ -f "$TEMPLATE" ] || exit 2
+  if ! jq -e --arg key "$key" 'has($key)' "$TEMPLATE" >/dev/null 2>&1; then
+    echo "config-keys.sh: unsupported template key: $key" >&2
+    exit 2
+  fi
   CFG="$WOO_ROOT/.woostack/config.json"
-  [ -f "$CFG" ] || echo '{}' >"$CFG"
-  value="$(jq -c --arg key "$key" '.[$key]' "$TEMPLATE")"
+  [ -d "$WOO_ROOT/.woostack" ] || { echo "config-keys.sh: .woostack is missing" >&2; exit 2; }
+  if [ -L "$CFG" ] || { [ -e "$CFG" ] && [ ! -f "$CFG" ]; }; then
+    echo "config-keys.sh: config.json must be a regular non-symlink file" >&2
+    exit 2
+  fi
+  if [ -f "$CFG" ]; then
+    jq -e 'type == "object"' "$CFG" >/dev/null 2>&1 || {
+      echo "config-keys.sh: config.json must contain a JSON object" >&2
+      exit 2
+    }
+    if jq -e --arg key "$key" 'has($key)' "$CFG" >/dev/null 2>&1; then
+      exit 0
+    fi
+  else
+    printf '{}\n' >"$CFG" || exit 1
+  fi
+  value="$(jq -c --arg key "$key" '.[$key]' "$TEMPLATE")" || exit 1
   tmp="$(mktemp)"
-  jq --arg key "$key" --argjson value "$value" '.[$key]=$value' "$CFG" >"$tmp" && mv "$tmp" "$CFG"
+  if ! jq --arg key "$key" --argjson value "$value" '.[$key]=$value' "$CFG" >"$tmp"; then
+    rm -f "$tmp"
+    exit 1
+  fi
+  mv "$tmp" "$CFG"
   exit $?
 fi
 
@@ -23,29 +47,33 @@ WOO_ROOT="${1:-.}"
 CFG="$WOO_ROOT/.woostack/config.json"
 [ -f "$TEMPLATE" ] || exit 0
 if ! command -v jq >/dev/null 2>&1; then
-  emit error linear-policy report ".woostack/config.json" "jq is required for static Linear policy validation"
-  exit 0
-fi
-if [ ! -f "$CFG" ] || ! jq -e 'type == "object"' "$CFG" >/dev/null 2>&1; then
-  emit error linear-policy report ".woostack/config.json" "missing or malformed configuration object"
+  emit error config-policy report ".woostack/config.json" "jq is required for canonical configuration validation"
   exit 0
 fi
 
 resolver_error="$(mktemp)"
-if [ ! -f "$CONFIG_RESOLVER" ] || ! effective_config="$(bash "$CONFIG_RESOLVER" "$WOO_ROOT" 2>"$resolver_error")"; then
-  detail="$(cat "$resolver_error")"
+if ! effective_config="$(bash "$CONFIG_RESOLVER" "$WOO_ROOT" 2>"$resolver_error")"; then
+  detail="$(tr '\t\r\n' '   ' <"$resolver_error")"
   rm -f "$resolver_error"
-  [ -n "$detail" ] || detail="layered config resolver is unavailable"
-  emit error linear-policy report ".woostack/config.json" "$detail"
+  [ -n "$detail" ] || detail="canonical configuration resolver is unavailable"
+  emit error config-policy report ".woostack/config.json" "$detail"
   exit 0
 fi
+while IFS= read -r notice; do
+  [ -z "$notice" ] || emit warn retired-provider report ".woostack/config.json" "$notice"
+done <"$resolver_error"
 rm -f "$resolver_error"
 EFFECTIVE_CFG="$(mktemp)"
 printf '%s\n' "$effective_config" >"$EFFECTIVE_CFG"
 trap 'rm -f "$EFFECTIVE_CFG"' EXIT
 
+if [ -f "$CFG" ]; then
+  base_config="$(cat "$CFG")"
+else
+  base_config='{}'
+fi
 while IFS= read -r key; do
-  if ! jq -e --arg key "$key" 'has($key)' "$CFG" >/dev/null; then
+  if ! jq -e --arg key "$key" 'has($key)' <<<"$base_config" >/dev/null 2>&1; then
     emit warn config-key auto ".woostack/config.json" "missing required config key: $key"
   fi
 done < <(jq -r 'keys[]' "$TEMPLATE")
@@ -53,355 +81,126 @@ if jq -e 'has("status") and (.status | type == "object" and has("staleDays"))' "
   emit warn retired-status-config report ".woostack/config.json" "top-level status.staleDays is retired; existing configuration is preserved and may be removed manually"
 fi
 
-if jq -e 'has("linear") and (.linear | type == "object") and (.linear | has("saveArtifacts")) or (has("artifacts") and (.artifacts | type == "object") and ((.artifacts | has("saveArtifacts")) or (.artifacts.linear? | type == "object" and has("saveArtifacts"))))' "$EFFECTIVE_CFG" >/dev/null 2>&1; then
-  emit error linear-policy report ".woostack/config.json" "linear.saveArtifacts is deprecated; migrate to artifacts.provider and artifacts.linear"
-fi
-credential_path="$(jq -r '
-  paths as $p
-  | ($p | map(tostring) | join(".")) as $name
-  | select($name | test("api.?key|token|secret|password|authorization|credential"; "i"))
-  | $name
-' "$CFG" 2>/dev/null | head -n 1)"
-if [ -n "$credential_path" ]; then
-  emit error linear-policy report ".woostack/config.json" "credential-like configuration key: $credential_path"
-fi
 
-if jq -e 'has("artifacts")' "$EFFECTIVE_CFG" >/dev/null 2>&1; then
-  if ! jq -e '
-    .artifacts | type == "object" and ((keys - ["provider", "github", "linear", "plane"]) | length == 0)
-  ' "$EFFECTIVE_CFG" >/dev/null 2>&1; then
-    emit error linear-policy report ".woostack/config.json" "artifacts configuration requires provider and supported provider objects only"
-  fi
-
-  if jq -e '.artifacts | has("provider")' "$EFFECTIVE_CFG" >/dev/null 2>&1; then
-    if ! jq -e '.artifacts.provider | type == "string" and (. == "local" or . == "github" or . == "linear" or . == "plane")' "$EFFECTIVE_CFG" >/dev/null 2>&1; then
-      emit error linear-policy report ".woostack/config.json" "artifacts.provider must be \"local\", \"github\", \"linear\", or \"plane\""
-    fi
-  fi
-fi
-
-provider="$(jq -r '.artifacts.provider // "local"' "$EFFECTIVE_CFG")"
-project_keys='["backlog","planned","started","completed","canceled"]'
-issue_keys='["planned","executing","inReview","done","blocked"]'
-issue_categories='{"planned":"backlog","executing":"started","inReview":"started","done":"completed","blocked":"started"}'
-linear_allowed='["repository","workspace","team","projectLabels","projectStatuses","issueStates"]'
-plane_allowed='["baseUrl","workspace","repository","project","projectLabels","issueStates"]'
-github_allowed='["owner","ownerType","statusField","visibility","projectStatuses"]'
-github_receipt_keys='["authenticated","capabilities","interfaceAvailable","owner","ownerResolution","projectStatuses","provider","readBack","ready","repository","schemaVersion","viewer"]'
-github_capability_names='["dependencyRead","dependencyWrite","independentReadBack","issueRead","issueWrite","pagination","projectRead","projectWrite","statusFieldRead","statusFieldWrite"]'
-github_required_caps='["independentReadBack","pagination","projectRead","statusFieldRead"]'
-if [ "$provider" = "github" ]; then
-  if ! jq -e '.artifacts | (has("github") | not) or (.github | type == "object")' "$EFFECTIVE_CFG" >/dev/null 2>&1; then
-    emit error linear-policy report ".woostack/config.json" "github policy must be an object"
-  elif ! jq -e --argjson allowed "$github_allowed" '
-    (if .artifacts | has("github") then .artifacts.github else {} end) | ((keys - $allowed) | length == 0)
-  ' "$EFFECTIVE_CFG" >/dev/null 2>&1; then
-    emit error linear-policy report ".woostack/config.json" "github policy permits only owner, ownerType, statusField, visibility, and projectStatuses"
-  elif ! jq -e '
-    (if .artifacts | has("github") then .artifacts.github else {} end)
-    | (if has("owner") then (.owner | type == "string"
-        and test("^[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?$")) else true end)
-      and (if has("ownerType") then (.ownerType == "organization" or .ownerType == "user") else true end)
-      and (if has("statusField") then (.statusField | type == "string" and test("\\S")) else true end)
-      and (if has("visibility") then (.visibility == "private" or .visibility == "public") else true end)
-      and (if has("projectStatuses") then (.projectStatuses | type == "object") else true end)
-  ' "$EFFECTIVE_CFG" >/dev/null 2>&1; then
-    emit error linear-policy report ".woostack/config.json" "github policy contains invalid values"
-  else
-    if ! jq -e --argjson keys "$issue_keys" '
-      if (.artifacts.github // {}) | has("projectStatuses") then
-        (.artifacts.github.projectStatuses | keys | sort) == ($keys | sort)
-        and all(.artifacts.github.projectStatuses[]; type == "string" and test("\\S"))
-        and ((.artifacts.github.projectStatuses | [.[]] | unique | length) == ($keys | length))
-      else true end
-    ' "$EFFECTIVE_CFG" >/dev/null 2>&1; then
-      emit error linear-policy report ".woostack/config.json" "projectStatuses mapping is incomplete or contains invalid values"
-    fi
-  fi
-fi
-if [ "$provider" = "linear" ]; then
-  if ! jq -e 'has("artifacts") and (.artifacts | type == "object") and (.artifacts | has("linear")) and (.artifacts.linear | type == "object")' "$EFFECTIVE_CFG" >/dev/null 2>&1; then
-    emit error linear-policy report ".woostack/config.json" "linear policy requires repository, workspace, team, projectLabels, projectStatuses, and issueStates only"
-  elif ! jq -e --argjson allowed "$linear_allowed" '
-    .artifacts.linear | type == "object" and ((keys - $allowed) | length == 0)
-  ' "$EFFECTIVE_CFG" >/dev/null 2>&1; then
-    emit error linear-policy report ".woostack/config.json" "linear policy requires repository, workspace, team, projectLabels, projectStatuses, and issueStates only"
-  elif ! jq -e '
-    .artifacts.linear
-    and (.artifacts.linear.repository | type == "string"
-      and test("^https://github\\.com/[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?/[A-Za-z0-9](?:[A-Za-z0-9._-]*[A-Za-z0-9])?$"))
-    and (.artifacts.linear.workspace | type == "string" and test("\\S"))
-    and (.artifacts.linear.team | type == "string" and test("\\S"))
-    and (.artifacts.linear | has("projectLabels"))
-    and (.artifacts.linear.projectStatuses | type == "object")
-    and (.artifacts.linear.issueStates | type == "object")
-  ' "$EFFECTIVE_CFG" >/dev/null 2>&1; then
-    emit error linear-policy report ".woostack/config.json" "linear policy requires repository, workspace, team, projectLabels, projectStatuses, and issueStates only"
-  else
-    if ! jq -e --argjson keys "$project_keys" '
-      (.artifacts.linear.projectStatuses | keys | sort) == ($keys | sort)
-      and all(.artifacts.linear.projectStatuses[]; type == "string" and test("\\S"))
-    ' "$EFFECTIVE_CFG" >/dev/null 2>&1; then
-      emit error linear-policy report ".woostack/config.json" "projectStatuses mapping is incomplete or contains invalid values"
-    fi
-    if ! jq -e --argjson keys "$issue_keys" '
-      (.artifacts.linear.issueStates | keys | sort) == ($keys | sort)
-      and all(.artifacts.linear.issueStates[]; type == "string" and test("\\S"))
-    ' "$EFFECTIVE_CFG" >/dev/null 2>&1; then
-      emit error linear-policy report ".woostack/config.json" "issueStates mapping is incomplete or contains invalid values"
-    fi
-    if ! jq -e '
-      .artifacts.linear.projectLabels | type == "array" and all(.[]; type == "string" and test("\\S"))
-    ' "$EFFECTIVE_CFG" >/dev/null 2>&1; then
-      emit error linear-policy report ".woostack/config.json" "projectLabels must be an array of non-empty strings"
-    fi
-  fi
-fi
-if [ "$provider" = "plane" ]; then
-  if ! jq -e 'has("artifacts") and (.artifacts | type == "object") and (.artifacts | has("plane")) and (.artifacts.plane | type == "object")' "$EFFECTIVE_CFG" >/dev/null 2>&1; then
-    emit error linear-policy report ".woostack/config.json" "plane policy requires baseUrl, workspace, repository, project, projectLabels, and issueStates only"
-  elif ! jq -e --argjson allowed "$plane_allowed" '
-    .artifacts.plane | type == "object" and ((keys - $allowed) | length == 0)
-  ' "$EFFECTIVE_CFG" >/dev/null 2>&1; then
-    emit error linear-policy report ".woostack/config.json" "plane policy requires baseUrl, workspace, repository, project, projectLabels, and issueStates only"
-  elif ! jq -e '
-    .artifacts.plane
-    and (.artifacts.plane.baseUrl | type == "string" and test("^https?://[^?#\\s]+$"))
-    and (.artifacts.plane.workspace | type == "string" and test("\\S"))
-    and (.artifacts.plane.repository | type == "string"
-      and test("^https://github\\.com/[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?/[A-Za-z0-9](?:[A-Za-z0-9._-]*[A-Za-z0-9])?$"))
-    and (.artifacts.plane.project | type == "string" and test("\\S"))
-    and (.artifacts.plane | has("projectLabels"))
-    and (.artifacts.plane.issueStates | type == "object")
-  ' "$EFFECTIVE_CFG" >/dev/null 2>&1; then
-    emit error linear-policy report ".woostack/config.json" "plane policy requires baseUrl, workspace, repository, project, projectLabels, and issueStates only"
-  else
-    if ! jq -e --argjson keys "$issue_keys" '
-      (.artifacts.plane.issueStates | keys | sort) == ($keys | sort)
-      and all(.artifacts.plane.issueStates[]; type == "string" and test("\\S"))
-    ' "$EFFECTIVE_CFG" >/dev/null 2>&1; then
-      emit error linear-policy report ".woostack/config.json" "issueStates mapping is incomplete or contains invalid values"
-    fi
-    if ! jq -e '
-      .artifacts.plane.projectLabels | type == "array" and length > 0 and all(.[]; type == "string" and test("\\S"))
-    ' "$EFFECTIVE_CFG" >/dev/null 2>&1; then
-      emit error linear-policy report ".woostack/config.json" "projectLabels must be an array of non-empty strings"
-    fi
-  fi
-fi
-
-for name in specs plans fixes overnight; do
-  dir="$WOO_ROOT/.woostack/$name"
-  [ -d "$dir" ] || continue
+retained_dir_has_data() {
+  local dir="$1" entry
+  [ -d "$dir" ] || return 1
   shopt -s nullglob dotglob
-  entries=()
   for entry in "$dir"/*; do
-    [ "${entry##*/}" = ".gitkeep" ] || entries+=("$entry")
+    if [ "${entry##*/}" != ".gitkeep" ]; then
+      shopt -u nullglob dotglob
+      return 0
+    fi
   done
   shopt -u nullglob dotglob
-  [ "${#entries[@]}" -eq 0 ] && continue
-  emit error legacy-development-records report ".woostack/$name" "legacy development-record set requires verified migration classification"
+  return 1
+}
+for name in specs plans fixes overnight tmp/runs runs; do
+  dir="$WOO_ROOT/.woostack/$name"
+  if retained_dir_has_data "$dir"; then
+    emit warn retained-data report ".woostack/$name" \
+      "retained historical data is preserved and inactive; no automatic migration or provider publication is available"
+  fi
 done
 
 [ "${WOOSTACK_DOCTOR_LIVE:-0}" = 1 ] || exit 0
 receipt="${WOOSTACK_DOCTOR_LIVE_CONTEXT:-}"
-if [ "$provider" = "linear" ]; then
-  if [ ! -r "$receipt" ] || ! jq -e \
-    --argjson project_keys "$project_keys" \
-    --argjson issue_keys "$issue_keys" \
-    --argjson issue_categories "$issue_categories" \
-    --slurpfile config "$EFFECTIVE_CFG" '
-      . as $receipt
-      | .schemaVersion == 1
-        and .provider == "official-linear-mcp"
-        and .mcpAvailable == true
-        and .authenticated == true
-        and .ready == true
-        and (.workspaceResolution | type == "object" and (keys | sort) == ["name", "status"])
-        and .workspaceResolution.status == "unique"
-        and .workspaceResolution.name == .workspace
-        and .teamResolution.status == "unique"
-        and .teamResolution.key == .team
-        and (.teamResolution.id | type == "string"
-          and test("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"))
-        and .projectStatuses.complete == true
-        and (.projectStatuses.resolved | keys | sort) == ($project_keys | sort)
-        and all($project_keys[];
-          . as $key
-          | ($receipt.projectStatuses.resolved[$key]
-            | .name == $config[0].artifacts.linear.projectStatuses[$key] and .category == $key))
-        and .issueStates.complete == true
-        and (.issueStates.resolved | keys | sort) == ($issue_keys | sort)
-        and all($issue_keys[];
-          . as $key
-          | ($receipt.issueStates.resolved[$key]
-            | .name == $config[0].artifacts.linear.issueStates[$key]
-              and .category == $issue_categories[$key]))
-        and .readBack.status == "verified"
-        and .readBack.complete == true
-        and .readBack.independent == true
-    ' "$receipt" >/dev/null 2>&1; then
-    emit error linear-live report ".woostack/config.json" "normalized Linear MCP receipt is missing, malformed, partial, or not ready"
-    exit 0
+status_keys='["planned","executing","inReview","done","blocked"]'
+receipt_keys='["authenticated","capabilities","interfaceAvailable","owner","ownerResolution","projectStatuses","provider","readBack","ready","repository","schemaVersion","viewer"]'
+capability_names='["dependencyRead","dependencyWrite","independentReadBack","issueRead","issueWrite","pagination","projectRead","projectWrite","statusFieldRead","statusFieldWrite"]'
+required_capabilities=(projectRead statusFieldRead pagination independentReadBack)
+
+if [ ! -r "$receipt" ] || ! jq -e \
+  --argjson allowed_keys "$receipt_keys" \
+  --argjson capability_names "$capability_names" \
+  --argjson status_keys "$status_keys" '
+    . as $receipt
+    | ((keys | sort) == ($allowed_keys | sort))
+      and .schemaVersion == 1
+      and .provider == "authorized-github"
+      and .interfaceAvailable == true
+      and .authenticated == true
+      and .ready == true
+      and (.viewer | type == "object" and (keys | sort) == ["id", "login"]
+        and (.login | type == "string" and test("\\S"))
+        and (.id | type == "string" and test("\\S")))
+      and (.owner | type == "string" and test("\\S"))
+      and (.ownerResolution | type == "object" and (keys | sort) == ["id", "login", "status", "type"])
+      and .ownerResolution.status == "unique"
+      and (.ownerResolution.login | type == "string" and test("\\S"))
+      and (.ownerResolution.type == "organization" or .ownerResolution.type == "user")
+      and (.ownerResolution.id | type == "string" and test("\\S"))
+      and (.repository | type == "string"
+        and test("^https://github\\.com/[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?/[A-Za-z0-9](?:[A-Za-z0-9._-]*[A-Za-z0-9])?$"))
+      and (.projectStatuses | type == "object" and (keys | sort) == ["complete", "fieldId", "fieldType", "resolved", "statusField"])
+      and .projectStatuses.complete == true
+      and (.projectStatuses.statusField | type == "string" and test("\\S"))
+      and (.projectStatuses.fieldId | type == "string" and test("\\S"))
+      and .projectStatuses.fieldType == "SINGLE_SELECT"
+      and (.projectStatuses.resolved | type == "object" and (keys | sort) == ($status_keys | sort))
+      and all($status_keys[];
+        . as $key
+        | ($receipt.projectStatuses.resolved[$key]
+          | (type == "object" and (keys | sort) == ["id", "name"])
+            and (.name | type == "string" and test("\\S"))
+            and (.id | type == "string" and test("\\S"))))
+      and ([$receipt.projectStatuses.resolved[].id] | unique | length) == ($status_keys | length)
+      and ([$receipt.projectStatuses.resolved[].name] | unique | length) == ($status_keys | length)
+      and (.capabilities | type == "object"
+        and ((keys - $capability_names) | length) == 0
+        and all(.[]; type == "boolean"))
+      and (.readBack | type == "object" and (keys | sort) == ["complete", "independent", "status"]
+        and .status == "verified" and .complete == true and .independent == true)
+  ' "$receipt" >/dev/null 2>&1; then
+  emit error github-live report ".woostack/config.json" \
+    "normalized GitHub capability receipt is missing, malformed, partial, or not ready"
+  exit 0
+fi
+
+actual_owner="$(jq -r '.owner // empty' "$receipt")"
+actual_login="$(jq -r '.ownerResolution.login // empty' "$receipt")"
+if [ "$actual_owner" != "$actual_login" ]; then
+  emit error github-live report ".woostack/config.json" "receipt owner and resolved owner do not match"
+fi
+if jq -e 'has("github") and (.github | has("owner"))' "$EFFECTIVE_CFG" >/dev/null 2>&1; then
+  expected_owner="$(jq -r '.github.owner' "$EFFECTIVE_CFG")"
+  if [ "$actual_owner" != "$expected_owner" ]; then
+    emit error github-live report ".woostack/config.json" "receipt owner does not match configured GitHub policy"
   fi
-
-  for field in workspace team repository; do
-    expected="$(jq -r --arg field "$field" '.artifacts.linear[$field]' "$EFFECTIVE_CFG")"
-    actual="$(jq -r --arg field "$field" '.[$field] // empty' "$receipt")"
-    if [ "$actual" != "$expected" ]; then
-      emit error linear-live report ".woostack/config.json" "receipt $field does not match configured Linear policy"
-    fi
-  done
-
-  required_capabilities=(
-    projectRead projectWrite projectUpdateRead projectUpdateWrite
-    issueRead issueWrite commentRead commentWrite relationRead relationWrite
-    ownerRead ownerWrite independentReadBack
-  )
-  for capability in "${required_capabilities[@]}"; do
-    if ! jq -e --arg capability "$capability" '.capabilities[$capability] == true' "$receipt" >/dev/null 2>&1; then
-      emit error linear-live report ".woostack/config.json" "missing Linear MCP capability: $capability"
-    fi
-  done
-
-  if jq -e '.artifacts.linear.projectLabels? | type == "array" and length > 0' "$EFFECTIVE_CFG" >/dev/null 2>&1; then
-    label_capabilities=(projectLabelRead projectLabelWrite)
-    for capability in "${label_capabilities[@]}"; do
-      if ! jq -e --arg capability "$capability" '.capabilities[$capability] == true' "$receipt" >/dev/null 2>&1; then
-        emit error linear-live report ".woostack/config.json" "missing Linear MCP capability: $capability"
-      fi
-    done
+fi
+if jq -e 'has("github") and (.github | has("ownerType"))' "$EFFECTIVE_CFG" >/dev/null 2>&1; then
+  expected_owner_type="$(jq -r '.github.ownerType' "$EFFECTIVE_CFG")"
+  actual_owner_type="$(jq -r '.ownerResolution.type // empty' "$receipt")"
+  if [ "$actual_owner_type" != "$expected_owner_type" ]; then
+    emit error github-live report ".woostack/config.json" "receipt ownerType does not match configured GitHub policy"
   fi
-elif [ "$provider" = "plane" ]; then
-  if [ ! -r "$receipt" ] || ! jq -e \
-    --argjson issue_keys "$issue_keys" \
-    --argjson issue_categories "$issue_categories" \
-    --slurpfile config "$EFFECTIVE_CFG" '
-      . as $receipt
-      | .schemaVersion == 1
-        and .provider == "official-plane-mcp"
-        and .mcpAvailable == true
-        and .authenticated == true
-        and .ready == true
-        and (.workspaceResolution | type == "object" and (keys | sort) == ["name", "status"])
-        and .workspaceResolution.status == "unique"
-        and .workspaceResolution.name == .workspace
-        and .issueStates.complete == true
-        and (.issueStates.resolved | keys | sort) == ($issue_keys | sort)
-        and all($issue_keys[];
-          . as $key
-          | ($receipt.issueStates.resolved[$key]
-            | .name == $config[0].artifacts.plane.issueStates[$key]
-              and .category == $issue_categories[$key]))
-        and .readBack.status == "verified"
-        and .readBack.complete == true
-        and .readBack.independent == true
-    ' "$receipt" >/dev/null 2>&1; then
-    emit error linear-live report ".woostack/config.json" "normalized Plane MCP receipt is missing, malformed, partial, or not ready"
-    exit 0
-  fi
-
-  for field in baseUrl workspace repository project; do
-    expected="$(jq -r --arg field "$field" '.artifacts.plane[$field]' "$EFFECTIVE_CFG")"
-    actual="$(jq -r --arg field "$field" '.[$field] // empty' "$receipt")"
-    if [ "$field" = "baseUrl" ]; then
-      actual="$(jq -nr --arg url "$actual" '$url | sub("/+$"; "") | if test("^https?://(api|app)\\.plane\\.so$"; "i") then "https://api.plane.so" else . end')"
-      expected="$(jq -nr --arg url "$expected" '$url | sub("/+$"; "") | if test("^https?://(api|app)\\.plane\\.so$"; "i") then "https://api.plane.so" else . end')"
-    fi
-    if [ "$actual" != "$expected" ]; then
-      emit error linear-live report ".woostack/config.json" "receipt $field does not match configured Plane policy"
-    fi
-  done
-
-  plane_required_capabilities=(
-    projectRead projectWrite
-    issueRead issueWrite relationRead relationWrite
-    projectLabelRead projectLabelWrite
-    independentReadBack
-  )
-  for capability in "${plane_required_capabilities[@]}"; do
-    if ! jq -e --arg capability "$capability" '.capabilities[$capability] == true' "$receipt" >/dev/null 2>&1; then
-      emit error linear-live report ".woostack/config.json" "missing Plane MCP capability: $capability"
-    fi
-  done
-elif [ "$provider" = "github" ]; then
-  if [ ! -r "$receipt" ] || ! jq -e \
-    --argjson allowed_keys "$github_receipt_keys" \
-    --argjson capability_names "$github_capability_names" \
-    --argjson issue_keys "$issue_keys" \
-    --slurpfile config "$EFFECTIVE_CFG" '
-      . as $receipt
-      | ((. | keys | sort) == ($allowed_keys | sort))
-        and .schemaVersion == 1
-        and .provider == "authorized-github"
-        and .interfaceAvailable == true
-        and .authenticated == true
-        and .ready == true
-        and (.viewer | type == "object" and (keys | sort) == ["id", "login"] and (.login | type == "string" and test("\\S")) and (.id | type == "string" and test("\\S")))
-        and (.ownerResolution | type == "object" and (keys | sort) == ["id", "login", "status", "type"])
-        and .ownerResolution.status == "unique"
-        and (.ownerResolution.login | type == "string" and test("\\S"))
-        and (.ownerResolution.type == "organization" or .ownerResolution.type == "user")
-        and (.ownerResolution.id | type == "string" and test("\\S"))
-        and (.repository | type == "string"
-          and test("^https://github\\.com/[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?/[A-Za-z0-9](?:[A-Za-z0-9._-]*[A-Za-z0-9])?$"))
-        and (.projectStatuses | type == "object" and (keys | sort) == ["complete", "fieldId", "fieldType", "resolved", "statusField"])
-        and .projectStatuses.complete == true
-        and (.projectStatuses.statusField | type == "string" and test("\\S"))
-        and (.projectStatuses.fieldId | type == "string" and test("\\S"))
-        and (.projectStatuses.fieldType == "SINGLE_SELECT")
-        and (.projectStatuses.resolved | type == "object" and (keys | sort) == ($issue_keys | sort))
-        and all($issue_keys[];
-          . as $key
-          | ($receipt.projectStatuses.resolved[$key]
-            | (type == "object" and (keys | sort) == ["id", "name"])
-              and (.name == $config[0].artifacts.github.projectStatuses[$key])
-              and (.id | type == "string" and test("\\S"))))
-        and ([$receipt.projectStatuses.resolved[].id] | unique | length) == ($issue_keys | length)
-        and (.capabilities
-          | type == "object"
-          and ((keys - $capability_names) | length) == 0
-          and all(.[]; type == "boolean"))
-        and (.readBack | type == "object" and (keys | sort) == ["complete", "independent", "status"] and .status == "verified" and .complete == true and .independent == true)
-    ' "$receipt" >/dev/null 2>&1; then
-    emit error linear-live report ".woostack/config.json" "normalized GitHub capability receipt is missing, malformed, partial, or not ready"
-    exit 0
-  fi
-
-  expected_owner="$(jq -r '.artifacts.github.owner' "$EFFECTIVE_CFG")"
-  actual_owner="$(jq -r '.owner // empty' "$receipt")"
-  actual_login="$(jq -r '.ownerResolution.login // empty' "$receipt")"
-  if [ "$actual_owner" != "$expected_owner" ] || [ "$actual_login" != "$expected_owner" ]; then
-    emit error linear-live report ".woostack/config.json" "receipt owner does not match configured GitHub policy"
-  fi
-
-  if jq -e '.artifacts.github | has("ownerType")' "$EFFECTIVE_CFG" >/dev/null 2>&1; then
-    expected_owner_type="$(jq -r '.artifacts.github.ownerType' "$EFFECTIVE_CFG")"
-    actual_owner_type="$(jq -r '.ownerResolution.type // empty' "$receipt")"
-    if [ "$actual_owner_type" != "$expected_owner_type" ]; then
-      emit error linear-live report ".woostack/config.json" "receipt ownerType does not match configured GitHub policy"
-    fi
-  fi
-
-  expected_status_field="$(jq -r '.artifacts.github.statusField // "Status"' "$EFFECTIVE_CFG")"
-  actual_status_field="$(jq -r '.projectStatuses.statusField // empty' "$receipt")"
-  if [ "$actual_status_field" != "$expected_status_field" ]; then
-    emit error linear-live report ".woostack/config.json" "receipt statusField does not match configured GitHub policy"
-  fi
-
-  actual_repository="$(jq -r '.repository // empty' "$receipt")"
-  git_remote="$(git -C "$WOO_ROOT" config --get remote.origin.url 2>/dev/null || true)"
-  git_canonical_repo=""
-  if [ -n "$git_remote" ]; then
-    git_canonical_repo="$(printf '%s\n' "$git_remote" | sed -E -e 's#^git@github\.com:#https://github.com/#' -e 's#^ssh://git@github\.com/#https://github.com/#' -e 's#\.git$##')"
-  fi
-  if [ -z "$git_canonical_repo" ] || [ "$actual_repository" != "$git_canonical_repo" ]; then
-    emit error linear-live report ".woostack/config.json" "receipt repository does not match target repository derived from Git"
-  fi
-
-  for capability in $(jq -r --argjson required_caps "$github_required_caps" '$required_caps[]' "$receipt"); do
-    if ! jq -e --arg capability "$capability" '.capabilities[$capability] == true' "$receipt" >/dev/null 2>&1; then
-      emit error linear-live report ".woostack/config.json" "missing GitHub capability: $capability"
+fi
+expected_status_field="$(jq -r '.github.statusField // "Status"' "$EFFECTIVE_CFG")"
+actual_status_field="$(jq -r '.projectStatuses.statusField // empty' "$receipt")"
+if [ "$actual_status_field" != "$expected_status_field" ]; then
+  emit error github-live report ".woostack/config.json" "receipt statusField does not match configured GitHub policy"
+fi
+if jq -e 'has("github") and (.github | has("projectStatuses"))' "$EFFECTIVE_CFG" >/dev/null 2>&1; then
+  for key in planned executing inReview done blocked; do
+    expected_name="$(jq -r --arg key "$key" '.github.projectStatuses[$key]' "$EFFECTIVE_CFG")"
+    actual_name="$(jq -r --arg key "$key" '.projectStatuses.resolved[$key].name // empty' "$receipt")"
+    if [ "$actual_name" != "$expected_name" ]; then
+      emit error github-live report ".woostack/config.json" "receipt Status option $key does not match configured GitHub policy"
     fi
   done
 fi
+
+git_remote="$(git -C "$WOO_ROOT" config --get remote.origin.url 2>/dev/null || true)"
+git_canonical_repo=""
+if [ -n "$git_remote" ]; then
+  git_canonical_repo="$(printf '%s\n' "$git_remote" | sed -E -e 's#^git@github\.com:#https://github.com/#' -e 's#^ssh://git@github\.com/#https://github.com/#' -e 's#\.git$##')"
+fi
+actual_repository="$(jq -r '.repository // empty' "$receipt")"
+if [ -z "$git_canonical_repo" ] || [ "$actual_repository" != "$git_canonical_repo" ]; then
+  emit error github-live report ".woostack/config.json" "receipt repository does not match target repository derived from Git"
+fi
+for capability in "${required_capabilities[@]}"; do
+  if ! jq -e --arg capability "$capability" '.capabilities[$capability] == true' "$receipt" >/dev/null 2>&1; then
+    emit error github-live report ".woostack/config.json" "missing GitHub capability: $capability"
+  fi
+done

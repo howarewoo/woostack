@@ -25,7 +25,7 @@ a complete specification or candidate issue plan; a prior Ideate or Debug handba
 The caller supplies the complete specification or diagnosis, exact repository/baseline and evidence
 identity, and any candidate task plan. Harden may inspect bounded repository facts read-only and
 reconcile contradictions, missing acceptance, risks, removal/reuse, or verification boundaries. It
-does not require a Prepare run, writable checkout, provider, or project. Retained historical content
+does not require a Prepare run, writable checkout, GitHub configuration, or Project. Retained historical content
 is evidence only until its identity and freshness are revalidated.
 
 Resolve available repository and baseline facts through the shared input contract. Ask for missing
@@ -36,9 +36,9 @@ evidence; revalidation does not authorize silently replacing approved content.
 
 An exact GitHub issue or pull request may be supplied as read-only evidence when the user explicitly
 selects it and the authorized host capability can read and independently verify it completely. A
-provider or mirror configuration is never required for public Harden. Unsupported, unavailable,
-partial, or stale selected context is a blocker for that evidence path, not permission to guess or
-fall back to a different resource.
+GitHub Project configuration is never required for public Harden. Unsupported, unavailable, partial,
+or stale selected context is a blocker for that evidence path, not permission to guess or fall back
+to a different resource.
 
 ## Reconciliation invariant
 
@@ -84,9 +84,9 @@ about an unobserved check or report a command as passing because it appears in t
 
 ## Read-only boundary
 
-Harden performs no provider or remote writes, issue creation, source edit, implementation-worker
+Harden performs no GitHub or remote writes, issue creation, source edit, implementation-worker
 dispatch, commit, branch, worktree, Plan, Execute, Orchestrate, or PR action. It may perform
-read-only repository inspection and an explicitly selected exact remote read. It does not create a
+read-only repository inspection and an explicitly selected exact GitHub read. It does not create a
 manifest, canonical planning ledger, mirror, or hidden compatibility wrapper. A user may explicitly
 save the plain handback, but saving is not approval or authority.
 

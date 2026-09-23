@@ -4,10 +4,7 @@
   "interfaceAvailable": true,
   "authenticated": true,
   "ready": true,
-  "viewer": {
-    "login": "octocat",
-    "id": "MDQ6VXNlcjE="
-  },
+  "viewer": {"login": "octocat", "id": "MDQ6VXNlcjE="},
   "owner": "acme",
   "ownerResolution": {
     "status": "unique",
@@ -22,26 +19,11 @@
     "fieldId": "PVTSSF_12345",
     "fieldType": "SINGLE_SELECT",
     "resolved": {
-      "planned": {
-        "name": "Todo",
-        "id": "opt_1"
-      },
-      "executing": {
-        "name": "In Progress",
-        "id": "opt_2"
-      },
-      "inReview": {
-        "name": "In Review",
-        "id": "opt_3"
-      },
-      "done": {
-        "name": "Done",
-        "id": "opt_4"
-      },
-      "blocked": {
-        "name": "Blocked",
-        "id": "opt_5"
-      }
+      "planned": {"name": "Todo", "id": "opt_1"},
+      "executing": {"name": "In Progress", "id": "opt_2"},
+      "inReview": {"name": "In Review", "id": "opt_3"},
+      "done": {"name": "Done", "id": "opt_4"},
+      "blocked": {"name": "Blocked", "id": "opt_5"}
     }
   },
   "capabilities": {
@@ -49,16 +31,12 @@
     "projectWrite": false,
     "issueRead": true,
     "issueWrite": false,
-    "dependencyRead": true,
+    "dependencyRead": false,
     "dependencyWrite": false,
     "statusFieldRead": true,
     "statusFieldWrite": false,
     "pagination": true,
     "independentReadBack": true
   },
-  "readBack": {
-    "status": "verified",
-    "complete": true,
-    "independent": true
-  }
+  "readBack": {"status": "verified", "complete": true, "independent": true}
 }

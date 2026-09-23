@@ -23,6 +23,10 @@ and implemented by [`task/types.ts`](https://github.com/can1357/oh-my-pi/blob/ma
 The dispatch-time setting and rejection path are in
 [`task/index.ts`](https://github.com/can1357/oh-my-pi/blob/main/packages/coding-agent/src/task/index.ts).
 
+- Run `woostack-init` before relying on session naming. It provisions only the session-name extension,
+  settings entry, and ignore lines while preserving other project content. Init and Doctor never
+  create or repair OMP agent definitions; delegated work selects agents already exposed by the host.
+
 - Use only names actually exposed by the active session. The current inventory exposes `task` as a
   write-capable general-purpose agent, `scout` for read-only exploration, and `reviewer` /
   `security-reviewer` for read-only review. Do not create aliases or project definitions to fill a
@@ -87,14 +91,13 @@ A local extension handles session naming inside OMP:
 ## Plain packets and retained records
 
 Prepare, Ideate, Harden, and Plan exchange complete plain packets. Plan publishes the selected native
-GitHub graph directly; parent mode needs no provider selector, local run, Project settings, or mirror.
+GitHub graph directly; parent mode needs no Project configuration, local run, or second remote record.
 Explicit Project mode remains available when Plan receives an exact Project selector. Historical
 records under `.woostack/tmp/runs/<run-id>/` remain readable and are not migrated or rewritten.
 
 Credentials stay in the host's secret store and never enter repository config, prompts, logs, or
-generated output. The
-[Local run artifact and provider mirror contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-backends.md)
-defines storage, synchronization, and recovery.
+generated output. The [direct publication and recovery contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-backends.md#direct-publication-and-recovery)
+defines retained-data handling and GitHub recovery.
 
 Retained records contain plain Markdown `project-spec.md` and `execution-plan.md` files plus a recovery
 manifest. They are planning evidence only; Execute does not resume them or accept `--recheck`. To
@@ -103,19 +106,15 @@ complete bounded task and supply `/woostack-execute <bounded input>` with its pa
 [Execute retired inputs](/docs/skills/woostack-execute#retired-inputs).
 
 Saved records do not grant permission to assign workers, edit code, commit, review, or accept a
-product. They also do not prove delivery. Fix makes no provider call before proving the cause, and
-goal-only Execute makes no artifact-provider call. An explicitly selected exact GitHub issue for
-Execute performs the required read through the selected authorized GitHub capability (native
-host tools where suitable or host-authenticated `gh`); no artifact-provider configuration or Project
-is required.
+product. They also do not prove delivery. Prepare makes no remote publication, and goal-only Execute
+makes no GitHub call. An explicitly selected exact GitHub issue for Execute performs the required
+read through an authorized GitHub capability (native host tools where suitable or host-authenticated
+`gh`); no GitHub Project configuration is required.
 
-Bootstrap and Commit write optional provider records only when explicitly requested: persistence
-after design approval and target collision checks for Bootstrap, or `--issue` for Commit. They use the
-authorized host capability for `artifacts.provider` (native GitHub tools where suitable or
-host-authenticated `gh` for GitHub, or official Linear/Plane MCP tools). Each write requires a
-separate read to confirm its result. Optional synchronization failures do not block repository work
-unless synchronization was explicitly required as part of the deliverable.
-Git and GitHub remain authoritative for repository results.
+Bootstrap and Commit use direct GitHub operations only when explicitly requested: Project publication
+after design approval and target collision checks for Bootstrap, or an exact issue association for
+Commit. Each write requires a separate read to confirm its result. A GitHub note failure is reported
+separately from repository delivery, and Git/GitHub remain authoritative for repository results.
 
 ## Recovery
 

@@ -21,12 +21,12 @@ The optional selector is passed unchanged to public [`woostack-plan`](../woostac
 `new` requests one new specification parent; an existing selector must be one exact canonical
 GitHub issue URL. Conflicting, repeated, malformed, foreign, or missing publication scope blocks
 before Plan publication. For an explicit GitHub Project, invoke Plan directly with its exact
-selector; Prepare does not invent a second destination selector or provider adapter.
+selector; Prepare does not invent a second destination or configuration.
 
-Prepare has no `--run`, `--project`, provider, mirror, compatibility alias, or local planning ledger.
-It does not discover or mutate `.woostack/tmp/runs/`; retained historical runs remain readable and
-are never migrated or rewritten. A prior run or issue is usable only when the caller supplies its
-complete content and exact identity for fresh phase validation.
+Prepare has no `--run`, `--project`, remote-sync selector, compatibility alias, or local planning
+ledger. It does not discover or mutate `.woostack/tmp/runs/`; retained historical runs remain
+readable and are never migrated or rewritten. A prior run or issue is usable only when the caller
+supplies its complete content and exact identity for fresh phase validation.
 
 ## Ownership and phase selection
 
@@ -113,9 +113,9 @@ Prepare does not create an integration branch or rewrite dependencies.
 - Debug returns read-only diagnosis; its handback is evidence, not approval or execution authority.
 - Ideate and Harden remain directly callable and exchange complete plain packets. Plan remains
   directly callable and is the only issue publisher. Prepare composes them one-way and never calls
-  itself recursively or creates a hidden manifest/mirror.
-- GitHub issue publication and native relationship read-back must be complete. Provider configuration,
-  Linear/Plane mirroring, a mandatory Project, and a replacement local work board are not gates.
+  itself recursively or creates a hidden manifest or mirror.
+- GitHub issue publication and native relationship read-back must be complete. A mandatory Project
+  or replacement local work board is not a gate.
 - Existing user runs, issue records, remote Projects, and historical reports survive unchanged.
   Retained retired-wrapper drafts can be supplied explicitly after identity and freshness validation;
   there is no automatic conversion, old-command alias, or remote publication of a local draft.

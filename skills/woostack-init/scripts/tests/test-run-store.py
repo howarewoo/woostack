@@ -46,7 +46,6 @@ class RunStoreTests(unittest.TestCase):
             "draft": {"specification": "User-verified content", "unresolvedQuestions": ["Open decision"]},
             "stableTaskMappings": {},
             "taskExecutions": {},
-            "mirror": {"provider": "local", "status": "unstarted", "error": None},
         }
 
     def command(self, *args, root=None, run_id=None):

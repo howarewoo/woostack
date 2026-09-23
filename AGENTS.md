@@ -32,8 +32,8 @@ The public command/adoption surface has eighteen skills:
 - [`woostack-reflect`](skills/woostack-reflect/SKILL.md)
 
 Ideate and Harden are public standalone phases and composable callers for Prepare. They exchange
-complete plain content with explicit repository/evidence identity; no run manifest, provider mirror,
-or wrapper admission is required to invoke either one.
+complete plain content with explicit repository/evidence identity; no run manifest or wrapper
+admission is required to invoke either one.
 
 Prepare is the planning-only composition for feature and defect preparation. It invokes the relevant
 public phases and ends at a verified GitHub issue graph; it never implements work or invokes
@@ -50,9 +50,9 @@ exception to the "no application source code / no app lockfile" rule above. Its 
 pages are **generated** from `skills/*/SKILL.md` at build time and are gitignored; only the app shell
 and authored framing pages are committed. Deploy notes live in [`site/README.md`](site/README.md).
 Prepare and Plan use complete plain packets and GitHub's native parent/child issues as the planning
-handoff. They do not create a local run, provider mirror, replacement work board, source branch,
-worktree, commit, pull request, or implementation worker. Existing `.woostack/tmp/runs/<run-id>/`
-records from retired workflows remain readable user data and are never migrated or mutated.
+handoff. They do not create a local run, replacement work board, source branch, worktree, commit,
+pull request, or implementation worker. Existing `.woostack/tmp/runs/<run-id>/` records from
+retired workflows remain readable user data and are never migrated or mutated.
 
 An existing retained draft or issue may be supplied explicitly only with its exact identity,
 complete content, and fresh repository/evidence validation. It does not authorize publication,
@@ -60,25 +60,29 @@ implementation, assignment, ownership, acceptance, or source-control action. Pla
 GitHub issue and relationship publication; Orchestrate owns scheduling and Execute owns bounded
 implementation and PR delivery.
 
+Retired managed-provider configuration and records remain opaque historical data; only explicitly
+selected direct GitHub operations use the surviving GitHub configuration. Prepare never relies on
+retained records or implicit remote publication.
 
+The user's request and explicit conversation choices authorize repository work. Git and GitHub own
+source, branches, commits, pull requests, reviews, and merge evidence. Issue lifecycle alone never
+proves implementation, delivery, passing checks, review, or merge.
+`/woostack-init` may use only authorized native GitHub capabilities or host-authenticated `gh` for
+narrow automatic authenticated read-only discovery of non-secret repository/native-name defaults;
+it never selects persistence or authorizes a remote write. `.woostack/config.json` supplies
+validated GitHub defaults only after configuration is selected. Credentials remain in the host
+secret store, and local diagnostic reports remain non-authoritative. Goal-only Execute makes no
+development-artifact provider calls; an explicitly selected exact GitHub issue permits only its
+documented read-only GitHub admission. That exception does not select Project publication or
+authorize work. Handoff, replanning, and blockers leave Project status unchanged.
 
-`/woostack-init` may use only the official Linear MCP or an authorized GitHub read capability for
-narrow automatic authenticated read-only discovery of non-secret repository/workspace/team/native-name
-defaults; it never selects persistence or authorizes a provider write. `.woostack/config.json` supplies
-validated defaults only after artifact selection. Credentials remain in the host secret store, and
-local diagnostic reports remain non-authoritative. Goal-only Execute makes no development-artifact
-provider calls; an explicitly selected exact GitHub issue permits only the read-only GitHub capability
-defined in Execute's optional issue contract, even with `artifacts.provider` local or omitted. That
-exception does not select artifact mirroring or authorize work. Handoff, replanning, and blockers
-leave project status unchanged.
-
-Explicit [`woostack-orchestrate`](skills/woostack-orchestrate/SKILL.md) execution selects one
+Explicit [`woostack-orchestrate`](skills/woostack-orchestrate/SKILL.md) execution selects either one
 GitHub specification parent with native task children, one configured GitHub Project, or an
-explicit canonical list of GitHub issues. Parent-issue execution does not require provider
-mirroring or Project configuration; list execution does not require a parent, Project, or native
-dependency publication. Orchestrate owns scheduling and independent post-submission validation; each
-Execute worker owns one task's delivery through Commit. This preserves the planning-only Prepare
-boundary and does not grant merge authority.
+explicit canonical list of GitHub issues. Parent-issue execution does not require Project
+configuration; list execution does not require a parent, Project, or native dependency publication.
+Orchestrate owns scheduling and independent post-submission validation; each Execute worker owns one
+task's delivery through Commit. This preserves Prepare's planning-only boundary and does not grant
+merge authority.
 
 External engineers such as Hermes are outside the installed woostack host/runtime surface. Hermes
 may drive one persistent OMP session as an external decision-maker and reviewer, but woostack is
@@ -88,7 +92,8 @@ unchanged local run artifacts does not require the original process to stay aliv
 in the authored [Hermes guide](site/content/docs/hermes.mdx); it does not make Hermes a supported
 host or grant it implementation authority.
 
-This collection has eighteen public command/adoption skills at eighteen fixed `SKILL.md` locations.
+This collection has eighteen public command/adoption skills at eighteen fixed `SKILL.md`
+locations. Direct GitHub integration adds neither a command-routing row nor a per-provider skill.
 
 Identify the mode before acting.
 

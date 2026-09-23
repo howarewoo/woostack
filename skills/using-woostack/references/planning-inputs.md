@@ -3,7 +3,7 @@
 Ideate, Harden, and callers that compose them exchange complete plain content. Plan consumes the
 same input packet and has a separate issue-contract output. Ideate and Harden may reuse a prior
 handback, but neither requires the caller to create a Woostack run, permission-restricted manifest,
-provider mirror, or hidden phase record.
+second remote record, or hidden phase record.
 
 ## Input packet
 

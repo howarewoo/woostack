@@ -41,7 +41,7 @@ must retain the selected workspace and branch and verify the same checkout befor
 
 ## Native reads before JSON assembly
 
-Resolve host capability before provider access. The selected host must expose a real
+Resolve host capability before GitHub access. The selected host must expose a real
 delivery-capable subagent primitive. Record `delivery_capable: true` and its observed positive
 `max_parallel` in the snapshot. A smaller host cap is a scheduling clamp, not a scope-admission
 failure; absence of a delivery primitive blocks before `admit` rather than degrading to inline
@@ -396,14 +396,15 @@ its descendants; it never redispatches a duplicate or releases descendants.
 
 ## State, reservations, and joins
 
-State is one explicit private session-local controller file, not a provider ledger. It carries
+State is one explicit private session-local controller file, not a retained-artifact ledger. It carries
 `version`, the immutable `fingerprint`, exact `scope_identity`, a random controller owner token,
 stop/halt flags, last recovery inventory, and one task entry per admitted child. Each task entry
 keeps its native membership/dependency and contract revisions, claim provenance, worker identity,
 reservation/worktree/branch/parent start, current source/diff identity, checks/validator receipts,
-PR identity, delivery checkpoint, and first uncertain boundary distinct. The caller must still
-externally enforce exclusive ownership of the selected canonical scope/state for the controller
-session.
+PR identity, delivery checkpoint, and first uncertain boundary distinct. The caller must externally
+enforce exclusive ownership of the selected canonical scope/state for the controller session,
+covering every `schedule`, `apply-result`, and `reconcile` call. If exclusive ownership cannot be
+proved, block at controller preflight before invoking the helper.
 
 The helper additionally takes owner-only atomic claims under
 `<primary-root>/.woostack/tmp/orchestrate-claims/`: one exact scope claim and one claim keyed by

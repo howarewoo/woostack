@@ -7,6 +7,7 @@ Select native Git plus an authorized GitHub capability (prefer native GitHub too
 host-authenticated `gh` is supported), or Graphite only when explicitly selected or verified as
 already managing this task/stack, under the
 [source-control contract](../../woostack-commit/references/graphite.md).
+Direct Git/GitHub publication owns artifact scope; no provider-specific artifact context is selected here.
 
 ## Required isolation and identity
 

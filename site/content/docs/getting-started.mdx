@@ -25,9 +25,10 @@ provide exact repository/branch/PR reads and independent write read-back; see th
 [source-control contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-commit/references/graphite.md).
 These delivery tools are separate from the local setup in this tutorial.
 
-You do not need a Linear, Plane, or GitHub project for local setup. By default, woostack keeps
-planning files and run records in the repository's local `.woostack/` workspace. Optional provider
-mirroring copies those records to a configured service.
+You do not need GitHub Project configuration for local setup. By default, woostack keeps
+configuration, diagnostics, and any retained historical run records in the repository's local
+`.woostack/` workspace. Direct GitHub issue or Project operations are explicit and never create a
+second remote record.
 
 ## 1. Install the skills
 
@@ -61,11 +62,11 @@ an explicitly approved repair before replacement; legacy records are never migra
 implicitly.
 
 When it finishes, check the agent's report for local setup errors and confirm that
-`.woostack/config.json` exists. Init attempts read-only Linear setup on every run and reports that
-outcome separately. It also performs read-only GitHub discovery when
-`artifacts.provider: "github"` is selected. Missing provider access does not block local setup,
-and discovery does not enable mirroring or authorize later provider operations. Keep credentials
-in your harness's authentication store, never in `.woostack/config.json`.
+`.woostack/config.json` exists. Init may perform narrow read-only GitHub discovery through an
+authorized native capability or host-authenticated `gh` when an explicit GitHub operation needs
+defaults. Missing GitHub configuration or capability does not block local setup, and discovery does
+not authorize later writes. Keep credentials in your harness's authentication store, never in
+`.woostack/config.json`.
 
 ## 3. Check the installation
 
@@ -76,10 +77,10 @@ Send this command to your coding agent:
 ```
 
 In `--check` mode, Doctor reports local configuration and support-file problems without repairing
-them or contacting a provider. Resolve any reported local configuration error before starting
+them or contacting GitHub. Resolve any reported local configuration error before starting
 repository work. To request proposed repairs, invoke `/woostack-doctor` without `--check`; it must
-ask for approval before changing anything. Provider connectivity checks require an explicit
-`--live` request and a configured remote provider.
+ask for approval before changing anything. An explicit `--live` request validates only the fixed
+read-only GitHub contract selected by Doctor; it is not required for parent-issue workflows.
 
 <Callout type="info">
   Keep project-specific rules in the root `AGENTS.md`. The
@@ -90,8 +91,8 @@ ask for approval before changing anything. Provider connectivity checks require 
 ## Choose what to do next
 
 Use the workflow map to choose a command for your next task. Prepare ends at a verified GitHub issue
-graph; the configuration reference explains surviving repository policy and optional provider
-configuration.
+graph; the configuration reference explains surviving repository policy and optional direct GitHub
+Project configuration.
 
 For an approved GitHub plan, hand the coding agent one exact specification parent issue with native
 PR-sized children using `/woostack-orchestrate --issue <canonical parent issue URL>`. If no common
@@ -102,8 +103,8 @@ required for either form. See [Orchestrate](/docs/skills/woostack-orchestrate) f
 worker capabilities, graph evidence, and recovery boundaries.
 
 <Cards>
-  <Card title="Workflow maps" href="/docs/concepts/workflows" description="Choose Bootstrap, Prepare, Plan, Orchestrate, or Execute based on the shape of the work." />
-  <Card title="Configuration" href="/docs/configuration" description="Look up repository policy and surviving optional provider configuration." />
+  <Card title="Workflow maps" href="/docs/concepts/workflows" description="Choose Bootstrap, Prepare, Ideate, Harden, Plan, Orchestrate, or Execute based on the shape of the work." />
+  <Card title="Configuration" href="/docs/configuration" description="Look up repository policy and optional direct GitHub Project configuration." />
   <Card title="How to use Hermes as an external engineer" href="/docs/hermes" description="Drive one persistent OMP process without installing woostack in Hermes." />
   <Card title="Harness reference" href="/docs/harnesses" description="Compare supported coding harnesses and their native capabilities." />
 </Cards>

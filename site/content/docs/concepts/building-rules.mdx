@@ -15,7 +15,7 @@ Preparation produces a verified issue graph; implementation is a separate explic
 | Repository reconciliation | [woostack-harden](/docs/skills/woostack-harden) | complete plain candidate after bounded evidence checks | no provider or run required |
 | Approved issue publication | [woostack-plan](/docs/skills/woostack-plan) | one exact GitHub parent/child or Project graph with native prerequisite edges | direct host-authenticated GitHub reads/writes; no mirror required |
 | Bounded task for one PR | [woostack-execute](/docs/skills/woostack-execute) | one complete bounded contract and one PR | goal-only is provider-free; exact issue input is read-only |
-| Greenfield codebase | [woostack-bootstrap](/docs/skills/woostack-bootstrap) | complete approved design | exact artifact or explicit persistence request only |
+| Greenfield codebase | [woostack-bootstrap](/docs/skills/woostack-bootstrap) | complete approved design | exact target only; direct GitHub Project publication is explicit |
 
 The shape of the work determines the workflow. Historical development records cannot turn ambiguous
 scope into a complete contract or replace direct repository evidence.
@@ -30,8 +30,8 @@ Prepare never guesses a correction.
 Public [Ideate](/docs/skills/woostack-ideate) collects decisions the user verifies and returns
 complete plain content. Public [Harden](/docs/skills/woostack-harden) checks supplied specification or
 candidate-plan content against bounded repository evidence and raises each material discrepancy before
-changing it. Both accept explicit repository/evidence identity without a Prepare run or provider
-mirror. Complete input may start at the relevant phase, so settled approvals are not repeated.
+changing it. Both accept explicit repository/evidence identity without a Prepare run. Complete input
+may start at the relevant phase, so settled approvals are not repeated.
 
 Plan divides the work into increments, each small enough for one PR. It records outcomes, scope,
 acceptance criteria, verification, risks, explicit prerequisites, and parent-selection policy. It does
@@ -78,8 +78,8 @@ invokes it.
 Existing `.woostack/tmp/runs/<run-id>/` artifacts from retired planning wrappers remain readable
 historical user data and are never migrated or mutated. A supplied record is evidence only after exact
 identity, complete content, and freshness validation. It does not authorize publication, assignment,
-implementation, or ownership. Provider profiles remain available for surviving explicit workflows and
-historical records; Prepare and Plan do not rely on them.
+implementation, or ownership. Legacy managed-provider records remain opaque; direct GitHub publication
+uses only its exact selected scope.
 | Surface | Authority |
 | --- | --- |
 | Prepare/Ideate/Harden plain packets | complete planning content and evidence handbacks; no source or issue authority |

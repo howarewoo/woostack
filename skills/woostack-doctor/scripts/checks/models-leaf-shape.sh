@@ -14,7 +14,7 @@ CONFIG_RESOLVER="$HERE/../../../woostack-init/scripts/config/resolve-config.sh"
 
 resolver_error="$(mktemp)"
 if ! effective_config="$(bash "$CONFIG_RESOLVER" "$WOO_ROOT" 2>"$resolver_error")"; then
-  detail="$(cat "$resolver_error")"
+  detail="$(tr '\t\r\n' '   ' <"$resolver_error")"
   rm -f "$resolver_error"
   [ -n "$detail" ] || detail="invalid configuration"
   emit error models-leaf-shape report ".woostack/config.json" \

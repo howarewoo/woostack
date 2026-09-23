@@ -4,9 +4,11 @@
   "cases": [
     {
       "id": "orchestrated-native-child-remains-one-task",
-      "prompt": "Reason only from this supplied snapshot; do not run commands, mutate files, or contact remote services. Orchestrate dispatches Execute with one complete bounded contract for https://github.com/acme/app/issues/11, native child of specification issue 10. The packet contains repository rules, allowed paths, acceptance, checks, an exclusive worktree, exact verified prerequisite branch and start SHA, and parent specification context. No Project or mirror is selected. The parent PR is open, with admitted prerequisite changes contained in the selected branch. Describe Execute's delivery authority and boundaries.",
-      "capabilities": ["read-workspace"],
-      "expected": "Executes only child 11 in its verified workspace, runs focused checks and smoke, commits/pushes/submits through Commit with the child association, and returns exact PR/head/base evidence. Does not require parent PR merge, Project membership or mirror, discover/schedule siblings, implement parent 10, or write parent progress.",
+      "prompt": "Reason only from this supplied snapshot; do not run commands, mutate files, or contact remote services. Orchestrate dispatches Execute with one complete bounded contract for https://github.com/acme/app/issues/11, native child of specification issue 10. The packet contains repository rules, allowed paths, acceptance, checks, an exclusive worktree, exact verified prerequisite branch and start SHA, and parent specification context. No Project configuration is selected. The parent PR is open, with admitted prerequisite changes contained in the selected branch. Describe Execute's delivery authority and boundaries.",
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "Executes only child 11 in its verified workspace, runs focused checks and smoke, commits/pushes/submits through Commit with the child association, and returns exact PR/head/base evidence. Does not require parent PR merge, Project membership or remote artifact publication, discover/schedule siblings, implement parent 10, or write parent progress.",
       "assertions": [
         {
           "id": "bounded-child-delivery",
@@ -66,7 +68,7 @@
     },
     {
       "id": "exact-issue-admission-read-only",
-      "prompt": "Reason only from this supplied snapshot; do not run commands, mutate files, or contact remote services. A complete bounded task includes --issue https://github.com/acme/app/issues/42. Recorded gh issue evidence identifies open issue 42 in acme/app, matching the canonical Git remote and task. Required comments are fully paginated. artifacts.provider is local; there is no artifacts.github object or Project membership. The task branch is valid and checks pass. Explain whether delivery is allowed and what association evidence is required.",
+      "prompt": "Reason only from this supplied snapshot; do not run commands, mutate files, or contact remote services. A complete bounded task includes --issue https://github.com/acme/app/issues/42. Recorded gh issue evidence identifies open issue 42 in acme/app, matching the canonical Git remote and task. Required comments are fully paginated. There is no Project configuration or membership; there is no artifacts.github object or Project membership. The task branch is valid and checks pass. Explain whether delivery is allowed and what association evidence is required.",
       "capabilities": [
         "read-workspace"
       ],

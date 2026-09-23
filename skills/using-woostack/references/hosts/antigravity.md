@@ -4,12 +4,12 @@
 
 The `agy` CLI; reads `AGENTS.md` natively; authenticates via system keyring / Google Sign-In
 (no documented non-interactive API-key path, so it cannot run headless in ephemeral CI).
-Discover official Linear or Plane MCP tools via `AGENTS.md` / Antigravity MCP runtime, or an
-authorized GitHub capability exposed by the host (prefer native GitHub tools; host-authenticated
-official `gh` remains supported). Discover actual operation capabilities and read/write shapes rather
-than assuming tool names or schemas. Never use custom HTTP/REST/GraphQL transport or fallback tokens.
-Artifact operations follow the canonical
-[artifact backends contract](../../../woostack-init/references/artifact-backends.md).
+Discover authorized native GitHub capabilities through the Antigravity MCP runtime, or use the
+host-authenticated GitHub CLI (`gh`), for explicit GitHub operations under the selected workflow's
+admission. Discover actual GitHub operation capabilities and read/write shapes rather than assuming
+tool names or schemas. Never use custom HTTP/REST/GraphQL transport or fallback tokens. GitHub
+operations follow the canonical [artifact backends contract](../../../woostack-init/references/artifact-backends.md)
+and [GitHub profile](../../../woostack-init/references/artifact-providers/github.md#configuration-and-scope).
 
 ## Subagent spawn
 
@@ -54,7 +54,6 @@ host — no spawn-time auth probe exists; switch manually by promoting an entry 
 
 Single-session collapse is the documented mode, not a degradation. A run that cannot resolve
 any model → session default + say so, per the inline law of the dispatching skill.
-When the configured provider's authorized interface (official Linear/Plane MCP, or a native GitHub
-capability / host-authenticated `gh`) or a required operation capability is absent on this host, fail
-closed for required provider boundaries or report the missing capability for optional operations per
-canonical artifact law.
+When an authorized native GitHub capability or host-authenticated `gh`, or a required operation
+capability, is absent, fail closed for required GitHub boundaries or report the missing capability
+for optional operations per the canonical artifact contract.

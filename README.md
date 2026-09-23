@@ -45,9 +45,10 @@ Open your coding assistant in the project root and enter:
 
 Init creates `.woostack/` configuration and diagnostic folders, worktree support, and the local
 OMP session-naming extension. OMP delegation uses agents already exposed by the active session;
-Init does not create a parallel project agent catalog. It also attempts read-only Linear setup when
-the host provides the official Linear integration. Missing provider access does not block local setup.
-Init does not create remote issues or projects. See [Init](skills/woostack-init/SKILL.md) for details.
+Init does not create a parallel project agent catalog. It may use authorized native GitHub
+capabilities or host-authenticated `gh` for narrow read-only discovery when an explicit GitHub
+operation needs it. Missing GitHub configuration or capability does not block local setup. Init
+does not create remote issues or projects. See [Init](skills/woostack-init/SKILL.md) for details.
 
 ### 3. Tell your assistant to use woostack
 
@@ -76,15 +77,16 @@ For the full policy surface, see the authored
 
 Prepare is the planning-only entrypoint for features and proved defects. It composes public Ideate,
 Harden, Debug, and Plan from complete plain packets and ends at a verified GitHub parent/child
-graph; it does not create local run state, provider mirrors, source branches, or implementation.
-Plan is the sole GitHub issue publisher. An explicit GitHub Project remains a direct Plan selector.
-Existing `.woostack/tmp/runs/<run-id>/` records from retired workflows remain readable historical
-user data and are never migrated or mutated. A retained draft may be supplied explicitly after
-identity and freshness revalidation, but it never authorizes publication or code changes.
+graph; it does not create local run state, a replacement work board, source branches, or
+implementation. Plan is the sole GitHub issue publisher. An explicit GitHub Project remains a
+direct Plan selector. Existing `.woostack/tmp/runs/<run-id>/` records from retired workflows
+remain readable historical user data and are never migrated or mutated. A retained draft may be
+supplied explicitly after identity and freshness revalidation, but it never authorizes publication
+or code changes.
 
-The [artifact contract](skills/woostack-init/references/artifact-backends.md) explains surviving
-provider configuration and historical record handling. Saved plans and remote copies record decisions;
-they do not authorize new work or prove that code was delivered.
+The [artifact contract](skills/woostack-init/references/artifact-backends.md) explains direct
+GitHub publication, recovery, and retained historical record handling. Saved plans and remote
+records record decisions; they do not authorize new work or prove that code was delivered.
 
 If you use Hermes to coordinate an OMP session, follow the
 [Hermes guide](site/content/docs/hermes.mdx). Install woostack in OMP or another supported coding

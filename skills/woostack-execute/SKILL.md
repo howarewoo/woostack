@@ -20,9 +20,9 @@ submission/read-back.
 
 Input is explicit task instructions or one complete task contract that fits one PR. `--issue`
 optionally associates exactly one `https://github.com/<owner>/<repo>/issues/<number>` resource;
-it does not replace the bounded input. No provider configuration or project membership is required.
-Without `--issue`, make no development-artifact provider calls. With it, use only the exact issue's
-read-only admission and Commit association below, regardless of `artifacts.provider`.
+it does not replace the bounded input. No GitHub Project configuration or membership is required.
+Without `--issue`, make no development-artifact calls. With it, use only the exact issue's
+read-only admission and Commit association below.
 
 ### Retired inputs
 

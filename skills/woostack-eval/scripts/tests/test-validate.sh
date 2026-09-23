@@ -736,20 +736,20 @@ expect_valid 'legitimate raw evidence values' worker-raw-evidence \
 
 make_package worker-undeclared-raw-passthrough 'description: Corpus with an undeclared raw passthrough.'
 mkdir -p "$PACKAGE/evals/fixtures"
-printf '%s\n' '{"endpoint":"https://mcp.linear.app/mcp"}' >"$PACKAGE/evals/fixtures/observation.json"
+printf '%s\n' '{"endpoint":"https://example.invalid/host/tool"}' >"$PACKAGE/evals/fixtures/observation.json"
 cat >"$PACKAGE/evals/evals.json" <<'EOF'
 {"schemaVersion":1,"skill":"worker-undeclared-raw-passthrough","cases":[
-  {"id":"endpoint-observation","prompt":"Return the observed endpoint","fixtures":["observation.json"],"expected":"Echo the raw observation","assertions":[{"id":"endpoint","kind":"final-json-path-equals","pointer":"/endpoint","expected":"https://mcp.linear.app/mcp"}]}
+  {"id":"endpoint-observation","prompt":"Return the observed endpoint","fixtures":["observation.json"],"expected":"Echo the raw observation","assertions":[{"id":"endpoint","kind":"final-json-path-equals","pointer":"/endpoint","expected":"https://example.invalid/host/tool"}]}
 ]}
 EOF
 expect_invalid 'undeclared same-key raw passthrough' corpus-fixture-output-oracle evals/evals.json /cases/0/fixtures/0
 
 make_package worker-declared-raw-passthrough 'description: Corpus with a declared raw passthrough.'
 mkdir -p "$PACKAGE/evals/fixtures"
-printf '%s\n' '{"endpoint":"https://mcp.linear.app/mcp"}' >"$PACKAGE/evals/fixtures/observation.json"
+printf '%s\n' '{"endpoint":"https://example.invalid/host/tool"}' >"$PACKAGE/evals/fixtures/observation.json"
 cat >"$PACKAGE/evals/evals.json" <<'EOF'
 {"schemaVersion":1,"skill":"worker-declared-raw-passthrough","cases":[
-  {"id":"endpoint-observation","prompt":"Return the observed endpoint","fixtures":["observation.json"],"fixturePassthroughAssertions":[{"assertionId":"endpoint","fixture":"observation.json","pointer":"/endpoint"}],"expected":"Echo the raw observation","assertions":[{"id":"endpoint","kind":"final-json-path-equals","pointer":"/endpoint","expected":"https://mcp.linear.app/mcp"}]}
+  {"id":"endpoint-observation","prompt":"Return the observed endpoint","fixtures":["observation.json"],"fixturePassthroughAssertions":[{"assertionId":"endpoint","fixture":"observation.json","pointer":"/endpoint"}],"expected":"Echo the raw observation","assertions":[{"id":"endpoint","kind":"final-json-path-equals","pointer":"/endpoint","expected":"https://example.invalid/host/tool"}]}
 ]}
 EOF
 expect_valid 'declared same-key raw passthrough' worker-declared-raw-passthrough \
@@ -759,10 +759,10 @@ expect_valid 'declared same-key raw passthrough' worker-declared-raw-passthrough
 
 make_package worker-invalid-raw-passthrough 'description: Corpus with an invalid raw passthrough declaration.'
 mkdir -p "$PACKAGE/evals/fixtures"
-printf '%s\n' '{"endpoint":"https://mcp.linear.app/mcp"}' >"$PACKAGE/evals/fixtures/observation.json"
+printf '%s\n' '{"endpoint":"https://example.invalid/host/tool"}' >"$PACKAGE/evals/fixtures/observation.json"
 cat >"$PACKAGE/evals/evals.json" <<'EOF'
 {"schemaVersion":1,"skill":"worker-invalid-raw-passthrough","cases":[
-  {"id":"endpoint-observation","prompt":"Return the observed endpoint","fixtures":["observation.json"],"fixturePassthroughAssertions":["missing"],"expected":"Echo the raw observation","assertions":[{"id":"endpoint","kind":"final-json-path-equals","pointer":"/endpoint","expected":"https://mcp.linear.app/mcp"}]}
+  {"id":"endpoint-observation","prompt":"Return the observed endpoint","fixtures":["observation.json"],"fixturePassthroughAssertions":["missing"],"expected":"Echo the raw observation","assertions":[{"id":"endpoint","kind":"final-json-path-equals","pointer":"/endpoint","expected":"https://example.invalid/host/tool"}]}
 ]}
 EOF
 expect_invalid 'raw passthrough names a private assertion' corpus-invalid-fixture-passthrough evals/evals.json /cases/0/fixturePassthroughAssertions/0

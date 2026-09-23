@@ -185,14 +185,16 @@ This validator does not edit source, branch, PR, issues, notes, or Project statu
 of the worker and uses a distinct `reviewer_id`. Failed focused checks or failed spec review are
 repair-ready; it does not delete a submitted PR or silently broaden scope.
 
-## Note persistence and optional Project status
+## GitHub delivery note and optional Project status
 
-After the independent readback and validation pass, write one concise child delivery note using the
-existing provider note mechanism. It contains the canonical repository, branch/commit, PR/head/base,
-changed paths, observed check/review outcome, contract hash, diff identity, and safe resume boundary.
-Read the exact note back and include its `id`, child issue URL, PR URL, head, contract hash, and diff
-identity as `note`. Preserve unrelated artifact content and managed markers. Note write/readback is
-before dependent release; an intent, mutation response, or worker claim is not a receipt.
+After the independent readback and validation pass, write one concise child delivery note to the
+exact child GitHub issue using the existing
+[GitHub note mechanism](../../woostack-commit/references/provider-attribution.md#artifact-delivery-note).
+It contains the canonical repository, branch/commit, PR/head/base, changed paths, observed
+check/review outcome, contract hash, diff identity, and safe resume boundary. Read the exact note
+back and include its `id`, child issue URL, PR URL, head, contract hash, and diff identity as `note`.
+Preserve unrelated issue content and managed markers. Note write/readback is before dependent
+release; an intent, mutation response, or worker claim is not a receipt.
 
 Only an explicitly selected Project may receive a lifecycle write, and only to the admitted
 configured `lifecycle.inReview` option. Read the Project item/status back and include exactly the

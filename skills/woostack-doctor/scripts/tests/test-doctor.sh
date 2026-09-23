@@ -12,7 +12,7 @@ repo="$TMP/repo"
 mkdir -p "$repo/.woostack"
 git -C "$repo" init -q
 cat >"$repo/.woostack/config.json" <<'JSON'
-{"artifacts":{"provider":"local","linear":{"repository":"https://github.com/acme/widgets","workspace":"acme","team":"ENG","projectLabels":[],"projectStatuses":{"backlog":"Backlog","planned":"Planned","started":"Started","completed":"Completed","canceled":"Canceled"},"issueStates":{"planned":"Backlog","executing":"In Progress","inReview":"In Progress","done":"Done","blocked":"In Progress"}}},"models":{}}
+{"models":{},"review":{},"status":{"staleDays":14}}
 JSON
 
 run_doctor() {
@@ -23,15 +23,10 @@ run_doctor() {
 }
 
 run_doctor "$repo"
-assert_exit 0 "$CODE" "valid static workspace exits zero"
-assert_not_contains "$OUT" "linear-live" "static workspace does not claim provider validation"
-printf '%s\n' '{"artifacts":{"provider":"local"},"models":{},"status":{"staleDays":14}}' >"$repo/.woostack/legacy-config.json"
-mv "$repo/.woostack/legacy-config.json" "$repo/.woostack/config.json"
-run_doctor "$repo"
-assert_exit 0 "$CODE" "legacy status config remains non-blocking"
-assert_contains "$OUT" "retired-status-config" "legacy status config receives retirement guidance"
-assert_eq "$(jq -r '.status.staleDays' "$repo/.woostack/config.json")" "14" "legacy status config is preserved"
-
+assert_exit 0 "$CODE" "valid local workspace exits zero"
+assert_contains "$OUT" "retired-status-config" "legacy status configuration receives retirement guidance"
+assert_eq "$(jq -r '.status.staleDays' "$repo/.woostack/config.json")" "14" "legacy status configuration is preserved"
+assert_not_contains "$OUT" "github-live" "static workspace does not claim live validation"
 
 mkdir -p "$TMP/missing"
 run_doctor "$TMP/missing"
@@ -39,8 +34,27 @@ assert_exit 2 "$CODE" "missing workspace exits two"
 assert_contains "$OUT" "run woostack-init first" "missing workspace points to init"
 
 run_doctor --live "$repo"
-assert_exit 2 "$CODE" "raw --live cannot make a shell provider call"
+assert_exit 2 "$CODE" "raw live mode cannot make a provider call"
 assert_contains "$OUT" "controller-owned" "raw live mode explains the receipt boundary"
-assert_contains "$OUT" "authorized GitHub capability or official MCP for Linear/Plane" "raw live mode names all supported provider interfaces"
+
+cat >"$repo/.woostack/config.json" <<'JSON'
+{"artifacts":{"provider":"linear"},"github":null}
+JSON
+if resolver_error="$(bash "$HERE/../../../woostack-init/scripts/config/resolve-config.sh" "$repo" 2>&1)"; then
+  printf 'FAIL: invalid active configuration was accepted\n' >&2
+  exit 1
+fi
+blocking_reason="${resolver_error##*$'\n'}"
+run_doctor --check "$repo"
+assert_exit 1 "$CODE" "invalid active policy fails the check despite a retirement notice"
+for check in config-policy models-leaf-shape; do
+  annotation=""
+  while IFS= read -r line; do
+    case "$line" in
+      "::error:: [$check] "*) annotation="$line" ;;
+    esac
+  done <<<"$OUT"
+  assert_contains "$annotation" "$blocking_reason" "$check retains the resolver's blocking diagnostic"
+done
 
 finish
