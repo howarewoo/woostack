@@ -52,10 +52,11 @@ allowed.
 - Prepare, Ideate, Harden, and Plan make no provider-mirror calls;
 - direct Plan still requires its exact GitHub scope and performs the required issue/Project reads and
   writes;
-- goal-only Execute makes no development-artifact provider call. Its optional exact GitHub issue
-  association is a read-only authorized GitHub capability (host-native tools where suitable or
-  host-authenticated `gh`) exception; it does not select artifact mirroring or require Project
-  configuration; and
+- goal-only Execute makes no development-artifact provider call. Execute may instead select one
+  canonical GitHub issue URL as its complete task input or add that URL to inline bounded
+  instructions; either form uses authorized read-only GitHub capability (host-native tools where
+  suitable or host-authenticated `gh`) for issue admission and later exact Commit association. It
+  does not select artifact mirroring or require Project configuration; and
 - explicit Orchestrate parent-issue execution uses an authorized GitHub capability (host-native tools
   where suitable or host-authenticated `gh`) for its admitted hierarchy and verified child delivery
   notes under the [Orchestrate lifecycle boundary](artifact-providers/github.md#recovery-and-delivery-boundary);
@@ -85,7 +86,8 @@ Plan publishes directly to one exact GitHub scope selected by the caller:
   from a goal.
 
 Parent-issue planning and Orchestrate parent execution require no Project, Status setup, or `github`
-object. Execute accepts one complete bounded task and owns one PR. Commit owns source/PR attribution;
+object. Execute accepts one complete bounded task from inline instructions or one canonical
+task-bearing issue URL and owns one PR. Commit owns source/PR attribution;
 Orchestrate owns scheduling and independent delivery-note recovery. No path closes issues or Projects,
 claims product acceptance, or grants merge authority.
 
