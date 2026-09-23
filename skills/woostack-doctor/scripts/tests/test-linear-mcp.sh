@@ -11,7 +11,7 @@ trap 'rm -rf "$TMP"' EXIT
 
 complete_config() {
   jq -cn '{
-    models:{},review:{},status:{staleDays:14},
+    models:{},review:{},
     artifacts:{
       provider:"linear",
       linear:{
@@ -28,7 +28,7 @@ complete_config() {
 }
 complete_plane_config() {
   jq -cn '{
-    models:{},review:{},status:{staleDays:14},
+    models:{},review:{},
     artifacts:{
       provider:"plane",
       plane:{
@@ -42,7 +42,7 @@ complete_plane_config() {
   }'
 }
 complete_github_config() {
-  jq -cn '{models:{},review:{},status:{staleDays:14},artifacts:{provider:"github",github:{owner:"acme",ownerType:"organization",statusField:"Status",visibility:"private",projectStatuses:{planned:"Todo",executing:"In Progress",inReview:"In Review",done:"Done",blocked:"Blocked"}}}}'
+  jq -cn '{models:{},review:{},artifacts:{provider:"github",github:{owner:"acme",ownerType:"organization",statusField:"Status",visibility:"private",projectStatuses:{planned:"Todo",executing:"In Progress",inReview:"In Review",done:"Done",blocked:"Blocked"}}}}'
 }
 complete_github_receipt() {
   jq -cn '{schemaVersion:1,provider:"official-gh-cli",ghAvailable:true,authenticated:true,ready:true,viewer:{login:"octocat",id:"MDQ6VXNlcjE="},scopes:["project","read:org","repo"],owner:"acme",ownerResolution:{status:"unique",login:"acme",type:"organization",id:"MDEyOk9yZ2FuaXphdGlvbjEyMzQ1"},repository:"https://github.com/acme/widgets",projectStatuses:{complete:true,statusField:"Status",fieldId:"PVTSSF_12345",fieldType:"SINGLE_SELECT",resolved:{planned:{name:"Todo",id:"opt_1"},executing:{name:"In Progress",id:"opt_2"},inReview:{name:"In Review",id:"opt_3"},done:{name:"Done",id:"opt_4"},blocked:{name:"Blocked",id:"opt_5"}}},capabilities:{projectRead:true,projectWrite:true,projectDelete:true,issueRead:true,issueWrite:true,issueClose:true,issueDelete:true,dependencyRead:true,dependencyWrite:true,statusFieldRead:true,statusFieldWrite:true,pagination:true,independentReadBack:true},readBack:{status:"verified",complete:true,independent:true}}'
