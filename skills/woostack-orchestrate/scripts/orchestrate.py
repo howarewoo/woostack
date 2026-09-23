@@ -43,13 +43,6 @@ def canonical_issue_url(value, canonical):
     return "https://github.com/%s/%s/issues/%s" % (repo.group(1), repo.group(2), match.group(3))
 
 
-def canonical_issue_selectors(values, canonical):
-    if isinstance(values, str):
-        values = values.split()
-    require(isinstance(values, list) and bool(values), "missing-selector",
-            "at least one issue selector is required")
-    normalized = [canonical_issue_url(value, canonical) for value in values]
-    return sorted(set(normalized))
 
 def edge_kind(value, default=None):
     if isinstance(value, dict):
@@ -465,22 +458,18 @@ def positive(value):
     return int(value)
 
 
-def string_list(value, field, empty=False):
-    require(isinstance(value, list) and (empty or bool(value)) and all(text(v) for v in value),
-            "malformed-contract", field + " must be a string list")
-    require(len(value) == len(set(value)), "duplicate-value", field + " has duplicate values")
-    return value
-
-
 def contract_check(contract):
-    require(isinstance(contract, dict), "malformed-contract", "task contract missing")
-    for key in ("goal", "smoke", "decisions", "risks"):
-        require(text(contract.get(key)), "malformed-contract", "contract requires " + key)
-    for key in ("scope", "acceptance", "checks", "non_goals"):
-        string_list(contract.get(key), key, empty=key == "non_goals")
+    """Check the model-resolved worker brief, not the source issue's layout."""
+    require(isinstance(contract, dict), "incomplete-task", "resolved task brief missing")
+    require(text(contract.get("goal")) and text(contract.get("smoke")),
+            "incomplete-task", "task needs an understood goal and real smoke scenario")
+    for key in ("scope", "acceptance", "checks"):
+        values = contract.get(key)
+        require(isinstance(values, list) and bool(values) and all(text(v) for v in values),
+                "incomplete-task", "resolved task needs " + key)
     for path in contract["scope"]:
         require(not Path(path).is_absolute() and ".." not in Path(path).parts,
-                "malformed-contract", "allowed paths must stay inside the task worktree")
+                "invalid-scope", "allowed paths must stay inside the task worktree")
 
 
 def issue_identity(item, canonical):
@@ -495,8 +484,8 @@ def issue_identity(item, canonical):
             "invalid-identity", "native issue identities missing")
     require(item.get("resource") == "issue", "not-an-issue", "resource is not an issue")
     require(item.get("state") == "open", "issue-not-open", "issue is not open")
-    require(text(item.get("title")) and text(item.get("body")),
-            "malformed-contract", "complete title and body required")
+    require(isinstance(item.get("title"), str) and isinstance(item.get("body"), str),
+            "invalid-identity", "issue title and body must be completely read")
 
 
 def pagination(snapshot, families):
@@ -586,26 +575,11 @@ def edge_records(raw, default_dependent=None, default_kind=None, default_evidenc
     }]
 
 
-def graph_metadata(snapshot, edges):
-    metadata = snapshot.get("graph", snapshot.get("graph_evidence", {}))
-    require(isinstance(metadata, dict), "incomplete-graph", "graph evidence must be an object")
-    coverage = metadata.get("coverage")
-    require(text(coverage) and coverage.strip().lower() == "complete",
-            "incomplete-graph", "graph coverage must have an explicit complete receipt")
-    inference = metadata.get("model_inference")
-    require(text(inference) and inference.strip().lower() == "complete",
-            "inference-unrun", "model inference must have an explicit complete receipt")
-    require(metadata.get("complete") is True,
-            "incomplete-graph", "graph read must have an explicit complete receipt")
-    if "edge_count" in metadata:
-        require(type(metadata["edge_count"]) is int and metadata["edge_count"] == len(edges),
-                "incomplete-graph", "graph edge count does not match supplied evidence")
-    return {"coverage": coverage.strip().lower(), "model_inference": inference.strip().lower(),
-            "source": metadata.get("source", "controller-supplied"),
-            "complete": True, "edges": copy.deepcopy(edges)}
+def graph_metadata(edges):
+    return {"edges": copy.deepcopy(edges)}
 
 
-def check_graph(tasks, parent_url, edges=None):
+def check_graph(tasks, edges=None):
     edges = edges or []
     by_id = {t["task_id"]: t for t in tasks}
     for key in ("task_id", "ordinal", "url", "id", "node_id"):
@@ -624,18 +598,16 @@ def check_graph(tasks, parent_url, edges=None):
                     "missing-endpoint", "unknown dependency endpoint " + str(predecessor))
             require(dependent in by_id, "missing-endpoint", "unknown dependency dependent " + str(dependent))
     for task in tasks:
-        require(not parent_url or (task["url"] != parent_url and parent_url not in task["external_prerequisites"]),
-                "parent-as-task", "specification parent cannot be a task or dependency")
         for predecessor in task["prerequisites"]:
             require(predecessor in by_id, "missing-endpoint", "unknown prerequisite " + predecessor)
             require(predecessor != task["task_id"], "self-dependency", "task depends on itself")
     try:
         return list(TopologicalSorter({t["task_id"]: t["prerequisites"] for t in tasks}).static_order())
     except CycleError as error:
-        raise InputError("cycle", "dependency graph contains a cycle") from error
+        raise InputError("cycle", "dependency cycle: " + " -> ".join(error.args[1])) from error
 
 
-def collect_edges(snapshot, tasks, mode, canonical):
+def collect_edges(snapshot, tasks, canonical):
     by_id = {task["task_id"]: task for task in tasks}
     by_url = {task["url"]: task["task_id"] for task in tasks}
     entries_by_id = {task["task_id"]: task for task in tasks}
@@ -656,7 +628,7 @@ def collect_edges(snapshot, tasks, mode, canonical):
         if values is not None:
             require(isinstance(values, list), "invalid-edge", key + " must be a list")
             for value in values:
-                add(value, default_kind="native" if mode != "issues" else None)
+                add(value)
     for task in tasks:
         source = task["task_id"]
         for key, kind in (("native_edges", "native"), ("native_dependencies", "native"),
@@ -672,11 +644,9 @@ def collect_edges(snapshot, tasks, mode, canonical):
             for value in values:
                 add(value, default_dependent=source, default_kind=kind,
                     default_evidence={"issue_url": task["url"], "field": key})
-        prerequisites = task.get("prerequisites", [])
-        require(isinstance(prerequisites, list), "malformed-contract", "prerequisites must be a string list")
-        for predecessor in prerequisites:
+        for predecessor in task.get("prerequisites", []):
             add({"predecessor": predecessor, "dependent": source},
-                default_kind="native" if mode != "issues" else "declared",
+                default_kind="declared",
                 default_evidence={"issue_url": task["url"], "field": "prerequisites"},
                 authoritative=False)
 
@@ -727,7 +697,7 @@ def collect_edges(snapshot, tasks, mode, canonical):
                 pair = (by_url[external], task["task_id"])
                 if pair not in seen:
                     edge = {"predecessor": pair[0], "dependent": pair[1],
-                            "provenance": "native" if mode != "issues" else "declared",
+                            "provenance": "declared",
                             "evidence": {"issue_url": task["url"], "field": "external_prerequisites"}}
                     seen[pair] = edge
                     edge_indexes[pair] = len(edges)
@@ -748,191 +718,103 @@ def collect_edges(snapshot, tasks, mode, canonical):
     return edges
 
 
-def admit(snapshot, mode, selector, limit):
-    if mode == "list":
-        mode = "issues"
+def admit(snapshot, limit):
     canonical = snapshot.get("canonical_repo", "")
     require(REPO_RE.fullmatch(canonical) is not None, "missing-repository", "canonical repository missing")
-    require(mode in ("issue", "project", "issues"), "invalid-mode", "unsupported orchestration mode")
-    require(text(snapshot.get("repository_rules")), "malformed-contract", "scope requires repository_rules")
-    if mode != "issues":
-        require(text(snapshot.get("specification")), "malformed-contract", "scope requires specification")
+    require(text(snapshot.get("repository_rules")), "incomplete-task", "repository rules must be read")
     integration = snapshot.get("integration", {})
     require(isinstance(integration, dict) and text(integration.get("branch"))
             and SHA_RE.fullmatch(integration.get("sha", "")) is not None,
             "missing-integration", "admitted integration branch and commit required")
-    parent_url = None
-    selector_urls = None
-    scope = {}
-    if mode == "issue":
-        require(ISSUE_RE.fullmatch(selector) is not None, "invalid-issue-url", "exact issue URL required")
-        selector = canonical_issue_url(selector, canonical)
-        scope = snapshot.get("parent", {})
-        issue_identity(scope, canonical)
-        require(scope["url"] == selector, "invalid-parent", "selected parent differs")
-        require("parent" in scope and scope["parent"] is None, "nested-parent", "top-level parent must be proved")
-        pagination(snapshot, ("sub_issues", "parents", "dependencies", "contracts"))
-        entries = snapshot.get("children")
-        parent_url = selector
-    elif mode == "project":
-        require(isinstance(selector, str), "invalid-project-url", "exact Project URL required")
-        match = PROJECT_RE.fullmatch(selector)
-        require(match is not None, "invalid-project-url", "exact Project URL required")
-        scope = snapshot.get("project", {})
-        require(isinstance(scope, dict) and scope.get("url") == selector
-                and type(scope.get("number")) is int and scope["number"] == int(match.group(3))
-                and text(scope.get("node_id"))
-                and scope.get("state") == "open", "invalid-project", "exact open Project identity required")
-        owner = match.group(2)
-        require(scope.get("owner") == owner and owner == REPO_RE.fullmatch(canonical).group(1)
-                and scope.get("owner_type") == {"orgs": "organization", "users": "user"}[match.group(1)],
-                "foreign-repository", "Project owner/repository evidence conflicts")
-        lifecycle = snapshot.get("lifecycle", {})
-        require(isinstance(lifecycle, dict) and all(text(lifecycle.get(k)) for k in
-                ("planned", "executing", "inReview", "done", "blocked"))
-                and len(set(lifecycle.values())) == 5, "missing-lifecycle", "five distinct configured statuses required")
-        pagination(snapshot, ("members", "parents", "dependencies", "contracts"))
-        entries = snapshot.get("members")
-    else:
-        selector_urls = canonical_issue_selectors(selector, canonical)
-        selector = " ".join(selector_urls)
-        entries = snapshot.get("selected_issues", snapshot.get("issues"))
-        require(isinstance(entries, list), "incomplete-selection", "selected issue records are missing")
-        pagination(snapshot, ("issues", "parents", "dependencies", "contracts"))
-        graph_hint = snapshot.get("graph", snapshot.get("graph_evidence", {}))
-        require(isinstance(graph_hint, dict) and
-                (bool(graph_hint) or any(snapshot.get(key) is not None
-                                         for key in ("edges", "dependency_edges", "edge_provenance"))),
-                "incomplete-graph", "list mode requires graph evidence")
-    by_url, containers = {}, []
+    entries = snapshot.get("tasks")
+    require(isinstance(entries, list), "incomplete-selection", "resolved executable tasks are missing")
+    by_url = {}
     for entry in entries:
         issue_identity(entry, canonical)
-        entry = copy.deepcopy(entry)
-        entry["url"] = canonical_issue_url(entry["url"], canonical)
-        issue_number = int(ISSUE_RE.fullmatch(entry["url"]).group(3))
-        if entry.get("number") is not None:
-            require(type(entry["number"]) is int and entry["number"] == issue_number,
-                    "ambiguous-identity", "issue number conflicts with issue URL")
-        entry["number"] = issue_number
-        require("actual_parent" in entry, "foreign-parent", "actual parent must be independently read")
-        if mode == "issue":
-            require(entry["actual_parent"] == parent_url, "foreign-parent", "child belongs to another parent")
-        elif mode == "project":
-            require(text(entry.get("item_id")), "invalid-project-item", "native Project item identity required")
-            require("declared_parent" in entry and entry["declared_parent"] == entry["actual_parent"],
-                    "foreign-parent", "Project member parent evidence conflicts")
-        require(entry.get("nested_children") is False or (mode == "project" and entry.get("container") is True),
-                "unsupported-nested", "nested containers or unreadable child hierarchy are unsupported")
-        previous = by_url.get(entry["url"])
-        if previous is not None:
-            immutable_previous = {k: v for k, v in previous.items() if k != "existing_delivery"}
-            immutable_entry = {k: v for k, v in entry.items() if k != "existing_delivery"}
-            require(immutable_previous == immutable_entry, "ambiguous-identity", "duplicate member evidence conflicts")
-            if entry.get("existing_delivery") is not None:
-                if previous.get("existing_delivery") is None:
-                    previous["existing_delivery"] = copy.deepcopy(entry["existing_delivery"])
-                else:
-                    require(previous["existing_delivery"] == entry["existing_delivery"],
-                            "ambiguous-identity", "duplicate delivery evidence conflicts")
-            continue
-        by_url[entry["url"]] = entry
-        if mode == "project" and entry.get("container") is True:
-            containers.append(entry["url"])
-    if mode == "issues":
-        require(set(by_url) == set(selector_urls), "incomplete-selection",
-                "selected issue records do not exactly match the explicit list")
-    tasks = []
-    list_urls = sorted(by_url)
-    for index, entry in enumerate(by_url.values() if mode != "issues" else
-                                  [by_url[url] for url in list_urls], 1):
-        if entry["url"] in containers:
-            continue
-        task = entry.get("task_id")
-        if mode == "issues" and not task:
-            task = "issue-" + ISSUE_RE.fullmatch(entry["url"]).group(3)
-        require(isinstance(task, str) and TASK_RE.fullmatch(task) and ".." not in task
-                and not task.endswith((".", ".lock")), "invalid-identity", "Git-safe stable task ID required")
-        ordinal = entry.get("ordinal")
-        if mode == "issues" and ordinal is None:
-            ordinal = index
-        require(type(ordinal) is int and ordinal > 0, "malformed-ordinal", "positive ordinal required")
-        contract_check(entry.get("contract"))
-        if mode == "issues":
-            require("prerequisites" in entry and "external_prerequisites" in entry,
-                    "incomplete-graph", "selected issue dependency evidence is required")
-        elif mode != "issues":
-            require("prerequisites" in entry and "external_prerequisites" in entry,
-                    "incomplete-hierarchy", "native dependency evidence is required")
-        prerequisites = entry.get("prerequisites", [])
-        string_list(prerequisites, "prerequisites", empty=True)
-        external = entry.get("external_prerequisites", [])
-        string_list(external, "external_prerequisites", empty=True)
-        require(all(ISSUE_RE.fullmatch(url) for url in external),
-                "missing-endpoint", "external prerequisites need exact issue identities")
         record = copy.deepcopy(entry)
-        record["task_id"] = task
-        record["ordinal"] = ordinal
-        # Workspace and branch are runtime allocation evidence.  They may be
-        # supplied by a repository, host, or agent on a fresh refill, but must
-        # never become issue/publication identity or snapshot drift.
-        record["contract_hash"] = digest(entry["contract"])
+        record["url"] = canonical_issue_url(entry["url"], canonical)
+        issue_number = int(ISSUE_RE.fullmatch(record["url"]).group(3))
+        if record.get("number") is not None:
+            require(type(record["number"]) is int and record["number"] == issue_number,
+                    "ambiguous-identity", "issue number conflicts with issue URL")
+        record["number"] = issue_number
+        if record.get("actual_parent") is not None:
+            record["actual_parent"] = canonical_issue_url(record["actual_parent"], canonical)
+        if record["url"] in by_url:
+            require(record == by_url[record["url"]], "ambiguous-identity", "duplicate issue evidence conflicts")
+            continue
+        by_url[record["url"]] = record
+    tasks = []
+    project = snapshot.get("project")
+    if project is not None:
+        match = PROJECT_RE.fullmatch(project.get("url", "")) if isinstance(project, dict) else None
+        require(match is not None and text(project.get("node_id"))
+                and project.get("state") == "open"
+                and project.get("owner") == match.group(2)
+                and match.group(2) == REPO_RE.fullmatch(canonical).group(1)
+                and project.get("owner_type") == {"orgs": "organization", "users": "user"}[match.group(1)]
+                and project.get("number") == int(match.group(3)),
+                "invalid-project", "selected Project identity conflicts")
+        lifecycle = snapshot.get("lifecycle")
+        require(isinstance(lifecycle, dict) and text(lifecycle.get("inReview")),
+                "missing-lifecycle", "selected Project inReview option missing")
+    else:
+        lifecycle = None
+    for index, url in enumerate(sorted(by_url), 1):
+        entry = by_url[url]
+        task_id = entry.get("task_id") or "issue-" + str(entry["number"])
+        require(isinstance(task_id, str) and TASK_RE.fullmatch(task_id) and ".." not in task_id
+                and not task_id.endswith((".", ".lock")), "invalid-identity", "Git-safe stable task ID required")
+        if project is not None:
+            require(text(entry.get("item_id")), "invalid-project-item", "selected Project item ID missing")
+        contract = entry.get("contract")
+        contract_check(contract)
+        record = copy.deepcopy(entry)
+        record["task_id"] = task_id
+        record["ordinal"] = index
+        record["contract_hash"] = digest(contract)
         record["contract_revision"] = record["contract_hash"]
-        if mode == "issues":
-            record["specification"] = entry.get("specification", entry["body"])
-            require(text(record["specification"]), "malformed-contract", "selected issue specification missing")
+        record["specification"] = entry.get("specification") or entry["body"]
         tasks.append(record)
-    identity_entries = list(by_url.values())
-    for key in (("id", "node_id", "item_id") if mode == "project" else ("id", "node_id")):
-        require(len({entry[key] for entry in identity_entries}) == len(identity_entries),
-                "duplicate-identity", "native membership contains conflicting " + key)
-    tasks_by_id = {task["task_id"]: task for task in tasks}
-    require(len(tasks_by_id) == len(tasks), "duplicate-identity", "duplicate task_id")
-    edges = collect_edges(snapshot, tasks, mode, canonical)
+    for key in (("id", "node_id", "item_id") if project is not None else ("id", "node_id")):
+        require(len({entry[key] for entry in tasks}) == len(tasks), "duplicate-identity", "issue identity conflicts")
+    require(len({task["task_id"] for task in tasks}) == len(tasks), "duplicate-identity", "duplicate task ID")
+    edges = collect_edges(snapshot, tasks, canonical)
     for task in tasks:
         task["dependency_snapshot"] = {
             "prerequisites": list(task["prerequisites"]),
             "external_prerequisites": list(task["external_prerequisites"]),
         }
-    graph = graph_metadata(snapshot, edges) if mode == "issues" else {
-        "coverage": "native", "model_inference": "not-applicable",
-        "source": "native-read", "complete": True}
-    task_order = check_graph(tasks, parent_url, edges)
-    if mode == "issue":
-        expected = snapshot.get("expected_index")
-        string_list(expected, "expected_index", empty=True)
-        require(set(expected) == {t["task_id"] for t in tasks}, "incomplete-index",
-                "native scope and approved task index differ")
+    task_order = check_graph(tasks, edges)
     host = snapshot.get("host", {})
     require(isinstance(host, dict), "no-subagent-capability", "host capability evidence missing")
     host_cap = positive(host.get("max_parallel", 1))
     if tasks:
         require(host.get("delivery_capable") is True, "no-subagent-capability", "delivery-capable subagent required")
-    ordered_tasks = sorted(tasks, key=lambda task: task["task_id"]) if mode == "issues" else tasks
-    immutable_tasks = [{k: v for k, v in t.items() if k not in ("existing_delivery", "workspace", "branch")}
-                       for t in sorted(tasks, key=lambda t: t["task_id"])]
-    scope_identity = {
-        "mode": mode,
-        "selector_url": selector,
-        "canonical_repo": canonical,
-        "native_id": scope.get("id") if mode == "issue" else scope.get("node_id"),
-        "native_node_id": scope.get("node_id"),
-        "number": scope.get("number") if mode == "project" else None,
+    scope_identity = {"canonical_repo": canonical, "issues": sorted(by_url)}
+    immutable_tasks = [{
+        "task_id": task["task_id"], "url": task["url"], "id": task["id"],
+        "node_id": task["node_id"], "state": task["state"], "resource": task["resource"],
+        "title": task["title"], "body": task["body"], "contract": task["contract"],
+        "external_prerequisites": task["external_prerequisites"],
+        "specification": task["specification"], "actual_parent": task.get("actual_parent"),
+        "edge_provenance": copy.deepcopy(task["edge_provenance"]),
+    } for task in tasks]
+    binding = {
+        "canonical_repo": canonical, "scope_identity": scope_identity,
+        "repository_rules": snapshot["repository_rules"], "integration_branch": integration["branch"],
+        "tasks": immutable_tasks,
+        "dependencies": sorted((edge["predecessor"], edge["dependent"]) for edge in edges),
     }
-    binding = {"mode": mode, "selector_url": selector, "canonical_repo": canonical,
-               "scope": scope if mode != "issues" else {"selector_urls": selector_urls}, "scope_identity": scope_identity,
-               "repository_rules": snapshot["repository_rules"], "integration_branch": integration["branch"],
-               "tasks": immutable_tasks, "edges": copy.deepcopy(edges),
-               "edge_provenance": copy.deepcopy(edges), "graph": copy.deepcopy(graph),
-               "containers": [by_url[url] for url in sorted(containers)]}
-    if mode != "issues":
-        binding["specification"] = snapshot["specification"]
-    if mode == "project":
-        binding["lifecycle"] = snapshot["lifecycle"]
-    recovery = recovery_inventory(snapshot.get("recovery", snapshot.get("inventory")))
-    return {**binding, "status": "admitted" if tasks else "no-work", "tasks": ordered_tasks,
+    if project is not None:
+        binding["project"] = project
+        binding["lifecycle"] = lifecycle
+        binding["project_items"] = {task["url"]: task["item_id"] for task in tasks}
+    recovery = recovery_inventory(snapshot.get("recovery"))
+    return {**binding, "status": "admitted" if tasks else "no-work", "tasks": tasks,
             "fingerprint": digest(binding), "integration": integration, "max_parallel": limit,
-            "selector_urls": selector_urls, "task_order": task_order,
-            "parent_prs": copy.deepcopy(snapshot.get("parent_prs", {})),
+            "task_order": task_order, "graph": graph_metadata(edges),
+            "edge_provenance": edges, "parent_prs": copy.deepcopy(snapshot.get("parent_prs", {})),
             "host_cap": host_cap, "recovery": recovery,
             "notice": "Host runs sequential subagents (concurrency one)." if host_cap == 1 else None}
 
@@ -1360,30 +1242,27 @@ def validate_delivery(admitted, task, reservation, result, repo):
                           ("head_sha", readback["head_sha"]), ("contract_hash", task["contract_hash"]),
                           ("diff_identity", actual_diff)):
         require(note[key] == expected, "note-mismatch", "delivery note differs on " + key)
-    if admitted["mode"] == "project":
+    if admitted.get("project") is not None:
         if result.get("project_status") is None:
             return {"status": "note-pending", "reason": "project-status-readback", "delivery": delivery}
         progress = field_object(result.get("project_status"),
                                 ("project_url", "issue_url", "item_id", "status"),
                                 "Project status readback")
-        require(progress["item_id"] == task["item_id"] and progress["project_url"] == admitted["selector_url"]
+        require(progress["item_id"] == task["item_id"] and progress["project_url"] == admitted["project"]["url"]
                 and progress["issue_url"] == task["url"]
                 and progress["status"] == admitted["lifecycle"]["inReview"],
                 "project-status-mismatch", "verified Project inReview readback required")
     return {"status": "delivered", "delivery": delivery}
 
 def packet(admitted, task, reservation, repair, retained, readiness):
-    specification = task.get("specification", admitted.get("specification"))
-    require(text(specification), "malformed-contract", "worker specification context missing")
+    specification = task["specification"]
     return {"task_id": task["task_id"], "ordinal": task["ordinal"], "child_issue_url": task["url"],
-            "scope_url": admitted["selector_url"],
-            "parent_issue_url": admitted["selector_url"] if admitted["mode"] == "issue" else
-            task.get("actual_parent"),
+            "scope_url": task["url"], "parent_issue_url": task.get("actual_parent"),
             "specification": specification, "repository_rules": admitted["repository_rules"],
             "bounded_input": copy.deepcopy(task["contract"]), "acceptance": task["contract"]["acceptance"],
             "parent_readiness": readiness,
             "dependency_edges": copy.deepcopy(task.get("edge_provenance", [])),
-            "graph": copy.deepcopy(admitted.get("graph", {})),
+            "graph": copy.deepcopy(admitted["graph"]),
             "checks": task["contract"]["checks"], "contract_hash": task["contract_hash"],
             "execute_skill": "woostack-execute", "repair": repair, "retained_pr": retained, **reservation}
 
@@ -1479,8 +1358,7 @@ def cmd_schedule(args):
         args.state = args.state_out
     claim_scope(args.git_repo, admitted, state)
     try:
-        selected = admitted.get("selector_urls") if admitted["mode"] == "issues" else admitted["selector_url"]
-        fresh = admit(load_json(args.fresh), admitted["mode"], selected, admitted["max_parallel"])
+        fresh = admit(load_json(args.fresh), admitted["max_parallel"])
         require(fresh.get("recovery") is not None, "incomplete-recovery",
                 "schedule requires a complete fresh recovery inventory")
         require(fresh["fingerprint"] == admitted["fingerprint"],
@@ -1923,22 +1801,13 @@ def cmd_stop(args):
 
 
 def cmd_admit(args):
-    selected = [bool(args.issue), bool(args.project), bool(args.issues)]
-    require(sum(selected) == 1, "conflicting-selectors" if any(selected) else "missing-selector",
-            "select exactly one scope")
-    if args.issues:
-        return admit(load_json(args.snapshot), "issues", args.issues, positive(args.max_parallel))
-    return admit(load_json(args.snapshot), "issue" if args.issue else "project",
-                 args.issue or args.project, positive(args.max_parallel))
+    return admit(load_json(args.snapshot), positive(args.max_parallel))
 
 
 def parser():
     root = argparse.ArgumentParser(description=__doc__)
     commands = root.add_subparsers(dest="command", required=True)
     admission = commands.add_parser("admit")
-    admission.add_argument("--issue")
-    admission.add_argument("--issues", nargs="+")
-    admission.add_argument("--project")
     admission.add_argument("--snapshot", required=True)
     admission.add_argument("--max-parallel", default=str(DEFAULT_MAX_PARALLEL))
     admission.set_defaults(run=cmd_admit)

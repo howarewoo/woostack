@@ -15,15 +15,15 @@ this file.
 
 ## Dispatch entry emitted by the helper
 
-For every ready task, `schedule` emits exactly one reservation/packet entry. Values below are
-runtime-substituted facts from the admission and local Git reservation; they are not evidence to
-invent:
+For every ready task, `schedule` emits one reservation/packet entry. This is an internal bridge
+shape, not a caller-facing source schema: all markers are runtime-substituted facts from the
+normalized admission and local Git reservation, never evidence to invent.
 
 ```json
 {
   "task_id": "<runtime-substituted stable task ID>",
   "ordinal": "<runtime-substituted positive ordinal>",
-  "child_url": "<runtime-substituted canonical child issue URL>",
+  "child_url": "<runtime-substituted canonical executable issue URL>",
   "parent_branch": "<runtime-substituted selected local parent branch>",
   "parent_sha": "<runtime-substituted selected parent SHA>",
   "branch": "<runtime-substituted actual task branch selected by repository/host/agent>",
@@ -33,24 +33,20 @@ invent:
   "packet": {
     "task_id": "<runtime-substituted stable task ID>",
     "ordinal": "<runtime-substituted positive ordinal>",
-    "child_issue_url": "<runtime-substituted canonical child issue URL>",
-    "scope_url": "<runtime-substituted exact --issue/--project/--issues selector>",
-    "parent_issue_url": "<runtime-substituted issue scope URL, Project member actual_parent, or selected-list actual_parent>",
-    "specification": "<runtime-substituted complete approved specification>",
+    "child_issue_url": "<runtime-substituted canonical executable issue URL>",
+    "scope_url": "<runtime-substituted canonical executable issue URL>",
+    "parent_issue_url": "<runtime-substituted independently read actual parent or null>",
+    "specification": "<runtime-substituted complete task specification or issue body>",
     "repository_rules": "<runtime-substituted complete repository rules>",
     "bounded_input": {
-      "goal": "<runtime-substituted contract.goal>",
+      "goal": "<runtime-substituted resolved contract.goal>",
       "scope": ["<runtime-substituted contract.scope path>"],
-      "non_goals": ["<runtime-substituted contract.non_goals entry>"],
       "acceptance": ["<runtime-substituted contract.acceptance criterion>"],
-      "checks": ["<runtime-substituted exact contract.checks command>"],
-      "smoke": "<runtime-substituted contract.smoke>",
-      "decisions": "<runtime-substituted contract.decisions>",
-      "risks": "<runtime-substituted contract.risks>"
+      "checks": ["<runtime-substituted contract.checks command>"],
+      "smoke": "<runtime-substituted contract.smoke>"
     },
     "parent_readiness": {
       "logical_prerequisites": [],
-      "external_prerequisites": [],
       "prerequisites": [],
       "parent": {
         "branch": "<selected parent branch>",
@@ -67,6 +63,8 @@ invent:
       },
       "decision": null
     },
+    "dependency_edges": [],
+    "graph": {"edges": []},
     "acceptance": ["<runtime-substituted exact contract.acceptance criterion>"],
     "checks": ["<runtime-substituted exact contract.checks command>"],
     "contract_hash": "sha256:<runtime-substituted canonical JSON contract hash>",
@@ -81,40 +79,41 @@ invent:
 }
 ```
 
-`bounded_input` is the complete contract object, not a prose string. The actual helper output
-contains the runtime arrays/objects; the markers above identify facts that must be substituted
-from helper output and direct reads. `parent_issue_url` is the selected specification issue in
-issue mode; in Project mode it is the member's independently read `actual_parent` (including
-`null` for a parentless member). `scope_url` remains the exact selected Project URL in Project
-mode. `specification` and `repository_rules` are complete strings, not summaries.
+The admission's `scope_identity` is the canonical repository plus the sorted canonical URLs of the
+verified executable tasks; it does not encode how the user or model found them. In the packet,
+`scope_url` is this task's canonical issue URL, not a user selector; `parent_issue_url` is the
+independently read native `actual_parent` and may be `null`. `specification` is the complete task
+specification or issue body used as worker context, while `bounded_input` carries the model-resolved
+contract. The contract retains `goal`, `scope`, `acceptance`, `checks`, and a real `smoke`; optional
+non-goals, decisions, risks, and other bounded context may be included when useful. The model asks
+focused questions before admission when source meaning is materially ambiguous; Execute does not
+recover that interpretation from a selector or issue layout.
 
-In explicit issue-list mode, `scope_url` is the canonical normalized space-delimited selector
-list, `parent_issue_url` is `null` unless the selected issue independently reports a parent, and
-the packet's `specification` is that issue's complete body (or explicit complete specification).
-The packet also carries `dependency_edges` for the task and the admitted `graph` record. These are
-caller-supplied evidence for Execute context; the worker must not infer additional prerequisites or
-publish native relationships. An inferred edge is not a GitHub blocked-by edge and does not permit
-scope expansion.
+`dependency_edges` is the task's annotated subset of the admitted DAG, with native/declared/inferred
+provenance and evidence retained. An inferred edge is context and scheduling evidence, not a native
+GitHub relationship or permission to expand scope. The packet's task scope, specification, contract,
+and readiness are the worker's complete input; it must not infer missing dependencies, discover
+siblings, or publish an edge.
 
 The example's `parent_readiness` is a root with proved parent-PR absence. For a dependent,
 `logical_prerequisites` is the complete admitted task-ID set and `prerequisites` has exactly one
-record per ID: `task_id`, exact `issue_url`, `checkpoint` (the complete
-[result object](validation.md#result-schema), including checks, PR head/base/state/reviews/threads,
+record per ID: `task_id`, exact `issue_url`, `checkpoint` (the complete [result
+object](validation.md#result-schema), including checks, PR head/base/state/reviews/threads,
 independent validation, and persisted note), and `containment: {ancestor, descendant, verified}`.
 Those SHAs are the prerequisite head and retained parent start; the helper has actually verified
 their Git ancestry. `parent.selection` is `predecessor`, `integration`, or `explicit`. An explicit
 choice carries its preserved `{task_id, branch, sha}` decision; other selections use `null`.
-`parent.pr_evidence` uses [fresh parent PR discovery](scheduling.md#snapshot-schema).
+`parent.pr_evidence` uses [fresh parent PR discovery](scheduling.md#normalized-snapshot).
 
-The complete Execute input comprises `bounded_input` **and** this readiness object plus the
-specification/repository context. The worker verifies that exact prerequisite set, full checkpoints,
-parent choice, current PR facts, and ancestry before Git mutation. It must block missing evidence,
-not discover the graph or infer readiness from a branch name. Repairs retain their original start,
+The complete Execute input comprises `bounded_input` **and** this readiness object plus the task
+specification context and repository rules. The worker verifies that exact prerequisite set, full
+checkpoints, parent choice, current PR facts, and ancestry before Git mutation. It must block missing
+evidence, not discover the graph or infer readiness from a branch name. Repairs retain their original start,
 even if a separately verified parent tip has advanced compatibly.
 
 A repair entry keeps the same `branch`, absolute `workspace`, `parent_branch`, `parent_sha`, and
 retained PR as its original reservation and sets `repair: true`. It never receives a new parent or
-replacement PR. The child URL is the only issue association and closing reference.
+replacement PR. The task issue URL is the only issue association and closing reference.
 
 ## Verify the selected workspace before dispatch
 

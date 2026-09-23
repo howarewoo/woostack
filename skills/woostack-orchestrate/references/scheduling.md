@@ -38,7 +38,6 @@ wrong-branch, dirty unrelated, active-writer, alias/ancestor, or incompatible br
 blocks without deletion, reset, cleanup, takeover, or automatic relocation. Delivery and recovery
 must retain the selected workspace and branch and verify the same checkout before reuse.
 
-
 ## Native reads before JSON assembly
 
 Resolve host capability before GitHub access. The selected host must expose a real
@@ -47,35 +46,28 @@ delivery-capable subagent primitive. Record `delivery_capable: true` and its obs
 failure; absence of a delivery primitive blocks before `admit` rather than degrading to inline
 implementation. Host mechanics and tier routing remain in the allowlisted host references.
 
-Resolve the canonical Git repository and admitted integration branch/SHA from direct Git and an
-authorized GitHub capability exposed by the host (prefer native GitHub tools when suitable;
-host-authenticated `gh` remains supported). Discover actual operation capabilities and read shapes
-from the host. Use the native issue, sub-issue, parent, dependency, Project membership, and Project
-field reads described by the [GitHub provider profile](../../woostack-init/references/artifact-providers/github.md).
-Exhaust every page (`--paginate` or the equivalent native pagination operation), then independently
-read each endpoint needed for identity, hierarchy, contracts, dependencies, checks, PRs, notes, or
-Project status. A missing/failed page is incomplete evidence, not an empty collection. The
-`pagination` booleans below are controller attestations written only after those native terminal
-reads succeed; they are not permission to skip a page or to claim a read that did not happen.
+Resolve the canonical Git repository and integration branch/SHA from direct Git and an authorized
+GitHub capability exposed by the host (prefer native GitHub tools when suitable; host-authenticated
+`gh` remains supported). Discover actual operation capabilities and read shapes from the host. Use
+the issue, parent, dependency, Project, field, PR, and note reads described by the [GitHub provider
+profile](../../woostack-init/references/artifact-providers/github.md). Exhaust every page
+(`--paginate` or the equivalent native pagination operation), then independently read every
+endpoint needed to identify executable issues, understand their source context, resolve contracts,
+and establish dependency, Project, PR, and recovery evidence. A missing or failed page is incomplete
+evidence, not an empty collection; record terminal-read evidence only after the corresponding read
+actually completes.
 
-Normalize native records without losing identity forms:
+The model, not a selector or source layout, decides which issues are executable. It reads issue
+bodies, comments, repository instructions, and relevant tracker/Project context, asks a focused
+question for material ambiguity, and resolves the bounded task contract. A specification parent,
+container, or tracker record can provide context without becoming a task. Do not substitute an issue
+number for a REST ID, GraphQL node ID, or canonical URL, and do not infer identity or scope from a
+title, branch, PR, search result, or body shorthand. Preserve exact source and native evidence.
 
-- canonical issue URL and number for display/Commit association;
-- positive numeric REST `id` and non-empty GraphQL `node_id` for native API operations;
-- `state: "open"` and `resource: "issue"` for admitted task issues;
-- complete title and body;
-- actual native parent, read independently from the child (an error is not `parent: null`);
-- complete contract and native blocked-by relations; and
-- complete existing delivery evidence, when present.
+## Normalized snapshot
 
-Do not substitute an issue number for a REST ID, a GraphQL node ID, or a canonical URL. A body line
-such as `Parent: #N` is not hierarchy evidence. Native parentage, dependency edges, Git ancestry,
-and Project membership are separate facts.
-
-## Snapshot schema
-
-Every value that is not a fixed schema literal is a runtime-substituted fact from completed
-native/Git reads; the markers below are not fabricated evidence.
+The controller writes one private JSON snapshot from completed reads. The example is an internal
+shape for the helper and is not a caller-facing source schema; all markers are runtime facts.
 
 ```json
 {
@@ -84,6 +76,43 @@ native/Git reads; the markers below are not fabricated evidence.
     "branch": "<runtime-substituted integration branch>",
     "sha": "<runtime-substituted admitted integration SHA>"
   },
+  "repository_rules": "<runtime-substituted complete repository rules>",
+  "host": {
+    "delivery_capable": true,
+    "max_parallel": "<runtime-substituted positive host capability>"
+  },
+  "tasks": [
+    {
+      "task_id": "<runtime-substituted stable Git-safe task ID>",
+      "ordinal": "<runtime-substituted positive tie-break ordinal>",
+      "url": "<runtime-substituted canonical executable issue URL>",
+      "id": "<runtime-substituted positive native REST issue ID>",
+      "node_id": "<runtime-substituted opaque GraphQL issue node ID>",
+      "state": "open",
+      "resource": "issue",
+      "title": "<runtime-substituted complete native title>",
+      "body": "<runtime-substituted complete native body>",
+      "actual_parent": "<runtime-substituted independently read native parent URL or null>",
+      "prerequisites": [],
+      "external_prerequisites": [],
+      "specification": "<runtime-substituted complete task specification or issue body>",
+      "contract": {
+        "goal": "<runtime-substituted resolved goal>",
+        "scope": ["<runtime-substituted bounded path or surface>"],
+        "acceptance": ["<runtime-substituted observable criterion>"],
+        "checks": ["<runtime-substituted exact required command>"],
+        "smoke": "<runtime-substituted real changed-path smoke scenario>"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "predecessor": "<runtime-substituted task ID or verified external blocker>",
+      "dependent": "<runtime-substituted task ID>",
+      "provenance": "native|declared|inferred",
+      "evidence": "<non-empty native read, declaration, or model rationale>"
+    }
+  ],
   "parent_prs": {
     "<runtime-substituted integration or approved parent branch>": {
       "repo": "<runtime-substituted canonical repository>",
@@ -93,19 +122,6 @@ native/Git reads; the markers below are not fabricated evidence.
       "prs": []
     }
   },
-  "repository_rules": "<runtime-substituted complete repository rules>",
-  "specification": "<runtime-substituted complete approved specification when parent or Project mode is selected>",
-  "host": {
-    "delivery_capable": true,
-    "max_parallel": "<runtime-substituted positive host capability>"
-  },
-  "pagination": {
-    "sub_issues": true,
-    "issues": true,
-    "parents": true,
-    "dependencies": true,
-    "contracts": true
-  },
   "recovery": {
     "checkpoints": ["<runtime-substituted controller/worker checkpoint evidence>"],
     "processes": ["<runtime-substituted worker process liveness evidence>"],
@@ -114,23 +130,28 @@ native/Git reads; the markers below are not fabricated evidence.
     "refs": ["<runtime-substituted branch/ref and dirty-state evidence>"],
     "prs": ["<runtime-substituted canonical PR evidence>"],
     "contracts": ["<runtime-substituted admitted contract revisions>"],
-    "dependencies": ["<runtime-substituted hierarchy/dependency pagination evidence>"]
+    "dependencies": ["<runtime-substituted native dependency/pagination evidence>"]
   }
 }
 ```
+The admission's canonical `scope_identity` is `{ "canonical_repo": <repository>, "issues":
+[<sorted canonical executable issue URLs>] }`. It is derived from verified tasks, not from the
+user's wording or the source container.
 
-Every admission snapshot and every fresh schedule refill MUST carry a complete `recovery` inventory
-object: every listed family is present and terminally read. An incomplete inventory is unknown
-evidence and blocks admission/scheduling; it is never treated as an empty collection. A host that
-cannot expose a family records the inability in its direct recovery evidence rather than fabricating
-a clean result.
-`repository_rules` and `specification` are complete strings from the admitted repository/scope;
-they are not summaries. List mode uses each selected issue body or explicit `specification` field
-as worker context and does not require an aggregate `specification`. Every boolean in `pagination`
-must correspond to a terminal native read. Issue-mode snapshots require all four existing keys;
-Project-mode snapshots require `members`, `parents`, `dependencies`, and `contracts`; list-mode
-snapshots require `issues`, `parents`, `dependencies`, and `contracts`. All required keys must be
-`true`.
+`tasks` contains only verified executable issues. A task's `contract` retains the fields Execute
+and validation need: `goal`, `scope`, `acceptance`, `checks`, and a real `smoke`. The model may
+retain additional bounded context such as `non_goals`, `decisions`, or `risks`; the source issue is
+not required to use a fixed field layout. A material unresolved ambiguity blocks admission until the
+user answers a focused question. Existing delivery evidence is added to a task when independently
+re-reading a delivered task, and is never copied from a worker's success sentence.
+
+`edges` is the complete supplied DAG. Each edge has a predecessor, dependent, provenance of
+`native`, `declared`, or `inferred`, and non-empty evidence. Native blocked-by reads, explicit issue
+declarations, and model-resolved technical prerequisites remain distinguishable. The model owns
+meaning and inference; the helper validates endpoint existence, duplicate/self edges, external
+blockers, and acyclicity. A conflict, unknown endpoint, ambiguous direction, or cycle blocks the
+affected work. An empty edge list is valid when the actual reads and interpretation establish no
+dependency; no separate graph receipt is required.
 
 `parent_prs` supplies fresh canonical PR discovery for the integration branch and any explicitly
 selected non-predecessor parent. An empty `prs` array means fully proved absence, not unavailable
@@ -141,232 +162,66 @@ Ambiguous or incomplete discovery blocks selection. Predecessor parents use thei
 delivery checkpoint instead. Current tips may advance for an already-reserved child only while its
 original start remains an ancestor; do not replace that child's retained start SHA.
 
-### Parent-issue snapshot
-
-Add these fields:
-
-```json
-{
-  "parent": {
-    "url": "<runtime-substituted canonical parent issue URL>",
-    "id": "<runtime-substituted positive native REST issue ID>",
-    "node_id": "<runtime-substituted opaque GraphQL issue node ID>",
-    "state": "open",
-    "resource": "issue",
-    "parent": null,
-    "title": "<runtime-substituted native parent title>",
-    "body": "<runtime-substituted complete native parent body>"
-  },
-  "expected_index": ["<runtime-substituted stable task ID>"],
-  "children": [
-    {
-      "task_id": "<runtime-substituted stable task ID>",
-      "ordinal": "<runtime-substituted positive ordinal>",
-      "url": "<runtime-substituted canonical child issue URL>",
-      "id": "<runtime-substituted positive native REST issue ID>",
-      "node_id": "<runtime-substituted opaque GraphQL issue node ID>",
-      "state": "open",
-      "resource": "issue",
-      "actual_parent": "<runtime-substituted canonical parent issue URL>",
-      "nested_children": false,
-      "prerequisites": ["<runtime-substituted admitted prerequisite task ID>"],
-      "external_prerequisites": ["<runtime-substituted external prerequisite URL>"],
-      "contract": {
-        "goal": "<runtime-substituted string>",
-        "scope": ["<runtime-substituted allowed path or bounded surface>"],
-        "non_goals": ["<runtime-substituted string>"],
-        "acceptance": ["<runtime-substituted observable criterion>"],
-        "checks": ["<runtime-substituted exact required command>"],
-        "smoke": "<runtime-substituted real changed-path smoke scenario>",
-        "decisions": "<runtime-substituted implementation decisions>",
-        "risks": "<runtime-substituted known risks and mitigations>"
-      }
-    }
-  ]
-}
-```
-
-`parent` must be an open top-level issue (`parent: null`). Every direct child must be in the
-canonical repository, open, a native issue, and have `actual_parent` exactly equal to the selected
-parent URL. `nested_children: true` blocks as unsupported scope; never flatten it. `expected_index`
-comes from the complete parent specification and every named child must be present in the fully
-paginated native child read. Runtime `workspace`/`branch` values are optional fresh allocation
-evidence, never required issue-contract fields or immutable scope identity.
-
-Add a complete native Project record and complete member issue records:
+When a Project is explicitly selected for status mutation, add its independently read identity and
+configured lifecycle mapping:
 
 ```json
 {
   "project": {
     "url": "<runtime-substituted canonical Project URL>",
-    "number": "<runtime-substituted positive Project number matching /projects/N>",
+    "number": "<runtime-substituted positive Project number>",
     "node_id": "<runtime-substituted opaque GraphQL Project node ID>",
     "owner": "<runtime-substituted Project owner>",
-    "owner_type": "<runtime-substituted organization or user>",
+    "owner_type": "organization|user",
     "state": "open"
   },
   "lifecycle": {
-    "planned": "<runtime-substituted unique configured option>",
-    "executing": "<runtime-substituted unique configured option>",
-    "inReview": "<runtime-substituted unique configured option>",
-    "done": "<runtime-substituted unique configured option>",
-    "blocked": "<runtime-substituted unique configured option>"
-  },
-  "members": [
-    {
-      "task_id": "<runtime-substituted stable task ID>",
-      "ordinal": "<runtime-substituted positive ordinal>",
-      "url": "<runtime-substituted canonical member issue URL>",
-      "id": "<runtime-substituted positive native REST issue ID>",
-      "node_id": "<runtime-substituted opaque GraphQL issue node ID>",
-      "item_id": "<runtime-substituted non-empty native Project item ID bound during admission>",
-      "state": "open",
-      "resource": "issue",
-      "title": "<runtime-substituted native title>",
-      "body": "<runtime-substituted complete native body>",
-      "actual_parent": null,
-      "declared_parent": null,
-      "nested_children": false,
-      "prerequisites": [],
-      "external_prerequisites": [],
-      "contract": {
-        "goal": "<runtime-substituted string>",
-        "scope": ["<runtime-substituted allowed path or bounded surface>"],
-        "non_goals": ["<runtime-substituted string>"],
-        "acceptance": ["<runtime-substituted observable criterion>"],
-        "checks": ["<runtime-substituted exact required command>"],
-        "smoke": "<runtime-substituted real changed-path smoke scenario>",
-        "decisions": "<runtime-substituted implementation decisions>",
-        "risks": "<runtime-substituted known risks and mitigations>"
-      }
-    }
-  ]
-}
-```
-The Project owner type is exactly `organization` or `user`; the Project and all member issues are
-open and canonical. Read Project membership and native parents independently. Every member
-carries a non-empty native `item_id` bound during admission; missing or empty `item_id` blocks as
-`invalid-project-item`, and distinct members sharing an item ID block as `duplicate-identity`.
-Each member's `declared_parent` must equal its independently
-read `actual_parent` (either `null` or a canonical issue URL). Containers may omit `contract`
-only when the native member record is otherwise complete; containers are preserved but excluded
-from execution. Do not import nonmembers, flatten nested containers, or infer a parent from
-Project position. Repeated evidence for one URL is deduplicated only when every immutable field,
-including `item_id`, agrees; any disagreement blocks as ambiguous identity.
-
-### Explicit issue-list snapshot
-
-List mode uses `--issues` and carries no aggregate specification parent or Project record:
-
-```json
-{
-  "issues": [
-    {
-      "url": "<canonical selected issue URL>",
-      "id": "<positive native REST ID>",
-      "node_id": "<opaque GraphQL issue node ID>",
-      "state": "open",
-      "resource": "issue",
-      "title": "<complete native title>",
-      "body": "<complete native body>",
-      "actual_parent": "<independently read canonical parent URL or null>",
-      "nested_children": false,
-      "task_id": "<stable Git-safe ID, optional when issue number can derive issue-N>",
-      "ordinal": "<stable positive tie-break ordinal, optional>",
-      "prerequisites": ["<selected task ID or canonical external issue URL>"],
-      "external_prerequisites": ["<canonical issue URL outside this explicit list>"],
-      "contract": {
-        "goal": "<string>",
-        "scope": ["<contained path>"],
-        "non_goals": ["<string>"],
-        "acceptance": ["<observable criterion>"],
-        "checks": ["<exact command>"],
-        "smoke": "<real changed-path scenario>",
-        "decisions": "<string>",
-        "risks": "<string>"
-      }
-    }
-  ],
-  "graph": {
-    "coverage": "complete",
-    "model_inference": "complete",
-    "source": "skill",
-    "complete": true,
-    "edges": [
-      {
-        "predecessor": "<task ID>",
-        "dependent": "<task ID>",
-        "provenance": "native|declared|inferred",
-        "evidence": "<non-empty native read, declaration, or model rationale>"
-      }
-    ]
+    "inReview": "<runtime-substituted configured option>"
   }
 }
 ```
 
-The caller must read exactly the selected issue set and set terminal `pagination.issues`,
-`pagination.parents`, `pagination.dependencies`, and `pagination.contracts` only after those reads
-complete. Every selected issue must include both `prerequisites` and
-`external_prerequisites`, including explicit empty arrays for a verified empty dependency read.
-Repeated selectors and repeated native evidence for one canonical URL are deduplicated
-only when immutable identity, body, parent, contract, and dependency evidence agree. The helper
-sorts normalized selectors and task identities before computing the fingerprint, so reordering the
-same explicit set is equivalent.
-
-List admission requires the graph to carry explicit successful terminal receipts:
-`graph.coverage: "complete"`, `graph.model_inference: "complete"`, and `graph.complete: true`.
-Missing, failed, unknown, or other non-terminal values block admission even when the supplied
-edge list is empty; an empty edge list is valid only with those receipts. Model inference is
-required to complete even when no edge is ultimately inferred. The helper never performs model
-inference or native reads.
-
-`graph.edges` may also be supplied as top-level `edges`, `dependency_edges`, or
-`edge_provenance`; the helper normalizes all accepted forms to the schema above and rejects
-duplicate endpoint pairs, missing evidence, unknown selected endpoints, self-dependencies, and
-cycles. When a task's documented `prerequisites` repeats an annotated graph edge, the graph
-record remains authoritative and its provenance/evidence is retained; conflicting explicit edge
-records still block as contradictory evidence. Native, declared, and inferred edges are distinct
-evidence classes. An external prerequisite stays on the affected task's blocker list and is never
-imported into the admitted task set.
+Project membership is evidence for identifying executable tasks, not a requirement to flatten a
+hierarchy. Nonmembers and nested containers remain context and are never imported as tasks. Every
+task that will receive Project status carries its independently read native `item_id`; repeated
+evidence is deduplicated only when immutable identity agrees. Admission is read-only: it never
+creates a Project, changes membership, mutates an issue, or publishes an edge.
 
 ## Invoking the bridge
 
-Assemble the complete snapshot above from actual native/Git reads, serialize it with a JSON writer,
-and use the [canonical CLI sequence](../SKILL.md#one-real-helper-path). The examples describe
-runtime fields, not fixtures to submit unchanged. Keep snapshot, admission, result, and state files
-private (`umask 077`). Only `schedule` without `--state` initializes the state; every later call uses
-the existing state and newly assembled `--fresh` evidence. Follow the
-[completion-driven refill loop](../SKILL.md#continuously-refill-on-completion), not batch barriers.
+Assemble the normalized snapshot from actual native/Git reads, serialize it with a JSON writer, and
+use the [canonical CLI sequence](../SKILL.md#one-real-helper-path). The examples describe runtime
+fields, not fixtures to submit unchanged. Keep snapshot, admission, result, and state files private
+(`umask 077`). Only `schedule` without `--state` initializes the state; every later call uses the
+existing state and newly assembled `--fresh` evidence. Follow the [completion-driven refill
+loop](../SKILL.md#continuously-refill-on-completion), not batch barriers.
 
 ## Fingerprints and fresh refills
 
 Admission computes a `fingerprint` as `sha256:` plus the SHA-256 of canonical JSON (sorted keys,
-compact separators) over the immutable scope view. It binds:
+compact separators) over the immutable normalized scope view. It binds:
 
-- mode and exact selector, or the normalized sorted explicit issue URL set in list mode;
-- canonical repository;
-- native parent or Project identity and the parent specification identity/body binding, or every
-  selected issue identity/body binding in list mode;
-- complete `specification` (when required) and `repository_rules`;
-- every immutable child/member/list-issue field: task ID, ordinal, URL, native IDs (including
-  Project `item_id`), state/resource, title/body, actual and declared parent, nested flag,
-  full contract, and prerequisite/external prerequisite sets. Runtime workspace and branch
-  evidence are excluded; and
-- effective graph edges and their provenance/evidence, plus Project lifecycle identity/configuration
-  when Project mode is selected.
+- the canonical repository and sorted canonical executable issue URLs;
+- each task's stable task ID, URL, native IDs, state/resource, complete title/body, effective
+  `specification` and `actual_parent`, resolved bounded contract, and external blockers;
+- complete repository rules, effective dependency endpoint pairs, and normalized edge `provenance`
+  and `evidence`; and
+- optional Project/lifecycle identity only when the user explicitly selected that Project for
+  status mutation.
 
-It deliberately excludes host capability/cap, integration branch SHA, fresh `parent_prs`, and
-runtime reservation/delivery evidence. These mutable facts are checked separately: changing the
-admitted integration SHA requires readmission. A changed immutable scope returns `snapshot-drift`;
-preserve all running reservations and launch no fresh worker. The skill must re-read native state
-and assemble `--fresh` for **every** refill, including immediately after a worker result and after
-a reconciliation.
+It deliberately excludes the host capability/cap, mutable integration SHA, fresh `parent_prs`,
+runtime workspace/branch allocation, and delivery evidence. Those mutable facts are checked on every
+refill. A changed issue set, contract, identity, specification, actual parent, edge endpoint,
+edge provenance/evidence, or blocker returns `snapshot-drift`; preserve all running reservations,
+claims, recovery inventory, and worker identity, and launch no fresh worker. The controller must
+re-read native state and assemble `--fresh` for every refill, including immediately after a worker
+result and after reconciliation.
 
-Every fresh refill also carries the completed recovery inventory described above: checkpoint/state
+Every fresh refill carries the complete recovery inventory described above: checkpoint/state
 identities, worker processes/sessions, Git worktrees/refs/dirty state, canonical PRs, contract
-revisions, and native hierarchy/dependency pagination. Missing or incomplete native pages are
-unknown, never an empty child set. The helper records the inventory as recovery evidence; it never
- treats a worker assertion, selector, branch name, or prior success sentence as ownership.
+revisions, and native dependency reads. Missing or incomplete pages are unknown, never an empty
+task set. The helper records the inventory as recovery evidence; it never treats a worker assertion,
+selector, branch name, or prior success sentence as ownership.
 
 A fresh snapshot for a task already delivered must carry complete `existing_delivery` evidence:
 
@@ -396,24 +251,27 @@ its descendants; it never redispatches a duplicate or releases descendants.
 
 ## State, reservations, and joins
 
-State is one explicit private session-local controller file, not a provider or retained-artifact ledger. It carries
-`version`, the immutable `fingerprint`, exact `scope_identity`, a random controller owner token,
-stop/halt flags, last recovery inventory, and one task entry per admitted child. Each task entry
-keeps its native membership/dependency and contract revisions, claim provenance, worker identity,
-reservation/worktree/branch/parent start, current source/diff identity, checks/validator receipts,
-PR identity, delivery checkpoint, and first uncertain boundary distinct. The caller must externally enforce exclusive ownership of the selected canonical scope/state for the controller session, covering every `schedule`, `record-worker`, `apply-result`, and `reconcile` call. If exclusive ownership cannot be proved, block at controller preflight before invoking the helper.
+State is one explicit private session-local controller file, not a provider or retained-artifact ledger.
+It carries `version`, the immutable `fingerprint`, exact `scope_identity`, a random controller owner
+token, stop/halt flags, last recovery inventory, and one task entry per admitted executable issue.
+Each task entry keeps its native identity, dependency/claim provenance, contract revision, worker
+identity, reservation/worktree/branch/parent start, current source/diff identity, checks/validator
+receipts, PR identity, delivery checkpoint, and first uncertain boundary distinct. The caller must
+externally enforce exclusive ownership of the selected canonical scope/state for the controller
+session, covering every `schedule`, `record-worker`, `apply-result`, and `reconcile` call. If
+exclusive ownership cannot be proved, block at controller preflight before invoking the helper.
 
 The helper additionally takes owner-only atomic claims under
-`<primary-root>/.woostack/tmp/orchestrate-claims/`: one exact scope claim and one claim keyed by
-the canonical repository plus canonical child issue URL (with native REST/GraphQL IDs retained in
-the claim record). Each record is serialized and fsynced in an owner-only same-directory temp file,
-then atomically hard-linked to its final path without replacement and followed by a claims-directory
-fsync. A second controller selecting a parent issue and a Project that overlap on a child therefore
-blocks before reservation. An interruption leaves either no final claim or a complete claim; a
-stale, foreign, or unreadable claim is a blocker, never permission to take over. Existing active
-issue/PR/checkpoint evidence without the current owner claim is likewise a blocker. Claims remain
-retained as recovery evidence until explicit human cleanup; they are not a scheduler/database or a
-replacement for the owner-only checkpoint contract.
+`<primary-root>/.woostack/tmp/orchestrate-claims/`: one exact normalized-scope claim and one claim
+keyed by the canonical repository plus each canonical task issue URL (with native REST/GraphQL IDs
+retained in the claim record). Each record is serialized and fsynced in an owner-only
+same-directory temp file, then atomically hard-linked to its final path without replacement and
+followed by a claims-directory fsync. A second controller whose normalized task set overlaps a task
+therefore blocks before reservation. An interruption leaves either no final claim or a complete
+claim; a stale, foreign, or unreadable claim is a blocker, never permission to take over. Existing
+active issue/PR/checkpoint evidence without the current owner claim is likewise a blocker. Claims
+remain retained as recovery evidence until explicit human cleanup; they are not a scheduler/database
+or a replacement for the owner-only checkpoint contract.
 Each mutation acquires an owner-owned per-scope checkpoint lock derived from the canonical repository
 and scope fingerprint, then compares the loaded digest with the durable checkpoint head while holding
 that lock before replacing `--state-out`; stale/concurrent writers fail closed as `stale-state`, and

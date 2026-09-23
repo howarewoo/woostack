@@ -106,13 +106,15 @@ Debug, Ideate, Harden, and Plan phases directly. Plan is the sole skill-owned pu
 chat recipe and Prepare stop after publication; neither starts execution. An already-complete
 bounded task can go straight to [Execute](/docs/skills/woostack-execute) without a planning graph.
 
-For an approved GitHub plan, hand the coding agent one exact specification parent issue with native
-PR-sized children using `/woostack-orchestrate --issue <canonical parent issue URL>`. If no common
-parent or Project exists, supply the exact selected issues with
-`/woostack-orchestrate --issues <canonical issue URL> ...`; list mode infers a bounded technical
-DAG without creating a container or publishing native dependency edges. No GitHub Project is
-required for either form. See [Orchestrate](/docs/skills/woostack-orchestrate) for admission,
-worker capabilities, graph evidence, and recovery boundaries.
+For approved multi-task work, hand Orchestrate the complete planning handback or understandable
+issue/task context. It interprets the conversation, repository, and GitHub records, separates
+executable tasks from context, resolves a bounded dependency DAG with provenance, and asks a focused
+question when material ambiguity remains. `--issue`, `--issues`, and `--project` are convenience
+hints rather than an exhaustive admission taxonomy; native links and declared edges are evidence when
+present, not prerequisites for understanding tracker content. For Orchestrate, a Project is included
+only when explicitly selected; its status lifecycle is used only when that selection requests status
+mutation. See [Orchestrate](/docs/skills/woostack-orchestrate) for worker capabilities, graph evidence,
+and recovery boundaries.
 
 <Cards>
   <Card title="Plan in ChatGPT, implement in Codex" href="/docs/chatgpt-to-codex" description="Copy a complete planning prompt, verify native GitHub relationships, then request execution separately." />

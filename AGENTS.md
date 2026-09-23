@@ -48,8 +48,10 @@ not stray app code. Its `package.json`, `pnpm-lock.yaml`, and build config are t
 exception to the "no application source code / no app lockfile" rule above. Its per-skill reference
 pages are **generated** from `skills/*/SKILL.md` at build time and are gitignored; only the app shell
 and authored framing pages are committed. Deploy notes live in [`site/README.md`](site/README.md).
-Prepare and Plan use complete plain packets and GitHub's native parent/child issues as the planning
-handoff. They do not create a local run, replacement work board, source branch, worktree, commit,
+Prepare and Plan use complete plain packets and direct GitHub issue publication as the planning
+handoff. Plan owns native issue/relationship publication; Orchestrate interprets the resulting
+work context and schedules bounded tasks, including tracker content whose native links are absent or
+incomplete. They do not create a local run, replacement work board, source branch, worktree, commit,
 pull request, or implementation worker. Existing `.woostack/tmp/runs/<run-id>/` records from
 retired workflows remain readable user data and are never migrated or mutated.
 
@@ -77,13 +79,15 @@ That selection supplies task data, not independent authority, and does not selec
 publication or authorize unrelated work. Handoff, replanning, and blockers leave Project status
 unchanged.
 
-Explicit [`woostack-orchestrate`](skills/woostack-orchestrate/SKILL.md) execution selects either one
-GitHub specification parent with native task children, one configured GitHub Project, or an
-explicit canonical list of GitHub issues. Parent-issue execution does not require Project
-configuration; list execution does not require a parent, Project, or native dependency publication.
-Orchestrate owns scheduling and independent post-submission validation; each Execute worker owns one
-task's delivery through Commit. This preserves Prepare's planning-only boundary and does not grant
-merge authority.
+Explicit [`woostack-orchestrate`](skills/woostack-orchestrate/SKILL.md) execution interprets
+understandable work context from the conversation, repository, and GitHub records. It resolves the
+canonical repository, issue/task identities, executable tasks, and a bounded dependency DAG with
+provenance; it asks a focused question when material ambiguity remains. Native links and declared
+edges are evidence when present, not admission requirements. A Project is included only when
+explicitly selected; its status lifecycle is used only when that selection requests status mutation.
+Orchestrate owns scheduling and independent post-submission validation; each Execute worker owns
+one task's delivery through Commit. This preserves Prepare's planning-only boundary and does not
+grant merge authority.
 
 External engineers such as Hermes are outside the installed woostack host/runtime surface. Hermes
 may drive one persistent OMP session as an external decision-maker and reviewer, but woostack is
@@ -187,7 +191,7 @@ the repository's simplify/comments guidance.
   [`skills/woostack-plan/SKILL.md`](skills/woostack-plan/SKILL.md)
 - Bounded task execution engine delivering one task through one PR (public command):
   [`skills/woostack-execute/SKILL.md`](skills/woostack-execute/SKILL.md)
-- GitHub parent-issue, explicit issue-list, or explicit Project orchestration (public command):
+- Evidence-led multi-task orchestration with model-resolved task and dependency context (public command):
   [`skills/woostack-orchestrate/SKILL.md`](skills/woostack-orchestrate/SKILL.md)
 - Execute testing doctrine:
   [`skills/woostack-execute/references/tdd.md`](skills/woostack-execute/references/tdd.md)
@@ -208,11 +212,12 @@ the repository's simplify/comments guidance.
   [`skills/woostack-doctor/SKILL.md`](skills/woostack-doctor/SKILL.md)
 - Address-comments delegator:
   [`skills/woostack-address-comments/SKILL.md`](skills/woostack-address-comments/SKILL.md)
-- The work-tracking source of truth is canonical GitHub parent/child issues, native dependency
-  relations, and associated pull requests; GitHub Project Status fields remain provider metadata.
-  Inspect those records directly. Retained local drafts and controller checkpoints record recovery
-  evidence; local run manifests record workflow progress and remain recovery artifacts. They are
-  not a replacement work board or permission to implement.
+- The work-tracking source of truth is canonical GitHub issue/task records, native relationships
+  when present, and associated pull requests; a model-resolved DAG is scheduling evidence rather
+  than a replacement work board. GitHub Project Status fields remain provider metadata. Inspect
+  those records directly. Retained local drafts and controller checkpoints record recovery evidence;
+  local run manifests record workflow progress and remain recovery artifacts. They are not permission
+  to implement.
 - Init workspace and repository policy contract:
   [`skills/woostack-init/`](skills/woostack-init/)
 - Docs site — shipped Fumadocs app; authored framing pages plus the per-`SKILL.md` generator

@@ -13,11 +13,13 @@ commits it came from, and whether its pull requests (PRs) have been reviewed or 
 - **Bounded work** fits one PR. Execute admits an enhancement, refactor, test-only task, or
   authorized correction with causal evidence, then implements, verifies, and delivers a draft PR.
   It requires no preparatory project or planning workflow.
-- **Prepared work** needs a specification, evidence, and a reviewable issue graph. Prepare composes
-  Debug for defects, Ideate for user-owned decisions, Harden for repository reconciliation, and Plan
-  for the sole GitHub parent/child publisher. It stops before source edits, branches, workers, or PRs.
-- **Execution** is separate. The user may pass the verified parent to Orchestrate as a separate next
-  command, or select one complete bounded task for Execute. Issue lifecycle alone never proves code
+- **Prepared work** starts with a specification and evidence. When a GitHub handoff is requested,
+  Prepare composes Debug for defects, Ideate for user-owned decisions, Harden for repository
+  reconciliation, and Plan for the sole GitHub parent/child publisher. It stops before source edits,
+  branches, workers, or PRs.
+- **Execution** is separate. The user may hand Orchestrate the complete planning handback or other
+  understandable multi-task context, or select one complete bounded task for Execute. Orchestrate
+  interprets the available repository and tracker evidence; issue lifecycle alone never proves code
   delivery, review, acceptance, or merge.
 
 See [Workflow maps](/docs/concepts/workflows) for the sequences and
@@ -45,8 +47,11 @@ causal proof blocks before Plan; Prepare never guesses a fix.
 
 Plan consumes one complete approved packet and publishes one exact GitHub parent/child hierarchy or
 explicit Project graph with native prerequisite edges. It independently reads every identity and
-relationship back. A partial graph is a recoverable planning result, not Orchestrate-ready success.
-The suggested `/woostack-orchestrate --issue <verified-parent-url>` is separate and is never invoked by
+relationship back. A partial graph is a recoverable planning result, not a complete handoff. The
+verified handback can be passed to Orchestrate, which interprets it or other understandable tracker
+context into executable tasks and a bounded dependency DAG; native links are evidence when present,
+not a universal admission requirement. A suggested
+`/woostack-orchestrate --issue <verified-parent-url>` is a convenience hint and is never invoked by
 Prepare or Plan.
 
 Plans describe outcomes and acceptance criteria: the conditions the finished work must meet. They

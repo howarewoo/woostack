@@ -151,16 +151,18 @@ Return the exact canonical repository and admitted revision, selected scope, com
 child contracts, actual parent/child URLs and native identities, exact normalized graph, native-parent
 read-back, focused verification provenance, mutation/read counts, stable recovery identities, and any
 remaining missing relation. In parent mode also return the separate specification-parent URL and the
-independently verified child index. When required relationships are verified, provide the separate
-command matching the admitted scope:
+independently verified child index. When relationships are verified, provide the complete handback
+and a convenience command matching the admitted Plan scope:
 
 ```text
 /woostack-orchestrate --issue <verified specification-parent-URL>
 /woostack-orchestrate --project <verified selected-Project-URL>
 ```
 
-Show only the applicable command; Project mode does not invent a specification parent.
-
-That command is a handoff suggestion, not an automatic dispatch or execution claim. A partial graph,
-missing relationship capability, stale specification, unresolved correction, unknown identity, or
-empty executable plan is not Orchestrate-ready.
+These commands are hints, not an exhaustive Orchestrate admission taxonomy. The user may instead
+provide the verified handback or understandable tracker context in conversation; Orchestrate resolves
+the task set and dependency DAG from available evidence, preserves edge provenance, and asks about
+material ambiguity. Project mode does not invent a specification parent. The suggestion is not an
+automatic dispatch or execution claim. A partial graph, missing relationship capability, stale
+specification, unresolved correction, unknown identity, or empty executable plan is not
+Orchestrate-ready.

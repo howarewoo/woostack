@@ -1,11 +1,6 @@
 {
   "kind": "authored-recorded-mock",
   "boundary": "Manually authored hypothetical transcript, not captured model output or live API traffic. Body references are expanded by the consumer into exact request/response strings. Response objects retain only fields used by this example. No fixture command, network operation, model, worker, source edit, or PR is executed by the consumer.",
-  "prompt": {
-    "path": "../content/docs/chatgpt-to-codex.mdx",
-    "fence": "```text title=\"Starter prompt\"",
-    "sha256": "9c7e8b32c091e0e643e1a64a1d4de90162da3d053220b85282d1bd9f729c3fb9"
-  },
   "repository": {
     "url": "https://github.com/woostack-fixture/catalog",
     "visibility": "private",

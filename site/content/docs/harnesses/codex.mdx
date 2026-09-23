@@ -26,21 +26,24 @@ operations. A ChatGPT subscription or API documentation does not prove those cap
 
 Install woostack in local Codex using [Getting started](/docs/getting-started). Confirm the current
 runtime exposes delivery-capable subagents, isolated workspaces, Git, Python 3 for the Orchestrate
-helper, and an authorized native GitHub interface or host-authenticated `gh`. Parent mode needs
-no Project or Status configuration. A missing delivery primitive blocks before dispatch; Codex
-Action's single-session mode cannot run Orchestrate by implementing tasks inline.
+helper, and an authorized native GitHub interface or host-authenticated `gh`. Tracker interpretation
+includes a Project only when explicitly selected; its status lifecycle is used only when that
+selection requests status mutation. A missing delivery primitive blocks before dispatch; Codex Action's
+single-session mode cannot run Orchestrate by implementing tasks inline.
 
-After the planning chat has stopped with a fully verified native parent/child graph, explicitly
-send this separate request to Codex:
+After the planning chat has stopped with a verified handback, send the complete planning context to
+Codex. A canonical parent URL is a convenient hint:
 
 ```text
 /woostack-orchestrate --issue <verified canonical parent URL>
 ```
 
-Orchestrate gives Execute workers the complete child contracts and verified Git parents; the
-specification parent gets no worker or PR. Independent children can run together; dependent children
-can stack on verified unmerged branches. A true join pauses only its child until one parent is
-proved to contain every prerequisite. There is no automatic integration branch or merge.
+Orchestrate interprets the handback or other understandable issue/task context, resolves executable
+tasks and a bounded dependency DAG, and gives Execute workers their complete contracts and verified
+Git parents. The specification parent gets no worker or PR. Native links are evidence when present,
+not an admission requirement. Independent children can run together; dependent children can stack on
+verified unmerged branches. A true join pauses only its child until one parent is proved to contain
+every prerequisite. There is no automatic integration branch or merge.
 
 If chat tools cannot publish, explicitly pass the complete approved packet and retained publication
 IDs, if any, to Plan in Codex. This is coding-host planning, not a chat-only allowance-saving route.

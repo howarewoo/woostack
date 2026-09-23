@@ -10,20 +10,20 @@ GitHub reads. It is a required runtime fact, not a value to invent or fill with 
 
 - Execute skill: `woostack-execute` (the caller supplies the exact skill content).
 - Canonical repository: `$RUNTIME_CANONICAL_REPO`.
-- Specification scope selector: `$RUNTIME_SCOPE_URL` (context only; never close it).
-- Specification parent issue (issue mode): `$RUNTIME_PARENT_ISSUE_URL`; Project mode supplies the
-  selected member's independently read parent identity; explicit issue-list mode may supply `null`
-  because the selected list is not a specification parent.
-- Full specification context: `$RUNTIME_SPECIFICATION` (the approved parent/Project specification,
-  or the selected issue's complete body/specification in explicit issue-list mode).
+- Task scope URL: `$RUNTIME_SCOPE_URL` (this task's canonical issue URL; context only, never
+  close it).
+- Parent issue context: `$RUNTIME_PARENT_ISSUE_URL` (the independently read native
+  `actual_parent`, or `null` when there is none).
+- Full task specification context: `$RUNTIME_SPECIFICATION` (the complete task specification or
+  issue body).
 - Complete repository rules: `$RUNTIME_REPOSITORY_RULES`.
 - Child issue: `$RUNTIME_CHILD_ISSUE_URL` (stable task `$RUNTIME_TASK_ID`, ordinal
-  `$RUNTIME_ORDINAL`). This exact child is the only permitted Commit association.
+  `$RUNTIME_ORDINAL`). This exact task issue is the only permitted Commit association.
 - Reservation: branch `$RUNTIME_BRANCH`, absolute workspace `$RUNTIME_WORKSPACE`, parent branch
   `$RUNTIME_PARENT_BRANCH` at `$RUNTIME_PARENT_SHA`.
 - Full bounded input object: `$RUNTIME_BOUNDED_INPUT_JSON`.
-  It contains the complete `goal`, `scope`, `non_goals`, `acceptance`, `checks`, `smoke`,
-  `decisions`, and `risks` contract. Do not narrow or expand it.
+  It retains the model-resolved `goal`, `scope`, `acceptance`, `checks`, and real `smoke`; it may
+  also carry bounded non-goals, decisions, risks, or other context. Do not narrow or expand it.
 - Complete caller-supplied parent-readiness object: `$RUNTIME_PARENT_READINESS_JSON`, using the
   [handoff schema](../references/worker-handoff.md#dispatch-entry-emitted-by-the-helper).
   This is part of your bounded input: the complete logical prerequisite set, every full verified

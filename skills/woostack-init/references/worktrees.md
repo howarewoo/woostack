@@ -55,9 +55,9 @@ repository identity, filesystem state, dirty/index/conflict/diff state, branch/H
 ancestry, and applicable canonical PR/review/thread evidence. A material change invalidates the
 snapshot; rediscover rather than combining observations from different states.
 
-Orchestrate additionally claims the canonical repository plus exact native child issue identity
-before reservation. Parent-issue and Project selectors sharing a child therefore cannot claim one
-physical workspace concurrently; a claim without the current controller owner token is a blocker.
+Orchestrate additionally claims the canonical repository plus each canonical executable issue/task
+identity before reservation. Any overlapping task context therefore cannot claim one physical
+workspace concurrently; a claim without the current controller owner token is a blocker.
 
 An unknown or partial create, checkout, commit, push, publication, handoff, or recovery boundary
 preserves all observed state and blocks. Never delete, overwrite, reset, clean, stash, reassign,

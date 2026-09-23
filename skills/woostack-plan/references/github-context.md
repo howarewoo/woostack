@@ -4,7 +4,9 @@
 canonical repository and an explicit `--parent-issue new` or existing-parent URL. Explicit Project
 mode resolves one exact supplied Project and applies its Project-specific settings. A caller's local
 run, retained record, or unrelated configuration is never required for parent publication and never
-becomes a second authority.
+becomes a second authority. These are Plan publication boundaries; Orchestrate may later interpret
+the complete planning handback or understandable tracker context independently, with or without
+native links.
 
 The shared [artifact contract](../../woostack-init/references/artifact-backends.md#direct-publication-and-recovery)
 and [GitHub profile](../../woostack-init/references/artifact-providers/github.md#configuration-and-scope)

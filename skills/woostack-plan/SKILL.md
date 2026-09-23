@@ -160,25 +160,29 @@ parent read-back, exact normalized graph, mutation/read counts, stable recovery 
 missing relation or unresolved join. Parent mode reports the specification parent separately from the
 child task index.
 
-When required relationships are verified, return the separate command for the selected scope:
+When required relationships are verified, return the complete planning handback and a separate
+orchestration suggestion. A canonical parent URL or selected Project URL is a convenience hint for
+the matching Plan scope, not an exhaustive Orchestrate admission type:
 
 ```text
 /woostack-orchestrate --issue <verified specification-parent-URL>
 /woostack-orchestrate --project <verified selected-Project-URL>
 ```
 
-Show only the applicable command; Project mode does not invent a specification parent.
-
-This is a handoff suggestion only. Plan never invokes Orchestrate or Execute and never claims
-implementation, delivery, review, passing checks, product acceptance, or merge. A parent with no
-executable children is reported as no work, not successful implementation. A partial graph, stale
-specification, unresolved correction, unknown identity, missing capability, or incomplete read-back
-is not publication-ready.
+Show only the applicable hint; Project mode does not invent a specification parent. The user may
+instead provide the verified handback or understandable tracker context in conversation. Orchestrate
+resolves executable tasks and a bounded dependency DAG from the available evidence, preserves native
+or declared provenance, and asks about material ambiguity. Plan never invokes Orchestrate or Execute
+and never claims implementation, delivery, review, passing checks, product acceptance, or merge. A
+parent with no executable children is reported as no work, not successful implementation. A partial
+graph, stale specification, unresolved correction, unknown identity, missing capability, or
+incomplete read-back is not publication-ready.
 
 ## Hard constraints
 
 - One complete approved packet in; one coherent, directly published GitHub scope out.
-- Exactly one explicit parent or Project selector; parent mode never implicitly selects a Project.
+- For Plan publication, select exactly one explicit parent or Project destination; parent mode never
+  implicitly selects a Project. This publication boundary does not define Orchestrate admission.
 - Exactly one executable child per increment; the specification parent stays separate from task
   mappings, dependency endpoints, workers, worktrees, and PRs.
 - Native parent links define containment; only declared child-to-child prerequisites define
