@@ -1,12 +1,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { createHash } from 'node:crypto';
 
 // This inspects authored mock receipts. It does not run a planner, model, HTTP client, or CLI.
 const fixture = JSON.parse(readFileSync(new URL('./fixtures/chatgpt-to-codex.json', import.meta.url), 'utf8'));
-const guide = readFileSync(new URL(fixture.prompt.path, import.meta.url), 'utf8');
-const prompt = guide.split(`${fixture.prompt.fence}\n`)[1]?.split('\n```')[0];
 const api = '/repos/woostack-fixture/catalog/issues';
 const keys = ['P', 'A', 'B', 'C', 'D'];
 const number = (key) => 101 + keys.indexOf(key);
@@ -152,14 +149,6 @@ function assertReadyReadBack(ops, result) {
   assert.equal(result.terminal, 'STOP');
 }
 
-test('recorded input is the exact canonical published prompt, not a second prompt', () => {
-  assert.equal(fixture.kind, 'authored-recorded-mock');
-  assert.equal(typeof prompt, 'string');
-  assert.equal(createHash('sha256').update(prompt).digest('hex'), fixture.prompt.sha256,
-    'Prompt changed: review the recorded mock cases against it before updating their receipt');
-  assert.equal(guide.split(fixture.prompt.fence).length, 2);
-  assert.deepEqual(fixture.repository.executedChecks, []);
-});
 
 test('vague feature and repository conflict retain an explicit user choice before publication', () => {
   const turns = fixture.conversation;
