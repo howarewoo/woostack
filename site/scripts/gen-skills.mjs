@@ -26,7 +26,6 @@ export const PUBLIC_ORDER = [
   'woostack-debug',
   'woostack-doctor',
   'woostack-qa',
-  'woostack-eval',
   'woostack-reflect',
 ];
 const ORDER = [...PUBLIC_ORDER];

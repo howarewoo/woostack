@@ -105,16 +105,6 @@ subagent and Execute must not gain orchestration responsibilities.
 - `woostack-commit`: optional fast drafting may use the discovered write-capable worker; draft
   inline when that optional capability is unavailable. Commit remains responsible for its own
   source-control and PR evidence.
-- **woostack-eval (comparative dispatch):** preflight the active batch schema before dispatch. When
-  it exposes `{ context, tasks[] }`, dispatch candidate and baseline siblings through the same
-  discovered worker in one intact `tasks[]` wave. If `task.batch` is unavailable, stop comparative
-  preflight before either sibling starts; only Eval's explicitly accepted candidate-only qualitative
-  smoke branch may degrade. Leave the optional effort knob unset and freeze verified host effort
-  evidence where available; `null` represents unavailable evidence, not proof of equal effort.
-  The selector is not proof of model or effort identity. Require evidence for the same host, runner,
-  completion identity, model/session identity, tier, and effort required by the frozen manifest.
-  An unprovable identity, host fallback divergence, model/effort divergence, incomplete receipt, or
-  missing output/evidence blocks comparative success.
 
 ## Safe cleanup of retired generated definitions
 

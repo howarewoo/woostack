@@ -54,7 +54,6 @@ capabilities, and read-back. Retired managed-provider data is never imported or 
 | Investigate a root cause without implementing a fix | `woostack-debug` |
 | Diagnose or explicitly repair workspace health | `woostack-doctor` |
 | Explore a running app and report browser QA findings | `woostack-qa` |
-| Evaluate an approved skill corpus without editing it | `woostack-eval` |
 | Reflect on this conversation for durable instruction suggestions | `woostack-reflect` |
 
 `woostack-build`, `woostack-fix`, `woostack-change`, `woostack-status`, and

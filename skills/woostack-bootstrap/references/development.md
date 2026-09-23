@@ -15,7 +15,6 @@ Each skill owns its procedure:
 | Deliver one bounded task in one PR | `woostack-execute` |
 | Check a running app in a browser | `woostack-qa` |
 | Prove a root cause without applying a correction | `woostack-debug` |
-| Evaluate approved behavior and trigger corpora for a skill without editing it | `woostack-eval` |
 | Reflect on the fixed active-conversation snapshot for concrete durable instruction suggestions | `woostack-reflect` |
 
 Follow the selected command's handoff rules. Only a human can merge a PR.

@@ -79,7 +79,7 @@ Keep credentials, host-private output, and personal data out of the fixture and 
 
 ## 1. Plan publication and stop
 
-**Prerequisites:** the shared fixture, separate live-test permission, a supported host that can load the actual Plan skill and use authorized GitHub issue, native parent/sub-issue, dependency, and complete read-back operations. This repository ships no deterministic Plan transport; an old normalized Eval fixture is not one.
+**Prerequisites:** the shared fixture, separate live-test permission, a supported host that can load the actual Plan skill and use authorized GitHub issue, native parent/sub-issue, dependency, and complete read-back operations. This repository ships no deterministic Plan transport.
 
 **Setup:** use the fresh clone and complete packet above. Record `BASE_SHA`, the installed Plan skill revision, and the canonical test repository before the first write.
 

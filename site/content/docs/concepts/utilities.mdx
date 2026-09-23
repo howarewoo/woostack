@@ -3,8 +3,8 @@ title: Utility skill reference
 description: Invocation, output, and write behavior for diagnostic and maintenance skills.
 ---
 
-Utility skills investigate problems, create views, evaluate skills, or maintain local support files.
-Their output does not authorize implementation, and none can merge.
+Utility skills investigate problems, create views, or maintain local support files. Their output
+does not authorize implementation, and none can merge.
 
 The user's request and each workflow's approval rules define the scope. Git and GitHub show code,
 PR, review, and merge state. Native GitHub parent/child issues and dependency relations track
@@ -20,13 +20,7 @@ utility skills never mutate them.
 | [woostack-debug](/docs/skills/woostack-debug) | Runs root-cause analysis and returns a proposed correction. | no | `/woostack-debug <target>` |
 | [woostack-qa](/docs/skills/woostack-qa) | Explores a running app and writes a sanitized report. | non-authoritative report | `/woostack-qa <url> [focus…]` |
 | Production errors, Sentry issues, and monitoring defects | [woostack-debug](/docs/skills/woostack-debug) then [woostack-prepare](/docs/skills/woostack-prepare) for a verified issue graph. | report and planning handback | `/woostack-debug <target>` or `/woostack-prepare <goal-or-defect>` |
-| [woostack-eval](/docs/skills/woostack-eval) | Runs approved collections of behavior and trigger cases without editing the target skill. | approved corpus changes only; transient evidence | `/woostack-eval <skill-path> [--behavior\|--triggers\|--all]` |
 | [woostack-reflect](/docs/skills/woostack-reflect) | Reviews one fixed active-conversation snapshot for concrete durable instruction suggestions. | report-only initially; accepted follow-ups are explicit | `/woostack-reflect` or internal final-reply hook |
-
-A corpus is a collection of evaluation cases. Eval requires explicit approval of an exact validated
-snapshot before writing proposed corpus changes. Tracked corpus bytes identical to `HEAD` count as
-approved and need no new approval. Eval never edits the target skill; its run evidence and reports
-are temporary.
 
 <Callout type="info">
   Views and reports provide evidence. Acting on a finding requires Debug for causal proof, Prepare

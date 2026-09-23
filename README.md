@@ -127,11 +127,10 @@ See the [workflow maps](site/content/docs/concepts/workflows.mdx) for the full s
 | Explore a running web app and reproduce browser bugs | [/woostack-qa](skills/woostack-qa/SKILL.md) |
 | Prove a root cause without implementing a correction | [/woostack-debug](skills/woostack-debug/SKILL.md) |
 | Prepare a proved defect for issue planning | [/woostack-prepare](skills/woostack-prepare/SKILL.md) |
-| Compare skill behavior against an approved set of evaluation cases | [/woostack-eval](skills/woostack-eval/SKILL.md) |
 | Find concrete improvements to instructions from this conversation | [/woostack-reflect](skills/woostack-reflect/SKILL.md) |
 
 Pullfrog handles pull-request review. Address-comments can resolve the resulting GitHub threads;
-QA and Eval remain report-only and do not fix source or post findings.
+QA remains report-only and does not fix source or post findings.
 
 Reports help you decide what to do next. They do not expand the agreed scope or replace
 Git/GitHub evidence. Agents never merge PRs; merging is a human decision.
