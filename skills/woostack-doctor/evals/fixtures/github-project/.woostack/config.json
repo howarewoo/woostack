@@ -12,5 +12,6 @@
       "blocked": "Blocked"
     }
   },
-  "models": {}
+  "models": {},
+  "status": {"staleDays": 14}
 }

@@ -17,7 +17,8 @@ It has two layers:
 - The interactive repair layer proposes local auto-fixes, mutates nothing before approval, routes
   approved tracked repairs through [`woostack-execute`](../woostack-execute/SKILL.md) in an isolated
   task worktree, and performs only safe filesystem repairs owned by a check. Remote and retained data
-  are report-only.
+  are report-only. OMP agent selection is host-owned; Doctor never inspects, creates, repairs, or
+  removes project agent definitions.
 
 ## Commands
 

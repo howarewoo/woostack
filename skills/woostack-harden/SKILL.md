@@ -6,9 +6,11 @@ description: Public read-only phase for reconciling a supplied specification or 
 # woostack-harden
 
 `woostack-harden` is the public repository-reconciliation phase. It is directly callable and may be
-composed by [`woostack-prepare`](../woostack-prepare/SKILL.md) after Ideate or Debug. It returns a
-complete plain candidate packet; it does not publish issues, create runs, edit source, or invoke a
-downstream phase.
+composed by [`woostack-prepare`](../woostack-prepare/SKILL.md) after Ideate or Debug or invoked once by
+[`woostack-plan`](../woostack-plan/SKILL.md) before direct publication. It returns a complete plain
+candidate packet; it does not publish issues, create runs, edit source, or invoke a downstream phase.
+Composition is one-way: Harden never invokes Plan, and a Plan caller must not recursively invoke
+either phase.
 
 ## Command and input
 
@@ -21,10 +23,10 @@ Pass the complete plain packet described in
 repository identity, immutable baseline, and the evidence identity to inspect. The content must be
 a complete specification or candidate issue plan; a prior Ideate or Debug handback may be passed.
 The caller supplies the complete specification or diagnosis, exact repository/baseline and evidence
-Harden may inspect bounded repository facts read-only and reconcile contradictions, missing
-acceptance, risks, removal/reuse, or verification boundaries. It does not require a Prepare run,
-writable checkout, GitHub configuration, or Project. Retained historical content is evidence only
-until its identity and freshness are revalidated.
+identity, and any candidate task plan. Harden may inspect bounded repository facts read-only and
+reconcile contradictions, missing acceptance, risks, removal/reuse, or verification boundaries. It
+does not require a Prepare run, writable checkout, GitHub configuration, or Project. Retained historical content
+is evidence only until its identity and freshness are revalidated.
 
 Resolve available repository and baseline facts through the shared input contract. Ask for missing
 content or a target/evidence scope only when it remains ambiguous or inaccessible after those reads.
