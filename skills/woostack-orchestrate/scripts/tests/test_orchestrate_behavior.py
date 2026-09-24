@@ -2326,6 +2326,35 @@ class OrchestrateBehavior(unittest.TestCase):
         checks_only = self.github.ci_observation("task-a", include_status=False)
         state, checks_only_result, _ = self._observe(admitted_path, state, "task-a", checks_only, "ci-check-only")
         self.assertEqual(checks_only_result["ci_state"], "verified", checks_only_result)
+        merge_check_only = self.github.ci_observation(
+            "task-a", test_merge=True, check_state="failure",
+            diagnosis="The merge revision check run failed.",
+        )
+        for record in merge_check_only["checks"]:
+            if record["type"] == "commit-status":
+                record["sha"] = result["worker"]["head_sha"]
+                record["state"] = "success"
+                for key in ("category", "actionable", "diagnosis", "log"):
+                    record.pop(key, None)
+        state, merge_check_result, _ = self._observe(
+            admitted_path, state, "task-a", merge_check_only, "ci-merge-check-only")
+        self.assertEqual(merge_check_result["ci_state"], "repair", merge_check_result)
+        self.assertEqual(
+            merge_check_result["ci_details"]["task-a"]["target_sha"], "a" * 40,
+            merge_check_result)
+        self.assertEqual(
+            merge_check_result["repair_context"]["failures"][0]["type"], "check-run",
+            merge_check_result)
+
+        errored = self.github.ci_observation(
+            "task-a", check_state="error", diagnosis="The commit status errored.")
+        state, error_result, _ = self._observe(
+            admitted_path, state, "task-a", errored, "ci-error-status")
+        self.assertEqual(error_result["ci_state"], "repair", error_result)
+        errored_failures = [record for record in error_result["repair_context"]["failures"]
+                            if record["type"] == "commit-status"]
+        self.assertEqual(len(errored_failures), 1, error_result)
+        self.assertEqual(errored_failures[0]["state"], "error", error_result)
 
         other_source = copy.deepcopy(checks_only)
         other_source["checks"][0]["source"] = "different-app"

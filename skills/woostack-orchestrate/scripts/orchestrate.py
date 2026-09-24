@@ -35,7 +35,7 @@ DEFAULT_CI_REPAIR_LIMIT = 2
 CI_STATES = ("unverified", "checking", "verified", "blocked", "repair")
 CI_PENDING = ("queued", "waiting", "requested", "pending", "in_progress", "running")
 CI_SUCCESS = ("success", "neutral", "skipped")
-CI_ACTIONABLE = ("failure", "timed_out", "cancelled", "startup_failure")
+CI_ACTIONABLE = ("failure", "error", "timed_out", "cancelled", "startup_failure")
 CI_NONPASS = ("action_required", "stale", "unknown")
 
 
@@ -1365,8 +1365,7 @@ def _classify_checks(observation, item, state):
     require("test_merge_sha" in pr and (test_merge is None or SHA_RE.fullmatch(test_merge)),
             "ci-target-incomplete", "test-merge target must be a full SHA or null")
     target_sha = pr["head_sha"]
-    if test_merge and any(record["type"] == "commit-status" and record["sha"] == test_merge
-                           for record in normalized):
+    if test_merge and any(record["sha"] == test_merge for record in normalized):
         target_sha = test_merge
     current = _latest_checks(normalized, target_sha)
     current_by_key = {(record["name"], record["source"], record["type"]): record

@@ -276,8 +276,8 @@ or pending check. Terminal pagination and required-configuration completeness
 require actual terminal reads. Empty required configuration plus no visible
 checks still means checking, never a pass.
 
-Select the tested merge SHA only if GitHub reports applicable statuses there;
-otherwise evaluate the current PR head. Do not combine same-named checks from
+Select the tested merge SHA when GitHub reports any check run or commit status
+there; otherwise evaluate the current PR head. Do not combine same-named checks from
 different sources or let obsolete head/attempt results verify or repair current
 work. Re-read authoritative PR/check evidence before dispatch or success.
 
@@ -287,9 +287,9 @@ links when available. It never treats a submitted PR as verified merely because
 the worker exited, and does not persist raw log excerpts as summary evidence.
 
 Keep local focused verification separate from remote CI. Recognize queued/running, success,
-failure, cancelled/timed-out/action-required, skipped/neutral, missing, and inaccessible outcomes
-by their actual semantics and repository policy. Missing pages, delayed check creation, no visible
-checks, or unavailable required-check configuration are not proof of a pass. Distinguish required
+failure/error, cancelled/timed-out/action-required, skipped/neutral, missing, and inaccessible
+outcomes by their actual semantics and repository policy. Missing pages, delayed check creation,
+no visible checks, or unavailable required-check configuration are not proof of a pass.
 checks from advisory ones without discarding an actionable in-scope failure merely because it is
 advisory, and without claiming every advisory check is a merge requirement. CI pending and unknown
 do not equal pass; a stale head or attempt cannot repair or verify current work.

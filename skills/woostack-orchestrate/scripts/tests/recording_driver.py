@@ -592,7 +592,7 @@ class FakeGitHub:
                 "state": check_state,
                 "url": pr["pr_url"] + "/checks/required-ci",
             }
-            if check_state in ("failure", "timed_out", "cancelled", "action_required"):
+            if check_state in ("failure", "error", "timed_out", "cancelled", "action_required"):
                 record_value.update({
                     "category": category,
                     "actionable": category == "actionable",
