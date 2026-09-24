@@ -767,6 +767,76 @@ class OrchestrateBehavior(unittest.TestCase):
                          changed_admitted["execution_layout"])
         self.assertEqual(rejected["reason"], "execution-plan-drift")
 
+    def test_legacy_execution_parent_drift_stays_halted_and_rejects_completion(self) -> None:
+        base = self.github.snapshot()
+        old_admitted_path, old_admitted = self._admit_issue(base)
+        old_state, initial = self._schedule(
+            old_admitted_path, old_admitted, None, base, "legacy-old-plan", cap="1"
+        )
+        self.assertEqual([entry["task_id"] for entry in initial["dispatch"]], ["task-a"])
+        host = self._start_host(workers=1)
+        host.dispatch(initial["dispatch"])
+        result = make_result(self.github, "task-a", host.wait_for_report("task-a"), old_admitted)
+
+        legacy = json.loads(old_state.read_text())
+        legacy.pop("execution_layout")
+        legacy.pop("execution_fingerprint")
+        for item in legacy["tasks"].values():
+            item.pop("execution_parent", None)
+            item.pop("execution_plan_revision", None)
+        legacy_path = old_state
+        checkpoint = self.repo / ".woostack" / "tmp" / "orchestrate-checkpoints" / (
+            legacy["fingerprint"].split(":", 1)[1] + ".head.json"
+        )
+
+        def restore_legacy_checkpoint() -> None:
+            legacy_path.write_text(json.dumps(legacy, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+            legacy_path.chmod(0o600)
+            checkpoint.write_text(json.dumps({
+                "version": 1,
+                "fingerprint": legacy["fingerprint"],
+                "scope_identity": legacy["scope_identity"],
+                "digest": hashlib.sha256(legacy_path.read_bytes()).hexdigest(),
+                "state_path": str(legacy_path),
+            }, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+            checkpoint.chmod(0o600)
+
+        restore_legacy_checkpoint()
+
+        compatible = self.github.snapshot()
+        compatible_admitted_path, compatible_admitted = self._admit_issue(compatible)
+        compatible_state, compatible_result = self._schedule(
+            compatible_admitted_path, compatible_admitted, legacy_path,
+            compatible, "legacy-compatible", cap="1"
+        )
+        self.assertEqual(compatible_result["status"], "ok", compatible_result)
+        self.assertFalse(json.loads(compatible_state.read_text())["halt_new_dispatch"])
+        restore_legacy_checkpoint()
+
+        changed = self.github.snapshot()
+        changed["execution_layout"] = self.github.execution_layout(
+            (item["task_id"] for item in changed["tasks"]),
+            {"task-a": "task-e", "task-b": None, "task-c": "task-a",
+             "task-d": "task-a", "task-e": None},
+        )
+        changed_admitted_path, changed_admitted = self._admit_issue(changed)
+        conflict_state, halted = self._schedule(
+            changed_admitted_path, changed_admitted, legacy_path,
+            changed, "legacy-conflict", cap="1"
+        )
+        self.assertEqual(halted["status"], "halted", halted)
+        self.assertEqual(halted["reason"], "execution-plan-drift", halted)
+        saved = json.loads(conflict_state.read_text())
+        self.assertTrue(saved["halt_new_dispatch"])
+        self.assertEqual(saved["recovery"]["legacy_execution_plan_drift"], ["task-a"])
+
+        _, payload, code = self._apply(
+            changed_admitted_path, conflict_state, "task-a", result,
+            "legacy-conflict-result", expect_code=1, observe_ci=False,
+        )
+        self.assertEqual(code, 1, payload)
+        self.assertEqual(payload.get("error"), "execution-plan-drift", payload)
+
     def test_issue_list_reuses_resolved_task_identity_and_graph(self) -> None:
         snapshot = self.github.issue_list_snapshot()
         admitted_path, admitted = self._admit_issues(snapshot)

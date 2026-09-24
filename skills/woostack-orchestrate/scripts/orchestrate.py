@@ -1307,6 +1307,15 @@ def _genuinely_unstarted(item, task):
             and all(item.get(key) is None for key in untouched)
             and item.get("ci") == _new_ci(item))
 
+def _legacy_execution_drift_tasks(state):
+    recovery = state.get("recovery")
+    require(isinstance(recovery, dict), "invalid-state", "recovery state is invalid")
+    task_ids = recovery.get("legacy_execution_plan_drift", [])
+    require(isinstance(task_ids, list) and all(text(task_id) for task_id in task_ids),
+            "invalid-state", "legacy execution-plan drift state is invalid")
+    return task_ids
+
+
 
 def _execution_plan_update(state, admitted):
     current = state["execution_layout"]
@@ -1404,6 +1413,7 @@ def state_read(path, admitted, *, allow_execution_plan_update=False):
     require("scope_evidence" in state
             and (state["scope_evidence"] is None) == (admitted.get("scope_evidence") is None),
             "invalid-state", "scope provenance is missing")
+    _legacy_execution_drift_tasks(state)
     admitted_tasks = {task["task_id"]: task for task in admitted["tasks"]}
     require(type(state.get("halt_new_dispatch")) is bool
             and type(state.get("stop_requested", False)) is bool,
@@ -1443,6 +1453,10 @@ def state_read(path, admitted, *, allow_execution_plan_update=False):
                 if item["reservation"]["parent_branch"] not in expected_branches:
                     state["halt_new_dispatch"] = True
                     state["halt_reason"] = "execution-plan-drift"
+                    state.setdefault("recovery", {}).setdefault("legacy_execution_plan_drift", [])
+                    legacy_drift = _legacy_execution_drift_tasks(state)
+                    if item["task_id"] not in legacy_drift:
+                        legacy_drift.append(item["task_id"])
         elif execution_plan_update is None and execution_plan_error is None:
             require(item.get("execution_parent") == task["execution_parent"]
                     and item.get("execution_plan_revision") == admitted["execution_layout"]["revision"],
@@ -2498,12 +2512,13 @@ def cmd_schedule(args):
                 "execution_layout": copy.deepcopy(state["execution_layout"]),
                 **_state_summary(state)}
     if state["halt_new_dispatch"]:
+        legacy_drift = _legacy_execution_drift_tasks(state)
         if state.get("halt_reason") in {
                 "snapshot-drift", "execution-plan-drift", "parent-tip-drift",
                 "incomplete-recovery", "incomplete-selection", "incomplete-task",
                 "missing-repository", "missing-integration", "missing-execution-layout",
                 "invalid-identity",
-        }:
+        } and not legacy_drift:
             state["halt_new_dispatch"], state["halt_reason"] = False, None
             state.setdefault("recovery", {}).pop("first_uncertain_boundary", None)
         else:
@@ -2845,6 +2860,9 @@ def cmd_apply_result(args):
     item = state["tasks"][args.task]
     require(item["status"] in ("running", "note-pending", "evidence-pending"),
             "not-running", "task has no active reservation or receipt retry")
+    legacy_drift = _legacy_execution_drift_tasks(state)
+    require(args.task not in legacy_drift, "execution-plan-drift",
+            "task requires legacy execution-plan reconciliation")
 
     try:
         result = load_json(args.result)
