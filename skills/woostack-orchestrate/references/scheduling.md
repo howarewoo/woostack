@@ -292,13 +292,21 @@ A fresh snapshot for a task already delivered must carry complete `existing_deli
 
 The skill obtains that result from fresh canonical branch/PR/head/base/repository/review/thread,
 focused-check, diff, independent validation, note, and selected Project-status reads. Before
-restoring `delivered`, the helper checks prerequisites in dependency order, rejects external
-blockers, requires every prerequisite's independently verified delivery, and re-proves parent
-intent and containment. Roots retain the admitted integration parent. An alternate integration
-choice requires the original state's preserved explicit decision or a current `--parent-decision`
-matching the retained reservation, plus fresh `parent_prs` evidence. A historical PR alone cannot
-waive these gates. Missing/stale/partial proof preserves ownership and blocks only that task and
-its descendants; it never redispatches a duplicate or releases descendants.
+restoring `delivered`, the helper revalidates the retained delivery and separately reconciles the
+current PR lifecycle. An open prerequisite must still identify the verified delivery head and
+current approved base; a ready PR is not a reason to redispatch or reset its draft state. A merged
+prerequisite must identify the canonical landing target and landed revision, with bounded
+task-relevant source/check evidence; its original head need not remain an ancestor after a squash or
+rebase merge. A closed-unmerged PR, missing/partial evidence, wrong landing target, or known
+reverted behavior remains unresolved. A legitimately deleted source branch is allowed only after
+the merged evidence proves the landing. The historical delivery checkpoint is never rewritten to
+look like a current open readback.
+
+Every prerequisite is rechecked in dependency order. Missing, stale, or contradictory evidence
+preserves ownership and blocks only that task and its descendants; it never redispatches a
+duplicate or releases descendants. A delivered task whose current lifecycle is unresolved stays
+delivered with its lifecycle error, so a later human merge can release the same graph without
+reconstructing scope.
 
 ## State, reservations, and joins
 
@@ -369,13 +377,20 @@ failure or lost repair-worker response must not create duplicate commits, worker
 external head/base changes require reconciliation rather than silently overwriting another
 contributor's work.
 
-Roots use the admitted integration branch/SHA. A dependent may use a delivered prerequisite branch
-or the admitted integration branch only when local
-`git merge-base --is-ancestor <each-prerequisite-head> <candidate-tip>` proves one candidate
-contains every prerequisite. The actual local ref for the selected parent branch must equal the
-selected SHA. Run the ancestry command even for equal hashes; missing Git access is unverifiable,
-not contained. Explicit parent decisions are evidence requests, not proof, and must pass the same
-checks. An unresolved join pauses only that task.
+Roots use the admitted integration branch/SHA. For a dependent, first consider the current approved
+integration branch; then consider each existing verified unmerged prerequisite branch when
+unmerged stacking is permitted. A candidate is usable only when its actual local tip is the
+recorded candidate SHA and `git merge-base --is-ancestor` proves that it contains every current
+prerequisite revision. A candidate prerequisite branch that already contains all requirements can
+therefore serve a multi-dependency task; dependency count alone never forces a merge checkpoint.
+
+If no candidate is suitable, the helper leaves the task pending with `waiting-for-merge`, the
+relevant prerequisite PRs and their current states, the intended integration branch, and the
+release condition. It does not reserve a worker or create a speculative branch/worktree, and it
+does not require an ordinary join to receive a new parent/integration decision. An explicit parent
+decision is consulted only for a material ambiguity or an explicitly selected suitable existing
+parent; it is evidence to validate, never proof by name alone. Never create a synthetic base,
+combine independent branches, rewrite the DAG, or require an automatic merge.
 
 ## Helper status meanings
 

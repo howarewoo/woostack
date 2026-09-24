@@ -302,15 +302,18 @@ and Plan still stop at issue publication.
    on one PR/head into that single repair. An unknown outcome blocks only that task and its
    descendants; reconcile its direct Git/PR/process evidence before same-identity repair while
    unrelated ready work continues.
-5. An unresolved join pauses only that task and its descendants; continue unrelated ready work.
+5. If no approved existing parent contains all current prerequisite revisions, leave that task
+   pending as `waiting-for-merge`; do not reserve a worker, create a speculative checkout, or ask
+   for an integration strategy. Continue unrelated ready work and preserve the exact task graph.
+   The waiting record includes the relevant PRs, intended integration branch, and release condition.
    A stop request prevents new dispatch and safely inventories active workers without declaring
    them stopped or discarding dirty worktrees. If no task is runnable, no worker remains, and no
    current applicable check is still pending, report submitted, checking, repairing, CI-verified,
-   blocked, and unverified tasks with check links and the exact next safe action. An empty ready
-   queue never proves the work complete, and pending checks never create a whole-project barrier.
-   Leave issues/dependencies open and report awaiting review/merge only for the PRs actually
-   delivered. Successful checks never authorize closing issues, marking PRs ready, enabling
-   auto-merge, queueing, or merging.
+   blocked, waiting, and unverified tasks with check links and the exact next safe action. An empty
+   ready queue never proves the work complete, and pending checks never create a whole-project
+   barrier. Leave issues/dependencies open and report awaiting review/merge only for the PRs
+   actually delivered. Successful checks never authorize closing issues, marking PRs ready,
+   enabling auto-merge, queueing, or merging.
 
 ## Result, validation, notes, and joins
 
@@ -359,12 +362,16 @@ authorizes a duplicate worker. Follow the helper's returned status, then refill 
 assembled `--fresh` snapshot.
 
 For a dependent, readiness requires every admitted prerequisite's verified delivery and persisted
-note, plus a single concrete parent containing all prerequisite heads. Prove each with local Git
-ancestry, including equal hashes. Imported `existing_delivery` follows the same gates: a historical
-PR cannot bypass prerequisites, external blockers, root integration intent, or parent containment.
-Fetch fresh parent PR/absence evidence and pass the complete readiness payload to the worker.
-An unresolved join pauses only that task. An explicit parent decision is not proof until the same
-containment checks pass.
+note, plus one concrete existing parent containing all current prerequisite revisions. First try
+the approved integration branch, then a verified unmerged prerequisite branch when stacking is
+permitted. This can release a multi-dependency task when one existing branch already contains all
+requirements; dependency count alone is not a reason to wait. If no candidate exists, retain the
+same graph as a local `waiting-for-merge` checkpoint. An explicit parent decision is needed only
+for a material ambiguity or an explicitly selected suitable existing parent, and it is not proof
+until the same containment checks pass. Imported `existing_delivery` follows the same gates: a
+historical PR cannot bypass prerequisites, external blockers, root integration intent, or parent
+containment. Fetch fresh parent PR/absence evidence and pass the complete readiness payload to the
+worker.
 
 ## Project and completion boundaries
 

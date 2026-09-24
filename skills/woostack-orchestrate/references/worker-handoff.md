@@ -126,10 +126,13 @@ siblings, or publish an edge.
 only a conclusively read native parent, and is omitted for an unavailable read. `parent_issue_read`
 records the read status when the tracker supplied it. Native, declared, and inferred dependency
 evidence is scheduling context, not permission to widen scope or publish metadata. Independent task packets may
-run concurrently. A dependent packet carries its complete proven prerequisite readiness; an issue
-with phase-specific work remains one writer and is not split into duplicate workers. A join without
-one verified parent containing every prerequisite pauses only that packet and its descendants until
-an explicit parent/integration decision is proved, while unrelated work continues.
+Independent task packets may run concurrently. A dependent packet carries its complete proven
+prerequisite readiness; an issue with phase-specific work remains one writer and is not split
+into duplicate workers. A join without one verified parent containing every prerequisite pauses
+only that packet and its descendants as `waiting-for-merge`; unrelated work continues and no
+ordinary join requires another parent/integration decision. The waiting record carries the
+prerequisite PRs, intended integration branch, and release condition. An explicit decision is
+needed only for a material ambiguity or an explicitly selected suitable existing parent.
 
 The example's `parent_readiness` is a root with proved parent-PR absence. For a dependent,
 `logical_prerequisites` is the complete admitted task-ID set and `prerequisites` has exactly one

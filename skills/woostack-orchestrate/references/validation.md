@@ -159,8 +159,23 @@ canonical repository:
 `reviews` and `threads` are complete independently paginated current-head readbacks, not the
 worker's assessment. Preserve native record IDs; review records must have `commit_id` equal to
 the checked head. Empty arrays are valid only after proved complete reads. Missing pages or stale
-heads block delivery. These readbacks travel with the complete prerequisite checkpoint to Execute;
-they do not require a draft PR to be merged or human-approved before stacking.
+heads block delivery. These historical delivery readbacks travel with the complete prerequisite
+checkpoint to Execute; an open PR may be human-ready without being reset to draft, and a delivered
+prerequisite may be stacked before it is merged when the current branch and checks are eligible.
+
+Current PR lifecycle is reconciled separately from that historical checkpoint. An open lifecycle
+must identify the same canonical PR, branch, and verified delivery head, prove that the source ref
+still exists, and carry current check evidence required by repository policy. A merged lifecycle
+must identify the canonical repository, actual landing target, and landed revision, plus bounded
+source/check evidence; the original PR head need not be an ancestor after squash or rebase merge.
+For a squash, merge, or rebase landing, the landed diff must match the retained task diff against
+the landed revision's first parent, the explicit `landed_verification.landed_parent`, or the
+reserved original parent when that range still produces the exact task diff. A rebase may therefore
+span multiple commits without reviving the obsolete worker head.
+Closed-unmerged, wrong-target, missing/partial, contradictory, and known-reverted evidence blocks
+only that prerequisite and its descendants. A deleted source ref is permitted only with the
+verified merged lifecycle. Never fabricate an open readback, reopen or reset a human-ready PR, or
+replace the retained delivery checkpoint with current lifecycle data.
 
 Checks are bound to the same `head_sha` and `diff_identity`. `checks.commands` is exactly the
 admitted `contract.checks` list, with observed outcomes held by the skill; `checks.smoke` is exactly

@@ -129,7 +129,7 @@ Synchronize in strict order:
 5. **Final read-back.** Independently read the parent specification/index, every child issue and full
    contract, each actual parent, all stable mappings, and every dependency page. Require exactly the
    admitted child set and exact normalized prerequisite tuples with both endpoints verified. Report
-   the parent separately from task mappings and unresolved Git-parent joins.
+   the parent separately from task mappings and unresolved execution-time joins.
 
 An empty candidate creates nothing; an existing empty parent with no planned tasks is reported as no
 work, not successful implementation. Preserve issue state and delivery evidence; never close or reopen
