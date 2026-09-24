@@ -10,6 +10,10 @@ composed by a preparation caller, one complete approved specification and reposi
 becomes one verified specification parent or explicitly selected Project graph, complete PR-sized
 children, and genuine native prerequisite edges. Plan independently reads the result back and returns
 the actual publication evidence. It never implements, executes, or merges.
+Plan keeps its native publication contract strict. A complete readable child index and explicit
+prerequisite declarations are required content in addition to native relationships, so a later
+Orchestrate tracker read remains meaningful if relationship metadata is absent or unavailable. That
+read-only consumer fallback does not make missing Plan writes successful publication.
 ## Command
 
 ```text
@@ -151,6 +155,11 @@ block without replay or replacement. Resume only the first unproved operation af
 admission. An unchanged verified publication performs zero mutations. A relationship capability that
 cannot be independently proved is blocking, not a nonblocking warning.
 
+After the user separately selects Orchestrate, an exact tracker URL plus independently readable
+issues and a complete declared index can establish executable membership even when these native
+links were never installed. Orchestrate preserves that tracker as context and distinguishes declared
+from native evidence. It does not retroactively satisfy Plan's native publication/read-back gates.
+
 ## Return
 
 Return the exact canonical repository and admitted revision, selected scope, complete display-ordered
@@ -161,22 +170,26 @@ missing relation or unresolved join. Parent mode reports the specification paren
 child task index.
 
 When required relationships are verified, return the complete planning handback and a separate
-orchestration suggestion. A canonical parent URL or selected Project URL is a convenience hint for
+orchestration suggestion. A canonical tracker URL or selected Project URL is a convenience hint for
 the matching Plan scope, not an exhaustive Orchestrate admission type:
 
 ```text
-/woostack-orchestrate --issue <verified specification-parent-URL>
+/woostack-orchestrate --issue <verified canonical tracker URL>
 /woostack-orchestrate --project <verified selected-Project-URL>
 ```
 
 Show only the applicable hint; Project mode does not invent a specification parent. The user may
-instead provide the verified handback or understandable tracker context in conversation. Orchestrate
-resolves executable tasks and a bounded dependency DAG from the available evidence, preserves native
-or declared provenance, and asks about material ambiguity. Plan never invokes Orchestrate or Execute
-and never claims implementation, delivery, review, passing checks, product acceptance, or merge. A
-parent with no executable children is reported as no work, not successful implementation. A partial
-graph, stale specification, unresolved correction, unknown identity, missing capability, or
-incomplete read-back is not publication-ready.
+instead provide the complete handback or understandable tracker context in conversation. Orchestrate
+reads the tracker and every selected issue, resolves executable tasks and a bounded dependency DAG
+from available evidence, preserves native or declared provenance, and asks about material ambiguity.
+It can interpret a complete tracker index without native links, but does not treat inaccessible task
+issues, ambiguous membership, unreadable contracts, unknown dependency meaning, or an unresolved
+contradiction as executable. Project mode does not invent a specification parent. The suggestion is
+not an automatic dispatch or execution claim. A partial graph, missing relationship capability,
+stale specification, unresolved correction, unknown identity, or empty executable plan is not Plan
+publication-ready.
+Plan never invokes Orchestrate or Execute and never claims implementation, delivery, review,
+passing checks, product acceptance, or merge.
 
 ## Hard constraints
 

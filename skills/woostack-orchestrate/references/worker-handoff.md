@@ -36,7 +36,23 @@ normalized admission and local Git reservation, never evidence to invent.
     "child_issue_url": "<runtime-substituted canonical executable issue URL>",
     "scope_url": "<runtime-substituted canonical executable issue URL>",
     "parent_issue_url": "<runtime-substituted independently read actual parent or null>",
+    "parent_issue_read": "complete",
     "specification": "<runtime-substituted complete task specification or issue body>",
+    "scope_evidence": {
+      "tracker": {
+        "url": "<canonical selected tracker URL>",
+        "id": "<numeric REST tracker ID>",
+        "node_id": "<tracker GraphQL node ID>",
+        "title": "<complete tracker title>",
+        "body": "<complete tracker specification/context body>",
+        "revision": "<provider revision>"
+      },
+      "membership": {
+        "source": "native|declared",
+        "issues": ["<sorted canonical executable issue URL>"],
+        "evidence": "<non-empty actual-read evidence>"
+      }
+    },
     "repository_rules": "<runtime-substituted complete repository rules>",
     "bounded_input": {
       "goal": "<runtime-substituted resolved contract.goal>",
@@ -82,18 +98,38 @@ normalized admission and local Git reservation, never evidence to invent.
 The admission's `scope_identity` is the canonical repository plus the sorted canonical URLs of the
 verified executable tasks; it does not encode how the user or model found them. In the packet,
 `scope_url` is this task's canonical issue URL, not a user selector; `parent_issue_url` is the
-independently read native `actual_parent` and may be `null`. `specification` is the complete task
-specification or issue body used as worker context, while `bounded_input` carries the model-resolved
-contract. The contract retains `goal`, `scope`, `acceptance`, `checks`, and a real `smoke`; optional
+independently read native `actual_parent` and may be `null` only after a conclusive absent-parent
+read; when unavailable it is omitted and `parent_issue_read` records `unavailable`.
+`specification` is the complete task specification or issue body used as worker context, while
+`bounded_input` carries the model-resolved contract. The contract retains `goal`, `scope`,
+`acceptance`, `checks`, and a real `smoke`; optional
 non-goals, decisions, risks, and other bounded context may be included when useful. The model asks
 focused questions before admission when source meaning is materially ambiguous; Execute does not
 recover that interpretation from a selector or issue layout.
+
+When present, packet `scope_evidence` is the normalized tracker receipt from admission and state.
+Its tracker body is complete source/specification context, its membership exactly matches this
+admitted task set, and its actual source/evidence remains visible even when the selected tracker is
+not the task's native parent. Treat it as read-only context: do not implement the tracker, discover
+siblings from it, write relationships, attach the PR, or close it. The exact task `specification` and
+contract remain the bounded work; preserve tracker phase and scope constraints that already appear
+in them. A revision-only change, reordered references, or declared-to-native transition with the
+same task set does not create a new packet identity.
 
 `dependency_edges` is the task's annotated subset of the admitted DAG, with native/declared/inferred
 provenance and evidence retained. An inferred edge is context and scheduling evidence, not a native
 GitHub relationship or permission to expand scope. The packet's task scope, specification, contract,
 and readiness are the worker's complete input; it must not infer missing dependencies, discover
 siblings, or publish an edge.
+
+`scope_evidence` accompanies the packet but is not `actual_parent`; `parent_issue_url` carries
+only a conclusively read native parent, and is omitted for an unavailable read. `parent_issue_read`
+records the read status when the tracker supplied it. Native, declared, and inferred dependency
+evidence is scheduling context, not permission to widen scope or publish metadata. Independent task packets may
+run concurrently. A dependent packet carries its complete proven prerequisite readiness; an issue
+with phase-specific work remains one writer and is not split into duplicate workers. A join without
+one verified parent containing every prerequisite pauses only that packet and its descendants until
+an explicit parent/integration decision is proved, while unrelated work continues.
 
 The example's `parent_readiness` is a root with proved parent-PR absence. For a dependent,
 `logical_prerequisites` is the complete admitted task-ID set and `prerequisites` has exactly one
@@ -192,11 +228,13 @@ force-pushes, or silently retargets a PR.
 ## Existing delivery and resume
 
 A fresh snapshot that includes a delivered task must include `existing_delivery.reservation` and
-`existing_delivery.result` with the complete delivery evidence above. Without an active launch,
-admission does not require the active-result `host_id`/`session_id` binding; its existing
-`worker_id` and independent delivery checks remain required. The skill re-reads the canonical
-branch/ref, PR/head/base/repository, focused checks, binary diff, independent validation, note, and
-selected Project status immediately before assembly. The helper restores `delivered` only when the
-reservation and every result identity/evidence field match; stale or partial evidence blocks. Never
-redispatch a task merely because its prior worker output is absent when canonical delivery already
-exists.
+`existing_delivery.result` with the complete delivery evidence above. It reuses the admitted
+`scope_evidence` and canonical task claims rather than selecting a fresh set from tracker prose.
+Without an active launch, admission does not require the active-result `host_id`/`session_id`
+binding; its existing `worker_id` and independent delivery checks remain required. The skill re-reads
+the canonical tracker/scope evidence, branch/ref, PR/head/base/repository, focused checks, binary
+diff, independent validation, note, and selected Project status immediately before assembly. The
+helper restores `delivered` only when the reservation, meaningful tracker context, and every result
+identity/evidence field match; a provider revision, reference order, or matching native membership
+alone does not require redispatch, while stale or partial material evidence blocks. Never redispatch
+a task merely because its prior worker output is absent when canonical delivery already exists.

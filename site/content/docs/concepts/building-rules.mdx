@@ -1,17 +1,18 @@
 ---
 title: Building rules
-description: Planning packets, verified GitHub issue graphs, and bounded one-PR execution routes.
+description: Planning packets, verified GitHub planning handoffs, and bounded one-PR execution routes.
 ---
 
 The user decides the product and authorizes work. Git and GitHub show what was delivered.
-When preparation publishes, it produces a verified issue graph; implementation is a separate
-explicit workflow.
+Plan produces a verified native issue graph; Orchestrate may also consume a complete readable
+tracker and independently read its executable issues when native relationship metadata is absent,
+partial, or unavailable. Implementation remains a separate explicit workflow.
 
 ## Workflow scope
 
 | Shape | Commands | Active contract | Provider/input behavior |
 | --- | --- | --- | --- |
-| Feature or proved defect needing several increments | [woostack-prepare](/docs/skills/woostack-prepare) | complete user-verified specification, evidence-bound diagnosis when applicable, and read-back GitHub graph | no local run or mirror; exact parent or Project selector belongs to Plan |
+| Feature or proved defect needing several increments | [woostack-prepare](/docs/skills/woostack-prepare) | complete user-verified specification, evidence-bound diagnosis when applicable, and Plan's read-back GitHub graph | no local run or mirror; exact parent or Project selector belongs to Plan |
 | Specification elicitation | [woostack-ideate](/docs/skills/woostack-ideate) | complete plain user-verified decisions | no provider or run required |
 | Repository reconciliation | [woostack-harden](/docs/skills/woostack-harden) | complete plain candidate after bounded evidence checks | no provider or run required |
 | Approved issue publication | [woostack-plan](/docs/skills/woostack-plan) | one exact GitHub parent/child or Project graph with native prerequisite edges | direct host-authenticated GitHub reads/writes; no mirror required |
@@ -38,27 +39,31 @@ Plan divides the work into increments, each small enough for one PR. It records 
 acceptance criteria, verification, risks, explicit prerequisites, and parent-selection policy. It does
 not prescribe every coding step or estimate changed lines. [GitHub plans](/docs/configuration/artifacts/github#identities-hierarchy-and-graph)
 support dependency DAGs in explicit Project mode and parent-issue mode
-(`--parent-issue new` or an exact parent issue URL, exclusive with `--project`). Parent-issue mode
-needs only the exact canonical repository and native relationship capabilities; it does not require a
-provider selector, Project, mirror, or Build/Fix run. Direct and composed Plan use the same public
-Harden reconciliation and publisher. Its native parent hierarchy only groups the plan and is distinct
-from `blocked-by` edges and Git branch ancestry; the parent is never a task, dependency endpoint,
-execution, or PR, and unsupported nested or partial hierarchy fails closed.
+(`--parent-issue new` or an exact parent issue URL, exclusive with `--project`). Plan's
+parent-issue mode needs the exact canonical repository and native relationship capabilities; it does
+not require a provider selector, Project, mirror, or Build/Fix run. Direct and composed Plan use the
+same public Harden reconciliation and publisher. Its native parent hierarchy only groups the plan and
+is distinct from `blocked-by` edges and Git branch ancestry; the parent is never a task, dependency
+endpoint, execution, or PR, and unsupported nested or partial hierarchy fails closed. A complete
+readable tracker index can remain useful to Orchestrate when those native relationships are absent,
+but that declared handoff is not successful native Plan publication.
 
 Execute accepts one selected bounded task under its [admission contract](/docs/skills/woostack-execute#admit-one-task), not a whole plan.
 An explicit [Orchestrate](/docs/skills/woostack-orchestrate) invocation interprets the complete
 planning handback or other understandable work context. It resolves the canonical repository,
 issue/task identities, executable tasks, and a bounded dependency DAG with provenance, asking about
 material ambiguity. Issue, issue-list, and Project arguments are convenience hints, not an exhaustive
-admission taxonomy; tracker prose can be understood without native links. For Orchestrate, a Project
-is included only when explicitly selected; its status lifecycle is used only when that selection
+admission taxonomy; a complete tracker index can establish declared membership without native links,
+while every selected issue and contract still needs independent reads. For Orchestrate, a Project is
+included only when explicitly selected; its status lifecycle is used only when that selection
 requests status mutation, and inferred edges are not published.
 
 Plan is the sole issue publisher. It independently reads every parent, child, hierarchy, and edge
-back. A partial graph preserves exact identities and resumes at the first unproved Plan boundary; it
-is not a complete handoff. Prepare reports the complete planning handback and may include
-`/woostack-orchestrate --issue <verified-parent-url>` as a convenience suggestion, but never invokes
-it.
+back. A partial Plan graph preserves exact identities and resumes at the first unproved Plan boundary;
+it is not a complete native publication. A declared tracker handoff can still be independently read
+and scheduled by Orchestrate when its selected issues and contracts are complete. Prepare reports the
+complete planning handback and may include `/woostack-orchestrate --issue <verified-parent-url>` as a
+convenience suggestion, but never invokes it.
 
 ## Execution invariants
 

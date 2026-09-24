@@ -488,6 +488,103 @@ def issue_identity(item, canonical):
             "invalid-identity", "issue title and body must be completely read")
 
 
+def nonempty_scope_evidence(value):
+    return text(value) if isinstance(value, str) else isinstance(value, (list, dict)) and bool(value)
+
+
+def normalize_scope_evidence(value, tasks, canonical):
+    if value is None:
+        return None
+    require(isinstance(value, dict), "invalid-scope-evidence", "scope evidence must be an object")
+    tracker = value.get("tracker")
+    require(isinstance(tracker, dict), "invalid-scope-evidence", "selected tracker evidence missing")
+    url = canonical_issue_url(tracker.get("url", ""), canonical)
+    require(type(tracker.get("id")) is int and tracker["id"] > 0 and text(tracker.get("node_id"))
+            and text(tracker.get("title")) and isinstance(tracker.get("body"), str)
+            and text(tracker.get("revision")),
+            "invalid-scope-evidence", "selected tracker identity, content, and revision are incomplete")
+    membership = value.get("membership")
+    require(isinstance(membership, dict) and membership.get("source") in ("native", "declared")
+            and isinstance(membership.get("issues"), list)
+            and nonempty_scope_evidence(membership.get("evidence")),
+            "invalid-scope-evidence", "tracker membership source, issues, or evidence is incomplete")
+    require(all(text(issue) for issue in membership["issues"]),
+            "invalid-scope-evidence", "tracker membership contains an invalid issue URL")
+    issues = [canonical_issue_url(issue, canonical) for issue in membership["issues"]]
+    require(len(issues) == len(set(issues)),
+            "ambiguous-scope", "tracker membership must be a unique issue set")
+    task_urls = {task["url"] for task in tasks}
+    normalized_issues = sorted(issues)
+    require(set(issues) == task_urls, "scope-membership-mismatch",
+            "tracker membership must exactly match executable tasks")
+    require(url not in task_urls, "invalid-scope-evidence", "tracker cannot also be an executable task")
+    if membership["source"] == "native":
+        require(all(text(task.get("actual_parent"))
+                    and canonical_issue_url(task["actual_parent"], canonical) == url
+                    for task in tasks),
+                "native-membership-unverified", "native membership requires tracker parentage for every task")
+    return {
+        "tracker": {"url": url, **{key: tracker[key] for key in ("id", "node_id", "title", "body", "revision")}},
+        "membership": {
+            "source": membership["source"], "issues": normalized_issues,
+            "evidence": copy.deepcopy(membership["evidence"]),
+        },
+    }
+
+
+def tracker_scope_context(tracker):
+    """Normalize tracker prose and unordered annotated issue rows."""
+    references = set()
+    link_pattern = re.compile(
+        r"https://github\.com/([\w.-]+)/([\w.-]+)/(issues|pull)/([1-9][0-9]*)"
+    )
+    relative_pattern = re.compile(r"#([1-9][0-9]*)")
+    row_pattern = re.compile(r"^\s*(?:[-*+]|\d+[.)])\s+")
+
+    def normalize_line(line):
+        line_references = []
+
+        def canonical_link(match):
+            owner, repo, kind, number = match.groups()
+            reference = kind + ":" + owner.lower() + "/" + repo.lower() + ":" + number
+            references.add(reference)
+            line_references.append(reference)
+            return " " + reference + " "
+
+        def relative_link(match):
+            owner, repo = ISSUE_RE.fullmatch(tracker["url"]).groups()[:2]
+            reference = "issues:" + owner.lower() + "/" + repo.lower() + ":" + match.group(1)
+            references.add(reference)
+            line_references.append(reference)
+            return " " + reference + " "
+
+        line = link_pattern.sub(canonical_link, line)
+        line = relative_pattern.sub(relative_link, line)
+        line = re.sub(r"\s*,\s*", ",", " ".join(line.split()))
+        return tuple(sorted(line_references)), line
+
+    normalized_lines = []
+    pending_rows = []
+
+    def flush_rows():
+        normalized_lines.extend(line for _, line in sorted(pending_rows))
+        pending_rows.clear()
+
+    for raw_line in tracker["body"].splitlines() or [tracker["body"]]:
+        line_references, line = normalize_line(raw_line)
+        if row_pattern.match(raw_line) and line_references:
+            pending_rows.append((line_references, line))
+        else:
+            flush_rows()
+            normalized_lines.append(line)
+    flush_rows()
+    return {
+        "url": tracker["url"], "id": tracker["id"], "node_id": tracker["node_id"],
+        "title": " ".join(tracker["title"].split()),
+        "body": " ".join(normalized_lines), "references": sorted(references),
+    }
+
+
 def pagination(snapshot, families):
     proof = snapshot.get("pagination", {})
     require(isinstance(proof, dict) and all(proof.get(f) is True for f in families),
@@ -779,6 +876,15 @@ def admit(snapshot, limit):
     for key in (("id", "node_id", "item_id") if project is not None else ("id", "node_id")):
         require(len({entry[key] for entry in tasks}) == len(tasks), "duplicate-identity", "issue identity conflicts")
     require(len({task["task_id"] for task in tasks}) == len(tasks), "duplicate-identity", "duplicate task ID")
+    scope_evidence = normalize_scope_evidence(snapshot.get("scope_evidence"), tasks, canonical)
+    if scope_evidence is not None:
+        tracker = scope_evidence["tracker"]
+        require(tracker["id"] not in {task["id"] for task in tasks}
+                and tracker["node_id"] not in {task["node_id"] for task in tasks},
+                "ambiguous-identity", "tracker and executable issue identities conflict")
+    for task in tasks:
+        if task.get("actual_parent") is not None:
+            task["actual_parent"] = canonical_issue_url(task["actual_parent"], canonical)
     edges = collect_edges(snapshot, tasks, canonical)
     for task in tasks:
         task["dependency_snapshot"] = {
@@ -797,7 +903,10 @@ def admit(snapshot, limit):
         "node_id": task["node_id"], "state": task["state"], "resource": task["resource"],
         "title": task["title"], "body": task["body"], "contract": task["contract"],
         "external_prerequisites": task["external_prerequisites"],
-        "specification": task["specification"], "actual_parent": task.get("actual_parent"),
+        "specification": task["specification"],
+        "actual_parent": (None if scope_evidence is not None
+                          and task.get("actual_parent") == scope_evidence["tracker"]["url"]
+                          else task.get("actual_parent")),
         "edge_provenance": copy.deepcopy(task["edge_provenance"]),
     } for task in tasks]
     binding = {
@@ -805,6 +914,10 @@ def admit(snapshot, limit):
         "repository_rules": snapshot["repository_rules"], "integration_branch": integration["branch"],
         "tasks": immutable_tasks,
         "dependencies": sorted((edge["predecessor"], edge["dependent"]) for edge in edges),
+        "scope_evidence": (None if scope_evidence is None else {
+            "tracker_context": tracker_scope_context(scope_evidence["tracker"]),
+            "membership_issues": scope_evidence["membership"]["issues"],
+        }),
     }
     if project is not None:
         binding["project"] = project
@@ -816,6 +929,7 @@ def admit(snapshot, limit):
             "task_order": task_order, "graph": graph_metadata(edges),
             "edge_provenance": edges, "parent_prs": copy.deepcopy(snapshot.get("parent_prs", {})),
             "host_cap": host_cap, "recovery": recovery,
+            "scope_evidence": scope_evidence,
             "notice": "Host runs sequential subagents (concurrency one)." if host_cap == 1 else None}
 
 
@@ -984,6 +1098,7 @@ def new_state(admitted):
     return {
         "version": STATE_VERSION,
         "fingerprint": admitted["fingerprint"],
+        "scope_evidence": copy.deepcopy(admitted.get("scope_evidence")),
         "scope_identity": copy.deepcopy(admitted["scope_identity"]),
         "owner": {"controller_id": secrets.token_hex(16)},
         "scope_claim": None,
@@ -1041,6 +1156,9 @@ def state_read(path, admitted):
     require(isinstance(state.get("tasks"), dict)
             and set(state["tasks"]) == {t["task_id"] for t in admitted["tasks"]},
             "invalid-state", "state task identities differ")
+    require("scope_evidence" in state
+            and (state["scope_evidence"] is None) == (admitted.get("scope_evidence") is None),
+            "invalid-state", "scope provenance is missing")
     require(type(state.get("halt_new_dispatch")) is bool
             and type(state.get("stop_requested", False)) is bool,
             "invalid-state", "halt/stop state must be explicit")
@@ -1254,17 +1372,29 @@ def validate_delivery(admitted, task, reservation, result, repo):
                 "project-status-mismatch", "verified Project inReview readback required")
     return {"status": "delivered", "delivery": delivery}
 
-def packet(admitted, task, reservation, repair, retained, readiness):
+def packet(admitted, task, reservation, repair, retained, readiness, scope_evidence=None):
     specification = task["specification"]
-    return {"task_id": task["task_id"], "ordinal": task["ordinal"], "child_issue_url": task["url"],
-            "scope_url": task["url"], "parent_issue_url": task.get("actual_parent"),
-            "specification": specification, "repository_rules": admitted["repository_rules"],
-            "bounded_input": copy.deepcopy(task["contract"]), "acceptance": task["contract"]["acceptance"],
-            "parent_readiness": readiness,
-            "dependency_edges": copy.deepcopy(task.get("edge_provenance", [])),
-            "graph": copy.deepcopy(admitted["graph"]),
-            "checks": task["contract"]["checks"], "contract_hash": task["contract_hash"],
-            "execute_skill": "woostack-execute", "repair": repair, "retained_pr": retained, **reservation}
+    result = {
+        "task_id": task["task_id"], "ordinal": task["ordinal"], "child_issue_url": task["url"],
+        "scope_url": task["url"], "specification": specification,
+        "repository_rules": admitted["repository_rules"],
+        "bounded_input": copy.deepcopy(task["contract"]), "acceptance": task["contract"]["acceptance"],
+        "parent_readiness": readiness,
+        "dependency_edges": copy.deepcopy(task.get("edge_provenance", [])),
+        "graph": copy.deepcopy(admitted["graph"]),
+        "checks": task["contract"]["checks"], "contract_hash": task["contract_hash"],
+        "scope_evidence": copy.deepcopy(scope_evidence),
+        "execute_skill": "woostack-execute", "repair": repair, "retained_pr": retained,
+        **reservation,
+    }
+    if "actual_parent" in task:
+        result["parent_issue_url"] = task["actual_parent"]
+        if scope_evidence is not None:
+            result["parent_issue_read"] = "complete"
+    evidence = ((scope_evidence or {}).get("membership") or {}).get("evidence")
+    if "actual_parent" not in task and isinstance(evidence, dict) and "actual_parent_read" in evidence:
+        result["parent_issue_read"] = evidence["actual_parent_read"]
+    return result
 
 
 def choose_parent(admitted, task, state, decisions, repo):
@@ -1376,9 +1506,11 @@ def cmd_schedule(args):
     state.setdefault("recovery", {})["last_snapshot"] = {
         "fingerprint": fresh["fingerprint"],
         "scope_identity": copy.deepcopy(fresh["scope_identity"]),
+        "scope_evidence": copy.deepcopy(fresh.get("scope_evidence")),
         "membership": [
             {"url": task["url"], "id": task["id"], "node_id": task["node_id"],
-             "actual_parent": task.get("actual_parent"), "item_id": task.get("item_id")}
+             **({"actual_parent": task["actual_parent"]} if "actual_parent" in task else {}),
+             "item_id": task.get("item_id")}
             for task in fresh["tasks"]
         ],
         "dependencies": {
@@ -1393,6 +1525,7 @@ def cmd_schedule(args):
         },
     }
     state.setdefault("recovery", {})["last_inventory"] = copy.deepcopy(fresh.get("recovery"))
+    state["scope_evidence"] = copy.deepcopy(fresh.get("scope_evidence"))
     if state.get("stop_requested"):
         state["halt_new_dispatch"], state["halt_reason"] = True, "user-stop"
         write_state(args, state)
@@ -1492,7 +1625,7 @@ def cmd_schedule(args):
     slots = max(0, cap - len(occupied))
     inventory = worktree_inventory(args.git_repo)
     dispatch = []
-    for task in sorted(admitted["tasks"], key=lambda t: (t["ordinal"], t["task_id"])):
+    for task in sorted(fresh_tasks.values(), key=lambda t: (t["ordinal"], t["task_id"])):
         tid, item = task["task_id"], state["tasks"][task["task_id"]]
         if tid in ownership_unverified:
             continue
@@ -1599,7 +1732,8 @@ def cmd_schedule(args):
                     last_evidence={"parent_readiness": copy.deepcopy(readiness)})
         dispatch.append({"task_id": tid, "ordinal": task["ordinal"], "child_url": task["url"],
                          "repair": repair, "retained_pr": retained_pr, **reservation,
-                         "packet": packet(admitted, task, reservation, repair, retained_pr, readiness)})
+                         "packet": packet(admitted, task, reservation, repair, retained_pr,
+                                          readiness, fresh.get("scope_evidence"))})
         occupied.append(tid)
         slots -= 1
     write_state(args, state)

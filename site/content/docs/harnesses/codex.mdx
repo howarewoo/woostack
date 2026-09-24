@@ -20,9 +20,12 @@ starting a worker.
 ## Receive a ChatGPT planning handoff
 
 Follow [the ChatGPT-to-Codex guide](/docs/chatgpt-to-codex) to plan without installed chat skills.
-ChatGPT's standard GitHub app is read-only; chat publication requires a separately authorized
-write-capable connection with issue, native containment, dependency, pagination, and read-back
-operations. A ChatGPT subscription or API documentation does not prove those capabilities.
+ChatGPT's standard GitHub app is read-only. With no issue-write capability, the route is
+planning-only. With authorized issue create/update and independent issue read-back but no native
+relationship writes, ChatGPT can produce a complete readable tracker/index that Orchestrate later
+verifies as declared scope; that is not successful native Plan publication. Full native Plan-style
+publication still requires the strict issue, native containment/dependency, pagination, and read-back
+operations. A subscription or API documentation does not prove any capability.
 
 Install woostack in local Codex using [Getting started](/docs/getting-started). Confirm the current
 runtime exposes delivery-capable subagents, isolated workspaces, Git, Python 3 for the Orchestrate
@@ -31,24 +34,26 @@ includes a Project only when explicitly selected; its status lifecycle is used o
 selection requests status mutation. A missing delivery primitive blocks before dispatch; Codex Action's
 single-session mode cannot run Orchestrate by implementing tasks inline.
 
-After the planning chat has stopped with a verified handback, send the complete planning context to
-Codex. A canonical parent URL is a convenient hint:
+After the planning chat has stopped with a verified native or declared handback, send the complete
+planning context to Codex. A canonical tracker URL is a convenient hint:
 
 ```text
-/woostack-orchestrate --issue <verified canonical parent URL>
+/woostack-orchestrate --issue <verified canonical tracker URL>
 ```
 
-Orchestrate interprets the handback or other understandable issue/task context, resolves executable
-tasks and a bounded dependency DAG, and gives Execute workers their complete contracts and verified
-Git parents. The specification parent gets no worker or PR. Native links are evidence when present,
-not an admission requirement. Independent children can run together; dependent children can stack on
-verified unmerged branches. A true join pauses only its child until one parent is proved to contain
-every prerequisite. There is no automatic integration branch or merge.
+Orchestrate independently reads the tracker and every selected issue, resolves executable tasks and
+a bounded dependency DAG, and gives Execute workers their complete contracts and verified Git
+parents. A complete tracker index can establish declared membership with no native child links; each
+selected issue still needs real identity and a complete contract, and the tracker stays context with
+no worker or PR. Independent tasks can run together; dependent tasks can stack on verified unmerged
+branches. A true join pauses only its child until one parent is proved to contain every prerequisite.
+There is no automatic integration branch or merge.
 
-If chat tools cannot publish, explicitly pass the complete approved packet and retained publication
-IDs, if any, to Plan in Codex. This is coding-host planning, not a chat-only allowance-saving route.
-Prepare and the public phases are also available here; a complete bounded task can go directly to
-Execute. Model and usage rules are linked with their last-verified date in the guide.
+If chat tools cannot write issues, explicitly pass the complete approved packet to Plan in Codex.
+This is coding-host planning, not a chat-only allowance-saving route. Plan remains the sole
+skill-owned publisher and keeps its strict native publication gates. Prepare and the public phases
+are also available here; a complete bounded task can go directly to Execute. Model and usage rules
+are linked with their last-verified date in the guide.
 
 For detection, local and Action behavior, per-skill instructions, and fallback rules,
 read the [canonical Codex reference](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/hosts/codex.md).

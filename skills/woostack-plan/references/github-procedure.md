@@ -39,6 +39,11 @@ not make repository issues private. Material content or destination changes requ
    human content and all unrelated labels, state, assignment, links, memberships, hierarchy, and
    relationships. An observed drift or changed candidate requires fresh admission.
 
+The parent/Project managed index must enumerate the complete executable issue set and explicit
+prerequisite declarations in addition to the native graph. This makes the publication independently
+readable by a later Orchestrate tracker selection when native relationship reads are unavailable.
+It does not weaken Plan's native capability, mutation, or final read-back requirements below.
+
 Issue bodies use the existing marker convention `<!-- woostack-issue-mutation:<UUID> -->`. Preallocate
 one distinct UUID for the specification parent and one for each explicitly new task. A retained
 canonical/native mapping never falls through to creation. After an unknown create response, repeat
@@ -160,9 +165,11 @@ and a convenience command matching the admitted Plan scope:
 ```
 
 These commands are hints, not an exhaustive Orchestrate admission taxonomy. The user may instead
-provide the verified handback or understandable tracker context in conversation; Orchestrate resolves
+provide the complete handback or understandable tracker context in conversation. Orchestrate resolves
 the task set and dependency DAG from available evidence, preserves edge provenance, and asks about
-material ambiguity. Project mode does not invent a specification parent. The suggestion is not an
-automatic dispatch or execution claim. A partial graph, missing relationship capability, stale
-specification, unresolved correction, unknown identity, or empty executable plan is not
-Orchestrate-ready.
+material ambiguity. A complete independently readable tracker index can supply declared membership
+without native links; inaccessible task issues, ambiguous membership, unreadable contracts, or
+unknown dependency meaning still block the affected work. Project mode does not invent a
+specification parent. The suggestion is not an automatic dispatch or execution claim. A partial
+graph, missing relationship capability, stale specification, unresolved correction, unknown
+identity, or empty executable plan is not Plan publication-ready.
