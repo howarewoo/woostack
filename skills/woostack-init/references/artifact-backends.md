@@ -153,11 +153,14 @@ acceptance, checks, dependencies, and retained implementation evidence. Admit a 
 concrete no-impact rationale; otherwise stop and request `Continue`, `Revise spec/plan`, or `Stop`.
 Never silently rebase, reset, clean, stash, overwrite, or invent an integration branch.
 
-For a non-root task, the caller supplies complete delivered predecessor evidence and one concrete parent
-branch/SHA containing every required prerequisite. Logical prerequisites remain separate from the one
-checkout parent. A join without ancestry proof pauses for an explicit parent/integration decision.
-Git DAG and canonical PR base must agree with that proof; an upstream ref or merge-base alone is not
-enough. Graphite metadata is additional evidence only when independently selected.
+For a non-root task, the caller supplies complete delivered predecessor evidence and one concrete
+existing parent branch/SHA containing every required prerequisite. Logical prerequisites remain
+separate from the one checkout parent. First use the approved integration branch, then a verified
+unmerged prerequisite branch when stacking is permitted. If neither contains all requirements, the
+task waits for human merges as a local checkpoint; this does not itself request a new parent or
+integration strategy. Git DAG and canonical PR base must agree with the ancestry proof; an upstream
+ref or merge-base alone is not enough. Graphite metadata is additional evidence only when
+independently selected.
 
 ## Credentials, untrusted content, and authority
 

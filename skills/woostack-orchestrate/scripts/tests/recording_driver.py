@@ -175,7 +175,7 @@ class FakeGitHub:
             issue_record(self.parent_url, "task-a", 1, 101),
             issue_record(self.parent_url, "task-b", 2, 102),
             issue_record(self.parent_url, "task-c", 3, 103, ["task-a"]),
-            issue_record(self.parent_url, "task-d", 4, 104, ["task-a", "task-b"]),
+            issue_record(self.parent_url, "task-d", 4, 104, ["task-a"]),
             issue_record(self.parent_url, "task-e", 5, 105),
         ]
         # Runtime allocation is supplied by the host-facing snapshot, not the
@@ -192,7 +192,7 @@ class FakeGitHub:
         self.parent_pages = [[self.parent]]
         self.dependency_pages = [
             [{"task_id": "task-c", "blocked_by": ["task-a"]}],
-            [{"task_id": "task-d", "blocked_by": ["task-a", "task-b"]}],
+            [{"task_id": "task-d", "blocked_by": ["task-a"]}],
         ]
         self.contract_pages = [self.children[:2], self.children[2:]]
         self.prs: Dict[str, Dict[str, Any]] = {}
@@ -558,6 +558,25 @@ class FakeGitHub:
             self.delivery[task_id] = {
                 "reservation": copy.deepcopy(reservation),
                 "result": copy.deepcopy(result),
+                "lifecycle": {
+                    "pr": {
+                        "pr_url": result["readback"]["pr_url"], "repo": self.canonical,
+                        "head_repo": self.canonical, "branch": result["readback"]["branch"],
+                        "head_sha": result["readback"]["head_sha"],
+                        "base_branch": result["readback"]["base_branch"],
+                        "state": "open", "draft": result["readback"]["draft"],
+                    },
+                    "source": {
+                        "branch": result["readback"]["branch"],
+                        "head_sha": result["readback"]["head_sha"],
+                        "deleted": False,
+                    },
+                    "checks": {
+                        "complete": True,
+                        "state": "verified",
+                        "head_sha": result["readback"]["head_sha"],
+                    },
+                },
             }
         record("github", "persist-child-delivery", {"task_id": task_id, "note_id": note["id"]})
 
@@ -680,9 +699,16 @@ def verify_execute_readiness(repo: Path, packet: Dict[str, Any], entry: Dict[str
             raise AssertionError("Execute prerequisite is not independently verified")
         if checkpoint["note"]["head_sha"] != pr["head_sha"] or pr["open"] is not True:
             raise AssertionError("Execute prerequisite delivery note/PR is stale")
-        if git(repo, "rev-parse", "refs/heads/" + pr["branch"]) != pr["head_sha"]:
-            raise AssertionError("Execute prerequisite branch changed")
-        git(repo, "merge-base", "--is-ancestor", pr["head_sha"], parent["sha"])
+        satisfaction = row.get("satisfaction", {})
+        if satisfaction.get("kind") == "merged":
+            landed = satisfaction.get("revision")
+            if not landed:
+                raise AssertionError("Execute prerequisite landed revision is missing")
+            git(repo, "merge-base", "--is-ancestor", landed, parent["sha"])
+        else:
+            if git(repo, "rev-parse", "refs/heads/" + pr["branch"]) != pr["head_sha"]:
+                raise AssertionError("Execute prerequisite branch changed")
+            git(repo, "merge-base", "--is-ancestor", pr["head_sha"], parent["sha"])
     for pr in [*(row["checkpoint"]["readback"] for row in records), *evidence["prs"]]:
         for key in ("reviews", "threads"):
             if pr[key]["complete"] is not True or pr[key]["head_sha"] != pr["head_sha"]:

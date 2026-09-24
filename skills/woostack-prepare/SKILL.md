@@ -92,7 +92,7 @@ successful result reports:
 
 1. the exact verified specification-parent URL;
 2. display-ordered child URLs and stable task identities;
-3. the normalized native prerequisite graph and any expected execution-time join decision;
+3. the normalized native prerequisite graph and any expected execution-time `waiting-for-merge` checkpoint;
 4. the repository/baseline and evidence identities used for the read-back; and
 5. the complete planning handback and, when available, this separate convenience action:
 
@@ -114,9 +114,12 @@ existing parent and child IDs are the recovery identity. Independently verified 
 content may be offered to Orchestrate without claiming those missing native relationships exist.
 
 A valid graph may contain independent roots, forks, chains, and joins. Ordinals never imply edges.
-The parent is a scope container, not a task or dependency endpoint. A join that lacks one verified
-Git parent containing every prerequisite remains a planning result with an execution-time decision;
-Prepare does not create an integration branch or rewrite dependencies.
+The parent is a scope container, not a task or dependency endpoint. A join that lacks one currently
+verified existing Git parent containing every prerequisite remains a valid planning result and becomes
+a task-local `waiting-for-merge` checkpoint during Orchestrate. It does not require another Plan
+invocation, parent/integration decision, native relationship write, branch combination, or DAG
+rewrite. Prepare does not create an integration branch; ask only when material parent ambiguity
+remains.
 
 ## Hard boundaries
 

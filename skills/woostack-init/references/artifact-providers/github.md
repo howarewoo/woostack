@@ -162,7 +162,8 @@ graph. A caller may select one task from any valid DAG for
 [bounded Execute admission](../../../woostack-execute/SKILL.md#admit-one-task), supplying its concrete
 parent and complete prerequisite-readiness evidence under the
 [workspace/ancestry guidance](../worktrees.md#repository-and-ancestry-evidence). An unresolved join
-parent blocks that task, not unrelated tasks. Run-store storage retains the existing
+waits as a task-local checkpoint, not as a request for a new parent or integration strategy; it does
+not block unrelated tasks. Run-store storage retains the existing
 task/dependency/mapping forms without schema migration or edge rewriting; workflow admission validates
 the DAG.
 

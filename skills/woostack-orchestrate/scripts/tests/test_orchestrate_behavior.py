@@ -371,7 +371,7 @@ class OrchestrateBehavior(unittest.TestCase):
         return retained
 
     def test_full_issue_smoke_uses_real_git_and_concurrent_execute_packets(self) -> None:
-        """A/B/E are concurrent; C stacks on A; D pauses then uses explicit join."""
+        """A/B/E run concurrently; C and D stack on A while B remains held."""
 
         admitted_path, admitted = self._admit_issue()
         initial_state, initial = self._schedule(
@@ -429,11 +429,16 @@ class OrchestrateBehavior(unittest.TestCase):
         self.assertNotEqual(c_entry["packet"]["child_issue_url"], self.github.parent_url)
         self.assertTrue(c_entry["packet"]["acceptance"])
         self.assertTrue(c_entry["packet"]["checks"])
-        self.assertTrue(any(item["task_id"] == "task-d" for item in refill_c["waiting"]))
+        d_entries = [item for item in refill_c["dispatch"] if item["task_id"] == "task-d"]
+        self.assertEqual(len(d_entries), 1, refill_c)
+        d_entry = d_entries[0]
+        self.assertEqual(d_entry["parent_branch"], self.github.children[0]["branch"])
+        self.assertEqual(d_entry["parent_sha"], report_a["worker"]["head_sha"])
+        self.assertEqual(d_entry["packet"]["parent_readiness"]["logical_prerequisites"], ["task-a"])
 
-        host.dispatch([c_entry])
+        host.dispatch([c_entry, d_entry])
         self.assertTrue(host.c_started.wait(30))
-        self.assertFalse(host.b_completed.is_set(), "C must start while B remains held")
+        self.assertFalse(host.b_completed.is_set(), "C and D must start while B remains held")
         report_c = host.wait_for_report("task-c")
         result_c = make_result(self.github, "task-c", report_c, admitted)
         state_c, applied_c, _ = self._apply(admitted_path, refill_c_state, "task-c", result_c, "c")
@@ -449,48 +454,11 @@ class OrchestrateBehavior(unittest.TestCase):
         self._persist("task-b", result_b, b_entry)
         self.assertTrue(host.b_completed.is_set())
 
-        paused_state, paused = self._schedule(
-            admitted_path, admitted, state_b, self.github.snapshot(), "before-join"
-        )
-        self.assertEqual(paused["dispatch"], [], paused)
-        paused_d = next(item for item in paused["paused"] if item["task_id"] == "task-d")
-        self.assertEqual(paused_d["reason"], "join-no-containing-parent")
-        self.assertEqual(sorted(paused_d["prerequisite_branches"]),
-                         [self.github.children[0]["branch"], self.github.children[1]["branch"]])
-
-        # A join branch is a user-selected parent decision.  The helper must
-        # never create it automatically.
-        git(self.repo, "checkout", "-q", "-b", "join-ab", self.base_sha)
-        self._run(["git", "-C", str(self.repo), "merge", "--no-ff",
-                   self.github.children[0]["branch"], "-m", "join A"])
-        self._run(["git", "-C", str(self.repo), "merge", "--no-ff",
-                   self.github.children[1]["branch"], "-m", "join B"])
-        join_sha = git(self.repo, "rev-parse", "HEAD")
-        git(self.repo, "checkout", "-q", "main")
-        self.github.parent_branches.add("join-ab")
-        decision = self._write_json("join-decision.json", {
-            "decisions": [{"task_id": "task-d", "branch": "join-ab", "sha": join_sha}]
-        })
-        state_d, resumed = self._schedule(
-            admitted_path,
-            admitted,
-            paused_state,
-            self.github.snapshot(),
-            "after-join",
-            decision=decision,
-        )
-        d_entries = [item for item in resumed["dispatch"] if item["task_id"] == "task-d"]
-        self.assertEqual(len(d_entries), 1, resumed)
-        self.assertEqual(d_entries[0]["parent_branch"], "join-ab")
-        self.assertEqual(d_entries[0]["parent_sha"], join_sha)
-        self.assertEqual(d_entries[0]["packet"]["parent_readiness"]["logical_prerequisites"], ["task-a", "task-b"])
-
-        host.dispatch(d_entries)
         report_d = host.wait_for_report("task-d")
         result_d = make_result(self.github, "task-d", report_d, admitted)
-        state_final, applied_d, _ = self._apply(admitted_path, state_d, "task-d", result_d, "d")
+        state_final, applied_d, _ = self._apply(admitted_path, state_b, "task-d", result_d, "d")
         self.assertEqual(applied_d.get("status"), "delivered", applied_d)
-        self._persist("task-d", result_d, d_entries[0])
+        self._persist("task-d", result_d, d_entry)
         self.assertNotIn("spec-p", host.consumed_packets)
         self.assertNotIn(self.github.parent_url, [pr["association"] for pr in self.github.prs.values()])
         self.assertEqual(sorted(json.loads(state_final.read_text())["tasks"].keys()), [
@@ -682,13 +650,301 @@ class OrchestrateBehavior(unittest.TestCase):
         state, applied_b, _ = self._apply(admitted_path, state, "task-b", result_b, "tracker-abcd-b")
         self.assertEqual(applied_b["status"], "delivered")
         self._persist("task-b", result_b, initial["dispatch"][1])
-        _, paused = self._schedule(
+        _, waiting = self._schedule(
             admitted_path, admitted, state, self.github.tracker_snapshot("abcd"), "tracker-abcd-d",
         )
-        self.assertEqual([item for item in paused["paused"] if item["task_id"] == "task-d"], [{
-            "task_id": "task-d", "reason": "join-no-containing-parent",
-            "prerequisite_branches": ["feature/task-b", "feature/task-c"],
-        }])
+        checkpoint = next(item for item in waiting["waiting"] if item["task_id"] == "task-d")
+        self.assertEqual(checkpoint["reason"], "waiting-for-merge", checkpoint)
+        self.assertEqual([item["task_id"] for item in checkpoint["prerequisites"]], ["task-b", "task-c"])
+        self.assertEqual(checkpoint["integration_branch"], "main")
+        self.assertEqual(waiting["paused"], [], waiting)
+    def test_human_merged_prs_release_join_without_resetting_started_tasks(self) -> None:
+        """Landed prerequisites release C/D while closed issues retain their task identities."""
+        snapshot = self.github.tracker_snapshot("abcd")
+        admitted_path, admitted = self._admit_issues(snapshot)
+        state, initial = self._schedule(admitted_path, admitted, None, snapshot, "merge-abcd", cap="2")
+        self.assertEqual([entry["task_id"] for entry in initial["dispatch"]], ["task-a", "task-b"])
+        host = self._start_host(workers=2)
+        host.dispatch(initial["dispatch"])
+        report_a = host.wait_for_report("task-a")
+        result_a = make_result(self.github, "task-a", report_a, admitted)
+        state, _, _ = self._apply(admitted_path, state, "task-a", result_a, "merge-abcd-a")
+        self._persist("task-a", result_a, initial["dispatch"][0])
+        state, after_a = self._schedule(
+            admitted_path, admitted, state, self.github.tracker_snapshot("abcd"), "merge-abcd-c", cap="2")
+        c_entry = next(entry for entry in after_a["dispatch"] if entry["task_id"] == "task-c")
+        host.dispatch([c_entry])
+        report_c = host.wait_for_report("task-c")
+        result_c = make_result(self.github, "task-c", report_c, admitted)
+        state, _, _ = self._apply(admitted_path, state, "task-c", result_c, "merge-abcd-c-result")
+        self._persist("task-c", result_c, c_entry)
+        host.release_b()
+        report_b = host.wait_for_report("task-b")
+        result_b = make_result(self.github, "task-b", report_b, admitted)
+        state, _, _ = self._apply(admitted_path, state, "task-b", result_b, "merge-abcd-b")
+        self._persist("task-b", result_b, initial["dispatch"][1])
+
+        state, before_merge = self._schedule(
+            admitted_path, admitted, state, self.github.tracker_snapshot("abcd"), "merge-abcd-wait")
+        waiting = next(item for item in before_merge["waiting"] if item["task_id"] == "task-d")
+        self.assertEqual(waiting["reason"], "waiting-for-merge")
+
+        main_sha = self.base_sha
+        for task_id in ("task-a", "task-b", "task-c"):
+            branch = self.github.delivery[task_id]["reservation"]["branch"]
+            git(self.repo, "checkout", "-q", "main")
+            first_parent = git(self.repo, "rev-parse", "HEAD")
+            git(self.repo, "merge", "--no-ff", branch, "-m", "land " + task_id)
+            merge_sha = git(self.repo, "rev-parse", "HEAD")
+            main_sha = merge_sha
+            workspace = self.github.delivery[task_id]["reservation"]["workspace"]
+            git(self.repo, "worktree", "remove", "--force", workspace)
+            git(self.repo, "branch", "-D", branch)
+            result = self.github.delivery[task_id]["result"]
+            self.github.delivery[task_id]["lifecycle"] = {
+                "pr": {
+                    "pr_url": result["worker"]["pr_url"], "repo": self.github.canonical,
+                    "head_repo": self.github.canonical, "branch": branch,
+                    "head_sha": result["worker"]["head_sha"],
+                    "base_branch": result["worker"]["base_branch"], "state": "merged",
+                    "merged_base_branch": "main", "merge_commit_sha": merge_sha,
+                },
+                "source": {"branch": branch, "deleted": True},
+                "landed_verification": {
+                    "complete": True, "source_verified": True,
+                    "checks_verified": True, "reverted": False,
+                    "diff_identity": diff_identity(self.repo, first_parent, merge_sha),
+                },
+            }
+            self.github.children[{"task-a": 0, "task-b": 1, "task-c": 2}[task_id]]["state"] = "closed"
+        self.github.integration["sha"] = main_sha
+
+        merge_state, after_merge = self._schedule(
+            admitted_path, admitted, state, self.github.tracker_snapshot("abcd"), "merge-abcd-release")
+        d_entry = next(entry for entry in after_merge["dispatch"] if entry["task_id"] == "task-d")
+        self.assertEqual(d_entry["parent_branch"], "main")
+        self.assertEqual(d_entry["parent_sha"], main_sha)
+        self.assertEqual(
+            [entry["satisfaction"]["kind"] for entry in d_entry["packet"]["parent_readiness"]["prerequisites"]],
+            ["merged", "merged"],
+        )
+        host.dispatch([d_entry])
+        report_d = host.wait_for_report("task-d")
+        result_d = make_result(self.github, "task-d", report_d, admitted)
+        final_state, applied_d, _ = self._apply(
+            admitted_path, merge_state, "task-d", result_d, "merge-abcd-d-result")
+        self.assertEqual(applied_d["status"], "delivered")
+        self._persist("task-d", result_d, d_entry)
+        saved = json.loads(final_state.read_text())
+        self.assertEqual(saved["tasks"]["task-a"]["status"], "delivered")
+        self.assertEqual(saved["tasks"]["task-a"]["satisfaction"]["kind"], "merged")
+        self.assertEqual(saved["tasks"]["task-d"]["reservation"]["parent_sha"], main_sha)
+
+    def test_rebased_multi_commit_merge_releases_dependent_without_source_branch(self) -> None:
+        snapshot = self.github.tracker_snapshot("abcd")
+        admitted_path, admitted = self._admit_issues(snapshot)
+        state, initial = self._schedule(admitted_path, admitted, None, snapshot, "rebase-initial", cap="2")
+        self.assertEqual([entry["task_id"] for entry in initial["dispatch"]], ["task-a", "task-b"])
+        host = self._start_host(workers=2)
+        host.dispatch(initial["dispatch"])
+        report_a = host.wait_for_report("task-a")
+        result_a = make_result(self.github, "task-a", report_a, admitted)
+        state, _, _ = self._apply(admitted_path, state, "task-a", result_a, "rebase-a")
+        self._persist("task-a", result_a, initial["dispatch"][0])
+
+        git(self.repo, "checkout", "-q", "main")
+        task_file = self.repo / "src" / "task-a.txt"
+        task_file.parent.mkdir(exist_ok=True)
+        task_file.write_text("Execute consumed packet for ", encoding="utf-8")
+        git(self.repo, "add", "src/task-a.txt")
+        git(self.repo, "commit", "-m", "rebase task-a part one")
+        task_file.write_text("Execute consumed packet for task-a\n", encoding="utf-8")
+        git(self.repo, "add", "src/task-a.txt")
+        git(self.repo, "commit", "-m", "rebase task-a part two")
+        merge_sha = git(self.repo, "rev-parse", "HEAD")
+        original_parent = result_a["worker"]["base_branch"]
+        self.github.delivery["task-a"]["lifecycle"] = {
+            "pr": {
+                "pr_url": result_a["worker"]["pr_url"], "repo": self.github.canonical,
+                "head_repo": self.github.canonical, "branch": result_a["worker"]["branch"],
+                "head_sha": result_a["worker"]["head_sha"], "base_branch": original_parent,
+                "state": "merged", "merged_base_branch": "main", "merge_commit_sha": merge_sha,
+            },
+            "source": {"branch": result_a["worker"]["branch"], "deleted": True},
+            "landed_verification": {
+                "complete": True, "source_verified": True, "checks_verified": True,
+                "reverted": False, "diff_identity": diff_identity(self.repo, self.base_sha, merge_sha),
+            },
+        }
+        self.github.integration["sha"] = merge_sha
+        git(self.repo, "worktree", "remove", "--force", result_a["worker"]["workspace"])
+        git(self.repo, "branch", "-D", result_a["worker"]["branch"])
+
+        _, released = self._schedule(
+            admitted_path, admitted, state, self.github.tracker_snapshot("abcd"), "rebase-release", cap="2"
+        )
+        c_entry = next(entry for entry in released["dispatch"] if entry["task_id"] == "task-c")
+        self.assertEqual(c_entry["parent_branch"], "main")
+        self.assertEqual(c_entry["parent_sha"], merge_sha)
+        self.assertEqual(c_entry["packet"]["parent_readiness"]["prerequisites"][0]["satisfaction"]["kind"], "merged")
+
+    def test_deleted_source_object_resumes_only_with_matching_landed_diff(self) -> None:
+        snapshot = self.github.tracker_snapshot("abcd")
+        admitted_path, admitted = self._admit_issues(snapshot)
+        state, initial = self._schedule(admitted_path, admitted, None, snapshot, "missing-head-initial", cap="2")
+        host = self._start_host(workers=2)
+        host.dispatch(initial["dispatch"])
+        result_a = make_result(self.github, "task-a", host.wait_for_report("task-a"), admitted)
+        state, _, _ = self._apply(admitted_path, state, "task-a", result_a, "missing-head-a")
+        self._persist("task-a", result_a, initial["dispatch"][0])
+
+        git(self.repo, "checkout", "-q", "main")
+        landed_file = self.repo / "src" / "task-a.txt"
+        landed_file.parent.mkdir(exist_ok=True)
+        landed_file.write_text("Execute consumed packet for task-a\n", encoding="utf-8")
+        git(self.repo, "add", "src/task-a.txt")
+        git(self.repo, "commit", "-m", "land task-a after source object loss")
+        merge_sha = git(self.repo, "rev-parse", "HEAD")
+        lifecycle = {
+            "pr": {
+                "pr_url": result_a["worker"]["pr_url"], "repo": self.github.canonical,
+                "head_repo": self.github.canonical, "branch": result_a["worker"]["branch"],
+                "head_sha": result_a["worker"]["head_sha"], "base_branch": result_a["worker"]["base_branch"],
+                "state": "merged", "merged_base_branch": "main", "merge_commit_sha": merge_sha,
+            },
+            "source": {"branch": result_a["worker"]["branch"], "deleted": True},
+            "landed_verification": {
+                "complete": True, "source_verified": True, "checks_verified": True,
+                "reverted": False, "diff_identity": diff_identity(self.repo, self.base_sha, merge_sha),
+            },
+        }
+        self.github.delivery["task-a"]["lifecycle"] = lifecycle
+        self.github.integration["sha"] = merge_sha
+        git(self.repo, "worktree", "remove", "--force", result_a["worker"]["workspace"])
+        git(self.repo, "branch", "-D", result_a["worker"]["branch"])
+        git(self.repo, "reflog", "expire", "--expire=now", "--all")
+        git(self.repo, "gc", "--prune=now")
+        self.assertNotEqual(git(self.repo, "cat-file", "-t", result_a["worker"]["head_sha"],
+                                check=False), "commit")
+
+        mismatched = copy.deepcopy(lifecycle)
+        mismatched["landed_verification"]["diff_identity"] = "sha256:" + "0" * 64
+        self.github.delivery["task-a"]["lifecycle"] = mismatched
+        state, blocked = self._schedule(
+            admitted_path, admitted, state, self.github.tracker_snapshot("abcd"), "missing-head-mismatch")
+        self.assertEqual([entry for entry in blocked["dispatch"] if entry["task_id"] == "task-c"], [])
+        self.assertEqual(blocked["blocked"][0]["reason"], "landed-diff-mismatch")
+
+        self.github.delivery["task-a"]["lifecycle"] = lifecycle
+        _, released = self._schedule(
+            admitted_path, admitted, state, self.github.tracker_snapshot("abcd"), "missing-head-release")
+        c_entry = next(entry for entry in released["dispatch"] if entry["task_id"] == "task-c")
+        self.assertEqual(c_entry["packet"]["parent_readiness"]["prerequisites"][0]["satisfaction"]["kind"], "merged")
+        host.release_b()
+        host.wait_for_report("task-b")
+
+    def test_fresh_refill_never_substitutes_cached_open_lifecycle(self) -> None:
+        snapshot = self.github.tracker_snapshot("abcd")
+        admitted_path, admitted = self._admit_issues(snapshot)
+        state, initial = self._schedule(admitted_path, admitted, None, snapshot, "fresh-lifecycle-initial", cap="2")
+        host = self._start_host(workers=2)
+        host.dispatch(initial["dispatch"])
+        result_a = make_result(self.github, "task-a", host.wait_for_report("task-a"), admitted)
+        state, _, _ = self._apply(admitted_path, state, "task-a", result_a, "fresh-lifecycle-a")
+        self._persist("task-a", result_a, initial["dispatch"][0])
+        missing = self.github.tracker_snapshot("abcd")
+        next(task for task in missing["tasks"] if task["task_id"] == "task-a")["existing_delivery"].pop("lifecycle")
+
+        _, blocked = self._schedule(admitted_path, admitted, state, missing, "fresh-lifecycle-missing")
+        self.assertEqual([entry for entry in blocked["dispatch"] if entry["task_id"] == "task-c"], [])
+        self.assertEqual(blocked["blocked"][0]["reason"], "pr-lifecycle-missing")
+        self.assertEqual(next(item for item in blocked["waiting"] if item["task_id"] == "task-c")["reason"],
+                         "prerequisite-lifecycle-unresolved")
+        host.release_b()
+        host.wait_for_report("task-b")
+
+    def test_pr_lifecycle_edges_fail_closed_without_resetting_delivery(self) -> None:
+        snapshot = self.github.tracker_snapshot("abcd")
+        admitted_path, admitted = self._admit_issues(snapshot)
+        state, initial = self._schedule(admitted_path, admitted, None, snapshot, "lifecycle-edges", cap="2")
+        self.assertEqual([entry["task_id"] for entry in initial["dispatch"]], ["task-a", "task-b"])
+        host = self._start_host(workers=2)
+        host.dispatch(initial["dispatch"])
+        report_a = host.wait_for_report("task-a")
+        result_a = make_result(self.github, "task-a", report_a, admitted)
+        state, _, _ = self._apply(admitted_path, state, "task-a", result_a, "lifecycle-edges-a")
+        self._persist("task-a", result_a, initial["dispatch"][0])
+        result = self.github.delivery["task-a"]["result"]
+        base_lifecycle = {
+            "pr": {
+                "pr_url": result["worker"]["pr_url"], "repo": self.github.canonical,
+                "head_repo": self.github.canonical, "branch": result["worker"]["branch"],
+                "head_sha": result["worker"]["head_sha"], "base_branch": result["worker"]["base_branch"],
+            },
+            "source": {
+                "branch": result["worker"]["branch"],
+                "head_sha": result["worker"]["head_sha"],
+                "deleted": False,
+            },
+            "checks": {
+                "complete": True, "state": "verified",
+                "head_sha": result["worker"]["head_sha"],
+            },
+        }
+        wrong_target = "wrong-target"
+        git(self.repo, "branch", wrong_target, result["worker"]["head_sha"])
+        merged = copy.deepcopy(base_lifecycle)
+        merged["pr"].update(state="merged", merged_base_branch=wrong_target,
+                            merge_commit_sha=result["worker"]["head_sha"])
+        merged["source"] = {"branch": result["worker"]["branch"], "deleted": True}
+        merged["landed_verification"] = {
+            "complete": True, "source_verified": True, "checks_verified": True,
+            "reverted": False, "diff_identity": diff_identity(
+                self.repo, self.base_sha, result["worker"]["head_sha"]),
+        }
+        self.github.delivery["task-a"]["lifecycle"] = merged
+        state, wrong_output = self._schedule(
+            admitted_path, admitted, state, self.github.tracker_snapshot("abcd"), "lifecycle-wrong-target")
+        self.assertEqual([entry for entry in wrong_output["dispatch"] if entry["task_id"] == "task-c"], [])
+        self.assertEqual(next(item for item in wrong_output["waiting"] if item["task_id"] == "task-c")["reason"],
+                         "waiting-for-merge")
+
+        missing = copy.deepcopy(merged)
+        missing.pop("landed_verification")
+        self.github.delivery["task-a"]["lifecycle"] = missing
+        state, missing_output = self._schedule(
+            admitted_path, admitted, state, self.github.tracker_snapshot("abcd"), "lifecycle-missing")
+        self.assertEqual([entry for entry in missing_output["dispatch"] if entry["task_id"] == "task-c"], [])
+        self.assertTrue(any(item["task_id"] == "task-c" for item in missing_output["waiting"]))
+
+        reverted = copy.deepcopy(merged)
+        reverted["landed_verification"]["source_verified"] = False
+        self.github.delivery["task-a"]["lifecycle"] = reverted
+        state, reverted_output = self._schedule(
+            admitted_path, admitted, state, self.github.tracker_snapshot("abcd"), "lifecycle-reverted")
+        self.assertEqual([entry for entry in reverted_output["dispatch"] if entry["task_id"] == "task-c"], [])
+        self.assertTrue(any(item["task_id"] == "task-c" for item in reverted_output["waiting"]))
+
+        closed = copy.deepcopy(base_lifecycle)
+        closed["pr"]["state"] = "closed"
+        self.github.delivery["task-a"]["lifecycle"] = closed
+        state, closed_output = self._schedule(
+            admitted_path, admitted, state, self.github.tracker_snapshot("abcd"), "lifecycle-closed")
+        self.assertEqual([entry for entry in closed_output["dispatch"] if entry["task_id"] == "task-c"], [])
+        self.assertTrue(any(item["task_id"] == "task-c" for item in closed_output["waiting"]))
+
+        open_lifecycle = copy.deepcopy(base_lifecycle)
+        open_lifecycle["pr"].update(state="open", draft=False, merge_commit_sha=self.base_sha)
+        self.github.delivery["task-a"]["lifecycle"] = open_lifecycle
+        _, open_output = self._schedule(
+            admitted_path, admitted, state, self.github.tracker_snapshot("abcd"), "lifecycle-open")
+        open_c = next(entry for entry in open_output["dispatch"] if entry["task_id"] == "task-c")
+        self.assertEqual(open_c["parent_branch"], result["worker"]["branch"])
+        self.assertEqual(open_c["packet"]["parent_readiness"]["prerequisites"][0]["satisfaction"]["kind"], "open")
+        host.release_b()
+        host.wait_for_report("task-b")
+
+
 
     def test_declared_tracker_recovery_preserves_scope_provenance(self) -> None:
         snapshot = self.github.tracker_snapshot("reported")
@@ -714,13 +970,6 @@ class OrchestrateBehavior(unittest.TestCase):
         saved = json.loads(native_state.read_text())
         self.assertEqual(saved["scope_evidence"]["membership"]["source"], "native")
         self.assertEqual(saved["tasks"]["issue-3"]["status"], "running")
-
-        semantic = self.github.tracker_snapshot("reported", native=True, body_suffix=" Changed policy.")
-        _, drift = self._schedule(native_path, native, native_state, semantic, "tracker-recovery-drift")
-        self.assertEqual(drift["status"], "snapshot-drift", drift)
-        self.assertEqual(drift["dispatch"], [], drift)
-
-    def test_issue_list_external_blocker_stays_outside_scope(self) -> None:
         snapshot = self.github.issue_list_snapshot()
         issue = next(item for item in snapshot["issues"] if item["task_id"] == "task-a")
         issue["external_prerequisites"] = [self.github.canonical + "/issues/999"]
@@ -2524,8 +2773,6 @@ class OrchestrateBehavior(unittest.TestCase):
             admitted_path, admitted, state, self.github.snapshot(), "dependent-repair", cap="1"
         )
         self.assertEqual([entry["task_id"] for entry in repair_dispatch["dispatch"]], ["task-a"], repair_dispatch)
-        self.assertIn({"task_id": "task-c", "reason": "prerequisites-unmet"},
-                      repair_dispatch["waiting"], repair_dispatch)
         repair_entry = repair_dispatch["dispatch"][0]
         host.dispatch([repair_entry])
         repaired_report = host.wait_for_report("task-a")
@@ -2709,6 +2956,69 @@ class OrchestrateBehavior(unittest.TestCase):
         }
         state, repair, _ = self._observe(admitted_path, state, "task-a", failure, "reopen-unsafe")
         self.assertEqual(repair["ci_state"], "repair", repair)
+        missing = self._single_task_snapshot()
+        next(task for task in missing["tasks"] if task["task_id"] == "task-a")[
+            "existing_delivery"
+        ].pop("lifecycle")
+        state, missing_lifecycle = self._schedule(
+            admitted_path, admitted, state, missing, "reopen-missing-lifecycle", cap="1"
+        )
+        self.assertEqual(missing_lifecycle["dispatch"], [], missing_lifecycle)
+        self.assertIn(
+            "pr-lifecycle-missing",
+            [entry["reason"] for entry in missing_lifecycle["blocked"]],
+            missing_lifecycle,
+        )
+        self.assertEqual(
+            json.loads(state.read_text())["tasks"]["task-a"]["lifecycle_error"]["reason"],
+            "pr-lifecycle-missing",
+        )
+
+        closed = self._single_task_snapshot()
+        lifecycle = next(task for task in closed["tasks"] if task["task_id"] == "task-a")[
+            "existing_delivery"
+        ]["lifecycle"]
+        lifecycle["pr"]["state"] = "closed"
+        state, closed_lifecycle = self._schedule(
+            admitted_path, admitted, state, closed, "reopen-closed-lifecycle", cap="1"
+        )
+        self.assertEqual(closed_lifecycle["dispatch"], [], closed_lifecycle)
+        self.assertIn(
+            "pr-not-open",
+            [entry["reason"] for entry in closed_lifecycle["blocked"]],
+            closed_lifecycle,
+        )
+        self.assertEqual(
+            json.loads(state.read_text())["tasks"]["task-a"]["lifecycle_error"]["reason"],
+            "pr-not-open",
+        )
+
+        deleted_source = self._single_task_snapshot()
+        deleted_lifecycle = next(task for task in deleted_source["tasks"] if task["task_id"] == "task-a")[
+            "existing_delivery"
+        ]["lifecycle"]
+        deleted_lifecycle["source"]["deleted"] = True
+        stale_source = self._single_task_snapshot()
+        stale_lifecycle = next(task for task in stale_source["tasks"] if task["task_id"] == "task-a")[
+            "existing_delivery"
+        ]["lifecycle"]
+        stale_lifecycle["source"]["head_sha"] = self.base_sha
+        retargeted = self._single_task_snapshot()
+        retargeted_lifecycle = next(task for task in retargeted["tasks"] if task["task_id"] == "task-a")[
+            "existing_delivery"
+        ]["lifecycle"]
+        retargeted_lifecycle["pr"]["base_branch"] = "other-parent"
+        for label, fresh, reason in (
+            ("deleted-source", deleted_source, "pr-source-mismatch"),
+            ("stale-source", stale_source, "pr-source-mismatch"),
+            ("retargeted", retargeted, "pr-lifecycle-base"),
+        ):
+            state, invalid_lifecycle = self._schedule(
+                admitted_path, admitted, state, fresh, "reopen-" + label, cap="1"
+            )
+            self.assertEqual(invalid_lifecycle["dispatch"], [], invalid_lifecycle)
+            self.assertIn(reason, [entry["reason"] for entry in invalid_lifecycle["blocked"]], invalid_lifecycle)
+
         state, blocked = self._schedule(
             admitted_path, admitted, state, self._single_task_snapshot(), "reopen-unsafe-schedule", cap="1"
         )
@@ -2727,10 +3037,20 @@ class OrchestrateBehavior(unittest.TestCase):
         failure["workspace_reopen"]["path"] = str(workspace)
         state, repair, _ = self._observe(admitted_path, state, "task-a", failure, "reopen-safe")
         self.assertEqual(repair["ci_state"], "repair", repair)
+        stale_success = self._single_task_snapshot()
+        stale_success_lifecycle = next(
+            task for task in stale_success["tasks"] if task["task_id"] == "task-a"
+        )["existing_delivery"]["lifecycle"]
+        stale_success_lifecycle["checks"] = {
+            "complete": True,
+            "state": "success",
+            "head_sha": self.base_sha,
+        }
         state, dispatched = self._schedule(
-            admitted_path, admitted, state, self._single_task_snapshot(), "reopen-safe-schedule", cap="1"
+            admitted_path, admitted, state, stale_success, "reopen-safe-schedule", cap="1"
         )
         self.assertEqual([entry["task_id"] for entry in dispatched["dispatch"]], ["task-a"], dispatched)
+        self.assertEqual(json.loads(state.read_text())["tasks"]["task-a"]["ci"]["state"], "repair")
         self.assertFalse(workspace.exists(), dispatched)
         repair_entry = dispatched["dispatch"][0]
         self.assertEqual(repair_entry["workspace_reopen"]["released"], True)

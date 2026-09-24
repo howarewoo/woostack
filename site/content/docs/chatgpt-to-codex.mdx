@@ -95,7 +95,7 @@ Draft the fewest coherent PR-sized issues covering the outcome. Each issue must 
 - genuine prerequisite task IDs, later bound to real issue URLs/native IDs;
 - inspected planning branch/SHA and Git-parent-selection policy.
 Verify named commands/files exist, are created in that issue, or are supplied by a declared prerequisite. No invented runnable checks or unresolved product choices disguised as executable work. Use one specification tracker and one-level issue plan, not nested containers.
-Prerequisites form an acyclic graph, not an ordinal chain. Sibling membership and checklist order create no dependencies. Root tasks use the approved integration branch; a dependent can stack on an unmerged prerequisite branch. If no single branch contains all required prerequisite changes, pause only that joining child for my explicit parent/integration decision. Do not create an integration branch, combine branches, rewrite edges, or require an automatic merge. Resumption requires verified containment, not just my naming a branch.
+Prerequisites form an acyclic graph, not an ordinal chain. Sibling membership and checklist order create no dependencies. Root tasks use the approved integration branch; a dependent can stack on an unmerged prerequisite branch when current containment and readiness are verified. If no single existing branch contains all required prerequisite changes, Orchestrate pauses only that joining child as `waiting-for-merge`; this is a normal task-local checkpoint, not a request for an integration strategy. Continue unrelated work, preserve the same graph, and do not create an integration branch, combine branches, rewrite edges, or require an automatic merge. Ask for a decision only when material parent ambiguity remains; resumption requires verified containment, not just a branch name.
 Harden issue contracts and graph as well as the specification: check acceptance coverage, scope, actual verification prerequisites, unique positive ordinals and task identities, duplicate/self edges, cycles, and missing/foreign endpoints. The readable index must distinguish executable issues from design/context issues, baseline/example PRs, exclusions, history, external prerequisites, and the tracker itself. A phase label such as #9-A/#9-B stays inside issue #9; it is not another issue or duplicate writer. Native containment, logical prerequisites, and Git branch ancestry are three separate facts.
 
 5. Publish only approved content through supported GitHub operations.
@@ -108,7 +108,7 @@ On a timeout or unknown issue create, fully rediscover open and closed issues fo
 Do not assign people, alter unrelated records, start execution, or close tracker/issue records or Projects.
 
 6. Stop with the planning handoff.
-Return the canonical tracker URL and real native identity, every issue link/identity, exact readable implementation index, declared or native graph with provenance, independently runnable issues, phase-specific limitations, join decisions, complete handback, successful-read evidence, and exact setup gaps. State honestly whether native Plan-style relationships were verified. Either verified tracker form has this separate coding-host command:
+Return the canonical tracker URL and real native identity, every issue link/identity, exact readable implementation index, declared or native graph with provenance, independently runnable issues, phase-specific limitations, expected `waiting-for-merge` checkpoints, complete handback, successful-read evidence, and exact setup gaps. State honestly whether native Plan-style relationships were verified. Either verified tracker form has this separate coding-host command:
 /woostack-orchestrate --issue <verified canonical tracker URL>
 Then STOP. Do not invoke it. The user supplies the planning handback; Orchestrate independently reads the tracker and every selected issue, resolves executable tasks and dependencies with or without native links, and asks about material ambiguity. A selected Project may provide status-lifecycle context only when explicitly requested; it is not required. A tracker receives no worker or PR. Planning/publication authorizes neither implementation in this chat nor merging. Execute later owns each selected issue's implementation, checks, and PR submission under repository policy. In a coding host, the preparation wrapper or independently invoked public phases ending in Plan produce a stricter native publication handoff; those are alternatives, not prerequisites for this chat prompt.
 
@@ -145,8 +145,12 @@ flowchart LR
 | D | Direct child of P | B and C | One verified branch containing both prerequisite changes; otherwise pause D |
 
 Orchestrate can dispatch A and B together within the actual host's capacity. After independent
-verification of A's delivery, C can stack on A without waiting for B or a merge. If B and C are
-on divergent branches, only D pauses for your explicit parent/integration decision. Naming a branch
+verification of A's delivery and current readiness, C can stack on A without waiting for B or a
+merge. Technical prerequisites remain a DAG; a deliberately recorded pre-execution order may guide
+safe execution without changing those requirements. If B and C are on divergent branches and no
+existing branch contains both, only D enters the human-merge `waiting-for-merge` checkpoint;
+unrelated work continues and no integration strategy is requested. This fallback covers divergent
+work, fixed-parent or independent-landing constraints, or no safe suitable stack. A branch name
 alone does not resolve the join: its containment must be verified. The workflow never creates an
 automatic integration branch, combines branches, rewrites edges to avoid the join, or merges a PR.
 
@@ -186,7 +190,7 @@ D: https://github.com/woostack-fixture/catalog/issues/105 — catalog-combined, 
 These are real returned identities only within the mock transcript; the index is finalized after native containment read-back. P is a specification scope, not an executable task, dependency endpoint, worker, worktree, or PR.
 
 ## Git parents and stop boundary
-A/B start at the approved main tip after fresh ancestry admission. C may stack on A's verified delivered unmerged branch. D requires one verified branch containing B and C; otherwise pause D alone for the user's parent/integration decision. Do not create an integration branch or merge. Publication ends at verified issues. A separate user invocation of Orchestrate is required for execution.
+A/B start at the approved main tip after fresh ancestry admission. C may stack on A's verified delivered unmerged branch when current readiness is eligible. D requires one existing verified branch containing B and C; if none exists, D alone enters `waiting-for-merge` while unrelated work continues. This is not a request for the user's parent/integration decision. Do not create an integration branch, combine branches, rewrite the graph, or merge. Publication ends at verified issues; a separate user invocation of Orchestrate resumes the same graph.
 ```
 
 ```markdown title="Mock child A: standalone implementation contract"

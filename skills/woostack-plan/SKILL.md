@@ -118,10 +118,13 @@ prerequisite. Preserve existing exact edges unless the approved specification ex
 prerequisite set; never add or remove edges to match ordinal adjacency.
 
 A root records its approved integration parent branch. A dependent records every prerequisite and the
-policy for resolving one concrete Git parent branch and SHA from verified delivered branches at
+policy for resolving one concrete existing Git parent branch and SHA from verified delivered branches at
 dispatch. Plan never guesses a branch, creates an integration branch, or rewrites dependencies.
-Orchestrate is the separate graph consumer. A join without one verified parent containing all required
-changes remains a valid plan but pauses that child for an explicit parent/integration decision.
+Orchestrate is the separate graph consumer. It first tries the approved integration branch and then an
+existing verified unmerged prerequisite branch when stacking is permitted. A join without one such
+parent remains a valid plan and becomes a local `waiting-for-merge` checkpoint in Orchestrate; it does
+not require another Plan invocation, parent decision, native relationship write, or graph rewrite.
+Ask for a decision only when material parent ambiguity remains.
 
 Bounded Execute accepts one complete bounded task per invocation and is not a DAG dispatcher. A
 branching, multi-root, or join graph is not handed to Execute as a runnable whole; retain it for
@@ -166,8 +169,10 @@ Return the exact canonical repository and admitted revision, selected scope, com
 child contracts, actual parent and child URLs/native identities, explicit prerequisite sets and
 parent-selection policies, repository assumptions/effects, verification-command provenance, native
 parent read-back, exact normalized graph, mutation/read counts, stable recovery identities, and any
-missing relation or unresolved join. Parent mode reports the specification parent separately from the
-child task index.
+missing relation. Report a join without a currently verified existing parent as an expected
+execution-time `waiting-for-merge` condition, not as a planning defect or a request for a new
+integration strategy. Parent mode reports the specification parent separately from the child task
+index.
 
 When required relationships are verified, return the complete planning handback and a separate
 orchestration suggestion. A canonical tracker URL or selected Project URL is a convenience hint for

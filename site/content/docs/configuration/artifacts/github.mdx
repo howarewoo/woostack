@@ -123,15 +123,13 @@ normalize back into the same order with both endpoints verified. Stable ordinals
 tie-breaking, not dependencies or Git ancestry. Existing chain edges are preserved unless the approved plan explicitly changes them.
 
 Each root records its approved integration parent. Dependents record their prerequisites and a
-parent-selection policy. The concrete parent may be a declared predecessor or an explicitly approved
-integration branch/SHA containing every prerequisite change. The latter need not itself be a
-predecessor task or have its own PR: verify canonical branch/SHA ancestry and every prerequisite's
-complete delivery evidence, plus the integration parent's PR evidence whenever that PR exists.
-Before checkout, the caller selecting a bounded task must
-supply that parent and complete prerequisite-readiness evidence under the
-[workspace/ancestry guidance](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/worktrees.md#repository-and-ancestry-evidence).
-A join without one parent containing all required changes remains valid but cannot run until an
-explicit parent/integration decision is made. Planning never creates an automatic integration branch.
+parent-selection policy. At execution, Orchestrate first considers the approved integration branch
+and then an existing verified unmerged prerequisite branch when stacking is permitted. A candidate
+must have the recorded branch/SHA and prove canonical ancestry for every current prerequisite; a
+multi-dependency task may stack when one existing branch already contains all requirements. If no
+candidate exists, the join remains valid and becomes a task-local `waiting-for-merge` checkpoint;
+it does not request an integration strategy. Planning never creates an automatic integration
+branch, combines branches, or rewrites the graph.
 
 Publication validates the complete graph before mutations and independently reads back every issue,
 native hierarchy, selected membership, and exact edge. Missing or foreign endpoints, ambiguous
@@ -139,10 +137,10 @@ identities, cycles, and incomplete pagination block; they do not expand selected
 
 Execute accepts one selected bounded task, not a complete DAG. A task from any valid DAG may use
 [ordinary Execute admission](/docs/skills/woostack-execute#admit-one-task) when its concrete parent and
-complete prerequisite-readiness evidence are supplied; an unresolved join parent blocks that task.
-An explicit [Orchestrate](/docs/skills/woostack-orchestrate) invocation interprets the complete
-planning handback or other understandable work context, resolves executable tasks and a bounded DAG,
-and dispatches ready tasks through isolated Execute workers.
+complete prerequisite-readiness evidence are supplied; an unresolved join remains waiting rather
+than a request for a new parent. An explicit [Orchestrate](/docs/skills/woostack-orchestrate)
+invocation interprets the complete planning handback or other understandable work context, resolves
+executable tasks and a bounded DAG, and dispatches ready tasks through isolated Execute workers.
 
 Plan's only supported publication scopes are the explicit GitHub Project and parent-issue selectors
 above; both retain the same prerequisite DAG and read-back contract. For Orchestrate, `--issue`,
