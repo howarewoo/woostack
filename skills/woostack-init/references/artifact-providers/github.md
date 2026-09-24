@@ -22,6 +22,14 @@ Project destination; Orchestrate reads the canonical repository and the issue/ta
 resolve the user's work. For Orchestrate, a Project is included only when explicitly selected; its
 status lifecycle is used only when that selection requests status mutation.
 
+Orchestrate's tracker interpretation is read-only and has different evidence requirements. An exact
+`--issue` tracker may use a complete verified implementation index to establish membership when
+native child hierarchy is absent, partial, or unavailable. Read every selected issue, preserve
+native/declared/inferred edge provenance, and disclose failed relation reads honestly; declared
+membership never becomes `actual_parent` or a fabricated native receipt. This relaxation does not
+weaken Plan: Plan parent/Project publication still requires its native relationship capabilities and
+complete read-back before it calls the publication verified.
+
 - Plan parent-issue publication uses the canonical repository plus `--parent-issue new` or one
   exact existing parent issue URL. Orchestrate may receive an issue URL as a convenience hint, but
   admission is resolved from the understood conversation, repository, and tracker context.
@@ -63,11 +71,14 @@ silently adopt a foreign issue.
 
 Plan normalizes every direct child with a stable task identity, a positive ordinal, and a complete
 declared predecessor set. Orchestrate instead resolves each executable task from the admitted
-conversation, repository, and issue/task evidence, then records native, declared, or inferred edge
-provenance separately. Ordinals are display/order metadata, not an implicit dependency chain.
-Reject duplicate or missing task identities, foreign predecessor references, self-dependencies,
-cycles, and edges whose endpoints were not independently read in the admitted exact scope. A blocked
-external prerequisite remains blocked; it never widens the scope or becomes an invented task.
+conversation, repository, tracker/specification, and real issue evidence, then records native,
+declared, or inferred edge provenance separately. An exact tracker's complete readable
+implementation index can declare the executable set without a native child hierarchy; every named
+issue must still be independently readable and context-only references must be excluded. Ordinals
+are display/order metadata, not an implicit dependency chain. Reject duplicate or missing task
+identities, foreign predecessor references, self-dependencies, cycles, and edges whose endpoints
+were not independently read in the admitted exact scope. A blocked external prerequisite remains
+blocked; it never widens the scope or becomes an invented task.
 
 ## Direct issue publication
 
@@ -88,9 +99,14 @@ reading the one ownership-valid match. Never allocate another marker or replay a
 native identity once after independent read-back. Existing missing links are drift, not permission to
 adopt unrelated issues.
 
-This native publication shape belongs to Plan. Orchestrate interprets the resulting planning
-handback or other understandable tracker context; native child links are evidence, not an admission
-requirement. Bounded Execute still admits one complete task.
+This native publication shape belongs to Plan. Orchestrate interprets the planning handback or other
+understandable tracker context; native child links are evidence, not an admission requirement. The
+readable index must enumerate exactly the intended implementation issues and their genuine
+prerequisite declarations so later Orchestrate reads can safely interpret either native or declared
+membership. Missing native relationship operations in a chat-created tracker do not erase that
+declared execution scope, but they cannot be reported as successful Plan native publication.
+Orchestrate still performs its own issue, contract, dependency, and repository validation. Bounded
+Execute admits one complete task.
 
 ## Selected Project content
 

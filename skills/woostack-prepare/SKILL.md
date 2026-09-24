@@ -12,6 +12,10 @@ Orchestrate may also interpret other understandable tracker content. Prepare nev
 implementation source, creates a source branch or worktree, commits, opens a pull request, dispatches
 workers, or invokes Execute or Orchestrate.
 
+Prepare reports Plan's native publication state truthfully. If another authorized chat route creates
+the complete issues and readable index but cannot install native relationships, those issues remain
+declared Orchestrate input after independent reads; they are not a successful native Plan result.
+
 ## Command
 
 ```text
@@ -99,13 +103,15 @@ successful result reports:
 The command is a handoff hint, not an exhaustive Orchestrate admission type. The user may instead
 provide the complete handback or understandable tracker content in conversation. Orchestrate resolves
 executable tasks and a bounded dependency DAG from the available evidence, preserves edge
-provenance, and asks a focused question when material ambiguity remains; native links are not
-required for that interpretation. A parent-only result, missing child, missing native hierarchy link,
-missing prerequisite capability, partial pagination, unknown mutation outcome, or incomplete
-read-back is not a complete Plan publication or verified handoff. Preserve every confirmed URL/ID and
-resume Plan at the first unproved relationship or read-back boundary; never replay a create, allocate
-a replacement, or call partial publication a harmless mirror warning. The exact existing parent and
-child IDs are the recovery identity.
+provenance, and asks a focused question when material ambiguity remains. It accepts a complete
+readable implementation index without native links only after independently reading every selected
+issue and resolving its contract. A parent-only result, missing child/contract, ambiguous membership,
+unknown dependency meaning, partial pagination of a required successful read, unknown mutation
+outcome, or incomplete Plan read-back is not a complete Plan publication. Preserve every confirmed
+URL/ID and resume Plan at its first unproved relationship or read-back boundary; never replay a
+create, allocate a replacement, or call partial Plan publication a harmless mirror warning. The exact
+existing parent and child IDs are the recovery identity. Independently verified declared tracker
+content may be offered to Orchestrate without claiming those missing native relationships exist.
 
 A valid graph may contain independent roots, forks, chains, and joins. Ordinals never imply edges.
 The parent is a scope container, not a task or dependency endpoint. A join that lacks one verified

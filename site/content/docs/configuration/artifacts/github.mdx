@@ -1,15 +1,17 @@
 ---
-title: GitHub
-description: Reference for GitHub configuration, direct issue publication, model-led orchestration context, and lifecycle behavior.
+title: GitHub artifacts
+description: Direct issue-graph publication, declared tracker handoffs, and lifecycle boundaries.
 ---
 
-Prepare and Plan use complete plain packets and direct GitHub issue publication. Plan publishes to
-its exact parent or Project destination and does not require a local run or second remote record in
-parent mode. Orchestrate may later interpret the complete handback or understandable tracker context
-without requiring native links. Legacy managed-provider configuration and historical records are not
-migrated or rewritten.
-
-## Configuration
+The canonical implementation rules live in the
+[artifact contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-backends.md#direct-publication-and-recovery)
+and the [GitHub profile](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-providers/github.md#configuration-and-scope).
+Plan owns direct publication and keeps native relationship capabilities and read-back strict.
+Orchestrate is read-only when interpreting a tracker: a complete readable implementation index can
+establish declared membership when native child links are absent, partial, or unavailable, provided
+every selected issue and contract is independently readable. Missing native metadata is not a reason
+to reject a complete declared scope, but it is never reported as a successful native read or Plan
+publication.
 
 For explicit Project workflows, replace the example owner and status options with verified values from
 your GitHub account or organization. The five status options must exist on the selected single-select
@@ -49,16 +51,17 @@ reads, and token forwarding are forbidden.
 ### Transport capabilities and boundaries
 
 Preflight only the capabilities needed by the selected operation through the authorized GitHub
-interface. Parent-issue publication needs issue, native parent/sub-issue, and dependency reads/writes,
-complete pagination, and independent read-back. Issue-write access does not prove native
-relationship-write access. Project publication additionally requires the selected Project and
+interface. Plan parent-issue publication needs issue, native parent/sub-issue, and dependency
+reads/writes, complete pagination, and independent read-back. Issue-write access does not prove
+native relationship-write access. Project publication additionally requires the selected Project and
 membership operations; Status operations are required only when status mutation is explicitly
-selected. Unavailable Project access does not block parent-only publication. A read-only task must
-not require unrelated write/delete access.
+selected. Unavailable Project access does not block parent-only Plan publication. Orchestrate's
+read-only tracker interpretation can proceed from a complete readable implementation index and
+independently read selected issues when native relationship reads are unavailable; it never mutates
+relationships or issues. Unsupported or unknown required capabilities, unauthorized scopes, another
+operation's markers, unexpected changes, or partial responses stop the relevant GitHub operation. No
+test mutation is used to prove publication permissions.
 
-Unsupported or unknown required capabilities, unauthorized scopes, another operation's markers,
-unexpected changes, or partial responses stop the GitHub operation. No test mutation is used to
-prove publication permissions.
 
 ## Identities, hierarchy, and graph
 
@@ -108,8 +111,10 @@ with the parent stored separately in the spec item when applicable. Direct and c
 retain publication identities and the last verified boundary in their handback without creating a local run.
 
 Parent-issue planning is planning only. Orchestrate interprets the planning handback or other
-understandable issue/task context; native child links are evidence, not an admission requirement.
-Bounded Execute still admits one complete task.
+understandable issue/task context; a complete readable tracker index can establish declared
+membership without native child links, but every selected issue and contract still needs independent
+reads. Missing native metadata is not successful native Plan publication. Bounded Execute still
+admits one complete task.
 
 GitHub plans use explicit prerequisite graphs. Independent roots, forks, chains, and joins are valid;
 only genuine prerequisites become native `blocked-by` edges. Each edge is a `[prerequisite, dependent]`

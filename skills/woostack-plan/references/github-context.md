@@ -46,10 +46,12 @@ endpoint identities verified. Ordinal adjacency never alters the admitted edge s
 
 For parent mode, completely read the selected top-level parent (or reserve the distinct parent marker
 for `new`), its full managed specification/index span, every paginated direct child, every child's
-actual native parent and complete contract, and all dependency pages. A readable index is not native
-containment. Nested, foreign, conflicting, missing, ambiguous, stale, or partially paginated state
-blocks before mutation. The specification parent is stored separately as `specItem`; it is never a
-task mapping or dependency endpoint.
+actual native parent and complete contract, and all dependency pages. The managed index must also
+enumerate the exact intended implementation set and prerequisite declarations, so it remains useful
+to a later read-only tracker consumer even if native relationship metadata is absent. A readable
+index is not native containment. Nested, foreign, conflicting, missing, ambiguous, stale, or
+partially paginated state blocks before mutation. The specification parent is stored separately as
+`specItem`; it is never a task mapping or dependency endpoint.
 
 Parent and child marker UUIDs are retained in the active Plan handback. On an unknown create response,
 repeat complete open/closed canonical-repository discovery for the same marker. Recover one ownership-

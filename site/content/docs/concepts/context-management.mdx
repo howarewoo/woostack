@@ -6,8 +6,9 @@ description: "How woostack keeps context small while preserving repository truth
 Context is the information an agent has available while working. Keep it small enough to use without
 dropping the approved scope or the evidence needed to check a result. Git and GitHub show code and
 PR state. Retained `.woostack/tmp/runs/<run-id>/` records are historical user data; Prepare and Plan
-use complete plain packets and a directly verified GitHub issue graph.
-
+use complete plain packets and a directly verified GitHub issue graph. Orchestrate may independently
+read a complete readable tracker/index and executable issues when native relationships are absent,
+partial, or unavailable, while preserving declared versus native evidence.
 Direct Plan publication reads only an exact GitHub Project or explicit parent-issue selector. A title,
 nearby branch, cached remote description, or artifact text cannot select a destination or grant
 permission to work.

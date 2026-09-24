@@ -58,10 +58,12 @@ allowed.
   suitable or host-authenticated `gh`) for issue admission and later exact Commit association. It
   does not select artifact mirroring or require Project configuration; and
 - Orchestrate uses authorized GitHub reads for the canonical repository and the issue/task context it
-  resolves from the conversation, repository, or tracker records. Native links and declared edges
-  are evidence when present; it does not publish an inferred hierarchy or infer a Project. A Project
-  is included only when explicitly selected, and its status lifecycle is used only when that selection
-  requests status mutation.
+  resolves from the conversation, repository, or tracker records. A complete implementation index
+  in an exact tracker can establish declared membership when native hierarchy is absent, partial, or
+  unavailable; every selected issue and its contract is still read independently. Native links and
+  declared edges remain distinct evidence. It does not publish an inferred/declared hierarchy or
+  infer a Project. A Project is included only when explicitly selected, and its status lifecycle is
+  used only when that selection requests status mutation.
 
 ## Retained data and retirement
 
@@ -81,17 +83,21 @@ an old Project as a current direct-publication scope.
 Plan publishes directly to one exact GitHub scope selected by the caller:
 
 - `--parent-issue new` allocates one specification parent, or an exact existing parent URL is read and
-  admitted; native direct children and declared blocked-by edges are the planning handoff.
+  admitted; native direct children and declared blocked-by edges are the strict Plan publication
+  handoff. The parent must contain a complete readable implementation index and dependency
+  declarations so the handoff remains usable if a later consumer observes the issues but not those
+  native links.
 - `--project <exact URL>` is an explicit optional Project path. It reads and writes only the admitted
   Project span, membership, Status field, and dependency graph. It never guesses or creates a Project
   from a goal.
 
 These are Plan publication scopes, not an exhaustive Orchestrate admission taxonomy. Orchestrate
 may interpret a complete planning handback or understandable tracker content into verified bounded
-tasks and a dependency DAG. Execute accepts one complete bounded task from inline instructions or one
-canonical task-bearing issue URL and owns one PR. Commit owns source/PR attribution; Orchestrate owns
-scheduling and independent delivery-note recovery. No path closes issues or Projects, claims product
-acceptance, or grants merge authority.
+tasks and a dependency DAG. Its tracker is read-only context and never an executable task, worker,
+PR, or dependency endpoint. Execute accepts one complete bounded task from inline instructions or
+one canonical task-bearing issue URL and owns one PR. Commit owns source/PR attribution;
+Orchestrate owns scheduling and independent delivery-note recovery. No path closes issues or
+Projects, claims product acceptance, or grants merge authority.
 
 Before any create, link, membership, Status, or dependency mutation, the owning GitHub profile must
 completely read the exact selected scope, paginate to a terminal page, verify canonical repository and

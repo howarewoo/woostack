@@ -184,6 +184,7 @@ class FakeGitHub:
         for child in self.children:
             child["workspace"] = str(self.repo.parent / "host-worktrees" / child["task_id"])
             child["branch"] = "feature/" + child["task_id"]
+        self.tracker_fixtures = self._tracker_fixtures()
         # Multiple native pages are deliberately assembled before a snapshot is
         # emitted.  These are not scheduler decisions; they model paginated gh
         # reads and leave an auditable transport log.
@@ -302,6 +303,143 @@ class FakeGitHub:
         result["tasks"] = result["issues"]
         record("github", "assemble-issue-list-snapshot", {
             "issues": selected, "edges": len(edges),
+        })
+        return result
+
+    def _tracker_fixtures(self) -> Dict[str, Dict[str, Any]]:
+        tracker_url = self.canonical + "/issues/15"
+        context = issue_record(tracker_url, "context-design", 0, 2)
+        context.update({
+            "url": self.canonical + "/issues/2", "id": 10002,
+            "node_id": "I_kwDOtestcontext2", "title": "Design context, not executable scope",
+            "body": "Design decisions only.", "actual_parent": None, "declared_parent": None,
+            "tracker_membership": "context",
+        })
+        reported_tasks = []
+        for number in range(3, 10):
+            task = issue_record(tracker_url, "issue-%d" % number, number - 2, number)
+            task.update({
+                "title": "Implementation issue #%d" % number,
+                "body": "Complete issue #%d.%s" % (
+                    number, " Phase #9-A records the start gate; phase #9-B records completion." if number == 9 else "",
+                ),
+                "prerequisites": [], "external_prerequisites": [],
+                "tracker_membership": "implementation",
+                "workspace": str(self.repo.parent / "tracker-worktrees" / str(number)),
+                "branch": "tracker/issue-%d" % number,
+            })
+            task.pop("actual_parent", None)
+            task.pop("declared_parent", None)
+            reported_tasks.append(task)
+        abcd_tasks = []
+        for child in self.children[:4]:
+            task = copy.deepcopy(child)
+            task.update({
+                "prerequisites": [], "external_prerequisites": [],
+                "tracker_membership": "implementation",
+            })
+            task.pop("actual_parent", None)
+            task.pop("declared_parent", None)
+            abcd_tasks.append(task)
+        return {
+            "reported": {
+                "tracker": {
+                    "url": tracker_url, "id": 10015, "node_id": "I_kwDOtesttracker15",
+                    "title": "Implementation tracker", "revision": "2026-09-23T20:00:00Z",
+                    "body": (
+                        "Context: design #2. Baseline: PR #1. Implementation index:\n"
+                        "- #3: foundation\n- #4: API\n- #5: data\n- #6: service\n"
+                        "- #7: UI\n- #8: integration\n- #9: phase #9-A and phase #9-B\n"
+                        "Issue #9 has phases #9-A and #9-B."
+                    ),
+                    "implementation_index": [task["url"] for task in reported_tasks],
+                    "dependency_index": [
+                        {"predecessor": "issue-3", "dependent": "issue-5"},
+                        {"predecessor": "issue-4", "dependent": "issue-6"},
+                        {"predecessor": "issue-5", "dependent": "issue-6"},
+                        {"predecessor": "issue-6", "dependent": "issue-7"},
+                        {"predecessor": "issue-7", "dependent": "issue-8"},
+                        {"predecessor": "issue-8", "dependent": "issue-9"},
+                    ],
+                },
+                "index": [context] + reported_tasks,
+            },
+            "abcd": {
+                "tracker": {
+                    "url": tracker_url, "id": 10015, "node_id": "I_kwDOtesttracker15",
+                    "title": "A/B/C/D tracker", "revision": "2026-09-23T20:00:00Z",
+                    "body": "Design #2 and baseline PR #1 are context. Implement #101, #102, #103, #104.",
+                    "implementation_index": [task["url"] for task in abcd_tasks],
+                    "dependency_index": [
+                        {"predecessor": "task-a", "dependent": "task-c"},
+                        {"predecessor": "task-b", "dependent": "task-d"},
+                        {"predecessor": "task-c", "dependent": "task-d"},
+                    ],
+                },
+                "index": [context] + abcd_tasks,
+            },
+        }
+
+    def tracker_snapshot(
+        self, fixture: str = "reported", *, native: bool = False,
+        revision: Optional[str] = None, body_suffix: str = "",
+    ) -> Dict[str, Any]:
+        """Assemble a model-resolved scope from recorded tracker and issue-index reads."""
+        fixture_value = self.tracker_fixtures[fixture]
+        tracker = self._read_pages("tracker", [[fixture_value["tracker"]]])[0]
+        tracker["body"] += body_suffix
+        if revision is not None:
+            tracker["revision"] = revision
+        issue_index = self._read_pages("tracker_issue_index", [fixture_value["index"]])
+        by_url = {item["url"]: item for item in issue_index}
+        selected = [by_url[url] for url in tracker["implementation_index"]]
+        if native:
+            self._read_pages("tracker_native_children", [selected])
+            for task in selected:
+                task["actual_parent"] = tracker["url"]
+        tasks = []
+        for task in selected:
+            item = copy.deepcopy(task)
+            if item["task_id"] in self.delivery:
+                item["existing_delivery"] = copy.deepcopy(self.delivery[item["task_id"]])
+            tasks.append(item)
+        edges = [
+            {**edge, "provenance": "declared",
+             "evidence": {"tracker_url": tracker["url"], "field": "dependency index"}}
+            for edge in fixture_value["tracker"]["dependency_index"]
+        ]
+        result = {
+            "canonical_repo": self.canonical,
+            "integration": copy.deepcopy(self.integration),
+            "parent_prs": self.parent_pr_readbacks(),
+            "repository_rules": self.repository_rules,
+            "host": {"delivery_capable": True, "max_parallel": self.max_parallel},
+            "tasks": tasks,
+            "graph": {"edges": edges},
+            "issues": tasks,
+            "selected_issues": tasks,
+            "scope_evidence": {
+                "tracker": {key: tracker[key] for key in ("url", "id", "node_id", "title", "body", "revision")},
+                "membership": {
+                    "source": "native" if native else "declared",
+                    "issues": sorted(item["url"] for item in tasks),
+                    "evidence": {
+                        "tracker_url": tracker["url"],
+                        "index_read": "complete",
+                        "actual_parent_read": "complete" if native else "unavailable",
+                        "implementation_markers": len(tasks),
+                    },
+                },
+            },
+            "recovery": {
+                "checkpoints": [], "processes": [], "sessions": [], "worktrees": [],
+                "refs": [], "prs": [], "contracts": [], "dependencies": [],
+            },
+        }
+        record("github", "assemble-tracker-snapshot", {
+            "tracker_url": tracker["url"], "revision": tracker["revision"],
+            "source": result["scope_evidence"]["membership"]["source"],
+            "issues": result["scope_evidence"]["membership"]["issues"],
         })
         return result
 

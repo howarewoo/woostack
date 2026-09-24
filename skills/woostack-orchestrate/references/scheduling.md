@@ -64,6 +64,23 @@ container, or tracker record can provide context without becoming a task. Do not
 number for a REST ID, GraphQL node ID, or canonical URL, and do not infer identity or scope from a
 title, branch, PR, search result, or body shorthand. Preserve exact source and native evidence.
 
+For an exact selected tracker, read the tracker itself and the actual issues it names. A complete
+implementation index, checklist, table, or accompanying scope statement is valid declared
+membership when native children are absent, incomplete, or unavailable. Resolve relative `#N`
+references against the verified tracker repository, read every selected issue, and deduplicate
+repeated references. Do not import every issue-like mention: separate implementation issues from
+design/context issues, baseline or example PRs, exclusions, history, the tracker itself, and
+external prerequisites. A native subset plus a complete explicit tracker set is membership
+evidence, not permission to import the native parent's other children. Contradictory membership
+declarations require a focused question; inaccessible evidence is not guessed.
+
+Retain tracker phase annotations in the selected task's specification or contract. A phase such as
+`#9-A/#9-B` remains work inside issue #9: it is not two issue identities or two writers, its early
+completion does not complete #9, and start-versus-completion gates do not become a fabricated cycle.
+If one phase or delivery limitation independently remains unsatisfied, block that precise affected
+task while unrelated tasks continue. Unknown native relation access is disclosed honestly; it does
+not erase declarations from a tracker that was actually read.
+
 ## Normalized snapshot
 
 The controller writes one private JSON snapshot from completed reads. The example is an internal
@@ -80,6 +97,21 @@ shape for the helper and is not a caller-facing source schema; all markers are r
   "host": {
     "delivery_capable": true,
     "max_parallel": "<runtime-substituted positive host capability>"
+  },
+  "scope_evidence": {
+    "tracker": {
+      "url": "<canonical tracker issue URL>",
+      "id": "<numeric REST issue ID>",
+      "node_id": "<GraphQL issue node ID>",
+      "title": "<complete tracker title>",
+      "body": "<complete tracker body>",
+      "revision": "<provider revision such as updated_at>"
+    },
+    "membership": {
+      "source": "native|declared",
+      "issues": ["<sorted canonical executable issue URL>"],
+      "evidence": "<non-empty actual tracker/native-read evidence>"
+    }
   },
   "tasks": [
     {
@@ -138,20 +170,33 @@ The admission's canonical `scope_identity` is `{ "canonical_repo": <repository>,
 [<sorted canonical executable issue URLs>] }`. It is derived from verified tasks, not from the
 user's wording or the source container.
 
-`tasks` contains only verified executable issues. A task's `contract` retains the fields Execute
-and validation need: `goal`, `scope`, `acceptance`, `checks`, and a real `smoke`. The model may
-retain additional bounded context such as `non_goals`, `decisions`, or `risks`; the source issue is
-not required to use a fixed field layout. A material unresolved ambiguity blocks admission until the
-user answers a focused question. Existing delivery evidence is added to a task when independently
-re-reading a delivered task, and is never copied from a worker's success sentence.
+`scope_evidence` is optional and records tracker meaning, not another task set. The tracker URL is
+canonical, belongs to `canonical_repo`, and differs from every task URL. Its real native identity,
+title, body, and provider revision are retained. `membership.issues` exactly matches the sorted
+canonical `tasks` URLs; `source` is `native` only for a complete successfully read native set and
+`declared` when the verified tracker supplies the complete set without complete native membership.
+`evidence` describes the reads actually performed, including unavailable hierarchy access; never
+encode a failed or unsupported read as a successful empty page. This root context may be omitted for
+existing explicit-list or Project snapshots. The tracker never enters `tasks`, becomes a dependency
+endpoint, or receives a worker or PR.
+
+`tasks` contains only verified executable issues. A task's `actual_parent` is its independently read
+native parent, or `null` only after a conclusive read; declared tracker membership is never written
+there. A task's `contract` retains the fields Execute and validation need: `goal`, `scope`,
+`acceptance`, `checks`, and a real `smoke`. The model may retain additional bounded context such as
+`non_goals`, `decisions`, `risks`, or phase annotations; the source issue is not required to use a
+fixed field layout. A material unresolved ambiguity blocks admission until the user answers a
+focused question. Existing delivery evidence is added to a task when independently re-reading a
+delivered task, and is never copied from a worker's success sentence.
 
 `edges` is the complete supplied DAG. Each edge has a predecessor, dependent, provenance of
-`native`, `declared`, or `inferred`, and non-empty evidence. Native blocked-by reads, explicit issue
-declarations, and model-resolved technical prerequisites remain distinguishable. The model owns
-meaning and inference; the helper validates endpoint existence, duplicate/self edges, external
-blockers, and acyclicity. A conflict, unknown endpoint, ambiguous direction, or cycle blocks the
-affected work. An empty edge list is valid when the actual reads and interpretation establish no
-dependency; no separate graph receipt is required.
+`native`, `declared`, or `inferred`, and non-empty evidence. Native blocked-by reads, explicit
+tracker/issue declarations, and model-resolved technical prerequisites remain distinguishable.
+Checklist or issue-number order creates no edge, and a complete empty native dependency read does not
+erase a verified declared edge. The model owns meaning and inference; the helper validates endpoint
+existence, duplicate/self edges, external blockers, and acyclicity. A conflict, unknown endpoint,
+ambiguous direction, or cycle blocks the affected work. An empty edge list is valid when actual reads
+and interpretation establish no dependency; no separate graph receipt is required.
 
 `parent_prs` supplies fresh canonical PR discovery for the integration branch and any explicitly
 selected non-predecessor parent. An empty `prs` array means fully proved absence, not unavailable
@@ -203,19 +248,25 @@ compact separators) over the immutable normalized scope view. It binds:
 
 - the canonical repository and sorted canonical executable issue URLs;
 - each task's stable task ID, URL, native IDs, state/resource, complete title/body, effective
-  `specification` and `actual_parent`, resolved bounded contract, and external blockers;
+  `specification` and native-only `actual_parent`, resolved bounded contract, and external blockers;
 - complete repository rules, effective dependency endpoint pairs, and normalized edge `provenance`
-  and `evidence`; and
+  and `evidence`;
+- the selected tracker URL and meaningful scope/specification context when optional
+  `scope_evidence` is present; and
 - optional Project/lifecycle identity only when the user explicitly selected that Project for
   status mutation.
 
 It deliberately excludes the host capability/cap, mutable integration SHA, fresh `parent_prs`,
-runtime workspace/branch allocation, and delivery evidence. Those mutable facts are checked on every
-refill. A changed issue set, contract, identity, specification, actual parent, edge endpoint,
-edge provenance/evidence, or blocker returns `snapshot-drift`; preserve all running reservations,
-claims, recovery inventory, and worker identity, and launch no fresh worker. The controller must
-re-read native state and assemble `--fresh` for every refill, including immediately after a worker
-result and after reconciliation.
+runtime workspace/branch allocation, and delivery evidence. A tracker provider `revision` alone,
+reordered repeated tracker references, and a matching native-link addition that leaves the exact task
+set and graph unchanged are mutable evidence, not drift; membership may transition from `declared`
+to `native` for the same set. Those mutable facts are still refreshed and recorded. A changed issue
+set, contract, identity, meaningful tracker scope/specification, actual parent, edge endpoint, edge
+provenance/evidence, or blocker returns `snapshot-drift`; preserve all running reservations, claims,
+recovery inventory, and worker identity, and launch no fresh worker. Reinvoking the same tracker or
+an equivalent issue list resumes the same canonical task claims and delivery history without a
+duplicate worker or PR. The controller must re-read GitHub scope evidence and assemble `--fresh` for
+every refill, including immediately after a worker result and after reconciliation.
 
 Every fresh refill carries the complete recovery inventory described above: checkpoint/state
 identities, worker processes/sessions, Git worktrees/refs/dirty state, canonical PRs, contract
@@ -252,14 +303,18 @@ its descendants; it never redispatches a duplicate or releases descendants.
 ## State, reservations, and joins
 
 State is one explicit private session-local controller file, not a provider or retained-artifact ledger.
-It carries `version`, the immutable `fingerprint`, exact `scope_identity`, a random controller owner
-token, stop/halt flags, last recovery inventory, and one task entry per admitted executable issue.
-Each task entry keeps its native identity, dependency/claim provenance, contract revision, worker
-identity, reservation/worktree/branch/parent start, current source/diff identity, checks/validator
-receipts, PR identity, delivery checkpoint, and first uncertain boundary distinct. The caller must
-externally enforce exclusive ownership of the selected canonical scope/state for the controller
-session, covering every `schedule`, `record-worker`, `apply-result`, and `reconcile` call. If
-exclusive ownership cannot be proved, block at controller preflight before invoking the helper.
+It carries `version`, the immutable `fingerprint`, exact `scope_identity`, the optional normalized
+`scope_evidence` receipt, a random controller owner token, stop/halt flags, last recovery inventory,
+and one task entry per admitted executable issue. The receipt and its meaningful tracker context let
+initial and recovery admission describe the same selected tracker honestly. A revision-only change,
+reference reordering, or declared-to-native transition for the same exact task set does not replace
+task identities or release duplicate work. Each task entry keeps its native identity,
+dependency/claim provenance, contract revision, worker identity, reservation/worktree/branch/parent
+start, current source/diff identity, checks/validator receipts, PR identity, delivery checkpoint, and
+first uncertain boundary distinct. The caller must externally enforce exclusive ownership of the
+selected canonical scope/state for the controller session, covering every `schedule`,
+`record-worker`, `apply-result`, and `reconcile` call. If exclusive ownership cannot be proved, block
+at controller preflight before invoking the helper.
 
 The helper additionally takes owner-only atomic claims under
 `<primary-root>/.woostack/tmp/orchestrate-claims/`: one exact normalized-scope claim and one claim

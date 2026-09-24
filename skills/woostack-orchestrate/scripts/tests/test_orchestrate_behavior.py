@@ -480,7 +480,7 @@ class OrchestrateBehavior(unittest.TestCase):
         self.assertIn(("sub_issues", 2), self.github.calls)
         self.assertIn(("dependencies", 2), self.github.calls)
 
-    def test_resolved_tracker_and_issue_list_reuse_task_identity_and_graph(self) -> None:
+    def test_issue_list_reuses_resolved_task_identity_and_graph(self) -> None:
         snapshot = self.github.issue_list_snapshot()
         admitted_path, admitted = self._admit_issues(snapshot)
         self.assertEqual(admitted["scope_identity"]["issues"],
@@ -491,14 +491,6 @@ class OrchestrateBehavior(unittest.TestCase):
             [("task-a", "task-c", "inferred"), ("task-b", "task-d", "inferred"),
              ("task-c", "task-d", "inferred")],
         )
-        tracker = copy.deepcopy(snapshot)
-        tracker["tasks"].reverse()
-        tracker["specification"] = "Tracker lists design #2 and baseline PR #1 as context; tasks are #3-#9."
-        tracker["parent"] = {"url": self.github.parent_url, "body": tracker["specification"]}
-        _, from_tracker = self._admit_issues(tracker)
-        self.assertEqual(admitted["fingerprint"], from_tracker["fingerprint"])
-        self.assertEqual(admitted["task_order"], from_tracker["task_order"])
-        self.assertTrue(admitted_path.exists())
 
         missing_template_fields = copy.deepcopy(snapshot)
         brief = missing_template_fields["tasks"][0]["contract"]
@@ -517,45 +509,186 @@ class OrchestrateBehavior(unittest.TestCase):
         self.assertNotEqual(code, 0, payload)
         self.assertEqual(payload["error"], "duplicate-edge")
 
-    def test_tracker_phase_labels_are_not_issue_identities(self) -> None:
-        snapshot = self.github.issue_list_snapshot()
-        tasks = []
-        for number in range(3, 10):
-            task = copy.deepcopy(self.github.children[0])
-            task.update(url=self.github.canonical + "/issues/" + str(number),
-                        id=10000 + number, node_id="I_tracker_%d" % number,
-                        title="Implementation #%d" % number, body="Work on issue #%d" % number,
-                        workspace=str(self.tmp / "tracker-worktrees" / str(number)),
-                        branch="tracker/issue-%d" % number)
-            task.pop("task_id")
-            task.pop("actual_parent")
-            task.pop("prerequisites")
-            task.pop("external_prerequisites")
-            task["contract"] = {
-                "goal": "Implement issue #%d" % number,
-                "scope": ["src/issue-%d.txt" % number],
-                "acceptance": ["Issue #%d behavior works" % number],
-                "checks": ["git diff --check"],
-                "smoke": "cat src/issue-%d.txt" % number,
-            }
-            tasks.append(task)
-        snapshot["tasks"] = tasks
-        snapshot["graph"]["edges"] = [
-            {"predecessor": "issue-%d" % predecessor, "dependent": "issue-%d" % dependent,
-             "provenance": "declared", "evidence": {"tracker": 15}}
-            for predecessor, dependent in ((3, 5), (4, 6), (5, 7), (6, 7), (7, 8), (8, 9))
-        ]
-        snapshot["tracker"] = {
-            "url": self.github.canonical + "/issues/15",
-            "body": "Design #2; baseline PR #1; implement #3-#9. #9 has phases A and B.",
-        }
+    def test_declared_tracker_fixture_dispatches_exact_reported_issue_set(self) -> None:
+        snapshot = self.github.tracker_snapshot("reported")
         admitted_path, admitted = self._admit_issues(snapshot)
+        self.assertEqual([task["url"] for task in admitted["tasks"]],
+                         [self.github.canonical + "/issues/" + str(number) for number in range(3, 10)])
         self.assertEqual([task["task_id"] for task in admitted["tasks"]],
-                         ["issue-%d" % n for n in range(3, 10)])
-        self.assertNotIn("issue-2", admitted["task_order"])
-        self.assertNotIn("phase-A", admitted["task_order"])
-        _, scheduled = self._schedule(admitted_path, admitted, None, snapshot, "tracker-root", cap="2")
+                         ["issue-%d" % number for number in range(3, 10)])
+        self.assertTrue(all("actual_parent" not in task for task in admitted["tasks"]))
+        self.assertEqual(admitted["scope_evidence"]["membership"]["source"], "declared")
+        self.assertEqual(admitted["scope_evidence"]["membership"]["evidence"]["actual_parent_read"], "unavailable")
+        self.assertIn("Phase #9-A", admitted["tasks"][-1]["body"])
+        self.assertIn(("tracker", 1), self.github.calls)
+        self.assertIn(("tracker_issue_index", 1), self.github.calls)
+        self.assertNotIn(("tracker_native_children", 1), self.github.calls)
+
+        state, scheduled = self._schedule(admitted_path, admitted, None, snapshot, "tracker-root", cap="2")
         self.assertEqual([entry["task_id"] for entry in scheduled["dispatch"]], ["issue-3", "issue-4"])
+        packet = scheduled["dispatch"][0]["packet"]
+        self.assertEqual(packet["scope_evidence"], admitted["scope_evidence"])
+        self.assertNotIn("parent_issue_url", packet)
+        self.assertEqual(packet["parent_issue_read"], "unavailable")
+        saved = json.loads(state.read_text())
+        self.assertEqual(saved["scope_evidence"], admitted["scope_evidence"])
+        self.assertNotIn("actual_parent", saved["recovery"]["last_snapshot"]["membership"][0])
+        self.assertEqual(saved["recovery"]["last_snapshot"]["scope_evidence"], admitted["scope_evidence"])
+        writes = [json.loads(line) for line in self.transport_log.read_text().splitlines()
+                  if json.loads(line)["operation"].startswith("write-")]
+        self.assertFalse(writes, writes)
+
+    def test_partial_native_parent_read_preserves_per_task_packet_evidence(self) -> None:
+        snapshot = self.github.tracker_snapshot("reported")
+        tracker_url = snapshot["scope_evidence"]["tracker"]["url"]
+        snapshot["tasks"][0]["actual_parent"] = tracker_url
+        admitted_path, admitted = self._admit_issues(snapshot)
+        _, scheduled = self._schedule(admitted_path, admitted, None, snapshot, "tracker-partial", cap="2")
+        packets = {entry["task_id"]: entry["packet"] for entry in scheduled["dispatch"]}
+        self.assertEqual(packets["issue-3"]["parent_issue_url"], tracker_url)
+        self.assertEqual(packets["issue-3"]["parent_issue_read"], "complete")
+        self.assertNotIn("parent_issue_url", packets["issue-4"])
+        self.assertEqual(packets["issue-4"]["parent_issue_read"], "unavailable")
+
+    def test_tracker_identity_allows_metadata_transition_but_rejects_scope_drift(self) -> None:
+        snapshot = self.github.tracker_snapshot("reported")
+        admitted_path, admitted = self._admit_issues(snapshot)
+        _, native = self._admit_issues(self.github.tracker_snapshot("reported", native=True))
+        self.assertEqual(admitted["fingerprint"], native["fingerprint"])
+        self.assertEqual(native["scope_evidence"]["membership"]["source"], "native")
+        self.assertTrue(all(task["actual_parent"] == self.github.canonical + "/issues/15"
+                            for task in native["tasks"]))
+
+        reordered = self.github.tracker_snapshot("reported", native=True, revision="2026-09-23T21:00:00Z")
+        reordered["scope_evidence"]["membership"]["issues"].reverse()
+        reordered["scope_evidence"]["tracker"]["body"] = (
+            "Context: design #2. Baseline: PR #1. Implementation index:\n"
+            "- #9: phase #9-A and phase #9-B\n- #8: integration\n- #7: UI\n"
+            "- #6: service\n- #5: data\n- #4: API\n- #3: foundation\n"
+            "Issue #9 has phases #9-A and #9-B."
+        )
+        _, equivalent = self._admit_issues(reordered)
+        self.assertEqual(admitted["fingerprint"], equivalent["fingerprint"])
+        state, resumed = self._schedule(
+            admitted_path, admitted, None, reordered, "tracker-native-resume", cap="1",
+        )
+        self.assertEqual(resumed["status"], "ok", resumed)
+        saved = json.loads(state.read_text())
+        self.assertEqual(saved["scope_evidence"]["membership"]["source"], "native")
+        self.assertEqual(saved["scope_evidence"]["tracker"]["revision"], "2026-09-23T21:00:00Z")
+
+        drift = self.github.tracker_snapshot("reported", body_suffix=" The acceptance policy changed.")
+        _, changed = self._schedule(admitted_path, admitted, state, drift, "tracker-semantic-drift")
+        self.assertEqual(changed["status"], "snapshot-drift", changed)
+        redirected = self.github.tracker_snapshot("reported")
+        redirected["scope_evidence"]["tracker"]["body"] = redirected["scope_evidence"]["tracker"]["body"].replace(
+            "Context: design #2", "Context: design #3"
+        )
+        _, changed_context = self._admit_issues(redirected)
+        self.assertNotEqual(admitted["fingerprint"], changed_context["fingerprint"])
+
+    def test_tracker_receipt_rejects_membership_ambiguity_foreign_and_fabrication(self) -> None:
+        snapshot = self.github.tracker_snapshot("reported")
+        cases = []
+        mismatch = copy.deepcopy(snapshot)
+        mismatch["scope_evidence"]["membership"]["issues"].append(self.github.canonical + "/issues/2")
+        cases.append(("membership", mismatch, "scope-membership-mismatch"))
+        ambiguous = copy.deepcopy(snapshot)
+        ambiguous["scope_evidence"]["membership"]["issues"].append(snapshot["tasks"][0]["url"])
+        cases.append(("ambiguous", ambiguous, "ambiguous-scope"))
+        foreign = copy.deepcopy(snapshot)
+        foreign["scope_evidence"]["tracker"]["url"] = "https://github.com/other/app/issues/15"
+        cases.append(("foreign", foreign, "foreign-repository"))
+        unverified_native = copy.deepcopy(snapshot)
+        unverified_native["scope_evidence"]["membership"]["source"] = "native"
+        cases.append(("fabricated native", unverified_native, "native-membership-unverified"))
+        fabricated = copy.deepcopy(snapshot)
+        fabricated["scope_evidence"]["membership"]["evidence"] = {}
+        cases.append(("fabricated evidence", fabricated, "invalid-scope-evidence"))
+        asserted = copy.deepcopy(snapshot)
+        asserted["scope_evidence"]["membership"]["evidence"] = True
+        cases.append(("asserted evidence", asserted, "invalid-scope-evidence"))
+        blank = copy.deepcopy(snapshot)
+        blank["scope_evidence"]["membership"]["evidence"] = "  "
+        cases.append(("blank evidence", blank, "invalid-scope-evidence"))
+        for label, invalid, expected in cases:
+            with self.subTest(label=label):
+                code, payload = invoke_cli(
+                    "admit", "--snapshot",
+                    str(self._write_json("invalid-scope-" + label.replace(" ", "-") + ".json", invalid)),
+                )
+                self.assertNotEqual(code, 0, payload)
+                self.assertEqual(payload["error"], expected, payload)
+
+    def test_declared_tracker_partial_join_uses_same_scheduler(self) -> None:
+        snapshot = self.github.tracker_snapshot("abcd")
+        admitted_path, admitted = self._admit_issues(snapshot)
+        state, initial = self._schedule(admitted_path, admitted, None, snapshot, "tracker-abcd", cap="2")
+        self.assertEqual([entry["task_id"] for entry in initial["dispatch"]], ["task-a", "task-b"])
+        host = self._start_host(workers=2)
+        host.dispatch(initial["dispatch"])
+        self.assertTrue(host.b_started.wait(30))
+        report_a = host.wait_for_report("task-a")
+        result_a = make_result(self.github, "task-a", report_a, admitted)
+        state, applied_a, _ = self._apply(admitted_path, state, "task-a", result_a, "tracker-abcd-a")
+        self.assertEqual(applied_a["status"], "delivered")
+        self._persist("task-a", result_a, initial["dispatch"][0])
+        state, after_a = self._schedule(
+            admitted_path, admitted, state, self.github.tracker_snapshot("abcd"), "tracker-abcd-c", cap="2",
+        )
+        self.assertEqual([entry["task_id"] for entry in after_a["dispatch"]], ["task-c"])
+        c_entry = after_a["dispatch"][0]
+        host.dispatch([c_entry])
+        self.assertTrue(host.c_started.wait(30))
+        report_c = host.wait_for_report("task-c")
+        result_c = make_result(self.github, "task-c", report_c, admitted)
+        state, applied_c, _ = self._apply(admitted_path, state, "task-c", result_c, "tracker-abcd-c-result")
+        self.assertEqual(applied_c["status"], "delivered")
+        self._persist("task-c", result_c, c_entry)
+        self.assertFalse(host.b_completed.is_set())
+        host.release_b()
+        report_b = host.wait_for_report("task-b")
+        result_b = make_result(self.github, "task-b", report_b, admitted)
+        state, applied_b, _ = self._apply(admitted_path, state, "task-b", result_b, "tracker-abcd-b")
+        self.assertEqual(applied_b["status"], "delivered")
+        self._persist("task-b", result_b, initial["dispatch"][1])
+        _, paused = self._schedule(
+            admitted_path, admitted, state, self.github.tracker_snapshot("abcd"), "tracker-abcd-d",
+        )
+        self.assertEqual([item for item in paused["paused"] if item["task_id"] == "task-d"], [{
+            "task_id": "task-d", "reason": "join-no-containing-parent",
+            "prerequisite_branches": ["feature/task-b", "feature/task-c"],
+        }])
+
+    def test_declared_tracker_recovery_preserves_scope_provenance(self) -> None:
+        snapshot = self.github.tracker_snapshot("reported")
+        admitted_path, admitted = self._admit_issues(snapshot)
+        fresh_path = self._write_json("tracker-recovery-fresh.json", snapshot)
+        state_out = self.tmp / "tracker-recovery-state.json"
+        args = self._first_schedule_args(admitted_path, fresh_path, state_out, self.repo) + ["--cap", "1"]
+        self._interrupted_schedule("die-before-state-publication", args)
+        code, resumed = invoke_cli(*args)
+        self.assertEqual(code, 0, resumed)
+        state = json.loads(state_out.read_text())
+        self.assertEqual(state["scope_evidence"], admitted["scope_evidence"])
+        self.assertEqual(state["recovery"]["last_snapshot"]["scope_evidence"], admitted["scope_evidence"])
+        self.assertEqual([entry["task_id"] for entry in resumed["dispatch"]], ["issue-3"])
+
+        native_path, native = self._admit_issues(self.github.tracker_snapshot("reported", native=True))
+        self.assertEqual(native["fingerprint"], admitted["fingerprint"])
+        native_state, unchanged = self._schedule(
+            native_path, native, state_out, self.github.tracker_snapshot("reported", native=True),
+            "tracker-recovery-native", cap="1",
+        )
+        self.assertEqual(unchanged["dispatch"], [])
+        saved = json.loads(native_state.read_text())
+        self.assertEqual(saved["scope_evidence"]["membership"]["source"], "native")
+        self.assertEqual(saved["tasks"]["issue-3"]["status"], "running")
+
+        semantic = self.github.tracker_snapshot("reported", native=True, body_suffix=" Changed policy.")
+        _, drift = self._schedule(native_path, native, native_state, semantic, "tracker-recovery-drift")
+        self.assertEqual(drift["status"], "snapshot-drift", drift)
+        self.assertEqual(drift["dispatch"], [], drift)
 
     def test_issue_list_external_blocker_stays_outside_scope(self) -> None:
         snapshot = self.github.issue_list_snapshot()
