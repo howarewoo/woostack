@@ -97,13 +97,17 @@ Examples of convenience hints, not an exhaustive route:
 
 Orchestrate keeps up to three delivery-capable Execute workers active by default, bounded by host
 capability. Independent issues may run together. Verified submission and independent specification
-validation release ordinary dependents without waiting for a whole wave or a merge. A dependent PR
-targets its verified prerequisite branch when stacking is permitted. If no single existing parent
-contains all current prerequisite revisions, only that join enters `waiting-for-merge`; it reserves
-no worker or speculative checkout, preserves the same DAG, and does not ask for a synthetic base or
-integration strategy. Unrelated tasks continue. A phase label within one issue does not create a
-second issue/writer or premature whole-issue completion. Graph/scope drift preserves running
-reservations and stops fresh dispatch; unknown worker outcomes require direct
+validation release ordinary dependents without waiting for a whole wave or a merge. Technical
+prerequisites remain a DAG; a separately recorded pre-execution stack order may guide safe execution
+without adding, removing, or rewriting requirements. A dependent PR targets its verified
+prerequisite branch when stacking is permitted. If no single existing parent contains all current
+prerequisite revisions, only that join enters a human-merge `waiting-for-merge` checkpoint; it
+reserves no worker or speculative checkout, preserves the same DAG, and does not ask for a synthetic
+base or integration strategy. This is a fallback for divergent work, fixed-parent or
+independent-landing constraints, or no safe suitable stack, not the default scheduling strategy.
+Unrelated tasks continue. A phase label within one issue does not create a second issue/writer or
+premature whole-issue completion. Graph/scope drift preserves running reservations and stops fresh
+dispatch; unknown worker outcomes require direct
 stopped-worker/branch/PR reconciliation before same-identity repair. Current PR lifecycle evidence
 is reconciled separately from retained delivery evidence, so human-ready, merged, closed-unmerged,
 and deleted-source states cannot be mistaken for a fresh delivery. While the host session stays

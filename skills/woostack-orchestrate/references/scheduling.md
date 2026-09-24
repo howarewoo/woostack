@@ -384,6 +384,11 @@ failure or lost repair-worker response must not create duplicate commits, worker
 external head/base changes require reconciliation rather than silently overwriting another
 contributor's work.
 
+Technical prerequisites and chosen execution order are separate evidence. A caller or companion
+planner may record a deliberate pre-execution stack order and parent intent; it never adds, removes,
+or rewrites dependency edges, and ordinals alone do not establish it. The current helper does not
+require a planner or infer such an order.
+
 Roots use the admitted integration branch/SHA. For a dependent, first consider the current approved
 integration branch; then consider each existing verified unmerged prerequisite branch when
 unmerged stacking is permitted. A candidate is usable only when its actual local tip is the
@@ -393,11 +398,13 @@ therefore serve a multi-dependency task; dependency count alone never forces a m
 
 If no candidate is suitable, the helper leaves the task pending with `waiting-for-merge`, the
 relevant prerequisite PRs and their current states, the intended integration branch, and the
-release condition. It does not reserve a worker or create a speculative branch/worktree, and it
-does not require an ordinary join to receive a new parent/integration decision. An explicit parent
-decision is consulted only for a material ambiguity or an explicitly selected suitable existing
-parent; it is evidence to validate, never proof by name alone. Never create a synthetic base,
-combine independent branches, rewrite the DAG, or require an automatic merge.
+release condition. This human-merge checkpoint is the fallback for divergent work, fixed-parent or
+independent-landing constraints, or no safe suitable stack, not a default integration strategy. It
+does not reserve a worker or create a speculative branch/worktree, and it does not require an
+ordinary join to receive a new parent/integration decision. An explicit parent decision is
+consulted only for a material ambiguity or an explicitly selected suitable existing parent; it is
+evidence to validate, never proof by name alone. Never create a synthetic base, combine independent
+branches, rewrite the DAG, or require an automatic merge.
 
 ## Helper status meanings
 

@@ -41,11 +41,14 @@ upstream ref or merge-base alone is insufficient. Apply the shared
 to its last independently admitted parent tip. Mutable observed refs, heads, commits, and tips are
 repository evidence outside content approval identity.
 
-For roots, the selected parent is the admitted integration branch/SHA. For dependents, the caller
-supplies one concrete parent branch/SHA containing every required prerequisite. Prove each required
-ancestor with `git merge-base --is-ancestor`, even when hashes are equal. An unresolved join pauses
-that task; do not infer order, rewrite heads, rebase, reset, silently switch parents, or require a
-merge automatically.
+For roots, the selected parent is the admitted integration branch/SHA. Technical prerequisites and
+any deliberately recorded pre-execution stack order are separate. For a dispatched dependent, the
+caller must still supply one concrete parent branch/SHA containing every required prerequisite and
+prove each required ancestor with `git merge-base --is-ancestor`, even when hashes are equal. A
+recorded stack order or parent intent does not add, remove, or rewrite requirements. An unresolved
+join pauses that task as a human-merge checkpoint; this fallback covers divergent work, fixed-parent
+or independent-landing constraints, or no safe suitable stack. Do not infer order, rewrite heads,
+rebase, reset, silently switch parents, combine branches, or require a merge automatically.
 
 ## Discovery, operation, and recovery
 

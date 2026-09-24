@@ -361,14 +361,19 @@ not a new identity. Reconciliation never clears a reservation from an arbitrary 
 authorizes a duplicate worker. Follow the helper's returned status, then refill with a newly
 assembled `--fresh` snapshot.
 
-For a dependent, readiness requires every admitted prerequisite's verified delivery and persisted
-note, plus one concrete existing parent containing all current prerequisite revisions. First try
-the approved integration branch, then a verified unmerged prerequisite branch when stacking is
-permitted. This can release a multi-dependency task when one existing branch already contains all
-requirements; dependency count alone is not a reason to wait. If no candidate exists, retain the
-same graph as a local `waiting-for-merge` checkpoint. An explicit parent decision is needed only
-for a material ambiguity or an explicitly selected suitable existing parent, and it is not proof
-until the same containment checks pass. Imported `existing_delivery` follows the same gates: a
+Technical prerequisites remain the normalized dependency graph. A caller or companion planner may
+record a deliberate pre-execution stack order and parent intent as separate execution context, but
+it must not add, remove, or rewrite requirements or be inferred from ordinals. No planner is
+required by this contract. For dispatch, readiness still requires every admitted prerequisite's
+verified delivery and persisted note, plus one concrete existing parent containing all current
+prerequisite revisions. First try the approved integration branch, then a verified unmerged
+prerequisite branch when stacking is permitted. This can release a multi-dependency task when one
+existing branch already contains all requirements; dependency count alone is not a reason to wait.
+If no candidate exists, retain the same graph as a local `waiting-for-merge` checkpoint. This is a
+fallback for divergent work, fixed-parent or independent-landing constraints, or no safe suitable
+stack, not a default integration strategy. An explicit parent decision is needed only for a
+material ambiguity or an explicitly selected suitable existing parent, and it is not proof until
+the same containment checks pass. Imported `existing_delivery` follows the same gates: a
 historical PR cannot bypass prerequisites, external blockers, root integration intent, or parent
 containment. Fetch fresh parent PR/absence evidence and pass the complete readiness payload to the
 worker.

@@ -146,10 +146,13 @@ flowchart LR
 
 Orchestrate can dispatch A and B together within the actual host's capacity. After independent
 verification of A's delivery and current readiness, C can stack on A without waiting for B or a
-merge. If B and C are on divergent branches and no existing branch contains both, only D enters
-`waiting-for-merge`; unrelated work continues and no integration strategy is requested. A branch
-name alone does not resolve the join: its containment must be verified. The workflow never creates
-an automatic integration branch, combines branches, rewrites edges to avoid the join, or merges a PR.
+merge. Technical prerequisites remain a DAG; a deliberately recorded pre-execution order may guide
+safe execution without changing those requirements. If B and C are on divergent branches and no
+existing branch contains both, only D enters the human-merge `waiting-for-merge` checkpoint;
+unrelated work continues and no integration strategy is requested. This fallback covers divergent
+work, fixed-parent or independent-landing constraints, or no safe suitable stack. A branch name
+alone does not resolve the join: its containment must be verified. The workflow never creates an
+automatic integration branch, combines branches, rewrites edges to avoid the join, or merges a PR.
 
 ### Complete example bodies
 

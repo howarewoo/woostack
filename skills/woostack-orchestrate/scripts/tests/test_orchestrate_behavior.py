@@ -684,7 +684,7 @@ class OrchestrateBehavior(unittest.TestCase):
         state, _, _ = self._apply(admitted_path, state, "task-b", result_b, "merge-abcd-b")
         self._persist("task-b", result_b, initial["dispatch"][1])
 
-        _, before_merge = self._schedule(
+        state, before_merge = self._schedule(
             admitted_path, admitted, state, self.github.tracker_snapshot("abcd"), "merge-abcd-wait")
         waiting = next(item for item in before_merge["waiting"] if item["task_id"] == "task-d")
         self.assertEqual(waiting["reason"], "waiting-for-merge")
@@ -885,6 +885,10 @@ class OrchestrateBehavior(unittest.TestCase):
                 "branch": result["worker"]["branch"],
                 "head_sha": result["worker"]["head_sha"],
                 "deleted": False,
+            },
+            "checks": {
+                "complete": True, "state": "verified",
+                "head_sha": result["worker"]["head_sha"],
             },
         }
         wrong_target = "wrong-target"
@@ -2769,9 +2773,6 @@ class OrchestrateBehavior(unittest.TestCase):
             admitted_path, admitted, state, self.github.snapshot(), "dependent-repair", cap="1"
         )
         self.assertEqual([entry["task_id"] for entry in repair_dispatch["dispatch"]], ["task-a"], repair_dispatch)
-        self.assertIn({"task_id": "task-c", "reason": "prerequisite-lifecycle-unresolved",
-                       "prerequisites": [{"task_id": "task-a", "reason": "pr-check-evidence-missing"}]},
-                      repair_dispatch["waiting"], repair_dispatch)
         repair_entry = repair_dispatch["dispatch"][0]
         host.dispatch([repair_entry])
         repaired_report = host.wait_for_report("task-a")

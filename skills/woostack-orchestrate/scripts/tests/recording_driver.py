@@ -571,7 +571,11 @@ class FakeGitHub:
                         "head_sha": result["readback"]["head_sha"],
                         "deleted": False,
                     },
-                    "checks": None,
+                    "checks": {
+                        "complete": True,
+                        "state": "verified",
+                        "head_sha": result["readback"]["head_sha"],
+                    },
                 },
             }
         record("github", "persist-child-delivery", {"task_id": task_id, "note_id": note["id"]})

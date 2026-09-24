@@ -1673,8 +1673,9 @@ def lifecycle_state(lifecycle):
 def prerequisite_satisfaction(item, task, repo, lifecycle=None, canonical=None, *, verify_checks=True):
     delivery = item.get("delivery")
     require(isinstance(delivery, dict), "prerequisites-unmet", "verified delivery missing for " + task["task_id"])
-    lifecycle = lifecycle or item.get("lifecycle") or initial_lifecycle(delivery["checkpoint"])
-    pr = lifecycle.get("pr", lifecycle) if isinstance(lifecycle, dict) else None
+    require(isinstance(lifecycle, dict) and lifecycle,
+            "pr-lifecycle-missing", "current PR lifecycle evidence is missing")
+    pr = lifecycle.get("pr", lifecycle)
     require(isinstance(pr, dict), "pr-lifecycle-missing", "current PR lifecycle evidence is missing")
     url = pr.get("pr_url", pr.get("url"))
     require(url == delivery["pr_url"] and (canonical is None or
@@ -1698,20 +1699,21 @@ def prerequisite_satisfaction(item, task, repo, lifecycle=None, canonical=None, 
         require(branch_tip(repo, delivery["branch"]) == delivery["head_sha"],
                 "pr-branch-missing", "open prerequisite source branch is missing or changed")
         if verify_checks:
-            checks = lifecycle.get("checks") if isinstance(lifecycle, dict) else None
-            if checks is not None:
-                require(isinstance(checks, dict) and checks.get("complete") is True
-                        and checks.get("state") in ("success", "verified")
-                        and checks.get("head_sha") in (None, delivery["head_sha"]),
-                        "pr-check-unverified", "current prerequisite checks are not successful")
-            else:
-                require(item.get("ci", {}).get("state") == "verified", "pr-check-evidence-missing",
-                        "current prerequisite check evidence is missing")
+            checks = lifecycle.get("checks")
+            if checks is None:
+                raise InputError("pr-check-evidence-missing",
+                                 "current prerequisite check evidence is missing")
+            require(isinstance(checks, dict) and checks.get("complete") is True
+                    and checks.get("state") in ("success", "verified")
+                    and checks.get("head_sha") == delivery["head_sha"],
+                    "pr-check-unverified", "current prerequisite checks are not successful")
         return {"kind": "open", "revision": delivery["head_sha"], "branch": delivery["branch"],
                 "pr_url": delivery["pr_url"], "checkpoint": copy.deepcopy(delivery["checkpoint"]),
                 "lifecycle": copy.deepcopy(lifecycle)}
+    require(pr.get("base_branch") == delivery["base_branch"], "pr-lifecycle-base",
+            "merged prerequisite PR no longer identifies the verified delivery base")
     merge_sha = pr.get("merge_commit_sha") or lifecycle.get("landed_revision")
-    target = pr.get("merged_base_branch") or lifecycle.get("landing_target") or pr.get("base_branch")
+    target = pr.get("merged_base_branch") or lifecycle.get("landing_target")
     require(SHA_RE.fullmatch(merge_sha or "") and text(target),
             "pr-merge-evidence-incomplete", "merged PR lacks landed revision and target evidence")
     target_tip = branch_tip(repo, target)
@@ -1743,10 +1745,13 @@ def prerequisite_satisfaction(item, task, repo, lifecycle=None, canonical=None, 
     require(verification["diff_identity"] in actual_diffs
             and verification["diff_identity"] == delivery["validated_diff"],
             "landed-diff-mismatch", "landed evidence does not match the verified task diff")
-    source = lifecycle.get("source", {})
-    if not (isinstance(source, dict) and source.get("deleted") is True):
-        require(branch_tip(repo, delivery["branch"]) is not None,
-                "pr-branch-missing", "merged prerequisite source branch evidence is missing")
+    source = lifecycle.get("source")
+    require(isinstance(source, dict) and source.get("branch") == delivery["branch"],
+            "pr-source-mismatch", "merged prerequisite source evidence identifies another branch")
+    if source.get("deleted") is not True:
+        require(source.get("head_sha") == pr["head_sha"]
+                and branch_tip(repo, delivery["branch"]) == source["head_sha"],
+                "pr-source-mismatch", "merged prerequisite source evidence does not match the current PR")
     return {"kind": "merged", "revision": merge_sha, "branch": delivery["branch"],
             "pr_url": delivery["pr_url"], "landing_branch": target, "landing_sha": target_tip,
             "checkpoint": copy.deepcopy(delivery["checkpoint"]), "lifecycle": copy.deepcopy(lifecycle)}
@@ -1757,7 +1762,8 @@ def parent_readiness(scope, task, state, reservation, decision, repo, retained=F
     predecessors = []
     for tid in task["prerequisites"]:
         item = state["tasks"][tid]
-        satisfaction = prerequisite_satisfaction(item, task, repo, canonical=scope["canonical_repo"])
+        satisfaction = prerequisite_satisfaction(
+            item, task, repo, lifecycle=item.get("lifecycle"), canonical=scope["canonical_repo"])
         predecessors.append((tid, item["delivery"], satisfaction))
     branch, head = reservation["parent_branch"], reservation["parent_sha"]
     if decision is not None:
@@ -1848,12 +1854,16 @@ def validate_delivery(admitted, task, reservation, result, repo, *, historical=F
     require(readback["association"] == task["url"] and readback["closing_references"] == [task["url"]],
             "wrong-association", "exactly the task issue may be a closing reference")
     if historical:
-        actual_diff = delivery_head_diff(repo, reservation, readback["head_sha"])
-        if actual_diff is None:
+        head_present = git(repo, "cat-file", "-e", readback["head_sha"] + "^{commit}", allow_missing=True) is not None
+        if not head_present:
             require(isinstance(retained_diff, str)
                     and re.fullmatch(r"sha256:[0-9a-f]{64}", retained_diff),
                     "historical-delivery-missing", "retained validated diff is required when the source head is unavailable")
             actual_diff = retained_diff
+        else:
+            actual_diff = delivery_head_diff(repo, reservation, readback["head_sha"])
+            require(actual_diff is not None, "wrong-ancestry",
+                    "historical source head is not descended from the admitted start")
     else:
         evidence_repo = repo
         if workspace_required:
@@ -1951,14 +1961,14 @@ def choose_parent(scope, task, state, decisions, repo):
         for predecessor in task["prerequisites"]:
             item = state["tasks"][predecessor]
             satisfaction = prerequisite_satisfaction(
-                item, task, repo, canonical=scope["canonical_repo"])
+                item, task, repo, lifecycle=item.get("lifecycle"), canonical=scope["canonical_repo"])
             if satisfaction["kind"] == "open":
                 candidates.append({"branch": satisfaction["branch"], "sha": satisfaction["revision"]})
     heads = []
     for predecessor in task["prerequisites"]:
         item = state["tasks"][predecessor]
         heads.append(prerequisite_satisfaction(
-            item, task, repo, canonical=scope["canonical_repo"])["revision"])
+            item, task, repo, lifecycle=item.get("lifecycle"), canonical=scope["canonical_repo"])["revision"])
     seen = set()
     for candidate in candidates:
         require(isinstance(candidate, dict) and text(candidate.get("branch"))
@@ -2064,7 +2074,7 @@ def reconcile_delivery(admitted, task, item, retained, repo, *, repairing=False,
     satisfaction = prerequisite_satisfaction(probe, task, repo, lifecycle=lifecycle,
                                              canonical=admitted["canonical_repo"],
                                              verify_checks=not repairing)
-    if lifecycle_state(lifecycle) == "open":
+    if lifecycle_state(lifecycle) == "open" and not repairing:
         checks = lifecycle.get("checks")
         if isinstance(checks, dict) and checks.get("complete") is True \
                 and checks.get("state") in ("success", "verified") \
@@ -2177,8 +2187,6 @@ def cmd_schedule(args):
         task = fresh_tasks[tid]
         item = state["tasks"][tid]
         retained = task.get("existing_delivery")
-        if item["status"] == "delivered" and item.get("ci", {}).get("state") == "blocked":
-            continue
         if not (item["status"] == "delivered" or (item["status"] == "pending" and retained is not None)):
             continue
         if item["status"] == "pending":
@@ -2320,6 +2328,7 @@ def cmd_schedule(args):
                 continue
             try:
                 prerequisite_satisfaction(predecessor_item, task, args.git_repo,
+                                         lifecycle=predecessor_item.get("lifecycle"),
                                          canonical=admitted["canonical_repo"])
             except InputError as error:
                 lifecycle_failures.append((predecessor, getattr(error, "code", "pr-lifecycle-invalid")))
@@ -2360,8 +2369,9 @@ def cmd_schedule(args):
                 merge_prerequisites = []
                 for predecessor in task["prerequisites"]:
                     predecessor_item = state["tasks"][predecessor]
-                    lifecycle = predecessor_item.get("lifecycle") or initial_lifecycle(
-                        predecessor_item["delivery"]["checkpoint"])
+                    lifecycle = predecessor_item.get("lifecycle")
+                    require(isinstance(lifecycle, dict) and lifecycle,
+                            "pr-lifecycle-missing", "current PR lifecycle evidence is missing")
                     current_pr = lifecycle.get("pr", lifecycle)
                     merge_prerequisites.append({
                         "task_id": predecessor,
