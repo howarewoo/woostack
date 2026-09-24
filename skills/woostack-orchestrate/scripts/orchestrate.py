@@ -1372,7 +1372,7 @@ def _apply_execution_plan_update(state, admitted, update):
 
 
 
-def state_read(path, admitted, *, allow_execution_plan_update=False):
+def state_read(path, admitted, *, allow_execution_plan_update=False, repo=None):
     try:
         raw = _state_bytes(path)
         state = json.loads(raw)
@@ -1450,7 +1450,11 @@ def state_read(path, admitted, *, allow_execution_plan_update=False):
                         and (planned_pr.get("merged_base_branch")
                              or planned_lifecycle.get("landing_target")) == admitted["integration"]["branch"]:
                     expected_branches.add(admitted["integration"]["branch"])
-                if item["reservation"]["parent_branch"] not in expected_branches:
+                parent_conflict = item["reservation"]["parent_branch"] not in expected_branches
+                if not parent_conflict and repo is not None:
+                    parent_conflict = not legacy_execution_parent_compatible(
+                        repo, state, admitted, task, item["reservation"])
+                if parent_conflict:
                     state["halt_new_dispatch"] = True
                     state["halt_reason"] = "execution-plan-drift"
                     state.setdefault("recovery", {}).setdefault("legacy_execution_plan_drift", [])
@@ -1796,7 +1800,7 @@ def _observed_ci(admitted, state, item, observation, repo=None):
 def cmd_observe_checks(args):
     admitted = load_json(args.admitted)
     repository(args.git_repo, admitted["canonical_repo"])
-    state = state_read(args.state, admitted)
+    state = state_read(args.state, admitted, repo=args.git_repo)
     require(args.task in state["tasks"], "unknown-task", "task outside admitted scope")
     item = state["tasks"][args.task]
     require(item["status"] == "delivered" and isinstance(item.get("delivery"), dict),
@@ -2034,6 +2038,25 @@ def prerequisite_satisfaction(item, task, repo, lifecycle=None, canonical=None, 
     return {"kind": "merged", "revision": merge_sha, "branch": delivery["branch"],
             "pr_url": delivery["pr_url"], "landing_branch": target, "landing_sha": target_tip,
             "checkpoint": copy.deepcopy(delivery["checkpoint"]), "lifecycle": copy.deepcopy(lifecycle)}
+def legacy_execution_parent_compatible(repo, state, admitted, task, reservation):
+    parent_id = task["execution_parent"]
+    if parent_id is None:
+        return True
+    parent = state["tasks"].get(parent_id)
+    if not isinstance(parent, dict):
+        return False
+    try:
+        satisfaction = prerequisite_satisfaction(
+            parent, task, repo, lifecycle=parent.get("lifecycle"),
+            canonical=admitted["canonical_repo"], verify_checks=False)
+        expected_branch = (satisfaction["branch"] if satisfaction["kind"] == "open"
+                           else admitted["integration"]["branch"])
+        return (reservation["parent_branch"] == expected_branch
+                and contains(repo, satisfaction["revision"], reservation["parent_sha"]))
+    except InputError:
+        return False
+
+
 
 
 def parent_readiness(scope, task, state, reservation, decision, repo, retained=False):
@@ -2425,7 +2448,7 @@ def cmd_schedule(args):
     admitted = load_json(args.admitted)
     require(admitted.get("status") in ("admitted", "no-work"), "not-admitted", "admission required")
     root = repository(args.git_repo, admitted["canonical_repo"])
-    state = (state_read(args.state, admitted, allow_execution_plan_update=True)
+    state = (state_read(args.state, admitted, allow_execution_plan_update=True, repo=args.git_repo)
              if args.state else new_state(admitted))
     if not args.state:
         require(not Path(args.state_out).exists(), "existing-state", "initial state already exists; resume it")
@@ -2828,7 +2851,7 @@ def cmd_schedule(args):
 def cmd_record_worker(args):
     admitted = load_json(args.admitted)
     repository(args.git_repo, admitted["canonical_repo"])
-    state = state_read(args.state, admitted)
+    state = state_read(args.state, admitted, repo=args.git_repo)
     require(args.task in state["tasks"], "unknown-task", "task outside admitted scope")
     item = state["tasks"][args.task]
     require(item["status"] in ("running", "unknown"), "not-running", "worker needs an active reservation")
@@ -2855,7 +2878,7 @@ def cmd_record_worker(args):
 def cmd_apply_result(args):
     admitted = load_json(args.admitted)
     repository(args.git_repo, admitted["canonical_repo"])
-    state = state_read(args.state, admitted)
+    state = state_read(args.state, admitted, repo=args.git_repo)
     require(args.task in state["tasks"], "unknown-task", "task outside admitted scope")
     item = state["tasks"][args.task]
     require(item["status"] in ("running", "note-pending", "evidence-pending"),
@@ -2918,7 +2941,7 @@ def cmd_apply_result(args):
 def cmd_reconcile(args):
     admitted = load_json(args.admitted)
     repository(args.git_repo, admitted["canonical_repo"])
-    state = state_read(args.state, admitted)
+    state = state_read(args.state, admitted, repo=args.git_repo)
     require(args.task in state["tasks"], "unknown-task", "task outside admitted scope")
     item = state["tasks"][args.task]
     descendant_reconcile = isinstance(item.get("ci"), dict) \
@@ -3018,7 +3041,7 @@ def cmd_reconcile(args):
 def cmd_stop(args):
     admitted = load_json(args.admitted)
     repository(args.git_repo, admitted["canonical_repo"])
-    state = state_read(args.state, admitted)
+    state = state_read(args.state, admitted, repo=args.git_repo)
     claim_scope(args.git_repo, admitted, state)
     require(text(args.reason), "invalid-stop", "stop reason required")
     state["stop_requested"] = True

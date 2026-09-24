@@ -837,6 +837,93 @@ class OrchestrateBehavior(unittest.TestCase):
         self.assertEqual(code, 1, payload)
         self.assertEqual(payload.get("error"), "execution-plan-drift", payload)
 
+    def test_legacy_execution_parent_revision_must_be_retained(self) -> None:
+        base = self.github.snapshot()
+        old_admitted_path, old_admitted = self._admit_issue(base)
+        state, initial = self._schedule(
+            old_admitted_path, old_admitted, None, base, "ancestry-old-plan", cap="2"
+        )
+        self.assertEqual([entry["task_id"] for entry in initial["dispatch"]], ["task-a", "task-b"])
+        host = self._start_host(workers=2)
+        host.dispatch(initial["dispatch"])
+        result_a = make_result(self.github, "task-a", host.wait_for_report("task-a"), old_admitted)
+        result_b = make_result(self.github, "task-b", host.wait_for_report("task-b"), old_admitted)
+        state, _, _ = self._apply(old_admitted_path, state, "task-a", result_a, "ancestry-a")
+        self._persist("task-a", result_a, initial["dispatch"][0])
+
+        git(self.repo, "checkout", "-q", "main")
+        first_parent = git(self.repo, "rev-parse", "HEAD")
+        branch = self.github.delivery["task-a"]["reservation"]["branch"]
+        git(self.repo, "merge", "--no-ff", branch, "-m", "land task-a")
+        merge_sha = git(self.repo, "rev-parse", "HEAD")
+        workspace = self.github.delivery["task-a"]["reservation"]["workspace"]
+        git(self.repo, "worktree", "remove", "--force", workspace)
+        git(self.repo, "branch", "-D", branch)
+        merged_lifecycle = {
+            "pr": {
+                "pr_url": result_a["worker"]["pr_url"], "repo": self.github.canonical,
+                "head_repo": self.github.canonical, "branch": branch,
+                "head_sha": result_a["worker"]["head_sha"],
+                "base_branch": result_a["worker"]["base_branch"], "state": "merged",
+                "merged_base_branch": "main", "merge_commit_sha": merge_sha,
+            },
+            "source": {"branch": branch, "deleted": True},
+            "landed_verification": {
+                "complete": True, "source_verified": True,
+                "checks_verified": True, "reverted": False,
+                "diff_identity": diff_identity(self.repo, first_parent, merge_sha),
+            },
+        }
+        self.github.delivery["task-a"]["lifecycle"] = merged_lifecycle
+        self.github.children[0]["state"] = "closed"
+        self.github.integration["sha"] = merge_sha
+
+        legacy = json.loads(state.read_text())
+        legacy.pop("execution_layout")
+        legacy.pop("execution_fingerprint")
+        for item in legacy["tasks"].values():
+            item.pop("execution_parent", None)
+            item.pop("execution_plan_revision", None)
+        legacy["tasks"]["task-a"]["lifecycle"] = merged_lifecycle
+        legacy_path = state
+        checkpoint = self.repo / ".woostack" / "tmp" / "orchestrate-checkpoints" / (
+            legacy["fingerprint"].split(":", 1)[1] + ".head.json"
+        )
+        legacy_path.write_text(json.dumps(legacy, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        legacy_path.chmod(0o600)
+        checkpoint.write_text(json.dumps({
+            "version": 1,
+            "fingerprint": legacy["fingerprint"],
+            "scope_identity": legacy["scope_identity"],
+            "digest": hashlib.sha256(legacy_path.read_bytes()).hexdigest(),
+            "state_path": str(legacy_path),
+        }, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        checkpoint.chmod(0o600)
+
+        changed = self.github.snapshot()
+        changed["execution_layout"] = self.github.execution_layout(
+            (item["task_id"] for item in changed["tasks"]),
+            {"task-a": None, "task-b": "task-a", "task-c": "task-a",
+             "task-d": "task-a", "task-e": None},
+        )
+        changed_admitted_path, changed_admitted = self._admit_issue(changed)
+        conflict_state, halted = self._schedule(
+            changed_admitted_path, changed_admitted, legacy_path,
+            changed, "ancestry-conflict", cap="1"
+        )
+        self.assertEqual(halted["status"], "halted", halted)
+        self.assertEqual(halted["reason"], "execution-plan-drift", halted)
+        saved = json.loads(conflict_state.read_text())
+        self.assertEqual(saved["recovery"]["legacy_execution_plan_drift"], ["task-b"])
+
+        _, payload, code = self._apply(
+            changed_admitted_path, conflict_state, "task-b", result_b,
+            "ancestry-conflict-result", expect_code=1, observe_ci=False,
+        )
+        self.assertEqual(code, 1, payload)
+        self.assertEqual(payload.get("error"), "execution-plan-drift", payload)
+
+
     def test_issue_list_reuses_resolved_task_identity_and_graph(self) -> None:
         snapshot = self.github.issue_list_snapshot()
         admitted_path, admitted = self._admit_issues(snapshot)
