@@ -1546,20 +1546,6 @@ def _repair_attempt(item):
                      "failure_fingerprint": ci.get("failure_fingerprint")})
 
 
-def _revalidate_repair_pr(repo, item, result):
-    delivery = item["delivery"]
-    worker = result.get("worker") if isinstance(result, dict) else None
-    readback = result.get("readback") if isinstance(result, dict) else None
-    require(isinstance(worker, dict) and isinstance(readback, dict),
-            "delivery-evidence-pending", "fresh repair delivery evidence is incomplete")
-    for evidence in (worker, readback):
-        require(evidence.get("pr_url") == item.get("verified_pr")
-                and evidence.get("branch") == delivery["branch"]
-                and evidence.get("head_sha") == delivery["head_sha"]
-                and evidence.get("base_branch") == delivery["base_branch"],
-                "delivery-revision-mismatch", "fresh repair PR identity differs from the retained delivery")
-    require(readback.get("open") is True and branch_tip(repo, delivery["branch"]) == delivery["head_sha"],
-            "delivery-revision-mismatch", "fresh repair PR is not open at the retained branch head")
 
 def _reopen_repair_workspace(repo, admitted, state, item):
     reservation = item["reservation"]
@@ -1684,7 +1670,7 @@ def lifecycle_state(lifecycle):
     return pr.get("state") if isinstance(pr, dict) else None
 
 
-def prerequisite_satisfaction(item, task, repo, lifecycle=None, canonical=None):
+def prerequisite_satisfaction(item, task, repo, lifecycle=None, canonical=None, *, verify_checks=True):
     delivery = item.get("delivery")
     require(isinstance(delivery, dict), "prerequisites-unmet", "verified delivery missing for " + task["task_id"])
     lifecycle = lifecycle or item.get("lifecycle") or initial_lifecycle(delivery["checkpoint"])
@@ -1705,15 +1691,16 @@ def prerequisite_satisfaction(item, task, repo, lifecycle=None, canonical=None):
                 "open prerequisite PR no longer describes the verified delivery")
         require(branch_tip(repo, delivery["branch"]) == delivery["head_sha"],
                 "pr-branch-missing", "open prerequisite source branch is missing or changed")
-        checks = lifecycle.get("checks") if isinstance(lifecycle, dict) else None
-        if checks is not None:
-            require(isinstance(checks, dict) and checks.get("complete") is True
-                    and checks.get("state") in ("success", "verified")
-                    and checks.get("head_sha") in (None, delivery["head_sha"]),
-                    "pr-check-unverified", "current prerequisite checks are not successful")
-        else:
-            require(item.get("ci", {}).get("state") == "verified", "pr-check-evidence-missing",
-                    "current prerequisite check evidence is missing")
+        if verify_checks:
+            checks = lifecycle.get("checks") if isinstance(lifecycle, dict) else None
+            if checks is not None:
+                require(isinstance(checks, dict) and checks.get("complete") is True
+                        and checks.get("state") in ("success", "verified")
+                        and checks.get("head_sha") in (None, delivery["head_sha"]),
+                        "pr-check-unverified", "current prerequisite checks are not successful")
+            else:
+                require(item.get("ci", {}).get("state") == "verified", "pr-check-evidence-missing",
+                        "current prerequisite check evidence is missing")
         return {"kind": "open", "revision": delivery["head_sha"], "branch": delivery["branch"],
                 "pr_url": delivery["pr_url"], "checkpoint": copy.deepcopy(delivery["checkpoint"]),
                 "lifecycle": copy.deepcopy(lifecycle)}
@@ -1827,7 +1814,8 @@ def delivery_head_diff(repo, reservation, head_sha):
     return None
 
 
-def validate_delivery(admitted, task, reservation, result, repo, *, historical=False, retained_diff=None):
+def validate_delivery(admitted, task, reservation, result, repo, *, historical=False,
+                      retained_diff=None, workspace_required=True):
     require(result.get("outcome") in ("ok", "needs-repair"), "unknown-response", "worker outcome unknown")
     worker = field_object(result.get("worker"), ("worker_id", "pr_url", "branch", "workspace", "head_sha",
                           "base_branch", "commit_sha", "association"), "worker")
@@ -1861,10 +1849,18 @@ def validate_delivery(admitted, task, reservation, result, repo, *, historical=F
                     "historical-delivery-missing", "retained validated diff is required when the source head is unavailable")
             actual_diff = retained_diff
     else:
-        evidence_repo = reservation["workspace"]
-        identity = workspace_identity(repo, admitted["canonical_repo"], reservation["workspace"], reservation["branch"])
-        require(readback["commit_sha"] == readback["head_sha"] == identity["head_sha"],
-                "wrong-head", "commit and actual workspace head must agree")
+        evidence_repo = repo
+        if workspace_required:
+            identity = workspace_identity(repo, admitted["canonical_repo"],
+                                         reservation["workspace"], reservation["branch"])
+            evidence_repo = reservation["workspace"]
+            actual_head = identity["head_sha"]
+        else:
+            require(branch_tip(repo, reservation["branch"]) == readback["head_sha"],
+                    "delivery-revision-mismatch", "repair source branch no longer matches the retained delivery")
+            actual_head = readback["head_sha"]
+        require(readback["commit_sha"] == readback["head_sha"] == actual_head,
+                "wrong-head", "commit and actual source head must agree")
         actual_diff = delivery_head_diff(evidence_repo, reservation, readback["head_sha"])
         require(actual_diff is not None, "wrong-ancestry", "admitted start is not an ancestor")
     checks = field_object(result.get("checks"), ("passed", "commands", "head_sha", "diff_identity", "smoke"), "checks")
@@ -2039,16 +2035,20 @@ def _remember_result(item, result):
     if isinstance(result.get("validation"), dict):
         item["validation"] = copy.deepcopy(result["validation"])
 
-def reconcile_delivery(admitted, task, item, retained, repo):
+def reconcile_delivery(admitted, task, item, retained, repo, *, repairing=False, workspace_required=True):
     explicit_lifecycle = retained.get("lifecycle")
     require(isinstance(explicit_lifecycle, dict) and explicit_lifecycle,
             "pr-lifecycle-missing", "fresh canonical PR lifecycle evidence is required")
     lifecycle = explicit_lifecycle
+    if repairing:
+        require(lifecycle_state(lifecycle) == "open", "pr-not-open",
+                "CI repair requires a current open PR lifecycle")
     historical = lifecycle_state(lifecycle) == "merged"
     prior_delivery = item.get("delivery")
     prior_diff = prior_delivery.get("validated_diff") if isinstance(prior_delivery, dict) else None
     proof = validate_delivery(admitted, task, retained["reservation"], retained["result"], repo,
-                              historical=historical, retained_diff=prior_diff)
+                              historical=historical, retained_diff=prior_diff,
+                              workspace_required=workspace_required)
     delivery = proof.get("delivery")
     if delivery is None:
         return proof, lifecycle, None
@@ -2056,7 +2056,8 @@ def reconcile_delivery(admitted, task, item, retained, repo):
     probe["delivery"] = delivery
     probe["lifecycle"] = lifecycle
     satisfaction = prerequisite_satisfaction(probe, task, repo, lifecycle=lifecycle,
-                                             canonical=admitted["canonical_repo"])
+                                             canonical=admitted["canonical_repo"],
+                                             verify_checks=not repairing)
     if lifecycle_state(lifecycle) == "open":
         checks = lifecycle.get("checks")
         if isinstance(checks, dict) and checks.get("complete") is True \
@@ -2211,14 +2212,11 @@ def cmd_schedule(args):
                     "reservation-mismatch", "retained workspace must be absolute")
             require(text(reservation.get("branch")), "reservation-mismatch",
                     "retained branch is missing")
-            if item.get("ci", {}).get("state") == "repair" and not Path(reservation["workspace"]).exists():
-                _revalidate_repair_pr(args.git_repo, item, retained["result"])
-                proof = {"status": "delivered", "delivery": copy.deepcopy(item["delivery"])}
-                lifecycle = item.get("lifecycle")
-                satisfaction = item.get("satisfaction")
-            else:
-                proof, lifecycle, satisfaction = reconcile_delivery(
-                    admitted, task, item, retained, args.git_repo)
+            repairing = item.get("ci", {}).get("state") == "repair"
+            workspace_required = not (repairing and not Path(reservation["workspace"]).exists())
+            proof, lifecycle, satisfaction = reconcile_delivery(
+                admitted, task, item, retained, args.git_repo,
+                repairing=repairing, workspace_required=workspace_required)
             claim_task(args.git_repo, admitted, task, state, item)
             decision = decisions.get(tid) or item.get("parent_decision")
             parent_readiness(fresh, task, state, reservation, decision, args.git_repo, retained=True)
@@ -2291,6 +2289,8 @@ def cmd_schedule(args):
                 and item["status"] not in ("running", "unknown"):
             blocked.append({"task_id": tid, "reason": item["ci"].get("reason", "ci-blocked"),
                             "next_action": item["ci"].get("next_action")})
+            continue
+        if item.get("lifecycle_error"):
             continue
         ci_repair = item.get("ci", {}).get("state") == "repair"
         if item["status"] not in ("pending", "repair-ready") and not ci_repair:

@@ -2951,6 +2951,42 @@ class OrchestrateBehavior(unittest.TestCase):
         }
         state, repair, _ = self._observe(admitted_path, state, "task-a", failure, "reopen-unsafe")
         self.assertEqual(repair["ci_state"], "repair", repair)
+        missing = self._single_task_snapshot()
+        next(task for task in missing["tasks"] if task["task_id"] == "task-a")[
+            "existing_delivery"
+        ].pop("lifecycle")
+        state, missing_lifecycle = self._schedule(
+            admitted_path, admitted, state, missing, "reopen-missing-lifecycle", cap="1"
+        )
+        self.assertEqual(missing_lifecycle["dispatch"], [], missing_lifecycle)
+        self.assertIn(
+            "pr-lifecycle-missing",
+            [entry["reason"] for entry in missing_lifecycle["blocked"]],
+            missing_lifecycle,
+        )
+        self.assertEqual(
+            json.loads(state.read_text())["tasks"]["task-a"]["lifecycle_error"]["reason"],
+            "pr-lifecycle-missing",
+        )
+
+        closed = self._single_task_snapshot()
+        lifecycle = next(task for task in closed["tasks"] if task["task_id"] == "task-a")[
+            "existing_delivery"
+        ]["lifecycle"]
+        lifecycle["pr"]["state"] = "closed"
+        state, closed_lifecycle = self._schedule(
+            admitted_path, admitted, state, closed, "reopen-closed-lifecycle", cap="1"
+        )
+        self.assertEqual(closed_lifecycle["dispatch"], [], closed_lifecycle)
+        self.assertIn(
+            "pr-not-open",
+            [entry["reason"] for entry in closed_lifecycle["blocked"]],
+            closed_lifecycle,
+        )
+        self.assertEqual(
+            json.loads(state.read_text())["tasks"]["task-a"]["lifecycle_error"]["reason"],
+            "pr-not-open",
+        )
         state, blocked = self._schedule(
             admitted_path, admitted, state, self._single_task_snapshot(), "reopen-unsafe-schedule", cap="1"
         )
