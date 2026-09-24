@@ -881,7 +881,11 @@ class OrchestrateBehavior(unittest.TestCase):
                 "head_repo": self.github.canonical, "branch": result["worker"]["branch"],
                 "head_sha": result["worker"]["head_sha"], "base_branch": result["worker"]["base_branch"],
             },
-            "source": {"branch": result["worker"]["branch"], "deleted": False},
+            "source": {
+                "branch": result["worker"]["branch"],
+                "head_sha": result["worker"]["head_sha"],
+                "deleted": False,
+            },
         }
         wrong_target = "wrong-target"
         git(self.repo, "branch", wrong_target, result["worker"]["head_sha"])
@@ -2987,6 +2991,33 @@ class OrchestrateBehavior(unittest.TestCase):
             json.loads(state.read_text())["tasks"]["task-a"]["lifecycle_error"]["reason"],
             "pr-not-open",
         )
+
+        deleted_source = self._single_task_snapshot()
+        deleted_lifecycle = next(task for task in deleted_source["tasks"] if task["task_id"] == "task-a")[
+            "existing_delivery"
+        ]["lifecycle"]
+        deleted_lifecycle["source"]["deleted"] = True
+        stale_source = self._single_task_snapshot()
+        stale_lifecycle = next(task for task in stale_source["tasks"] if task["task_id"] == "task-a")[
+            "existing_delivery"
+        ]["lifecycle"]
+        stale_lifecycle["source"]["head_sha"] = self.base_sha
+        retargeted = self._single_task_snapshot()
+        retargeted_lifecycle = next(task for task in retargeted["tasks"] if task["task_id"] == "task-a")[
+            "existing_delivery"
+        ]["lifecycle"]
+        retargeted_lifecycle["pr"]["base_branch"] = "other-parent"
+        for label, fresh, reason in (
+            ("deleted-source", deleted_source, "pr-source-mismatch"),
+            ("stale-source", stale_source, "pr-source-mismatch"),
+            ("retargeted", retargeted, "pr-lifecycle-base"),
+        ):
+            state, invalid_lifecycle = self._schedule(
+                admitted_path, admitted, state, fresh, "reopen-" + label, cap="1"
+            )
+            self.assertEqual(invalid_lifecycle["dispatch"], [], invalid_lifecycle)
+            self.assertIn(reason, [entry["reason"] for entry in invalid_lifecycle["blocked"]], invalid_lifecycle)
+
         state, blocked = self._schedule(
             admitted_path, admitted, state, self._single_task_snapshot(), "reopen-unsafe-schedule", cap="1"
         )
@@ -3005,10 +3036,20 @@ class OrchestrateBehavior(unittest.TestCase):
         failure["workspace_reopen"]["path"] = str(workspace)
         state, repair, _ = self._observe(admitted_path, state, "task-a", failure, "reopen-safe")
         self.assertEqual(repair["ci_state"], "repair", repair)
+        stale_success = self._single_task_snapshot()
+        stale_success_lifecycle = next(
+            task for task in stale_success["tasks"] if task["task_id"] == "task-a"
+        )["existing_delivery"]["lifecycle"]
+        stale_success_lifecycle["checks"] = {
+            "complete": True,
+            "state": "success",
+            "head_sha": self.base_sha,
+        }
         state, dispatched = self._schedule(
-            admitted_path, admitted, state, self._single_task_snapshot(), "reopen-safe-schedule", cap="1"
+            admitted_path, admitted, state, stale_success, "reopen-safe-schedule", cap="1"
         )
         self.assertEqual([entry["task_id"] for entry in dispatched["dispatch"]], ["task-a"], dispatched)
+        self.assertEqual(json.loads(state.read_text())["tasks"]["task-a"]["ci"]["state"], "repair")
         self.assertFalse(workspace.exists(), dispatched)
         repair_entry = dispatched["dispatch"][0]
         self.assertEqual(repair_entry["workspace_reopen"]["released"], True)

@@ -566,7 +566,11 @@ class FakeGitHub:
                         "base_branch": result["readback"]["base_branch"],
                         "state": "open", "draft": result["readback"]["draft"],
                     },
-                    "source": {"branch": result["readback"]["branch"], "deleted": False},
+                    "source": {
+                        "branch": result["readback"]["branch"],
+                        "head_sha": result["readback"]["head_sha"],
+                        "deleted": False,
+                    },
                     "checks": None,
                 },
             }

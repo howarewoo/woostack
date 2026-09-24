@@ -1658,7 +1658,7 @@ def initial_lifecycle(result):
             "head_sha": readback["head_sha"], "base_branch": readback["base_branch"],
             "state": "open", "draft": readback["draft"],
         },
-        "source": {"branch": readback["branch"], "deleted": False},
+        "source": {"branch": readback["branch"], "head_sha": readback["head_sha"], "deleted": False},
         "checks": None,
     }
 
@@ -1689,6 +1689,12 @@ def prerequisite_satisfaction(item, task, repo, lifecycle=None, canonical=None, 
     if pr["state"] == "open":
         require(pr["head_sha"] == delivery["head_sha"], "pr-lifecycle-head",
                 "open prerequisite PR no longer describes the verified delivery")
+        require(pr.get("base_branch") == delivery["base_branch"], "pr-lifecycle-base",
+                "open prerequisite PR no longer targets the verified delivery base")
+        source = lifecycle.get("source")
+        require(isinstance(source, dict) and source.get("branch") == delivery["branch"]
+                and source.get("head_sha") == delivery["head_sha"] and source.get("deleted") is False,
+                "pr-source-mismatch", "open prerequisite source evidence does not match the verified delivery")
         require(branch_tip(repo, delivery["branch"]) == delivery["head_sha"],
                 "pr-branch-missing", "open prerequisite source branch is missing or changed")
         if verify_checks:
@@ -2061,7 +2067,8 @@ def reconcile_delivery(admitted, task, item, retained, repo, *, repairing=False,
     if lifecycle_state(lifecycle) == "open":
         checks = lifecycle.get("checks")
         if isinstance(checks, dict) and checks.get("complete") is True \
-                and checks.get("state") in ("success", "verified"):
+                and checks.get("state") in ("success", "verified") \
+                and checks.get("head_sha") == delivery["head_sha"]:
             item["ci"] = copy.deepcopy(item.get("ci", _new_ci(item)))
             item["ci"].update(state="verified", head_sha=delivery["head_sha"],
                               target_sha=delivery["head_sha"], reason=None, next_action=None)
