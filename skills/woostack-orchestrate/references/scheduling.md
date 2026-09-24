@@ -295,13 +295,13 @@ addition that leaves the exact task set, technical graph, and execution plan unc
 evidence, not drift; membership may transition from `declared` to `native` for the same set. Those
 mutable facts are still refreshed and recorded. A changed issue set, contract, identity, meaningful
 tracker scope/specification, actual parent, technical edge endpoint/provenance/evidence, or blocker
-returns `snapshot-drift`. A changed execution layout returns controlled `execution-plan-drift`; it
-does not mutate the retained plan or dispatch new work. Both statuses preserve all running
-reservations, claims, recovery inventory, and worker identity and require a fresh interpreted
-snapshot. Reinvoking the same tracker or an equivalent issue list resumes the same canonical task
-claims, execution plan, and delivery history without a duplicate worker or PR. The controller must
-re-read GitHub scope evidence and assemble `--fresh` for every refill, including immediately after a
-worker result and after reconciliation.
+returns `snapshot-drift`. A changed execution layout returns controlled `execution-plan-drift` when
+it touches started, reserved, claimed, worker-owned, or delivered work. A newer plan revision is
+adopted only when every changed task is genuinely unstarted and compatible with the complete retained
+recovery and repository evidence; the accepted layout, fingerprint, per-task dependencies, and plan
+history are written in the same atomic checkpoint before any new dispatch. Equivalent reordered input
+resumes the same plan. Every status preserves existing reservations, claims, workers, deliveries, and
+recovery boundaries and requires a fully fresh interpreted snapshot.
 
 Every fresh refill carries the complete recovery inventory described above: checkpoint/state
 identities, worker processes/sessions, Git worktrees/refs/dirty state, canonical PRs, contract

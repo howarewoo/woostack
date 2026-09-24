@@ -152,13 +152,13 @@ contract remain the bounded work; preserve tracker phase and scope constraints t
 in them. A revision-only change, reordered references, or declared-to-native transition with the
 same task set does not create a new packet identity.
 
-persisted execution layout and this task's `execution_parent`, rationale, compatibility constraints,
-optional merge-checkpoint fallback, execution ancestry, effective prerequisite set, and verified
-landed-base prerequisite evidence. A selected execution parent is optional compatibility ordering; it
-is not a native GitHub relationship and does not replace the technical prerequisite evidence. The
-worker must treat effective prerequisites as the scheduling/readiness graph while preserving
-technical prerequisites separately.
-edge is context and scheduling evidence, not a native GitHub relationship or permission to expand
+Along with the persisted execution layout, the packet carries this task's `execution_parent`,
+rationale, compatibility constraints, optional merge-checkpoint fallback, execution ancestry,
+effective prerequisite set, and verified landed-base prerequisite evidence. A selected execution
+parent is optional compatibility ordering; it is not a native GitHub relationship and does not
+replace the technical prerequisite evidence. The worker must treat effective prerequisites as the
+scheduling/readiness graph while preserving technical prerequisites separately. `dependency_edges`
+remains context and scheduling evidence, not a native GitHub relationship or permission to expand
 scope. The packet's task scope, specification, contract, layout, and readiness are the worker's
 complete input; it must not infer missing dependencies, choose a different parent, discover siblings,
 or publish an edge.
@@ -195,8 +195,9 @@ effective prerequisite set, full checkpoints, selected parent, current PR facts,
 Git mutation. It must block missing evidence, not discover the graph or infer readiness from a branch
 name. Repairs retain their original start, even if a separately verified parent tip has advanced
 compatibly. The controller persists the plan revision and fingerprint with the state, so equivalent
-reordered input resumes the same plan; a changed plan is `execution-plan-drift` and a changed
-technical graph is `snapshot-drift`.
+reordered input resumes the same plan. A newer layout revision is adopted atomically only when every
+changed task is genuinely unstarted; otherwise it is `execution-plan-drift`. A changed technical graph
+is `snapshot-drift`.
 
 
 A repair entry keeps the same `branch`, absolute `workspace`, `parent_branch`, `parent_sha`, and

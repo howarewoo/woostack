@@ -727,6 +727,7 @@ class OrchestrateBehavior(unittest.TestCase):
             admitted_path, admitted, None, base, "layout-drift-base", cap="1"
         )
         self.assertEqual([entry["task_id"] for entry in initial["dispatch"]], ["task-a"])
+        prior_reservation = json.loads(state.read_text())["tasks"]["task-a"]["reservation"]
         malformed = copy.deepcopy(base)
         malformed.pop("execution_layout")
         state, malformed_result = self._schedule(
@@ -739,13 +740,32 @@ class OrchestrateBehavior(unittest.TestCase):
         self.assertIsNotNone(json.loads(state.read_text())["tasks"]["task-a"]["reservation"])
         changed = copy.deepcopy(base)
         next(item for item in changed["execution_layout"]["entries"] if item["task_id"] == "task-b")["execution_parent"] = "task-a"
-        state, drift = self._schedule(
-            admitted_path, admitted, state, changed, "layout-drift", cap="1"
+        changed["execution_layout"]["revision"] = 2
+        changed_admitted_path, changed_admitted = self._admit_issue(changed)
+        state, adopted = self._schedule(
+            changed_admitted_path, changed_admitted, state, changed, "layout-replan", cap="1"
         )
-        self.assertEqual(drift["status"], "snapshot-drift", drift)
-        self.assertEqual(drift["dispatch"], [], drift)
-        self.assertEqual(json.loads(state.read_text())["execution_layout"], admitted["execution_layout"])
-        self.assertEqual(drift["reason"], "execution-plan-drift", drift)
+        self.assertEqual(adopted["status"], "ok", adopted)
+        self.assertEqual(adopted["dispatch"], [], adopted)
+        revised_state = json.loads(state.read_text())
+        self.assertEqual(revised_state["execution_layout"], changed_admitted["execution_layout"])
+        self.assertEqual(revised_state["execution_plan_history"][-1]["changed_tasks"], ["task-b"])
+        self.assertEqual(revised_state["tasks"]["task-b"]["execution_parent"], "task-a")
+        self.assertEqual(revised_state["tasks"]["task-a"]["reservation"], prior_reservation)
+
+        started_change = copy.deepcopy(changed)
+        next(item for item in started_change["execution_layout"]["entries"]
+             if item["task_id"] == "task-a")["execution_parent"] = "task-e"
+        started_change["execution_layout"]["revision"] = 3
+        started_admitted_path, started_admitted = self._admit_issue(started_change)
+        state, rejected = self._schedule(
+            started_admitted_path, started_admitted, state, started_change, "layout-replan-started", cap="1"
+        )
+        self.assertEqual(rejected["status"], "snapshot-drift", rejected)
+        self.assertEqual(rejected["dispatch"], [], rejected)
+        self.assertEqual(json.loads(state.read_text())["execution_layout"],
+                         changed_admitted["execution_layout"])
+        self.assertEqual(rejected["reason"], "execution-plan-drift")
 
     def test_issue_list_reuses_resolved_task_identity_and_graph(self) -> None:
         snapshot = self.github.issue_list_snapshot()

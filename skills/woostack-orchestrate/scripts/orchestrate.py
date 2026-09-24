@@ -1289,8 +1289,81 @@ def new_state(admitted):
         },
     }
 
+def _execution_ancestry(entries, task_id):
+    lineage, parent = [], entries[task_id]["execution_parent"]
+    while parent is not None:
+        lineage.append(parent)
+        parent = entries[parent]["execution_parent"]
+    return list(reversed(lineage))
 
-def state_read(path, admitted):
+
+def _genuinely_unstarted(item, task):
+    untouched = (
+        "reservation", "claim", "host_worker", "delivery", "verified_pr", "lifecycle",
+        "satisfaction", "report", "source", "diff_identity", "checks", "validation", "pr",
+        "parent_decision", "first_uncertain_boundary", "last_evidence", "failure_reason",
+    )
+    return (item.get("status") == "pending" and task.get("existing_delivery") is None
+            and all(item.get(key) is None for key in untouched)
+            and item.get("ci") == _new_ci(item))
+
+
+def _execution_plan_update(state, admitted):
+    current = state["execution_layout"]
+    require(type(current.get("revision")) is int and current["revision"] > 0
+            and state.get("execution_fingerprint") == digest(current),
+            "invalid-state", "retained execution plan identity is invalid")
+    if state["execution_fingerprint"] == admitted["execution_fingerprint"]:
+        return None
+    require(admitted["execution_layout"]["revision"] > current["revision"],
+            "execution-plan-drift", "changed execution layout requires a newer plan revision")
+    current_entries = {entry["task_id"]: entry for entry in current["entries"]}
+    revised_entries = {entry["task_id"]: entry for entry in admitted["execution_layout"]["entries"]}
+    changed = set()
+    for task in admitted["tasks"]:
+        task_id = task["task_id"]
+        item = state["tasks"].get(task_id)
+        require(isinstance(item, dict), "invalid-state", "retained task is missing")
+        retained_parent = current_entries[task_id]["execution_parent"]
+        retained_effective = set((item.get("dependency_snapshot") or {}).get(
+            "effective_prerequisites", []))
+        require(item.get("execution_parent") == retained_parent
+                and item.get("execution_plan_revision") == current["revision"],
+                "invalid-state", "retained task execution identity is invalid")
+        if (current_entries[task_id] != revised_entries[task_id]
+                or _execution_ancestry(current_entries, task_id) != task["execution_ancestry"]
+                or retained_effective != set(task["effective_prerequisites"])):
+            changed.add(task_id)
+    for task_id in sorted(changed):
+        require(_genuinely_unstarted(state["tasks"][task_id],
+                                     next(task for task in admitted["tasks"]
+                                          if task["task_id"] == task_id)),
+                "execution-plan-drift", "changed execution plan affects started or reserved work")
+    return {
+        "from_revision": current["revision"],
+        "from_fingerprint": state["execution_fingerprint"],
+        "to_revision": admitted["execution_layout"]["revision"],
+        "to_fingerprint": admitted["execution_fingerprint"],
+        "changed_tasks": sorted(changed),
+    }
+
+
+def _apply_execution_plan_update(state, admitted, update):
+    state["execution_layout"] = copy.deepcopy(admitted["execution_layout"])
+    state["execution_fingerprint"] = admitted["execution_fingerprint"]
+    for task in admitted["tasks"]:
+        item = state["tasks"][task["task_id"]]
+        item.update(
+            execution_parent=task["execution_parent"],
+            execution_plan_revision=admitted["execution_layout"]["revision"],
+            dependency_snapshot=copy.deepcopy(task["dependency_snapshot"]),
+        )
+    state.setdefault("execution_plan_history", []).append(copy.deepcopy(update))
+
+
+
+
+def state_read(path, admitted, *, allow_execution_plan_update=False):
     try:
         raw = _state_bytes(path)
         state = json.loads(raw)
@@ -1304,13 +1377,24 @@ def state_read(path, admitted):
     require(state.get("scope_identity") == admitted["scope_identity"],
             "state-mismatch", "state scope identity differs")
     legacy_layout = "execution_layout" not in state
+    execution_plan_update = None
+    execution_plan_error = None
+    plan_matches = (state.get("execution_layout") == admitted["execution_layout"]
+                    and state.get("execution_fingerprint") == admitted["execution_fingerprint"])
     if legacy_layout:
         state["execution_layout"] = copy.deepcopy(admitted["execution_layout"])
         state["execution_fingerprint"] = admitted["execution_fingerprint"]
-    else:
-        require(state.get("execution_layout") == admitted["execution_layout"]
-                and state.get("execution_fingerprint") == admitted["execution_fingerprint"],
-                "execution-plan-drift", "controller execution plan changed")
+    elif not plan_matches:
+        if not allow_execution_plan_update:
+            raise InputError("execution-plan-drift", "controller execution plan changed")
+        try:
+            execution_plan_update = _execution_plan_update(state, admitted)
+        except InputError as error:
+            execution_plan_error = {"code": error.code, "message": str(error)}
+        if execution_plan_update is not None:
+            state["_execution_plan_update"] = execution_plan_update
+        if execution_plan_error is not None:
+            state["_execution_plan_error"] = execution_plan_error
     owner = state.get("owner")
     require(isinstance(owner, dict) and text(owner.get("controller_id")),
             "ownership-missing", "controller ownership identity missing")
@@ -1359,7 +1443,7 @@ def state_read(path, admitted):
                 if item["reservation"]["parent_branch"] not in expected_branches:
                     state["halt_new_dispatch"] = True
                     state["halt_reason"] = "execution-plan-drift"
-        else:
+        elif execution_plan_update is None and execution_plan_error is None:
             require(item.get("execution_parent") == task["execution_parent"]
                     and item.get("execution_plan_revision") == admitted["execution_layout"]["revision"],
                     "invalid-state", "task execution plan identity changed")
@@ -2327,7 +2411,8 @@ def cmd_schedule(args):
     admitted = load_json(args.admitted)
     require(admitted.get("status") in ("admitted", "no-work"), "not-admitted", "admission required")
     root = repository(args.git_repo, admitted["canonical_repo"])
-    state = state_read(args.state, admitted) if args.state else new_state(admitted)
+    state = (state_read(args.state, admitted, allow_execution_plan_update=True)
+             if args.state else new_state(admitted))
     if not args.state:
         require(not Path(args.state_out).exists(), "existing-state", "initial state already exists; resume it")
         # Publish the owner-bearing initial state before acquiring the claim: the
@@ -2344,7 +2429,7 @@ def cmd_schedule(args):
         require(fresh["fingerprint"] == admitted["fingerprint"],
                 "snapshot-drift", "scope/native identity/contract changed")
         require(fresh["execution_fingerprint"] == admitted["execution_fingerprint"],
-                "execution-plan-drift", "execution layout changed")
+                "execution-plan-drift", "execution layout changed without a newer admitted plan")
         require(fresh["integration"]["branch"] == admitted["integration"]["branch"],
                 "parent-tip-drift", "integration branch identity requires readmission")
         if fresh["integration"]["sha"] != admitted["integration"]["sha"]:
@@ -2364,7 +2449,15 @@ def cmd_schedule(args):
                     break
             require(landed, "parent-tip-drift",
                     "integration tip changed without a verified delivered merge")
+        plan_error = state.pop("_execution_plan_error", None)
+        if plan_error is not None:
+            raise InputError(plan_error["code"], plan_error["message"])
+        plan_update = state.pop("_execution_plan_update", None)
+        if plan_update is not None:
+            _apply_execution_plan_update(state, fresh, plan_update)
     except InputError as error:
+        state.pop("_execution_plan_update", None)
+        state.pop("_execution_plan_error", None)
         state["halt_new_dispatch"], state["halt_reason"] = True, error.code
         state.setdefault("recovery", {})["first_uncertain_boundary"] = {
             "reason": error.code, "status": "snapshot-drift",
@@ -2408,7 +2501,8 @@ def cmd_schedule(args):
         if state.get("halt_reason") in {
                 "snapshot-drift", "execution-plan-drift", "parent-tip-drift",
                 "incomplete-recovery", "incomplete-selection", "incomplete-task",
-                "missing-repository", "missing-integration", "invalid-identity",
+                "missing-repository", "missing-integration", "missing-execution-layout",
+                "invalid-identity",
         }:
             state["halt_new_dispatch"], state["halt_reason"] = False, None
             state.setdefault("recovery", {}).pop("first_uncertain_boundary", None)

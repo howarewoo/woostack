@@ -54,11 +54,12 @@ constraints enters `waiting-for-merge`; a suitable selected parent avoids that p
 speculative checkout is reserved, unrelated work continues, and no integration strategy is
 requested. Current PR lifecycle evidence is reconciled separately from retained delivery evidence,
 including human-ready, merged, closed-unmerged, and legitimately deleted source-branch states.
-Equivalent reordered input resumes the persisted plan; changed technical graph is `snapshot-drift`
-and changed execution layout is controlled `execution-plan-drift`. While the
-session stays active, Orchestrate keeps observing each admitted PR's remote checks and dispatches
-same-PR Execute repairs for actionable failures using the effective graph. There is no automatic
-integration branch or merge, and no monitoring after the session ends.
+Equivalent reordered input resumes the persisted plan. A newer execution-layout revision is adopted
+atomically only for genuinely unstarted changes; otherwise it is controlled
+`execution-plan-drift`. Changed technical graph is `snapshot-drift`. While the session stays active,
+Orchestrate keeps observing each admitted PR's remote checks and dispatches same-PR Execute repairs
+for actionable failures using the effective graph. There is no automatic integration branch or merge,
+and no monitoring after the session ends.
 
 If chat tools cannot write issues, explicitly pass the complete approved packet to Plan in Codex.
 This is coding-host planning, not a chat-only allowance-saving route. Plan remains the sole
