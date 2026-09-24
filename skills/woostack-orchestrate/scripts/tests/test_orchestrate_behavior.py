@@ -787,6 +787,82 @@ class OrchestrateBehavior(unittest.TestCase):
         self.assertEqual(c_entry["parent_branch"], "main")
         self.assertEqual(c_entry["parent_sha"], merge_sha)
         self.assertEqual(c_entry["packet"]["parent_readiness"]["prerequisites"][0]["satisfaction"]["kind"], "merged")
+
+    def test_deleted_source_object_resumes_only_with_matching_landed_diff(self) -> None:
+        snapshot = self.github.tracker_snapshot("abcd")
+        admitted_path, admitted = self._admit_issues(snapshot)
+        state, initial = self._schedule(admitted_path, admitted, None, snapshot, "missing-head-initial", cap="2")
+        host = self._start_host(workers=2)
+        host.dispatch(initial["dispatch"])
+        result_a = make_result(self.github, "task-a", host.wait_for_report("task-a"), admitted)
+        state, _, _ = self._apply(admitted_path, state, "task-a", result_a, "missing-head-a")
+        self._persist("task-a", result_a, initial["dispatch"][0])
+
+        git(self.repo, "checkout", "-q", "main")
+        landed_file = self.repo / "src" / "task-a.txt"
+        landed_file.parent.mkdir(exist_ok=True)
+        landed_file.write_text("Execute consumed packet for task-a\n", encoding="utf-8")
+        git(self.repo, "add", "src/task-a.txt")
+        git(self.repo, "commit", "-m", "land task-a after source object loss")
+        merge_sha = git(self.repo, "rev-parse", "HEAD")
+        lifecycle = {
+            "pr": {
+                "pr_url": result_a["worker"]["pr_url"], "repo": self.github.canonical,
+                "head_repo": self.github.canonical, "branch": result_a["worker"]["branch"],
+                "head_sha": result_a["worker"]["head_sha"], "base_branch": result_a["worker"]["base_branch"],
+                "state": "merged", "merged_base_branch": "main", "merge_commit_sha": merge_sha,
+            },
+            "source": {"branch": result_a["worker"]["branch"], "deleted": True},
+            "landed_verification": {
+                "complete": True, "source_verified": True, "checks_verified": True,
+                "reverted": False, "diff_identity": diff_identity(self.repo, self.base_sha, merge_sha),
+            },
+        }
+        self.github.delivery["task-a"]["lifecycle"] = lifecycle
+        self.github.integration["sha"] = merge_sha
+        git(self.repo, "worktree", "remove", "--force", result_a["worker"]["workspace"])
+        git(self.repo, "branch", "-D", result_a["worker"]["branch"])
+        git(self.repo, "reflog", "expire", "--expire=now", "--all")
+        git(self.repo, "gc", "--prune=now")
+        self.assertNotEqual(git(self.repo, "cat-file", "-t", result_a["worker"]["head_sha"],
+                                check=False), "commit")
+
+        mismatched = copy.deepcopy(lifecycle)
+        mismatched["landed_verification"]["diff_identity"] = "sha256:" + "0" * 64
+        self.github.delivery["task-a"]["lifecycle"] = mismatched
+        state, blocked = self._schedule(
+            admitted_path, admitted, state, self.github.tracker_snapshot("abcd"), "missing-head-mismatch")
+        self.assertEqual([entry for entry in blocked["dispatch"] if entry["task_id"] == "task-c"], [])
+        self.assertEqual(blocked["blocked"][0]["reason"], "landed-diff-mismatch")
+
+        self.github.delivery["task-a"]["lifecycle"] = lifecycle
+        _, released = self._schedule(
+            admitted_path, admitted, state, self.github.tracker_snapshot("abcd"), "missing-head-release")
+        c_entry = next(entry for entry in released["dispatch"] if entry["task_id"] == "task-c")
+        self.assertEqual(c_entry["packet"]["parent_readiness"]["prerequisites"][0]["satisfaction"]["kind"], "merged")
+        host.release_b()
+        host.wait_for_report("task-b")
+
+    def test_fresh_refill_never_substitutes_cached_open_lifecycle(self) -> None:
+        snapshot = self.github.tracker_snapshot("abcd")
+        admitted_path, admitted = self._admit_issues(snapshot)
+        state, initial = self._schedule(admitted_path, admitted, None, snapshot, "fresh-lifecycle-initial", cap="2")
+        host = self._start_host(workers=2)
+        host.dispatch(initial["dispatch"])
+        result_a = make_result(self.github, "task-a", host.wait_for_report("task-a"), admitted)
+        state, _, _ = self._apply(admitted_path, state, "task-a", result_a, "fresh-lifecycle-a")
+        self._persist("task-a", result_a, initial["dispatch"][0])
+        missing = self.github.tracker_snapshot("abcd")
+        next(task for task in missing["tasks"] if task["task_id"] == "task-a")["existing_delivery"].pop("lifecycle")
+
+        _, blocked = self._schedule(admitted_path, admitted, state, missing, "fresh-lifecycle-missing")
+        self.assertEqual([entry for entry in blocked["dispatch"] if entry["task_id"] == "task-c"], [])
+        self.assertEqual(blocked["blocked"][0]["reason"], "pr-lifecycle-missing")
+        self.assertEqual(next(item for item in blocked["waiting"] if item["task_id"] == "task-c")["reason"],
+                         "prerequisite-lifecycle-unresolved")
+        host.release_b()
+        host.wait_for_report("task-b")
+
     def test_pr_lifecycle_edges_fail_closed_without_resetting_delivery(self) -> None:
         snapshot = self.github.tracker_snapshot("abcd")
         admitted_path, admitted = self._admit_issues(snapshot)

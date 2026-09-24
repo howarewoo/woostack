@@ -1816,7 +1816,18 @@ def parent_readiness(scope, task, state, reservation, decision, repo, retained=F
             "decision": copy.deepcopy(decision) if kind == "explicit" else None}
 
 
-def validate_delivery(admitted, task, reservation, result, repo, *, historical=False):
+def delivery_head_diff(repo, reservation, head_sha):
+    """Validate original delivery when its commit is locally available."""
+    if git(repo, "cat-file", "-e", head_sha + "^{commit}", allow_missing=True) is None:
+        return None
+    if contains(repo, reservation["parent_sha"], head_sha):
+        return "sha256:" + hashlib.sha256(git(
+            repo, "diff", "--no-ext-diff", "--no-textconv", "--no-color", "--binary",
+            reservation["parent_sha"], head_sha)).hexdigest()
+    return None
+
+
+def validate_delivery(admitted, task, reservation, result, repo, *, historical=False, retained_diff=None):
     require(result.get("outcome") in ("ok", "needs-repair"), "unknown-response", "worker outcome unknown")
     worker = field_object(result.get("worker"), ("worker_id", "pr_url", "branch", "workspace", "head_sha",
                           "base_branch", "commit_sha", "association"), "worker")
@@ -1843,19 +1854,19 @@ def validate_delivery(admitted, task, reservation, result, repo, *, historical=F
     require(readback["association"] == task["url"] and readback["closing_references"] == [task["url"]],
             "wrong-association", "exactly the task issue may be a closing reference")
     if historical:
-        evidence_repo = repo
-        require(contains(evidence_repo, reservation["parent_sha"], readback["head_sha"]),
-                "wrong-ancestry", "admitted start is not an ancestor")
+        actual_diff = delivery_head_diff(repo, reservation, readback["head_sha"])
+        if actual_diff is None:
+            require(isinstance(retained_diff, str)
+                    and re.fullmatch(r"sha256:[0-9a-f]{64}", retained_diff),
+                    "historical-delivery-missing", "retained validated diff is required when the source head is unavailable")
+            actual_diff = retained_diff
     else:
         evidence_repo = reservation["workspace"]
         identity = workspace_identity(repo, admitted["canonical_repo"], reservation["workspace"], reservation["branch"])
         require(readback["commit_sha"] == readback["head_sha"] == identity["head_sha"],
                 "wrong-head", "commit and actual workspace head must agree")
-        require(contains(evidence_repo, reservation["parent_sha"], readback["head_sha"]),
-                "wrong-ancestry", "admitted start is not an ancestor")
-    actual_diff = "sha256:" + hashlib.sha256(git(evidence_repo, "diff", "--no-ext-diff", "--no-textconv",
-                                                "--no-color", "--binary",
-                                                reservation["parent_sha"], readback["head_sha"])).hexdigest()
+        actual_diff = delivery_head_diff(evidence_repo, reservation, readback["head_sha"])
+        require(actual_diff is not None, "wrong-ancestry", "admitted start is not an ancestor")
     checks = field_object(result.get("checks"), ("passed", "commands", "head_sha", "diff_identity", "smoke"), "checks")
     validation = field_object(result.get("validation"), ("verdict", "reviewer_id", "diff_identity", "contract_hash", "checked_head"), "validation")
     require(checks["head_sha"] == validation["checked_head"] == readback["head_sha"],
@@ -2030,20 +2041,23 @@ def _remember_result(item, result):
 
 def reconcile_delivery(admitted, task, item, retained, repo):
     explicit_lifecycle = retained.get("lifecycle")
-    lifecycle = explicit_lifecycle or item.get("lifecycle")
+    require(isinstance(explicit_lifecycle, dict) and explicit_lifecycle,
+            "pr-lifecycle-missing", "fresh canonical PR lifecycle evidence is required")
+    lifecycle = explicit_lifecycle
     historical = lifecycle_state(lifecycle) == "merged"
+    prior_delivery = item.get("delivery")
+    prior_diff = prior_delivery.get("validated_diff") if isinstance(prior_delivery, dict) else None
     proof = validate_delivery(admitted, task, retained["reservation"], retained["result"], repo,
-                              historical=historical)
+                              historical=historical, retained_diff=prior_diff)
     delivery = proof.get("delivery")
     if delivery is None:
         return proof, lifecycle, None
-    lifecycle = lifecycle or initial_lifecycle(delivery["checkpoint"])
     probe = copy.copy(item)
     probe["delivery"] = delivery
     probe["lifecycle"] = lifecycle
     satisfaction = prerequisite_satisfaction(probe, task, repo, lifecycle=lifecycle,
                                              canonical=admitted["canonical_repo"])
-    if explicit_lifecycle is not None and lifecycle_state(lifecycle) == "open":
+    if lifecycle_state(lifecycle) == "open":
         checks = lifecycle.get("checks")
         if isinstance(checks, dict) and checks.get("complete") is True \
                 and checks.get("state") in ("success", "verified"):

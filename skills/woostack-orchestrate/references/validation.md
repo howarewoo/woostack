@@ -163,11 +163,14 @@ heads block delivery. These historical delivery readbacks travel with the comple
 checkpoint to Execute; an open PR may be human-ready without being reset to draft, and a delivered
 prerequisite may be stacked before it is merged when the current branch and checks are eligible.
 
-Current PR lifecycle is reconciled separately from that historical checkpoint. An open lifecycle
-must identify the same canonical PR, branch, and verified delivery head, prove that the source ref
-still exists, and carry current check evidence required by repository policy. A merged lifecycle
-must identify the canonical repository, actual landing target, and landed revision, plus bounded
-source/check evidence; the original PR head need not be an ancestor after squash or rebase merge.
+Current PR lifecycle is reconciled separately from that historical checkpoint, and every fresh refill
+must carry the current lifecycle explicitly. An open lifecycle must identify the same canonical PR,
+branch, and verified delivery head, prove that the source ref still exists, and carry current check
+evidence required by repository policy. A merged lifecycle must identify the canonical repository,
+actual landing target, and landed revision, plus bounded source/check evidence; the original PR head
+need not be an ancestor after squash or rebase merge and may be absent from the local object database
+after a legitimate source deletion. In that case, the helper retains the previously validated diff
+identity while independently proving the landed range matches it.
 For a squash, merge, or rebase landing, the landed diff must match the retained task diff against
 the landed revision's first parent, the explicit `landed_verification.landed_parent`, or the
 reserved original parent when that range still produces the exact task diff. A rebase may therefore

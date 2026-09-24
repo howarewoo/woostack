@@ -558,6 +558,17 @@ class FakeGitHub:
             self.delivery[task_id] = {
                 "reservation": copy.deepcopy(reservation),
                 "result": copy.deepcopy(result),
+                "lifecycle": {
+                    "pr": {
+                        "pr_url": result["readback"]["pr_url"], "repo": self.canonical,
+                        "head_repo": self.canonical, "branch": result["readback"]["branch"],
+                        "head_sha": result["readback"]["head_sha"],
+                        "base_branch": result["readback"]["base_branch"],
+                        "state": "open", "draft": result["readback"]["draft"],
+                    },
+                    "source": {"branch": result["readback"]["branch"], "deleted": False},
+                    "checks": None,
+                },
             }
         record("github", "persist-child-delivery", {"task_id": task_id, "note_id": note["id"]})
 
