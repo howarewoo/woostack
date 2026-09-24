@@ -260,7 +260,9 @@ Other changes to started, reserved, claimed, worker-owned, or delivered tasks re
 `execution-plan-drift`.
 Unchanged active tasks retain their issued plan revision and dependency snapshot; their original
 admission remains valid for bound worker results, while a newer admission cannot relabel them
-(see [recovery rules](references/scheduling.md#fingerprints-and-fresh-refills)).
+(see [recovery rules](references/scheduling.md#fingerprints-and-fresh-refills)). Each newly dispatched
+repair attempt binds to the current execution plan and dependency context it receives before launch,
+and its completion is accepted under that issued plan rather than a stale prior attempt revision.
 Both statuses preserve running reservations, recovery inventory, claims, and worker identity while
 requiring a fresh interpreted snapshot; neither launches a duplicate, silently adopts a new issue,
 or erases a running task's recovery boundary. Reinvoking the same tracker or an equivalent reordered

@@ -3486,6 +3486,161 @@ class OrchestrateBehavior(unittest.TestCase):
         self.assertEqual(exhausted["ci_state"], "blocked", exhausted)
         self.assertEqual(exhausted["reason"], "repair-retry-exhausted", exhausted)
         self.assertEqual(len(json.loads(state.read_text())["tasks"]["task-a"]["ci"]["repair_attempts"]), 2)
+    def test_repair_worker_plan_binding_after_compatible_replan(self) -> None:
+        base = self.github.snapshot()
+        admitted_path, admitted = self._admit_issue(base)
+        state, initial = self._schedule(admitted_path, admitted, None, base, "replan-repair-initial", cap="1")
+        self.assertEqual([entry["task_id"] for entry in initial["dispatch"]], ["task-a"])
+        host = self._start_host(workers=1)
+        host.dispatch(initial["dispatch"])
+        original_report = host.wait_for_report("task-a")
+        original_result = make_result(self.github, "task-a", original_report, admitted)
+        prior_reservation = copy.deepcopy(json.loads(state.read_text())["tasks"]["task-a"]["reservation"])
+
+        # Compatible replan changes unstarted task-b, adopting plan 2
+        changed = copy.deepcopy(base)
+        next(item for item in changed["execution_layout"]["entries"] if item["task_id"] == "task-b")["execution_parent"] = "task-a"
+        changed["execution_layout"]["revision"] = 2
+        changed_admitted_path, changed_admitted = self._admit_issue(changed)
+        state, adopted = self._schedule(
+            changed_admitted_path, changed_admitted, state, changed, "replan-repair-adopted", cap="1"
+        )
+        self.assertEqual(adopted["status"], "ok", adopted)
+        self.assertEqual(adopted["dispatch"], [])
+        revised_state = json.loads(state.read_text())
+        self.assertEqual(revised_state["execution_layout"], changed_admitted["execution_layout"])
+        self.assertEqual(revised_state["execution_plan_history"][-1]["changed_tasks"], ["task-b"])
+        self.assertEqual(revised_state["tasks"]["task-b"]["execution_parent"], "task-a")
+        self.assertEqual(revised_state["tasks"]["task-a"]["reservation"], prior_reservation)
+        self.assertEqual(revised_state["tasks"]["task-a"]["execution_plan_revision"], 1)
+
+        # 1. Reject A's original completion under substituted plan 2 and accept it under plan 1
+        _, wrong_plan, code = self._apply(
+            changed_admitted_path, state, "task-a", original_result,
+            "replan-repair-wrong-plan", expect_code=1, observe_ci=False,
+        )
+        self.assertEqual(code, 1)
+        self.assertEqual(wrong_plan["error"], "execution-plan-drift")
+
+        completed_state, completed, code = self._apply(
+            admitted_path, state, "task-a", original_result, "replan-repair-original-worker", observe_ci=False,
+        )
+        self.assertEqual(code, 0)
+        self.assertEqual(completed["status"], "delivered", completed)
+        self.assertEqual(json.loads(completed_state.read_text())["tasks"]["task-a"]["execution_plan_revision"], 1)
+        self._persist("task-a", original_result, initial["dispatch"][0])
+
+        # 2. Supply a fresh actionable check failure for A's current PR/head and schedule exactly one repair under current plan
+        failure = self.github.ci_observation(
+            "task-a", check_state="failure", diagnosis="Repair the check failure on task-a."
+        )
+        state, repair_obs, _ = self._observe(changed_admitted_path, completed_state, "task-a", failure, "replan-repair-observe-fail")
+        self.assertEqual(repair_obs["ci_state"], "repair", repair_obs)
+
+        current_snapshot = copy.deepcopy(self.github.snapshot())
+        current_snapshot["execution_layout"] = copy.deepcopy(changed["execution_layout"])
+        state, dispatched = self._schedule(
+            changed_admitted_path, changed_admitted, state, current_snapshot, "replan-repair-schedule", cap="1"
+        )
+        self.assertEqual([entry["task_id"] for entry in dispatched["dispatch"]], ["task-a"])
+        repair_entry = dispatched["dispatch"][0]
+        self.assertTrue(repair_entry["repair"])
+        self.assertEqual(repair_entry["packet"]["execution_order"]["plan_revision"], 2)
+
+        # Assert that the persisted attempt binding matches the packet's plan and dependency context before worker registration
+        persisted_before_reg = json.loads(state.read_text())["tasks"]["task-a"]
+        self.assertEqual(persisted_before_reg["execution_plan_revision"], 2)
+        self.assertEqual(persisted_before_reg["execution_plan_revision"],
+                         repair_entry["packet"]["execution_order"]["plan_revision"])
+        self.assertEqual(persisted_before_reg["dependency_snapshot"],
+                         next(task for task in changed_admitted["tasks"] if task["task_id"] == "task-a")["dependency_snapshot"])
+
+        # 4. Exercise interruption/resume around the repair's registration
+        state, resumed = self._schedule(
+            changed_admitted_path, changed_admitted, state, current_snapshot, "replan-repair-resume-before-reg", cap="1"
+        )
+        self.assertEqual(resumed["dispatch"], [])
+        resumed_before_reg = json.loads(state.read_text())["tasks"]["task-a"]
+        self.assertEqual(resumed_before_reg["execution_plan_revision"], 2)
+
+        # A late original-worker result is rejected
+        _, late_rejected, code = self._apply(
+            admitted_path, state, "task-a", original_result,
+            "replan-repair-late-original-result", expect_code=1, observe_ci=False,
+        )
+        self.assertEqual(code, 1)
+        self.assertEqual(late_rejected["error"], "execution-plan-drift")
+
+        # 3. Run the repair through worker registration, local correction, and verification
+        self.launch_context[repair_entry["branch"]] = (changed_admitted_path, state)
+        host.dispatch([repair_entry])
+        repair_report = host.wait_for_report("task-a")
+        repair_result = make_result(self.github, "task-a", repair_report, changed_admitted)
+
+        # 5. Cover a further compatible replan while that repair is active
+        further_changed = copy.deepcopy(changed)
+        next(item for item in further_changed["execution_layout"]["entries"] if item["task_id"] == "task-e")["execution_parent"] = "task-a"
+        further_changed["execution_layout"]["revision"] = 3
+        further_admitted_path, further_admitted = self._admit_issue(further_changed)
+
+        further_candidate = copy.deepcopy(self.github.snapshot())
+        further_candidate["execution_layout"] = copy.deepcopy(further_changed["execution_layout"])
+        state, further_scheduled = self._schedule(
+            further_admitted_path, further_admitted, state, further_candidate,
+            "replan-further-compatible", cap="2"
+        )
+        self.assertEqual(further_scheduled["status"], "ok", further_scheduled)
+        self.assertEqual(further_scheduled["dispatch"], [])
+        active_repair_state = json.loads(state.read_text())
+        self.assertEqual(active_repair_state["execution_layout"]["revision"], 3)
+        self.assertEqual(active_repair_state["tasks"]["task-a"]["execution_plan_revision"], 2)
+
+        # Substituted wrong-plan admission is rejected
+        _, wrong_plan_repair, code = self._apply(
+            further_admitted_path, state, "task-a", repair_result,
+            "replan-repair-wrong-plan-apply", expect_code=1, observe_ci=False,
+        )
+        self.assertEqual(code, 1)
+        self.assertEqual(wrong_plan_repair["error"], "execution-plan-drift")
+
+        # Accept its correctly bound completion under plan 2
+        state, repair_applied, code = self._apply(
+            changed_admitted_path, state, "task-a", repair_result,
+            "replan-repair-applied", observe_ci=False,
+        )
+        self.assertEqual(code, 0)
+        self.assertEqual(repair_applied["status"], "delivered")
+        self._persist("task-a", repair_result, repair_entry)
+
+        # Retain the same branch/workspace/original Git start and PR
+        self.assertEqual(repair_result["worker"]["branch"], original_result["worker"]["branch"])
+        self.assertEqual(repair_result["worker"]["workspace"], original_result["worker"]["workspace"])
+        self.assertEqual(repair_result["worker"]["pr_url"], original_result["worker"]["pr_url"])
+        self.assertNotEqual(repair_result["worker"]["head_sha"], original_result["worker"]["head_sha"])
+        repaired_state = json.loads(state.read_text())
+        self.assertEqual(repaired_state["tasks"]["task-a"]["status"], "delivered")
+        self.assertEqual(repaired_state["tasks"]["task-a"]["reservation"]["parent_sha"], prior_reservation["parent_sha"])
+        self.assertEqual(repaired_state["tasks"]["task-a"]["reservation"]["branch"], prior_reservation["branch"])
+
+        # Then observe fresh checks and continue eligible work
+        success_obs = self.github.ci_observation("task-a", check_state="success")
+        state, checked, _ = self._observe(
+            further_admitted_path, state, "task-a", success_obs, "replan-repair-success"
+        )
+        self.assertEqual(checked["ci_state"], "verified")
+
+        current_snapshot3 = copy.deepcopy(self.github.snapshot())
+        current_snapshot3["execution_layout"] = copy.deepcopy(further_changed["execution_layout"])
+        state, continuation = self._schedule(
+            further_admitted_path, further_admitted, state, current_snapshot3,
+            "replan-continue-eligible", cap="3"
+        )
+        self.assertEqual(continuation["status"], "ok", continuation)
+        dispatched_tasks = sorted(entry["task_id"] for entry in continuation["dispatch"])
+        self.assertEqual(dispatched_tasks, ["task-b", "task-c", "task-d"])
+        for entry in continuation["dispatch"]:
+            self.assertEqual(entry["packet"]["execution_order"]["plan_revision"], 3)
+
     def test_verified_repaired_parent_releases_dependent_task(self) -> None:
         admitted_path, admitted = self._admit_issue(self.github.snapshot())
         state, initial = self._schedule(admitted_path, admitted, None, self.github.snapshot(), "dependent-initial", cap="2")

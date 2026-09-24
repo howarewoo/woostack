@@ -211,7 +211,10 @@ the controller uses current persisted effective dependencies for descendant repa
 
 A repair entry keeps the same `branch`, absolute `workspace`, `parent_branch`, `parent_sha`, and
 retained PR as its original reservation and sets `repair: true`. It never receives a new parent or
-replacement PR. The task issue URL is the only issue association and closing reference. A repair
+replacement PR. Each newly dispatched repair attempt binds to the current execution plan and
+dependency context it receives before launch, and its completion must be accepted under that issued plan
+rather than a stale prior attempt revision. An active repair worker preserves its issued plan binding
+across subsequent compatible replans. The task issue URL is the only issue association and closing reference. A repair
 dispatched from [PR-check observation](validation.md#pr-check-observation-and-repair) additionally
 carries the failing revision and the check/log evidence that justified it; the worker revalidates
 that revision's freshness before editing, diagnoses through the surviving Debug workflow when needed,

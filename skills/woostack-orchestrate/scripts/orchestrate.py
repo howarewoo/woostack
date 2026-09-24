@@ -2750,6 +2750,8 @@ def cmd_schedule(args):
             blocked.append({"task_id": tid, "reason": "issue-closed",
                             "next_action": "prove a verified delivery before resuming a closed issue"})
             continue
+        if item["status"] == "running":
+            continue
         if item["status"] == "unknown":
             unknown.append({"task_id": tid, "reason": item.get("failure_reason", "unknown"),
                             "next_action": "prove worker stopped and reconcile before repair"})
@@ -2913,6 +2915,9 @@ def cmd_schedule(args):
         if repair and isinstance(repair_evidence, dict) and item.get("ci", {}).get("workspace_reopen"):
             repair_evidence["workspace_reopen"] = copy.deepcopy(item["ci"]["workspace_reopen"])
         item.update(status="running", reservation=reservation, parent_decision=copy.deepcopy(decision),
+                    execution_parent=task["execution_parent"],
+                    execution_plan_revision=admitted["execution_layout"]["revision"],
+                    dependency_snapshot=copy.deepcopy(task["dependency_snapshot"]),
                     host_worker=None,
                     first_uncertain_boundary=None,
                     last_evidence={"parent_readiness": copy.deepcopy(readiness)})
