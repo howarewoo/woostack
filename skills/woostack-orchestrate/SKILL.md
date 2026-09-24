@@ -230,7 +230,9 @@ receives a worker or PR, and is not a prerequisite merely because the executable
    technical DAG and its provenance remain visible separately. The model owns this selection;
    ordinals do not create execution edges, and Execute/Commit do not schedule siblings.
 6. Assemble the snapshot from those completed reads and invoke only
-   `admit --snapshot <file>`. Admission is read-only: it performs no issue mutation, does not create
+   `admit --snapshot <file> --git-repo <canonical-checkout>`. The Git checkout is required when
+   claiming base-satisfied prerequisites; admission verifies containment under the
+   [execution-layout contract](references/scheduling.md). Admission is read-only: it performs no issue mutation, does not create
    a Project, and does not close, reparent, or publish relationships. It validates exact identities,
    `scope_evidence` when present, contracts, technical edge provenance/endpoints, the complete
    execution layout, host capability, and recovery evidence before any worker is reserved.

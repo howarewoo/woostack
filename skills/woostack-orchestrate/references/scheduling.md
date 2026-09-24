@@ -224,9 +224,13 @@ and non-empty compatibility `constraints`; a task that cannot use a safe single-
 the optional `fallback: {reason: "merge-checkpoint", release_condition}`. The combined technical-plus-
 execution graph must be acyclic, and every technical prerequisite must appear on the task's execution
 ancestor path or in a verified `base_satisfied_prerequisites` entry naming the merged revision
-contained in the approved integration base. A selected parent is optional compatibility ordering, not
-native relationship evidence. The layout must retain useful parallelism; the model owns this
-selection, while Execute/Commit do not schedule siblings.
+contained in the approved integration base. For these entries, `admit --git-repo <canonical-checkout>`
+verifies the repository remote and uses Git ancestry to prove each landed revision is contained in
+the snapshot's exact `integration.sha`, not merely the branch's current tip. Missing Git evidence
+blocks admission; lifecycle flags and matching branch names alone do not prove containment.
+Scheduling repeats this check on its fresh snapshot. A selected parent is optional compatibility
+ordering, not native relationship evidence. The layout must retain useful parallelism; the model
+owns this selection, while Execute/Commit do not schedule siblings.
 
 
 `parent_prs` supplies fresh canonical PR discovery for the integration branch and any explicitly

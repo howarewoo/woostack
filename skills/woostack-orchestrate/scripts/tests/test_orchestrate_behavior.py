@@ -673,19 +673,46 @@ class OrchestrateBehavior(unittest.TestCase):
         for task_id in ("task-a", "task-b"):
             task = next(item for item in landed["tasks"] if item["task_id"] == task_id)
             task["existing_delivery"] = {"lifecycle": {
-                "pr": {"state": "merged", "merged_base_branch": "main", "merge_commit_sha": "a" * 40},
+                "pr": {"state": "merged", "merged_base_branch": "main", "merge_commit_sha": self.base_sha},
                 "landed_verification": {"complete": True, "source_verified": True,
                                         "checks_verified": True, "reverted": False},
             }}
         c_entry = next(item for item in landed["execution_layout"]["entries"] if item["task_id"] == "task-c")
         c_entry["execution_parent"] = None
         c_entry["base_satisfied_prerequisites"] = [
-            {"task_id": task_id, "revision": "a" * 40,
+            {"task_id": task_id, "revision": self.base_sha,
              "evidence": {"source": "canonical merged PR readback", "target": "main"}}
             for task_id in ("task-a", "task-b")
         ]
         code, payload = invoke_cli(
-            "admit", "--snapshot", str(self._write_json("valid-landed-base-layout.json", landed))
+            "admit", "--snapshot", str(self._write_json("valid-landed-base-layout.json", landed)),
+            "--git-repo", str(self.repo),
+        )
+        self.assertEqual(code, 0, payload)
+        code, payload = invoke_cli(
+            "admit", "--snapshot", str(self._write_json("landed-without-git.json", landed))
+        )
+        self.assertEqual(code, 1, payload)
+        self.assertEqual(payload["error"], "git-unavailable")
+
+        later_sha = git(self.repo, "commit-tree", git(self.repo, "rev-parse", "HEAD^{tree}"),
+                        "-p", self.base_sha, "-m", "land prerequisite after admitted base")
+        not_contained = copy.deepcopy(landed)
+        next(item for item in not_contained["tasks"] if item["task_id"] == "task-a")[
+            "existing_delivery"]["lifecycle"]["pr"]["merge_commit_sha"] = later_sha
+        next(item for item in not_contained["execution_layout"]["entries"]
+             if item["task_id"] == "task-c")["base_satisfied_prerequisites"][0]["revision"] = later_sha
+        code, payload = invoke_cli(
+            "admit", "--snapshot", str(self._write_json("landed-after-base.json", not_contained)),
+            "--git-repo", str(self.repo),
+        )
+        self.assertEqual(code, 1, payload)
+        self.assertEqual(payload["error"], "base-satisfaction-unverified")
+
+        not_contained["integration"]["sha"] = later_sha
+        code, payload = invoke_cli(
+            "admit", "--snapshot", str(self._write_json("landed-in-current-base.json", not_contained)),
+            "--git-repo", str(self.repo),
         )
         self.assertEqual(code, 0, payload)
         unverified = copy.deepcopy(landed)
@@ -718,6 +745,7 @@ class OrchestrateBehavior(unittest.TestCase):
                 code, payload = invoke_cli(
                     "admit", "--snapshot",
                     str(self._write_json("invalid-layout-%s.json" % label.replace(" ", "-"), snapshot)),
+                    "--git-repo", str(self.repo),
                 )
                 self.assertNotEqual(code, 0, payload)
                 self.assertEqual(payload.get("error"), expected, payload)

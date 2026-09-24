@@ -821,10 +821,12 @@ def collect_edges(snapshot, tasks, canonical):
     return edges
 
 
-def _base_satisfied_prerequisites(raw, task, tasks_by_id, technical, integration):
+def _base_satisfied_prerequisites(raw, task, tasks_by_id, technical, integration, repo):
     values = raw.get("base_satisfied_prerequisites", [])
     require(isinstance(values, list),
             "invalid-execution-layout", "base-satisfied prerequisites must be a list")
+    require(not values or repo is not None, "git-unavailable",
+            "--git-repo is required to verify base-satisfied prerequisites")
     result, seen = [], set()
     for value in values:
         require(isinstance(value, dict) and text(value.get("task_id"))
@@ -861,11 +863,14 @@ def _base_satisfied_prerequisites(raw, task, tasks_by_id, technical, integration
                 and verification.get("reverted") is not True,
                 "base-satisfaction-unverified",
                 "base-satisfied prerequisite is not verified in the admitted integration base")
+        require(contains(repo, landed_revision, integration["sha"]),
+                "base-satisfaction-unverified",
+                "landed prerequisite is not contained in the admitted integration revision")
         result.append(copy.deepcopy(value))
     return sorted(result, key=lambda value: value["task_id"])
 
 
-def collect_execution_layout(snapshot, tasks):
+def collect_execution_layout(snapshot, tasks, repo):
     """Validate the model-selected task tree without changing technical edges."""
     raw = snapshot.get("execution_layout")
     require(isinstance(raw, dict), "missing-execution-layout", "execution layout missing")
@@ -900,7 +905,7 @@ def collect_execution_layout(snapshot, tasks):
                     "invalid-execution-fallback", "merge fallback needs one release condition")
         entry = copy.deepcopy(entry)
         entry["base_satisfied_prerequisites"] = _base_satisfied_prerequisites(
-            entry, tasks_by_id[task_id], tasks_by_id, technical, snapshot["integration"])
+            entry, tasks_by_id[task_id], tasks_by_id, technical, snapshot["integration"], repo)
         by_id[task_id] = entry
     require(set(by_id) == task_ids, "missing-execution-task", "execution layout must select every task once")
 
@@ -966,7 +971,7 @@ def collect_execution_layout(snapshot, tasks):
             "execution_order": execution_order}
 
 
-def admit(snapshot, limit):
+def admit(snapshot, limit, repo=None):
     canonical = snapshot.get("canonical_repo", "")
     require(REPO_RE.fullmatch(canonical) is not None, "missing-repository", "canonical repository missing")
     require(text(snapshot.get("repository_rules")), "incomplete-task", "repository rules must be read")
@@ -974,6 +979,8 @@ def admit(snapshot, limit):
     require(isinstance(integration, dict) and text(integration.get("branch"))
             and SHA_RE.fullmatch(integration.get("sha", "")) is not None,
             "missing-integration", "admitted integration branch and commit required")
+    if repo is not None:
+        repository(repo, canonical)
     entries = snapshot.get("tasks")
     require(isinstance(entries, list), "incomplete-selection", "resolved executable tasks are missing")
     by_url = {}
@@ -1038,7 +1045,7 @@ def admit(snapshot, limit):
             task["actual_parent"] = canonical_issue_url(task["actual_parent"], canonical)
     edges = collect_edges(snapshot, tasks, canonical)
     task_order = check_graph(tasks, edges)
-    execution_layout = collect_execution_layout(snapshot, tasks)
+    execution_layout = collect_execution_layout(snapshot, tasks, repo)
     execution_fingerprint = digest(execution_layout)
     host = snapshot.get("host", {})
     require(isinstance(host, dict), "no-subagent-capability", "host capability evidence missing")
@@ -2499,7 +2506,7 @@ def cmd_schedule(args):
         args.state = args.state_out
     claim_scope(args.git_repo, admitted, state)
     try:
-        fresh = admit(load_json(args.fresh), admitted["max_parallel"])
+        fresh = admit(load_json(args.fresh), admitted["max_parallel"], args.git_repo)
         require(fresh.get("recovery") is not None, "incomplete-recovery",
                 "schedule requires a complete fresh recovery inventory")
         require(fresh["fingerprint"] == admitted["fingerprint"],
@@ -3100,7 +3107,7 @@ def cmd_stop(args):
 
 
 def cmd_admit(args):
-    return admit(load_json(args.snapshot), positive(args.max_parallel))
+    return admit(load_json(args.snapshot), positive(args.max_parallel), args.git_repo)
 
 
 def parser():
@@ -3109,6 +3116,7 @@ def parser():
     admission = commands.add_parser("admit")
     admission.add_argument("--snapshot", required=True)
     admission.add_argument("--max-parallel", default=str(DEFAULT_MAX_PARALLEL))
+    admission.add_argument("--git-repo")
     admission.set_defaults(run=cmd_admit)
     schedule = commands.add_parser("schedule")
     schedule.add_argument("--admitted", required=True)
