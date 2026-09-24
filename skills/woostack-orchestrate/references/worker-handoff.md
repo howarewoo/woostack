@@ -188,6 +188,12 @@ verified their Git ancestry. `parent.selection` is `technical-parent`, `stack-pa
 `landed-stack-parent`, `integration`, or `explicit`. An explicit choice carries its preserved
 `{task_id, branch, sha}` decision; other selections use `null`. `parent.pr_evidence` uses fresh parent
 PR discovery ([scheduling](scheduling.md#normalized-snapshot)).
+The [landed-base exception](scheduling.md#normalized-snapshot) is separate from that effective set.
+Every logical prerequisite must be covered by either an effective checkpoint or a
+`base_satisfied_prerequisites` entry in the task's persisted execution layout. For the latter, the
+worker verifies the recorded landed revision against the actual reserved parent SHA before mutation;
+it does not require a controller-owned delivery checkpoint.
+
 
 The complete Execute input comprises `bounded_input` **and** this readiness object plus the task
 specification context, repository rules, and execution layout/order. The worker verifies that exact

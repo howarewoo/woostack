@@ -639,6 +639,54 @@ class OrchestrateBehavior(unittest.TestCase):
         _, applied_c, _ = self._apply(admitted_path, state, "task-c", result_c, "repair-stack-c-result")
         self.assertEqual(applied_c["status"], "delivered", applied_c)
 
+    def _exercise_base_satisfied_dispatch(self, planned_parent: Optional[str]) -> None:
+        snapshot = self.github.snapshot()
+        snapshot["tasks"] = snapshot["children"] = [
+            task for task in snapshot["tasks"] if task["task_id"] in {"task-a", "task-c"}
+        ]
+        snapshot = self._scope_execution_layout(snapshot)
+        task_a = next(task for task in snapshot["tasks"] if task["task_id"] == "task-a")
+        task_a["existing_delivery"] = {"lifecycle": {
+            "pr": {"state": "merged", "merged_base_branch": "main",
+                   "merge_commit_sha": self.base_sha},
+            "landed_verification": {"complete": True, "source_verified": True,
+                                    "checks_verified": True, "reverted": False},
+        }}
+        layout = next(entry for entry in snapshot["execution_layout"]["entries"]
+                      if entry["task_id"] == "task-c")
+        layout["execution_parent"] = planned_parent
+        layout["base_satisfied_prerequisites"] = [{
+            "task_id": "task-a", "revision": self.base_sha,
+            "evidence": {"source": "canonical merged PR readback", "target": "main"},
+        }]
+        snapshot_path = self._write_json("base-satisfied-snapshot.json", snapshot)
+        code, admitted = invoke_cli("admit", "--snapshot", str(snapshot_path),
+                                   "--git-repo", str(self.repo))
+        self.assertEqual(code, 0, admitted)
+        admitted_path = self._write_json("base-satisfied-admitted.json", admitted)
+        state, wave = self._schedule(admitted_path, admitted, None, snapshot,
+                                     "base-satisfied", cap="1")
+        self.assertEqual([entry["task_id"] for entry in wave["dispatch"]], ["task-c"], wave)
+        saved = json.loads(state.read_text())
+        self.assertEqual(saved["tasks"]["task-a"]["status"], "pending")
+        self.assertIsNone(saved["tasks"]["task-a"]["reservation"])
+        entry = wave["dispatch"][0]
+        self.assertEqual((entry["parent_branch"], entry["parent_sha"]), ("main", self.base_sha))
+        host = self._start_host(workers=1)
+        host.dispatch([entry])
+        report = host.wait_for_report("task-c")
+        result = make_result(self.github, "task-c", report, admitted)
+        _, applied, _ = self._apply(admitted_path, state, "task-c", result, "base-satisfied-result")
+        self.assertEqual(applied["status"], "delivered", applied)
+        self.assertEqual(git(Path(entry["workspace"]), "diff", "--name-only",
+                             self.base_sha, report["worker"]["head_sha"]), "src/task-c.txt")
+
+    def test_base_satisfied_prerequisite_dispatches_without_controller_delivery(self) -> None:
+        self._exercise_base_satisfied_dispatch(None)
+
+    def test_base_satisfied_execution_parent_dispatches_from_integration(self) -> None:
+        self._exercise_base_satisfied_dispatch("task-a")
+
     def test_execution_layout_validation_rejects_invalid_trees_and_preserves_state(self) -> None:
         base = self.github.snapshot()
         linear = self.github.snapshot()

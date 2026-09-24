@@ -944,8 +944,9 @@ def collect_execution_layout(snapshot, tasks, repo):
         task["execution_ancestry"] = lineage
         task["base_satisfied_prerequisites"] = [
             value["task_id"] for value in entry["base_satisfied_prerequisites"]]
-        task["effective_prerequisites"] = sorted(technical[task_id] | ({entry["execution_parent"]}
-                                                            if entry["execution_parent"] is not None else set()))
+        task["effective_prerequisites"] = sorted(
+            (technical[task_id] | ({entry["execution_parent"]}
+                                  if entry["execution_parent"] is not None else set())) - base_satisfied)
         task["dependency_snapshot"] = {
             "prerequisites": sorted(technical[task_id]),
             "effective_prerequisites": list(task["effective_prerequisites"]),
@@ -964,6 +965,8 @@ def collect_execution_layout(snapshot, tasks, repo):
         if entry["execution_parent"] is not None:
             relationships.setdefault((entry["execution_parent"], entry["task_id"]), set()).add("stack")
     for (predecessor, dependent), kinds in sorted(relationships.items()):
+        if predecessor not in tasks_by_id[dependent]["effective_prerequisites"]:
+            continue
         effective_edges.append({"predecessor": predecessor, "dependent": dependent,
                                 "relationship": "+".join(sorted(kinds))})
     return {"revision": revision, "rationale": raw["rationale"],
@@ -2105,6 +2108,11 @@ def legacy_execution_parent_compatible(repo, state, admitted, task, reservation)
 
 
 
+def base_satisfied_entries(scope, task):
+    return next(entry["base_satisfied_prerequisites"] for entry in scope["execution_layout"]["entries"]
+                if entry["task_id"] == task["task_id"])
+
+
 def parent_readiness(scope, task, state, reservation, decision, repo, retained=False):
     require(not task["external_prerequisites"], "external-prerequisite", "retained task has external blockers")
     technical = set(task["prerequisites"])
@@ -2125,7 +2133,9 @@ def parent_readiness(scope, task, state, reservation, decision, repo, retained=F
                      if (entry[2]["kind"] == "open" or retained)
                      and entry[1]["branch"] == branch and entry[1]["head_sha"] == head), None)
     if not effective:
-        require(task["execution_parent"] is None and branch == scope["integration"]["branch"],
+        require((task["execution_parent"] is None
+                 or task["execution_parent"] in task["base_satisfied_prerequisites"])
+                and branch == scope["integration"]["branch"],
                 "unapproved-parent", "root delivery must retain the admitted integration branch")
         current = branch_tip(repo, branch)
         require(current is not None and (contains(repo, head, current) if retained else current == head),
@@ -2145,7 +2155,8 @@ def parent_readiness(scope, task, state, reservation, decision, repo, retained=F
                 "parent-tip-drift", "selected parent changed incompatibly")
     elif branch == scope["integration"]["branch"] and head == scope["integration"]["sha"]:
         planned = task["execution_parent"]
-        require(planned is None or satisfactions[planned]["kind"] == "merged",
+        require(planned is None or planned in task["base_satisfied_prerequisites"]
+                or satisfactions[planned]["kind"] == "merged",
                 "unapproved-parent", "integration cannot replace an open execution parent")
         current = branch_tip(repo, branch)
         require(current == head, "parent-tip-drift", "selected parent changed incompatibly")
@@ -2173,6 +2184,9 @@ def parent_readiness(scope, task, state, reservation, decision, repo, retained=F
                         "satisfaction": copy.deepcopy(satisfaction),
                         "containment": {"ancestor": revision, "descendant": head,
                                         "verified": True}})
+    for entry in base_satisfied_entries(scope, task):
+        require(contains(repo, entry["revision"], head), "uncontained-prerequisite",
+                "selected parent does not contain base-satisfied prerequisite " + entry["task_id"])
     return {"logical_prerequisites": list(task["prerequisites"]),
             "execution_prerequisites": list(effective),
             "base_satisfied_prerequisites": list(task["base_satisfied_prerequisites"]),
@@ -2347,7 +2361,7 @@ def choose_parent(scope, task, state, decisions, repo):
     planned = task["execution_parent"]
     if not effective:
         candidates = [scope["integration"]]
-    elif planned is not None:
+    elif planned is not None and planned not in task["base_satisfied_prerequisites"]:
         planned_satisfaction = satisfactions[planned]
         candidates = [{"branch": planned_satisfaction["branch"], "sha": planned_satisfaction["revision"]}] \
             if planned_satisfaction["kind"] == "open" else [scope["integration"]] \
@@ -2359,6 +2373,7 @@ def choose_parent(scope, task, state, decisions, repo):
         candidates.extend({"branch": satisfaction["branch"], "sha": satisfaction["revision"]}
                           for satisfaction in satisfactions.values() if satisfaction["kind"] == "open")
     heads = [satisfaction["revision"] for satisfaction in satisfactions.values()]
+    heads.extend(entry["revision"] for entry in base_satisfied_entries(scope, task))
     seen = set()
     for candidate in candidates:
         require(isinstance(candidate, dict) and text(candidate.get("branch"))
@@ -2483,7 +2498,8 @@ def _dependency_wait_reason(task, state):
     statuses = {task_id: state["tasks"][task_id]["status"] for task_id in task["effective_prerequisites"]}
     if any(status == "unknown" for status in statuses.values()):
         return "prerequisite-unknown"
-    if any(statuses[task_id] != "delivered" for task_id in task["prerequisites"]):
+    if any(statuses[task_id] != "delivered"
+           for task_id in set(task["prerequisites"]) & statuses.keys()):
         return "prerequisites-unmet"
     return "execution-parent-unmet"
 

@@ -228,9 +228,15 @@ contained in the approved integration base. For these entries, `admit --git-repo
 verifies the repository remote and uses Git ancestry to prove each landed revision is contained in
 the snapshot's exact `integration.sha`, not merely the branch's current tip. Missing Git evidence
 blocks admission; lifecycle flags and matching branch names alone do not prove containment.
-Scheduling repeats this check on its fresh snapshot. A selected parent is optional compatibility
-ordering, not native relationship evidence. The layout must retain useful parallelism; the model
-owns this selection, while Execute/Commit do not schedule siblings.
+Scheduling repeats this check on its fresh snapshot. Verified base-satisfied prerequisites remain
+technical requirements but are excluded from `effective_prerequisites` and `effective_edges`:
+dependent readiness uses the landed-base evidence without importing a controller-owned delivery or
+waiting for that task's lifecycle/CI state. Parent selection and retained-start validation still
+prove that each such revision is contained in the actual selected parent, including an open stack
+parent. A base-satisfied execution parent selects the integration base while preserving its planned
+task identity. A selected parent is optional compatibility ordering, not native relationship
+evidence. The layout must retain useful parallelism; the model owns this selection, while
+Execute/Commit do not schedule siblings.
 
 
 `parent_prs` supplies fresh canonical PR discovery for the integration branch and any explicitly

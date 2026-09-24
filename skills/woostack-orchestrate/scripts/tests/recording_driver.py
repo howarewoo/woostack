@@ -744,9 +744,12 @@ def verify_execute_readiness(repo: Path, packet: Dict[str, Any], entry: Dict[str
         raise AssertionError("Execute requires complete caller-supplied parent readiness")
     logical = readiness.get("logical_prerequisites")
     effective = readiness.get("execution_prerequisites")
+    base_satisfied = readiness.get("base_satisfied_prerequisites")
     records = readiness.get("prerequisites", [])
     if not isinstance(logical, list) or not isinstance(effective, list) \
-            or not set(logical).issubset(effective) \
+            or not isinstance(base_satisfied, list) \
+            or not set(logical).issubset(set(effective) | set(base_satisfied)) \
+            or set(effective) & set(base_satisfied) \
             or sorted(row["task_id"] for row in records) != sorted(effective):
         raise AssertionError("Execute prerequisite checkpoint set is incomplete")
     parent = readiness["parent"]
@@ -758,6 +761,13 @@ def verify_execute_readiness(repo: Path, packet: Dict[str, Any], entry: Dict[str
     evidence = parent["pr_evidence"]
     if evidence["complete"] is not True or evidence["head_sha"] != parent["current_sha"]:
         raise AssertionError("Execute parent PR discovery is incomplete")
+    layout = next(row for row in packet["execution_layout"]["entries"]
+                  if row["task_id"] == entry["task_id"])
+    base_entries = layout["base_satisfied_prerequisites"]
+    if sorted(row["task_id"] for row in base_entries) != sorted(base_satisfied):
+        raise AssertionError("Execute landed-base evidence is incomplete")
+    for row in base_entries:
+        git(repo, "merge-base", "--is-ancestor", row["revision"], parent["sha"])
     for row in records:
         checkpoint = row["checkpoint"]
         pr = checkpoint["readback"]
