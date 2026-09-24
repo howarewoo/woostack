@@ -966,7 +966,44 @@ class OrchestrateBehavior(unittest.TestCase):
         migrated = helper.state_read(str(legacy_path), base_admitted, repo=self.repo)
         self.assertTrue(migrated["halt_new_dispatch"])
         self.assertEqual(migrated["halt_reason"], "execution-plan-drift")
-        self.assertEqual(migrated["recovery"]["legacy_execution_plan_drift"], ["task-a", "task-b"])
+        self.assertEqual(migrated["recovery"]["legacy_execution_plan_drift"], ["task-a", "task-b", "task-c"])
+
+    def test_legacy_pending_start_evidence_cannot_be_replanned(self) -> None:
+        base = self.github.snapshot()
+        admitted_path, admitted = self._admit_issue(base)
+        state, initial = self._schedule(
+            admitted_path, admitted, None, base, "pending-start-legacy", cap="1"
+        )
+        self.assertEqual([entry["task_id"] for entry in initial["dispatch"]], ["task-a"])
+        legacy = json.loads(state.read_text())
+        legacy.pop("execution_layout")
+        legacy.pop("execution_fingerprint")
+        legacy["tasks"]["task-b"]["claim"] = {"controller_id": "legacy-controller"}
+        legacy_path = self.tmp / "pending-start-legacy.json"
+        legacy_path.write_text(json.dumps(legacy, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        legacy_path.chmod(0o600)
+
+        changed = self.github.snapshot()
+        changed["execution_layout"] = self.github.execution_layout(
+            (item["task_id"] for item in changed["tasks"]),
+            {"task-a": None, "task-b": "task-a", "task-c": "task-a",
+             "task-d": "task-a", "task-e": None},
+        )
+        _, changed_admitted = self._admit_issue(changed)
+        helper_path = Path(__file__).resolve().parents[1] / "orchestrate.py"
+        spec = importlib.util.spec_from_file_location("orchestrate_pending_start", helper_path)
+        self.assertIsNotNone(spec)
+        self.assertIsNotNone(spec.loader)
+        helper = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(helper)
+        migrated = helper.state_read(str(legacy_path), changed_admitted, repo=self.repo)
+        self.assertTrue(migrated["halt_new_dispatch"])
+        self.assertEqual(migrated["halt_reason"], "execution-plan-drift")
+        self.assertIn("task-b", migrated["recovery"]["legacy_execution_plan_drift"])
+        task_b = next(item for item in changed_admitted["tasks"]
+                      if item["task_id"] == "task-b")
+        self.assertEqual(migrated["tasks"]["task-b"]["dependency_snapshot"],
+                         task_b["dependency_snapshot"])
 
 
     def test_issue_list_reuses_resolved_task_identity_and_graph(self) -> None:

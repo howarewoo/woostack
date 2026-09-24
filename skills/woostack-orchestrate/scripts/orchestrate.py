@@ -1432,28 +1432,36 @@ def state_read(path, admitted, *, allow_execution_plan_update=False, repo=None):
                     "invalid-state", "reservation identity incomplete")
         task = admitted_tasks[item["task_id"]]
         if legacy_layout:
-            item["execution_parent"] = task["execution_parent"]
-            item["execution_plan_revision"] = admitted["execution_layout"]["revision"]
-            if item["status"] != "pending":
-                planned_parent = task["execution_parent"]
-                expected_branches = {admitted["integration"]["branch"]} \
-                    if planned_parent is None else set()
-                planned_item = state["tasks"].get(planned_parent, {})
-                planned_delivery = planned_item.get("delivery") or {}
-                planned_branch = planned_delivery.get("branch")
-                if text(planned_branch):
-                    expected_branches.add(planned_branch)
-                planned_lifecycle = planned_item.get("lifecycle") or {}
-                planned_pr = planned_lifecycle.get("pr", planned_lifecycle) \
-                    if isinstance(planned_lifecycle, dict) else {}
-                if isinstance(planned_pr, dict) and planned_pr.get("state") == "merged" \
-                        and (planned_pr.get("merged_base_branch")
-                             or planned_lifecycle.get("landing_target")) == admitted["integration"]["branch"]:
-                    expected_branches.add(admitted["integration"]["branch"])
-                parent_conflict = item["reservation"]["parent_branch"] not in expected_branches
-                if not parent_conflict and repo is not None:
-                    parent_conflict = not legacy_execution_parent_compatible(
-                        repo, state, admitted, task, item["reservation"])
+            retained_start = item["status"] != "pending" or not _genuinely_unstarted(item, task)
+            if retained_start:
+                reservation = item.get("reservation")
+                if not isinstance(reservation, dict):
+                    parent_conflict = True
+                else:
+                    require(all(text(reservation.get(k)) for k in
+                                ("branch", "workspace", "parent_branch", "parent_sha"))
+                            and SHA_RE.fullmatch(reservation["parent_sha"])
+                            and Path(reservation["workspace"]).is_absolute(),
+                            "invalid-state", "reservation identity incomplete")
+                    planned_parent = task["execution_parent"]
+                    expected_branches = {admitted["integration"]["branch"]} \
+                        if planned_parent is None else set()
+                    planned_item = state["tasks"].get(planned_parent, {})
+                    planned_delivery = planned_item.get("delivery") or {}
+                    planned_branch = planned_delivery.get("branch")
+                    if text(planned_branch):
+                        expected_branches.add(planned_branch)
+                    planned_lifecycle = planned_item.get("lifecycle") or {}
+                    planned_pr = planned_lifecycle.get("pr", planned_lifecycle) \
+                        if isinstance(planned_lifecycle, dict) else {}
+                    if isinstance(planned_pr, dict) and planned_pr.get("state") == "merged" \
+                            and (planned_pr.get("merged_base_branch")
+                                 or planned_lifecycle.get("landing_target")) == admitted["integration"]["branch"]:
+                        expected_branches.add(admitted["integration"]["branch"])
+                    parent_conflict = reservation["parent_branch"] not in expected_branches
+                    if not parent_conflict and repo is not None:
+                        parent_conflict = not legacy_execution_parent_compatible(
+                            repo, state, admitted, task, reservation)
                 if parent_conflict:
                     state["halt_new_dispatch"] = True
                     state["halt_reason"] = "execution-plan-drift"
@@ -1461,6 +1469,9 @@ def state_read(path, admitted, *, allow_execution_plan_update=False, repo=None):
                     legacy_drift = _legacy_execution_drift_tasks(state)
                     if item["task_id"] not in legacy_drift:
                         legacy_drift.append(item["task_id"])
+            item["execution_parent"] = task["execution_parent"]
+            item["execution_plan_revision"] = admitted["execution_layout"]["revision"]
+            item["dependency_snapshot"] = copy.deepcopy(task["dependency_snapshot"])
         elif execution_plan_update is None and execution_plan_error is None:
             require(item.get("execution_parent") == task["execution_parent"]
                     and item.get("execution_plan_revision") == admitted["execution_layout"]["revision"],
