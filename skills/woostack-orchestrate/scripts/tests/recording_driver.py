@@ -561,6 +561,84 @@ class FakeGitHub:
             }
         record("github", "persist-child-delivery", {"task_id": task_id, "note_id": note["id"]})
 
+    def ci_observation(
+        self,
+        task_id: str,
+        *,
+        check_state: str = "success",
+        test_merge: bool = False,
+        required: bool = True,
+        diagnosis: str = "Fix the bounded product failure.",
+        category: str = "actionable",
+        log_accessible: bool = True,
+        head_sha: Optional[str] = None,
+        include_status: bool = True,
+    ) -> Dict[str, Any]:
+        """Assemble authoritative check/status/log reads for one retained PR."""
+        with self._lock:
+            pr = copy.deepcopy(self.prs[task_id])
+        head_sha = head_sha or pr["head_sha"]
+        target_sha = ("a" * 40) if test_merge else head_sha
+        records = []
+        kinds = ("check-run", "commit-status") if include_status else ("check-run",)
+        for kind in kinds:
+            record_value = {
+                "id": "%s-%s" % (kind, task_id),
+                "name": "required-ci",
+                "source": "ci",
+                "type": kind,
+                "sha": target_sha,
+                "attempt": 1,
+                "state": check_state,
+                "url": pr["pr_url"] + "/checks/required-ci",
+            }
+            if check_state in ("failure", "error", "timed_out", "cancelled", "action_required"):
+                record_value.update({
+                    "category": category,
+                    "actionable": category == "actionable",
+                    "diagnosis": diagnosis if category == "actionable" else "Host classified this as non-product.",
+                    "log": {
+                        "accessible": log_accessible,
+                        "complete": True,
+                        "excerpt": diagnosis if log_accessible else "",
+                    },
+                })
+            records.append(record_value)
+        observation = {
+            "pr": {
+                "url": pr["pr_url"],
+                "repo": self.canonical,
+                "head_repo": self.canonical,
+                "state": "open" if pr["open"] else "closed",
+                "branch": pr["branch"],
+                "head_sha": pr["head_sha"],
+                "test_merge_sha": target_sha if test_merge else None,
+                "base_branch": pr["base_branch"],
+                "base_sha": git(self.repo, "rev-parse", "refs/heads/" + pr["base_branch"]),
+            },
+            "checks": self._read_pages("ci-check-runs", [[records[0]]]) + (
+                self._read_pages("ci-commit-statuses", [[records[1]]]) if include_status else []
+            ),
+            "required_checks": {"complete": True, "items": self._read_pages("ci-required", [[{
+                "name": "required-ci",
+                "source": "ci",
+            }]])} if required else {"complete": True, "items": []},
+            "pagination": {
+                "check_runs": True,
+                "commit_statuses": True,
+                "required_checks": True,
+                "logs": True,
+            },
+        }
+        record("github", "assemble-ci-observation", {
+            "task_id": task_id,
+            "pr_url": pr["pr_url"],
+            "head_sha": pr["head_sha"],
+            "target_sha": target_sha,
+            "check_state": check_state,
+        })
+        return observation
+
     def read_project_status(self, task_id: str) -> Dict[str, Any]:
         project_url = "https://github.com/orgs/acme/projects/7"
         issue_url = next(child["url"] for child in self.children if child["task_id"] == task_id)
@@ -731,7 +809,16 @@ class FakeHost:
         repair = bool(entry.get("repair"))
         if repair:
             if not workspace.exists():
-                raise AssertionError("repair did not retain its original worktree")
+                proof = (packet.get("repair_evidence") or {}).get("workspace_reopen")
+                if not isinstance(proof, dict) or proof.get("released") is not True:
+                    raise AssertionError("repair workspace reopen was not authorized by host evidence")
+                workspace.parent.mkdir(parents=True, exist_ok=True)
+                proc = subprocess.run(
+                    ["git", "-C", str(self.repo), "worktree", "add", str(workspace), branch],
+                    capture_output=True, text=True,
+                )
+                if proc.returncode:
+                    raise AssertionError("host repair worktree creation failed: %s" % proc.stderr.strip())
             current = git(workspace, "branch", "--show-current")
             if current != branch:
                 raise AssertionError("repair changed its reserved branch")
@@ -750,8 +837,14 @@ class FakeHost:
 
         task_file = workspace / "src" / (task_id + ".txt")
         task_file.parent.mkdir(parents=True, exist_ok=True)
+        repair_detail = ""
+        if repair:
+            failures = (packet.get("repair_evidence") or {}).get("failures") or [{}]
+            repair_detail = " " + str(failures[0].get("diagnosis") or "bounded repair")
         with task_file.open("w", encoding="utf-8") as handle:
-            handle.write("Execute consumed packet for %s%s\n" % (task_id, " repair" if repair else ""))
+            handle.write("Execute consumed packet for %s%s%s\n" % (
+                task_id, " repair" if repair else "", repair_detail
+            ))
         run_verification(workspace, bounded)
         git(workspace, "add", str(task_file.relative_to(workspace)))
         if git(workspace, "diff", "--cached", "--name-only"):

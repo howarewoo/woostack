@@ -149,7 +149,13 @@ even if a separately verified parent tip has advanced compatibly.
 
 A repair entry keeps the same `branch`, absolute `workspace`, `parent_branch`, `parent_sha`, and
 retained PR as its original reservation and sets `repair: true`. It never receives a new parent or
-replacement PR. The task issue URL is the only issue association and closing reference.
+replacement PR. The task issue URL is the only issue association and closing reference. A repair
+dispatched from [PR-check observation](validation.md#pr-check-observation-and-repair) additionally
+carries the failing revision and the check/log evidence that justified it; the worker revalidates
+that revision's freshness before editing, diagnoses through the surviving Debug workflow when needed,
+and returns ordinary Execute evidence on the same branch/PR. Local test success or a successful
+push is not proof that the new CI run passed; the controller independently verifies the new head
+and resumes observation.
 
 ## Verify the selected workspace before dispatch
 

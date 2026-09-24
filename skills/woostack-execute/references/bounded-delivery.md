@@ -67,7 +67,10 @@ cost considerations for simple tasks. The calling skill retains delivery ownersh
 
 Inspect the complete diff and changed paths. Run focused verification and the changed-path smoke
 scenario, retaining exact commands and observed results. A failed or incomplete required check
-blocks delivery.
+blocks delivery. A same-PR repair dispatched by Orchestrate from PR-check observation is an
+authorized correction of the supplied failing revision: diagnose it (using the surviving Debug
+workflow when root-cause proof is missing), apply the smallest in-scope change, and update that PR
+through Commit. Execute adds no monitoring loop and schedules no sibling.
 
 Execute does not require an independent pre-commit review receipt. If the caller requests an
 independent reviewer, bind its observations to the exact task, repository, parent, and complete

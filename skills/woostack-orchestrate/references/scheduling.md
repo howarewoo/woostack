@@ -238,8 +238,8 @@ Assemble the normalized snapshot from actual native/Git reads, serialize it with
 use the [canonical CLI sequence](../SKILL.md#one-real-helper-path). The examples describe runtime
 fields, not fixtures to submit unchanged. Keep snapshot, admission, result, and state files private
 (`umask 077`). Only `schedule` without `--state` initializes the state; every later call uses the
-existing state and newly assembled `--fresh` evidence. Follow the [completion-driven refill
-loop](../SKILL.md#continuously-refill-on-completion), not batch barriers.
+existing state and newly assembled `--fresh` evidence. Follow the [completion- and check-driven refill
+loop](../SKILL.md#continuously-refill-on-completion-and-observed-pr-checks), not batch barriers.
 
 ## Fingerprints and fresh refills
 
@@ -310,10 +310,13 @@ initial and recovery admission describe the same selected tracker honestly. A re
 reference reordering, or declared-to-native transition for the same exact task set does not replace
 task identities or release duplicate work. Each task entry keeps its native identity,
 dependency/claim provenance, contract revision, worker identity, reservation/worktree/branch/parent
-start, current source/diff identity, checks/validator receipts, PR identity, delivery checkpoint, and
-first uncertain boundary distinct. The caller must externally enforce exclusive ownership of the
-selected canonical scope/state for the controller session, covering every `schedule`,
-`record-worker`, `apply-result`, and `reconcile` call. If exclusive ownership cannot be proved, block
+start, current source/diff identity, checks/validator receipts, observed CI identities/revisions,
+diagnosis, repair-attempt history with ownership, PR identity, delivery checkpoint, next safe
+action, and first uncertain boundary distinct. GitHub remains the source for issue and CI facts;
+the controller stores only the observation identities needed to resume safely. The caller must
+externally enforce exclusive ownership of the selected canonical scope/state for the controller
+session, covering every `schedule`, `record-worker`, `apply-result`, `observe-checks`,
+and `reconcile` call. If exclusive ownership cannot be proved, block
 at controller preflight before invoking the helper.
 
 The helper additionally takes owner-only atomic claims under
@@ -339,7 +342,7 @@ checkpoint recovery evidence and never adopts arbitrary bytes. The head is indep
 input/output filenames, so a second writer using the same stale `--state` cannot advance a different
 `--state-out`.
 The first schedule omits `--state` and creates state. Every later schedule, record-worker,
-apply-result, reconcile, or stop names an existing state and matching admission. Missing state, malformed JSON,
+apply-result, observe-checks, reconcile, or stop names an existing state and matching admission. Missing state, malformed JSON,
 state/fingerprint/scope mismatch, missing durable checkpoint head, or a state task set that differs
 from the admission blocks; never silently reinitialize. The initial state is published before the
 scope claim is acquired, and the claim becomes visible only after its complete owner-bearing record
@@ -350,13 +353,21 @@ no claim or one complete same-owner claim. Keep the state path private and use t
 Under that exclusive ownership, the helper persists the actual selected task branch, absolute
 workspace, parent branch, and parent SHA before host dispatch. The branch and workspace are runtime
 facts, not stable task-ID projections or required publication fields. Repairs reuse the exact
-original reservation and retained PR. Before reuse, compare canonical physical paths (including
-aliases and ancestor/descendant paths), repository identity, current branch/HEAD, and complete Git
-worktree inventory. A suitable existing worktree may be retained; an incompatible or unclaimed
-branch/workspace blocks. The helper reservation does not itself create Git state.
+original reservation and retained PR; when the checkout was legitimately released, reopen an
+isolated worktree on the same verified branch only after reconciling ownership and retained
+changes, never by recreating around a collision or from a hard-coded path. Before reuse, compare
+canonical physical paths (including aliases and ancestor/descendant paths), repository identity,
+current branch/HEAD, and complete Git worktree inventory. A suitable existing worktree may be
+retained; an incompatible or unclaimed branch/workspace blocks, and unknown missing workspace
+state is not permission to recreate. The helper reservation does not itself create Git state.
 After launch, checkpoint the [native writer identity](validation.md#record-the-native-writer)
 separately from the worker's delivery report. Missing or uncorrelated native identity keeps unknown
-work reserved; no stopped receipt may substitute a foreign session or previous repair attempt.
+work reserved; no stopped receipt may substitute a foreign session or previous repair attempt. On
+resume, refresh the selected PRs, checks, actual worktrees, workers, and branch heads before
+deciding what remains; reconcile unknown pushes or reruns before replaying them. An old check
+failure or lost repair-worker response must not create duplicate commits, workers, or PRs, and
+external head/base changes require reconciliation rather than silently overwriting another
+contributor's work.
 
 Roots use the admitted integration branch/SHA. A dependent may use a delivered prerequisite branch
 or the admitted integration branch only when local
@@ -374,6 +385,6 @@ The helper writes machine-readable JSON and exits zero for controlled workflow s
 not treat process exit zero as delivery. `schedule` output includes dispatch entries, delivered,
 active, unknown, evidence-pending, repair-ready, pending, and paused/blocked/waiting IDs with exact
 next actions.
-`record-worker`, `apply-result`, `reconcile`, and `stop` outputs are authoritative state transitions; never invent a
+`record-worker`, `apply-result`, `observe-checks`, `reconcile`, and `stop` outputs are authoritative state transitions; never invent a
 success response around them. A user stop prevents new dispatch but does not declare active workers
 stopped or discard their worktrees.

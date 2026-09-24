@@ -239,8 +239,11 @@ separately configured [Codex session](/docs/harnesses/codex):
 Do not substitute the example URL. Orchestrate reads the tracker and every selected issue, resolves
 executable tasks and a bounded dependency DAG, and schedules them through Execute; it does not
 implement the tracker. Execute owns each selected issue's implementation, checks, and PR submission.
-Neither the planning chat nor Orchestrate has merge authority. Missing Plan relationships must be
-reported rather than claimed, but do not make a clear declared tracker categorically non-executable.
+While the Codex session stays active, Orchestrate keeps observing each admitted PR's remote checks
+and dispatches same-PR Execute repairs for actionable failures; it never merges and never monitors
+after the session ends. Neither the planning chat nor Orchestrate has merge authority. Missing Plan
+relationships must be reported rather than claimed, but do not make a clear declared tracker
+categorically non-executable.
 
 ### Coding-host alternatives
 
