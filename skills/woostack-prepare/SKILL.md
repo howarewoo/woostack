@@ -92,7 +92,7 @@ successful result reports:
 
 1. the exact verified specification-parent URL;
 2. display-ordered child URLs and stable task identities;
-3. the normalized native prerequisite graph and any expected execution-time `waiting-for-merge` checkpoint;
+3. the normalized native technical prerequisite graph, without treating ordinals as edges;
 4. the repository/baseline and evidence identities used for the read-back; and
 5. the complete planning handback and, when available, this separate convenience action:
 
@@ -102,8 +102,11 @@ successful result reports:
 
 The command is a handoff hint, not an exhaustive Orchestrate admission type. The user may instead
 provide the complete handback or understandable tracker content in conversation. Orchestrate resolves
-executable tasks and a bounded dependency DAG from the available evidence, preserves edge
-provenance, and asks a focused question when material ambiguity remains. It accepts a complete
+executable tasks and a bounded technical DAG from the available evidence, preserves edge provenance,
+then selects and summarizes a model-chosen single-parent execution forest before branch/worktree
+allocation. Its selected parents are optional compatibility ordering, not native relationship
+evidence; technical prerequisites remain separately visible, useful parallelism is retained, and
+effective prerequisites govern worker readiness and repair propagation. It accepts a complete
 readable implementation index without native links only after independently reading every selected
 issue and resolving its contract. A parent-only result, missing child/contract, ambiguous membership,
 unknown dependency meaning, partial pagination of a required successful read, unknown mutation
@@ -113,13 +116,13 @@ create, allocate a replacement, or call partial Plan publication a harmless mirr
 existing parent and child IDs are the recovery identity. Independently verified declared tracker
 content may be offered to Orchestrate without claiming those missing native relationships exist.
 
-A valid graph may contain independent roots, forks, chains, and joins. Ordinals never imply edges.
-The parent is a scope container, not a task or dependency endpoint. A join that lacks one currently
-verified existing Git parent containing every prerequisite remains a valid planning result and becomes
-a task-local `waiting-for-merge` checkpoint during Orchestrate. It does not require another Plan
-invocation, parent/integration decision, native relationship write, branch combination, or DAG
-rewrite. Prepare does not create an integration branch; ask only when material parent ambiguity
-remains.
+A valid technical graph may contain independent roots, forks, chains, and joins. Ordinals never imply
+edges. The parent is a scope container, not a task or dependency endpoint. Orchestrate can stack a
+join on a selected verified parent when eligible. Only when the chosen execution layout explicitly
+uses its `merge-checkpoint` fallback for existing divergence or repository constraints does the task
+become `waiting-for-merge`; a join otherwise does not require another Plan invocation, parent or
+integration decision, native relationship write, branch combination, or graph rewrite. Prepare does
+not create an integration branch; ask only when material parent ambiguity remains.
 
 ## Hard boundaries
 

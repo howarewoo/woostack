@@ -42,18 +42,23 @@ planning context to Codex. A canonical tracker URL is a convenient hint:
 ```
 
 Orchestrate independently reads the tracker and every selected issue, resolves executable tasks and
-a bounded dependency DAG, and gives Execute workers their complete contracts and verified Git
-parents. A complete tracker index can establish declared membership with no native child links; each
-selected issue still needs real identity and a complete contract, and the tracker stays context with
-no worker or PR. Independent tasks can run together; dependent tasks can stack on verified unmerged
-branches when current containment and readiness are eligible. If no single existing parent contains
-all prerequisites, only that join enters `waiting-for-merge`; no worker or speculative checkout is
-reserved, unrelated work continues, and no integration strategy is requested. Current PR lifecycle
-evidence is reconciled separately from retained delivery evidence, including human-ready, merged,
-closed-unmerged, and legitimately deleted source-branch states. While the session stays active,
-Orchestrate keeps observing each admitted PR's remote checks and dispatches same-PR Execute repairs
-for actionable failures. There is no automatic integration branch or merge, and no monitoring after
-the session ends.
+a bounded technical dependency DAG, and then selects and summarizes a model-chosen single-parent
+execution forest before branch/worktree allocation. It gives Execute workers their complete
+contracts, persisted plan, and verified effective-prerequisite readiness. A complete tracker index
+can establish declared membership with no native child links; each selected issue still needs real
+identity and a complete contract, and the tracker stays context with no worker or PR. Independent
+roots can run together; added execution parents are compatibility ordering, not native relationship
+evidence. A join can stack on its selected verified branch when containment and readiness are
+eligible. Only the approved `merge-checkpoint` fallback for existing divergence or repository
+constraints enters `waiting-for-merge`; a suitable selected parent avoids that pause. No worker or
+speculative checkout is reserved, unrelated work continues, and no integration strategy is
+requested. Current PR lifecycle evidence is reconciled separately from retained delivery evidence,
+including human-ready, merged, closed-unmerged, and legitimately deleted source-branch states.
+Equivalent reordered input resumes the persisted plan; changed technical graph is `snapshot-drift`
+and changed execution layout is controlled `execution-plan-drift`. While the
+session stays active, Orchestrate keeps observing each admitted PR's remote checks and dispatches
+same-PR Execute repairs for actionable failures using the effective graph. There is no automatic
+integration branch or merge, and no monitoring after the session ends.
 
 If chat tools cannot write issues, explicitly pass the complete approved packet to Plan in Codex.
 This is coding-host planning, not a chat-only allowance-saving route. Plan remains the sole

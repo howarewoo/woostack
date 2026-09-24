@@ -116,31 +116,29 @@ membership without native child links, but every selected issue and contract sti
 reads. Missing native metadata is not successful native Plan publication. Bounded Execute still
 admits one complete task.
 
-GitHub plans use explicit prerequisite graphs. Independent roots, forks, chains, and joins are valid;
-only genuine prerequisites become native `blocked-by` edges. Each edge is a `[prerequisite, dependent]`
-tuple: the dependent carries the native edge pointing at the prerequisite (blocking) issue, and reads
-normalize back into the same order with both endpoints verified. Stable ordinals control display and
-tie-breaking, not dependencies or Git ancestry. Existing chain edges are preserved unless the approved plan explicitly changes them.
+GitHub plans use explicit technical prerequisite graphs. Independent roots, forks, chains, and joins
+are valid; only genuine prerequisites become native `blocked-by` edges. Each edge is a
+`[prerequisite, dependent]` tuple: the dependent carries the native edge pointing at the
+prerequisite (blocking) issue, and reads normalize back into the same order with both endpoints
+verified. Stable ordinals control display and tie-breaking, not dependencies or Git ancestry. Existing
+chain edges are preserved unless the approved plan explicitly changes them.
 
-Each root records its approved integration parent. Dependents record their prerequisites and a
-parent-selection policy. At execution, Orchestrate first considers the approved integration branch
-and then an existing verified unmerged prerequisite branch when stacking is permitted. A candidate
-must have the recorded branch/SHA and prove canonical ancestry for every current prerequisite; a
-multi-dependency task may stack when one existing branch already contains all requirements. If no
-candidate exists, the join remains valid and becomes a task-local `waiting-for-merge` checkpoint;
-it does not request an integration strategy. Planning never creates an automatic integration
-branch, combines branches, or rewrites the graph.
+Each root records its approved integration parent. Dependents record their technical prerequisites
+and a parent-selection policy. At execution, Orchestrate first preserves that technical DAG, then
+selects and summarizes a model-chosen single-parent execution forest before branch/worktree
+allocation. The selected parent is optional compatibility ordering, not native relationship
+evidence. The layout must include every selected task exactly once, retain useful parallelism, and
+make every technical prerequisite part of the selected execution ancestor path. A join can use a
+verified existing parent when eligible. Only an explicit `merge-checkpoint` fallback for existing
+divergence or repository constraints becomes `waiting-for-merge`; a join otherwise does not require
+a new parent or integration decision. Planning never creates an automatic integration branch, combines
+branches, or rewrites either graph.
 
-Publication validates the complete graph before mutations and independently reads back every issue,
-native hierarchy, selected membership, and exact edge. Missing or foreign endpoints, ambiguous
-identities, cycles, and incomplete pagination block; they do not expand selected scope.
-
-Execute accepts one selected bounded task, not a complete DAG. A task from any valid DAG may use
-[ordinary Execute admission](/docs/skills/woostack-execute#admit-one-task) when its concrete parent and
-complete prerequisite-readiness evidence are supplied; an unresolved join remains waiting rather
-than a request for a new parent. An explicit [Orchestrate](/docs/skills/woostack-orchestrate)
-invocation interprets the complete planning handback or other understandable work context, resolves
-executable tasks and a bounded DAG, and dispatches ready tasks through isolated Execute workers.
+Orchestrate persists the normalized layout and fingerprint. Equivalent reordered task/layout input
+resumes the same plan; a changed execution layout is controlled `execution-plan-drift`, while a
+changed technical graph is `snapshot-drift`. Worker packets retain technical prerequisites and
+provenance separately, and effective prerequisites govern readiness, repair propagation, and
+resume. Execute accepts one selected bounded task, not a complete DAG.
 
 Plan's only supported publication scopes are the explicit GitHub Project and parent-issue selectors
 above; both retain the same prerequisite DAG and read-back contract. For Orchestrate, `--issue`,

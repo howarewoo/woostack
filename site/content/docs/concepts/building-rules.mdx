@@ -36,9 +36,9 @@ changing it. Both accept explicit repository/evidence identity without a Prepare
 may start at the relevant phase, so settled approvals are not repeated.
 
 Plan divides the work into increments, each small enough for one PR. It records outcomes, scope,
-acceptance criteria, verification, risks, explicit prerequisites, and parent-selection policy. It does
-not prescribe every coding step or estimate changed lines. [GitHub plans](/docs/configuration/artifacts/github#identities-hierarchy-and-graph)
-support dependency DAGs in explicit Project mode and parent-issue mode
+acceptance criteria, verification, risks, explicit technical prerequisites, and parent-selection
+policy. It does not prescribe every coding step or estimate changed lines. [GitHub plans](/docs/configuration/artifacts/github#identities-hierarchy-and-graph)
+support technical dependency DAGs in explicit Project mode and parent-issue mode
 (`--parent-issue new` or an exact parent issue URL, exclusive with `--project`). Plan's
 parent-issue mode needs the exact canonical repository and native relationship capabilities; it does
 not require a provider selector, Project, mirror, or Build/Fix run. Direct and composed Plan use the
@@ -51,12 +51,15 @@ but that declared handoff is not successful native Plan publication.
 Execute accepts one selected bounded task under its [admission contract](/docs/skills/woostack-execute#admit-one-task), not a whole plan.
 An explicit [Orchestrate](/docs/skills/woostack-orchestrate) invocation interprets the complete
 planning handback or other understandable work context. It resolves the canonical repository,
-issue/task identities, executable tasks, and a bounded dependency DAG with provenance, asking about
-material ambiguity. Issue, issue-list, and Project arguments are convenience hints, not an exhaustive
+issue/task identities, executable tasks, and a bounded technical DAG with provenance, then selects
+and summarizes a model-chosen single-parent execution forest before allocation. Added ordering is
+compatibility evidence, not native relationship evidence; technical prerequisites remain visible
+separately, useful parallelism is retained, and effective prerequisites govern readiness and repair
+propagation. Issue, issue-list, and Project arguments are convenience hints, not an exhaustive
 admission taxonomy; a complete tracker index can establish declared membership without native links,
 while every selected issue and contract still needs independent reads. For Orchestrate, a Project is
-included only when explicitly selected; its status lifecycle is used only when that selection
-requests status mutation, and inferred edges are not published.
+included only when explicitly selected; its status lifecycle is used only when that selection requests
+status mutation, and inferred edges are not published.
 
 Plan is the sole issue publisher. It independently reads every parent, child, hierarchy, and edge
 back. A partial Plan graph preserves exact identities and resumes at the first unproved Plan boundary;

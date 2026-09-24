@@ -138,7 +138,11 @@ alone, or `--issue` alone per the Execute skill):
 
 **Prerequisites:** a newly published P/A/B/C graph, a clean fixture repository, a supported host with the actual Orchestrate skill and delivery-capable Execute subagents, and separate permission for their draft-PR writes. The host must expose a safe worker interruption or stop receipt if the unknown-result variant is attempted.
 
-**Setup:** first run the focused deterministic regression through the shipped production helper:
+**Setup:** first run the focused deterministic regression through the shipped production helper. The
+fixture supplies a model-selected execution layout: A and B are approved-base roots, C stacks after
+A, and every technical prerequisite remains separately visible. The helper validates one entry per
+selected task, a single-parent acyclic execution forest, required compatibility constraints, and
+the explicit fallback/release condition for any join that cannot use a safe parent.
 
 ```bash
 PYTHONPATH=skills/woostack-orchestrate/scripts/tests \
@@ -153,14 +157,11 @@ python3 -m unittest -v \
 ```
 
 This is **deterministic helper evidence**, not model evidence. It crosses
-`scripts/orchestrate.py` through `recording_driver.py` in temporary Git
-repositories: A/B scheduling, C stacking on unmerged A, one same-PR CI repair
-with stale-head rejection and fresh dependent release, safe released-worktree
-reopening, unknown-result reconciliation without a second worker, and
-preservation of unrelated dirty and committed work. Recorded mock checks and
-repairs prove controller coordination only — never model diagnosis or live
-GitHub execution — and must be labeled as a deterministic controller simulation,
-not an actual-host pass.
+`scripts/orchestrate.py` through `recording_driver.py` in temporary Git repositories: validates the
+model-selected execution layout, schedules A/B concurrently, stacks C on unmerged A, propagates
+effective-prerequisite readiness through repair, and preserves unrelated work. Recorded mock checks
+and repairs prove controller coordination only—never model diagnosis or live GitHub execution—and
+must be labeled as a deterministic controller simulation, not an actual-host pass.
 
 **Invocation:** run the actual skill in the supported host:
 
@@ -168,14 +169,20 @@ not an actual-host pass.
 /woostack-orchestrate --issue <P-issue-url> --max-parallel 2
 ```
 
-The first wave must schedule A and B, not C. Preserve each native host/session/worker identity and the controller's reservation. The run stays active after A/B workers stop: it keeps observing their admitted PRs' remote checks while the session continues. For the recovery variant, stop only B after its branch or PR may exist but before its result is accepted. Resume the same scope only after direct evidence proves the worker stopped. If the host cannot stop and identify B safely, mark the actual-host recovery **Unrun**. No new live resources beyond the already-authorized disposable repository and draft-PR writes are required by this recipe.
+The first wave must schedule A and B, not C. Preserve each native host/session/worker identity and
+the controller's reservation. The run stays active after A/B workers stop: it keeps observing their
+admitted PRs' remote checks while the session continues. For the recovery variant, stop only B after
+its branch or PR may exist but before its result is accepted. Resume the same scope only after direct
+evidence proves the worker stopped. If the host cannot stop and identify B safely, mark the actual-
+host recovery **Unrun**. No new live resources beyond the already-authorized disposable repository and
+draft-PR writes are required by this recipe.
 
 **Assertions:**
 
-- C is absent from the first wave. After A's PR, focused checks, independent validation, and delivery-note read-back pass, C is scheduled on A's verified unmerged branch/SHA; no merge is required.
+- C is absent from the first wave. After A's PR, focused checks, independent validation, and delivery-note read-back pass, C is scheduled on A's verified unmerged branch/SHA; no merge is required. The technical prerequisite and effective execution prerequisite remain distinct in the packet.
 - Unknown B retains its original reservation and ownership. Reconciliation reuses one matching branch/PR and never creates a duplicate. Only a complete proved PR-absence receipt may release one same-identity repair worker on the same branch/workspace.
-- A later actionable remote-check failure on A's current head is diagnosed and coalesced into at most one Execute repair on A's retained branch/PR under the shared cap; unrelated work continues. Stale-head results never validate the new head, and pending or unreadable checks never count as a pass. Observation ends with the session: no daemon, merge, or post-session monitoring.
+- A later actionable remote-check failure on A's current head is diagnosed and coalesced into at most one Execute repair on A's retained branch/PR under the shared cap; unrelated work continues. Repair propagation follows the effective graph, while technical prerequisites and provenance remain visible. Stale-head results never validate the new head, and pending or unreadable checks never count as a pass. Observation ends with the session: no daemon, merge, or post-session monitoring.
 - An unrelated dirty or committed worktree remains byte-for-byte intact and blocks reuse. No controller, parent, sibling, or user workspace is overwritten.
-- The actual-host record names the revision, host, exact invocation, worker identities, A/B/C schedule order, recovery receipt, and canonical PR read-backs. The recording-driver run is reported separately and never as an actual model/host pass.
+- The actual-host record names the revision, host, exact invocation, worker identities, A/B/C schedule order, persisted plan revision/fingerprint, recovery receipt, and canonical PR read-backs. The recording-driver run is reported separately and never as an actual model/host pass.
 
 **Cleanup:** leave delivered PRs draft and unmerged, stop task-owned workers, retain controller evidence until the run is recorded, then use only the separately authorized disposable-repository cleanup. Remove task worktrees only after verifying they contain no user work.

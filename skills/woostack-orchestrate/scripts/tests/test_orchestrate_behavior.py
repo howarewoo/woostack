@@ -306,12 +306,19 @@ class OrchestrateBehavior(unittest.TestCase):
         snapshot = self.github.snapshot()
         child = next(item for item in snapshot["children"] if item["task_id"] == task_id)
         snapshot["tasks"] = snapshot["children"] = [child]
-        return snapshot
+        return self._scope_execution_layout(snapshot)
 
     def _two_task_snapshot(self) -> Dict[str, Any]:
         snapshot = self.github.snapshot()
         snapshot["tasks"] = snapshot["children"] = [
             item for item in snapshot["children"] if item["task_id"] in {"task-a", "task-b"}
+        ]
+        return self._scope_execution_layout(snapshot)
+
+    def _scope_execution_layout(self, snapshot: Dict[str, Any]) -> Dict[str, Any]:
+        selected = {item["task_id"] for item in snapshot["tasks"]}
+        snapshot["execution_layout"]["entries"] = [
+            entry for entry in snapshot["execution_layout"]["entries"] if entry["task_id"] in selected
         ]
         return snapshot
 
@@ -477,6 +484,268 @@ class OrchestrateBehavior(unittest.TestCase):
         self.assertIn(("sub_issues", 1), self.github.calls)
         self.assertIn(("sub_issues", 2), self.github.calls)
         self.assertIn(("dependencies", 2), self.github.calls)
+
+
+    def test_pre_execution_stack_layout_orders_joins_before_dispatch_and_resume(self) -> None:
+        """The model-selected tree keeps every join on one ancestor path."""
+
+        def fresh() -> Dict[str, Any]:
+            snapshot = self.github.snapshot()
+            task_c = next(item for item in snapshot["tasks"] if item["task_id"] == "task-c")
+            task_c["prerequisites"] = ["task-a", "task-b"]
+            snapshot["execution_layout"] = self.github.execution_layout(
+                (item["task_id"] for item in snapshot["tasks"]),
+                {
+                    "task-a": None, "task-b": "task-a", "task-c": "task-b",
+                    "task-d": "task-a", "task-e": None,
+                },
+            )
+            return snapshot
+
+        initial_snapshot = fresh()
+        admitted_path, admitted = self._admit_issue(initial_snapshot)
+        initial_state, initial = self._schedule(
+            admitted_path, admitted, None, initial_snapshot, "stack-initial", cap="3"
+        )
+        self.assertEqual(
+            sorted(entry["task_id"] for entry in initial["dispatch"]),
+            ["task-a", "task-e"],
+        )
+        saved_initial = json.loads(initial_state.read_text())
+        self.assertEqual(saved_initial["execution_layout"], admitted["execution_layout"])
+        self.assertEqual(
+            next(item for item in initial["waiting"] if item["task_id"] == "task-b")["reason"],
+            "execution-parent-unmet",
+        )
+
+        host = self._start_host(workers=3)
+        host.dispatch(initial["dispatch"])
+        report_a = host.wait_for_report("task-a")
+        report_e = host.wait_for_report("task-e")
+        result_e = make_result(self.github, "task-e", report_e, admitted)
+        a_entry = next(entry for entry in initial["dispatch"] if entry["task_id"] == "task-a")
+        e_entry = next(entry for entry in initial["dispatch"] if entry["task_id"] == "task-e")
+        result_a = make_result(self.github, "task-a", report_a, admitted)
+        state_a, applied_a, _ = self._apply(admitted_path, initial_state, "task-a", result_a, "stack-a")
+        self.assertEqual(applied_a["status"], "delivered")
+        self._persist("task-a", result_a, a_entry)
+        state_e, applied_e, _ = self._apply(admitted_path, state_a, "task-e", result_e, "stack-e")
+        self.assertEqual(applied_e["status"], "delivered")
+        self._persist("task-e", result_e, e_entry)
+
+        reordered = fresh()
+        reordered["tasks"].reverse()
+        reordered["execution_layout"]["entries"].reverse()
+        state_after_a, after_a = self._schedule(
+            admitted_path, admitted, state_e, reordered, "stack-after-a", cap="3"
+        )
+        self.assertEqual(
+            sorted(entry["task_id"] for entry in after_a["dispatch"]),
+            ["task-b", "task-d"],
+        )
+        b_entry = next(entry for entry in after_a["dispatch"] if entry["task_id"] == "task-b")
+        d_entry = next(entry for entry in after_a["dispatch"] if entry["task_id"] == "task-d")
+        self.assertEqual(b_entry["parent_branch"], report_a["worker"]["branch"])
+        self.assertEqual(b_entry["parent_sha"], report_a["worker"]["head_sha"])
+        self.assertEqual(b_entry["packet"]["dependency_edges"], [])
+        self.assertEqual(b_entry["packet"]["parent_readiness"]["logical_prerequisites"], [])
+        self.assertEqual(b_entry["packet"]["parent_readiness"]["execution_prerequisites"], ["task-a"])
+        self.assertEqual(b_entry["packet"]["execution_order"]["execution_parent"], "task-a")
+
+        host.dispatch([b_entry, d_entry])
+        self.assertTrue(host.b_started.wait(30))
+        report_d = host.wait_for_report("task-d")
+        result_d = make_result(self.github, "task-d", report_d, admitted)
+        state_bd, applied_d, _ = self._apply(admitted_path, state_after_a, "task-d", result_d, "stack-d")
+        self.assertEqual(applied_d["status"], "delivered")
+        self._persist("task-d", result_d, d_entry)
+        state_held, held = self._schedule(
+            admitted_path, admitted, state_bd, fresh(), "stack-b-held", cap="3"
+        )
+        self.assertEqual(held["dispatch"], [])
+
+        host.release_b()
+        report_b = host.wait_for_report("task-b")
+        result_b = make_result(self.github, "task-b", report_b, admitted)
+        state_b, applied_b, _ = self._apply(admitted_path, state_held, "task-b", result_b, "stack-b")
+        self.assertEqual(applied_b["status"], "delivered")
+        self._persist("task-b", result_b, b_entry)
+        state_c, after_b = self._schedule(
+            admitted_path, admitted, state_b, fresh(), "stack-after-b", cap="3",
+            decision=None,
+        )
+        c_entry = after_b["dispatch"][0]
+        self.assertEqual(c_entry["task_id"], "task-c")
+        self.assertEqual(c_entry["parent_branch"], report_b["worker"]["branch"])
+        self.assertEqual(c_entry["parent_sha"], report_b["worker"]["head_sha"])
+        readiness = c_entry["packet"]["parent_readiness"]
+        self.assertEqual(readiness["logical_prerequisites"], ["task-a", "task-b"])
+        self.assertEqual(readiness["execution_prerequisites"], ["task-a", "task-b"])
+        self.assertEqual(readiness["execution_ancestry"], ["task-a", "task-b"])
+        host.dispatch([c_entry])
+        report_c = host.wait_for_report("task-c")
+        result_c = make_result(self.github, "task-c", report_c, admitted)
+        state_final, applied_c, _ = self._apply(admitted_path, state_c, "task-c", result_c, "stack-c")
+        self.assertEqual(applied_c["status"], "delivered")
+        self._persist("task-c", result_c, c_entry)
+
+        self.assertEqual(git(self.repo, "diff", "--name-only", report_a["worker"]["head_sha"], report_b["worker"]["head_sha"]), "src/task-b.txt")
+        self.assertEqual(git(self.repo, "diff", "--name-only", report_b["worker"]["head_sha"], report_c["worker"]["head_sha"]), "src/task-c.txt")
+        self.assertEqual(json.loads(state_final.read_text())["execution_layout"], admitted["execution_layout"])
+
+    def test_stack_parent_repair_invalidates_added_descendant(self) -> None:
+        def fresh() -> Dict[str, Any]:
+            snapshot = self.github.snapshot()
+            snapshot["execution_layout"] = self.github.execution_layout(
+                (item["task_id"] for item in snapshot["tasks"]),
+                {"task-a": None, "task-b": "task-a", "task-c": "task-b", "task-d": "task-a", "task-e": None},
+            )
+            return snapshot
+
+        snapshot = fresh()
+        admitted_path, admitted = self._admit_issue(snapshot)
+        state, initial = self._schedule(admitted_path, admitted, None, snapshot, "repair-stack-initial", cap="2")
+        self.assertEqual([entry["task_id"] for entry in initial["dispatch"]], ["task-a", "task-e"])
+        host = self._start_host(workers=3)
+        host.dispatch(initial["dispatch"])
+        for task_id, entry in zip(("task-a", "task-e"), initial["dispatch"]):
+            result = make_result(self.github, task_id, host.wait_for_report(task_id), admitted)
+            state, applied, _ = self._apply(admitted_path, state, task_id, result, "repair-stack-" + task_id)
+            self.assertEqual(applied["status"], "delivered", applied)
+            self._persist(task_id, result, entry)
+
+        state, b_wave = self._schedule(admitted_path, admitted, state, fresh(), "repair-stack-b", cap="1")
+        self.assertEqual([entry["task_id"] for entry in b_wave["dispatch"]], ["task-b"])
+        b_entry = b_wave["dispatch"][0]
+        host.dispatch([b_entry])
+        result_b = make_result(self.github, "task-b", host.wait_for_report("task-b"), admitted)
+        state, applied_b, _ = self._apply(admitted_path, state, "task-b", result_b, "repair-stack-b-result")
+        self.assertEqual(applied_b["status"], "delivered", applied_b)
+        self._persist("task-b", result_b, b_entry)
+
+        state, c_wave = self._schedule(admitted_path, admitted, state, fresh(), "repair-stack-c", cap="1")
+        self.assertEqual([entry["task_id"] for entry in c_wave["dispatch"]], ["task-c"])
+        host.hold_before_mutation = True
+        host.dispatch(c_wave["dispatch"])
+        self.assertTrue(host.before_mutation.wait(30))
+        failure = self.github.ci_observation("task-a", check_state="failure", diagnosis="Repair the stack root.")
+        state, observed, _ = self._observe(admitted_path, state, "task-a", failure, "repair-stack-failure")
+        self.assertEqual(observed["ci_state"], "repair", observed)
+        child = json.loads(state.read_text())["tasks"]["task-c"]
+        self.assertEqual(child["status"], "running")
+        self.assertEqual(child["ci"]["reconcile_required"]["parent_task_id"], "task-a")
+        host.mutation_hold.set()
+        result_c = make_result(self.github, "task-c", host.wait_for_report("task-c"), admitted)
+        _, applied_c, _ = self._apply(admitted_path, state, "task-c", result_c, "repair-stack-c-result")
+        self.assertEqual(applied_c["status"], "delivered", applied_c)
+
+    def test_execution_layout_validation_rejects_invalid_trees_and_preserves_state(self) -> None:
+        base = self.github.snapshot()
+        linear = self.github.snapshot()
+        selected = [item for item in linear["tasks"] if item["task_id"] in {"task-a", "task-b", "task-c"}]
+        linear["tasks"] = linear["children"] = selected
+        next(item for item in selected if item["task_id"] == "task-b")["prerequisites"] = ["task-a"]
+        next(item for item in selected if item["task_id"] == "task-c")["prerequisites"] = ["task-b"]
+        linear["execution_layout"] = self.github.execution_layout(
+            (item["task_id"] for item in selected),
+            {"task-a": None, "task-b": "task-a", "task-c": "task-b"},
+        )
+        code, payload = invoke_cli(
+            "admit", "--snapshot", str(self._write_json("valid-linear-layout.json", linear))
+        )
+        self.assertEqual(code, 0, payload)
+        overlap = self.github.snapshot()
+        overlap_tasks = [item for item in overlap["tasks"] if item["task_id"] in {"task-a", "task-b", "task-c", "task-d"}]
+        overlap["tasks"] = overlap["children"] = overlap_tasks
+        next(item for item in overlap_tasks if item["task_id"] == "task-c")["prerequisites"] = ["task-a", "task-b", "task-d"]
+        overlap["execution_layout"] = self.github.execution_layout(
+            (item["task_id"] for item in overlap_tasks),
+            {"task-a": None, "task-b": "task-a", "task-d": "task-b", "task-c": "task-d"},
+        )
+        code, payload = invoke_cli(
+            "admit", "--snapshot", str(self._write_json("valid-overlap-layout.json", overlap))
+        )
+        self.assertEqual(code, 0, payload)
+
+        cases = []
+        landed = copy.deepcopy(base)
+        next(item for item in landed["tasks"] if item["task_id"] == "task-c")["prerequisites"] = ["task-a", "task-b"]
+        for task_id in ("task-a", "task-b"):
+            task = next(item for item in landed["tasks"] if item["task_id"] == task_id)
+            task["existing_delivery"] = {"lifecycle": {
+                "pr": {"state": "merged", "merged_base_branch": "main", "merge_commit_sha": "a" * 40},
+                "landed_verification": {"complete": True, "source_verified": True,
+                                        "checks_verified": True, "reverted": False},
+            }}
+        c_entry = next(item for item in landed["execution_layout"]["entries"] if item["task_id"] == "task-c")
+        c_entry["execution_parent"] = None
+        c_entry["base_satisfied_prerequisites"] = [
+            {"task_id": task_id, "revision": "a" * 40,
+             "evidence": {"source": "canonical merged PR readback", "target": "main"}}
+            for task_id in ("task-a", "task-b")
+        ]
+        code, payload = invoke_cli(
+            "admit", "--snapshot", str(self._write_json("valid-landed-base-layout.json", landed))
+        )
+        self.assertEqual(code, 0, payload)
+        unverified = copy.deepcopy(landed)
+        next(item for item in unverified["tasks"] if item["task_id"] == "task-a")["existing_delivery"]["lifecycle"]["pr"]["state"] = "open"
+        cases.append(("unverified landed base", unverified, "base-satisfaction-unverified"))
+
+
+        missing = copy.deepcopy(base)
+        missing.pop("execution_layout")
+        cases.append(("missing layout", missing, "missing-execution-layout"))
+        duplicate = copy.deepcopy(base)
+        duplicate["execution_layout"]["entries"].append(copy.deepcopy(duplicate["execution_layout"]["entries"][0]))
+        cases.append(("duplicate task", duplicate, "duplicate-execution-task"))
+        foreign = copy.deepcopy(base)
+        next(item for item in foreign["execution_layout"]["entries"] if item["task_id"] == "task-b")["execution_parent"] = "task-z"
+        cases.append(("foreign parent", foreign, "foreign-execution-parent"))
+        absent = copy.deepcopy(base)
+        absent["execution_layout"]["entries"] = [
+            item for item in absent["execution_layout"]["entries"] if item["task_id"] != "task-e"
+        ]
+        cases.append(("missing task", absent, "missing-execution-task"))
+        missing_ancestor = copy.deepcopy(base)
+        next(item for item in missing_ancestor["tasks"] if item["task_id"] == "task-c")["prerequisites"] = ["task-a", "task-b"]
+        cases.append(("missing ancestor", missing_ancestor, "missing-execution-ancestor"))
+        cycle = copy.deepcopy(base)
+        next(item for item in cycle["execution_layout"]["entries"] if item["task_id"] == "task-a")["execution_parent"] = "task-c"
+        cases.append(("combined cycle", cycle, "execution-cycle"))
+        for label, snapshot, expected in cases:
+            with self.subTest(layout=label):
+                code, payload = invoke_cli(
+                    "admit", "--snapshot",
+                    str(self._write_json("invalid-layout-%s.json" % label.replace(" ", "-"), snapshot)),
+                )
+                self.assertNotEqual(code, 0, payload)
+                self.assertEqual(payload.get("error"), expected, payload)
+
+        admitted_path, admitted = self._admit_issue(base)
+        state, initial = self._schedule(
+            admitted_path, admitted, None, base, "layout-drift-base", cap="1"
+        )
+        self.assertEqual([entry["task_id"] for entry in initial["dispatch"]], ["task-a"])
+        malformed = copy.deepcopy(base)
+        malformed.pop("execution_layout")
+        state, malformed_result = self._schedule(
+            admitted_path, admitted, state, malformed, "layout-malformed-resume", cap="1"
+        )
+        self.assertEqual(malformed_result["status"], "snapshot-drift", malformed_result)
+        self.assertEqual(malformed_result["reason"], "missing-execution-layout", malformed_result)
+        self.assertEqual(malformed_result["dispatch"], [], malformed_result)
+        self.assertEqual(json.loads(state.read_text())["execution_layout"], admitted["execution_layout"])
+        self.assertIsNotNone(json.loads(state.read_text())["tasks"]["task-a"]["reservation"])
+        changed = copy.deepcopy(base)
+        next(item for item in changed["execution_layout"]["entries"] if item["task_id"] == "task-b")["execution_parent"] = "task-a"
+        state, drift = self._schedule(
+            admitted_path, admitted, state, changed, "layout-drift", cap="1"
+        )
+        self.assertEqual(drift["status"], "snapshot-drift", drift)
+        self.assertEqual(drift["dispatch"], [], drift)
+        self.assertEqual(json.loads(state.read_text())["execution_layout"], admitted["execution_layout"])
+        self.assertEqual(drift["reason"], "execution-plan-drift", drift)
 
     def test_issue_list_reuses_resolved_task_identity_and_graph(self) -> None:
         snapshot = self.github.issue_list_snapshot()
@@ -906,8 +1175,8 @@ class OrchestrateBehavior(unittest.TestCase):
         state, wrong_output = self._schedule(
             admitted_path, admitted, state, self.github.tracker_snapshot("abcd"), "lifecycle-wrong-target")
         self.assertEqual([entry for entry in wrong_output["dispatch"] if entry["task_id"] == "task-c"], [])
-        self.assertEqual(next(item for item in wrong_output["waiting"] if item["task_id"] == "task-c")["reason"],
-                         "waiting-for-merge")
+        self.assertEqual(next(item for item in wrong_output["blocked"] if item["task_id"] == "task-c")["reason"],
+                         "parent-unavailable")
 
         missing = copy.deepcopy(merged)
         missing.pop("landed_verification")
@@ -1031,6 +1300,7 @@ class OrchestrateBehavior(unittest.TestCase):
 
         empty = copy.deepcopy(base)
         empty["tasks"] = []
+        empty["execution_layout"]["entries"] = []
         code, payload = invoke_cli("admit", "--snapshot",
                                    str(self._write_json("resolved-empty.json", empty)))
         self.assertEqual(code, 0, payload)
@@ -1097,6 +1367,11 @@ class OrchestrateBehavior(unittest.TestCase):
         child.update(task_id="task-z", ordinal=6, url=self.github.canonical + "/issues/999",
                      id=999, node_id="I_new_child")
         added_child["tasks"].append(child)
+        added_child["execution_layout"]["entries"].append({
+            "task_id": "task-z", "execution_parent": None,
+            "rationale": "Start the newly selected task from the approved base.",
+            "constraints": ["scope drift fixture"],
+        })
         drift_cases.append(("new executable task", added_child))
         changed_scope = copy.deepcopy(snapshot)
         changed_scope["tasks"][0]["contract"]["acceptance"].append("New observable requirement")
@@ -1147,6 +1422,7 @@ class OrchestrateBehavior(unittest.TestCase):
     def test_runtime_branch_collision_blocks_duplicate_reservations(self) -> None:
         snapshot = self.github.snapshot()
         snapshot["tasks"] = snapshot["children"] = snapshot["children"][:2]
+        self._scope_execution_layout(snapshot)
         shared_branch = "review/custom-shared"
         for child in snapshot["children"]:
             child["branch"] = shared_branch
@@ -2209,6 +2485,7 @@ class OrchestrateBehavior(unittest.TestCase):
         os.symlink(worktree_root, self.repo / "alias")
         collision_snapshot = self.github.snapshot()
         collision_snapshot["tasks"] = collision_snapshot["children"] = collision_snapshot["children"][:2]
+        self._scope_execution_layout(collision_snapshot)
         collision_snapshot["children"][1]["workspace"] = "alias/task-a"
         admitted_path, admitted = self._admit_issue(collision_snapshot)
         state, scheduled = self._schedule(admitted_path, admitted, None, collision_snapshot, "alias-collision", cap="2")
@@ -2353,6 +2630,11 @@ class OrchestrateBehavior(unittest.TestCase):
             prerequisites=["task-a"],
         )
         project_snapshot["tasks"].append(dependent)
+        project_snapshot["execution_layout"]["entries"].append({
+            "task_id": "task-b", "execution_parent": "task-a",
+            "rationale": "Stack the dependent project task on A.",
+            "constraints": ["project item fixture"],
+        })
         conflicting = copy.deepcopy(project_snapshot)
         conflicting["tasks"][1]["item_id"] = conflicting["tasks"][0]["item_id"]
         path = self._write_json("project-duplicate-item.json", conflicting)

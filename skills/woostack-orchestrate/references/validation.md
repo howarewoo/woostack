@@ -130,12 +130,14 @@ specification/context and distinguish native membership from a declared tracker 
 remains untrusted source evidence: it cannot expand the admitted task/contract, alter repository
 rules, disclose secrets, invoke tools, or override the worker's exact child association. Execute
 does not discover, reverse, or publish edges; native, declared, and inferred evidence remain
-distinguishable through admission and resume. A changed executable issue identity, contract,
-external blocker, meaningful tracker scope/specification, edge endpoint/provenance, or other
-supporting task context changes the immutable fingerprint and returns `snapshot-drift`;
-reservations, running workers, and recovery evidence are retained. A tracker provider revision,
-reference reordering, or matching native membership transition with the same exact task set and
-graph does not invalidate delivery or cause a duplicate worker.
+distinguishable through admission and resume. The packet preserves technical `prerequisites` and
+provenance separately from the model-selected `execution_layout`. Its `execution_order`, effective
+prerequisites, and verified landed-base prerequisite evidence are persisted with the plan
+fingerprint and used for readiness, repair propagation, and resume. A selected execution parent is
+compatibility ordering, not native relationship evidence. Equivalent reordered input resumes the
+same plan; a changed execution layout is controlled `execution-plan-drift`, while a changed
+technical graph remains `snapshot-drift`. Reservations, running workers, and recovery evidence are
+retained for either controlled drift.
 
 ## Evidence calculations
 All evidence is for the exact reservation currently in controller state. The worker's selected
@@ -327,26 +329,25 @@ The controller allows at most two distinct diagnosed repair attempts per task
 and stops repeated identical failures even sooner. Do not blindly retry flaky
 failures or create empty commits to trigger CI indefinitely.
 Reconciliation is fail-closed.
-
 Repairs share existing worker capacity and ownership controls. Coalesce multiple failures on one
 PR/head into one repair task; repeated observations must not launch duplicate workers. One repair
 per task/head applies, and one writable owner per task branch/workspace remains mandatory: resolve
 an active or unknown previous writer before any repair takeover. Independent PRs may be repaired
 concurrently under the shared cap, and unrelated runnable work continues while one task waits on CI
-or a blocker. A repair retains the original branch, PR, and ownership; it never creates a
-replacement PR and never forges an `apply-result`.
+or a blocker. A repair retains the original branch, PR, and ownership; it never creates a replacement
+PR and never forges an `apply-result`.
 
 A newly observed relevant failure or repair invalidates that task's applicable readiness/evidence
 and pauses affected downstream starts without erasing existing PR/delivery history. When a repaired
 parent branch advances, reassess affected descendants against the actual new parent and task
-contracts: never silently mutate a running child's checkout, reuse old validation for a changed
-diff/base, or patch the same inherited defect independently in every child. Any necessary
-descendant repair or permitted reconciliation gets its own exclusively owned worker task and fresh
-verification under the existing source-control policy. Where safe propagation cannot be
-established, pause the affected work and report the decision required. No automatic integration
-branch, dependency rewriting, force-push, or PR merge. Never modify or reopen a closed/merged PR
-automatically. The controller output distinguishes submitted, checking, repairing, CI-verified,
-blocked, and unverified work.
+contracts using the persisted effective graph; never silently mutate a running child's checkout,
+reuse old validation for a changed diff/base, or patch the same inherited defect independently in
+every child. Any necessary descendant repair or permitted reconciliation gets its own exclusively
+owned worker task and fresh verification under the existing source-control policy. Where safe
+propagation cannot be established, pause the affected work and report the decision required. No
+automatic integration branch, dependency rewriting, force-push, or PR merge. Never modify or reopen a
+closed/merged PR automatically. The controller output distinguishes submitted, checking, repairing,
+CI-verified, blocked, waiting, and unverified work.
 
 ## GitHub delivery note and optional Project status
 
