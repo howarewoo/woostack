@@ -837,7 +837,7 @@ class OrchestrateBehavior(unittest.TestCase):
         self.assertEqual(code, 1, payload)
         self.assertEqual(payload.get("error"), "execution-plan-drift", payload)
 
-    def test_legacy_execution_parent_revision_must_be_retained(self) -> None:
+    def test_legacy_execution_parent_revision_and_base_ancestry_must_be_retained(self) -> None:
         base = self.github.snapshot()
         old_admitted_path, old_admitted = self._admit_issue(base)
         state, initial = self._schedule(
@@ -922,6 +922,51 @@ class OrchestrateBehavior(unittest.TestCase):
         )
         self.assertEqual(code, 1, payload)
         self.assertEqual(payload.get("error"), "execution-plan-drift", payload)
+
+        legacy = json.loads(legacy_path.read_text())
+        legacy["tasks"]["task-b"]["reservation"].update({
+            "parent_branch": "main", "parent_sha": merge_sha,
+        })
+        legacy_path.write_text(json.dumps(legacy, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        checkpoint.write_text(json.dumps({
+            "version": 1,
+            "fingerprint": legacy["fingerprint"],
+            "scope_identity": legacy["scope_identity"],
+            "digest": hashlib.sha256(legacy_path.read_bytes()).hexdigest(),
+            "state_path": str(legacy_path),
+        }, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
+        git(self.repo, "commit", "--allow-empty", "-m", "land task-c")
+        task_c_sha = git(self.repo, "rev-parse", "HEAD")
+        base_admitted = copy.deepcopy(changed_admitted)
+        base_a = next(item for item in base_admitted["tasks"]
+                      if item["task_id"] == "task-a")
+        base_a["base_satisfied_prerequisites"] = ["task-c"]
+        base_c = next(item for item in base_admitted["tasks"]
+                      if item["task_id"] == "task-c")
+        base_c["existing_delivery"] = {"lifecycle": {
+            "pr": {
+                "pr_url": "https://github.com/acme/app/pull/103",
+                "repo": self.github.canonical, "head_repo": self.github.canonical,
+                "branch": "feature/task-c", "head_sha": task_c_sha,
+                "base_branch": "main", "state": "merged",
+                "merged_base_branch": "main", "merge_commit_sha": task_c_sha,
+            },
+            "landed_verification": {
+                "complete": True, "source_verified": True,
+                "checks_verified": True, "reverted": False,
+            },
+        }}
+        helper_path = Path(__file__).resolve().parents[1] / "orchestrate.py"
+        spec = importlib.util.spec_from_file_location("orchestrate_base_ancestry", helper_path)
+        self.assertIsNotNone(spec)
+        self.assertIsNotNone(spec.loader)
+        helper = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(helper)
+        migrated = helper.state_read(str(legacy_path), base_admitted, repo=self.repo)
+        self.assertTrue(migrated["halt_new_dispatch"])
+        self.assertEqual(migrated["halt_reason"], "execution-plan-drift")
+        self.assertEqual(migrated["recovery"]["legacy_execution_plan_drift"], ["task-a", "task-b"])
 
 
     def test_issue_list_reuses_resolved_task_identity_and_graph(self) -> None:

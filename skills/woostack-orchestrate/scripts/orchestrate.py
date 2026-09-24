@@ -2039,22 +2039,50 @@ def prerequisite_satisfaction(item, task, repo, lifecycle=None, canonical=None, 
             "pr_url": delivery["pr_url"], "landing_branch": target, "landing_sha": target_tip,
             "checkpoint": copy.deepcopy(delivery["checkpoint"]), "lifecycle": copy.deepcopy(lifecycle)}
 def legacy_execution_parent_compatible(repo, state, admitted, task, reservation):
-    parent_id = task["execution_parent"]
-    if parent_id is None:
-        return True
-    parent = state["tasks"].get(parent_id)
-    if not isinstance(parent, dict):
-        return False
-    try:
-        satisfaction = prerequisite_satisfaction(
-            parent, task, repo, lifecycle=parent.get("lifecycle"),
-            canonical=admitted["canonical_repo"], verify_checks=False)
-        expected_branch = (satisfaction["branch"] if satisfaction["kind"] == "open"
-                           else admitted["integration"]["branch"])
-        return (reservation["parent_branch"] == expected_branch
-                and contains(repo, satisfaction["revision"], reservation["parent_sha"]))
-    except InputError:
-        return False
+    admitted_tasks = {item["task_id"]: item for item in admitted["tasks"]}
+    current = task
+    first = True
+    seen = set()
+    while isinstance(current, dict) and current["task_id"] not in seen:
+        seen.add(current["task_id"])
+        base_satisfied = set(current.get("base_satisfied_prerequisites", []))
+        execution_parent = current.get("execution_parent")
+        for predecessor_id in current.get("effective_prerequisites", []):
+            if predecessor_id in base_satisfied:
+                continue
+            item = state["tasks"].get(predecessor_id)
+            predecessor = admitted_tasks.get(predecessor_id)
+            if not isinstance(item, dict) or not isinstance(predecessor, dict):
+                return False
+            try:
+                satisfaction = prerequisite_satisfaction(
+                    item, predecessor, repo, lifecycle=item.get("lifecycle"),
+                    canonical=admitted["canonical_repo"], verify_checks=False)
+            except InputError:
+                return False
+            if not contains(repo, satisfaction["revision"], reservation["parent_sha"]):
+                return False
+            if first and predecessor_id == execution_parent:
+                expected_branch = (satisfaction["branch"] if satisfaction["kind"] == "open"
+                                   else admitted["integration"]["branch"])
+                if reservation["parent_branch"] != expected_branch:
+                    return False
+        for predecessor_id in sorted(base_satisfied):
+            predecessor = admitted_tasks.get(predecessor_id)
+            delivery = predecessor.get("existing_delivery") if isinstance(predecessor, dict) else None
+            lifecycle = delivery.get("lifecycle") if isinstance(delivery, dict) else None
+            pr = lifecycle.get("pr", lifecycle) if isinstance(lifecycle, dict) else None
+            revision = ((pr.get("merge_commit_sha") if isinstance(pr, dict) else None)
+                        or (lifecycle.get("landed_revision") if isinstance(lifecycle, dict) else None))
+            if not SHA_RE.fullmatch(revision or "") or not contains(
+                    repo, revision, reservation["parent_sha"]):
+                return False
+        if first and execution_parent in base_satisfied:
+            if reservation["parent_branch"] != admitted["integration"]["branch"]:
+                return False
+        first = False
+        current = admitted_tasks.get(execution_parent)
+    return True
 
 
 
