@@ -139,6 +139,8 @@ same plan. A newer layout revision requires genuinely unstarted changes except f
 [verified legacy-migration recovery](scheduling.md#fingerprints-and-fresh-refills);
 otherwise changes to started, reserved, claimed, worker-owned, or delivered work return controlled
 `execution-plan-drift`. A changed technical graph remains `snapshot-drift`.
+An unchanged active worker keeps its issued plan revision and dependency snapshot; its bound result
+uses the original admission, while descendant repair propagation uses the current persisted graph.
 
 ## Evidence calculations
 All evidence is for the exact reservation currently in controller state. The worker's selected

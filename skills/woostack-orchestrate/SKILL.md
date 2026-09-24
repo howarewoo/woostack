@@ -258,6 +258,9 @@ must prove the retained reservation and prerequisite ancestry compatible before 
 (see [recovery rules](references/scheduling.md#fingerprints-and-fresh-refills)).
 Other changes to started, reserved, claimed, worker-owned, or delivered tasks return controlled
 `execution-plan-drift`.
+Unchanged active tasks retain their issued plan revision and dependency snapshot; their original
+admission remains valid for bound worker results, while a newer admission cannot relabel them
+(see [recovery rules](references/scheduling.md#fingerprints-and-fresh-refills)).
 Both statuses preserve running reservations, recovery inventory, claims, and worker identity while
 requiring a fresh interpreted snapshot; neither launches a duplicate, silently adopts a new issue,
 or erases a running task's recovery boundary. Reinvoking the same tracker or an equivalent reordered

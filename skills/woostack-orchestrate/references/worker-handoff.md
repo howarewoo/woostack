@@ -204,6 +204,9 @@ compatibly. The controller persists the plan revision and fingerprint with the s
 reordered input resumes the same plan. A newer layout revision requires genuinely unstarted changes
 except for [verified legacy-migration recovery](scheduling.md#fingerprints-and-fresh-refills);
 otherwise it is `execution-plan-drift`. A changed technical graph is `snapshot-drift`.
+An unchanged active worker retains its issued plan revision and dependency snapshot through such
+a replan. Result application uses its original admission, not a newer plan the worker never received;
+the controller uses current persisted effective dependencies for descendant repair propagation.
 
 
 A repair entry keeps the same `branch`, absolute `workspace`, `parent_branch`, `parent_sha`, and

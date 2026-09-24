@@ -85,6 +85,9 @@ legacy execution-parent halt can adopt a newer revision only after its reservati
 prerequisite ancestry are verified compatible. Other changes to started, reserved, claimed,
 worker-owned, or delivered work are `execution-plan-drift`; changed technical evidence is
 `snapshot-drift`.
+Unchanged active workers retain their issued plan revision and dependency snapshot through a
+compatible replan; their results use the original admission, while current effective dependencies
+govern descendant repair.
 
 After planning, hand Orchestrate the complete planning handback or other understandable work
 context. It interprets the conversation, repository, and available GitHub records; resolves the

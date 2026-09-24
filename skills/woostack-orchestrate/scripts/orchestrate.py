@@ -1327,6 +1327,13 @@ def _legacy_execution_drift_tasks(state):
 
 
 
+def _known_execution_revision(state, revision):
+    return type(revision) is int and (
+        revision == state["execution_layout"]["revision"]
+        or any(entry.get("from_revision") == revision
+               for entry in state.get("execution_plan_history", [])))
+
+
 def _execution_plan_update(state, admitted, repo):
     current = state["execution_layout"]
     require(type(current.get("revision")) is int and current["revision"] > 0
@@ -1347,7 +1354,7 @@ def _execution_plan_update(state, admitted, repo):
         retained_effective = set((item.get("dependency_snapshot") or {}).get(
             "effective_prerequisites", []))
         require(item.get("execution_parent") == retained_parent
-                and item.get("execution_plan_revision") == current["revision"],
+                and _known_execution_revision(state, item.get("execution_plan_revision")),
                 "invalid-state", "retained task execution identity is invalid")
         if (current_entries[task_id] != revised_entries[task_id]
                 or _execution_ancestry(current_entries, task_id) != task["execution_ancestry"]
@@ -1379,18 +1386,19 @@ def _apply_execution_plan_update(state, admitted, update):
     state["execution_fingerprint"] = admitted["execution_fingerprint"]
     for task in admitted["tasks"]:
         item = state["tasks"][task["task_id"]]
-        item.update(
-            execution_parent=task["execution_parent"],
-            execution_plan_revision=admitted["execution_layout"]["revision"],
-            dependency_snapshot=copy.deepcopy(task["dependency_snapshot"]),
-        )
+        if task["task_id"] in update["changed_tasks"] or _genuinely_unstarted(item, task):
+            item.update(
+                execution_parent=task["execution_parent"],
+                execution_plan_revision=admitted["execution_layout"]["revision"],
+                dependency_snapshot=copy.deepcopy(task["dependency_snapshot"]),
+            )
     state["recovery"].pop("legacy_execution_plan_drift", None)
     state.setdefault("execution_plan_history", []).append(copy.deepcopy(update))
 
 
 
 
-def state_read(path, admitted, *, allow_execution_plan_update=False, repo=None):
+def state_read(path, admitted, *, allow_execution_plan_update=False, repo=None, active_task_id=None):
     try:
         raw = _state_bytes(path)
         state = json.loads(raw)
@@ -1413,15 +1421,27 @@ def state_read(path, admitted, *, allow_execution_plan_update=False, repo=None):
         state["execution_fingerprint"] = admitted["execution_fingerprint"]
     elif not plan_matches:
         if not allow_execution_plan_update:
-            raise InputError("execution-plan-drift", "controller execution plan changed")
-        try:
-            execution_plan_update = _execution_plan_update(state, admitted, repo)
-        except InputError as error:
-            execution_plan_error = {"code": error.code, "message": str(error)}
-        if execution_plan_update is not None:
-            state["_execution_plan_update"] = execution_plan_update
-        if execution_plan_error is not None:
-            state["_execution_plan_error"] = execution_plan_error
+            item = state.get("tasks", {}).get(active_task_id)
+            current_entries = {entry["task_id"]: entry for entry in state["execution_layout"]["entries"]}
+            prior_entries = {entry["task_id"]: entry for entry in admitted["execution_layout"]["entries"]}
+            historical = (isinstance(item, dict) and active_task_id in current_entries
+                          and active_task_id in prior_entries
+                          and item.get("execution_plan_revision") == admitted["execution_layout"]["revision"]
+                          and any(entry.get("from_fingerprint") == admitted["execution_fingerprint"]
+                                  for entry in state.get("execution_plan_history", []))
+                          and current_entries[active_task_id] == prior_entries[active_task_id]
+                          and _execution_ancestry(current_entries, active_task_id)
+                          == _execution_ancestry(prior_entries, active_task_id))
+            require(historical, "execution-plan-drift", "controller execution plan changed")
+        else:
+            try:
+                execution_plan_update = _execution_plan_update(state, admitted, repo)
+            except InputError as error:
+                execution_plan_error = {"code": error.code, "message": str(error)}
+            if execution_plan_update is not None:
+                state["_execution_plan_update"] = execution_plan_update
+            if execution_plan_error is not None:
+                state["_execution_plan_error"] = execution_plan_error
     owner = state.get("owner")
     require(isinstance(owner, dict) and text(owner.get("controller_id")),
             "ownership-missing", "controller ownership identity missing")
@@ -1459,9 +1479,11 @@ def state_read(path, admitted, *, allow_execution_plan_update=False, repo=None):
             item["execution_plan_revision"] = admitted["execution_layout"]["revision"]
             item["dependency_snapshot"] = copy.deepcopy(task["dependency_snapshot"])
         elif execution_plan_update is None and execution_plan_error is None:
-            require(item.get("execution_parent") == task["execution_parent"]
-                    and item.get("execution_plan_revision") == admitted["execution_layout"]["revision"],
-                    "invalid-state", "task execution plan identity changed")
+            if plan_matches or item["task_id"] == active_task_id:
+                require(item.get("execution_parent") == task["execution_parent"]
+                        and _known_execution_revision(state, item.get("execution_plan_revision"))
+                        and item.get("dependency_snapshot") == task["dependency_snapshot"],
+                        "invalid-state", "task execution plan identity changed")
         for key in ("lifecycle", "lifecycle_error", "satisfaction", "failure_reason"):
             if key not in item:
                 item[key] = None
@@ -1540,11 +1562,13 @@ def _invalidate_descendants(admitted, state, task_id, reason):
     affected, frontier = set(), [task_id]
     while frontier:
         predecessor = frontier.pop()
-        for child in tasks.values():
-            if predecessor in child.get("effective_prerequisites", child["prerequisites"]) \
-                    and child["task_id"] not in affected:
-                affected.add(child["task_id"])
-                frontier.append(child["task_id"])
+        for child_id, child in state["tasks"].items():
+            dependencies = child.get("dependency_snapshot", {})
+            if predecessor in dependencies.get(
+                    "effective_prerequisites", dependencies.get("prerequisites", [])) \
+                    and child_id not in affected:
+                affected.add(child_id)
+                frontier.append(child_id)
     for child_id in affected:
         child = state["tasks"][child_id]
         if child["status"] != "pending":
@@ -1797,7 +1821,7 @@ def _observed_ci(admitted, state, item, observation, repo=None):
 def cmd_observe_checks(args):
     admitted = load_json(args.admitted)
     repository(args.git_repo, admitted["canonical_repo"])
-    state = state_read(args.state, admitted, repo=args.git_repo)
+    state = state_read(args.state, admitted, repo=args.git_repo, active_task_id=args.task)
     require(args.task in state["tasks"], "unknown-task", "task outside admitted scope")
     item = state["tasks"][args.task]
     require(item["status"] == "delivered" and isinstance(item.get("delivery"), dict),
@@ -2910,7 +2934,7 @@ def cmd_schedule(args):
 def cmd_record_worker(args):
     admitted = load_json(args.admitted)
     repository(args.git_repo, admitted["canonical_repo"])
-    state = state_read(args.state, admitted, repo=args.git_repo)
+    state = state_read(args.state, admitted, repo=args.git_repo, active_task_id=args.task)
     require(args.task in state["tasks"], "unknown-task", "task outside admitted scope")
     item = state["tasks"][args.task]
     require(item["status"] in ("running", "unknown"), "not-running", "worker needs an active reservation")
@@ -2937,12 +2961,14 @@ def cmd_record_worker(args):
 def cmd_apply_result(args):
     admitted = load_json(args.admitted)
     repository(args.git_repo, admitted["canonical_repo"])
-    state = state_read(args.state, admitted, repo=args.git_repo)
+    state = state_read(args.state, admitted, repo=args.git_repo, active_task_id=args.task)
     require(args.task in state["tasks"], "unknown-task", "task outside admitted scope")
     item = state["tasks"][args.task]
     require(item["status"] in ("running", "note-pending", "evidence-pending"),
             "not-running", "task has no active reservation or receipt retry")
     legacy_drift = _legacy_execution_drift_tasks(state)
+    require(item["execution_plan_revision"] == admitted["execution_layout"]["revision"],
+            "execution-plan-drift", "worker result must use its dispatched execution plan")
     require(args.task not in legacy_drift, "execution-plan-drift",
             "task requires legacy execution-plan reconciliation")
 
@@ -3000,7 +3026,7 @@ def cmd_apply_result(args):
 def cmd_reconcile(args):
     admitted = load_json(args.admitted)
     repository(args.git_repo, admitted["canonical_repo"])
-    state = state_read(args.state, admitted, repo=args.git_repo)
+    state = state_read(args.state, admitted, repo=args.git_repo, active_task_id=args.task)
     require(args.task in state["tasks"], "unknown-task", "task outside admitted scope")
     item = state["tasks"][args.task]
     descendant_reconcile = isinstance(item.get("ci"), dict) \

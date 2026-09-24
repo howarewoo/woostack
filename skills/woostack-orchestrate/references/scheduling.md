@@ -315,10 +315,14 @@ complete under a compatible admission, then scheduling can resume. For states al
 an earlier controller with `legacy_execution_plan_drift`, a newer revision may clear that drift
 only after every flagged task's retained reservation branch and full prerequisite ancestry are
 proved compatible. An incompatible revision leaves the halt and worker ownership intact. The
-accepted layout, fingerprint, per-task dependencies, and plan history are written in the same
-atomic checkpoint before any new dispatch. Equivalent reordered input resumes the same plan.
-Every status preserves existing reservations, claims, workers, deliveries, and recovery boundaries
-and requires a fully fresh interpreted snapshot.
+accepted layout, fingerprint, changed unstarted-task dependencies, and plan history are written in
+the same atomic checkpoint before any new dispatch. Unchanged active tasks retain their issued
+plan revision and dependency snapshot. Their original admission remains usable for bound result,
+check, and reconciliation calls when plan history proves their execution entry and ancestry
+unchanged; result application rejects a newer admission that the worker never received. Descendant
+repair propagation uses the current persisted effective graph. Equivalent reordered input resumes
+the same plan. Every status preserves reservations, claims, workers, deliveries, and recovery
+boundaries and requires a fully fresh interpreted snapshot.
 
 Every fresh refill carries the complete recovery inventory described above: checkpoint/state
 identities, worker processes/sessions, Git worktrees/refs/dirty state, canonical PRs, contract

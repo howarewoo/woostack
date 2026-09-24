@@ -803,6 +803,9 @@ class OrchestrateBehavior(unittest.TestCase):
             admitted_path, admitted, None, base, "layout-drift-base", cap="1"
         )
         self.assertEqual([entry["task_id"] for entry in initial["dispatch"]], ["task-a"])
+        host = self._start_host(workers=1)
+        host.dispatch(initial["dispatch"])
+        original_result = make_result(self.github, "task-a", host.wait_for_report("task-a"), admitted)
         prior_reservation = json.loads(state.read_text())["tasks"]["task-a"]["reservation"]
         malformed = copy.deepcopy(base)
         malformed.pop("execution_layout")
@@ -828,6 +831,30 @@ class OrchestrateBehavior(unittest.TestCase):
         self.assertEqual(revised_state["execution_plan_history"][-1]["changed_tasks"], ["task-b"])
         self.assertEqual(revised_state["tasks"]["task-b"]["execution_parent"], "task-a")
         self.assertEqual(revised_state["tasks"]["task-a"]["reservation"], prior_reservation)
+        self.assertEqual(revised_state["tasks"]["task-a"]["execution_plan_revision"], 1)
+        self.assertEqual(revised_state["tasks"]["task-a"]["dependency_snapshot"],
+                         next(task for task in admitted["tasks"] if task["task_id"] == "task-a")[
+                             "dependency_snapshot"])
+        _, wrong_plan, code = self._apply(
+            changed_admitted_path, state, "task-a", original_result,
+            "layout-rebound-worker", expect_code=1, observe_ci=False,
+        )
+        self.assertEqual(wrong_plan["error"], "execution-plan-drift")
+        completed_state, completed, _ = self._apply(
+            admitted_path, state, "task-a", original_result, "layout-original-worker"
+        )
+        self.assertEqual(completed["status"], "delivered", completed)
+        self.assertEqual(json.loads(completed_state.read_text())["tasks"]["task-a"][
+            "execution_plan_revision"], 1)
+        self._persist("task-a", original_result, initial["dispatch"][0])
+        current = self.github.snapshot()
+        current["execution_layout"] = copy.deepcopy(changed["execution_layout"])
+        state, continued = self._schedule(
+            changed_admitted_path, changed_admitted, completed_state,
+            current, "layout-replan-after-worker", cap="1"
+        )
+        self.assertEqual(continued["status"], "ok", continued)
+        self.assertIn("task-b", [entry["task_id"] for entry in continued["dispatch"]])
 
         started_change = copy.deepcopy(changed)
         next(item for item in started_change["execution_layout"]["entries"]
