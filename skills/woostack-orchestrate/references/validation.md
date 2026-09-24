@@ -229,6 +229,107 @@ This validator does not edit source, branch, PR, issues, notes, or Project statu
 of the worker and uses a distinct `reviewer_id`. Failed focused checks or failed spec review are
 repair-ready; it does not delete a submitted PR or silently broaden scope.
 
+## PR-check observation and repair
+
+After a task reaches `delivered`, the active run keeps observing its submitted PR's remote checks
+while the host session continues. Observation never fabricates a worker completion and never
+relabels an old worker handle: it is a real external-CI transition on the existing controller that
+consumes host-provided authoritative PR, check/status, required-check, and log evidence with
+revision-scoped identity, while preserving active native-worker identity checks.
+
+The helper's `observe-checks` transition consumes one freshly assembled observation
+for a delivered task ([invocation](../SKILL.md#one-real-helper-path)). All values
+must come from current, complete native reads, not prior worker output:
+
+```json
+{
+  "pr": {"url": "<admitted PR>", "repo": "<canonical repo>", "head_repo": "<canonical repo>",
+         "state": "open", "branch": "<retained branch>", "head_sha": "<current head SHA>",
+         "base_branch": "<retained base>", "base_sha": "<current base SHA>", "test_merge_sha": null},
+  "checks": [{"id": "<native ID>", "name": "<context>", "source": "<app identity>",
+              "type": "check-run", "sha": "<evaluated SHA>", "attempt": 1,
+              "state": "success", "url": "<check URL>"}],
+  "required_checks": {"complete": true, "items": [{"name": "<context>", "source": "<app identity>"}]},
+  "pagination": {"check_runs": true, "commit_statuses": true,
+                 "required_checks": true, "logs": true}
+}
+```
+
+Include `test_merge_sha: null` explicitly when no tested merge SHA is available.
+For a diagnosed failure, add `category`, `actionable`, `diagnosis`, and
+`log: {accessible, complete, excerpt}` to that record. Include commit statuses
+as `type: "commit-status"`; if both types exist for the same required name/source,
+both must pass. `workspace_reopen`, when needed, supplies
+`{released:true, complete:true, state:"released", path, branch, head_sha,
+base_branch, task_id, pr_url, writer_status:"stopped", claim_owner}`.
+
+The host/repository creates any released linked worktree and verifies the exact
+checkout before the worker writes; the helper never creates Git state. Supply
+only sanitized log excerpts in the bounded repair context.
+
+The current attempt for a rerun supersedes earlier attempts for the same
+name/source/type. A normalized completed conclusion counts, not merely lifecycle
+`completed`. `neutral` and `skipped` count as GitHub-successful by default.
+A verified stricter repository policy may set `accepted_conclusions: ["success"]`
+on an individual required-check item; never invent a policy override from a red
+or pending check. Terminal pagination and required-configuration completeness
+require actual terminal reads. Empty required configuration plus no visible
+checks still means checking, never a pass.
+
+Select the tested merge SHA only if GitHub reports applicable statuses there;
+otherwise evaluate the current PR head. Do not combine same-named checks from
+different sources or let obsolete head/attempt results verify or repair current
+work. Re-read authoritative PR/check evidence before dispatch or success.
+
+Each transition and scheduler refill returns `ci_details` by admitted task ID:
+state, PR/head/target revision, reason, next safe action, and current check/log
+links when available. It never treats a submitted PR as verified merely because
+the worker exited, and does not persist raw log excerpts as summary evidence.
+
+Keep local focused verification separate from remote CI. Recognize queued/running, success,
+failure, cancelled/timed-out/action-required, skipped/neutral, missing, and inaccessible outcomes
+by their actual semantics and repository policy. Missing pages, delayed check creation, no visible
+checks, or unavailable required-check configuration are not proof of a pass. Distinguish required
+checks from advisory ones without discarding an actionable in-scope failure merely because it is
+advisory, and without claiming every advisory check is a merge requirement. CI pending and unknown
+do not equal pass; a stale head or attempt cannot repair or verify current work.
+
+For an actionable failure, collect the relevant logs/annotations with enough source/runtime
+evidence to diagnose it; a red status alone is not a diagnosis. Apply the surviving Debug workflow
+when root-cause investigation is needed, then give one fresh Execute worker the original task
+contract, exact PR and failing revision, check evidence, selected worktree/branch/base, and bounded
+repair objective. An ordinary in-scope correction proceeds without reauthorization; material scope
+changes still need a decision. Never make CI green by weakening tests, bypassing required checks,
+fabricating statuses, disabling safeguards, changing secrets/permissions, or marking a draft ready
+just to trigger a workflow. A genuine test/workflow correction is allowed only when supported by
+the original scope and diagnosis. Missing credentials, approval-required jobs, runner outages,
+unrelated existing failures, and broader corrections become explicit blockers or decisions rather
+than speculative source edits. Evidence-backed reruns may use authorized capabilities.
+The controller allows at most two distinct diagnosed repair attempts per task
+and stops repeated identical failures even sooner. Do not blindly retry flaky
+failures or create empty commits to trigger CI indefinitely.
+Reconciliation is fail-closed.
+
+Repairs share existing worker capacity and ownership controls. Coalesce multiple failures on one
+PR/head into one repair task; repeated observations must not launch duplicate workers. One repair
+per task/head applies, and one writable owner per task branch/workspace remains mandatory: resolve
+an active or unknown previous writer before any repair takeover. Independent PRs may be repaired
+concurrently under the shared cap, and unrelated runnable work continues while one task waits on CI
+or a blocker. A repair retains the original branch, PR, and ownership; it never creates a
+replacement PR and never forges an `apply-result`.
+
+A newly observed relevant failure or repair invalidates that task's applicable readiness/evidence
+and pauses affected downstream starts without erasing existing PR/delivery history. When a repaired
+parent branch advances, reassess affected descendants against the actual new parent and task
+contracts: never silently mutate a running child's checkout, reuse old validation for a changed
+diff/base, or patch the same inherited defect independently in every child. Any necessary
+descendant repair or permitted reconciliation gets its own exclusively owned worker task and fresh
+verification under the existing source-control policy. Where safe propagation cannot be
+established, pause the affected work and report the decision required. No automatic integration
+branch, dependency rewriting, force-push, or PR merge. Never modify or reopen a closed/merged PR
+automatically. The controller output distinguishes submitted, checking, repairing, CI-verified,
+blocked, and unverified work.
+
 ## GitHub delivery note and optional Project status
 
 After the independent readback and validation pass, write one concise child delivery note to the
@@ -353,5 +454,5 @@ or missing admitted/git-repo input blocks reconciliation and leaves that task's 
 After a successful reconciliation, assemble a new fully paginated fresh snapshot and invoke
 `schedule` again with the existing state, `--fresh`, and `--git-repo`. The caller holds the same
 externally enforced exclusive scope and canonical task claims across `schedule`, `record-worker`,
-`apply-result`, and `reconcile`; never run a second controller, recreate missing state, or redispatch while worker
+`apply-result`, `observe-checks`, and `reconcile`; never run a second controller, recreate missing state, or redispatch while worker
 ownership is unknown.

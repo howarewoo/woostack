@@ -31,6 +31,12 @@ REPO_RE = re.compile(r"https://github\.com/([\w.-]+)/([\w.-]+)\Z")
 TASK_RE = re.compile(r"[^\x00-\x1f\x7f]+")
 SHA_RE = re.compile(r"(?:[0-9a-f]{40}|[0-9a-f]{64})\Z")
 EDGE_KINDS = ("native", "declared", "inferred")
+DEFAULT_CI_REPAIR_LIMIT = 2
+CI_STATES = ("unverified", "checking", "verified", "blocked", "repair")
+CI_PENDING = ("queued", "waiting", "requested", "pending", "in_progress", "running")
+CI_SUCCESS = ("success", "neutral", "skipped")
+CI_ACTIONABLE = ("failure", "timed_out", "cancelled", "startup_failure")
+CI_NONPASS = ("action_required", "stale", "unknown")
 
 
 def canonical_issue_url(value, canonical):
@@ -1112,6 +1118,7 @@ def new_state(admitted):
         },
         "tasks": {
             t["task_id"]: {
+                "task_id": t["task_id"],
                 "status": "pending",
                 "reservation": None,
                 "claim": None,
@@ -1131,6 +1138,7 @@ def new_state(admitted):
                 "validation": None,
                 "pr": None,
                 "first_uncertain_boundary": None,
+                "ci": _new_ci(),
                 "last_evidence": None,
             } for t in admitted["tasks"]
         },
@@ -1174,6 +1182,19 @@ def state_read(path, admitted):
                     and SHA_RE.fullmatch(reservation["parent_sha"])
                     and Path(reservation["workspace"]).is_absolute(),
                     "invalid-state", "reservation identity incomplete")
+        ci = item.setdefault("ci", _new_ci(item))
+        require(isinstance(ci, dict) and ci.get("state") in CI_STATES
+                and isinstance(ci.get("repair_attempts"), list),
+                "invalid-state", "CI transition state is invalid")
+        require(all(isinstance(attempt, dict)
+                    and text(attempt.get("head_sha")) and SHA_RE.fullmatch(attempt["head_sha"])
+                    and text(attempt.get("target_sha")) and SHA_RE.fullmatch(attempt["target_sha"])
+                    and text(attempt.get("failure_fingerprint"))
+                    for attempt in ci["repair_attempts"]),
+                "invalid-state", "CI repair attempt identities are malformed")
+        if ci.get("state") != "unverified":
+            require(item.get("reservation") is not None, "invalid-state",
+                    "observed CI state requires a task reservation")
         if item.get("first_uncertain_boundary") is not None:
             require(isinstance(item["first_uncertain_boundary"], dict),
                     "invalid-state", "uncertain boundary must be an object")
@@ -1211,6 +1232,391 @@ def field_object(value, fields, name):
     require(all(k in value and value[k] is not None and value[k] != "" for k in fields),
             "unknown-response", name + " evidence incomplete")
     return value
+
+
+def _new_ci(item=None, state="unverified", reason=None):
+    head = None
+    if isinstance(item, dict):
+        head = ((item.get("delivery") or {}).get("head_sha")
+                or (item.get("source") or {}).get("head_sha"))
+    return {"state": state, "reason": reason, "head_sha": head, "target_sha": None,
+            "failure_fingerprint": None, "repair_attempts": [], "invalidates_descendants": False}
+
+
+def _ci_blocked(item, reason, next_action):
+    ci = item.setdefault("ci", _new_ci(item))
+    ci.update(state="blocked", reason=reason, next_action=next_action)
+    ci.pop("links", None)
+    return ci
+
+
+def _invalidate_descendants(admitted, state, task_id, reason):
+    parent = state["tasks"][task_id]
+    parent.setdefault("ci", _new_ci(parent))["invalidates_descendants"] = True
+    tasks = {task["task_id"]: task for task in admitted["tasks"]}
+    affected, frontier = set(), [task_id]
+    while frontier:
+        predecessor = frontier.pop()
+        for child in tasks.values():
+            if predecessor in child.get("prerequisites", []) and child["task_id"] not in affected:
+                affected.add(child["task_id"])
+                frontier.append(child["task_id"])
+    for child_id in affected:
+        child = state["tasks"][child_id]
+        if child["status"] != "pending":
+            child.setdefault("ci", _new_ci(child))["reconcile_required"] = {
+                "parent_task_id": task_id, "reason": reason,
+                "parent_head_sha": parent.get("delivery", {}).get("head_sha"),
+            }
+
+
+def _clear_descendant_reconciliation(admitted, state, task_id):
+    for task in admitted["tasks"]:
+        item = state["tasks"][task["task_id"]]
+        ci = item.get("ci")
+        if not isinstance(ci, dict) or not isinstance(ci.get("reconcile_required"), dict):
+            continue
+        if (item["status"] == "pending"
+                and ci["reconcile_required"].get("parent_task_id") == task_id):
+            ci.pop("reconcile_required")
+    parent_ci = state["tasks"][task_id].setdefault("ci", _new_ci())
+    parent_ci["invalidates_descendants"] = False
+    parent_ci.pop("reconcile_required", None)
+
+
+def _latest_checks(records, target_sha):
+    latest = {}
+    for record in records:
+        if record["sha"] != target_sha:
+            continue
+        key = (record["name"], record["source"], record["type"])
+        previous = latest.get(key)
+        if previous is None or record["attempt"] > previous["attempt"]:
+            latest[key] = record
+        elif record["attempt"] == previous["attempt"] and record != previous:
+            raise InputError("ambiguous-check-attempt",
+                             "same-name/source/type records conflict at one attempt")
+    return list(latest.values())
+
+
+def _check_failure_reason(record):
+    if record["category"] in ("infrastructure", "approval", "unrelated"):
+        return "ci-" + record["category"] + "-blocker"
+    if record["category"] != "actionable" or record.get("actionable") is not True:
+        return "ci-failure-unactionable"
+    log = record.get("log")
+    if not isinstance(log, dict) or log.get("accessible") is not True \
+            or log.get("complete") is not True or not text(log.get("excerpt")):
+        return "ci-log-inaccessible"
+    if not text(record.get("diagnosis")):
+        return "ci-diagnosis-incomplete"
+    return None
+
+
+def _classify_checks(observation, item, state):
+    """Classify one complete, host-assembled observation without making network calls."""
+    pr = observation.get("pr")
+    require(isinstance(pr, dict), "ci-pr-incomplete", "canonical PR evidence missing")
+    field_object(pr, ("url", "repo", "head_repo", "state", "branch", "head_sha",
+                      "base_branch", "base_sha"), "CI PR")
+    pagination = observation.get("pagination")
+    require(isinstance(pagination, dict), "ci-evidence-incomplete", "CI pagination evidence missing")
+    if not all(pagination.get(name) is True for name in
+               ("check_runs", "commit_statuses", "required_checks", "logs")):
+        raise InputError("ci-evidence-incomplete", "CI evidence did not reach terminal pagination")
+    required = observation.get("required_checks")
+    require(isinstance(required, dict) and type(required.get("complete")) is bool
+            and isinstance(required.get("items"), list), "required-check-config-incomplete",
+            "required check configuration is incomplete")
+    if required["complete"] is not True:
+        raise InputError("required-check-config-inaccessible", "required check configuration is inaccessible")
+    required_items = required["items"]
+    require(all(isinstance(entry, dict) and text(entry.get("name")) and text(entry.get("source"))
+                for entry in required_items), "required-check-config-incomplete",
+            "required check identity is incomplete")
+    required_keys = {(entry["name"], entry["source"]) for entry in required_items}
+    require(len(required_keys) == len(required_items), "ambiguous-check-identity",
+            "required check configuration contains duplicate identities")
+    required_policy = {}
+    for entry in required_items:
+        allowed = entry.get("accepted_conclusions", list(CI_SUCCESS))
+        require(isinstance(allowed, list) and "success" in allowed
+                and all(value in CI_SUCCESS for value in allowed),
+                "required-check-config-incomplete", "required check conclusions need verified policy")
+        required_policy[(entry["name"], entry["source"])] = set(allowed)
+    records = observation.get("checks")
+    require(isinstance(records, list), "ci-evidence-incomplete", "complete check/status records required")
+    normalized = []
+    states = set(CI_PENDING + CI_SUCCESS + CI_ACTIONABLE + CI_NONPASS)
+    for raw in records:
+        require(isinstance(raw, dict), "ci-evidence-incomplete", "check/status record malformed")
+        field_object(raw, ("id", "name", "source", "type", "sha", "attempt", "state", "url"),
+                     "check/status")
+        require(raw["type"] in ("check-run", "commit-status") and raw["state"] in states
+                and SHA_RE.fullmatch(raw["sha"])
+                and type(raw["attempt"]) is int and raw["attempt"] > 0,
+                "ci-evidence-incomplete", "check/status identity or outcome malformed")
+        record = copy.deepcopy(raw)
+        if record["state"] in CI_ACTIONABLE:
+            require(text(record.get("category")) and type(record.get("actionable")) is bool,
+                    "ci-classification-incomplete", "failed check needs an explicit classification")
+        normalized.append(record)
+    test_merge = pr.get("test_merge_sha")
+    require("test_merge_sha" in pr and (test_merge is None or SHA_RE.fullmatch(test_merge)),
+            "ci-target-incomplete", "test-merge target must be a full SHA or null")
+    target_sha = pr["head_sha"]
+    if test_merge and any(record["type"] == "commit-status" and record["sha"] == test_merge
+                           for record in normalized):
+        target_sha = test_merge
+    current = _latest_checks(normalized, target_sha)
+    current_by_key = {(record["name"], record["source"], record["type"]): record
+                      for record in current}
+    links = [{"name": record["name"], "source": record["source"],
+              "type": record["type"], "state": record["state"], "url": record["url"],
+              "log_url": (record["log"].get("url") if isinstance(record.get("log"), dict)
+                          else None)} for record in current]
+    missing = []
+    required_nonpass = []
+    for name, source in required_keys:
+        pair = [record for kind in ("check-run", "commit-status")
+                if (record := current_by_key.get((name, source, kind))) is not None]
+        if not pair:
+            missing.append({"name": name, "source": source})
+        elif any(record["state"] in CI_PENDING for record in pair):
+            continue
+        elif any(record["state"] in CI_ACTIONABLE for record in pair):
+            continue
+        elif any(record["state"] not in required_policy[(name, source)] for record in pair):
+            required_nonpass.append({"name": name, "source": source})
+    failures = []
+    for record in current:
+        if record["state"] not in CI_ACTIONABLE:
+            continue
+        reason = _check_failure_reason(record)
+        if reason is not None:
+            raise InputError(reason, "current failed check is not eligible for automatic repair")
+        failures.append(record)
+    if required_nonpass:
+        raise InputError("required-check-not-passing", "required check conclusions violate repository policy")
+    if failures:
+        fingerprint = digest(sorted(
+            ({key: record.get(key) for key in
+              ("name", "source", "type", "state", "category", "diagnosis")}
+             for record in failures),
+            key=lambda record: (record["name"], record["source"], record["type"],
+                                record["state"], record["category"], record["diagnosis"]),
+        ))
+        ci = item.setdefault("ci", _new_ci(item))
+        if any(attempt.get("failure_fingerprint") == fingerprint
+               for attempt in ci.get("repair_attempts", [])):
+            raise InputError("repeated-identical-failure",
+                             "the same diagnosed failure already received a bounded repair")
+        if len(ci.get("repair_attempts", [])) >= DEFAULT_CI_REPAIR_LIMIT:
+            raise InputError("repair-retry-exhausted", "finite CI repair retry policy is exhausted")
+        ci.update(state="repair", reason="ci-failure", head_sha=pr["head_sha"],
+                  target_sha=target_sha, failure_fingerprint=fingerprint,
+                  next_action="dispatch one bounded Execute repair for the retained PR")
+        ci["links"] = links
+        ci["repair_context"] = {
+            "kind": "remote-ci", "pr_url": pr["url"], "branch": pr["branch"],
+            "head_sha": pr["head_sha"], "target_sha": target_sha,
+            "base_branch": pr["base_branch"], "base_sha": pr["base_sha"],
+            "objective": "Make the smallest evidence-backed in-scope correction and update the retained PR.",
+            "failures": copy.deepcopy(failures),
+        }
+        return ci
+    if missing or not current or any(record["state"] in CI_PENDING for record in current):
+        ci = item.setdefault("ci", _new_ci(item))
+        ci.update(state="checking", reason="ci-pending-or-missing", head_sha=pr["head_sha"],
+                  target_sha=target_sha, failure_fingerprint=None,
+                  next_action="observe the current revision again without dispatching a repair")
+        ci["links"] = links
+        return ci
+    if item["status"] != "delivered" or not isinstance(item.get("delivery"), dict):
+        _ci_blocked(item, "delivery-validation-incomplete",
+                    "complete delivery evidence before accepting remote CI success")
+        return item["ci"]
+    if item["delivery"]["head_sha"] != pr["head_sha"] \
+            or item["delivery"].get("base_branch") != pr["base_branch"]:
+        _ci_blocked(item, "delivery-revision-mismatch",
+                    "independently revalidate delivery at the observed PR revision")
+        return item["ci"]
+    ci = item.setdefault("ci", _new_ci(item))
+    ci.update(state="verified", reason="current-required-checks-passed", head_sha=pr["head_sha"],
+              target_sha=target_sha, failure_fingerprint=None,
+              next_action="continue observing while the active Orchestrate run remains open")
+    ci["links"] = links
+    return ci
+
+
+
+def _observed_ci(admitted, state, item, observation, repo=None):
+    task = next(task for task in admitted["tasks"] if task["task_id"] ==
+                next(tid for tid, value in state["tasks"].items() if value is item))
+    try:
+        pr = observation.get("pr") if isinstance(observation, dict) else None
+        require(isinstance(pr, dict), "ci-pr-incomplete", "canonical PR evidence missing")
+        match = PR_RE.fullmatch(pr.get("url") or "")
+        require(match and "https://github.com/" + "/".join(match.groups()[:2]) == admitted["canonical_repo"]
+                and SHA_RE.fullmatch(pr.get("head_sha") or "") is not None
+                and SHA_RE.fullmatch(pr.get("base_sha") or "") is not None,
+                "ci-pr-identity-mismatch", "observation does not identify the retained canonical PR revision")
+        require(pr.get("url") == item.get("verified_pr")
+                and pr.get("repo") == pr.get("head_repo") == admitted["canonical_repo"]
+                and pr.get("state") in ("open", "closed", "merged"),
+                "ci-pr-identity-mismatch", "observation does not identify the retained canonical PR")
+        require(item.get("delivery") and item.get("reservation"),
+                "ci-delivery-unavailable", "independently verified delivery is required before monitoring")
+        delivery, reservation = item["delivery"], item["reservation"]
+        require(pr.get("branch") == delivery["branch"] == reservation["branch"]
+                and pr.get("base_branch") == delivery["base_branch"] == reservation["parent_branch"],
+                "external-head-change", "PR branch/base must match the independently verified delivery")
+        if pr.get("head_sha") != delivery["head_sha"]:
+            if (repo is not None and branch_tip(repo, delivery["branch"]) == delivery["head_sha"]
+                    and any(attempt.get("head_sha") == pr["head_sha"]
+                            for attempt in item.get("ci", {}).get("repair_attempts", []))):
+                return item.setdefault("ci", _new_ci(item))
+            raise InputError("external-head-change", "PR head changed outside the verified delivery")
+        if repo is not None:
+            require(branch_tip(repo, delivery["branch"]) == pr["head_sha"]
+                    and branch_tip(repo, delivery["base_branch"]) == pr["base_sha"],
+                    "ci-pr-revision-stale", "PR head/base no longer match current local branch tips")
+        if pr["state"] != "open":
+            raise InputError("pr-not-open", "closed or merged PRs are never reopened or modified automatically")
+        if item.get("ci", {}).get("reconcile_required"):
+            _ci_blocked(item, "parent-revision-changed",
+                        "reconcile this descendant against the advanced parent in its own exclusive task")
+            return item["ci"]
+        _classify_checks(observation, item, state)
+    except (InputError, KeyError, TypeError, ValueError) as error:
+        reason = _safe_reason(error, "ci-evidence-incomplete")
+        if reason in ("external-head-change", "ci-pr-revision-stale", "delivery-revision-mismatch"):
+            next_action = "reconcile current PR/branch/base ownership before any repair"
+        elif reason == "pr-not-open":
+            next_action = "verify closed/merged PR state; do not reopen automatically"
+        else:
+            next_action = "refresh authoritative PR/check/status/log evidence before any repair"
+        _ci_blocked(item, reason, next_action)
+        if (reason in ("required-check-not-passing", "external-head-change", "pr-not-open",
+                       "delivery-revision-mismatch") or reason.startswith("ci-")):
+            _invalidate_descendants(admitted, state, task["task_id"], reason)
+    else:
+        if item["ci"]["state"] in ("repair", "blocked"):
+            _invalidate_descendants(admitted, state, task["task_id"], item["ci"]["reason"])
+        elif item["ci"]["state"] == "verified":
+            _clear_descendant_reconciliation(admitted, state, task["task_id"])
+    workspace_reopen = observation.get("workspace_reopen") if isinstance(observation, dict) else None
+    if isinstance(workspace_reopen, dict):
+        item.setdefault("ci", _new_ci(item))["workspace_reopen"] = copy.deepcopy(workspace_reopen)
+    return item["ci"]
+
+
+def cmd_observe_checks(args):
+    admitted = load_json(args.admitted)
+    repository(args.git_repo, admitted["canonical_repo"])
+    state = state_read(args.state, admitted)
+    require(args.task in state["tasks"], "unknown-task", "task outside admitted scope")
+    item = state["tasks"][args.task]
+    require(item["status"] == "delivered" and isinstance(item.get("delivery"), dict),
+            "not-delivered", "monitoring requires independently verified delivery")
+    task = next(task for task in admitted["tasks"] if task["task_id"] == args.task)
+    claim_scope(args.git_repo, admitted, state)
+    claim_task(args.git_repo, admitted, task, state, item)
+    observation = load_json(args.observation)
+    _observed_ci(admitted, state, item, observation, args.git_repo)
+    write_state(args, state)
+    ci = item["ci"]
+    return {"status": "ci-observed", "task_id": args.task, "ci_state": ci["state"],
+            "reason": ci.get("reason"), "next_action": ci.get("next_action"),
+            "repair_context": copy.deepcopy(ci.get("repair_context")) if ci["state"] == "repair" else None,
+            **_state_summary(state, blocked=[{"task_id": args.task, "reason": ci.get("reason"),
+                                               "next_action": ci.get("next_action")}]
+                             if ci["state"] == "blocked" else [])}
+
+
+def _repair_attempt(item):
+    ci = item.get("ci", {})
+    if ci.get("state") != "repair":
+        return
+    attempts = ci.setdefault("repair_attempts", [])
+    attempts.append({"head_sha": ci["head_sha"], "target_sha": ci.get("target_sha"),
+                     "failure_fingerprint": ci.get("failure_fingerprint")})
+
+
+def _revalidate_repair_pr(repo, item, result):
+    delivery = item["delivery"]
+    worker = result.get("worker") if isinstance(result, dict) else None
+    readback = result.get("readback") if isinstance(result, dict) else None
+    require(isinstance(worker, dict) and isinstance(readback, dict),
+            "delivery-evidence-pending", "fresh repair delivery evidence is incomplete")
+    for evidence in (worker, readback):
+        require(evidence.get("pr_url") == item.get("verified_pr")
+                and evidence.get("branch") == delivery["branch"]
+                and evidence.get("head_sha") == delivery["head_sha"]
+                and evidence.get("base_branch") == delivery["base_branch"],
+                "delivery-revision-mismatch", "fresh repair PR identity differs from the retained delivery")
+    require(readback.get("open") is True and branch_tip(repo, delivery["branch"]) == delivery["head_sha"],
+            "delivery-revision-mismatch", "fresh repair PR is not open at the retained branch head")
+
+def _reopen_repair_workspace(repo, admitted, state, item):
+    reservation = item["reservation"]
+    workspace = Path(reservation["workspace"])
+    if workspace.exists():
+        identity = workspace_identity(repo, admitted["canonical_repo"], workspace, reservation["branch"])
+        require(not git(workspace, "status", "--porcelain=v2", "--untracked-files=all").decode(),
+                "workspace-dirty", "repair requires the retained worktree to be clean")
+        return identity
+    ci = item.get("ci", {})
+    proof = ci.get("workspace_reopen")
+    release = proof.get("release") if isinstance(proof, dict) and isinstance(proof.get("release"), dict) else proof
+    task_id = item.get("task_id") or next((tid for tid, value in state["tasks"].items() if value is item), None)
+    claim = item.get("claim") or {}
+    require(isinstance(proof, dict) and proof.get("released") is True
+            and proof.get("path") == str(workspace)
+            and proof.get("branch") == reservation["branch"]
+            and proof.get("base_branch") == item.get("delivery", {}).get("base_branch")
+            and proof.get("head_sha") == item.get("delivery", {}).get("head_sha"),
+            "workspace-release-unverified", "released repair worktree needs revision-bound release proof")
+    require(isinstance(release, dict) and release.get("complete") is True
+            and release.get("task_id") == task_id
+            and release.get("path") == str(workspace)
+            and release.get("branch") == reservation["branch"]
+            and release.get("head_sha") == item.get("delivery", {}).get("head_sha")
+            and release.get("pr_url") == item.get("verified_pr")
+            and release.get("writer_status") == "stopped"
+            and release.get("claim_owner") == claim.get("owner"),
+            "workspace-release-unverified", "host evidence does not prove writer release and task ownership")
+    require(branch_tip(repo, reservation["branch"]) == proof["head_sha"]
+            and contains(repo, reservation["parent_sha"], proof["head_sha"]),
+            "branch-revision-drift", "released branch no longer matches the diagnosed PR revision")
+    inventory = worktree_inventory(repo)
+    require(not any(Path(entry["worktree"]).resolve() == workspace.resolve()
+                    or entry.get("branch") == "refs/heads/" + reservation["branch"]
+                    for entry in inventory),
+            "workspace-release-unverified", "released worktree is still registered or its branch is checked out")
+    return {"workspace": str(workspace), "branch": reservation["branch"],
+            "head_sha": proof["head_sha"]}
+
+
+def _ci_dependency_blocked(item):
+    ci = item.get("ci", {})
+    return ci.get("state") in ("unverified", "checking", "repair", "blocked") or ci.get("invalidates_descendants") is True
+
+
+def _reset_ci_after_delivery(admitted, state, item, head_sha):
+    previous = item.get("ci", {}) if isinstance(item.get("ci"), dict) else {}
+    reconcile = copy.deepcopy(previous.get("reconcile_required"))
+    attempts = copy.deepcopy(previous.get("repair_attempts", []))
+    item["ci"] = _new_ci(item, "checking", "awaiting-current-remote-ci")
+    item["ci"]["head_sha"] = head_sha
+    item["ci"]["repair_attempts"] = attempts
+    if reconcile is not None:
+        item["ci"]["reconcile_required"] = reconcile
+        _ci_blocked(item, "parent-revision-changed",
+                    "reconcile this descendant against the advanced parent in its own exclusive task")
+        _invalidate_descendants(admitted, state,
+                                next(tid for tid, value in state["tasks"].items() if value is item),
+                                "parent-revision-changed")
 
 
 def review_readback(value, head, label):
@@ -1372,7 +1778,7 @@ def validate_delivery(admitted, task, reservation, result, repo):
                 "project-status-mismatch", "verified Project inReview readback required")
     return {"status": "delivered", "delivery": delivery}
 
-def packet(admitted, task, reservation, repair, retained, readiness, scope_evidence=None):
+def packet(admitted, task, reservation, repair, retained, readiness, scope_evidence=None, repair_context=None):
     specification = task["specification"]
     result = {
         "task_id": task["task_id"], "ordinal": task["ordinal"], "child_issue_url": task["url"],
@@ -1384,6 +1790,7 @@ def packet(admitted, task, reservation, repair, retained, readiness, scope_evide
         "graph": copy.deepcopy(admitted["graph"]),
         "checks": task["contract"]["checks"], "contract_hash": task["contract_hash"],
         "scope_evidence": copy.deepcopy(scope_evidence),
+        "repair_evidence": copy.deepcopy(repair_context),
         "execute_skill": "woostack-execute", "repair": repair, "retained_pr": retained,
         **reservation,
     }
@@ -1432,6 +1839,23 @@ def _state_summary(state, blocked=None, waiting=None, paused=None, unknown_detai
         "evidence_pending": sorted(tid for tid, item in tasks.items() if item["status"] == "evidence-pending"),
         "repair_ready": sorted(tid for tid, item in tasks.items() if item["status"] == "repair-ready"),
         "pending": sorted(tid for tid, item in tasks.items() if item["status"] == "pending"),
+        "checking": sorted(tid for tid, item in tasks.items()
+                           if item.get("ci", {}).get("state") == "checking"),
+        "verified": sorted(tid for tid, item in tasks.items()
+                           if item.get("ci", {}).get("state") == "verified"),
+        "ci_blocked": sorted(tid for tid, item in tasks.items()
+                             if item.get("ci", {}).get("state") == "blocked"),
+        "repair": sorted(tid for tid, item in tasks.items()
+                         if item.get("ci", {}).get("state") == "repair"),
+        "ci_details": {
+            tid: {"state": item["ci"]["state"], "pr_url": item.get("verified_pr"),
+                  "head_sha": item["ci"].get("head_sha"), "target_sha": item["ci"].get("target_sha"),
+                  "reason": item["ci"].get("reason"), "next_action": item["ci"].get("next_action"),
+                  "links": copy.deepcopy(item["ci"].get("links", []))}
+            for tid, item in sorted(tasks.items()) if item.get("ci", {}).get("state") != "unverified"
+        },
+        "reconciliation_required": sorted(tid for tid, item in tasks.items()
+                                          if item.get("ci", {}).get("reconcile_required")),
         "blocked": blocked,
         "waiting": waiting,
         "paused": paused,
@@ -1552,6 +1976,8 @@ def cmd_schedule(args):
         task = fresh_tasks[tid]
         item = state["tasks"][tid]
         retained = task.get("existing_delivery")
+        if item["status"] == "delivered" and item.get("ci", {}).get("state") == "blocked":
+            continue
         if not (item["status"] == "delivered" or (item["status"] == "pending" and retained is not None)):
             continue
         if item["status"] == "pending":
@@ -1592,19 +2018,27 @@ def cmd_schedule(args):
                     "reservation-mismatch", "retained workspace must be absolute")
             require(text(reservation.get("branch")), "reservation-mismatch",
                     "retained branch is missing")
+            if item.get("ci", {}).get("state") == "repair" and not Path(reservation["workspace"]).exists():
+                _revalidate_repair_pr(args.git_repo, item, retained["result"])
+                proof = {"status": "delivered", "delivery": copy.deepcopy(item["delivery"])}
+            else:
+                proof = validate_delivery(admitted, task, reservation, retained["result"], args.git_repo)
             claim_task(args.git_repo, admitted, task, state, item)
             decision = decisions.get(tid) or item.get("parent_decision")
             parent_readiness(fresh, task, state, reservation, decision, args.git_repo, retained=True)
-            proof = validate_delivery(admitted, task, reservation, retained["result"], args.git_repo)
             require(proof["status"] in ("delivered", "note-pending"),
                     "delivery-invalidated", "retained delivery no longer verified")
             require(not any(tid != task["task_id"] and other.get("verified_pr") == proof["delivery"]["pr_url"]
                             for tid, other in state["tasks"].items()),
                     "duplicate-pr", "retained deliveries claim the same PR")
             _remember_result(item, retained["result"])
+            prior_head = (item.get("delivery") or {}).get("head_sha")
             item.update(status=proof["status"], reservation=reservation,
                         delivery=proof["delivery"], verified_pr=proof["delivery"]["pr_url"],
                         parent_decision=copy.deepcopy(decision))
+            if proof["status"] == "delivered" and prior_head != proof["delivery"]["head_sha"]:
+                _invalidate_descendants(admitted, state, tid, "parent-revision-changed")
+                _reset_ci_after_delivery(admitted, state, item, proof["delivery"]["head_sha"])
         except (InputError, KeyError, TypeError) as error:
             reason = _safe_reason(error, "invalid-retained-delivery")
             if reason == "ownership-conflict":
@@ -1641,7 +2075,17 @@ def cmd_schedule(args):
             blocked.append({"task_id": tid, "reason": item.get("failure_reason", "delivery-evidence-pending"),
                             "next_action": "assemble and apply independent full delivery evidence; do not dispatch another worker"})
             continue
-        if item["status"] not in ("pending", "repair-ready"):
+        if item.get("ci", {}).get("state") == "blocked" \
+                and item["status"] not in ("running", "unknown"):
+            blocked.append({"task_id": tid, "reason": item["ci"].get("reason", "ci-blocked"),
+                            "next_action": item["ci"].get("next_action")})
+            continue
+        ci_repair = item.get("ci", {}).get("state") == "repair"
+        if item["status"] not in ("pending", "repair-ready") and not ci_repair:
+            continue
+        if item.get("ci", {}).get("reconcile_required"):
+            blocked.append({"task_id": tid, "reason": "parent-revision-changed",
+                            "next_action": "reconcile in an exclusive descendant task; do not mutate its checkout"})
             continue
         if task["external_prerequisites"]:
             blocked.append({"task_id": tid, "reason": "external-prerequisite"})
@@ -1654,13 +2098,16 @@ def cmd_schedule(args):
                 else "prerequisites-unmet",
             })
             continue
-        repair = item["status"] == "repair-ready"
+        if any(_ci_dependency_blocked(state["tasks"][p]) for p in task["prerequisites"]):
+            waiting.append({"task_id": tid, "reason": "prerequisite-ci-unverified"})
+            continue
+        repair = item["status"] == "repair-ready" or ci_repair
+        reservation = copy.deepcopy(item.get("reservation"))
         if repair:
-            reservation = item["reservation"]
             try:
-                identity = workspace_identity(args.git_repo, admitted["canonical_repo"],
-                                              reservation["workspace"], reservation["branch"])
-                require(contains(reservation["workspace"], reservation["parent_sha"], identity["head_sha"]),
+                require(isinstance(reservation, dict), "workspace-conflict", "repair has no retained reservation")
+                identity = _reopen_repair_workspace(args.git_repo, admitted, state, item)
+                require(contains(args.git_repo, reservation["parent_sha"], identity["head_sha"]),
                         "wrong-ancestry", "repair workspace no longer contains admitted start")
             except InputError as error:
                 blocked.append({"task_id": tid, "reason": getattr(error, "code", "workspace-conflict")})
@@ -1726,14 +2173,20 @@ def cmd_schedule(args):
         except InputError as error:
             paused.append({"task_id": tid, "reason": error.code})
             continue
+        if item.get("ci", {}).get("state") == "repair":
+            _repair_attempt(item)
+        repair_evidence = copy.deepcopy(item.get("ci", {}).get("repair_context")) if repair else None
+        if repair and isinstance(repair_evidence, dict) and item.get("ci", {}).get("workspace_reopen"):
+            repair_evidence["workspace_reopen"] = copy.deepcopy(item["ci"]["workspace_reopen"])
         item.update(status="running", reservation=reservation, parent_decision=copy.deepcopy(decision),
                     host_worker=None,
                     first_uncertain_boundary=None,
                     last_evidence={"parent_readiness": copy.deepcopy(readiness)})
         dispatch.append({"task_id": tid, "ordinal": task["ordinal"], "child_url": task["url"],
                          "repair": repair, "retained_pr": retained_pr, **reservation,
+                         "workspace_reopen": copy.deepcopy(item.get("ci", {}).get("workspace_reopen")) if repair else None,
                          "packet": packet(admitted, task, reservation, repair, retained_pr,
-                                          readiness, fresh.get("scope_evidence"))})
+                                          readiness, fresh.get("scope_evidence"), repair_evidence)})
         occupied.append(tid)
         slots -= 1
     write_state(args, state)
@@ -1802,6 +2255,7 @@ def cmd_apply_result(args):
         retained_pr = item.get("verified_pr")
         if retained_pr:
             require(retained_pr == pr_url, "pr-replaced", "repair must preserve existing PR")
+        prior_head = (item.get("delivery") or {}).get("head_sha")
         _remember_result(item, result)
         item["verified_pr"] = pr_url
         item["status"] = proof["status"]
@@ -1810,6 +2264,9 @@ def cmd_apply_result(args):
             item["delivery"] = proof["delivery"]
         if proof["status"] == "delivered":
             item["first_uncertain_boundary"] = None
+            _reset_ci_after_delivery(admitted, state, item, proof["delivery"]["head_sha"])
+            if prior_head and prior_head != proof["delivery"]["head_sha"]:
+                _invalidate_descendants(admitted, state, args.task, "parent-revision-changed")
         outcome = {"task_id": args.task, **proof}
     except (InputError, KeyError, TypeError, ValueError) as error:
         outcome = halt(state, item, getattr(error, "code", "unknown-response"),
@@ -1979,6 +2436,14 @@ def parser():
     reconcile.add_argument("--evidence", required=True)
     reconcile.add_argument("--inventory", required=True)
     reconcile.set_defaults(run=cmd_reconcile)
+    observe = commands.add_parser("observe-checks")
+    observe.add_argument("--admitted", required=True)
+    observe.add_argument("--state", required=True)
+    observe.add_argument("--state-out", required=True)
+    observe.add_argument("--git-repo", required=True)
+    observe.add_argument("--task", required=True)
+    observe.add_argument("--observation", required=True)
+    observe.set_defaults(run=cmd_observe_checks)
     stop = commands.add_parser("stop")
     stop.add_argument("--admitted", required=True)
     stop.add_argument("--state", required=True)

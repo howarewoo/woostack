@@ -214,6 +214,7 @@ class OrchestrateBehavior(unittest.TestCase):
         name: str,
         *,
         expect_code: Optional[int] = 0,
+        observe_ci: bool = True,
     ) -> Tuple[Path, Dict[str, Any], int]:
         result_path = self._write_json(name + "-result.json", result)
         state_out = self.tmp / (name + "-state.json")
@@ -233,6 +234,35 @@ class OrchestrateBehavior(unittest.TestCase):
             str(result_path),
         )
         if expect_code is not None:
+            self.assertEqual(code, expect_code, payload)
+        if observe_ci and code == 0 and payload.get("status") == "delivered":
+            state_out, _, _ = self._observe(
+                admitted_path, state_out, task_id, self.github.ci_observation(task_id), name + "-green"
+            )
+        return state_out, payload, code
+
+    def _observe(
+        self,
+        admitted_path: Path,
+        state: Path,
+        task_id: str,
+        observation: Dict[str, Any],
+        name: str,
+        *,
+        expect_code: int = 0,
+    ) -> Tuple[Path, Dict[str, Any], int]:
+        observation_path = self._write_json(name + "-ci.json", observation)
+        state_out = self.tmp / (name + "-state.json")
+        code, payload = invoke_cli(
+            "observe-checks",
+            "--admitted", str(admitted_path),
+            "--state", str(state),
+            "--state-out", str(state_out),
+            "--git-repo", str(self.repo),
+            "--task", task_id,
+            "--observation", str(observation_path),
+        )
+        if code != expect_code:
             self.assertEqual(code, expect_code, payload)
         return state_out, payload, code
     def _stop(
@@ -2207,6 +2237,482 @@ class OrchestrateBehavior(unittest.TestCase):
             host.wait_for_report("task-a")
         self.assertFalse(Path(entry["workspace"]).exists())
         self.assertEqual(self.github.prs, {})
+
+    def test_ci_observation_is_revision_scoped_and_fail_closed(self) -> None:
+        snapshot = self._single_task_snapshot()
+        admitted_path, admitted = self._admit_issue(snapshot)
+        state, initial = self._schedule(admitted_path, admitted, None, snapshot, "ci-initial")
+        host = self._start_host(workers=1)
+        host.dispatch(initial["dispatch"])
+        report = host.wait_for_report("task-a")
+        result = make_result(self.github, "task-a", report, admitted)
+        state, applied, _ = self._apply(admitted_path, state, "task-a", result, "ci-delivery", observe_ci=False)
+        self.assertEqual(applied["status"], "delivered", applied)
+        self._persist("task-a", result, initial["dispatch"][0])
+
+        malformed = json.loads(state.read_text())
+        malformed["tasks"]["task-a"]["ci"]["repair_attempts"] = [{"head_sha": 7}]
+        malformed_state = self._write_json("ci-malformed-state.json", malformed)
+        malformed_state.chmod(0o600)
+        observation_path = self._write_json(
+            "ci-malformed-observation.json", self.github.ci_observation("task-a")
+        )
+        code, rejected = invoke_cli(
+            "observe-checks", "--admitted", str(admitted_path), "--state", str(malformed_state),
+            "--state-out", str(self.tmp / "ci-malformed-output.json"),
+            "--git-repo", str(self.repo), "--task", "task-a", "--observation", str(observation_path),
+        )
+        self.assertEqual(code, 1, rejected)
+        self.assertEqual(rejected["error"], "invalid-state", rejected)
+
+        state, checking, _ = self._observe(
+            admitted_path, state, "task-a", self.github.ci_observation("task-a", check_state="queued"),
+            "ci-queued",
+        )
+        missing = self.github.ci_observation("task-a")
+        missing["checks"] = []
+        state, checking, _ = self._observe(admitted_path, state, "task-a", missing, "ci-missing")
+        self.assertEqual(checking["ci_state"], "checking", checking)
+        self.assertEqual(checking["ci_details"]["task-a"]["links"], [], checking)
+        neutral = self.github.ci_observation("task-a", check_state="neutral")
+        state, neutral_result, _ = self._observe(admitted_path, state, "task-a", neutral, "ci-neutral")
+        self.assertEqual(neutral_result["ci_state"], "verified", neutral_result)
+        self.assertEqual(checking["checking"], ["task-a"], checking)
+        self.assertEqual(checking["repair"], [], checking)
+
+        strict = copy.deepcopy(neutral)
+        strict["required_checks"]["items"][0]["accepted_conclusions"] = ["success"]
+        state, strict_result, _ = self._observe(admitted_path, state, "task-a", strict, "ci-strict-policy")
+        self.assertEqual(strict_result["reason"], "required-check-not-passing", strict_result)
+
+        skipped = self.github.ci_observation("task-a", check_state="skipped")
+        state, skipped_result, _ = self._observe(admitted_path, state, "task-a", skipped, "ci-skipped")
+        self.assertEqual(skipped_result["ci_state"], "verified", skipped_result)
+
+        old_failure = self.github.ci_observation(
+            "task-a", check_state="failure", diagnosis="An older attempt failed."
+        )
+        rerun = self.github.ci_observation("task-a", check_state="queued")
+        for record in rerun["checks"]:
+            record["attempt"] = 2
+        stale = copy.deepcopy(old_failure["checks"][0])
+        stale.update(sha="f" * 40, attempt=1)
+        rerun["checks"].append(stale)
+        state, checking, _ = self._observe(admitted_path, state, "task-a", rerun, "ci-rerun")
+        self.assertEqual(checking["ci_state"], "checking", checking)
+
+
+        infrastructure = self.github.ci_observation(
+            "task-a", check_state="failure", category="infrastructure"
+        )
+        state, blocked, _ = self._observe(
+            admitted_path, state, "task-a", infrastructure, "ci-infrastructure"
+        )
+        self.assertEqual(blocked["ci_state"], "blocked", blocked)
+        self.assertEqual(blocked["ci_blocked"], ["task-a"], blocked)
+        self.assertEqual(blocked["reason"], "ci-infrastructure-blocker", blocked)
+
+        mergeable = self.github.ci_observation("task-a", test_merge=True)
+        state, verified, _ = self._observe(admitted_path, state, "task-a", mergeable, "ci-mergeable")
+        self.assertEqual(verified["ci_state"], "verified", verified)
+        self.assertEqual(verified["verified"], ["task-a"], verified)
+
+        fallback = self.github.ci_observation("task-a", include_status=False)
+        fallback["pr"]["test_merge_sha"] = "a" * 40
+        state, fallback_result, _ = self._observe(admitted_path, state, "task-a", fallback, "ci-head-fallback")
+        self.assertEqual(fallback_result["ci_state"], "verified", fallback_result)
+        self.assertEqual(fallback_result["ci_details"]["task-a"]["target_sha"], result["worker"]["head_sha"])
+
+        checks_only = self.github.ci_observation("task-a", include_status=False)
+        state, checks_only_result, _ = self._observe(admitted_path, state, "task-a", checks_only, "ci-check-only")
+        self.assertEqual(checks_only_result["ci_state"], "verified", checks_only_result)
+
+        other_source = copy.deepcopy(checks_only)
+        other_source["checks"][0]["source"] = "different-app"
+        state, other_result, _ = self._observe(
+            admitted_path, state, "task-a", other_source, "ci-other-source"
+        )
+        self.assertEqual(other_result["ci_state"], "checking", other_result)
+
+        mixed = self.github.ci_observation("task-a")
+        mixed["checks"][1].update(
+            state="failure", category="actionable", actionable=True,
+            diagnosis="The matching commit status failed.",
+            log={"accessible": True, "complete": True, "excerpt": "status diagnostic"},
+        )
+        state, mixed_result, _ = self._observe(admitted_path, state, "task-a", mixed, "ci-mixed-types")
+        self.assertEqual(mixed_result["ci_state"], "repair", mixed_result)
+        self.assertEqual(mixed_result["repair_context"]["failures"][0]["type"], "commit-status")
+
+        unreadable = self.github.ci_observation("task-a", check_state="failure", log_accessible=False)
+        state, blocked, _ = self._observe(admitted_path, state, "task-a", unreadable, "ci-unreadable-log")
+        self.assertEqual(blocked["reason"], "ci-log-inaccessible", blocked)
+        approval = self.github.ci_observation("task-a", check_state="action_required")
+        state, blocked, _ = self._observe(admitted_path, state, "task-a", approval, "ci-approval")
+        self.assertEqual(blocked["ci_state"], "blocked", blocked)
+        self.assertEqual(blocked["reason"], "required-check-not-passing", blocked)
+
+        cancelled = self.github.ci_observation(
+            "task-a", check_state="cancelled", category="infrastructure"
+        )
+        state, blocked, _ = self._observe(admitted_path, state, "task-a", cancelled, "ci-cancelled")
+        self.assertEqual(blocked["reason"], "ci-infrastructure-blocker", blocked)
+
+        incomplete = copy.deepcopy(mergeable)
+        incomplete["pagination"]["check_runs"] = False
+        state, blocked, _ = self._observe(admitted_path, state, "task-a", incomplete, "ci-incomplete")
+        self.assertEqual(blocked["ci_state"], "blocked", blocked)
+        self.assertEqual(blocked["reason"], "ci-evidence-incomplete", blocked)
+
+        closed = copy.deepcopy(mergeable)
+        closed["pr"]["state"] = "closed"
+        state, blocked, _ = self._observe(admitted_path, state, "task-a", closed, "ci-closed")
+        self.assertEqual(blocked["ci_state"], "blocked", blocked)
+        self.assertEqual(blocked["reason"], "pr-not-open", blocked)
+
+        merged = copy.deepcopy(mergeable)
+        merged["pr"]["state"] = "merged"
+        state, blocked, _ = self._observe(admitted_path, state, "task-a", merged, "ci-merged")
+        self.assertEqual(blocked["reason"], "pr-not-open", blocked)
+
+        external = self.github.ci_observation("task-a")
+        external["pr"]["head_sha"] = "e" * 40
+        state, blocked, _ = self._observe(admitted_path, state, "task-a", external, "ci-external-head")
+        self.assertEqual(blocked["ci_state"], "blocked", blocked)
+        self.assertEqual(blocked["reason"], "external-head-change", blocked)
+
+
+    def test_ci_failure_dispatches_one_bounded_repair_and_rechecks_new_head(self) -> None:
+        snapshot = self._single_task_snapshot()
+        admitted_path, admitted = self._admit_issue(snapshot)
+        state, initial = self._schedule(admitted_path, admitted, None, snapshot, "repair-initial")
+        host = self._start_host(workers=1)
+        host.dispatch(initial["dispatch"])
+        report = host.wait_for_report("task-a")
+        result = make_result(self.github, "task-a", report, admitted)
+        state, _, _ = self._apply(admitted_path, state, "task-a", result, "repair-delivery", observe_ci=False)
+        self._persist("task-a", result, initial["dispatch"][0])
+        original_pr = result["worker"]["pr_url"]
+        original_branch = result["worker"]["branch"]
+
+        failure = self.github.ci_observation(
+            "task-a", check_state="failure", diagnosis="Repair the first diagnosed failure."
+        )
+        state, repair, _ = self._observe(admitted_path, state, "task-a", failure, "repair-failure")
+        self.assertEqual(repair["ci_state"], "repair", repair)
+        self.assertEqual(repair["ci_details"]["task-a"]["links"][0]["url"], failure["checks"][0]["url"])
+        state, dispatched = self._schedule(
+            admitted_path, admitted, state, self._single_task_snapshot(), "repair-schedule", cap="1"
+        )
+        self.assertEqual([entry["task_id"] for entry in dispatched["dispatch"]], ["task-a"], dispatched)
+        self.assertEqual(dispatched["ci_details"]["task-a"]["links"][0]["url"], failure["checks"][0]["url"])
+        repair_entry = dispatched["dispatch"][0]
+        self.assertTrue(repair_entry["repair"], repair_entry)
+        self.assertEqual(repair_entry["retained_pr"], original_pr)
+        self.assertEqual(repair_entry["branch"], original_branch)
+        self.assertEqual(
+            repair_entry["packet"]["bounded_input"],
+            next(task["contract"] for task in admitted["tasks"] if task["task_id"] == "task-a"),
+        )
+        self.assertEqual(
+            repair_entry["packet"]["repair_evidence"]["failures"][0]["diagnosis"],
+            "Repair the first diagnosed failure.",
+        )
+        state, no_duplicate = self._schedule(
+            admitted_path, admitted, state, self._single_task_snapshot(), "repair-no-duplicate", cap="1"
+        )
+        self.assertEqual(no_duplicate["dispatch"], [], no_duplicate)
+        self.launch_context[repair_entry["branch"]] = (admitted_path, state)
+
+        host.dispatch([repair_entry])
+        repair_report = host.wait_for_report("task-a")
+        repair_result = make_result(self.github, "task-a", repair_report, admitted)
+        self.assertNotEqual(repair_result["worker"]["head_sha"], result["worker"]["head_sha"])
+        state, _, _ = self._apply(admitted_path, state, "task-a", repair_result, "repair-result", observe_ci=False)
+        self._persist("task-a", repair_result, repair_entry)
+
+        late = self.github.ci_observation(
+            "task-a", check_state="failure", diagnosis="Repair the first diagnosed failure."
+        )
+        late["pr"]["head_sha"] = result["worker"]["head_sha"]
+        for record in late["checks"]:
+            record["sha"] = result["worker"]["head_sha"]
+        state, checking, _ = self._observe(admitted_path, state, "task-a", late, "repair-late-old-head")
+        self.assertEqual(checking["ci_state"], "checking", checking)
+
+        repeated = self.github.ci_observation(
+            "task-a", check_state="failure", diagnosis="Repair the first diagnosed failure."
+        )
+        repeated["checks"].reverse()
+        state, blocked, _ = self._observe(admitted_path, state, "task-a", repeated, "repair-repeated")
+        self.assertEqual(blocked["reason"], "repeated-identical-failure", blocked)
+
+        second_failure = self.github.ci_observation(
+            "task-a", check_state="failure", diagnosis="Repair a distinct second failure."
+        )
+        state, second_repair, _ = self._observe(
+            admitted_path, state, "task-a", second_failure, "repair-second-failure"
+        )
+        self.assertEqual(second_repair["ci_state"], "repair", second_repair)
+        state, second_dispatch = self._schedule(
+            admitted_path, admitted, state, self._single_task_snapshot(), "repair-second-schedule", cap="1"
+        )
+        second_entry = second_dispatch["dispatch"][0]
+        host.dispatch([second_entry])
+        second_report = host.wait_for_report("task-a")
+        second_result = make_result(self.github, "task-a", second_report, admitted)
+        state, _, _ = self._apply(admitted_path, state, "task-a", second_result, "repair-second-result", observe_ci=False)
+        self._persist("task-a", second_result, second_entry)
+
+        exhausted_observation = self.github.ci_observation(
+            "task-a", check_state="failure", diagnosis="Repair a distinct third failure."
+        )
+        state, exhausted, _ = self._observe(
+            admitted_path, state, "task-a", exhausted_observation, "repair-exhausted"
+        )
+        self.assertEqual(exhausted["ci_state"], "blocked", exhausted)
+        self.assertEqual(exhausted["reason"], "repair-retry-exhausted", exhausted)
+        self.assertEqual(len(json.loads(state.read_text())["tasks"]["task-a"]["ci"]["repair_attempts"]), 2)
+    def test_verified_repaired_parent_releases_dependent_task(self) -> None:
+        admitted_path, admitted = self._admit_issue(self.github.snapshot())
+        state, initial = self._schedule(admitted_path, admitted, None, self.github.snapshot(), "dependent-initial", cap="2")
+        self.assertEqual([entry["task_id"] for entry in initial["dispatch"]], ["task-a", "task-b"])
+        host = self._start_host(workers=2)
+        host.dispatch(initial["dispatch"])
+        report_a = host.wait_for_report("task-a")
+        report_b = host.wait_for_report("task-b")
+        result_a = make_result(self.github, "task-a", report_a, admitted)
+        result_b = make_result(self.github, "task-b", report_b, admitted)
+        state, _, _ = self._apply(admitted_path, state, "task-a", result_a, "dependent-a", observe_ci=False)
+        self._persist("task-a", result_a, initial["dispatch"][0])
+        state, _, _ = self._apply(admitted_path, state, "task-b", result_b, "dependent-b")
+        self._persist("task-b", result_b, initial["dispatch"][1])
+
+        failure = self.github.ci_observation("task-a", check_state="failure", diagnosis="Repair parent A.")
+        state, repair, _ = self._observe(admitted_path, state, "task-a", failure, "dependent-failure")
+        self.assertEqual(repair["ci_state"], "repair", repair)
+        state, repair_dispatch = self._schedule(
+            admitted_path, admitted, state, self.github.snapshot(), "dependent-repair", cap="1"
+        )
+        self.assertEqual([entry["task_id"] for entry in repair_dispatch["dispatch"]], ["task-a"], repair_dispatch)
+        self.assertIn({"task_id": "task-c", "reason": "prerequisites-unmet"},
+                      repair_dispatch["waiting"], repair_dispatch)
+        repair_entry = repair_dispatch["dispatch"][0]
+        host.dispatch([repair_entry])
+        repaired_report = host.wait_for_report("task-a")
+        repaired_result = make_result(self.github, "task-a", repaired_report, admitted)
+        state, _, _ = self._apply(admitted_path, state, "task-a", repaired_result, "dependent-repaired", observe_ci=False)
+        self._persist("task-a", repaired_result, repair_entry)
+
+        green = self.github.ci_observation("task-a")
+        state, verified, _ = self._observe(admitted_path, state, "task-a", green, "dependent-green")
+        self.assertIn("task-a", verified["verified"], verified)
+        late = self.github.ci_observation("task-a", check_state="failure",
+                                          diagnosis="Obsolete pre-repair failure.")
+        late["pr"]["head_sha"] = result_a["worker"]["head_sha"]
+        for record in late["checks"]:
+            record["sha"] = result_a["worker"]["head_sha"]
+        state, stale, _ = self._observe(admitted_path, state, "task-a", late, "dependent-stale-head")
+        self.assertEqual(stale["ci_state"], "verified", stale)
+        self.assertEqual(stale["ci_details"]["task-a"]["head_sha"], repaired_result["worker"]["head_sha"])
+        self.assertTrue(all(link["state"] == "success" for link in stale["ci_details"]["task-a"]["links"]))
+        state, released = self._schedule(
+            admitted_path, admitted, state, self.github.snapshot(), "dependent-release", cap="1"
+        )
+        self.assertEqual([entry["task_id"] for entry in released["dispatch"]], ["task-c"], released)
+        dependent_entry = released["dispatch"][0]
+        self.assertEqual(dependent_entry["parent_branch"], repaired_result["worker"]["branch"])
+        self.assertEqual(dependent_entry["parent_sha"], repaired_result["worker"]["head_sha"])
+        host.dispatch([dependent_entry])
+        dependent_report = host.wait_for_report("task-c")
+        dependent_result = make_result(self.github, "task-c", dependent_report, admitted)
+        state, _, _ = self._apply(admitted_path, state, "task-c", dependent_result, "dependent-c")
+        self._persist("task-c", dependent_result, dependent_entry)
+        self.assertEqual(json.loads(state.read_text())["tasks"]["task-c"]["ci"]["state"], "verified")
+
+    def test_independent_ci_failures_share_one_repair_slot(self) -> None:
+        snapshot = self._two_task_snapshot()
+        admitted_path, admitted = self._admit_issue(snapshot)
+        state, initial = self._schedule(admitted_path, admitted, None, snapshot, "capacity-initial", cap="2")
+        self.assertEqual([entry["task_id"] for entry in initial["dispatch"]], ["task-a", "task-b"])
+        host = self._start_host(workers=2)
+        host.dispatch(initial["dispatch"])
+        for task_id, entry in zip(("task-a", "task-b"), initial["dispatch"]):
+            result = make_result(self.github, task_id, host.wait_for_report(task_id), admitted)
+            state, applied, _ = self._apply(
+                admitted_path, state, task_id, result, "capacity-" + task_id, observe_ci=False
+            )
+            self.assertEqual(applied["status"], "delivered", applied)
+            self._persist(task_id, result, entry)
+        retained_prs = {task_id: self.github.prs[task_id]["pr_url"] for task_id in ("task-a", "task-b")}
+        for task_id in ("task-a", "task-b"):
+            observation = self.github.ci_observation(
+                task_id, check_state="failure", diagnosis="Repair " + task_id
+            )
+            state, observed, _ = self._observe(
+                admitted_path, state, task_id, observation, "capacity-failure-" + task_id
+            )
+            self.assertEqual(observed["ci_state"], "repair", observed)
+        state, first = self._schedule(
+            admitted_path, admitted, state, self._two_task_snapshot(), "capacity-first", cap="1"
+        )
+        self.assertEqual([entry["task_id"] for entry in first["dispatch"]], ["task-a"], first)
+        self.assertIn("task-b", first["repair"], first)
+        host.dispatch(first["dispatch"])
+        repaired = make_result(self.github, "task-a", host.wait_for_report("task-a"), admitted)
+        state, applied, _ = self._apply(
+            admitted_path, state, "task-a", repaired, "capacity-a-repaired", observe_ci=False
+        )
+        self.assertEqual(applied["status"], "delivered", applied)
+        self._persist("task-a", repaired, first["dispatch"][0])
+        state, second = self._schedule(
+            admitted_path, admitted, state, self._two_task_snapshot(), "capacity-second", cap="1"
+        )
+        self.assertEqual([entry["task_id"] for entry in second["dispatch"]], ["task-b"], second)
+        self.assertEqual(second["dispatch"][0]["retained_pr"], retained_prs["task-b"])
+        self.assertEqual(self.github.prs["task-a"]["pr_url"], retained_prs["task-a"])
+
+
+    def test_active_descendant_keeps_reconciliation_after_parent_failure(self) -> None:
+        snapshot = self.github.snapshot()
+        admitted_path, admitted = self._admit_issue(snapshot)
+        state, initial = self._schedule(admitted_path, admitted, None, snapshot, "active-initial", cap="2")
+        host = self._start_host(workers=3)
+        host.dispatch(initial["dispatch"])
+        for task_id, entry in zip(("task-a", "task-b"), initial["dispatch"]):
+            result = make_result(self.github, task_id, host.wait_for_report(task_id), admitted)
+            state, applied, _ = self._apply(admitted_path, state, task_id, result, "active-" + task_id)
+            self.assertEqual(applied["status"], "delivered", applied)
+            self._persist(task_id, result, entry)
+        state, next_wave = self._schedule(
+            admitted_path, admitted, state, self.github.snapshot(), "active-dependent", cap="1"
+        )
+        self.assertEqual([entry["task_id"] for entry in next_wave["dispatch"]], ["task-c"], next_wave)
+        host.hold_before_mutation = True
+        host.dispatch(next_wave["dispatch"])
+        self.assertTrue(host.before_mutation.wait(30))
+        failure = self.github.ci_observation(
+            "task-a", check_state="failure", diagnosis="Repair an already-consumed parent."
+        )
+        state, observed, _ = self._observe(admitted_path, state, "task-a", failure, "active-failure")
+        self.assertEqual(observed["ci_state"], "repair", observed)
+        child = json.loads(state.read_text())["tasks"]["task-c"]
+        self.assertEqual(child["status"], "running")
+        self.assertEqual(child["ci"]["reconcile_required"]["parent_task_id"], "task-a")
+        host.mutation_hold.set()
+        result_c = make_result(self.github, "task-c", host.wait_for_report("task-c"), admitted)
+        state, applied, _ = self._apply(admitted_path, state, "task-c", result_c, "active-c")
+        self.assertEqual(applied["status"], "delivered", applied)
+        self._persist("task-c", result_c, next_wave["dispatch"][0])
+        self.assertEqual(json.loads(state.read_text())["tasks"]["task-c"]["ci"]["state"], "blocked")
+
+
+    def _exercise_scope_ci_repair(self, label, snapshot, admit, fresh) -> None:
+        admitted_path, admitted = admit(snapshot)
+        state, initial = self._schedule(admitted_path, admitted, None, snapshot, label + "-initial", cap="1")
+        entry = initial["dispatch"][0]
+        self.assertEqual(entry["task_id"], "task-a", initial)
+        host = self._start_host(workers=1)
+        host.dispatch([entry])
+        result = make_result(self.github, "task-a", host.wait_for_report("task-a"), admitted)
+        state, applied, _ = self._apply(
+            admitted_path, state, "task-a", result, label + "-delivery", observe_ci=False
+        )
+        self.assertEqual(applied["status"], "delivered", applied)
+        self._persist("task-a", result, entry)
+        failure = self.github.ci_observation(
+            "task-a", check_state="failure", diagnosis="Repair the retained " + label + " PR."
+        )
+        state, observed, _ = self._observe(admitted_path, state, "task-a", failure, label + "-failure")
+        self.assertEqual(observed["ci_state"], "repair", observed)
+        state, resumed = self._schedule(admitted_path, admitted, state, fresh(), label + "-resume", cap="1")
+        self.assertEqual([item["task_id"] for item in resumed["dispatch"]], ["task-a"], resumed)
+        repair_entry = resumed["dispatch"][0]
+        self.assertEqual(repair_entry["retained_pr"], result["worker"]["pr_url"])
+        self.assertEqual(repair_entry["branch"], entry["branch"])
+        self.assertEqual(len(json.loads(state.read_text())["tasks"]["task-a"]["ci"]["repair_attempts"]), 1)
+
+    def test_issue_list_scope_resumes_same_pr_ci_repair(self) -> None:
+        def fresh():
+            snapshot = self.github.issue_list_snapshot([self.github.children[0]["url"]])
+            snapshot["graph"]["edges"] = []
+            return snapshot
+        self._exercise_scope_ci_repair("list", fresh(), self._admit_issues, fresh)
+
+    def test_project_scope_resumes_same_pr_ci_repair(self) -> None:
+        self._exercise_scope_ci_repair(
+            "project", self.github.project_snapshot(), self._admit_project, self.github.project_snapshot
+        )
+
+
+    def test_ci_repair_reopens_only_after_authoritative_release_proof(self) -> None:
+        snapshot = self._single_task_snapshot()
+        admitted_path, admitted = self._admit_issue(snapshot)
+        state, initial = self._schedule(admitted_path, admitted, None, snapshot, "reopen-initial")
+        host = self._start_host(workers=1)
+        host.dispatch(initial["dispatch"])
+        report = host.wait_for_report("task-a")
+        result = make_result(self.github, "task-a", report, admitted)
+        state, _, _ = self._apply(admitted_path, state, "task-a", result, "reopen-delivery", observe_ci=False)
+        self._persist("task-a", result, initial["dispatch"][0])
+        workspace = Path(result["worker"]["workspace"])
+        branch = result["worker"]["branch"]
+        head_sha = result["worker"]["head_sha"]
+        git(self.repo, "worktree", "remove", str(workspace))
+        self.assertFalse(workspace.exists())
+
+        failure = self.github.ci_observation(
+            "task-a", check_state="failure", diagnosis="Repair after a proven release."
+        )
+        claim_owner = json.loads(state.read_text())["tasks"]["task-a"]["claim"]["owner"]
+        failure["workspace_reopen"] = {
+            "state": "released",
+            "path": str(workspace),
+            "branch": branch,
+            "head_sha": head_sha,
+            "base_branch": result["worker"]["base_branch"],
+            "released": False,
+            "complete": True,
+            "task_id": "task-a",
+            "pr_url": result["worker"]["pr_url"],
+            "writer_status": "stopped",
+            "claim_owner": claim_owner,
+        }
+        state, repair, _ = self._observe(admitted_path, state, "task-a", failure, "reopen-unsafe")
+        self.assertEqual(repair["ci_state"], "repair", repair)
+        state, blocked = self._schedule(
+            admitted_path, admitted, state, self._single_task_snapshot(), "reopen-unsafe-schedule", cap="1"
+        )
+        self.assertEqual(blocked["dispatch"], [], blocked)
+        self.assertIn("workspace-release-unverified", [entry["reason"] for entry in blocked["blocked"]], blocked)
+        self.assertFalse(workspace.exists())
+
+        failure["workspace_reopen"]["released"] = True
+        failure["workspace_reopen"]["path"] = str(workspace.parent / "another-task")
+        state, _, _ = self._observe(admitted_path, state, "task-a", failure, "reopen-wrong-path")
+        state, blocked = self._schedule(
+            admitted_path, admitted, state, self._single_task_snapshot(), "reopen-wrong-path-schedule", cap="1"
+        )
+        self.assertEqual(blocked["dispatch"], [], blocked)
+        self.assertIn("workspace-release-unverified", [entry["reason"] for entry in blocked["blocked"]], blocked)
+        failure["workspace_reopen"]["path"] = str(workspace)
+        state, repair, _ = self._observe(admitted_path, state, "task-a", failure, "reopen-safe")
+        self.assertEqual(repair["ci_state"], "repair", repair)
+        state, dispatched = self._schedule(
+            admitted_path, admitted, state, self._single_task_snapshot(), "reopen-safe-schedule", cap="1"
+        )
+        self.assertEqual([entry["task_id"] for entry in dispatched["dispatch"]], ["task-a"], dispatched)
+        self.assertFalse(workspace.exists(), dispatched)
+        repair_entry = dispatched["dispatch"][0]
+        self.assertEqual(repair_entry["workspace_reopen"]["released"], True)
+        host.dispatch([repair_entry])
+        reopened_report = host.wait_for_report("task-a")
+        self.assertTrue(workspace.exists(), dispatched)
+        self.assertEqual(git(workspace, "branch", "--show-current"), branch)
+        self.assertEqual(git(workspace, "rev-parse", "HEAD^"), head_sha)
+        reopened_result = make_result(self.github, "task-a", reopened_report, admitted)
+        state, _, _ = self._apply(admitted_path, state, "task-a", reopened_result, "reopen-result", observe_ci=False)
+        self._persist("task-a", reopened_result, repair_entry)
 
 
 if __name__ == "__main__":

@@ -1,6 +1,6 @@
 ---
 name: woostack-orchestrate
-description: Interpret GitHub work from prose, tracker context, issue lists, parents, or Projects, then orchestrate verified executable tasks through parallel Execute workers with stacked PRs, independently verified delivery, and joins. Never implements inline or merges.
+description: Interpret GitHub work from prose, tracker context, issue lists, parents, or Projects, then orchestrate verified executable tasks through parallel Execute workers with stacked PRs, independently verified delivery, active-session PR-check observation with same-PR repair, and joins. Never implements inline or merges.
 ---
 
 # woostack-orchestrate
@@ -48,7 +48,7 @@ receives one normalized snapshot and no selector family or mode.
 ## One real helper path
 
 The helper is production code, not a test scheduler. Every admission, refill, reservation, repair,
-result gate, and unknown-outcome reconciliation must pass through
+result gate, PR-check observation transition, and unknown-outcome reconciliation must pass through
 `skills/woostack-orchestrate/scripts/orchestrate.py`. The helper is standard-library-only, makes no
 network calls, and spawns no workers. The skill assembles JSON only from an authorized GitHub
 capability exposed by the host (prefer native GitHub tools when suitable; host-authenticated `gh`
@@ -69,7 +69,7 @@ without overwriting prior evidence. A missing state file is allowed only on the 
 where `--state` is omitted; every later call must name an existing state file and stop on
 missing/corrupt/mismatched state rather than reinitializing it.
 
-The six bridge commands are:
+The bridge commands are:
 
 ```text
 python3 <orchestrate-skill>/scripts/orchestrate.py admit \
@@ -99,6 +99,11 @@ python3 <orchestrate-skill>/scripts/orchestrate.py apply-result \
   --state-out controller-state.json --git-repo <canonical-git-repository> \
   --task <task-id> --result <complete-result.json>
 
+python3 <orchestrate-skill>/scripts/orchestrate.py observe-checks \
+  --admitted admitted.json --state controller-state.json \
+  --state-out controller-state.json --git-repo <canonical-git-repository> \
+  --task <task-id> --observation <fresh-pr-check-observation.json>
+
 python3 <orchestrate-skill>/scripts/orchestrate.py reconcile \
   --admitted admitted.json --state controller-state.json \
   --state-out controller-state.json --git-repo <canonical-git-repository> \
@@ -109,6 +114,10 @@ python3 <orchestrate-skill>/scripts/orchestrate.py stop \
   --state-out controller-state.json --git-repo <canonical-git-repository> \
   [--reason <safe-stop-reason>]
 ```
+
+Observe only a delivered task's admitted PR. Assemble the observation from fresh authorized
+GitHub and host reads using the [PR-check observation contract](references/validation.md#pr-check-observation-and-repair);
+invoke `observe-checks` independently of `apply-result` and then refill with `schedule`.
 
 Do not omit `--fresh` on an initial or subsequent refill. Do not pass a newly created replacement
 state after admission. The detailed JSON schemas, native-read requirements, and controlled status
@@ -264,10 +273,20 @@ Read back the native launched worker/session and persist it with
 [`record-worker`](references/validation.md#record-the-native-writer) before processing its result.
 If launch identity is lost, discover it from the actual host; never invent one from artifact prose.
 
-## Continuously refill on completion
+## Continuously refill on completion and observed PR checks
+
+The active run continues after initial workers stop: it keeps observing the admitted tasks'
+submitted PRs while the host session is active, interleaving worker completions, dependency
+scheduling, and PR-check observation. Do not stop merely because every initial worker returned or
+every task once reached `delivered`. Monitoring covers only admitted task PRs, never the whole
+repository, and belongs to this explicitly invoked run and its explicit resume. Never add a daemon,
+hosted service, scheduled workflow, or promise of observation after the host session ends. Prepare
+and Plan still stop at issue publication.
 
 1. Dispatch all entries from the current `schedule` response up to its effective cap, then wait
-   for **one** worker completion or actionable host event—not the whole batch.
+   for **one** worker completion, actionable host event, or newly observed PR-check state—not the
+   whole batch. Use the host's supported waiting/event/polling mechanism with repository/host
+   cadence; avoid busy polling, duplicated watchers, or a prescribed transport recipe.
 2. Process that completion through the independent result, validation, note, and optional Project
    gates below. Bind every `apply-result` envelope to the originating native handle under the
    [result contract](references/validation.md#result-schema), never to current task state. Use a
@@ -276,16 +295,22 @@ If launch identity is lost, discover it from the actual host; never invent one f
 3. Immediately assemble fresh scope and delivery evidence, invoke `schedule` with the existing
    state, and launch newly emitted workers while unrelated workers remain active. Thus verified A
    can release C while B is still running. Do not order by ordinal or introduce wave barriers.
-4. An in-scope repair uses a fresh Execute worker on the same reserved branch/workspace and PR,
-   after the previous writer has stopped. An unknown outcome blocks only that task and its
+4. When a delivered task's freshly read PR-check evidence shows an actionable failure, diagnose it
+   and dispatch at most one Execute repair through the
+   [CI observation transition](references/validation.md#pr-check-observation-and-repair) on the same
+   reserved branch/workspace/PR, after the previous writer has stopped. Coalesce multiple failures
+   on one PR/head into that single repair. An unknown outcome blocks only that task and its
    descendants; reconcile its direct Git/PR/process evidence before same-identity repair while
    unrelated ready work continues.
 5. An unresolved join pauses only that task and its descendants; continue unrelated ready work.
    A stop request prevents new dispatch and safely inventories active workers without declaring
-   them stopped or discarding dirty worktrees. If no task is runnable and no worker remains, report
-   delivered, active, unknown, repair-ready, blocked, waiting, and unfinished children with the exact
-   next safe action. An empty ready queue never proves the parent completed. Leave
-   issues/dependencies open and report awaiting review/merge only for the PRs actually delivered.
+   them stopped or discarding dirty worktrees. If no task is runnable, no worker remains, and no
+   current applicable check is still pending, report submitted, checking, repairing, CI-verified,
+   blocked, and unverified tasks with check links and the exact next safe action. An empty ready
+   queue never proves the work complete, and pending checks never create a whole-project barrier.
+   Leave issues/dependencies open and report awaiting review/merge only for the PRs actually
+   delivered. Successful checks never authorize closing issues, marking PRs ready, enabling
+   auto-merge, queueing, or merging.
 
 ## Result, validation, notes, and joins
 

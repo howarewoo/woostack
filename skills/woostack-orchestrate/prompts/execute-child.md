@@ -42,6 +42,10 @@ GitHub reads. It is a required runtime fact, not a value to invent or fill with 
 - Repair: `$RUNTIME_REPAIR` (`true` resumes the exact reserved branch/workspace/parent and retained
   PR; `false` starts the exact branch at the exact parent SHA).
 - Retained PR: `$RUNTIME_RETAINED_PR` (runtime canonical URL when repairing; otherwise no PR exists).
+- Failing check revision and evidence (only on a repair dispatched from PR-check observation): the
+  exact PR, failing revision, and observed check/log evidence that justified the repair. Revalidate
+  that this revision is still current before editing; a stale revision needs fresh controller
+  evidence, not a speculative fix.
 
 Before editing, verify the selected workspace is a real isolated checkout for the canonical
 repository, is on `$RUNTIME_BRANCH`, has the expected `HEAD`/parent ancestry, and does not alias or
@@ -53,6 +57,10 @@ remove, or touch another task's surface. Preserve unrelated user changes.
 
 Implement the complete bounded contract using existing repository patterns and the
 [least-code standard](../../woostack-bootstrap/references/patterns.md#7-least-code--comments).
+On a PR-check repair, diagnose the supplied failing revision from its check/log evidence (using
+the surviving Debug workflow when root-cause proof is missing), make the smallest correct
+in-scope change, and run the relevant regression/focused checks plus smoke verification. Never
+weaken tests, bypass checks, fabricate statuses, or change secrets/permissions to make CI green.
 Run every exact required check and the real smoke scenario from the contract. Record commands,
 observed outcomes, changed paths, and the exact binary diff identity. Any source change after
 verification invalidates affected evidence and requires fresh checks.

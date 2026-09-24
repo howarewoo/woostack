@@ -101,8 +101,16 @@ its verified prerequisite branch; a join pauses only that issue if no permitted 
 contains all prerequisite changes, while unrelated tasks continue. A phase label within one issue
 does not create a second issue/writer or premature whole-issue completion. Graph/scope drift
 preserves running reservations and stops fresh dispatch; unknown worker outcomes require direct
-stopped-worker/branch/PR reconciliation before same-identity repair. The final result is submitted
-PRs awaiting review/merge, not closed issues or product acceptance.
+stopped-worker/branch/PR reconciliation before same-identity repair. While the host session stays
+active, Orchestrate keeps observing each admitted PR's remote checks — interleaved with completions
+and scheduling, for admitted PRs only — and on an actionable failure diagnoses it (using Debug
+when root-cause proof is missing) and dispatches one Execute repair on the same branch/PR under
+the shared cap. Stale head results never validate current work; pending or unreadable checks never
+count as a pass. Successful checks never authorize closing issues, marking PRs ready, enabling
+auto-merge, queueing, or merging, and observation never continues as a daemon after the session
+ends. The final result distinguishes submitted, checking, repairing, CI-verified, blocked, and
+unverified work with check links and the next safe action — not closed issues or product
+acceptance.
 
 ## Execute
 
@@ -130,7 +138,8 @@ Each bounded [woostack-execute](/docs/skills/woostack-execute) task:
 4. compares the complete uncommitted diff with the approved task;
 5. uses [woostack-commit](/docs/skills/woostack-commit) to submit its PR; and
 6. independently reads back the PR, its exact head and base, and its review state. Required repository
-   checks remain mandatory delivery gates; other available CI checks are observation-only.
+   checks remain mandatory delivery gates; other available CI checks are observation-only at delivery
+   time and become Orchestrate's active-session watch afterwards.
 
 Retired run/project/recheck inputs are rejected. Retained historical planning records are evidence
 only; Execute has no run controller or automatic graph dispatch. A selected task-bearing issue is
@@ -145,7 +154,8 @@ returning uncommitted work for a parent to deliver.
 
 PR review uses [Pullfrog](https://pullfrog.com/). Execute does not require an independent pre-commit
 review receipt. Orchestrate independently validates each submitted task against its contract before
-releasing dependents; this is not permission to mark ready or merge.
+releasing dependents, then keeps watching its remote checks while the session stays active; this is
+not permission to mark ready or merge.
 
 Depending on the command, the result is a verified scaffold, a verified native issue graph, a
 declared tracker handoff after independent issue reads, a reviewable PR or reviewed stack, or a
