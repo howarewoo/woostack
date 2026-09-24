@@ -81,4 +81,8 @@ section when neither storage nor API changes apply.
 For a candidate issue plan, each increment includes a stable task key, positive display ordinal,
 outcome, bounded scope, non-goals, affected paths/interfaces, acceptance, verified check and smoke
 scenario, risks, prerequisites, and Git-parent-selection policy. The plan is content, not issue or
-source-control authority; Plan owns any later publication.
+source-control authority; Plan owns any later publication. If the caller has a model-selected
+pre-execution layout, retain it as separate execution context with every selected task exactly once,
+its `execution_parent`, rationale, compatibility constraints, and any `merge-checkpoint` fallback
+with release condition. This layout is not native relationship evidence and does not replace the
+technical prerequisites. Orchestrate owns the final layout and scheduling decision.

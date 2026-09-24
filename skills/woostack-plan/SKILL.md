@@ -117,14 +117,18 @@ tuple. Only those tuples become native `blocked-by` edges, with the dependent po
 prerequisite. Preserve existing exact edges unless the approved specification explicitly changes the
 prerequisite set; never add or remove edges to match ordinal adjacency.
 
-A root records its approved integration parent branch. A dependent records every prerequisite and the
-policy for resolving one concrete existing Git parent branch and SHA from verified delivered branches at
-dispatch. Plan never guesses a branch, creates an integration branch, or rewrites dependencies.
-Orchestrate is the separate graph consumer. It first tries the approved integration branch and then an
-existing verified unmerged prerequisite branch when stacking is permitted. A join without one such
-parent remains a valid plan and becomes a local `waiting-for-merge` checkpoint in Orchestrate; it does
-not require another Plan invocation, parent decision, native relationship write, or graph rewrite.
-Ask for a decision only when material parent ambiguity remains.
+A root records its approved integration parent branch. A dependent records every prerequisite and
+the policy for resolving one concrete existing Git parent branch and SHA from verified delivered
+branches at dispatch. Plan never guesses a branch, creates an integration branch, or rewrites
+dependencies. The technical DAG remains the planning evidence. Orchestrate, after this publication,
+selects and summarizes a model-chosen pre-execution single-parent forest before allocation; added
+ordering is compatibility evidence, not native relationship evidence. It preserves technical
+prerequisites separately, retains useful parallelism, and uses effective prerequisites for worker
+readiness and repair propagation. A join can therefore stack on a verified existing parent. Only
+an approved `merge-checkpoint` fallback for existing divergence or repository constraints becomes
+`waiting-for-merge`; a join otherwise does not require a new Plan invocation, parent decision,
+native relationship write, or graph rewrite. Ask for a decision only when material parent ambiguity
+remains.
 
 Bounded Execute accepts one complete bounded task per invocation and is not a DAG dispatcher. A
 branching, multi-root, or join graph is not handed to Execute as a runnable whole; retain it for
@@ -168,11 +172,12 @@ from native evidence. It does not retroactively satisfy Plan's native publicatio
 Return the exact canonical repository and admitted revision, selected scope, complete display-ordered
 child contracts, actual parent and child URLs/native identities, explicit prerequisite sets and
 parent-selection policies, repository assumptions/effects, verification-command provenance, native
-parent read-back, exact normalized graph, mutation/read counts, stable recovery identities, and any
-missing relation. Report a join without a currently verified existing parent as an expected
-execution-time `waiting-for-merge` condition, not as a planning defect or a request for a new
-integration strategy. Parent mode reports the specification parent separately from the child task
-index.
+parent read-back, exact normalized technical graph, mutation/read counts, stable recovery
+identities, and any missing relation. Report a join without a currently verified existing parent as
+an expected execution-time `waiting-for-merge` condition only when Orchestrate's selected execution
+layout has an explicit `merge-checkpoint` fallback; otherwise a suitable selected parent may be used
+without a new Plan decision. This is not a planning defect or a request for a new integration
+strategy. Parent mode reports the specification parent separately from the child task index.
 
 When required relationships are verified, return the complete planning handback and a separate
 orchestration suggestion. A canonical tracker URL or selected Project URL is a convenience hint for
@@ -185,13 +190,14 @@ the matching Plan scope, not an exhaustive Orchestrate admission type:
 
 Show only the applicable hint; Project mode does not invent a specification parent. The user may
 instead provide the complete handback or understandable tracker context in conversation. Orchestrate
-reads the tracker and every selected issue, resolves executable tasks and a bounded dependency DAG
-from available evidence, preserves native or declared provenance, and asks about material ambiguity.
-It can interpret a complete tracker index without native links, but does not treat inaccessible task
-issues, ambiguous membership, unreadable contracts, unknown dependency meaning, or an unresolved
+reads the tracker and every selected issue, resolves executable tasks and a bounded technical DAG
+from available evidence, then chooses and summarizes its effective execution forest. It preserves
+native or declared provenance, retains parallelism, and asks about material ambiguity. It can
+interpret a complete tracker index without native links, but does not treat inaccessible task issues,
+ambiguous membership, unreadable contracts, unknown dependency meaning, or an unresolved
 contradiction as executable. Project mode does not invent a specification parent. The suggestion is
-not an automatic dispatch or execution claim. A partial graph, missing relationship capability,
-stale specification, unresolved correction, unknown identity, or empty executable plan is not Plan
+not an automatic dispatch or execution claim. A partial graph, missing relationship capability, stale
+specification, unresolved correction, unknown identity, or empty executable plan is not Plan
 publication-ready.
 Plan never invokes Orchestrate or Execute and never claims implementation, delivery, review,
 passing checks, product acceptance, or merge.

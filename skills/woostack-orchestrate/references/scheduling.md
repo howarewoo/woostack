@@ -145,6 +145,19 @@ shape for the helper and is not a caller-facing source schema; all markers are r
       "evidence": "<non-empty native read, declaration, or model rationale>"
     }
   ],
+  "execution_layout": {
+    "revision": 1,
+    "rationale": "<model-selected single-parent compatibility layout>",
+    "entries": [
+      {
+        "task_id": "<selected task ID>",
+        "execution_parent": null,
+        "rationale": "<why this approved-base root is safe>",
+        "constraints": ["<repository or compatibility evidence>"],
+        "base_satisfied_prerequisites": []
+    ],
+    "effective_edges": []
+  },
   "parent_prs": {
     "<runtime-substituted integration or approved parent branch>": {
       "repo": "<runtime-substituted canonical repository>",
@@ -187,7 +200,13 @@ there. A task's `contract` retains the fields Execute and validation need: `goal
 `non_goals`, `decisions`, `risks`, or phase annotations; the source issue is not required to use a
 fixed field layout. A material unresolved ambiguity blocks admission until the user answers a
 focused question. Existing delivery evidence is added to a task when independently re-reading a
-delivered task, and is never copied from a worker's success sentence.
+delivered task, and is never copied from a worker's success sentence. Each selected task also receives
+normalized `execution_parent`, `execution_rationale`, `execution_constraints`, optional
+`execution_fallback`, `execution_ancestry`, `effective_prerequisites`, and any verified
+`base_satisfied_prerequisites`; its `dependency_snapshot` retains technical `prerequisites`,
+external prerequisites, and landed-base evidence separately. These fields are model-selected
+scheduling evidence, not source edits or native relationship writes. The worker packet binds the
+same values and plan revision.
 
 `edges` is the complete supplied DAG. Each edge has a predecessor, dependent, provenance of
 `native`, `declared`, or `inferred`, and non-empty evidence. Native blocked-by reads, explicit
@@ -197,6 +216,28 @@ erase a verified declared edge. The model owns meaning and inference; the helper
 existence, duplicate/self edges, external blockers, and acyclicity. A conflict, unknown endpoint,
 ambiguous direction, or cycle blocks the affected work. An empty edge list is valid when actual reads
 and interpretation establish no dependency; no separate graph receipt is required.
+The technical DAG is admission evidence, not the execution layout. After the technical graph and
+repository constraints are resolved, the model selects one `execution_layout` before any branch or
+workspace allocation. It has a positive `revision`, a rationale, and one entry for every selected task
+exactly once. Each entry carries `execution_parent` (the approved-base root is `null`), its rationale,
+and non-empty compatibility `constraints`; a task that cannot use a safe single-parent stack records
+the optional `fallback: {reason: "merge-checkpoint", release_condition}`. The combined technical-plus-
+execution graph must be acyclic, and every technical prerequisite must appear on the task's execution
+ancestor path or in a verified `base_satisfied_prerequisites` entry naming the merged revision
+contained in the approved integration base. For these entries, `admit --git-repo <canonical-checkout>`
+verifies the repository remote and uses Git ancestry to prove each landed revision is contained in
+the snapshot's exact `integration.sha`, not merely the branch's current tip. Missing Git evidence
+blocks admission; lifecycle flags and matching branch names alone do not prove containment.
+Scheduling repeats this check on its fresh snapshot. Verified base-satisfied prerequisites remain
+technical requirements but are excluded from `effective_prerequisites` and `effective_edges`:
+dependent readiness uses the landed-base evidence without importing a controller-owned delivery or
+waiting for that task's lifecycle/CI state. Parent selection and retained-start validation still
+prove that each such revision is contained in the actual selected parent, including an open stack
+parent. A base-satisfied execution parent selects the integration base while preserving its planned
+task identity. A selected parent is optional compatibility ordering, not native relationship
+evidence. The layout must retain useful parallelism; the model owns this selection, while
+Execute/Commit do not schedule siblings.
+
 
 `parent_prs` supplies fresh canonical PR discovery for the integration branch and any explicitly
 selected non-predecessor parent. An empty `prs` array means fully proved absence, not unavailable
@@ -249,8 +290,9 @@ compact separators) over the immutable normalized scope view. It binds:
 - the canonical repository and sorted canonical executable issue URLs;
 - each task's stable task ID, URL, native IDs, state/resource, complete title/body, effective
   `specification` and native-only `actual_parent`, resolved bounded contract, and external blockers;
-- complete repository rules, effective dependency endpoint pairs, and normalized edge `provenance`
-  and `evidence`;
+- complete repository rules, effective technical dependency endpoint pairs, and normalized edge
+  `provenance` and `evidence`;
+- the normalized execution layout and its own `execution_fingerprint`;
 - the selected tracker URL and meaningful scope/specification context when optional
   `scope_evidence` is present; and
 - optional Project/lifecycle identity only when the user explicitly selected that Project for
@@ -258,15 +300,29 @@ compact separators) over the immutable normalized scope view. It binds:
 
 It deliberately excludes the host capability/cap, mutable integration SHA, fresh `parent_prs`,
 runtime workspace/branch allocation, and delivery evidence. A tracker provider `revision` alone,
-reordered repeated tracker references, and a matching native-link addition that leaves the exact task
-set and graph unchanged are mutable evidence, not drift; membership may transition from `declared`
-to `native` for the same set. Those mutable facts are still refreshed and recorded. A changed issue
-set, contract, identity, meaningful tracker scope/specification, actual parent, edge endpoint, edge
-provenance/evidence, or blocker returns `snapshot-drift`; preserve all running reservations, claims,
-recovery inventory, and worker identity, and launch no fresh worker. Reinvoking the same tracker or
-an equivalent issue list resumes the same canonical task claims and delivery history without a
-duplicate worker or PR. The controller must re-read GitHub scope evidence and assemble `--fresh` for
-every refill, including immediately after a worker result and after reconciliation.
+reordered repeated tracker references, reordered task/layout entries, and a matching native-link
+addition that leaves the exact task set, technical graph, and execution plan unchanged are mutable
+evidence, not drift; membership may transition from `declared` to `native` for the same set. Those
+mutable facts are still refreshed and recorded. A changed issue set, contract, identity, meaningful
+tracker scope/specification, actual parent, technical edge endpoint/provenance/evidence, or blocker
+returns `snapshot-drift`. A changed execution layout returns controlled `execution-plan-drift` when
+it touches started, reserved, claimed, worker-owned, or delivered work. A newer plan revision is
+adopted only when every changed task is genuinely unstarted and compatible with complete retained
+recovery and repository evidence. Legacy state without a plan treats the proposed layout as a
+candidate: incompatible retained reservations or prerequisite ancestry return
+`execution-plan-drift` without writing a new state or checkpoint. The original bound worker can
+complete under a compatible admission, then scheduling can resume. For states already persisted by
+an earlier controller with `legacy_execution_plan_drift`, a newer revision may clear that drift
+only after every flagged task's retained reservation branch and full prerequisite ancestry are
+proved compatible. An incompatible revision leaves the halt and worker ownership intact. The
+accepted layout, fingerprint, changed unstarted-task dependencies, and plan history are written in
+the same atomic checkpoint before any new dispatch. Unchanged active tasks retain their issued
+plan revision and dependency snapshot. Their original admission remains usable for bound result,
+check, and reconciliation calls when plan history proves their execution entry and ancestry
+unchanged; result application rejects a newer admission that the worker never received. Descendant
+repair propagation uses the current persisted effective graph. Equivalent reordered input resumes
+the same plan. Every status preserves reservations, claims, workers, deliveries, and recovery
+boundaries and requires a fully fresh interpreted snapshot.
 
 Every fresh refill carries the complete recovery inventory described above: checkpoint/state
 identities, worker processes/sessions, Git worktrees/refs/dirty state, canonical PRs, contract
@@ -384,27 +440,31 @@ failure or lost repair-worker response must not create duplicate commits, worker
 external head/base changes require reconciliation rather than silently overwriting another
 contributor's work.
 
-Technical prerequisites and chosen execution order are separate evidence. A caller or companion
-planner may record a deliberate pre-execution stack order and parent intent; it never adds, removes,
-or rewrites dependency edges, and ordinals alone do not establish it. The current helper does not
-require a planner or infer such an order.
+Technical prerequisites and the model-selected execution order remain separate evidence. The
+execution layout is a single-parent forest selected before branch/worktree allocation; its optional
+parents add compatibility ordering only and never add, remove, or rewrite technical edges. Every
+technical prerequisite must be on the selected execution ancestor path. The helper persists the
+normalized layout and its fingerprint in state, binds that plan to each worker packet, and uses
+effective prerequisites (technical prerequisites plus the selected execution parent) for scheduling,
+readiness, repair propagation, and resume while preserving technical `prerequisites` and provenance.
+Equivalent reordered input resumes the same plan; a changed plan returns `execution-plan-drift`.
 
-Roots use the admitted integration branch/SHA. For a dependent, first consider the current approved
-integration branch; then consider each existing verified unmerged prerequisite branch when
-unmerged stacking is permitted. A candidate is usable only when its actual local tip is the
-recorded candidate SHA and `git merge-base --is-ancestor` proves that it contains every current
-prerequisite revision. A candidate prerequisite branch that already contains all requirements can
-therefore serve a multi-dependency task; dependency count alone never forces a merge checkpoint.
+Roots use the admitted integration branch/SHA. For a dependent, the selected execution parent is
+preferred when its verified open branch contains every current prerequisite revision; otherwise the
+approved integration branch is considered when the selected parent has landed. A candidate is usable
+only when its actual local tip is the recorded candidate SHA and `git merge-base --is-ancestor` proves
+that it contains every current prerequisite revision. Dependency count alone never forces a merge
+checkpoint, and ordinary joins do not require a new parent or integration decision.
 
-If no candidate is suitable, the helper leaves the task pending with `waiting-for-merge`, the
-relevant prerequisite PRs and their current states, the intended integration branch, and the
-release condition. This human-merge checkpoint is the fallback for divergent work, fixed-parent or
-independent-landing constraints, or no safe suitable stack, not a default integration strategy. It
-does not reserve a worker or create a speculative branch/worktree, and it does not require an
-ordinary join to receive a new parent/integration decision. An explicit parent decision is
-consulted only for a material ambiguity or an explicitly selected suitable existing parent; it is
-evidence to validate, never proof by name alone. Never create a synthetic base, combine independent
-branches, rewrite the DAG, or require an automatic merge.
+If no candidate is suitable, the helper leaves the task pending with `waiting-for-merge` only when
+the selected layout explicitly carries the `merge-checkpoint` fallback. The record includes the
+fallback reason, prerequisite PRs and current states, intended integration branch, and release
+condition. This human-merge checkpoint is for divergent work, fixed-parent or independent-landing
+constraints, or no safe suitable stack—not the default strategy. It does not reserve a worker or
+create a speculative branch/worktree. An explicit parent decision is consulted only for a material
+ambiguity or an explicitly selected suitable existing parent; it is evidence to validate, never proof
+by name alone. Never create a synthetic base, combine independent branches, rewrite either graph, or
+require an automatic merge.
 
 ## Helper status meanings
 

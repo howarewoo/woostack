@@ -62,8 +62,14 @@ normalized admission and local Git reservation, never evidence to invent.
       "smoke": "<runtime-substituted contract.smoke>"
     },
     "parent_readiness": {
+      "execution_prerequisites": [],
+      "base_satisfied_prerequisites": [],
+      "execution_parent": null,
+      "execution_ancestry": [],
+      "execution_rationale": "<runtime-substituted compatibility rationale>",
+      "execution_constraints": ["<runtime-substituted compatibility constraint>"],
+      "execution_fallback": null,
       "logical_prerequisites": [],
-      "prerequisites": [],
       "parent": {
         "branch": "<selected parent branch>",
         "sha": "<retained approved start SHA>",
@@ -79,7 +85,32 @@ normalized admission and local Git reservation, never evidence to invent.
       },
       "decision": null
     },
+
     "dependency_edges": [],
+    "execution_layout": {
+      "revision": 1,
+      "rationale": "<runtime-substituted whole-plan rationale>",
+      "entries": [
+        {
+          "task_id": "<selected task ID>",
+          "execution_parent": null,
+          "rationale": "<runtime-substituted compatibility rationale>",
+          "constraints": ["<runtime-substituted compatibility constraint>"],
+          "base_satisfied_prerequisites": []
+        }
+      ],
+      "effective_edges": []
+    },
+    "execution_order": {
+      "plan_revision": 1,
+      "execution_parent": null,
+      "rationale": "<runtime-substituted compatibility rationale>",
+      "constraints": ["<runtime-substituted compatibility constraint>"],
+      "fallback": null,
+      "effective_prerequisites": [],
+      "base_satisfied_prerequisites": [],
+      "ancestry": []
+    },
     "graph": {"edges": []},
     "acceptance": ["<runtime-substituted exact contract.acceptance criterion>"],
     "checks": ["<runtime-substituted exact contract.checks command>"],
@@ -94,6 +125,11 @@ normalized admission and local Git reservation, never evidence to invent.
   }
 }
 ```
+The packet also carries the admitted `execution_layout`, its `execution_order` for this task, the
+technical `prerequisites` with provenance, and the controller's `effective_prerequisites` (technical
+prerequisites plus the selected `execution_parent`). The execution order is a pre-execution
+compatibility forest chosen by the model before branch/worktree allocation. It is not native issue
+relationship evidence, and it never expands scope or lets Execute schedule siblings.
 
 The admission's `scope_identity` is the canonical repository plus the sorted canonical URLs of the
 verified executable tasks; it does not encode how the user or model found them. In the packet,
@@ -116,41 +152,62 @@ contract remain the bounded work; preserve tracker phase and scope constraints t
 in them. A revision-only change, reordered references, or declared-to-native transition with the
 same task set does not create a new packet identity.
 
-`dependency_edges` is the task's annotated subset of the admitted DAG, with native/declared/inferred
-provenance and evidence retained. An inferred edge is context and scheduling evidence, not a native
-GitHub relationship or permission to expand scope. The packet's task scope, specification, contract,
-and readiness are the worker's complete input; it must not infer missing dependencies, discover
-siblings, or publish an edge.
+Along with the persisted execution layout, the packet carries this task's `execution_parent`,
+rationale, compatibility constraints, optional merge-checkpoint fallback, execution ancestry,
+effective prerequisite set, and verified landed-base prerequisite evidence. A selected execution
+parent is optional compatibility ordering; it is not a native GitHub relationship and does not
+replace the technical prerequisite evidence. The worker must treat effective prerequisites as the
+scheduling/readiness graph while preserving technical prerequisites separately. `dependency_edges`
+remains context and scheduling evidence, not a native GitHub relationship or permission to expand
+scope. The packet's task scope, specification, contract, layout, and readiness are the worker's
+complete input; it must not infer missing dependencies, choose a different parent, discover siblings,
+or publish an edge.
 
-`scope_evidence` accompanies the packet but is not `actual_parent`; `parent_issue_url` carries
-only a conclusively read native parent, and is omitted for an unavailable read. `parent_issue_read`
-records the read status when the tracker supplied it. Native, declared, and inferred dependency
-evidence is scheduling context, not permission to widen scope or publish metadata.
-Independent task packets may run concurrently. A dependent packet carries its complete proven
-prerequisite readiness; an issue with phase-specific work remains one writer and is not split into
-duplicate workers. Technical prerequisites and any deliberately recorded pre-execution stack order
-remain separate: the worker must not treat order as a dependency, rewrite requirements, or infer a
-missing parent. A join without one verified parent containing every prerequisite pauses only that
-packet and its descendants as `waiting-for-merge`; unrelated work continues and no ordinary join
-requires another parent/integration decision. The waiting record carries the prerequisite PRs,
-intended integration branch, and release condition. An explicit decision is needed only for a
-material ambiguity or an explicitly selected suitable existing parent.
+`scope_evidence` accompanies the packet but is not `actual_parent`; `parent_issue_url` carries only a
+conclusively read native parent, and is omitted for an unavailable read. `parent_issue_read` records
+the read status when the tracker supplied it. Native, declared, and inferred technical evidence is
+scheduling context, not permission to widen scope or publish metadata. Independent task packets may
+run concurrently. A dependent packet carries its complete proven effective-prerequisite readiness;
+an issue with phase-specific work remains one writer and is not split into duplicate workers.
+Technical prerequisites and the model-selected execution order remain separate: the worker must not
+treat compatibility ordering as native evidence, rewrite requirements, or infer a missing parent. A
+join with a selected execution parent can stack on that verified parent when containment is eligible.
+Only when the approved layout explicitly selects a `merge-checkpoint` fallback and no safe existing
+parent is available does the affected packet pause as `waiting-for-merge`; unrelated work continues
+and a join otherwise does not require a new parent or integration decision. The waiting record
+carries the prerequisite PRs, intended integration branch, fallback reason, and release condition.
 
 The example's `parent_readiness` is a root with proved parent-PR absence. For a dependent,
-`logical_prerequisites` is the complete admitted task-ID set and `prerequisites` has exactly one
-record per ID: `task_id`, exact `issue_url`, `checkpoint` (the complete [result
-object](validation.md#result-schema), including checks, PR head/base/state/reviews/threads,
-independent validation, and persisted note), and `containment: {ancestor, descendant, verified}`.
-Those SHAs are the prerequisite head and retained parent start; the helper has actually verified
-their Git ancestry. `parent.selection` is `predecessor`, `integration`, or `explicit`. An explicit
-choice carries its preserved `{task_id, branch, sha}` decision; other selections use `null`.
-`parent.pr_evidence` uses [fresh parent PR discovery](scheduling.md#normalized-snapshot).
+`logical_prerequisites` is the complete technical task-ID set, while `execution_prerequisites` is
+the complete effective set. `prerequisites` has exactly one record per effective prerequisite:
+`task_id`, exact `issue_url`, `relationship` (`technical`, `stack`, or `technical+stack`), full
+checkpoint (the complete [result object](validation.md#result-schema), including checks, PR
+head/base/state/reviews/threads, independent validation, and persisted note), and verified
+containment. Those SHAs are the prerequisite head and retained parent start; the helper has actually
+verified their Git ancestry. `parent.selection` is `technical-parent`, `stack-parent`,
+`landed-stack-parent`, `integration`, or `explicit`. An explicit choice carries its preserved
+`{task_id, branch, sha}` decision; other selections use `null`. `parent.pr_evidence` uses fresh parent
+PR discovery ([scheduling](scheduling.md#normalized-snapshot)).
+The [landed-base exception](scheduling.md#normalized-snapshot) is separate from that effective set.
+Every logical prerequisite must be covered by either an effective checkpoint or a
+`base_satisfied_prerequisites` entry in the task's persisted execution layout. For the latter, the
+worker verifies the recorded landed revision against the actual reserved parent SHA before mutation;
+it does not require a controller-owned delivery checkpoint.
+
 
 The complete Execute input comprises `bounded_input` **and** this readiness object plus the task
-specification context and repository rules. The worker verifies that exact prerequisite set, full
-checkpoints, parent choice, current PR facts, and ancestry before Git mutation. It must block missing
-evidence, not discover the graph or infer readiness from a branch name. Repairs retain their original start,
-even if a separately verified parent tip has advanced compatibly.
+specification context, repository rules, and execution layout/order. The worker verifies that exact
+effective prerequisite set, full checkpoints, selected parent, current PR facts, and ancestry before
+Git mutation. It must block missing evidence, not discover the graph or infer readiness from a branch
+name. Repairs retain their original start, even if a separately verified parent tip has advanced
+compatibly. The controller persists the plan revision and fingerprint with the state, so equivalent
+reordered input resumes the same plan. A newer layout revision requires genuinely unstarted changes
+except for [verified legacy-migration recovery](scheduling.md#fingerprints-and-fresh-refills);
+otherwise it is `execution-plan-drift`. A changed technical graph is `snapshot-drift`.
+An unchanged active worker retains its issued plan revision and dependency snapshot through such
+a replan. Result application uses its original admission, not a newer plan the worker never received;
+the controller uses current persisted effective dependencies for descendant repair propagation.
+
 
 A repair entry keeps the same `branch`, absolute `workspace`, `parent_branch`, `parent_sha`, and
 retained PR as its original reservation and sets `repair: true`. It never receives a new parent or

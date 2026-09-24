@@ -26,14 +26,17 @@ relocation.
 
 The approved task names its parent branch and retained parent SHA. Direct Git evidence verifies the
 selected branch's tip and ancestry, including `git merge-base --is-ancestor` for every required
-predecessor. A GitHub DAG dependent's logical prerequisites never select a Git parent by themselves.
-For each dispatched dependent, the caller must supply one concrete parent branch/SHA containing
-every required predecessor change and complete readiness evidence under the
+predecessor. A GitHub technical DAG is evidence of required work; Orchestrate separately selects a
+single-parent execution forest before branch/worktree allocation. Its selected execution parents
+are compatibility ordering, not native relationship evidence. For each dispatched dependent, the
+caller supplies the persisted plan, one concrete parent branch/SHA containing every effective
+prerequisite, and complete readiness evidence under the
 [workspace/ancestry guidance](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/worktrees.md#repository-and-ancestry-evidence).
-Technical prerequisites and any deliberately recorded pre-execution stack order remain separate.
-An unresolved join pauses that task as a human-merge checkpoint; this fallback covers divergent
-work, fixed-parent or independent-landing constraints, or no safe suitable stack. Execute admits a
-selected bounded task, not the whole DAG.
+Technical prerequisites and effective prerequisites remain distinct in packets and repair
+propagation. Independent roots retain useful parallelism. A join can stack on a selected verified
+parent; only the approved `merge-checkpoint` fallback for existing divergence or repository
+constraints pauses that task as a human-merge checkpoint, while a suitable selected parent avoids
+that pause. Execute admits a selected bounded task, not the whole DAG.
 
 ## The primary tree stays clean
 

@@ -821,7 +821,160 @@ def collect_edges(snapshot, tasks, canonical):
     return edges
 
 
-def admit(snapshot, limit):
+def _base_satisfied_prerequisites(raw, task, tasks_by_id, technical, integration, repo):
+    values = raw.get("base_satisfied_prerequisites", [])
+    require(isinstance(values, list),
+            "invalid-execution-layout", "base-satisfied prerequisites must be a list")
+    require(not values or repo is not None, "git-unavailable",
+            "--git-repo is required to verify base-satisfied prerequisites")
+    result, seen = [], set()
+    for value in values:
+        require(isinstance(value, dict) and text(value.get("task_id"))
+                and SHA_RE.fullmatch(value.get("revision") or "")
+                and nonempty_scope_evidence(value.get("evidence")),
+                "invalid-execution-layout",
+                "base-satisfied prerequisite needs task identity, revision, and evidence")
+        task_id = value["task_id"]
+        require(task_id in technical[task["task_id"]], "invalid-execution-layout",
+                "base-satisfied prerequisite must be a technical prerequisite")
+        require(task_id not in seen, "duplicate-execution-task",
+                "base-satisfied prerequisite is repeated")
+        seen.add(task_id)
+        delivery = tasks_by_id[task_id].get("existing_delivery")
+        require(isinstance(delivery, dict), "base-satisfaction-unverified",
+                "base-satisfied prerequisite needs retained delivery evidence")
+        lifecycle = delivery.get("lifecycle")
+        require(isinstance(lifecycle, dict), "base-satisfaction-unverified",
+                "base-satisfied prerequisite needs current lifecycle evidence")
+        pr = lifecycle.get("pr", lifecycle)
+        landed_revision = (pr.get("merge_commit_sha") if isinstance(pr, dict) else None) \
+            or lifecycle.get("landed_revision")
+        landing_target = (pr.get("merged_base_branch") if isinstance(pr, dict) else None) \
+            or lifecycle.get("landing_target")
+        verification = lifecycle.get("landed_verification") or lifecycle.get("verification")
+        require(isinstance(pr, dict) and pr.get("state") == "merged"
+                and landing_target == integration["branch"]
+                and SHA_RE.fullmatch(landed_revision or "")
+                and value["revision"] == landed_revision
+                and isinstance(verification, dict)
+                and verification.get("complete") is True
+                and verification.get("source_verified") is True
+                and verification.get("checks_verified") is True
+                and verification.get("reverted") is not True,
+                "base-satisfaction-unverified",
+                "base-satisfied prerequisite is not verified in the admitted integration base")
+        require(contains(repo, landed_revision, integration["sha"]),
+                "base-satisfaction-unverified",
+                "landed prerequisite is not contained in the admitted integration revision")
+        result.append(copy.deepcopy(value))
+    return sorted(result, key=lambda value: value["task_id"])
+
+
+def collect_execution_layout(snapshot, tasks, repo):
+    """Validate the model-selected task tree without changing technical edges."""
+    raw = snapshot.get("execution_layout")
+    require(isinstance(raw, dict), "missing-execution-layout", "execution layout missing")
+    revision = raw.get("revision")
+    require(type(revision) is int and revision > 0 and text(raw.get("rationale"))
+            and isinstance(raw.get("entries"), list),
+            "invalid-execution-layout", "execution layout revision, rationale, and entries required")
+    task_ids = {task["task_id"] for task in tasks}
+    tasks_by_id = {task["task_id"]: task for task in tasks}
+    by_id = {}
+    technical = {task_id: set(tasks_by_id[task_id]["prerequisites"]) for task_id in sorted(task_ids)}
+    for entry in raw["entries"]:
+        require(isinstance(entry, dict) and text(entry.get("task_id")),
+                "invalid-execution-layout", "execution entry identity required")
+        task_id = entry["task_id"]
+        require(task_id in task_ids, "foreign-execution-task", "execution entry selects an unselected task")
+        require(task_id not in by_id, "duplicate-execution-task", "duplicate execution task")
+        require("execution_parent" in entry and text(entry.get("rationale")),
+                "invalid-execution-layout", "execution parent and rationale required")
+        parent = entry["execution_parent"]
+        if parent is not None:
+            require(parent in task_ids, "foreign-execution-parent", "execution parent is not selected")
+            require(parent != task_id, "self-execution-parent", "task cannot stack on itself")
+        constraints = entry.get("constraints")
+        require(isinstance(constraints, list) and constraints and all(text(value) for value in constraints),
+                "invalid-execution-layout", "execution compatibility evidence required")
+        fallback = entry.get("fallback")
+        if fallback is not None:
+            require(parent is None and isinstance(fallback, dict)
+                    and fallback.get("reason") == "merge-checkpoint"
+                    and text(fallback.get("release_condition")),
+                    "invalid-execution-fallback", "merge fallback needs one release condition")
+        entry = copy.deepcopy(entry)
+        entry["base_satisfied_prerequisites"] = _base_satisfied_prerequisites(
+            entry, tasks_by_id[task_id], tasks_by_id, technical, snapshot["integration"], repo)
+        by_id[task_id] = entry
+    require(set(by_id) == task_ids, "missing-execution-task", "execution layout must select every task once")
+
+    combined = {task_id: set(parents) for task_id, parents in technical.items()}
+    for task_id, entry in by_id.items():
+        if entry["execution_parent"] is not None:
+            combined[task_id].add(entry["execution_parent"])
+    combined = {task_id: tuple(sorted(parents)) for task_id, parents in sorted(combined.items())}
+    try:
+        execution_order = list(TopologicalSorter(combined).static_order())
+    except CycleError as error:
+        raise InputError("execution-cycle", "execution order cycle: " + " -> ".join(error.args[1])) from error
+
+    normalized_entries = []
+    for task_id in sorted(task_ids):
+        entry = copy.deepcopy(by_id[task_id])
+        lineage, parent = [], entry["execution_parent"]
+        while parent is not None:
+            lineage.append(parent)
+            parent = by_id[parent]["execution_parent"]
+        lineage.reverse()
+        fallback = entry.get("fallback")
+        base_satisfied = {value["task_id"] for value in entry["base_satisfied_prerequisites"]}
+        if fallback is None:
+            missing = technical[task_id] - set(lineage) - base_satisfied
+            require(not missing, "missing-execution-ancestor",
+                    "execution path for " + task_id + " omits " + ", ".join(sorted(missing)))
+        else:
+            require(technical[task_id] - base_satisfied, "invalid-execution-fallback",
+                    "merge fallback requires an unsatisfied technical join")
+        task = tasks_by_id[task_id]
+        task["execution_parent"] = entry["execution_parent"]
+        task["execution_rationale"] = entry["rationale"]
+        task["execution_constraints"] = list(entry["constraints"])
+        task["execution_fallback"] = copy.deepcopy(entry.get("fallback"))
+        task["execution_ancestry"] = lineage
+        task["base_satisfied_prerequisites"] = [
+            value["task_id"] for value in entry["base_satisfied_prerequisites"]]
+        task["effective_prerequisites"] = sorted(
+            (technical[task_id] | ({entry["execution_parent"]}
+                                  if entry["execution_parent"] is not None else set())) - base_satisfied)
+        task["dependency_snapshot"] = {
+            "prerequisites": sorted(technical[task_id]),
+            "effective_prerequisites": list(task["effective_prerequisites"]),
+            "execution_parent": entry["execution_parent"],
+            "base_satisfied_prerequisites": list(task["base_satisfied_prerequisites"]),
+            "external_prerequisites": list(task["external_prerequisites"]),
+        }
+        normalized_entries.append(entry)
+
+    effective_edges = []
+    relationships = {}
+    for task_id, parents in technical.items():
+        for predecessor in parents:
+            relationships.setdefault((predecessor, task_id), set()).add("technical")
+    for entry in normalized_entries:
+        if entry["execution_parent"] is not None:
+            relationships.setdefault((entry["execution_parent"], entry["task_id"]), set()).add("stack")
+    for (predecessor, dependent), kinds in sorted(relationships.items()):
+        if predecessor not in tasks_by_id[dependent]["effective_prerequisites"]:
+            continue
+        effective_edges.append({"predecessor": predecessor, "dependent": dependent,
+                                "relationship": "+".join(sorted(kinds))})
+    return {"revision": revision, "rationale": raw["rationale"],
+            "entries": normalized_entries, "effective_edges": effective_edges,
+            "execution_order": execution_order}
+
+
+def admit(snapshot, limit, repo=None):
     canonical = snapshot.get("canonical_repo", "")
     require(REPO_RE.fullmatch(canonical) is not None, "missing-repository", "canonical repository missing")
     require(text(snapshot.get("repository_rules")), "incomplete-task", "repository rules must be read")
@@ -829,6 +982,8 @@ def admit(snapshot, limit):
     require(isinstance(integration, dict) and text(integration.get("branch"))
             and SHA_RE.fullmatch(integration.get("sha", "")) is not None,
             "missing-integration", "admitted integration branch and commit required")
+    if repo is not None:
+        repository(repo, canonical)
     entries = snapshot.get("tasks")
     require(isinstance(entries, list), "incomplete-selection", "resolved executable tasks are missing")
     by_url = {}
@@ -892,12 +1047,9 @@ def admit(snapshot, limit):
         if task.get("actual_parent") is not None:
             task["actual_parent"] = canonical_issue_url(task["actual_parent"], canonical)
     edges = collect_edges(snapshot, tasks, canonical)
-    for task in tasks:
-        task["dependency_snapshot"] = {
-            "prerequisites": list(task["prerequisites"]),
-            "external_prerequisites": list(task["external_prerequisites"]),
-        }
     task_order = check_graph(tasks, edges)
+    execution_layout = collect_execution_layout(snapshot, tasks, repo)
+    execution_fingerprint = digest(execution_layout)
     host = snapshot.get("host", {})
     require(isinstance(host, dict), "no-subagent-capability", "host capability evidence missing")
     host_cap = positive(host.get("max_parallel", 1))
@@ -932,6 +1084,7 @@ def admit(snapshot, limit):
     return {**binding, "status": "admitted" if tasks else "no-work", "tasks": tasks,
             "fingerprint": digest(binding), "integration": integration, "max_parallel": limit,
             "task_order": task_order, "graph": graph_metadata(edges),
+            "execution_layout": execution_layout, "execution_fingerprint": execution_fingerprint,
             "edge_provenance": edges, "parent_prs": copy.deepcopy(snapshot.get("parent_prs", {})),
             "host_cap": host_cap, "recovery": recovery,
             "scope_evidence": scope_evidence,
@@ -1103,6 +1256,8 @@ def new_state(admitted):
     return {
         "version": STATE_VERSION,
         "fingerprint": admitted["fingerprint"],
+        "execution_layout": copy.deepcopy(admitted["execution_layout"]),
+        "execution_fingerprint": admitted["execution_fingerprint"],
         "scope_evidence": copy.deepcopy(admitted.get("scope_evidence")),
         "scope_identity": copy.deepcopy(admitted["scope_identity"]),
         "owner": {"controller_id": secrets.token_hex(16)},
@@ -1129,10 +1284,9 @@ def new_state(admitted):
                 "parent_decision": None,
                 "contract_hash": t["contract_hash"],
                 "contract_revision": t.get("contract_revision", t["contract_hash"]),
-                "dependency_snapshot": copy.deepcopy(t.get("dependency_snapshot", {
-                    "prerequisites": t["prerequisites"],
-                    "external_prerequisites": t["external_prerequisites"],
-                })),
+                "execution_parent": t["execution_parent"],
+                "execution_plan_revision": admitted["execution_layout"]["revision"],
+                "dependency_snapshot": copy.deepcopy(t["dependency_snapshot"]),
                 "source": None,
                 "diff_identity": None,
                 "checks": None,
@@ -1145,8 +1299,106 @@ def new_state(admitted):
         },
     }
 
+def _execution_ancestry(entries, task_id):
+    lineage, parent = [], entries[task_id]["execution_parent"]
+    while parent is not None:
+        lineage.append(parent)
+        parent = entries[parent]["execution_parent"]
+    return list(reversed(lineage))
 
-def state_read(path, admitted):
+
+def _genuinely_unstarted(item, task):
+    untouched = (
+        "reservation", "claim", "host_worker", "delivery", "verified_pr", "lifecycle",
+        "satisfaction", "report", "source", "diff_identity", "checks", "validation", "pr",
+        "parent_decision", "first_uncertain_boundary", "last_evidence", "failure_reason",
+    )
+    return (item.get("status") == "pending" and task.get("existing_delivery") is None
+            and all(item.get(key) is None for key in untouched)
+            and item.get("ci") == _new_ci(item))
+
+def _legacy_execution_drift_tasks(state):
+    recovery = state.get("recovery")
+    require(isinstance(recovery, dict), "invalid-state", "recovery state is invalid")
+    task_ids = recovery.get("legacy_execution_plan_drift", [])
+    require(isinstance(task_ids, list) and all(text(task_id) for task_id in task_ids),
+            "invalid-state", "legacy execution-plan drift state is invalid")
+    return task_ids
+
+
+
+def _known_execution_revision(state, revision):
+    return type(revision) is int and (
+        revision == state["execution_layout"]["revision"]
+        or any(entry.get("from_revision") == revision
+               for entry in state.get("execution_plan_history", [])))
+
+
+def _execution_plan_update(state, admitted, repo):
+    current = state["execution_layout"]
+    require(type(current.get("revision")) is int and current["revision"] > 0
+            and state.get("execution_fingerprint") == digest(current),
+            "invalid-state", "retained execution plan identity is invalid")
+    if state["execution_fingerprint"] == admitted["execution_fingerprint"]:
+        return None
+    require(admitted["execution_layout"]["revision"] > current["revision"],
+            "execution-plan-drift", "changed execution layout requires a newer plan revision")
+    current_entries = {entry["task_id"]: entry for entry in current["entries"]}
+    revised_entries = {entry["task_id"]: entry for entry in admitted["execution_layout"]["entries"]}
+    changed = set()
+    for task in admitted["tasks"]:
+        task_id = task["task_id"]
+        item = state["tasks"].get(task_id)
+        require(isinstance(item, dict), "invalid-state", "retained task is missing")
+        retained_parent = current_entries[task_id]["execution_parent"]
+        retained_effective = set((item.get("dependency_snapshot") or {}).get(
+            "effective_prerequisites", []))
+        require(item.get("execution_parent") == retained_parent
+                and _known_execution_revision(state, item.get("execution_plan_revision")),
+                "invalid-state", "retained task execution identity is invalid")
+        if (current_entries[task_id] != revised_entries[task_id]
+                or _execution_ancestry(current_entries, task_id) != task["execution_ancestry"]
+                or retained_effective != set(task["effective_prerequisites"])):
+            changed.add(task_id)
+    legacy_drift = set(_legacy_execution_drift_tasks(state))
+    for task_id in sorted(changed - legacy_drift):
+        require(_genuinely_unstarted(state["tasks"][task_id],
+                                     next(task for task in admitted["tasks"]
+                                          if task["task_id"] == task_id)),
+                "execution-plan-drift", "changed execution plan affects started or reserved work")
+    for task_id in sorted(legacy_drift):
+        require(task_id in revised_entries, "invalid-state", "legacy drift task is outside the selected scope")
+        task = next(task for task in admitted["tasks"] if task["task_id"] == task_id)
+        require(repo is not None and legacy_execution_reservation_compatible(
+                    repo, state, admitted, task, state["tasks"][task_id].get("reservation")),
+                "execution-plan-drift", "legacy task parent is incompatible with the revised plan")
+    return {
+        "from_revision": current["revision"],
+        "from_fingerprint": state["execution_fingerprint"],
+        "to_revision": admitted["execution_layout"]["revision"],
+        "to_fingerprint": admitted["execution_fingerprint"],
+        "changed_tasks": sorted(changed),
+    }
+
+
+def _apply_execution_plan_update(state, admitted, update):
+    state["execution_layout"] = copy.deepcopy(admitted["execution_layout"])
+    state["execution_fingerprint"] = admitted["execution_fingerprint"]
+    for task in admitted["tasks"]:
+        item = state["tasks"][task["task_id"]]
+        if task["task_id"] in update["changed_tasks"] or _genuinely_unstarted(item, task):
+            item.update(
+                execution_parent=task["execution_parent"],
+                execution_plan_revision=admitted["execution_layout"]["revision"],
+                dependency_snapshot=copy.deepcopy(task["dependency_snapshot"]),
+            )
+    state["recovery"].pop("legacy_execution_plan_drift", None)
+    state.setdefault("execution_plan_history", []).append(copy.deepcopy(update))
+
+
+
+
+def state_read(path, admitted, *, allow_execution_plan_update=False, repo=None, active_task_id=None):
     try:
         raw = _state_bytes(path)
         state = json.loads(raw)
@@ -1159,6 +1411,37 @@ def state_read(path, admitted):
             "state-mismatch", "state belongs to another scope")
     require(state.get("scope_identity") == admitted["scope_identity"],
             "state-mismatch", "state scope identity differs")
+    legacy_layout = "execution_layout" not in state
+    execution_plan_update = None
+    execution_plan_error = None
+    plan_matches = (state.get("execution_layout") == admitted["execution_layout"]
+                    and state.get("execution_fingerprint") == admitted["execution_fingerprint"])
+    if legacy_layout:
+        state["execution_layout"] = copy.deepcopy(admitted["execution_layout"])
+        state["execution_fingerprint"] = admitted["execution_fingerprint"]
+    elif not plan_matches:
+        if not allow_execution_plan_update:
+            item = state.get("tasks", {}).get(active_task_id)
+            current_entries = {entry["task_id"]: entry for entry in state["execution_layout"]["entries"]}
+            prior_entries = {entry["task_id"]: entry for entry in admitted["execution_layout"]["entries"]}
+            historical = (isinstance(item, dict) and active_task_id in current_entries
+                          and active_task_id in prior_entries
+                          and item.get("execution_plan_revision") == admitted["execution_layout"]["revision"]
+                          and any(entry.get("from_fingerprint") == admitted["execution_fingerprint"]
+                                  for entry in state.get("execution_plan_history", []))
+                          and current_entries[active_task_id] == prior_entries[active_task_id]
+                          and _execution_ancestry(current_entries, active_task_id)
+                          == _execution_ancestry(prior_entries, active_task_id))
+            require(historical, "execution-plan-drift", "controller execution plan changed")
+        else:
+            try:
+                execution_plan_update = _execution_plan_update(state, admitted, repo)
+            except InputError as error:
+                execution_plan_error = {"code": error.code, "message": str(error)}
+            if execution_plan_update is not None:
+                state["_execution_plan_update"] = execution_plan_update
+            if execution_plan_error is not None:
+                state["_execution_plan_error"] = execution_plan_error
     owner = state.get("owner")
     require(isinstance(owner, dict) and text(owner.get("controller_id")),
             "ownership-missing", "controller ownership identity missing")
@@ -1168,6 +1451,8 @@ def state_read(path, admitted):
     require("scope_evidence" in state
             and (state["scope_evidence"] is None) == (admitted.get("scope_evidence") is None),
             "invalid-state", "scope provenance is missing")
+    _legacy_execution_drift_tasks(state)
+    admitted_tasks = {task["task_id"]: task for task in admitted["tasks"]}
     require(type(state.get("halt_new_dispatch")) is bool
             and type(state.get("stop_requested", False)) is bool,
             "invalid-state", "halt/stop state must be explicit")
@@ -1183,6 +1468,22 @@ def state_read(path, admitted):
                     and SHA_RE.fullmatch(reservation["parent_sha"])
                     and Path(reservation["workspace"]).is_absolute(),
                     "invalid-state", "reservation identity incomplete")
+        task = admitted_tasks[item["task_id"]]
+        if legacy_layout:
+            retained_start = item["status"] != "pending" or not _genuinely_unstarted(item, task)
+            require(not retained_start or legacy_execution_reservation_compatible(
+                        repo, state, admitted, task, item.get("reservation")),
+                    "execution-plan-drift",
+                    "legacy task parent is incompatible with the candidate execution layout")
+            item["execution_parent"] = task["execution_parent"]
+            item["execution_plan_revision"] = admitted["execution_layout"]["revision"]
+            item["dependency_snapshot"] = copy.deepcopy(task["dependency_snapshot"])
+        elif execution_plan_update is None and execution_plan_error is None:
+            if plan_matches or item["task_id"] == active_task_id:
+                require(item.get("execution_parent") == task["execution_parent"]
+                        and _known_execution_revision(state, item.get("execution_plan_revision"))
+                        and item.get("dependency_snapshot") == task["dependency_snapshot"],
+                        "invalid-state", "task execution plan identity changed")
         for key in ("lifecycle", "lifecycle_error", "satisfaction", "failure_reason"):
             if key not in item:
                 item[key] = None
@@ -1261,10 +1562,13 @@ def _invalidate_descendants(admitted, state, task_id, reason):
     affected, frontier = set(), [task_id]
     while frontier:
         predecessor = frontier.pop()
-        for child in tasks.values():
-            if predecessor in child.get("prerequisites", []) and child["task_id"] not in affected:
-                affected.add(child["task_id"])
-                frontier.append(child["task_id"])
+        for child_id, child in state["tasks"].items():
+            dependencies = child.get("dependency_snapshot", {})
+            if predecessor in dependencies.get(
+                    "effective_prerequisites", dependencies.get("prerequisites", [])) \
+                    and child_id not in affected:
+                affected.add(child_id)
+                frontier.append(child_id)
     for child_id in affected:
         child = state["tasks"][child_id]
         if child["status"] != "pending":
@@ -1517,7 +1821,7 @@ def _observed_ci(admitted, state, item, observation, repo=None):
 def cmd_observe_checks(args):
     admitted = load_json(args.admitted)
     repository(args.git_repo, admitted["canonical_repo"])
-    state = state_read(args.state, admitted)
+    state = state_read(args.state, admitted, repo=args.git_repo, active_task_id=args.task)
     require(args.task in state["tasks"], "unknown-task", "task outside admitted scope")
     item = state["tasks"][args.task]
     require(item["status"] == "delivered" and isinstance(item.get("delivery"), dict),
@@ -1755,16 +2059,93 @@ def prerequisite_satisfaction(item, task, repo, lifecycle=None, canonical=None, 
     return {"kind": "merged", "revision": merge_sha, "branch": delivery["branch"],
             "pr_url": delivery["pr_url"], "landing_branch": target, "landing_sha": target_tip,
             "checkpoint": copy.deepcopy(delivery["checkpoint"]), "lifecycle": copy.deepcopy(lifecycle)}
+def legacy_execution_reservation_compatible(repo, state, admitted, task, reservation):
+    if not isinstance(reservation, dict) or repo is None:
+        return False
+    planned_parent = task["execution_parent"]
+    expected_branches = {admitted["integration"]["branch"]} if planned_parent is None else set()
+    planned_item = state["tasks"].get(planned_parent, {})
+    planned_delivery = planned_item.get("delivery") or {}
+    planned_branch = planned_delivery.get("branch")
+    if text(planned_branch):
+        expected_branches.add(planned_branch)
+    planned_lifecycle = planned_item.get("lifecycle") or {}
+    planned_pr = planned_lifecycle.get("pr", planned_lifecycle) \
+        if isinstance(planned_lifecycle, dict) else {}
+    if isinstance(planned_pr, dict) and planned_pr.get("state") == "merged" \
+            and (planned_pr.get("merged_base_branch")
+                 or planned_lifecycle.get("landing_target")) == admitted["integration"]["branch"]:
+        expected_branches.add(admitted["integration"]["branch"])
+    return (reservation["parent_branch"] in expected_branches
+            and legacy_execution_parent_compatible(repo, state, admitted, task, reservation))
+
+
+def legacy_execution_parent_compatible(repo, state, admitted, task, reservation):
+    admitted_tasks = {item["task_id"]: item for item in admitted["tasks"]}
+    current = task
+    first = True
+    seen = set()
+    while isinstance(current, dict) and current["task_id"] not in seen:
+        seen.add(current["task_id"])
+        base_satisfied = set(current.get("base_satisfied_prerequisites", []))
+        execution_parent = current.get("execution_parent")
+        for predecessor_id in current.get("effective_prerequisites", []):
+            if predecessor_id in base_satisfied:
+                continue
+            item = state["tasks"].get(predecessor_id)
+            predecessor = admitted_tasks.get(predecessor_id)
+            if not isinstance(item, dict) or not isinstance(predecessor, dict):
+                return False
+            try:
+                satisfaction = prerequisite_satisfaction(
+                    item, predecessor, repo, lifecycle=item.get("lifecycle"),
+                    canonical=admitted["canonical_repo"], verify_checks=False)
+            except InputError:
+                return False
+            if not contains(repo, satisfaction["revision"], reservation["parent_sha"]):
+                return False
+            if first and predecessor_id == execution_parent:
+                expected_branch = (satisfaction["branch"] if satisfaction["kind"] == "open"
+                                   else admitted["integration"]["branch"])
+                if reservation["parent_branch"] != expected_branch:
+                    return False
+        for predecessor_id in sorted(base_satisfied):
+            predecessor = admitted_tasks.get(predecessor_id)
+            delivery = predecessor.get("existing_delivery") if isinstance(predecessor, dict) else None
+            lifecycle = delivery.get("lifecycle") if isinstance(delivery, dict) else None
+            pr = lifecycle.get("pr", lifecycle) if isinstance(lifecycle, dict) else None
+            revision = ((pr.get("merge_commit_sha") if isinstance(pr, dict) else None)
+                        or (lifecycle.get("landed_revision") if isinstance(lifecycle, dict) else None))
+            if not SHA_RE.fullmatch(revision or "") or not contains(
+                    repo, revision, reservation["parent_sha"]):
+                return False
+        if first and execution_parent in base_satisfied:
+            if reservation["parent_branch"] != admitted["integration"]["branch"]:
+                return False
+        first = False
+        current = admitted_tasks.get(execution_parent)
+    return True
+
+
+
+
+def base_satisfied_entries(scope, task):
+    return next(entry["base_satisfied_prerequisites"] for entry in scope["execution_layout"]["entries"]
+                if entry["task_id"] == task["task_id"])
 
 
 def parent_readiness(scope, task, state, reservation, decision, repo, retained=False):
     require(not task["external_prerequisites"], "external-prerequisite", "retained task has external blockers")
+    technical = set(task["prerequisites"])
+    effective = task["effective_prerequisites"]
     predecessors = []
-    for tid in task["prerequisites"]:
+    satisfactions = {}
+    for tid in effective:
         item = state["tasks"][tid]
         satisfaction = prerequisite_satisfaction(
             item, task, repo, lifecycle=item.get("lifecycle"), canonical=scope["canonical_repo"])
         predecessors.append((tid, item["delivery"], satisfaction))
+        satisfactions[tid] = satisfaction
     branch, head = reservation["parent_branch"], reservation["parent_sha"]
     if decision is not None:
         require(isinstance(decision, dict) and decision.get("branch") == branch and decision.get("sha") == head,
@@ -1772,24 +2153,38 @@ def parent_readiness(scope, task, state, reservation, decision, repo, retained=F
     selected = next((entry for entry in predecessors
                      if (entry[2]["kind"] == "open" or retained)
                      and entry[1]["branch"] == branch and entry[1]["head_sha"] == head), None)
-    if not predecessors:
-        require(branch == scope["integration"]["branch"], "unapproved-parent",
-                "root delivery must retain the admitted integration branch")
+    if not effective:
+        require((task["execution_parent"] is None
+                 or task["execution_parent"] in task["base_satisfied_prerequisites"])
+                and branch == scope["integration"]["branch"],
+                "unapproved-parent", "root delivery must retain the admitted integration branch")
         current = branch_tip(repo, branch)
         require(current is not None and (contains(repo, head, current) if retained else current == head),
                 "parent-tip-drift", "selected parent changed incompatibly")
         kind = "integration"
     elif selected is not None:
+        if task["execution_parent"] is None:
+            require(task["execution_fallback"] is not None, "unapproved-parent",
+                    "a dependent task needs a selected execution parent or merge fallback")
+            kind = "fallback-parent"
+        else:
+            require(task["execution_parent"] == selected[0], "unapproved-parent",
+                    "reserved parent differs from the execution plan")
+            kind = "technical-parent" if selected[0] in technical else "stack-parent"
         current = branch_tip(repo, branch) or (head if retained else None)
         require(current == head or (retained and contains(repo, head, current)),
                 "parent-tip-drift", "selected parent changed incompatibly")
-        kind = "predecessor"
     elif branch == scope["integration"]["branch"] and head == scope["integration"]["sha"]:
+        planned = task["execution_parent"]
+        require(planned is None or planned in task["base_satisfied_prerequisites"]
+                or satisfactions[planned]["kind"] == "merged",
+                "unapproved-parent", "integration cannot replace an open execution parent")
         current = branch_tip(repo, branch)
         require(current == head, "parent-tip-drift", "selected parent changed incompatibly")
-        kind = "integration"
+        kind = "landed-stack-parent" if planned is not None else "integration"
     else:
-        require(isinstance(decision, dict) and decision.get("branch") == branch and decision.get("sha") == head,
+        require(task["execution_parent"] is None and isinstance(decision, dict)
+                and decision.get("branch") == branch and decision.get("sha") == head,
                 "unapproved-parent", "retained integration choice requires its explicit approved decision")
         current = branch_tip(repo, branch) or (head if retained else None)
         require(current is not None and contains(repo, head, current),
@@ -1804,11 +2199,24 @@ def parent_readiness(scope, task, state, reservation, decision, repo, retained=F
         require(contains(repo, revision, head), "uncontained-prerequisite",
                 "selected parent does not contain " + tid)
         records.append({"task_id": tid, "issue_url": delivery["association"],
+                        "relationship": "technical+stack" if tid in technical
+                        and tid == task["execution_parent"] else "technical" if tid in technical else "stack",
                         "checkpoint": copy.deepcopy(delivery["checkpoint"]),
                         "satisfaction": copy.deepcopy(satisfaction),
                         "containment": {"ancestor": revision, "descendant": head,
                                         "verified": True}})
-    return {"logical_prerequisites": list(task["prerequisites"]), "external_prerequisites": [],
+    for entry in base_satisfied_entries(scope, task):
+        require(contains(repo, entry["revision"], head), "uncontained-prerequisite",
+                "selected parent does not contain base-satisfied prerequisite " + entry["task_id"])
+    return {"logical_prerequisites": list(task["prerequisites"]),
+            "execution_prerequisites": list(effective),
+            "base_satisfied_prerequisites": list(task["base_satisfied_prerequisites"]),
+            "external_prerequisites": [],
+            "execution_parent": task["execution_parent"],
+            "execution_ancestry": list(task["execution_ancestry"]),
+            "execution_rationale": task["execution_rationale"],
+            "execution_constraints": copy.deepcopy(task["execution_constraints"]),
+            "execution_fallback": copy.deepcopy(task["execution_fallback"]),
             "prerequisites": records,
             "parent": {"branch": branch, "sha": head, "current_sha": current, "selection": kind,
                        "pr_evidence": proof},
@@ -1927,6 +2335,16 @@ def validate_delivery(admitted, task, reservation, result, repo, *, historical=F
 
 def packet(admitted, task, reservation, repair, retained, readiness, scope_evidence=None, repair_context=None):
     specification = task["specification"]
+    execution_order = {
+        "plan_revision": admitted["execution_layout"]["revision"],
+        "execution_parent": task["execution_parent"],
+        "rationale": task["execution_rationale"],
+        "constraints": copy.deepcopy(task["execution_constraints"]),
+        "fallback": copy.deepcopy(task["execution_fallback"]),
+        "effective_prerequisites": list(task["effective_prerequisites"]),
+        "base_satisfied_prerequisites": list(task["base_satisfied_prerequisites"]),
+        "ancestry": list(task["execution_ancestry"]),
+    }
     result = {
         "task_id": task["task_id"], "ordinal": task["ordinal"], "child_issue_url": task["url"],
         "scope_url": task["url"], "specification": specification,
@@ -1935,6 +2353,8 @@ def packet(admitted, task, reservation, repair, retained, readiness, scope_evide
         "parent_readiness": readiness,
         "dependency_edges": copy.deepcopy(task.get("edge_provenance", [])),
         "graph": copy.deepcopy(admitted["graph"]),
+        "execution_layout": copy.deepcopy(admitted["execution_layout"]),
+        "execution_order": execution_order,
         "checks": task["contract"]["checks"], "contract_hash": task["contract_hash"],
         "scope_evidence": copy.deepcopy(scope_evidence),
         "repair_evidence": copy.deepcopy(repair_context),
@@ -1952,27 +2372,33 @@ def packet(admitted, task, reservation, repair, retained, readiness, scope_evide
 
 
 def choose_parent(scope, task, state, decisions, repo):
-    if not task["prerequisites"]:
+    effective = task["effective_prerequisites"]
+    satisfactions = {
+        tid: prerequisite_satisfaction(
+            state["tasks"][tid], task, repo, lifecycle=state["tasks"][tid].get("lifecycle"),
+            canonical=scope["canonical_repo"])
+        for tid in effective
+    }
+    planned = task["execution_parent"]
+    if not effective:
         candidates = [scope["integration"]]
-    elif task["task_id"] in decisions:
-        candidates = [decisions[task["task_id"]]]
+    elif planned is not None and planned not in task["base_satisfied_prerequisites"]:
+        planned_satisfaction = satisfactions[planned]
+        candidates = [{"branch": planned_satisfaction["branch"], "sha": planned_satisfaction["revision"]}] \
+            if planned_satisfaction["kind"] == "open" else [scope["integration"]] \
+            if planned_satisfaction["kind"] == "merged" else []
     else:
         candidates = [scope["integration"]]
-        for predecessor in task["prerequisites"]:
-            item = state["tasks"][predecessor]
-            satisfaction = prerequisite_satisfaction(
-                item, task, repo, lifecycle=item.get("lifecycle"), canonical=scope["canonical_repo"])
-            if satisfaction["kind"] == "open":
-                candidates.append({"branch": satisfaction["branch"], "sha": satisfaction["revision"]})
-    heads = []
-    for predecessor in task["prerequisites"]:
-        item = state["tasks"][predecessor]
-        heads.append(prerequisite_satisfaction(
-            item, task, repo, lifecycle=item.get("lifecycle"), canonical=scope["canonical_repo"])["revision"])
+        if task["task_id"] in decisions:
+            candidates.append(decisions[task["task_id"]])
+        candidates.extend({"branch": satisfaction["branch"], "sha": satisfaction["revision"]}
+                          for satisfaction in satisfactions.values() if satisfaction["kind"] == "open")
+    heads = [satisfaction["revision"] for satisfaction in satisfactions.values()]
+    heads.extend(entry["revision"] for entry in base_satisfied_entries(scope, task))
     seen = set()
     for candidate in candidates:
         require(isinstance(candidate, dict) and text(candidate.get("branch"))
-                and SHA_RE.fullmatch(candidate.get("sha", "")),
+                and SHA_RE.fullmatch(candidate.get("sha") or ""),
                 "decision-rejected", "parent decision needs branch and full SHA")
         key = (candidate["branch"], candidate["sha"])
         if key in seen:
@@ -2089,13 +2515,24 @@ def _safe_reason(error, default="blocked"):
     return getattr(error, "code", default)
 
 
+def _dependency_wait_reason(task, state):
+    statuses = {task_id: state["tasks"][task_id]["status"] for task_id in task["effective_prerequisites"]}
+    if any(status == "unknown" for status in statuses.values()):
+        return "prerequisite-unknown"
+    if any(statuses[task_id] != "delivered"
+           for task_id in set(task["prerequisites"]) & statuses.keys()):
+        return "prerequisites-unmet"
+    return "execution-parent-unmet"
+
+
 
 
 def cmd_schedule(args):
     admitted = load_json(args.admitted)
     require(admitted.get("status") in ("admitted", "no-work"), "not-admitted", "admission required")
     root = repository(args.git_repo, admitted["canonical_repo"])
-    state = state_read(args.state, admitted) if args.state else new_state(admitted)
+    state = (state_read(args.state, admitted, allow_execution_plan_update=True, repo=args.git_repo)
+             if args.state else new_state(admitted))
     if not args.state:
         require(not Path(args.state_out).exists(), "existing-state", "initial state already exists; resume it")
         # Publish the owner-bearing initial state before acquiring the claim: the
@@ -2106,11 +2543,13 @@ def cmd_schedule(args):
         args.state = args.state_out
     claim_scope(args.git_repo, admitted, state)
     try:
-        fresh = admit(load_json(args.fresh), admitted["max_parallel"])
+        fresh = admit(load_json(args.fresh), admitted["max_parallel"], args.git_repo)
         require(fresh.get("recovery") is not None, "incomplete-recovery",
                 "schedule requires a complete fresh recovery inventory")
         require(fresh["fingerprint"] == admitted["fingerprint"],
                 "snapshot-drift", "scope/native identity/contract changed")
+        require(fresh["execution_fingerprint"] == admitted["execution_fingerprint"],
+                "execution-plan-drift", "execution layout changed without a newer admitted plan")
         require(fresh["integration"]["branch"] == admitted["integration"]["branch"],
                 "parent-tip-drift", "integration branch identity requires readmission")
         if fresh["integration"]["sha"] != admitted["integration"]["sha"]:
@@ -2130,18 +2569,29 @@ def cmd_schedule(args):
                     break
             require(landed, "parent-tip-drift",
                     "integration tip changed without a verified delivered merge")
+        plan_error = state.pop("_execution_plan_error", None)
+        if plan_error is not None:
+            raise InputError(plan_error["code"], plan_error["message"])
+        plan_update = state.pop("_execution_plan_update", None)
+        if plan_update is not None:
+            _apply_execution_plan_update(state, fresh, plan_update)
     except InputError as error:
+        state.pop("_execution_plan_update", None)
+        state.pop("_execution_plan_error", None)
         state["halt_new_dispatch"], state["halt_reason"] = True, error.code
         state.setdefault("recovery", {})["first_uncertain_boundary"] = {
             "reason": error.code, "status": "snapshot-drift",
         }
         write_state(args, state)
         return {"status": "snapshot-drift", "reason": error.code, "dispatch": [],
+                "execution_layout": copy.deepcopy(state["execution_layout"]),
                 **_state_summary(state)}
     state.setdefault("recovery", {})["last_snapshot"] = {
         "fingerprint": fresh["fingerprint"],
         "scope_identity": copy.deepcopy(fresh["scope_identity"]),
         "scope_evidence": copy.deepcopy(fresh.get("scope_evidence")),
+        "execution_layout": copy.deepcopy(fresh["execution_layout"]),
+        "execution_fingerprint": fresh["execution_fingerprint"],
         "membership": [
             {"url": task["url"], "id": task["id"], "node_id": task["node_id"],
              **({"actual_parent": task["actual_parent"]} if "actual_parent" in task else {}),
@@ -2165,11 +2615,23 @@ def cmd_schedule(args):
         state["halt_new_dispatch"], state["halt_reason"] = True, "user-stop"
         write_state(args, state)
         return {"status": "stopped", "reason": "user-stop", "dispatch": [],
+                "execution_layout": copy.deepcopy(state["execution_layout"]),
                 **_state_summary(state)}
     if state["halt_new_dispatch"]:
-        write_state(args, state)
-        return {"status": "halted", "reason": state["halt_reason"], "dispatch": [],
-                **_state_summary(state)}
+        legacy_drift = _legacy_execution_drift_tasks(state)
+        if state.get("halt_reason") in {
+                "snapshot-drift", "execution-plan-drift", "parent-tip-drift",
+                "incomplete-recovery", "incomplete-selection", "incomplete-task",
+                "missing-repository", "missing-integration", "missing-execution-layout",
+                "invalid-identity",
+        } and not legacy_drift:
+            state["halt_new_dispatch"], state["halt_reason"] = False, None
+            state.setdefault("recovery", {}).pop("first_uncertain_boundary", None)
+        else:
+            write_state(args, state)
+            return {"status": "halted", "reason": state["halt_reason"], "dispatch": [],
+                    "execution_layout": copy.deepcopy(state["execution_layout"]),
+                    **_state_summary(state)}
     decisions = {}
     if args.parent_decision:
         entries = load_json(args.parent_decision).get("decisions")
@@ -2209,11 +2671,11 @@ def cmd_schedule(args):
                 item["failure_reason"] = "external-prerequisite"
             blocked.append({"task_id": tid, "reason": "external-prerequisite"})
             continue
-        if any(state["tasks"][p]["status"] != "delivered" for p in task["prerequisites"]):
+        if any(state["tasks"][p]["status"] != "delivered" for p in task["effective_prerequisites"]):
             if retained_reservation is not None:
                 item["status"] = "repair-ready"
                 item["failure_reason"] = "prerequisites-unmet"
-            waiting.append({"task_id": tid, "reason": "prerequisites-unmet"})
+            waiting.append({"task_id": tid, "reason": _dependency_wait_reason(task, state)})
             continue
         try:
             require(isinstance(retained, dict), "invalid-retained-delivery",
@@ -2318,10 +2780,9 @@ def cmd_schedule(args):
             blocked.append({"task_id": tid, "reason": "external-prerequisite"})
             continue
         lifecycle_failures = []
-        for predecessor in task["prerequisites"]:
+        for predecessor in task["effective_prerequisites"]:
             if state["tasks"][predecessor]["status"] != "delivered":
                 continue
-        for predecessor in task["prerequisites"]:
             predecessor_item = state["tasks"][predecessor]
             if predecessor_item.get("lifecycle_error"):
                 lifecycle_failures.append((predecessor, predecessor_item["lifecycle_error"]["reason"]))
@@ -2336,15 +2797,11 @@ def cmd_schedule(args):
             waiting.append({"task_id": tid, "reason": "prerequisite-lifecycle-unresolved",
                             "prerequisites": [{"task_id": p, "reason": r} for p, r in lifecycle_failures]})
             continue
-        predecessor_states = [state["tasks"][p]["status"] for p in task["prerequisites"]]
+        predecessor_states = [state["tasks"][p]["status"] for p in task["effective_prerequisites"]]
         if any(status != "delivered" for status in predecessor_states):
-            waiting.append({
-                "task_id": tid,
-                "reason": "prerequisite-unknown" if any(status == "unknown" for status in predecessor_states)
-                else "prerequisites-unmet",
-            })
+            waiting.append({"task_id": tid, "reason": _dependency_wait_reason(task, state)})
             continue
-        if any(_ci_dependency_blocked(state["tasks"][p]) for p in task["prerequisites"]):
+        if any(_ci_dependency_blocked(state["tasks"][p]) for p in task["effective_prerequisites"]):
             waiting.append({"task_id": tid, "reason": "prerequisite-ci-unverified"})
             continue
         repair = item["status"] == "repair-ready" or ci_repair
@@ -2366,8 +2823,15 @@ def cmd_schedule(args):
                                 "next_action": "refresh canonical PR and Git evidence before retrying"})
                 continue
             if parent is None:
+                if task["execution_fallback"] is None:
+                    blocked.append({
+                        "task_id": tid,
+                        "reason": "parent-unavailable",
+                        "next_action": "select a verified containing parent or record an approved merge-checkpoint fallback",
+                    })
+                    continue
                 merge_prerequisites = []
-                for predecessor in task["prerequisites"]:
+                for predecessor in task["effective_prerequisites"]:
                     predecessor_item = state["tasks"][predecessor]
                     lifecycle = predecessor_item.get("lifecycle")
                     require(isinstance(lifecycle, dict) and lifecycle,
@@ -2385,8 +2849,10 @@ def cmd_schedule(args):
                     "reason": "waiting-for-merge",
                     "prerequisites": merge_prerequisites,
                     "merge_prerequisites": copy.deepcopy(merge_prerequisites),
+                    "execution_parent": task["execution_parent"],
+                    "execution_fallback": copy.deepcopy(task["execution_fallback"]),
                     "integration_branch": fresh["integration"]["branch"],
-                    "release_condition": "All prerequisite PRs are human-merged into an approved base containing every landed revision.",
+                    "release_condition": task["execution_fallback"]["release_condition"],
                 })
                 continue
             try:
@@ -2459,6 +2925,7 @@ def cmd_schedule(args):
         slots -= 1
     write_state(args, state)
     return {"status": "no-work" if not admitted["tasks"] else "ok", "effective_cap": cap,
+            "execution_layout": copy.deepcopy(state["execution_layout"]),
             "notice": fresh["notice"], "dispatch": dispatch, **_state_summary(
                 state, blocked=blocked, waiting=waiting, paused=paused,
                 unknown_details=unknown)}
@@ -2467,7 +2934,7 @@ def cmd_schedule(args):
 def cmd_record_worker(args):
     admitted = load_json(args.admitted)
     repository(args.git_repo, admitted["canonical_repo"])
-    state = state_read(args.state, admitted)
+    state = state_read(args.state, admitted, repo=args.git_repo, active_task_id=args.task)
     require(args.task in state["tasks"], "unknown-task", "task outside admitted scope")
     item = state["tasks"][args.task]
     require(item["status"] in ("running", "unknown"), "not-running", "worker needs an active reservation")
@@ -2494,11 +2961,16 @@ def cmd_record_worker(args):
 def cmd_apply_result(args):
     admitted = load_json(args.admitted)
     repository(args.git_repo, admitted["canonical_repo"])
-    state = state_read(args.state, admitted)
+    state = state_read(args.state, admitted, repo=args.git_repo, active_task_id=args.task)
     require(args.task in state["tasks"], "unknown-task", "task outside admitted scope")
     item = state["tasks"][args.task]
     require(item["status"] in ("running", "note-pending", "evidence-pending"),
             "not-running", "task has no active reservation or receipt retry")
+    legacy_drift = _legacy_execution_drift_tasks(state)
+    require(item["execution_plan_revision"] == admitted["execution_layout"]["revision"],
+            "execution-plan-drift", "worker result must use its dispatched execution plan")
+    require(args.task not in legacy_drift, "execution-plan-drift",
+            "task requires legacy execution-plan reconciliation")
 
     try:
         result = load_json(args.result)
@@ -2546,16 +3018,23 @@ def cmd_apply_result(args):
     except (InputError, KeyError, TypeError, ValueError) as error:
         outcome = halt(state, item, getattr(error, "code", "unknown-response"),
                        result.get("worker") if isinstance(result, dict) else None)
+        write_state(args, state)
+        return outcome
+
     write_state(args, state)
     return outcome
-
 def cmd_reconcile(args):
     admitted = load_json(args.admitted)
     repository(args.git_repo, admitted["canonical_repo"])
-    state = state_read(args.state, admitted)
+    state = state_read(args.state, admitted, repo=args.git_repo, active_task_id=args.task)
     require(args.task in state["tasks"], "unknown-task", "task outside admitted scope")
     item = state["tasks"][args.task]
-    require(item["status"] == "unknown", "not-unknown", "task has no uncertain outcome")
+    descendant_reconcile = isinstance(item.get("ci"), dict) \
+        and isinstance(item["ci"].get("reconcile_required"), dict)
+    require(item["status"] == "unknown"
+            or (descendant_reconcile and item["status"] in
+                ("running", "delivered", "evidence-pending", "repair-ready")),
+            "not-unknown", "task has no uncertain outcome or active descendant reconciliation")
     task = next(t for t in admitted["tasks"] if t["task_id"] == args.task)
     claim_scope(args.git_repo, admitted, state)
     claim_task(args.git_repo, admitted, task, state, item)
@@ -2647,7 +3126,7 @@ def cmd_reconcile(args):
 def cmd_stop(args):
     admitted = load_json(args.admitted)
     repository(args.git_repo, admitted["canonical_repo"])
-    state = state_read(args.state, admitted)
+    state = state_read(args.state, admitted, repo=args.git_repo)
     claim_scope(args.git_repo, admitted, state)
     require(text(args.reason), "invalid-stop", "stop reason required")
     state["stop_requested"] = True
@@ -2667,7 +3146,7 @@ def cmd_stop(args):
 
 
 def cmd_admit(args):
-    return admit(load_json(args.snapshot), positive(args.max_parallel))
+    return admit(load_json(args.snapshot), positive(args.max_parallel), args.git_repo)
 
 
 def parser():
@@ -2676,6 +3155,7 @@ def parser():
     admission = commands.add_parser("admit")
     admission.add_argument("--snapshot", required=True)
     admission.add_argument("--max-parallel", default=str(DEFAULT_MAX_PARALLEL))
+    admission.add_argument("--git-repo")
     admission.set_defaults(run=cmd_admit)
     schedule = commands.add_parser("schedule")
     schedule.add_argument("--admitted", required=True)

@@ -203,6 +203,38 @@ class FakeGitHub:
         self.calls = []
         self._lock = threading.Lock()
 
+    def execution_layout(
+        self,
+        task_ids: Sequence[str],
+        parents: Dict[str, Optional[str]],
+        fallbacks: Optional[Dict[str, str]] = None,
+    ) -> Dict[str, Any]:
+        fallbacks = fallbacks or {}
+        entries = []
+        for task_id in sorted(task_ids):
+            parent = parents.get(task_id)
+            entry = {
+                "task_id": task_id,
+                "execution_parent": parent,
+                "rationale": (
+                    "Stack after %s to keep every later prerequisite on one ancestor path." % parent
+                    if parent else
+                    "Start from the approved integration base."
+                ),
+                "constraints": ["deterministic recording-driver fixture"],
+            }
+            if task_id in fallbacks:
+                entry["fallback"] = {
+                    "reason": "merge-checkpoint",
+                    "release_condition": fallbacks[task_id],
+                }
+            entries.append(entry)
+        return {
+            "revision": 1,
+            "rationale": "Use one valid execution tree unless existing divergence requires a merge checkpoint.",
+            "entries": entries,
+        }
+
     def _read_pages(self, family: str, pages: Iterable[Sequence[Dict[str, Any]]]) -> list:
         values = []
         for index, page in enumerate(pages, 1):
@@ -243,6 +275,10 @@ class FakeGitHub:
             "canonical_repo": self.canonical,
             "integration": copy.deepcopy(self.integration),
             "parent_prs": self.parent_pr_readbacks(),
+            "execution_layout": self.execution_layout(
+                (item["task_id"] for item in snapshot_children),
+                {"task-a": None, "task-b": None, "task-c": "task-a", "task-d": "task-a", "task-e": None},
+            ),
             "repository_rules": self.repository_rules,
             "specification": self.specification,
             "host": {"delivery_capable": True, "max_parallel": self.max_parallel},
@@ -293,12 +329,21 @@ class FakeGitHub:
             "parent_prs": self.parent_pr_readbacks(),
             "repository_rules": self.repository_rules,
             "host": {"delivery_capable": True, "max_parallel": self.max_parallel},
+            "execution_layout": self.execution_layout(
+                (item["task_id"] for item in issues),
+                {"task-a": None, "task-b": None, "task-c": "task-a"},
+                {"task-d": "All divergent prerequisite deliveries land in the approved base."},
+            ),
             "recovery": self.snapshot()["recovery"],
             "issues": issues,
             "graph": {"edges": edges},
 
         }
         result["selected_issues"] = [item for item in issues if item["url"] in selected]
+        selected_ids = {item["task_id"] for item in result["selected_issues"]}
+        result["execution_layout"]["entries"] = [
+            entry for entry in result["execution_layout"]["entries"] if entry["task_id"] in selected_ids
+        ]
         result["issues"] = result["selected_issues"]
         result["tasks"] = result["issues"]
         record("github", "assemble-issue-list-snapshot", {
@@ -416,6 +461,23 @@ class FakeGitHub:
             "host": {"delivery_capable": True, "max_parallel": self.max_parallel},
             "tasks": tasks,
             "graph": {"edges": edges},
+            "execution_layout": self.execution_layout(
+                (item["task_id"] for item in tasks),
+                (
+                    {
+                        "issue-3": None, "issue-4": None, "issue-5": "issue-3",
+                        "issue-6": None, "issue-7": "issue-6", "issue-8": "issue-7",
+                        "issue-9": "issue-8", "task-a": None, "task-b": None,
+                        "task-c": "task-a",
+                    }
+                ),
+                (
+                    {"issue-6": "Issue 6 is a real technical join; use the approved merge checkpoint."}
+                    if fixture == "reported" else
+                    {"task-d": "All divergent prerequisite deliveries land in the approved base."}
+                    if fixture == "abcd" else {}
+                ),
+            ),
             "issues": tasks,
             "selected_issues": tasks,
             "scope_evidence": {
@@ -469,6 +531,7 @@ class FakeGitHub:
             "repository_rules": self.repository_rules,
             "specification": self.specification,
             "host": {"delivery_capable": True, "max_parallel": self.max_parallel},
+            "execution_layout": self.execution_layout(("task-a",), {"task-a": None}),
             "project": {
                 "url": project_url,
                 "number": 7,
@@ -680,8 +743,14 @@ def verify_execute_readiness(repo: Path, packet: Dict[str, Any], entry: Dict[str
     if not isinstance(readiness, dict) or readiness.get("external_prerequisites") != []:
         raise AssertionError("Execute requires complete caller-supplied parent readiness")
     logical = readiness.get("logical_prerequisites")
+    effective = readiness.get("execution_prerequisites")
+    base_satisfied = readiness.get("base_satisfied_prerequisites")
     records = readiness.get("prerequisites", [])
-    if not isinstance(logical, list) or sorted(row["task_id"] for row in records) != sorted(logical):
+    if not isinstance(logical, list) or not isinstance(effective, list) \
+            or not isinstance(base_satisfied, list) \
+            or not set(logical).issubset(set(effective) | set(base_satisfied)) \
+            or set(effective) & set(base_satisfied) \
+            or sorted(row["task_id"] for row in records) != sorted(effective):
         raise AssertionError("Execute prerequisite checkpoint set is incomplete")
     parent = readiness["parent"]
     if parent["branch"] != entry["parent_branch"] or parent["sha"] != entry["parent_sha"]:
@@ -692,6 +761,13 @@ def verify_execute_readiness(repo: Path, packet: Dict[str, Any], entry: Dict[str
     evidence = parent["pr_evidence"]
     if evidence["complete"] is not True or evidence["head_sha"] != parent["current_sha"]:
         raise AssertionError("Execute parent PR discovery is incomplete")
+    layout = next(row for row in packet["execution_layout"]["entries"]
+                  if row["task_id"] == entry["task_id"])
+    base_entries = layout["base_satisfied_prerequisites"]
+    if sorted(row["task_id"] for row in base_entries) != sorted(base_satisfied):
+        raise AssertionError("Execute landed-base evidence is incomplete")
+    for row in base_entries:
+        git(repo, "merge-base", "--is-ancestor", row["revision"], parent["sha"])
     for row in records:
         checkpoint = row["checkpoint"]
         pr = checkpoint["readback"]

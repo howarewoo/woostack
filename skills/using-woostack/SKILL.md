@@ -73,13 +73,17 @@ proof before correction. Planning phases never edit source, commit, submit a PR,
 
 An exact task-bearing GitHub issue URL alone, or `/woostack-execute --issue <url>`, routes to
 Execute: it reads the selected issue and resolves one bounded task before implementation. Inline
-task instructions remain valid with or without an issue association. For work that spans
-multiple tasks, Orchestrate interprets the conversation, repository, and available GitHub records,
-separates executable tasks from context, constructs a bounded dependency DAG with provenance, and
-asks a focused question when material ambiguity remains. Issue, issue-list, and Project arguments are
-convenience interpretation hints, not exhaustive admission types; native links and declared edges are
-evidence when present, not prerequisites for understanding tracker content. A Project is included only
-when explicitly selected; its status lifecycle is used only when that selection requests status mutation.
+task instructions remain valid with or without an issue association. For work that spans multiple
+tasks, Orchestrate interprets the conversation, repository, and available GitHub records, separates
+executable tasks from context, constructs a bounded technical dependency DAG with provenance, and
+then selects a model-chosen single-parent execution forest before branch/worktree allocation. Added
+ordering is compatibility evidence, not native relationship evidence; technical prerequisites remain
+visible separately, useful parallelism is retained, and effective prerequisites govern readiness
+and repair propagation. Orchestrate asks a focused question when material ambiguity remains. Issue,
+issue-list, and Project arguments are convenience interpretation hints, not exhaustive admission
+types; native links and declared edges are evidence when present, not prerequisites for understanding
+tracker content. A Project is included only when explicitly selected; its status lifecycle is used
+only when that selection requests status mutation.
 
 Ordinary questions about work progress use available authorized GitHub reads or the GitHub UI:
 issues, native relationships when present, and linked pull requests and Git evidence describe planned

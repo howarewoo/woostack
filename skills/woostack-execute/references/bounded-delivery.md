@@ -4,8 +4,10 @@ Shared implementation and delivery safeguards owned by [Execute](../SKILL.md). E
 complete bounded enhancement, refactor, test task, or authorized correction with causal evidence.
 This reference cannot widen the accepted task or replace its admission gates.
 
-Create no project manifest, specification, or execution plan. Selected issue input follows
-[Execute's exact GitHub issue admission](../SKILL.md#optional-exact-github-issue). Repository
+Create no project manifest, specification, or multi-task execution plan. Selected issue input follows
+[Execute's exact GitHub issue admission](../SKILL.md#optional-exact-github-issue). Orchestrate may
+provide this worker a persisted pre-execution layout and effective prerequisite readiness; Execute
+consumes that bounded packet for one task and does not schedule siblings or own the plan. Repository
 delivery goes through Commit; Git and canonical GitHub reads supply source-control evidence, not
 permission to implement or authority to merge.
 
