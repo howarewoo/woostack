@@ -843,7 +843,7 @@ class OrchestrateBehavior(unittest.TestCase):
                          changed_admitted["execution_layout"])
         self.assertEqual(rejected["reason"], "execution-plan-drift")
 
-    def test_legacy_execution_parent_drift_stays_halted_and_rejects_completion(self) -> None:
+    def test_legacy_execution_parent_drift_recovers_with_compatible_revision(self) -> None:
         base = self.github.snapshot()
         old_admitted_path, old_admitted = self._admit_issue(base)
         old_state, initial = self._schedule(
@@ -896,22 +896,112 @@ class OrchestrateBehavior(unittest.TestCase):
              "task-d": "task-a", "task-e": None},
         )
         changed_admitted_path, changed_admitted = self._admit_issue(changed)
-        conflict_state, halted = self._schedule(
-            changed_admitted_path, changed_admitted, legacy_path,
-            changed, "legacy-conflict", cap="1"
+        candidate_path = self._write_json("legacy-conflict-fresh.json", changed)
+        rejected_state = self.tmp / "legacy-conflict-state.json"
+        prior_bytes = legacy_path.read_bytes()
+        prior_checkpoint = checkpoint.read_bytes()
+        code, rejected = invoke_cli(
+            "schedule", "--admitted", str(changed_admitted_path),
+            "--state", str(legacy_path), "--state-out", str(rejected_state),
+            "--git-repo", str(self.repo), "--fresh", str(candidate_path), "--cap", "1",
         )
-        self.assertEqual(halted["status"], "halted", halted)
-        self.assertEqual(halted["reason"], "execution-plan-drift", halted)
-        saved = json.loads(conflict_state.read_text())
-        self.assertTrue(saved["halt_new_dispatch"])
-        self.assertEqual(saved["recovery"]["legacy_execution_plan_drift"], ["task-a"])
+        self.assertEqual(code, 1, rejected)
+        self.assertEqual(rejected["error"], "execution-plan-drift")
+        self.assertFalse(rejected_state.exists())
+        self.assertEqual(legacy_path.read_bytes(), prior_bytes)
+        self.assertEqual(checkpoint.read_bytes(), prior_checkpoint)
 
         _, payload, code = self._apply(
-            changed_admitted_path, conflict_state, "task-a", result,
+            changed_admitted_path, legacy_path, "task-a", result,
             "legacy-conflict-result", expect_code=1, observe_ci=False,
         )
-        self.assertEqual(code, 1, payload)
-        self.assertEqual(payload.get("error"), "execution-plan-drift", payload)
+        self.assertEqual(payload["error"], "execution-plan-drift")
+        self.assertEqual(legacy_path.read_bytes(), prior_bytes)
+
+        completed_state, completed, _ = self._apply(
+            old_admitted_path, legacy_path, "task-a", result, "legacy-original-result"
+        )
+        self.assertEqual(completed["status"], "delivered", completed)
+        self._persist("task-a", result, initial["dispatch"][0])
+
+        recovered = self.github.snapshot()
+        recovered["execution_layout"] = self.github.execution_layout(
+            (item["task_id"] for item in recovered["tasks"]),
+            {"task-a": None, "task-b": "task-a", "task-c": "task-a",
+             "task-d": "task-a", "task-e": None},
+        )
+        recovered["execution_layout"]["revision"] = 2
+        recovered_admitted_path, recovered_admitted = self._admit_issue(recovered)
+        continuation_state, continuation = self._schedule(
+            recovered_admitted_path, recovered_admitted, completed_state,
+            recovered, "legacy-recovered-next", cap="1"
+        )
+        self.assertEqual(continuation["status"], "ok", continuation)
+        self.assertIn("task-b", [entry["task_id"] for entry in continuation["dispatch"]])
+        self.assertNotIn("task-a", [entry["task_id"] for entry in continuation["dispatch"]])
+        retained = json.loads(continuation_state.read_text())
+        self.assertFalse(retained["halt_new_dispatch"])
+        self.assertEqual(retained["tasks"]["task-a"]["reservation"],
+                         legacy["tasks"]["task-a"]["reservation"])
+        self.assertEqual(retained["tasks"]["task-b"]["execution_parent"], "task-a")
+
+    def test_preexisting_persisted_legacy_drift_can_recover_without_replacing_worker(self) -> None:
+        base = self.github.snapshot()
+        admitted_path, admitted = self._admit_issue(base)
+        state_path, initial = self._schedule(
+            admitted_path, admitted, None, base, "persisted-drift-start", cap="1"
+        )
+        host = self._start_host(workers=1)
+        host.dispatch(initial["dispatch"])
+        result = make_result(self.github, "task-a", host.wait_for_report("task-a"), admitted)
+
+        conflicting = self.github.snapshot()
+        conflicting["execution_layout"] = self.github.execution_layout(
+            (item["task_id"] for item in conflicting["tasks"]),
+            {"task-a": "task-e", "task-b": None, "task-c": "task-a",
+             "task-d": "task-a", "task-e": None},
+        )
+        _, conflicting_admitted = self._admit_issue(conflicting)
+        historical = json.loads(state_path.read_text())
+        historical["execution_layout"] = conflicting_admitted["execution_layout"]
+        historical["execution_fingerprint"] = conflicting_admitted["execution_fingerprint"]
+        historical["halt_new_dispatch"] = True
+        historical["halt_reason"] = "execution-plan-drift"
+        historical["recovery"]["legacy_execution_plan_drift"] = ["task-a"]
+        for task in conflicting_admitted["tasks"]:
+            item = historical["tasks"][task["task_id"]]
+            item["execution_parent"] = task["execution_parent"]
+            item["execution_plan_revision"] = 1
+            item["dependency_snapshot"] = task["dependency_snapshot"]
+        state_path.write_text(json.dumps(historical, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        checkpoint = self.repo / ".woostack" / "tmp" / "orchestrate-checkpoints" / (
+            historical["fingerprint"].split(":", 1)[1] + ".head.json"
+        )
+        checkpoint.write_text(json.dumps({
+            "version": 1, "fingerprint": historical["fingerprint"],
+            "scope_identity": historical["scope_identity"],
+            "digest": hashlib.sha256(state_path.read_bytes()).hexdigest(),
+            "state_path": str(state_path),
+        }, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
+        recovered = self.github.snapshot()
+        recovered["execution_layout"]["revision"] = 2
+        recovered_path, recovered_admitted = self._admit_issue(recovered)
+        recovered_state, resumed = self._schedule(
+            recovered_path, recovered_admitted, state_path, recovered,
+            "persisted-drift-recovered", cap="1"
+        )
+        self.assertEqual(resumed["status"], "ok", resumed)
+        self.assertEqual(resumed["dispatch"], [], resumed)
+        saved = json.loads(recovered_state.read_text())
+        self.assertNotIn("legacy_execution_plan_drift", saved["recovery"])
+        self.assertFalse(saved["halt_new_dispatch"])
+        self.assertEqual(saved["tasks"]["task-a"]["reservation"],
+                         historical["tasks"]["task-a"]["reservation"])
+        _, completed, _ = self._apply(
+            recovered_path, recovered_state, "task-a", result, "persisted-drift-result"
+        )
+        self.assertEqual(completed["status"], "delivered", completed)
 
     def test_legacy_execution_parent_revision_and_base_ancestry_must_be_retained(self) -> None:
         base = self.github.snapshot()
@@ -983,21 +1073,26 @@ class OrchestrateBehavior(unittest.TestCase):
              "task-d": "task-a", "task-e": None},
         )
         changed_admitted_path, changed_admitted = self._admit_issue(changed)
-        conflict_state, halted = self._schedule(
-            changed_admitted_path, changed_admitted, legacy_path,
-            changed, "ancestry-conflict", cap="1"
+        prior_bytes = legacy_path.read_bytes()
+        prior_checkpoint = checkpoint.read_bytes()
+        candidate_path = self._write_json("ancestry-conflict-fresh.json", changed)
+        conflict_state = self.tmp / "ancestry-conflict-state.json"
+        code, halted = invoke_cli(
+            "schedule", "--admitted", str(changed_admitted_path),
+            "--state", str(legacy_path), "--state-out", str(conflict_state),
+            "--git-repo", str(self.repo), "--fresh", str(candidate_path), "--cap", "1",
         )
-        self.assertEqual(halted["status"], "halted", halted)
-        self.assertEqual(halted["reason"], "execution-plan-drift", halted)
-        saved = json.loads(conflict_state.read_text())
-        self.assertEqual(saved["recovery"]["legacy_execution_plan_drift"], ["task-b"])
+        self.assertEqual(code, 1, halted)
+        self.assertEqual(halted["error"], "execution-plan-drift")
+        self.assertFalse(conflict_state.exists())
+        self.assertEqual(legacy_path.read_bytes(), prior_bytes)
+        self.assertEqual(checkpoint.read_bytes(), prior_checkpoint)
 
         _, payload, code = self._apply(
-            changed_admitted_path, conflict_state, "task-b", result_b,
+            changed_admitted_path, legacy_path, "task-b", result_b,
             "ancestry-conflict-result", expect_code=1, observe_ci=False,
         )
-        self.assertEqual(code, 1, payload)
-        self.assertEqual(payload.get("error"), "execution-plan-drift", payload)
+        self.assertEqual(payload["error"], "execution-plan-drift")
 
         legacy = json.loads(legacy_path.read_text())
         legacy["tasks"]["task-b"]["reservation"].update({
@@ -1039,10 +1134,10 @@ class OrchestrateBehavior(unittest.TestCase):
         self.assertIsNotNone(spec.loader)
         helper = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(helper)
-        migrated = helper.state_read(str(legacy_path), base_admitted, repo=self.repo)
-        self.assertTrue(migrated["halt_new_dispatch"])
-        self.assertEqual(migrated["halt_reason"], "execution-plan-drift")
-        self.assertEqual(migrated["recovery"]["legacy_execution_plan_drift"], ["task-a", "task-b", "task-c"])
+        with self.assertRaises(helper.InputError) as error:
+            helper.state_read(str(legacy_path), base_admitted, repo=self.repo)
+        self.assertEqual(error.exception.code, "execution-plan-drift")
+        self.assertEqual(json.loads(legacy_path.read_text()), legacy)
 
     def test_legacy_pending_start_evidence_cannot_be_replanned(self) -> None:
         base = self.github.snapshot()
@@ -1072,14 +1167,10 @@ class OrchestrateBehavior(unittest.TestCase):
         self.assertIsNotNone(spec.loader)
         helper = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(helper)
-        migrated = helper.state_read(str(legacy_path), changed_admitted, repo=self.repo)
-        self.assertTrue(migrated["halt_new_dispatch"])
-        self.assertEqual(migrated["halt_reason"], "execution-plan-drift")
-        self.assertIn("task-b", migrated["recovery"]["legacy_execution_plan_drift"])
-        task_b = next(item for item in changed_admitted["tasks"]
-                      if item["task_id"] == "task-b")
-        self.assertEqual(migrated["tasks"]["task-b"]["dependency_snapshot"],
-                         task_b["dependency_snapshot"])
+        with self.assertRaises(helper.InputError) as error:
+            helper.state_read(str(legacy_path), changed_admitted, repo=self.repo)
+        self.assertEqual(error.exception.code, "execution-plan-drift")
+        self.assertEqual(json.loads(legacy_path.read_text()), legacy)
 
 
     def test_issue_list_reuses_resolved_task_identity_and_graph(self) -> None:

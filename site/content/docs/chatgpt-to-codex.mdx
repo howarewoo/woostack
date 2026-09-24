@@ -153,9 +153,9 @@ strategy is requested. This fallback covers divergent work, fixed-parent or inde
 constraints, or no safe suitable stack. A branch name alone does not resolve the join: containment
 must be verified. The workflow never creates an automatic integration branch, combines branches,
 rewrites either graph to avoid the join, or merges a PR. Equivalent reordered input resumes the
-persisted plan. A newer execution-layout revision is adopted atomically only when every changed task
-remains genuinely unstarted; changed technical evidence is `snapshot-drift`, and a layout that touches
-started, reserved, claimed, worker-owned, or delivered work is controlled `execution-plan-drift`.
+persisted plan. A newer execution-layout revision requires genuinely unstarted changes except for
+verified recovery from legacy execution-parent drift; incompatible started work remains controlled
+`execution-plan-drift`. Changed technical evidence is `snapshot-drift`.
 
 ### Complete example bodies
 

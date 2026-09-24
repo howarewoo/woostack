@@ -1327,7 +1327,7 @@ def _legacy_execution_drift_tasks(state):
 
 
 
-def _execution_plan_update(state, admitted):
+def _execution_plan_update(state, admitted, repo):
     current = state["execution_layout"]
     require(type(current.get("revision")) is int and current["revision"] > 0
             and state.get("execution_fingerprint") == digest(current),
@@ -1353,11 +1353,18 @@ def _execution_plan_update(state, admitted):
                 or _execution_ancestry(current_entries, task_id) != task["execution_ancestry"]
                 or retained_effective != set(task["effective_prerequisites"])):
             changed.add(task_id)
-    for task_id in sorted(changed):
+    legacy_drift = set(_legacy_execution_drift_tasks(state))
+    for task_id in sorted(changed - legacy_drift):
         require(_genuinely_unstarted(state["tasks"][task_id],
                                      next(task for task in admitted["tasks"]
                                           if task["task_id"] == task_id)),
                 "execution-plan-drift", "changed execution plan affects started or reserved work")
+    for task_id in sorted(legacy_drift):
+        require(task_id in revised_entries, "invalid-state", "legacy drift task is outside the selected scope")
+        task = next(task for task in admitted["tasks"] if task["task_id"] == task_id)
+        require(repo is not None and legacy_execution_reservation_compatible(
+                    repo, state, admitted, task, state["tasks"][task_id].get("reservation")),
+                "execution-plan-drift", "legacy task parent is incompatible with the revised plan")
     return {
         "from_revision": current["revision"],
         "from_fingerprint": state["execution_fingerprint"],
@@ -1377,6 +1384,7 @@ def _apply_execution_plan_update(state, admitted, update):
             execution_plan_revision=admitted["execution_layout"]["revision"],
             dependency_snapshot=copy.deepcopy(task["dependency_snapshot"]),
         )
+    state["recovery"].pop("legacy_execution_plan_drift", None)
     state.setdefault("execution_plan_history", []).append(copy.deepcopy(update))
 
 
@@ -1407,7 +1415,7 @@ def state_read(path, admitted, *, allow_execution_plan_update=False, repo=None):
         if not allow_execution_plan_update:
             raise InputError("execution-plan-drift", "controller execution plan changed")
         try:
-            execution_plan_update = _execution_plan_update(state, admitted)
+            execution_plan_update = _execution_plan_update(state, admitted, repo)
         except InputError as error:
             execution_plan_error = {"code": error.code, "message": str(error)}
         if execution_plan_update is not None:
@@ -1443,42 +1451,10 @@ def state_read(path, admitted, *, allow_execution_plan_update=False, repo=None):
         task = admitted_tasks[item["task_id"]]
         if legacy_layout:
             retained_start = item["status"] != "pending" or not _genuinely_unstarted(item, task)
-            if retained_start:
-                reservation = item.get("reservation")
-                if not isinstance(reservation, dict):
-                    parent_conflict = True
-                else:
-                    require(all(text(reservation.get(k)) for k in
-                                ("branch", "workspace", "parent_branch", "parent_sha"))
-                            and SHA_RE.fullmatch(reservation["parent_sha"])
-                            and Path(reservation["workspace"]).is_absolute(),
-                            "invalid-state", "reservation identity incomplete")
-                    planned_parent = task["execution_parent"]
-                    expected_branches = {admitted["integration"]["branch"]} \
-                        if planned_parent is None else set()
-                    planned_item = state["tasks"].get(planned_parent, {})
-                    planned_delivery = planned_item.get("delivery") or {}
-                    planned_branch = planned_delivery.get("branch")
-                    if text(planned_branch):
-                        expected_branches.add(planned_branch)
-                    planned_lifecycle = planned_item.get("lifecycle") or {}
-                    planned_pr = planned_lifecycle.get("pr", planned_lifecycle) \
-                        if isinstance(planned_lifecycle, dict) else {}
-                    if isinstance(planned_pr, dict) and planned_pr.get("state") == "merged" \
-                            and (planned_pr.get("merged_base_branch")
-                                 or planned_lifecycle.get("landing_target")) == admitted["integration"]["branch"]:
-                        expected_branches.add(admitted["integration"]["branch"])
-                    parent_conflict = reservation["parent_branch"] not in expected_branches
-                    if not parent_conflict and repo is not None:
-                        parent_conflict = not legacy_execution_parent_compatible(
-                            repo, state, admitted, task, reservation)
-                if parent_conflict:
-                    state["halt_new_dispatch"] = True
-                    state["halt_reason"] = "execution-plan-drift"
-                    state.setdefault("recovery", {}).setdefault("legacy_execution_plan_drift", [])
-                    legacy_drift = _legacy_execution_drift_tasks(state)
-                    if item["task_id"] not in legacy_drift:
-                        legacy_drift.append(item["task_id"])
+            require(not retained_start or legacy_execution_reservation_compatible(
+                        repo, state, admitted, task, item.get("reservation")),
+                    "execution-plan-drift",
+                    "legacy task parent is incompatible with the candidate execution layout")
             item["execution_parent"] = task["execution_parent"]
             item["execution_plan_revision"] = admitted["execution_layout"]["revision"]
             item["dependency_snapshot"] = copy.deepcopy(task["dependency_snapshot"])
@@ -2059,6 +2035,27 @@ def prerequisite_satisfaction(item, task, repo, lifecycle=None, canonical=None, 
     return {"kind": "merged", "revision": merge_sha, "branch": delivery["branch"],
             "pr_url": delivery["pr_url"], "landing_branch": target, "landing_sha": target_tip,
             "checkpoint": copy.deepcopy(delivery["checkpoint"]), "lifecycle": copy.deepcopy(lifecycle)}
+def legacy_execution_reservation_compatible(repo, state, admitted, task, reservation):
+    if not isinstance(reservation, dict) or repo is None:
+        return False
+    planned_parent = task["execution_parent"]
+    expected_branches = {admitted["integration"]["branch"]} if planned_parent is None else set()
+    planned_item = state["tasks"].get(planned_parent, {})
+    planned_delivery = planned_item.get("delivery") or {}
+    planned_branch = planned_delivery.get("branch")
+    if text(planned_branch):
+        expected_branches.add(planned_branch)
+    planned_lifecycle = planned_item.get("lifecycle") or {}
+    planned_pr = planned_lifecycle.get("pr", planned_lifecycle) \
+        if isinstance(planned_lifecycle, dict) else {}
+    if isinstance(planned_pr, dict) and planned_pr.get("state") == "merged" \
+            and (planned_pr.get("merged_base_branch")
+                 or planned_lifecycle.get("landing_target")) == admitted["integration"]["branch"]:
+        expected_branches.add(admitted["integration"]["branch"])
+    return (reservation["parent_branch"] in expected_branches
+            and legacy_execution_parent_compatible(repo, state, admitted, task, reservation))
+
+
 def legacy_execution_parent_compatible(repo, state, admitted, task, reservation):
     admitted_tasks = {item["task_id"]: item for item in admitted["tasks"]}
     current = task

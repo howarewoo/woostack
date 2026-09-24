@@ -201,9 +201,9 @@ effective prerequisite set, full checkpoints, selected parent, current PR facts,
 Git mutation. It must block missing evidence, not discover the graph or infer readiness from a branch
 name. Repairs retain their original start, even if a separately verified parent tip has advanced
 compatibly. The controller persists the plan revision and fingerprint with the state, so equivalent
-reordered input resumes the same plan. A newer layout revision is adopted atomically only when every
-changed task is genuinely unstarted; otherwise it is `execution-plan-drift`. A changed technical graph
-is `snapshot-drift`.
+reordered input resumes the same plan. A newer layout revision requires genuinely unstarted changes
+except for [verified legacy-migration recovery](scheduling.md#fingerprints-and-fresh-refills);
+otherwise it is `execution-plan-drift`. A changed technical graph is `snapshot-drift`.
 
 
 A repair entry keeps the same `branch`, absolute `workspace`, `parent_branch`, `parent_sha`, and

@@ -249,14 +249,19 @@ selected set, technical graph, or execution plan does not drift the run; members
 transition from `declared` to `native` for the same exact set. A changed issue set, contract, native
 identity, meaningful scope/specification context, actual parent, technical edge
 endpoint/provenance/evidence, or blocker returns `snapshot-drift`. A newer execution-layout revision
-may replace the retained plan only when every changed task is genuinely unstarted and compatible
-with retained repository evidence; `schedule` persists that replacement atomically before dispatch.
-A changed plan that touches any started, reserved, claimed, worker-owned, or delivered task returns
-controlled plan drift (`execution-plan-drift`). Both statuses preserve running reservations, recovery
-inventory, claims, and worker identity while requiring a fresh interpreted snapshot; neither launches
-a duplicate, silently adopts a new issue, or erases a running task's recovery boundary. Reinvoking the
-same tracker or an equivalent reordered input resumes the same canonical task claims, execution plan,
-and delivery history.
+may replace the retained plan when every changed task is genuinely unstarted and compatible with
+retained repository evidence; `schedule` persists that replacement atomically before dispatch.
+An incompatible legacy candidate returns `execution-plan-drift` without replacing the retained
+state or checkpoint; its original worker can complete under a compatible admission. The only
+started-task update exception is a previously persisted legacy migration halt: a newer revision
+must prove the retained reservation and prerequisite ancestry compatible before clearing the halt
+(see [recovery rules](references/scheduling.md#fingerprints-and-fresh-refills)).
+Other changes to started, reserved, claimed, worker-owned, or delivered tasks return controlled
+`execution-plan-drift`.
+Both statuses preserve running reservations, recovery inventory, claims, and worker identity while
+requiring a fresh interpreted snapshot; neither launches a duplicate, silently adopts a new issue,
+or erases a running task's recovery boundary. Reinvoking the same tracker or an equivalent reordered
+input resumes the same canonical task claims, execution plan, and delivery history.
 
 ## Select an isolated workspace and dispatch
 
@@ -404,9 +409,9 @@ branch/worktree allocation; its optional parent is compatibility ordering, not n
 evidence. It must retain useful parallelism, and its effective prerequisites (technical prerequisites
 plus the selected execution parent) govern scheduling, worker readiness, repair propagation, and
 resume. The normalized layout and fingerprint persist in state. Reordered equivalent input resumes
-the same plan. A newer layout revision is adopted atomically only when every changed task remains
-genuinely unstarted; otherwise it returns `execution-plan-drift`. A changed technical graph returns
-`snapshot-drift`.
+the same plan. A newer layout revision requires genuinely unstarted changes, apart from the
+[verified legacy-migration recovery](references/scheduling.md#fingerprints-and-fresh-refills);
+otherwise it returns `execution-plan-drift`. A changed technical graph returns `snapshot-drift`.
 For dispatch, readiness still requires every effective prerequisite's verified delivery and persisted
 note, plus one concrete existing parent containing all current prerequisite revisions. The selected
 parent is used when open and permitted; the approved integration branch is

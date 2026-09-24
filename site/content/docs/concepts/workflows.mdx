@@ -79,9 +79,12 @@ parallelism is retained, and effective prerequisites govern worker readiness and
 A technical prerequisite may be omitted from the execution ancestry only when the layout records
 independent evidence that its merged revision is already contained in the approved integration base.
 The plan and fingerprint persist in controller state; equivalent reordered input resumes it. A newer
-execution-plan revision is adopted atomically only when every changed task remains genuinely
-unstarted. Changed technical evidence is `snapshot-drift`; a layout that touches started, reserved,
-claimed, worker-owned, or delivered work is controlled `execution-plan-drift`.
+execution-plan revision is adopted atomically for genuinely unstarted changes. An incompatible
+legacy candidate leaves the retained state and worker contract unchanged. A previously persisted
+legacy execution-parent halt can adopt a newer revision only after its reservation and full
+prerequisite ancestry are verified compatible. Other changes to started, reserved, claimed,
+worker-owned, or delivered work are `execution-plan-drift`; changed technical evidence is
+`snapshot-drift`.
 
 After planning, hand Orchestrate the complete planning handback or other understandable work
 context. It interprets the conversation, repository, and available GitHub records; resolves the

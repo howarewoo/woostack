@@ -307,11 +307,18 @@ mutable facts are still refreshed and recorded. A changed issue set, contract, i
 tracker scope/specification, actual parent, technical edge endpoint/provenance/evidence, or blocker
 returns `snapshot-drift`. A changed execution layout returns controlled `execution-plan-drift` when
 it touches started, reserved, claimed, worker-owned, or delivered work. A newer plan revision is
-adopted only when every changed task is genuinely unstarted and compatible with the complete retained
-recovery and repository evidence; the accepted layout, fingerprint, per-task dependencies, and plan
-history are written in the same atomic checkpoint before any new dispatch. Equivalent reordered input
-resumes the same plan. Every status preserves existing reservations, claims, workers, deliveries, and
-recovery boundaries and requires a fully fresh interpreted snapshot.
+adopted only when every changed task is genuinely unstarted and compatible with complete retained
+recovery and repository evidence. Legacy state without a plan treats the proposed layout as a
+candidate: incompatible retained reservations or prerequisite ancestry return
+`execution-plan-drift` without writing a new state or checkpoint. The original bound worker can
+complete under a compatible admission, then scheduling can resume. For states already persisted by
+an earlier controller with `legacy_execution_plan_drift`, a newer revision may clear that drift
+only after every flagged task's retained reservation branch and full prerequisite ancestry are
+proved compatible. An incompatible revision leaves the halt and worker ownership intact. The
+accepted layout, fingerprint, per-task dependencies, and plan history are written in the same
+atomic checkpoint before any new dispatch. Equivalent reordered input resumes the same plan.
+Every status preserves existing reservations, claims, workers, deliveries, and recovery boundaries
+and requires a fully fresh interpreted snapshot.
 
 Every fresh refill carries the complete recovery inventory described above: checkpoint/state
 identities, worker processes/sessions, Git worktrees/refs/dirty state, canonical PRs, contract

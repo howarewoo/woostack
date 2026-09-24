@@ -135,9 +135,10 @@ provenance separately from the model-selected `execution_layout`. Its `execution
 prerequisites, and verified landed-base prerequisite evidence are persisted with the plan
 fingerprint and used for readiness, repair propagation, and resume. A selected execution parent is
 compatibility ordering, not native relationship evidence. Equivalent reordered input resumes the
-same plan. A newer execution layout is adopted atomically only when every changed task is genuinely
-unstarted; a layout that changes started, reserved, claimed, worker-owned, or delivered work is
-controlled `execution-plan-drift`, while a changed technical graph remains `snapshot-drift`.
+same plan. A newer layout revision requires genuinely unstarted changes except for
+[verified legacy-migration recovery](scheduling.md#fingerprints-and-fresh-refills);
+otherwise changes to started, reserved, claimed, worker-owned, or delivered work return controlled
+`execution-plan-drift`. A changed technical graph remains `snapshot-drift`.
 
 ## Evidence calculations
 All evidence is for the exact reservation currently in controller state. The worker's selected
