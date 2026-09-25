@@ -1258,8 +1258,10 @@ class OrchestrateBehavior(unittest.TestCase):
                   if json.loads(line)["operation"].startswith("write-")]
         self.assertFalse(writes, writes)
 
-    def test_contrasting_tracker_uses_its_own_membership_edges_and_phase(self) -> None:
+    def test_contrasting_tracker_uses_installed_skill_interpretation(self) -> None:
         snapshot = self.github.tracker_snapshot("abcd")
+        self.assertEqual(self.github.skill_host.calls[-1]["tracker_url"], self.github.canonical + "/issues/42")
+        self.assertEqual(self.github.skill_host.calls[-1]["selected_numbers"], [102, 104, 101, 103])
         admitted_path, admitted = self._admit_issues(snapshot)
         task_urls = [task["url"] for task in admitted["tasks"]]
         self.assertEqual(task_urls, [self.github.canonical + "/issues/" + str(number) for number in (101, 102, 103, 104)])
@@ -1311,7 +1313,10 @@ class OrchestrateBehavior(unittest.TestCase):
             "Context: design #2. Baseline: PR #1. Implementation index:\n"
             "- #9: phase #9-A and phase #9-B\n- #8: integration\n- #7: UI\n"
             "- #6: service\n- #5: data\n- #4: API\n- #3: foundation\n"
-            "Issue #9 has phases #9-A and #9-B."
+            "Issue #9 has phases #9-A and #9-B.\n"
+            "Declared dependencies:\n"
+            "- #3 -> #5\n- #4 -> #6\n- #5 -> #6\n"
+            "- #6 -> #7\n- #7 -> #8\n- #8 -> #9\n"
         )
         _, equivalent = self._admit_issues(reordered)
         self.assertEqual(admitted["fingerprint"], equivalent["fingerprint"])
