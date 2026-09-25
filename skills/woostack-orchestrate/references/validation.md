@@ -50,7 +50,11 @@ values to invent:
       "complete": true,
       "required_approvals": 0,
       "dismiss_stale_reviews": false,
-      "require_last_push_approval": false
+      "require_last_push_approval": false,
+      "eligible_reviewers": [],
+      "code_owner_review_required": false,
+      "code_owner_requirements": [],
+      "last_reviewable_push": null
     },
     "diff_identity": "sha256:<runtime-substituted exact binary-diff hash>"
   },
@@ -177,19 +181,30 @@ thread's review association and resolution disposition. A `COMMENTED` review is 
 event and cannot replace an earlier approval or change request from that reviewer. A `DISMISSED`
 review must retain the original commit association and identify both its dismissing pusher and
 dismissal time; a missing or unattributed dismissal is incomplete evidence. `review_policy` is a
-complete fresh read of the repository's review requirements. The helper applies each reviewer's
-latest substantive state and dispositions: an unresolved change-request state remains blocking
-even when a related thread is marked resolved, while a resolved thread may close that thread's
-finding without rewriting the review verdict. Unresolved threads block; resolved threads and
-attributed dismissed reviews do not. Approvals count only from the current head when repository
-policy dismisses stale approvals or requires approval of the last push. A review for an older commit
-remains in the retained checkpoint but never substitutes for `validation.checked_head`, whose
-independent specification review must match the observed head and binary diff. Empty arrays are
-valid only after proved complete reads. Missing pages, malformed or ambiguous records, incomplete
-policy, and a readback observed at another head block delivery. These historical delivery readbacks
-travel with the complete prerequisite checkpoint to Execute; an open PR may be human-ready without
-being reset to draft, and a delivered prerequisite may be stacked before merge when its current
-branch and checks are eligible.
+complete fresh read of the applicable base-branch review requirements and PR evidence.
+`eligible_reviewers` contains the logins currently authorized to satisfy required reviews (write
+permission); it is not a copy of all review authors. When code-owner review is required, resolve
+the CODEOWNERS rules against the changed paths and supply `code_owner_requirements` as one
+nonempty list of eligible owner logins per owned path; an empty list means no changed path has an
+owner. Prove the set is complete, including team membership, rather than assuming an approving
+reviewer is an owner. When `require_last_push_approval` is enabled, `last_reviewable_push` carries
+the GitHub pusher login and UTC `pushed_at` time of the most recent reviewable push; otherwise it
+is null. All submitted and pushed times use GitHub's UTC ISO-8601 `Z` form.
+The helper applies each reviewer's latest substantive state and dispositions: an unresolved
+change-request state remains blocking even when a related thread is marked resolved, while a
+resolved thread may close that thread's finding without rewriting the review verdict. Unresolved
+threads block; resolved threads and attributed dismissed reviews do not. Only eligible reviewers
+count toward required approvals, and each owned changed path needs an eligible owner approval.
+Approvals count only from the current head when repository policy dismisses stale approvals or
+requires approval of the last push; the latter also requires a current-head approval submitted
+after that push by an eligible reviewer other than the pusher. A review for an older commit remains
+in the retained checkpoint but never substitutes for `validation.checked_head`, whose independent
+specification review must match the observed head and binary diff. Empty arrays are valid only
+after proved complete reads. Missing pages, malformed or ambiguous records, incomplete policy,
+and a readback observed at another head block delivery. These historical delivery readbacks travel
+with the complete prerequisite checkpoint to Execute; an open PR may be human-ready without being
+reset to draft, and a delivered prerequisite may be stacked before merge when its current branch
+and checks are eligible.
 
 Current PR lifecycle is reconciled separately from that historical checkpoint, and every fresh refill
 must carry the current lifecycle explicitly. An open lifecycle must identify the same canonical PR,

@@ -203,6 +203,8 @@ class FakeGitHub:
         self.review_policy: Dict[str, Any] = {
             "complete": True, "required_approvals": 0,
             "dismiss_stale_reviews": False, "require_last_push_approval": False,
+            "eligible_reviewers": [], "code_owner_review_required": False,
+            "code_owner_requirements": [], "last_reviewable_push": None,
         }
         self.parent_branches = {"main"}
         self.project_status_reads = []

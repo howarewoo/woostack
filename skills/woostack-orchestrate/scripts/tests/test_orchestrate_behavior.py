@@ -3173,6 +3173,7 @@ class OrchestrateBehavior(unittest.TestCase):
             {"id": 11, "commit_id": h2["readback"]["head_sha"], "state": "APPROVED",
              "submitted_at": "2026-09-24T01:00:00Z", "user": {"login": "current-reviewer"}},
         ]
+        h2["readback"]["review_policy"]["eligible_reviewers"] = ["old-reviewer", "current-reviewer"]
         self.assertEqual(h2["readback"]["reviews"]["head_sha"], h2["readback"]["head_sha"])
         state, delivered_h2, _ = self._apply(admitted_path, state, "task-a", h2, "review-h2-result")
         self.assertEqual(delivered_h2["status"], "delivered", delivered_h2)
@@ -3233,6 +3234,42 @@ class OrchestrateBehavior(unittest.TestCase):
         })
         helper.review_readback(comment_only, h2["readback"]["head_sha"])
 
+        ineligible = copy.deepcopy(comment_only)
+        ineligible["review_policy"].update({
+            "eligible_reviewers": ["old-reviewer"], "dismiss_stale_reviews": True,
+        })
+        with self.assertRaises(helper.InputError) as raised:
+            helper.review_readback(ineligible, h2["readback"]["head_sha"])
+        self.assertEqual(raised.exception.code, "review-approval-required")
+
+        non_owner = copy.deepcopy(comment_only)
+        non_owner["review_policy"].update({
+            "code_owner_review_required": True,
+            "code_owner_requirements": [["required-owner"]],
+        })
+        with self.assertRaises(helper.InputError) as raised:
+            helper.review_readback(non_owner, h2["readback"]["head_sha"])
+        self.assertEqual(raised.exception.code, "code-owner-approval-required")
+        non_owner["review_policy"]["code_owner_requirements"] = [["current-reviewer"]]
+        helper.review_readback(non_owner, h2["readback"]["head_sha"])
+
+        self_push = copy.deepcopy(comment_only)
+        self_push["review_policy"].update({
+            "require_last_push_approval": True,
+            "last_reviewable_push": {
+                "login": "current-reviewer", "pushed_at": "2026-09-24T00:30:00Z",
+            },
+        })
+        with self.assertRaises(helper.InputError) as raised:
+            helper.review_readback(self_push, h2["readback"]["head_sha"])
+        self.assertEqual(raised.exception.code, "last-push-approval-required")
+        self_push["review_policy"]["last_reviewable_push"]["login"] = "other-pusher"
+        helper.review_readback(self_push, h2["readback"]["head_sha"])
+        self_push["review_policy"]["last_reviewable_push"]["pushed_at"] = "2026-09-24T02:00:00Z"
+        with self.assertRaises(helper.InputError) as raised:
+            helper.review_readback(self_push, h2["readback"]["head_sha"])
+        self.assertEqual(raised.exception.code, "last-push-approval-required")
+
         dismissed = copy.deepcopy(rejected)
         dismissed["reviews"]["items"][-1].update({
             "state": "DISMISSED", "dismissed_at": "2026-09-24T04:00:00Z",
@@ -3249,6 +3286,9 @@ class OrchestrateBehavior(unittest.TestCase):
         fresh_required = copy.deepcopy(h2["readback"])
         fresh_required["review_policy"].update({
             "required_approvals": 1, "require_last_push_approval": True,
+            "last_reviewable_push": {
+                "login": "other-pusher", "pushed_at": "2026-09-24T00:30:00Z",
+            },
         })
         fresh_required["reviews"]["items"] = [fresh_required["reviews"]["items"][0]]
         with self.assertRaises(helper.InputError) as raised:

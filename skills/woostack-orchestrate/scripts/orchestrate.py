@@ -2081,11 +2081,26 @@ def review_readback(readback, head):
             "review history must come from a read of the current PR head")
     policy = field_object(readback["review_policy"],
                           ("complete", "required_approvals", "dismiss_stale_reviews",
-                           "require_last_push_approval"), "review policy")
+                           "require_last_push_approval", "eligible_reviewers",
+                           "code_owner_review_required", "code_owner_requirements"), "review policy")
     required = policy["required_approvals"]
-    require(policy["complete"] is True and type(required) is int and required >= 0
+    eligible = policy["eligible_reviewers"]
+    owners = policy["code_owner_requirements"]
+    last_push = policy.get("last_reviewable_push")
+    require("last_reviewable_push" in policy and policy["complete"] is True
+            and type(required) is int and required >= 0
             and type(policy["dismiss_stale_reviews"]) is bool
-            and type(policy["require_last_push_approval"]) is bool,
+            and type(policy["require_last_push_approval"]) is bool
+            and type(policy["code_owner_review_required"]) is bool
+            and isinstance(eligible, list) and all(text(login) for login in eligible)
+            and len({login.lower() for login in eligible}) == len(eligible)
+            and isinstance(owners, list)
+            and all(isinstance(group, list) and group
+                    and all(text(login) for login in group) for group in owners)
+            and (policy["code_owner_review_required"] or not owners)
+            and (last_push is None if not policy["require_last_push_approval"] else
+                 isinstance(last_push, dict) and text(last_push.get("login"))
+                 and text(last_push.get("pushed_at"))),
             "review-policy-incomplete", "repository review policy read is incomplete")
     histories = {}
     for label in ("reviews", "threads"):
@@ -2140,13 +2155,24 @@ def review_readback(readback, head):
         require(item["is_resolved"] or item["review_id"] in dismissed_review_ids,
                 "unresolved-review-finding", "unresolved review finding remains applicable")
     current_only = policy["dismiss_stale_reviews"] or policy["require_last_push_approval"]
+    eligible_logins = {login.lower() for login in eligible}
     approvals = {
-        review["user"]["login"] for review in latest.values()
+        review["user"]["login"].lower(): review for review in latest.values()
         if review["state"] == "APPROVED"
+        and review["user"]["login"].lower() in eligible_logins
         and (not current_only or review["commit_id"] == head)
     }
     require(len(approvals) >= required, "review-approval-required",
-            "applicable approvals do not satisfy repository policy")
+            "eligible approvals do not satisfy repository policy")
+    if policy["code_owner_review_required"]:
+        require(all(any(login.lower() in approvals for login in group) for group in owners),
+                "code-owner-approval-required", "changed paths lack required code-owner approval")
+    if policy["require_last_push_approval"]:
+        require(any(login != last_push["login"].lower()
+                    and review["commit_id"] == head
+                    and review["submitted_at"] > last_push["pushed_at"]
+                    for login, review in approvals.items()),
+                "last-push-approval-required", "latest reviewable push lacks another eligible approver")
     require(not any(review["state"] == "CHANGES_REQUESTED"
                     and review["id"] not in dismissed_review_ids for review in latest.values()),
             "changes-requested", "current applicable review requests changes")
