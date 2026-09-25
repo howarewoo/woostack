@@ -130,6 +130,10 @@ python3 <orchestrate-skill>/scripts/orchestrate.py stop \
 Observe only a delivered task's admitted PR. Assemble the observation from fresh authorized
 GitHub and host reads using the [PR-check observation contract](references/validation.md#pr-check-observation-and-repair);
 invoke `observe-checks` independently of `apply-result` and then refill with `schedule`.
+Use complete check/workflow context to distinguish verified non-applicability from pending or
+inaccessible evidence. Downstream starts default to waiting for applicable CI unless existing
+repository/host guidance explicitly permits verified unmerged stacking while CI is pending; that
+permission never changes the PR's merge readiness and a later current failure pauses descendants.
 
 Do not omit `--fresh` on an initial or subsequent refill. Do not pass a newly created replacement
 state after admission. The detailed JSON schemas, native-read requirements, and controlled status
