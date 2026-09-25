@@ -296,7 +296,7 @@ class OrchestrateBehavior(unittest.TestCase):
         return {
             key: dispatch[key]
             for key in ("branch", "workspace", "parent_branch", "parent_sha",
-                        "task_url", "scope", "contract_hash")
+                        "task_url", "scope", "contract_hash", "attempt_binding")
         }
 
     def _persist(self, task_id: str, result: Dict[str, Any], dispatch: Dict[str, Any]) -> None:
@@ -333,6 +333,7 @@ class OrchestrateBehavior(unittest.TestCase):
         admitted_path, state = self.launch_context[entry["branch"]]
         receipt = self._write_json("launch-" + worker["worker_id"] + ".json", {
             "worker": worker, "reservation": self._reservation(entry),
+            "attempt_binding": entry["packet"]["attempt_binding"],
             "state_digest": hashlib.sha256(state.read_bytes()).hexdigest(),
         })
         code, payload = invoke_cli(

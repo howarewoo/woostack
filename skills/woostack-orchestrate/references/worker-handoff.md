@@ -284,6 +284,10 @@ and any explicitly selected Project status before `apply-result`. Do not invent 
 or let the worker approve its own result. Failed checks/specification validation preserve the
 same reservation and PR for repair; note/evidence-only retries keep the same recorded native
 identity without replaying repository delivery. A new repair launch has its own native identity.
+Each dispatch also issues an `attempt_binding` covering the exact task contract, reservation,
+repair/retained-PR facts, and parent-readiness context. The host launch receipt and worker result
+must echo that binding; the controller records it with the attempt history so a compatible global
+replan cannot relabel or invalidate the launched attempt.
 
 For a missing or malformed response, construct a valid envelope from the originating native handle
 with `outcome: "unknown"` or the malformed report fields. Only a bound envelope may transition the

@@ -324,7 +324,11 @@ dispatched repair attempt binds to the current execution plan and dependency con
 before launch, and its completion must be accepted under that issued plan rather than a stale prior
 attempt revision, while an active repair worker preserves its issued plan binding across any
 subsequent compatible replans. Descendant repair propagation uses the current persisted effective graph.
-the same plan. Every status preserves reservations, claims, workers, deliveries, and recovery
+The execution fingerprint remains useful admission evidence, but it is not a worker-validity
+gate. The helper compares the normalized task-local execution identity (parent, constraints,
+fallback, effective prerequisites, and ancestry) for replan decisions; explanatory layout
+rationale and formatting-only revisions do not invalidate an already issued attempt. Contract,
+permission, parent, or dependency meaning changes still require reconciliation.
 boundaries and requires a fully fresh interpreted snapshot.
 
 Every fresh refill carries the complete recovery inventory described above: checkpoint/state

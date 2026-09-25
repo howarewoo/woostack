@@ -297,10 +297,12 @@ any overlapping redispatch.
 
 Deliver every schedule entry through the selected host adapter's documented subagent primitive.
 The helper persists the normalized execution plan and its fingerprint with the admission and state.
-Every emitted packet binds the plan revision, selected parent, rationale, constraints, effective
-prerequisites, and execution ancestry. Worker readiness and repair propagation use that effective
-graph; technical prerequisites remain separately visible with their provenance. A worker must not
-discover dependencies, choose a different parent, or schedule siblings.
+Every emitted packet binds the normalized task-local execution identity and an `attempt_binding`
+covering the exact contract, reservation, repair/retained-PR facts, and parent-readiness context.
+Worker readiness and repair propagation use that effective graph; technical prerequisites remain
+separately visible with their provenance. A worker must not discover dependencies, choose a different
+parent, or schedule siblings. A later compatible replan may update future layout text, but it cannot
+relabel or invalidate an issued attempt.
 
 Pass the complete packet, exact absolute workspace, branch, parent/start SHA, task identity,
 repository rules, task specification context, bounded contract, complete caller-supplied dependency
