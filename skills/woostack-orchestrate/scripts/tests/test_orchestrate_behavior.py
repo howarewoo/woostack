@@ -404,6 +404,16 @@ class OrchestrateBehavior(unittest.TestCase):
         snapshot["execution_layout"] = self.github.execution_layout((task_id,), {task_id: None})
         snapshot["host"]["name"] = "compatible-unlisted-fixture"
 
+        for index, invalid_task_id in enumerate(("task\x00id", "-task")):
+            with self.subTest(invalid_task_id=invalid_task_id):
+                invalid = copy.deepcopy(snapshot)
+                invalid["tasks"][0]["task_id"] = invalid_task_id
+                code, payload = invoke_cli(
+                    "admit", "--snapshot", str(self._write_json("invalid-identity-%d.json" % index, invalid))
+                )
+                self.assertNotEqual(code, 0, payload)
+                self.assertEqual(payload["error"], "invalid-identity", payload)
+
         for capability in (
             "delivery_capable", "workspace_isolation_capable",
             "result_correlation_capable", "recovery_capable",
@@ -3004,7 +3014,10 @@ class OrchestrateBehavior(unittest.TestCase):
         changed10 = copy.deepcopy(valid)
         changed10["readback"]["draft"] = False
         mismatch_cases.append("ready-pr")
-        variants = [changed, changed2, changed3, changed4, changed5, changed6, changed7, changed8, changed9, changed10]
+        changed11 = copy.deepcopy(valid)
+        changed11["checks"]["passed"] = 1
+        mismatch_cases.append("aggregate-check-type")
+        variants = [changed, changed2, changed3, changed4, changed5, changed6, changed7, changed8, changed9, changed10, changed11]
         incomplete_reviews = copy.deepcopy(valid)
         incomplete_reviews["readback"]["reviews"]["complete"] = False
         stale_reviews = copy.deepcopy(valid)

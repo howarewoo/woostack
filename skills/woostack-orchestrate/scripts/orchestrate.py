@@ -1020,8 +1020,9 @@ def admit(snapshot, limit, repo=None):
     for index, url in enumerate(sorted(by_url), 1):
         entry = by_url[url]
         task_id = entry.get("task_id") or "issue-" + str(entry["number"])
-        require(isinstance(task_id, str) and text(task_id),
-                "invalid-identity", "stable task ID required")
+        require(isinstance(task_id, str) and text(task_id)
+                and "\x00" not in task_id and not task_id.startswith("-"),
+                "invalid-identity", "CLI-addressable stable task ID required")
         if project is not None:
             require(text(entry.get("item_id")), "invalid-project-item", "selected Project item ID missing")
         contract = entry.get("contract")
@@ -2322,7 +2323,7 @@ def validate_delivery(admitted, task, reservation, result, repo, *, historical=F
             and type(smoke.get("passed")) is bool and smoke["executed"],
             "checks-incomplete", "smoke outcome must describe an observed scenario and result")
     outcomes_passed = all(command["passed"] for command in commands) and smoke["passed"]
-    require(checks["passed"] == outcomes_passed
+    require(type(checks["passed"]) is bool and checks["passed"] == outcomes_passed
             and validation["verdict"] in ("pass", "fail"),
             "unknown-response", "verification/review outcome malformed")
     if not outcomes_passed:
