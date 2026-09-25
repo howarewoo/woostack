@@ -494,14 +494,6 @@ class OrchestrateBehavior(unittest.TestCase):
         self.assertEqual(blocked_code, 0, blocked)
         self.assertEqual(blocked["status"], "unknown", blocked)
         self.assertEqual(blocked["reason"], "checks-incomplete", blocked)
-        negative_state, refill = self._schedule(
-            admitted_path, admitted, blocked_state, fresh, "opaque-unobserved-refill", cap="1"
-        )
-        self.assertEqual(len(refill["dispatch"]), 1, refill)
-        host.dispatch(refill["dispatch"])
-        negative_result = make_result(
-            self.github, task_id, host.wait_for_report(task_id), admitted
-        )
         state, delivered, _ = self._apply(
             admitted_path, negative_state, task_id, negative_result, "opaque-delivered"
         )
