@@ -32,7 +32,7 @@ TASK_RE = re.compile(r"[^\x00-\x1f\x7f]+")
 SHA_RE = re.compile(r"(?:[0-9a-f]{40}|[0-9a-f]{64})\Z")
 EDGE_KINDS = ("native", "declared", "inferred")
 DEFAULT_CI_REPAIR_LIMIT = 2
-CI_STATES = ("unverified", "checking", "verified", "blocked", "repair")
+CI_STATES = ("unverified", "checking", "verified", "not-applicable", "blocked", "repair")
 CI_PENDING = ("queued", "waiting", "requested", "pending", "in_progress", "running")
 CI_SUCCESS = ("success", "neutral", "skipped")
 CI_ACTIONABLE = ("failure", "error", "timed_out", "cancelled", "startup_failure")
@@ -1648,7 +1648,8 @@ def _new_ci(item=None, state="unverified", reason=None):
         head = ((item.get("delivery") or {}).get("head_sha")
                 or (item.get("source") or {}).get("head_sha"))
     return {"state": state, "reason": reason, "head_sha": head, "target_sha": None,
-            "failure_fingerprint": None, "repair_attempts": [], "invalidates_descendants": False}
+            "failure_fingerprint": None, "repair_attempts": [], "invalidates_descendants": False,
+            "downstream_start": "require-ci", "downstream_policy_source": "conservative-default"}
 
 
 def _ci_blocked(item, reason, next_action):
@@ -1724,6 +1725,41 @@ def _check_failure_reason(record):
     return None
 
 
+def _ci_downstream_policy(observation):
+    policy = observation.get("downstream_policy")
+    if not isinstance(policy, dict) or policy.get("complete") is not True \
+            or policy.get("state") not in ("require-ci", "allow-pending") \
+            or not text(policy.get("source")):
+        return "require-ci", "conservative-default"
+    return policy["state"], policy["source"]
+
+
+def _ci_applicability(observation):
+    applicability = observation.get("ci_applicability")
+    require(isinstance(applicability, dict) and applicability.get("complete") is True
+            and applicability.get("state") in ("applicable", "pending", "not-applicable")
+            and isinstance(applicability.get("expected_checks"), list)
+            and isinstance(applicability.get("workflows"), list),
+            "ci-applicability-incomplete", "CI applicability needs complete check/workflow context")
+    expected = applicability["expected_checks"]
+    require(all(isinstance(entry, dict) and text(entry.get("name")) and text(entry.get("source"))
+                for entry in expected),
+            "ci-applicability-incomplete", "expected check identity is incomplete")
+    expected_keys = {(entry["name"], entry["source"]) for entry in expected}
+    require(len(expected_keys) == len(expected),
+            "ambiguous-check-identity", "expected check identities are ambiguous")
+    workflows = applicability["workflows"]
+    require(all(isinstance(entry, dict) and text(entry.get("name"))
+                and type(entry.get("expected")) is bool and type(entry.get("applicable")) is bool
+                for entry in workflows),
+            "ci-applicability-incomplete", "workflow applicability evidence is malformed")
+    workflow_expected = any(entry["expected"] for entry in workflows)
+    require(applicability["state"] != "pending" or expected_keys or workflow_expected,
+            "ci-applicability-incomplete",
+            "pending applicability needs expected checks or workflows")
+    return applicability["state"], expected_keys, workflows
+
+
 def _classify_checks(observation, item, state):
     """Classify one complete, host-assembled observation without making network calls."""
     pr = observation.get("pr")
@@ -1733,28 +1769,10 @@ def _classify_checks(observation, item, state):
     pagination = observation.get("pagination")
     require(isinstance(pagination, dict), "ci-evidence-incomplete", "CI pagination evidence missing")
     if not all(pagination.get(name) is True for name in
-               ("check_runs", "commit_statuses", "required_checks", "logs")):
+               ("check_runs", "commit_statuses", "required_checks")):
         raise InputError("ci-evidence-incomplete", "CI evidence did not reach terminal pagination")
-    required = observation.get("required_checks")
-    require(isinstance(required, dict) and type(required.get("complete")) is bool
-            and isinstance(required.get("items"), list), "required-check-config-incomplete",
-            "required check configuration is incomplete")
-    if required["complete"] is not True:
-        raise InputError("required-check-config-inaccessible", "required check configuration is inaccessible")
-    required_items = required["items"]
-    require(all(isinstance(entry, dict) and text(entry.get("name")) and text(entry.get("source"))
-                for entry in required_items), "required-check-config-incomplete",
-            "required check identity is incomplete")
-    required_keys = {(entry["name"], entry["source"]) for entry in required_items}
-    require(len(required_keys) == len(required_items), "ambiguous-check-identity",
-            "required check configuration contains duplicate identities")
-    required_policy = {}
-    for entry in required_items:
-        allowed = entry.get("accepted_conclusions", list(CI_SUCCESS))
-        require(isinstance(allowed, list) and "success" in allowed
-                and all(value in CI_SUCCESS for value in allowed),
-                "required-check-config-incomplete", "required check conclusions need verified policy")
-        required_policy[(entry["name"], entry["source"])] = set(allowed)
+    downstream_start, policy_source = _ci_downstream_policy(observation)
+    applicability, expected_keys, workflows = _ci_applicability(observation)
     records = observation.get("checks")
     require(isinstance(records, list), "ci-evidence-incomplete", "complete check/status records required")
     normalized = []
@@ -1785,19 +1803,8 @@ def _classify_checks(observation, item, state):
               "type": record["type"], "state": record["state"], "url": record["url"],
               "log_url": (record["log"].get("url") if isinstance(record.get("log"), dict)
                           else None)} for record in current]
-    missing = []
-    required_nonpass = []
-    for name, source in required_keys:
-        pair = [record for kind in ("check-run", "commit-status")
-                if (record := current_by_key.get((name, source, kind))) is not None]
-        if not pair:
-            missing.append({"name": name, "source": source})
-        elif any(record["state"] in CI_PENDING for record in pair):
-            continue
-        elif any(record["state"] in CI_ACTIONABLE for record in pair):
-            continue
-        elif any(record["state"] not in required_policy[(name, source)] for record in pair):
-            required_nonpass.append({"name": name, "source": source})
+    ci = item.setdefault("ci", _new_ci(item))
+    ci.update(downstream_start=downstream_start, downstream_policy_source=policy_source)
     failures = []
     for record in current:
         if record["state"] not in CI_ACTIONABLE:
@@ -1806,8 +1813,6 @@ def _classify_checks(observation, item, state):
         if reason is not None:
             raise InputError(reason, "current failed check is not eligible for automatic repair")
         failures.append(record)
-    if required_nonpass:
-        raise InputError("required-check-not-passing", "required check conclusions violate repository policy")
     if failures:
         fingerprint = digest(sorted(
             ({key: record.get(key) for key in
@@ -1816,7 +1821,6 @@ def _classify_checks(observation, item, state):
             key=lambda record: (record["name"], record["source"], record["type"],
                                 record["state"], record["category"], record["diagnosis"]),
         ))
-        ci = item.setdefault("ci", _new_ci(item))
         if any(attempt.get("failure_fingerprint") == fingerprint
                for attempt in ci.get("repair_attempts", [])):
             raise InputError("repeated-identical-failure",
@@ -1835,11 +1839,61 @@ def _classify_checks(observation, item, state):
             "failures": copy.deepcopy(failures),
         }
         return ci
-    if missing or not current or any(record["state"] in CI_PENDING for record in current):
-        ci = item.setdefault("ci", _new_ci(item))
-        ci.update(state="checking", reason="ci-pending-or-missing", head_sha=pr["head_sha"],
+    required = observation.get("required_checks")
+    required_available = isinstance(required, dict) and type(required.get("complete")) is bool \
+        and isinstance(required.get("items"), list)
+    require(required_available or downstream_start == "allow-pending",
+            "required-check-config-incomplete", "required check configuration is incomplete")
+    required_complete = required_available and required["complete"] is True
+    if not required_complete and downstream_start != "allow-pending":
+        raise InputError("required-check-config-inaccessible",
+                         "required check configuration is inaccessible")
+    required_items = required["items"] if required_complete else []
+    require(all(isinstance(entry, dict) and text(entry.get("name")) and text(entry.get("source"))
+                for entry in required_items), "required-check-config-incomplete",
+            "required check identity is incomplete")
+    required_keys = {(entry["name"], entry["source"]) for entry in required_items}
+    require(len(required_keys) == len(required_items), "ambiguous-check-identity",
+            "required check configuration contains duplicate identities")
+    required_policy = {}
+    for entry in required_items:
+        allowed = entry.get("accepted_conclusions", list(CI_SUCCESS))
+        require(isinstance(allowed, list) and "success" in allowed
+                and all(value in CI_SUCCESS for value in allowed),
+                "required-check-config-incomplete", "required check conclusions need verified policy")
+        required_policy[(entry["name"], entry["source"])] = set(allowed)
+    missing = []
+    required_nonpass = []
+    for name, source in required_keys | expected_keys:
+        pair = [record for kind in ("check-run", "commit-status")
+                if (record := current_by_key.get((name, source, kind))) is not None]
+        if not pair:
+            missing.append({"name": name, "source": source})
+        elif any(record["state"] in CI_PENDING for record in pair):
+            continue
+        elif (name, source) in required_keys \
+                and any(record["state"] not in required_policy[(name, source)] for record in pair):
+            required_nonpass.append({"name": name, "source": source})
+    if required_nonpass:
+        raise InputError("required-check-not-passing", "required check conclusions violate repository policy")
+    workflow_applicable = any(entry["expected"] or entry["applicable"] for entry in workflows)
+    if applicability == "not-applicable":
+        require(not current and required_complete and not required_keys and not expected_keys
+                and not workflow_applicable,
+                "ci-applicability-unproved",
+                "non-applicable CI requires complete empty discovery and workflow context")
+        ci.update(state="not-applicable", reason="verified-no-applicable-ci", head_sha=pr["head_sha"],
                   target_sha=target_sha, failure_fingerprint=None,
-                  next_action="observe the current revision again without dispatching a repair")
+                  next_action="no CI polling is required; keep the settled observation for resume")
+        ci["links"] = links
+        return ci
+    if missing or not current or any(record["state"] in CI_PENDING for record in current) \
+            or not required_complete:
+        reason = "ci-required-policy-inaccessible" if not required_complete \
+            else "ci-pending-or-missing"
+        ci.update(state="checking", reason=reason, head_sha=pr["head_sha"],
+                  target_sha=target_sha, failure_fingerprint=None,
+                  next_action="continue observing the current revision; downstream start follows repository policy")
         ci["links"] = links
         return ci
     if item["status"] != "delivered" or not isinstance(item.get("delivery"), dict):
@@ -1851,7 +1905,6 @@ def _classify_checks(observation, item, state):
         _ci_blocked(item, "delivery-revision-mismatch",
                     "independently revalidate delivery at the observed PR revision")
         return item["ci"]
-    ci = item.setdefault("ci", _new_ci(item))
     ci.update(state="verified", reason="current-required-checks-passed", head_sha=pr["head_sha"],
               target_sha=target_sha, failure_fingerprint=None,
               next_action="continue observing while the active Orchestrate run remains open")
@@ -1913,7 +1966,7 @@ def _observed_ci(admitted, state, item, observation, repo=None):
     else:
         if item["ci"]["state"] in ("repair", "blocked"):
             _invalidate_descendants(admitted, state, task["task_id"], item["ci"]["reason"])
-        elif item["ci"]["state"] == "verified":
+        elif item["ci"]["state"] in ("verified", "not-applicable"):
             _clear_descendant_reconciliation(admitted, state, task["task_id"])
     workspace_reopen = observation.get("workspace_reopen") if isinstance(observation, dict) else None
     if isinstance(workspace_reopen, dict):
@@ -2000,7 +2053,9 @@ def _ci_dependency_blocked(item):
     if item.get("satisfaction", {}).get("kind") == "merged":
         return False
     ci = item.get("ci", {})
-    return ci.get("state") in ("unverified", "checking", "repair", "blocked") or ci.get("invalidates_descendants") is True
+    if ci.get("invalidates_descendants") is True or ci.get("state") in ("unverified", "repair", "blocked"):
+        return True
+    return ci.get("state") == "checking" and ci.get("downstream_start") != "allow-pending"
 
 
 def _reset_ci_after_delivery(admitted, state, item, head_sha):
@@ -2106,17 +2161,18 @@ def prerequisite_satisfaction(item, task, repo, lifecycle=None, canonical=None, 
         require(branch_tip(repo, delivery["branch"]) == delivery["head_sha"],
                 "pr-branch-missing", "open prerequisite source branch is missing or changed")
         if verify_checks:
-            checks = lifecycle.get("checks")
-            if checks is None:
-                raise InputError("pr-check-evidence-missing",
-                                 "current prerequisite check evidence is missing")
-            require(isinstance(checks, dict) and checks.get("complete") is True
-                    and checks.get("state") in ("success", "verified")
-                    and checks.get("head_sha") == delivery["head_sha"],
-                    "pr-check-unverified", "current prerequisite checks are not successful")
+            ci = item.get("ci", {})
+            settled = ci.get("state") in ("verified", "not-applicable")
+            permitted_pending = ci.get("state") == "checking" \
+                and ci.get("downstream_start") == "allow-pending" \
+                and ci.get("invalidates_descendants") is not True
+            require(ci.get("head_sha") == delivery["head_sha"] and (settled or permitted_pending),
+                    "pr-check-unverified",
+                    "current prerequisite CI is neither settled nor explicitly permitted to remain pending")
         return {"kind": "open", "revision": delivery["head_sha"], "branch": delivery["branch"],
                 "pr_url": delivery["pr_url"], "checkpoint": copy.deepcopy(delivery["checkpoint"]),
-                "lifecycle": copy.deepcopy(lifecycle)}
+                "lifecycle": copy.deepcopy(lifecycle),
+                "ci_state": item.get("ci", {}).get("state")}
     require(pr.get("base_branch") == delivery["base_branch"], "pr-lifecycle-base",
             "merged prerequisite PR no longer identifies the verified delivery base")
     merge_sha = pr.get("merge_commit_sha") or lifecycle.get("landed_revision")
@@ -2555,6 +2611,8 @@ def _state_summary(state, blocked=None, waiting=None, paused=None, unknown_detai
                            if item.get("ci", {}).get("state") == "checking"),
         "verified": sorted(tid for tid, item in tasks.items()
                            if item.get("ci", {}).get("state") == "verified"),
+        "not_applicable": sorted(tid for tid, item in tasks.items()
+                                if item.get("ci", {}).get("state") == "not-applicable"),
         "ci_blocked": sorted(tid for tid, item in tasks.items()
                              if item.get("ci", {}).get("state") == "blocked"),
         "repair": sorted(tid for tid, item in tasks.items()
@@ -2563,6 +2621,8 @@ def _state_summary(state, blocked=None, waiting=None, paused=None, unknown_detai
             tid: {"state": item["ci"]["state"], "pr_url": item.get("verified_pr"),
                   "head_sha": item["ci"].get("head_sha"), "target_sha": item["ci"].get("target_sha"),
                   "reason": item["ci"].get("reason"), "next_action": item["ci"].get("next_action"),
+                  "downstream_start": item["ci"].get("downstream_start"),
+                  "downstream_policy_source": item["ci"].get("downstream_policy_source"),
                   "links": copy.deepcopy(item["ci"].get("links", []))}
             for tid, item in sorted(tasks.items()) if item.get("ci", {}).get("state") != "unverified"
         },
@@ -2625,15 +2685,7 @@ def reconcile_delivery(admitted, task, item, retained, repo, *, repairing=False,
     probe["lifecycle"] = lifecycle
     satisfaction = prerequisite_satisfaction(probe, task, repo, lifecycle=lifecycle,
                                              canonical=admitted["canonical_repo"],
-                                             verify_checks=not repairing)
-    if lifecycle_state(lifecycle) == "open" and not repairing:
-        checks = lifecycle.get("checks")
-        if isinstance(checks, dict) and checks.get("complete") is True \
-                and checks.get("state") in ("success", "verified") \
-                and checks.get("head_sha") == delivery["head_sha"]:
-            item["ci"] = copy.deepcopy(item.get("ci", _new_ci(item)))
-            item["ci"].update(state="verified", head_sha=delivery["head_sha"],
-                              target_sha=delivery["head_sha"], reason=None, next_action=None)
+                                             verify_checks=False)
     return proof, lifecycle, satisfaction
 
 

@@ -260,8 +260,9 @@ repair-ready; it does not delete a submitted PR or silently broaden scope.
 After a task reaches `delivered`, the active run keeps observing its submitted PR's remote checks
 while the host session continues. Observation never fabricates a worker completion and never
 relabels an old worker handle: it is a real external-CI transition on the existing controller that
-consumes host-provided authoritative PR, check/status, required-check, and log evidence with
-revision-scoped identity, while preserving active native-worker identity checks.
+consumes host-provided authoritative evidence with revision-scoped identity while preserving active
+native-worker identity checks. It also carries host-assembled applicability and downstream-start
+policy evidence; neither is inferred from elapsed time or an empty response.
 
 The helper's `observe-checks` transition consumes one freshly assembled observation
 for a delivered task ([invocation](../SKILL.md#one-real-helper-path)). All values
@@ -276,16 +277,25 @@ must come from current, complete native reads, not prior worker output:
               "type": "check-run", "sha": "<evaluated SHA>", "attempt": 1,
               "state": "success", "url": "<check URL>"}],
   "required_checks": {"complete": true, "items": [{"name": "<context>", "source": "<app identity>"}]},
+  "ci_applicability": {"state": "applicable|pending|not-applicable", "complete": true,
+                       "expected_checks": [{"name": "<context>", "source": "<app identity>"}],
+                       "workflows": [{"name": "<workflow>", "expected": true, "applicable": true}]},
+  "downstream_policy": {"state": "require-ci|allow-pending", "complete": true,
+                        "source": "<repository/host guidance evidence>"},
   "pagination": {"check_runs": true, "commit_statuses": true,
-                 "required_checks": true, "logs": true}
+                 "required_checks": true, "logs": false}
 }
 ```
 
-Include `test_merge_sha: null` explicitly when no tested merge SHA is available.
-For a diagnosed failure, add `category`, `actionable`, `diagnosis`, and
-`log: {accessible, complete, excerpt}` to that record. Include commit statuses
-as `type: "commit-status"`; if both types exist for the same required name/source,
-both must pass. `workspace_reopen`, when needed, supplies
+Include `test_merge_sha: null` explicitly when no tested merge SHA is available. Applicability
+`pending` requires at least one expected check or workflow. `not-applicable` additionally requires
+an empty evaluated check/status set, empty required and expected check sets, and complete workflow
+context showing no expected or applicable workflow. A skipped expected workflow, delayed check
+creation, or incomplete context is not non-applicability. For a diagnosed failure, add `category`,
+`actionable`, `diagnosis`, and `log: {accessible, complete, excerpt}` to that record. Include
+commit statuses as `type: "commit-status"`; if both types exist for the same required name/source,
+both must pass. Log/annotation reads are required for a relevant failure, not for a healthy or
+verified non-applicable result. `workspace_reopen`, when needed, supplies
 `{released:true, complete:true, state:"released", path, branch, head_sha,
 base_branch, task_id, pr_url, writer_status:"stopped", claim_owner}`.
 
@@ -299,8 +309,9 @@ name/source/type. A normalized completed conclusion counts, not merely lifecycle
 A verified stricter repository policy may set `accepted_conclusions: ["success"]`
 on an individual required-check item; never invent a policy override from a red
 or pending check. Terminal pagination and required-configuration completeness
-require actual terminal reads. Empty required configuration plus no visible
-checks still means checking, never a pass.
+require actual terminal reads. Empty required configuration plus no visible checks
+remains pending unless the complete applicability and workflow context verifies
+that no CI applies.
 
 Select the tested merge SHA when GitHub reports any check run or commit status
 there; otherwise evaluate the current PR head. Do not combine same-named checks from
@@ -313,12 +324,19 @@ links when available. It never treats a submitted PR as verified merely because
 the worker exited, and does not persist raw log excerpts as summary evidence.
 
 Keep local focused verification separate from remote CI. Recognize queued/running, success,
-failure/error, cancelled/timed-out/action-required, skipped/neutral, missing, and inaccessible
-outcomes by their actual semantics and repository policy. Missing pages, delayed check creation,
-no visible checks, or unavailable required-check configuration are not proof of a pass.
-checks from advisory ones without discarding an actionable in-scope failure merely because it is
-advisory, and without claiming every advisory check is a merge requirement. CI pending and unknown
-do not equal pass; a stale head or attempt cannot repair or verify current work.
+failure/error, cancelled/timed-out/action-required, skipped/neutral, missing, inaccessible, and
+verified non-applicable outcomes by their actual semantics and repository policy. Missing pages,
+delayed check creation, no visible checks, or unavailable required-check configuration are not proof
+of a pass or non-applicability. Keep advisory and required checks distinct without discarding an
+actionable in-scope advisory failure or claiming every advisory check is a merge requirement. CI
+pending and unknown do not equal pass; a stale head or attempt cannot repair or verify current work.
+
+Downstream start is separate from merge readiness. The host resolves an explicit
+`allow-pending` decision from existing repository or host guidance; an omitted or unreadable
+downstream policy defaults conservatively to `require-ci`. `allow-pending` can release a locally and
+independently validated dependent while the parent remains `checking`, but never labels the parent
+merge-ready. It does not override an inaccessible required policy when deciding CI success. A later
+current actionable failure still invalidates the decision and pauses affected descendants.
 
 For an actionable failure, collect the relevant logs/annotations with enough source/runtime
 evidence to diagnose it; a red status alone is not a diagnosis. Apply the surviving Debug workflow
@@ -352,8 +370,9 @@ every child. Any necessary descendant repair or permitted reconciliation gets it
 owned worker task and fresh verification under the existing source-control policy. Where safe
 propagation cannot be established, pause the affected work and report the decision required. No
 automatic integration branch, dependency rewriting, force-push, or PR merge. Never modify or reopen a
-closed/merged PR automatically. The controller output distinguishes submitted, checking, repairing,
-CI-verified, blocked, waiting, and unverified work.
+closed/merged PR automatically. The controller output distinguishes submitted, checking, verified
+non-applicable, repairing, CI-verified, blocked, waiting, and unverified work, including the observed
+downstream-start decision and its evidence source.
 
 ## GitHub delivery note and optional Project status
 

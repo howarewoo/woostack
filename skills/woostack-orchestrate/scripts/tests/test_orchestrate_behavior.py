@@ -3451,6 +3451,47 @@ class OrchestrateBehavior(unittest.TestCase):
         state, checking, _ = self._observe(admitted_path, state, "task-a", missing, "ci-missing")
         self.assertEqual(checking["ci_state"], "checking", checking)
         self.assertEqual(checking["ci_details"]["task-a"]["links"], [], checking)
+
+        no_ci = self.github.ci_observation(
+            "task-a", required=False, applicability="not-applicable")
+        no_ci["pagination"]["logs"] = False
+        state, no_ci_result, _ = self._observe(admitted_path, state, "task-a", no_ci, "ci-not-applicable")
+        self.assertEqual(no_ci_result["ci_state"], "not-applicable", no_ci_result)
+        self.assertEqual(no_ci_result["not_applicable"], ["task-a"], no_ci_result)
+        self.assertEqual(
+            no_ci_result["ci_details"]["task-a"]["downstream_start"], "require-ci", no_ci_result)
+
+        delayed = self.github.ci_observation(
+            "task-a", applicability="pending", expected=True, downstream_start=None)
+        state, delayed_result, _ = self._observe(admitted_path, state, "task-a", delayed, "ci-delayed")
+        self.assertEqual(delayed_result["ci_state"], "checking", delayed_result)
+        self.assertEqual(delayed_result["reason"], "ci-pending-or-missing", delayed_result)
+        self.assertEqual(
+            delayed_result["ci_details"]["task-a"]["downstream_policy_source"],
+            "conservative-default", delayed_result)
+
+        applicable_expected = self.github.ci_observation("task-a", expected=True)
+        state, applicable_result, _ = self._observe(
+            admitted_path, state, "task-a", applicable_expected, "ci-applicable-expected")
+        self.assertEqual(applicable_result["ci_state"], "verified", applicable_result)
+
+        inaccessible = self.github.ci_observation("task-a", required_accessible=False)
+        state, inaccessible_result, _ = self._observe(
+            admitted_path, state, "task-a", inaccessible, "ci-policy-inaccessible")
+        self.assertEqual(inaccessible_result["reason"], "required-check-config-inaccessible",
+                         inaccessible_result)
+        permitted_inaccessible = self.github.ci_observation(
+            "task-a", required_accessible=False, downstream_start="allow-pending")
+        state, permitted_result, _ = self._observe(
+            admitted_path, state, "task-a", permitted_inaccessible, "ci-permitted-inaccessible")
+        self.assertEqual(permitted_result["ci_state"], "checking", permitted_result)
+        self.assertEqual(permitted_result["reason"], "ci-required-policy-inaccessible", permitted_result)
+
+        unproved = copy.deepcopy(no_ci)
+        unproved["ci_applicability"]["complete"] = False
+        state, unproved_result, _ = self._observe(
+            admitted_path, state, "task-a", unproved, "ci-not-applicable-unproved")
+        self.assertEqual(unproved_result["reason"], "ci-applicability-incomplete", unproved_result)
         neutral = self.github.ci_observation("task-a", check_state="neutral")
         state, neutral_result, _ = self._observe(admitted_path, state, "task-a", neutral, "ci-neutral")
         self.assertEqual(neutral_result["ci_state"], "verified", neutral_result)
@@ -3465,6 +3506,17 @@ class OrchestrateBehavior(unittest.TestCase):
         skipped = self.github.ci_observation("task-a", check_state="skipped")
         state, skipped_result, _ = self._observe(admitted_path, state, "task-a", skipped, "ci-skipped")
         self.assertEqual(skipped_result["ci_state"], "verified", skipped_result)
+
+        advisory = self.github.ci_observation("task-a", required=False, advisory=True)
+        state, advisory_result, _ = self._observe(
+            admitted_path, state, "task-a", advisory, "ci-advisory-success")
+        self.assertEqual(advisory_result["ci_state"], "verified", advisory_result)
+        advisory_failure = self.github.ci_observation(
+            "task-a", required=False, advisory=True, check_state="failure",
+            diagnosis="The advisory check found a real product failure.")
+        state, advisory_failure_result, _ = self._observe(
+            admitted_path, state, "task-a", advisory_failure, "ci-advisory-failure")
+        self.assertEqual(advisory_failure_result["ci_state"], "repair", advisory_failure_result)
 
         old_failure = self.github.ci_observation(
             "task-a", check_state="failure", diagnosis="An older attempt failed."
@@ -3833,6 +3885,93 @@ class OrchestrateBehavior(unittest.TestCase):
         self.assertEqual(dispatched_tasks, ["task-b", "task-c", "task-d"])
         for entry in continuation["dispatch"]:
             self.assertEqual(entry["packet"]["execution_order"]["plan_revision"], 3)
+
+    def test_no_applicable_ci_releases_dependents_and_resumes_without_fabricated_checks(self) -> None:
+        snapshot = self.github.snapshot()
+        admitted_path, admitted = self._admit_issue(snapshot)
+        state, initial = self._schedule(
+            admitted_path, admitted, None, snapshot, "no-ci-initial", cap="1")
+        self.assertEqual([entry["task_id"] for entry in initial["dispatch"]], ["task-a"], initial)
+        host = self._start_host(workers=2)
+        host.dispatch(initial["dispatch"])
+        result_a = make_result(self.github, "task-a", host.wait_for_report("task-a"), admitted)
+        state, _, _ = self._apply(
+            admitted_path, state, "task-a", result_a, "no-ci-delivery", observe_ci=False)
+        self._persist("task-a", result_a, initial["dispatch"][0])
+
+        no_ci = self.github.ci_observation(
+            "task-a", required=False, applicability="not-applicable")
+        no_ci["pagination"]["logs"] = False
+        state, settled, _ = self._observe(admitted_path, state, "task-a", no_ci, "no-ci-settled")
+        self.assertEqual(settled["ci_state"], "not-applicable", settled)
+        state, released = self._schedule(
+            admitted_path, admitted, state, self.github.snapshot(), "no-ci-release", cap="2")
+        self.assertEqual([entry["task_id"] for entry in released["dispatch"]], ["task-b", "task-c"],
+                         released)
+        state, resumed = self._schedule(
+            admitted_path, admitted, state, self.github.snapshot(), "no-ci-resume", cap="2")
+        self.assertEqual(resumed["dispatch"], [], resumed)
+        for entry in released["dispatch"]:
+            self.launch_context[entry["branch"]] = (admitted_path, state)
+
+        host.hold_before_mutation = True
+        host.dispatch(released["dispatch"])
+        self.assertTrue(host.before_mutation.wait(30))
+        failure = self.github.ci_observation(
+            "task-a", check_state="failure", diagnosis="A new current parent failure.")
+        state, failed, _ = self._observe(admitted_path, state, "task-a", failure, "no-ci-late-failure")
+        self.assertEqual(failed["ci_state"], "repair", failed)
+        child = json.loads(state.read_text())["tasks"]["task-c"]
+        self.assertEqual(child["status"], "running", child)
+        self.assertEqual(child["ci"]["reconcile_required"]["parent_task_id"], "task-a", child)
+        host.mutation_hold.set()
+        result_c = make_result(self.github, "task-c", host.wait_for_report("task-c"), admitted)
+        state, applied_c, _ = self._apply(admitted_path, state, "task-c", result_c, "no-ci-child")
+        self._persist("task-c", result_c, released["dispatch"][1])
+        result_b = make_result(self.github, "task-b", host.wait_for_report("task-b"), admitted)
+        state, applied_b, _ = self._apply(admitted_path, state, "task-b", result_b, "no-ci-unrelated")
+        self._persist("task-b", result_b, released["dispatch"][0])
+        self.assertEqual(applied_c["status"], "delivered", applied_c)
+        self.assertEqual(applied_b["status"], "delivered", applied_b)
+        self.assertEqual(
+            json.loads(state.read_text())["tasks"]["task-c"]["ci"]["state"], "blocked")
+
+    def test_pending_ci_waits_unless_repository_policy_explicitly_permits_stacking(self) -> None:
+        snapshot = self.github.snapshot()
+        admitted_path, admitted = self._admit_issue(snapshot)
+        state, initial = self._schedule(
+            admitted_path, admitted, None, snapshot, "pending-policy-initial", cap="1")
+        host = self._start_host(workers=1)
+        host.dispatch(initial["dispatch"])
+        result_a = make_result(self.github, "task-a", host.wait_for_report("task-a"), admitted)
+        state, _, _ = self._apply(
+            admitted_path, state, "task-a", result_a, "pending-policy-delivery", observe_ci=False)
+        self._persist("task-a", result_a, initial["dispatch"][0])
+
+        pending = self.github.ci_observation(
+            "task-a", applicability="pending", expected=True, required_accessible=False)
+        state, waiting_ci, _ = self._observe(
+            admitted_path, state, "task-a", pending, "pending-policy-required")
+        self.assertEqual(waiting_ci["reason"], "required-check-config-inaccessible", waiting_ci)
+        state, conservative = self._schedule(
+            admitted_path, admitted, state, self.github.snapshot(), "pending-policy-wait", cap="1")
+        self.assertEqual([entry["task_id"] for entry in conservative["dispatch"]], ["task-b"],
+                         conservative)
+        self.assertNotIn("task-c", [entry["task_id"] for entry in conservative["dispatch"]],
+                         conservative)
+
+        permitted = self.github.ci_observation(
+            "task-a", applicability="pending", expected=True, required_accessible=False,
+            downstream_start="allow-pending")
+        state, permitted_result, _ = self._observe(
+            admitted_path, state, "task-a", permitted, "pending-policy-permitted")
+        self.assertEqual(permitted_result["ci_state"], "checking", permitted_result)
+        self.assertEqual(
+            permitted_result["ci_details"]["task-a"]["downstream_start"], "allow-pending",
+            permitted_result)
+        state, stacking = self._schedule(
+            admitted_path, admitted, state, self.github.snapshot(), "pending-policy-stack", cap="2")
+        self.assertIn("task-c", [entry["task_id"] for entry in stacking["dispatch"]], stacking)
 
     def test_verified_repaired_parent_releases_dependent_task(self) -> None:
         admitted_path, admitted = self._admit_issue(self.github.snapshot())

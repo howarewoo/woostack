@@ -668,11 +668,16 @@ class FakeGitHub:
         check_state: str = "success",
         test_merge: bool = False,
         required: bool = True,
+        required_accessible: bool = True,
         diagnosis: str = "Fix the bounded product failure.",
         category: str = "actionable",
         log_accessible: bool = True,
         head_sha: Optional[str] = None,
         include_status: bool = True,
+        applicability: str = "applicable",
+        expected: bool = False,
+        downstream_start: Optional[str] = "require-ci",
+        advisory: bool = False,
     ) -> Dict[str, Any]:
         """Assemble authoritative check/status/log reads for one retained PR."""
         with self._lock:
@@ -680,30 +685,33 @@ class FakeGitHub:
         head_sha = head_sha or pr["head_sha"]
         target_sha = ("a" * 40) if test_merge else head_sha
         records = []
+        required_items = self._read_pages(
+            "ci-required", [[{"name": "required-ci", "source": "ci"}]]) if required else []
         kinds = ("check-run", "commit-status") if include_status else ("check-run",)
-        for kind in kinds:
-            record_value = {
-                "id": "%s-%s" % (kind, task_id),
-                "name": "required-ci",
-                "source": "ci",
-                "type": kind,
-                "sha": target_sha,
-                "attempt": 1,
-                "state": check_state,
-                "url": pr["pr_url"] + "/checks/required-ci",
-            }
-            if check_state in ("failure", "error", "timed_out", "cancelled", "action_required"):
-                record_value.update({
-                    "category": category,
-                    "actionable": category == "actionable",
-                    "diagnosis": diagnosis if category == "actionable" else "Host classified this as non-product.",
-                    "log": {
-                        "accessible": log_accessible,
-                        "complete": True,
-                        "excerpt": diagnosis if log_accessible else "",
-                    },
-                })
-            records.append(record_value)
+        if applicability not in ("pending", "not-applicable"):
+            for kind in kinds:
+                record_value = {
+                    "id": "%s-%s" % (kind, task_id),
+                    "name": "advisory-ci" if advisory else "required-ci",
+                    "source": "ci",
+                    "type": kind,
+                    "sha": target_sha,
+                    "attempt": 1,
+                    "state": check_state,
+                    "url": pr["pr_url"] + "/checks/" + ("advisory-ci" if advisory else "required-ci"),
+                }
+                if check_state in ("failure", "error", "timed_out", "cancelled", "action_required"):
+                    record_value.update({
+                        "category": category,
+                        "actionable": category == "actionable",
+                        "diagnosis": diagnosis if category == "actionable" else "Host classified this as non-product.",
+                        "log": {
+                            "accessible": log_accessible,
+                            "complete": True,
+                            "excerpt": diagnosis if log_accessible else "",
+                        },
+                    })
+                records.append(record_value)
         observation = {
             "pr": {
                 "url": pr["pr_url"],
@@ -718,11 +726,18 @@ class FakeGitHub:
             },
             "checks": self._read_pages("ci-check-runs", [[records[0]]]) + (
                 self._read_pages("ci-commit-statuses", [[records[1]]]) if include_status else []
-            ),
-            "required_checks": {"complete": True, "items": self._read_pages("ci-required", [[{
-                "name": "required-ci",
-                "source": "ci",
-            }]])} if required else {"complete": True, "items": []},
+            ) if records else [],
+            "ci_applicability": {
+                "state": applicability,
+                "complete": True,
+                "expected_checks": ([{"name": "required-ci", "source": "ci"}] if expected else []),
+                "workflows": [{
+                    "name": "ci",
+                    "expected": expected,
+                    "applicable": applicability == "applicable" and bool(records),
+                }],
+            },
+            "required_checks": {"complete": required_accessible, "items": required_items},
             "pagination": {
                 "check_runs": True,
                 "commit_statuses": True,
@@ -730,6 +745,12 @@ class FakeGitHub:
                 "logs": True,
             },
         }
+        if downstream_start is not None:
+            observation["downstream_policy"] = {
+                "state": downstream_start,
+                "complete": True,
+                "source": "test repository guidance",
+            }
         record("github", "assemble-ci-observation", {
             "task_id": task_id,
             "pr_url": pr["pr_url"],
