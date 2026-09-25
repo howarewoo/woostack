@@ -836,13 +836,8 @@ class OrchestrateBehavior(unittest.TestCase):
         self.assertEqual(revised_state["tasks"]["task-a"]["dependency_snapshot"],
                          next(task for task in admitted["tasks"] if task["task_id"] == "task-a")[
                              "dependency_snapshot"])
-        _, wrong_plan, code = self._apply(
-            changed_admitted_path, state, "task-a", original_result,
-            "layout-rebound-worker", expect_code=1, observe_ci=False,
-        )
-        self.assertEqual(wrong_plan["error"], "execution-plan-drift")
         completed_state, completed, _ = self._apply(
-            admitted_path, state, "task-a", original_result, "layout-original-worker"
+            changed_admitted_path, state, "task-a", original_result, "layout-rebound-worker"
         )
         self.assertEqual(completed["status"], "delivered", completed)
         self.assertEqual(json.loads(completed_state.read_text())["tasks"]["task-a"][

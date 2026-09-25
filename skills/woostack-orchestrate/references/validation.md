@@ -29,7 +29,8 @@ values to invent:
     "head_sha": "<runtime-substituted head SHA>",
     "base_branch": "<runtime-substituted PR base branch>",
     "commit_sha": "<runtime-substituted commit SHA>",
-    "association": "<runtime-substituted exact child issue URL>"
+    "association": "<runtime-substituted exact child issue URL>",
+    "attempt_binding": "<runtime-substituted exact issued attempt binding>"
   },
   "readback": {
     "repo": "<runtime-substituted canonical PR repository>",
@@ -390,6 +391,10 @@ python3 skills/woostack-orchestrate/scripts/orchestrate.py record-worker \
 The launch receipt contains `worker` (exactly nonempty `host_id`, `session_id`, `worker_id`),
 `reservation` (the complete unchanged scheduled reservation), and `state_digest` (lowercase
 SHA-256 hex of the exact current checkpoint file bytes, without a prefix). Use native runtime
+The launch receipt also carries the packet's exact `attempt_binding`; this value is recorded
+alongside the native identity and must be echoed by the completion result. Version-2 checkpoints
+that predate attempt bindings remain readable for already-issued work, but the helper never invents
+a binding for them and accepts their existing result only when the reservation has no binding.
 identities, including the session/host incarnation, not a model-chosen label or reusable PID alone.
 The helper records this identity separately as `host_worker`; worker result prose cannot replace
 it. Another identity is rejected until the controller emits a new repair dispatch. Each dispatch

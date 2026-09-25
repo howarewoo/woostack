@@ -839,7 +839,7 @@ class FakeHost:
             }
             self.reservations[task_id] = {
                 key: entry[key] for key in ("branch", "workspace", "parent_branch", "parent_sha",
-                                           "task_url", "scope", "contract_hash")
+                                           "task_url", "scope", "contract_hash", "attempt_binding")
             }
             record("host", "dispatch-worker", {
                 "task_id": task_id,
@@ -1030,7 +1030,7 @@ def make_result(github: FakeGitHub, task_id: str, report: Dict[str, Any], admitt
     })
     result = {
         "outcome": "ok",
-        "worker": {**copy.deepcopy(report["worker"]), "attempt_binding": report.get("attempt_binding")},
+        "worker": copy.deepcopy(report["worker"]),
         "readback": readback,
         "checks": {
             "passed": True,
