@@ -771,7 +771,7 @@ class OrchestrateBehavior(unittest.TestCase):
         self.assertEqual(resumed["dispatch"], [])
         self.assertEqual(set(self.github.prs), {"task-b", "task-c"})
 
-    def test_external_prerequisite_evidence_fails_closed_until_corrected(self) -> None:
+    def test_external_prerequisite_evidence_degradation_is_task_local_until_corrected(self) -> None:
         (self.repo / "external.txt").write_text("landed\n", encoding="utf-8")
         git(self.repo, "add", "external.txt")
         git(self.repo, "commit", "-m", "land external prerequisite")
@@ -789,16 +789,12 @@ class OrchestrateBehavior(unittest.TestCase):
         snapshot = self._scope_execution_layout(snapshot)
         initial_entry = next(value for value in snapshot["execution_layout"]["entries"]
                              if value["task_id"] == "task-c")
-        initial_entry["satisfied_external_prerequisites"] = [
-            self._external_evidence(landed, pr={
-                "state": "closed", "merge_commit_sha": None, "merged_base_branch": None})]
+        initial_entry["satisfied_external_prerequisites"] = [self._external_evidence(landed)]
         admitted_path, admitted = self._admit_issue(snapshot)
         state, initial = self._schedule(admitted_path, admitted, None, snapshot,
-                                        "external-unmerged-initial", cap="1")
+                                        "external-valid-initial", cap="1")
         self.assertEqual([entry["task_id"] for entry in initial["dispatch"]], ["task-b"], initial)
-        self.assertIn("external-prerequisite-unmerged",
-                      next(row["next_action"] for row in initial["blocked"]
-                           if row["task_id"] == "task-c"))
+        self.assertNotIn("task-c", [row["task_id"] for row in initial["blocked"]])
         absent_revision = git(self.repo, "commit-tree", git(self.repo, "rev-parse", "HEAD^{tree}"),
                               "-p", landed, "-m", "uncontained external change")
         cases = [
@@ -869,7 +865,6 @@ class OrchestrateBehavior(unittest.TestCase):
         entry = next(value for value in corrected["execution_layout"]["entries"]
                      if value["task_id"] == "task-c")
         entry["satisfied_external_prerequisites"] = [self._external_evidence(landed)]
-        corrected["execution_layout"]["revision"] = 2
         corrected_path, corrected_admitted = self._admit_issue(corrected)
         state, released = self._schedule(corrected_path, corrected_admitted, state, corrected,
                                          "external-corrected", cap="3")

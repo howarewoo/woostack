@@ -1070,6 +1070,13 @@ def collect_execution_layout(snapshot, tasks, repo):
             "execution_order": execution_order}
 
 
+def execution_layout_fingerprint(layout):
+    identity = copy.deepcopy(layout)
+    for entry in identity["entries"]:
+        entry.pop("satisfied_external_prerequisites", None)
+    return digest(identity)
+
+
 def admit(snapshot, limit, repo=None):
     canonical = snapshot.get("canonical_repo", "")
     require(REPO_RE.fullmatch(canonical) is not None, "missing-repository", "canonical repository missing")
@@ -1145,7 +1152,7 @@ def admit(snapshot, limit, repo=None):
     edges = collect_edges(snapshot, tasks, canonical)
     task_order = check_graph(tasks, edges)
     execution_layout = collect_execution_layout(snapshot, tasks, repo)
-    execution_fingerprint = digest(execution_layout)
+    execution_fingerprint = execution_layout_fingerprint(execution_layout)
     host = snapshot.get("host", {})
     require(isinstance(host, dict), "no-subagent-capability", "host capability evidence missing")
     host_cap = positive(host.get("max_parallel", 1))
@@ -1433,7 +1440,7 @@ def _known_execution_revision(state, revision):
 def _execution_plan_update(state, admitted, repo):
     current = state["execution_layout"]
     require(type(current.get("revision")) is int and current["revision"] > 0
-            and state.get("execution_fingerprint") == digest(current),
+            and state.get("execution_fingerprint") == execution_layout_fingerprint(current),
             "invalid-state", "retained execution plan identity is invalid")
     if state["execution_fingerprint"] == admitted["execution_fingerprint"]:
         return None
