@@ -1059,6 +1059,7 @@ class FakeHost:
                 "base_branch": base_branch,
                 "commit_sha": head_sha,
                 "association": child_url,
+                "attempt_binding": packet["attempt_binding"],
             },
         }
         report["parent_sha"] = parent_sha
@@ -1113,7 +1114,7 @@ def make_result(github: FakeGitHub, task_id: str, report: Dict[str, Any], admitt
     })
     result = {
         "outcome": "ok",
-        "worker": copy.deepcopy(report["worker"]),
+        "worker": {**copy.deepcopy(report["worker"]), "attempt_binding": report.get("attempt_binding")},
         "readback": readback,
         "checks": {
             "passed": True,

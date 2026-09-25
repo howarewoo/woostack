@@ -1504,6 +1504,8 @@ def new_state(admitted):
                 "execution_parent": t["execution_parent"],
                 "execution_plan_revision": admitted["execution_layout"]["revision"],
                 "dependency_snapshot": copy.deepcopy(t["dependency_snapshot"]),
+                "attempt_binding": None,
+                "attempt_history": [],
                 "source": None,
                 "diff_identity": None,
                 "checks": None,
@@ -1522,6 +1524,20 @@ def _execution_ancestry(entries, task_id):
         lineage.append(parent)
         parent = entries[parent]["execution_parent"]
     return list(reversed(lineage))
+def _execution_identity(layout):
+    return {"entries": [{key: entry.get(key) for key in (
+        "task_id", "execution_parent", "constraints", "fallback",
+        "base_satisfied_prerequisites", "effective_prerequisites")}
+        for entry in layout.get("entries", [])],
+        "effective_edges": layout.get("effective_edges", []),
+        "execution_order": layout.get("execution_order", [])}
+
+
+def issued_attempt_binding(task, reservation, repair, retained_pr, readiness):
+    return "attempt-" + hashlib.sha256(json.dumps({
+        "task_id": task["task_id"], "contract_hash": task["contract_hash"],
+        "reservation": reservation, "repair": bool(repair), "retained_pr": retained_pr,
+        "readiness": readiness}, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
 
 
 def _genuinely_unstarted(item, task):
@@ -1556,7 +1572,7 @@ def _execution_plan_update(state, admitted, repo):
     require(type(current.get("revision")) is int and current["revision"] > 0
             and state.get("execution_fingerprint") == execution_layout_fingerprint(current),
             "invalid-state", "retained execution plan identity is invalid")
-    if state["execution_fingerprint"] == admitted["execution_fingerprint"]:
+    if _execution_identity(current) == _execution_identity(admitted["execution_layout"]):
         return None
     require(admitted["execution_layout"]["revision"] > current["revision"],
             "execution-plan-drift", "changed execution layout requires a newer plan revision")
@@ -1631,8 +1647,9 @@ def state_read(path, admitted, *, allow_execution_plan_update=False, repo=None, 
     legacy_layout = "execution_layout" not in state
     execution_plan_update = None
     execution_plan_error = None
-    plan_matches = (state.get("execution_layout") == admitted["execution_layout"]
-                    and state.get("execution_fingerprint") == admitted["execution_fingerprint"])
+    plan_matches = (state.get("execution_layout") is not None
+                    and _execution_identity(state["execution_layout"])
+                    == _execution_identity(admitted["execution_layout"]))
     if legacy_layout:
         state["execution_layout"] = copy.deepcopy(admitted["execution_layout"])
         state["execution_fingerprint"] = admitted["execution_fingerprint"]
@@ -2626,6 +2643,9 @@ def validate_delivery(admitted, task, reservation, result, repo, *, historical=F
     require(text(worker["worker_id"]), "invalid-worker", "native host worker identity required")
     for key in ("pr_url", "branch", "head_sha", "base_branch", "commit_sha", "association"):
         require(worker[key] == readback[key], "evidence-mismatch", "worker/readback disagree on " + key)
+    if reservation.get("attempt_binding") is not None:
+        require(worker.get("attempt_binding") == reservation["attempt_binding"],
+                "attempt-binding-mismatch", "worker result is not bound to the issued attempt")
     require(Path(worker["workspace"]).is_absolute()
             and Path(worker["workspace"]).resolve() == Path(reservation["workspace"]).resolve(),
             "workspace-mismatch", "worker used a different selected workspace")
@@ -2766,6 +2786,7 @@ def packet(admitted, task, reservation, repair, retained, readiness, scope_evide
         "scope_evidence": copy.deepcopy(scope_evidence),
         "repair_evidence": copy.deepcopy(repair_context),
         "execute_skill": "woostack-execute", "repair": repair, "retained_pr": retained,
+        "attempt_binding": binding,
         **reservation,
     }
     if "actual_parent" in task:
@@ -3336,7 +3357,14 @@ def cmd_schedule(args):
         repair_evidence = copy.deepcopy(item.get("ci", {}).get("repair_context")) if repair else None
         if repair and isinstance(repair_evidence, dict) and item.get("ci", {}).get("workspace_reopen"):
             repair_evidence["workspace_reopen"] = copy.deepcopy(item["ci"]["workspace_reopen"])
-        item.update(status="running", reservation=reservation, parent_decision=copy.deepcopy(decision),
+        binding = issued_attempt_binding(task, reservation, repair, retained_pr, readiness)
+        reservation["attempt_binding"] = binding
+        item.update(status="running", reservation=reservation, attempt_binding=binding,
+                    attempt_history=item.get("attempt_history", []) + [{
+                        "binding": binding, "repair": repair, "retained_pr": retained_pr,
+                        "worker": None,
+                    }],
+                    parent_decision=copy.deepcopy(decision),
                     execution_parent=task["execution_parent"],
                     execution_plan_revision=admitted["execution_layout"]["revision"],
                     dependency_snapshot=copy.deepcopy(task["dependency_snapshot"]),
@@ -3371,8 +3399,9 @@ def cmd_record_worker(args):
             and set(worker) == {"host_id", "session_id", "worker_id"}
             and all(text(value) for value in worker.values()),
             "worker-liveness", "native host/session/worker identity required")
-    require(receipt.get("reservation") == item["reservation"],
-            "evidence-mismatch", "host launch readback must match the reservation")
+    require(receipt.get("reservation") == item["reservation"]
+            and receipt.get("attempt_binding") == item.get("attempt_binding"),
+            "evidence-mismatch", "host launch readback must match the issued attempt")
     require(item.get("host_worker") in (None, worker),
             "worker-liveness", "recorded writer cannot be replaced")
     require(receipt.get("state_digest") == state["_loaded_digest"],
@@ -3381,6 +3410,8 @@ def cmd_record_worker(args):
     claim_scope(args.git_repo, admitted, state)
     claim_task(args.git_repo, admitted, task, state, item)
     item["host_worker"] = copy.deepcopy(worker)
+    if item.get("attempt_history"):
+        item["attempt_history"][-1]["worker"] = copy.deepcopy(worker)
     write_state(args, state)
     return {"status": "worker-recorded", "task_id": args.task}
 
@@ -3393,9 +3424,9 @@ def cmd_apply_result(args):
     item = state["tasks"][args.task]
     require(item["status"] in ("running", "note-pending", "evidence-pending"),
             "not-running", "task has no active reservation or receipt retry")
+    require(item.get("attempt_binding") is not None,
+            "attempt-binding-missing", "active task has no issued attempt binding")
     legacy_drift = _legacy_execution_drift_tasks(state)
-    require(item["execution_plan_revision"] == admitted["execution_layout"]["revision"],
-            "execution-plan-drift", "worker result must use its dispatched execution plan")
     require(args.task not in legacy_drift, "execution-plan-drift",
             "task requires legacy execution-plan reconciliation")
 
