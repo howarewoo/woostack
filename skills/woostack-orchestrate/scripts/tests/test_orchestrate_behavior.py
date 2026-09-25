@@ -294,11 +294,14 @@ class OrchestrateBehavior(unittest.TestCase):
 
 
     def _reservation(self, dispatch: Dict[str, Any]) -> Dict[str, Any]:
-        return {
+        reservation = {
             key: dispatch[key]
             for key in ("branch", "workspace", "parent_branch", "parent_sha",
                         "task_url", "scope", "contract_hash", "attempt_binding")
         }
+        if "stack" in dispatch:
+            reservation["stack"] = copy.deepcopy(dispatch["stack"])
+        return reservation
 
     def _persist(self, task_id: str, result: Dict[str, Any], dispatch: Dict[str, Any]) -> None:
         self.github.persist_delivery(task_id, result, self._reservation(dispatch))
@@ -724,7 +727,24 @@ class OrchestrateBehavior(unittest.TestCase):
         host.release_b()
         report_b = host.wait_for_report("task-b")
         result_b = make_result(self.github, "task-b", report_b, admitted)
-        state_b, applied_b, _ = self._apply(admitted_path, state_held, "task-b", result_b, "stack-b")
+        missing_stack = copy.deepcopy(result_b)
+        missing_stack.pop("stack")
+        blocked_state, blocked_b, _ = self._apply(
+            admitted_path, state_held, "task-b", missing_stack, "stack-b-missing-readback")
+        self.assertEqual(blocked_b["status"], "unknown", blocked_b)
+        self.assertEqual(blocked_b["reason"], "stack-readback", blocked_b)
+        self.assertNotEqual(
+            json.loads(blocked_state.read_text())["tasks"]["task-b"]["status"], "delivered")
+        evidence = self.github.readback("task-b")
+        evidence["worker_stop"] = self._stop_receipt(host, "task-b", blocked_state)
+        recovered_state, recovered_b, recovered_code = self._reconcile(
+            admitted_path, blocked_state, "task-b", evidence, "stack-b-reconcile",
+            inventory=host.recovery_inventory(),
+        )
+        self.assertEqual(recovered_code, 0, recovered_b)
+        self.assertEqual(recovered_b["status"], "reconciled", recovered_b)
+        state_b, applied_b, _ = self._apply(
+            admitted_path, recovered_state, "task-b", result_b, "stack-b")
         self.assertEqual(applied_b["status"], "delivered")
         self._persist("task-b", result_b, b_entry)
         state_c, after_b = self._schedule(
