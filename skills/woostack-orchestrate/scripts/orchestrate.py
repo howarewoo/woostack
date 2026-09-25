@@ -1651,7 +1651,7 @@ def _ci_applicability(observation):
                 for entry in workflows),
             "ci-applicability-incomplete", "workflow applicability evidence is malformed")
     workflow_expected = any(entry["expected"] for entry in workflows)
-    require((applicability["state"] == "pending") == bool(expected_keys or workflow_expected),
+    require(applicability["state"] != "pending" or expected_keys or workflow_expected,
             "ci-applicability-incomplete",
             "pending applicability needs expected checks or workflows")
     return applicability["state"], expected_keys, workflows

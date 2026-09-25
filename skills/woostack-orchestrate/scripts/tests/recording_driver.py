@@ -715,7 +715,7 @@ class FakeGitHub:
                 "expected_checks": ([{"name": "required-ci", "source": "ci"}] if expected else []),
                 "workflows": [{
                     "name": "ci",
-                    "expected": applicability == "pending" and expected,
+                    "expected": expected,
                     "applicable": applicability == "applicable" and bool(records),
                 }],
             },

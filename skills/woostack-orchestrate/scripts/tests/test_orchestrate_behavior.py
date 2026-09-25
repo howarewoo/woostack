@@ -3277,6 +3277,11 @@ class OrchestrateBehavior(unittest.TestCase):
             delayed_result["ci_details"]["task-a"]["downstream_policy_source"],
             "conservative-default", delayed_result)
 
+        applicable_expected = self.github.ci_observation("task-a", expected=True)
+        state, applicable_result, _ = self._observe(
+            admitted_path, state, "task-a", applicable_expected, "ci-applicable-expected")
+        self.assertEqual(applicable_result["ci_state"], "verified", applicable_result)
+
         inaccessible = self.github.ci_observation("task-a", required_accessible=False)
         state, inaccessible_result, _ = self._observe(
             admitted_path, state, "task-a", inaccessible, "ci-policy-inaccessible")
