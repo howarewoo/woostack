@@ -3226,6 +3226,17 @@ class OrchestrateBehavior(unittest.TestCase):
             helper.review_readback(resolved, h2["readback"]["head_sha"])
         self.assertEqual(raised.exception.code, "changes-requested")
 
+        same_time = copy.deepcopy(h2["readback"])
+        same_time["reviews"]["items"].extend([
+            {"id": 99, "commit_id": h2["readback"]["head_sha"], "state": "APPROVED",
+             "submitted_at": "2026-09-24T02:00:00Z", "user": {"login": "boundary-reviewer"}},
+            {"id": 100, "commit_id": h2["readback"]["head_sha"], "state": "CHANGES_REQUESTED",
+             "submitted_at": "2026-09-24T02:00:00Z", "user": {"login": "boundary-reviewer"}},
+        ])
+        with self.assertRaises(helper.InputError) as raised:
+            helper.review_readback(same_time, h2["readback"]["head_sha"])
+        self.assertEqual(raised.exception.code, "changes-requested")
+
         comment_only = copy.deepcopy(h2["readback"])
         comment_only["review_policy"].update({"required_approvals": 1})
         comment_only["reviews"]["items"].append({

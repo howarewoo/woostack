@@ -2139,11 +2139,7 @@ def review_readback(readback, head):
         if review["state"] == "COMMENTED":
             continue
         login = review["user"]["login"]
-        prior = latest.get(login)
-        if prior is None or review["submitted_at"] > prior["submitted_at"] \
-                or (review["submitted_at"] == prior["submitted_at"]
-                    and str(review["id"]) > str(prior["id"])):
-            latest[login] = review
+        latest[login] = review
     review_ids = {review["id"] for review in histories["reviews"]}
     resolved_review_ids = {item["review_id"] for item in histories["threads"]
                            if item["is_resolved"]}
