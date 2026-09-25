@@ -2074,15 +2074,104 @@ def _reset_ci_after_delivery(admitted, state, item, head_sha):
                                 "parent-revision-changed")
 
 
-def review_readback(value, head, label):
-    field_object(value, ("head_sha", "complete", "items"), label)
-    require(value["head_sha"] == head and value["complete"] is True
-            and isinstance(value["items"], list)
-            and all(isinstance(item, dict) and item.get("id") for item in value["items"]),
-            "incomplete-pr-readback", label + " must be fully paginated at the current head")
-    if label == "reviews":
-        require(all(item.get("commit_id") == head for item in value["items"]),
-                "stale-review", "reviews must describe the current PR head")
+def review_readback(readback, head):
+    """Validate complete review history, then evaluate only applicable policy evidence."""
+    field_object(readback, ("head_sha", "draft", "reviews", "threads", "review_policy"), "readback")
+    require(readback["head_sha"] == head, "stale-readback",
+            "review history must come from a read of the current PR head")
+    policy = field_object(readback["review_policy"],
+                          ("complete", "required_approvals", "dismiss_stale_reviews",
+                           "require_last_push_approval", "eligible_reviewers",
+                           "code_owner_review_required", "code_owner_requirements"), "review policy")
+    required = policy["required_approvals"]
+    eligible = policy["eligible_reviewers"]
+    owners = policy["code_owner_requirements"]
+    last_push = policy.get("last_reviewable_push")
+    require("last_reviewable_push" in policy and policy["complete"] is True
+            and type(required) is int and required >= 0
+            and type(policy["dismiss_stale_reviews"]) is bool
+            and type(policy["require_last_push_approval"]) is bool
+            and type(policy["code_owner_review_required"]) is bool
+            and isinstance(eligible, list) and all(text(login) for login in eligible)
+            and len({login.lower() for login in eligible}) == len(eligible)
+            and isinstance(owners, list)
+            and all(isinstance(group, list) and group
+                    and all(text(login) for login in group) for group in owners)
+            and (policy["code_owner_review_required"] or not owners)
+            and (last_push is None if not policy["require_last_push_approval"] else
+                 isinstance(last_push, dict) and text(last_push.get("login"))
+                 and text(last_push.get("pushed_at"))),
+            "review-policy-incomplete", "repository review policy read is incomplete")
+    histories = {}
+    for label in ("reviews", "threads"):
+        value = readback[label]
+        field_object(value, ("head_sha", "complete", "items"), label)
+        require(value["head_sha"] == head and value["complete"] is True
+                and isinstance(value["items"], list), "incomplete-pr-readback",
+                label + " must be complete history bound to the observed head")
+        ids = [item.get("id") for item in value["items"] if isinstance(item, dict)]
+        require(len(ids) == len(value["items"])
+                and all(text(item) or type(item) is int for item in ids)
+                and len(set(ids)) == len(ids), "ambiguous-review-history",
+                label + " must retain unique native record identities")
+        histories[label] = value["items"]
+    for item in histories["reviews"]:
+        require(SHA_RE.fullmatch(item.get("commit_id") or "") and item.get("state") in (
+            "APPROVED", "CHANGES_REQUESTED", "COMMENTED", "DISMISSED")
+            and text(item.get("submitted_at"))
+            and isinstance(item.get("user"), dict) and text(item["user"].get("login")),
+                "incomplete-review-record", "review history must retain commit, state, author, and time")
+        if item["state"] == "DISMISSED":
+            dismissed_by = item.get("dismissed_by")
+            require(text(item.get("dismissed_at"))
+                    and isinstance(dismissed_by, dict)
+                    and text(dismissed_by.get("login"))
+                    and item["dismissed_at"] > item["submitted_at"],
+                    "incomplete-review-record",
+                    "dismissed review must identify its dismissing pusher and dismissal time")
+    for item in histories["threads"]:
+        require(type(item.get("is_resolved")) is bool and (text(item.get("review_id"))
+                or type(item.get("review_id")) is int), "incomplete-review-thread",
+                "thread history must retain review association and resolution disposition")
+
+    latest = {}
+    for review in histories["reviews"]:
+        if review["state"] == "COMMENTED":
+            continue
+        login = review["user"]["login"]
+        latest[login] = review
+    review_ids = {review["id"] for review in histories["reviews"]}
+    resolved_review_ids = {item["review_id"] for item in histories["threads"]
+                           if item["is_resolved"]}
+    dismissed_review_ids = {review["id"] for review in histories["reviews"]
+                            if review["state"] == "DISMISSED"}
+    for item in histories["threads"]:
+        require(item["review_id"] in review_ids, "ambiguous-review-history",
+                "thread identifies a review outside the complete history")
+        require(item["is_resolved"] or item["review_id"] in dismissed_review_ids,
+                "unresolved-review-finding", "unresolved review finding remains applicable")
+    current_only = policy["dismiss_stale_reviews"] or policy["require_last_push_approval"]
+    eligible_logins = {login.lower() for login in eligible}
+    approvals = {
+        review["user"]["login"].lower(): review for review in latest.values()
+        if review["state"] == "APPROVED"
+        and review["user"]["login"].lower() in eligible_logins
+        and (not current_only or review["commit_id"] == head)
+    }
+    require(len(approvals) >= required, "review-approval-required",
+            "eligible approvals do not satisfy repository policy")
+    if policy["code_owner_review_required"]:
+        require(all(any(login.lower() in approvals for login in group) for group in owners),
+                "code-owner-approval-required", "changed paths lack required code-owner approval")
+    if policy["require_last_push_approval"]:
+        require(any(login != last_push["login"].lower()
+                    and review["commit_id"] == head
+                    and review["submitted_at"] > last_push["pushed_at"]
+                    for login, review in approvals.items()),
+                "last-push-approval-required", "latest reviewable push lacks another eligible approver")
+    require(not any(review["state"] == "CHANGES_REQUESTED"
+                    and review["id"] not in dismissed_review_ids for review in latest.values()),
+            "changes-requested", "current applicable review requests changes")
 
 
 def parent_pr_evidence(scope, branch, head, checkpoint=None):
@@ -2106,8 +2195,7 @@ def parent_pr_evidence(scope, branch, head, checkpoint=None):
                 and pr["repo"] == pr["head_repo"] == scope["canonical_repo"] and pr["branch"] == branch
                 and pr["head_sha"] == head and pr["state"] in ("open", "closed", "merged"),
                 "parent-pr-evidence", "parent PR identity differs")
-        review_readback(pr["reviews"], head, "reviews")
-        review_readback(pr["threads"], head, "threads")
+        review_readback(pr, head)
     return copy.deepcopy(evidence)
 
 
@@ -2433,8 +2521,7 @@ def validate_delivery(admitted, task, reservation, result, repo, *, historical=F
             "invalid-pr", "canonical PR identity required")
     require(readback["open"] is True and readback["unique"] is True, "pr-not-unique-open", "one open PR required")
     require(readback["draft"] is True, "draft-required", "orchestrated delivery must remain a draft")
-    review_readback(readback["reviews"], readback["head_sha"], "reviews")
-    review_readback(readback["threads"], readback["head_sha"], "threads")
+    review_readback(readback, readback["head_sha"])
     require(readback["branch"] == reservation["branch"], "wrong-branch", "PR head is not reserved branch")
     require(readback["base_branch"] == reservation["parent_branch"], "wrong-base", "PR base is not admitted parent")
     require(readback["association"] == task["url"] and readback["closing_references"] == [task["url"]],
