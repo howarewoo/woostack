@@ -66,13 +66,14 @@ observed outcomes, changed paths, and the exact binary diff identity. Any source
 verification invalidates affected evidence and requires fresh checks.
 
 Deliver through [`woostack-commit`](../../woostack-commit/SKILL.md) with
-`--issue $RUNTIME_CHILD_ISSUE_URL`. The draft PR must target `$RUNTIME_PARENT_BRANCH`, use the
-reserved branch, and carry exactly one `Resolves $RUNTIME_CHILD_ISSUE_URL` line. Never use the
-selected tracker or specification parent as a closing reference. Preserve a tracker phase inside
-the child issue that declares it and its one writer; never split it into duplicate issues, mark the
-whole issue complete after an early phase, or turn phase labels into dependency cycles.
-Never mark ready, merge, enable auto-merge, queue, force-push, retarget, or create a replacement PR.
-On repair, update the retained PR/branch only.
+`--issue $RUNTIME_CHILD_ISSUE_URL`. A newly created PR must be a draft targeting
+`$RUNTIME_PARENT_BRANCH`, use the reserved branch, and carry exactly one
+`Resolves $RUNTIME_CHILD_ISSUE_URL` line. Never use the selected tracker or specification parent as a
+closing reference. Preserve a tracker phase inside the child issue that declares it and its one
+writer; never split it into duplicate issues, mark the whole issue complete after an early phase, or
+turn phase labels into dependency cycles. Never change readiness, mark ready, merge, enable
+auto-merge, queue, force-push, retarget, or create a replacement PR. On repair, update the retained
+PR/branch only and preserve its current readiness.
 
 Return ordinary Execute evidence to the controller, not an orchestration decision:
 

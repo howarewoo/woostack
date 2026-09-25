@@ -3022,39 +3022,34 @@ class OrchestrateBehavior(unittest.TestCase):
         report = host.wait_for_report("task-a")
         valid = make_result(self.github, "task-a", report, admitted)
 
-        mismatch_cases = []
+        mismatch_cases = ["ready-pr"]
         changed = copy.deepcopy(valid)
         changed["worker"]["branch"] = "other/branch"
-        mismatch_cases.append("worker-branch")
         changed2 = copy.deepcopy(valid)
         changed2["worker"]["head_sha"] = self.base_sha
-        mismatch_cases.append("worker-head")
         changed3 = copy.deepcopy(valid)
         changed3["readback"]["diff_identity"] = "sha256:" + "0" * 64
-        mismatch_cases.append("readback-diff")
         changed4 = copy.deepcopy(valid)
         changed4["validation"]["contract_hash"] = "sha256:" + "1" * 64
-        mismatch_cases.append("contract-hash")
         changed5 = copy.deepcopy(valid)
         changed5["validation"]["reviewer_id"] = changed5["worker"]["worker_id"]
-        mismatch_cases.append("reviewer-identity")
         changed6 = copy.deepcopy(valid)
         changed6["worker"]["base_branch"] = "other-parent"
         changed6["readback"]["base_branch"] = "other-parent"
-        mismatch_cases.append("wrong-base")
         changed7 = copy.deepcopy(valid)
         changed7["readback"]["repo"] = "https://github.com/other/repo"
-        mismatch_cases.append("wrong-repository")
         changed8 = copy.deepcopy(valid)
         changed8["readback"]["open"] = False
-        mismatch_cases.append("closed-pr")
         changed9 = copy.deepcopy(valid)
         changed9["readback"]["unique"] = False
-        mismatch_cases.append("duplicate-pr")
         changed10 = copy.deepcopy(valid)
         changed10["readback"]["draft"] = False
-        mismatch_cases.append("ready-pr")
-        variants = [changed, changed2, changed3, changed4, changed5, changed6, changed7, changed8, changed9, changed10]
+        variants = [changed10]
+        mismatch_cases.extend([
+            "worker-branch", "worker-head", "readback-diff", "contract-hash",
+            "reviewer-identity", "wrong-base", "wrong-repository", "closed-pr", "duplicate-pr",
+        ])
+        variants.extend([changed, changed2, changed3, changed4, changed5, changed6, changed7, changed8, changed9])
         incomplete_reviews = copy.deepcopy(valid)
         incomplete_reviews["readback"]["reviews"]["complete"] = False
         mismatch_cases.append("incomplete-review-pages")
@@ -3085,6 +3080,16 @@ class OrchestrateBehavior(unittest.TestCase):
                 )
                 self.assertEqual(reconcile_code, 0, reconciled)
                 self.assertEqual(reconciled.get("status"), "reconciled", reconciled)
+                if label == "ready-pr":
+                    retry_state, retry, _ = self._apply(
+                        admitted_path, current_state, "task-a", result, "ready-pr-retry"
+                    )
+                    self.assertEqual(retry.get("reason"), "draft-required", retry)
+                    evidence["worker_stop"] = self._stop_receipt(host, "task-a", retry_state)
+                    current_state, reconciled, reconcile_code = self._reconcile(
+                        admitted_path, retry_state, "task-a", evidence, "ready-pr-retry-reconcile"
+                    )
+                    self.assertEqual(reconcile_code, 0, reconciled)
 
         failed_checks = copy.deepcopy(valid)
         failed_checks["checks"]["passed"] = False
@@ -3882,6 +3887,7 @@ class OrchestrateBehavior(unittest.TestCase):
         repair_report = host.wait_for_report("task-a")
         repair_result = make_result(self.github, "task-a", repair_report, admitted)
         self.assertNotEqual(repair_result["worker"]["head_sha"], result["worker"]["head_sha"])
+        self.assertTrue(repair_result["readback"]["draft"])
         state, _, _ = self._apply(admitted_path, state, "task-a", repair_result, "repair-result", observe_ci=False)
         self._persist("task-a", repair_result, repair_entry)
 
@@ -3927,6 +3933,69 @@ class OrchestrateBehavior(unittest.TestCase):
         self.assertEqual(exhausted["ci_state"], "blocked", exhausted)
         self.assertEqual(exhausted["reason"], "repair-retry-exhausted", exhausted)
         self.assertEqual(len(json.loads(state.read_text())["tasks"]["task-a"]["ci"]["repair_attempts"]), 2)
+
+    def test_human_ready_existing_pr_survives_repair_refill_and_resume(self) -> None:
+        snapshot = self._single_task_snapshot()
+        admitted_path, admitted = self._admit_issue(snapshot)
+        state, initial = self._schedule(
+            admitted_path, admitted, None, snapshot, "ready-repair-initial", cap="1"
+        )
+        host = self._start_host(workers=1)
+        host.dispatch(initial["dispatch"])
+        report = host.wait_for_report("task-a")
+        initial_result = make_result(self.github, "task-a", report, admitted)
+        state, applied, _ = self._apply(
+            admitted_path, state, "task-a", initial_result, "ready-repair-delivery", observe_ci=False
+        )
+        self.assertEqual(applied["status"], "delivered", applied)
+        self._persist("task-a", initial_result, initial["dispatch"][0])
+        original_pr = initial_result["worker"]["pr_url"]
+
+        # A human changes readiness after the historical draft submission but before refill.
+        self.github.prs["task-a"]["draft"] = False
+        self.github.delivery["task-a"]["lifecycle"]["pr"]["draft"] = False
+        state, refreshed = self._schedule(
+            admitted_path, admitted, state, self._single_task_snapshot(), "ready-repair-refill", cap="1"
+        )
+        self.assertEqual(refreshed["dispatch"], [], refreshed)
+        refreshed_item = json.loads(state.read_text())["tasks"]["task-a"]
+        self.assertTrue(refreshed_item["delivery"]["checkpoint"]["readback"]["draft"])
+        self.assertFalse(refreshed_item["lifecycle"]["pr"]["draft"])
+
+        failure = self.github.ci_observation(
+            "task-a", check_state="failure", diagnosis="Repair the ready PR's diagnosed failure."
+        )
+        state, observed, _ = self._observe(
+            admitted_path, state, "task-a", failure, "ready-repair-failure"
+        )
+        self.assertEqual(observed["ci_state"], "repair", observed)
+        state, dispatched = self._schedule(
+            admitted_path, admitted, state, self._single_task_snapshot(), "ready-repair-schedule", cap="1"
+        )
+        repair_entry = dispatched["dispatch"][0]
+        self.assertEqual(repair_entry["retained_pr"], original_pr)
+        host.dispatch([repair_entry])
+        repair_report = host.wait_for_report("task-a")
+        repair_result = make_result(self.github, "task-a", repair_report, admitted)
+        self.assertFalse(repair_result["readback"]["draft"])
+        self.assertEqual(repair_result["worker"]["pr_url"], original_pr)
+        state, repaired, _ = self._apply(
+            admitted_path, state, "task-a", repair_result, "ready-repair-result", observe_ci=False
+        )
+        self.assertEqual(repaired["status"], "delivered", repaired)
+        self._persist("task-a", repair_result, repair_entry)
+
+        self.assertFalse(self.github.prs["task-a"]["draft"])
+        self.assertEqual(len(self.github.prs), 1)
+        state, resumed = self._schedule(
+            admitted_path, admitted, state, self._single_task_snapshot(), "ready-repair-resume", cap="1"
+        )
+        self.assertEqual(resumed["dispatch"], [], resumed)
+        resumed_item = json.loads(state.read_text())["tasks"]["task-a"]
+        self.assertEqual(resumed_item["verified_pr"], original_pr)
+        self.assertFalse(resumed_item["delivery"]["checkpoint"]["readback"]["draft"])
+        self.assertFalse(resumed_item["lifecycle"]["pr"]["draft"])
+
     def test_repair_worker_plan_binding_after_compatible_replan(self) -> None:
         base = self.github.snapshot()
         admitted_path, admitted = self._admit_issue(base)
