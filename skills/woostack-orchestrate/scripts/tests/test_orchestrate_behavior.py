@@ -1258,6 +1258,32 @@ class OrchestrateBehavior(unittest.TestCase):
                   if json.loads(line)["operation"].startswith("write-")]
         self.assertFalse(writes, writes)
 
+    def test_contrasting_tracker_uses_its_own_membership_edges_and_phase(self) -> None:
+        snapshot = self.github.tracker_snapshot("abcd")
+        admitted_path, admitted = self._admit_issues(snapshot)
+        task_urls = [task["url"] for task in admitted["tasks"]]
+        self.assertEqual(task_urls, [self.github.canonical + "/issues/" + str(number) for number in (101, 102, 103, 104)])
+        self.assertEqual(len(task_urls), len(set(task_urls)))
+        self.assertTrue(set(task_urls).isdisjoint({self.github.canonical + "/issues/" + str(number) for number in range(3, 10)}))
+        self.assertEqual(
+            [(edge["predecessor"], edge["dependent"], edge["provenance"]) for edge in admitted["edge_provenance"]],
+            [("task-a", "task-c", "declared"), ("task-b", "task-d", "declared"),
+             ("task-c", "task-d", "declared")],
+        )
+        phase_task = next(task for task in admitted["tasks"] if task["task_id"] == "task-d")
+        self.assertIn("Phase delivery-b", phase_task["body"])
+        tracker_url = self.github.canonical + "/issues/42"
+        context_url = self.github.canonical + "/issues/90"
+        context_pr_url = self.github.canonical + "/pull/91"
+        self.assertNotIn(tracker_url, task_urls)
+        self.assertNotIn(context_url, task_urls)
+        _, scheduled = self._schedule(admitted_path, admitted, None, snapshot, "tracker-contrasting", cap="2")
+        dispatched_urls = {entry["child_url"] for entry in scheduled["dispatch"]}
+        self.assertTrue(dispatched_urls.issubset(set(task_urls)))
+        self.assertTrue(dispatched_urls.isdisjoint({tracker_url, context_url, context_pr_url}))
+        self.assertFalse(self.github.prs)
+
+
     def test_partial_native_parent_read_preserves_per_task_packet_evidence(self) -> None:
         snapshot = self.github.tracker_snapshot("reported")
         tracker_url = snapshot["scope_evidence"]["tracker"]["url"]
@@ -1325,6 +1351,9 @@ class OrchestrateBehavior(unittest.TestCase):
         fabricated = copy.deepcopy(snapshot)
         fabricated["scope_evidence"]["membership"]["evidence"] = {}
         cases.append(("fabricated evidence", fabricated, "invalid-scope-evidence"))
+        unreadable = copy.deepcopy(snapshot)
+        unreadable["tasks"][0]["body"] = None
+        cases.append(("unreadable issue", unreadable, "invalid-identity"))
         asserted = copy.deepcopy(snapshot)
         asserted["scope_evidence"]["membership"]["evidence"] = True
         cases.append(("asserted evidence", asserted, "invalid-scope-evidence"))

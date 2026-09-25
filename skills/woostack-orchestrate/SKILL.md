@@ -22,13 +22,13 @@ proof that the task set is empty. Resolve relative `#N` references only after th
 canonical repository is verified, fetch every selected issue, and deduplicate repeated mentions.
 Do not scrape every issue-like reference. Distinguish executable implementation from design briefs,
 baseline PRs, examples, exclusions, historical references, tracker context, and external
-prerequisites. For the reported tracker, the verified implementation set is exactly #3–#9: #2 is
-design context, #1 is the baseline PR, and #15 is the tracker. Resolve that distinction from the
-tracker's verified scope statement rather than treating every issue reference as membership. The
-tracker's #9-A/#9-B phase labels remain inside issue #9; they do not create extra tasks or writers.
-An independently unsatisfied phase/delivery gate blocks that issue precisely while unrelated work
-continues. Explain the resolved task set and graph before dispatch; ask only when the tracker plus
-verified issue evidence leaves a material contradiction or ambiguity.
+prerequisites using the selected tracker and the fetched issue evidence. Resolve every role from
+that evidence; issue numbers and phase labels have no meaning outside the source that declares
+them. Preserve phase annotations inside their actual issue rather than turning them into extra
+tasks or writers. Missing optional relationship metadata or different issue numbers is not itself
+ambiguity. An independently unsatisfied phase or delivery gate blocks that issue precisely while
+unrelated work continues. Explain the resolved task set and graph before dispatch; ask only when
+the tracker plus verified issue evidence leaves a material contradiction or ambiguity.
 After admission evidence is resolved, the model must also select and summarize one pre-execution
 layout before any branch, workspace, or worker allocation. The technical DAG remains the evidence
 of required work; the layout is a single-parent execution forest with approved-base roots. Each

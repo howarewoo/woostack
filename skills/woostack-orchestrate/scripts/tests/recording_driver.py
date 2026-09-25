@@ -353,6 +353,7 @@ class FakeGitHub:
 
     def _tracker_fixtures(self) -> Dict[str, Dict[str, Any]]:
         tracker_url = self.canonical + "/issues/15"
+        contrasting_tracker_url = self.canonical + "/issues/42"
         context = issue_record(tracker_url, "context-design", 0, 2)
         context.update({
             "url": self.canonical + "/issues/2", "id": 10002,
@@ -377,12 +378,20 @@ class FakeGitHub:
             task.pop("declared_parent", None)
             reported_tasks.append(task)
         abcd_tasks = []
+        contrasting_context = issue_record(contrasting_tracker_url, "contrasting-context", 0, 90)
+        contrasting_context.update({
+            "title": "Contrasting design context, not executable scope",
+            "body": "Design decisions only.", "actual_parent": None, "declared_parent": None,
+            "tracker_membership": "context",
+        })
         for child in self.children[:4]:
             task = copy.deepcopy(child)
             task.update({
                 "prerequisites": [], "external_prerequisites": [],
                 "tracker_membership": "implementation",
             })
+            if task["task_id"] == "task-d":
+                task["body"] += " Phase delivery-b remains inside this issue."
             task.pop("actual_parent", None)
             task.pop("declared_parent", None)
             abcd_tasks.append(task)
@@ -411,17 +420,23 @@ class FakeGitHub:
             },
             "abcd": {
                 "tracker": {
-                    "url": tracker_url, "id": 10015, "node_id": "I_kwDOtesttracker15",
-                    "title": "A/B/C/D tracker", "revision": "2026-09-23T20:00:00Z",
-                    "body": "Design #2 and baseline PR #1 are context. Implement #101, #102, #103, #104.",
-                    "implementation_index": [task["url"] for task in abcd_tasks],
+                    "url": contrasting_tracker_url, "id": 10042, "node_id": "I_kwDOtesttracker42",
+                    "title": "Contrasting implementation tracker", "revision": "2026-09-24T20:00:00Z",
+                    "body": (
+                        "Context: design #90. Example/baseline PR: https://github.com/acme/app/pull/91.\n"
+                        "Implementation index (the repeated and reordered references are intentional):\n"
+                        "- #102: API\n- #104: phase delivery-b\n- #102: API again\n"
+                        "- #101: foundation\n- #104: phase delivery-b again\n- #103: data\n"
+                        "Phase delivery-b belongs to #104."
+                    ),
+                    "implementation_index": [task["url"] for task in (abcd_tasks[1], abcd_tasks[3], abcd_tasks[0], abcd_tasks[2])],
                     "dependency_index": [
                         {"predecessor": "task-a", "dependent": "task-c"},
                         {"predecessor": "task-b", "dependent": "task-d"},
                         {"predecessor": "task-c", "dependent": "task-d"},
                     ],
                 },
-                "index": [context] + abcd_tasks,
+                "index": [contrasting_context] + abcd_tasks,
             },
         }
 
