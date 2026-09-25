@@ -1032,7 +1032,7 @@ class FakeHost:
             "association": child_url,
             "open": True,
             "unique": True,
-            "draft": True,
+            "draft": self.github.prs.get(task_id, {}).get("draft", True) if repair else True,
             "diff_identity": diff_identity(self.repo, parent_sha_for_diff, head_sha),
         }
         if task_id == "task-b" and self.hold_before_pr and not repair:

@@ -253,7 +253,7 @@ later repair launch or reconciled using another worker's stopped receipt.
 
 The worker must not create its own alternate workspace, switch to another branch, infer a parent
 from ordinal order, read/write a sibling workspace, alter hierarchy/dependencies, or own Project
-progress. It may use Execute/Commit for its one task and one child-associated draft PR.
+progress. It may use Execute/Commit for its one task and one child-associated PR, created as a draft.
 
 ## Host handoff
 
@@ -298,8 +298,8 @@ Follow [native identity recovery](validation.md#record-the-native-writer) when t
 never relabel an old completion using current task state.
 
 The child PR carries exactly one `Resolves <child URL>` reference. It never closes or references
-the specification parent. New PRs remain drafts and no workflow step marks ready, merges, queues,
-force-pushes, or silently retargets a PR.
+the specification parent. New PRs are drafts; updates preserve a human's current readiness.
+No workflow step marks ready, merges, queues, force-pushes, or silently retargets a PR.
 
 ## Existing delivery and resume
 
