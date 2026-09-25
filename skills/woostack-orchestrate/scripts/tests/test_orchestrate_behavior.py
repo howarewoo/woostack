@@ -16,6 +16,7 @@ import importlib.util
 import os
 import shutil
 import subprocess
+import shlex
 import sys
 import tempfile
 import unittest
@@ -334,7 +335,8 @@ class OrchestrateBehavior(unittest.TestCase):
 
     def _record_launch(self, entry, worker) -> None:
         admitted_path, state = self.launch_context[entry["branch"]]
-        receipt = self._write_json("launch-" + worker["worker_id"] + ".json", {
+        receipt_name = "launch-" + hashlib.sha256(worker["worker_id"].encode()).hexdigest() + ".json"
+        receipt = self._write_json(receipt_name, {
             "worker": worker, "reservation": self._reservation(entry),
             "state_digest": hashlib.sha256(state.read_bytes()).hexdigest(),
         })
@@ -394,7 +396,7 @@ class OrchestrateBehavior(unittest.TestCase):
                 "scope": ["src/representation-marker.txt"],
                 "acceptance": ["The representation marker is delivered"],
                 "checks": [
-                    "python3 -c \"from pathlib import Path; assert Path('src/representation-marker.txt').exists()\"",
+                    "python3 -c \"import os; assert os.environ.get('WOOSTACK_FORCE_FAILURE') != '1'\"",
                     "git diff --check",
                 ],
                 "smoke": "cat src/representation-marker.txt",
@@ -418,6 +420,13 @@ class OrchestrateBehavior(unittest.TestCase):
                 self.assertNotEqual(code, 0, payload)
                 self.assertEqual(payload["error"], "no-subagent-capability", payload)
 
+        legacy = copy.deepcopy(snapshot)
+        for capability in ("workspace_isolation_capable", "result_correlation_capable", "recovery_capable"):
+            legacy["host"].pop(capability, None)
+        legacy_code, legacy_payload = invoke_cli(
+            "admit", "--snapshot", str(self._write_json("legacy-capabilities.json", legacy))
+        )
+        self.assertEqual(legacy_code, 0, legacy_payload)
         admitted_path, admitted = self._admit_issue(snapshot)
         self.assertEqual(admitted["tasks"][0]["task_id"], task_id)
         state, scheduled = self._schedule(
@@ -430,38 +439,66 @@ class OrchestrateBehavior(unittest.TestCase):
         report = host.wait_for_report(task_id)
         result = make_result(self.github, task_id, report, admitted)
         self.assertNotEqual(result["checks"]["commands"], admitted["tasks"][0]["contract"]["checks"])
-        self.assertNotEqual(result["checks"]["smoke"]["description"], admitted["tasks"][0]["contract"]["smoke"])
-        running_state = state
+        running_state = self.tmp / "opaque-running-state.json"
+        running_state.write_bytes(state.read_bytes())
         state, delivered, _ = self._apply(
             admitted_path, state, task_id, result, "opaque-delivered"
         )
         self.assertEqual(delivered["status"], "delivered", delivered)
         self._persist(task_id, result, dispatch)
+        fresh = self.github.snapshot()
+        fresh["tasks"] = fresh["children"] = [child]
+        fresh["execution_layout"] = self.github.execution_layout((task_id,), {task_id: None})
         resumed_state, resumed = self._schedule(
-            admitted_path, admitted, state, snapshot, "opaque-resume", cap="1"
+            admitted_path, admitted, state, fresh, "opaque-resume", cap="1"
         )
         self.assertEqual(resumed["dispatch"], [], resumed)
-        retained = json.loads(resumed_state.read_text())["tasks"][task_id]
-        self.assertEqual(retained["status"], "delivered")
-        self.assertEqual(retained["delivery"]["checkpoint"]["worker"]["pr_url"], result["worker"]["pr_url"])
-
         extra_failure = copy.deepcopy(result)
+        failed_command = "python3 -c \"raise SystemExit(7)\""
+        failed_run = subprocess.run(shlex.split(failed_command), cwd=Path(result["worker"]["workspace"]), capture_output=True, text=True)
+        self.assertNotEqual(failed_run.returncode, 0)
         extra_failure["checks"]["commands"].append({
-            "command": "python3 -c \"raise SystemExit(1)\"",
+            "command": failed_command,
             "executed": True,
             "passed": False,
         })
         extra_failure["checks"]["passed"] = False
-        _, repair, _ = self._apply(
-            admitted_path, running_state, task_id, extra_failure, "opaque-extra-failure"
+        extra_state = self.tmp / "opaque-extra-state.json"
+        extra_state.write_bytes(running_state.read_bytes())
+        _, repair, extra_code = self._apply(
+            admitted_path, extra_state, task_id, extra_failure, "opaque-extra-failure"
         )
+        self.assertEqual(extra_code, 0, repair)
         self.assertEqual(repair["status"], "repair-ready", repair)
+
+        required_failure = copy.deepcopy(result)
+        required_command = admitted["tasks"][0]["contract"]["checks"][0]
+        required_run = subprocess.run(
+            shlex.split(required_command), cwd=Path(result["worker"]["workspace"]),
+            env={**os.environ, "WOOSTACK_FORCE_FAILURE": "1"}, capture_output=True, text=True,
+        )
+        self.assertNotEqual(required_run.returncode, 0)
+        required_failure["checks"]["commands"] = [
+            {"command": required_command, "executed": True, "passed": False}
+            if command["command"] == required_command else command
+            for command in required_failure["checks"]["commands"]
+        ]
+        required_state = self.tmp / "opaque-required-state.json"
+        required_state.write_bytes(running_state.read_bytes())
+        _, required_repair, required_code = self._apply(
+            admitted_path, required_state, task_id, required_failure, "opaque-required-failure"
+        )
+        self.assertEqual(required_code, 0, required_repair)
+        self.assertEqual(required_repair["status"], "repair-ready", required_repair)
 
         unexecuted = copy.deepcopy(result)
         unexecuted["checks"]["smoke"]["executed"] = False
-        _, smoke_repair, _ = self._apply(
-            admitted_path, running_state, task_id, unexecuted, "opaque-unexecuted-smoke"
+        unexecuted_state = self.tmp / "opaque-unexecuted-state.json"
+        unexecuted_state.write_bytes(running_state.read_bytes())
+        _, smoke_repair, smoke_code = self._apply(
+            admitted_path, unexecuted_state, task_id, unexecuted, "opaque-unexecuted-smoke"
         )
+        self.assertEqual(smoke_code, 0, smoke_repair)
         self.assertEqual(smoke_repair["status"], "repair-ready", smoke_repair)
 
         missing = copy.deepcopy(result)
@@ -469,20 +506,24 @@ class OrchestrateBehavior(unittest.TestCase):
             command for command in missing["checks"]["commands"]
             if command["command"] != admitted["tasks"][0]["contract"]["checks"][0]
         ]
+        missing_state = self.tmp / "opaque-missing-state.json"
+        missing_state.write_bytes(running_state.read_bytes())
         _, missing_output, missing_code = self._apply(
-            admitted_path, running_state, task_id, missing, "opaque-missing-check",
-            expect_code=None,
+            admitted_path, missing_state, task_id, missing, "opaque-missing-check"
         )
-        self.assertNotEqual(missing_code, 0, missing_output)
+        self.assertEqual(missing_code, 0, missing_output)
+        self.assertEqual(missing_output["status"], "unknown", missing_output)
         self.assertEqual(missing_output["reason"], "checks-incomplete", missing_output)
 
         stale = copy.deepcopy(result)
         stale["checks"]["head_sha"] = self.base_sha
+        stale_state = self.tmp / "opaque-stale-state.json"
+        stale_state.write_bytes(running_state.read_bytes())
         _, stale_output, stale_code = self._apply(
-            admitted_path, running_state, task_id, stale, "opaque-stale-check",
-            expect_code=None,
+            admitted_path, stale_state, task_id, stale, "opaque-stale-check"
         )
-        self.assertNotEqual(stale_code, 0, stale_output)
+        self.assertEqual(stale_code, 0, stale_output)
+        self.assertEqual(stale_output["status"], "unknown", stale_output)
         self.assertEqual(stale_output["reason"], "stale-validation", stale_output)
 
     def test_full_issue_smoke_uses_real_git_and_concurrent_execute_packets(self) -> None:

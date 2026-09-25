@@ -1095,6 +1095,13 @@ def make_result(github: FakeGitHub, task_id: str, report: Dict[str, Any], admitt
     contract = task["contract"]
     workspace = Path(task["workspace"]).resolve()
     run_verification(workspace, contract)
+    extra_command = "python3 -c \"from pathlib import Path; assert 'base' in Path('README').read_text()\""
+    extra_result = subprocess.run(shlex.split(extra_command), cwd=workspace, capture_output=True, text=True)
+    record("verification", "run-command", {
+        "command": extra_command, "returncode": extra_result.returncode,
+        "stdout": extra_result.stdout, "stderr": extra_result.stderr,
+    })
+    extra_result.check_returncode()
     changed = set(git(github.repo, "diff", "--name-only", report["parent_sha"], readback["head_sha"]).splitlines())
     relative = contract["scope"][0]
     content = git(workspace, "show", readback["head_sha"] + ":" + relative)
@@ -1114,7 +1121,7 @@ def make_result(github: FakeGitHub, task_id: str, report: Dict[str, Any], admitt
                 {"command": command, "executed": True, "passed": True}
                 for command in reversed(contract["checks"])
             ] + [{
-                "command": "python3 -c \"assert True\"",
+                "command": extra_command,
                 "executed": True,
                 "passed": True,
             }],
