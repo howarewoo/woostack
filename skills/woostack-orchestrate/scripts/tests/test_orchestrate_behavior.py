@@ -3326,6 +3326,18 @@ class OrchestrateBehavior(unittest.TestCase):
             )
         self.assertEqual(raised.exception.code, "stale-validation")
 
+        task = next(task for task in admitted["tasks"] if task["task_id"] == "task-a")
+        for expected_draft, observed_draft in ((True, False), (False, True)):
+            changed_readiness = copy.deepcopy(h2)
+            changed_readiness["readback"]["draft"] = observed_draft
+            with self.subTest(expected_draft=expected_draft, observed_draft=observed_draft):
+                with self.assertRaises(helper.InputError) as raised:
+                    helper.validate_delivery(
+                        admitted, task, repair_entry, changed_readiness, self.repo,
+                        existing_pr=True, expected_draft=expected_draft,
+                    )
+                self.assertEqual(raised.exception.code, "readiness-changed")
+
     def test_alias_workspace_collision_and_same_parent_repair(self) -> None:
         worktree_root = Path(self.github.children[0]["workspace"]).parent
         worktree_root.mkdir(parents=True, exist_ok=True)

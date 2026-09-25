@@ -2492,7 +2492,8 @@ def delivery_head_diff(repo, reservation, head_sha):
 
 
 def validate_delivery(admitted, task, reservation, result, repo, *, historical=False,
-                      retained_diff=None, workspace_required=True, existing_pr=False):
+                      retained_diff=None, workspace_required=True, existing_pr=False,
+                      expected_draft=None):
     require(set(task["external_prerequisites"]).issubset(
                 set(task["satisfied_external_prerequisites"])),
             "external-prerequisite", "delivery has unsatisfied external prerequisites")
@@ -2521,7 +2522,11 @@ def validate_delivery(admitted, task, reservation, result, repo, *, historical=F
             "invalid-pr", "canonical PR identity required")
     require(readback["open"] is True and readback["unique"] is True, "pr-not-unique-open", "one open PR required")
     require(type(readback["draft"]) is bool, "invalid-pr-readback", "PR draft readback must be boolean")
-    if not existing_pr:
+    if existing_pr:
+        if expected_draft is not None:
+            require(type(expected_draft) is bool and readback["draft"] is expected_draft,
+                    "readiness-changed", "repair must preserve the retained PR readiness")
+    else:
         require(readback["draft"] is True, "draft-required", "new orchestrated delivery must be a draft")
     review_readback(readback, readback["head_sha"])
     require(readback["branch"] == reservation["branch"], "wrong-branch", "PR head is not reserved branch")
@@ -3277,8 +3282,13 @@ def cmd_apply_result(args):
         verified_update = bool(retained_pr) and (
             isinstance(item.get("delivery"), dict)
             or isinstance(prior_evidence, dict) and isinstance(prior_evidence.get("readback"), dict))
+        lifecycle_pr = (item.get("lifecycle") or {}).get("pr")
+        require(not verified_update or isinstance(lifecycle_pr, dict)
+                and type(lifecycle_pr.get("draft")) is bool,
+                "pr-lifecycle-missing", "repair requires fresh retained PR readiness")
         proof = validate_delivery(admitted, task, item["reservation"], result, args.git_repo,
-                                  existing_pr=verified_update)
+                                  existing_pr=verified_update,
+                                  expected_draft=lifecycle_pr["draft"] if verified_update else None)
         pr_url = result["worker"]["pr_url"]
         require(not any(tid != args.task and other.get("verified_pr") == pr_url
                         for tid, other in state["tasks"].items()),
