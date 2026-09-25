@@ -1294,14 +1294,31 @@ class OrchestrateBehavior(unittest.TestCase):
         )
         self.assertNotEqual(legacy_text, self.github.skill_host.skill_text)
         legacy_host = RecordedSkillHost(self.github.skill_host.skill_path, skill_text=legacy_text)
-        tracker, issue_index = self.github.tracker_evidence("reported")
-        result = legacy_host.interpret_tracker(tracker, issue_index)
+        tracker, issue_index = self.github.tracker_evidence("abcd")
+        generic_result = self.github.skill_host.interpret_tracker(tracker, issue_index)
+        legacy_result = legacy_host.interpret_tracker(tracker, issue_index)
+        tracker_url = self.github.canonical + "/issues/42"
+        context_url = self.github.canonical + "/issues/90"
+        context_pr_url = self.github.canonical + "/pull/91"
+        task_urls = {self.github.canonical + "/issues/" + str(number) for number in range(101, 105)}
+        self.assertEqual(set(generic_result["selected_issue_urls"]), task_urls)
+        phase_tasks = [task for task in generic_result["tasks"] if "Phase delivery-b" in task["body"]]
         self.assertEqual(
-            result["selected_issue_urls"],
-            [self.github.canonical + "/issues/" + str(number) for number in range(3, 10)],
+            [task["url"] for task in phase_tasks],
+            [self.github.canonical + "/issues/104"],
         )
-        self.assertNotIn(self.github.canonical + "/issues/101", result["selected_issue_urls"])
-        self.assertNotIn(self.github.canonical + "/issues/102", result["selected_issue_urls"])
+        self.assertEqual(
+            {(edge["predecessor"], edge["dependent"]) for edge in generic_result["edges"]},
+            {("task-a", "task-c"), ("task-b", "task-d"), ("task-c", "task-d")},
+        )
+        self.assertEqual(
+            set(generic_result["excluded_urls"]),
+            {tracker_url, context_url, context_pr_url},
+        )
+        self.assertEqual(legacy_result["selected_issue_urls"], [])
+        self.assertEqual(legacy_result["tasks"], [])
+        self.assertEqual(legacy_result["edges"], [])
+        self.assertEqual(legacy_result["excluded_urls"], [])
 
 
     def test_partial_native_parent_read_preserves_per_task_packet_evidence(self) -> None:
