@@ -1,0 +1,94 @@
+{
+  "entries": [
+    {
+      "prompt_sha256": "2b21264b9ee9b20b6418eaed3357273a46c4a98f6c417d279d2f5577ceb7f4ec",
+      "response": {
+        "selected_issue_urls": [
+          "https://github.com/acme/app/issues/102",
+          "https://github.com/acme/app/issues/104",
+          "https://github.com/acme/app/issues/101",
+          "https://github.com/acme/app/issues/103"
+        ],
+        "phase_by_issue_url": {
+          "https://github.com/acme/app/issues/104": ["delivery-b"]
+        },
+        "edges": [
+          {
+            "predecessor_url": "https://github.com/acme/app/issues/101",
+            "dependent_url": "https://github.com/acme/app/issues/103",
+            "evidence": "https://github.com/acme/app/issues/42 — Declared dependencies: #101 -> #103"
+          },
+          {
+            "predecessor_url": "https://github.com/acme/app/issues/102",
+            "dependent_url": "https://github.com/acme/app/issues/104",
+            "evidence": "https://github.com/acme/app/issues/42 — Declared dependencies: #102 -> #104"
+          },
+          {
+            "predecessor_url": "https://github.com/acme/app/issues/103",
+            "dependent_url": "https://github.com/acme/app/issues/104",
+            "evidence": "https://github.com/acme/app/issues/42 — Declared dependencies: #103 -> #104"
+          }
+        ],
+        "excluded_urls": [
+          "https://github.com/acme/app/issues/42",
+          "https://github.com/acme/app/issues/90",
+          "https://github.com/acme/app/pull/91"
+        ]
+      }
+    },
+    {
+      "prompt_sha256": "1ae78ff555b1ede995b93aa41bba6f3dd7635db6f6dfef5d8d31f44844257f6e",
+      "response": {
+        "selected_issue_urls": [
+          "https://github.com/acme/app/issues/3",
+          "https://github.com/acme/app/issues/4",
+          "https://github.com/acme/app/issues/5",
+          "https://github.com/acme/app/issues/6",
+          "https://github.com/acme/app/issues/7",
+          "https://github.com/acme/app/issues/8",
+          "https://github.com/acme/app/issues/9"
+        ],
+        "phase_by_issue_url": {
+          "https://github.com/acme/app/issues/9": ["9-A", "9-B"]
+        },
+        "edges": [
+          {
+            "predecessor_url": "https://github.com/acme/app/issues/3",
+            "dependent_url": "https://github.com/acme/app/issues/5",
+            "evidence": "https://github.com/acme/app/issues/15 — Declared dependencies: #3 -> #5"
+          },
+          {
+            "predecessor_url": "https://github.com/acme/app/issues/4",
+            "dependent_url": "https://github.com/acme/app/issues/6",
+            "evidence": "https://github.com/acme/app/issues/15 — Declared dependencies: #4 -> #6"
+          },
+          {
+            "predecessor_url": "https://github.com/acme/app/issues/5",
+            "dependent_url": "https://github.com/acme/app/issues/6",
+            "evidence": "https://github.com/acme/app/issues/15 — Declared dependencies: #5 -> #6"
+          },
+          {
+            "predecessor_url": "https://github.com/acme/app/issues/6",
+            "dependent_url": "https://github.com/acme/app/issues/7",
+            "evidence": "https://github.com/acme/app/issues/15 — Declared dependencies: #6 -> #7"
+          },
+          {
+            "predecessor_url": "https://github.com/acme/app/issues/7",
+            "dependent_url": "https://github.com/acme/app/issues/8",
+            "evidence": "https://github.com/acme/app/issues/15 — Declared dependencies: #7 -> #8"
+          },
+          {
+            "predecessor_url": "https://github.com/acme/app/issues/8",
+            "dependent_url": "https://github.com/acme/app/issues/9",
+            "evidence": "https://github.com/acme/app/issues/15 — Declared dependencies: #8 -> #9"
+          }
+        ],
+        "excluded_urls": [
+          "https://github.com/acme/app/issues/15",
+          "https://github.com/acme/app/issues/2",
+          "https://github.com/acme/app/pull/1"
+        ]
+      }
+    }
+  ]
+}

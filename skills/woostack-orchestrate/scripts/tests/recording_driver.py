@@ -11,7 +11,6 @@ When invoked as a script this module is a thin recording wrapper around the ship
 
 from __future__ import annotations
 
-import re
 import copy
 import hashlib
 import json
@@ -28,6 +27,7 @@ from typing import Any, Dict, Iterable, Optional, Sequence, Tuple
 
 TESTS_DIR = Path(__file__).resolve().parent
 SKILL_DIR = TESTS_DIR.parent.parent
+RECORDED_SKILL_RESPONSES = TESTS_DIR / "fixtures" / "recorded-skill-interpretations.json"
 HELPER = SKILL_DIR / "scripts" / "orchestrate.py"
 DRIVER = Path(__file__).resolve()
 
@@ -150,89 +150,64 @@ def issue_record(
 
 
 class RecordedSkillHost:
-    """Replay the installed skill's tracker interpretation with recorded issue reads."""
+    """Replay a recorded model response after binding it to installed-skill evidence."""
 
-    def __init__(self, skill_path: Path) -> None:
+    def __init__(
+        self, skill_path: Path, *, skill_text: Optional[str] = None,
+        responses_path: Path = RECORDED_SKILL_RESPONSES,
+    ) -> None:
         self.skill_path = skill_path
-        self.skill_text = skill_path.read_text(encoding="utf-8")
+        self.skill_text = skill_text if skill_text is not None else skill_path.read_text(encoding="utf-8")
+        entries = json.loads(responses_path.read_text(encoding="utf-8"))["entries"]
+        self.responses = {entry["prompt_sha256"]: entry["response"] for entry in entries}
         self.calls: list[Dict[str, Any]] = []
+
+    def _prompt(self, tracker: Dict[str, Any], issue_index: Sequence[Dict[str, Any]]) -> str:
+        model_issue_index = [
+            {key: value for key, value in item.items() if key not in {"branch", "workspace"}}
+            for item in issue_index
+        ]
+        return "\n\n".join((
+            "INSTALLED SKILL:\n" + self.skill_text,
+            "TRACKER:\n" + json.dumps(tracker, sort_keys=True),
+            "ISSUE INDEX:\n" + json.dumps(model_issue_index, sort_keys=True),
+        ))
 
     def interpret_tracker(
         self, tracker: Dict[str, Any], issue_index: Sequence[Dict[str, Any]],
     ) -> Dict[str, Any]:
-        """Interpret raw tracker evidence before the production helper sees a snapshot."""
-        prompt = "\n\n".join((
-            "INSTALLED SKILL:\n" + self.skill_text,
-            "TRACKER:\n" + json.dumps(tracker, sort_keys=True),
-            "ISSUE INDEX:\n" + json.dumps(issue_index, sort_keys=True),
-        ))
-        normalized_skill = " ".join(self.skill_text.split())
-        legacy_rule = "#3" in normalized_skill and "#9" in normalized_skill
-        generic_rule = "issue numbers and phase labels have no meaning outside the source that declares them" in normalized_skill
-        if not legacy_rule and not generic_rule:
-            raise AssertionError("installed skill has no tracker-derived interpretation rule")
+        """Return the recorded model interpretation bound to this exact prompt."""
+        prompt = self._prompt(tracker, issue_index)
+        prompt_sha256 = hashlib.sha256(prompt.encode("utf-8")).hexdigest()
+        response = self.responses.get(prompt_sha256)
+        if response is None:
+            raise AssertionError("no recorded model response for installed-skill prompt %s" % prompt_sha256)
 
-        body = tracker["body"]
-        if legacy_rule:
-            selected_numbers = list(range(3, 10))
-            dependency_text = ""
-        else:
-            index_text = body.split("Implementation index", 1)[1]
-            implementation_text = index_text.split("Declared dependencies:", 1)[0]
-            selected_numbers = []
-            for match in re.finditer(r"(?m)^\s*-\s*#(\d+)\b", implementation_text):
-                number = int(match.group(1))
-                if number not in selected_numbers:
-                    selected_numbers.append(number)
-            dependency_text = index_text.split("Declared dependencies:", 1)[1]
-
-        by_number = {
-            int(item["url"].rsplit("/", 1)[1]): item
-            for item in issue_index
-            if item["url"].rsplit("/", 1)[1].isdigit()
-        }
-        phase_by_number = {
-            int(number): phase
-            for phase, number in re.findall(
-                r"Phase\s+([A-Za-z0-9_-]+)\s+belongs\s+to\s+#(\d+)",
-                body,
-                re.IGNORECASE,
-            )
-        }
+        by_url = {item["url"]: item for item in issue_index}
         tasks = []
-        for number in selected_numbers:
-            item = by_number.get(number)
-            if item is None:
-                continue
-            task = copy.deepcopy(item)
-            phase = phase_by_number.get(number)
-            if phase and phase.lower() not in task["body"].lower():
-                task["body"] += " Phase %s remains inside this issue." % phase
+        for url in response["selected_issue_urls"]:
+            if url not in by_url:
+                raise AssertionError("recorded model selected an unreadable issue: %s" % url)
+            task = copy.deepcopy(by_url[url])
+            phase = response["phase_by_issue_url"].get(url)
+            phase_text = " and ".join(phase) if isinstance(phase, list) else phase
+            if phase_text and phase_text.lower() not in task["body"].lower():
+                task["body"] += " Phase %s remains inside this issue." % phase_text
             tasks.append(task)
 
-        task_ids = {item["url"].rsplit("/", 1)[1]: item["task_id"] for item in tasks}
+        task_ids = {item["url"]: item["task_id"] for item in tasks}
         edges = []
-        for predecessor, dependent in re.findall(
-            r"(?m)^\s*-\s*#(\d+)\s*->\s*#(\d+)\b", dependency_text,
-        ):
-            predecessor_id = task_ids.get(predecessor)
-            dependent_id = task_ids.get(dependent)
-            if predecessor_id and dependent_id:
-                edges.append({
-                    "predecessor": predecessor_id,
-                    "dependent": dependent_id,
-                    "provenance": "declared",
-                    "evidence": {"tracker_url": tracker["url"], "field": "declared dependencies"},
-                })
-        prompt_sha256 = hashlib.sha256(prompt.encode("utf-8")).hexdigest()
-        record("model", "interpret-tracker", {
-            "skill_path": str(self.skill_path),
+        for edge in response["edges"]:
+            edges.append({
+                "predecessor": task_ids[edge["predecessor_url"]],
+                "dependent": task_ids[edge["dependent_url"]],
+                "provenance": "declared",
+                "evidence": {"tracker_url": tracker["url"], "field": edge["evidence"]},
+            })
+        result = {
             "tracker_url": tracker["url"],
-            "prompt_sha256": prompt_sha256,
-        })
-        response = {
-            "tracker_url": tracker["url"],
-            "selected_numbers": selected_numbers,
+            "selected_issue_urls": copy.deepcopy(response["selected_issue_urls"]),
+            "excluded_urls": copy.deepcopy(response["excluded_urls"]),
             "tasks": tasks,
             "edges": edges,
         }
@@ -240,9 +215,16 @@ class RecordedSkillHost:
             "skill_path": str(self.skill_path),
             "skill_sha256": hashlib.sha256(self.skill_text.encode("utf-8")).hexdigest(),
             "prompt_sha256": prompt_sha256,
-            **response,
+            "recorded": True,
+            **result,
         })
-        return response
+        record("model", "interpret-tracker", {
+            "skill_path": str(self.skill_path),
+            "tracker_url": tracker["url"],
+            "prompt_sha256": prompt_sha256,
+            "recorded": True,
+        })
+        return result
 
 
 
@@ -507,6 +489,15 @@ class FakeGitHub:
                         "- #3 -> #5\n- #4 -> #6\n- #5 -> #6\n"
                         "- #6 -> #7\n- #7 -> #8\n- #8 -> #9\n"
                     ),
+                    "implementation_index": [task["url"] for task in reported_tasks],
+                    "dependency_index": [
+                        {"predecessor": "issue-3", "dependent": "issue-5"},
+                        {"predecessor": "issue-4", "dependent": "issue-6"},
+                        {"predecessor": "issue-5", "dependent": "issue-6"},
+                        {"predecessor": "issue-6", "dependent": "issue-7"},
+                        {"predecessor": "issue-7", "dependent": "issue-8"},
+                        {"predecessor": "issue-8", "dependent": "issue-9"},
+                    ],
                 },
                 "index": [context] + reported_tasks,
             },
@@ -519,28 +510,51 @@ class FakeGitHub:
                         "Implementation index (the repeated and reordered references are intentional):\n"
                         "- #102: API\n- #104: phase delivery-b\n- #102: API again\n"
                         "- #101: foundation\n- #104: phase delivery-b again\n- #103: data\n"
-                        "Phase delivery-b belongs to #104."
+                        "Phase delivery-b belongs to #104.\n"
                         "Declared dependencies:\n"
                         "- #101 -> #103\n- #102 -> #104\n- #103 -> #104\n"
                     ),
+                    "implementation_index": [task["url"] for task in (abcd_tasks[1], abcd_tasks[3], abcd_tasks[0], abcd_tasks[2])],
+                    "dependency_index": [
+                        {"predecessor": "task-a", "dependent": "task-c"},
+                        {"predecessor": "task-b", "dependent": "task-d"},
+                        {"predecessor": "task-c", "dependent": "task-d"},
+                    ],
                 },
                 "index": [contrasting_context] + abcd_tasks,
             },
         }
 
+    def tracker_evidence(self, fixture: str) -> Tuple[Dict[str, Any], list[Dict[str, Any]]]:
+        fixture_value = self.tracker_fixtures[fixture]
+        tracker = copy.deepcopy(fixture_value["tracker"])
+        tracker = {key: tracker[key] for key in ("url", "id", "node_id", "title", "body", "revision")}
+        return tracker, copy.deepcopy(fixture_value["index"])
+
     def tracker_snapshot(
         self, fixture: str = "reported", *, native: bool = False,
-        revision: Optional[str] = None, body_suffix: str = "",
+        revision: Optional[str] = None, body_suffix: str = "", interpreted: bool = False,
     ) -> Dict[str, Any]:
-        """Assemble a model-resolved scope from recorded tracker and issue-index reads."""
+        """Assemble a scope from raw model interpretation or fixture admission data."""
         fixture_value = self.tracker_fixtures[fixture]
         tracker = self._read_pages("tracker", [[fixture_value["tracker"]]])[0]
         tracker["body"] += body_suffix
         if revision is not None:
             tracker["revision"] = revision
         issue_index = self._read_pages("tracker_issue_index", [fixture_value["index"]])
-        interpretation = self.skill_host.interpret_tracker(tracker, issue_index)
-        selected = interpretation["tasks"]
+        if interpreted:
+            model_tracker = {key: tracker[key] for key in ("url", "id", "node_id", "title", "body", "revision")}
+            interpretation = self.skill_host.interpret_tracker(model_tracker, issue_index)
+            selected = interpretation["tasks"]
+            edges = interpretation["edges"]
+        else:
+            by_url = {item["url"]: item for item in issue_index}
+            selected = [by_url[url] for url in fixture_value["tracker"]["implementation_index"]]
+            edges = [
+                {**edge, "provenance": "declared",
+                 "evidence": {"tracker_url": tracker["url"], "field": "dependency index"}}
+                for edge in fixture_value["tracker"]["dependency_index"]
+            ]
         if native:
             self._read_pages("tracker_native_children", [selected])
             for task in selected:
@@ -551,7 +565,6 @@ class FakeGitHub:
             if item["task_id"] in self.delivery:
                 item["existing_delivery"] = copy.deepcopy(self.delivery[item["task_id"]])
             tasks.append(item)
-        edges = interpretation["edges"]
         result = {
             "canonical_repo": self.canonical,
             "integration": copy.deepcopy(self.integration),

@@ -25,6 +25,7 @@ from typing import Any, Dict, Optional, Sequence, Tuple
 from recording_driver import (
     FakeGitHub,
     FakeHost,
+    RecordedSkillHost,
     contract_hash,
     diff_identity,
     git,
@@ -1259,9 +1260,10 @@ class OrchestrateBehavior(unittest.TestCase):
         self.assertFalse(writes, writes)
 
     def test_contrasting_tracker_uses_installed_skill_interpretation(self) -> None:
-        snapshot = self.github.tracker_snapshot("abcd")
+        snapshot = self.github.tracker_snapshot("abcd", interpreted=True)
         self.assertEqual(self.github.skill_host.calls[-1]["tracker_url"], self.github.canonical + "/issues/42")
-        self.assertEqual(self.github.skill_host.calls[-1]["selected_numbers"], [102, 104, 101, 103])
+        self.assertEqual(self.github.skill_host.calls[-1]["selected_issue_urls"], [self.github.canonical + "/issues/" + str(number) for number in (102, 104, 101, 103)])
+        self.assertEqual(self.github.skill_host.calls[-1]["excluded_urls"], [self.github.canonical + "/issues/42", self.github.canonical + "/issues/90", self.github.canonical + "/pull/91"])
         admitted_path, admitted = self._admit_issues(snapshot)
         task_urls = [task["url"] for task in admitted["tasks"]]
         self.assertEqual(task_urls, [self.github.canonical + "/issues/" + str(number) for number in (101, 102, 103, 104)])
@@ -1284,6 +1286,22 @@ class OrchestrateBehavior(unittest.TestCase):
         self.assertTrue(dispatched_urls.issubset(set(task_urls)))
         self.assertTrue(dispatched_urls.isdisjoint({tracker_url, context_url, context_pr_url}))
         self.assertFalse(self.github.prs)
+
+    def test_recorded_model_host_replays_legacy_incident_guidance(self) -> None:
+        legacy_text = self.github.skill_host.skill_text.replace(
+            "issue numbers and phase labels have no meaning outside the source that declares\nthem.",
+            "For this tracker, select executable issues #3 through #9.",
+        )
+        self.assertNotEqual(legacy_text, self.github.skill_host.skill_text)
+        legacy_host = RecordedSkillHost(self.github.skill_host.skill_path, skill_text=legacy_text)
+        tracker, issue_index = self.github.tracker_evidence("reported")
+        result = legacy_host.interpret_tracker(tracker, issue_index)
+        self.assertEqual(
+            result["selected_issue_urls"],
+            [self.github.canonical + "/issues/" + str(number) for number in range(3, 10)],
+        )
+        self.assertNotIn(self.github.canonical + "/issues/101", result["selected_issue_urls"])
+        self.assertNotIn(self.github.canonical + "/issues/102", result["selected_issue_urls"])
 
 
     def test_partial_native_parent_read_preserves_per_task_packet_evidence(self) -> None:
