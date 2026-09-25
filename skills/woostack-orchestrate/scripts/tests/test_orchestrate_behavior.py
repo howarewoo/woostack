@@ -494,20 +494,8 @@ class OrchestrateBehavior(unittest.TestCase):
         self.assertEqual(blocked_code, 0, blocked)
         self.assertEqual(blocked["status"], "unknown", blocked)
         self.assertEqual(blocked["reason"], "checks-incomplete", blocked)
-        self.github.prs.pop(task_id)
-        worker = negative_result["worker"]
-        evidence = {
-            "repo": self.github.canonical,
-            "head_repo": self.github.canonical,
-            "branch": worker["branch"],
-            "base_branch": worker["base_branch"],
-            "head_sha": worker["head_sha"],
-            "unique": True,
-            "pr_absent": True,
-            "pr_url": None,
-            "open": False,
-            "worker_stop": self._stop_receipt(host, task_id, blocked_state),
-        }
+        evidence = self.github.readback(task_id)
+        evidence["worker_stop"] = self._stop_receipt(host, task_id, blocked_state)
         negative_state, reconciled, reconcile_code = self._reconcile(
             admitted_path, blocked_state, task_id, evidence,
             "opaque-unobserved-reconcile", inventory=host.recovery_inventory(),
