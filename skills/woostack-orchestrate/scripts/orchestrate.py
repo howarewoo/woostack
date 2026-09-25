@@ -1057,12 +1057,9 @@ def admit(snapshot, limit, repo=None):
             "delivery_capable", "workspace_isolation_capable",
             "result_correlation_capable", "recovery_capable",
         )
-        require(host.get("delivery_capable") is True, "no-subagent-capability",
-                "delivery-capable subagent required")
-        require(all(capability not in host or host.get(capability) is True
-                    for capability in required_capabilities[1:]),
+        require(all(host.get(capability) is True for capability in required_capabilities),
                 "no-subagent-capability",
-                "workspace isolation, result correlation, and recovery capabilities cannot be disabled")
+                "delivery, workspace isolation, result correlation, and recovery capabilities required")
     scope_identity = {"canonical_repo": canonical, "issues": sorted(by_url)}
     immutable_tasks = [{
         "task_id": task["task_id"], "url": task["url"], "id": task["id"],

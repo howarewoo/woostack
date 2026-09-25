@@ -412,18 +412,18 @@ class OrchestrateBehavior(unittest.TestCase):
                 blocked = copy.deepcopy(snapshot)
                 blocked["host"][capability] = False
                 code, payload = invoke_cli(
-                    "admit", "--snapshot", str(self._write_json("missing-%s.json" % capability, blocked))
+                    "admit", "--snapshot", str(self._write_json("disabled-%s.json" % capability, blocked))
                 )
                 self.assertNotEqual(code, 0, payload)
                 self.assertEqual(payload["error"], "no-subagent-capability", payload)
 
-        legacy = copy.deepcopy(snapshot)
-        for capability in ("workspace_isolation_capable", "result_correlation_capable", "recovery_capable"):
-            legacy["host"].pop(capability, None)
-        legacy_code, legacy_payload = invoke_cli(
-            "admit", "--snapshot", str(self._write_json("legacy-capabilities.json", legacy))
-        )
-        self.assertEqual(legacy_code, 0, legacy_payload)
+                missing = copy.deepcopy(snapshot)
+                missing["host"].pop(capability)
+                code, payload = invoke_cli(
+                    "admit", "--snapshot", str(self._write_json("missing-%s.json" % capability, missing))
+                )
+                self.assertNotEqual(code, 0, payload)
+                self.assertEqual(payload["error"], "no-subagent-capability", payload)
         admitted_path, admitted = self._admit_issue(snapshot)
         self.assertEqual(admitted["tasks"][0]["task_id"], task_id)
         state, scheduled = self._schedule(
