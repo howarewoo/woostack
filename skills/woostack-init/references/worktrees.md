@@ -49,6 +49,12 @@ join pauses that task as a human-merge checkpoint; this fallback covers divergen
 or independent-landing constraints, or no safe suitable stack. Do not infer order, rewrite heads,
 rebase, reset, silently switch parents, combine branches, or require a merge automatically.
 
+Workspace isolation and ancestry admission are unchanged by native stack membership. A dependent's
+workspace, branch, and parent proof come from this reference; the remote stack object is publication
+evidence owned by the
+[source-control contract](../../woostack-commit/references/source-control.md#native-github-stack-membership-for-a-dependent-pr)
+and never a reason to move a checkout, switch a parent, or restack a branch.
+
 ## Discovery, operation, and recovery
 
 Before dispatch or any retained operation, take one coherent direct-evidence snapshot of the

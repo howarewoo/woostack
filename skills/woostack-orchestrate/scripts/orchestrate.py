@@ -2660,6 +2660,51 @@ def delivery_head_diff(repo, reservation, head_sha):
     return None
 
 
+def stack_requirement(admitted, task, readiness, state, repo):
+    parent_prs = readiness["parent"]["pr_evidence"]["prs"]
+    if not parent_prs:
+        return None
+    members = []
+    for task_id in task["execution_ancestry"]:
+        item = state["tasks"][task_id]
+        satisfaction = prerequisite_satisfaction(
+            item, task, repo, lifecycle=item.get("lifecycle"), canonical=admitted["canonical_repo"])
+        if satisfaction["kind"] != "open":
+            continue
+        readback = satisfaction["checkpoint"]["readback"]
+        members.append({key: readback[key] for key in (
+            "pr_url", "branch", "head_sha", "base_branch", "draft")})
+    require(members and members[-1]["pr_url"] == parent_prs[0]["pr_url"],
+            "parent-pr-evidence", "open parent PR is outside the approved execution chain")
+    return {"trunk": admitted["integration"]["branch"], "members": members}
+
+
+def validate_stack(reservation, result, readback):
+    expected = reservation.get("stack")
+    if expected is None:
+        require(result.get("stack") is None, "stack-readback",
+                "independent delivery must not carry native stack evidence")
+        return
+    stack = result.get("stack")
+    require(isinstance(stack, dict) and all(
+        key in stack and stack[key] is not None for key in
+        ("complete", "number", "trunk", "members")),
+        "stack-readback", "native stack readback is missing or incomplete")
+    require(stack["complete"] is True and type(stack["number"]) is int and stack["number"] > 0,
+            "stack-readback", "native stack identity and pagination must be complete")
+    require(stack["trunk"] == expected["trunk"] and isinstance(stack["members"], list),
+            "stack-readback", "native stack trunk or membership differs from the approved chain")
+    child = {key: readback[key] for key in (
+        "pr_url", "branch", "head_sha", "base_branch", "draft")}
+    members = [*expected["members"], child]
+    require(stack["members"] == members,
+            "stack-readback", "native stack membership differs from the approved chain")
+    require(members[0]["base_branch"] == stack["trunk"] and all(
+        member["base_branch"] == members[index - 1]["branch"]
+        for index, member in enumerate(members[1:], 1)),
+        "stack-readback", "native stack bases do not form the approved ordered chain")
+
+
 def validate_delivery(admitted, task, reservation, result, repo, *, historical=False,
                       retained_diff=None, workspace_required=True, existing_pr=False,
                       expected_draft=None):
@@ -2705,6 +2750,7 @@ def validate_delivery(admitted, task, reservation, result, repo, *, historical=F
     require(readback["base_branch"] == reservation["parent_branch"], "wrong-base", "PR base is not admitted parent")
     require(readback["association"] == task["url"] and readback["closing_references"] == [task["url"]],
             "wrong-association", "exactly the task issue may be a closing reference")
+    validate_stack(reservation, result, readback)
     if historical:
         head_present = git(repo, "cat-file", "-e", readback["head_sha"] + "^{commit}", allow_missing=True) is not None
         if not head_present:
@@ -3387,10 +3433,13 @@ def cmd_schedule(args):
         decision = decisions.get(tid) or item.get("parent_decision")
         try:
             readiness = parent_readiness(fresh, task, state, reservation, decision, args.git_repo, retained=repair)
+            required_stack = stack_requirement(admitted, task, readiness, state, args.git_repo)
         except InputError as error:
             blocked.append({"task_id": tid, "reason": error.code,
                             "next_action": "refresh canonical parent, PR, and Git evidence before retrying"})
             continue
+        if required_stack is not None:
+            reservation["stack"] = required_stack
         if item.get("ci", {}).get("state") == "repair":
             _repair_attempt(item)
         repair_evidence = copy.deepcopy(item.get("ci", {}).get("repair_context")) if repair else None

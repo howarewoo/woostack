@@ -59,6 +59,20 @@ values to invent:
     },
     "diff_identity": "sha256:<runtime-substituted exact binary-diff hash>"
   },
+  "stack": {
+    "complete": true,
+    "number": 123,
+    "trunk": "<runtime-substituted configured integration branch>",
+    "members": [
+      {
+        "pr_url": "<runtime-substituted canonical member PR URL>",
+        "branch": "<runtime-substituted member head branch>",
+        "head_sha": "<runtime-substituted member head SHA>",
+        "base_branch": "<runtime-substituted member base branch>",
+        "draft": true
+      }
+    ]
+  },
   "checks": {
     "passed": true,
     "commands": [
@@ -140,11 +154,24 @@ status. Recover the originating identity through direct host reads; never guess 
 `unknown` transition. Standalone validation/admission of already-delivered work has no active launch
 and keeps its existing delivery-evidence contract.
 
+The `stack` receipt is required only when the reserved task has an open parent PR. It is a fresh,
+fully paginated native stack read in bottom-to-top order, including the child; its positive native
+number, configured trunk, and every member's canonical PR URL, branch, head, base, and readiness
+must exactly match the reserved approved chain. Independent tasks omit `stack` rather than
+fabricating membership.
+
 The `worker` and `readback` identities must agree. `readback.closing_references` must contain
 exactly one entry, the canonical child URL, and the PR body must carry exactly one
 `Resolves <child URL>` reference. A specification-parent closing reference, duplicate reference,
 missing reference, foreign repository, foreign head repository, wrong branch/head/base, duplicate
 PR, or closed PR is an identity failure, not permission to retarget or create a replacement.
+
+For a dependent task whose parent PR is open, the independent read also follows the owner's
+[stack membership contract](../../woostack-commit/references/source-control.md#native-github-stack-membership-for-a-dependent-pr):
+confirm the approved parent PR and chain state are current and the child belongs to the intended
+native stack. Chained bases cannot substitute for the `stack` receipt. An absent, partial, or
+conflicting stack read-back blocks success and dependent release; preserve the verified PR and report
+the exact unproved boundary without fabricating a passing `apply-result`.
 
 For every normalized task, `readback.association` and the sole closing reference remain that task's
 canonical issue URL. The selected tracker, scope identity, source context, and inferred DAG never
@@ -195,7 +222,13 @@ thread's review association and resolution disposition. A `COMMENTED` review is 
 event and cannot replace an earlier approval or change request from that reviewer. A `DISMISSED`
 review must retain the original commit association and identify both its dismissing pusher and
 dismissal time; a missing or unattributed dismissal is incomplete evidence. `review_policy` is a
-complete fresh read of the applicable base-branch review requirements and PR evidence.
+complete fresh read of the applicable review requirements and PR evidence. Those requirements come
+from the verified native stack trunk when the readback proves the PR is a registered stack member
+under the owner's
+[stack membership contract](../../woostack-commit/references/source-control.md#native-github-stack-membership-for-a-dependent-pr),
+and otherwise from the PR's own base branch. Chained bases alone are not a stack, and the child's
+immediate base never supplies the policy for a registered member. The helper evaluates one complete
+policy read and needs no stack field of its own.
 `eligible_reviewers` contains the logins currently authorized to satisfy required reviews (write
 permission); it is not a copy of all review authors. When code-owner review is required, resolve
 the CODEOWNERS rules against the changed paths and supply `code_owner_requirements` as one
@@ -420,10 +453,15 @@ and pauses affected downstream starts without erasing existing PR/delivery histo
 parent branch advances, reassess affected descendants against the actual new parent and task
 contracts using the persisted effective graph; never silently mutate a running child's checkout,
 reuse old validation for a changed diff/base, or patch the same inherited defect independently in
-every child. Any necessary descendant repair or permitted reconciliation gets its own exclusively
-owned worker task and fresh verification under the existing source-control policy. Where safe
-propagation cannot be established, pause the affected work and report the decision required. No
-automatic integration branch, dependency rewriting, force-push, or PR merge. Never modify or reopen a
+every child. Any necessary descendant repair gets its own exclusively owned worker task and fresh
+verification under the existing source-control policy. Reconciliation of a registered stack follows
+the owner's
+[stack reconciliation contract](../../woostack-commit/references/source-control.md#stack-reconciliation):
+the controller names the affected set, does not merge each moved parent into its child, cascade a
+restack, or rewrite a published head, and pauses the affected work for a human-maintenance boundary
+when reconciliation would require one. Where safe propagation cannot be established, pause the
+affected work and report the decision required. No automatic integration branch, dependency
+rewriting, force-push, or PR merge. Never modify or reopen a
 closed/merged PR automatically. The controller output distinguishes submitted, checking, verified
 non-applicable, repairing, CI-verified, blocked, waiting, and unverified work, including the observed
 downstream-start decision and its evidence source.
