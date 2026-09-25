@@ -482,7 +482,6 @@ class OrchestrateBehavior(unittest.TestCase):
             candidate["checks"]["passed"] = False
 
         run_negative("opaque-required-failure", fail_required)
-        pre_unknown_bytes = negative_state.read_bytes()
         unexecuted = copy.deepcopy(negative_result)
         unexecuted["checks"]["commands"].append({
             "command": "python3 -c \"raise SystemExit(9)\"",
@@ -495,7 +494,38 @@ class OrchestrateBehavior(unittest.TestCase):
         self.assertEqual(blocked_code, 0, blocked)
         self.assertEqual(blocked["status"], "unknown", blocked)
         self.assertEqual(blocked["reason"], "checks-incomplete", blocked)
-        negative_state.write_bytes(pre_unknown_bytes)
+        self.github.prs.pop(task_id)
+        worker = negative_result["worker"]
+        evidence = {
+            "repo": self.github.canonical,
+            "head_repo": self.github.canonical,
+            "branch": worker["branch"],
+            "base_branch": worker["base_branch"],
+            "head_sha": worker["head_sha"],
+            "unique": True,
+            "pr_absent": True,
+            "pr_url": None,
+            "open": False,
+            "worker_stop": self._stop_receipt(host, task_id, blocked_state),
+        }
+        negative_state, reconciled, reconcile_code = self._reconcile(
+            admitted_path, blocked_state, task_id, evidence,
+            "opaque-unobserved-reconcile", inventory=host.recovery_inventory(),
+        )
+        self.assertEqual(reconcile_code, 0, reconciled)
+        self.assertEqual(reconciled.get("status"), "reconciled", reconciled)
+        negative_state, refill = self._schedule(
+            admitted_path, admitted, negative_state, fresh,
+            "opaque-unobserved-refill", cap="1",
+        )
+        self.assertEqual(len(refill["dispatch"]), 1, refill)
+        self.assertEqual(
+            self._reservation(refill["dispatch"][0]), self._reservation(dispatch)
+        )
+        host.dispatch(refill["dispatch"])
+        negative_result = make_result(
+            self.github, task_id, host.wait_for_report(task_id), admitted
+        )
         state, delivered, _ = self._apply(
             admitted_path, negative_state, task_id, negative_result, "opaque-delivered"
         )
