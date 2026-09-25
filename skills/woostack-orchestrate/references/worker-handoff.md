@@ -200,8 +200,10 @@ The complete Execute input comprises `bounded_input` **and** this readiness obje
 specification context, repository rules, and execution layout/order. The worker verifies that exact
 effective prerequisite set, full checkpoints, selected parent, current PR facts, and ancestry before
 Git mutation. It must block missing evidence, not discover the graph or infer readiness from a branch
-name. Repairs retain their original start, even if a separately verified parent tip has advanced
-compatibly. The controller persists the plan revision and fingerprint with the state, so equivalent
+name. Ordinary repairs retain their original start even after a compatible parent
+tip advance. Only a [stopped owner rebaseline](scheduling.md#stopped-owner-rebaseline-and-resume)
+may checkpoint a different parent after exclusive stopped-writer and current-source verification.
+The controller persists the plan revision and fingerprint with the state, so equivalent
 reordered input resumes the same plan. A newer layout revision requires genuinely unstarted changes
 except for [verified legacy-migration recovery](scheduling.md#fingerprints-and-fresh-refills);
 otherwise it is `execution-plan-drift`. A changed technical graph is `snapshot-drift`.
@@ -210,11 +212,14 @@ a replan. Result application uses its original admission, not a newer plan the w
 the controller uses current persisted effective dependencies for descendant repair propagation.
 
 
-A repair entry keeps the same `branch`, absolute `workspace`, `parent_branch`, `parent_sha`, and
-retained PR as its original reservation and sets `repair: true`. It never receives a new parent or
-replacement PR. Each newly dispatched repair attempt binds to the current execution plan and
-dependency context it receives before launch, and its completion must be accepted under that issued plan
-rather than a stale prior attempt revision. An active repair worker preserves its issued plan binding
+A normal repair entry keeps the same `branch`, absolute `workspace`, `parent_branch`,
+`parent_sha`, and retained PR as its original reservation. The stopped-owner
+rebaseline exception keeps branch/workspace/PR but binds a newly verified parent
+SHA; its packet carries the preserved historical receipt and new reservation in
+`repair_evidence`. It does not give a replacement PR or live writer access.
+Each newly dispatched repair attempt binds to the current execution plan and
+dependency context before launch; its completion is accepted only under that
+issued plan. An active repair worker preserves its issued plan binding
 across subsequent compatible replans. The task issue URL is the only issue association and closing reference. A repair
 dispatched from [PR-check observation](validation.md#pr-check-observation-and-repair) additionally
 carries the failing revision and the check/log evidence that justified it; the worker revalidates

@@ -549,6 +549,14 @@ non-null `pr_url` or `open: true` alongside `pr_absent: true`) as `evidence-mism
 preserves state. The helper returns same-branch `repair-ready` only for proven absence; an exact
 canonical PR returns `evidence-pending` until the caller supplies independent full result evidence.
 It never allocates a new identity or a second worker for repository work already represented by that PR.
+
+The separate [stopped-owner rebaseline protocol](scheduling.md#stopped-owner-rebaseline-and-resume)
+applies only when the user authorizes reconciliation onto a changed integration
+parent and every writer is proved stopped. It checkpoints a clean current PR
+and source head before external Git work, then permits one same-PR revalidation
+worker after the new parent/head readback. Do not use ordinary `reconcile` to
+silently reparent a live reservation.
+
 All delivery gates still apply before dependent release. Any branch/head/base/repository/PR mismatch,
 absent stopped proof, arbitrary report, contradictory absence evidence, duplicate/closed/foreign PR,
 or missing admitted/git-repo input blocks reconciliation and leaves that task's halt in place.

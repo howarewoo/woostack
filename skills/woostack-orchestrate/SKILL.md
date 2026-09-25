@@ -125,7 +125,22 @@ python3 <orchestrate-skill>/scripts/orchestrate.py stop \
   --admitted admitted.json --state controller-state.json \
   --state-out controller-state.json --git-repo <canonical-git-repository> \
   [--reason <safe-stop-reason>]
+python3 <orchestrate-skill>/scripts/orchestrate.py rebaseline-stopped \
+  --admitted admitted.json --state controller-state.json \
+  --state-out controller-state.json --git-repo <canonical-git-repository> \
+  --task <task-id> --fresh <fresh-snapshot.json> --evidence <rebaseline-readback.json>
+# After the exclusive host writer has reconciled Git and read back current PR/ref facts:
+python3 <orchestrate-skill>/scripts/orchestrate.py resume \
+  --admitted admitted.json --state controller-state.json \
+  --state-out controller-state.json --git-repo <canonical-git-repository> \
+  --task <task-id> --fresh <fresh-snapshot.json> --evidence <current-rebaseline-readback.json>
 ```
+
+The stopped-owner commands use the narrow
+[rebaseline and resume protocol](references/scheduling.md#stopped-owner-rebaseline-and-resume).
+They checkpoint intent and evidence, but never perform Git or GitHub mutations.
+Only unpublished work may be rebased by the exclusive host writer; a published
+draft PR must merge current main on its same branch with no force-push.
 
 Observe only a delivered task's admitted PR. Assemble the observation from fresh authorized
 GitHub and host reads using the [PR-check observation contract](references/validation.md#pr-check-observation-and-repair);

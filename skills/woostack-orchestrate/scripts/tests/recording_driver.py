@@ -1018,11 +1018,12 @@ class FakeHost:
         repair_detail = ""
         if repair:
             failures = (packet.get("repair_evidence") or {}).get("failures") or [{}]
-            repair_detail = " " + str(failures[0].get("diagnosis") or "bounded repair")
-        with task_file.open("w", encoding="utf-8") as handle:
-            handle.write("Execute consumed packet for %s%s%s\n" % (
-                task_id, " repair" if repair else "", repair_detail
-            ))
+        if not (repair and (packet.get("repair_evidence") or {}).get("phase") == "resumed"
+                and task_file.exists()):
+            with task_file.open("w", encoding="utf-8") as handle:
+                handle.write("Execute consumed packet for %s%s%s\n" % (
+                    task_id, " repair" if repair else "", repair_detail
+                ))
         run_verification(workspace, bounded)
         git(workspace, "add", str(task_file.relative_to(workspace)))
         if git(workspace, "diff", "--cached", "--name-only"):

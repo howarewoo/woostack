@@ -443,8 +443,9 @@ head, only a caller that loaded those next bytes may finish recovery. Any other 
 checkpoint recovery evidence and never adopts arbitrary bytes. The head is independent of
 input/output filenames, so a second writer using the same stale `--state` cannot advance a different
 `--state-out`.
-The first schedule omits `--state` and creates state. Every later schedule, record-worker,
-apply-result, observe-checks, reconcile, or stop names an existing state and matching admission. Missing state, malformed JSON,
+The first schedule omits `--state` and creates state. Every later `schedule`,
+`record-worker`, `apply-result`, `observe-checks`, `reconcile`, `stop`,
+`rebaseline-stopped`, and `resume` names an existing state and matching admission. Missing state, malformed JSON,
 state/fingerprint/scope mismatch, missing durable checkpoint head, or a state task set that differs
 from the admission blocks; never silently reinitialize. The initial state is published before the
 scope claim is acquired, and the claim becomes visible only after its complete owner-bearing record
@@ -454,8 +455,10 @@ no claim or one complete same-owner claim. Keep the state path private and use t
 
 Under that exclusive ownership, the helper persists the actual selected task branch, absolute
 workspace, parent branch, and parent SHA before host dispatch. The branch and workspace are runtime
-facts, not stable task-ID projections or required publication fields. Repairs reuse the exact
-original reservation and retained PR; when the checkout was legitimately released, reopen an
+facts, not stable task-ID projections or required publication fields. Ordinary
+repairs reuse the exact original reservation and retained PR; only the
+[stopped-owner rebaseline](#stopped-owner-rebaseline-and-resume) changes its parent SHA.
+When the checkout was legitimately released, reopen an
 isolated worktree on the same verified branch only after reconciling ownership and retained
 changes, never by recreating around a collision or from a hard-coded path. Before reuse, compare
 canonical physical paths (including aliases and ancestor/descendant paths), repository identity,
@@ -496,6 +499,87 @@ create a speculative branch/worktree. An explicit parent decision is consulted o
 ambiguity or an explicitly selected suitable existing parent; it is evidence to validate, never proof
 by name alone. Never create a synthetic base, combine independent branches, rewrite either graph, or
 require an automatic merge.
+
+## Stopped owner rebaseline and resume
+
+This is an explicit user-approved exception for a stopped, non-delivered, `unknown`
+integration-root task, not a generic migration or a way to take over a live worker.
+The same owner must hold both scope and task claims and an externally enforced exclusive
+writer lease. The caller must read every reserved native session and its descendant
+processes as stopped, including siblings, and supply the complete eight-family recovery
+inventory. A pending unclaimed sibling remains pending; a different reserved task without
+recorded writer identity blocks. Do not edit retained controller files by hand.
+
+Both `rebaseline-stopped` and `resume` take `--admitted`, existing `--state`,
+`--state-out`, `--git-repo`, `--task`, `--fresh` and `--evidence`. The fresh snapshot
+must retain exact selected issue identities, contracts, scope, execution graph and
+layout; its canonical integration branch must be an actual forward descendant of
+the original integration commit. No unrelated selected task scope may be touched by
+that advance. The evidence JSON has `authorized: true`, nonempty `authorization`
+describing the actual user's approval, `state_digest` (SHA-256 hex of the exact
+current state file), `inventory` (complete current host recovery inventory), its
+`inventory_digest` (the helper's `sha256:` canonical JSON digest), and `pr`:
+
+```json
+{
+  "repo": "https://github.com/owner/repo",
+  "head_repo": "https://github.com/owner/repo",
+  "branch": "the reserved task branch",
+  "base_branch": "the reserved integration branch",
+  "url": null,
+  "head_sha": null,
+  "remote_head_sha": null,
+  "absent": true,
+  "unique": true
+}
+```
+
+For a published draft, replace the nulls with the exact **same** canonical open PR
+URL and current local/published full head SHA; set `absent: false`, `open: true`,
+`draft: true`, and `unique: true`. Exhaust canonical PR inventory pagination and
+verify remote branch/ref readback independently. Facts supplied to the helper are
+host attestations, not evidence the helper itself obtained from a network. The
+helper checks the linked checkout's physical repository, clean index/worktree,
+branch/ref, original parent ancestry, source diff scope and canonical main
+ancestry. Commit and review retained work before authorizing; a dirty checkout
+blocks rather than allowing stash/reset/clean.
+
+For an existing published PR with uncommitted reviewed repairs, commit the retained
+changes and publish that descendant with a normal fast-forward push **before**
+authorization; read back the unchanged PR and its new current head. Never use a
+force push to make the local checkout match a stale remote ref.
+
+`rebaseline-stopped` durably records old reservation, original source head, native
+writer receipt, exact proposed parent, authorization and PR identity under the
+owner-only checkpoint CAS; it does **not** clear stop or dispatch. With exclusive
+writer ownership, perform Git outside the helper. An unpublished branch may
+rebase onto the authorized current main after preserving committed source. For
+a published PR, **never rebase or force-push**: merge current main into the same
+branch, push only fast-forward, preserve old head ancestry and the same draft PR.
+Do not overwrite local or remote work; if a conflict or drift cannot be resolved
+safely, leave authorization pending and stop. No replacement worker or PR is made.
+
+Read back the current physical checkout, complete canonical PR/ref inventory,
+worker/process inventory, fresh scope and exact new state digest before `resume`.
+It requires progress onto the authorized parent, clean checkout, old task paths
+still present in the new task diff, and for a published PR old-head ancestry and
+local/remote current-head agreement. Source paths untouched by the main advance
+must also retain their exact old tree entries (including deletion, file mode,
+type and content); material conflicts in changed paths remain the host writer's
+reviewed responsibility and still require current diff/check evidence at
+delivery. After the authorized parent, later integration advances are checked
+only for new task-scope impact. Failure leaves stop intact and the old
+reservation preserved. Success retains the old receipt/history in `rebaseline`,
+updates only that task's parent reservation, clears the stop, and marks it
+`repair-ready`. The checkpoint limits subsequent dispatch to this recovered
+task; all other siblings, including repair-ready and CI-repair work, remain
+untouched and need separate user authority.
+A subsequent fresh `schedule` issues one same-workspace, same-branch repair
+packet bound to the new parent, refusing a source head changed after `resume`.
+Execute independently runs checks/review/smoke and either creates one draft PR
+(previously absent) or updates the same published PR. `apply-result` still
+validates the current head and full delivery/note evidence before release. These
+commands never merge a PR or grant merge authority.
 
 ## Helper status meanings
 

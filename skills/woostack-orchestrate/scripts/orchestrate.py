@@ -1395,10 +1395,16 @@ def selected_landing_paths(repo, task, branch, proposed):
     return set(changed_paths(repo, landed_parent, merge_sha))
 
 
-def integration_advance_evidence(repo, admitted, fresh):
+def integration_advance_evidence(repo, admitted, fresh, state=None):
     """Verify that a changed integration tip is a compatible forward advance."""
     branch = admitted["integration"]["branch"]
     previous = admitted["integration"]["sha"]
+    recovery_task = (state or {}).get("recovery", {}).get("rebaseline_only")
+    rebaseline = ((state or {}).get("tasks", {}).get(recovery_task, {}).get("rebaseline") or {})
+    if rebaseline.get("phase") == "resumed":
+        previous = rebaseline["new_parent"]
+        require(contains(repo, admitted["integration"]["sha"], previous),
+                "parent-tip-drift", "rebaseline parent no longer descends from admission")
     proposed = fresh["integration"]["sha"]
     require(fresh["integration"]["branch"] == branch,
             "parent-tip-drift", "integration branch identity requires reconciliation")
@@ -3047,7 +3053,7 @@ def cmd_schedule(args):
                 "snapshot-drift", "scope/native identity/contract changed")
         require(fresh["execution_fingerprint"] == admitted["execution_fingerprint"],
                 "execution-plan-drift", "execution layout changed without a newer admitted plan")
-        advance = integration_advance_evidence(root, admitted, fresh)
+        advance = integration_advance_evidence(root, admitted, fresh, state)
         state.setdefault("recovery", {})["integration_advance"] = copy.deepcopy(advance)
         plan_error = state.pop("_execution_plan_error", None)
         if plan_error is not None:
@@ -3225,6 +3231,12 @@ def cmd_schedule(args):
     dispatch = []
     for task in sorted(fresh_tasks.values(), key=lambda t: (t["ordinal"], t["task_id"])):
         tid, item = task["task_id"], state["tasks"][task["task_id"]]
+        recovery_only = state.get("recovery", {}).get("rebaseline_only")
+        if recovery_only and tid != recovery_only:
+            if item["status"] in ("pending", "repair-ready") or item.get("ci", {}).get("state") == "repair":
+                waiting.append({"task_id": tid, "reason": "stopped-scope-sibling",
+                                "next_action": "obtain separate user authorization before starting work"})
+            continue
         if tid in ownership_unverified:
             continue
         if task["state"] == "closed" and item["status"] == "pending":
@@ -3294,6 +3306,10 @@ def cmd_schedule(args):
             try:
                 require(isinstance(reservation, dict), "workspace-conflict", "repair has no retained reservation")
                 identity = _reopen_repair_workspace(args.git_repo, admitted, state, item)
+                rebaseline = item.get("rebaseline") or {}
+                if item.get("failure_reason") == "rebaseline-revalidation":
+                    require(identity["head_sha"] == rebaseline.get("new_head"),
+                            "stale-rebaseline", "source changed after final recovery readback")
                 require(contains(args.git_repo, reservation["parent_sha"], identity["head_sha"]),
                         "wrong-ancestry", "repair workspace no longer contains admitted start")
             except InputError as error:
@@ -3393,7 +3409,9 @@ def cmd_schedule(args):
             continue
         if item.get("ci", {}).get("state") == "repair":
             _repair_attempt(item)
-        repair_evidence = copy.deepcopy(item.get("ci", {}).get("repair_context")) if repair else None
+        repair_evidence = (copy.deepcopy(item["rebaseline"])
+                           if repair and item.get("failure_reason") == "rebaseline-revalidation"
+                           else copy.deepcopy(item.get("ci", {}).get("repair_context")) if repair else None)
         if repair and isinstance(repair_evidence, dict) and item.get("ci", {}).get("workspace_reopen"):
             repair_evidence["workspace_reopen"] = copy.deepcopy(item["ci"]["workspace_reopen"])
         binding = issued_attempt_binding(task, reservation, repair, retained_pr, readiness)
@@ -3640,6 +3658,212 @@ def cmd_reconcile(args):
     return {"status": "reconciled", "task_id": args.task,
             "detail": "Same task retained; full apply-result gates still required.",
             **_state_summary(state)}
+def _stopped_rebaseline_context(args):
+    admitted = load_json(args.admitted)
+    root = repository(args.git_repo, admitted["canonical_repo"])
+    state = state_read(args.state, admitted, repo=args.git_repo)
+    require(state["stop_requested"] and state["halt_new_dispatch"],
+            "not-stopped", "only a stopped owner may rebaseline")
+    require(state.get("scope_claim", {}).get("owner") == state["owner"]["controller_id"],
+            "ownership-conflict", "stopped scope claim is not owned by this controller")
+    claims = _claims_root(root)
+    scope_path = claims / (_claim_key(admitted) + ".json")
+    require(scope_path.is_file() and not scope_path.is_symlink(),
+            "ownership-conflict", "stopped scope claim is missing")
+    require(load_json(scope_path) == state["scope_claim"],
+            "ownership-conflict", "durable scope claim differs from the stopped checkpoint")
+    claim_scope(root, admitted, state)
+    require(args.task in state["tasks"], "unknown-task", "task is outside the stopped scope")
+    task = next(t for t in admitted["tasks"] if t["task_id"] == args.task)
+    item = state["tasks"][args.task]
+    require(item["status"] == "unknown" and item.get("delivery") is None
+            and isinstance(item.get("reservation"), dict)
+            and isinstance(item.get("host_worker"), dict),
+            "rebaseline-ineligible", "only a non-delivered unknown task with a recorded writer qualifies")
+    task_path = claims / (_claim_key(admitted, task) + ".json")
+    require(task_path.is_file() and not task_path.is_symlink(),
+            "ownership-conflict", "stopped task claim is missing")
+    require(item.get("claim", {}).get("owner") == state["owner"]["controller_id"],
+            "ownership-conflict", "task claim is not owned by this controller")
+    require(load_json(task_path) == item["claim"],
+            "ownership-conflict", "durable task claim differs from the stopped checkpoint")
+    claim_task(root, admitted, task, state, item)
+    require(item["reservation"]["parent_branch"] == admitted["integration"]["branch"]
+            and task["execution_parent"] is None and not task["effective_prerequisites"],
+            "unapproved-parent", "only an integration-root reservation can rebaseline")
+    return admitted, root, state, task, item
+
+
+def _rebaseline_evidence(args, admitted, root, state, task, item, facts, *, final=False):
+    require(facts.get("authorized") is True and text(facts.get("authorization")),
+            "authorization-missing", "explicit user approval and its provenance are required")
+    inventory = recovery_inventory(facts.get("inventory"))
+    require(facts.get("state_digest") == state["_loaded_digest"]
+            and facts.get("inventory_digest") == digest(inventory),
+            "stale-state", "evidence must bind the exact state and current host inventory")
+    sessions = inventory["sessions"]
+    processes = inventory["processes"]
+    require(isinstance(sessions, list) and isinstance(processes, list)
+            and all(isinstance(row, dict) for row in sessions + processes),
+            "worker-liveness", "complete host session/process inventory required")
+    for tid, current in state["tasks"].items():
+        worker = current.get("host_worker")
+        if not worker:
+            require(current["status"] == "pending" and current.get("reservation") is None,
+                    "worker-liveness", "unrecorded reserved writer cannot be ruled out")
+            continue
+        matching = [row for row in sessions if row.get("worker") == worker
+                    or row.get("task_id") == tid
+                    or row.get("reservation") == current["reservation"]]
+        require(len(matching) == 1 and matching[0] == {
+            "worker": worker, "task_id": tid,
+            "reservation": current["reservation"], "status": "stopped",
+        }, "worker-liveness", "every reserved native writer must have one stopped readback")
+        require(all(row.get("status") == "stopped" for row in processes
+                    if row.get("worker") == worker or row.get("task_id") == tid
+                    or row.get("reservation") == current["reservation"]),
+                "worker-liveness", "a reserved writer process may still be live or unknown")
+    require(all(row.get("status") == "stopped" for row in sessions + processes),
+            "worker-liveness", "unknown or live writers prevent exclusive recovery")
+    reservation = item["reservation"]
+    identity = workspace_identity(root, admitted["canonical_repo"],
+                                  reservation["workspace"], reservation["branch"])
+    require(not git(reservation["workspace"], "status", "--porcelain=v2",
+                    "--untracked-files=all").decode(),
+            "dirty-workspace", "commit and review retained work before recovery")
+    head = identity["head_sha"]
+    require(branch_tip(root, reservation["branch"]) == head
+            and contains(root, reservation["parent_sha"], head),
+            "wrong-ancestry", "reserved source ref or original ancestry differs")
+    pr = facts.get("pr")
+    require(isinstance(pr, dict) and pr.get("repo") == pr.get("head_repo")
+            == admitted["canonical_repo"] and pr.get("branch") == reservation["branch"]
+            and pr.get("base_branch") == reservation["parent_branch"]
+            and pr.get("unique") is True,
+            "pr-identity", "complete canonical PR inventory must match the reservation")
+    reported_pr = (item.get("report") or {}).get("pr_url")
+    if reported_pr is not None:
+        require(pr.get("url") == reported_pr, "pr-identity",
+                "canonical PR discovery differs from retained worker report")
+    if pr.get("absent") is True:
+        require(pr.get("url") is None and pr.get("head_sha") is None
+                and pr.get("remote_head_sha") is None and item.get("verified_pr") is None,
+                "pr-identity", "no-PR recovery must prove absence of PR and published source ref")
+    else:
+        match = PR_RE.fullmatch(pr.get("url") or "")
+        require(match and "https://github.com/" + "/".join(match.groups()[:2])
+                == admitted["canonical_repo"] and pr.get("open") is True
+                and pr.get("draft") is True and pr.get("head_sha") == head
+                and pr.get("remote_head_sha") == head
+                and item.get("verified_pr") in (None, pr["url"])
+                and (item.get("pr") or {}).get("pr_url") in (None, pr["url"]),
+                "pr-identity", "same open draft PR and published source head required")
+    fresh = admit(load_json(args.fresh), admitted["max_parallel"], args.git_repo)
+    require(fresh["fingerprint"] == admitted["fingerprint"]
+            and fresh["execution_fingerprint"] == admitted["execution_fingerprint"]
+            and fresh["scope_identity"] == state["scope_identity"],
+            "snapshot-drift", "scope, contract or execution graph changed")
+    branch = admitted["integration"]["branch"]
+    proposed = fresh["integration"]
+    require(proposed["branch"] == branch and branch_tip(root, branch) == proposed["sha"]
+            and contains(root, admitted["integration"]["sha"], proposed["sha"])
+            and proposed["sha"] != reservation["parent_sha"],
+            "parent-tip-drift", "canonical integration must have advanced from the old parent")
+    paths = changed_paths(root, admitted["integration"]["sha"], proposed["sha"])
+    for other in admitted["tasks"]:
+        if other["task_id"] != args.task:
+            require(not any(path_in_scope(path, scope) for path in paths
+                            for scope in other["contract"]["scope"]),
+                    "parent-tip-drift", "integration changed an unrelated admitted task")
+    prior = item.get("rebaseline")
+    if final:
+        require(isinstance(prior, dict) and prior.get("phase") == "authorized"
+                and prior.get("authorization") == facts["authorization"]
+                and prior.get("old_reservation") == reservation
+                and prior.get("old_head") != proposed["sha"]
+                and prior.get("new_parent") == proposed["sha"]
+                and prior.get("pr_url") == pr.get("url"),
+                "stale-authorization", "recovery intent differs from the durable authorization")
+        old_head = prior["old_head"]
+        require(pr.get("absent") is True or contains(root, old_head, head),
+                "wrong-ancestry", "published PR head must preserve old head ancestry (merge, not rebase)")
+        require(contains(root, proposed["sha"], head) and head != old_head,
+                "no-progress", "source must advance onto the authorized current parent")
+        old_paths = changed_paths(root, reservation["parent_sha"], old_head)
+        new_paths = changed_paths(root, proposed["sha"], head)
+        require(set(old_paths).issubset(new_paths)
+                and all(any(path_in_scope(path, scope) for scope in task["contract"]["scope"])
+                        for path in new_paths),
+                "source-loss", "original task paths must survive without unrelated edits")
+        for path in old_paths:
+            if path in paths:
+                continue
+            literal_path = ":(literal)" + path
+            prior_entry = git(root, "ls-tree", "-z", old_head, "--", literal_path)
+            require(git(root, "ls-tree", "-z", head, "--", literal_path) == prior_entry,
+                    "source-loss", "unaffected retained tree entry changed during reconciliation")
+    else:
+        require(prior is None, "rebaseline-pending", "finish the existing authorization first")
+        require(head != reservation["parent_sha"], "no-progress",
+                "retained work must be committed before authorizing source movement")
+        require(all(any(path_in_scope(path, scope) for scope in task["contract"]["scope"])
+                    for path in changed_paths(root, reservation["parent_sha"], head)),
+                "scope-conflict", "retained changes exceed the task contract")
+    return fresh, pr, head, inventory
+
+
+def cmd_rebaseline_stopped(args):
+    admitted, root, state, task, item = _stopped_rebaseline_context(args)
+    facts = load_json(args.evidence)
+    fresh, pr, head, inventory = _rebaseline_evidence(
+        args, admitted, root, state, task, item, facts)
+    item["rebaseline"] = {
+        "phase": "authorized", "authorization": facts["authorization"],
+        "old_reservation": copy.deepcopy(item["reservation"]),
+        "old_head": head, "new_parent": fresh["integration"]["sha"],
+        "pr_url": pr.get("url"), "worker": copy.deepcopy(item["host_worker"]),
+    }
+    state["recovery"]["last_inventory"] = inventory
+    write_state(args, state)
+    return {"status": "rebaseline-authorized", "task_id": args.task,
+            "old_head": head, "new_parent": fresh["integration"]["sha"],
+            "source_action": "merge-main-no-force" if pr.get("url") else "rebase-unpublished",
+            "dispatch": []}
+
+
+def cmd_resume(args):
+    admitted, root, state, task, item = _stopped_rebaseline_context(args)
+    facts = load_json(args.evidence)
+    prior = item.get("rebaseline")
+    require(isinstance(prior, dict) and prior.get("phase") == "authorized",
+            "authorization-missing", "durable rebaseline authorization required")
+    fresh, pr, head, inventory = _rebaseline_evidence(
+        args, admitted, root, state, task, item, facts, final=True)
+    previous = copy.deepcopy(item["reservation"])
+    reservation = copy.deepcopy(previous)
+    reservation["parent_sha"] = fresh["integration"]["sha"]
+    reservation.pop("attempt_binding", None)
+    item["reservation"] = reservation
+    item["status"] = "repair-ready"
+    item["host_worker"] = None
+    item["verified_pr"] = pr.get("url")
+    item["lifecycle"] = {"pr": {"draft": True, "state": "open"}} if pr.get("url") else None
+    item["failure_reason"] = "rebaseline-revalidation"
+    item["first_uncertain_boundary"] = None
+    item["rebaseline"].update(phase="resumed", new_head=head,
+                              new_reservation=copy.deepcopy(reservation))
+    state["stop_requested"] = False
+    state["halt_new_dispatch"] = False
+    state["halt_reason"] = None
+    state["recovery"]["last_inventory"] = inventory
+    state["recovery"]["first_uncertain_boundary"] = None
+    state["recovery"]["rebaseline_only"] = args.task
+    write_state(args, state)
+    return {"status": "resumed", "task_id": args.task, "dispatch": [],
+            "parent_sha": reservation["parent_sha"], "head_sha": head,
+            "pr_url": pr.get("url"), **_state_summary(state)}
+
+
 def cmd_stop(args):
     admitted = load_json(args.admitted)
     repository(args.git_repo, admitted["canonical_repo"])
@@ -3708,6 +3932,11 @@ def parser():
     reconcile.add_argument("--evidence", required=True)
     reconcile.add_argument("--inventory", required=True)
     reconcile.set_defaults(run=cmd_reconcile)
+    for name, handler in (("rebaseline-stopped", cmd_rebaseline_stopped), ("resume", cmd_resume)):
+        recovery = commands.add_parser(name)
+        for option in ("admitted", "state", "state-out", "git-repo", "task", "fresh", "evidence"):
+            recovery.add_argument("--" + option, required=True)
+        recovery.set_defaults(run=handler)
     observe = commands.add_parser("observe-checks")
     observe.add_argument("--admitted", required=True)
     observe.add_argument("--state", required=True)

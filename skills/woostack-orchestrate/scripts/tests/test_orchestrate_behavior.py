@@ -3012,6 +3012,450 @@ class OrchestrateBehavior(unittest.TestCase):
                    if json.loads(line).get("operation") == "dispatch-worker"]
         self.assertEqual(len(workers), 1)
 
+    def _stopped_rebaseline_fixture(self, published: bool):
+        snapshot = self._two_task_snapshot()
+        admitted_path, admitted = self._admit_issue(snapshot)
+        state, scheduled = self._schedule(
+            admitted_path, admitted, None, snapshot, "rebaseline-initial", cap="1"
+        )
+        entry = scheduled["dispatch"][0]
+        workspace = Path(entry["workspace"])
+        workspace.parent.mkdir(parents=True, exist_ok=True)
+        git(self.repo, "worktree", "add", "-b", entry["branch"], str(workspace), entry["parent_sha"])
+        source = workspace / "src/task-a.txt"
+        source.parent.mkdir(exist_ok=True)
+        source.write_text("task-a retained source\n", encoding="utf-8")
+        git(workspace, "add", "src/task-a.txt")
+        git(workspace, "commit", "-m", "Retain task-a")
+        old_head = git(workspace, "rev-parse", "HEAD")
+        self.fixture_remote = self.tmp / "published-source.git"
+        self._run(["git", "init", "-q", "--bare", str(self.fixture_remote)])
+        git(self.repo, "remote", "add", "fixture", str(self.fixture_remote))
+        if published:
+            git(workspace, "push", "fixture", "HEAD:refs/heads/" + entry["branch"])
+            self.assertEqual(git(self.fixture_remote, "rev-parse",
+                                 "refs/heads/" + entry["branch"]), old_head)
+        worker = {"host_id": "fixture-host", "session_id": "fixture-session",
+                  "worker_id": "fixture-worker"}
+        receipt = self._write_json("rebaseline-launch.json", {
+            "worker": worker, "reservation": self._reservation(entry),
+            "attempt_binding": entry["attempt_binding"],
+            "state_digest": hashlib.sha256(state.read_bytes()).hexdigest(),
+        })
+        code, result = invoke_cli(
+            "record-worker", "--admitted", str(admitted_path), "--state", str(state),
+            "--state-out", str(state), "--git-repo", str(self.repo),
+            "--task", "task-a", "--evidence", str(receipt),
+        )
+        self.assertEqual(code, 0, result)
+        pr_url = self.github.canonical + "/pull/1001" if published else None
+        state, outcome, _ = self._apply(
+            admitted_path, state, "task-a",
+            {"outcome": "unknown", "worker": {**worker, "pr_url": pr_url}}, "rebaseline-unknown",
+        )
+        self.assertEqual(outcome["status"], "unknown")
+        state, _ = self._stop(admitted_path, state, "rebaseline-stop")
+        if published:
+            self.github.save_pr("task-a", {
+                "pr_url": pr_url, "branch": entry["branch"], "head_sha": old_head,
+                "commit_sha": old_head, "base_branch": "main",
+                "association": entry["child_url"], "open": True, "unique": True,
+                "draft": True, "diff_identity": diff_identity(self.repo, entry["parent_sha"], old_head),
+            })
+        (self.repo / "README").write_text("base\nintegration advance\n", encoding="utf-8")
+        git(self.repo, "add", "README")
+        git(self.repo, "commit", "-m", "Advance main independently")
+        self.github.integration["sha"] = git(self.repo, "rev-parse", "HEAD")
+        fresh = self._two_task_snapshot()
+        def evidence(current_state, *, new_head=None):
+            inventory = copy.deepcopy(fresh["recovery"])
+            reservation = json.loads(current_state.read_text())["tasks"]["task-a"]["rebaseline"]["old_reservation"] \
+                if "rebaseline" in json.loads(current_state.read_text())["tasks"]["task-a"] \
+                else self._reservation(entry)
+            inventory["sessions"] = [{
+                "task_id": "task-a", "worker": worker,
+                "reservation": reservation, "status": "stopped",
+            }]
+            head = new_head or old_head
+            return {
+                "authorized": True, "authorization": "user approved stopped scope rebaseline",
+                "state_digest": hashlib.sha256(current_state.read_bytes()).hexdigest(),
+                "inventory_digest": contract_hash(inventory), "inventory": inventory,
+                "pr": {"repo": self.github.canonical, "head_repo": self.github.canonical,
+                       "branch": entry["branch"], "base_branch": "main",
+                       "url": pr_url, "head_sha": head if published else None,
+                       "remote_head_sha": head if published else None,
+                       "absent": not published, "open": published,
+                       "draft": True if published else None, "unique": True},
+            }
+        return admitted_path, admitted, state, entry, fresh, old_head, pr_url, evidence
+
+    def _rebaseline_call(self, command, admitted_path, state, fresh, evidence, label):
+        out = self.tmp / (label + "-state.json")
+        code, response = invoke_cli(
+            command, "--admitted", str(admitted_path), "--state", str(state),
+            "--state-out", str(out), "--git-repo", str(self.repo),
+            "--task", "task-a", "--fresh", str(self._write_json(label + "-fresh.json", fresh)),
+            "--evidence", str(self._write_json(label + "-evidence.json", evidence)),
+        )
+        return out, response, code
+
+    def _exercise_stopped_rebaseline(self, published: bool):
+        admitted_path, admitted, state, entry, fresh, old, url, facts = \
+            self._stopped_rebaseline_fixture(published)
+        pending = json.loads(state.read_text())["tasks"]["task-b"]
+        before = state.read_bytes()
+        out, rejected, code = self._rebaseline_call(
+            "resume", admitted_path, state, fresh, facts(state), "premature-resume")
+        self.assertEqual((code, rejected["error"]), (1, "authorization-missing"))
+        self.assertFalse(out.exists())
+        out, authorized, code = self._rebaseline_call(
+            "rebaseline-stopped", admitted_path, state, fresh, facts(state), "authorized")
+        self.assertEqual(code, 0, authorized)
+        self.assertEqual(authorized["status"], "rebaseline-authorized")
+        self.assertNotEqual(out.read_bytes(), before)
+        workspace = Path(entry["workspace"])
+        if published:
+            git(workspace, "merge", "--no-edit", "main")
+        else:
+            git(workspace, "rebase", "main")
+        if published:
+            git(workspace, "push", "fixture", "HEAD:refs/heads/" + entry["branch"])
+        else:
+            self.assertEqual(git(self.fixture_remote, "show-ref", "--heads", check=False), "")
+        new = git(workspace, "rev-parse", "HEAD")
+        if published:
+            self.assertEqual(subprocess.run(
+                ["git", "-C", str(workspace), "merge-base", "--is-ancestor", old, new],
+                capture_output=True).returncode, 0)
+            self.github.prs["task-a"]["head_sha"] = new
+            self.github.prs["task-a"]["commit_sha"] = new
+            self.github.prs["task-a"]["diff_identity"] = diff_identity(
+                self.repo, fresh["integration"]["sha"], new)
+            self.assertEqual(git(self.fixture_remote, "rev-parse",
+                                 "refs/heads/" + entry["branch"]), new)
+        final, resumed, code = self._rebaseline_call(
+            "resume", admitted_path, out, fresh, facts(out, new_head=new), "resumed")
+        self.assertEqual(code, 0, resumed)
+        self.assertEqual(resumed["status"], "resumed")
+        saved = json.loads(final.read_text())
+        self.assertEqual(saved["tasks"]["task-b"], pending)
+        self.assertEqual(saved["tasks"]["task-a"]["rebaseline"]["old_head"], old)
+        self.assertEqual(saved["tasks"]["task-a"]["attempt_history"][0]["worker"]["worker_id"],
+                         "fixture-worker")
+        self.assertEqual((workspace / "src/task-a.txt").read_text(), "task-a retained source\n")
+        follow, refill = self._schedule(
+            admitted_path, admitted, final, fresh, "resumed-refill", cap="3")
+        self.assertEqual([row["task_id"] for row in refill["dispatch"]], ["task-a"], refill)
+        self.assertEqual(json.loads(follow.read_text())["tasks"]["task-b"], pending)
+        self.assertTrue(refill["dispatch"][0]["repair"])
+        self.assertEqual(refill["dispatch"][0]["retained_pr"], url)
+        self.assertEqual(refill["dispatch"][0]["parent_sha"], fresh["integration"]["sha"])
+        host = self._start_host(workers=1)
+        host.dispatch(refill["dispatch"])
+        report = host.wait_for_report("task-a")
+        self.assertEqual(self.github.prs["task-a"]["pr_url"], url or report["worker"]["pr_url"])
+        result = make_result(self.github, "task-a", report, admitted)
+        delivered, outcome, _ = self._apply(
+            admitted_path, follow, "task-a", result, "rebaseline-delivered")
+        self.assertEqual(outcome["status"], "delivered", outcome)
+        self.assertEqual(json.loads(delivered.read_text())["tasks"]["task-a"]["status"],
+                         "delivered")
+
+    def test_stopped_unpublished_rebaseline_dispatches_retained_source(self):
+        self._exercise_stopped_rebaseline(False)
+
+    def test_stopped_published_rebaseline_delivers_same_draft_pr(self):
+        self._exercise_stopped_rebaseline(True)
+
+
+    def test_stopped_rebaseline_rejects_untrusted_or_stale_evidence(self):
+        admitted_path, _, state, entry, fresh, old, url, facts = \
+            self._stopped_rebaseline_fixture(True)
+        baseline = facts(state)
+        variants = {
+            "no-approval": {**baseline, "authorized": False},
+            "stale-digest": {**baseline, "state_digest": "0" * 64},
+            "unknown-writer": {**baseline, "inventory": {
+                **baseline["inventory"], "sessions": []}},
+            "live-writer": {**baseline, "inventory": {
+                **baseline["inventory"], "sessions": [
+                    {**baseline["inventory"]["sessions"][0], "status": "running"}]}},
+            "wrong-pr": {**baseline, "pr": {**baseline["pr"],
+                                          "url": self.github.canonical + "/pull/9999"}},
+            "wrong-head": {**baseline, "pr": {**baseline["pr"], "head_sha": "0" * 40}},
+            "wrong-base": {**baseline, "pr": {**baseline["pr"], "base_branch": "other"}},
+            "wrong-repo": {**baseline, "pr": {**baseline["pr"],
+                                             "head_repo": "https://github.com/foreign/repo"}},
+        }
+        for name in ("unknown-writer", "live-writer"):
+            variants[name]["inventory_digest"] = contract_hash(variants[name]["inventory"])
+        for name, variant in variants.items():
+            with self.subTest(name=name):
+                output, response, code = self._rebaseline_call(
+                    "rebaseline-stopped", admitted_path, state, fresh, variant, name)
+                if name in ("unknown-writer", "live-writer"):
+                    self.assertEqual(response["error"], "worker-liveness")
+                self.assertEqual(code, 1, response)
+                self.assertFalse(output.exists())
+                self.assertTrue(json.loads(state.read_text())["stop_requested"])
+        claim = json.loads(state.read_text())["tasks"]["task-a"]["claim"]
+        claim_path = self.repo / ".woostack/tmp/orchestrate-claims" / (claim["claim_key"] + ".json")
+        original_claim = claim_path.read_text()
+        claim_path.write_text(json.dumps({**claim, "owner": "foreign-controller"}))
+        try:
+            output, response, code = self._rebaseline_call(
+                "rebaseline-stopped", admitted_path, state, fresh, baseline, "foreign-claim")
+            self.assertEqual((code, response["error"]), (1, "ownership-conflict"))
+            self.assertFalse(output.exists())
+        finally:
+            claim_path.write_text(original_claim)
+        changed = copy.deepcopy(fresh)
+        changed["tasks"][0]["contract"]["goal"] = "Changed scope contract"
+        output, response, code = self._rebaseline_call(
+            "rebaseline-stopped", admitted_path, state, changed, baseline, "changed-contract")
+        self.assertEqual(code, 1, response)
+        changed = copy.deepcopy(fresh)
+        changed["execution_layout"]["entries"][1]["execution_parent"] = "task-a"
+        output, response, code = self._rebaseline_call(
+            "rebaseline-stopped", admitted_path, state, changed, baseline, "changed-graph")
+        self.assertEqual(code, 1, response)
+        (Path(entry["workspace"]) / "src" / "untracked.txt").write_text("not committed")
+        output, response, code = self._rebaseline_call(
+            "rebaseline-stopped", admitted_path, state, fresh, baseline, "dirty-source")
+        self.assertEqual((code, response["error"]), (1, "dirty-workspace"))
+        (Path(entry["workspace"]) / "src" / "untracked.txt").unlink()
+        authorized, result, code = self._rebaseline_call(
+            "rebaseline-stopped", admitted_path, state, fresh, baseline, "negative-authorized")
+        self.assertEqual(code, 0, result)
+        output, response, code = self._rebaseline_call(
+            "resume", admitted_path, authorized, fresh, facts(authorized), "no-progress")
+        self.assertEqual((code, response["error"]), (1, "no-progress"))
+        output, response, code = self._rebaseline_call(
+            "resume", admitted_path, authorized, fresh,
+            {**facts(authorized), "state_digest": "0" * 64}, "stale-final")
+        self.assertEqual((code, response["error"]), (1, "stale-state"))
+        self.assertTrue(json.loads(authorized.read_text())["stop_requested"])
+
+    def test_published_stopped_pr_rejects_rewritten_head(self):
+        admitted_path, _, state, entry, fresh, old, url, facts = \
+            self._stopped_rebaseline_fixture(True)
+        authorized, result, code = self._rebaseline_call(
+            "rebaseline-stopped", admitted_path, state, fresh, facts(state), "rewrite-authorized")
+        self.assertEqual(code, 0, result)
+        workspace = Path(entry["workspace"])
+        git(workspace, "rebase", "main")
+        rewritten = git(workspace, "rev-parse", "HEAD")
+        self.assertNotEqual(old, rewritten)
+        output, response, code = self._rebaseline_call(
+            "resume", admitted_path, authorized, fresh,
+            facts(authorized, new_head=rewritten), "rewritten-rejected")
+        self.assertEqual((code, response["error"]), (1, "wrong-ancestry"))
+        self.assertFalse(output.exists())
+        self.assertTrue(json.loads(authorized.read_text())["stop_requested"])
+
+    def test_stopped_rebaseline_rejects_retained_source_overwrite(self):
+        admitted_path, _, state, entry, fresh, _, _, facts = \
+            self._stopped_rebaseline_fixture(True)
+        authorized, result, code = self._rebaseline_call(
+            "rebaseline-stopped", admitted_path, state, fresh, facts(state), "source-authorized")
+        self.assertEqual(code, 0, result)
+        workspace = Path(entry["workspace"])
+        git(workspace, "merge", "--no-edit", "main")
+        (workspace / "src/task-a.txt").write_text("task-a different work\n")
+        git(workspace, "add", "src/task-a.txt")
+        git(workspace, "commit", "-m", "Replace retained source")
+        git(workspace, "push", "fixture", "HEAD:refs/heads/" + entry["branch"])
+        output, response, code = self._rebaseline_call(
+            "resume", admitted_path, authorized, fresh,
+            facts(authorized, new_head=git(workspace, "rev-parse", "HEAD")), "source-overwritten")
+        self.assertEqual((code, response["error"]), (1, "source-loss"))
+        self.assertFalse(output.exists())
+
+    def test_rebaseline_dispatch_rejects_source_changed_after_final_readback(self):
+        admitted_path, admitted, state, entry, fresh, _, _, facts = \
+            self._stopped_rebaseline_fixture(False)
+        authorized, result, code = self._rebaseline_call(
+            "rebaseline-stopped", admitted_path, state, fresh, facts(state), "stale-authorized")
+        self.assertEqual(code, 0, result)
+        workspace = Path(entry["workspace"])
+        git(workspace, "rebase", "main")
+        final, result, code = self._rebaseline_call(
+            "resume", admitted_path, authorized, fresh,
+            facts(authorized, new_head=git(workspace, "rev-parse", "HEAD")), "stale-resumed")
+        self.assertEqual(code, 0, result)
+        (workspace / "src/task-a.txt").write_text("task-a changed after verification\n")
+        git(workspace, "add", "src/task-a.txt")
+        git(workspace, "commit", "-m", "Advance source after readback")
+        follow, refill = self._schedule(
+            admitted_path, admitted, final, fresh, "stale-refill", cap="3")
+        self.assertEqual(refill["dispatch"], [], refill)
+        self.assertIn({"task_id": "task-a", "reason": "stale-rebaseline"}, refill["blocked"])
+        self.assertEqual(json.loads(follow.read_text())["tasks"]["task-b"]["status"], "pending")
+
+    def _resume_unpublished_recovery(self):
+        admitted_path, admitted, state, entry, fresh, _, _, facts = \
+            self._stopped_rebaseline_fixture(False)
+        authorized, response, code = self._rebaseline_call(
+            "rebaseline-stopped", admitted_path, state, fresh, facts(state), "second-authorized")
+        self.assertEqual(code, 0, response)
+        workspace = Path(entry["workspace"])
+        git(workspace, "rebase", "main")
+        resumed, response, code = self._rebaseline_call(
+            "resume", admitted_path, authorized, fresh,
+            facts(authorized, new_head=git(workspace, "rev-parse", "HEAD")), "second-resumed")
+        self.assertEqual(code, 0, response)
+        return admitted_path, admitted, resumed, entry, fresh
+
+    def test_second_unrelated_main_advance_does_not_replay_authorized_scope_impact(self):
+        admitted_path, admitted, resumed, _, first = self._resume_unpublished_recovery()
+        (self.repo / "README").write_text("base\nintegration advance\nsecond advance\n")
+        git(self.repo, "add", "README")
+        git(self.repo, "commit", "-m", "Advance main again outside task scope")
+        self.github.integration["sha"] = git(self.repo, "rev-parse", "HEAD")
+        second = self._two_task_snapshot()
+        follow, refill = self._schedule(admitted_path, admitted, resumed, second,
+                                        "second-main-refill", cap="3")
+        self.assertEqual(refill["status"], "ok", refill)
+        self.assertEqual([row["task_id"] for row in refill["dispatch"]], ["task-a"], refill)
+        advance = json.loads(follow.read_text())["recovery"]["integration_advance"]
+        self.assertEqual(advance["previous_sha"], first["integration"]["sha"])
+        self.assertEqual(advance["changed_paths"], ["README"])
+
+    def test_second_material_main_advance_still_blocks_recovered_task(self):
+        admitted_path, admitted, resumed, _, _ = self._resume_unpublished_recovery()
+        source = self.repo / "src/task-a.txt"
+        source.parent.mkdir(exist_ok=True)
+        source.write_text("independent incompatible task change\n")
+        git(self.repo, "add", "src/task-a.txt")
+        git(self.repo, "commit", "-m", "Change recovered task scope on main")
+        self.github.integration["sha"] = git(self.repo, "rev-parse", "HEAD")
+        follow, response = self._schedule(
+            admitted_path, admitted, resumed, self._two_task_snapshot(),
+            "second-material-main", cap="3")
+        self.assertEqual(response["status"], "snapshot-drift", response)
+        self.assertEqual(response["reason"], "parent-tip-drift", response)
+        self.assertEqual(response["dispatch"], [], response)
+        self.assertEqual(json.loads(follow.read_text())["tasks"]["task-a"]["status"], "repair-ready")
+
+    def _assert_recovered_sibling_cannot_dispatch(self, ci_repair):
+        admitted_path, admitted, resumed, _, fresh = self._resume_unpublished_recovery()
+        sibling = next(task for task in admitted["tasks"] if task["task_id"] == "task-b")
+        snapshot_sibling = next(task for task in fresh["tasks"] if task["task_id"] == "task-b")
+        branch, workspace = snapshot_sibling["branch"], Path(snapshot_sibling["workspace"])
+        workspace.parent.mkdir(parents=True, exist_ok=True)
+        git(self.repo, "worktree", "add", "-b", branch, str(workspace),
+            fresh["integration"]["sha"])
+        helper_path = Path(__file__).resolve().parents[1] / "orchestrate.py"
+        spec = importlib.util.spec_from_file_location("orchestrate_recovery_sibling", helper_path)
+        helper = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(helper)
+        loaded = helper.state_read(str(resumed), admitted)
+        item = loaded["tasks"]["task-b"]
+        item["status"] = "repair-ready"
+        item["reservation"] = {
+            "branch": branch, "workspace": str(workspace), "parent_branch": "main",
+            "parent_sha": fresh["integration"]["sha"], "task_url": sibling["url"],
+            "scope": copy.deepcopy(admitted["scope_identity"]),
+            "contract_hash": sibling["contract_hash"],
+        }
+        if ci_repair:
+            item["ci"].update(state="repair", head_sha=fresh["integration"]["sha"],
+                              target_sha=fresh["integration"]["sha"],
+                              failure_fingerprint=contract_hash({"failure": "task-b"}))
+        injected = self.tmp / ("ci-sibling-state.json" if ci_repair else "repair-sibling-state.json")
+        helper.write_state(type("StateArgs", (), {
+            "state": str(resumed), "state_out": str(injected), "git_repo": str(self.repo),
+        })(), loaded)
+        follow, response = self._schedule(
+            admitted_path, admitted, injected, fresh,
+            "ci-sibling-refill" if ci_repair else "repair-sibling-refill", cap="3")
+        self.assertEqual([row["task_id"] for row in response["dispatch"]], ["task-a"], response)
+        self.assertIn({"task_id": "task-b", "reason": "stopped-scope-sibling",
+                       "next_action": "obtain separate user authorization before starting work"},
+                      response["waiting"])
+        self.assertEqual(json.loads(follow.read_text())["tasks"]["task-b"]["status"], "repair-ready")
+        self.assertEqual(git(workspace, "rev-parse", "HEAD"), fresh["integration"]["sha"])
+
+    def test_recovered_owner_cannot_dispatch_repair_ready_sibling(self):
+        self._assert_recovered_sibling_cannot_dispatch(False)
+
+    def test_recovered_owner_cannot_dispatch_ci_repair_sibling(self):
+        self._assert_recovered_sibling_cannot_dispatch(True)
+
+    def test_rebaseline_rejects_resurrected_deleted_source(self):
+        original = self.repo / "src/task-a-deleted.txt"
+        original.parent.mkdir()
+        original.write_text("old file\n")
+        git(self.repo, "add", "src/task-a-deleted.txt")
+        git(self.repo, "commit", "-m", "Seed deletable task source")
+        self.base_sha = self.github.base_sha = self.github.integration["sha"] = \
+            git(self.repo, "rev-parse", "HEAD")
+        self.github.children[0]["contract"]["scope"].append("src/task-a-deleted.txt")
+        admitted_path, _, state, entry, fresh, _, _, facts = \
+            self._stopped_rebaseline_fixture(False)
+        workspace = Path(entry["workspace"])
+        git(workspace, "rm", "src/task-a-deleted.txt")
+        git(workspace, "commit", "-m", "Remove task source")
+        authorized, response, code = self._rebaseline_call(
+            "rebaseline-stopped", admitted_path, state, fresh, facts(state), "deleted-authorized")
+        self.assertEqual(code, 0, response)
+        git(workspace, "rebase", "main")
+        (workspace / "src/task-a-deleted.txt").write_text("resurrected replacement\n")
+        git(workspace, "add", "src/task-a-deleted.txt")
+        git(workspace, "commit", "-m", "Resurrect removed source")
+        output, response, code = self._rebaseline_call(
+            "resume", admitted_path, authorized, fresh,
+            facts(authorized, new_head=git(workspace, "rev-parse", "HEAD")),
+            "deleted-resurrected")
+        self.assertEqual((code, response["error"]), (1, "source-loss"))
+        self.assertFalse(output.exists())
+
+    def _assert_changed_tree_entry_rejected(self, symlink):
+        admitted_path, _, state, entry, fresh, _, _, facts = \
+            self._stopped_rebaseline_fixture(False)
+        authorized, response, code = self._rebaseline_call(
+            "rebaseline-stopped", admitted_path, state, fresh, facts(state),
+            "type-authorized" if symlink else "mode-authorized")
+        self.assertEqual(code, 0, response)
+        workspace = Path(entry["workspace"])
+        git(workspace, "rebase", "main")
+        source = workspace / "src/task-a.txt"
+        if symlink:
+            source.unlink()
+            source.symlink_to("task-a-retained")
+        else:
+            source.chmod(0o755)
+        git(workspace, "add", "src/task-a.txt")
+        git(workspace, "commit", "-m", "Replace task source tree entry")
+        output, response, code = self._rebaseline_call(
+            "resume", admitted_path, authorized, fresh,
+            facts(authorized, new_head=git(workspace, "rev-parse", "HEAD")),
+            "changed-type" if symlink else "changed-mode")
+        self.assertEqual((code, response["error"]), (1, "source-loss"))
+        self.assertFalse(output.exists())
+
+    def test_rebaseline_rejects_unreviewed_file_mode_change(self):
+        self._assert_changed_tree_entry_rejected(False)
+
+    def test_rebaseline_rejects_unreviewed_file_type_change(self):
+        self._assert_changed_tree_entry_rejected(True)
+
+    def test_stopped_rebaseline_blocks_material_unstarted_sibling_impact(self):
+        admitted_path, _, state, _, fresh, _, _, facts = \
+            self._stopped_rebaseline_fixture(False)
+        path = self.repo / "src/task-b.txt"
+        path.parent.mkdir(exist_ok=True)
+        path.write_text("unrelated sibling edit\n")
+        git(self.repo, "add", "src/task-b.txt")
+        git(self.repo, "commit", "-m", "Change pending sibling")
+        self.github.integration["sha"] = git(self.repo, "rev-parse", "HEAD")
+        changed = self._two_task_snapshot()
+        output, response, code = self._rebaseline_call(
+            "rebaseline-stopped", admitted_path, state, changed, facts(state), "sibling-impact")
+        self.assertEqual((code, response["error"]), (1, "parent-tip-drift"))
+        self.assertFalse(output.exists())
+
     def test_stop_preserves_running_reservation_and_blocks_new_dispatch(self) -> None:
         snapshot = self._two_task_snapshot()
         admitted_path, admitted = self._admit_issue(snapshot)
