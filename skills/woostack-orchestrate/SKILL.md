@@ -274,6 +274,14 @@ requiring a fresh interpreted snapshot; neither launches a duplicate, silently a
 or erases a running task's recovery boundary. Reinvoking the same tracker or an equivalent reordered
 input resumes the same canonical task claims, execution plan, and delivery history.
 
+If the approved integration branch advances, refresh and verify the canonical branch identity,
+previous/proposed commits, ancestry, and selected-task impact before refilling. A normal unrelated
+forward advance is progress even when it was produced outside this run; a selected delivery merge
+must additionally retain its verified task evidence. Only newly eligible roots use the refreshed
+tip. Existing reservations keep their original parent/start, workspace, PR, and issued worker
+contract. Rewrites, missing objects, wrong refs, reverted required behavior, and material task
+impact require reconciliation rather than a blanket drift exception.
+
 ## Select an isolated workspace and dispatch
 
 After admission, call `schedule` with the required Git repository and fresh snapshot while holding
