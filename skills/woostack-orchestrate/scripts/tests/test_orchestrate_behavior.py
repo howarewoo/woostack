@@ -380,6 +380,111 @@ class OrchestrateBehavior(unittest.TestCase):
         self.github.delivery[task_id] = copy.deepcopy(retained)
         return retained
 
+    def test_capability_preflight_and_opaque_identity_deliver_and_resume(self) -> None:
+        task_id = "task:orchestrate/representation-gates.v2"
+        branch = "feature/actual-delivery-ref"
+        workspace = self.repo.parent / "host-worktrees" / "punctuation-task"
+        child = self.github.children[0]
+        child.update({
+            "task_id": task_id,
+            "workspace": str(workspace),
+            "branch": branch,
+            "contract": {
+                "goal": "Exercise capability-based delivery",
+                "scope": ["src/representation-marker.txt"],
+                "acceptance": ["The representation marker is delivered"],
+                "checks": [
+                    "python3 -c \"from pathlib import Path; assert Path('src/representation-marker.txt').exists()\"",
+                    "git diff --check",
+                ],
+                "smoke": "cat src/representation-marker.txt",
+            },
+        })
+        snapshot = self.github.snapshot()
+        snapshot["tasks"] = snapshot["children"] = [child]
+        snapshot["execution_layout"] = self.github.execution_layout((task_id,), {task_id: None})
+        snapshot["host"]["name"] = "compatible-unlisted-fixture"
+
+        for capability in (
+            "delivery_capable", "workspace_isolation_capable",
+            "result_correlation_capable", "recovery_capable",
+        ):
+            with self.subTest(missing_capability=capability):
+                blocked = copy.deepcopy(snapshot)
+                blocked["host"][capability] = False
+                code, payload = invoke_cli(
+                    "admit", "--snapshot", str(self._write_json("missing-%s.json" % capability, blocked))
+                )
+                self.assertNotEqual(code, 0, payload)
+                self.assertEqual(payload["error"], "no-subagent-capability", payload)
+
+        admitted_path, admitted = self._admit_issue(snapshot)
+        self.assertEqual(admitted["tasks"][0]["task_id"], task_id)
+        state, scheduled = self._schedule(
+            admitted_path, admitted, None, snapshot, "opaque-initial", cap="1"
+        )
+        dispatch = scheduled["dispatch"][0]
+        self.assertEqual((dispatch["task_id"], dispatch["branch"]), (task_id, branch))
+        host = self._start_host(workers=1)
+        host.dispatch([dispatch])
+        report = host.wait_for_report(task_id)
+        result = make_result(self.github, task_id, report, admitted)
+        self.assertNotEqual(result["checks"]["commands"], admitted["tasks"][0]["contract"]["checks"])
+        self.assertNotEqual(result["checks"]["smoke"]["description"], admitted["tasks"][0]["contract"]["smoke"])
+        running_state = state
+        state, delivered, _ = self._apply(
+            admitted_path, state, task_id, result, "opaque-delivered"
+        )
+        self.assertEqual(delivered["status"], "delivered", delivered)
+        self._persist(task_id, result, dispatch)
+        resumed_state, resumed = self._schedule(
+            admitted_path, admitted, state, snapshot, "opaque-resume", cap="1"
+        )
+        self.assertEqual(resumed["dispatch"], [], resumed)
+        retained = json.loads(resumed_state.read_text())["tasks"][task_id]
+        self.assertEqual(retained["status"], "delivered")
+        self.assertEqual(retained["delivery"]["checkpoint"]["worker"]["pr_url"], result["worker"]["pr_url"])
+
+        extra_failure = copy.deepcopy(result)
+        extra_failure["checks"]["commands"].append({
+            "command": "python3 -c \"raise SystemExit(1)\"",
+            "executed": True,
+            "passed": False,
+        })
+        extra_failure["checks"]["passed"] = False
+        _, repair, _ = self._apply(
+            admitted_path, running_state, task_id, extra_failure, "opaque-extra-failure"
+        )
+        self.assertEqual(repair["status"], "repair-ready", repair)
+
+        unexecuted = copy.deepcopy(result)
+        unexecuted["checks"]["smoke"]["executed"] = False
+        _, smoke_repair, _ = self._apply(
+            admitted_path, running_state, task_id, unexecuted, "opaque-unexecuted-smoke"
+        )
+        self.assertEqual(smoke_repair["status"], "repair-ready", smoke_repair)
+
+        missing = copy.deepcopy(result)
+        missing["checks"]["commands"] = [
+            command for command in missing["checks"]["commands"]
+            if command["command"] != admitted["tasks"][0]["contract"]["checks"][0]
+        ]
+        _, missing_output, missing_code = self._apply(
+            admitted_path, running_state, task_id, missing, "opaque-missing-check",
+            expect_code=None,
+        )
+        self.assertNotEqual(missing_code, 0, missing_output)
+        self.assertEqual(missing_output["reason"], "checks-incomplete", missing_output)
+
+        stale = copy.deepcopy(result)
+        stale["checks"]["head_sha"] = self.base_sha
+        _, stale_output, stale_code = self._apply(
+            admitted_path, running_state, task_id, stale, "opaque-stale-check",
+            expect_code=None,
+        )
+        self.assertNotEqual(stale_code, 0, stale_output)
+        self.assertEqual(stale_output["reason"], "stale-validation", stale_output)
+
     def test_full_issue_smoke_uses_real_git_and_concurrent_execute_packets(self) -> None:
         """A/B/E run concurrently; C and D stack on A while B remains held."""
 

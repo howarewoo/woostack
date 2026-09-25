@@ -28,7 +28,6 @@ ISSUE_RE = re.compile(r"https://github\.com/([\w.-]+)/([\w.-]+)/issues/([1-9][0-
 PR_RE = re.compile(r"https://github\.com/([\w.-]+)/([\w.-]+)/pull/([1-9][0-9]*)\Z")
 PROJECT_RE = re.compile(r"https://github\.com/(orgs|users)/([\w.-]+)/projects/([1-9][0-9]*)\Z")
 REPO_RE = re.compile(r"https://github\.com/([\w.-]+)/([\w.-]+)\Z")
-TASK_RE = re.compile(r"[^\x00-\x1f\x7f]+")
 SHA_RE = re.compile(r"(?:[0-9a-f]{40}|[0-9a-f]{64})\Z")
 EDGE_KINDS = ("native", "declared", "inferred")
 DEFAULT_CI_REPAIR_LIMIT = 2
@@ -1124,8 +1123,8 @@ def admit(snapshot, limit, repo=None):
     for index, url in enumerate(sorted(by_url), 1):
         entry = by_url[url]
         task_id = entry.get("task_id") or "issue-" + str(entry["number"])
-        require(isinstance(task_id, str) and TASK_RE.fullmatch(task_id) and ".." not in task_id
-                and not task_id.endswith((".", ".lock")), "invalid-identity", "Git-safe stable task ID required")
+        require(isinstance(task_id, str) and text(task_id),
+                "invalid-identity", "stable task ID required")
         if project is not None:
             require(text(entry.get("item_id")), "invalid-project-item", "selected Project item ID missing")
         contract = entry.get("contract")
@@ -1157,7 +1156,11 @@ def admit(snapshot, limit, repo=None):
     require(isinstance(host, dict), "no-subagent-capability", "host capability evidence missing")
     host_cap = positive(host.get("max_parallel", 1))
     if tasks:
-        require(host.get("delivery_capable") is True, "no-subagent-capability", "delivery-capable subagent required")
+        require(all(host.get(capability) is True for capability in (
+            "delivery_capable", "workspace_isolation_capable",
+            "result_correlation_capable", "recovery_capable")),
+                "no-subagent-capability",
+                "delivery, workspace isolation, result correlation, and recovery capabilities required")
     scope_identity = {"canonical_repo": canonical, "issues": sorted(by_url)}
     immutable_tasks = [{
         "task_id": task["task_id"], "url": task["url"], "id": task["id"],
@@ -2678,11 +2681,30 @@ def validate_delivery(admitted, task, reservation, result, repo, *, historical=F
     require(validation["contract_hash"] == task["contract_hash"], "contract-mismatch", "reviewed contract differs")
     require(text(validation["reviewer_id"]) and validation["reviewer_id"] != worker["worker_id"],
             "self-review", "validator must be independent of implementation")
-    require(checks["commands"] == task["contract"]["checks"] and checks["smoke"] == task["contract"]["smoke"],
-            "checks-incomplete", "all mandatory checks and smoke must be observed")
-    require(type(checks["passed"]) is bool and validation["verdict"] in ("pass", "fail"),
+    commands = checks["commands"]
+    require(isinstance(commands, list) and all(
+        isinstance(command, dict) and text(command.get("command"))
+        and type(command.get("executed")) is bool
+        and type(command.get("passed")) is bool for command in commands),
+        "checks-incomplete", "check outcomes must identify executed commands and results")
+    observed = {}
+    for command in commands:
+        observed.setdefault(command["command"], []).append(command)
+    require(all(observed.get(required) and all(item["executed"] and item["passed"]
+                                           for item in observed[required])
+                for required in task["contract"]["checks"]),
+            "checks-incomplete", "all mandatory checks must be observed and pass")
+    smoke = checks["smoke"]
+    require(isinstance(smoke, dict) and text(smoke.get("description"))
+            and type(smoke.get("executed")) is bool
+            and type(smoke.get("passed")) is bool,
+            "checks-incomplete", "smoke outcome must describe an executed scenario and result")
+    outcomes_passed = all(command["executed"] and command["passed"] for command in commands) and smoke["passed"]
+    require(type(checks["passed"]) is bool and checks["passed"] == outcomes_passed
+            and validation["verdict"] in ("pass", "fail"),
             "unknown-response", "verification/review outcome malformed")
-    if result["outcome"] == "needs-repair" or not checks["passed"] or validation["verdict"] == "fail":
+    if result["outcome"] == "needs-repair" or not checks["passed"] \
+            or not smoke["executed"] or validation["verdict"] == "fail":
         return {"status": "repair-ready", "reason": "checks-failed" if not checks["passed"] else "validation-failed"}
     delivery = {"pr_url": readback["pr_url"], "head_sha": readback["head_sha"],
                 "branch": readback["branch"], "workspace": reservation["workspace"],

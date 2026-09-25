@@ -3,9 +3,9 @@
 This reference defines the exact bridge between helper output and a real
 [`woostack-execute`](../../woostack-execute/SKILL.md) worker. The helper emits data; it never
 contacts a host. The skill supplies the selected isolated workspace/branch through the host's
-supported mechanism, then invokes only the selected allowlisted host's documented subagent
-primitive. Scheduling and state rules are in [scheduling](scheduling.md); delivery gates are in
-[validation](validation.md).
+supported mechanism, then invokes an actually available authorized primitive that provides
+delivery, workspace isolation, native result correlation, and recovery. Scheduling and state rules
+are in [scheduling](scheduling.md); delivery gates are in [validation](validation.md).
 
 Use the shared [source-control contract](../../woostack-commit/references/graphite.md),
 the outcome-level [worktree guidance](scheduling.md#runtime-workspace-and-branch-evidence),
@@ -258,10 +258,11 @@ an update preserves the retained PR's independently observed readiness.
 
 ## Host handoff
 
-Resolve the host slug against the exact allowlist before using a spawn primitive and load only that
-host's reference. The host adapter owns primitive names, worker selectors, per-call directory/model
-knobs, fallback, and concurrency mechanics. This skill owns only the invariant payload and says
-when missing delivery capability is a blocker:
+Use an actually available authorized host primitive only after proving worker delivery, isolated
+workspaces, native result correlation, and recovery. Known host files are optional mechanics
+references, not an allowlist or proof by name. The selected mechanism owns primitive names, worker
+selectors, per-call directory/model knobs, fallback, and concurrency mechanics. This skill owns
+only the invariant payload and says when missing capability is a blocker:
 
 - pass one schedule entry to one delivery-capable subagent;
 - pass the exact absolute workspace, branch, parent branch/SHA, complete packet, child URL,

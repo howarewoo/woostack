@@ -52,9 +52,9 @@ read as context, but `project`/`lifecycle` admission and status mutation require
 selection for that purpose.
 
 The default requested concurrency is three; the effective cap is clamped to the host capability
-recorded in the normalized snapshot. A host without a delivery-capable subagent blocks before
-admission/dispatch rather than executing source inline. A sequential-capability host may admit the
-scope and runs at one with a clear notice. Public selectors remain useful shorthand, but the helper
+recorded in the normalized snapshot. A host without delivery, workspace-isolation, result-correlation,
+and recovery capabilities blocks before admission/dispatch rather than executing source inline. A
+sequential-capability host may admit the scope and runs at one with a clear notice. Public selectors remain useful shorthand, but the helper
 receives one normalized snapshot and no selector family or mode.
 
 ## One real helper path
@@ -65,7 +65,7 @@ result gate, PR-check observation transition, and unknown-outcome reconciliation
 network calls, and spawns no workers. The skill assembles JSON only from an authorized GitHub
 capability exposed by the host (prefer native GitHub tools when suitable; host-authenticated `gh`
 remains supported) plus local Git evidence, invokes the helper, then delivers each emitted packet
-through the selected allowlisted host adapter. There is no prose-only bypass or alternate scheduler.
+through an actually available authorized host primitive. There is no prose-only bypass or alternate scheduler.
 
 The controller uses one explicit private state file per canonical scope and one controller session.
 The helper records a controller owner token and takes an owner-only compare-and-swap claim for
@@ -191,10 +191,10 @@ failed or unsupported hierarchy read into a successful empty read. This optional
 omitted for existing explicit-list or Project snapshots. A tracker is never added to `tasks`, never
 receives a worker or PR, and is not a prerequisite merely because the executable issues mention it.
 
-1. Resolve the current host against the exact allowlist before GitHub access. Prove a
-   delivery-capable subagent primitive and its positive real `max_parallel`; put those observed
-   facts in `host`. A missing delivery primitive blocks. A smaller host cap clamps scheduling but
-   does not change admitted scope.
+1. Before GitHub access, prove an actually available authorized mechanism for worker delivery,
+   isolated workspaces, native result correlation, and recovery. Record those observed booleans
+   and a positive real `max_parallel` in `host`; host names are not authority. A missing capability
+   blocks. A smaller cap clamps scheduling without changing admitted scope.
 2. Resolve the canonical Git repository and integration branch/SHA with direct Git and an authorized
    GitHub capability exposed by the host (prefer native GitHub tools when suitable; authenticated
    `gh` remains supported). For an issue tracker, read the exact tracker first. A complete native
@@ -388,11 +388,13 @@ parent SHA is an ancestor of that head. Do not use a worker's success sentence a
 
 Submit the complete result to `apply-result --git-repo`. The result schema is exact and described in
 [validation](references/validation.md). `ok` is deliverable only when worker/readback/checks/
-validation/note evidence all agree, the independent reviewer is distinct from the worker, the
-contract hash and checked head match, the exact child closing reference appears once, and any
-selected Project `inReview` status readback carries the admission-bound native `item_id` and
-exactly the admitted `lifecycle.inReview` option. Focused-check or spec-validation
-failure returns `repair-ready` on the same reservation and PR (the note may not exist yet).
+validation/note evidence all agree, the independent reviewer is distinct from the worker, every
+required check and the smoke scenario were actually observed and passed at the bound head and diff,
+and the exact child closing reference appears once. Extra checks may run in any order; a relevant
+extra failure remains visible. Any selected Project `inReview` status readback must carry the
+admission-bound native `item_id` and exactly the admitted `lifecycle.inReview` option.
+Focused-check or spec-validation failure returns `repair-ready` on the same reservation and PR (the
+note may not exist yet).
 Missing note or optional Project read-back is `note-pending`: retry only that receipt with the
 same result/PR and never replay repository delivery. Wrong repository, head/branch identity, base,
 duplicate PR, closed PR, or other canonical identity conflict is blocked for that task, never an

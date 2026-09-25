@@ -33,10 +33,10 @@ resolve the effective tier and pass everything it specifies), **single model per
 routing** (the spawn selects an agent exposed by the host; the host owns the concrete model).
 Host-owned routing is non-degraded only when the host proves the selected agent's capabilities;
 the host adapter owns agent discovery, selection, and fallback. It never creates a repository
-catalog or aliases. The canonical [supported coding-host allowlist](hosts/README.md) gates routing
-before capability classification: only an exact allowlisted slug may load its linked host mechanics.
-File presence alone never makes a host routable. For an allowlisted host, its capability class,
-spawn mechanics, per-skill notes, and host-level fallback behavior live in that linked host file.
+catalog or aliases. The [known host references](hosts/README.md) are optional mechanics recipes.
+Capability evidence from the active host determines routing; host identity and file presence are not proof. For a
+compatible host, its capability class, spawn mechanics, per-skill notes, and host-level fallback
+behavior may live in a known host file.
 The provider table remains the source of truth for hosts that consume repository model
 configuration.
 
