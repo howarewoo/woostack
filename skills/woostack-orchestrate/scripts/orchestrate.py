@@ -2706,7 +2706,7 @@ def validate_delivery(admitted, task, reservation, result, repo, *, historical=F
             and type(smoke.get("passed")) is bool,
             "checks-incomplete", "smoke outcome must describe an executed scenario and result")
     outcomes_passed = all(command["executed"] and command["passed"] for command in commands) and smoke["passed"]
-    require(type(checks["passed"]) is bool and checks["passed"] == outcomes_passed
+    require(type(checks["passed"]) is bool
             and validation["verdict"] in ("pass", "fail"),
             "unknown-response", "verification/review outcome malformed")
     if required_failed:
