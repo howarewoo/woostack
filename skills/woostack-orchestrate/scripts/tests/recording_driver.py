@@ -914,7 +914,7 @@ class FakeHost:
             }
             self.reservations[task_id] = {
                 key: entry[key] for key in ("branch", "workspace", "parent_branch", "parent_sha",
-                                           "task_url", "scope", "contract_hash")
+                                           "task_url", "scope", "contract_hash", "attempt_binding")
             }
             record("host", "dispatch-worker", {
                 "task_id": task_id,
@@ -1059,6 +1059,7 @@ class FakeHost:
                 "base_branch": base_branch,
                 "commit_sha": head_sha,
                 "association": child_url,
+                "attempt_binding": packet["attempt_binding"],
             },
         }
         report["parent_sha"] = parent_sha

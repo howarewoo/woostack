@@ -983,8 +983,8 @@ def collect_execution_layout(snapshot, tasks, repo):
             require(parent in task_ids, "foreign-execution-parent", "execution parent is not selected")
             require(parent != task_id, "self-execution-parent", "task cannot stack on itself")
         constraints = entry.get("constraints")
-        require(isinstance(constraints, list) and constraints and all(text(value) for value in constraints),
-                "invalid-execution-layout", "execution compatibility evidence required")
+        require(isinstance(constraints, list) and all(text(value) for value in constraints),
+                "invalid-execution-layout", "execution compatibility evidence must be text")
         fallback = entry.get("fallback")
         if fallback is not None:
             require(parent is None and isinstance(fallback, dict)
@@ -1473,6 +1473,7 @@ def new_state(admitted):
     return {
         "version": STATE_VERSION,
         "fingerprint": admitted["fingerprint"],
+        "admission_identity": _admission_identity(admitted),
         "execution_layout": copy.deepcopy(admitted["execution_layout"]),
         "execution_fingerprint": admitted["execution_fingerprint"],
         "scope_evidence": copy.deepcopy(admitted.get("scope_evidence")),
@@ -1504,6 +1505,8 @@ def new_state(admitted):
                 "execution_parent": t["execution_parent"],
                 "execution_plan_revision": admitted["execution_layout"]["revision"],
                 "dependency_snapshot": copy.deepcopy(t["dependency_snapshot"]),
+                "attempt_binding": None,
+                "attempt_history": [],
                 "source": None,
                 "diff_identity": None,
                 "checks": None,
@@ -1522,6 +1525,40 @@ def _execution_ancestry(entries, task_id):
         lineage.append(parent)
         parent = entries[parent]["execution_parent"]
     return list(reversed(lineage))
+def _entry_identity(entry):
+    return {key: entry.get(key) for key in (
+        "task_id", "execution_parent", "constraints", "fallback",
+        "base_satisfied_prerequisites", "effective_prerequisites")}
+
+
+def _execution_identity(layout):
+    return {"entries": [_entry_identity(entry) for entry in layout.get("entries", [])],
+            "effective_edges": layout.get("effective_edges", []),
+            "execution_order": layout.get("execution_order", [])}
+
+
+def issued_attempt_binding(task, reservation, repair, retained_pr, readiness):
+    return "attempt-" + hashlib.sha256(json.dumps({
+        "task_id": task["task_id"], "contract_hash": task["contract_hash"],
+        "reservation": reservation, "repair": bool(repair), "retained_pr": retained_pr,
+        "readiness": readiness}, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+
+
+def _admission_identity(admitted):
+    return {
+        "repository_rules": admitted["repository_rules"],
+        "integration_branch": admitted["integration"]["branch"],
+        "scope_identity": admitted["scope_identity"],
+        "project": admitted.get("project"),
+        "lifecycle": admitted.get("lifecycle"),
+        "project_items": admitted.get("project_items"),
+        "tasks": [{
+            "task_id": task["task_id"], "url": task["url"], "id": task["id"],
+            "node_id": task["node_id"], "resource": task["resource"],
+            "contract_hash": task["contract_hash"], "actual_parent": task.get("actual_parent"),
+            "dependency_snapshot": task["dependency_snapshot"],
+        } for task in admitted["tasks"]],
+    }
 
 
 def _genuinely_unstarted(item, task):
@@ -1556,10 +1593,14 @@ def _execution_plan_update(state, admitted, repo):
     require(type(current.get("revision")) is int and current["revision"] > 0
             and state.get("execution_fingerprint") == execution_layout_fingerprint(current),
             "invalid-state", "retained execution plan identity is invalid")
-    if state["execution_fingerprint"] == admitted["execution_fingerprint"]:
-        return None
-    require(admitted["execution_layout"]["revision"] > current["revision"],
-            "execution-plan-drift", "changed execution layout requires a newer plan revision")
+    if _execution_identity(current) == _execution_identity(admitted["execution_layout"]):
+        if current["revision"] == admitted["execution_layout"]["revision"]:
+            return None
+        return {
+            "from_revision": current["revision"], "from_fingerprint": state["execution_fingerprint"],
+            "to_revision": admitted["execution_layout"]["revision"],
+            "to_fingerprint": admitted["execution_fingerprint"], "changed_tasks": [],
+        }
     current_entries = {entry["task_id"]: entry for entry in current["entries"]}
     revised_entries = {entry["task_id"]: entry for entry in admitted["execution_layout"]["entries"]}
     changed = set()
@@ -1573,7 +1614,7 @@ def _execution_plan_update(state, admitted, repo):
         require(item.get("execution_parent") == retained_parent
                 and _known_execution_revision(state, item.get("execution_plan_revision")),
                 "invalid-state", "retained task execution identity is invalid")
-        if (current_entries[task_id] != revised_entries[task_id]
+        if (_entry_identity(current_entries[task_id]) != _entry_identity(revised_entries[task_id])
                 or _execution_ancestry(current_entries, task_id) != task["execution_ancestry"]
                 or retained_effective != set(task["effective_prerequisites"])):
             changed.add(task_id)
@@ -1624,15 +1665,21 @@ def state_read(path, admitted, *, allow_execution_plan_update=False, repo=None, 
     require(isinstance(state, dict), "malformed-input", "JSON must be an object")
     state["_loaded_digest"] = hashlib.sha256(raw).hexdigest()
     require(state.get("version") == STATE_VERSION, "invalid-state", "unsupported controller state version")
-    require(state.get("fingerprint") == admitted["fingerprint"],
-            "state-mismatch", "state belongs to another scope")
+    fingerprint_matches = state.get("fingerprint") == admitted["fingerprint"]
+    require(fingerprint_matches or active_task_id is not None
+            and state.get("admission_identity") == _admission_identity(admitted),
+            "state-mismatch", "state belongs to another scope or execution contract")
     require(state.get("scope_identity") == admitted["scope_identity"],
             "state-mismatch", "state scope identity differs")
     legacy_layout = "execution_layout" not in state
     execution_plan_update = None
     execution_plan_error = None
-    plan_matches = (state.get("execution_layout") == admitted["execution_layout"]
-                    and state.get("execution_fingerprint") == admitted["execution_fingerprint"])
+    plan_matches = (state.get("execution_layout") is not None
+                    and _execution_identity(state["execution_layout"])
+                    == _execution_identity(admitted["execution_layout"]))
+    plan_revision_matches = (state.get("execution_layout") is not None
+                             and state["execution_layout"].get("revision")
+                             == admitted["execution_layout"].get("revision"))
     if legacy_layout:
         state["execution_layout"] = copy.deepcopy(admitted["execution_layout"])
         state["execution_fingerprint"] = admitted["execution_fingerprint"]
@@ -1643,10 +1690,9 @@ def state_read(path, admitted, *, allow_execution_plan_update=False, repo=None, 
             prior_entries = {entry["task_id"]: entry for entry in admitted["execution_layout"]["entries"]}
             historical = (isinstance(item, dict) and active_task_id in current_entries
                           and active_task_id in prior_entries
-                          and item.get("execution_plan_revision") == admitted["execution_layout"]["revision"]
-                          and any(entry.get("from_fingerprint") == admitted["execution_fingerprint"]
-                                  for entry in state.get("execution_plan_history", []))
-                          and current_entries[active_task_id] == prior_entries[active_task_id]
+                          and _known_execution_revision(state, item.get("execution_plan_revision"))
+                          and _entry_identity(current_entries[active_task_id])
+                          == _entry_identity(prior_entries[active_task_id])
                           and _execution_ancestry(current_entries, active_task_id)
                           == _execution_ancestry(prior_entries, active_task_id))
             require(historical, "execution-plan-drift", "controller execution plan changed")
@@ -1659,6 +1705,15 @@ def state_read(path, admitted, *, allow_execution_plan_update=False, repo=None, 
                 state["_execution_plan_update"] = execution_plan_update
             if execution_plan_error is not None:
                 state["_execution_plan_error"] = execution_plan_error
+    elif not plan_revision_matches and allow_execution_plan_update:
+        try:
+            execution_plan_update = _execution_plan_update(state, admitted, repo)
+        except InputError as error:
+            execution_plan_error = {"code": error.code, "message": str(error)}
+        if execution_plan_update is not None:
+            state["_execution_plan_update"] = execution_plan_update
+        if execution_plan_error is not None:
+            state["_execution_plan_error"] = execution_plan_error
     owner = state.get("owner")
     require(isinstance(owner, dict) and text(owner.get("controller_id")),
             "ownership-missing", "controller ownership identity missing")
@@ -2626,6 +2681,9 @@ def validate_delivery(admitted, task, reservation, result, repo, *, historical=F
     require(text(worker["worker_id"]), "invalid-worker", "native host worker identity required")
     for key in ("pr_url", "branch", "head_sha", "base_branch", "commit_sha", "association"):
         require(worker[key] == readback[key], "evidence-mismatch", "worker/readback disagree on " + key)
+    if reservation.get("attempt_binding") is not None:
+        require(worker.get("attempt_binding") == reservation["attempt_binding"],
+                "attempt-binding-mismatch", "worker result is not bound to the issued attempt")
     require(Path(worker["workspace"]).is_absolute()
             and Path(worker["workspace"]).resolve() == Path(reservation["workspace"]).resolve(),
             "workspace-mismatch", "worker used a different selected workspace")
@@ -2740,6 +2798,7 @@ def validate_delivery(admitted, task, reservation, result, repo, *, historical=F
     return {"status": "delivered", "delivery": delivery}
 
 def packet(admitted, task, reservation, repair, retained, readiness, scope_evidence=None, repair_context=None):
+    binding = reservation.get("attempt_binding") or issued_attempt_binding(task, reservation, repair, retained, readiness)
     specification = task["specification"]
     execution_order = {
         "plan_revision": admitted["execution_layout"]["revision"],
@@ -2766,6 +2825,7 @@ def packet(admitted, task, reservation, repair, retained, readiness, scope_evide
         "scope_evidence": copy.deepcopy(scope_evidence),
         "repair_evidence": copy.deepcopy(repair_context),
         "execute_skill": "woostack-execute", "repair": repair, "retained_pr": retained,
+        "attempt_binding": binding,
         **reservation,
     }
     if "actual_parent" in task:
@@ -3336,7 +3396,14 @@ def cmd_schedule(args):
         repair_evidence = copy.deepcopy(item.get("ci", {}).get("repair_context")) if repair else None
         if repair and isinstance(repair_evidence, dict) and item.get("ci", {}).get("workspace_reopen"):
             repair_evidence["workspace_reopen"] = copy.deepcopy(item["ci"]["workspace_reopen"])
-        item.update(status="running", reservation=reservation, parent_decision=copy.deepcopy(decision),
+        binding = issued_attempt_binding(task, reservation, repair, retained_pr, readiness)
+        reservation["attempt_binding"] = binding
+        item.update(status="running", reservation=reservation, attempt_binding=binding,
+                    attempt_history=item.get("attempt_history", []) + [{
+                        "binding": binding, "repair": repair, "retained_pr": retained_pr,
+                        "worker": None,
+                    }],
+                    parent_decision=copy.deepcopy(decision),
                     execution_parent=task["execution_parent"],
                     execution_plan_revision=admitted["execution_layout"]["revision"],
                     dependency_snapshot=copy.deepcopy(task["dependency_snapshot"]),
@@ -3371,8 +3438,9 @@ def cmd_record_worker(args):
             and set(worker) == {"host_id", "session_id", "worker_id"}
             and all(text(value) for value in worker.values()),
             "worker-liveness", "native host/session/worker identity required")
-    require(receipt.get("reservation") == item["reservation"],
-            "evidence-mismatch", "host launch readback must match the reservation")
+    require(receipt.get("reservation") == item["reservation"]
+            and receipt.get("attempt_binding") == item.get("attempt_binding"),
+            "evidence-mismatch", "host launch readback must match the issued attempt")
     require(item.get("host_worker") in (None, worker),
             "worker-liveness", "recorded writer cannot be replaced")
     require(receipt.get("state_digest") == state["_loaded_digest"],
@@ -3381,6 +3449,8 @@ def cmd_record_worker(args):
     claim_scope(args.git_repo, admitted, state)
     claim_task(args.git_repo, admitted, task, state, item)
     item["host_worker"] = copy.deepcopy(worker)
+    if item.get("attempt_history"):
+        item["attempt_history"][-1]["worker"] = copy.deepcopy(worker)
     write_state(args, state)
     return {"status": "worker-recorded", "task_id": args.task}
 
@@ -3394,10 +3464,13 @@ def cmd_apply_result(args):
     require(item["status"] in ("running", "note-pending", "evidence-pending"),
             "not-running", "task has no active reservation or receipt retry")
     legacy_drift = _legacy_execution_drift_tasks(state)
-    require(item["execution_plan_revision"] == admitted["execution_layout"]["revision"],
-            "execution-plan-drift", "worker result must use its dispatched execution plan")
     require(args.task not in legacy_drift, "execution-plan-drift",
             "task requires legacy execution-plan reconciliation")
+    task = next(t for t in admitted["tasks"] if t["task_id"] == args.task)
+    require(item.get("contract_hash") == task["contract_hash"]
+            and item.get("execution_parent") == task["execution_parent"]
+            and item.get("dependency_snapshot") == task["dependency_snapshot"],
+            "execution-plan-drift", "worker result is for a different issued task contract or parent")
 
     try:
         result = load_json(args.result)
@@ -3410,6 +3483,13 @@ def cmd_apply_result(args):
             and all(text(host_worker.get(key)) for key in identity_fields)
             and host_worker == {key: worker.get(key) for key in identity_fields},
             "worker-identity", "completion must match the recorded native host/session/worker identity")
+    if result.get("outcome") in ("ok", "needs-repair") and isinstance(worker, dict):
+        issued_binding = item.get("reservation", {}).get("attempt_binding")
+        required_worker_fields = {"worker_id", "pr_url", "branch", "workspace", "head_sha",
+                                  "base_branch", "commit_sha", "association"}
+        if issued_binding is not None and required_worker_fields <= set(worker):
+            require(worker.get("attempt_binding") == issued_binding,
+                    "attempt-binding-mismatch", "worker result is not bound to the issued attempt")
     task = next(t for t in admitted["tasks"] if t["task_id"] == args.task)
     claim_scope(args.git_repo, admitted, state)
     claim_task(args.git_repo, admitted, task, state, item)
