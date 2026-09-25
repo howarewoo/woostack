@@ -27,6 +27,7 @@ from typing import Any, Dict, Iterable, Optional, Sequence, Tuple
 
 TESTS_DIR = Path(__file__).resolve().parent
 SKILL_DIR = TESTS_DIR.parent.parent
+RECORDED_SKILL_RESPONSES = TESTS_DIR / "fixtures" / "recorded-skill-interpretations.json"
 HELPER = SKILL_DIR / "scripts" / "orchestrate.py"
 DRIVER = Path(__file__).resolve()
 
@@ -148,6 +149,86 @@ def issue_record(
     return record_value
 
 
+class RecordedSkillHost:
+    """Replay a recorded model response after binding it to installed-skill evidence."""
+
+    def __init__(
+        self, skill_path: Path, *, skill_text: Optional[str] = None,
+        responses_path: Path = RECORDED_SKILL_RESPONSES,
+    ) -> None:
+        self.skill_path = skill_path
+        self.skill_text = skill_text if skill_text is not None else skill_path.read_text(encoding="utf-8")
+        entries = json.loads(responses_path.read_text(encoding="utf-8"))["entries"]
+        self.responses = {entry["prompt_sha256"]: entry["response"] for entry in entries}
+        self.calls: list[Dict[str, Any]] = []
+
+    def _prompt(self, tracker: Dict[str, Any], issue_index: Sequence[Dict[str, Any]]) -> str:
+        model_issue_index = [
+            {key: value for key, value in item.items() if key not in {"branch", "workspace"}}
+            for item in issue_index
+        ]
+        return "\n\n".join((
+            "INSTALLED SKILL:\n" + self.skill_text,
+            "TRACKER:\n" + json.dumps(tracker, sort_keys=True),
+            "ISSUE INDEX:\n" + json.dumps(model_issue_index, sort_keys=True),
+        ))
+
+    def interpret_tracker(
+        self, tracker: Dict[str, Any], issue_index: Sequence[Dict[str, Any]],
+    ) -> Dict[str, Any]:
+        """Return the recorded model interpretation bound to this exact prompt."""
+        prompt = self._prompt(tracker, issue_index)
+        prompt_sha256 = hashlib.sha256(prompt.encode("utf-8")).hexdigest()
+        response = self.responses.get(prompt_sha256)
+        if response is None:
+            raise AssertionError("no recorded model response for installed-skill prompt %s" % prompt_sha256)
+
+        by_url = {item["url"]: item for item in issue_index}
+        tasks = []
+        for url in response["selected_issue_urls"]:
+            if url not in by_url:
+                raise AssertionError("recorded model selected an unreadable issue: %s" % url)
+            task = copy.deepcopy(by_url[url])
+            phase = response["phase_by_issue_url"].get(url)
+            phase_text = " and ".join(phase) if isinstance(phase, list) else phase
+            if phase_text and phase_text.lower() not in task["body"].lower():
+                task["body"] += " Phase %s remains inside this issue." % phase_text
+            tasks.append(task)
+
+        task_ids = {item["url"]: item["task_id"] for item in tasks}
+        edges = []
+        for edge in response["edges"]:
+            edges.append({
+                "predecessor": task_ids[edge["predecessor_url"]],
+                "dependent": task_ids[edge["dependent_url"]],
+                "provenance": "declared",
+                "evidence": {"tracker_url": tracker["url"], "field": edge["evidence"]},
+            })
+        result = {
+            "tracker_url": tracker["url"],
+            "selected_issue_urls": copy.deepcopy(response["selected_issue_urls"]),
+            "excluded_urls": copy.deepcopy(response["excluded_urls"]),
+            "tasks": tasks,
+            "edges": edges,
+        }
+        self.calls.append({
+            "skill_path": str(self.skill_path),
+            "skill_sha256": hashlib.sha256(self.skill_text.encode("utf-8")).hexdigest(),
+            "prompt_sha256": prompt_sha256,
+            "recorded": True,
+            **result,
+        })
+        record("model", "interpret-tracker", {
+            "skill_path": str(self.skill_path),
+            "tracker_url": tracker["url"],
+            "prompt_sha256": prompt_sha256,
+            "recorded": True,
+        })
+        return result
+
+
+
+
 class FakeGitHub:
     """Paginated native issue/Project reads and canonical PR/note storage."""
 
@@ -197,6 +278,7 @@ class FakeGitHub:
         self.contract_pages = [self.children[:2], self.children[2:]]
         self.prs: Dict[str, Dict[str, Any]] = {}
         self.notes: Dict[str, Dict[str, Any]] = {}
+        self.skill_host = RecordedSkillHost(SKILL_DIR / "SKILL.md")
         self.delivery: Dict[str, Dict[str, Any]] = {}
         self.parent_branches = {"main"}
         self.project_status_reads = []
@@ -353,6 +435,7 @@ class FakeGitHub:
 
     def _tracker_fixtures(self) -> Dict[str, Dict[str, Any]]:
         tracker_url = self.canonical + "/issues/15"
+        contrasting_tracker_url = self.canonical + "/issues/42"
         context = issue_record(tracker_url, "context-design", 0, 2)
         context.update({
             "url": self.canonical + "/issues/2", "id": 10002,
@@ -377,6 +460,12 @@ class FakeGitHub:
             task.pop("declared_parent", None)
             reported_tasks.append(task)
         abcd_tasks = []
+        contrasting_context = issue_record(contrasting_tracker_url, "contrasting-context", 0, 90)
+        contrasting_context.update({
+            "title": "Contrasting design context, not executable scope",
+            "body": "Design decisions only.", "actual_parent": None, "declared_parent": None,
+            "tracker_membership": "context",
+        })
         for child in self.children[:4]:
             task = copy.deepcopy(child)
             task.update({
@@ -395,7 +484,10 @@ class FakeGitHub:
                         "Context: design #2. Baseline: PR #1. Implementation index:\n"
                         "- #3: foundation\n- #4: API\n- #5: data\n- #6: service\n"
                         "- #7: UI\n- #8: integration\n- #9: phase #9-A and phase #9-B\n"
-                        "Issue #9 has phases #9-A and #9-B."
+                        "Issue #9 has phases #9-A and #9-B.\n"
+                        "Declared dependencies:\n"
+                        "- #3 -> #5\n- #4 -> #6\n- #5 -> #6\n"
+                        "- #6 -> #7\n- #7 -> #8\n- #8 -> #9\n"
                     ),
                     "implementation_index": [task["url"] for task in reported_tasks],
                     "dependency_index": [
@@ -411,33 +503,58 @@ class FakeGitHub:
             },
             "abcd": {
                 "tracker": {
-                    "url": tracker_url, "id": 10015, "node_id": "I_kwDOtesttracker15",
-                    "title": "A/B/C/D tracker", "revision": "2026-09-23T20:00:00Z",
-                    "body": "Design #2 and baseline PR #1 are context. Implement #101, #102, #103, #104.",
-                    "implementation_index": [task["url"] for task in abcd_tasks],
+                    "url": contrasting_tracker_url, "id": 10042, "node_id": "I_kwDOtesttracker42",
+                    "title": "Contrasting implementation tracker", "revision": "2026-09-24T20:00:00Z",
+                    "body": (
+                        "Context: design #90. Example/baseline PR: https://github.com/acme/app/pull/91.\n"
+                        "Implementation index (the repeated and reordered references are intentional):\n"
+                        "- #102: API\n- #104: phase delivery-b\n- #102: API again\n"
+                        "- #101: foundation\n- #104: phase delivery-b again\n- #103: data\n"
+                        "Phase delivery-b belongs to #104.\n"
+                        "Declared dependencies:\n"
+                        "- #101 -> #103\n- #102 -> #104\n- #103 -> #104\n"
+                    ),
+                    "implementation_index": [task["url"] for task in (abcd_tasks[1], abcd_tasks[3], abcd_tasks[0], abcd_tasks[2])],
                     "dependency_index": [
                         {"predecessor": "task-a", "dependent": "task-c"},
                         {"predecessor": "task-b", "dependent": "task-d"},
                         {"predecessor": "task-c", "dependent": "task-d"},
                     ],
                 },
-                "index": [context] + abcd_tasks,
+                "index": [contrasting_context] + abcd_tasks,
             },
         }
 
+    def tracker_evidence(self, fixture: str) -> Tuple[Dict[str, Any], list[Dict[str, Any]]]:
+        fixture_value = self.tracker_fixtures[fixture]
+        tracker = copy.deepcopy(fixture_value["tracker"])
+        tracker = {key: tracker[key] for key in ("url", "id", "node_id", "title", "body", "revision")}
+        return tracker, copy.deepcopy(fixture_value["index"])
+
     def tracker_snapshot(
         self, fixture: str = "reported", *, native: bool = False,
-        revision: Optional[str] = None, body_suffix: str = "",
+        revision: Optional[str] = None, body_suffix: str = "", interpreted: bool = False,
     ) -> Dict[str, Any]:
-        """Assemble a model-resolved scope from recorded tracker and issue-index reads."""
+        """Assemble a scope from raw model interpretation or fixture admission data."""
         fixture_value = self.tracker_fixtures[fixture]
         tracker = self._read_pages("tracker", [[fixture_value["tracker"]]])[0]
         tracker["body"] += body_suffix
         if revision is not None:
             tracker["revision"] = revision
         issue_index = self._read_pages("tracker_issue_index", [fixture_value["index"]])
-        by_url = {item["url"]: item for item in issue_index}
-        selected = [by_url[url] for url in tracker["implementation_index"]]
+        if interpreted:
+            model_tracker = {key: tracker[key] for key in ("url", "id", "node_id", "title", "body", "revision")}
+            interpretation = self.skill_host.interpret_tracker(model_tracker, issue_index)
+            selected = interpretation["tasks"]
+            edges = interpretation["edges"]
+        else:
+            by_url = {item["url"]: item for item in issue_index}
+            selected = [by_url[url] for url in fixture_value["tracker"]["implementation_index"]]
+            edges = [
+                {**edge, "provenance": "declared",
+                 "evidence": {"tracker_url": tracker["url"], "field": "dependency index"}}
+                for edge in fixture_value["tracker"]["dependency_index"]
+            ]
         if native:
             self._read_pages("tracker_native_children", [selected])
             for task in selected:
@@ -448,11 +565,6 @@ class FakeGitHub:
             if item["task_id"] in self.delivery:
                 item["existing_delivery"] = copy.deepcopy(self.delivery[item["task_id"]])
             tasks.append(item)
-        edges = [
-            {**edge, "provenance": "declared",
-             "evidence": {"tracker_url": tracker["url"], "field": "dependency index"}}
-            for edge in fixture_value["tracker"]["dependency_index"]
-        ]
         result = {
             "canonical_repo": self.canonical,
             "integration": copy.deepcopy(self.integration),

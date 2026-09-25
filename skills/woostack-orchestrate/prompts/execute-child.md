@@ -68,9 +68,9 @@ verification invalidates affected evidence and requires fresh checks.
 Deliver through [`woostack-commit`](../../woostack-commit/SKILL.md) with
 `--issue $RUNTIME_CHILD_ISSUE_URL`. The draft PR must target `$RUNTIME_PARENT_BRANCH`, use the
 reserved branch, and carry exactly one `Resolves $RUNTIME_CHILD_ISSUE_URL` line. Never use the
-selected tracker or specification parent as a closing reference. A tracker phase such as
-`#9-A/#9-B` remains within this one child issue and one writer; never split it into duplicate issues,
-mark the whole issue complete after an early phase, or turn phase labels into dependency cycles.
+selected tracker or specification parent as a closing reference. Preserve a tracker phase inside
+the child issue that declares it and its one writer; never split it into duplicate issues, mark the
+whole issue complete after an early phase, or turn phase labels into dependency cycles.
 Never mark ready, merge, enable auto-merge, queue, force-push, retarget, or create a replacement PR.
 On repair, update the retained PR/branch only.
 

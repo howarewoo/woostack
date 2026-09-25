@@ -70,16 +70,18 @@ membership when native children are absent, incomplete, or unavailable. Resolve 
 references against the verified tracker repository, read every selected issue, and deduplicate
 repeated references. Do not import every issue-like mention: separate implementation issues from
 design/context issues, baseline or example PRs, exclusions, history, the tracker itself, and
-external prerequisites. A native subset plus a complete explicit tracker set is membership
-evidence, not permission to import the native parent's other children. Contradictory membership
-declarations require a focused question; inaccessible evidence is not guessed.
+external prerequisites. Resolve those roles from
+the selected tracker and fetched issue evidence, not from issue numbers or a source layout learned
+from another tracker. A native subset plus a complete explicit tracker set is membership evidence,
+not permission to import the native parent's other children. Contradictory membership declarations
+require a focused question; inaccessible or unreadable evidence is not guessed.
 
-Retain tracker phase annotations in the selected task's specification or contract. A phase such as
-`#9-A/#9-B` remains work inside issue #9: it is not two issue identities or two writers, its early
-completion does not complete #9, and start-versus-completion gates do not become a fabricated cycle.
-If one phase or delivery limitation independently remains unsatisfied, block that precise affected
-task while unrelated tasks continue. Unknown native relation access is disclosed honestly; it does
-not erase declarations from a tracker that was actually read.
+Retain tracker phase annotations in the selected task's specification or contract. A phase label
+remains work inside the issue that declares it: it is not another issue identity or writer, its
+early completion does not complete that issue, and start-versus-completion gates do not become a
+fabricated cycle. If one phase or delivery limitation independently remains unsatisfied, block
+that precise affected task while unrelated tasks continue. Unknown optional native relation access
+is disclosed honestly; it does not erase declarations from a tracker that was actually read.
 
 ## Normalized snapshot
 

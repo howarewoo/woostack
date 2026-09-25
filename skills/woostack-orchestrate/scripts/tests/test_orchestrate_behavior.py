@@ -25,6 +25,7 @@ from typing import Any, Dict, Optional, Sequence, Tuple
 from recording_driver import (
     FakeGitHub,
     FakeHost,
+    RecordedSkillHost,
     contract_hash,
     diff_identity,
     git,
@@ -1258,6 +1259,68 @@ class OrchestrateBehavior(unittest.TestCase):
                   if json.loads(line)["operation"].startswith("write-")]
         self.assertFalse(writes, writes)
 
+    def test_contrasting_tracker_uses_installed_skill_interpretation(self) -> None:
+        snapshot = self.github.tracker_snapshot("abcd", interpreted=True)
+        self.assertEqual(self.github.skill_host.calls[-1]["tracker_url"], self.github.canonical + "/issues/42")
+        self.assertEqual(self.github.skill_host.calls[-1]["selected_issue_urls"], [self.github.canonical + "/issues/" + str(number) for number in (102, 104, 101, 103)])
+        self.assertEqual(self.github.skill_host.calls[-1]["excluded_urls"], [self.github.canonical + "/issues/42", self.github.canonical + "/issues/90", self.github.canonical + "/pull/91"])
+        admitted_path, admitted = self._admit_issues(snapshot)
+        task_urls = [task["url"] for task in admitted["tasks"]]
+        self.assertEqual(task_urls, [self.github.canonical + "/issues/" + str(number) for number in (101, 102, 103, 104)])
+        self.assertEqual(len(task_urls), len(set(task_urls)))
+        self.assertTrue(set(task_urls).isdisjoint({self.github.canonical + "/issues/" + str(number) for number in range(3, 10)}))
+        self.assertEqual(
+            [(edge["predecessor"], edge["dependent"], edge["provenance"]) for edge in admitted["edge_provenance"]],
+            [("task-a", "task-c", "declared"), ("task-b", "task-d", "declared"),
+             ("task-c", "task-d", "declared")],
+        )
+        phase_task = next(task for task in admitted["tasks"] if task["task_id"] == "task-d")
+        self.assertIn("Phase delivery-b", phase_task["body"])
+        tracker_url = self.github.canonical + "/issues/42"
+        context_url = self.github.canonical + "/issues/90"
+        context_pr_url = self.github.canonical + "/pull/91"
+        self.assertNotIn(tracker_url, task_urls)
+        self.assertNotIn(context_url, task_urls)
+        _, scheduled = self._schedule(admitted_path, admitted, None, snapshot, "tracker-contrasting", cap="2")
+        dispatched_urls = {entry["child_url"] for entry in scheduled["dispatch"]}
+        self.assertTrue(dispatched_urls.issubset(set(task_urls)))
+        self.assertTrue(dispatched_urls.isdisjoint({tracker_url, context_url, context_pr_url}))
+        self.assertFalse(self.github.prs)
+
+    def test_recorded_model_host_replays_legacy_incident_guidance(self) -> None:
+        legacy_text = self.github.skill_host.skill_text.replace(
+            "issue numbers and phase labels have no meaning outside the source that declares\nthem.",
+            "For this tracker, select executable issues #3 through #9.",
+        )
+        self.assertNotEqual(legacy_text, self.github.skill_host.skill_text)
+        legacy_host = RecordedSkillHost(self.github.skill_host.skill_path, skill_text=legacy_text)
+        tracker, issue_index = self.github.tracker_evidence("abcd")
+        generic_result = self.github.skill_host.interpret_tracker(tracker, issue_index)
+        legacy_result = legacy_host.interpret_tracker(tracker, issue_index)
+        tracker_url = self.github.canonical + "/issues/42"
+        context_url = self.github.canonical + "/issues/90"
+        context_pr_url = self.github.canonical + "/pull/91"
+        task_urls = {self.github.canonical + "/issues/" + str(number) for number in range(101, 105)}
+        self.assertEqual(set(generic_result["selected_issue_urls"]), task_urls)
+        phase_tasks = [task for task in generic_result["tasks"] if "Phase delivery-b" in task["body"]]
+        self.assertEqual(
+            [task["url"] for task in phase_tasks],
+            [self.github.canonical + "/issues/104"],
+        )
+        self.assertEqual(
+            {(edge["predecessor"], edge["dependent"]) for edge in generic_result["edges"]},
+            {("task-a", "task-c"), ("task-b", "task-d"), ("task-c", "task-d")},
+        )
+        self.assertEqual(
+            set(generic_result["excluded_urls"]),
+            {tracker_url, context_url, context_pr_url},
+        )
+        self.assertEqual(legacy_result["selected_issue_urls"], [])
+        self.assertEqual(legacy_result["tasks"], [])
+        self.assertEqual(legacy_result["edges"], [])
+        self.assertEqual(legacy_result["excluded_urls"], [])
+
+
     def test_partial_native_parent_read_preserves_per_task_packet_evidence(self) -> None:
         snapshot = self.github.tracker_snapshot("reported")
         tracker_url = snapshot["scope_evidence"]["tracker"]["url"]
@@ -1285,7 +1348,10 @@ class OrchestrateBehavior(unittest.TestCase):
             "Context: design #2. Baseline: PR #1. Implementation index:\n"
             "- #9: phase #9-A and phase #9-B\n- #8: integration\n- #7: UI\n"
             "- #6: service\n- #5: data\n- #4: API\n- #3: foundation\n"
-            "Issue #9 has phases #9-A and #9-B."
+            "Issue #9 has phases #9-A and #9-B.\n"
+            "Declared dependencies:\n"
+            "- #3 -> #5\n- #4 -> #6\n- #5 -> #6\n"
+            "- #6 -> #7\n- #7 -> #8\n- #8 -> #9\n"
         )
         _, equivalent = self._admit_issues(reordered)
         self.assertEqual(admitted["fingerprint"], equivalent["fingerprint"])
@@ -1325,6 +1391,9 @@ class OrchestrateBehavior(unittest.TestCase):
         fabricated = copy.deepcopy(snapshot)
         fabricated["scope_evidence"]["membership"]["evidence"] = {}
         cases.append(("fabricated evidence", fabricated, "invalid-scope-evidence"))
+        unreadable = copy.deepcopy(snapshot)
+        unreadable["tasks"][0]["body"] = None
+        cases.append(("unreadable issue", unreadable, "invalid-identity"))
         asserted = copy.deepcopy(snapshot)
         asserted["scope_evidence"]["membership"]["evidence"] = True
         cases.append(("asserted evidence", asserted, "invalid-scope-evidence"))
