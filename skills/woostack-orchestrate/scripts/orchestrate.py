@@ -2354,6 +2354,7 @@ def validate_delivery(admitted, task, reservation, result, repo, *, historical=F
     return {"status": "delivered", "delivery": delivery}
 
 def packet(admitted, task, reservation, repair, retained, readiness, scope_evidence=None, repair_context=None):
+    binding = reservation.get("attempt_binding") or issued_attempt_binding(task, reservation, repair, retained, readiness)
     specification = task["specification"]
     execution_order = {
         "plan_revision": admitted["execution_layout"]["revision"],
