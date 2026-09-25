@@ -4,8 +4,7 @@ This reference is the machine-facing contract for
 [`woostack-orchestrate`](../SKILL.md) and the shipped
 `scripts/orchestrate.py` helper. The helper is the only scheduler. It reads local JSON and local
 Git ancestry evidence, never calls a network, and never spawns a worker. The skill obtains or
-reuses an isolated workspace through repository/host capabilities and delivers the helper packet
-through the selected host adapter.
+reuses an isolated workspace and delivers the helper packet through an authorized host primitive.
 
 Link rather than copy the shared [source-control contract](../../woostack-commit/references/graphite.md),
 the outcome-level [runtime workspace guidance](#runtime-workspace-and-branch-evidence),
@@ -40,11 +39,13 @@ must retain the selected workspace and branch and verify the same checkout befor
 
 ## Native reads before JSON assembly
 
-Resolve host capability before GitHub access. The selected host must expose a real
-delivery-capable subagent primitive. Record `delivery_capable: true` and its observed positive
-`max_parallel` in the snapshot. A smaller host cap is a scheduling clamp, not a scope-admission
-failure; absence of a delivery primitive blocks before `admit` rather than degrading to inline
-implementation. Host mechanics and tier routing remain in the allowlisted host references.
+Before GitHub access, prove an actually available authorized mechanism for worker delivery,
+isolated workspaces, native result correlation, and recovery. Record
+`delivery_capable`, `workspace_isolation_capable`, `result_correlation_capable`, and
+`recovery_capable` together with a positive observed `max_parallel` in the snapshot. Host names and
+reference files are recipes, not admission authority. A smaller cap is a scheduling clamp, not a
+scope-admission failure; any missing capability blocks before `admit` rather than degrading to
+inline implementation or a guessed adapter.
 
 Resolve the canonical Git repository and integration branch/SHA from direct Git and an authorized
 GitHub capability exposed by the host (prefer native GitHub tools when suitable; host-authenticated
@@ -96,6 +97,9 @@ shape for the helper and is not a caller-facing source schema; all markers are r
   "repository_rules": "<runtime-substituted complete repository rules>",
   "host": {
     "delivery_capable": true,
+    "workspace_isolation_capable": true,
+    "result_correlation_capable": true,
+    "recovery_capable": true,
     "max_parallel": "<runtime-substituted positive host capability>"
   },
   "scope_evidence": {
@@ -115,7 +119,7 @@ shape for the helper and is not a caller-facing source schema; all markers are r
   },
   "tasks": [
     {
-      "task_id": "<runtime-substituted stable Git-safe task ID>",
+      "task_id": "<runtime-substituted stable opaque task ID>",
       "ordinal": "<runtime-substituted positive tie-break ordinal>",
       "url": "<runtime-substituted canonical executable issue URL>",
       "id": "<runtime-substituted positive native REST issue ID>",

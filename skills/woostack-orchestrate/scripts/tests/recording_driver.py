@@ -185,6 +185,14 @@ class FakeGitHub:
             child["workspace"] = str(self.repo.parent / "host-worktrees" / child["task_id"])
             child["branch"] = "feature/" + child["task_id"]
         self.tracker_fixtures = self._tracker_fixtures()
+        self.host = {
+            "name": "recording-fixture",
+            "delivery_capable": True,
+            "workspace_isolation_capable": True,
+            "result_correlation_capable": True,
+            "recovery_capable": True,
+            "max_parallel": self.max_parallel,
+        }
         # Multiple native pages are deliberately assembled before a snapshot is
         # emitted.  These are not scheduler decisions; they model paginated gh
         # reads and leave an auditable transport log.
@@ -281,7 +289,7 @@ class FakeGitHub:
             ),
             "repository_rules": self.repository_rules,
             "specification": self.specification,
-            "host": {"delivery_capable": True, "max_parallel": self.max_parallel},
+            "host": copy.deepcopy(self.host),
             "parent": parent,
             "children": snapshot_children,
             "tasks": snapshot_children,
@@ -328,7 +336,7 @@ class FakeGitHub:
             "integration": copy.deepcopy(self.integration),
             "parent_prs": self.parent_pr_readbacks(),
             "repository_rules": self.repository_rules,
-            "host": {"delivery_capable": True, "max_parallel": self.max_parallel},
+            "host": copy.deepcopy(self.host),
             "execution_layout": self.execution_layout(
                 (item["task_id"] for item in issues),
                 {"task-a": None, "task-b": None, "task-c": "task-a"},
@@ -458,7 +466,7 @@ class FakeGitHub:
             "integration": copy.deepcopy(self.integration),
             "parent_prs": self.parent_pr_readbacks(),
             "repository_rules": self.repository_rules,
-            "host": {"delivery_capable": True, "max_parallel": self.max_parallel},
+            "host": copy.deepcopy(self.host),
             "tasks": tasks,
             "graph": {"edges": edges},
             "execution_layout": self.execution_layout(
@@ -530,7 +538,7 @@ class FakeGitHub:
             "parent_prs": self.parent_pr_readbacks(),
             "repository_rules": self.repository_rules,
             "specification": self.specification,
-            "host": {"delivery_capable": True, "max_parallel": self.max_parallel},
+            "host": copy.deepcopy(self.host),
             "execution_layout": self.execution_layout(("task-a",), {"task-a": None}),
             "project": {
                 "url": project_url,
@@ -937,7 +945,8 @@ class FakeHost:
         if self.use_wave_barrier and task_id in {"task-a", "task-b", "task-e"}:
             self.wave_barrier.wait(timeout=30)
 
-        task_file = workspace / "src" / (task_id + ".txt")
+        relative = packet["bounded_input"]["scope"][0]
+        task_file = workspace / relative
         task_file.parent.mkdir(parents=True, exist_ok=True)
         repair_detail = ""
         if repair:
@@ -1017,10 +1026,11 @@ def make_result(github: FakeGitHub, task_id: str, report: Dict[str, Any], admitt
     readback = github.readback(task_id)
     task = next(item for item in admitted["tasks"] if item["task_id"] == task_id)
     contract = task["contract"]
-    workspace = (github.repo / task["workspace"]).resolve()
+    workspace = Path(task["workspace"]).resolve()
     run_verification(workspace, contract)
     changed = set(git(github.repo, "diff", "--name-only", report["parent_sha"], readback["head_sha"]).splitlines())
-    content = git(workspace, "show", readback["head_sha"] + ":src/" + task_id + ".txt")
+    relative = contract["scope"][0]
+    content = git(workspace, "show", readback["head_sha"] + ":" + relative)
     if changed != set(contract["scope"]) or task_id not in content:
         raise AssertionError("independent specification validation failed")
     record("validator", "review-submitted-diff", {
@@ -1033,10 +1043,21 @@ def make_result(github: FakeGitHub, task_id: str, report: Dict[str, Any], admitt
         "readback": readback,
         "checks": {
             "passed": True,
-            "commands": list(contract["checks"]),
+            "commands": [
+                {"command": command, "executed": True, "passed": True}
+                for command in reversed(contract["checks"])
+            ] + [{
+                "command": "python3 -c \"assert True\"",
+                "executed": True,
+                "passed": True,
+            }],
             "head_sha": readback["head_sha"],
             "diff_identity": readback["diff_identity"],
-            "smoke": contract["smoke"],
+            "smoke": {
+                "description": "Opened the changed surface and confirmed its observable result.",
+                "executed": True,
+                "passed": True,
+            },
         },
         "validation": {
             "verdict": "pass",

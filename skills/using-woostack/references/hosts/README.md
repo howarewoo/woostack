@@ -1,6 +1,6 @@
 # Host references
 
-Per-host mechanics are available only for this explicit coding-host allowlist:
+These known host files are mechanics recipes for hosts that expose the needed capabilities:
 
 - [`claude-code`](claude-code.md)
 - [`codex`](codex.md)
@@ -9,11 +9,11 @@ Per-host mechanics are available only for this explicit coding-host allowlist:
 - [`opencode`](opencode.md)
 - [`omp`](omp.md)
 
-File presence does not add a host to the supported surface. Before any host-dependent step
-(subagent dispatch, scaffold, draft), require `<current-host>` to exactly match one allowlisted
-slug above and only then load that slug's linked file. A host outside the allowlist has no
-per-call routing; do not construct or read `hosts/<current-host>.md`, and say that routing is
-degraded.
+File presence and host identity do not prove support or add a routing registry. Before a
+host-dependent step, verify from the active host that an authorized mechanism actually provides the
+capability and operation shape the consuming skill requires. A known host without those capabilities
+still fails; a compatible unlisted host may be used. Do not guess an adapter, construct a path from
+host text, or read an arbitrary file. Record capability evidence separately from real execution.
 
 Consuming skills keep their generic invariants (law) inline — never-silent degradation, gates,
 and the capability questions to answer. Host files hold *mechanics* (primitive names, knob forms,
@@ -22,7 +22,7 @@ live in exactly one host file — never duplicated back into a skill.
 
 ## Section contract
 
-Every allowlisted host file carries these six sections, in order:
+Every known host file carries these six sections, in order:
 
 1. **Detection** — capability signals that identify the host.
 2. **Subagent spawn** — primitive name; per-call `model`/`effort` knob (yes/no + form);

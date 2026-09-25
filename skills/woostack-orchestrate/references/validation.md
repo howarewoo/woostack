@@ -8,7 +8,7 @@ Use the shared [source-control contract](../../woostack-commit/references/graphi
 the outcome-level [runtime workspace guidance](scheduling.md#runtime-workspace-and-branch-evidence),
 the [least-code standard](../../woostack-bootstrap/references/patterns.md#7-least-code--comments),
 and canonical [`#artifact-delivery-note`](../../woostack-commit/references/provider-attribution.md#artifact-delivery-note)
-contract. Host mechanics remain in the allowlisted host references.
+contract. Known host files are optional mechanics references, not an allowlist.
 
 ## Result schema
 
@@ -50,10 +50,16 @@ values to invent:
   },
   "checks": {
     "passed": true,
-    "commands": ["<runtime-substituted exact required contract command>"],
+    "commands": [
+      {"command": "<observed required or extra command>", "executed": true, "passed": true}
+    ],
     "head_sha": "<runtime-substituted same head SHA>",
     "diff_identity": "sha256:<runtime-substituted same binary-diff hash>",
-    "smoke": "<runtime-substituted exact contract.smoke>"
+    "smoke": {
+      "description": "<runtime-substituted observed scenario in ordinary report language>",
+      "executed": true,
+      "passed": true
+    }
   },
   "validation": {
     "verdict": "pass",
@@ -188,13 +194,16 @@ only that prerequisite and its descendants. A deleted source ref is permitted on
 verified merged lifecycle. Never fabricate an open readback, reopen or reset a human-ready PR, or
 replace the retained delivery checkpoint with current lifecycle data.
 
-Checks are bound to the same `head_sha` and `diff_identity`. `checks.commands` is exactly the
-admitted `contract.checks` list, with observed outcomes held by the skill; `checks.smoke` is exactly
-the admitted `contract.smoke`. A `passed: true` flag without the exact command list is malformed,
-not a pass. Independent validation computes `contract_hash` as `sha256:` plus canonical JSON
-(sorted keys, compact separators) of the exact admitted contract, records the same diff identity,
-and uses `checked_head == readback.head_sha`. `reviewer_id` must be distinct from `worker.worker_id`.
-A changed head invalidates all check/validation/diff evidence and requires fresh reads.
+Checks are bound to the same `head_sha` and `diff_identity`. `checks.commands` records each actually
+executed command and its outcome. Every admitted required command must be present and pass; extra
+checks and harmless ordering differences are allowed, and any extra failure keeps the aggregate
+from passing. `checks.smoke` records the actual scenario, execution, and outcome in ordinary report
+language. The independent validator assesses whether it covers the admitted smoke rather than
+copying or string-matching the scenario text. Independent validation computes `contract_hash` as
+`sha256:` plus canonical JSON (sorted keys, compact separators) of the exact admitted contract,
+records the same diff identity, and uses `checked_head == readback.head_sha`. `reviewer_id` must be
+distinct from `worker.worker_id`. A changed head invalidates all check/validation/diff evidence
+and requires fresh reads.
 
 ## Gate order and statuses
 
