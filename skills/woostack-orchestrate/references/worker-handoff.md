@@ -154,14 +154,16 @@ same task set does not create a new packet identity.
 
 Along with the persisted execution layout, the packet carries this task's `execution_parent`,
 rationale, compatibility constraints, optional merge-checkpoint fallback, execution ancestry,
-effective prerequisite set, and verified landed-base prerequisite evidence. A selected execution
-parent is optional compatibility ordering; it is not a native GitHub relationship and does not
-replace the technical prerequisite evidence. The worker must treat effective prerequisites as the
-scheduling/readiness graph while preserving technical prerequisites separately. `dependency_edges`
-remains context and scheduling evidence, not a native GitHub relationship or permission to expand
-scope. The packet's task scope, specification, contract, layout, and readiness are the worker's
-complete input; it must not infer missing dependencies, choose a different parent, discover siblings,
-or publish an edge.
+effective prerequisite set, verified landed-base evidence, and any verified external satisfaction
+evidence. External rows retain their canonical outside-scope issue, source/provenance, associated
+merge, revision, and exact-base containment; they are not a task claim or permission to execute the
+external issue. A selected execution parent is optional compatibility ordering; it is not a native
+GitHub relationship and does not replace prerequisite evidence. The worker must treat effective
+prerequisites as the scheduling/readiness graph while preserving technical prerequisites separately.
+`dependency_edges` remains context and scheduling evidence, not a native GitHub relationship or
+permission to expand scope. The packet's task scope, specification, contract, layout, and readiness
+are the worker's complete input; it must not infer missing dependencies, choose a different parent,
+discover siblings, or publish an edge.
 
 `scope_evidence` accompanies the packet but is not `actual_parent`; `parent_issue_url` carries only a
 conclusively read native parent, and is omitted for an unavailable read. `parent_issue_read` records

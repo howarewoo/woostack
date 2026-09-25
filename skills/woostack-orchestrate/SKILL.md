@@ -216,9 +216,10 @@ receives a worker or PR, and is not a prerequisite merely because the executable
    tracker or issue declarations, and model-resolved technical prerequisites remain distinguishable.
    Checklist or issue-number order creates no edge, and a completely read empty native dependency
    list does not erase a verified tracker declaration. Ambiguous direction, unknown endpoints,
-   conflicting evidence, self-dependencies, cycles, or an external prerequisite that cannot be
-   proved blocks the affected work; it never widens the executable task set. A phase of one issue
-   is retained as that issue's contract context, not a fabricated endpoint or artificial cycle.
+   conflicting evidence, or self-dependencies and cycles block the affected work. An external
+   prerequisite is satisfied only when its canonical issue, associated merged PR, landed diff, and
+   task-relevant checks are freshly verified against the exact candidate base; retain that evidence
+   without importing the external issue into executable membership or ownership.
 5. Select and summarize the model-chosen `execution_layout` before allocation. It contains a
    positive revision, rationale, and one entry for every selected task exactly once. Each entry has
    an `execution_parent` (the approved-base root is `null`), a rationale, non-empty compatibility
@@ -226,12 +227,13 @@ receives a worker or PR, and is not a prerequisite merely because the executable
    `release_condition`. The combined technical-plus-execution graph is acyclic, and every technical
    prerequisite is on the selected execution ancestor path or has a verified
    `base_satisfied_prerequisites` entry naming the merged revision contained in the approved
-   integration base. Added ordering is compatibility evidence, not native relationship evidence; the
-   technical DAG and its provenance remain visible separately. The model owns this selection;
+   integration base. External prerequisites use `satisfied_external_prerequisites` for the same
+   exact-base proof. Added ordering is compatibility evidence, not native relationship evidence;
+   the technical DAG and its provenance remain visible separately. The model owns this selection;
    ordinals do not create execution edges, and Execute/Commit do not schedule siblings.
 6. Assemble the snapshot from those completed reads and invoke only
    `admit --snapshot <file> --git-repo <canonical-checkout>`. The Git checkout is required when
-   claiming base-satisfied prerequisites; admission verifies containment under the
+   claiming base-satisfied or satisfied external prerequisites; admission verifies containment under the
    [execution-layout contract](references/scheduling.md). Admission is read-only: it performs no issue mutation, does not create
    a Project, and does not close, reparent, or publish relationships. It validates exact identities,
    `scope_evidence` when present, contracts, technical edge provenance/endpoints, the complete
@@ -438,7 +440,9 @@ admitted `inReview` option for verified deliveries; never set `planned`, `execut
 work, and its absence is never a reason to mutate issue hierarchy.
 
 The normalized task set is independent of the source description. Context relationships remain
-read-only, inferred edges never publish native relationships, and external prerequisites remain
-blockers. Orchestrate never closes issues, removes dependencies, marks acceptance, marks PRs ready,
-enables auto-merge, queues, force-pushes, or merges. When all deliverable PRs are verified, leave
-the scope open and report that review/merge remains human authority.
+read-only, and inferred edges never publish native relationships. External prerequisites remain
+recorded blockers unless fresh exact-base evidence proves them satisfied; that proof never imports
+the external issue, claims it, or creates its worker or PR. Orchestrate never closes issues, removes
+dependencies, marks acceptance, marks PRs ready, enables auto-merge, queues, force-pushes, or merges.
+When all deliverable PRs are verified, leave the scope open and report that review/merge remains
+human authority.

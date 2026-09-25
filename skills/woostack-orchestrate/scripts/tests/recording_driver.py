@@ -27,7 +27,6 @@ from typing import Any, Dict, Iterable, Optional, Sequence, Tuple
 
 TESTS_DIR = Path(__file__).resolve().parent
 SKILL_DIR = TESTS_DIR.parent.parent
-RECORDED_SKILL_RESPONSES = TESTS_DIR / "fixtures" / "recorded-skill-interpretations.json"
 HELPER = SKILL_DIR / "scripts" / "orchestrate.py"
 DRIVER = Path(__file__).resolve()
 
@@ -149,86 +148,6 @@ def issue_record(
     return record_value
 
 
-class RecordedSkillHost:
-    """Replay a recorded model response after binding it to installed-skill evidence."""
-
-    def __init__(
-        self, skill_path: Path, *, skill_text: Optional[str] = None,
-        responses_path: Path = RECORDED_SKILL_RESPONSES,
-    ) -> None:
-        self.skill_path = skill_path
-        self.skill_text = skill_text if skill_text is not None else skill_path.read_text(encoding="utf-8")
-        entries = json.loads(responses_path.read_text(encoding="utf-8"))["entries"]
-        self.responses = {entry["prompt_sha256"]: entry["response"] for entry in entries}
-        self.calls: list[Dict[str, Any]] = []
-
-    def _prompt(self, tracker: Dict[str, Any], issue_index: Sequence[Dict[str, Any]]) -> str:
-        model_issue_index = [
-            {key: value for key, value in item.items() if key not in {"branch", "workspace"}}
-            for item in issue_index
-        ]
-        return "\n\n".join((
-            "INSTALLED SKILL:\n" + self.skill_text,
-            "TRACKER:\n" + json.dumps(tracker, sort_keys=True),
-            "ISSUE INDEX:\n" + json.dumps(model_issue_index, sort_keys=True),
-        ))
-
-    def interpret_tracker(
-        self, tracker: Dict[str, Any], issue_index: Sequence[Dict[str, Any]],
-    ) -> Dict[str, Any]:
-        """Return the recorded model interpretation bound to this exact prompt."""
-        prompt = self._prompt(tracker, issue_index)
-        prompt_sha256 = hashlib.sha256(prompt.encode("utf-8")).hexdigest()
-        response = self.responses.get(prompt_sha256)
-        if response is None:
-            raise AssertionError("no recorded model response for installed-skill prompt %s" % prompt_sha256)
-
-        by_url = {item["url"]: item for item in issue_index}
-        tasks = []
-        for url in response["selected_issue_urls"]:
-            if url not in by_url:
-                raise AssertionError("recorded model selected an unreadable issue: %s" % url)
-            task = copy.deepcopy(by_url[url])
-            phase = response["phase_by_issue_url"].get(url)
-            phase_text = " and ".join(phase) if isinstance(phase, list) else phase
-            if phase_text and phase_text.lower() not in task["body"].lower():
-                task["body"] += " Phase %s remains inside this issue." % phase_text
-            tasks.append(task)
-
-        task_ids = {item["url"]: item["task_id"] for item in tasks}
-        edges = []
-        for edge in response["edges"]:
-            edges.append({
-                "predecessor": task_ids[edge["predecessor_url"]],
-                "dependent": task_ids[edge["dependent_url"]],
-                "provenance": "declared",
-                "evidence": {"tracker_url": tracker["url"], "field": edge["evidence"]},
-            })
-        result = {
-            "tracker_url": tracker["url"],
-            "selected_issue_urls": copy.deepcopy(response["selected_issue_urls"]),
-            "excluded_urls": copy.deepcopy(response["excluded_urls"]),
-            "tasks": tasks,
-            "edges": edges,
-        }
-        self.calls.append({
-            "skill_path": str(self.skill_path),
-            "skill_sha256": hashlib.sha256(self.skill_text.encode("utf-8")).hexdigest(),
-            "prompt_sha256": prompt_sha256,
-            "recorded": True,
-            **result,
-        })
-        record("model", "interpret-tracker", {
-            "skill_path": str(self.skill_path),
-            "tracker_url": tracker["url"],
-            "prompt_sha256": prompt_sha256,
-            "recorded": True,
-        })
-        return result
-
-
-
-
 class FakeGitHub:
     """Paginated native issue/Project reads and canonical PR/note storage."""
 
@@ -278,7 +197,6 @@ class FakeGitHub:
         self.contract_pages = [self.children[:2], self.children[2:]]
         self.prs: Dict[str, Dict[str, Any]] = {}
         self.notes: Dict[str, Dict[str, Any]] = {}
-        self.skill_host = RecordedSkillHost(SKILL_DIR / "SKILL.md")
         self.delivery: Dict[str, Dict[str, Any]] = {}
         self.parent_branches = {"main"}
         self.project_status_reads = []
@@ -525,36 +443,24 @@ class FakeGitHub:
             },
         }
 
-    def tracker_evidence(self, fixture: str) -> Tuple[Dict[str, Any], list[Dict[str, Any]]]:
-        fixture_value = self.tracker_fixtures[fixture]
-        tracker = copy.deepcopy(fixture_value["tracker"])
-        tracker = {key: tracker[key] for key in ("url", "id", "node_id", "title", "body", "revision")}
-        return tracker, copy.deepcopy(fixture_value["index"])
-
     def tracker_snapshot(
         self, fixture: str = "reported", *, native: bool = False,
-        revision: Optional[str] = None, body_suffix: str = "", interpreted: bool = False,
+        revision: Optional[str] = None, body_suffix: str = "",
     ) -> Dict[str, Any]:
-        """Assemble a scope from raw model interpretation or fixture admission data."""
+        """Assemble a scope from paginated tracker and issue fixture data."""
         fixture_value = self.tracker_fixtures[fixture]
         tracker = self._read_pages("tracker", [[fixture_value["tracker"]]])[0]
         tracker["body"] += body_suffix
         if revision is not None:
             tracker["revision"] = revision
         issue_index = self._read_pages("tracker_issue_index", [fixture_value["index"]])
-        if interpreted:
-            model_tracker = {key: tracker[key] for key in ("url", "id", "node_id", "title", "body", "revision")}
-            interpretation = self.skill_host.interpret_tracker(model_tracker, issue_index)
-            selected = interpretation["tasks"]
-            edges = interpretation["edges"]
-        else:
-            by_url = {item["url"]: item for item in issue_index}
-            selected = [by_url[url] for url in fixture_value["tracker"]["implementation_index"]]
-            edges = [
-                {**edge, "provenance": "declared",
-                 "evidence": {"tracker_url": tracker["url"], "field": "dependency index"}}
-                for edge in fixture_value["tracker"]["dependency_index"]
-            ]
+        by_url = {item["url"]: item for item in issue_index}
+        selected = [by_url[url] for url in fixture_value["tracker"]["implementation_index"]]
+        edges = [
+            {**edge, "provenance": "declared",
+             "evidence": {"tracker_url": tracker["url"], "field": "dependency index"}}
+            for edge in fixture_value["tracker"]["dependency_index"]
+        ]
         if native:
             self._read_pages("tracker_native_children", [selected])
             for task in selected:
@@ -852,8 +758,12 @@ class FakeGitHub:
 
 def verify_execute_readiness(repo: Path, packet: Dict[str, Any], entry: Dict[str, Any]) -> None:
     readiness = packet.get("parent_readiness")
-    if not isinstance(readiness, dict) or readiness.get("external_prerequisites") != []:
+    if not isinstance(readiness, dict):
         raise AssertionError("Execute requires complete caller-supplied parent readiness")
+    external = readiness.get("external_prerequisites", [])
+    satisfied_external = readiness.get("satisfied_external_prerequisites", [])
+    if sorted(row["issue_url"] for row in satisfied_external) != sorted(external):
+        raise AssertionError("Execute external prerequisite evidence is incomplete")
     logical = readiness.get("logical_prerequisites")
     effective = readiness.get("execution_prerequisites")
     base_satisfied = readiness.get("base_satisfied_prerequisites")
@@ -879,6 +789,8 @@ def verify_execute_readiness(repo: Path, packet: Dict[str, Any], entry: Dict[str
     if sorted(row["task_id"] for row in base_entries) != sorted(base_satisfied):
         raise AssertionError("Execute landed-base evidence is incomplete")
     for row in base_entries:
+        git(repo, "merge-base", "--is-ancestor", row["revision"], parent["sha"])
+    for row in satisfied_external:
         git(repo, "merge-base", "--is-ancestor", row["revision"], parent["sha"])
     for row in records:
         checkpoint = row["checkpoint"]
