@@ -407,6 +407,16 @@ class OrchestrateBehavior(unittest.TestCase):
         snapshot["execution_layout"] = self.github.execution_layout((task_id,), {task_id: None})
         snapshot["host"]["name"] = "compatible-unlisted-fixture"
 
+        for index, invalid_task_id in enumerate(("task\x00id", "-task")):
+            with self.subTest(invalid_task_id=invalid_task_id):
+                invalid = copy.deepcopy(snapshot)
+                invalid["tasks"][0]["task_id"] = invalid_task_id
+                code, payload = invoke_cli(
+                    "admit", "--snapshot", str(self._write_json("invalid-identity-%d.json" % index, invalid))
+                )
+                self.assertNotEqual(code, 0, payload)
+                self.assertEqual(payload["error"], "invalid-identity", payload)
+
         for capability in (
             "delivery_capable", "workspace_isolation_capable",
             "result_correlation_capable", "recovery_capable",
@@ -415,18 +425,18 @@ class OrchestrateBehavior(unittest.TestCase):
                 blocked = copy.deepcopy(snapshot)
                 blocked["host"][capability] = False
                 code, payload = invoke_cli(
-                    "admit", "--snapshot", str(self._write_json("missing-%s.json" % capability, blocked))
+                    "admit", "--snapshot", str(self._write_json("disabled-%s.json" % capability, blocked))
                 )
                 self.assertNotEqual(code, 0, payload)
                 self.assertEqual(payload["error"], "no-subagent-capability", payload)
 
-        legacy = copy.deepcopy(snapshot)
-        for capability in ("workspace_isolation_capable", "result_correlation_capable", "recovery_capable"):
-            legacy["host"].pop(capability, None)
-        legacy_code, legacy_payload = invoke_cli(
-            "admit", "--snapshot", str(self._write_json("legacy-capabilities.json", legacy))
-        )
-        self.assertEqual(legacy_code, 0, legacy_payload)
+                missing = copy.deepcopy(snapshot)
+                missing["host"].pop(capability)
+                code, payload = invoke_cli(
+                    "admit", "--snapshot", str(self._write_json("missing-%s.json" % capability, missing))
+                )
+                self.assertNotEqual(code, 0, payload)
+                self.assertEqual(payload["error"], "no-subagent-capability", payload)
         admitted_path, admitted = self._admit_issue(snapshot)
         self.assertEqual(admitted["tasks"][0]["task_id"], task_id)
         state, scheduled = self._schedule(
@@ -3257,6 +3267,10 @@ class OrchestrateBehavior(unittest.TestCase):
             "reviewer-identity", "wrong-base", "wrong-repository", "closed-pr", "duplicate-pr",
         ])
         variants.extend([changed, changed2, changed3, changed4, changed5, changed6, changed7, changed8, changed9])
+        changed11 = copy.deepcopy(valid)
+        changed11["checks"]["passed"] = 1
+        mismatch_cases.append("aggregate-check-type")
+        variants.append(changed11)
         incomplete_reviews = copy.deepcopy(valid)
         incomplete_reviews["readback"]["reviews"]["complete"] = False
         mismatch_cases.append("incomplete-review-pages")
