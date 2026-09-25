@@ -28,7 +28,6 @@ ISSUE_RE = re.compile(r"https://github\.com/([\w.-]+)/([\w.-]+)/issues/([1-9][0-
 PR_RE = re.compile(r"https://github\.com/([\w.-]+)/([\w.-]+)/pull/([1-9][0-9]*)\Z")
 PROJECT_RE = re.compile(r"https://github\.com/(orgs|users)/([\w.-]+)/projects/([1-9][0-9]*)\Z")
 REPO_RE = re.compile(r"https://github\.com/([\w.-]+)/([\w.-]+)\Z")
-TASK_RE = re.compile(r"[^\x00-\x1f\x7f]+")
 SHA_RE = re.compile(r"(?:[0-9a-f]{40}|[0-9a-f]{64})\Z")
 EDGE_KINDS = ("native", "declared", "inferred")
 DEFAULT_CI_REPAIR_LIMIT = 2
@@ -1124,8 +1123,9 @@ def admit(snapshot, limit, repo=None):
     for index, url in enumerate(sorted(by_url), 1):
         entry = by_url[url]
         task_id = entry.get("task_id") or "issue-" + str(entry["number"])
-        require(isinstance(task_id, str) and TASK_RE.fullmatch(task_id) and ".." not in task_id
-                and not task_id.endswith((".", ".lock")), "invalid-identity", "Git-safe stable task ID required")
+        require(isinstance(task_id, str) and text(task_id)
+                and "\x00" not in task_id and not task_id.startswith("-"),
+                "invalid-identity", "CLI-addressable stable task ID required")
         if project is not None:
             require(text(entry.get("item_id")), "invalid-project-item", "selected Project item ID missing")
         contract = entry.get("contract")
@@ -1157,7 +1157,13 @@ def admit(snapshot, limit, repo=None):
     require(isinstance(host, dict), "no-subagent-capability", "host capability evidence missing")
     host_cap = positive(host.get("max_parallel", 1))
     if tasks:
-        require(host.get("delivery_capable") is True, "no-subagent-capability", "delivery-capable subagent required")
+        required_capabilities = (
+            "delivery_capable", "workspace_isolation_capable",
+            "result_correlation_capable", "recovery_capable",
+        )
+        require(all(host.get(capability) is True for capability in required_capabilities),
+                "no-subagent-capability",
+                "delivery, workspace isolation, result correlation, and recovery capabilities required")
     scope_identity = {"canonical_repo": canonical, "issues": sorted(by_url)}
     immutable_tasks = [{
         "task_id": task["task_id"], "url": task["url"], "id": task["id"],
@@ -2678,12 +2684,32 @@ def validate_delivery(admitted, task, reservation, result, repo, *, historical=F
     require(validation["contract_hash"] == task["contract_hash"], "contract-mismatch", "reviewed contract differs")
     require(text(validation["reviewer_id"]) and validation["reviewer_id"] != worker["worker_id"],
             "self-review", "validator must be independent of implementation")
-    require(checks["commands"] == task["contract"]["checks"] and checks["smoke"] == task["contract"]["smoke"],
-            "checks-incomplete", "all mandatory checks and smoke must be observed")
-    require(type(checks["passed"]) is bool and validation["verdict"] in ("pass", "fail"),
+    commands = checks["commands"]
+    require(isinstance(commands, list) and all(
+        isinstance(command, dict) and text(command.get("command"))
+        and type(command.get("executed")) is bool
+        and type(command.get("passed")) is bool for command in commands),
+        "checks-incomplete", "check outcomes must identify executed commands and results")
+    require(all(command["executed"] for command in commands),
+            "checks-incomplete", "every reported check must be observed")
+    observed = {}
+    for command in commands:
+        observed.setdefault(command["command"], []).append(command)
+    require(all(observed.get(required) for required in task["contract"]["checks"]),
+            "checks-incomplete", "all mandatory checks must be observed")
+    smoke = checks["smoke"]
+    require(isinstance(smoke, dict) and text(smoke.get("description"))
+            and type(smoke.get("executed")) is bool
+            and type(smoke.get("passed")) is bool and smoke["executed"],
+            "checks-incomplete", "smoke outcome must describe an observed scenario and result")
+    outcomes_passed = all(command["passed"] for command in commands) and smoke["passed"]
+    require(type(checks["passed"]) is bool and checks["passed"] == outcomes_passed
+            and validation["verdict"] in ("pass", "fail"),
             "unknown-response", "verification/review outcome malformed")
-    if result["outcome"] == "needs-repair" or not checks["passed"] or validation["verdict"] == "fail":
-        return {"status": "repair-ready", "reason": "checks-failed" if not checks["passed"] else "validation-failed"}
+    if not outcomes_passed:
+        return {"status": "repair-ready", "reason": "checks-failed"}
+    if result["outcome"] == "needs-repair" or validation["verdict"] == "fail":
+        return {"status": "repair-ready", "reason": "validation-failed"}
     delivery = {"pr_url": readback["pr_url"], "head_sha": readback["head_sha"],
                 "branch": readback["branch"], "workspace": reservation["workspace"],
                 "base_branch": readback["base_branch"],
@@ -2876,7 +2902,8 @@ def reconcile_delivery(admitted, task, item, retained, repo, *, repairing=False,
     historical = lifecycle_state(lifecycle) == "merged"
     prior_delivery = item.get("delivery")
     prior_diff = prior_delivery.get("validated_diff") if isinstance(prior_delivery, dict) else None
-    proof = validate_delivery(admitted, task, retained["reservation"], retained["result"], repo,
+    result = normalize_retained_result(retained["result"])
+    proof = validate_delivery(admitted, task, retained["reservation"], result, repo,
                               historical=historical, retained_diff=prior_diff,
                               workspace_required=workspace_required, existing_pr=True)
     delivery = proof.get("delivery")
@@ -2889,6 +2916,25 @@ def reconcile_delivery(admitted, task, item, retained, repo, *, repairing=False,
                                              canonical=admitted["canonical_repo"],
                                              verify_checks=False)
     return proof, lifecycle, satisfaction
+
+def normalize_retained_result(result):
+    normalized = copy.deepcopy(result)
+    checks = normalized.get("checks") if isinstance(normalized, dict) else None
+    if not isinstance(checks, dict) or type(checks.get("passed")) is not bool:
+        return normalized
+    commands = checks.get("commands")
+    if isinstance(commands, list) and all(text(command) for command in commands):
+        checks["commands"] = [
+            {"command": command, "executed": True, "passed": checks["passed"]}
+            for command in commands
+        ]
+    smoke = checks.get("smoke")
+    if text(smoke):
+        checks["smoke"] = {
+            "description": smoke, "executed": True, "passed": checks["passed"],
+        }
+    return normalized
+
 
 
 def _safe_reason(error, default="blocked"):
