@@ -4286,16 +4286,25 @@ class OrchestrateBehavior(unittest.TestCase):
         self.assertEqual(revised_state["tasks"]["task-a"]["reservation"], prior_reservation)
         self.assertEqual(revised_state["tasks"]["task-a"]["execution_plan_revision"], 1)
 
-        # 1. Reject A's original completion under substituted plan 2 and accept it under plan 1
-        _, wrong_plan, code = self._apply(
-            changed_admitted_path, state, "task-a", original_result,
-            "replan-repair-wrong-plan", expect_code=1, observe_ci=False,
+        # A's issued binding remains valid when only an unrelated task's plan changes.
+        wrong_binding = copy.deepcopy(original_result)
+        wrong_binding["worker"]["attempt_binding"] = "attempt-substituted"
+        _, binding_rejected, binding_code = self._apply(
+            changed_admitted_path, state, "task-a", wrong_binding,
+            "replan-repair-wrong-binding", expect_code=1, observe_ci=False,
         )
-        self.assertEqual(code, 1)
-        self.assertEqual(wrong_plan["error"], "execution-plan-drift")
-
+        self.assertEqual(binding_code, 1)
+        self.assertEqual(binding_rejected["error"], "attempt-binding-mismatch")
+        wrong_worker = copy.deepcopy(original_result)
+        wrong_worker["worker"]["worker_id"] = "substituted-native-worker"
+        _, worker_rejected, worker_code = self._apply(
+            changed_admitted_path, state, "task-a", wrong_worker,
+            "replan-repair-wrong-worker", expect_code=1, observe_ci=False,
+        )
+        self.assertEqual(worker_code, 1)
+        self.assertEqual(worker_rejected["error"], "worker-identity")
         completed_state, completed, code = self._apply(
-            admitted_path, state, "task-a", original_result, "replan-repair-original-worker", observe_ci=False,
+            changed_admitted_path, state, "task-a", original_result, "replan-repair-original-worker", observe_ci=False,
         )
         self.assertEqual(code, 0)
         self.assertEqual(completed["status"], "delivered", completed)
@@ -4341,7 +4350,7 @@ class OrchestrateBehavior(unittest.TestCase):
             "replan-repair-late-original-result", expect_code=1, observe_ci=False,
         )
         self.assertEqual(code, 1)
-        self.assertEqual(late_rejected["error"], "execution-plan-drift")
+        self.assertEqual(late_rejected["error"], "worker-identity")
 
         # 3. Run the repair through worker registration, local correction, and verification
         self.launch_context[repair_entry["branch"]] = (changed_admitted_path, state)
@@ -4366,14 +4375,6 @@ class OrchestrateBehavior(unittest.TestCase):
         active_repair_state = json.loads(state.read_text())
         self.assertEqual(active_repair_state["execution_layout"]["revision"], 3)
         self.assertEqual(active_repair_state["tasks"]["task-a"]["execution_plan_revision"], 2)
-
-        # Substituted wrong-plan admission is rejected
-        _, wrong_plan_repair, code = self._apply(
-            further_admitted_path, state, "task-a", repair_result,
-            "replan-repair-wrong-plan-apply", expect_code=1, observe_ci=False,
-        )
-        self.assertEqual(code, 1)
-        self.assertEqual(wrong_plan_repair["error"], "execution-plan-drift")
 
         # Accept its correctly bound completion under plan 2
         state, repair_applied, code = self._apply(
