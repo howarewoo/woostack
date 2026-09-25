@@ -259,6 +259,15 @@ Ambiguous or incomplete discovery blocks selection. Predecessor parents use thei
 delivery checkpoint instead. Current tips may advance for an already-reserved child only while its
 original start remains an ancestor; do not replace that child's retained start SHA.
 
+When the integration tip changes, `schedule` verifies the canonical repository and branch, the
+previous and proposed commit objects, forward ancestry, and the complete changed-path set. A
+verified selected-task merge is compatible with its task's retained evidence; an unrelated forward
+advance is compatible when it does not materially change a selected task's contract scope. Rewrites,
+missing objects, wrong refs, reverted required behavior, and other selected-task impact remain
+`parent-tip-drift` until the evidence or base is reconciled. A compatible advance is recorded in
+controller recovery and may supply the refreshed parent only to newly eligible roots; it never
+reparents an existing reservation or replaces its workspace, PR, or worker contract.
+
 When a Project is explicitly selected for status mutation, add its independently read identity and
 configured lifecycle mapping:
 

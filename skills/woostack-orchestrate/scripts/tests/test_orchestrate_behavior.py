@@ -1998,14 +1998,32 @@ class OrchestrateBehavior(unittest.TestCase):
         )
         self.assertEqual(allocation_changed.get("status"), "ok", allocation_changed)
 
-        git(self.repo, "commit", "--allow-empty", "-m", "mutable integration tip")
+        git(self.repo, "commit", "--allow-empty", "-m", "unrelated integration advance")
         mutable_tip = git(self.repo, "rev-parse", "HEAD")
         mutable_sha = copy.deepcopy(snapshot)
         mutable_sha["integration"]["sha"] = mutable_tip
         state, mutable = self._schedule(admitted_path, admitted, state, mutable_sha, "fingerprint-sha")
-        self.assertEqual(mutable["status"], "snapshot-drift", mutable)
-        self.assertEqual(mutable["reason"], "parent-tip-drift", mutable)
+        self.assertEqual(mutable["status"], "ok", mutable)
         self.assertEqual(mutable["dispatch"], [], mutable)
+        self.assertEqual(json.loads(state.read_text())["recovery"]["integration_advance"]["proposed_sha"], mutable_tip)
+
+        git(self.repo, "commit", "--allow-empty", "-m", "unrelated second advance")
+        second_tip = git(self.repo, "rev-parse", "HEAD")
+        second_sha = copy.deepcopy(mutable_sha)
+        second_sha["integration"]["sha"] = second_tip
+        state, second = self._schedule(admitted_path, admitted, state, second_sha, "fingerprint-second-sha")
+        self.assertEqual(second["status"], "ok", second)
+        (self.repo / "src").mkdir(exist_ok=True)
+        (self.repo / "src" / "task-a.txt").write_text("incompatible\n", encoding="utf-8")
+        git(self.repo, "add", "src/task-a.txt")
+        git(self.repo, "commit", "-m", "change selected task scope")
+        impact_tip = git(self.repo, "rev-parse", "HEAD")
+        impact_snapshot = copy.deepcopy(second_sha)
+        impact_snapshot["integration"]["sha"] = impact_tip
+        state, impact = self._schedule(admitted_path, admitted, state, impact_snapshot, "fingerprint-impact")
+        self.assertEqual(impact["status"], "snapshot-drift", impact)
+        self.assertEqual(impact["reason"], "parent-tip-drift", impact)
+        self.assertEqual(impact["dispatch"], [], impact)
 
         drift_cases = []
         added_child = copy.deepcopy(snapshot)

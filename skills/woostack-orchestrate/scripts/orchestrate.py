@@ -1337,6 +1337,109 @@ def contains(repo, ancestor, head):
     return result.returncode == 0
 
 
+def changed_paths(repo, ancestor, head):
+    """Return complete changed paths, including both sides of renames."""
+    raw = git(repo, "diff", "--name-status", "-z", "--find-renames", ancestor, head)
+    fields = [item for item in raw.split(b"\0") if item]
+    paths, index = [], 0
+    while index < len(fields):
+        status = fields[index].decode("ascii", errors="replace")
+        index += 1
+        if index >= len(fields):
+            break
+        first = os.fsdecode(fields[index])
+        index += 1
+        paths.append(first)
+        if status[0] in "RC":
+            require(index < len(fields), "git-evidence", "rename evidence is incomplete")
+            paths.append(os.fsdecode(fields[index]))
+            index += 1
+    return sorted(set(paths))
+
+
+def path_in_scope(path, scope):
+    candidate = Path(path)
+    allowed = Path(scope)
+    return candidate == allowed or allowed in candidate.parents
+
+
+def selected_landing_paths(repo, task, branch, proposed):
+    """Return paths introduced by a verified selected delivery merge."""
+    retained = task.get("existing_delivery")
+    lifecycle = retained.get("lifecycle") if isinstance(retained, dict) else None
+    pr = lifecycle.get("pr", lifecycle) if isinstance(lifecycle, dict) else None
+    if not isinstance(pr, dict) or pr.get("state") != "merged":
+        return set()
+    target = pr.get("merged_base_branch") or lifecycle.get("landing_target")
+    merge_sha = pr.get("merge_commit_sha") or lifecycle.get("landed_revision")
+    verification = lifecycle.get("landed_verification") or lifecycle.get("verification")
+    if (target != branch or not SHA_RE.fullmatch(merge_sha or "")
+            or not isinstance(verification, dict)
+            or verification.get("complete") is not True
+            or verification.get("source_verified") is not True
+            or verification.get("checks_verified") is not True
+            or verification.get("reverted") is True
+            or not contains(repo, merge_sha, proposed)):
+        return set()
+    first_parent = git(repo, "rev-parse", merge_sha + "^").decode().strip()
+    return set(changed_paths(repo, first_parent, merge_sha))
+
+
+def integration_advance_evidence(repo, admitted, fresh):
+    """Verify that a changed integration tip is a compatible forward advance."""
+    branch = admitted["integration"]["branch"]
+    previous = admitted["integration"]["sha"]
+    proposed = fresh["integration"]["sha"]
+    require(fresh["integration"]["branch"] == branch,
+            "parent-tip-drift", "integration branch identity requires reconciliation")
+    current = branch_tip(repo, branch)
+    require(current == proposed, "parent-tip-drift",
+            "fresh integration evidence does not identify the canonical branch tip")
+    if previous == proposed:
+        return {"previous_sha": previous, "proposed_sha": proposed,
+                "changed_paths": [], "impacted_tasks": [], "compatible": True}
+    require(contains(repo, previous, proposed), "parent-tip-drift",
+            "integration tip is not a fast-forward from the admitted revision")
+    paths = changed_paths(repo, previous, proposed)
+    scope_paths, landing_paths, impacted = {}, {}, []
+    for task in fresh["tasks"]:
+        scope = task.get("contract", {}).get("scope", [])
+        scope_paths[task["task_id"]] = scope
+        if any(path_in_scope(path, item) for path in paths for item in scope):
+            impacted.append(task["task_id"])
+            landing_paths[task["task_id"]] = selected_landing_paths(
+                repo, task, branch, proposed)
+    uncovered = []
+    for path in paths:
+        task_ids = [task_id for task_id in impacted
+                    if any(path_in_scope(path, item) for item in scope_paths[task_id])]
+        if not task_ids:
+            continue
+        allowed = False
+        for task_id in task_ids:
+            if path not in landing_paths[task_id]:
+                continue
+            retained = next(task for task in fresh["tasks"]
+                            if task["task_id"] == task_id).get("existing_delivery")
+            lifecycle = retained.get("lifecycle") if isinstance(retained, dict) else None
+            pr = lifecycle.get("pr", lifecycle) if isinstance(lifecycle, dict) else None
+            merge_sha = pr.get("merge_commit_sha") or lifecycle.get("landed_revision")
+            result = subprocess.run(
+                ["git", "-C", str(repo), "diff", "--quiet", merge_sha, proposed, "--", path],
+                capture_output=True, timeout=30)
+            if result.returncode == 0:
+                allowed = True
+                break
+        if not allowed:
+            uncovered.append(path)
+    require(not uncovered, "parent-tip-drift",
+            "integration advance materially changes selected task scope: "
+            + ", ".join(uncovered))
+    return {"previous_sha": previous, "proposed_sha": proposed,
+            "changed_paths": paths, "impacted_tasks": sorted(impacted),
+            "compatible": True}
+
+
 def worktree_inventory(repo):
     records, item = [], {}
     for line in git(repo, "worktree", "list", "--porcelain", "-z").decode().split("\0") + [""]:
@@ -2833,25 +2936,8 @@ def cmd_schedule(args):
                 "snapshot-drift", "scope/native identity/contract changed")
         require(fresh["execution_fingerprint"] == admitted["execution_fingerprint"],
                 "execution-plan-drift", "execution layout changed without a newer admitted plan")
-        require(fresh["integration"]["branch"] == admitted["integration"]["branch"],
-                "parent-tip-drift", "integration branch identity requires readmission")
-        if fresh["integration"]["sha"] != admitted["integration"]["sha"]:
-            landed = False
-            for task in fresh["tasks"]:
-                retained = task.get("existing_delivery")
-                lifecycle = retained.get("lifecycle") if isinstance(retained, dict) else None
-                pr = lifecycle.get("pr", lifecycle) if isinstance(lifecycle, dict) else None
-                if not isinstance(pr, dict) or pr.get("state") != "merged":
-                    continue
-                merge_sha = pr.get("merge_commit_sha") or lifecycle.get("landed_revision")
-                target = pr.get("merged_base_branch") or lifecycle.get("landing_target")
-                if (target == fresh["integration"]["branch"]
-                        and SHA_RE.fullmatch(merge_sha or "")
-                        and contains(root, merge_sha, fresh["integration"]["sha"])):
-                    landed = True
-                    break
-            require(landed, "parent-tip-drift",
-                    "integration tip changed without a verified delivered merge")
+        advance = integration_advance_evidence(root, admitted, fresh)
+        state.setdefault("recovery", {})["integration_advance"] = copy.deepcopy(advance)
         plan_error = state.pop("_execution_plan_error", None)
         if plan_error is not None:
             raise InputError(plan_error["code"], plan_error["message"])
