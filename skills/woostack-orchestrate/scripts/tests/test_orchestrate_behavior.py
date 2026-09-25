@@ -482,14 +482,41 @@ class OrchestrateBehavior(unittest.TestCase):
             candidate["checks"]["passed"] = False
 
         run_negative("opaque-required-failure", fail_required)
-        run_negative("opaque-unexecuted-smoke", lambda candidate: candidate["checks"]["smoke"].update(executed=False))
+        unexecuted = copy.deepcopy(negative_result)
+        unexecuted["checks"]["commands"].append({
+            "command": "python3 -c \"raise SystemExit(9)\"",
+            "executed": False, "passed": False,
+        })
+        unexecuted["checks"]["passed"] = False
+        blocked_state, blocked, blocked_code = self._apply(
+            admitted_path, negative_state, task_id, unexecuted, "opaque-unobserved-extra"
+        )
+        self.assertEqual(blocked_code, 0, blocked)
+        self.assertEqual(blocked["status"], "unknown", blocked)
+        self.assertEqual(blocked["reason"], "checks-incomplete", blocked)
+        negative_state, refill = self._schedule(
+            admitted_path, admitted, blocked_state, fresh, "opaque-unobserved-refill", cap="1"
+        )
+        self.assertEqual(len(refill["dispatch"]), 1, refill)
+        host.dispatch(refill["dispatch"])
+        negative_result = make_result(
+            self.github, task_id, host.wait_for_report(task_id), admitted
+        )
         state, delivered, _ = self._apply(
             admitted_path, negative_state, task_id, negative_result, "opaque-delivered"
         )
+        self._persist(task_id, negative_result, dispatch)
+        lifecycle_fresh = self.github.snapshot()
+        lifecycle_fresh["tasks"] = lifecycle_fresh["children"] = [child]
+        lifecycle_fresh["execution_layout"] = self.github.execution_layout((task_id,), {task_id: None})
         resumed_state, resumed = self._schedule(
-            admitted_path, admitted, state, fresh, "opaque-resume", cap="1"
+            admitted_path, admitted, state, lifecycle_fresh, "opaque-resume", cap="1"
         )
         self.assertEqual(resumed["dispatch"], [], resumed)
+        self.assertNotIn(task_id, [entry["task_id"] for entry in resumed["blocked"]], resumed)
+        saved = json.loads(resumed_state.read_text())["tasks"][task_id]
+        self.assertEqual(saved["status"], "delivered")
+        self.assertIsNone(saved["lifecycle_error"])
 
     def test_full_issue_smoke_uses_real_git_and_concurrent_execute_packets(self) -> None:
         """A/B/E run concurrently; C and D stack on A while B remains held."""
@@ -3267,6 +3294,7 @@ class OrchestrateBehavior(unittest.TestCase):
                     self.assertEqual(reconcile_code, 0, reconciled)
 
         failed_checks = copy.deepcopy(valid)
+        failed_checks["checks"]["commands"][0]["passed"] = False
         failed_checks["checks"]["passed"] = False
         repaired_state, repaired, _ = self._apply(
             admitted_path, current_state, "task-a", failed_checks, "failed-checks"
@@ -3536,6 +3564,7 @@ class OrchestrateBehavior(unittest.TestCase):
         report = host.wait_for_report("task-a")
         valid = make_result(self.github, "task-a", report, repair_admitted)
         failed = copy.deepcopy(valid)
+        failed["checks"]["commands"][0]["passed"] = False
         failed["checks"]["passed"] = False
         repair_ready_state, repair_ready, _ = self._apply(
             repair_admitted_path, repair_state, "task-a", failed, "repair-ready"
@@ -3559,6 +3588,37 @@ class OrchestrateBehavior(unittest.TestCase):
             repair_admitted_path, resumed_state, "task-a", repaired_result, "repair-delivered"
         )
         self.assertEqual(delivered.get("status"), "delivered", delivered)
+
+    def test_legacy_retained_delivery_receipt_resumes_without_migration(self) -> None:
+        snapshot = self._single_task_snapshot()
+        admitted_path, admitted = self._admit_issue(snapshot)
+        state, scheduled = self._schedule(
+            admitted_path, admitted, None, snapshot, "legacy-receipt-initial", cap="1"
+        )
+        host = self._start_host(workers=1)
+        host.dispatch(scheduled["dispatch"])
+        result = make_result(
+            self.github, "task-a", host.wait_for_report("task-a"), admitted
+        )
+        state, delivered, _ = self._apply(
+            admitted_path, state, "task-a", result, "legacy-receipt-delivered"
+        )
+        self.assertEqual(delivered["status"], "delivered", delivered)
+        self._persist("task-a", result, scheduled["dispatch"][0])
+        retained = self.github.delivery["task-a"]
+        retained["result"]["checks"]["commands"] = [
+            entry["command"] for entry in retained["result"]["checks"]["commands"]
+        ]
+        retained["result"]["checks"]["smoke"] = "legacy smoke receipt"
+        fresh = self.github.snapshot()
+        state, resumed = self._schedule(
+            admitted_path, admitted, state, fresh, "legacy-receipt-resume", cap="1"
+        )
+        self.assertEqual(resumed["dispatch"], [], resumed)
+        self.assertNotIn("task-a", [entry["task_id"] for entry in resumed["blocked"]], resumed)
+        saved = json.loads(state.read_text())["tasks"]["task-a"]
+        self.assertEqual(saved["status"], "delivered")
+        self.assertIsNone(saved["lifecycle_error"])
 
     def test_project_dedup_parented_members_and_status_readback(self) -> None:
         project_snapshot = self.github.project_snapshot()

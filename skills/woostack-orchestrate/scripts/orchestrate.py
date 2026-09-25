@@ -2692,28 +2692,26 @@ def validate_delivery(admitted, task, reservation, result, repo, *, historical=F
         and type(command.get("executed")) is bool
         and type(command.get("passed")) is bool for command in commands),
         "checks-incomplete", "check outcomes must identify executed commands and results")
+    require(all(command["executed"] for command in commands),
+            "checks-incomplete", "every reported check must be observed")
     observed = {}
     for command in commands:
         observed.setdefault(command["command"], []).append(command)
-    require(all(observed.get(required) and all(item["executed"] for item in observed[required])
-                for required in task["contract"]["checks"]),
+    require(all(observed.get(required) for required in task["contract"]["checks"]),
             "checks-incomplete", "all mandatory checks must be observed")
-    required_failed = any(not item["passed"] for required in task["contract"]["checks"]
-                          for item in observed[required])
     smoke = checks["smoke"]
     require(isinstance(smoke, dict) and text(smoke.get("description"))
             and type(smoke.get("executed")) is bool
-            and type(smoke.get("passed")) is bool,
-            "checks-incomplete", "smoke outcome must describe an executed scenario and result")
-    outcomes_passed = all(command["executed"] and command["passed"] for command in commands) and smoke["passed"]
-    require(type(checks["passed"]) is bool
+            and type(smoke.get("passed")) is bool and smoke["executed"],
+            "checks-incomplete", "smoke outcome must describe an observed scenario and result")
+    outcomes_passed = all(command["passed"] for command in commands) and smoke["passed"]
+    require(checks["passed"] == outcomes_passed
             and validation["verdict"] in ("pass", "fail"),
             "unknown-response", "verification/review outcome malformed")
-    if required_failed:
+    if not outcomes_passed:
         return {"status": "repair-ready", "reason": "checks-failed"}
-    if result["outcome"] == "needs-repair" or not checks["passed"] \
-            or not smoke["executed"] or validation["verdict"] == "fail":
-        return {"status": "repair-ready", "reason": "checks-failed" if not checks["passed"] else "validation-failed"}
+    if result["outcome"] == "needs-repair" or validation["verdict"] == "fail":
+        return {"status": "repair-ready", "reason": "validation-failed"}
     delivery = {"pr_url": readback["pr_url"], "head_sha": readback["head_sha"],
                 "branch": readback["branch"], "workspace": reservation["workspace"],
                 "base_branch": readback["base_branch"],
@@ -2906,7 +2904,8 @@ def reconcile_delivery(admitted, task, item, retained, repo, *, repairing=False,
     historical = lifecycle_state(lifecycle) == "merged"
     prior_delivery = item.get("delivery")
     prior_diff = prior_delivery.get("validated_diff") if isinstance(prior_delivery, dict) else None
-    proof = validate_delivery(admitted, task, retained["reservation"], retained["result"], repo,
+    result = normalize_retained_result(retained["result"])
+    proof = validate_delivery(admitted, task, retained["reservation"], result, repo,
                               historical=historical, retained_diff=prior_diff,
                               workspace_required=workspace_required, existing_pr=True)
     delivery = proof.get("delivery")
@@ -2919,6 +2918,25 @@ def reconcile_delivery(admitted, task, item, retained, repo, *, repairing=False,
                                              canonical=admitted["canonical_repo"],
                                              verify_checks=False)
     return proof, lifecycle, satisfaction
+
+def normalize_retained_result(result):
+    normalized = copy.deepcopy(result)
+    checks = normalized.get("checks") if isinstance(normalized, dict) else None
+    if not isinstance(checks, dict) or type(checks.get("passed")) is not bool:
+        return normalized
+    commands = checks.get("commands")
+    if isinstance(commands, list) and all(text(command) for command in commands):
+        checks["commands"] = [
+            {"command": command, "executed": True, "passed": checks["passed"]}
+            for command in commands
+        ]
+    smoke = checks.get("smoke")
+    if text(smoke):
+        checks["smoke"] = {
+            "description": smoke, "executed": True, "passed": checks["passed"],
+        }
+    return normalized
+
 
 
 def _safe_reason(error, default="blocked"):
