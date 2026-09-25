@@ -1948,6 +1948,14 @@ def review_readback(readback, head):
             and text(item.get("submitted_at"))
             and isinstance(item.get("user"), dict) and text(item["user"].get("login")),
                 "incomplete-review-record", "review history must retain commit, state, author, and time")
+        if item["state"] == "DISMISSED":
+            dismissed_by = item.get("dismissed_by")
+            require(text(item.get("dismissed_at"))
+                    and isinstance(dismissed_by, dict)
+                    and text(dismissed_by.get("login"))
+                    and item["dismissed_at"] > item["submitted_at"],
+                    "incomplete-review-record",
+                    "dismissed review must identify its dismissing pusher and dismissal time")
     for item in histories["threads"]:
         require(type(item.get("is_resolved")) is bool and (text(item.get("review_id"))
                 or type(item.get("review_id")) is int), "incomplete-review-thread",
@@ -1955,6 +1963,8 @@ def review_readback(readback, head):
 
     latest = {}
     for review in histories["reviews"]:
+        if review["state"] == "COMMENTED":
+            continue
         login = review["user"]["login"]
         prior = latest.get(login)
         if prior is None or review["submitted_at"] > prior["submitted_at"] \
@@ -1980,7 +1990,6 @@ def review_readback(readback, head):
     require(len(approvals) >= required, "review-approval-required",
             "applicable approvals do not satisfy repository policy")
     require(not any(review["state"] == "CHANGES_REQUESTED"
-                    and review["id"] not in resolved_review_ids
                     and review["id"] not in dismissed_review_ids for review in latest.values()),
             "changes-requested", "current applicable review requests changes")
 

@@ -3095,14 +3095,32 @@ class OrchestrateBehavior(unittest.TestCase):
         with self.assertRaises(helper.InputError) as raised:
             helper.review_readback(rejected, h2["readback"]["head_sha"])
         self.assertEqual(raised.exception.code, "changes-requested")
-
         resolved = copy.deepcopy(rejected)
         resolved["threads"]["items"] = [{"id": 20, "review_id": 12, "is_resolved": True}]
-        helper.review_readback(resolved, h2["readback"]["head_sha"])
+        with self.assertRaises(helper.InputError) as raised:
+            helper.review_readback(resolved, h2["readback"]["head_sha"])
+        self.assertEqual(raised.exception.code, "changes-requested")
+
+        comment_only = copy.deepcopy(h2["readback"])
+        comment_only["review_policy"].update({"required_approvals": 1})
+        comment_only["reviews"]["items"].append({
+            "id": 13, "commit_id": h2["readback"]["head_sha"], "state": "COMMENTED",
+            "submitted_at": "2026-09-24T03:00:00Z", "user": {"login": "current-reviewer"},
+        })
+        helper.review_readback(comment_only, h2["readback"]["head_sha"])
+
         dismissed = copy.deepcopy(rejected)
-        dismissed["reviews"]["items"][-1]["state"] = "DISMISSED"
+        dismissed["reviews"]["items"][-1].update({
+            "state": "DISMISSED", "dismissed_at": "2026-09-24T04:00:00Z",
+            "dismissed_by": {"login": "maintainer"},
+        })
         dismissed["threads"]["items"] = []
         helper.review_readback(dismissed, h2["readback"]["head_sha"])
+        undismissed = copy.deepcopy(dismissed)
+        undismissed["reviews"]["items"][-1].pop("dismissed_by")
+        with self.assertRaises(helper.InputError) as raised:
+            helper.review_readback(undismissed, h2["readback"]["head_sha"])
+        self.assertEqual(raised.exception.code, "incomplete-review-record")
 
         fresh_required = copy.deepcopy(h2["readback"])
         fresh_required["review_policy"].update({
