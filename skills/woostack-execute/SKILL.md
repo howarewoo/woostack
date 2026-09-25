@@ -163,11 +163,21 @@ the shared [source-control contract](../woostack-commit/references/source-contro
 requires no independent pre-commit review receipt. An Execute subagent may commit and submit its
 own task; it does not return uncommitted implementation for a parent to deliver.
 
+When the admitted dependent's approved parent PR is already open, Commit also owns
+[native stack membership](../woostack-commit/references/source-control.md#native-github-stack-membership-for-a-dependent-pr)
+once the task's own PR exists. Execute supplies the verified parent PR and the approved
+parent/base intent; it selects no stack manager, parent, or chain order.
+
 Independently read back the canonical repository, branch, commit SHA, complete task changed paths,
 PR URL, head branch/SHA, intended base, open state, and uniqueness. With issue association, also
 verify exactly one `Resolves <canonical GitHub issue URL>` line while preserving human-authored PR
 text. Report repository delivery separately from association failure; preserve and repair the same
 verified PR rather than replaying submission or claiming complete associated delivery.
+
+Under that same owner section, independently read back the stack identity, trunk, ordered
+membership, and the affected PR heads/bases. Chained bases, matching branch names, or a `stack`
+word in prose prove nothing; an absent or unreadable stack read is a bounded incomplete delivery
+boundary, not a registered stack.
 
 New PRs are drafts; preserve existing readiness state. Never mark ready, enable auto-merge, enqueue,
 merge, retarget for merge, force-push, or submit unrelated branches. Even explicit merge wording
@@ -175,12 +185,14 @@ conflicts with this boundary and must be reported, not executed.
 
 ## Recovery and return
 
-At interruption or any unknown commit, push, or PR outcome, retain the workspace and last proved
-branch/parent/start/head, diff/index state, checks, and known PR. Re-read Git, remote refs, and the
-complete canonical PR inventory before retrying. Reuse matching commits when there is no new
-verified staged change, and reuse the one matching open PR. A lost creation response is not proof
-of absence. Conflicting/closed/merged PR state or incomplete discovery blocks rather than creating
-a replacement or changing the base. Resume only the first unproved boundary of the same task.
+At interruption or any unknown commit, push, PR, or stack outcome, retain the workspace and last
+proved branch/parent/start/head, diff/index state, checks, known PR, and any observed stack identity,
+trunk, and membership. Re-read Git, remote refs, the complete canonical PR inventory, and that stack
+membership before retrying. Reuse matching commits when there is no new verified staged change, and
+reuse the one matching open PR and any already-correct stack membership. A lost creation response is
+not proof of absence. Conflicting/closed/merged PR state or incomplete discovery blocks rather than
+creating a replacement, changing the base, or creating a second stack. Resume only the first
+unproved boundary of the same task.
 
 After complete delivery, retain the selected workspace unless its owner explicitly supplies a safe
 lifecycle operation. Preserve supplied, external, and user-owned workspaces, branches, commits, and

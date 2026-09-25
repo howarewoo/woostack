@@ -29,10 +29,10 @@ issue is the only association: a Project and the specification parent are not re
 closing reference targets the child task rather than its specification parent.
 `--issue` requires PR submission/update and is incompatible with `--no-pr-update`.
 
-For `--no-pr-update`, perform local verification and commit only: skip push, PR title/body updates,
-and any GitHub issue note. GitHub authentication and fresh remote PR reads are not required for this
-local-only path; preserve any known conflicting PR evidence and report remote identity as unverified
-rather than claiming absence or successful delivery.
+For `--no-pr-update`, perform local verification and commit only: skip push, PR and native stack
+operations, and any GitHub issue note. GitHub authentication and fresh remote PR reads are not
+required; preserve known conflicting PR evidence and report remote identity as unverified rather
+than claiming absence or successful delivery.
 
 ## Input contract
 
@@ -101,19 +101,25 @@ The subject comes from the caller's explicit message when accurate; otherwise de
 imperative subject from the approved task contract. Re-read branch, HEAD, parent/base, commit, and
 working-tree state after the mutation. Unrelated unstaged changes may remain; staged changes may not.
 
-### 5. Submit the task branch
+### 5. Submit the task branch and, when dependent, register its stack
 
 Follow the [submission boundary](references/source-control.md#submit). Use the authorized GitHub
 capability that supports exact branch publication, complete PR discovery, draft creation or reuse,
 and independent read-back. Do not force-push, submit unrelated descendants, or create a duplicate
-PR. After submission, independently read the canonical GitHub PR and verify its repository, number/URL,
-head branch/SHA, base branch, and open state.
+PR. Independently verify the canonical PR's repository, URL/number, head branch/SHA, base, and open
+state. An independent PR needs no stack operation. For a dependent PR, follow
+[native GitHub stack membership](references/source-control.md#native-github-stack-membership-for-a-dependent-pr)
+to register or reuse the approved chain and read back its trunk, order, members, and affected PRs.
+Chained PR bases alone do not complete dependent delivery.
 
-Unknown submission outcome is not permission to retry blindly or switch tools. Re-read Git and
-GitHub; resume from the first unproved boundary.
+Unknown submission or linking outcome is not permission to retry blindly or switch tools. Re-read
+Git, GitHub PRs, and affected native stacks; resume from the first unproved boundary. If the stack
+capability is unavailable, preserve the verified commit/PR and report incomplete stack delivery.
+Do not block ordinary same-PR updates on a newly non-linear registered stack; leave its
+[reconciliation](references/source-control.md#stack-reconciliation) to the calling workflow/human.
 
-Skip this step only when `--no-pr-update` was explicitly supplied and the requested operation does
-not require submission. Report the local branch and commit rather than implying a PR exists.
+Skip this step entirely only when `--no-pr-update` was explicitly supplied. Report the local
+branch and commit rather than implying a PR or registered stack exists.
 
 ### 6. Update PR title and body
 
@@ -165,9 +171,10 @@ the issue-note result separately, unless the note was explicitly part of the del
 ## Recovery
 
 At every boundary retain the last verified facts: branch, parent/base, HEAD, staged paths, commit,
-PR URL/head, and optional GitHub issue-note mutation ID. On interruption or ambiguous output, re-read
-those facts and continue from the first missing proof. Never replay a commit, submit, PR update, or
-issue-note write merely because a previous call did not return cleanly.
+PR URL/head, native stack number/trunk/order when applicable, and optional GitHub issue-note
+mutation ID. On interruption or ambiguous output, re-read those facts and continue from the first
+missing proof. Never replay a commit, submit, stack link, PR update, or issue-note write merely
+because a previous call did not return cleanly.
 
 ## Return
 
@@ -176,9 +183,11 @@ Report:
 - branch and verified parent/base;
 - commit subject and SHA;
 - canonical PR URL, or explicitly `not submitted`;
+- dependent stack identity/trunk/order and read-back result, or the precise incomplete boundary;
 - exact staged path set;
 - verification commands/scenarios with observed outcomes;
 - PR title/body read-back result; and
 - optional GitHub issue-note URL and result, when selected.
 
-Never claim a commit, push, PR field, test, or artifact mutation that was not directly observed.
+Never claim a commit, push, PR field, stack membership, test, or artifact mutation without direct
+read-back.
