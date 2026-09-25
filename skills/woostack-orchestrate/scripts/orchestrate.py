@@ -870,6 +870,73 @@ def _base_satisfied_prerequisites(raw, task, tasks_by_id, technical, integration
     return sorted(result, key=lambda value: value["task_id"])
 
 
+def _satisfied_external_prerequisites(raw, task, integration, repo, canonical):
+    values = raw.get("satisfied_external_prerequisites", [])
+    require(isinstance(values, list),
+            "invalid-execution-layout", "satisfied external prerequisites must be a list")
+    require(not values or repo is not None, "git-unavailable",
+            "--git-repo is required to verify external prerequisites")
+    result, seen = [], set()
+    for value in values:
+        require(isinstance(value, dict) and text(value.get("provenance")),
+                "invalid-execution-layout",
+                "satisfied external prerequisite needs identity, revision, and provenance")
+        issue_url = canonical_issue_url(value.get("issue_url"), canonical)
+        revision = value.get("revision")
+        require(issue_url in task["external_prerequisites"]
+                and SHA_RE.fullmatch(revision or ""),
+                "invalid-execution-layout",
+                "satisfied external prerequisite must match a declared external edge")
+        require(issue_url not in seen, "duplicate-execution-task",
+                "external prerequisite is repeated")
+        seen.add(issue_url)
+        source, evidence = value.get("source"), value.get("evidence")
+        require(isinstance(source, dict) and isinstance(evidence, dict),
+                "base-satisfaction-unverified",
+                "satisfied external prerequisite needs source and lifecycle evidence")
+        issue, pr = evidence.get("issue"), evidence.get("pr")
+        verification = evidence.get("landed_verification")
+        require(source.get("issue_url") == issue_url and text(source.get("pr_url"))
+                and isinstance(pr, dict) and isinstance(verification, dict),
+                "base-satisfaction-unverified",
+                "satisfied external prerequisite needs canonical issue and merge evidence")
+        issue_identity(issue, canonical)
+        match = PR_RE.fullmatch(pr.get("url") or "")
+        require(issue.get("url") == issue_url and pr.get("url") == source.get("pr_url")
+                and match is not None
+                and "https://github.com/" + "/".join(match.groups()[:2]) == canonical
+                and pr.get("repo") == pr.get("head_repo") == canonical
+                and pr.get("association") == issue_url,
+                "external-prerequisite-identity",
+                "external prerequisite evidence identifies another issue or repository")
+        require(pr.get("state") == "merged"
+                and pr.get("base_branch") == integration["branch"]
+                and pr.get("merged_base_branch") == integration["branch"]
+                and pr.get("merge_commit_sha") == revision
+                and text(pr.get("branch")) and SHA_RE.fullmatch(pr.get("head_sha") or ""),
+                "external-prerequisite-unmerged",
+                "external prerequisite has no verified merge into the candidate base")
+        require(verification.get("complete") is True
+                and verification.get("source_verified") is True
+                and verification.get("checks_verified") is True
+                and verification.get("reverted") is False
+                and text(verification.get("diff_identity")),
+                "landed-evidence-missing",
+                "external prerequisite needs task-relevant source and check evidence")
+        landed_parent = git(repo, "rev-parse", revision + "^").decode().strip()
+        actual_diff = "sha256:" + hashlib.sha256(git(
+            repo, "diff", "--no-ext-diff", "--no-textconv", "--no-color", "--binary",
+            landed_parent, revision)).hexdigest()
+        require(verification["diff_identity"] == actual_diff,
+                "landed-diff-mismatch",
+                "external prerequisite evidence does not match the landed change")
+        require(contains(repo, revision, integration["sha"]),
+                "base-satisfaction-unverified",
+                "external prerequisite is not contained in the candidate integration base")
+        result.append(copy.deepcopy(value))
+    return sorted(result, key=lambda value: value["issue_url"])
+
+
 def collect_execution_layout(snapshot, tasks, repo):
     """Validate the model-selected task tree without changing technical edges."""
     raw = snapshot.get("execution_layout")
@@ -906,6 +973,8 @@ def collect_execution_layout(snapshot, tasks, repo):
         entry = copy.deepcopy(entry)
         entry["base_satisfied_prerequisites"] = _base_satisfied_prerequisites(
             entry, tasks_by_id[task_id], tasks_by_id, technical, snapshot["integration"], repo)
+        entry["satisfied_external_prerequisites"] = _satisfied_external_prerequisites(
+            entry, tasks_by_id[task_id], snapshot["integration"], repo, snapshot["canonical_repo"])
         by_id[task_id] = entry
     require(set(by_id) == task_ids, "missing-execution-task", "execution layout must select every task once")
 
@@ -944,6 +1013,8 @@ def collect_execution_layout(snapshot, tasks, repo):
         task["execution_ancestry"] = lineage
         task["base_satisfied_prerequisites"] = [
             value["task_id"] for value in entry["base_satisfied_prerequisites"]]
+        task["satisfied_external_prerequisites"] = [
+            value["issue_url"] for value in entry["satisfied_external_prerequisites"]]
         task["effective_prerequisites"] = sorted(
             (technical[task_id] | ({entry["execution_parent"]}
                                   if entry["execution_parent"] is not None else set())) - base_satisfied)
@@ -953,6 +1024,7 @@ def collect_execution_layout(snapshot, tasks, repo):
             "execution_parent": entry["execution_parent"],
             "base_satisfied_prerequisites": list(task["base_satisfied_prerequisites"]),
             "external_prerequisites": list(task["external_prerequisites"]),
+            "satisfied_external_prerequisites": list(task["satisfied_external_prerequisites"]),
         }
         normalized_entries.append(entry)
 
@@ -2135,7 +2207,9 @@ def base_satisfied_entries(scope, task):
 
 
 def parent_readiness(scope, task, state, reservation, decision, repo, retained=False):
-    require(not task["external_prerequisites"], "external-prerequisite", "retained task has external blockers")
+    require(set(task["external_prerequisites"]).issubset(
+                set(task["satisfied_external_prerequisites"])),
+            "external-prerequisite", "task has unsatisfied external prerequisites")
     technical = set(task["prerequisites"])
     effective = task["effective_prerequisites"]
     predecessors = []
@@ -2208,10 +2282,18 @@ def parent_readiness(scope, task, state, reservation, decision, repo, retained=F
     for entry in base_satisfied_entries(scope, task):
         require(contains(repo, entry["revision"], head), "uncontained-prerequisite",
                 "selected parent does not contain base-satisfied prerequisite " + entry["task_id"])
+    external = next(entry for entry in scope["execution_layout"]["entries"]
+                    if entry["task_id"] == task["task_id"])
+    for value in external["satisfied_external_prerequisites"]:
+        require(contains(repo, value["revision"], head),
+                "uncontained-prerequisite",
+                "selected parent does not contain external prerequisite " + value["issue_url"])
     return {"logical_prerequisites": list(task["prerequisites"]),
             "execution_prerequisites": list(effective),
             "base_satisfied_prerequisites": list(task["base_satisfied_prerequisites"]),
-            "external_prerequisites": [],
+            "external_prerequisites": list(task["external_prerequisites"]),
+            "satisfied_external_prerequisites": copy.deepcopy(
+                external["satisfied_external_prerequisites"]),
             "execution_parent": task["execution_parent"],
             "execution_ancestry": list(task["execution_ancestry"]),
             "execution_rationale": task["execution_rationale"],
@@ -2236,6 +2318,15 @@ def delivery_head_diff(repo, reservation, head_sha):
 
 def validate_delivery(admitted, task, reservation, result, repo, *, historical=False,
                       retained_diff=None, workspace_required=True):
+    require(set(task["external_prerequisites"]).issubset(
+                set(task["satisfied_external_prerequisites"])),
+            "external-prerequisite", "delivery has unsatisfied external prerequisites")
+    external = next(entry for entry in admitted["execution_layout"]["entries"]
+                    if entry["task_id"] == task["task_id"])
+    for value in external["satisfied_external_prerequisites"]:
+        require(contains(repo, value["revision"], reservation["parent_sha"]),
+                "uncontained-prerequisite",
+                "delivery parent does not contain external prerequisite " + value["issue_url"])
     require(result.get("outcome") in ("ok", "needs-repair"), "unknown-response", "worker outcome unknown")
     worker = field_object(result.get("worker"), ("worker_id", "pr_url", "branch", "workspace", "head_sha",
                           "base_branch", "commit_sha", "association"), "worker")
@@ -2343,6 +2434,7 @@ def packet(admitted, task, reservation, repair, retained, readiness, scope_evide
         "fallback": copy.deepcopy(task["execution_fallback"]),
         "effective_prerequisites": list(task["effective_prerequisites"]),
         "base_satisfied_prerequisites": list(task["base_satisfied_prerequisites"]),
+        "satisfied_external_prerequisites": list(task["satisfied_external_prerequisites"]),
         "ancestry": list(task["execution_ancestry"]),
     }
     result = {
@@ -2395,6 +2487,9 @@ def choose_parent(scope, task, state, decisions, repo):
                           for satisfaction in satisfactions.values() if satisfaction["kind"] == "open")
     heads = [satisfaction["revision"] for satisfaction in satisfactions.values()]
     heads.extend(entry["revision"] for entry in base_satisfied_entries(scope, task))
+    external = next(entry for entry in scope["execution_layout"]["entries"]
+                    if entry["task_id"] == task["task_id"])
+    heads.extend(value["revision"] for value in external["satisfied_external_prerequisites"])
     seen = set()
     for candidate in candidates:
         require(isinstance(candidate, dict) and text(candidate.get("branch"))
@@ -2665,7 +2760,8 @@ def cmd_schedule(args):
         retained_reservation = retained.get("reservation") if isinstance(retained, dict) else None
         if item["reservation"] is None and isinstance(retained_reservation, dict):
             item["reservation"] = copy.deepcopy(retained_reservation)
-        if task["external_prerequisites"]:
+        if any(issue not in task["satisfied_external_prerequisites"]
+               for issue in task["external_prerequisites"]):
             if retained_reservation is not None:
                 item["status"] = "repair-ready"
                 item["failure_reason"] = "external-prerequisite"
@@ -2778,7 +2874,8 @@ def cmd_schedule(args):
             blocked.append({"task_id": tid, "reason": "parent-revision-changed",
                             "next_action": "reconcile in an exclusive descendant task; do not mutate its checkout"})
             continue
-        if task["external_prerequisites"]:
+        if any(issue not in task["satisfied_external_prerequisites"]
+               for issue in task["external_prerequisites"]):
             blocked.append({"task_id": tid, "reason": "external-prerequisite"})
             continue
         lifecycle_failures = []

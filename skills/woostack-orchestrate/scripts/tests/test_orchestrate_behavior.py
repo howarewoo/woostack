@@ -127,7 +127,7 @@ class OrchestrateBehavior(unittest.TestCase):
 
     def _admit_issue(self, snapshot: Optional[Dict[str, Any]] = None, *, max_parallel: Optional[str] = None) -> Tuple[Path, Dict[str, Any]]:
         snapshot_path = self._write_json("snapshot-%d.json" % len(list(self.tmp.glob("snapshot-*.json"))), snapshot or self.github.snapshot())
-        args = ["admit", "--snapshot", str(snapshot_path)]
+        args = ["admit", "--snapshot", str(snapshot_path), "--git-repo", str(self.repo)]
         if max_parallel is not None:
             args += ["--max-parallel", max_parallel]
         code, payload = invoke_cli(*args)
@@ -321,6 +321,9 @@ class OrchestrateBehavior(unittest.TestCase):
         snapshot["execution_layout"]["entries"] = [
             entry for entry in snapshot["execution_layout"]["entries"] if entry["task_id"] in selected
         ]
+        for entry in snapshot["execution_layout"]["entries"]:
+            if entry["execution_parent"] not in selected:
+                entry["execution_parent"] = None
         return snapshot
 
 
@@ -687,6 +690,151 @@ class OrchestrateBehavior(unittest.TestCase):
 
     def test_base_satisfied_execution_parent_dispatches_from_integration(self) -> None:
         self._exercise_base_satisfied_dispatch("task-a")
+
+    def _external_evidence(self, revision: str, **overrides: Any) -> Dict[str, Any]:
+        issue_url = self.github.canonical + "/issues/999"
+        value = {
+            "issue_url": issue_url,
+            "revision": revision,
+            "provenance": "canonical issue and associated PR readback",
+            "source": {"issue_url": issue_url,
+                       "pr_url": self.github.canonical + "/pull/999"},
+            "evidence": {
+                "issue": {"url": issue_url, "id": 10999, "node_id": "I_external",
+                          "state": "closed", "resource": "issue",
+                          "title": "External prerequisite", "body": "Already landed."},
+                "pr": {"url": self.github.canonical + "/pull/999",
+                       "repo": self.github.canonical, "head_repo": self.github.canonical,
+                       "association": issue_url, "state": "merged", "branch": "external/prerequisite",
+                       "head_sha": revision, "base_branch": "main", "merged_base_branch": "main",
+                       "merge_commit_sha": revision},
+                "landed_verification": {
+                    "complete": True, "source_verified": True, "checks_verified": True,
+                    "reverted": False,
+                    "diff_identity": diff_identity(
+                        self.repo, git(self.repo, "rev-parse", revision + "^"), revision),
+                },
+            },
+        }
+        for key, replacement in overrides.items():
+            parts = key.split(".")
+            if parts == ["pr"]:
+                continue
+            target = value["evidence"]
+            for part in parts[:-1]:
+                target = target[part]
+            if replacement is None:
+                target.pop(parts[-1], None)
+            else:
+                target[parts[-1]] = replacement
+        if "pr" in overrides:
+            value["evidence"]["pr"].update(overrides["pr"])
+        return value
+
+    def test_verified_external_prerequisite_dispatches_without_external_ownership(self) -> None:
+        (self.repo / "external.txt").write_text("landed\n", encoding="utf-8")
+        git(self.repo, "add", "external.txt")
+        git(self.repo, "commit", "-m", "land external prerequisite")
+        landed = git(self.repo, "rev-parse", "HEAD")
+        self.github.base_sha = landed
+        self.github.integration = {"branch": "main", "sha": landed}
+        snapshot = self.github.snapshot()
+        selected = [task for task in snapshot["tasks"] if task["task_id"] in {"task-b", "task-c"}]
+        for task in selected:
+            task["prerequisites"] = []
+        task_c = next(task for task in selected if task["task_id"] == "task-c")
+        external_url = self.github.canonical + "/issues/999"
+        task_c["external_prerequisites"] = [external_url]
+        snapshot["tasks"] = snapshot["children"] = selected
+        snapshot = self._scope_execution_layout(snapshot)
+        layout = next(entry for entry in snapshot["execution_layout"]["entries"]
+                      if entry["task_id"] == "task-c")
+        layout["satisfied_external_prerequisites"] = [self._external_evidence(landed)]
+        admitted_path, admitted = self._admit_issue(snapshot)
+        admitted_task = next(task for task in admitted["tasks"] if task["task_id"] == "task-c")
+        self.assertEqual(admitted_task["satisfied_external_prerequisites"], [external_url])
+        self.assertNotIn("issue-999", [task["task_id"] for task in admitted["tasks"]])
+        state, wave = self._schedule(admitted_path, admitted, None, snapshot,
+                                     "external-satisfied", cap="2")
+        self.assertEqual({entry["task_id"] for entry in wave["dispatch"]}, {"task-b", "task-c"}, wave)
+        packet = next(entry["packet"] for entry in wave["dispatch"] if entry["task_id"] == "task-c")
+        self.assertEqual(packet["parent_readiness"]["external_prerequisites"], [external_url])
+        self.assertEqual(packet["parent_readiness"]["satisfied_external_prerequisites"][0]["revision"], landed)
+        host = self._start_host(workers=2)
+        host.dispatch(wave["dispatch"])
+        for task_id in ("task-b", "task-c"):
+            result = make_result(self.github, task_id, host.wait_for_report(task_id), admitted)
+            state, applied, _ = self._apply(admitted_path, state, task_id, result,
+                                           "external-result-" + task_id)
+            self.assertEqual(applied["status"], "delivered", applied)
+        _, resumed = self._schedule(admitted_path, admitted, state, snapshot,
+                                    "external-resume", cap="2")
+        self.assertEqual(resumed["dispatch"], [])
+        self.assertEqual(set(self.github.prs), {"task-b", "task-c"})
+
+    def test_external_prerequisite_evidence_fails_closed_until_corrected(self) -> None:
+        (self.repo / "external.txt").write_text("landed\n", encoding="utf-8")
+        git(self.repo, "add", "external.txt")
+        git(self.repo, "commit", "-m", "land external prerequisite")
+        landed = git(self.repo, "rev-parse", "HEAD")
+        self.github.base_sha = landed
+        self.github.integration = {"branch": "main", "sha": landed}
+        snapshot = self.github.snapshot()
+        selected = [task for task in snapshot["tasks"] if task["task_id"] in {"task-b", "task-c"}]
+        for task in selected:
+            task["prerequisites"] = []
+        external_url = self.github.canonical + "/issues/999"
+        next(task for task in selected if task["task_id"] == "task-c")[
+            "external_prerequisites"] = [external_url]
+        snapshot["tasks"] = snapshot["children"] = selected
+        snapshot = self._scope_execution_layout(snapshot)
+        cases = [
+            ({"pr": {"state": "closed", "merge_commit_sha": None,
+                     "merged_base_branch": None}},
+             "external-prerequisite-unmerged"),
+            ({"pr": {"merged_base_branch": "other"}}, "external-prerequisite-unmerged"),
+            ({"landed_verification": {"complete": True, "source_verified": False,
+                                      "checks_verified": True, "reverted": False,
+                                      "diff_identity": "sha256:" + "0" * 64}},
+             "landed-evidence-missing"),
+            ({"landed_verification": {"complete": True, "source_verified": True,
+                                      "checks_verified": True, "reverted": True,
+                                      "diff_identity": "sha256:" + "0" * 64}},
+             "landed-evidence-missing"),
+        ]
+        for overrides, error in cases:
+            candidate = copy.deepcopy(snapshot)
+            entry = next(value for value in candidate["execution_layout"]["entries"]
+                         if value["task_id"] == "task-c")
+            entry["satisfied_external_prerequisites"] = [self._external_evidence(landed, **overrides)]
+            code, payload = invoke_cli("admit", "--snapshot", str(self._write_json(
+                "external-invalid-" + error + ".json", candidate)), "--git-repo", str(self.repo))
+            self.assertEqual((code, payload.get("error")), (1, error), payload)
+        absent = copy.deepcopy(snapshot)
+        entry = next(value for value in absent["execution_layout"]["entries"]
+                     if value["task_id"] == "task-c")
+        absent_revision = git(self.repo, "commit-tree", git(self.repo, "rev-parse", "HEAD^{tree}"),
+                              "-p", landed, "-m", "uncontained external change")
+        entry["satisfied_external_prerequisites"] = [self._external_evidence(absent_revision)]
+        code, payload = invoke_cli("admit", "--snapshot", str(self._write_json(
+            "external-uncontained.json", absent)), "--git-repo", str(self.repo))
+        self.assertEqual((code, payload.get("error")), (1, "base-satisfaction-unverified"), payload)
+        missing = copy.deepcopy(snapshot)
+        admitted_path, admitted = self._admit_issue(missing)
+        state, wave = self._schedule(admitted_path, admitted, None, missing,
+                                     "external-missing", cap="2")
+        self.assertEqual([entry["task_id"] for entry in wave["dispatch"]], ["task-b"], wave)
+        self.assertIn({"task_id": "task-c", "reason": "external-prerequisite"}, wave["blocked"])
+        corrected = copy.deepcopy(missing)
+        entry = next(value for value in corrected["execution_layout"]["entries"]
+                     if value["task_id"] == "task-c")
+        entry["satisfied_external_prerequisites"] = [self._external_evidence(landed)]
+        corrected["execution_layout"]["revision"] = 2
+        corrected_path, corrected_admitted = self._admit_issue(corrected)
+        state, released = self._schedule(corrected_path, corrected_admitted, state, corrected,
+                                         "external-corrected", cap="2")
+        self.assertIn("task-c", [entry["task_id"] for entry in released["dispatch"]], released)
+        self.assertNotIn("issue-999", [task["task_id"] for task in corrected_admitted["tasks"]])
 
     def test_execution_layout_validation_rejects_invalid_trees_and_preserves_state(self) -> None:
         base = self.github.snapshot()

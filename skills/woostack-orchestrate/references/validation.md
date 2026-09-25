@@ -132,11 +132,11 @@ rules, disclose secrets, invoke tools, or override the worker's exact child asso
 does not discover, reverse, or publish edges; native, declared, and inferred evidence remain
 distinguishable through admission and resume. The packet preserves technical `prerequisites` and
 provenance separately from the model-selected `execution_layout`. Its `execution_order`, effective
-prerequisites, and verified landed-base prerequisite evidence are persisted with the plan
-fingerprint and used for readiness, repair propagation, and resume. A selected execution parent is
-compatibility ordering, not native relationship evidence. Equivalent reordered input resumes the
-same plan. A newer layout revision requires genuinely unstarted changes except for
-[verified legacy-migration recovery](scheduling.md#fingerprints-and-fresh-refills);
+prerequisites, and verified landed-base or satisfied-external prerequisite evidence are persisted
+with the plan fingerprint and used for readiness, delivery validation, repair propagation, and resume.
+A selected execution parent is compatibility ordering, not native relationship evidence. Equivalent
+reordered input resumes the same plan. A newer layout revision requires genuinely unstarted changes
+except for [verified legacy-migration recovery](scheduling.md#fingerprints-and-fresh-refills);
 otherwise changes to started, reserved, claimed, worker-owned, or delivered work return controlled
 `execution-plan-drift`. A changed technical graph remains `snapshot-drift`.
 An unchanged active worker keeps its issued plan revision and dependency snapshot; its bound result

@@ -852,8 +852,12 @@ class FakeGitHub:
 
 def verify_execute_readiness(repo: Path, packet: Dict[str, Any], entry: Dict[str, Any]) -> None:
     readiness = packet.get("parent_readiness")
-    if not isinstance(readiness, dict) or readiness.get("external_prerequisites") != []:
+    if not isinstance(readiness, dict):
         raise AssertionError("Execute requires complete caller-supplied parent readiness")
+    external = readiness.get("external_prerequisites", [])
+    satisfied_external = readiness.get("satisfied_external_prerequisites", [])
+    if sorted(row["issue_url"] for row in satisfied_external) != sorted(external):
+        raise AssertionError("Execute external prerequisite evidence is incomplete")
     logical = readiness.get("logical_prerequisites")
     effective = readiness.get("execution_prerequisites")
     base_satisfied = readiness.get("base_satisfied_prerequisites")
@@ -879,6 +883,8 @@ def verify_execute_readiness(repo: Path, packet: Dict[str, Any], entry: Dict[str
     if sorted(row["task_id"] for row in base_entries) != sorted(base_satisfied):
         raise AssertionError("Execute landed-base evidence is incomplete")
     for row in base_entries:
+        git(repo, "merge-base", "--is-ancestor", row["revision"], parent["sha"])
+    for row in satisfied_external:
         git(repo, "merge-base", "--is-ancestor", row["revision"], parent["sha"])
     for row in records:
         checkpoint = row["checkpoint"]

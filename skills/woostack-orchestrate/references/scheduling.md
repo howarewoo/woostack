@@ -205,10 +205,10 @@ focused question. Existing delivery evidence is added to a task when independent
 delivered task, and is never copied from a worker's success sentence. Each selected task also receives
 normalized `execution_parent`, `execution_rationale`, `execution_constraints`, optional
 `execution_fallback`, `execution_ancestry`, `effective_prerequisites`, and any verified
-`base_satisfied_prerequisites`; its `dependency_snapshot` retains technical `prerequisites`,
-external prerequisites, and landed-base evidence separately. These fields are model-selected
-scheduling evidence, not source edits or native relationship writes. The worker packet binds the
-same values and plan revision.
+`base_satisfied_prerequisites` or `satisfied_external_prerequisites`; its `dependency_snapshot`
+retains technical `prerequisites`, external prerequisite identities, and landed satisfaction evidence
+separately. These fields are model-selected scheduling evidence, not source edits or native
+relationship writes. The worker packet binds the same values and plan revision.
 
 `edges` is the complete supplied DAG. Each edge has a predecessor, dependent, provenance of
 `native`, `declared`, or `inferred`, and non-empty evidence. Native blocked-by reads, explicit
@@ -230,15 +230,20 @@ contained in the approved integration base. For these entries, `admit --git-repo
 verifies the repository remote and uses Git ancestry to prove each landed revision is contained in
 the snapshot's exact `integration.sha`, not merely the branch's current tip. Missing Git evidence
 blocks admission; lifecycle flags and matching branch names alone do not prove containment.
-Scheduling repeats this check on its fresh snapshot. Verified base-satisfied prerequisites remain
+Scheduling repeats these checks on its fresh snapshot. Verified base-satisfied prerequisites remain
 technical requirements but are excluded from `effective_prerequisites` and `effective_edges`:
 dependent readiness uses the landed-base evidence without importing a controller-owned delivery or
-waiting for that task's lifecycle/CI state. Parent selection and retained-start validation still
-prove that each such revision is contained in the actual selected parent, including an open stack
-parent. A base-satisfied execution parent selects the integration base while preserving its planned
-task identity. A selected parent is optional compatibility ordering, not native relationship
-evidence. The layout must retain useful parallelism; the model owns this selection, while
-Execute/Commit do not schedule siblings.
+waiting for that task's lifecycle/CI state. A `satisfied_external_prerequisites` row retains the
+external issue identity, source/provenance, associated merged PR, landed diff identity, and
+task-relevant verification while leaving the external issue outside `tasks`, claims, workers, and PRs.
+Its revision must be contained in the exact `integration.sha` and later in the actual selected parent;
+issue closure, branch names, green checks, or a merge into another branch are insufficient. Missing,
+partial, contradictory, unmerged, non-containing, or reverted evidence leaves the external edge as
+an affected-task blocker. Parent selection and retained-start validation still prove every landed
+revision is contained in the actual selected parent, including an open stack parent. A base-satisfied
+execution parent selects the integration base while preserving its planned task identity. A selected
+parent is optional compatibility ordering, not native relationship evidence. The layout must retain
+useful parallelism; the model owns this selection, while Execute/Commit do not schedule siblings.
 
 
 `parent_prs` supplies fresh canonical PR discovery for the integration branch and any explicitly
