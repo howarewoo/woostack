@@ -3376,7 +3376,8 @@ def cmd_schedule(args):
         repair_evidence = copy.deepcopy(item.get("ci", {}).get("repair_context")) if repair else None
         if repair and isinstance(repair_evidence, dict) and item.get("ci", {}).get("workspace_reopen"):
             repair_evidence["workspace_reopen"] = copy.deepcopy(item["ci"]["workspace_reopen"])
-        binding = issued_attempt_binding(task, reservation, repair, retained_pr, readiness)
+        binding = (item.get("attempt_binding") if repair and item.get("attempt_binding")
+                   else issued_attempt_binding(task, reservation, repair, retained_pr, readiness))
         reservation["attempt_binding"] = binding
         item.update(status="running", reservation=reservation, attempt_binding=binding,
                     attempt_history=item.get("attempt_history", []) + [{
@@ -3465,7 +3466,9 @@ def cmd_apply_result(args):
             "worker-identity", "completion must match the recorded native host/session/worker identity")
     if result.get("outcome") in ("ok", "needs-repair") and isinstance(worker, dict):
         issued_binding = item.get("reservation", {}).get("attempt_binding")
-        if issued_binding is not None:
+        required_worker_fields = {"worker_id", "pr_url", "branch", "workspace", "head_sha",
+                                  "base_branch", "commit_sha", "association"}
+        if issued_binding is not None and required_worker_fields <= set(worker):
             require(worker.get("attempt_binding") == issued_binding,
                     "attempt-binding-mismatch", "worker result is not bound to the issued attempt")
     task = next(t for t in admitted["tasks"] if t["task_id"] == args.task)
