@@ -1473,6 +1473,7 @@ def new_state(admitted):
     return {
         "version": STATE_VERSION,
         "fingerprint": admitted["fingerprint"],
+        "admission_identity": _admission_identity(admitted),
         "execution_layout": copy.deepcopy(admitted["execution_layout"]),
         "execution_fingerprint": admitted["execution_fingerprint"],
         "scope_evidence": copy.deepcopy(admitted.get("scope_evidence")),
@@ -1541,6 +1542,23 @@ def issued_attempt_binding(task, reservation, repair, retained_pr, readiness):
         "task_id": task["task_id"], "contract_hash": task["contract_hash"],
         "reservation": reservation, "repair": bool(repair), "retained_pr": retained_pr,
         "readiness": readiness}, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+
+
+def _admission_identity(admitted):
+    return {
+        "repository_rules": admitted["repository_rules"],
+        "integration_branch": admitted["integration"]["branch"],
+        "scope_identity": admitted["scope_identity"],
+        "project": admitted.get("project"),
+        "lifecycle": admitted.get("lifecycle"),
+        "project_items": admitted.get("project_items"),
+        "tasks": [{
+            "task_id": task["task_id"], "url": task["url"], "id": task["id"],
+            "node_id": task["node_id"], "resource": task["resource"],
+            "contract_hash": task["contract_hash"], "actual_parent": task.get("actual_parent"),
+            "dependency_snapshot": task["dependency_snapshot"],
+        } for task in admitted["tasks"]],
+    }
 
 
 def _genuinely_unstarted(item, task):
@@ -1647,8 +1665,10 @@ def state_read(path, admitted, *, allow_execution_plan_update=False, repo=None, 
     require(isinstance(state, dict), "malformed-input", "JSON must be an object")
     state["_loaded_digest"] = hashlib.sha256(raw).hexdigest()
     require(state.get("version") == STATE_VERSION, "invalid-state", "unsupported controller state version")
-    require(state.get("fingerprint") == admitted["fingerprint"],
-            "state-mismatch", "state belongs to another scope")
+    fingerprint_matches = state.get("fingerprint") == admitted["fingerprint"]
+    require(fingerprint_matches or active_task_id is not None
+            and state.get("admission_identity") == _admission_identity(admitted),
+            "state-mismatch", "state belongs to another scope or execution contract")
     require(state.get("scope_identity") == admitted["scope_identity"],
             "state-mismatch", "state scope identity differs")
     legacy_layout = "execution_layout" not in state
@@ -3376,8 +3396,7 @@ def cmd_schedule(args):
         repair_evidence = copy.deepcopy(item.get("ci", {}).get("repair_context")) if repair else None
         if repair and isinstance(repair_evidence, dict) and item.get("ci", {}).get("workspace_reopen"):
             repair_evidence["workspace_reopen"] = copy.deepcopy(item["ci"]["workspace_reopen"])
-        binding = (item.get("attempt_binding") if repair and item.get("attempt_binding")
-                   else issued_attempt_binding(task, reservation, repair, retained_pr, readiness))
+        binding = issued_attempt_binding(task, reservation, repair, retained_pr, readiness)
         reservation["attempt_binding"] = binding
         item.update(status="running", reservation=reservation, attempt_binding=binding,
                     attempt_history=item.get("attempt_history", []) + [{

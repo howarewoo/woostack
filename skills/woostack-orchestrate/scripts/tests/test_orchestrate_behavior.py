@@ -2770,7 +2770,11 @@ class OrchestrateBehavior(unittest.TestCase):
         self.assertEqual([entry["task_id"] for entry in repair["dispatch"]], ["task-a"])
         entry_b = repair["dispatch"][0]
         self.assertTrue(entry_b["repair"])
-        self.assertEqual(self._reservation(entry_b), self._reservation(entry_a))
+        self.assertEqual({key: value for key, value in self._reservation(entry_b).items()
+                          if key != "attempt_binding"},
+                         {key: value for key, value in self._reservation(entry_a).items()
+                          if key != "attempt_binding"})
+        self.assertNotEqual(entry_b["attempt_binding"], entry_a["attempt_binding"])
         host.hold_before_mutation = True
         host.dispatch([entry_b])
         self.assertTrue(host.before_mutation.wait(30))
@@ -2821,6 +2825,47 @@ class OrchestrateBehavior(unittest.TestCase):
         )
         self.assertEqual(delivered["status"], "delivered", delivered)
         self.assertEqual(json.loads(delivered_state.read_text())["tasks"]["task-a"]["status"], "delivered")
+
+    def test_wording_only_readmission_accepts_issued_worker_once(self) -> None:
+        snapshot = self._single_task_snapshot()
+        admitted_path, admitted = self._admit_issue(snapshot)
+        state, scheduled = self._schedule(
+            admitted_path, admitted, None, snapshot, "wording-initial", cap="1"
+        )
+        host = self._start_host(workers=1)
+        host.dispatch(scheduled["dispatch"])
+        result = make_result(self.github, "task-a", host.wait_for_report("task-a"), admitted)
+
+        reworded = copy.deepcopy(snapshot)
+        task = reworded["tasks"][0]
+        task["title"] = "Equivalent task wording"
+        task["body"] = "The accepted contract remains unchanged."
+        task["specification"] = "Implement the same accepted contract."
+        reworded["execution_layout"]["entries"][0]["rationale"] = "Equivalent scheduling rationale."
+        reworded_path, reworded_admitted = self._admit_issue(reworded)
+        self.assertNotEqual(reworded_admitted["fingerprint"], admitted["fingerprint"])
+
+        changed_rules = copy.deepcopy(reworded)
+        changed_rules["repository_rules"] += " New permission requirement."
+        changed_rules_path, _ = self._admit_issue(changed_rules)
+        _, rejected, code = self._apply(
+            changed_rules_path, state, "task-a", result, "wording-permission-change",
+            expect_code=1, observe_ci=False,
+        )
+        self.assertEqual(code, 1)
+        self.assertEqual(rejected["error"], "state-mismatch", rejected)
+
+        completed_state, completed, code = self._apply(
+            reworded_path, state, "task-a", result, "wording-completion", observe_ci=False,
+        )
+        self.assertEqual(code, 0)
+        self.assertEqual(completed["status"], "delivered", completed)
+        _, replayed, code = self._apply(
+            reworded_path, completed_state, "task-a", result, "wording-replay",
+            expect_code=1, observe_ci=False,
+        )
+        self.assertEqual(code, 1)
+        self.assertEqual(replayed["error"], "not-running", replayed)
 
     def test_unbound_and_foreign_unknown_envelopes_leave_live_launch_untouched(self) -> None:
         snapshot = self._single_task_snapshot()
@@ -3216,7 +3261,11 @@ class OrchestrateBehavior(unittest.TestCase):
             admitted_path, admitted, reconciled_state, snapshot, "reconcile-no-pr-repair", cap="1"
         )
         self.assertEqual([item["task_id"] for item in repair["dispatch"]], ["task-a"])
-        self.assertEqual(self._reservation(repair["dispatch"][0]), self._reservation(entry))
+        self.assertEqual({key: value for key, value in self._reservation(repair["dispatch"][0]).items()
+                          if key != "attempt_binding"},
+                         {key: value for key, value in self._reservation(entry).items()
+                          if key != "attempt_binding"})
+        self.assertNotEqual(repair["dispatch"][0]["attempt_binding"], entry["attempt_binding"])
         prior_worker = copy.deepcopy(host.identities["task-a"])
         host.dispatch(repair["dispatch"])
         repair_report = host.wait_for_report("task-a")
@@ -3322,6 +3371,7 @@ class OrchestrateBehavior(unittest.TestCase):
             admitted_path, admitted, repaired_state, snapshot, "failed-validation-refill", cap="1"
         )
         self.assertEqual([entry["task_id"] for entry in repair_schedule["dispatch"]], ["task-a"])
+        first_repair_binding = repair_schedule["dispatch"][0]["attempt_binding"]
         host.dispatch(repair_schedule["dispatch"])
         repair_report = host.wait_for_report("task-a")
         failed_validation = make_result(self.github, "task-a", repair_report, admitted)
@@ -3336,9 +3386,22 @@ class OrchestrateBehavior(unittest.TestCase):
             admitted_path, admitted, validation_state, snapshot, "requested-repair-refill", cap="1"
         )
         self.assertEqual([entry["task_id"] for entry in requested_schedule["dispatch"]], ["task-a"])
+        second_repair_binding = requested_schedule["dispatch"][0]["attempt_binding"]
+        self.assertNotEqual(second_repair_binding, first_repair_binding)
+        history = json.loads(requested_input.read_text())["tasks"]["task-a"]["attempt_history"]
+        self.assertEqual([entry["binding"] for entry in history[-2:]],
+                         [first_repair_binding, second_repair_binding])
         host.dispatch(requested_schedule["dispatch"])
         requested_report = host.wait_for_report("task-a")
         requested_repair = make_result(self.github, "task-a", requested_report, admitted)
+        stale_repair = copy.deepcopy(requested_repair)
+        stale_repair["worker"]["attempt_binding"] = first_repair_binding
+        _, rejected, code = self._apply(
+            admitted_path, requested_input, "task-a", stale_repair,
+            "stale-repair-binding", expect_code=1,
+        )
+        self.assertEqual(code, 1)
+        self.assertEqual(rejected["error"], "attempt-binding-mismatch", rejected)
         requested_repair["outcome"] = "needs-repair"
         requested_state, requested, _ = self._apply(
             admitted_path, requested_input, "task-a", requested_repair, "requested-repair"
