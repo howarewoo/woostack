@@ -244,8 +244,9 @@ Execute/Commit do not schedule siblings.
 `parent_prs` supplies fresh canonical PR discovery for the integration branch and any explicitly
 selected non-predecessor parent. An empty `prs` array means fully proved absence, not unavailable
 access. Otherwise supply one exact PR record with `pr_url`, `repo`, `head_repo`, `branch`,
-`head_sha`, `base_branch`, current `state` (`open`, `closed`, or `merged`), and fully paginated
-current-head `reviews`/`threads` in the [validation readback shape](validation.md#result-schema).
+`head_sha`, `base_branch`, current `state` (`open`, `closed`, or `merged`), and the complete
+[validation readback shape](validation.md#result-schema) observed at that head, including review
+history, thread dispositions, and current repository review policy.
 Ambiguous or incomplete discovery blocks selection. Predecessor parents use their fresh complete
 delivery checkpoint instead. Current tips may advance for an already-reserved child only while its
 original start remains an ancestor; do not replace that child's retained start SHA.

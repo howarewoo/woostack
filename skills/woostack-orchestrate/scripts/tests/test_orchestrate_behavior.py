@@ -2933,10 +2933,8 @@ class OrchestrateBehavior(unittest.TestCase):
         variants = [changed, changed2, changed3, changed4, changed5, changed6, changed7, changed8, changed9, changed10]
         incomplete_reviews = copy.deepcopy(valid)
         incomplete_reviews["readback"]["reviews"]["complete"] = False
-        stale_reviews = copy.deepcopy(valid)
-        stale_reviews["readback"]["reviews"]["items"] = [{"id": 17, "commit_id": self.base_sha}]
-        mismatch_cases.extend(["incomplete-review-pages", "stale-current-head-review"])
-        variants.extend([incomplete_reviews, stale_reviews])
+        mismatch_cases.append("incomplete-review-pages")
+        variants.append(incomplete_reviews)
         current_state = state
         for label, result in zip(mismatch_cases, variants):
             with self.subTest(label=label):
@@ -3000,6 +2998,135 @@ class OrchestrateBehavior(unittest.TestCase):
         )
         self.assertEqual(requested.get("status"), "repair-ready", requested)
         self.assertEqual(json.loads(requested_state.read_text())["tasks"]["task-a"]["status"], "repair-ready")
+
+    def test_mixed_review_history_preserves_old_findings_and_current_readiness(self) -> None:
+        snapshot = self.github.snapshot()
+        snapshot["tasks"] = snapshot["children"] = [
+            item for item in snapshot["children"] if item["task_id"] in {"task-a", "task-c"}
+        ]
+        snapshot["execution_layout"]["entries"] = [
+            entry for entry in snapshot["execution_layout"]["entries"]
+            if entry["task_id"] in {"task-a", "task-c"}
+        ]
+        admitted_path, admitted = self._admit_issue(snapshot)
+        state, initial = self._schedule(admitted_path, admitted, None, snapshot, "review-h1", cap="1")
+        self.assertEqual([item["task_id"] for item in initial["dispatch"]], ["task-a"])
+        host = self._start_host(workers=2)
+        host.dispatch(initial["dispatch"])
+        h1_report = host.wait_for_report("task-a")
+        h1 = make_result(self.github, "task-a", h1_report, admitted)
+        h1["readback"]["reviews"]["items"] = [{
+            "id": 10, "commit_id": h1_report["worker"]["head_sha"], "state": "APPROVED",
+            "submitted_at": "2026-09-24T00:00:00Z", "user": {"login": "old-reviewer"},
+        }]
+        state, delivered_h1, _ = self._apply(
+            admitted_path, state, "task-a", h1, "review-h1-result", observe_ci=False
+        )
+        self.assertEqual(delivered_h1["status"], "delivered", delivered_h1)
+        self._persist("task-a", h1, initial["dispatch"][0])
+        repair_snapshot = self.github.snapshot()
+        repair_snapshot["tasks"] = repair_snapshot["children"] = [
+            item for item in repair_snapshot["children"] if item["task_id"] in {"task-a", "task-c"}
+        ]
+        repair_snapshot["execution_layout"]["entries"] = [
+            entry for entry in repair_snapshot["execution_layout"]["entries"]
+            if entry["task_id"] in {"task-a", "task-c"}
+        ]
+
+        failure = self.github.ci_observation("task-a", check_state="failure", diagnosis="Advance to H2.")
+        state, observed, _ = self._observe(admitted_path, state, "task-a", failure, "review-h2-failure")
+        self.assertEqual(observed["ci_state"], "repair", observed)
+        state, repair = self._schedule(
+            admitted_path, admitted, state, repair_snapshot, "review-h2", cap="1"
+        )
+        repair_entry = repair["dispatch"][0]
+        host.dispatch([repair_entry])
+        h2_report = host.wait_for_report("task-a")
+        h2 = make_result(self.github, "task-a", h2_report, admitted)
+        h2["readback"]["reviews"]["items"] = [
+            {"id": 10, "commit_id": h1["readback"]["head_sha"], "state": "APPROVED",
+             "submitted_at": "2026-09-24T00:00:00Z", "user": {"login": "old-reviewer"}},
+            {"id": 11, "commit_id": h2["readback"]["head_sha"], "state": "APPROVED",
+             "submitted_at": "2026-09-24T01:00:00Z", "user": {"login": "current-reviewer"}},
+        ]
+        self.assertEqual(h2["readback"]["reviews"]["head_sha"], h2["readback"]["head_sha"])
+        state, delivered_h2, _ = self._apply(admitted_path, state, "task-a", h2, "review-h2-result")
+        self.assertEqual(delivered_h2["status"], "delivered", delivered_h2)
+        self._persist("task-a", h2, repair_entry)
+        repair_snapshot = self.github.snapshot()
+        repair_snapshot["tasks"] = repair_snapshot["children"] = [
+            item for item in repair_snapshot["children"] if item["task_id"] in {"task-a", "task-c"}
+        ]
+        repair_snapshot["execution_layout"]["entries"] = [
+            entry for entry in repair_snapshot["execution_layout"]["entries"]
+            if entry["task_id"] in {"task-a", "task-c"}
+        ]
+
+        interrupted_state = self.tmp / "review-interrupted-state.json"
+        interrupted_args = [
+            "schedule", "--admitted", str(admitted_path), "--state", str(state),
+            "--state-out", str(interrupted_state), "--git-repo", str(self.repo),
+            "--fresh", str(self._write_json("review-interrupted-fresh.json", repair_snapshot)),
+            "--cap", "2",
+        ]
+        self._interrupted_schedule("die-before-state-publication", interrupted_args)
+        code, resumed = invoke_cli(*interrupted_args)
+        self.assertEqual(code, 0, resumed)
+        dependent = [item for item in resumed["dispatch"] if item["task_id"] == "task-c"]
+        self.assertEqual(len(dependent), 1, resumed)
+        self.assertNotIn("task-a", [item["task_id"] for item in resumed["dispatch"]], resumed)
+        self.assertEqual(dependent[0]["parent_sha"], h2["readback"]["head_sha"])
+        self.assertEqual(
+            dependent[0]["packet"]["parent_readiness"]["prerequisites"][0]["checkpoint"]["readback"]["reviews"]["items"],
+            h2["readback"]["reviews"]["items"],
+        )
+
+        helper_path = Path(__file__).resolve().parents[1] / "orchestrate.py"
+        spec = importlib.util.spec_from_file_location("orchestrate_review_history", helper_path)
+        self.assertIsNotNone(spec)
+        self.assertIsNotNone(spec.loader)
+        helper = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(helper)
+        rejected = copy.deepcopy(h2["readback"])
+        rejected["reviews"]["items"].append({
+            "id": 12, "commit_id": h1["readback"]["head_sha"], "state": "CHANGES_REQUESTED",
+            "submitted_at": "2026-09-24T02:00:00Z", "user": {"login": "blocking-reviewer"},
+        })
+        with self.assertRaises(helper.InputError) as raised:
+            helper.review_readback(rejected, h2["readback"]["head_sha"])
+        self.assertEqual(raised.exception.code, "changes-requested")
+
+        resolved = copy.deepcopy(rejected)
+        resolved["threads"]["items"] = [{"id": 20, "review_id": 12, "is_resolved": True}]
+        helper.review_readback(resolved, h2["readback"]["head_sha"])
+        dismissed = copy.deepcopy(rejected)
+        dismissed["reviews"]["items"][-1]["state"] = "DISMISSED"
+        dismissed["threads"]["items"] = []
+        helper.review_readback(dismissed, h2["readback"]["head_sha"])
+
+        fresh_required = copy.deepcopy(h2["readback"])
+        fresh_required["review_policy"].update({
+            "required_approvals": 1, "require_last_push_approval": True,
+        })
+        fresh_required["reviews"]["items"] = [fresh_required["reviews"]["items"][0]]
+        with self.assertRaises(helper.InputError) as raised:
+            helper.review_readback(fresh_required, h2["readback"]["head_sha"])
+        self.assertEqual(raised.exception.code, "review-approval-required")
+
+        stale = copy.deepcopy(h2["readback"])
+        stale["reviews"]["head_sha"] = h1["readback"]["head_sha"]
+        with self.assertRaises(helper.InputError) as raised:
+            helper.review_readback(stale, h2["readback"]["head_sha"])
+        self.assertEqual(raised.exception.code, "incomplete-pr-readback")
+
+        old_validation = copy.deepcopy(h2)
+        old_validation["validation"]["checked_head"] = h1["readback"]["head_sha"]
+        with self.assertRaises(helper.InputError) as raised:
+            helper.validate_delivery(
+                admitted, next(task for task in admitted["tasks"] if task["task_id"] == "task-a"),
+                repair_entry, old_validation, self.repo,
+            )
+        self.assertEqual(raised.exception.code, "stale-validation")
 
     def test_alias_workspace_collision_and_same_parent_repair(self) -> None:
         worktree_root = Path(self.github.children[0]["workspace"]).parent
