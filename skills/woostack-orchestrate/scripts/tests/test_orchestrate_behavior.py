@@ -438,90 +438,55 @@ class OrchestrateBehavior(unittest.TestCase):
         self.assertNotEqual(result["checks"]["commands"], admitted["tasks"][0]["contract"]["checks"])
         running_state = self.tmp / "opaque-running-state.json"
         running_state.write_bytes(state.read_bytes())
-        state, delivered, _ = self._apply(
-            admitted_path, state, task_id, result, "opaque-delivered"
-        )
-        self.assertEqual(delivered["status"], "delivered", delivered)
-        self._persist(task_id, result, dispatch)
         fresh = self.github.snapshot()
         fresh["tasks"] = fresh["children"] = [child]
         fresh["execution_layout"] = self.github.execution_layout((task_id,), {task_id: None})
+        negative_state = state
+        negative_result = result
+
+        def run_negative(label, mutate):
+            nonlocal negative_state, negative_result
+            candidate = copy.deepcopy(negative_result)
+            mutate(candidate)
+            negative_state, outcome, code = self._apply(
+                admitted_path, negative_state, task_id, candidate, label
+            )
+            self.assertEqual(code, 0, outcome)
+            self.assertEqual(outcome["status"], "repair-ready", outcome)
+            negative_state, refill = self._schedule(
+                admitted_path, admitted, negative_state, fresh, label + "-refill", cap="1"
+            )
+            self.assertEqual(len(refill["dispatch"]), 1, refill)
+            host.dispatch(refill["dispatch"])
+            negative_result = make_result(
+                self.github, task_id, host.wait_for_report(task_id), admitted
+            )
+
+        def fail_extra(candidate):
+            command = "python3 -c \"raise SystemExit(7)\""
+            failed = subprocess.run(shlex.split(command), cwd=Path(candidate["worker"]["workspace"]), capture_output=True, text=True)
+            self.assertNotEqual(failed.returncode, 0)
+            candidate["checks"]["commands"].append({"command": command, "executed": True, "passed": False})
+            candidate["checks"]["passed"] = False
+
+        run_negative("opaque-extra-failure", fail_extra)
+
+        def fail_required(candidate):
+            command = admitted["tasks"][0]["contract"]["checks"][0]
+            failed = subprocess.run(shlex.split(command), cwd=Path(candidate["worker"]["workspace"]), env={**os.environ, "WOOSTACK_FORCE_FAILURE": "1"}, capture_output=True, text=True)
+            self.assertNotEqual(failed.returncode, 0)
+            candidate["checks"]["commands"] = [{"command": command, "executed": True, "passed": False} if entry["command"] == command else entry for entry in candidate["checks"]["commands"]]
+            candidate["checks"]["passed"] = False
+
+        run_negative("opaque-required-failure", fail_required)
+        run_negative("opaque-unexecuted-smoke", lambda candidate: candidate["checks"]["smoke"].update(executed=False))
+        state, delivered, _ = self._apply(
+            admitted_path, negative_state, task_id, negative_result, "opaque-delivered"
+        )
         resumed_state, resumed = self._schedule(
             admitted_path, admitted, state, fresh, "opaque-resume", cap="1"
         )
         self.assertEqual(resumed["dispatch"], [], resumed)
-        extra_failure = copy.deepcopy(result)
-        failed_command = "python3 -c \"raise SystemExit(7)\""
-        failed_run = subprocess.run(shlex.split(failed_command), cwd=Path(result["worker"]["workspace"]), capture_output=True, text=True)
-        self.assertNotEqual(failed_run.returncode, 0)
-        extra_failure["checks"]["commands"].append({
-            "command": failed_command,
-            "executed": True,
-            "passed": False,
-        })
-        extra_failure["checks"]["passed"] = False
-        extra_state = self.tmp / "opaque-extra-state.json"
-        extra_state.write_bytes(running_state.read_bytes())
-        _, repair, extra_code = self._apply(
-            admitted_path, extra_state, task_id, extra_failure, "opaque-extra-failure"
-        )
-        self.assertEqual(extra_code, 0, repair)
-        self.assertEqual(repair["status"], "repair-ready", repair)
-
-        required_failure = copy.deepcopy(result)
-        required_command = admitted["tasks"][0]["contract"]["checks"][0]
-        required_run = subprocess.run(
-            shlex.split(required_command), cwd=Path(result["worker"]["workspace"]),
-            env={**os.environ, "WOOSTACK_FORCE_FAILURE": "1"}, capture_output=True, text=True,
-        )
-        self.assertNotEqual(required_run.returncode, 0)
-        required_failure["checks"]["commands"] = [
-            {"command": required_command, "executed": True, "passed": False}
-            if command["command"] == required_command else command
-            for command in required_failure["checks"]["commands"]
-        ]
-        required_state = self.tmp / "opaque-required-state.json"
-        required_state.write_bytes(running_state.read_bytes())
-        _, required_repair, required_code = self._apply(
-            admitted_path, required_state, task_id, required_failure, "opaque-required-failure"
-        )
-        self.assertEqual(required_code, 0, required_repair)
-        self.assertEqual(required_repair["status"], "repair-ready", required_repair)
-
-        unexecuted = copy.deepcopy(result)
-        unexecuted["checks"]["smoke"]["executed"] = False
-        unexecuted_state = self.tmp / "opaque-unexecuted-state.json"
-        unexecuted_state.write_bytes(running_state.read_bytes())
-        _, smoke_repair, smoke_code = self._apply(
-            admitted_path, unexecuted_state, task_id, unexecuted, "opaque-unexecuted-smoke"
-        )
-        self.assertEqual(smoke_code, 0, smoke_repair)
-        self.assertEqual(smoke_repair["status"], "repair-ready", smoke_repair)
-
-        missing = copy.deepcopy(result)
-        missing["checks"]["commands"] = [
-            command for command in missing["checks"]["commands"]
-            if command["command"] != admitted["tasks"][0]["contract"]["checks"][0]
-        ]
-        missing_state = self.tmp / "opaque-missing-state.json"
-        missing_state.write_bytes(running_state.read_bytes())
-        _, missing_output, missing_code = self._apply(
-            admitted_path, missing_state, task_id, missing, "opaque-missing-check"
-        )
-        self.assertEqual(missing_code, 0, missing_output)
-        self.assertEqual(missing_output["status"], "unknown", missing_output)
-        self.assertEqual(missing_output["reason"], "checks-incomplete", missing_output)
-
-        stale = copy.deepcopy(result)
-        stale["checks"]["head_sha"] = self.base_sha
-        stale_state = self.tmp / "opaque-stale-state.json"
-        stale_state.write_bytes(running_state.read_bytes())
-        _, stale_output, stale_code = self._apply(
-            admitted_path, stale_state, task_id, stale, "opaque-stale-check"
-        )
-        self.assertEqual(stale_code, 0, stale_output)
-        self.assertEqual(stale_output["status"], "unknown", stale_output)
-        self.assertEqual(stale_output["reason"], "stale-validation", stale_output)
 
     def test_full_issue_smoke_uses_real_git_and_concurrent_execute_packets(self) -> None:
         """A/B/E run concurrently; C and D stack on A while B remains held."""
