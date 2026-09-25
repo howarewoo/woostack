@@ -502,21 +502,14 @@ class OrchestrateBehavior(unittest.TestCase):
         )
         self.assertEqual(reconcile_code, 0, reconciled)
         self.assertEqual(reconciled.get("status"), "reconciled", reconciled)
-        negative_state, refill = self._schedule(
-            admitted_path, admitted, negative_state, fresh,
-            "opaque-unobserved-refill", cap="1",
-        )
-        self.assertEqual(len(refill["dispatch"]), 1, refill)
         self.assertEqual(
-            self._reservation(refill["dispatch"][0]), self._reservation(dispatch)
-        )
-        host.dispatch(refill["dispatch"])
-        negative_result = make_result(
-            self.github, task_id, host.wait_for_report(task_id), admitted
+            json.loads(negative_state.read_text())["tasks"][task_id]["status"],
+            "evidence-pending",
         )
         state, delivered, _ = self._apply(
             admitted_path, negative_state, task_id, negative_result, "opaque-delivered"
         )
+        self.assertEqual(delivered["status"], "delivered", delivered)
         self._persist(task_id, negative_result, dispatch)
         lifecycle_fresh = self.github.snapshot()
         lifecycle_fresh["tasks"] = lifecycle_fresh["children"] = [child]
