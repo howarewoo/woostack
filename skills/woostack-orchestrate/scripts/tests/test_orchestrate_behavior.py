@@ -479,6 +479,8 @@ class OrchestrateBehavior(unittest.TestCase):
             candidate["checks"]["passed"] = False
 
         run_negative("opaque-required-failure", fail_required)
+        pre_unknown_state = self.tmp / "opaque-pre-unknown-state.json"
+        pre_unknown_state.write_bytes(negative_state.read_bytes())
         unexecuted = copy.deepcopy(negative_result)
         unexecuted["checks"]["commands"].append({
             "command": "python3 -c \"raise SystemExit(9)\"",
@@ -492,7 +494,7 @@ class OrchestrateBehavior(unittest.TestCase):
         self.assertEqual(blocked["status"], "unknown", blocked)
         self.assertEqual(blocked["reason"], "checks-incomplete", blocked)
         state, delivered, _ = self._apply(
-            admitted_path, negative_state, task_id, negative_result, "opaque-delivered"
+            admitted_path, pre_unknown_state, task_id, negative_result, "opaque-delivered"
         )
         self._persist(task_id, negative_result, dispatch)
         lifecycle_fresh = self.github.snapshot()
