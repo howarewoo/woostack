@@ -1053,11 +1053,16 @@ def admit(snapshot, limit, repo=None):
     require(isinstance(host, dict), "no-subagent-capability", "host capability evidence missing")
     host_cap = positive(host.get("max_parallel", 1))
     if tasks:
-        require(all(host.get(capability) is True for capability in (
+        required_capabilities = (
             "delivery_capable", "workspace_isolation_capable",
-            "result_correlation_capable", "recovery_capable")),
+            "result_correlation_capable", "recovery_capable",
+        )
+        require(host.get("delivery_capable") is True, "no-subagent-capability",
+                "delivery-capable subagent required")
+        require(all(capability not in host or host.get(capability) is True
+                    for capability in required_capabilities[1:]),
                 "no-subagent-capability",
-                "delivery, workspace isolation, result correlation, and recovery capabilities required")
+                "workspace isolation, result correlation, and recovery capabilities cannot be disabled")
     scope_identity = {"canonical_repo": canonical, "issues": sorted(by_url)}
     immutable_tasks = [{
         "task_id": task["task_id"], "url": task["url"], "id": task["id"],
@@ -2310,10 +2315,11 @@ def validate_delivery(admitted, task, reservation, result, repo, *, historical=F
     observed = {}
     for command in commands:
         observed.setdefault(command["command"], []).append(command)
-    require(all(observed.get(required) and all(item["executed"] and item["passed"]
-                                           for item in observed[required])
+    require(all(observed.get(required) and all(item["executed"] for item in observed[required])
                 for required in task["contract"]["checks"]),
-            "checks-incomplete", "all mandatory checks must be observed and pass")
+            "checks-incomplete", "all mandatory checks must be observed")
+    required_failed = any(not item["passed"] for required in task["contract"]["checks"]
+                          for item in observed[required])
     smoke = checks["smoke"]
     require(isinstance(smoke, dict) and text(smoke.get("description"))
             and type(smoke.get("executed")) is bool
@@ -2323,6 +2329,8 @@ def validate_delivery(admitted, task, reservation, result, repo, *, historical=F
     require(type(checks["passed"]) is bool and checks["passed"] == outcomes_passed
             and validation["verdict"] in ("pass", "fail"),
             "unknown-response", "verification/review outcome malformed")
+    if required_failed:
+        return {"status": "repair-ready", "reason": "checks-failed"}
     if result["outcome"] == "needs-repair" or not checks["passed"] \
             or not smoke["executed"] or validation["verdict"] == "fail":
         return {"status": "repair-ready", "reason": "checks-failed" if not checks["passed"] else "validation-failed"}
