@@ -198,6 +198,12 @@ class FakeGitHub:
         self.prs: Dict[str, Dict[str, Any]] = {}
         self.notes: Dict[str, Dict[str, Any]] = {}
         self.delivery: Dict[str, Dict[str, Any]] = {}
+        self.review_history: Dict[str, list] = {}
+        self.thread_history: Dict[str, list] = {}
+        self.review_policy: Dict[str, Any] = {
+            "complete": True, "required_approvals": 0,
+            "dismiss_stale_reviews": False, "require_last_push_approval": False,
+        }
         self.parent_branches = {"main"}
         self.project_status_reads = []
         self.calls = []
@@ -586,6 +592,13 @@ class FakeGitHub:
     def save_pr(self, task_id: str, pr: Dict[str, Any]) -> None:
         with self._lock:
             self.prs[task_id] = copy.deepcopy(pr)
+        if task_id in self.review_history:
+            self.review_history[task_id].append({
+                "id": len(self.review_history[task_id]) + 100,
+                "commit_id": pr["head_sha"],
+                "state": "APPROVED", "submitted_at": "2026-09-24T00:00:00Z",
+                "user": {"login": "fixture-reviewer"},
+            })
         record("github", "create-or-update-pr", {"task_id": task_id, "pr_url": pr["pr_url"]})
 
     def readback(self, task_id: str) -> Dict[str, Any]:
@@ -605,8 +618,15 @@ class FakeGitHub:
             "open": bool(pr["open"]),
             "unique": bool(pr["unique"]),
             "draft": bool(pr["draft"]),
-            "reviews": {"head_sha": pr["head_sha"], "complete": True, "items": self._read_pages("reviews", [[]])},
-            "threads": {"head_sha": pr["head_sha"], "complete": True, "items": self._read_pages("threads", [[]])},
+            "reviews": {
+                "head_sha": pr["head_sha"], "complete": True,
+                "items": self._read_pages("reviews", self.review_history.get(task_id, [[]])),
+            },
+            "threads": {
+                "head_sha": pr["head_sha"], "complete": True,
+                "items": self._read_pages("threads", self.thread_history.get(task_id, [[]])),
+            },
+            "review_policy": copy.deepcopy(self.review_policy),
             "diff_identity": pr["diff_identity"],
         }
 

@@ -184,9 +184,8 @@ The example's `parent_readiness` is a root with proved parent-PR absence. For a 
 the complete effective set. `prerequisites` has exactly one record per effective prerequisite:
 `task_id`, exact `issue_url`, `relationship` (`technical`, `stack`, or `technical+stack`), full
 checkpoint (the complete [result object](validation.md#result-schema), including checks, PR
-head/base/state/reviews/threads, independent validation, and persisted note), and verified
-containment. Those SHAs are the prerequisite head and retained parent start; the helper has actually
-verified their Git ancestry. `parent.selection` is `technical-parent`, `stack-parent`,
+head/base/state, complete review/thread history, current review policy, independent validation, and
+persisted note), and verified Git ancestry. `parent.selection` is `technical-parent`, `stack-parent`,
 `landed-stack-parent`, `integration`, or `explicit`. An explicit choice carries its preserved
 `{task_id, branch, sha}` decision; other selections use `null`. `parent.pr_evidence` uses fresh parent
 PR discovery ([scheduling](scheduling.md#normalized-snapshot)).
@@ -281,9 +280,13 @@ The worker returns ordinary Execute evidence. The controller binds the nested `w
 the actual originating native handle's `host_id`, `session_id`, and `worker_id`, never by copying
 the task's current `host_worker` into a cached result. It adds independent canonical reads,
 focused verification, and read-only specification validation using the single
-[result schema and gates](validation.md#result-schema), then persists/read-backs the child note
-and any explicitly selected Project status before `apply-result`. Do not invent missing evidence
-or let the worker approve its own result. Failed checks/specification validation preserve the
+[result schema and gates](validation.md#result-schema). Review history is never prefiltered to
+the current head. The controller retains every native review and thread disposition from the same
+fresh PR read, then the helper evaluates applicability against the independently read repository
+policy. Historical records cannot stand in for the required current-head specification validation.
+The controller then persists/read-backs the child note and any explicitly selected Project status
+before `apply-result`. Do not invent missing evidence or let the worker approve its own result.
+Failed checks/specification validation preserve the
 same reservation and PR for repair; note/evidence-only retries keep the same recorded native
 identity without replaying repository delivery. A new repair launch has its own native identity.
 

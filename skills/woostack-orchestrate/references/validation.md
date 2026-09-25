@@ -44,8 +44,14 @@ values to invent:
     "open": true,
     "draft": true,
     "unique": true,
-    "reviews": {"head_sha": "<same head SHA>", "complete": true, "items": []},
-    "threads": {"head_sha": "<same head SHA>", "complete": true, "items": []},
+    "reviews": {"head_sha": "<same observed head SHA>", "complete": true, "items": []},
+    "threads": {"head_sha": "<same observed head SHA>", "complete": true, "items": []},
+    "review_policy": {
+      "complete": true,
+      "required_approvals": 0,
+      "dismiss_stale_reviews": false,
+      "require_last_push_approval": false
+    },
     "diff_identity": "sha256:<runtime-substituted exact binary-diff hash>"
   },
   "checks": {
@@ -164,12 +170,21 @@ canonical repository:
 - `diff_identity` is `sha256:` plus the SHA-256 of the exact bytes produced by
   `git diff --no-ext-diff --no-textconv --no-color --binary <reserved-parent-sha> <head-sha>`.
 
-`reviews` and `threads` are complete independently paginated current-head readbacks, not the
-worker's assessment. Preserve native record IDs; review records must have `commit_id` equal to
-the checked head. Empty arrays are valid only after proved complete reads. Missing pages or stale
-heads block delivery. These historical delivery readbacks travel with the complete prerequisite
-checkpoint to Execute; an open PR may be human-ready without being reset to draft, and a delivered
-prerequisite may be stacked before it is merged when the current branch and checks are eligible.
+`reviews` and `threads` are independently paginated complete history reads bound to the PR and
+head they freshly examined, not filtered current-head lists or the worker's assessment. Preserve
+native record IDs, each review's original `commit_id`, state, author, and submission time, plus each
+thread's review association and resolution disposition. `review_policy` is a complete fresh read of
+the repository's review requirements. The helper applies each reviewer's latest state and
+dispositions: unresolved changes requested and unresolved threads block; resolved threads and
+dismissed reviews do not; approvals count only from the current head when repository policy dismisses
+stale approvals or requires approval of the last push. A review for an older commit remains in the
+retained checkpoint but never substitutes for `validation.checked_head`, whose independent
+specification review must match the observed head and binary diff. Empty arrays are valid only after
+proved complete reads. Missing pages, malformed or ambiguous records, incomplete policy, and a
+readback observed at another head block delivery. These historical delivery readbacks travel with
+the complete prerequisite checkpoint to Execute; an open PR may be human-ready without being reset
+to draft, and a delivered prerequisite may be stacked before merge when its current branch and checks
+are eligible.
 
 Current PR lifecycle is reconciled separately from that historical checkpoint, and every fresh refill
 must carry the current lifecycle explicitly. An open lifecycle must identify the same canonical PR,
