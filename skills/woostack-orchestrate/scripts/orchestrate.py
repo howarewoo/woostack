@@ -983,8 +983,8 @@ def collect_execution_layout(snapshot, tasks, repo):
             require(parent in task_ids, "foreign-execution-parent", "execution parent is not selected")
             require(parent != task_id, "self-execution-parent", "task cannot stack on itself")
         constraints = entry.get("constraints")
-        require(isinstance(constraints, list) and constraints and all(text(value) for value in constraints),
-                "invalid-execution-layout", "execution compatibility evidence required")
+        require(isinstance(constraints, list) and all(text(value) for value in constraints),
+                "invalid-execution-layout", "execution compatibility evidence must be text")
         fallback = entry.get("fallback")
         if fallback is not None:
             require(parent is None and isinstance(fallback, dict)
@@ -1524,13 +1524,16 @@ def _execution_ancestry(entries, task_id):
         lineage.append(parent)
         parent = entries[parent]["execution_parent"]
     return list(reversed(lineage))
-def _execution_identity(layout):
-    return {"entries": [{key: entry.get(key) for key in (
+def _entry_identity(entry):
+    return {key: entry.get(key) for key in (
         "task_id", "execution_parent", "constraints", "fallback",
         "base_satisfied_prerequisites", "effective_prerequisites")}
-        for entry in layout.get("entries", [])],
-        "effective_edges": layout.get("effective_edges", []),
-        "execution_order": layout.get("execution_order", [])}
+
+
+def _execution_identity(layout):
+    return {"entries": [_entry_identity(entry) for entry in layout.get("entries", [])],
+            "effective_edges": layout.get("effective_edges", []),
+            "execution_order": layout.get("execution_order", [])}
 
 
 def issued_attempt_binding(task, reservation, repair, retained_pr, readiness):
@@ -1573,9 +1576,13 @@ def _execution_plan_update(state, admitted, repo):
             and state.get("execution_fingerprint") == execution_layout_fingerprint(current),
             "invalid-state", "retained execution plan identity is invalid")
     if _execution_identity(current) == _execution_identity(admitted["execution_layout"]):
-        return None
-    require(admitted["execution_layout"]["revision"] > current["revision"],
-            "execution-plan-drift", "changed execution layout requires a newer plan revision")
+        if current["revision"] == admitted["execution_layout"]["revision"]:
+            return None
+        return {
+            "from_revision": current["revision"], "from_fingerprint": state["execution_fingerprint"],
+            "to_revision": admitted["execution_layout"]["revision"],
+            "to_fingerprint": admitted["execution_fingerprint"], "changed_tasks": [],
+        }
     current_entries = {entry["task_id"]: entry for entry in current["entries"]}
     revised_entries = {entry["task_id"]: entry for entry in admitted["execution_layout"]["entries"]}
     changed = set()
@@ -1589,7 +1596,7 @@ def _execution_plan_update(state, admitted, repo):
         require(item.get("execution_parent") == retained_parent
                 and _known_execution_revision(state, item.get("execution_plan_revision")),
                 "invalid-state", "retained task execution identity is invalid")
-        if (current_entries[task_id] != revised_entries[task_id]
+        if (_entry_identity(current_entries[task_id]) != _entry_identity(revised_entries[task_id])
                 or _execution_ancestry(current_entries, task_id) != task["execution_ancestry"]
                 or retained_effective != set(task["effective_prerequisites"])):
             changed.add(task_id)
@@ -1660,10 +1667,11 @@ def state_read(path, admitted, *, allow_execution_plan_update=False, repo=None, 
             prior_entries = {entry["task_id"]: entry for entry in admitted["execution_layout"]["entries"]}
             historical = (isinstance(item, dict) and active_task_id in current_entries
                           and active_task_id in prior_entries
-                          and item.get("execution_plan_revision") == admitted["execution_layout"]["revision"]
+                          and _known_execution_revision(state, item.get("execution_plan_revision"))
                           and any(entry.get("from_fingerprint") == admitted["execution_fingerprint"]
                                   for entry in state.get("execution_plan_history", []))
-                          and current_entries[active_task_id] == prior_entries[active_task_id]
+                          and _entry_identity(current_entries[active_task_id])
+                          == _entry_identity(prior_entries[active_task_id])
                           and _execution_ancestry(current_entries, active_task_id)
                           == _execution_ancestry(prior_entries, active_task_id))
             require(historical, "execution-plan-drift", "controller execution plan changed")
@@ -3425,11 +3433,14 @@ def cmd_apply_result(args):
     item = state["tasks"][args.task]
     require(item["status"] in ("running", "note-pending", "evidence-pending"),
             "not-running", "task has no active reservation or receipt retry")
-    require(item.get("attempt_binding") is not None,
-            "attempt-binding-missing", "active task has no issued attempt binding")
     legacy_drift = _legacy_execution_drift_tasks(state)
     require(args.task not in legacy_drift, "execution-plan-drift",
             "task requires legacy execution-plan reconciliation")
+    task = next(t for t in admitted["tasks"] if t["task_id"] == args.task)
+    require(item.get("contract_hash") == task["contract_hash"]
+            and item.get("execution_parent") == task["execution_parent"]
+            and item.get("dependency_snapshot") == task["dependency_snapshot"],
+            "execution-plan-drift", "worker result is for a different issued task contract or parent")
 
     try:
         result = load_json(args.result)
