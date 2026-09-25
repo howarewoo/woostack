@@ -101,12 +101,11 @@ Execute does not request an artifact note or mutate issue/project content, membe
 
 ## Admit the workspace and ancestry
 
-Apply the [source-control contract](../woostack-commit/references/graphite.md) and
+Apply the [source-control contract](../woostack-commit/references/source-control.md) and
 [isolated-workspace guidance](../woostack-init/references/worktrees.md) for task-level identity,
 parent/base admission, collision discovery, and task-only writes. Use native Git
-with an authorized GitHub interface by default; host-authenticated `gh` remains supported where
-appropriate. Use Graphite only when explicitly selected or verified for this task. A backend failure
-never permits switching or force-pushing.
+with an authorized GitHub interface; host-authenticated `gh` remains supported where
+appropriate.
 
 For a direct invocation, the repository, host, or caller selects one isolated workspace and branch
 through its supported capabilities. Preserve any supplied or retained workspace, task branch, parent
@@ -160,7 +159,7 @@ Pass `--issue <canonical GitHub issue URL>` only when selected and verified. Do 
 `--no-pr-update`: successful Execute delivery requires one canonical open PR.
 
 Commit owns staging, commit creation, push, PR body preservation, and submission safeguards under
-the shared [source-control contract](../woostack-commit/references/graphite.md#submit). Its caller
+the shared [source-control contract](../woostack-commit/references/source-control.md#submit). Its caller
 requires no independent pre-commit review receipt. An Execute subagent may commit and submit its
 own task; it does not return uncommitted implementation for a parent to deliver.
 

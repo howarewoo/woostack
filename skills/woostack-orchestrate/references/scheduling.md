@@ -6,7 +6,7 @@ This reference is the machine-facing contract for
 Git ancestry evidence, never calls a network, and never spawns a worker. The skill obtains or
 reuses an isolated workspace and delivers the helper packet through an authorized host primitive.
 
-Link rather than copy the shared [source-control contract](../../woostack-commit/references/graphite.md),
+Link rather than copy the shared [source-control contract](../../woostack-commit/references/source-control.md),
 the outcome-level [runtime workspace guidance](#runtime-workspace-and-branch-evidence),
 the [least-code standard](../../woostack-bootstrap/references/patterns.md#7-least-code--comments),
 the [model tiers](../../using-woostack/references/model-tiers.md), and canonical

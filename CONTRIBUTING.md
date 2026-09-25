@@ -56,8 +56,8 @@ This guide covers common edits. Read [AGENTS.md](AGENTS.md) for the full reposit
    failure, and report deterministic helper results separately from real host/model outcomes;
    never report an unrun smoke as passed.
 5. Push the exact branch without force and open a draft PR with `gh`, filling out the PR template.
-   Graphite is optional when explicitly selected or the task/stack is verified as already managed;
-   follow the [source-control contract](skills/woostack-commit/references/graphite.md).
+   Follow the
+   [source-control contract](skills/woostack-commit/references/source-control.md).
    Agents must not mark it ready, enable auto-merge, queue it for merging, or merge it.
 
 For site changes, run `pnpm -C site build`. The site is the exception to this repository's

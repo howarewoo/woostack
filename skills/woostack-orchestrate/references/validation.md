@@ -4,7 +4,7 @@ Every worker result is gated by the helper and by an independent read-only valid
 ordinary Execute report is evidence to check, never delivery by itself. The helper owns state
 transitions; this reference defines the facts the skill must collect before invoking it.
 
-Use the shared [source-control contract](../../woostack-commit/references/graphite.md),
+Use the shared [source-control contract](../../woostack-commit/references/source-control.md),
 the outcome-level [runtime workspace guidance](scheduling.md#runtime-workspace-and-branch-evidence),
 the [least-code standard](../../woostack-bootstrap/references/patterns.md#7-least-code--comments),
 and canonical [`#artifact-delivery-note`](../../woostack-commit/references/provider-attribution.md#artifact-delivery-note)
