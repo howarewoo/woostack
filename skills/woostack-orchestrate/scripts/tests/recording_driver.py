@@ -640,6 +640,21 @@ class FakeGitHub:
             "diff_identity": pr["diff_identity"],
         }
 
+    def stack_readback(self, task_id: str, admitted: Dict[str, Any]) -> Dict[str, Any]:
+        task = next(item for item in admitted["tasks"] if item["task_id"] == task_id)
+        task_ids = [*task["execution_ancestry"], task_id]
+        members = []
+        for member_id in task_ids:
+            readback = self.readback(member_id)
+            members.append({key: readback[key] for key in (
+                "pr_url", "branch", "head_sha", "base_branch", "draft")})
+        return {
+            "complete": True,
+            "number": 7000 + task["ordinal"],
+            "trunk": admitted["integration"]["branch"],
+            "members": members,
+        }
+
     def note(self, task_id: str, result: Dict[str, Any]) -> Dict[str, Any]:
         pr = self.prs[task_id]
         contract = next(child["contract"] for child in self.children if child["task_id"] == task_id)
@@ -914,8 +929,10 @@ class FakeHost:
             }
             self.reservations[task_id] = {
                 key: entry[key] for key in ("branch", "workspace", "parent_branch", "parent_sha",
-                                           "task_url", "scope", "contract_hash")
+                                            "task_url", "scope", "contract_hash")
             }
+            if "stack" in entry:
+                self.reservations[task_id]["stack"] = copy.deepcopy(entry["stack"])
             record("host", "dispatch-worker", {
                 "task_id": task_id,
                 "workspace": entry.get("workspace"),
@@ -1142,6 +1159,9 @@ def make_result(github: FakeGitHub, task_id: str, report: Dict[str, Any], admitt
         },
         "note": github.note(task_id, result={}),
     }
+    if admitted.get("integration") is not None \
+            and readback["base_branch"] != admitted["integration"]["branch"]:
+        result["stack"] = github.stack_readback(task_id, admitted)
     if admitted.get("project") is not None:
         # The controller writes the status and independently reads it back
         # before invoking apply-result.  The helper only gates this receipt.

@@ -390,7 +390,8 @@ Submit the complete result to `apply-result --git-repo`. The result schema is ex
 [validation](references/validation.md). `ok` is deliverable only when worker/readback/checks/
 validation/note evidence all agree, the independent reviewer is distinct from the worker, every
 required check and the smoke scenario were actually observed and passed at the bound head and diff,
-and the exact child closing reference appears once. Extra checks may run in any order; a relevant
+the exact child closing reference appears once, and a dependent PR's complete native stack receipt
+matches its reserved approved chain and configured trunk. Extra checks may run in any order; a relevant
 extra failure remains visible. Any selected Project `inReview` status readback must carry the
 admission-bound native `item_id` and exactly the admitted `lifecycle.inReview` option.
 Focused-check or spec-validation failure returns `repair-ready` on the same reservation and PR (the

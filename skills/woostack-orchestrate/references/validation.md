@@ -58,6 +58,20 @@ values to invent:
     },
     "diff_identity": "sha256:<runtime-substituted exact binary-diff hash>"
   },
+  "stack": {
+    "complete": true,
+    "number": 123,
+    "trunk": "<runtime-substituted configured integration branch>",
+    "members": [
+      {
+        "pr_url": "<runtime-substituted canonical member PR URL>",
+        "branch": "<runtime-substituted member head branch>",
+        "head_sha": "<runtime-substituted member head SHA>",
+        "base_branch": "<runtime-substituted member base branch>",
+        "draft": true
+      }
+    ]
+  },
   "checks": {
     "passed": true,
     "commands": [
@@ -139,6 +153,12 @@ status. Recover the originating identity through direct host reads; never guess 
 `unknown` transition. Standalone validation/admission of already-delivered work has no active launch
 and keeps its existing delivery-evidence contract.
 
+The `stack` receipt is required only when the reserved task has an open parent PR. It is a fresh,
+fully paginated native stack read in bottom-to-top order, including the child; its positive native
+number, configured trunk, and every member's canonical PR URL, branch, head, base, and readiness
+must exactly match the reserved approved chain. Independent tasks omit `stack` rather than
+fabricating membership.
+
 The `worker` and `readback` identities must agree. `readback.closing_references` must contain
 exactly one entry, the canonical child URL, and the PR body must carry exactly one
 `Resolves <child URL>` reference. A specification-parent closing reference, duplicate reference,
@@ -148,10 +168,9 @@ PR, or closed PR is an identity failure, not permission to retarget or create a 
 For a dependent task whose parent PR is open, the independent read also follows the owner's
 [stack membership contract](../../woostack-commit/references/source-control.md#native-github-stack-membership-for-a-dependent-pr):
 confirm the approved parent PR and chain state are current and the child belongs to the intended
-native stack. This result schema carries no stack object, so chained bases cannot substitute for
-that external read. An absent, partial, or conflicting stack read-back blocks success and dependent
-release; preserve the verified PR and report the exact unproved boundary without fabricating a
-passing `apply-result`.
+native stack. Chained bases cannot substitute for the `stack` receipt. An absent, partial, or
+conflicting stack read-back blocks success and dependent release; preserve the verified PR and report
+the exact unproved boundary without fabricating a passing `apply-result`.
 
 For every normalized task, `readback.association` and the sole closing reference remain that task's
 canonical issue URL. The selected tracker, scope identity, source context, and inferred DAG never
