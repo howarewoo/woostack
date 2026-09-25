@@ -2660,17 +2660,18 @@ def delivery_head_diff(repo, reservation, head_sha):
     return None
 
 
-def stack_requirement(admitted, task, readiness):
+def stack_requirement(admitted, task, readiness, state, repo):
     parent_prs = readiness["parent"]["pr_evidence"]["prs"]
     if not parent_prs:
         return None
-    records = {entry["task_id"]: entry for entry in readiness["prerequisites"]}
     members = []
     for task_id in task["execution_ancestry"]:
-        entry = records.get(task_id)
-        if entry is None or entry["satisfaction"]["kind"] != "open":
+        item = state["tasks"][task_id]
+        satisfaction = prerequisite_satisfaction(
+            item, task, repo, lifecycle=item.get("lifecycle"), canonical=admitted["canonical_repo"])
+        if satisfaction["kind"] != "open":
             continue
-        readback = entry["checkpoint"]["readback"]
+        readback = satisfaction["checkpoint"]["readback"]
         members.append({key: readback[key] for key in (
             "pr_url", "branch", "head_sha", "base_branch", "draft")})
     require(members and members[-1]["pr_url"] == parent_prs[0]["pr_url"],
@@ -3432,7 +3433,7 @@ def cmd_schedule(args):
         decision = decisions.get(tid) or item.get("parent_decision")
         try:
             readiness = parent_readiness(fresh, task, state, reservation, decision, args.git_repo, retained=repair)
-            required_stack = stack_requirement(admitted, task, readiness)
+            required_stack = stack_requirement(admitted, task, readiness, state, args.git_repo)
         except InputError as error:
             blocked.append({"task_id": tid, "reason": error.code,
                             "next_action": "refresh canonical parent, PR, and Git evidence before retrying"})

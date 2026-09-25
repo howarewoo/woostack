@@ -652,7 +652,7 @@ class OrchestrateBehavior(unittest.TestCase):
         def fresh() -> Dict[str, Any]:
             snapshot = self.github.snapshot()
             task_c = next(item for item in snapshot["tasks"] if item["task_id"] == "task-c")
-            task_c["prerequisites"] = ["task-a", "task-b"]
+            task_c["prerequisites"] = ["task-b"]
             snapshot["execution_layout"] = self.github.execution_layout(
                 (item["task_id"] for item in snapshot["tasks"]),
                 {
@@ -756,9 +756,13 @@ class OrchestrateBehavior(unittest.TestCase):
         self.assertEqual(c_entry["parent_branch"], report_b["worker"]["branch"])
         self.assertEqual(c_entry["parent_sha"], report_b["worker"]["head_sha"])
         readiness = c_entry["packet"]["parent_readiness"]
-        self.assertEqual(readiness["logical_prerequisites"], ["task-a", "task-b"])
-        self.assertEqual(readiness["execution_prerequisites"], ["task-a", "task-b"])
+        self.assertEqual(readiness["logical_prerequisites"], ["task-b"])
+        self.assertEqual(readiness["execution_prerequisites"], ["task-b"])
         self.assertEqual(readiness["execution_ancestry"], ["task-a", "task-b"])
+        self.assertEqual(
+            [member["pr_url"] for member in c_entry["stack"]["members"]],
+            [self.github.prs[task_id]["pr_url"] for task_id in ("task-a", "task-b")],
+        )
         host.dispatch([c_entry])
         report_c = host.wait_for_report("task-c")
         result_c = make_result(self.github, "task-c", report_c, admitted)
