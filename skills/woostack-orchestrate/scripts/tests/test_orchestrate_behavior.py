@@ -509,7 +509,7 @@ class OrchestrateBehavior(unittest.TestCase):
         self.assertEqual(delivered["status"], "delivered", delivered)
         self._persist(task_id, negative_result, dispatch)
         lifecycle_fresh = self.github.snapshot()
-        lifecycle_fresh["tasks"] = lifecycle_fresh["children"] = [child]
+        lifecycle_fresh["tasks"] = lifecycle_fresh["children"]
         lifecycle_fresh["execution_layout"] = self.github.execution_layout((task_id,), {task_id: None})
         resumed_state, resumed = self._schedule(
             admitted_path, admitted, state, lifecycle_fresh, "opaque-resume", cap="1"
