@@ -58,6 +58,12 @@ and establish dependency, Project, PR, and recovery evidence. A missing or faile
 evidence, not an empty collection; record terminal-read evidence only after the corresponding read
 actually completes.
 
+The Orchestrate controller reads native stack membership when a selected parent PR may be
+registered, to identify the trunk that supplies its applicable review policy. It never creates,
+extends, or reconciles a stack; that is the owner's
+[stack membership contract](../../woostack-commit/references/source-control.md#native-github-stack-membership-for-a-dependent-pr)
+for a delivery, and an unreadable stack read leaves the parent policy unproven.
+
 The model, not a selector or source layout, decides which issues are executable. It reads issue
 bodies, comments, repository instructions, and relevant tracker/Project context, asks a focused
 question for material ambiguity, and resolves the bounded task contract. A specification parent,
@@ -259,6 +265,8 @@ access. Otherwise supply one exact PR record with `pr_url`, `repo`, `head_repo`,
 `head_sha`, `base_branch`, current `state` (`open`, `closed`, or `merged`), and the complete
 [validation readback shape](validation.md#result-schema) observed at that head, including review
 history, thread dispositions, and current repository review policy.
+That policy is the same applicable review policy the validation contract names: the verified native
+stack trunk for a registered stack member, otherwise the PR's own base branch.
 Ambiguous or incomplete discovery blocks selection. Predecessor parents use their fresh complete
 delivery checkpoint instead. Current tips may advance for an already-reserved child only while its
 original start remains an ancestor; do not replace that child's retained start SHA.
