@@ -1440,6 +1440,9 @@ def state_read(path, admitted, *, allow_execution_plan_update=False, repo=None, 
     plan_matches = (state.get("execution_layout") is not None
                     and _execution_identity(state["execution_layout"])
                     == _execution_identity(admitted["execution_layout"]))
+    plan_revision_matches = (state.get("execution_layout") is not None
+                             and state["execution_layout"].get("revision")
+                             == admitted["execution_layout"].get("revision"))
     if legacy_layout:
         state["execution_layout"] = copy.deepcopy(admitted["execution_layout"])
         state["execution_fingerprint"] = admitted["execution_fingerprint"]
@@ -1451,8 +1454,6 @@ def state_read(path, admitted, *, allow_execution_plan_update=False, repo=None, 
             historical = (isinstance(item, dict) and active_task_id in current_entries
                           and active_task_id in prior_entries
                           and _known_execution_revision(state, item.get("execution_plan_revision"))
-                          and any(entry.get("from_fingerprint") == admitted["execution_fingerprint"]
-                                  for entry in state.get("execution_plan_history", []))
                           and _entry_identity(current_entries[active_task_id])
                           == _entry_identity(prior_entries[active_task_id])
                           and _execution_ancestry(current_entries, active_task_id)
@@ -1467,6 +1468,15 @@ def state_read(path, admitted, *, allow_execution_plan_update=False, repo=None, 
                 state["_execution_plan_update"] = execution_plan_update
             if execution_plan_error is not None:
                 state["_execution_plan_error"] = execution_plan_error
+    elif not plan_revision_matches and allow_execution_plan_update:
+        try:
+            execution_plan_update = _execution_plan_update(state, admitted, repo)
+        except InputError as error:
+            execution_plan_error = {"code": error.code, "message": str(error)}
+        if execution_plan_update is not None:
+            state["_execution_plan_update"] = execution_plan_update
+        if execution_plan_error is not None:
+            state["_execution_plan_error"] = execution_plan_error
     owner = state.get("owner")
     require(isinstance(owner, dict) and text(owner.get("controller_id")),
             "ownership-missing", "controller ownership identity missing")
@@ -3031,6 +3041,11 @@ def cmd_apply_result(args):
             and all(text(host_worker.get(key)) for key in identity_fields)
             and host_worker == {key: worker.get(key) for key in identity_fields},
             "worker-identity", "completion must match the recorded native host/session/worker identity")
+    if result.get("outcome") in ("ok", "needs-repair") and isinstance(worker, dict):
+        issued_binding = item.get("reservation", {}).get("attempt_binding")
+        if issued_binding is not None:
+            require(worker.get("attempt_binding") == issued_binding,
+                    "attempt-binding-mismatch", "worker result is not bound to the issued attempt")
     task = next(t for t in admitted["tasks"] if t["task_id"] == args.task)
     claim_scope(args.git_repo, admitted, state)
     claim_task(args.git_repo, admitted, task, state, item)
