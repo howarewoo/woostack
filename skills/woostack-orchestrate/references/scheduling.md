@@ -155,8 +155,8 @@ shape for the helper and is not a caller-facing source schema; all markers are r
         "task_id": "<selected task ID>",
         "execution_parent": null,
         "rationale": "<why this approved-base root is safe>",
-        "constraints": ["<repository or compatibility evidence>"],
-        "base_satisfied_prerequisites": []
+        "constraints": ["<repository or compatibility evidence>"]
+      }
     ],
     "effective_edges": []
   },
@@ -204,11 +204,12 @@ fixed field layout. A material unresolved ambiguity blocks admission until the u
 focused question. Existing delivery evidence is added to a task when independently re-reading a
 delivered task, and is never copied from a worker's success sentence. Each selected task also receives
 normalized `execution_parent`, `execution_rationale`, `execution_constraints`, optional
-`execution_fallback`, `execution_ancestry`, `effective_prerequisites`, and any verified
-`base_satisfied_prerequisites` or `satisfied_external_prerequisites`; its `dependency_snapshot`
-retains technical `prerequisites`, external prerequisite identities, and landed satisfaction evidence
-separately. These fields are model-selected scheduling evidence, not source edits or native
-relationship writes. The worker packet binds the same values and plan revision.
+`execution_fallback`, `execution_ancestry`, `effective_prerequisites`, and the helper-derived
+`base_satisfied_prerequisites` or model-supplied `satisfied_external_prerequisites`; its
+`dependency_snapshot` retains technical `prerequisites`, the selected `execution_parent`, and
+external prerequisite identities, while the layout entries keep landed satisfaction evidence. These
+fields are verified scheduling evidence, not source edits or native relationship writes. The worker
+packet binds the same values and plan revision.
 Missing, contradictory, unmerged, reverted, or non-containing external satisfaction evidence
 leaves that dependent blocked with the affected issue and evidence reason; it does not reject the
 whole snapshot or prevent unrelated tasks from dispatching.
@@ -229,14 +230,23 @@ and non-empty compatibility `constraints`; a task that cannot use a safe single-
 the optional `fallback: {reason: "merge-checkpoint", release_condition}`. The combined technical-plus-
 execution graph must be acyclic, and every technical prerequisite must appear on the task's execution
 ancestor path or in a verified `base_satisfied_prerequisites` entry naming the merged revision
-contained in the approved integration base. For these entries, `admit --git-repo <canonical-checkout>`
-verifies the repository remote and uses Git ancestry to prove each landed revision is contained in
-the snapshot's exact `integration.sha`, not merely the branch's current tip. Missing Git evidence
-blocks admission; lifecycle flags and matching branch names alone do not prove containment.
-Scheduling repeats these checks on its fresh snapshot. Verified base-satisfied prerequisites remain
-technical requirements but are excluded from `effective_prerequisites` and `effective_edges`:
-dependent readiness uses the landed-base evidence without importing a controller-owned delivery or
-waiting for that task's lifecycle/CI state. A `satisfied_external_prerequisites` row retains the
+contained in the approved integration base. The helper derives those entries from each selected
+task's retained delivery evidence instead of trusting a model assertion: the associated PR must be
+merged into the integration branch with complete landed verification whose diff identity still
+matches the merged revision. A prerequisite whose delivery is available that way needs no
+controller-owned worker delivery, claim, or recovery import. For these entries, `admit --git-repo
+<canonical-checkout>` verifies the repository remote and uses Git ancestry to prove each landed
+revision is contained in the snapshot's exact `integration.sha`, not merely the branch's current
+tip. Missing Git evidence blocks admission; lifecycle flags and matching branch names alone do not
+prove containment. Scheduling repeats these checks on its fresh snapshot. Verified base-satisfied
+prerequisites remain technical requirements but are excluded from `effective_prerequisites`, while
+`effective_edges` keeps every plan edge: dependent readiness uses the landed-base evidence without
+importing a controller-owned delivery or waiting for that task's lifecycle/CI state.
+
+A declared fallback must cover at least one technical join. Once every such join is base-satisfied
+the gate is released, and the admitted task carries no fallback.
+
+A `satisfied_external_prerequisites` row retains the
 external issue identity, source/provenance, associated merged PR, landed diff identity, and
 task-relevant verification while leaving the external issue outside `tasks`, claims, workers, and PRs.
 Its revision must be contained in the exact `integration.sha` and later in the actual selected parent;
@@ -302,7 +312,11 @@ compact separators) over the immutable normalized scope view. It binds:
   `specification` and native-only `actual_parent`, resolved bounded contract, and external blockers;
 - complete repository rules, effective technical dependency endpoint pairs, and normalized edge
   `provenance` and `evidence`;
-- the normalized execution layout and its own `execution_fingerprint`;
+- the normalized execution layout and its own `execution_fingerprint` over the plan itself — its
+  revision, rationale, entries, effective edges, and execution order, without the
+  availability-derived `base_satisfied_prerequisites` and `satisfied_external_prerequisites` rows
+  or the declared merge `fallback`, whose gate only exists while a technical join is unlanded, so
+  newly landed satisfaction evidence refreshes without a plan change;
 - the selected tracker URL and meaningful scope/specification context when optional
   `scope_evidence` is present; and
 - optional Project/lifecycle identity only when the user explicitly selected that Project for
@@ -374,9 +388,10 @@ identify the verified delivery head and current approved base; a ready PR is not
 or reset its draft state. A merged prerequisite must identify the canonical landing target and landed
 revision, with bounded task-relevant source/check evidence; its original head need not remain an
 ancestor after a squash or rebase merge. A closed-unmerged PR, missing/partial evidence, wrong landing
-target, or known reverted behavior remains unresolved. A legitimately deleted source branch is allowed
-only after the merged evidence proves the landing. The historical delivery checkpoint is never rewritten
-to look like a current open readback.
+target, or known reverted behavior remains unresolved. A merged prerequisite does not require its
+source branch to exist locally, whether deleted or remote-only; the verified merge, landed diff
+identity, and containment in the admitted integration base are the evidence. The historical
+delivery checkpoint is never rewritten to look like a current open readback.
 
 Every prerequisite is rechecked in dependency order. Missing, stale, or contradictory evidence
 preserves ownership and blocks only that task and its descendants; it never redispatches a
@@ -400,8 +415,22 @@ action, and first uncertain boundary distinct. GitHub remains the source for iss
 the controller stores only the observation identities needed to resume safely. The caller must
 externally enforce exclusive ownership of the selected canonical scope/state for the controller
 session, covering every `schedule`, `record-worker`, `apply-result`, `observe-checks`,
-and `reconcile` call. If exclusive ownership cannot be proved, block
+`reconcile`, and `resume` call. If exclusive ownership cannot be proved, block
 at controller preflight before invoking the helper.
+
+A task whose landed, verified delivery is already contained in the approved base is `satisfied`
+with that evidence and needs no worker of its own: it takes no new reservation, claim, or writer,
+and its historical reservation, delivery checkpoint, and claims stay exactly as they were
+recorded. A refill that no longer proves that availability returns it to `pending`.
+
+Uncertain historical evidence never invents a worker. A task whose retained delivery cannot be
+revalidated is blocked with its evidence reason and holds no capacity, because a read-only
+historical import never launched a writer; a genuine unknown writer — a live host session, a
+recorded native writer, or an unproved reservation — still occupies its slot. `resume` is the only
+explicit way to clear a user stop, and it releases only those import-only uncertainties whose fresh
+evidence proves landed delivery, host liveness shows no writer, and no competing owner holds the
+task claim; everything else stays `unknown` with its reservation, boundary, and last evidence intact.
+No manual checkpoint edit, claim deletion, or synthetic stop receipt is part of that recovery.
 
 The helper additionally takes owner-only atomic claims under
 `<primary-root>/.woostack/tmp/orchestrate-claims/`: one exact normalized-scope claim and one claim
@@ -426,7 +455,10 @@ checkpoint recovery evidence and never adopts arbitrary bytes. The head is indep
 input/output filenames, so a second writer using the same stale `--state` cannot advance a different
 `--state-out`.
 The first schedule omits `--state` and creates state. Every later schedule, record-worker,
-apply-result, observe-checks, reconcile, or stop names an existing state and matching admission. Missing state, malformed JSON,
+apply-result, observe-checks, reconcile, resume, or stop names an existing state and matching
+admission. An admission retained from before the landed-prerequisite cutover is accepted as
+written: its scope, plan identity, and receipts are never rewritten, and only a state that was
+stopped when it was persisted may cross that boundary. Missing state, malformed JSON,
 state/fingerprint/scope mismatch, missing durable checkpoint head, or a state task set that differs
 from the admission blocks; never silently reinitialize. The initial state is published before the
 scope claim is acquired, and the claim becomes visible only after its complete owner-bearing record
@@ -458,7 +490,8 @@ execution layout is a single-parent forest selected before branch/worktree alloc
 parents add compatibility ordering only and never add, remove, or rewrite technical edges. Every
 technical prerequisite must be on the selected execution ancestor path. The helper persists the
 normalized layout and its fingerprint in state, binds that plan to each worker packet, and uses
-effective prerequisites (technical prerequisites plus the selected execution parent) for scheduling,
+effective prerequisites (technical prerequisites plus the selected execution parent, minus
+prerequisites already landed in the approved base) for scheduling,
 readiness, repair propagation, and resume while preserving technical `prerequisites` and provenance.
 Equivalent reordered input resumes the same plan; a changed plan returns `execution-plan-drift`.
 
@@ -485,8 +518,9 @@ The helper writes machine-readable JSON and exits zero for controlled workflow s
 `no-work`, `snapshot-drift`, `halted`, `stopped`, and per-task `unknown`; it exits one with
 `{"ok":false,"error":...}` for blocked input. The skill must inspect the status and retain output,
 not treat process exit zero as delivery. `schedule` output includes dispatch entries, delivered,
-active, unknown, evidence-pending, repair-ready, pending, and paused/blocked/waiting IDs with exact
-next actions.
-`record-worker`, `apply-result`, `observe-checks`, `reconcile`, and `stop` outputs are authoritative state transitions; never invent a
+satisfied, active, unknown, evidence-pending, repair-ready, pending, and paused/blocked/waiting IDs
+with exact next actions.
+`record-worker`, `apply-result`, `observe-checks`, `reconcile`, `resume`, and `stop` outputs are
+authoritative state transitions; `resume` reports `released` and `retained_unknown`; never invent a
 success response around them. A user stop prevents new dispatch but does not declare active workers
 stopped or discard their worktrees.
