@@ -2235,7 +2235,7 @@ def delivery_head_diff(repo, reservation, head_sha):
 
 
 def validate_delivery(admitted, task, reservation, result, repo, *, historical=False,
-                      retained_diff=None, workspace_required=True):
+                      retained_diff=None, workspace_required=True, existing_pr=False):
     require(result.get("outcome") in ("ok", "needs-repair"), "unknown-response", "worker outcome unknown")
     worker = field_object(result.get("worker"), ("worker_id", "pr_url", "branch", "workspace", "head_sha",
                           "base_branch", "commit_sha", "association"), "worker")
@@ -2254,7 +2254,9 @@ def validate_delivery(admitted, task, reservation, result, repo, *, historical=F
     require(match is not None and "https://github.com/" + "/".join(match.groups()[:2]) == admitted["canonical_repo"],
             "invalid-pr", "canonical PR identity required")
     require(readback["open"] is True and readback["unique"] is True, "pr-not-unique-open", "one open PR required")
-    require(readback["draft"] is True, "draft-required", "orchestrated delivery must remain a draft")
+    require(type(readback["draft"]) is bool, "invalid-pr-readback", "PR draft readback must be boolean")
+    if not existing_pr:
+        require(readback["draft"] is True, "draft-required", "new orchestrated delivery must be a draft")
     review_readback(readback["reviews"], readback["head_sha"], "reviews")
     review_readback(readback["threads"], readback["head_sha"], "threads")
     require(readback["branch"] == reservation["branch"], "wrong-branch", "PR head is not reserved branch")
@@ -2490,7 +2492,7 @@ def reconcile_delivery(admitted, task, item, retained, repo, *, repairing=False,
     prior_diff = prior_delivery.get("validated_diff") if isinstance(prior_delivery, dict) else None
     proof = validate_delivery(admitted, task, retained["reservation"], retained["result"], repo,
                               historical=historical, retained_diff=prior_diff,
-                              workspace_required=workspace_required)
+                              workspace_required=workspace_required, existing_pr=True)
     delivery = proof.get("delivery")
     if delivery is None:
         return proof, lifecycle, None
@@ -2992,12 +2994,17 @@ def cmd_apply_result(args):
     claim_scope(args.git_repo, admitted, state)
     claim_task(args.git_repo, admitted, task, state, item)
     try:
-        proof = validate_delivery(admitted, task, item["reservation"], result, args.git_repo)
+        retained_pr = item.get("verified_pr")
+        prior_evidence = item.get("last_evidence")
+        verified_update = bool(retained_pr) and (
+            isinstance(item.get("delivery"), dict)
+            or isinstance(prior_evidence, dict) and isinstance(prior_evidence.get("readback"), dict))
+        proof = validate_delivery(admitted, task, item["reservation"], result, args.git_repo,
+                                  existing_pr=verified_update)
         pr_url = result["worker"]["pr_url"]
         require(not any(tid != args.task and other.get("verified_pr") == pr_url
                         for tid, other in state["tasks"].items()),
                 "duplicate-pr", "another task already owns this PR")
-        retained_pr = item.get("verified_pr")
         if retained_pr:
             require(retained_pr == pr_url, "pr-replaced", "repair must preserve existing PR")
         prior_head = (item.get("delivery") or {}).get("head_sha")

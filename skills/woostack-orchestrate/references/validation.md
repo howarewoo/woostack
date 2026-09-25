@@ -87,6 +87,13 @@ fabricate a receipt. The result example's markers mean “runtime-substituted fa
 successful fixture. A repair result may omit `note` when no validated delivery note exists. It must
 not replace missing fields with another task's evidence.
 
+For the first submission of a task, the current readback must prove `draft: true`. A verified update
+to that task's retained canonical PR may report either truthful readiness state: its PR URL, reserved
+branch/head/base, child association, current diff, checks, and independent validation must still
+match, and the update must not change readiness or create a replacement. The retained result remains
+the historical submission checkpoint; a separately refreshed `lifecycle` records later readiness or
+other state changes without rewriting that history.
+
 Every active `apply-result` envelope carries `worker.host_id`, `worker.session_id`, and
 `worker.worker_id`, all nonempty strings matching the task's recorded `host_worker` exactly.
 The controller derives these fields from the native launch/handle that produced this completion,
@@ -212,8 +219,8 @@ skill must not implement an alternate acceptance path:
    report fields, dispatch another worker, or clear identity from a report.
 2. **Focused checks or independent specification review fail:** return `repair-ready`, preserving
    the exact original branch, absolute workspace, parent branch/SHA, reservation, and retained PR.
-   The note may be absent. Repairs return through the same branch/PR and may not be reparents or
-   replacements.
+   The note may be absent. Repairs return through the same branch/PR and may not be reparents,
+   replacements, or readiness changes.
 3. **Exact PR recovered after unknown:** return `evidence-pending`, retaining the same reservation and
    canonical PR/source evidence. Accept the independent full result through `apply-result`; do not
    dispatch a second Execute worker for repository work already represented by that PR.
@@ -223,7 +230,8 @@ skill must not implement an alternate acceptance path:
 5. **Worker/readback or canonical identity conflict:** return a blocked `unknown` result for that
    task, preserving its reservation and stopping only its descendants. Wrong repository/head
    repository, PR URL, branch/head, base, child association, duplicate/closed PR, or a non-unique
-   readback is an identity failure, never permission to retarget or create a replacement.
+   readback is an identity failure, never permission to retarget or create a replacement. A new
+   non-draft PR also fails; a verified retained PR accepts its truthful current readiness.
 6. **All evidence pass:** require the note to have been written and read back under the canonical
    [`#artifact-delivery-note`](../../woostack-commit/references/provider-attribution.md#artifact-delivery-note)
    contract. When the snapshot admitted a Project and lifecycle for status mutation, also require
@@ -341,7 +349,8 @@ per task/head applies, and one writable owner per task branch/workspace remains 
 an active or unknown previous writer before any repair takeover. Independent PRs may be repaired
 concurrently under the shared cap, and unrelated runnable work continues while one task waits on CI
 or a blocker. A repair retains the original branch, PR, and ownership; it never creates a replacement
-PR and never forges an `apply-result`.
+PR and never forges an `apply-result`. Preserve its independently observed readiness in either
+direction; it is not evidence that a workflow may mark the PR ready or convert it back to draft.
 
 A newly observed relevant failure or repair invalidates that task's applicable readiness/evidence
 and pauses affected downstream starts without erasing existing PR/delivery history. When a repaired
