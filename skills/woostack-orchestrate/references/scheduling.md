@@ -209,6 +209,9 @@ normalized `execution_parent`, `execution_rationale`, `execution_constraints`, o
 retains technical `prerequisites`, external prerequisite identities, and landed satisfaction evidence
 separately. These fields are model-selected scheduling evidence, not source edits or native
 relationship writes. The worker packet binds the same values and plan revision.
+Missing, contradictory, unmerged, reverted, or non-containing external satisfaction evidence
+leaves that dependent blocked with the affected issue and evidence reason; it does not reject the
+whole snapshot or prevent unrelated tasks from dispatching.
 
 `edges` is the complete supplied DAG. Each edge has a predecessor, dependent, provenance of
 `native`, `declared`, or `inferred`, and non-empty evidence. Native blocked-by reads, explicit

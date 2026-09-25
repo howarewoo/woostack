@@ -870,71 +870,93 @@ def _base_satisfied_prerequisites(raw, task, tasks_by_id, technical, integration
     return sorted(result, key=lambda value: value["task_id"])
 
 
+def _verified_external_prerequisite(value, task, integration, repo, canonical):
+    require(isinstance(value, dict) and text(value.get("provenance")),
+            "landed-evidence-missing",
+            "satisfied external prerequisite needs identity, revision, and provenance")
+    issue_url = canonical_issue_url(value.get("issue_url"), canonical)
+    revision = value.get("revision")
+    require(issue_url in task["external_prerequisites"]
+            and isinstance(revision, str) and SHA_RE.fullmatch(revision),
+            "external-prerequisite-identity",
+            "satisfied external prerequisite must match a declared external edge")
+    source, evidence = value.get("source"), value.get("evidence")
+    require(isinstance(source, dict) and isinstance(evidence, dict),
+            "base-satisfaction-unverified",
+            "satisfied external prerequisite needs source and lifecycle evidence")
+    issue, pr = evidence.get("issue"), evidence.get("pr")
+    verification = evidence.get("landed_verification")
+    require(source.get("issue_url") == issue_url and text(source.get("pr_url"))
+            and isinstance(pr, dict) and isinstance(verification, dict),
+            "base-satisfaction-unverified",
+            "satisfied external prerequisite needs canonical issue and merge evidence")
+    require(isinstance(issue, dict) and text(issue.get("url")),
+            "external-prerequisite-identity", "external issue identity is missing")
+    issue_identity(issue, canonical)
+    match = PR_RE.fullmatch(pr["url"]) if text(pr.get("url")) else None
+    require(issue.get("url") == issue_url and pr.get("url") == source.get("pr_url")
+            and match is not None
+            and "https://github.com/" + "/".join(match.groups()[:2]) == canonical
+            and pr.get("repo") == pr.get("head_repo") == canonical
+            and pr.get("association") == issue_url,
+            "external-prerequisite-identity",
+            "external prerequisite evidence identifies another issue or repository")
+    require(pr.get("state") == "merged"
+            and pr.get("base_branch") == integration["branch"]
+            and pr.get("merged_base_branch") == integration["branch"]
+            and pr.get("merge_commit_sha") == revision
+            and text(pr.get("branch")) and text(pr.get("head_sha"))
+            and SHA_RE.fullmatch(pr["head_sha"]),
+            "external-prerequisite-unmerged",
+            "external prerequisite has no verified merge into the candidate base")
+    require(verification.get("complete") is True
+            and verification.get("source_verified") is True
+            and verification.get("checks_verified") is True
+            and verification.get("reverted") is False
+            and text(verification.get("diff_identity")),
+            "landed-evidence-missing",
+            "external prerequisite needs task-relevant source and check evidence")
+    landed_parent = git(repo, "rev-parse", revision + "^").decode().strip()
+    actual_diff = "sha256:" + hashlib.sha256(git(
+        repo, "diff", "--no-ext-diff", "--no-textconv", "--no-color", "--binary",
+        landed_parent, revision)).hexdigest()
+    require(verification["diff_identity"] == actual_diff,
+            "landed-diff-mismatch",
+            "external prerequisite evidence does not match the landed change")
+    require(contains(repo, revision, integration["sha"]),
+            "base-satisfaction-unverified",
+            "external prerequisite is not contained in the candidate integration base")
+    return copy.deepcopy(value)
+
+
 def _satisfied_external_prerequisites(raw, task, integration, repo, canonical):
     values = raw.get("satisfied_external_prerequisites", [])
-    require(isinstance(values, list),
-            "invalid-execution-layout", "satisfied external prerequisites must be a list")
+    if not isinstance(values, list):
+        return [], {issue: "landed-evidence-missing" for issue in task["external_prerequisites"]}
     require(not values or repo is not None, "git-unavailable",
             "--git-repo is required to verify external prerequisites")
-    result, seen = [], set()
+    verified, errors, seen = {}, {}, set()
     for value in values:
-        require(isinstance(value, dict) and text(value.get("provenance")),
-                "invalid-execution-layout",
-                "satisfied external prerequisite needs identity, revision, and provenance")
-        issue_url = canonical_issue_url(value.get("issue_url"), canonical)
-        revision = value.get("revision")
-        require(issue_url in task["external_prerequisites"]
-                and SHA_RE.fullmatch(revision or ""),
-                "invalid-execution-layout",
-                "satisfied external prerequisite must match a declared external edge")
-        require(issue_url not in seen, "duplicate-execution-task",
-                "external prerequisite is repeated")
+        issue_url = value.get("issue_url") if isinstance(value, dict) else None
+        if issue_url not in task["external_prerequisites"]:
+            # An unassignable claim makes the dependent unsafe, not the entire scope.
+            errors.update({issue: "external-prerequisite-identity"
+                           for issue in task["external_prerequisites"]})
+            continue
+        if issue_url in seen:
+            errors[issue_url] = "duplicate-external-evidence"
+            verified.pop(issue_url, None)
+            continue
         seen.add(issue_url)
-        source, evidence = value.get("source"), value.get("evidence")
-        require(isinstance(source, dict) and isinstance(evidence, dict),
-                "base-satisfaction-unverified",
-                "satisfied external prerequisite needs source and lifecycle evidence")
-        issue, pr = evidence.get("issue"), evidence.get("pr")
-        verification = evidence.get("landed_verification")
-        require(source.get("issue_url") == issue_url and text(source.get("pr_url"))
-                and isinstance(pr, dict) and isinstance(verification, dict),
-                "base-satisfaction-unverified",
-                "satisfied external prerequisite needs canonical issue and merge evidence")
-        issue_identity(issue, canonical)
-        match = PR_RE.fullmatch(pr.get("url") or "")
-        require(issue.get("url") == issue_url and pr.get("url") == source.get("pr_url")
-                and match is not None
-                and "https://github.com/" + "/".join(match.groups()[:2]) == canonical
-                and pr.get("repo") == pr.get("head_repo") == canonical
-                and pr.get("association") == issue_url,
-                "external-prerequisite-identity",
-                "external prerequisite evidence identifies another issue or repository")
-        require(pr.get("state") == "merged"
-                and pr.get("base_branch") == integration["branch"]
-                and pr.get("merged_base_branch") == integration["branch"]
-                and pr.get("merge_commit_sha") == revision
-                and text(pr.get("branch")) and SHA_RE.fullmatch(pr.get("head_sha") or ""),
-                "external-prerequisite-unmerged",
-                "external prerequisite has no verified merge into the candidate base")
-        require(verification.get("complete") is True
-                and verification.get("source_verified") is True
-                and verification.get("checks_verified") is True
-                and verification.get("reverted") is False
-                and text(verification.get("diff_identity")),
-                "landed-evidence-missing",
-                "external prerequisite needs task-relevant source and check evidence")
-        landed_parent = git(repo, "rev-parse", revision + "^").decode().strip()
-        actual_diff = "sha256:" + hashlib.sha256(git(
-            repo, "diff", "--no-ext-diff", "--no-textconv", "--no-color", "--binary",
-            landed_parent, revision)).hexdigest()
-        require(verification["diff_identity"] == actual_diff,
-                "landed-diff-mismatch",
-                "external prerequisite evidence does not match the landed change")
-        require(contains(repo, revision, integration["sha"]),
-                "base-satisfaction-unverified",
-                "external prerequisite is not contained in the candidate integration base")
-        result.append(copy.deepcopy(value))
-    return sorted(result, key=lambda value: value["issue_url"])
+        try:
+            verified[issue_url] = _verified_external_prerequisite(
+                value, task, integration, repo, canonical)
+        except InputError as error:
+            if error.code == "git-unavailable":
+                raise
+            errors[issue_url] = error.code
+    return ([verified[issue] for issue in sorted(verified) if issue not in errors],
+            errors)
 
 
 def collect_execution_layout(snapshot, tasks, repo):
@@ -973,7 +995,8 @@ def collect_execution_layout(snapshot, tasks, repo):
         entry = copy.deepcopy(entry)
         entry["base_satisfied_prerequisites"] = _base_satisfied_prerequisites(
             entry, tasks_by_id[task_id], tasks_by_id, technical, snapshot["integration"], repo)
-        entry["satisfied_external_prerequisites"] = _satisfied_external_prerequisites(
+        (entry["satisfied_external_prerequisites"],
+         entry["external_evidence_errors"]) = _satisfied_external_prerequisites(
             entry, tasks_by_id[task_id], snapshot["integration"], repo, snapshot["canonical_repo"])
         by_id[task_id] = entry
     require(set(by_id) == task_ids, "missing-execution-task", "execution layout must select every task once")
@@ -1015,6 +1038,7 @@ def collect_execution_layout(snapshot, tasks, repo):
             value["task_id"] for value in entry["base_satisfied_prerequisites"]]
         task["satisfied_external_prerequisites"] = [
             value["issue_url"] for value in entry["satisfied_external_prerequisites"]]
+        task["external_evidence_errors"] = entry.pop("external_evidence_errors")
         task["effective_prerequisites"] = sorted(
             (technical[task_id] | ({entry["execution_parent"]}
                                   if entry["execution_parent"] is not None else set())) - base_satisfied)
@@ -2620,6 +2644,17 @@ def _dependency_wait_reason(task, state):
     return "execution-parent-unmet"
 
 
+def _external_wait(task):
+    missing = sorted(set(task["external_prerequisites"]) -
+                     set(task["satisfied_external_prerequisites"]))
+    return {"task_id": task["task_id"], "reason": "external-prerequisite",
+            "next_action": "; ".join(
+                issue + ": " + task["external_evidence_errors"].get(
+                    issue, "missing landed evidence") + " — refresh canonical issue, merged PR, "
+                "landed verification, and candidate-base evidence"
+                for issue in missing)}
+
+
 
 
 def cmd_schedule(args):
@@ -2765,7 +2800,7 @@ def cmd_schedule(args):
             if retained_reservation is not None:
                 item["status"] = "repair-ready"
                 item["failure_reason"] = "external-prerequisite"
-            blocked.append({"task_id": tid, "reason": "external-prerequisite"})
+            blocked.append(_external_wait(task))
             continue
         if any(state["tasks"][p]["status"] != "delivered" for p in task["effective_prerequisites"]):
             if retained_reservation is not None:
@@ -2876,7 +2911,7 @@ def cmd_schedule(args):
             continue
         if any(issue not in task["satisfied_external_prerequisites"]
                for issue in task["external_prerequisites"]):
-            blocked.append({"task_id": tid, "reason": "external-prerequisite"})
+            blocked.append(_external_wait(task))
             continue
         lifecycle_failures = []
         for predecessor in task["effective_prerequisites"]:
