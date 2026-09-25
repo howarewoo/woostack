@@ -319,8 +319,11 @@ accepted layout, fingerprint, changed unstarted-task dependencies, and plan hist
 the same atomic checkpoint before any new dispatch. Unchanged active tasks retain their issued
 plan revision and dependency snapshot. Their original admission remains usable for bound result,
 check, and reconciliation calls when plan history proves their execution entry and ancestry
-unchanged; result application rejects a newer admission that the worker never received. Descendant
-repair propagation uses the current persisted effective graph. Equivalent reordered input resumes
+unchanged; result application rejects a newer admission that the worker never received. Each newly
+dispatched repair attempt binds to the current execution plan and dependency context it receives
+before launch, and its completion must be accepted under that issued plan rather than a stale prior
+attempt revision, while an active repair worker preserves its issued plan binding across any
+subsequent compatible replans. Descendant repair propagation uses the current persisted effective graph.
 the same plan. Every status preserves reservations, claims, workers, deliveries, and recovery
 boundaries and requires a fully fresh interpreted snapshot.
 

@@ -141,6 +141,9 @@ otherwise changes to started, reserved, claimed, worker-owned, or delivered work
 `execution-plan-drift`. A changed technical graph remains `snapshot-drift`.
 An unchanged active worker keeps its issued plan revision and dependency snapshot; its bound result
 uses the original admission, while descendant repair propagation uses the current persisted graph.
+A newly dispatched repair attempt binds to the execution plan and dependency context issued to it,
+and its completion is accepted under that issued plan rather than a stale prior attempt revision,
+while preserving that binding across subsequent compatible replans.
 
 ## Evidence calculations
 All evidence is for the exact reservation currently in controller state. The worker's selected
