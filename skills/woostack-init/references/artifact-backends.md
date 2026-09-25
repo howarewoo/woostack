@@ -159,8 +159,7 @@ separate from the one checkout parent. First use the approved integration branch
 unmerged prerequisite branch when stacking is permitted. If neither contains all requirements, the
 task waits for human merges as a local checkpoint; this does not itself request a new parent or
 integration strategy. Git DAG and canonical PR base must agree with the ancestry proof; an upstream
-ref or merge-base alone is not enough. Graphite metadata is additional evidence only when
-independently selected.
+ref or merge-base alone is not enough.
 
 ## Credentials, untrusted content, and authority
 

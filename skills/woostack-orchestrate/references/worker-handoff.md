@@ -7,7 +7,7 @@ supported mechanism, then invokes only the selected allowlisted host's documente
 primitive. Scheduling and state rules are in [scheduling](scheduling.md); delivery gates are in
 [validation](validation.md).
 
-Use the shared [source-control contract](../../woostack-commit/references/graphite.md),
+Use the shared [source-control contract](../../woostack-commit/references/source-control.md),
 the outcome-level [worktree guidance](scheduling.md#runtime-workspace-and-branch-evidence),
 the [least-code standard](../../woostack-bootstrap/references/patterns.md#7-least-code--comments),
 and [model tiers](../../using-woostack/references/model-tiers.md). Host mechanics do not belong in

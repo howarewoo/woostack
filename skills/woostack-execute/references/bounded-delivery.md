@@ -11,12 +11,10 @@ consumes that bounded packet for one task and does not schedule siblings or own 
 delivery goes through Commit; Git and canonical GitHub reads supply source-control evidence, not
 permission to implement or authority to merge.
 
-Before mutation, apply the shared [source-control selection and ancestry contract](../../woostack-commit/references/graphite.md).
+Before mutation, apply the shared [source-control contract](../../woostack-commit/references/source-control.md).
 Use native Git and an authorized GitHub capability for repository delivery (prefer native GitHub
 tools when suitable; host-authenticated `gh` is supported). Discover actual operation capabilities,
-read shapes, pagination, and independent readback before any consequential operation. Optional
-Graphite selection follows the shared contract; unknown selection blocks, and `gt` failure never
-authorizes backend switching.
+read shapes, pagination, and independent readback before any consequential operation.
 
 ## Keep one bounded contract
 
@@ -82,8 +80,8 @@ findings and rerun affected checks; material scope changes return to Execute adm
 ## Deliver and read back one PR
 
 Only after required verification passes on the complete task diff, use
-[Commit](../../woostack-commit/SKILL.md) to submit at most one PR under the source-control contract. In native mode,
-add a Git commit (never automatically amend), explicitly push only the task branch without force,
+[Commit](../../woostack-commit/SKILL.md) to submit at most one PR under the source-control contract.
+Add a Git commit (never automatically amend), explicitly push only the task branch without force,
 and use the selected authorized GitHub submission capability to create a draft only after excluding
 an existing matching PR; host-authenticated `gh pr create --draft` and `gh pr edit` are supported
 equivalents for draft creation and body updates. Preserve the exact repository/head/base identity and
@@ -110,8 +108,8 @@ After delivery, retain the selected workspace unless its owner explicitly suppli
 operation. Never remove a user-owned, host-managed, or external checkout as workflow cleanup.
 Publication does not create a workspace obligation. If implementation, verification, review, commit,
 submission, read-back, or lifecycle handling fails, is blocked, or has an unknown outcome, retain the
-workspace and return exact Git, GitHub, and selected-backend resume evidence: repository/base,
-task/workspace, branch/parent, head/commit, status/diff, verification/review results, and PR
+workspace and return exact Git and GitHub resume evidence: repository/base, task/workspace,
+branch/parent, head/commit, status/diff, verification/review results, and PR
 URL/state when known. On resume, reread those facts and continue at the first unproved boundary
 without duplicating a branch, commit, PR, or cleanup.
 

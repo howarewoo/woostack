@@ -1,6 +1,6 @@
 ---
 name: woostack-commit
-description: Commit current session-relevant changes and submit or update their PR through an authorized GitHub integration or host-authenticated gh, with optional Graphite. Include a goal, summary, and test plan. An optional exact GitHub issue receives a merge-closing reference. Use for /woostack-commit, "commit this", or "update the PR".
+description: Commit current session-relevant changes and submit or update their PR through native Git and an authorized GitHub integration or host-authenticated gh. Include a goal, summary, and test plan. An optional exact GitHub issue receives a merge-closing reference. Use for /woostack-commit, "commit this", or "update the PR".
 ---
 
 # woostack-commit
@@ -54,7 +54,7 @@ ask for the missing scope decision.
 ### 1. Inspect repository state
 
 Confirm the physical working directory is the repository root. Read the configured base, current
-branch/HEAD, selected source-control mode, parent ancestry, status, staged diff, unstaged diff, and untracked paths. Preserve
+branch/HEAD, parent ancestry, status, staged diff, unstaged diff, and untracked paths. Preserve
 unrelated user changes. Never switch branches, reset, clean, stash, delete, or overwrite to make the
 state convenient.
 
@@ -93,13 +93,9 @@ staged, preserve the worktree, and stop with the exact mismatch.
 
 ### 4. Create or update the task commit
 
-Follow the [source-control branch and submission boundary](references/graphite.md) for mode
-selection, exact branch, collision, capabilities, commands, and read-back. Use the authorized
-GitHub interface that supports the required operation; host-authenticated `gh` remains supported
-where appropriate. Graphite is optional. Resolve the mode before staging, not after a command fails.
-
-Use `git commit -m <subject>` to append a native Git commit; use the reference's Graphite path
-only for a selected Graphite task. Never amend or restack an unrelated branch.
+Follow the [source-control branch and submission boundary](references/source-control.md) for exact
+branch, collision, capabilities, commands, and read-back. Use `git commit -m <subject>` to append
+the verified task change; never automatically amend or rewrite an unrelated branch.
 
 The subject comes from the caller's explicit message when accurate; otherwise derive a concise
 imperative subject from the approved task contract. Re-read branch, HEAD, parent/base, commit, and
@@ -107,14 +103,14 @@ working-tree state after the mutation. Unrelated unstaged changes may remain; st
 
 ### 5. Submit the task branch
 
-Follow the selected mode's submission boundary in the same reference. Use the authorized GitHub
+Follow the [submission boundary](references/source-control.md#submit). Use the authorized GitHub
 capability that supports exact branch publication, complete PR discovery, draft creation or reuse,
 and independent read-back. Do not force-push, submit unrelated descendants, or create a duplicate
 PR. After submission, independently read the canonical GitHub PR and verify its repository, number/URL,
 head branch/SHA, base branch, and open state.
 
-Unknown submission outcome is not permission to retry blindly or switch tools. Re-read Git,
-GitHub, and Graphite when selected; resume from the first unproved boundary.
+Unknown submission outcome is not permission to retry blindly or switch tools. Re-read Git and
+GitHub; resume from the first unproved boundary.
 
 Skip this step only when `--no-pr-update` was explicitly supplied and the requested operation does
 not require submission. Report the local branch and commit rather than implying a PR exists.
@@ -177,12 +173,12 @@ issue-note write merely because a previous call did not return cleanly.
 
 Report:
 
-- source-control mode, branch, and verified parent/base;
+- branch and verified parent/base;
 - commit subject and SHA;
 - canonical PR URL, or explicitly `not submitted`;
 - exact staged path set;
 - verification commands/scenarios with observed outcomes;
-- PR title/body read-back result;
-- optional GitHub issue-note URL and result, when selected; and
+- PR title/body read-back result; and
+- optional GitHub issue-note URL and result, when selected.
 
 Never claim a commit, push, PR field, test, or artifact mutation that was not directly observed.
