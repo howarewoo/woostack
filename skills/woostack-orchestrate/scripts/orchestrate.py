@@ -1381,8 +1381,12 @@ def selected_landing_paths(repo, task, branch, proposed):
             or verification.get("reverted") is True
             or not contains(repo, merge_sha, proposed)):
         return set()
-    first_parent = git(repo, "rev-parse", merge_sha + "^").decode().strip()
-    return set(changed_paths(repo, first_parent, merge_sha))
+    landed_parent = verification.get("landed_parent")
+    if landed_parent is None:
+        landed_parent = git(repo, "rev-parse", merge_sha + "^").decode().strip()
+    elif not SHA_RE.fullmatch(landed_parent):
+        return set()
+    return set(changed_paths(repo, landed_parent, merge_sha))
 
 
 def integration_advance_evidence(repo, admitted, fresh):
@@ -1415,10 +1419,11 @@ def integration_advance_evidence(repo, admitted, fresh):
                     if any(path_in_scope(path, item) for item in scope_paths[task_id])]
         if not task_ids:
             continue
-        allowed = False
+        allowed = True
         for task_id in task_ids:
             if path not in landing_paths[task_id]:
-                continue
+                allowed = False
+                break
             retained = next(task for task in fresh["tasks"]
                             if task["task_id"] == task_id).get("existing_delivery")
             lifecycle = retained.get("lifecycle") if isinstance(retained, dict) else None
@@ -1427,8 +1432,8 @@ def integration_advance_evidence(repo, admitted, fresh):
             result = subprocess.run(
                 ["git", "-C", str(repo), "diff", "--quiet", merge_sha, proposed, "--", path],
                 capture_output=True, timeout=30)
-            if result.returncode == 0:
-                allowed = True
+            if result.returncode != 0:
+                allowed = False
                 break
         if not allowed:
             uncovered.append(path)

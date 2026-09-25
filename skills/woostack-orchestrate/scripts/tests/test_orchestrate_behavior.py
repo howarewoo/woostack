@@ -2055,6 +2055,52 @@ class OrchestrateBehavior(unittest.TestCase):
                 self.assertEqual(payload.get("status"), "snapshot-drift", payload)
                 self.assertEqual(payload.get("dispatch"), [], payload)
 
+    def test_integration_advance_reconciles_complete_landing_range_per_task(self) -> None:
+        (self.repo / "src").mkdir()
+        (self.repo / "src" / "shared.txt").write_text("first rebased commit\n", encoding="utf-8")
+        git(self.repo, "add", "src/shared.txt")
+        git(self.repo, "commit", "-m", "first rebased commit")
+        (self.repo / "src" / "final.txt").write_text("final rebased commit\n", encoding="utf-8")
+        git(self.repo, "add", "src/final.txt")
+        git(self.repo, "commit", "-m", "final rebased commit")
+        landed_sha = git(self.repo, "rev-parse", "HEAD")
+        verification = {
+            "complete": True,
+            "source_verified": True,
+            "checks_verified": True,
+            "reverted": False,
+            "landed_parent": self.base_sha,
+        }
+        landed = {
+            "task_id": "task-a",
+            "contract": {"scope": ["src"]},
+            "existing_delivery": {"lifecycle": {
+                "pr": {"state": "merged", "merged_base_branch": "main",
+                       "merge_commit_sha": landed_sha},
+                "landed_verification": verification,
+            }},
+        }
+        admitted = {"integration": {"branch": "main", "sha": self.base_sha}}
+        fresh = {"integration": {"branch": "main", "sha": landed_sha}, "tasks": [landed]}
+        helper_path = Path(__file__).resolve().parents[1] / "orchestrate.py"
+        spec = importlib.util.spec_from_file_location("orchestrate_integration_advance", helper_path)
+        self.assertIsNotNone(spec)
+        self.assertIsNotNone(spec.loader)
+        helper = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(helper)
+
+        evidence = helper.integration_advance_evidence(self.repo, admitted, fresh)
+        self.assertEqual(evidence["changed_paths"], ["src/final.txt", "src/shared.txt"])
+
+        overlapping = copy.deepcopy(fresh)
+        overlapping["tasks"].append({
+            "task_id": "task-b",
+            "contract": {"scope": ["src/shared.txt"]},
+        })
+        with self.assertRaises(helper.InputError) as error:
+            helper.integration_advance_evidence(self.repo, admitted, overlapping)
+        self.assertEqual(error.exception.code, "parent-tip-drift")
+
     def test_refill_rejects_changed_dispatch_context_before_dispatch(self) -> None:
         snapshot = self.github.snapshot()
         admitted_path, admitted = self._admit_issue(snapshot)
