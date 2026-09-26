@@ -50,13 +50,11 @@ Adapters keep only their own host's GitHub discovery surface and link here. Pref
 native capability; host-authenticated GitHub CLI (`gh`) remains supported for explicit GitHub
 operations under the selected workflow's admission. Discover actual GitHub operation capabilities
 and read/write shapes rather than assuming tool names or schemas. Never use custom
-HTTP/REST/GraphQL transport or fallback tokens. GitHub operations follow the canonical
-[artifact backends contract](../../../woostack-init/references/artifact-backends.md) and
-[GitHub profile](../../../woostack-init/references/artifact-providers/github.md#configuration-and-scope).
+HTTP/REST/GraphQL transport or fallback tokens. The selected operation loads its owning references.
 If no authorized interface (native capability or host-authenticated `gh`) supports a required
 operation, fail closed for that GitHub boundary; for an optional operation, report the missing
-capability per the canonical artifact contract. No transport fallback, credential probing, or
-permission change belongs here.
+capability under the owning workflow. No transport fallback, credential probing, or permission
+change belongs here.
 
 ## Host-level fallback (shared note)
 
