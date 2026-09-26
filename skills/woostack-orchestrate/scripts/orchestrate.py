@@ -2895,6 +2895,17 @@ def stack_requirement(admitted, task, readiness, state, repo):
     members = []
     for task_id in task["execution_ancestry"]:
         item = state["tasks"][task_id]
+        if item["status"] == "satisfied":
+            ancestor = next(entry for entry in admitted["tasks"] if entry["task_id"] == task_id)
+            landed = ancestor.get("own_availability")
+            require(isinstance(landed, dict) and landed.get("kind") == "merged"
+                    and landed == item.get("satisfaction") and item.get("lifecycle_error") is None
+                    and landed["branch"] == admitted["integration"]["branch"]
+                    and contains(repo, landed["revision"], admitted["integration"]["sha"])
+                    and contains(repo, landed["revision"], readiness["parent"]["sha"]),
+                    "base-satisfaction-unverified",
+                    "execution ancestor lacks verified landed containment in the selected parent")
+            continue
         satisfaction = prerequisite_satisfaction(
             item, task, repo, lifecycle=item.get("lifecycle"), canonical=admitted["canonical_repo"])
         if satisfaction["kind"] != "open":
@@ -3716,7 +3727,7 @@ def cmd_schedule(args):
         decision = decisions.get(tid) or item.get("parent_decision")
         try:
             readiness = parent_readiness(fresh, task, state, reservation, decision, args.git_repo, retained=repair)
-            required_stack = stack_requirement(admitted, task, readiness, state, args.git_repo)
+            required_stack = stack_requirement(fresh, task, readiness, state, args.git_repo)
         except InputError as error:
             blocked.append({"task_id": tid, "reason": error.code,
                             "next_action": "refresh canonical parent, PR, and Git evidence before retrying"})

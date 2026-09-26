@@ -642,7 +642,11 @@ class FakeGitHub:
 
     def stack_readback(self, task_id: str, admitted: Dict[str, Any]) -> Dict[str, Any]:
         task = next(item for item in admitted["tasks"] if item["task_id"] == task_id)
-        task_ids = [*task["execution_ancestry"], task_id]
+        task_ids = [
+            member_id for member_id in [*task["execution_ancestry"], task_id]
+            if (self.delivery.get(member_id, {}).get("lifecycle", {}).get("pr", {}).get("state")
+                != "merged")
+        ]
         members = []
         for member_id in task_ids:
             readback = self.readback(member_id)
