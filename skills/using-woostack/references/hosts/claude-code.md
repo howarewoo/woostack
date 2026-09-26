@@ -2,61 +2,73 @@
 
 ## Detection
 
-The `Task` tool with named subagent profiles (`general-purpose` is the plain worker) and a
-per-call `model` parameter; project rules load from `CLAUDE.md`.
-Discover authorized native GitHub capabilities exposed through Claude Code MCP configuration.
-Prefer a suitable native capability; host-authenticated GitHub CLI (`gh`) remains supported for
-explicit GitHub operations under the selected workflow's admission. Discover actual GitHub operation
-capabilities and read/write shapes rather than assuming tool names or schemas. Never use custom
-HTTP/REST/GraphQL transport or fallback tokens. GitHub operations follow the canonical
-[artifact backends contract](../../../woostack-init/references/artifact-backends.md) and
-[GitHub profile](../../../woostack-init/references/artifact-providers/github.md#configuration-and-scope).
+Claude Code's subagent spawn tool, documented as `Agent` in the
+[tools reference](https://code.claude.com/docs/en/tools-reference) and called `Task` in older
+builds; project rules load from `CLAUDE.md`. Discover authorized native GitHub capabilities exposed
+through Claude Code MCP configuration; the shared capability and authentication contract lives in
+the [host index](README.md#github-capability-and-authentication-shared).
+Native explicit skill invocation is `/woostack-execute`
+([skills](https://code.claude.com/docs/en/skills)); every form is listed in the
+[host index](README.md#native-skill-invocation).
 
 ## Subagent spawn
 
-- **Primitive:** `Task` tool; dispatch every independent task in one turn and let the host
-  handle concurrency.
-- **Per-call model/effort knob:** yes — pass the resolved model (and effort form where the
-  model family carries one) explicitly on every spawn.
-- **Per-call cwd:** no (the `Agent`/`Task` spawn takes no cwd) — fill the dispatch-prompt
-  worktree pin; the subagent self-pins and aborts if not in `$wt`.
-- **Worker profile:** plain `general-purpose` for fan-out workers; never a skill-scoped
-  profile.
+Inspect the active spawn tool's schema before dispatch. A call that omits `subagent_type` fails
+when the session has no `general-purpose` subagent to fall back on.
+
+- **Primitive:** the subagent spawn tool; independent tasks run concurrently and the host schedules
+  them. A session without the spawn tools offers no subagent primitive.
+- **Per-call model:** documented — Claude Code can pass a `model` parameter for a specific
+  invocation, and resolves the subagent model in this order: that per-invocation parameter, the
+  subagent definition's `model` frontmatter (`inherit` selects the session model),
+  `CLAUDE_CODE_SUBAGENT_MODEL`, then the session model
+  ([subagents](https://code.claude.com/docs/en/sub-agents)). Pass the resolved model when the
+  active schema carries the parameter and the caller's policy requires it.
+- **Per-call effort:** not documented for a single invocation — `effort` is a subagent-definition
+  and session field. Treat a per-call effort argument as absent unless the active schema shows one.
+- **Per-call cwd:** not documented — fill the dispatch-prompt worktree pin and require the worker to
+  verify it before writing. A subagent *definition* can request `isolation: worktree`; that is a
+  definition choice, not a per-call working directory.
+- **Worker profile:** select a discovered subagent whose observed capabilities fit the task;
+  `general-purpose` is the plain write-capable worker, and read-only profiles suit exploration and
+  review only. Never a skill-scoped profile.
 
 ## Tier routing
 
-**Per-call routing.** Resolve the caller's effective tier through the active provider's column in
-[`../model-tiers.md`](../model-tiers.md) plus its override precedence, and **pass everything
-the resolved tier specifies on every spawn** (the pass-or-inherit law lives in the
-dispatching skill).
+**Per-call routing when the parameter is available.** Resolve the caller's effective tier through
+the active provider's column in [`../model-tiers.md`](../model-tiers.md) plus its override
+precedence, and pass everything the resolved tier specifies when the active schema supports the
+exact field (the pass-or-inherit law lives in the dispatching skill).
 
 ## Host-level fallback
 
-None documented — Claude Code applies no host-owned usage-limit failover to spawned
-subagents; provider exhaustion surfaces as errors on the spawn. Recovery is account-level
-(plan limits), outside woostack's scope.
-`models.<tier>` fallback lists (entries 1..n) are a documented preference order only on this
-host — no spawn-time auth probe exists, so the consumer switches manually (promote an entry
-to entry 0, or re-run after editing config).
+None documented — provider exhaustion surfaces as an error on the spawn; recovery is account-level
+(plan limits), outside woostack's scope. `models.<tier>` fallback lists (entries 1..n) are a
+documented preference order only on this host, so the
+[shared fallback note](README.md#host-level-fallback-shared-note) applies.
 
 ## Per-skill notes
 
-- **woostack-execute:** the no-per-call-cwd case — prompt pin + self-pin guard —
-  is the normal path here.
-- **woostack-commit (fast drafting):** route the drafting subagent at the `fast` tier
-  per-call.
+- **woostack-execute:** the no-per-call-cwd case — prompt pin plus self-pin guard — is the normal
+  path here.
+- **woostack-commit (fast drafting):** route the drafting subagent at the `fast` tier when the
+  active schema carries the model parameter.
 - **woostack-orchestrate (parallel dispatch):** for each schedule packet, dispatch one
-  delivery-capable `general-purpose` worker through `Task` with the prompt worktree pin. Pass
-  `workspace`, `branch`, `parent_branch`, `parent_sha`, child issue URL, and packet
+  delivery-capable worker through the spawn tool with the prompt worktree pin. Pass `workspace`,
+  `branch`, `parent_branch`, `parent_sha`, child issue URL, and packet
   `bounded_input`/`acceptance`/`checks` as the complete Execute contract. Clamp `effective_cap`
-  to host capability, batch and refill as workers complete; the self-pin guard applies per worker.
-  A serialize-only mode runs at concurrency one with a clear notice; without `Task`, block rather
-  than executing inline.
+  to host capability, batch and refill as workers complete, and apply the self-pin guard per
+  worker. A serialize-only mode runs at concurrency one with a clear notice; without a subagent
+  spawn primitive, block rather than executing inline.
 
 ## Degradation
 
-A spawn that cannot carry `model` → the subagent inherits the session model: run it, and say
-so (degraded), per the inline law of the dispatching skill.
-If no authorized GitHub interface (native capability or host-authenticated `gh`) supports a
-required operation capability, fail closed for required GitHub boundaries; for optional operations,
-report the missing capability per the canonical artifact contract.
+A spawn that cannot carry the resolved model runs on the host's next source in its documented
+inheritance order — the subagent definition, `CLAUDE_CODE_SUBAGENT_MODEL`, or the session model —
+and the run says so once (degraded), per the inline law of the dispatching skill. A session that
+disables per-invocation model selection, such as `CLAUDE_CODE_SUBAGENT_MODEL_FORCE`, is that same
+documented case. A missing required delivery, isolation, identity-correlation, review, or recovery
+capability blocks the owning operation per the
+[conditional mechanics](README.md#conditional-mechanics-shared); a missing authorized GitHub
+interface follows the
+[shared GitHub contract](README.md#github-capability-and-authentication-shared).

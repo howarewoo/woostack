@@ -1,19 +1,23 @@
 ---
 title: Cursor / Composer
-description: Parallel dispatch with session-model tier collapse.
+description: Parallel dispatch whose routing depends on the active runtime's schema.
 ---
 
-Cursor's Composer runtime can run independent workers in parallel. Woostack cannot select a model
-or reasoning effort separately for each worker, so every task uses the session model. To change
-the model used for a requested tier, change the session model before the run. Woostack reports
-when a requested tier cannot be routed separately.
+Cursor's Composer runtime can run independent workers in parallel. No official Cursor dispatch
+parameter surface is verified in woostack, so treat model and effort selection as unavailable until
+the active runtime exposes a matching field. Until then every task uses the session model; to change
+the model used for a requested tier, change the session model before the run. Woostack reports when
+a requested tier cannot be routed separately.
 
-Cursor also cannot set a separate working directory for each worker. The task prompt names the
-expected worktree, the separate checkout assigned to that task, and the worker must use it before
-writing.
+Cursor also has no documented per-worker working directory. The task prompt names the expected
+worktree, the separate checkout assigned to that task, and the worker must use it before writing.
 
 If the provider's usage limit is exhausted, the worker returns an error. No automatic fallback
-managed by Cursor is documented.
+managed by Cursor is documented, and configured fallback entries are a manual preference order.
+
+Use your Cursor's own documented way to invoke a skill explicitly; a `/woostack-*` example in this
+documentation names the logical command, and no Cursor-specific invocation form is recorded in the
+[host reference](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/hosts/README.md#native-skill-invocation).
 
 For detection, worker behavior, per-skill instructions, and fallback rules, read the
 [canonical Cursor reference](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/hosts/cursor.md).

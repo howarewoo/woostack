@@ -4,13 +4,14 @@
 
 Use this adapter inside an active Oh My Pi session. Discover the actual `task`, `hub`, and related
 capabilities available in the session. Discover authorized native GitHub capabilities through
-registered session tools or tool routes. Prefer a suitable native capability; host-authenticated
-GitHub CLI (`gh`) remains supported for explicit GitHub operations under the selected workflow's
-artifact admission. Discover actual GitHub operation capabilities and read/write shapes rather than
-assuming tool names or schemas. Never use custom HTTP/REST/GraphQL transport or fallback tokens.
-GitHub operations follow the canonical
-[artifact backends contract](../../../woostack-init/references/artifact-backends.md) and
-[GitHub profile](../../../woostack-init/references/artifact-providers/github.md#configuration-and-scope).
+registered session tools or tool routes; the shared capability and authentication contract lives in
+the [host index](README.md#github-capability-and-authentication-shared), and this host's own
+discovery surface is the session's registered tools and routes.
+Native explicit skill invocation is `/skill:woostack-execute`: interactive mode registers one
+slash command per discovered skill when `skills.enableSkillCommands` is enabled, and
+`/skill:<name> [args]` injects that skill's content
+([skills](https://github.com/can1357/oh-my-pi/blob/main/docs/skills.md)). Every form is listed in
+the [host index](README.md#native-skill-invocation).
 
 When a woostack skill is invoked, rename the active session with a concise title derived from the
 user's current goal. For `woostack-prepare` and `woostack-execute`, derive the title from the user's
@@ -30,12 +31,16 @@ blocking.
 ## Subagent spawn
 
 OMP's `task` primitive accepts an existing worker selector. It does not expose a per-call model,
-tier, or working-directory argument to Woostack. Effort is conditional: when the host setting
-`task.enableEffort` is enabled, the active schema adds optional `effort` with exactly `"lo"`,
-`"med"`, or `"hi"`; otherwise that field is absent. Inspect the active task schema or tool
-description before dispatch. Woostack does not enable host settings or set this optional effort
-field. OMP owns effort selection; record verified host effort evidence separately rather than
-translating repository model-tier values into the host knob.
+tier, or working-directory argument to Woostack: OMP's model precedence for task dispatch is the
+`task.agentModelOverrides` setting, then the agent frontmatter `model` list, then the parent's
+active model, and the task wire schema exposes no model field at all
+([task-agent discovery](https://github.com/can1357/oh-my-pi/blob/main/docs/task-agent-discovery.md)).
+Effort is conditional: when the host setting `task.enableEffort` is enabled (default `false`), the
+active schema adds optional `effort` with exactly `"lo"`, `"med"`, or `"hi"`; otherwise that field
+is absent. Inspect the active task schema or tool description before dispatch. Woostack does not
+enable host settings or set this optional effort field. OMP owns effort selection; record verified
+host effort evidence separately rather than translating repository model-tier values into the host
+knob.
 
 The conditional schema and setting are documented in OMP's [task-agent discovery reference](https://github.com/can1357/oh-my-pi/blob/main/docs/task-agent-discovery.md)
 and implemented by [`task/types.ts`](https://github.com/can1357/oh-my-pi/blob/main/packages/coding-agent/src/task/types.ts).
@@ -47,11 +52,10 @@ All subagents spawned via `task` run in-process within the same OMP harness sess
 in-memory IPC, queues, and tool bridges. External tools (such as Orca) cannot manage subagent
 processes because inter-agent coordination depends on this in-process harness.
 
-Select only an agent actually returned by session discovery. The current OMP inventory exposes:
-
-- `task` — the write-capable general-purpose agent for implementation and delivery work;
-- `scout` — a read-only agent for exploration and source analysis; and
-- `reviewer` and `security-reviewer` — read-only agents for independent review.
+Select only an agent actually returned by session discovery. OMP's bundled set includes `task` —
+the write-capable general-purpose agent for implementation and delivery work — `scout` for
+read-only exploration, and `reviewer` and `security-reviewer` for read-only review. A session can
+expose more.
 
 These are host-owned agents, not woostack definitions. Do not create, install, rename, alias, or
 persist a replacement catalog. If the active session exposes a different name, use that discovered
@@ -106,31 +110,18 @@ subagent and Execute must not gain orchestration responsibilities.
   inline when that optional capability is unavailable. Commit remains responsible for its own
   source-control and PR evidence.
 
-## Safe cleanup of retired generated definitions
+## Retired generated definitions
 
 `woostack-init` no longer creates `.omp/agents/` files or installs an agent-specific ignore rule.
-Existing files are user content and are not inspected or repaired by Init or Doctor. Cleanup is
-optional and manual; do not add a migration subsystem for it.
+Existing files are user content and are not inspected or repaired by Init or Doctor. Their absence
+is normal and never a failure.
 
-To remove only unchanged files generated by the retired provisioner, resolve the selected consumer
-repository to a canonical root and confirm each candidate was created by an older Woostack Init.
-An exact byte match is required but is not, by itself, proof of ownership. Obtain the historical
-provisioner from a separately verified `howarewoo/woostack` checkout at pre-retirement commit
-`cb3bbdc5789677bef2628390361ec9aa42e4827a`; do not assume that commit exists in the consumer
-repository. If the trusted source is unavailable, preserve the files for manual review.
-
-Generate expected bytes in a separate temporary directory whose absolute path is canonicalized
-before invoking the historical provisioner. Never run it against the consumer repository.
-Reject symlinked consumer `.omp` or `agents` directories. Compare each candidate with `cmp` and
-remove only a regular, non-symlink `.omp/agents/woostack-{fast,standard,deep}.md` file whose bytes
-match exactly and whose generated provenance is confirmed. Skip missing, modified, malformed,
-user-authored, or symlinked files. Keep every other agent and configuration entry.
-
-Leave `.omp/agents/.gitignore` and unrelated ignore entries unchanged unless a user has separately
-confirmed, by provenance rather than filename, that a standalone `woostack-*.md` line was generated
-by Woostack. Any ambiguous, modified, symlinked, or user-owned entry stays in place for manual
-review. Repeating the comparison/removal is idempotent and never follows or deletes a symlink
-target.
+When a selected repository still holds `.omp/agents/woostack-{fast,standard,deep}.md` from the
+retired provisioner, follow the manual, user-initiated cleanup recipe in the
+[OMP harness guide](https://github.com/howarewoo/woostack/blob/main/site/content/docs/harnesses/omp.md#previously-generated-agent-definitions).
+That recipe requires exact-byte plus provenance proof before any removal and never touches
+user-authored or symlinked files. Woostack never runs it: cleanup stays optional and manual, with no
+migration subsystem.
 
 ## Degradation
 
@@ -153,6 +144,6 @@ work. Never claim worker coverage, test success, GitHub success, or delivery wit
 Session-naming degradation is non-blocking: if `woostack_rename_session` is unavailable or fails,
 emit one concise warning and proceed with the workflow.
 
-If no authorized GitHub interface (native capability or host-authenticated `gh`) supports a
-required operation capability, fail closed for required GitHub boundaries; for optional operations,
-report the missing capability per the canonical artifact contract.
+If no authorized GitHub interface supports a required operation, the
+[shared GitHub contract](README.md#github-capability-and-authentication-shared) decides the
+outcome.
