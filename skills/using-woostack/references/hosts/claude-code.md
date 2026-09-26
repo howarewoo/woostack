@@ -42,10 +42,9 @@ exact field (the pass-or-inherit law lives in the dispatching skill).
 
 ## Host-level fallback
 
-None documented — provider exhaustion surfaces as an error on the spawn; recovery is account-level
-(plan limits), outside woostack's scope. `models.<tier>` fallback lists (entries 1..n) are a
-documented preference order only on this host, so the
-[shared fallback note](README.md#host-level-fallback-shared-note) applies.
+None documented — provider exhaustion surfaces as an error on the spawn, and recovery is
+account-level (plan limits), outside woostack's scope. The
+[shared fallback note](README.md#host-level-fallback-shared-note) applies to `models.<tier>` lists.
 
 ## Per-skill notes
 
