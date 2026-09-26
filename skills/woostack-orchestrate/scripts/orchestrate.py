@@ -12,7 +12,12 @@ from graphlib import CycleError, TopologicalSorter
 import hashlib
 import json
 import os
-import fcntl
+try:
+    import fcntl
+except ModuleNotFoundError as error:
+    if error.name != "fcntl":
+        raise
+    fcntl = None
 from pathlib import Path
 import re
 import secrets
@@ -74,6 +79,25 @@ class InputError(Exception):
 def require(condition, code, message):
     if not condition:
         raise InputError(code, message)
+
+def require_environment():
+    """Reject missing Unix primitives before a command can change ownership or state."""
+    for module, names in (
+        (fcntl, ("flock", "LOCK_EX", "LOCK_UN")),
+        (os, ("O_DIRECTORY", "O_NOFOLLOW", "O_RDONLY", "O_RDWR", "O_CREAT",
+              "getuid", "open", "fstat", "fsync", "replace", "link", "close", "unlink")),
+    ):
+        for name in names:
+            if module is None or not hasattr(module, name):
+                capability = "fcntl" if module is None else f"{module.__name__}.{name}"
+                raise InputError("unsupported-environment",
+                                 f"Missing {capability}; run in an environment with the required "
+                                 "Unix locking, ownership, and no-follow filesystem primitives")
+    if os.link not in getattr(os, "supports_follow_symlinks", ()):
+        raise InputError("unsupported-environment",
+                         "Missing os.link(follow_symlinks=False); run in an environment with "
+                         "the required Unix locking, ownership, and no-follow filesystem primitives")
+
 
 
 def text(value):
@@ -4333,6 +4357,7 @@ def parser():
 def main():
     args = parser().parse_args()
     try:
+        require_environment()
         result = args.run(args)
         print(json.dumps({"ok": True, **result}, indent=2, sort_keys=True))
         return 0

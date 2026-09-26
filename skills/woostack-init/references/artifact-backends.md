@@ -127,6 +127,11 @@ Retained records stay readable through the installed
 python3 <init-skill>/scripts/run-store.py --repo <canonical-repo-root> --run <exact-run-id> read [--artifact manifest|spec|plan]
 ```
 
+This optional reader requires Python 3, Git, and Unix/POSIX `fcntl` locking, owner checks,
+directory-descriptor operations, and no-follow filesystem primitives. Missing capabilities fail
+before reading a record; this requirement does not apply to portable skill Markdown or the entire
+Init command. Filesystem errors after preflight still fail closed.
+
 The earlier `init`, `update`, `write-spec`, and `write-plan` mutating commands are retired: no active
 workflow allocates, resumes, or rewrites a run, and the reader rejects every removed command before
 any filesystem access, with no replacement writer.

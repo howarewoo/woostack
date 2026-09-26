@@ -33,6 +33,27 @@ from recording_driver import (
     make_result,
 )
 
+HELPER = Path(__file__).resolve().parents[1] / "orchestrate.py"
+UNAVAILABLE_RUNNER = '''import builtins
+import os
+import runpy
+import sys
+
+path, missing, *args = sys.argv[1:]
+if missing == "fcntl":
+    original = builtins.__import__
+    def without_fcntl(name, *arguments, **kwargs):
+        if name == "fcntl":
+            raise ModuleNotFoundError("No module named 'fcntl'", name="fcntl")
+        return original(name, *arguments, **kwargs)
+    builtins.__import__ = without_fcntl
+else:
+    delattr(os, missing)
+sys.argv = [path, *args]
+runpy.run_path(path, run_name="__main__")
+'''
+
+
 FAULT_RUNNER = '''"""Run the shipped helper with one deterministic interruption installed.
 
 The behavioral suite crosses a real subprocess boundary for every controller
@@ -66,6 +87,7 @@ elif fault == "die-before-claim-publication":
         return original_link(source, target, **kwargs)
 
     helper.os.link = die_before_link
+    os.supports_follow_symlinks.add(die_before_link)
 elif fault == "die-after-claim-publication":
     original_fsync_parent = helper._fsync_parent
 
@@ -112,6 +134,42 @@ class OrchestrateBehavior(unittest.TestCase):
         else:
             os.environ["WOOSTACK_ORCHESTRATE_TRANSPORT_LOG"] = self.old_transport_log
         shutil.rmtree(self.tmp, ignore_errors=True)
+
+    def _filesystem(self):
+        """Compare the complete disposable repository and inputs, including directory modes."""
+        return {
+            str(path.relative_to(self.tmp)): (
+                "directory" if path.is_dir() else path.read_bytes(),
+                path.stat().st_mode & 0o777,
+            )
+            for path in self.tmp.rglob("*")
+        }
+
+    def test_missing_unix_capabilities_reject_before_admission_or_scheduling(self):
+        snapshot = self._write_json("environment-snapshot.json", self.github.snapshot())
+        admitted_path, _ = self._admit_issue()
+        fresh = self._write_json("environment-fresh.json", self.github.snapshot())
+        for operation, arguments in (
+            ("admit", ["admit", "--snapshot", str(snapshot), "--git-repo", str(self.repo)]),
+            ("schedule", ["schedule", "--admitted", str(admitted_path),
+                          "--fresh", str(fresh), "--state-out", str(self.tmp / "blocked-state.json"),
+                          "--git-repo", str(self.repo)]),
+        ):
+            for missing in ("fcntl", "O_NOFOLLOW", "O_DIRECTORY", "getuid", "fsync"):
+                with self.subTest(operation=operation, missing=missing):
+                    before = self._filesystem()
+                    worktrees = self._run(["git", "-C", str(self.repo), "worktree", "list", "--porcelain"])
+                    result = subprocess.run(
+                        [sys.executable, "-c", UNAVAILABLE_RUNNER, str(HELPER), missing, *arguments],
+                        capture_output=True, text=True, timeout=20)
+                    self.assertNotEqual(result.returncode, 0)
+                    self.assertEqual(result.stderr, "")
+                    self.assertEqual(json.loads(result.stdout)["error"], "unsupported-environment")
+                    self.assertIn(missing, json.loads(result.stdout)["message"])
+                    self.assertIn("Unix", json.loads(result.stdout)["message"])
+                    self.assertEqual(self._filesystem(), before)
+                    self.assertEqual(self._run(["git", "-C", str(self.repo), "worktree", "list",
+                                                "--porcelain"]), worktrees)
 
     @staticmethod
     def _run(command: Sequence[str], *, cwd: Optional[Path] = None) -> str:
