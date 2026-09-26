@@ -19,19 +19,19 @@ Existing records from retired planning wrappers may contain:
 └── execution-plan.md
 ```
 
-The [artifact contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-backends.md#retained-data-and-retirement)
-defines historical naming, owner-only permissions, locking, compare-and-swap revisions, and collision
-handling. Do not create, rewrite, migrate, or delete a retained record as part of Prepare or Plan.
+The [artifact contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-backends.md#owner-only-local-run-store-reader)
+defines historical naming, owner-only permissions, locking, and the exact read-only interface. Do
+not create, rewrite, migrate, or delete a retained record as part of Prepare or Plan.
 
 | Entry | Historical purpose |
 | --- | --- |
-| `.lock` | Prevents concurrent retained-record operations from overwriting each other. |
+| `.lock` | Guards concurrent access to one retained record. |
 | `manifest.json` | Retained resume state, stable task mappings, and revisions. |
 | `project-spec.md` | Retained approved specification and, where applicable, proved diagnosis. |
 | `execution-plan.md` | Retained increments, contracts, and dependencies. |
 
-Historical records use owner-only permissions and atomic compare-and-swap writes when their owning
-legacy operation is explicitly selected. Their presence is evidence, not permission or authority.
+Historical records keep their owner-only permissions; the retired mutating helper no longer exists,
+so they stay exactly as written. Their presence is evidence, not permission or authority.
 
 ## Authority and recovery
 

@@ -87,10 +87,10 @@ mode instead.
 
 Existing `.woostack/tmp/runs/`, legacy drafts, manifests, locks, reports, and remote records are
 user data. Init does not import, rewrite, delete, or recreate wrappers from them. The
-[`run-store.py`](scripts/run-store.py) safety contract remains available to the callers that still
-need exact retained-data reads: containment, no-follow checks, private permissions, locking,
-complete writes, atomic rename, directory flush, and compare-and-swap read-back remain mandatory.
-Unknown or partial outcomes stop at the last independently read boundary.
+[`run-store.py`](scripts/run-store.py) reader returns their exact retained bytes under the
+[artifact contract](references/artifact-backends.md#owner-only-local-run-store-reader): it never
+creates, mutates, or deletes a record. Unknown or partial outcomes stop at the last independently
+read boundary.
 
 ## Hard constraints
 
