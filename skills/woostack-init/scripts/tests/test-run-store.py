@@ -52,6 +52,9 @@ class RunStoreTests(unittest.TestCase):
     def seed(self, manifest=None, spec=None, plan=None):
         """Write one pre-existing legacy record the reader can admit; no retired writer is used."""
         self.run_dir.mkdir(parents=True, mode=0o700, exist_ok=True)
+        for directory in (self.root / ".woostack", self.root / ".woostack/tmp",
+                          self.root / ".woostack/tmp/runs", self.run_dir):
+            directory.chmod(0o700)
         for name, data in ((".lock", b""), ("manifest.json", manifest),
                            ("project-spec.md", spec), ("execution-plan.md", plan)):
             if data is None:
@@ -81,10 +84,11 @@ class RunStoreTests(unittest.TestCase):
                 for path in self.run_dir.iterdir()}
 
     def test_valid_reads_return_the_exact_retained_bytes(self):
-        self.record()
+        manifest_bytes = json.dumps(self.manifest, indent=2, ensure_ascii=False).encode() + b"\n"
+        self.seed(manifest_bytes, self.spec, self.plan)
         before = self.state()
-        self.assertEqual(json.loads(self.cli("read")), self.manifest)
-        self.assertEqual(json.loads(self.cli("read", "--artifact", "manifest")), self.manifest)
+        self.assertEqual(self.cli("read"), manifest_bytes)
+        self.assertEqual(self.cli("read", "--artifact", "manifest"), manifest_bytes)
         self.assertEqual(self.cli("read", "--artifact", "spec"), self.spec)
         self.assertEqual(self.cli("read", "--artifact", "plan"), self.plan)
         self.assertEqual(self.state(), before)
@@ -109,7 +113,8 @@ class RunStoreTests(unittest.TestCase):
     def test_missing_run_lock_manifest_and_artifact_reject_without_creation(self):
         self.cli("read", success=False)
         self.assertFalse((self.root / ".woostack").exists())
-        self.run_dir.mkdir(parents=True, mode=0o700)
+        self.seed()
+        (self.run_dir / ".lock").unlink()
         self.cli("read", success=False)
         self.assertEqual(sorted(path.name for path in self.run_dir.iterdir()), [])
         self.seed(None, self.spec)
