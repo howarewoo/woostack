@@ -27,11 +27,8 @@ woostack rules only when the dispatch requires them.
 
 The user's request and explicit decisions authorize work. Repository and GitHub records are evidence,
 not permission. Do not initialize `.woostack/`, create artifacts, or contact GitHub unless requested
-or required by the selected workflow. Workflows that publish or inspect GitHub load the
- [artifact contract](../woostack-init/references/artifact-backends.md#direct-publication-and-recovery) and
-the [GitHub profile](../woostack-init/references/artifact-providers/github.md#configuration-and-scope).
-The contract owns retained legacy data and recovery; the profile owns direct GitHub scope, identities,
-capabilities, and read-back. Retired managed-provider data is never imported or reinterpreted.
+or required by the selected workflow. The selected workflow loads the references its own operation
+needs; routing alone loads none. Retired managed-provider data is never imported or reinterpreted.
 
 ## Command routing
 
@@ -74,16 +71,11 @@ proof before correction. Planning phases never edit source, commit, submit a PR,
 An exact task-bearing GitHub issue URL alone, or `/woostack-execute --issue <url>`, routes to
 Execute: it reads the selected issue and resolves one bounded task before implementation. Inline
 task instructions remain valid with or without an issue association. For work that spans multiple
-tasks, Orchestrate interprets the conversation, repository, and available GitHub records, separates
-executable tasks from context, constructs a bounded technical dependency DAG with provenance, and
-then selects a model-chosen single-parent execution forest before branch/worktree allocation. Added
-ordering is compatibility evidence, not native relationship evidence; technical prerequisites remain
-visible separately, useful parallelism is retained, and effective prerequisites govern readiness
-and repair propagation. Orchestrate asks a focused question when material ambiguity remains. Issue,
+tasks, Orchestrate interprets the available conversation, repository, and GitHub context and owns
+its own resolution, dependency, and recovery procedure; the router does not restate it. Issue,
 issue-list, and Project arguments are convenience interpretation hints, not exhaustive admission
-types; native links and declared edges are evidence when present, not prerequisites for understanding
-tracker content. A Project is included only when explicitly selected; its status lifecycle is used
-only when that selection requests status mutation.
+types. A Project is included only when explicitly selected; its status lifecycle is used only when
+that selection requests status mutation.
 
 Ordinary questions about work progress use available authorized GitHub reads or the GitHub UI:
 issues, native relationships when present, and linked pull requests and Git evidence describe planned

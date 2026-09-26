@@ -23,8 +23,9 @@ pnpx skills add howarewoo/woostack
 ```
 
 
-The public commands are listed in [AGENTS.md](AGENTS.md#what-this-repo-is), including the directly
-callable Ideate, Harden, and planning-only Prepare composition.
+The public commands are listed in the
+[command index](skills/using-woostack/SKILL.md#command-routing), including the directly callable
+Ideate, Harden, and planning-only Prepare composition.
 
 For frontend work, you can also install [impeccable](https://github.com/pbakaus/impeccable).
 woostack recommends it for design reviews:

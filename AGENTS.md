@@ -6,221 +6,113 @@ single source of truth across agents.
 
 ## What this repo is
 
-This is a published collection of skills, not an application codebase. It packages
-decisions for building new web, mobile, and API projects so agents can install it with
-`pnpx skills add howarewoo/woostack`.
+This is a published collection of skills, not an application codebase. It packages decisions for
+building new web, mobile, and API projects so agents can install it with
+`pnpx skills add howarewoo/woostack`. The public command/adoption catalog and routing table live in
+[`using-woostack`](skills/using-woostack/SKILL.md#command-routing); this file owns standing
+policy, not the catalog.
 
-The public command/adoption surface has seventeen skills:
+The documentation site [`site/`](site/) is a shipped Fumadocs (Next.js) application subtree and
+the one sanctioned exception to this repository's no-application-code rule. Its `package.json`,
+`pnpm-lock.yaml`, and build config live there; its per-skill reference pages are **generated**
+from `skills/*/SKILL.md` at build time and gitignored, so only the app shell and authored framing
+pages are committed. [`site/AGENTS.md`](site/AGENTS.md) owns that subtree and
+[`site/README.md`](site/README.md) covers local development and deploy notes. Outside `site/`, this
+repository has no application source code, app lockfile, build, or CI for its own push/PR events,
+and `skills-lock.json` is the dev-skill manifest.
 
-- [`using-woostack`](skills/using-woostack/SKILL.md)
-- [`woostack-init`](skills/woostack-init/SKILL.md)
-- [`woostack-bootstrap`](skills/woostack-bootstrap/SKILL.md)
-- [`woostack-ideate`](skills/woostack-ideate/SKILL.md)
-- [`woostack-harden`](skills/woostack-harden/SKILL.md)
-- [`woostack-prepare`](skills/woostack-prepare/SKILL.md)
-- [`woostack-plan`](skills/woostack-plan/SKILL.md)
-- [`woostack-orchestrate`](skills/woostack-orchestrate/SKILL.md)
-- [`woostack-execute`](skills/woostack-execute/SKILL.md)
-- [`woostack-commit`](skills/woostack-commit/SKILL.md)
-- [`woostack-address-comments`](skills/woostack-address-comments/SKILL.md)
-- [`woostack-visualize`](skills/woostack-visualize/SKILL.md)
-- [`woostack-design`](skills/woostack-design/SKILL.md)
-- [`woostack-debug`](skills/woostack-debug/SKILL.md)
-- [`woostack-doctor`](skills/woostack-doctor/SKILL.md)
-- [`woostack-qa`](skills/woostack-qa/SKILL.md)
-- [`woostack-reflect`](skills/woostack-reflect/SKILL.md)
-
-Ideate and Harden are public standalone phases and composable callers for Prepare. They exchange
-complete plain content with explicit repository/evidence identity; no run manifest or wrapper
-admission is required to invoke either one.
-
-Prepare is the planning-only composition for feature and defect preparation. It invokes the relevant
-public phases and ends at a verified GitHub issue graph; it never implements work or invokes
-Execute/Orchestrate.
-
-There is no application source code, app lockfile, build, or CI for this repo's own
-push/PR events. `skills-lock.json` is the dev-skill manifest and is currently empty.
-
-
-The user-facing documentation site: [`site/`](site/) is a shipped
-Fumadocs (Next.js) application subtree — the docs site for these skills. It is a shipped asset,
-not stray app code. Its `package.json`, `pnpm-lock.yaml`, and build config are the one sanctioned
-exception to the "no application source code / no app lockfile" rule above. Its per-skill reference
-pages are **generated** from `skills/*/SKILL.md` at build time and are gitignored; only the app shell
-and authored framing pages are committed. Deploy notes live in [`site/README.md`](site/README.md).
-Prepare and Plan use complete plain packets and direct GitHub issue publication as the planning
-handoff. Plan owns native issue/relationship publication; Orchestrate interprets the resulting
-work context and schedules bounded tasks, including tracker content whose native links are absent or
-incomplete. They do not create a local run, replacement work board, source branch, worktree, commit,
-pull request, or implementation worker. Existing `.woostack/tmp/runs/<run-id>/` records from
-retired workflows remain readable user data and are never migrated or mutated.
-
-An existing retained draft or issue may be supplied explicitly only with its exact identity,
-complete content, and fresh repository/evidence validation. It does not authorize publication,
-implementation, assignment, ownership, acceptance, or source-control action. Plan owns direct
-GitHub issue and relationship publication; Orchestrate owns scheduling and Execute owns bounded
-implementation and PR delivery.
-
-Retired managed-provider configuration and records remain opaque historical data; only explicitly
-selected direct GitHub operations use the surviving GitHub configuration. Prepare never relies on
-retained records or implicit remote publication.
+## Authority, evidence, and retained data
 
 The user's request and explicit conversation choices authorize repository work. Git and GitHub own
-source, branches, commits, pull requests, reviews, and merge evidence. Issue lifecycle alone never
-proves implementation, delivery, passing checks, review, or merge.
-`/woostack-init` may use only authorized native GitHub capabilities or host-authenticated `gh` for
-narrow automatic authenticated read-only discovery of non-secret repository/native-name defaults;
-it never selects persistence or authorizes a remote write. `.woostack/config.json` supplies
-validated GitHub defaults only after configuration is selected. Credentials remain in the host
-secret store, and local diagnostic reports remain non-authoritative. Goal-only `/woostack-execute`
-makes no development-artifact provider calls; an explicitly selected exact GitHub issue, including
-a URL-only invocation, permits only its documented read-only admission and Commit association.
-That selection supplies task data, not independent authority, and does not select Project
-publication or authorize unrelated work. Handoff, replanning, and blockers leave Project status
-unchanged.
+source, branches, commits, pull requests, reviews, and merge evidence; issue, tracker, or project
+lifecycle state never proves implementation, delivery, passing checks, review, or merge. The
+loaded skill owns its own provider calls, approval gates, persistence choices, and Project use.
 
-Explicit [`woostack-orchestrate`](skills/woostack-orchestrate/SKILL.md) execution interprets
-understandable work context from the conversation, repository, and GitHub records. It resolves the
-canonical repository, issue/task identities, executable tasks, and a bounded dependency DAG with
-provenance; it asks a focused question when material ambiguity remains. Native links and declared
-edges are evidence when present, not admission requirements. A Project is included only when
-explicitly selected; its status lifecycle is used only when that selection requests status mutation.
-Orchestrate owns scheduling and independent post-submission validation; each Execute worker owns
-one task's delivery through Commit. This preserves Prepare's planning-only boundary and does not
-grant merge authority.
+Retained local runs, drafts, and retired managed-provider records are historical user data, not
+authority: read them for recovery evidence and never migrate or mutate them. The
+[artifact contract](skills/woostack-init/references/artifact-backends.md#retained-data-and-retirement)
+owns that retained data, direct GitHub publication, and recovery. Non-secret defaults belong in
+`.woostack/config.json` only after configuration is selected, and credentials stay in the host
+secret store.
 
-External engineers such as Hermes are outside the installed woostack host/runtime surface. Hermes
-may drive one persistent OMP session as an external decision-maker and reviewer, but woostack is
-installed only in OMP or another coding harness. When Hermes participates in an active conversation,
-the responsible user's live response must be relayed verbatim; cross-session resume against retained
-unchanged local run artifacts does not require the original process to stay alive. The contract lives
-in the authored [Hermes guide](site/content/docs/hermes.mdx); it does not make Hermes a supported
-host or grant it implementation authority.
-
-This collection has seventeen public command/adoption skills at seventeen fixed `SKILL.md`
-locations. Direct GitHub integration adds neither a command-routing row nor a per-provider skill.
+External engineers such as Hermes are not a supported woostack host and grant no implementation
+authority; the [Hermes guide](site/content/docs/hermes.mdx) owns the relay and resume contract.
 
 ## Modes
 
 Identify the mode before acting.
 
-**Mode A: edit this skill collection.** Use this when updating skill Markdown, reference
-docs, HTML templates, supporting scripts, prompts, or JSON config. Keep edits in skill assets;
-do not add application code, app build configs, or app lockfiles **outside the sanctioned
-[`site/`](site/) docs-app subtree** (see the documentation-site exception above). Editing
-`site/` is also Mode A.
+**Mode A: edit this skill collection.** Use this when updating skill Markdown, reference docs,
+HTML templates, supporting scripts, prompts, or JSON config. Keep edits in skill assets; do not add
+application code, app build configs, or app lockfiles **outside the sanctioned [`site/`](site/)
+docs-app subtree**. Editing `site/` is also Mode A.
 
-**Mode B: run a woostack command.** Use this when the user asks for `/woostack-init`,
-`/woostack-bootstrap`, `/woostack-ideate`, `/woostack-harden`, `/woostack-prepare`,
-`/woostack-plan`, `/woostack-orchestrate`, `/woostack-execute`,
-`/woostack-commit`, `/woostack-address-comments`, `/woostack-visualize`,
-`/woostack-design`, `/woostack-debug`, `/woostack-doctor`, `/woostack-qa`, or
-`/woostack-reflect`, including intent-equivalent wording. Load the matching skill before acting.
-For bootstrap work, the output belongs in a fresh repo in a different directory, not in this
-repo.
+**Mode B: run a woostack command.** When the user asks for a `/woostack-*` command or
+intent-equivalent wording, load the matching skill from the
+[command catalog](skills/using-woostack/SKILL.md#command-routing) before acting. For bootstrap
+work, the output belongs in a fresh repo in a different directory, not in this repo.
 
 ## Hard constraints
 
 - **Least code, still safe.** Skills — and the code they generate — write as little code as
-  necessary: understand the change first, then take the first rung that holds, preferring
-  deletion over addition and boring over clever — small because it is necessary, not golfed.
-  Never buy that smallness by cutting edge cases or risks: validation, error handling, security,
-  accessibility, and data-loss handling stay, and deliberate multi-layer safety redundancy is
-  kept, not DRY-removed. Full standard — the ladder, its deltas, comments, and magic-literal
-rules — is [`patterns.md §7`](skills/woostack-bootstrap/references/patterns.md#7-least-code--comments), enforced by
-the repository's simplify/comments guidance.
+  necessary: understand the change first, then take the first rung that holds, preferring deletion
+  over addition and boring over clever — small because it is necessary, not golfed. Never buy that
+  smallness by cutting edge cases or risks: validation, error handling, security, accessibility,
+  and data-loss handling stay, and deliberate multi-layer safety redundancy is kept, not
+  DRY-removed. Full standard — the ladder, its deltas, comments, and magic-literal rules — is
+  [`patterns.md §7`](skills/woostack-bootstrap/references/patterns.md#7-least-code--comments).
 - **Remove before add.** When relaxing or removing a repository restriction, delete the obsolete
   rule and its dependent explanations first. Add replacement text only when needed to preserve a
   necessary positive invariant; never enumerate behavior that is merely no longer forbidden.
-- No fabricated versions. When a skill or generated project needs a version, resolve it
-  live with `npm view <pkg> version` or an equivalent registry command.
-- No hidden tools. Do not invent CI, app tests, package scripts, or app build steps for this
-  repo.
-- Respect branch protection. `main` is protected and requires PRs; never force-push to
-  `main`.
+- No fabricated versions or invented commands. Resolve a needed version live with
+  `npm view <pkg> version` or an equivalent registry command, and do not invent CI, app tests,
+  package scripts, or app build steps for this repo.
+- **Protected main, PR workflow, authorized tooling.** `main` is protected and requires PRs. Use
+  native Git with an available authorized GitHub integration; prefer the host's native GitHub tools
+  when suitable and use host-authenticated `gh` where appropriate. Discover the actual capabilities
+  and preserve the [source-control contract](skills/woostack-commit/references/source-control.md);
+  backend errors stop the operation rather than trigger a fallback. Never force-push.
+- **Preserve user work and secrets.** Never commit `.env*`, secrets, generated app files, or
+  personal compressed prose, and treat local diagnostic reports as non-authoritative. Preserve
+  unrelated changes: never silently rebase, reset, clean, stash, delete, or overwrite work you have
+  not verified as yours.
 - **Merge authority is human-only.** Agents never mark a PR ready, enable auto-merge, enqueue it,
   merge it, or otherwise advance it toward merge. `Complete`, `deliver`, `execute`, passing
-  verification, approved artifacts, and accepted reviews mean submit or update a reviewable open
-  PR only. They do not grant merge authority. Even an explicit merge request conflicts with this
+  verification, approved artifacts, and accepted reviews mean submit or update a reviewable open PR
+  only. They do not grant merge authority. Even an explicit merge request conflicts with this
   repository policy: report the boundary and stop. Never run `gh pr ready`, `gh pr merge`, a
   merge-queue mutation, or an equivalent GitHub operation.
-- Use native Git with an available, authorized GitHub integration for source control; prefer the
-  host's native GitHub tools when suitable and use host-authenticated `gh` where appropriate.
-  Discover the actual capabilities and preserve the
-  [source-control contract](skills/woostack-commit/references/source-control.md).
-  Backend errors stop the operation rather than trigger a fallback. Never force-push.
-- Cross-link, do not duplicate. If a fact belongs in a reference file, link to it from
-  related docs instead of restating it.
+- Cross-link, do not duplicate. If a fact belongs in a reference file, link to it from related docs
+  instead of restating it.
 - Reference frameworks by name, not version, except in
-  [`frameworks.md`](skills/woostack-bootstrap/references/frameworks.md) when an
-  incompatibility forces an exact version.
-- Keep `SKILL.md` descriptions accurate and concise. The description drives discovery; the
-  workflow belongs in referenced docs.
+  [`frameworks.md`](skills/woostack-bootstrap/references/frameworks.md) when an incompatibility
+  forces an exact version.
+- Keep `SKILL.md` descriptions accurate and concise. The description drives discovery; the workflow
+  belongs in referenced docs.
 - Keep the docs site in sync. When a change alters what an **authored** [`site/`](site/) page
-  states — the skill surface or its count, the build loop and its gates, the core concepts, or
-  the getting-started flow — update the matching page under
+  states — the skill surface or its count, the build loop and its gates, the core concepts, or the
+  getting-started flow — update the matching page under
   [`site/content/docs/`](site/content/docs/) as part of the same change. The per-skill reference
-  pages need no manual edit: they regenerate from each `SKILL.md` at build time (see the
-  documentation-site exception above). When in doubt, run `pnpm -C site build` to confirm the
-  site still builds.
-- Do not move or rename any of the seventeen `SKILL.md` files without explicit approval. Public
-  command/adoption names and fixed paths are part of the installed interface. An explicitly
-  approved retirement removes the complete skill and its references. Retired Build, Fix, Change,
-  Status, and TDD packages have no compatibility aliases.
+  pages need no manual edit: they regenerate from each `SKILL.md` at build time. When in doubt, run
+  `pnpm -C site build`.
+- **Fixed public interface.** Do not move or rename a public `SKILL.md` without explicit approval.
+  Public command/adoption names and fixed paths are part of the installed interface, and the
+  [command catalog](skills/using-woostack/SKILL.md#command-routing) lists the current set. An
+  explicitly approved retirement removes the complete skill and its references. Retired Build, Fix,
+  Change, Status, and TDD packages have no compatibility aliases. Direct GitHub integration and
+  supporting utilities add neither a command-routing row nor a per-provider skill.
 - Do not rename files under
   [`skills/woostack-bootstrap/references/`](skills/woostack-bootstrap/references/) without
   updating every cross-link and the bootstrap skill table.
-- Do not commit `.env*`, secrets, generated app files, or personal compressed prose.
 
-## Quick file map
+## Checks
 
-- Project adoption and command routing:
-  [`skills/using-woostack/SKILL.md`](skills/using-woostack/SKILL.md)
-- Bootstrap decisions, architecture, frameworks, infrastructure, patterns, development, and
-  procedure:
-  [`skills/woostack-bootstrap/references/`](skills/woostack-bootstrap/references/)
-- Preparation and publication composition:
-  [`skills/woostack-prepare/SKILL.md`](skills/woostack-prepare/SKILL.md)
-- Public specification elicitation phase:
-  [`skills/woostack-ideate/SKILL.md`](skills/woostack-ideate/SKILL.md)
-- Public repository reconciliation phase:
-  [`skills/woostack-harden/SKILL.md`](skills/woostack-harden/SKILL.md)
-- Shared plain planning input and handback contract:
-  [`skills/using-woostack/references/planning-inputs.md`](skills/using-woostack/references/planning-inputs.md)
-- Plan-owned GitHub issue publication engine (public command):
-  [`skills/woostack-plan/SKILL.md`](skills/woostack-plan/SKILL.md)
-- Bounded task execution engine delivering one task through one PR (public command):
-  [`skills/woostack-execute/SKILL.md`](skills/woostack-execute/SKILL.md)
-- Evidence-led multi-task orchestration with model-resolved task and dependency context (public command):
-  [`skills/woostack-orchestrate/SKILL.md`](skills/woostack-orchestrate/SKILL.md)
-- Execute testing doctrine:
-  [`skills/woostack-execute/references/tdd.md`](skills/woostack-execute/references/tdd.md)
-- Exploratory browser QA engine (public command; drives a running app via the `agent-browser`
-  CLI, report-only findings under `.woostack/qa/`):
-  [`skills/woostack-qa/SKILL.md`](skills/woostack-qa/SKILL.md)
-- Session reflection (public report and internal final-reply hook):
-  [`skills/woostack-reflect/SKILL.md`](skills/woostack-reflect/SKILL.md)
-- Commit and PR update flow:
-  [`skills/woostack-commit/SKILL.md`](skills/woostack-commit/SKILL.md)
-- Systematic-debugging engine (public command + internal hook invoked by execute):
-  [`skills/woostack-debug/SKILL.md`](skills/woostack-debug/SKILL.md)
-- Visualization engine (audience-tailored HTML renders):
-  [`skills/woostack-visualize/SKILL.md`](skills/woostack-visualize/SKILL.md)
-- Design flow layout standard (standardized multi-step flow layouts):
-  [`skills/woostack-design/SKILL.md`](skills/woostack-design/SKILL.md)
-- Workspace health — diagnose + gated repair of `.woostack/`:
-  [`skills/woostack-doctor/SKILL.md`](skills/woostack-doctor/SKILL.md)
-- Address-comments delegator:
-  [`skills/woostack-address-comments/SKILL.md`](skills/woostack-address-comments/SKILL.md)
-- The work-tracking source of truth is canonical GitHub issue/task records, native relationships
-  when present, and associated pull requests; a model-resolved DAG is scheduling evidence rather
-  than a replacement work board. GitHub Project Status fields remain provider metadata. Inspect
-  those records directly. Retained local drafts and controller checkpoints record recovery evidence;
-  local run manifests record workflow progress and remain recovery artifacts. They are not permission
-  to implement.
-- Init workspace and repository policy contract:
-  [`skills/woostack-init/`](skills/woostack-init/)
-- Docs site — shipped Fumadocs app; authored framing pages plus the per-`SKILL.md` generator
-  (keep authored pages in sync with the skills, per Hard constraints):
-  [`site/`](site/), authored pages [`site/content/docs/`](site/content/docs/), deploy notes
-  [`site/README.md`](site/README.md)
+This repo has no universal test command or CI for its own PRs. [CONTRIBUTING.md](CONTRIBUTING.md)
+owns the editing workflow, the what-to-change table, and per-area guidance. The verified checks are:
+
+- `pnpm -C site test` and `pnpm -C site build` — catalog, generator, and docs-site structure.
+- `bash skills/woostack-orchestrate/scripts/tests/run-tests.sh` — production-controller behavior.
+- [On-demand workflow smoke recipes](skills/using-woostack/references/workflow-smoke.md) for
+  material Plan/Execute/Orchestrate changes.
+
+Run only the checks a change needs, and report an unrun check honestly instead of claiming it.

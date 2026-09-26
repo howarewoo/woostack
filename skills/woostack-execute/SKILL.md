@@ -175,8 +175,8 @@ text. Report repository delivery separately from association failure; preserve a
 verified PR rather than replaying submission or claiming complete associated delivery.
 
 Under that same owner section, independently read back the stack identity, trunk, ordered
-membership, and the affected PR heads/bases. Chained bases, matching branch names, or a `stack`
-word in prose prove nothing; an absent or unreadable stack read is a bounded incomplete delivery
+membership, and the affected PR heads/bases. Chained bases, matching branch names, or a `stack` word
+in prose prove nothing; an absent or unreadable stack read is a bounded incomplete delivery
 boundary, not a registered stack.
 
 New PRs are drafts; preserve existing readiness state. Never mark ready, enable auto-merge, enqueue,
@@ -185,14 +185,14 @@ conflicts with this boundary and must be reported, not executed.
 
 ## Recovery and return
 
-At interruption or any unknown commit, push, PR, or stack outcome, retain the workspace and last
-proved branch/parent/start/head, diff/index state, checks, known PR, and any observed stack identity,
-trunk, and membership. Re-read Git, remote refs, the complete canonical PR inventory, and that stack
-membership before retrying. Reuse matching commits when there is no new verified staged change, and
-reuse the one matching open PR and any already-correct stack membership. A lost creation response is
-not proof of absence. Conflicting/closed/merged PR state or incomplete discovery blocks rather than
-creating a replacement, changing the base, or creating a second stack. Resume only the first
-unproved boundary of the same task.
+At interruption or any unknown commit, push, PR, or stack outcome, retain the workspace, last proved
+branch/parent/start/head, diff and index state, checks, known PR, and any observed stack facts, then
+resume at the first unproved boundary under
+[bounded-delivery recovery](references/bounded-delivery.md#deliver-and-read-back-one-pr) and the
+[source-control recovery owner](../woostack-commit/references/source-control.md#read-back-and-recovery).
+A lost creation response is not proof of absence. Conflicting or closed PR state, ambiguous base
+intent, or incomplete discovery blocks rather than creating a replacement, changing a base, or
+creating a second stack.
 
 After complete delivery, retain the selected workspace unless its owner explicitly supplies a safe
 lifecycle operation. Preserve supplied, external, and user-owned workspaces, branches, commits, and

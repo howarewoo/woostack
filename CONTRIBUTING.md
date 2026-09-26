@@ -1,11 +1,10 @@
 # Contributing
 
 This repo publishes skills for AI coding assistants, their supporting files, and a documentation
-site. [AGENTS.md](AGENTS.md#what-this-repo-is) lists the public commands, including the standalone
-Ideate, Harden, and planning-only Prepare phases. The [command index](skills/using-woostack/SKILL.md#command-routing)
-explains when to use each one.
-
-This guide covers common edits. Read [AGENTS.md](AGENTS.md) for the full repository rules.
+site. The [command index](skills/using-woostack/SKILL.md#command-routing) lists the public
+commands, including the standalone Ideate, Harden, and planning-only Prepare phases, and explains
+when to use each one. Read [AGENTS.md](AGENTS.md) for the standing repository rules, the sanctioned
+`site/` exception, and the verified checks this repo has.
 
 ## What to change
 
@@ -79,7 +78,8 @@ no-application-code rule. Its [README](site/README.md) covers local development 
 - Use tables to compare options and numbered lists for steps.
 - Keep examples short. Skills explain the workflow; project-local docs cover project details.
 - Link to the document that owns a fact instead of repeating it elsewhere.
-- Keep the command names and fixed skill paths listed in [AGENTS.md](AGENTS.md).
+- Keep the command names and fixed skill paths listed in the
+  [command index](skills/using-woostack/SKILL.md#command-routing).
 - GitHub operations do not add commands.
 - Keep each `SKILL.md` consistent with its references. Its `description` should explain when to
   use the skill; put the procedure in the body and linked references.
