@@ -118,31 +118,34 @@ reading the one ownership-valid match; never allocate another identity or replay
 last independently read boundary, delivery/source identity, dirty-worktree evidence, and exact parent
 branch/SHA needed for safe resume. A mismatch stops recovery instead of duplicating work.
 
-## Owner-only local run store
+## Owner-only local run store reader
 
-Callers that still need a retained local checkpoint use the installed
-[`scripts/run-store.py`](../scripts/run-store.py) with an exact run ID:
+Retained records stay readable through the installed
+[`scripts/run-store.py`](../scripts/run-store.py), which only reads:
 
 ```text
-python3 <init-skill>/scripts/run-store.py --repo <canonical-repo-root> --run <exact-run-id> <command>
+python3 <init-skill>/scripts/run-store.py --repo <canonical-repo-root> --run <exact-run-id> read [--artifact manifest|spec|plan]
 ```
 
-The helper is not a publication authority or migration engine. It admits only
-`<repo-root>/.woostack/tmp/runs/<exact-run-id>/`, where the run ID is one component matching
-`[A-Za-z0-9][A-Za-z0-9_.-]*`; it proves Git ignores the store and rejects symlinks in ancestors.
-New directories are mode 0700. Existing `.woostack`, `tmp`, and `runs` ancestors must be current-user
-owned and not group/world writable. Admitted files are same-filesystem, single-link regular files,
-current-user owned, and mode 0600. Unsafe permissions, ownership, links, non-regular entries, and
-unexpected files fail closed without repair.
+The earlier `init`, `update`, `write-spec`, and `write-plan` mutating commands are retired: no active
+workflow allocates, resumes, or rewrites a run, and the reader rejects every removed command before
+any filesystem access, with no replacement writer.
 
-Every operation holds the same exclusive `.lock`. Mutations use owner-only temporary files, complete
-byte writes, flush, atomic rename, and directory flush. Before and after mutation the helper reopens
-the directory, lock, manifest, and existing artifacts with no-follow checks and independently returns
-the persisted bytes. `update --expected-revision N` requires the locked manifest revision and unchanged
-repository/run identity, then advances exactly one revision. A failed or unknown rename/flush/read-back
-may already have committed: read the same run and reconcile exact bytes before another mutation; never
-blindly replay or allocate a replacement run. Retain manifests, drafts, and locks on completion,
-abandonment, and blocked boundaries.
+The reader is not a publication authority or migration engine. It admits only
+`<repo-root>/.woostack/tmp/runs/<exact-run-id>/`, where the run ID is one component matching
+`[A-Za-z0-9][A-Za-z0-9_.-]*`; it proves Git ignores the store, holds the run's existing exclusive
+`.lock`, and rejects symlinks in ancestors. The run directory must be mode 0700, and the
+`.woostack`, `tmp`, and `runs` ancestors must be current-user owned and not group/world writable.
+Admitted files are same-filesystem, single-link regular files, current-user owned, and mode 0600.
+It reopens the directory, lock, manifest, and retained files with no-follow checks and returns their
+exact original bytes. A missing run, lock, manifest, or selected artifact, a malformed or
+wrong-identity manifest, and unsafe permissions, ownership, links, non-regular entries, or unexpected
+files fail closed without repair.
+
+A rejected read leaves every retained byte, directory entry, and mode unchanged. Recovery is the
+user's explicit action on the reported condition — for example, removing a leftover
+interrupted-write entry — followed by another read; never replay, rewrite, or replace a record.
+Retention policy stays in [Retained data and retirement](#retained-data-and-retirement).
 
 ## Repository ancestry and base-change detection
 
