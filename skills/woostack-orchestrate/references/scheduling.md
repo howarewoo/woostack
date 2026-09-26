@@ -186,6 +186,14 @@ shape for the helper and is not a caller-facing source schema; all markers are r
       "prs": []
     }
   },
+  "review_waivers": [
+    {
+      "pr_url": "<canonical parent PR URL the user explicitly waived>",
+      "head_sha": "<exact full head SHA that read observed>",
+      "thread_ids": ["<exact native unresolved thread ID>"],
+      "approval_reference": "<the user's explicit approval to continue>"
+    }
+  ],
   "recovery": {
     "checkpoints": ["<runtime-substituted controller/worker checkpoint evidence>"],
     "processes": ["<runtime-substituted worker process liveness evidence>"],
@@ -301,9 +309,30 @@ access. Otherwise supply one exact PR record with `pr_url`, `repo`, `head_repo`,
 history, thread dispositions, and current repository review policy.
 That policy is the same applicable review policy the validation contract names: the verified native
 stack trunk for a registered stack member, otherwise the PR's own base branch.
-Ambiguous or incomplete discovery blocks selection. Predecessor parents use their fresh complete
-delivery checkpoint instead. Current tips may advance for an already-reserved child only while its
+Ambiguous or incomplete discovery blocks selection. A predecessor parent with a retained delivery
+checkpoint is described by its fresh complete delivery checkpoint instead, and that checkpoint stays
+the historical source evidence for its own delivery. When the host also supplies `parent_prs` for
+that parent branch, the fresh read is the current evidence: it must describe the same `pr_url` at
+the same head, with the same `base_branch` and the same associated child issue the checkpoint
+recorded, so an absent, replaced, retargeted, or re-associated PR is `parent-pr-evidence` rather than
+a silent substitution; the selected parent's stack member and draft state come from that fresh read,
+not from the older checkpoint. Current tips may advance for an already-reserved child only while its
 original start remains an ancestor; do not replace that child's retained start SHA.
+
+`review_waivers` is optional and exists only for an explicit user decision to continue past a
+specific unresolved review finding. Each entry binds one canonical parent `pr_url`, the exact full
+`head_sha` that read observed, the nonempty unique native `thread_ids` it names, and the nonempty
+`approval_reference` recording the user's own words; anything else is `invalid-review-waiver`, as is
+two entries for one PR head. A waiver is never inferred, defaulted, or widened: it applies only to
+that PR at that head, only to those findings, and only when the fresh native read's unresolved
+threads are exactly the named set, so a finding raised after the approval blocks again, a finding the
+reviewer resolved invalidates the now-unnecessary approval, and every other gate — required
+approvals, code owners, last-push approval, a current change request, and complete policy and history
+reads — still applies unchanged. A selected waiver requires that fresh read: a parent described only
+by its historical checkpoint is `incomplete-pr-readback`. The selected waiver travels to the worker in
+`parent_readiness.parent.review_waiver` so it acts on the user's approval, not a silent relaxation.
+Waivers are mutable evidence: they never enter the admission `fingerprint`, the scope identity, or
+the execution plan, and they never reach the child's own delivery gate.
 
 When the integration tip changes, `schedule` verifies the canonical repository and branch, the
 previous and proposed commit objects, forward ancestry, and the complete changed-path set. An
@@ -403,13 +432,14 @@ compact separators) over the immutable normalized scope view. It binds:
 - optional Project/lifecycle identity only when the user explicitly selected that Project for
   status mutation.
 
-It deliberately excludes the host capability/cap, mutable integration SHA, fresh `parent_prs`,
-runtime workspace/branch allocation, and delivery evidence. A tracker provider `revision` alone,
-reordered repeated tracker references, reordered task/layout entries, and a matching native-link
-addition that leaves the exact task set, technical graph, and execution plan unchanged are mutable
-evidence, not drift; membership may transition from `declared` to `native` for the same set. Those
-mutable facts are still refreshed and recorded. A changed issue set, contract, identity, meaningful
-tracker scope/specification, actual parent, technical edge endpoint/provenance/evidence, or blocker
+It deliberately excludes the host capability/cap, mutable integration SHA, fresh `parent_prs`, a
+user's `review_waivers`, runtime workspace/branch allocation, and delivery evidence. A tracker
+provider `revision` alone, reordered repeated tracker references, reordered task/layout entries, and
+a matching native-link addition that leaves the exact task set, technical graph, and execution plan
+unchanged are mutable evidence, not drift; membership may transition from `declared` to `native` for
+the same set. Those mutable facts are still refreshed and recorded. A changed issue set, contract,
+identity, meaningful tracker scope/specification, actual parent, or technical edge
+endpoint/provenance/evidence, or blocker
 returns `snapshot-drift`. A changed execution layout returns controlled `execution-plan-drift` when
 it touches started, reserved, claimed, worker-owned, or delivered work. A newer plan revision is
 adopted only when every changed task is genuinely unstarted and compatible with complete retained

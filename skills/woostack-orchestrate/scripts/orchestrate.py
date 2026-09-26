@@ -1494,6 +1494,7 @@ def admit(snapshot, limit, repo=None):
             "task_order": task_order, "graph": graph_metadata(edges),
             "execution_layout": execution_layout, "execution_fingerprint": execution_fingerprint,
             "edge_provenance": edges, "parent_prs": copy.deepcopy(snapshot.get("parent_prs", {})),
+            "review_waivers": normalize_review_waivers(snapshot.get("review_waivers"), canonical),
             "host_cap": host_cap, "recovery": recovery,
             "scope_evidence": scope_evidence,
             "notice": "Host runs sequential subagents (concurrency one)." if host_cap == 1 else None}
@@ -2544,7 +2545,39 @@ def _reset_ci_after_delivery(admitted, state, item, head_sha):
                                 "parent-revision-changed")
 
 
-def review_readback(readback, head):
+def normalize_review_waivers(values, canonical):
+    """Exact, head-bound user approvals. They never enter the admission fingerprint."""
+    if values is None:
+        return []
+    require(isinstance(values, list), "invalid-review-waiver", "review waivers must be a list")
+    waivers, seen = [], set()
+    for value in values:
+        field_object(value, ("pr_url", "head_sha", "thread_ids", "approval_reference"), "review waiver")
+        match = PR_RE.fullmatch(value["pr_url"])
+        threads = value["thread_ids"]
+        require(match is not None
+                and "https://github.com/" + "/".join(match.groups()[:2]) == canonical
+                and SHA_RE.fullmatch(value["head_sha"] or "") is not None
+                and isinstance(threads, list) and bool(threads)
+                and all(text(item) for item in threads) and len(set(threads)) == len(threads)
+                and text(value["approval_reference"]),
+                "invalid-review-waiver",
+                "a review waiver needs one canonical PR, its exact head, its findings, and explicit approval")
+        identity = (value["pr_url"], value["head_sha"])
+        require(identity not in seen, "invalid-review-waiver", "duplicate review waiver for one PR head")
+        seen.add(identity)
+        waivers.append({key: value[key] for key in
+                        ("pr_url", "head_sha", "thread_ids", "approval_reference")})
+    return waivers
+
+
+def select_review_waiver(waivers, pr_url, head):
+    """The only admitted waiver is one explicit user approval bound to this PR head."""
+    return next((row for row in waivers
+                 if row["pr_url"] == pr_url and row["head_sha"] == head), None)
+
+
+def review_readback(readback, head, waiver=None):
     """Validate complete review history, then evaluate only applicable policy evidence."""
     field_object(readback, ("head_sha", "draft", "reviews", "threads", "review_policy"), "readback")
     require(readback["head_sha"] == head, "stale-readback",
@@ -2611,15 +2644,17 @@ def review_readback(readback, head):
         login = review["user"]["login"]
         latest[login] = review
     review_ids = {review["id"] for review in histories["reviews"]}
-    resolved_review_ids = {item["review_id"] for item in histories["threads"]
-                           if item["is_resolved"]}
     dismissed_review_ids = {review["id"] for review in histories["reviews"]
                             if review["state"] == "DISMISSED"}
     for item in histories["threads"]:
         require(item["review_id"] in review_ids, "ambiguous-review-history",
                 "thread identifies a review outside the complete history")
-        require(item["is_resolved"] or item["review_id"] in dismissed_review_ids,
-                "unresolved-review-finding", "unresolved review finding remains applicable")
+    # An explicit user approval waives exactly the findings it names at exactly its head, so a
+    # finding raised later blocks again instead of riding an older approval.
+    unresolved = {item["id"] for item in histories["threads"]
+                  if not item["is_resolved"] and item["review_id"] not in dismissed_review_ids}
+    require(unresolved == (set() if waiver is None else set(waiver["thread_ids"])),
+            "unresolved-review-finding", "unresolved review finding remains applicable")
     current_only = policy["dismiss_stale_reviews"] or policy["require_last_push_approval"]
     eligible_logins = {login.lower() for login in eligible}
     approvals = {
@@ -2645,18 +2680,25 @@ def review_readback(readback, head):
 
 
 def parent_pr_evidence(scope, branch, head, checkpoint=None):
-    if checkpoint is not None:
+    """Read the parent PR now; a retained checkpoint only proves the same PR continues."""
+    discovery = scope.get("parent_prs")
+    fresh = discovery.get(branch) if isinstance(discovery, dict) else None
+    if checkpoint is not None and fresh is None:
         readback = checkpoint["readback"]
         evidence = {"repo": scope["canonical_repo"], "branch": branch, "head_sha": head,
                     "complete": True, "prs": [{**readback, "state": "open"}]}
     else:
-        require(isinstance(scope["parent_prs"], dict), "parent-pr-evidence", "parent PR reads missing")
-        evidence = scope["parent_prs"].get(branch)
+        require(isinstance(discovery, dict), "parent-pr-evidence", "parent PR reads missing")
+        evidence = fresh
     field_object(evidence, ("repo", "branch", "head_sha", "complete", "prs"), "parent PR discovery")
     require(evidence["repo"] == scope["canonical_repo"] and evidence["branch"] == branch
             and evidence["head_sha"] == head and evidence["complete"] is True
             and isinstance(evidence["prs"], list) and len(evidence["prs"]) <= 1,
             "parent-pr-evidence", "canonical parent PR discovery is incomplete or ambiguous")
+    historical = checkpoint["readback"] if checkpoint is not None else None
+    require(historical is None or evidence["prs"], "parent-pr-evidence",
+            "a fresh parent read cannot replace the retained open checkpoint PR")
+    waiver = None
     for pr in evidence["prs"]:
         field_object(pr, ("pr_url", "repo", "head_repo", "branch", "head_sha", "base_branch",
                           "state", "reviews", "threads"), "parent PR")
@@ -2665,8 +2707,18 @@ def parent_pr_evidence(scope, branch, head, checkpoint=None):
                 and pr["repo"] == pr["head_repo"] == scope["canonical_repo"] and pr["branch"] == branch
                 and pr["head_sha"] == head and pr["state"] in ("open", "closed", "merged"),
                 "parent-pr-evidence", "parent PR identity differs")
-        review_readback(pr, head)
-    return copy.deepcopy(evidence)
+        # A waiver admits one review finding, never a different target for the same dependency.
+        require(historical is None or (pr["pr_url"] == historical["pr_url"]
+                                       and pr["base_branch"] == historical["base_branch"]
+                                       and (historical.get("association") is None
+                                            or pr.get("association") == historical["association"])),
+                "parent-pr-evidence",
+                "fresh parent PR read does not continue the retained checkpoint PR")
+        waiver = select_review_waiver(scope.get("review_waivers") or [], pr["pr_url"], head)
+        require(waiver is None or fresh is not None, "incomplete-pr-readback",
+                "a selected review waiver requires a fresh complete native parent read")
+        review_readback(pr, head, waiver)
+    return copy.deepcopy(evidence), copy.deepcopy(waiver)
 
 
 def initial_lifecycle(result):
@@ -2974,7 +3026,7 @@ def parent_readiness(scope, task, state, reservation, decision, repo, retained=F
         require(current is not None and contains(repo, head, current),
                 "parent-tip-drift", "selected parent changed incompatibly")
         kind = "explicit"
-    proof = parent_pr_evidence(scope, branch, current, parent_checkpoint)
+    proof, waiver = parent_pr_evidence(scope, branch, current, parent_checkpoint)
     records = []
     for tid, delivery, satisfaction in predecessors:
         revision = delivery["head_sha"] if retained and selected is not None and selected[0] == tid \
@@ -3017,7 +3069,7 @@ def parent_readiness(scope, task, state, reservation, decision, repo, retained=F
             "execution_fallback": copy.deepcopy(task["execution_fallback"]),
             "prerequisites": records,
             "parent": {"branch": branch, "sha": head, "current_sha": current, "selection": kind,
-                       "pr_evidence": proof},
+                       "pr_evidence": proof, "review_waiver": waiver},
             "decision": copy.deepcopy(decision) if kind == "explicit" else None}
 
 
@@ -3105,6 +3157,9 @@ def stack_requirement(admitted, task, readiness, state, repo):
             "pr_url", "branch", "head_sha", "base_branch", "draft")})
     require(members and members[-1]["pr_url"] == parent_prs[0]["pr_url"],
             "parent-pr-evidence", "open parent PR is outside the approved execution chain")
+    # Readiness is native state; the selected parent is described by the read taken now.
+    members[-1] = {key: parent_prs[0][key] for key in
+                   ("pr_url", "branch", "head_sha", "base_branch", "draft")}
     return {"trunk": admitted["integration"]["branch"], "members": members}
 
 

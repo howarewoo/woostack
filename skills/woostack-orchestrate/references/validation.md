@@ -262,8 +262,11 @@ is null. All submitted and pushed times use GitHub's UTC ISO-8601 `Z` form.
 The helper applies each reviewer's latest substantive state and dispositions: an unresolved
 change-request state remains blocking even when a related thread is marked resolved, while a
 resolved thread may close that thread's finding without rewriting the review verdict. Unresolved
-threads block; resolved threads and attributed dismissed reviews do not. Only eligible reviewers
-count toward required approvals, and each owned changed path needs an eligible owner approval.
+threads block; resolved threads and attributed dismissed reviews do not. A selected parent's own
+threads are read fresh, and only an explicit user approval may carry one exact finding forward under
+the [`review_waivers`](scheduling.md#normalized-snapshot) contract; a child's own delivery readback
+never accepts one. Only eligible reviewers count toward required approvals, and each owned changed
+path needs an eligible owner approval.
 Approvals count only from the current head when repository policy dismisses stale approvals or
 requires approval of the last push; the latter also requires a current-head approval submitted
 after that push by an eligible reviewer other than the pusher. A review for an older commit remains

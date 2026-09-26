@@ -5036,6 +5036,222 @@ class OrchestrateBehavior(unittest.TestCase):
                     )
                 self.assertEqual(raised.exception.code, "readiness-changed")
 
+    def _delivered_stack_with_current_parent_finding(self) -> Dict[str, Any]:
+        """Deliver A then B, then leave an unresolved COMMENTED finding on B's unchanged head.
+
+        The retained delivery checkpoint still describes B's original draft PR with no
+        review, so only a fresh native readback of the same head can observe the finding.
+        """
+
+        def fresh(**extras: Any) -> Dict[str, Any]:
+            snapshot = self.github.snapshot()
+            snapshot["tasks"] = snapshot["children"] = [
+                item for item in snapshot["children"]
+                if item["task_id"] in {"task-a", "task-b", "task-c"}
+            ]
+            next(item for item in snapshot["tasks"] if item["task_id"] == "task-c")[
+                "prerequisites"] = ["task-b"]
+            snapshot["execution_layout"] = self.github.execution_layout(
+                ("task-a", "task-b", "task-c"),
+                {"task-a": None, "task-b": "task-a", "task-c": "task-b"})
+            snapshot.update(extras)
+            return snapshot
+
+        initial = fresh()
+        admitted_path, admitted = self._admit_issue(initial)
+        state, first = self._schedule(admitted_path, admitted, None, initial, "finding-a", cap="1")
+        self.assertEqual([entry["task_id"] for entry in first["dispatch"]], ["task-a"], first)
+        host = self._start_host(workers=1)
+        host.dispatch(first["dispatch"])
+        result_a = make_result(self.github, "task-a", host.wait_for_report("task-a"), admitted)
+        state, applied_a, _ = self._apply(admitted_path, state, "task-a", result_a, "finding-a-result")
+        self.assertEqual(applied_a["status"], "delivered", applied_a)
+        self._persist("task-a", result_a, first["dispatch"][0])
+        state, second = self._schedule(admitted_path, admitted, state, fresh(), "finding-b", cap="1")
+        self.assertEqual([entry["task_id"] for entry in second["dispatch"]], ["task-b"], second)
+        host.dispatch(second["dispatch"])
+        host.release_b()
+        result_b = make_result(self.github, "task-b", host.wait_for_report("task-b"), admitted)
+        state, applied_b, _ = self._apply(admitted_path, state, "task-b", result_b, "finding-b-result")
+        self.assertEqual(applied_b["status"], "delivered", applied_b)
+        self._persist("task-b", result_b, second["dispatch"][0])
+
+        retained = json.loads(state.read_text())["tasks"]["task-b"]
+        checkpoint = self.github.delivery["task-b"]["result"]["readback"]
+        self.assertIs(checkpoint["draft"], True)
+        self.assertEqual(checkpoint["reviews"]["items"], [])
+        self.assertEqual(checkpoint["threads"]["items"], [])
+        pr = copy.deepcopy(self.github.prs["task-b"])
+        # A human later marks B ready and comments on it.  The reviewed head never moves.
+        self.github.prs["task-b"]["draft"] = False
+        finding = {"id": 501, "commit_id": pr["head_sha"], "state": "COMMENTED",
+                   "submitted_at": "2026-09-25T00:00:00Z", "user": {"login": "external-reviewer"}}
+        thread = {"id": "PRRT_kwDORP1kW86mRbLp", "review_id": 501, "is_resolved": False}
+        self.github.review_history["task-b"] = [[finding]]
+        self.github.thread_history["task-b"] = [[thread]]
+        self.github.parent_branches.add(pr["branch"])
+        return {
+            "admitted_path": admitted_path, "admitted": admitted, "state": state, "host": host,
+            "pr": pr, "branch": pr["branch"], "finding": finding, "thread": thread,
+            "retained": retained, "fresh": fresh,
+            "waiver": {"pr_url": pr["pr_url"], "head_sha": pr["head_sha"],
+                       "thread_ids": [thread["id"]],
+                       "approval_reference": "User approved continuing past the current B finding."},
+        }
+
+    @staticmethod
+    def _parent_read(snapshot: Dict[str, Any], branch: str) -> Dict[str, Any]:
+        return snapshot["parent_prs"][branch]["prs"][0]
+
+    def test_user_waived_parent_finding_releases_c_from_the_current_native_read(self) -> None:
+        fixture = self._delivered_stack_with_current_parent_finding()
+        admitted_path, admitted = fixture["admitted_path"], fixture["admitted"]
+        state, retained = fixture["state"], fixture["retained"]
+        pr, thread, waiver = fixture["pr"], fixture["thread"], fixture["waiver"]
+        preserved = ("delivery", "attempt_history", "attempt_binding", "verified_pr")
+        expected = {key: retained.get(key) for key in preserved}
+
+        # The retained checkpoint still reads "draft, unreviewed". Releasing C from it
+        # would trust a stale historical parent readback, so the live finding blocks C.
+        state, blocked = self._schedule(
+            admitted_path, admitted, state, fixture["fresh"](), "finding-unwaived", cap="1")
+        self.assertEqual(blocked["dispatch"], [], blocked)
+        self.assertEqual([(row["task_id"], row["reason"]) for row in blocked["blocked"]],
+                         [("task-c", "unresolved-review-finding")], blocked)
+        saved = json.loads(state.read_text())["tasks"]["task-b"]
+        self.assertEqual({key: saved.get(key) for key in preserved}, expected)
+        self.assertEqual(self.github.thread_history["task-b"][0][0]["is_resolved"], False)
+
+        # The user's explicit approval releases C and travels with the worker packet.
+        state, waived = self._schedule(
+            admitted_path, admitted, state, fixture["fresh"](review_waivers=[waiver]),
+            "finding-waived", cap="1")
+        self.assertEqual(waived["blocked"], [], waived)
+        c_entry = waived["dispatch"][0]
+        self.assertEqual(c_entry["task_id"], "task-c")
+        parent = c_entry["packet"]["parent_readiness"]["parent"]
+        self.assertEqual({key: parent["review_waiver"][key] for key in
+                          ("pr_url", "head_sha", "thread_ids", "approval_reference")}, waiver)
+        evidence = parent["pr_evidence"]["prs"][0]
+        self.assertEqual(evidence["pr_url"], pr["pr_url"])
+        self.assertIs(evidence["draft"], False, "current native parent readiness must win")
+        self.assertEqual(evidence["reviews"]["items"], [fixture["finding"]])
+        self.assertEqual(evidence["threads"],
+                         {"head_sha": pr["head_sha"], "complete": True, "items": [thread]})
+        self.assertIs(c_entry["stack"]["members"][-1]["draft"], False)
+        retained_readback = c_entry["packet"]["parent_readiness"]["prerequisites"][0][
+            "checkpoint"]["readback"]
+        self.assertIs(retained_readback["draft"], True)
+        self.assertEqual(retained_readback["reviews"]["items"], [])
+        saved = json.loads(state.read_text())["tasks"]["task-b"]
+        self.assertEqual({key: saved.get(key) for key in preserved}, expected,
+                         "a waiver must not rewrite retained delivery, readback, or attempt history")
+        self.assertEqual([item["is_resolved"] for item in self.github.thread_history["task-b"][0]],
+                         [False], "a waiver must not fabricate native resolution")
+
+        # The parent approval never waives the delivered child's own finding.
+        host = fixture["host"]
+        host.dispatch([c_entry])
+        report_c = host.wait_for_report("task-c")
+        self.github.review_history["task-c"] = [[{
+            "id": 601, "commit_id": self.github.prs["task-c"]["head_sha"], "state": "COMMENTED",
+            "submitted_at": "2026-09-25T02:00:00Z", "user": {"login": "external-reviewer"}}]]
+        self.github.thread_history["task-c"] = [[{
+            "id": "PRRT_kwDORP1kW86mRbLq", "review_id": 601, "is_resolved": False}]]
+        result_c = make_result(self.github, "task-c", report_c, admitted)
+        child_state, rejected, _ = self._apply(
+            admitted_path, state, "task-c", result_c, "finding-c-result")
+        self.assertEqual((rejected["status"], rejected["reason"]),
+                         ("unknown", "unresolved-review-finding"), rejected)
+        self.assertNotEqual(json.loads(child_state.read_text())["tasks"]["task-c"]["status"],
+                            "delivered")
+
+    def test_cleared_parent_finding_releases_c_with_no_approval(self) -> None:
+        """Control for the unapproved rejection: only the live finding holds C back."""
+        fixture = self._delivered_stack_with_current_parent_finding()
+        admitted_path, admitted = fixture["admitted_path"], fixture["admitted"]
+        self.github.thread_history["task-b"] = [[dict(fixture["thread"], is_resolved=True)]]
+        state, released = self._schedule(
+            admitted_path, admitted, fixture["state"], fixture["fresh"](), "finding-cleared", cap="1")
+        self.assertEqual(released["blocked"], [], released)
+        c_entry = released["dispatch"][0]
+        self.assertEqual(c_entry["task_id"], "task-c")
+        parent = c_entry["packet"]["parent_readiness"]["parent"]
+        self.assertIsNone(parent["review_waiver"], "a cleared finding needs no user approval")
+        self.assertIs(parent["pr_evidence"]["prs"][0]["draft"], False)
+        self.assertEqual(c_entry["stack"]["members"][-1]["draft"], False)
+        self.assertEqual(json.loads(state.read_text())["tasks"]["task-b"]["delivery"],
+                         fixture["retained"]["delivery"])
+
+    def test_review_waiver_covers_only_its_own_pr_head_and_exact_unresolved_threads(self) -> None:
+        fixture = self._delivered_stack_with_current_parent_finding()
+        admitted_path, admitted = fixture["admitted_path"], fixture["admitted"]
+        state, branch, pr = fixture["state"], fixture["branch"], fixture["pr"]
+        thread, waiver = fixture["thread"], fixture["waiver"]
+        sibling = {"id": "PRRT_kwDORP1kW86mRbLq", "review_id": 501, "is_resolved": False}
+        foreign_pr = self.github.canonical + "/pull/9001"
+
+        def blocked(current: Path, reason: str, snapshot: Dict[str, Any],
+                    name: str) -> Path:
+            outcome, payload = self._schedule(
+                admitted_path, admitted, current, snapshot, name, cap="1")
+            self.assertEqual(payload["dispatch"], [], (name, payload))
+            self.assertEqual([(row["task_id"], row["reason"]) for row in payload["blocked"]],
+                             [("task-c", reason)], (name, payload))
+            return outcome
+
+        # A waiver may not release C from the retained checkpoint when no fresh native
+        # parent read was supplied at all.
+        stale = fixture["fresh"](review_waivers=[waiver])
+        stale["parent_prs"].pop(branch)
+        state = blocked(state, "incomplete-pr-readback", stale, "waiver-stale-historical-readback")
+
+        # A fresh native read naming another PR is never substituted for the retained one.
+        foreign = fixture["fresh"](review_waivers=[waiver])
+        self._parent_read(foreign, branch)["pr_url"] = foreign_pr
+        state = blocked(state, "parent-pr-evidence", foreign, "waiver-foreign-parent-pr")
+
+        # The user approved one finding on one parent, not a reparented parent.
+        reparented = fixture["fresh"](review_waivers=[waiver])
+        self._parent_read(reparented, branch)["base_branch"] = "main"
+        state = blocked(state, "parent-pr-evidence", reparented, "waiver-changed-parent-base")
+
+        state = blocked(state, "unresolved-review-finding", fixture["fresh"](review_waivers=[
+            dict(waiver, head_sha="f" * 40)]), "waiver-changed-head")
+        state = blocked(state, "unresolved-review-finding", fixture["fresh"](review_waivers=[
+            dict(waiver, pr_url=foreign_pr)]), "waiver-other-pr")
+        state = blocked(state, "unresolved-review-finding", fixture["fresh"](review_waivers=[
+            dict(waiver, thread_ids=[thread["id"], sibling["id"]])]), "waiver-unseen-thread")
+
+        # A thread that appeared natively after the approval is never covered by it.
+        self.github.thread_history["task-b"] = [[thread, sibling]]
+        state = blocked(state, "unresolved-review-finding",
+                        fixture["fresh"](review_waivers=[waiver]), "waiver-new-native-thread")
+        self.github.thread_history["task-b"] = [[thread]]
+
+        # A waivable COMMENTED finding never covers blocking review state or policy.
+        changes = fixture["fresh"](review_waivers=[waiver])
+        self._parent_read(changes, branch)["reviews"]["items"].append({
+            "id": 502, "commit_id": pr["head_sha"], "state": "CHANGES_REQUESTED",
+            "submitted_at": "2026-09-25T03:00:00Z", "user": {"login": "blocking-reviewer"}})
+        state = blocked(state, "changes-requested", changes, "waiver-changes-requested")
+
+        self.github.review_policy["required_approvals"] = 1
+        try:
+            state = blocked(state, "review-approval-required",
+                            fixture["fresh"](review_waivers=[waiver]), "waiver-approval-required")
+        finally:
+            self.github.review_policy["required_approvals"] = 0
+
+        partial = fixture["fresh"](review_waivers=[waiver])
+        self._parent_read(partial, branch)["threads"]["complete"] = False
+        state = blocked(state, "incomplete-pr-readback", partial, "waiver-incomplete-thread-pages")
+
+        # The exact approval still releases C, so every rejection above is a scope failure.
+        _, waived = self._schedule(admitted_path, admitted, state,
+                                   fixture["fresh"](review_waivers=[waiver]), "waiver-exact", cap="1")
+        self.assertEqual([entry["task_id"] for entry in waived["dispatch"]], ["task-c"], waived)
+
     def test_alias_workspace_collision_and_same_parent_repair(self) -> None:
         worktree_root = Path(self.github.children[0]["workspace"]).parent
         worktree_root.mkdir(parents=True, exist_ok=True)
