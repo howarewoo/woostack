@@ -736,6 +736,59 @@ corrective PR identities. Future admissions/refills require fresh evidence at th
 candidate too. While corrections remain drafts or the current candidate fails acceptance,
 withhold this receipt; policy reconciliation alone cannot release those tasks.
 
+### Retained open stack source
+
+Fresh `integration_revalidation` always proves the current integration candidate, including
+the original contract, complete required checks/smoke, independent review, exact diff, and every
+corrective landing through the current tip. Its candidate revision is **not** automatically a
+source ancestor of an already-open stack whose reserved start predates that tip. Do not rewrite
+that stack's parent, treat an earlier approval as current, or infer compatibility from unchanged
+path names: a later integration change can touch the original task's paths.
+
+For that one retained open-stack start, add
+`existing_delivery.historical_source_revalidation` beside (not instead of) the current
+`integration_revalidation`. It carries the same candidate receipt fields described above:
+`head_parent` equal to the original `reservation.parent_sha`, `candidate_sha` equal to the exact
+historical source commit, its calculated `head_diff_identity`, independent complete contract
+`checks` and `validation` at that historical commit, `implementer_ids`, explicit `approved` and
+`approval_reference`, and complete uniquely verified native `corrections` through that source.
+The historical source must precede the current integration commit. It also carries:
+
+```json
+{
+  "compatibility": {
+    "integration_sha": "<current integration SHA>",
+    "integration_diff_identity": "<current integration_revalidation.head_diff_identity>",
+    "source_sha": "<historical candidate_sha>",
+    "source_diff_identity": "<historical head_diff_identity>",
+    "contract_hash": "<original admitted task contract hash>",
+    "reviewer_id": "<fresh independent compatibility reviewer>",
+    "approved": true,
+    "approval_reference": "<explicit current-context compatibility decision>"
+  }
+}
+```
+
+The compatibility reviewer differs from all recorded implementers and the original worker.
+Both source and current receipts independently pass their original-contract review and full
+correction enumeration; a historical failure stays failed. Each fresh snapshot supplies both
+receipts at its exact current integration SHA/diff, and any failed/missing receipt blocks that
+prerequisite rather than falling back to a stale saved satisfaction. The helper keeps current
+integration as the availability revision, and records the separately verified source only as
+conditional ancestry evidence. That source may satisfy containment only when it equals the
+original reserved parent SHA of the retained open stack's first still-open execution ancestor
+(or the same task's retained open integration-start reservation), is contained in the selected
+open parent, and the current integration also contains it. An ordinary controller-owned merged
+ancestor retains its canonical merged satisfaction gate without requiring its squash merge commit
+in an open parent based on the verified source head. If its own historical source is used, its
+reconciled landing must also be contained in that parent and fresh current integration availability
+must match it. Merges on other branches do not acquire an integration-availability requirement.
+Closed, unknown, or unverified ancestors remain blockers. A new root at the current integration
+tip never selects the old source.
+The open parent PR and every later stack ancestor retain their normal lifecycle, head,
+CI, identity, and native-stack checks; this receipt grants no controller state reset, historical
+result rewrite, or authority to dispatch under an outdated admission.
+
 If the response is lost, read the same checkpoint and its `landed_adoption_history`, verify the
 exact binding and selected task evidence against the durable checkpoint, and continue from that
 proved boundary. Do not replay a stale binding: its raw checkpoint digest deliberately stops

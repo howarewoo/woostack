@@ -949,12 +949,14 @@ def admission_digest(admitted):
     return digest({key: value for key, value in admitted.items() if key != "ok"})
 
 
-def _revalidated_landed_prerequisite(task, delivery, integration, repo, canonical):
-    """Independent current-head evidence never rewrites the retained worker result."""
-    candidate = "integration_revalidation" in delivery
-    require(not candidate or "landed_revalidation" not in delivery,
+def _revalidated_landed_prerequisite(task, delivery, integration, repo, canonical, source=False):
+    """Independent exact-head evidence never rewrites the retained worker result."""
+    candidate = source or "integration_revalidation" in delivery
+    require(source or not candidate or "landed_revalidation" not in delivery,
             "landed-evidence-missing", "select one unambiguous revalidation target")
-    receipt = delivery["integration_revalidation" if candidate else "landed_revalidation"]
+    key = ("historical_source_revalidation" if source else
+           "integration_revalidation" if candidate else "landed_revalidation")
+    receipt = delivery[key]
     lifecycle = delivery["lifecycle"]
     pr = lifecycle.get("pr", lifecycle)
     require(isinstance(receipt, dict), "landed-evidence-missing", "landed revalidation must be an object")
@@ -1021,9 +1023,51 @@ def _selected_prerequisite_facts(tasks_by_id, integration, repo, canonical):
             pr = copy.deepcopy(lifecycle.get("pr", lifecycle))
             require(isinstance(pr, dict), "pr-lifecycle-missing",
                     "current PR identity is missing")
+            if "historical_source_revalidation" in delivery:
+                require("integration_revalidation" in delivery
+                        and "landed_revalidation" not in delivery,
+                        "landed-evidence-missing",
+                        "historical source requires unambiguous fresh integration acceptance")
             if "landed_revalidation" in delivery or "integration_revalidation" in delivery:
-                available[task_id] = _revalidated_landed_prerequisite(
+                fact = _revalidated_landed_prerequisite(
                     task, delivery, integration, repo, canonical)
+                if "historical_source_revalidation" in delivery:
+                    historical = delivery["historical_source_revalidation"]
+                    require(isinstance(historical, dict)
+                            and SHA_RE.fullmatch(historical.get("candidate_sha") or "")
+                            and historical["candidate_sha"] != integration["sha"]
+                            and contains(repo, historical["candidate_sha"], integration["sha"]),
+                            "stale-validation", "historical source must precede the current integration")
+                    source = _revalidated_landed_prerequisite(
+                        task, delivery, {**integration, "sha": historical["candidate_sha"]},
+                        repo, canonical, source=True)
+                    compatibility = historical.get("compatibility")
+                    original_worker = (delivery.get("result") or {}).get("worker") or {}
+                    implementers = set(historical.get("implementer_ids") or []) | set(
+                        delivery["integration_revalidation"].get("implementer_ids") or [])
+                    require(isinstance(compatibility, dict)
+                            and compatibility.get("integration_sha") == integration["sha"]
+                            and compatibility.get("integration_diff_identity")
+                            == fact["revalidation"]["head_diff_identity"]
+                            and compatibility.get("source_sha") == source["revision"]
+                            and compatibility.get("source_diff_identity")
+                            == source["revalidation"]["head_diff_identity"]
+                            and compatibility.get("contract_hash") == task["contract_hash"]
+                            and compatibility.get("approved") is True
+                            and text(compatibility.get("approval_reference"))
+                            and text(compatibility.get("reviewer_id"))
+                            and compatibility["reviewer_id"] not in implementers
+                            and compatibility["reviewer_id"] != original_worker.get("worker_id"),
+                            "stale-validation",
+                            "independent compatibility approval must bind both source and current integration")
+                    fact["source_revalidation"] = {
+                        "revision": source["revision"],
+                        "head_diff_identity": source["revalidation"]["head_diff_identity"],
+                        "validation_reviewer_id": source["revalidation"]["reviewer_id"],
+                        "corrective_prs": source["corrective_prs"],
+                        "approval_reference": historical["approval_reference"],
+                        "compatibility": copy.deepcopy(compatibility)}
+                available[task_id] = fact
                 continue
             result = delivery.get("result")
             readback = result.get("readback") if isinstance(result, dict) else None
@@ -2788,6 +2832,74 @@ def base_satisfied_entries(scope, task):
                 if entry["task_id"] == task["task_id"])
 
 
+def _verified_merged_execution_ancestor(scope, task_id, item, head, repo):
+    """A skipped merge must still match its reconciled delivery and selected parent."""
+    ancestor = next(entry for entry in scope["tasks"] if entry["task_id"] == task_id)
+    require(item["status"] == "delivered" and lifecycle_state(item.get("lifecycle")) == "merged"
+            and item.get("lifecycle_error") is None,
+            "prerequisites-unmet", "merged execution ancestor is not a reconciled delivery")
+    satisfaction = prerequisite_satisfaction(
+        item, ancestor, repo, lifecycle=item["lifecycle"],
+        canonical=scope["canonical_repo"], verify_checks=False)
+    prior = item.get("satisfaction")
+    require(satisfaction["kind"] == "merged" and isinstance(prior, dict)
+            and satisfaction.keys() == prior.keys()
+            and all(value == prior[key] for key, value in satisfaction.items()
+                    if key != "landing_sha")
+            and SHA_RE.fullmatch(prior.get("landing_sha") or "")
+            and contains(repo, satisfaction["revision"], prior["landing_sha"])
+            and contains(repo, prior["landing_sha"], satisfaction["landing_sha"])
+            and contains(repo, satisfaction["revision"], head),
+            "base-satisfaction-unverified",
+            "merged execution ancestor does not match the delivered landing in the selected parent")
+    return satisfaction
+
+
+def _retained_stack_source(scope, task, state, branch, head, repo,
+                           reservation=None):
+    """Only the exact retained open-stack start can carry historical source."""
+    if branch == scope["integration"]["branch"]:
+        item = state["tasks"][task["task_id"]]
+        return (head if isinstance(reservation, dict) and reservation.get("parent_sha") == head
+                and item["status"] == "delivered"
+                and lifecycle_state(item.get("lifecycle")) == "open" else None)
+    first_start, last_delivery = None, None
+    for task_id in task["execution_ancestry"]:
+        item = state["tasks"][task_id]
+        if item["status"] != "delivered":
+            continue
+        if lifecycle_state(item.get("lifecycle")) == "merged":
+            _verified_merged_execution_ancestor(scope, task_id, item, head, repo)
+            continue
+        if lifecycle_state(item.get("lifecycle")) != "open":
+            return None
+        delivery, start = item.get("delivery"), item.get("reservation")
+        if not (isinstance(delivery, dict) and isinstance(start, dict)
+                and SHA_RE.fullmatch(delivery.get("head_sha") or "")
+                and SHA_RE.fullmatch(start.get("parent_sha") or "")
+                and contains(repo, start["parent_sha"], delivery["head_sha"])
+                and contains(repo, delivery["head_sha"], head)):
+            return None
+        if first_start is None:
+            first_start = start["parent_sha"]
+        last_delivery = delivery
+    if (last_delivery is not None and last_delivery.get("branch") == branch
+            and last_delivery.get("head_sha") == head
+            and first_start is not None and contains(repo, first_start, head)):
+        return first_start
+    return None
+
+
+def _landed_source_in_parent(fact, head, source_start, repo):
+    if contains(repo, fact["revision"], head):
+        return fact["revision"]
+    source = fact.get("source_revalidation")
+    if (isinstance(source, dict) and source_start == source.get("revision")
+            and contains(repo, source_start, head)):
+        return source_start
+    return None
+
+
 def parent_readiness(scope, task, state, reservation, decision, repo, retained=False):
     require(set(task["external_prerequisites"]).issubset(
                 set(task["satisfied_external_prerequisites"])),
@@ -2803,6 +2915,7 @@ def parent_readiness(scope, task, state, reservation, decision, repo, retained=F
         predecessors.append((tid, item["delivery"], satisfaction))
         satisfactions[tid] = satisfaction
     branch, head = reservation["parent_branch"], reservation["parent_sha"]
+    source_start, source_checked = None, False
     if decision is not None:
         require(isinstance(decision, dict) and decision.get("branch") == branch and decision.get("sha") == head,
                 "decision-rejected", "decision cannot replace the reserved parent")
@@ -2876,7 +2989,14 @@ def parent_readiness(scope, task, state, reservation, decision, repo, retained=F
                         "containment": {"ancestor": revision, "descendant": head,
                                         "verified": True}})
     for entry in base_satisfied_entries(scope, task):
-        require(contains(repo, entry["revision"], head), "uncontained-prerequisite",
+        revision = entry["revision"] if contains(repo, entry["revision"], head) else None
+        if revision is None and entry["evidence"].get("source_revalidation"):
+            if not source_checked:
+                source_start = _retained_stack_source(
+                    scope, task, state, branch, head, repo, reservation if retained else None)
+                source_checked = True
+            revision = _landed_source_in_parent(entry["evidence"], head, source_start, repo)
+        require(revision is not None, "uncontained-prerequisite",
                 "selected parent does not contain base-satisfied prerequisite " + entry["task_id"])
     external = next(entry for entry in scope["execution_layout"]["entries"]
                     if entry["task_id"] == task["task_id"])
@@ -2916,6 +3036,8 @@ def stack_requirement(admitted, task, readiness, state, repo):
     parent_prs = readiness["parent"]["pr_evidence"]["prs"]
     if not parent_prs:
         return None
+    head = readiness["parent"]["sha"]
+    source_start, source_checked = None, False
     members = []
     for task_id in task["execution_ancestry"]:
         item = state["tasks"][task_id]
@@ -2925,10 +3047,54 @@ def stack_requirement(admitted, task, readiness, state, repo):
             require(isinstance(landed, dict) and landed.get("kind") == "merged"
                     and landed == item.get("satisfaction") and item.get("lifecycle_error") is None
                     and landed["branch"] == admitted["integration"]["branch"]
-                    and contains(repo, landed["revision"], admitted["integration"]["sha"])
-                    and contains(repo, landed["revision"], readiness["parent"]["sha"]),
+                    and contains(repo, landed["revision"], admitted["integration"]["sha"]),
                     "base-satisfaction-unverified",
-                    "execution ancestor lacks verified landed containment in the selected parent")
+                    "execution ancestor lacks fresh merged availability")
+            if not contains(repo, landed["revision"], head):
+                require(landed.get("source_revalidation"), "base-satisfaction-unverified",
+                        "execution ancestor lacks verified source in the selected parent")
+                if not source_checked:
+                    source_start = _retained_stack_source(
+                        admitted, task, state, readiness["parent"]["branch"], head, repo)
+                    source_checked = True
+                require(_landed_source_in_parent(landed, head, source_start, repo) is not None,
+                        "base-satisfaction-unverified",
+                        "execution ancestor lacks verified source in the selected parent")
+            continue
+        require(item["status"] == "delivered" and item.get("lifecycle_error") is None,
+                "prerequisites-unmet", "open stack ancestor is not a verified delivery")
+        if lifecycle_state(item.get("lifecycle")) == "merged":
+            ancestor = next(entry for entry in admitted["tasks"] if entry["task_id"] == task_id)
+            satisfaction = prerequisite_satisfaction(
+                item, ancestor, repo, lifecycle=item["lifecycle"],
+                canonical=admitted["canonical_repo"])
+            if satisfaction["landing_branch"] == admitted["integration"]["branch"]:
+                receipt = ancestor.get("existing_delivery") or {}
+                if ("historical_source_revalidation" in receipt
+                        and not contains(repo, admitted["integration"]["sha"], head)):
+                    require(ancestor.get("own_availability_error") is None,
+                            "base-satisfaction-unverified",
+                            "merged execution ancestor lacks fresh current integration evidence")
+                landed = ancestor.get("own_availability")
+                if (isinstance(landed, dict)
+                        and landed["revision"] != satisfaction["revision"]
+                        and not contains(repo, landed["revision"], head)):
+                    require(landed.get("kind") == "merged"
+                            and landed.get("branch") == admitted["integration"]["branch"]
+                            and landed.get("pr_url") == satisfaction["pr_url"]
+                            and landed.get("original_revision") == satisfaction["revision"]
+                            and contains(repo, landed["revision"], admitted["integration"]["sha"])
+                            and landed.get("source_revalidation"),
+                            "base-satisfaction-unverified",
+                            "merged execution ancestor lacks compatible source in the selected parent")
+                    _verified_merged_execution_ancestor(admitted, task_id, item, head, repo)
+                    if not source_checked:
+                        source_start = _retained_stack_source(
+                            admitted, task, state, readiness["parent"]["branch"], head, repo)
+                        source_checked = True
+                    require(_landed_source_in_parent(landed, head, source_start, repo) is not None,
+                            "base-satisfaction-unverified",
+                            "merged execution ancestor lacks verified source in the selected parent")
             continue
         satisfaction = prerequisite_satisfaction(
             item, task, repo, lifecycle=item.get("lifecycle"), canonical=admitted["canonical_repo"])
@@ -3172,7 +3338,7 @@ def choose_parent(scope, task, state, decisions, repo):
         candidates.extend({"branch": satisfaction["branch"], "sha": satisfaction["revision"]}
                           for satisfaction in satisfactions.values() if satisfaction["kind"] == "open")
     heads = [satisfaction["revision"] for satisfaction in satisfactions.values()]
-    heads.extend(entry["revision"] for entry in base_satisfied_entries(scope, task))
+    base_entries = base_satisfied_entries(scope, task)
     external = next(entry for entry in scope["execution_layout"]["entries"]
                     if entry["task_id"] == task["task_id"])
     heads.extend(value["revision"] for value in external["satisfied_external_prerequisites"])
@@ -3187,7 +3353,18 @@ def choose_parent(scope, task, state, decisions, repo):
         seen.add(key)
         if branch_tip(repo, candidate["branch"]) != candidate["sha"]:
             continue
-        if all(contains(repo, head, candidate["sha"]) for head in heads):
+        if not all(contains(repo, head, candidate["sha"]) for head in heads):
+            continue
+        if all(contains(repo, entry["revision"], candidate["sha"]) for entry in base_entries):
+            return candidate
+        if not all(contains(repo, entry["revision"], candidate["sha"])
+                   or entry["evidence"].get("source_revalidation") for entry in base_entries):
+            continue
+        source_start = _retained_stack_source(
+            scope, task, state, candidate["branch"], candidate["sha"], repo)
+        if all(_landed_source_in_parent(
+                entry["evidence"], candidate["sha"], source_start, repo) is not None
+               for entry in base_entries):
             return candidate
     return None
 

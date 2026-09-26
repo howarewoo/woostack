@@ -262,9 +262,20 @@ importing a controller-owned delivery or waiting for that task's lifecycle/CI st
 
 The native stack requirement includes only open execution ancestors. A landed ancestor without
 controller-owned delivery is omitted only after its fresh merged availability matches the retained
-satisfaction and its revision is contained in both the candidate integration base and the selected
-open parent's commit. Missing or contradictory evidence blocks dispatch; no historical delivery is
-manufactured for an adopted ancestor.
+satisfaction and verified source is contained in both the candidate integration base and the selected
+open parent's commit. An ordinary controller-owned `delivered` ancestor that has since merged
+retains the canonical merged satisfaction gate and is omitted as non-open; its squash merge
+commit need not belong to an open parent based on the verified source head. Only when that
+ancestor uses separately revalidated historical source does the helper additionally prove
+fresh current integration availability, the original landing in the selected parent, and
+source containment. A merge on another branch needs no integration availability. Closed,
+unknown, or unverified ancestors cannot be skipped.
+For a retained open stack whose original start predates a separately accepted integration
+advance, [fresh historical-source revalidation](validation.md#retained-open-stack-source)
+may prove that exact original stack start independently while current integration acceptance remains
+mandatory. This is not a general older-revision fallback: a new integration-root task uses only
+current source, and every selected open-stack parent still proves ancestry of its original start.
+Missing or contradictory evidence blocks dispatch; no historical delivery is manufactured.
 
 A declared fallback must cover at least one technical join. Once every such join is base-satisfied
 the gate is released, and the admitted task carries no fallback.
@@ -299,11 +310,13 @@ previous and proposed commit objects, forward ancestry, and the complete changed
 unrelated forward advance is compatible when it does not materially change a selected task's
 contract scope. For a merged selected prerequisite, the shared availability proof compares
 the landing's changed paths to the candidate base; a later change to that content makes only
-that prerequisite and its dependents wait for fresh independent validation. Rewrites, missing
-objects, wrong refs, and impact on unfinished selected work remain `parent-tip-drift` until
-reconciled. A compatible advance is recorded in controller recovery and may supply the refreshed
-parent only to newly eligible roots; it never reparents an existing reservation or replaces its
-workspace, PR, or worker contract.
+that prerequisite and its dependents wait for fresh independent validation. A newly accepted
+integration candidate alone is not proof that its commit belongs to a retained open stack:
+the exact historical stack start needs separate current-context source acceptance when that start's
+content changes. Rewrites, missing objects, wrong refs, and impact on unfinished selected work remain
+`parent-tip-drift` until reconciled. A compatible advance is recorded in controller recovery and may
+supply the refreshed parent only to newly eligible roots; it never reparents an existing reservation
+or replaces its workspace, PR, or worker contract.
 
 When a Project is explicitly selected for status mutation, add its independently read identity and
 configured lifecycle mapping:
