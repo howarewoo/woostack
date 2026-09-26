@@ -148,6 +148,32 @@ def issue_record(
     return record_value
 
 
+def compact_input(snapshot: Dict[str, Any]) -> Dict[str, Any]:
+    """Use the supported minimal caller shape without changing native read evidence."""
+    result = copy.deepcopy(snapshot)
+    tasks = result["tasks"]
+    edges = result.pop("edges", [])
+    graph = result.pop("graph", {})
+    edges.extend(graph.get("edges", []))
+    for task in tasks:
+        for predecessor in task.pop("prerequisites", []):
+            if not any(edge["predecessor"] == predecessor and edge["dependent"] == task["task_id"]
+                       for edge in edges):
+                edges.append({
+                    "predecessor": predecessor, "dependent": task["task_id"],
+                    "provenance": "declared",
+                    "evidence": {"issue_url": task["url"], "field": "prerequisites"},
+                })
+        for field in ("ordinal", "number", "contract_hash", "contract_revision"):
+            task.pop(field, None)
+        if task.get("specification") == task["body"]:
+            task.pop("specification")
+    result["edges"] = edges
+    for alias in ("children", "issues", "selected_issues"):
+        result.pop(alias, None)
+    return result
+
+
 class FakeGitHub:
     """Paginated native issue/Project reads and canonical PR/note storage."""
 

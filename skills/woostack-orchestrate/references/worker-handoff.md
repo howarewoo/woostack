@@ -18,6 +18,9 @@ this file.
 For every ready task, `schedule` emits one reservation/packet entry. This is an internal bridge
 shape, not a caller-facing source schema: all markers are runtime-substituted facts from the
 normalized admission and local Git reservation, never evidence to invent.
+The caller supplies the compact input in [scheduling](scheduling.md#normalized-snapshot), not
+this expanded helper output. Derived ordinals, hashes, graph/layout metadata, and the effective
+specification remain in the worker packet even when omitted from caller input.
 
 ```json
 {

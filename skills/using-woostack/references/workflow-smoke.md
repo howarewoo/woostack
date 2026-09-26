@@ -147,6 +147,7 @@ the explicit fallback/release condition for any join that cannot use a safe pare
 ```bash
 PYTHONPATH=skills/woostack-orchestrate/scripts/tests \
 python3 -m unittest -v \
+  test_orchestrate_behavior.OrchestrateBehavior.test_compact_input_matches_expanded_production_delivery_and_resume \
   test_orchestrate_behavior.OrchestrateBehavior.test_full_issue_smoke_uses_real_git_and_concurrent_execute_packets \
   test_orchestrate_behavior.OrchestrateBehavior.test_ci_failure_dispatches_one_bounded_repair_and_rechecks_new_head \
   test_orchestrate_behavior.OrchestrateBehavior.test_verified_repaired_parent_releases_dependent_task \
@@ -157,11 +158,14 @@ python3 -m unittest -v \
 ```
 
 This is **deterministic helper evidence**, not model evidence. It crosses
-`scripts/orchestrate.py` through `recording_driver.py` in temporary Git repositories: validates the
-model-selected execution layout, schedules A/B concurrently, stacks C on unmerged A, propagates
-effective-prerequisite readiness through repair, and preserves unrelated work. Recorded mock checks
-and repairs prove controller coordination only—never model diagnosis or live GitHub execution—and
-must be labeled as a deterministic controller simulation, not an actual-host pass.
+`scripts/orchestrate.py` through `recording_driver.py` in temporary Git repositories: compares
+expanded and compact caller snapshots through admission, reservation, delivery/refill, and
+stop/resume; validates the model-selected execution layout; schedules A/B concurrently; stacks C
+on unmerged A; propagates effective-prerequisite readiness through repair; and preserves unrelated
+work. Recorded mock checks and repairs prove controller coordination only—never model diagnosis or
+live GitHub execution—and must be labeled as a deterministic controller simulation, not an
+actual-host pass. The compact caller shape is documented in
+[scheduling](../../woostack-orchestrate/references/scheduling.md#normalized-snapshot).
 
 **Invocation:** run the actual skill in the supported host:
 
