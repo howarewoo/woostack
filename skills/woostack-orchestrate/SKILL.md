@@ -32,7 +32,15 @@ each emitted packet through an actually available authorized host primitive.
 
 ## Procedure
 
-1. **Resolve the executable set and technical prerequisites.** Separate verified executable issues
+1. **Prove active host capabilities.** Before GitHub access, prove actually available worker
+   delivery, isolated workspaces, native result correlation, and recovery, and record those observed
+   booleans with a positive real `max_parallel`. Host names and reference files are not authority.
+   The default requested concurrency is three, clamped to that capability; a missing capability
+   blocks before admission or dispatch, and a sequential-capability host may admit the scope and run
+   at one with a clear notice. This step allocates no workspace and no worker. →
+   [native reads](references/scheduling.md#native-reads-before-json-assembly)
+
+2. **Resolve the executable set and technical prerequisites.** Separate verified executable issues
    from specification, tracker, parent, and Project context, and keep a phase annotation as work
    inside the issue that declares it. Absent, partial, or unavailable native hierarchy is disclosed,
    never read as an empty task set; a complete explicit tracker declaration can supply membership.
@@ -40,25 +48,18 @@ each emitted packet through an actually available authorized host primitive.
    and preserve each independently read native `actual_parent`. Explain the resolved set and graph
    before dispatch. → [native reads](references/scheduling.md#native-reads-before-json-assembly)
 
-2. **Prove active host capabilities and scope ownership.** Before GitHub access, prove actually
-   available worker delivery, isolated workspaces, native result correlation, and recovery, and
-   record those observed booleans with a positive real `max_parallel`. Host names and reference files
-   are not authority. The default requested concurrency is three, clamped to that capability; a
-   missing capability blocks before admission or dispatch, and a sequential-capability host may admit
-   the scope and run at one with a clear notice. Prove externally enforced exclusive ownership of the
-   canonical scope and controller state before invoking the helper. This step allocates no workspace
-   and no worker. → [native reads](references/scheduling.md#native-reads-before-json-assembly) ·
+3. **Prove scope ownership, select the layout, assemble the snapshot, admit.** Prove externally
+   enforced exclusive ownership of the canonical scope and controller state before invoking the
+   helper. Select and summarize one pre-execution layout — a single-parent forest with approved-base
+   roots — and include it in the complete current snapshot, which the shipped `admit` helper validates
+   only after that layout exists and before any allocation. The technical DAG stays the evidence of
+   required work; a selected parent adds optional compatibility ordering only; and a join that cannot
+   use a safe existing parent records the approved `merge-checkpoint` fallback and its release
+   condition instead of an invented relationship. Admission is read-only: it mutates no issue,
+   creates no Project, and publishes no relationship. →
+   [normalized snapshot](references/scheduling.md#normalized-snapshot) ·
+   [invoking the bridge](references/scheduling.md#invoking-the-bridge) ·
    [state, reservations, and joins](references/scheduling.md#state-reservations-and-joins)
-
-3. **Select the layout, assemble the snapshot, admit.** Select and summarize one pre-execution
-   execution layout — a single-parent forest with approved-base roots — and include it in the
-   complete current snapshot, which the shipped `admit` helper validates only after that layout
-   exists and before any allocation. The technical DAG stays the evidence of required work; a
-   selected parent adds optional compatibility ordering only; and a join that cannot use a safe
-   existing parent records the approved `merge-checkpoint` fallback and its release condition instead
-   of an invented relationship. Admission is read-only: it mutates no issue, creates no Project, and
-   publishes no relationship. → [normalized snapshot](references/scheduling.md#normalized-snapshot) ·
-   [invoking the bridge](references/scheduling.md#invoking-the-bridge)
 
 4. **Reserve, verify, dispatch, record.** Reserve through the helper while holding exclusive scope
    ownership, verify the selected checkout against its actual repository remote, physical path,
