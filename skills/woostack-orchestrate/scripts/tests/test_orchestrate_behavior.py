@@ -26,6 +26,7 @@ from typing import Any, Dict, Optional, Sequence, Tuple
 from recording_driver import (
     FakeGitHub,
     FakeHost,
+    compact_input,
     contract_hash,
     diff_identity,
     git,
@@ -549,6 +550,146 @@ class OrchestrateBehavior(unittest.TestCase):
         saved = json.loads(resumed_state.read_text())["tasks"][task_id]
         self.assertEqual(saved["status"], "delivered")
         self.assertIsNone(saved["lifecycle_error"])
+
+    def test_compact_input_matches_expanded_production_delivery_and_resume(self) -> None:
+        """Two disposable repositories cross the same real helper and recording-host boundaries."""
+        observations = []
+        for label in ("expanded", "compact"):
+            self.repo = self.tmp / ("repo-" + label)
+            self.repo.mkdir()
+            self._run(["git", "init", "-q", "-b", "main", str(self.repo)])
+            git(self.repo, "config", "user.email", "orchestrate-tests@example.invalid")
+            git(self.repo, "config", "user.name", "Orchestrate behavioral tests")
+            (self.repo / "README").write_text("base\n", encoding="utf-8")
+            git(self.repo, "add", "README")
+            git(self.repo, "commit", "-m", "base")
+            git(self.repo, "remote", "add", "origin", "https://github.com/acme/app.git")
+            self.github = FakeGitHub(self.repo, git(self.repo, "rev-parse", "HEAD"))
+            for child in self.github.children:
+                child["workspace"] = str(self.tmp / ("host-worktrees-" + label) / child["task_id"])
+            self.launch_context = {}
+
+            def fresh():
+                snapshot = self.github.snapshot()
+                snapshot["tasks"] = snapshot["children"] = snapshot["children"][:3]
+                snapshot["execution_layout"]["entries"] = snapshot["execution_layout"]["entries"][:3]
+                return compact_input(snapshot) if label == "compact" else snapshot
+
+            source = fresh()
+            self.assertEqual([task["task_id"] for task in source["tasks"]],
+                             ["task-a", "task-b", "task-c"])
+            if label == "compact":
+                expanded = self.github.snapshot()
+                expanded["tasks"] = expanded["children"] = expanded["children"][:3]
+                expanded["execution_layout"]["entries"] = expanded["execution_layout"]["entries"][:3]
+                compact_bytes = len(json.dumps(source, sort_keys=True, ensure_ascii=False).encode("utf-8"))
+                expanded_bytes = len(json.dumps(expanded, sort_keys=True, ensure_ascii=False).encode("utf-8"))
+                self.assertLess(compact_bytes, expanded_bytes)
+                self.assertEqual(sum(task["body"] == "Bounded native child " + task["task_id"]
+                                     for task in source["tasks"]), 3)
+                self.assertTrue(all("specification" not in task for task in source["tasks"]))
+                self.assertTrue(all("task_id" in task for task in source["tasks"]))
+                self.assertEqual(source["edges"][0]["predecessor"], "task-a")
+            admitted_path, admitted = self._admit_issue(source)
+            state, initial = self._schedule(admitted_path, admitted, None, fresh(), label + "-initial", cap="2")
+            self.assertEqual([entry["task_id"] for entry in initial["dispatch"]], ["task-a", "task-b"], initial)
+            host = self._start_host(workers=2)
+            host.dispatch(initial["dispatch"])
+            report_a = host.wait_for_report("task-a")
+            result_a = make_result(self.github, "task-a", report_a, admitted)
+            state, outcome, _ = self._apply(admitted_path, state, "task-a", result_a, label + "-a")
+            self.assertEqual(outcome["status"], "delivered")
+            self._persist("task-a", result_a, initial["dispatch"][0])
+            state, stopped = self._stop(admitted_path, state, label + "-stop")
+            self.assertEqual(stopped["status"], "stop-requested")
+            resumed_path = self.tmp / (label + "-resumed.json")
+            code, resumed = invoke_cli(
+                "resume", "--admitted", str(admitted_path), "--state", str(state),
+                "--state-out", str(resumed_path), "--git-repo", str(self.repo),
+                "--fresh", str(self._write_json(label + "-resume-fresh.json", fresh())))
+            self.assertEqual(code, 0, resumed)
+            state, refill = self._schedule(
+                admitted_path, admitted, resumed_path, fresh(), label + "-refill", cap="2")
+            self.assertEqual([entry["task_id"] for entry in refill["dispatch"]], ["task-c"])
+            entry_c = refill["dispatch"][0]
+            self.assertEqual(entry_c["parent_sha"], report_a["worker"]["head_sha"])
+            host.dispatch([entry_c])
+            report_c = host.wait_for_report("task-c")
+            result_c = make_result(self.github, "task-c", report_c, admitted)
+            state, outcome, _ = self._apply(admitted_path, state, "task-c", result_c, label + "-c")
+            self.assertEqual(outcome["status"], "delivered")
+            self._persist("task-c", result_c, entry_c)
+            host.release_b()
+            report_b = host.wait_for_report("task-b")
+            result_b = make_result(self.github, "task-b", report_b, admitted)
+            state, outcome, _ = self._apply(admitted_path, state, "task-b", result_b, label + "-b")
+            self.assertEqual(outcome["status"], "delivered")
+            self._persist("task-b", result_b, initial["dispatch"][1])
+            observations.append({
+                "fingerprints": (admitted["fingerprint"], admitted["execution_fingerprint"]),
+                "scope": admitted["scope_identity"],
+                "graph": admitted["graph"],
+                "obligations": [(entry["task_id"], entry["packet"]["bounded_input"],
+                                 entry["packet"]["parent_readiness"]["logical_prerequisites"])
+                                for entry in initial["dispatch"] + [entry_c]],
+                "decisions": (initial["status"], refill["status"], resumed["status"]),
+                "binding": entry_c["attempt_binding"],
+            })
+            host.shutdown()
+            self.hosts.remove(host)
+        for key in ("fingerprints", "scope", "graph", "obligations", "decisions"):
+            self.assertEqual(observations[0][key], observations[1][key], key)
+        self.assertTrue(all(row["binding"].startswith("attempt-") for row in observations))
+        self.assertNotEqual(observations[0]["binding"], observations[1]["binding"])
+
+    def test_compact_input_preserves_specification_drift_and_admission_gates(self) -> None:
+        expanded = self._two_task_snapshot()
+        compact = compact_input(expanded)
+        distinct = copy.deepcopy(compact)
+        distinct["tasks"][0]["specification"] = "Separately approved full task specification."
+        distinct_path, distinct_admitted = self._admit_issue(distinct)
+        self.assertEqual(distinct_admitted["tasks"][0]["specification"],
+                         "Separately approved full task specification.")
+        self.assertEqual(distinct_admitted["tasks"][0]["body"], expanded["tasks"][0]["body"])
+        state, _ = self._schedule(distinct_path, distinct_admitted, None, distinct,
+                                  "distinct-initial", cap="1")
+        for label, change in (
+            ("specification", lambda row: row["tasks"][0].__setitem__(
+                "specification", "A changed approved specification.")),
+            ("body", lambda row: row["tasks"][0].__setitem__("body", "Revised complete native body.")),
+            ("contract", lambda row: row["tasks"][0]["contract"]["scope"].append("new-scope")),
+        ):
+            changed = copy.deepcopy(distinct)
+            change(changed)
+            state, outcome = self._schedule(distinct_path, distinct_admitted, state, changed,
+                                            "distinct-" + label)
+            self.assertEqual(outcome["status"], "snapshot-drift", outcome)
+        edge_snapshot = self.github.snapshot()
+        edge_snapshot["tasks"] = edge_snapshot["children"] = edge_snapshot["children"][:3]
+        edge_snapshot["execution_layout"]["entries"] = edge_snapshot["execution_layout"]["entries"][:3]
+        edge_snapshot = compact_input(edge_snapshot)
+        edge_path, edge_admitted = self._admit_issue(edge_snapshot)
+        edge_state, _ = self._schedule(edge_path, edge_admitted, None, edge_snapshot,
+                                       "edge-initial", cap="1")
+        changed_edge = copy.deepcopy(edge_snapshot)
+        changed_edge["edges"][0]["evidence"]["field"] = "revised native declaration"
+        _, drift = self._schedule(edge_path, edge_admitted, edge_state, changed_edge, "edge-drift")
+        self.assertEqual(drift["status"], "snapshot-drift", drift)
+        for label, mutation, expected in (
+            ("native", lambda row: row["tasks"][0].pop("node_id"), "invalid-identity"),
+            ("endpoint", lambda row: row["edges"][0].__setitem__("dependent", "task-z"),
+             "missing-endpoint"),
+            ("cycle", lambda row: row["edges"].append({
+                "predecessor": "task-c", "dependent": "task-a",
+                "provenance": "declared", "evidence": "reverse declared edge"}), "cycle"),
+            ("recovery", lambda row: row.pop("recovery"), "incomplete-recovery"),
+        ):
+            candidate = copy.deepcopy(edge_snapshot)
+            mutation(candidate)
+            code, rejected = invoke_cli(
+                "admit", "--snapshot", str(self._write_json("invalid-" + label + ".json", candidate)),
+                "--git-repo", str(self.repo))
+            self.assertEqual((code, rejected.get("error")), (1, expected), rejected)
 
     def test_full_issue_smoke_uses_real_git_and_concurrent_execute_packets(self) -> None:
         """A/B/E run concurrently; C and D stack on A while B remains held."""
