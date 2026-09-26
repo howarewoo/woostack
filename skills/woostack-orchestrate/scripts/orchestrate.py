@@ -4272,7 +4272,7 @@ def parser():
     schedule = commands.add_parser("schedule")
     schedule.add_argument("--admitted", required=True)
     schedule.add_argument("--state")
-    schedule.add_argument("--state-out", required=True)
+    schedule.add_argument("--state-out")
     schedule.add_argument("--git-repo", required=True)
     schedule.add_argument("--fresh", required=True)
     schedule.add_argument("--cap")
@@ -4281,7 +4281,7 @@ def parser():
     apply = commands.add_parser("apply-result")
     apply.add_argument("--admitted", required=True)
     apply.add_argument("--state", required=True)
-    apply.add_argument("--state-out", required=True)
+    apply.add_argument("--state-out")
     apply.add_argument("--git-repo", required=True)
     apply.add_argument("--task", required=True)
     apply.add_argument("--result", required=True)
@@ -4289,7 +4289,7 @@ def parser():
     record_worker = commands.add_parser("record-worker")
     record_worker.add_argument("--admitted", required=True)
     record_worker.add_argument("--state", required=True)
-    record_worker.add_argument("--state-out", required=True)
+    record_worker.add_argument("--state-out")
     record_worker.add_argument("--git-repo", required=True)
     record_worker.add_argument("--task", required=True)
     record_worker.add_argument("--evidence", required=True)
@@ -4297,7 +4297,7 @@ def parser():
     reconcile = commands.add_parser("reconcile")
     reconcile.add_argument("--admitted", required=True)
     reconcile.add_argument("--state", required=True)
-    reconcile.add_argument("--state-out", required=True)
+    reconcile.add_argument("--state-out")
     reconcile.add_argument("--git-repo", required=True)
     reconcile.add_argument("--task", required=True)
     reconcile.add_argument("--evidence", required=True)
@@ -4306,7 +4306,7 @@ def parser():
     observe = commands.add_parser("observe-checks")
     observe.add_argument("--admitted", required=True)
     observe.add_argument("--state", required=True)
-    observe.add_argument("--state-out", required=True)
+    observe.add_argument("--state-out")
     observe.add_argument("--git-repo", required=True)
     observe.add_argument("--task", required=True)
     observe.add_argument("--observation", required=True)
@@ -4314,7 +4314,7 @@ def parser():
     stop = commands.add_parser("stop")
     stop.add_argument("--admitted", required=True)
     stop.add_argument("--state", required=True)
-    stop.add_argument("--state-out", required=True)
+    stop.add_argument("--state-out")
     stop.add_argument("--git-repo", required=True)
     stop.add_argument("--reason", default="user-stop")
     stop.set_defaults(run=cmd_stop)
@@ -4322,7 +4322,7 @@ def parser():
     resume.add_argument("--admitted", required=True)
     resume.add_argument("--fresh", required=True)
     resume.add_argument("--state", required=True)
-    resume.add_argument("--state-out", required=True)
+    resume.add_argument("--state-out")
     resume.add_argument("--git-repo", required=True)
     reconciliation = resume.add_mutually_exclusive_group()
     reconciliation.add_argument("--policy-transition")
@@ -4333,6 +4333,11 @@ def parser():
 def main():
     args = parser().parse_args()
     try:
+        if args.command != "admit":
+            require(args.state is not None or args.state_out is not None,
+                    "missing-state-destination", "initial schedule requires --state-out")
+            if args.state_out is None:
+                args.state_out = args.state
         result = args.run(args)
         print(json.dumps({"ok": True, **result}, indent=2, sort_keys=True))
         return 0
