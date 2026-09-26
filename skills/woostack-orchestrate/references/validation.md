@@ -639,3 +639,104 @@ After a successful reconciliation, assemble a new fully paginated fresh snapshot
 externally enforced exclusive scope and canonical task claims across `schedule`, `record-worker`,
 `apply-result`, `observe-checks`, and `reconcile`; never run a second controller, recreate missing state, or redispatch while worker
 ownership is unknown.
+
+## Stopped landed adoption
+
+A stopped native worker's retained task may be `unknown`, `delivered`, `evidence-pending`, or
+`repair-ready` after its exact PR lands externally, including at an externally changed head.
+Ordinary unknown reconciliation requires an open PR and an existing checkout; do not manufacture
+either after native verified merge. After any
+[approved policy reconciliation](scheduling.md#guarded-same-checkpoint-policy-recovery), keep
+the controller stopped and use the current returned admission:
+
+```text
+python3 <orchestrate-skill>/scripts/orchestrate.py resume \
+  --admitted current-admitted.json --fresh fresh-snapshot.json \
+  --state controller-state.json --state-out controller-state.json \
+  --git-repo <canonical-git-repository> --landed-evidence landed-binding.json
+```
+
+The binding contains the exact `owner` object, current raw-byte `checkpoint_digest`,
+`inventory_digest`, `admission_digest` of the fresh normalized admission, and a nonempty unique
+`tasks` list. Use the same digest encoding as policy recovery. Refresh the complete native
+stopped-worker inventory immediately before the call and hold exclusive controller ownership.
+The helper verifies every recorded worker/reservation is stopped, unchanged claims, the current
+admission, and compatible forward integration. It uses the existing full selected-prerequisite
+verification gate for each selected task's fresh `existing_delivery`: exact issue/repository/PR,
+reserved branch, merged base, contained merge revision, calculated landed diff, current source,
+complete required checks and real smoke, contract-bound independent acceptance review and
+head/diff binding. A missing or partial receipt fails the whole operation without publishing state.
+
+An external head needs new independent checks and acceptance evidence at that exact head;
+never relabel it as the historical native worker's output. A merge alone, old green CI, or a
+review performed against another head cannot satisfy the task. Withhold adoption for known
+acceptance defects or failed/unverified checks. Corrections are separately authorized work,
+not a reason to discard the original task's evidence.
+
+Keep `existing_delivery.result` unchanged. Supply the distinct
+`existing_delivery.landed_revalidation` receipt with:
+
+- `head_parent`: the original retained `reservation.parent_sha`, not an arbitrary nearer ancestor;
+- `head_diff_identity`: calculated binary diff hash of that full source range through the current
+  native PR `head_sha` (the head commit must be available locally, without recreating its worktree);
+- `implementer_ids`: independently observed native/external implementation identities, not invented
+  worker identities; retain the original native worker separately in the checkpoint;
+- `checks`: `{passed, head_sha, diff_identity, commands: [{command, executed, passed}],
+  smoke: {description, executed, passed}}`, covering every contract command and a real smoke; and
+- `validation`: `{verdict: "pass", reviewer_id, checked_head, diff_identity, contract_hash}`.
+
+The reviewer must differ from current implementers and the retained original worker. Both current
+head evidence and the existing `lifecycle.landed_verification` are required: one cannot substitute
+for the other. The same distinct receipt is consumed on later admissions/refills so externally
+revised work stays verifiable without altering the old worker's result.
+
+Success returns `landed-adopted` and leaves the controller stopped. The selected task becomes
+`satisfied` with verified landed availability, while original delivery, worker, reservation,
+attempt binding/history, CI, failure and uncertainty records remain intact. The complete prior
+task and the new independent evidence/binding are retained in `landed_adoption_history`.
+Deleted historical worktrees and branches remain deleted; no original output is rewritten.
+Refresh the full snapshot and explicitly resume before scheduling. Scheduling still revalidates
+landed availability from fresh evidence rather than trusting this saved success.
+Freshly revalidated `satisfied` tasks bypass actionable historical CI repair/blocked branches;
+their preserved old CI observations never dispatch another repair of the merged PR.
+
+### Corrections landed through separate PRs
+
+When a separate corrective PR changes original landing paths, the original PR head may remain
+defective forever. Do not claim it passed or overwrite its historical result. Without explicit
+candidate evidence, the unchanged-source gate continues to reject changed landing paths.
+Instead of `landed_revalidation`, supply exactly one `existing_delivery.integration_revalidation`.
+It uses the same receipt fields above, but `checks.head_sha` and `validation.checked_head` identify
+the exact fresh integration SHA, and `head_diff_identity` is the complete locally calculated
+binary diff from the original retained `reservation.parent_sha` through that candidate.
+
+Additionally require `candidate_sha` equal to fresh `integration.sha`, `approved: true`,
+an `approval_reference` to the user's exact corrective-candidate decision, and
+`corrections: {complete: true, prs: [{pr, verification}]}`. Each `pr` is a fresh canonical native
+merged PR readback: `pr_url`, `repo`, `head_repo`, `branch`, `head_sha`, `base_branch`,
+`merged_base_branch`, `merge_commit_sha`, and `draft: false`. Preserve its real issue association
+when present; an issue-free corrective PR does not acquire the original issue's association.
+Its `verification` supplies `complete: true`, the calculated landed `diff_identity`, and
+`landed_parent` when needed by the existing merge-diff contract.
+
+Enumerate **every** first-parent integration commit between the original native merge revision
+and the exact candidate that touches any original landing path, including intermediate
+modifications or reverts, not just the last corrective PR. The helper calculates that revision
+set with Git and requires exact unique native PR coverage, calculated landed diffs, canonical
+repositories and merged target, and containment in the candidate. Missing, duplicate, foreign,
+open/draft, or uncontained provenance fails closed. A path-union is insufficient to prove
+complete corrective provenance. If direct integration commits lack native PR evidence, this
+operation cannot adopt the candidate.
+
+Original merge identity and calculated original landed diff remain mandatory, but original
+failed source/check observations remain failed historical evidence. Full independent source,
+contract checks, smoke and acceptance review now prove the **candidate**, never the old head.
+The saved availability identifies the candidate revision and retains the original merge and
+corrective PR identities. Future admissions/refills require fresh evidence at their exact
+candidate too. While corrections remain drafts or the current candidate fails acceptance,
+withhold this receipt; policy reconciliation alone cannot release those tasks.
+
+If the response is lost, read the same checkpoint and its `landed_adoption_history`, verify the
+exact binding and selected task evidence against the durable checkpoint, and continue from that
+proved boundary. Do not replay a stale binding: its raw checkpoint digest deliberately stops
+duplicate adoption. Missing/unreadable native facts leave that task reserved and unverified.

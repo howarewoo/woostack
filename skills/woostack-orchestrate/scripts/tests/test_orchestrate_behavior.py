@@ -841,12 +841,13 @@ class OrchestrateBehavior(unittest.TestCase):
         spec.loader.exec_module(module)
         return module
 
-    def _land_prior_delivery(self, task_id: str, *, remote_only: bool = True) -> Dict[str, Any]:
+    def _land_prior_delivery(self, task_id: str, *, remote_only: bool = True,
+                             head_override: Optional[str] = None) -> Dict[str, Any]:
         """Land a retained delivery after an unrelated same-file base change."""
         retained = self.github.delivery[task_id]
         reservation = retained["reservation"]
         branch = reservation["branch"]
-        reviewed_head = retained["result"]["worker"]["head_sha"]
+        reviewed_head = head_override or retained["result"]["worker"]["head_sha"]
         git(self.repo, "update-ref", "refs/remotes/origin/" + branch, reviewed_head)
         git(self.repo, "checkout", "-q", "main")
         source_file = self.repo / "src" / (task_id + ".txt")
@@ -1155,6 +1156,389 @@ class OrchestrateBehavior(unittest.TestCase):
         self.assertEqual(set(self.github.prs), {"task-a"}, self.github.prs)
         self._assert_resume_keeps_live_and_foreign_ownership(
             admitted_path, admitted, trio, persisted_path)
+
+    def _policy_fixture(self, snapshot=None):
+        snapshot = snapshot or self._single_task_snapshot()
+        admitted_path, admitted = self._admit_issue(snapshot)
+        state, _ = self._schedule(admitted_path, admitted, None, snapshot, "policy-start", cap="1")
+        saved = json.loads(state.read_text())
+        item = saved["tasks"]["task-a"]
+        item.update(status="unknown", host_worker={"worker_id": "native-retained"},
+                    failure_reason="acceptance-failed")
+        saved.update(stop_requested=True, halt_new_dispatch=True, halt_reason="user-stop")
+        state = self._publish_state("policy-stopped.json", saved)
+        snapshot["recovery"]["sessions"] = [{
+            "worker": item["host_worker"], "task_id": "task-a",
+            "reservation": item["reservation"], "status": "stopped",
+        }]
+        snapshot["repository_rules"] += " Approved policy shortening."
+        return admitted_path, admitted, state, snapshot
+
+    def _policy_approval(self, admitted, state, snapshot):
+        _, fresh = self._admit_issue(snapshot)
+        fresh.pop("ok", None)
+        helper = self._helper_module()
+        saved = json.loads(state.read_text())
+        paths = helper.changed_paths(self.repo, admitted["integration"]["sha"], fresh["integration"]["sha"])
+        approval = {
+            "version": 1, "approved": True, "approval_reference": "live user decision",
+            "owner": saved["owner"], "scope_identity": saved["scope_identity"],
+            "checkpoint_digest": hashlib.sha256(state.read_bytes()).hexdigest(),
+            "old_admission_digest": helper.admission_digest(admitted),
+            "new_admission_digest": helper.admission_digest(fresh),
+            "old_repository_rules": admitted["repository_rules"],
+            "new_repository_rules": fresh["repository_rules"],
+            "previous_sha": admitted["integration"]["sha"],
+            "proposed_sha": fresh["integration"]["sha"],
+            "inventory_digest": helper.digest(fresh["recovery"]),
+            "impact": [{
+                "task_id": task["task_id"], "reviewed": True, "disposition": "retain",
+                "rationale": "Reviewed forward change; retain acceptance failure and all task evidence.",
+                "changed_paths": [path for path in paths if any(
+                    helper.path_in_scope(path, scope) for scope in task["contract"]["scope"])],
+            } for task in fresh["tasks"]],
+        }
+        return approval, fresh
+
+    def _policy_call(self, admitted_path, state, snapshot, approval=None, *, landed=None, git_repo=None):
+        args = ["resume", "--admitted", str(admitted_path), "--state", str(state),
+                "--state-out", str(state), "--git-repo", str(git_repo or self.repo),
+                "--fresh", str(self._write_json("policy-fresh.json", snapshot))]
+        if approval is not None:
+            args += ["--policy-transition", str(self._write_json("policy-approval.json", approval))]
+        if landed is not None:
+            args += ["--landed-evidence", str(self._write_json("landed-evidence.json", landed))]
+        return invoke_cli(*args)
+
+    def test_policy_transition_preserves_checkpoint_claims_and_uncertain_work(self):
+        old_path, old, state, snapshot = self._policy_fixture()
+        before = json.loads(state.read_text())
+        claims = {path: path.read_bytes() for path in
+                  (self.repo / ".woostack/tmp/orchestrate-claims").glob("*.json")}
+        (self.repo / "src").mkdir()
+        (self.repo / "src/task-a.txt").write_text("Reviewed overlapping advance\n")
+        git(self.repo, "add", "src/task-a.txt")
+        git(self.repo, "commit", "-m", "Forward integration change")
+        snapshot["integration"]["sha"] = git(self.repo, "rev-parse", "HEAD")
+        approval, fresh = self._policy_approval(old, state, snapshot)
+        code, rejected = self._policy_call(old_path, state, snapshot)
+        self.assertEqual((code, rejected["error"]), (1, "snapshot-drift"))
+        code, result = self._policy_call(old_path, state, snapshot, approval)
+        self.assertEqual(code, 0, result)
+        after = json.loads(state.read_text())
+        self.assertTrue(after["stop_requested"])
+        for key in ("tasks", "owner", "scope_claim", "fingerprint"):
+            self.assertEqual(after[key], before[key])
+        self.assertEqual(claims, {path: path.read_bytes() for path in claims})
+        self.assertEqual(result["admitted"], fresh)
+        committed = state.read_bytes()
+        code, retry = self._policy_call(old_path, state, snapshot, approval)
+        self.assertEqual(code, 0, retry)
+        self.assertTrue(retry["retry"])
+        self.assertEqual(state.read_bytes(), committed)
+        code, rejected = self._policy_call(old_path, state, snapshot)
+        self.assertEqual((code, rejected["error"]), (1, "state-mismatch"))
+        code, rejected = invoke_cli(
+            "record-worker", "--admitted", str(old_path), "--state", str(state),
+            "--state-out", str(state), "--git-repo", str(self.repo), "--task", "task-a",
+            "--evidence", str(self._write_json("obsolete-worker-receipt.json", {})))
+        self.assertEqual((code, rejected["error"]), (1, "state-mismatch"))
+        self.assertEqual(state.read_bytes(), committed)
+        new_path = self._write_json("current-policy-admission.json", result["admitted"])
+        code, resumed = self._policy_call(new_path, state, snapshot)
+        self.assertEqual(code, 0, resumed)
+        self.assertEqual(resumed["released"], [])
+        retained = json.loads(state.read_text())["tasks"]["task-a"]
+        self.assertEqual(retained["status"], "unknown")
+        self.assertEqual(retained["failure_reason"], "acceptance-failed")
+        for key in ("reservation", "host_worker", "attempt_binding", "attempt_history", "ci"):
+            self.assertEqual(retained[key], before["tasks"]["task-a"][key])
+        _, scheduled = self._schedule(new_path, fresh, state, snapshot, "policy-continuation")
+        self.assertEqual(scheduled["dispatch"], [])
+        self.assertIn("task-a", scheduled["unknown"])
+
+    def test_reconciled_resume_rejects_missing_scope_claim(self):
+        old_path, old, state, snapshot = self._policy_fixture()
+        approval, _ = self._policy_approval(old, state, snapshot)
+        code, result = self._policy_call(old_path, state, snapshot, approval)
+        self.assertEqual(code, 0, result)
+        current_path = self._write_json("current-policy-admission.json", result["admitted"])
+        checkpoint = state.read_bytes()
+        scope_claim = next(path for path in
+                           (self.repo / ".woostack/tmp/orchestrate-claims").glob("*.json")
+                           if json.loads(path.read_text())["kind"] == "scope")
+        scope_claim.unlink()
+
+        code, rejected = self._policy_call(current_path, state, snapshot)
+        self.assertEqual((code, rejected["error"]), (1, "ownership-conflict"))
+        self.assertFalse(scope_claim.exists())
+        self.assertEqual(state.read_bytes(), checkpoint)
+
+    def test_policy_transition_rejects_stale_incomplete_live_and_changed_contracts(self):
+        old_path, old, state, snapshot = self._policy_fixture()
+        approval, _ = self._policy_approval(old, state, snapshot)
+        original = state.read_bytes()
+        for key, value in (("checkpoint_digest", "0" * 64), ("owner", {"controller_id": "foreign"}),
+                           ("approved", False), ("impact", [])):
+            with self.subTest(key=key):
+                bad = copy.deepcopy(approval)
+                bad[key] = value
+                code, result = self._policy_call(old_path, state, snapshot, bad)
+                self.assertEqual(code, 1, result)
+                self.assertEqual(state.read_bytes(), original)
+        for status in ("running", "unknown"):
+            live = copy.deepcopy(snapshot)
+            live["recovery"]["sessions"][0]["status"] = status
+            bound, _ = self._policy_approval(old, state, live)
+            code, result = self._policy_call(old_path, state, live, bound)
+            self.assertEqual((code, result["error"]), (1, "worker-liveness"))
+            self.assertEqual(state.read_bytes(), original)
+        missing = copy.deepcopy(snapshot)
+        missing["recovery"]["sessions"] = []
+        bound, _ = self._policy_approval(old, state, missing)
+        code, result = self._policy_call(old_path, state, missing, bound)
+        self.assertEqual((code, result["error"]), (1, "worker-liveness"))
+        changed = copy.deepcopy(snapshot)
+        changed["tasks"][0]["body"] += "\nChanged task scope"
+        bound, _ = self._policy_approval(old, state, changed)
+        code, result = self._policy_call(old_path, state, changed, bound)
+        self.assertEqual((code, result["error"]), (1, "snapshot-drift"))
+        self.assertEqual(state.read_bytes(), original)
+        contract = copy.deepcopy(snapshot)
+        contract["tasks"][0]["contract"]["scope"].append("new-scope")
+        bound, _ = self._policy_approval(old, state, contract)
+        code, result = self._policy_call(old_path, state, contract, bound)
+        self.assertEqual((code, result["error"]), (1, "snapshot-drift"))
+        wider = self._two_task_snapshot()
+        wider["repository_rules"] = snapshot["repository_rules"]
+        wider["recovery"] = snapshot["recovery"]
+        bound, _ = self._policy_approval(old, state, wider)
+        code, result = self._policy_call(old_path, state, wider, bound)
+        self.assertEqual((code, result["error"]), (1, "snapshot-drift"))
+        foreign = copy.deepcopy(snapshot)
+        foreign["canonical_repo"] = "https://github.com/other/repo"
+        code, result = self._policy_call(old_path, state, foreign, approval)
+        self.assertEqual(code, 1, result)
+        self.assertEqual(state.read_bytes(), original)
+        unbound = json.loads(state.read_text())
+        unbound["tasks"]["task-a"].pop("host_worker")
+        state = self._publish_state("policy-unbound-writer.json", unbound)
+        snapshot["recovery"]["sessions"] = []
+        approval, _ = self._policy_approval(old, state, snapshot)
+        original = state.read_bytes()
+        code, result = self._policy_call(old_path, state, snapshot, approval)
+        self.assertEqual((code, result["error"]), (1, "worker-liveness"))
+        self.assertEqual(state.read_bytes(), original)
+
+    def test_policy_transition_rejects_changed_dependency_graph(self):
+        old_path, old, state, snapshot = self._policy_fixture(self._two_task_snapshot())
+        original = state.read_bytes()
+        snapshot["tasks"][1]["prerequisites"] = ["task-a"]
+        snapshot["execution_layout"]["entries"][1]["execution_parent"] = "task-a"
+        approval, _ = self._policy_approval(old, state, snapshot)
+        code, result = self._policy_call(old_path, state, snapshot, approval)
+        self.assertEqual((code, result["error"]), (1, "snapshot-drift"))
+        self.assertEqual(state.read_bytes(), original)
+
+    def _exercise_stopped_landed_adoption(self, ci_state, *, candidate=False, linked=False):
+        (self.repo / ".git/info/exclude").write_text(".woostack/\n")
+        retained = self._seed_prior_delivery("task-a", same_file_baseline=True)
+        selected = {"task-a", "task-c"}
+        snapshot = self._scoped_tasks_snapshot(selected)
+        old_path, old = self._admit_issue(snapshot)
+        state, _ = self._schedule(old_path, old, None, snapshot, "landed-policy-start")
+        saved = json.loads(state.read_text())
+        saved["tasks"]["task-a"].update(
+            status="unknown", reservation=retained["reservation"],
+            host_worker={"worker_id": "original-native"},
+            report={"pr_url": retained["result"]["readback"]["pr_url"]},
+            failure_reason="external-head-change")
+        saved["tasks"]["task-a"]["ci"].update(
+            state=ci_state, reason="ci-pr-revision-stale",
+            head_sha=retained["result"]["readback"]["head_sha"])
+        saved.update(stop_requested=True, halt_new_dispatch=True, halt_reason="user-stop")
+        state = self._publish_state("landed-policy-stopped.json", saved)
+        original_result = copy.deepcopy(retained["result"])
+        workspace = Path(retained["reservation"]["workspace"])
+        source = workspace / "src/task-a.txt"
+        source.write_text(source.read_text() + "External revision after worker delivery\n")
+        git(workspace, "add", "src/task-a.txt")
+        git(workspace, "commit", "-m", "External revision")
+        external_head = git(workspace, "rev-parse", "HEAD")
+        self._land_prior_delivery("task-a", remote_only=False, head_override=external_head)
+        corrective = None
+        if candidate:
+            original_merge = git(self.repo, "rev-parse", "HEAD")
+            source = self.repo / "src/task-a.txt"
+            source.write_text(source.read_text() + "Separately approved corrective implementation\n")
+            git(self.repo, "add", "src/task-a.txt")
+            git(self.repo, "commit", "-m", "Squash separate corrective PR")
+            external_head = git(self.repo, "rev-parse", "HEAD")
+            self.github.integration["sha"] = self.github.base_sha = external_head
+            corrective = {
+                "pr": {"pr_url": self.github.canonical + "/pull/2001",
+                       "repo": self.github.canonical, "head_repo": self.github.canonical,
+                       "branch": "separate-correction", "head_sha": external_head,
+                       "base_branch": "main", "state": "merged", "draft": False,
+                       "merged_base_branch": "main", "merge_commit_sha": external_head},
+                "verification": {"complete": True,
+                                 "diff_identity": diff_identity(self.repo, original_merge, external_head)},
+            }
+            first_correction = external_head
+            source.write_text(source.read_text() + "Second independently landed corrective aspect\n")
+            git(self.repo, "add", "src/task-a.txt")
+            git(self.repo, "commit", "-m", "Squash second corrective PR")
+            external_head = git(self.repo, "rev-parse", "HEAD")
+            self.github.integration["sha"] = self.github.base_sha = external_head
+            second = copy.deepcopy(corrective)
+            second["pr"].update(pr_url=self.github.canonical + "/pull/2002",
+                                branch="second-correction", head_sha=external_head,
+                                merge_commit_sha=external_head)
+            second["verification"]["diff_identity"] = diff_identity(self.repo, first_correction, external_head)
+            corrective = [corrective, second]
+            # The original head remains known unverified; only candidate evidence may pass.
+            self.github.delivery["task-a"]["lifecycle"]["landed_verification"].update(
+                source_verified=False, checks_verified=False)
+        head_diff = diff_identity(self.repo, retained["reservation"]["parent_sha"], external_head)
+        current_checks = copy.deepcopy(original_result["checks"])
+        current_checks.update(head_sha=external_head, diff_identity=head_diff)
+        current_review = copy.deepcopy(original_result["validation"])
+        current_review.update(checked_head=external_head, diff_identity=head_diff,
+                              reviewer_id="independent-current-reviewer")
+        receipt_key = "integration_revalidation" if candidate else "landed_revalidation"
+        receipt = {
+            "head_parent": retained["reservation"]["parent_sha"], "head_diff_identity": head_diff,
+            "implementer_ids": ["external-implementer", "original-native"],
+            "checks": current_checks, "validation": current_review,
+        }
+        if candidate:
+            receipt.update(candidate_sha=external_head, approved=True,
+                           approval_reference="Exact corrective integration approved",
+                           corrections={"complete": True, "prs": corrective})
+        self.github.delivery["task-a"][receipt_key] = receipt
+        snapshot = self._scoped_tasks_snapshot(selected)
+        snapshot["repository_rules"] += " Approved policy update."
+        item = saved["tasks"]["task-a"]
+        snapshot["recovery"]["sessions"] = [{
+            "task_id": "task-a", "worker": item["host_worker"],
+            "reservation": item["reservation"], "status": "stopped"}]
+        client = self.repo
+        if linked:
+            client = self.tmp / "recovery-client"
+            git(self.repo, "worktree", "add", "-b", "recovery-client", str(client), "main")
+        claims = {path: path.read_bytes() for path in
+                  (self.repo / ".woostack/tmp/orchestrate-claims").glob("*.json")}
+        approval, fresh = self._policy_approval(old, state, snapshot)
+        code, result = self._policy_call(old_path, state, snapshot, approval, git_repo=client)
+        self.assertEqual(code, 0, result)
+        current = self._write_json("landed-current-admission.json", fresh)
+        helper = self._helper_module()
+        evidence = {
+            "owner": saved["owner"], "checkpoint_digest": hashlib.sha256(state.read_bytes()).hexdigest(),
+            "inventory_digest": helper.digest(fresh["recovery"]),
+            "admission_digest": helper.admission_digest(fresh), "tasks": ["task-a"],
+        }
+        before = state.read_bytes()
+        failures = ["missing", "acceptance", "command", "smoke", "self-review", "narrow-parent"]
+        failures += (["foreign-correction", "open-correction", "draft-correction", "missing-correction",
+                      "partial-corrections", "stale-candidate", "uncontained-correction"]
+                     if candidate else ["source_verified", "checks_verified"])
+        for defect in failures:
+            bad = copy.deepcopy(snapshot)
+            delivery = bad["tasks"][0]["existing_delivery"]
+            receipt = delivery[receipt_key]
+            if defect == "missing":
+                delivery.pop(receipt_key)
+            elif defect in ("source_verified", "checks_verified"):
+                delivery["lifecycle"]["landed_verification"][defect] = False
+            elif defect == "acceptance":
+                receipt["validation"]["verdict"] = "fail"
+            elif defect == "command":
+                receipt["checks"]["commands"][0]["passed"] = False
+            elif defect == "smoke":
+                receipt["checks"]["smoke"]["passed"] = False
+            elif defect == "self-review":
+                receipt["validation"]["reviewer_id"] = "original-native"
+            elif defect == "narrow-parent":
+                receipt["head_parent"] = external_head
+                receipt["head_diff_identity"] = diff_identity(self.repo, external_head, external_head)
+            elif defect == "foreign-correction":
+                receipt["corrections"]["prs"][0]["pr"]["head_repo"] = "https://github.com/foreign/repo"
+            elif defect == "open-correction":
+                receipt["corrections"]["prs"][0]["pr"]["state"] = "open"
+            elif defect == "draft-correction":
+                receipt["corrections"]["prs"][0]["pr"]["draft"] = True
+            elif defect == "missing-correction":
+                receipt["corrections"]["prs"].pop()
+            elif defect == "partial-corrections":
+                receipt["corrections"]["complete"] = False
+            elif defect == "stale-candidate":
+                receipt["candidate_sha"] = original_merge
+            else:
+                receipt["corrections"]["prs"][0]["pr"]["merge_commit_sha"] = "f" * 40
+            _, bad_admission = self._admit_issue(bad)
+            bound = {**evidence, "admission_digest": helper.admission_digest(bad_admission)}
+            code, rejected = self._policy_call(current, state, bad, landed=bound, git_repo=client)
+            self.assertEqual(code, 1, (defect, rejected))
+            self.assertEqual(state.read_bytes(), before)
+        code, result = self._policy_call(current, state, snapshot, landed=evidence, git_repo=client)
+        self.assertEqual(code, 0, result)
+        after = json.loads(state.read_text())
+        self.assertTrue(after["stop_requested"])
+        self.assertEqual(after["tasks"]["task-a"]["status"], "satisfied")
+        self.assertEqual(after["landed_adoption_history"][0]["previous_task"], item)
+        for key in ("host_worker", "reservation", "report", "ci", "failure_reason"):
+            self.assertEqual(after["tasks"]["task-a"][key], item[key])
+        self.assertEqual(claims, {path: path.read_bytes() for path in claims})
+        if linked:
+            self.assertFalse((client / ".woostack/tmp/orchestrate-claims").exists())
+        self.assertFalse(Path(item["reservation"]["workspace"]).exists())
+        self.assertEqual(after["landed_adoption_history"][0]["evidence"]["result"], original_result)
+        self.assertEqual(after["tasks"]["task-a"]["satisfaction"]["revalidation"]["head_sha"], external_head)
+        code, resumed = self._policy_call(current, state, snapshot, git_repo=client)
+        self.assertEqual(code, 0, resumed)
+        self.assertIn("task-a", resumed["satisfied"])
+        next_state, continued = self._schedule(current, fresh, state, snapshot, "landed-continued")
+        self.assertEqual([entry["task_id"] for entry in continued["dispatch"]], ["task-c"])
+        self.assertIn("task-a", continued["satisfied"])
+        self.assertNotIn("task-a", [row["task_id"] for row in continued["blocked"]])
+        self.assertEqual(json.loads(next_state.read_text())["tasks"]["task-a"]["ci"], item["ci"])
+
+    def test_stopped_landed_adoption_requires_full_evidence_and_preserves_native_history(self):
+        self._exercise_stopped_landed_adoption("blocked")
+
+    def test_stopped_landed_repair_history_does_not_redispatch_from_linked_checkout(self):
+        self._exercise_stopped_landed_adoption("repair", linked=True)
+
+    def test_corrected_integration_adoption_preserves_failed_original_head(self):
+        self._exercise_stopped_landed_adoption("repair", candidate=True)
+
+    def test_policy_transition_retains_legacy_compatibility_without_rewriting_tasks(self):
+        old_path, old, state, snapshot = self._policy_fixture()
+        retired = self._retired_admission(old)
+        old_path = self._write_json("retired-policy-admission.json", retired)
+        saved = json.loads(state.read_text())
+        saved["execution_layout"] = copy.deepcopy(retired["execution_layout"])
+        saved["execution_fingerprint"] = retired["execution_fingerprint"]
+        for task in retired["tasks"]:
+            saved["tasks"][task["task_id"]]["dependency_snapshot"] = copy.deepcopy(task["dependency_snapshot"])
+        state = self._publish_state("retired-policy-state.json", saved)
+        approval, fresh = self._policy_approval(retired, state, snapshot)
+        code, reconciled = self._policy_call(old_path, state, snapshot, approval)
+        self.assertEqual(code, 0, reconciled)
+        self.assertEqual(json.loads(state.read_text())["tasks"], saved["tasks"])
+        accepted = state.read_bytes()
+        code, retry = self._policy_call(old_path, state, snapshot, approval)
+        self.assertEqual(code, 0, retry)
+        self.assertTrue(retry["retry"])
+        self.assertEqual(state.read_bytes(), accepted)
+        current = self._write_json("retired-current-admission.json", reconciled["admitted"])
+        code, resumed = self._policy_call(current, state, snapshot)
+        self.assertEqual(code, 0, resumed)
+        _, continued = self._schedule(current, fresh, state, snapshot, "retired-policy-continued")
+        self.assertEqual(continued["dispatch"], [])
+        self.assertEqual(json.loads(state.read_text())["tasks"]["task-a"]["dependency_snapshot"],
+                         saved["tasks"]["task-a"]["dependency_snapshot"])
 
     def test_resume_requires_stop_and_preserves_unrelated_halt(self) -> None:
         snapshot = self._single_task_snapshot()

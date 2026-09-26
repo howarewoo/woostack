@@ -583,6 +583,72 @@ ambiguity or an explicitly selected suitable existing parent; it is evidence to 
 by name alone. Never create a synthetic base, combine independent branches, rewrite either graph, or
 require an automatic merge.
 
+## Guarded same-checkpoint policy recovery
+
+An authorized repository-policy edit may make ordinary `resume` fail with `snapshot-drift`.
+Do not edit the checkpoint, reset ownership, reinitialize the controller, or replace its admission
+by hand. Under exclusive controller ownership, obtain the responsible user's explicit approval
+for the exact old/new policy and forward integration change. Refresh complete native inventory,
+including all writer descendants, selected PRs, contracts, dependencies, refs and worktrees.
+Every recorded native writer needs exactly one `sessions` row containing its full `worker`,
+`task_id`, `reservation`, and `status: "stopped"`; all sessions and processes must be stopped.
+An absent worktree after verified merge is history, not permission to recreate it.
+
+Run `admit` on the fresh snapshot with `--max-parallel` equal to the retained admission's
+`max_parallel` to compute the proposed normalized admission. Then invoke:
+
+```text
+python3 <orchestrate-skill>/scripts/orchestrate.py resume \
+  --admitted original-admitted.json --fresh fresh-snapshot.json \
+  --state controller-state.json --state-out controller-state.json \
+  --git-repo <canonical-git-repository> --policy-transition approved-transition.json
+```
+
+The transition object contains `version: 1`, `approved: true`, a nonempty
+`approval_reference` identifying the live user decision, the exact checkpoint `owner` object and
+`scope_identity`, and `checkpoint_digest` (plain SHA-256 of the current file bytes). It binds
+`old_admission_digest`, `new_admission_digest`, `old_repository_rules`, `new_repository_rules`,
+`previous_sha`, `proposed_sha`, and `inventory_digest`. Object digests use the helper's `digest`:
+`sha256:` plus SHA-256 of ASCII JSON with sorted keys and compact separators. Admission digests
+cover complete admissions after `continuation_admission` compatibility normalization, including
+fresh inventory, excluding only the CLI's `ok` envelope field (`admission_digest` implements
+this). Inventory digest covers the complete normalized `recovery` object. Hashes bind evidence;
+they do not authenticate user
+approval, native completeness, or liveness. The caller must actually obtain those facts.
+
+`impact` has exactly one entry for every task:
+`{task_id, changed_paths, reviewed: true, disposition: "retain", rationale}`.
+`changed_paths` must equal the ordered Git diff paths intersecting that task's contract scope;
+`rationale` explains the reviewed impact even when the intersection is empty. The helper verifies
+the current integration branch tip and fast-forward ancestry. It rejects changes to selected
+tasks, native identities, contents, contracts, graph/provenance, execution layout, canonical scope,
+or selected Project. Impact review authorizes retaining the task, never accepting its work.
+
+Success returns `status: "policy-reconciled"`, `dispatch: []`, and `admitted`, the normalized
+updated admission to save for all subsequent operations. The controller remains stopped. Every
+task record, reservation, attempt binding, native origin, CI/validation record, claim, owner and
+original checkpoint fingerprint is preserved; `policy_transition_history` records the complete
+approved transition and output. The original fingerprint remains only the durable checkpoint/CAS
+key. `admission_fingerprint` and the latest history entry identify the sole current admission;
+old admissions cannot mutate the reconciled checkpoint.
+For a pre-cutover admission, the accepted transition also retains its trusted legacy layout
+provenance. Subsequent readers use that checkpoint-bound provenance to validate retired task
+dependency fields without rewriting historical task records. Claims always remain in the canonical
+repository store, including when `--git-repo` names a linked worktree.
+
+If publication's response is lost, repeat the exact command with the original admission, same
+snapshot, approval and state path. The latest exact transition returns the same normalized
+admission and completes any pending checkpoint publication through the existing WAL/CAS.
+An altered approval, changed checkpoint, or superseded transition is not a retry. After continuation,
+re-read the checkpoint/history instead of replaying the old approval. Refresh native evidence
+again before ordinary `resume` using the returned admission; that separate operation clears only
+the controller stop under the existing task-local guards. Task uncertainty and acceptance failures
+are not cleared by policy reconciliation.
+
+For stopped native attempts whose exact PR has since landed, use the separate
+[`--landed-evidence` operation](validation.md#stopped-landed-adoption). Do not fabricate original
+worker results or treat a merged PR as accepted delivery.
+
 ## Helper status meanings
 
 The helper writes machine-readable JSON and exits zero for controlled workflow statuses such as
