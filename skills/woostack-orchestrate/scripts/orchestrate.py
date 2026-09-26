@@ -2710,18 +2710,15 @@ def parent_readiness(scope, task, state, reservation, decision, repo, retained=F
                         "satisfaction": copy.deepcopy(satisfaction),
                         "containment": {"ancestor": revision, "descendant": head,
                                         "verified": True}})
-    # A retained delivery is revalidated against the current candidate base; its historical
-    # reservation predates anything that landed since.
-    landed_anchor = scope["integration"]["sha"] if retained else head
     for entry in base_satisfied_entries(scope, task):
-        require(contains(repo, entry["revision"], landed_anchor), "uncontained-prerequisite",
-                "approved base does not contain base-satisfied prerequisite " + entry["task_id"])
+        require(contains(repo, entry["revision"], head), "uncontained-prerequisite",
+                "selected parent does not contain base-satisfied prerequisite " + entry["task_id"])
     external = next(entry for entry in scope["execution_layout"]["entries"]
                     if entry["task_id"] == task["task_id"])
     for value in external["satisfied_external_prerequisites"]:
-        require(contains(repo, value["revision"], landed_anchor),
+        require(contains(repo, value["revision"], head),
                 "uncontained-prerequisite",
-                "approved base does not contain external prerequisite " + value["issue_url"])
+                "selected parent does not contain external prerequisite " + value["issue_url"])
     return {"logical_prerequisites": list(task["prerequisites"]),
             "execution_prerequisites": list(effective),
             "base_satisfied_prerequisites": list(task["base_satisfied_prerequisites"]),
@@ -3883,6 +3880,7 @@ def cmd_resume(args):
     admitted = continuation_admission(load_json(args.admitted))
     root = repository(args.git_repo, admitted["canonical_repo"])
     state = state_read(args.state, admitted, repo=args.git_repo)
+    require(state["stop_requested"], "not-stopped", "resume requires a persisted stop request")
     claim_scope(args.git_repo, admitted, state)
     fresh = admit(load_json(args.fresh), admitted["max_parallel"], args.git_repo)
     require(fresh.get("recovery") is not None, "incomplete-recovery",
@@ -3907,9 +3905,14 @@ def cmd_resume(args):
         item.update(status="satisfied", satisfaction=copy.deepcopy(fact), lifecycle_error=None,
                     failure_reason=None, first_uncertain_boundary=None)
         released.append(task_id)
+    stop_boundary = state.get("recovery", {}).get("first_uncertain_boundary")
+    stop_reason = stop_boundary.get("reason") if isinstance(stop_boundary, dict) \
+        and stop_boundary.get("status") == "stop-requested" else None
     state["stop_requested"] = False
-    state["halt_new_dispatch"], state["halt_reason"] = False, None
-    state.setdefault("recovery", {}).pop("first_uncertain_boundary", None)
+    if state.get("halt_reason") == "user-stop" or (stop_reason is not None
+                                                  and state.get("halt_reason") == stop_reason):
+        state["halt_new_dispatch"], state["halt_reason"] = False, None
+        state.setdefault("recovery", {}).pop("first_uncertain_boundary", None)
     write_state(args, state)
     return {"status": "resumed", "released": sorted(released),
             "retained_unknown": sorted(set(retained)),

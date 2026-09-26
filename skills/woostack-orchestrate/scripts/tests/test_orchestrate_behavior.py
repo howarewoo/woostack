@@ -1156,6 +1156,36 @@ class OrchestrateBehavior(unittest.TestCase):
         self._assert_resume_keeps_live_and_foreign_ownership(
             admitted_path, admitted, trio, persisted_path)
 
+    def test_resume_requires_stop_and_preserves_unrelated_halt(self) -> None:
+        snapshot = self._single_task_snapshot()
+        admitted_path, admitted = self._admit_issue(snapshot)
+        state, _ = self._schedule(admitted_path, admitted, None, snapshot, "resume-guard", cap="1")
+        persisted = json.loads(state.read_text())
+        persisted["halt_new_dispatch"] = True
+        persisted["halt_reason"] = "unknown-response"
+        persisted["recovery"]["first_uncertain_boundary"] = {
+            "reason": "unknown-response", "status": "unknown"}
+        halted = self._publish_state("resume-not-stopped.json", persisted)
+        fresh = self._write_json("resume-guard-fresh.json", snapshot)
+        output = self.tmp / "resume-guard-output.json"
+        args = ("resume", "--admitted", str(admitted_path), "--fresh", str(fresh),
+                "--state-out", str(output), "--git-repo", str(self.repo))
+        code, rejected = invoke_cli(*args, "--state", str(halted))
+        self.assertEqual(code, 1, rejected)
+        self.assertEqual(rejected["error"], "not-stopped")
+        self.assertFalse(output.exists())
+
+        persisted["stop_requested"] = True
+        stopped = self._publish_state("resume-stopped-other-halt.json", persisted)
+        code, resumed = invoke_cli(*args, "--state", str(stopped))
+        self.assertEqual(code, 0, resumed)
+        saved = json.loads(output.read_text())
+        self.assertFalse(saved["stop_requested"])
+        self.assertTrue(saved["halt_new_dispatch"])
+        self.assertEqual(saved["halt_reason"], "unknown-response")
+        self.assertEqual(saved["recovery"]["first_uncertain_boundary"],
+                         persisted["recovery"]["first_uncertain_boundary"])
+
     def _assert_resume_keeps_live_and_foreign_ownership(
             self, admitted_path: Path, admitted: Dict[str, Any], trio: set, persisted: Path) -> None:
         """A recorded live session or a foreign ownership claim keeps the uncertainty."""
@@ -1382,6 +1412,44 @@ class OrchestrateBehavior(unittest.TestCase):
                                     "external-resume", cap="2")
         self.assertEqual(resumed["dispatch"], [])
         self.assertEqual(set(self.github.prs), {"task-b", "task-c"})
+
+    def test_retained_parent_must_contain_newly_landed_external_prerequisite(self) -> None:
+        (self.repo / "external.txt").write_text("first\n", encoding="utf-8")
+        git(self.repo, "add", "external.txt")
+        git(self.repo, "commit", "-m", "land first external prerequisite")
+        first = git(self.repo, "rev-parse", "HEAD")
+        self.github.base_sha = first
+        self.github.integration = {"branch": "main", "sha": first}
+        snapshot = self.github.snapshot()
+        snapshot["tasks"] = snapshot["children"] = [
+            task for task in snapshot["tasks"] if task["task_id"] == "task-a"]
+        snapshot["tasks"][0]["external_prerequisites"] = [self.github.canonical + "/issues/999"]
+        snapshot = self._scope_execution_layout(snapshot)
+        entry = snapshot["execution_layout"]["entries"][0]
+        entry["satisfied_external_prerequisites"] = [self._external_evidence(first)]
+        admitted_path, admitted = self._admit_issue(snapshot)
+        state_path, wave = self._schedule(admitted_path, admitted, None, snapshot,
+                                          "external-retained-initial", cap="1")
+        self.assertEqual(len(wave["dispatch"]), 1, wave)
+        reservation = wave["dispatch"][0]
+
+        (self.repo / "external.txt").write_text("second\n", encoding="utf-8")
+        git(self.repo, "add", "external.txt")
+        git(self.repo, "commit", "-m", "land newer external prerequisite")
+        second = git(self.repo, "rev-parse", "HEAD")
+        self.github.integration["sha"] = second
+        updated = copy.deepcopy(snapshot)
+        updated["integration"]["sha"] = second
+        updated["parent_prs"]["main"]["head_sha"] = second
+        updated["execution_layout"]["entries"][0]["satisfied_external_prerequisites"] = [
+            self._external_evidence(second)]
+        helper = self._helper_module()
+        fresh = helper.admit(updated, admitted["max_parallel"], str(self.repo))
+        task = fresh["tasks"][0]
+        state = json.loads(state_path.read_text())
+        with self.assertRaises(helper.InputError) as raised:
+            helper.parent_readiness(fresh, task, state, reservation, None, str(self.repo), retained=True)
+        self.assertEqual(raised.exception.code, "uncontained-prerequisite")
 
     def test_external_prerequisite_evidence_degradation_is_task_local_until_corrected(self) -> None:
         (self.repo / "external.txt").write_text("landed\n", encoding="utf-8")
