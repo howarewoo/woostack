@@ -71,9 +71,10 @@ each emitted packet through an actually available authorized host primitive.
 5. **Refill on completion and observed PR checks.** Dispatch every entry of the current `schedule`
    response up to its effective cap, then wait for one worker completion, actionable host event, or
    newly observed PR-check state rather than the whole batch, so verified A can release C while B is
-   still running. Process that completion through the independent result, validation, note, and
-   optional Project gates, then immediately refill with a freshly assembled snapshot: ordinals create
-   no order, and there is no wave barrier. On an actionable failure in a delivered task's freshly read
+   still running. Process completion through independent technical validation and durably retain its
+   full checkpoint; note and selected Project readbacks are separately visible reporting outcomes,
+   not dependency gates. Immediately refill with a freshly assembled snapshot: ordinals create no
+   order, and there is no wave barrier. On an actionable failure in a delivered task's freshly read
    current-head PR checks, diagnose it and issue at most one bounded Execute repair on the same
    reserved branch, workspace, and PR after the previous writer stopped, coalescing every failure on
    that PR and head. The run stays active only while the host session is: it observes admitted task
@@ -96,10 +97,11 @@ each emitted packet through an actually available authorized host primitive.
    then resume. Approval never resets task-local uncertainty or substitutes merge for acceptance.
 
 7. **Return verified state, separate from human authority.** Report submitted, checking, repairing,
-   CI-verified, blocked, waiting, and unverified work with check links and the exact next safe
-   action. Leave issues and dependencies open and report awaiting review or merge only for the PRs
-   actually delivered. An empty ready queue never proves completion, and pending checks never create
-   a whole-project barrier. →
+   CI-verified, blocked, waiting, and unverified work with check links and the exact next safe action.
+   List requested note/Project reporting still pending or blocked with its reason separately from
+   technical delivery; do not claim all requested reporting completed. Leave issues and dependencies
+   open and report awaiting review or merge only for PRs actually delivered. An empty ready queue
+   never proves completion, and pending checks never create a whole-project barrier. →
    [gate order and statuses](references/validation.md#gate-order-and-statuses)
 
 ## Invariants

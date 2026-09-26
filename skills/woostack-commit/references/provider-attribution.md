@@ -60,6 +60,9 @@ interface supports one, and independently read the mutation back. Never change s
 delegate, owner, status, acceptance, labels, relations, or Project membership merely because a commit
 or PR exists.
 
-Issue-note failure does not invalidate a verified commit or PR. Report repository delivery and the
-issue-note outcome as separate results. Never claim a read, write, commit, PR, or test that was not
-directly observed.
+Issue-note failure does not invalidate a verified commit or PR or independently verified Orchestrate
+technical delivery. Report repository delivery and note outcome separately; absent readback remains
+pending, while foreign, malformed, or denied readback is blocked. Re-read the exact issue and reconcile
+an unknown write before retrying; never repeat an unknown create or infer reporting success from PR
+delivery. A selected Project update likewise remains separate reporting, not a prerequisite release
+gate. Never claim a read, write, commit, PR, or test that was not directly observed.

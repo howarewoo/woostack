@@ -293,11 +293,13 @@ focused verification, and read-only specification validation using the single
 the current head. The controller retains every native review and thread disposition from the same
 fresh PR read, then the helper evaluates applicability against the independently read repository
 policy. Historical records cannot stand in for the required current-head specification validation.
-The controller then persists/read-backs the child note and any explicitly selected Project status
-before `apply-result`. Do not invent missing evidence or let the worker approve its own result.
-Failed checks/specification validation preserve the
-same reservation and PR for repair; note/evidence-only retries keep the same recorded native
-identity without replaying repository delivery. A new repair launch has its own native identity.
+The controller reads the exact child note and any explicitly selected Project status after technical
+validation and supplies observed receipts, or leaves them absent/pending or reports denied evidence;
+it does not invent reporting success. The helper durably records complete independently validated
+technical delivery before a dependent can use it, then tracks note and Project outcomes separately.
+Failed checks/specification validation preserve the same reservation and PR for repair; reporting
+retries keep the recorded native identity and same PR without replaying delivery. A new repair launch
+has its own native identity.
 Each dispatch also issues an `attempt_binding` covering the exact task contract, reservation,
 repair/retained-PR facts, and parent-readiness context. The host launch receipt and worker result
 must echo that binding; the controller records it with the attempt history so a compatible global
@@ -323,8 +325,10 @@ A fresh snapshot that includes a delivered task must include `existing_delivery.
 Without an active launch, admission does not require the active-result `host_id`/`session_id`
 binding; its existing `worker_id` and independent delivery checks remain required. The skill re-reads
 the canonical tracker/scope evidence, branch/ref, PR/head/base/repository, focused checks, binary
-diff, independent validation, note, and selected Project status immediately before assembly. The
-helper restores `delivered` only when the reservation, meaningful tracker context, and every result
-identity/evidence field match; a provider revision, reference order, or matching native membership
-alone does not require redispatch, while stale or partial material evidence blocks. Never redispatch
-a task merely because its prior worker output is absent when canonical delivery already exists.
+diff, independent validation, and separately the note and selected Project status immediately before
+assembly. The helper restores `delivered` only after fresh complete technical validation of the same
+reservation, meaningful tracker context, and result identity/evidence; missing or denied reporting
+stays visible in `reporting` without blocking descendants. A provider revision, reference order, or
+matching native membership alone does not require redispatch, while stale or partial technical
+evidence blocks. A legacy `note-pending` checkpoint is not promoted by loading its saved status;
+revalidate the same PR before reporting retry, without a new implementation worker.

@@ -112,9 +112,11 @@ Examples of convenience hints, not an exhaustive route:
 ```
 
 Orchestrate keeps up to three delivery-capable Execute workers active by default, bounded by host
-capability. Independent roots may run together. Verified submission and independent specification
-validation release ordinary dependents without waiting for a whole wave or a merge. A dependent can
-stack on its selected verified execution parent when containment is eligible. If divergence or
+capability. Independent roots may run together. Durably verified technical delivery, current CI,
+independent review, and ancestry release eligible dependents without waiting for a whole wave, an
+issue note, an explicitly selected Project update, or a merge. Missing or denied reporting remains
+visible separately and takes no worker slot. A dependent can stack on its selected verified execution
+parent when containment is eligible. If divergence or
 repository constraints prevent a safe stack, only the approved `merge-checkpoint` fallback enters
 `waiting-for-merge`; otherwise a join uses a suitable selected parent without a new parent decision.
 The fallback reserves no worker or speculative checkout, preserves the technical DAG and execution
@@ -132,8 +134,8 @@ branch/PR under the shared cap. Stale head results never validate current work; 
 checks never count as a pass. Successful checks never authorize closing issues, marking PRs ready,
 enabling auto-merge, queueing, or merging, and observation never continues as a daemon after the
 session ends. The final result distinguishes submitted, checking, repairing, CI-verified, blocked,
-waiting, and unverified work with check links and the next safe action—not closed issues or product
-acceptance.
+waiting, and unverified work with check links and the next safe action, and separately lists pending
+or blocked requested issue-note/Project reporting—not closed issues or product acceptance.
 
 An explicitly approved policy change can be reconciled on the same stopped controller checkpoint,
 with unchanged tasks, claims, reservations, and historical evidence. The helper binds approval to

@@ -1681,6 +1681,8 @@ def new_state(admitted):
                 "reservation": None,
                 "claim": None,
                 "delivery": None,
+                "reporting": None,
+                "reporting_history": [],
                 "lifecycle": None,
                 "lifecycle_error": None,
                 "report": None,
@@ -1967,6 +1969,36 @@ def state_read(path, admitted, *, allow_execution_plan_update=False, repo=None, 
         for key in ("lifecycle", "lifecycle_error", "satisfaction", "failure_reason"):
             if key not in item:
                 item[key] = None
+        reporting = item.get("reporting")
+        require(reporting is None or isinstance(reporting, dict)
+                and all(isinstance(reporting.get(kind), dict)
+                        and reporting[kind].get("state") in
+                        ("pending", "verified", "blocked", "not-requested")
+                        for kind in ("note", "project")),
+                "invalid-state", "reporting outcome is malformed")
+        if reporting is not None:
+            delivery = item.get("delivery")
+            require(isinstance(delivery, dict) and set(reporting) == {"note", "project"},
+                    "invalid-state", "reporting lacks its technical delivery identity")
+            expected = {
+                "note": {"issue_url": task["url"], "pr_url": delivery.get("pr_url"),
+                         "head_sha": delivery.get("head_sha"),
+                         "contract_hash": delivery.get("contract_hash"),
+                         "diff_identity": delivery.get("validated_diff")},
+            }
+            if admitted.get("project") is not None:
+                expected["project"] = {
+                    "project_url": admitted["project"]["url"], "issue_url": task["url"],
+                    "item_id": task["item_id"], "status": admitted["lifecycle"]["inReview"]}
+            for kind, target in expected.items():
+                record = reporting[kind]
+                require(record == reporting_receipt(record.get("receipt"), kind, target),
+                        "invalid-state", "reporting receipt/target identity changed")
+            if "project" not in expected:
+                require(reporting["project"] == {"state": "not-requested"},
+                        "invalid-state", "unselected Project cannot have reporting")
+        require(isinstance(item.get("reporting_history", []), list),
+                "invalid-state", "reporting history is malformed")
         ci = item.setdefault("ci", _new_ci(item))
         require(isinstance(ci, dict) and ci.get("state") in CI_STATES
                 and isinstance(ci.get("repair_attempts"), list),
@@ -3050,28 +3082,38 @@ def validate_delivery(admitted, task, reservation, result, repo, *, historical=F
                 "commit_sha": readback["commit_sha"], "association": task["url"],
                 "validated_diff": actual_diff, "contract_hash": task["contract_hash"],
                 "checkpoint": copy.deepcopy(result)}
-    if result.get("note") is None:
-        return {"status": "note-pending", "reason": "delivery-note-readback", "delivery": delivery}
-    note = field_object(result.get("note"), ("id", "issue_url", "pr_url", "head_sha",
-                                             "contract_hash", "diff_identity"),
-                        "delivery note readback")
-    require(text(note["id"]) or (type(note["id"]) is int and note["id"] > 0),
-            "invalid-note", "native note identity required")
-    for key, expected in (("issue_url", task["url"]), ("pr_url", readback["pr_url"]),
-                          ("head_sha", readback["head_sha"]), ("contract_hash", task["contract_hash"]),
-                          ("diff_identity", actual_diff)):
-        require(note[key] == expected, "note-mismatch", "delivery note differs on " + key)
-    if admitted.get("project") is not None:
-        if result.get("project_status") is None:
-            return {"status": "note-pending", "reason": "project-status-readback", "delivery": delivery}
-        progress = field_object(result.get("project_status"),
-                                ("project_url", "issue_url", "item_id", "status"),
-                                "Project status readback")
-        require(progress["item_id"] == task["item_id"] and progress["project_url"] == admitted["project"]["url"]
-                and progress["issue_url"] == task["url"]
-                and progress["status"] == admitted["lifecycle"]["inReview"],
-                "project-status-mismatch", "verified Project inReview readback required")
-    return {"status": "delivered", "delivery": delivery}
+    reporting = {
+        "note": reporting_receipt(result.get("note"), "note",
+                                  {"issue_url": task["url"], "pr_url": readback["pr_url"],
+                                   "head_sha": readback["head_sha"], "contract_hash": task["contract_hash"],
+                                   "diff_identity": actual_diff}),
+        "project": (reporting_receipt(
+            result.get("project_status"), "project",
+            {"project_url": admitted["project"]["url"], "issue_url": task["url"],
+             "item_id": task["item_id"], "status": admitted["lifecycle"]["inReview"]})
+            if admitted.get("project") is not None else {"state": "not-requested"}),
+    }
+    return {"status": "delivered", "delivery": delivery, "reporting": reporting}
+
+
+def reporting_receipt(receipt, kind, expected):
+    if receipt is None:
+        return {"state": "pending", "reason": kind + "-readback",
+                "target": copy.deepcopy(expected)}
+    identity = ("id", *expected) if kind == "note" else tuple(expected)
+    denial = receipt.get("error") or receipt.get("reason") if isinstance(receipt, dict) else None
+    valid = isinstance(receipt, dict) and not denial and receipt.get("denied") is not True \
+        and receipt.get("state") not in ("denied", "blocked") \
+        and all(key in receipt and receipt[key] is not None for key in identity)
+    if kind == "note" and valid:
+        valid = text(receipt["id"]) or type(receipt["id"]) is int and receipt["id"] > 0
+    if valid:
+        valid = all(receipt[key] == value for key, value in expected.items())
+    if valid:
+        return {"state": "verified", "receipt": copy.deepcopy(receipt)}
+    reason = kind + "-" + denial[:120] if text(denial) else kind + "-receipt-mismatch"
+    return {"state": "blocked", "reason": reason,
+            "target": copy.deepcopy(expected), "receipt": copy.deepcopy(receipt)}
 
 def packet(admitted, task, reservation, repair, retained, readiness, scope_evidence=None, repair_context=None):
     binding = reservation.get("attempt_binding") or issued_attempt_binding(task, reservation, repair, retained, readiness)
@@ -3162,10 +3204,20 @@ def _state_summary(state, blocked=None, waiting=None, paused=None, unknown_detai
     paused = list(paused or [])
     unknown_details = list(unknown_details or [])
     tasks = state["tasks"]
+    reporting_details = {
+        tid: copy.deepcopy(reporting)
+        for tid, item in sorted(tasks.items())
+        if isinstance(reporting := item.get("reporting"), dict)
+    }
     return {
         "delivered": sorted(tid for tid, item in tasks.items() if item["status"] == "delivered"),
         "running": sorted(tid for tid, item in tasks.items() if item["status"] == "running"),
-        "active": sorted(tid for tid, item in tasks.items() if item["status"] in ("running", "note-pending")),
+        "active": sorted(tid for tid, item in tasks.items() if item["status"] == "running"),
+        "reporting_pending": sorted(tid for tid, report in reporting_details.items()
+                                    if any(value["state"] == "pending" for value in report.values())),
+        "reporting_blocked": sorted(tid for tid, report in reporting_details.items()
+                                    if any(value["state"] == "blocked" for value in report.values())),
+        "reporting_details": reporting_details,
         "unknown": sorted(tid for tid, item in tasks.items() if item["status"] == "unknown"),
         "unknown_details": unknown_details,
         "satisfied": sorted(tid for tid, item in tasks.items() if item["status"] == "satisfied"),
@@ -3197,6 +3249,15 @@ def _state_summary(state, blocked=None, waiting=None, paused=None, unknown_detai
         "waiting": waiting,
         "paused": paused,
     }
+
+
+def retain_reporting(item, proof):
+    prior = item.get("reporting")
+    delivery = item.get("delivery")
+    if isinstance(prior, dict) and isinstance(delivery, dict) \
+            and delivery.get("head_sha") != proof["delivery"]["head_sha"]:
+        item.setdefault("reporting_history", []).append({
+            "head_sha": delivery["head_sha"], "reporting": copy.deepcopy(prior)})
 
 
 def _remember_result(item, result):
@@ -3482,16 +3543,18 @@ def cmd_schedule(args):
             claim_task(args.git_repo, admitted, task, state, item)
             decision = decisions.get(tid) or item.get("parent_decision")
             parent_readiness(fresh, task, state, reservation, decision, args.git_repo, retained=True)
-            require(proof["status"] in ("delivered", "note-pending"),
+            require(proof["status"] == "delivered",
                     "delivery-invalidated", "retained delivery no longer verified")
             require(not any(tid != task["task_id"] and other.get("verified_pr") == proof["delivery"]["pr_url"]
                             for tid, other in state["tasks"].items()),
                     "duplicate-pr", "retained deliveries claim the same PR")
             prior_head = (item.get("delivery") or {}).get("head_sha")
             prior_revision = (item.get("satisfaction") or {}).get("revision")
+            retain_reporting(item, proof)
             _remember_result(item, retained["result"])
             item.update(status=proof["status"], reservation=reservation,
-                        delivery=proof["delivery"], verified_pr=proof["delivery"]["pr_url"],
+                        delivery=proof["delivery"], reporting=proof["reporting"],
+                        verified_pr=proof["delivery"]["pr_url"],
                         lifecycle=copy.deepcopy(lifecycle), satisfaction=copy.deepcopy(satisfaction),
                         lifecycle_error=None, parent_decision=copy.deepcopy(decision))
             if proof["status"] == "delivered" and prior_head != proof["delivery"]["head_sha"]:
@@ -3563,8 +3626,8 @@ def cmd_schedule(args):
                             "next_action": "prove worker stopped and reconcile before repair"})
             continue
         if item["status"] == "note-pending":
-            blocked.append({"task_id": tid, "reason": item.get("failure_reason", "delivery-receipt-pending"),
-                             "next_action": "retry note/Project read-back; do not replay repository delivery"})
+            blocked.append({"task_id": tid, "reason": "legacy-delivery-unverified",
+                             "next_action": "refresh complete technical evidence through the retained PR"})
             continue
         if item["status"] == "evidence-pending":
             blocked.append({"task_id": tid, "reason": item.get("failure_reason", "delivery-evidence-pending"),
@@ -3793,8 +3856,10 @@ def cmd_apply_result(args):
     state = state_read(args.state, admitted, repo=args.git_repo, active_task_id=args.task)
     require(args.task in state["tasks"], "unknown-task", "task outside admitted scope")
     item = state["tasks"][args.task]
-    require(item["status"] in ("running", "note-pending", "evidence-pending"),
+    require(item["status"] in ("running", "delivered", "note-pending", "evidence-pending"),
             "not-running", "task has no active reservation or receipt retry")
+    require(item["status"] != "delivered" or isinstance(item.get("delivery"), dict),
+            "invalid-state", "delivered task lacks a technical checkpoint")
     legacy_drift = _legacy_execution_drift_tasks(state)
     require(args.task not in legacy_drift, "execution-plan-drift",
             "task requires legacy execution-plan reconciliation")
@@ -3822,6 +3887,14 @@ def cmd_apply_result(args):
         if issued_binding is not None and required_worker_fields <= set(worker):
             require(worker.get("attempt_binding") == issued_binding,
                     "attempt-binding-mismatch", "worker result is not bound to the issued attempt")
+    if item["status"] == "delivered" and worker.get("head_sha") == item["delivery"]["head_sha"]:
+        require(result.get("validation") == item["delivery"]["checkpoint"].get("validation"),
+                "reporting-review-changed",
+                "same-head reporting retry must retain the independently validated receipt")
+        require("note" in result
+                and (admitted.get("project") is None or "project_status" in result),
+                "reporting-readback-required",
+                "same-head reporting retry requires both selected channel readbacks, including explicit absence")
     task = next(t for t in admitted["tasks"] if t["task_id"] == args.task)
     claim_scope(args.git_repo, admitted, state)
     claim_task(args.git_repo, admitted, task, state, item)
@@ -3838,21 +3911,30 @@ def cmd_apply_result(args):
         proof = validate_delivery(admitted, task, item["reservation"], result, args.git_repo,
                                   retained_pr=retained_pr, existing_pr=verified_update,
                                   expected_draft=(lifecycle_pr["draft"] if verified_update
-                                                  and item["status"] != "note-pending" else None))
+                                                  and item["status"] not in ("note-pending", "delivered")
+                                                  else None))
         pr_url = result["worker"]["pr_url"]
         require(not any(tid != args.task and other.get("verified_pr") == pr_url
                         for tid, other in state["tasks"].items()),
                 "duplicate-pr", "another task already owns this PR")
         if retained_pr:
             require(retained_pr == pr_url, "pr-replaced", "repair must preserve existing PR")
+        if item["status"] == "delivered":
+            require(proof["status"] == "delivered" and
+                    proof["delivery"]["head_sha"] == item["delivery"]["head_sha"] and
+                    proof["delivery"]["validated_diff"] == item["delivery"]["validated_diff"],
+                    "reporting-head-changed", "reporting retry cannot replace technical delivery")
         prior_head = (item.get("delivery") or {}).get("head_sha")
+        if proof["status"] == "delivered":
+            retain_reporting(item, proof)
         _remember_result(item, result)
         item["lifecycle"] = initial_lifecycle(result)
         item["verified_pr"] = pr_url
         item["status"] = proof["status"]
-        item["failure_reason"] = proof.get("reason") if proof["status"] == "note-pending" else None
-        if proof["status"] in ("delivered", "note-pending"):
+        item["failure_reason"] = None
+        if proof["status"] == "delivered":
             item["delivery"] = proof["delivery"]
+            item["reporting"] = proof["reporting"]
         if proof["status"] == "delivered":
             item["satisfaction"] = {
                 "kind": "open", "revision": proof["delivery"]["head_sha"],
@@ -3861,7 +3943,8 @@ def cmd_apply_result(args):
                 "lifecycle": copy.deepcopy(item["lifecycle"]),
             }
             item["first_uncertain_boundary"] = None
-            _reset_ci_after_delivery(admitted, state, item, proof["delivery"]["head_sha"])
+            if prior_head != proof["delivery"]["head_sha"] or item["ci"]["state"] == "unverified":
+                _reset_ci_after_delivery(admitted, state, item, proof["delivery"]["head_sha"])
             if prior_head and prior_head != proof["delivery"]["head_sha"]:
                 _invalidate_descendants(admitted, state, args.task, "parent-revision-changed")
         outcome = {"task_id": args.task, **proof}

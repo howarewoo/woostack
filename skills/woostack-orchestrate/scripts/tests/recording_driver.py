@@ -565,7 +565,7 @@ class FakeGitHub:
         })
         return result
 
-    def project_snapshot(self) -> Dict[str, Any]:
+    def project_snapshot(self, selected: Sequence[str] = ("task-a",)) -> Dict[str, Any]:
         project_url = "https://github.com/orgs/acme/projects/7"
         parent = copy.deepcopy(self.parent)
         container = copy.deepcopy(parent)
@@ -577,13 +577,21 @@ class FakeGitHub:
             "actual_parent": None,
             "declared_parent": None,
         })
-        member = copy.deepcopy(self.children[0])
-        member.update({
-            "ordinal": 2,
-            "item_id": "PVTI_project_item_a",
-            "actual_parent": self.parent_url,
-            "declared_parent": self.parent_url,
-        })
+        members = []
+        for ordinal, child in enumerate(
+            (child for child in self.children if child["task_id"] in selected), start=2
+        ):
+            member = copy.deepcopy(child)
+            member.update({
+                "ordinal": ordinal,
+                "item_id": "PVTI_project_item_" + member["task_id"].split("-")[-1],
+                "actual_parent": self.parent_url,
+                "declared_parent": self.parent_url,
+            })
+            if member["task_id"] in self.delivery:
+                member["existing_delivery"] = copy.deepcopy(self.delivery[member["task_id"]])
+            members.append(member)
+        parents = {"task-a": None, "task-b": None, "task-c": "task-a"}
         result = {
             "canonical_repo": self.canonical,
             "integration": copy.deepcopy(self.integration),
@@ -591,7 +599,7 @@ class FakeGitHub:
             "repository_rules": self.repository_rules,
             "specification": self.specification,
             "host": copy.deepcopy(self.host),
-            "execution_layout": self.execution_layout(("task-a",), {"task-a": None}),
+            "execution_layout": self.execution_layout(selected, parents),
             "project": {
                 "url": project_url,
                 "number": 7,
@@ -607,8 +615,8 @@ class FakeGitHub:
                 "inReview": "In Review",
                 "done": "Done",
             },
-            "members": [container, member],
-            "tasks": [member],
+            "members": [container, *members],
+            "tasks": members,
             "recovery": {
                 "checkpoints": [],
                 "processes": [],
@@ -620,9 +628,8 @@ class FakeGitHub:
                 "dependencies": [],
             },
         }
-        if "task-a" in self.delivery:
-            result["members"][1]["existing_delivery"] = copy.deepcopy(self.delivery["task-a"])
-        record("github", "assemble-project-snapshot", {"project": project_url, "members": 2})
+        record("github", "assemble-project-snapshot",
+               {"project": project_url, "members": len(members) + 1})
         return result
 
     def save_pr(self, task_id: str, pr: Dict[str, Any]) -> None:
@@ -701,11 +708,11 @@ class FakeGitHub:
         return note
 
     def persist_delivery(self, task_id: str, result: Dict[str, Any], reservation: Dict[str, Any]) -> None:
-        """Retain fresh delivery evidence after the helper acknowledges the persisted note."""
+        """Retain complete technical evidence independently of reporting."""
 
-        note = copy.deepcopy(self.notes[task_id])
+        note = copy.deepcopy(self.notes.get(task_id))
         with self._lock:
-            if note != result["note"]:
+            if note is not None and note != result.get("note"):
                 raise AssertionError("delivery differs from persisted note readback")
             self.delivery[task_id] = {
                 "reservation": copy.deepcopy(reservation),
@@ -730,7 +737,8 @@ class FakeGitHub:
                     },
                 },
             }
-        record("github", "persist-child-delivery", {"task_id": task_id, "note_id": note["id"]})
+        record("github", "persist-child-delivery", {"task_id": task_id,
+                                                     "note_id": note["id"] if note else None})
 
     def ci_observation(
         self,
@@ -889,8 +897,8 @@ def verify_execute_readiness(repo: Path, packet: Dict[str, Any], entry: Dict[str
         pr = checkpoint["readback"]
         if checkpoint["checks"]["passed"] is not True or checkpoint["validation"]["verdict"] != "pass":
             raise AssertionError("Execute prerequisite is not independently verified")
-        if checkpoint["note"]["head_sha"] != pr["head_sha"] or pr["open"] is not True:
-            raise AssertionError("Execute prerequisite delivery note/PR is stale")
+        if pr["open"] is not True:
+            raise AssertionError("Execute prerequisite PR is stale")
         satisfaction = row.get("satisfaction", {})
         if satisfaction.get("kind") == "merged":
             landed = satisfaction.get("revision")
@@ -1130,7 +1138,8 @@ class FakeHost:
         self.executor.shutdown(wait=True)
 
 
-def make_result(github: FakeGitHub, task_id: str, report: Dict[str, Any], admitted: Dict[str, Any]) -> Dict[str, Any]:
+def make_result(github: FakeGitHub, task_id: str, report: Dict[str, Any], admitted: Dict[str, Any],
+                *, include_note: bool = True, include_project_status: bool = True) -> Dict[str, Any]:
     """Assemble independent readback/check/validation evidence for apply-result."""
 
     record("github", "assemble-apply-evidence", {"task_id": task_id})
@@ -1184,14 +1193,12 @@ def make_result(github: FakeGitHub, task_id: str, report: Dict[str, Any], admitt
             "contract_hash": contract_hash(contract),
             "checked_head": readback["head_sha"],
         },
-        "note": github.note(task_id, result={}),
+        **({"note": github.note(task_id, result={})} if include_note else {}),
     }
     if admitted.get("integration") is not None \
             and readback["base_branch"] != admitted["integration"]["branch"]:
         result["stack"] = github.stack_readback(task_id, admitted)
-    if admitted.get("project") is not None:
-        # The controller writes the status and independently reads it back
-        # before invoking apply-result.  The helper only gates this receipt.
+    if admitted.get("project") is not None and include_project_status:
         result["project_status"] = github.read_project_status(task_id)
     return result
 

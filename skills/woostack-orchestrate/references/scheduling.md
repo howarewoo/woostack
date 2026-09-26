@@ -455,14 +455,16 @@ A fresh snapshot for a task already delivered must carry complete `existing_deli
 ```
 
 The skill obtains that result from fresh canonical branch/PR/head/base/repository/review/thread,
-focused-check, diff, independent validation, note, and selected Project-status reads. It also supplies
-the separate `lifecycle` read from that same refill; saved controller lifecycle state is compatibility
-state, never a substitute for this required current evidence. Before restoring `delivered`, the helper
-revalidates the retained delivery and reconciles that fresh lifecycle. An open prerequisite must still
-identify the verified delivery head and current approved base; a ready PR is not a reason to redispatch
-or reset its draft state. A merged prerequisite must identify the canonical landing target and landed
-revision, with bounded task-relevant source/check evidence; its original head need not remain an
-ancestor after a squash or rebase merge. A closed-unmerged PR, missing/partial evidence, wrong landing
+focused-check, diff, independent validation, and separately observed note and selected Project-status
+reads. It also supplies the separate `lifecycle` read from that same refill; saved controller
+lifecycle state is compatibility state, never a substitute for current technical evidence. Before
+restoring `delivered`, the helper revalidates the retained complete delivery and reconciles fresh
+lifecycle. Missing or denied reporting receipts stay visible separately and do not undo delivery.
+An open prerequisite must still identify the verified delivery head and current approved base;
+a ready PR is not a reason to redispatch or reset its draft state. A merged prerequisite must
+identify the canonical landing target and landed revision, with bounded task-relevant source/check
+evidence; its original head need not remain an ancestor after a squash or rebase merge. A closed-unmerged
+PR, missing/partial evidence, wrong landing
 target, or known reverted behavior remains unresolved. A merged prerequisite does not require its
 source branch to exist locally, whether deleted or remote-only; the verified merge, landed diff
 identity, unchanged landed content in the candidate base, and containment are the evidence.
@@ -579,9 +581,10 @@ approved integration branch is considered when the selected parent has landed. A
 only when its actual local tip is the recorded candidate SHA and `git merge-base --is-ancestor` proves
 that it contains every current prerequisite revision. Dependency count alone never forces a merge
 checkpoint, and ordinary joins do not require a new parent or integration decision.
-Dispatch readiness also requires every effective prerequisite's verified delivery and persisted
-note; an independently unsatisfied gate pauses exactly that dependent while unrelated ready work
-continues.
+Dispatch readiness requires every effective prerequisite's verified technical delivery and current
+CI/review/ancestry evidence. Pending or blocked note/selected-Project reporting is not a worker
+reservation or dependency gate; another independently unsatisfied technical gate pauses exactly
+that dependent while unrelated ready work continues.
 
 If no candidate is suitable, the helper leaves the task pending with `waiting-for-merge` only when
 the selected layout explicitly carries the `merge-checkpoint` fallback. The record includes the
@@ -665,8 +668,11 @@ The helper writes machine-readable JSON and exits zero for controlled workflow s
 `no-work`, `snapshot-drift`, `halted`, `stopped`, and per-task `unknown`; it exits one with
 `{"ok":false,"error":...}` for blocked input. The skill must inspect the status and retain output,
 not treat process exit zero as delivery. `schedule` output includes dispatch entries, delivered,
-satisfied, active, unknown, evidence-pending, repair-ready, pending, and paused/blocked/waiting IDs
-with exact next actions.
+reporting-pending and reporting-blocked task lists with per-operation reasons/receipts, satisfied,
+active, unknown, evidence-pending, repair-ready, pending, and paused/blocked/waiting IDs with exact
+next actions. A legacy `note-pending` checkpoint remains unpromoted until fresh complete technical
+verification of its retained delivery; it takes no reporting retry worker slot.
+
 `record-worker`, `apply-result`, `observe-checks`, `reconcile`, `resume`, and `stop` outputs are
 authoritative state transitions; `resume` reports `released` and `retained_unknown`; never invent a
 success response around them. A user stop prevents new dispatch but does not declare active workers
