@@ -28,17 +28,19 @@ GitHub reads. It is a required runtime fact, not a value to invent or fill with 
   `$RUNTIME_ORDINAL`). This exact task issue is the only permitted Commit association.
 - Reservation: branch `$RUNTIME_BRANCH`, absolute workspace `$RUNTIME_WORKSPACE`, parent branch
   `$RUNTIME_PARENT_BRANCH` at `$RUNTIME_PARENT_SHA`.
-- Full bounded input object: `$RUNTIME_BOUNDED_INPUT_JSON`.
-  It retains the model-resolved `goal`, `scope`, `acceptance`, `checks`, and real `smoke`; it may
-  also carry bounded non-goals, decisions, risks, or other context. Do not narrow or expand it.
-- Complete caller-supplied parent-readiness object: `$RUNTIME_PARENT_READINESS_JSON`, using the
-  [handoff schema](../references/worker-handoff.md#dispatch-entry-emitted-by-the-helper).
-  This is part of your bounded input: the complete logical prerequisite set, every full verified
-  delivery checkpoint/current-head PR reviews and threads, exact parent decision, and Git
-  containment proof. Verify it before editing; missing evidence blocks. Do not discover dependencies.
+- Full bounded input object: `$RUNTIME_BOUNDED_INPUT_JSON`. It retains the model-resolved `goal`,
+  `scope`, `acceptance`, `checks`, and real `smoke`; it may also carry bounded non-goals, decisions,
+  risks, or other context. Do not narrow or expand it.
+- Complete caller-supplied parent-readiness object: `$RUNTIME_PARENT_READINESS_JSON`, in the
+  [handoff schema](../references/worker-handoff.md#dispatch-entry-emitted-by-the-helper). It is
+  part of your bounded input: the complete logical prerequisite set, every full verified delivery
+  checkpoint/current-head PR reviews and threads, exact parent decision, and Git containment proof.
+  Verify it before editing; missing evidence blocks. Do not discover dependencies.
 - Exact acceptance array: `$RUNTIME_ACCEPTANCE_JSON`.
 - Exact required checks array: `$RUNTIME_CHECKS_JSON`.
 - Contract hash: `$RUNTIME_CONTRACT_HASH`.
+- Attempt binding: `$RUNTIME_ATTEMPT_BINDING` (the exact binding issued with this dispatch). Echo it
+  verbatim as `attempt_binding` in your result; never invent, relabel, or recompute it.
 - Repair: `$RUNTIME_REPAIR` (`true` resumes the exact reserved branch/workspace/parent and retained
   PR; `false` starts the exact branch at the exact parent SHA).
 - Retained PR: `$RUNTIME_RETAINED_PR` (runtime canonical URL when repairing; otherwise no PR exists).
@@ -75,13 +77,11 @@ turn phase labels into dependency cycles. Never change readiness, mark ready, me
 auto-merge, queue, force-push, retarget, or create a replacement PR. On repair, update the retained
 PR/branch only and preserve its current readiness.
 
-Return ordinary Execute evidence to the controller, not an orchestration decision:
-
-- worker identity, branch, workspace, parent/start, changed paths;
-- exact check commands and observed results, smoke outcome, and binary diff identity;
-- commit SHA and canonical PR URL/head/base/open state/uniqueness;
-- exact child association and closing reference; and
-- any blocker with the first unverified boundary and safe resume action.
+Return ordinary Execute evidence to the controller, not an orchestration decision: worker identity,
+branch, workspace, parent/start, changed paths, the echoed attempt binding, exact check commands and
+observed results, smoke outcome, binary diff identity, commit SHA, canonical PR
+URL/head/base/open state/uniqueness, exact child association and closing reference, and any blocker
+with its first unverified boundary and safe resume action.
 
 Do not claim delivery, note persistence, Project status, dependent release, or independent review;
 the controller verifies those separately. If the worker or host stops ambiguously, preserve the
