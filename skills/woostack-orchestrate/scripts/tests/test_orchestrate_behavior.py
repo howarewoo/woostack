@@ -16,6 +16,7 @@ import importlib.util
 import os
 import shutil
 import subprocess
+import shlex
 import sys
 import tempfile
 import unittest
@@ -293,11 +294,14 @@ class OrchestrateBehavior(unittest.TestCase):
 
 
     def _reservation(self, dispatch: Dict[str, Any]) -> Dict[str, Any]:
-        return {
+        reservation = {
             key: dispatch[key]
             for key in ("branch", "workspace", "parent_branch", "parent_sha",
-                        "task_url", "scope", "contract_hash")
+                        "task_url", "scope", "contract_hash", "attempt_binding")
         }
+        if "stack" in dispatch:
+            reservation["stack"] = copy.deepcopy(dispatch["stack"])
+        return reservation
 
     def _persist(self, task_id: str, result: Dict[str, Any], dispatch: Dict[str, Any]) -> None:
         self.github.persist_delivery(task_id, result, self._reservation(dispatch))
@@ -334,8 +338,10 @@ class OrchestrateBehavior(unittest.TestCase):
 
     def _record_launch(self, entry, worker) -> None:
         admitted_path, state = self.launch_context[entry["branch"]]
-        receipt = self._write_json("launch-" + worker["worker_id"] + ".json", {
+        receipt_name = "launch-" + hashlib.sha256(worker["worker_id"].encode()).hexdigest() + ".json"
+        receipt = self._write_json(receipt_name, {
             "worker": worker, "reservation": self._reservation(entry),
+            "attempt_binding": entry["packet"]["attempt_binding"],
             "state_digest": hashlib.sha256(state.read_bytes()).hexdigest(),
         })
         code, payload = invoke_cli(
@@ -392,6 +398,157 @@ class OrchestrateBehavior(unittest.TestCase):
                     "result": result}
         self.github.delivery[task_id] = copy.deepcopy(retained)
         return retained
+
+    def test_capability_preflight_and_opaque_identity_deliver_and_resume(self) -> None:
+        task_id = "task:orchestrate/representation-gates.v2"
+        branch = "feature/actual-delivery-ref"
+        workspace = self.repo.parent / "host-worktrees" / "punctuation-task"
+        child = self.github.children[0]
+        child.update({
+            "task_id": task_id,
+            "workspace": str(workspace),
+            "branch": branch,
+            "contract": {
+                "goal": "Exercise capability-based delivery",
+                "scope": ["src/representation-marker.txt"],
+                "acceptance": ["The representation marker is delivered"],
+                "checks": [
+                    "python3 -c \"import os; assert os.environ.get('WOOSTACK_FORCE_FAILURE') != '1'\"",
+                    "git diff --check",
+                ],
+                "smoke": "cat src/representation-marker.txt",
+            },
+        })
+        snapshot = self.github.snapshot()
+        snapshot["tasks"] = snapshot["children"] = [child]
+        snapshot["execution_layout"] = self.github.execution_layout((task_id,), {task_id: None})
+        snapshot["host"]["name"] = "compatible-unlisted-fixture"
+
+        for index, invalid_task_id in enumerate(("task\x00id", "-task")):
+            with self.subTest(invalid_task_id=invalid_task_id):
+                invalid = copy.deepcopy(snapshot)
+                invalid["tasks"][0]["task_id"] = invalid_task_id
+                code, payload = invoke_cli(
+                    "admit", "--snapshot", str(self._write_json("invalid-identity-%d.json" % index, invalid))
+                )
+                self.assertNotEqual(code, 0, payload)
+                self.assertEqual(payload["error"], "invalid-identity", payload)
+
+        for capability in (
+            "delivery_capable", "workspace_isolation_capable",
+            "result_correlation_capable", "recovery_capable",
+        ):
+            with self.subTest(missing_capability=capability):
+                blocked = copy.deepcopy(snapshot)
+                blocked["host"][capability] = False
+                code, payload = invoke_cli(
+                    "admit", "--snapshot", str(self._write_json("disabled-%s.json" % capability, blocked))
+                )
+                self.assertNotEqual(code, 0, payload)
+                self.assertEqual(payload["error"], "no-subagent-capability", payload)
+
+                missing = copy.deepcopy(snapshot)
+                missing["host"].pop(capability)
+                code, payload = invoke_cli(
+                    "admit", "--snapshot", str(self._write_json("missing-%s.json" % capability, missing))
+                )
+                self.assertNotEqual(code, 0, payload)
+                self.assertEqual(payload["error"], "no-subagent-capability", payload)
+        admitted_path, admitted = self._admit_issue(snapshot)
+        self.assertEqual(admitted["tasks"][0]["task_id"], task_id)
+        state, scheduled = self._schedule(
+            admitted_path, admitted, None, snapshot, "opaque-initial", cap="1"
+        )
+        dispatch = scheduled["dispatch"][0]
+        self.assertEqual((dispatch["task_id"], dispatch["branch"]), (task_id, branch))
+        host = self._start_host(workers=1)
+        host.dispatch([dispatch])
+        report = host.wait_for_report(task_id)
+        result = make_result(self.github, task_id, report, admitted)
+        self.assertNotEqual(result["checks"]["commands"], admitted["tasks"][0]["contract"]["checks"])
+        running_state = self.tmp / "opaque-running-state.json"
+        running_state.write_bytes(state.read_bytes())
+        fresh = self.github.snapshot()
+        fresh["tasks"] = fresh["children"] = [child]
+        fresh["execution_layout"] = self.github.execution_layout((task_id,), {task_id: None})
+        negative_state = state
+        negative_result = result
+
+        def run_negative(label, mutate):
+            nonlocal negative_state, negative_result
+            candidate = copy.deepcopy(negative_result)
+            mutate(candidate)
+            negative_state, outcome, code = self._apply(
+                admitted_path, negative_state, task_id, candidate, label
+            )
+            self.assertEqual(code, 0, outcome)
+            self.assertEqual(outcome["status"], "repair-ready", outcome)
+            negative_state, refill = self._schedule(
+                admitted_path, admitted, negative_state, fresh, label + "-refill", cap="1"
+            )
+            self.assertEqual(len(refill["dispatch"]), 1, refill)
+            host.dispatch(refill["dispatch"])
+            negative_result = make_result(
+                self.github, task_id, host.wait_for_report(task_id), admitted
+            )
+
+        def fail_extra(candidate):
+            command = "python3 -c \"raise SystemExit(7)\""
+            failed = subprocess.run(shlex.split(command), cwd=Path(candidate["worker"]["workspace"]), capture_output=True, text=True)
+            self.assertNotEqual(failed.returncode, 0)
+            candidate["checks"]["commands"].append({"command": command, "executed": True, "passed": False})
+            candidate["checks"]["passed"] = False
+
+        run_negative("opaque-extra-failure", fail_extra)
+
+        def fail_required(candidate):
+            command = admitted["tasks"][0]["contract"]["checks"][0]
+            failed = subprocess.run(shlex.split(command), cwd=Path(candidate["worker"]["workspace"]), env={**os.environ, "WOOSTACK_FORCE_FAILURE": "1"}, capture_output=True, text=True)
+            self.assertNotEqual(failed.returncode, 0)
+            candidate["checks"]["commands"] = [{"command": command, "executed": True, "passed": False} if entry["command"] == command else entry for entry in candidate["checks"]["commands"]]
+            candidate["checks"]["passed"] = False
+
+        run_negative("opaque-required-failure", fail_required)
+        unexecuted = copy.deepcopy(negative_result)
+        unexecuted["checks"]["commands"].append({
+            "command": "python3 -c \"raise SystemExit(9)\"",
+            "executed": False, "passed": False,
+        })
+        unexecuted["checks"]["passed"] = False
+        blocked_state, blocked, blocked_code = self._apply(
+            admitted_path, negative_state, task_id, unexecuted, "opaque-unobserved-extra"
+        )
+        self.assertEqual(blocked_code, 0, blocked)
+        self.assertEqual(blocked["status"], "unknown", blocked)
+        self.assertEqual(blocked["reason"], "checks-incomplete", blocked)
+        evidence = self.github.readback(task_id)
+        evidence["worker_stop"] = self._stop_receipt(host, task_id, blocked_state)
+        negative_state, reconciled, reconcile_code = self._reconcile(
+            admitted_path, blocked_state, task_id, evidence,
+            "opaque-unobserved-reconcile", inventory=host.recovery_inventory(),
+        )
+        self.assertEqual(reconcile_code, 0, reconciled)
+        self.assertEqual(reconciled.get("status"), "reconciled", reconciled)
+        self.assertEqual(
+            json.loads(negative_state.read_text())["tasks"][task_id]["status"],
+            "evidence-pending",
+        )
+        state, delivered, _ = self._apply(
+            admitted_path, negative_state, task_id, negative_result, "opaque-delivered"
+        )
+        self.assertEqual(delivered["status"], "delivered", delivered)
+        self._persist(task_id, negative_result, dispatch)
+        lifecycle_fresh = self.github.snapshot()
+        lifecycle_fresh["tasks"] = lifecycle_fresh["children"]
+        lifecycle_fresh["execution_layout"] = self.github.execution_layout((task_id,), {task_id: None})
+        resumed_state, resumed = self._schedule(
+            admitted_path, admitted, state, lifecycle_fresh, "opaque-resume", cap="1"
+        )
+        self.assertEqual(resumed["dispatch"], [], resumed)
+        self.assertNotIn(task_id, [entry["task_id"] for entry in resumed["blocked"]], resumed)
+        saved = json.loads(resumed_state.read_text())["tasks"][task_id]
+        self.assertEqual(saved["status"], "delivered")
+        self.assertIsNone(saved["lifecycle_error"])
 
     def test_full_issue_smoke_uses_real_git_and_concurrent_execute_packets(self) -> None:
         """A/B/E run concurrently; C and D stack on A while B remains held."""
@@ -508,7 +665,7 @@ class OrchestrateBehavior(unittest.TestCase):
         def fresh() -> Dict[str, Any]:
             snapshot = self.github.snapshot()
             task_c = next(item for item in snapshot["tasks"] if item["task_id"] == "task-c")
-            task_c["prerequisites"] = ["task-a", "task-b"]
+            task_c["prerequisites"] = ["task-b"]
             snapshot["execution_layout"] = self.github.execution_layout(
                 (item["task_id"] for item in snapshot["tasks"]),
                 {
@@ -583,7 +740,24 @@ class OrchestrateBehavior(unittest.TestCase):
         host.release_b()
         report_b = host.wait_for_report("task-b")
         result_b = make_result(self.github, "task-b", report_b, admitted)
-        state_b, applied_b, _ = self._apply(admitted_path, state_held, "task-b", result_b, "stack-b")
+        missing_stack = copy.deepcopy(result_b)
+        missing_stack.pop("stack")
+        blocked_state, blocked_b, _ = self._apply(
+            admitted_path, state_held, "task-b", missing_stack, "stack-b-missing-readback")
+        self.assertEqual(blocked_b["status"], "unknown", blocked_b)
+        self.assertEqual(blocked_b["reason"], "stack-readback", blocked_b)
+        self.assertNotEqual(
+            json.loads(blocked_state.read_text())["tasks"]["task-b"]["status"], "delivered")
+        evidence = self.github.readback("task-b")
+        evidence["worker_stop"] = self._stop_receipt(host, "task-b", blocked_state)
+        recovered_state, recovered_b, recovered_code = self._reconcile(
+            admitted_path, blocked_state, "task-b", evidence, "stack-b-reconcile",
+            inventory=host.recovery_inventory(),
+        )
+        self.assertEqual(recovered_code, 0, recovered_b)
+        self.assertEqual(recovered_b["status"], "reconciled", recovered_b)
+        state_b, applied_b, _ = self._apply(
+            admitted_path, recovered_state, "task-b", result_b, "stack-b")
         self.assertEqual(applied_b["status"], "delivered")
         self._persist("task-b", result_b, b_entry)
         state_c, after_b = self._schedule(
@@ -595,9 +769,13 @@ class OrchestrateBehavior(unittest.TestCase):
         self.assertEqual(c_entry["parent_branch"], report_b["worker"]["branch"])
         self.assertEqual(c_entry["parent_sha"], report_b["worker"]["head_sha"])
         readiness = c_entry["packet"]["parent_readiness"]
-        self.assertEqual(readiness["logical_prerequisites"], ["task-a", "task-b"])
-        self.assertEqual(readiness["execution_prerequisites"], ["task-a", "task-b"])
+        self.assertEqual(readiness["logical_prerequisites"], ["task-b"])
+        self.assertEqual(readiness["execution_prerequisites"], ["task-b"])
         self.assertEqual(readiness["execution_ancestry"], ["task-a", "task-b"])
+        self.assertEqual(
+            [member["pr_url"] for member in c_entry["stack"]["members"]],
+            [self.github.prs[task_id]["pr_url"] for task_id in ("task-a", "task-b")],
+        )
         host.dispatch([c_entry])
         report_c = host.wait_for_report("task-c")
         result_c = make_result(self.github, "task-c", report_c, admitted)
@@ -878,6 +1056,30 @@ class OrchestrateBehavior(unittest.TestCase):
             admitted_path, admitted, state, self._scoped_tasks_snapshot(trio), "history-corrected", cap="1")
         self.assertEqual(corrected["satisfied"], ["task-a"], corrected)
         self.assertEqual(corrected["blocked"], [], corrected)
+        # A later candidate-base edit that removes the landed change must not be
+        # accepted merely because the old merge and its checks are still reachable.
+        source_file = self.repo / "src" / "task-a.txt"
+        landed_content = source_file.read_text()
+        source_file.write_text(landed_content.replace("Historical delivery for task-a\n", ""))
+        git(self.repo, "add", "src/task-a.txt")
+        git(self.repo, "commit", "-m", "revert the required task-a change")
+        self.github.integration["sha"] = git(self.repo, "rev-parse", "HEAD")
+        state, stale = self._schedule(
+            admitted_path, admitted, state, self._scoped_tasks_snapshot(trio), "history-base-reverted",
+            cap="1")
+        self.assertEqual(stale["satisfied"], [], stale)
+        self.assertEqual({row["task_id"]: row["reason"] for row in stale["blocked"]}.get("task-a"),
+                         "base-satisfaction-unverified", stale)
+        self.assertEqual(stale["running"], ["task-b"], stale)
+        self.assertFalse(json.loads(state.read_text())["halt_new_dispatch"])
+        source_file.write_text(landed_content)
+        git(self.repo, "add", "src/task-a.txt")
+        git(self.repo, "commit", "-m", "restore the required task-a change")
+        self.github.integration["sha"] = git(self.repo, "rev-parse", "HEAD")
+        state, restored = self._schedule(
+            admitted_path, admitted, state, self._scoped_tasks_snapshot(trio), "history-base-restored",
+            cap="1")
+        self.assertEqual(restored["satisfied"], ["task-a"], restored)
         self.github.delivery["task-a"]["lifecycle"]["landed_verification"]["reverted"] = True
         state, reverted = self._schedule(
             admitted_path, admitted, state, self._scoped_tasks_snapshot(trio), "history-reverted", cap="1")
@@ -1378,13 +1580,8 @@ class OrchestrateBehavior(unittest.TestCase):
         self.assertEqual(revised_state["tasks"]["task-a"]["dependency_snapshot"],
                          next(task for task in admitted["tasks"] if task["task_id"] == "task-a")[
                              "dependency_snapshot"])
-        _, wrong_plan, code = self._apply(
-            changed_admitted_path, state, "task-a", original_result,
-            "layout-rebound-worker", expect_code=1, observe_ci=False,
-        )
-        self.assertEqual(wrong_plan["error"], "execution-plan-drift")
         completed_state, completed, _ = self._apply(
-            admitted_path, state, "task-a", original_result, "layout-original-worker"
+            changed_admitted_path, state, "task-a", original_result, "layout-rebound-worker"
         )
         self.assertEqual(completed["status"], "delivered", completed)
         self.assertEqual(json.loads(completed_state.read_text())["tasks"]["task-a"][
@@ -2380,14 +2577,32 @@ class OrchestrateBehavior(unittest.TestCase):
         )
         self.assertEqual(allocation_changed.get("status"), "ok", allocation_changed)
 
-        git(self.repo, "commit", "--allow-empty", "-m", "mutable integration tip")
+        git(self.repo, "commit", "--allow-empty", "-m", "unrelated integration advance")
         mutable_tip = git(self.repo, "rev-parse", "HEAD")
         mutable_sha = copy.deepcopy(snapshot)
         mutable_sha["integration"]["sha"] = mutable_tip
         state, mutable = self._schedule(admitted_path, admitted, state, mutable_sha, "fingerprint-sha")
-        self.assertEqual(mutable["status"], "snapshot-drift", mutable)
-        self.assertEqual(mutable["reason"], "parent-tip-drift", mutable)
+        self.assertEqual(mutable["status"], "ok", mutable)
         self.assertEqual(mutable["dispatch"], [], mutable)
+        self.assertEqual(json.loads(state.read_text())["recovery"]["integration_advance"]["proposed_sha"], mutable_tip)
+
+        git(self.repo, "commit", "--allow-empty", "-m", "unrelated second advance")
+        second_tip = git(self.repo, "rev-parse", "HEAD")
+        second_sha = copy.deepcopy(mutable_sha)
+        second_sha["integration"]["sha"] = second_tip
+        state, second = self._schedule(admitted_path, admitted, state, second_sha, "fingerprint-second-sha")
+        self.assertEqual(second["status"], "ok", second)
+        (self.repo / "src").mkdir(exist_ok=True)
+        (self.repo / "src" / "task-a.txt").write_text("incompatible\n", encoding="utf-8")
+        git(self.repo, "add", "src/task-a.txt")
+        git(self.repo, "commit", "-m", "change selected task scope")
+        impact_tip = git(self.repo, "rev-parse", "HEAD")
+        impact_snapshot = copy.deepcopy(second_sha)
+        impact_snapshot["integration"]["sha"] = impact_tip
+        state, impact = self._schedule(admitted_path, admitted, state, impact_snapshot, "fingerprint-impact")
+        self.assertEqual(impact["status"], "snapshot-drift", impact)
+        self.assertEqual(impact["reason"], "parent-tip-drift", impact)
+        self.assertEqual(impact["dispatch"], [], impact)
 
         drift_cases = []
         added_child = copy.deepcopy(snapshot)
@@ -2418,6 +2633,52 @@ class OrchestrateBehavior(unittest.TestCase):
                 state, payload = self._schedule(admitted_path, admitted, state, fresh, "drift-" + label.replace(" ", "-"))
                 self.assertEqual(payload.get("status"), "snapshot-drift", payload)
                 self.assertEqual(payload.get("dispatch"), [], payload)
+
+    def test_integration_advance_reconciles_complete_landing_range_per_task(self) -> None:
+        (self.repo / "src").mkdir()
+        (self.repo / "src" / "shared.txt").write_text("first rebased commit\n", encoding="utf-8")
+        git(self.repo, "add", "src/shared.txt")
+        git(self.repo, "commit", "-m", "first rebased commit")
+        (self.repo / "src" / "final.txt").write_text("final rebased commit\n", encoding="utf-8")
+        git(self.repo, "add", "src/final.txt")
+        git(self.repo, "commit", "-m", "final rebased commit")
+        landed_sha = git(self.repo, "rev-parse", "HEAD")
+        verification = {
+            "complete": True,
+            "source_verified": True,
+            "checks_verified": True,
+            "reverted": False,
+            "landed_parent": self.base_sha,
+        }
+        landed = {
+            "task_id": "task-a",
+            "contract": {"scope": ["src"]},
+            "existing_delivery": {"lifecycle": {
+                "pr": {"state": "merged", "merged_base_branch": "main",
+                       "merge_commit_sha": landed_sha},
+                "landed_verification": verification,
+            }},
+        }
+        admitted = {"integration": {"branch": "main", "sha": self.base_sha}}
+        fresh = {"integration": {"branch": "main", "sha": landed_sha}, "tasks": [landed]}
+        helper_path = Path(__file__).resolve().parents[1] / "orchestrate.py"
+        spec = importlib.util.spec_from_file_location("orchestrate_integration_advance", helper_path)
+        self.assertIsNotNone(spec)
+        self.assertIsNotNone(spec.loader)
+        helper = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(helper)
+
+        evidence = helper.integration_advance_evidence(self.repo, admitted, fresh)
+        self.assertEqual(evidence["changed_paths"], ["src/final.txt", "src/shared.txt"])
+
+        overlapping = copy.deepcopy(fresh)
+        overlapping["tasks"].append({
+            "task_id": "task-b",
+            "contract": {"scope": ["src/shared.txt"]},
+        })
+        with self.assertRaises(helper.InputError) as error:
+            helper.integration_advance_evidence(self.repo, admitted, overlapping)
+        self.assertEqual(error.exception.code, "parent-tip-drift")
 
     def test_refill_rejects_changed_dispatch_context_before_dispatch(self) -> None:
         snapshot = self.github.snapshot()
@@ -2939,7 +3200,11 @@ class OrchestrateBehavior(unittest.TestCase):
         self.assertEqual([entry["task_id"] for entry in repair["dispatch"]], ["task-a"])
         entry_b = repair["dispatch"][0]
         self.assertTrue(entry_b["repair"])
-        self.assertEqual(self._reservation(entry_b), self._reservation(entry_a))
+        self.assertEqual({key: value for key, value in self._reservation(entry_b).items()
+                          if key != "attempt_binding"},
+                         {key: value for key, value in self._reservation(entry_a).items()
+                          if key != "attempt_binding"})
+        self.assertNotEqual(entry_b["attempt_binding"], entry_a["attempt_binding"])
         host.hold_before_mutation = True
         host.dispatch([entry_b])
         self.assertTrue(host.before_mutation.wait(30))
@@ -2990,6 +3255,47 @@ class OrchestrateBehavior(unittest.TestCase):
         )
         self.assertEqual(delivered["status"], "delivered", delivered)
         self.assertEqual(json.loads(delivered_state.read_text())["tasks"]["task-a"]["status"], "delivered")
+
+    def test_wording_only_readmission_accepts_issued_worker_once(self) -> None:
+        snapshot = self._single_task_snapshot()
+        admitted_path, admitted = self._admit_issue(snapshot)
+        state, scheduled = self._schedule(
+            admitted_path, admitted, None, snapshot, "wording-initial", cap="1"
+        )
+        host = self._start_host(workers=1)
+        host.dispatch(scheduled["dispatch"])
+        result = make_result(self.github, "task-a", host.wait_for_report("task-a"), admitted)
+
+        reworded = copy.deepcopy(snapshot)
+        task = reworded["tasks"][0]
+        task["title"] = "Equivalent task wording"
+        task["body"] = "The accepted contract remains unchanged."
+        task["specification"] = "Implement the same accepted contract."
+        reworded["execution_layout"]["entries"][0]["rationale"] = "Equivalent scheduling rationale."
+        reworded_path, reworded_admitted = self._admit_issue(reworded)
+        self.assertNotEqual(reworded_admitted["fingerprint"], admitted["fingerprint"])
+
+        changed_rules = copy.deepcopy(reworded)
+        changed_rules["repository_rules"] += " New permission requirement."
+        changed_rules_path, _ = self._admit_issue(changed_rules)
+        _, rejected, code = self._apply(
+            changed_rules_path, state, "task-a", result, "wording-permission-change",
+            expect_code=1, observe_ci=False,
+        )
+        self.assertEqual(code, 1)
+        self.assertEqual(rejected["error"], "state-mismatch", rejected)
+
+        completed_state, completed, code = self._apply(
+            reworded_path, state, "task-a", result, "wording-completion", observe_ci=False,
+        )
+        self.assertEqual(code, 0)
+        self.assertEqual(completed["status"], "delivered", completed)
+        _, replayed, code = self._apply(
+            reworded_path, completed_state, "task-a", result, "wording-replay",
+            expect_code=1, observe_ci=False,
+        )
+        self.assertEqual(code, 1)
+        self.assertEqual(replayed["error"], "not-running", replayed)
 
     def test_unbound_and_foreign_unknown_envelopes_leave_live_launch_untouched(self) -> None:
         snapshot = self._single_task_snapshot()
@@ -3385,7 +3691,11 @@ class OrchestrateBehavior(unittest.TestCase):
             admitted_path, admitted, reconciled_state, snapshot, "reconcile-no-pr-repair", cap="1"
         )
         self.assertEqual([item["task_id"] for item in repair["dispatch"]], ["task-a"])
-        self.assertEqual(self._reservation(repair["dispatch"][0]), self._reservation(entry))
+        self.assertEqual({key: value for key, value in self._reservation(repair["dispatch"][0]).items()
+                          if key != "attempt_binding"},
+                         {key: value for key, value in self._reservation(entry).items()
+                          if key != "attempt_binding"})
+        self.assertNotEqual(repair["dispatch"][0]["attempt_binding"], entry["attempt_binding"])
         prior_worker = copy.deepcopy(host.identities["task-a"])
         host.dispatch(repair["dispatch"])
         repair_report = host.wait_for_report("task-a")
@@ -3404,45 +3714,42 @@ class OrchestrateBehavior(unittest.TestCase):
         report = host.wait_for_report("task-a")
         valid = make_result(self.github, "task-a", report, admitted)
 
-        mismatch_cases = []
+        mismatch_cases = ["ready-pr"]
         changed = copy.deepcopy(valid)
         changed["worker"]["branch"] = "other/branch"
-        mismatch_cases.append("worker-branch")
         changed2 = copy.deepcopy(valid)
         changed2["worker"]["head_sha"] = self.base_sha
-        mismatch_cases.append("worker-head")
         changed3 = copy.deepcopy(valid)
         changed3["readback"]["diff_identity"] = "sha256:" + "0" * 64
-        mismatch_cases.append("readback-diff")
         changed4 = copy.deepcopy(valid)
         changed4["validation"]["contract_hash"] = "sha256:" + "1" * 64
-        mismatch_cases.append("contract-hash")
         changed5 = copy.deepcopy(valid)
         changed5["validation"]["reviewer_id"] = changed5["worker"]["worker_id"]
-        mismatch_cases.append("reviewer-identity")
         changed6 = copy.deepcopy(valid)
         changed6["worker"]["base_branch"] = "other-parent"
         changed6["readback"]["base_branch"] = "other-parent"
-        mismatch_cases.append("wrong-base")
         changed7 = copy.deepcopy(valid)
         changed7["readback"]["repo"] = "https://github.com/other/repo"
-        mismatch_cases.append("wrong-repository")
         changed8 = copy.deepcopy(valid)
         changed8["readback"]["open"] = False
-        mismatch_cases.append("closed-pr")
         changed9 = copy.deepcopy(valid)
         changed9["readback"]["unique"] = False
-        mismatch_cases.append("duplicate-pr")
         changed10 = copy.deepcopy(valid)
         changed10["readback"]["draft"] = False
-        mismatch_cases.append("ready-pr")
-        variants = [changed, changed2, changed3, changed4, changed5, changed6, changed7, changed8, changed9, changed10]
+        variants = [changed10]
+        mismatch_cases.extend([
+            "worker-branch", "worker-head", "readback-diff", "contract-hash",
+            "reviewer-identity", "wrong-base", "wrong-repository", "closed-pr", "duplicate-pr",
+        ])
+        variants.extend([changed, changed2, changed3, changed4, changed5, changed6, changed7, changed8, changed9])
+        changed11 = copy.deepcopy(valid)
+        changed11["checks"]["passed"] = 1
+        mismatch_cases.append("aggregate-check-type")
+        variants.append(changed11)
         incomplete_reviews = copy.deepcopy(valid)
         incomplete_reviews["readback"]["reviews"]["complete"] = False
-        stale_reviews = copy.deepcopy(valid)
-        stale_reviews["readback"]["reviews"]["items"] = [{"id": 17, "commit_id": self.base_sha}]
-        mismatch_cases.extend(["incomplete-review-pages", "stale-current-head-review"])
-        variants.extend([incomplete_reviews, stale_reviews])
+        mismatch_cases.append("incomplete-review-pages")
+        variants.append(incomplete_reviews)
         current_state = state
         for label, result in zip(mismatch_cases, variants):
             with self.subTest(label=label):
@@ -3469,8 +3776,19 @@ class OrchestrateBehavior(unittest.TestCase):
                 )
                 self.assertEqual(reconcile_code, 0, reconciled)
                 self.assertEqual(reconciled.get("status"), "reconciled", reconciled)
+                if label == "ready-pr":
+                    retry_state, retry, _ = self._apply(
+                        admitted_path, current_state, "task-a", result, "ready-pr-retry"
+                    )
+                    self.assertEqual(retry.get("reason"), "draft-required", retry)
+                    evidence["worker_stop"] = self._stop_receipt(host, "task-a", retry_state)
+                    current_state, reconciled, reconcile_code = self._reconcile(
+                        admitted_path, retry_state, "task-a", evidence, "ready-pr-retry-reconcile"
+                    )
+                    self.assertEqual(reconcile_code, 0, reconciled)
 
         failed_checks = copy.deepcopy(valid)
+        failed_checks["checks"]["commands"][0]["passed"] = False
         failed_checks["checks"]["passed"] = False
         repaired_state, repaired, _ = self._apply(
             admitted_path, current_state, "task-a", failed_checks, "failed-checks"
@@ -3483,6 +3801,7 @@ class OrchestrateBehavior(unittest.TestCase):
             admitted_path, admitted, repaired_state, snapshot, "failed-validation-refill", cap="1"
         )
         self.assertEqual([entry["task_id"] for entry in repair_schedule["dispatch"]], ["task-a"])
+        first_repair_binding = repair_schedule["dispatch"][0]["attempt_binding"]
         host.dispatch(repair_schedule["dispatch"])
         repair_report = host.wait_for_report("task-a")
         failed_validation = make_result(self.github, "task-a", repair_report, admitted)
@@ -3497,15 +3816,238 @@ class OrchestrateBehavior(unittest.TestCase):
             admitted_path, admitted, validation_state, snapshot, "requested-repair-refill", cap="1"
         )
         self.assertEqual([entry["task_id"] for entry in requested_schedule["dispatch"]], ["task-a"])
+        second_repair_binding = requested_schedule["dispatch"][0]["attempt_binding"]
+        self.assertNotEqual(second_repair_binding, first_repair_binding)
+        history = json.loads(requested_input.read_text())["tasks"]["task-a"]["attempt_history"]
+        self.assertEqual([entry["binding"] for entry in history[-2:]],
+                         [first_repair_binding, second_repair_binding])
         host.dispatch(requested_schedule["dispatch"])
         requested_report = host.wait_for_report("task-a")
         requested_repair = make_result(self.github, "task-a", requested_report, admitted)
+        stale_repair = copy.deepcopy(requested_repair)
+        stale_repair["worker"]["attempt_binding"] = first_repair_binding
+        _, rejected, code = self._apply(
+            admitted_path, requested_input, "task-a", stale_repair,
+            "stale-repair-binding", expect_code=1,
+        )
+        self.assertEqual(code, 1)
+        self.assertEqual(rejected["error"], "attempt-binding-mismatch", rejected)
         requested_repair["outcome"] = "needs-repair"
         requested_state, requested, _ = self._apply(
             admitted_path, requested_input, "task-a", requested_repair, "requested-repair"
         )
         self.assertEqual(requested.get("status"), "repair-ready", requested)
         self.assertEqual(json.loads(requested_state.read_text())["tasks"]["task-a"]["status"], "repair-ready")
+
+    def test_mixed_review_history_preserves_old_findings_and_current_readiness(self) -> None:
+        snapshot = self.github.snapshot()
+        snapshot["tasks"] = snapshot["children"] = [
+            item for item in snapshot["children"] if item["task_id"] in {"task-a", "task-c"}
+        ]
+        snapshot["execution_layout"]["entries"] = [
+            entry for entry in snapshot["execution_layout"]["entries"]
+            if entry["task_id"] in {"task-a", "task-c"}
+        ]
+        admitted_path, admitted = self._admit_issue(snapshot)
+        state, initial = self._schedule(admitted_path, admitted, None, snapshot, "review-h1", cap="1")
+        self.assertEqual([item["task_id"] for item in initial["dispatch"]], ["task-a"])
+        host = self._start_host(workers=2)
+        host.dispatch(initial["dispatch"])
+        h1_report = host.wait_for_report("task-a")
+        h1 = make_result(self.github, "task-a", h1_report, admitted)
+        h1["readback"]["reviews"]["items"] = [{
+            "id": 10, "commit_id": h1_report["worker"]["head_sha"], "state": "APPROVED",
+            "submitted_at": "2026-09-24T00:00:00Z", "user": {"login": "old-reviewer"},
+        }]
+        state, delivered_h1, _ = self._apply(
+            admitted_path, state, "task-a", h1, "review-h1-result", observe_ci=False
+        )
+        self.assertEqual(delivered_h1["status"], "delivered", delivered_h1)
+        self._persist("task-a", h1, initial["dispatch"][0])
+        repair_snapshot = self.github.snapshot()
+        repair_snapshot["tasks"] = repair_snapshot["children"] = [
+            item for item in repair_snapshot["children"] if item["task_id"] in {"task-a", "task-c"}
+        ]
+        repair_snapshot["execution_layout"]["entries"] = [
+            entry for entry in repair_snapshot["execution_layout"]["entries"]
+            if entry["task_id"] in {"task-a", "task-c"}
+        ]
+
+        failure = self.github.ci_observation("task-a", check_state="failure", diagnosis="Advance to H2.")
+        state, observed, _ = self._observe(admitted_path, state, "task-a", failure, "review-h2-failure")
+        self.assertEqual(observed["ci_state"], "repair", observed)
+        state, repair = self._schedule(
+            admitted_path, admitted, state, repair_snapshot, "review-h2", cap="1"
+        )
+        repair_entry = repair["dispatch"][0]
+        host.dispatch([repair_entry])
+        h2_report = host.wait_for_report("task-a")
+        h2 = make_result(self.github, "task-a", h2_report, admitted)
+        h2["readback"]["reviews"]["items"] = [
+            {"id": 10, "commit_id": h1["readback"]["head_sha"], "state": "APPROVED",
+             "submitted_at": "2026-09-24T00:00:00Z", "user": {"login": "old-reviewer"}},
+            {"id": 11, "commit_id": h2["readback"]["head_sha"], "state": "APPROVED",
+             "submitted_at": "2026-09-24T01:00:00Z", "user": {"login": "current-reviewer"}},
+        ]
+        h2["readback"]["review_policy"]["eligible_reviewers"] = ["old-reviewer", "current-reviewer"]
+        self.assertEqual(h2["readback"]["reviews"]["head_sha"], h2["readback"]["head_sha"])
+        state, delivered_h2, _ = self._apply(admitted_path, state, "task-a", h2, "review-h2-result")
+        self.assertEqual(delivered_h2["status"], "delivered", delivered_h2)
+        self._persist("task-a", h2, repair_entry)
+        repair_snapshot = self.github.snapshot()
+        repair_snapshot["tasks"] = repair_snapshot["children"] = [
+            item for item in repair_snapshot["children"] if item["task_id"] in {"task-a", "task-c"}
+        ]
+        repair_snapshot["execution_layout"]["entries"] = [
+            entry for entry in repair_snapshot["execution_layout"]["entries"]
+            if entry["task_id"] in {"task-a", "task-c"}
+        ]
+
+        interrupted_state = self.tmp / "review-interrupted-state.json"
+        interrupted_args = [
+            "schedule", "--admitted", str(admitted_path), "--state", str(state),
+            "--state-out", str(interrupted_state), "--git-repo", str(self.repo),
+            "--fresh", str(self._write_json("review-interrupted-fresh.json", repair_snapshot)),
+            "--cap", "2",
+        ]
+        self._interrupted_schedule("die-before-state-publication", interrupted_args)
+        code, resumed = invoke_cli(*interrupted_args)
+        self.assertEqual(code, 0, resumed)
+        dependent = [item for item in resumed["dispatch"] if item["task_id"] == "task-c"]
+        self.assertEqual(len(dependent), 1, resumed)
+        self.assertNotIn("task-a", [item["task_id"] for item in resumed["dispatch"]], resumed)
+        self.assertEqual(dependent[0]["parent_sha"], h2["readback"]["head_sha"])
+        self.assertEqual(
+            dependent[0]["packet"]["parent_readiness"]["prerequisites"][0]["checkpoint"]["readback"]["reviews"]["items"],
+            h2["readback"]["reviews"]["items"],
+        )
+
+        helper_path = Path(__file__).resolve().parents[1] / "orchestrate.py"
+        spec = importlib.util.spec_from_file_location("orchestrate_review_history", helper_path)
+        self.assertIsNotNone(spec)
+        self.assertIsNotNone(spec.loader)
+        helper = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(helper)
+        rejected = copy.deepcopy(h2["readback"])
+        rejected["reviews"]["items"].append({
+            "id": 12, "commit_id": h1["readback"]["head_sha"], "state": "CHANGES_REQUESTED",
+            "submitted_at": "2026-09-24T02:00:00Z", "user": {"login": "blocking-reviewer"},
+        })
+        with self.assertRaises(helper.InputError) as raised:
+            helper.review_readback(rejected, h2["readback"]["head_sha"])
+        self.assertEqual(raised.exception.code, "changes-requested")
+        resolved = copy.deepcopy(rejected)
+        resolved["threads"]["items"] = [{"id": 20, "review_id": 12, "is_resolved": True}]
+        with self.assertRaises(helper.InputError) as raised:
+            helper.review_readback(resolved, h2["readback"]["head_sha"])
+        self.assertEqual(raised.exception.code, "changes-requested")
+
+        same_time = copy.deepcopy(h2["readback"])
+        same_time["reviews"]["items"].extend([
+            {"id": 99, "commit_id": h2["readback"]["head_sha"], "state": "APPROVED",
+             "submitted_at": "2026-09-24T02:00:00Z", "user": {"login": "boundary-reviewer"}},
+            {"id": 100, "commit_id": h2["readback"]["head_sha"], "state": "CHANGES_REQUESTED",
+             "submitted_at": "2026-09-24T02:00:00Z", "user": {"login": "boundary-reviewer"}},
+        ])
+        with self.assertRaises(helper.InputError) as raised:
+            helper.review_readback(same_time, h2["readback"]["head_sha"])
+        self.assertEqual(raised.exception.code, "changes-requested")
+
+        comment_only = copy.deepcopy(h2["readback"])
+        comment_only["review_policy"].update({"required_approvals": 1})
+        comment_only["reviews"]["items"].append({
+            "id": 13, "commit_id": h2["readback"]["head_sha"], "state": "COMMENTED",
+            "submitted_at": "2026-09-24T03:00:00Z", "user": {"login": "current-reviewer"},
+        })
+        helper.review_readback(comment_only, h2["readback"]["head_sha"])
+
+        ineligible = copy.deepcopy(comment_only)
+        ineligible["review_policy"].update({
+            "eligible_reviewers": ["old-reviewer"], "dismiss_stale_reviews": True,
+        })
+        with self.assertRaises(helper.InputError) as raised:
+            helper.review_readback(ineligible, h2["readback"]["head_sha"])
+        self.assertEqual(raised.exception.code, "review-approval-required")
+
+        non_owner = copy.deepcopy(comment_only)
+        non_owner["review_policy"].update({
+            "code_owner_review_required": True,
+            "code_owner_requirements": [["required-owner"]],
+        })
+        with self.assertRaises(helper.InputError) as raised:
+            helper.review_readback(non_owner, h2["readback"]["head_sha"])
+        self.assertEqual(raised.exception.code, "code-owner-approval-required")
+        non_owner["review_policy"]["code_owner_requirements"] = [["current-reviewer"]]
+        helper.review_readback(non_owner, h2["readback"]["head_sha"])
+
+        self_push = copy.deepcopy(comment_only)
+        self_push["review_policy"].update({
+            "require_last_push_approval": True,
+            "last_reviewable_push": {
+                "login": "current-reviewer", "pushed_at": "2026-09-24T00:30:00Z",
+            },
+        })
+        with self.assertRaises(helper.InputError) as raised:
+            helper.review_readback(self_push, h2["readback"]["head_sha"])
+        self.assertEqual(raised.exception.code, "last-push-approval-required")
+        self_push["review_policy"]["last_reviewable_push"]["login"] = "other-pusher"
+        helper.review_readback(self_push, h2["readback"]["head_sha"])
+        self_push["review_policy"]["last_reviewable_push"]["pushed_at"] = "2026-09-24T02:00:00Z"
+        with self.assertRaises(helper.InputError) as raised:
+            helper.review_readback(self_push, h2["readback"]["head_sha"])
+        self.assertEqual(raised.exception.code, "last-push-approval-required")
+
+        dismissed = copy.deepcopy(rejected)
+        dismissed["reviews"]["items"][-1].update({
+            "state": "DISMISSED", "dismissed_at": "2026-09-24T04:00:00Z",
+            "dismissed_by": {"login": "maintainer"},
+        })
+        dismissed["threads"]["items"] = []
+        helper.review_readback(dismissed, h2["readback"]["head_sha"])
+        undismissed = copy.deepcopy(dismissed)
+        undismissed["reviews"]["items"][-1].pop("dismissed_by")
+        with self.assertRaises(helper.InputError) as raised:
+            helper.review_readback(undismissed, h2["readback"]["head_sha"])
+        self.assertEqual(raised.exception.code, "incomplete-review-record")
+
+        fresh_required = copy.deepcopy(h2["readback"])
+        fresh_required["review_policy"].update({
+            "required_approvals": 1, "require_last_push_approval": True,
+            "last_reviewable_push": {
+                "login": "other-pusher", "pushed_at": "2026-09-24T00:30:00Z",
+            },
+        })
+        fresh_required["reviews"]["items"] = [fresh_required["reviews"]["items"][0]]
+        with self.assertRaises(helper.InputError) as raised:
+            helper.review_readback(fresh_required, h2["readback"]["head_sha"])
+        self.assertEqual(raised.exception.code, "review-approval-required")
+
+        stale = copy.deepcopy(h2["readback"])
+        stale["reviews"]["head_sha"] = h1["readback"]["head_sha"]
+        with self.assertRaises(helper.InputError) as raised:
+            helper.review_readback(stale, h2["readback"]["head_sha"])
+        self.assertEqual(raised.exception.code, "incomplete-pr-readback")
+
+        old_validation = copy.deepcopy(h2)
+        old_validation["validation"]["checked_head"] = h1["readback"]["head_sha"]
+        with self.assertRaises(helper.InputError) as raised:
+            helper.validate_delivery(
+                admitted, next(task for task in admitted["tasks"] if task["task_id"] == "task-a"),
+                repair_entry, old_validation, self.repo,
+            )
+        self.assertEqual(raised.exception.code, "stale-validation")
+
+        task = next(task for task in admitted["tasks"] if task["task_id"] == "task-a")
+        for expected_draft, observed_draft in ((True, False), (False, True)):
+            changed_readiness = copy.deepcopy(h2)
+            changed_readiness["readback"]["draft"] = observed_draft
+            with self.subTest(expected_draft=expected_draft, observed_draft=observed_draft):
+                with self.assertRaises(helper.InputError) as raised:
+                    helper.validate_delivery(
+                        admitted, task, repair_entry, changed_readiness, self.repo,
+                        existing_pr=True, expected_draft=expected_draft,
+                    )
+                self.assertEqual(raised.exception.code, "readiness-changed")
 
     def test_alias_workspace_collision_and_same_parent_repair(self) -> None:
         worktree_root = Path(self.github.children[0]["workspace"]).parent
@@ -3530,6 +4072,7 @@ class OrchestrateBehavior(unittest.TestCase):
         report = host.wait_for_report("task-a")
         valid = make_result(self.github, "task-a", report, repair_admitted)
         failed = copy.deepcopy(valid)
+        failed["checks"]["commands"][0]["passed"] = False
         failed["checks"]["passed"] = False
         repair_ready_state, repair_ready, _ = self._apply(
             repair_admitted_path, repair_state, "task-a", failed, "repair-ready"
@@ -3553,6 +4096,37 @@ class OrchestrateBehavior(unittest.TestCase):
             repair_admitted_path, resumed_state, "task-a", repaired_result, "repair-delivered"
         )
         self.assertEqual(delivered.get("status"), "delivered", delivered)
+
+    def test_legacy_retained_delivery_receipt_resumes_without_migration(self) -> None:
+        snapshot = self._single_task_snapshot()
+        admitted_path, admitted = self._admit_issue(snapshot)
+        state, scheduled = self._schedule(
+            admitted_path, admitted, None, snapshot, "legacy-receipt-initial", cap="1"
+        )
+        host = self._start_host(workers=1)
+        host.dispatch(scheduled["dispatch"])
+        result = make_result(
+            self.github, "task-a", host.wait_for_report("task-a"), admitted
+        )
+        state, delivered, _ = self._apply(
+            admitted_path, state, "task-a", result, "legacy-receipt-delivered"
+        )
+        self.assertEqual(delivered["status"], "delivered", delivered)
+        self._persist("task-a", result, scheduled["dispatch"][0])
+        retained = self.github.delivery["task-a"]
+        retained["result"]["checks"]["commands"] = [
+            entry["command"] for entry in retained["result"]["checks"]["commands"]
+        ]
+        retained["result"]["checks"]["smoke"] = "legacy smoke receipt"
+        fresh = self.github.snapshot()
+        state, resumed = self._schedule(
+            admitted_path, admitted, state, fresh, "legacy-receipt-resume", cap="1"
+        )
+        self.assertEqual(resumed["dispatch"], [], resumed)
+        self.assertNotIn("task-a", [entry["task_id"] for entry in resumed["blocked"]], resumed)
+        saved = json.loads(state.read_text())["tasks"]["task-a"]
+        self.assertEqual(saved["status"], "delivered")
+        self.assertIsNone(saved["lifecycle_error"])
 
     def test_project_dedup_parented_members_and_status_readback(self) -> None:
         project_snapshot = self.github.project_snapshot()
@@ -3833,6 +4407,47 @@ class OrchestrateBehavior(unittest.TestCase):
         state, checking, _ = self._observe(admitted_path, state, "task-a", missing, "ci-missing")
         self.assertEqual(checking["ci_state"], "checking", checking)
         self.assertEqual(checking["ci_details"]["task-a"]["links"], [], checking)
+
+        no_ci = self.github.ci_observation(
+            "task-a", required=False, applicability="not-applicable")
+        no_ci["pagination"]["logs"] = False
+        state, no_ci_result, _ = self._observe(admitted_path, state, "task-a", no_ci, "ci-not-applicable")
+        self.assertEqual(no_ci_result["ci_state"], "not-applicable", no_ci_result)
+        self.assertEqual(no_ci_result["not_applicable"], ["task-a"], no_ci_result)
+        self.assertEqual(
+            no_ci_result["ci_details"]["task-a"]["downstream_start"], "require-ci", no_ci_result)
+
+        delayed = self.github.ci_observation(
+            "task-a", applicability="pending", expected=True, downstream_start=None)
+        state, delayed_result, _ = self._observe(admitted_path, state, "task-a", delayed, "ci-delayed")
+        self.assertEqual(delayed_result["ci_state"], "checking", delayed_result)
+        self.assertEqual(delayed_result["reason"], "ci-pending-or-missing", delayed_result)
+        self.assertEqual(
+            delayed_result["ci_details"]["task-a"]["downstream_policy_source"],
+            "conservative-default", delayed_result)
+
+        applicable_expected = self.github.ci_observation("task-a", expected=True)
+        state, applicable_result, _ = self._observe(
+            admitted_path, state, "task-a", applicable_expected, "ci-applicable-expected")
+        self.assertEqual(applicable_result["ci_state"], "verified", applicable_result)
+
+        inaccessible = self.github.ci_observation("task-a", required_accessible=False)
+        state, inaccessible_result, _ = self._observe(
+            admitted_path, state, "task-a", inaccessible, "ci-policy-inaccessible")
+        self.assertEqual(inaccessible_result["reason"], "required-check-config-inaccessible",
+                         inaccessible_result)
+        permitted_inaccessible = self.github.ci_observation(
+            "task-a", required_accessible=False, downstream_start="allow-pending")
+        state, permitted_result, _ = self._observe(
+            admitted_path, state, "task-a", permitted_inaccessible, "ci-permitted-inaccessible")
+        self.assertEqual(permitted_result["ci_state"], "checking", permitted_result)
+        self.assertEqual(permitted_result["reason"], "ci-required-policy-inaccessible", permitted_result)
+
+        unproved = copy.deepcopy(no_ci)
+        unproved["ci_applicability"]["complete"] = False
+        state, unproved_result, _ = self._observe(
+            admitted_path, state, "task-a", unproved, "ci-not-applicable-unproved")
+        self.assertEqual(unproved_result["reason"], "ci-applicability-incomplete", unproved_result)
         neutral = self.github.ci_observation("task-a", check_state="neutral")
         state, neutral_result, _ = self._observe(admitted_path, state, "task-a", neutral, "ci-neutral")
         self.assertEqual(neutral_result["ci_state"], "verified", neutral_result)
@@ -3847,6 +4462,17 @@ class OrchestrateBehavior(unittest.TestCase):
         skipped = self.github.ci_observation("task-a", check_state="skipped")
         state, skipped_result, _ = self._observe(admitted_path, state, "task-a", skipped, "ci-skipped")
         self.assertEqual(skipped_result["ci_state"], "verified", skipped_result)
+
+        advisory = self.github.ci_observation("task-a", required=False, advisory=True)
+        state, advisory_result, _ = self._observe(
+            admitted_path, state, "task-a", advisory, "ci-advisory-success")
+        self.assertEqual(advisory_result["ci_state"], "verified", advisory_result)
+        advisory_failure = self.github.ci_observation(
+            "task-a", required=False, advisory=True, check_state="failure",
+            diagnosis="The advisory check found a real product failure.")
+        state, advisory_failure_result, _ = self._observe(
+            admitted_path, state, "task-a", advisory_failure, "ci-advisory-failure")
+        self.assertEqual(advisory_failure_result["ci_state"], "repair", advisory_failure_result)
 
         old_failure = self.github.ci_observation(
             "task-a", check_state="failure", diagnosis="An older attempt failed."
@@ -4016,6 +4642,7 @@ class OrchestrateBehavior(unittest.TestCase):
         repair_report = host.wait_for_report("task-a")
         repair_result = make_result(self.github, "task-a", repair_report, admitted)
         self.assertNotEqual(repair_result["worker"]["head_sha"], result["worker"]["head_sha"])
+        self.assertTrue(repair_result["readback"]["draft"])
         state, _, _ = self._apply(admitted_path, state, "task-a", repair_result, "repair-result", observe_ci=False)
         self._persist("task-a", repair_result, repair_entry)
 
@@ -4061,6 +4688,69 @@ class OrchestrateBehavior(unittest.TestCase):
         self.assertEqual(exhausted["ci_state"], "blocked", exhausted)
         self.assertEqual(exhausted["reason"], "repair-retry-exhausted", exhausted)
         self.assertEqual(len(json.loads(state.read_text())["tasks"]["task-a"]["ci"]["repair_attempts"]), 2)
+
+    def test_human_ready_existing_pr_survives_repair_refill_and_resume(self) -> None:
+        snapshot = self._single_task_snapshot()
+        admitted_path, admitted = self._admit_issue(snapshot)
+        state, initial = self._schedule(
+            admitted_path, admitted, None, snapshot, "ready-repair-initial", cap="1"
+        )
+        host = self._start_host(workers=1)
+        host.dispatch(initial["dispatch"])
+        report = host.wait_for_report("task-a")
+        initial_result = make_result(self.github, "task-a", report, admitted)
+        state, applied, _ = self._apply(
+            admitted_path, state, "task-a", initial_result, "ready-repair-delivery", observe_ci=False
+        )
+        self.assertEqual(applied["status"], "delivered", applied)
+        self._persist("task-a", initial_result, initial["dispatch"][0])
+        original_pr = initial_result["worker"]["pr_url"]
+
+        # A human changes readiness after the historical draft submission but before refill.
+        self.github.prs["task-a"]["draft"] = False
+        self.github.delivery["task-a"]["lifecycle"]["pr"]["draft"] = False
+        state, refreshed = self._schedule(
+            admitted_path, admitted, state, self._single_task_snapshot(), "ready-repair-refill", cap="1"
+        )
+        self.assertEqual(refreshed["dispatch"], [], refreshed)
+        refreshed_item = json.loads(state.read_text())["tasks"]["task-a"]
+        self.assertTrue(refreshed_item["delivery"]["checkpoint"]["readback"]["draft"])
+        self.assertFalse(refreshed_item["lifecycle"]["pr"]["draft"])
+
+        failure = self.github.ci_observation(
+            "task-a", check_state="failure", diagnosis="Repair the ready PR's diagnosed failure."
+        )
+        state, observed, _ = self._observe(
+            admitted_path, state, "task-a", failure, "ready-repair-failure"
+        )
+        self.assertEqual(observed["ci_state"], "repair", observed)
+        state, dispatched = self._schedule(
+            admitted_path, admitted, state, self._single_task_snapshot(), "ready-repair-schedule", cap="1"
+        )
+        repair_entry = dispatched["dispatch"][0]
+        self.assertEqual(repair_entry["retained_pr"], original_pr)
+        host.dispatch([repair_entry])
+        repair_report = host.wait_for_report("task-a")
+        repair_result = make_result(self.github, "task-a", repair_report, admitted)
+        self.assertFalse(repair_result["readback"]["draft"])
+        self.assertEqual(repair_result["worker"]["pr_url"], original_pr)
+        state, repaired, _ = self._apply(
+            admitted_path, state, "task-a", repair_result, "ready-repair-result", observe_ci=False
+        )
+        self.assertEqual(repaired["status"], "delivered", repaired)
+        self._persist("task-a", repair_result, repair_entry)
+
+        self.assertFalse(self.github.prs["task-a"]["draft"])
+        self.assertEqual(len(self.github.prs), 1)
+        state, resumed = self._schedule(
+            admitted_path, admitted, state, self._single_task_snapshot(), "ready-repair-resume", cap="1"
+        )
+        self.assertEqual(resumed["dispatch"], [], resumed)
+        resumed_item = json.loads(state.read_text())["tasks"]["task-a"]
+        self.assertEqual(resumed_item["verified_pr"], original_pr)
+        self.assertFalse(resumed_item["delivery"]["checkpoint"]["readback"]["draft"])
+        self.assertFalse(resumed_item["lifecycle"]["pr"]["draft"])
+
     def test_repair_worker_plan_binding_after_compatible_replan(self) -> None:
         base = self.github.snapshot()
         admitted_path, admitted = self._admit_issue(base)
@@ -4089,16 +4779,25 @@ class OrchestrateBehavior(unittest.TestCase):
         self.assertEqual(revised_state["tasks"]["task-a"]["reservation"], prior_reservation)
         self.assertEqual(revised_state["tasks"]["task-a"]["execution_plan_revision"], 1)
 
-        # 1. Reject A's original completion under substituted plan 2 and accept it under plan 1
-        _, wrong_plan, code = self._apply(
-            changed_admitted_path, state, "task-a", original_result,
-            "replan-repair-wrong-plan", expect_code=1, observe_ci=False,
+        # A's issued binding remains valid when only an unrelated task's plan changes.
+        wrong_binding = copy.deepcopy(original_result)
+        wrong_binding["worker"]["attempt_binding"] = "attempt-substituted"
+        _, binding_rejected, binding_code = self._apply(
+            changed_admitted_path, state, "task-a", wrong_binding,
+            "replan-repair-wrong-binding", expect_code=1, observe_ci=False,
         )
-        self.assertEqual(code, 1)
-        self.assertEqual(wrong_plan["error"], "execution-plan-drift")
-
+        self.assertEqual(binding_code, 1)
+        self.assertEqual(binding_rejected["error"], "attempt-binding-mismatch")
+        wrong_worker = copy.deepcopy(original_result)
+        wrong_worker["worker"]["worker_id"] = "substituted-native-worker"
+        _, worker_rejected, worker_code = self._apply(
+            changed_admitted_path, state, "task-a", wrong_worker,
+            "replan-repair-wrong-worker", expect_code=1, observe_ci=False,
+        )
+        self.assertEqual(worker_code, 1)
+        self.assertEqual(worker_rejected["error"], "worker-identity")
         completed_state, completed, code = self._apply(
-            admitted_path, state, "task-a", original_result, "replan-repair-original-worker", observe_ci=False,
+            changed_admitted_path, state, "task-a", original_result, "replan-repair-original-worker", observe_ci=False,
         )
         self.assertEqual(code, 0)
         self.assertEqual(completed["status"], "delivered", completed)
@@ -4144,7 +4843,7 @@ class OrchestrateBehavior(unittest.TestCase):
             "replan-repair-late-original-result", expect_code=1, observe_ci=False,
         )
         self.assertEqual(code, 1)
-        self.assertEqual(late_rejected["error"], "execution-plan-drift")
+        self.assertEqual(late_rejected["error"], "worker-identity")
 
         # 3. Run the repair through worker registration, local correction, and verification
         self.launch_context[repair_entry["branch"]] = (changed_admitted_path, state)
@@ -4169,14 +4868,6 @@ class OrchestrateBehavior(unittest.TestCase):
         active_repair_state = json.loads(state.read_text())
         self.assertEqual(active_repair_state["execution_layout"]["revision"], 3)
         self.assertEqual(active_repair_state["tasks"]["task-a"]["execution_plan_revision"], 2)
-
-        # Substituted wrong-plan admission is rejected
-        _, wrong_plan_repair, code = self._apply(
-            further_admitted_path, state, "task-a", repair_result,
-            "replan-repair-wrong-plan-apply", expect_code=1, observe_ci=False,
-        )
-        self.assertEqual(code, 1)
-        self.assertEqual(wrong_plan_repair["error"], "execution-plan-drift")
 
         # Accept its correctly bound completion under plan 2
         state, repair_applied, code = self._apply(
@@ -4215,6 +4906,93 @@ class OrchestrateBehavior(unittest.TestCase):
         self.assertEqual(dispatched_tasks, ["task-b", "task-c", "task-d"])
         for entry in continuation["dispatch"]:
             self.assertEqual(entry["packet"]["execution_order"]["plan_revision"], 3)
+
+    def test_no_applicable_ci_releases_dependents_and_resumes_without_fabricated_checks(self) -> None:
+        snapshot = self.github.snapshot()
+        admitted_path, admitted = self._admit_issue(snapshot)
+        state, initial = self._schedule(
+            admitted_path, admitted, None, snapshot, "no-ci-initial", cap="1")
+        self.assertEqual([entry["task_id"] for entry in initial["dispatch"]], ["task-a"], initial)
+        host = self._start_host(workers=2)
+        host.dispatch(initial["dispatch"])
+        result_a = make_result(self.github, "task-a", host.wait_for_report("task-a"), admitted)
+        state, _, _ = self._apply(
+            admitted_path, state, "task-a", result_a, "no-ci-delivery", observe_ci=False)
+        self._persist("task-a", result_a, initial["dispatch"][0])
+
+        no_ci = self.github.ci_observation(
+            "task-a", required=False, applicability="not-applicable")
+        no_ci["pagination"]["logs"] = False
+        state, settled, _ = self._observe(admitted_path, state, "task-a", no_ci, "no-ci-settled")
+        self.assertEqual(settled["ci_state"], "not-applicable", settled)
+        state, released = self._schedule(
+            admitted_path, admitted, state, self.github.snapshot(), "no-ci-release", cap="2")
+        self.assertEqual([entry["task_id"] for entry in released["dispatch"]], ["task-b", "task-c"],
+                         released)
+        state, resumed = self._schedule(
+            admitted_path, admitted, state, self.github.snapshot(), "no-ci-resume", cap="2")
+        self.assertEqual(resumed["dispatch"], [], resumed)
+        for entry in released["dispatch"]:
+            self.launch_context[entry["branch"]] = (admitted_path, state)
+
+        host.hold_before_mutation = True
+        host.dispatch(released["dispatch"])
+        self.assertTrue(host.before_mutation.wait(30))
+        failure = self.github.ci_observation(
+            "task-a", check_state="failure", diagnosis="A new current parent failure.")
+        state, failed, _ = self._observe(admitted_path, state, "task-a", failure, "no-ci-late-failure")
+        self.assertEqual(failed["ci_state"], "repair", failed)
+        child = json.loads(state.read_text())["tasks"]["task-c"]
+        self.assertEqual(child["status"], "running", child)
+        self.assertEqual(child["ci"]["reconcile_required"]["parent_task_id"], "task-a", child)
+        host.mutation_hold.set()
+        result_c = make_result(self.github, "task-c", host.wait_for_report("task-c"), admitted)
+        state, applied_c, _ = self._apply(admitted_path, state, "task-c", result_c, "no-ci-child")
+        self._persist("task-c", result_c, released["dispatch"][1])
+        result_b = make_result(self.github, "task-b", host.wait_for_report("task-b"), admitted)
+        state, applied_b, _ = self._apply(admitted_path, state, "task-b", result_b, "no-ci-unrelated")
+        self._persist("task-b", result_b, released["dispatch"][0])
+        self.assertEqual(applied_c["status"], "delivered", applied_c)
+        self.assertEqual(applied_b["status"], "delivered", applied_b)
+        self.assertEqual(
+            json.loads(state.read_text())["tasks"]["task-c"]["ci"]["state"], "blocked")
+
+    def test_pending_ci_waits_unless_repository_policy_explicitly_permits_stacking(self) -> None:
+        snapshot = self.github.snapshot()
+        admitted_path, admitted = self._admit_issue(snapshot)
+        state, initial = self._schedule(
+            admitted_path, admitted, None, snapshot, "pending-policy-initial", cap="1")
+        host = self._start_host(workers=1)
+        host.dispatch(initial["dispatch"])
+        result_a = make_result(self.github, "task-a", host.wait_for_report("task-a"), admitted)
+        state, _, _ = self._apply(
+            admitted_path, state, "task-a", result_a, "pending-policy-delivery", observe_ci=False)
+        self._persist("task-a", result_a, initial["dispatch"][0])
+
+        pending = self.github.ci_observation(
+            "task-a", applicability="pending", expected=True, required_accessible=False)
+        state, waiting_ci, _ = self._observe(
+            admitted_path, state, "task-a", pending, "pending-policy-required")
+        self.assertEqual(waiting_ci["reason"], "required-check-config-inaccessible", waiting_ci)
+        state, conservative = self._schedule(
+            admitted_path, admitted, state, self.github.snapshot(), "pending-policy-wait", cap="1")
+        self.assertEqual([entry["task_id"] for entry in conservative["dispatch"]], ["task-b"],
+                         conservative)
+        self.assertNotIn("task-c", [entry["task_id"] for entry in conservative["dispatch"]],
+                         conservative)
+
+        permitted = self.github.ci_observation(
+            "task-a", applicability="pending", expected=True, required_accessible=False,
+            downstream_start="allow-pending")
+        state, permitted_result, _ = self._observe(
+            admitted_path, state, "task-a", permitted, "pending-policy-permitted")
+        self.assertEqual(permitted_result["ci_state"], "checking", permitted_result)
+        self.assertEqual(
+            permitted_result["ci_details"]["task-a"]["downstream_start"], "allow-pending",
+            permitted_result)
+        state, stacking = self._schedule(
+            admitted_path, admitted, state, self.github.snapshot(), "pending-policy-stack", cap="2")
+        self.assertIn("task-c", [entry["task_id"] for entry in stacking["dispatch"]], stacking)
 
     def test_verified_repaired_parent_releases_dependent_task(self) -> None:
         admitted_path, admitted = self._admit_issue(self.github.snapshot())

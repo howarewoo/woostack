@@ -55,5 +55,6 @@ and never invent a runner or report an unrun command as passing.
 Use the target's established commands and keep mandatory checks mandatory. A failed or incomplete
 check blocks delivery. Any source change after verification invalidates affected evidence and
 requires fresh checks. Execute owns the focused verification, smoke scenario, commit, push, and one
-reviewable draft PR through [`woostack-commit`](../../woostack-commit/SKILL.md); the testing doctrine
+reviewable PR through [`woostack-commit`](../../woostack-commit/SKILL.md); a new PR is draft, while
+an update preserves existing readiness. The testing doctrine
 does not add provider requirements, project discovery, orchestration, or a second PR path.

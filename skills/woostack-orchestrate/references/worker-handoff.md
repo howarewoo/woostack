@@ -3,11 +3,11 @@
 This reference defines the exact bridge between helper output and a real
 [`woostack-execute`](../../woostack-execute/SKILL.md) worker. The helper emits data; it never
 contacts a host. The skill supplies the selected isolated workspace/branch through the host's
-supported mechanism, then invokes only the selected allowlisted host's documented subagent
-primitive. Scheduling and state rules are in [scheduling](scheduling.md); delivery gates are in
-[validation](validation.md).
+supported mechanism, then invokes an actually available authorized primitive that provides
+delivery, workspace isolation, native result correlation, and recovery. Scheduling and state rules
+are in [scheduling](scheduling.md); delivery gates are in [validation](validation.md).
 
-Use the shared [source-control contract](../../woostack-commit/references/graphite.md),
+Use the shared [source-control contract](../../woostack-commit/references/source-control.md),
 the outcome-level [worktree guidance](scheduling.md#runtime-workspace-and-branch-evidence),
 the [least-code standard](../../woostack-bootstrap/references/patterns.md#7-least-code--comments),
 and [model tiers](../../using-woostack/references/model-tiers.md). Host mechanics do not belong in
@@ -186,9 +186,8 @@ The example's `parent_readiness` is a root with proved parent-PR absence. For a 
 the complete effective set. `prerequisites` has exactly one record per effective prerequisite:
 `task_id`, exact `issue_url`, `relationship` (`technical`, `stack`, or `technical+stack`), full
 checkpoint (the complete [result object](validation.md#result-schema), including checks, PR
-head/base/state/reviews/threads, independent validation, and persisted note), and verified
-containment. Those SHAs are the prerequisite head and retained parent start; the helper has actually
-verified their Git ancestry. `parent.selection` is `technical-parent`, `stack-parent`,
+head/base/state, complete review/thread history, current review policy, independent validation, and
+persisted note), and verified Git ancestry. `parent.selection` is `technical-parent`, `stack-parent`,
 `landed-stack-parent`, `integration`, or `explicit`. An explicit choice carries its preserved
 `{task_id, branch, sha}` decision; other selections use `null`. `parent.pr_evidence` uses fresh parent
 PR discovery ([scheduling](scheduling.md#normalized-snapshot)).
@@ -256,14 +255,16 @@ later repair launch or reconciled using another worker's stopped receipt.
 
 The worker must not create its own alternate workspace, switch to another branch, infer a parent
 from ordinal order, read/write a sibling workspace, alter hierarchy/dependencies, or own Project
-progress. It may use Execute/Commit for its one task and one child-associated draft PR.
+progress. It may use Execute/Commit for one child-associated PR: a new PR starts as a draft, while
+an update preserves the retained PR's independently observed readiness.
 
 ## Host handoff
 
-Resolve the host slug against the exact allowlist before using a spawn primitive and load only that
-host's reference. The host adapter owns primitive names, worker selectors, per-call directory/model
-knobs, fallback, and concurrency mechanics. This skill owns only the invariant payload and says
-when missing delivery capability is a blocker:
+Use an actually available authorized host primitive only after proving worker delivery, isolated
+workspaces, native result correlation, and recovery. Known host files are optional mechanics
+references, not an allowlist or proof by name. The selected mechanism owns primitive names, worker
+selectors, per-call directory/model knobs, fallback, and concurrency mechanics. This skill owns
+only the invariant payload and says when missing capability is a blocker:
 
 - pass one schedule entry to one delivery-capable subagent;
 - pass the exact absolute workspace, branch, parent branch/SHA, complete packet, child URL,
@@ -283,11 +284,19 @@ The worker returns ordinary Execute evidence. The controller binds the nested `w
 the actual originating native handle's `host_id`, `session_id`, and `worker_id`, never by copying
 the task's current `host_worker` into a cached result. It adds independent canonical reads,
 focused verification, and read-only specification validation using the single
-[result schema and gates](validation.md#result-schema), then persists/read-backs the child note
-and any explicitly selected Project status before `apply-result`. Do not invent missing evidence
-or let the worker approve its own result. Failed checks/specification validation preserve the
+[result schema and gates](validation.md#result-schema). Review history is never prefiltered to
+the current head. The controller retains every native review and thread disposition from the same
+fresh PR read, then the helper evaluates applicability against the independently read repository
+policy. Historical records cannot stand in for the required current-head specification validation.
+The controller then persists/read-backs the child note and any explicitly selected Project status
+before `apply-result`. Do not invent missing evidence or let the worker approve its own result.
+Failed checks/specification validation preserve the
 same reservation and PR for repair; note/evidence-only retries keep the same recorded native
 identity without replaying repository delivery. A new repair launch has its own native identity.
+Each dispatch also issues an `attempt_binding` covering the exact task contract, reservation,
+repair/retained-PR facts, and parent-readiness context. The host launch receipt and worker result
+must echo that binding; the controller records it with the attempt history so a compatible global
+replan cannot relabel or invalidate the launched attempt.
 
 For a missing or malformed response, construct a valid envelope from the originating native handle
 with `outcome: "unknown"` or the malformed report fields. Only a bound envelope may transition the
@@ -297,8 +306,8 @@ Follow [native identity recovery](validation.md#record-the-native-writer) when t
 never relabel an old completion using current task state.
 
 The child PR carries exactly one `Resolves <child URL>` reference. It never closes or references
-the specification parent. New PRs remain drafts and no workflow step marks ready, merges, queues,
-force-pushes, or silently retargets a PR.
+the specification parent. New PRs remain drafts, and no workflow step changes an existing PR's
+readiness, merges, queues, force-pushes, or silently retargets a PR.
 
 ## Existing delivery and resume
 

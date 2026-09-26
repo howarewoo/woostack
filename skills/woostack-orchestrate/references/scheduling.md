@@ -4,10 +4,9 @@ This reference is the machine-facing contract for
 [`woostack-orchestrate`](../SKILL.md) and the shipped
 `scripts/orchestrate.py` helper. The helper is the only scheduler. It reads local JSON and local
 Git ancestry evidence, never calls a network, and never spawns a worker. The skill obtains or
-reuses an isolated workspace through repository/host capabilities and delivers the helper packet
-through the selected host adapter.
+reuses an isolated workspace and delivers the helper packet through an authorized host primitive.
 
-Link rather than copy the shared [source-control contract](../../woostack-commit/references/graphite.md),
+Link rather than copy the shared [source-control contract](../../woostack-commit/references/source-control.md),
 the outcome-level [runtime workspace guidance](#runtime-workspace-and-branch-evidence),
 the [least-code standard](../../woostack-bootstrap/references/patterns.md#7-least-code--comments),
 the [model tiers](../../using-woostack/references/model-tiers.md), and canonical
@@ -40,11 +39,13 @@ must retain the selected workspace and branch and verify the same checkout befor
 
 ## Native reads before JSON assembly
 
-Resolve host capability before GitHub access. The selected host must expose a real
-delivery-capable subagent primitive. Record `delivery_capable: true` and its observed positive
-`max_parallel` in the snapshot. A smaller host cap is a scheduling clamp, not a scope-admission
-failure; absence of a delivery primitive blocks before `admit` rather than degrading to inline
-implementation. Host mechanics and tier routing remain in the allowlisted host references.
+Before GitHub access, prove an actually available authorized mechanism for worker delivery,
+isolated workspaces, native result correlation, and recovery. Record
+`delivery_capable`, `workspace_isolation_capable`, `result_correlation_capable`, and
+`recovery_capable` together with a positive observed `max_parallel` in the snapshot. Host names and
+reference files are recipes, not admission authority. A smaller cap is a scheduling clamp, not a
+scope-admission failure; any missing capability blocks before `admit` rather than degrading to
+inline implementation or a guessed adapter.
 
 Resolve the canonical Git repository and integration branch/SHA from direct Git and an authorized
 GitHub capability exposed by the host (prefer native GitHub tools when suitable; host-authenticated
@@ -56,6 +57,12 @@ endpoint needed to identify executable issues, understand their source context, 
 and establish dependency, Project, PR, and recovery evidence. A missing or failed page is incomplete
 evidence, not an empty collection; record terminal-read evidence only after the corresponding read
 actually completes.
+
+The Orchestrate controller reads native stack membership when a selected parent PR may be
+registered, to identify the trunk that supplies its applicable review policy. It never creates,
+extends, or reconciles a stack; that is the owner's
+[stack membership contract](../../woostack-commit/references/source-control.md#native-github-stack-membership-for-a-dependent-pr)
+for a delivery, and an unreadable stack read leaves the parent policy unproven.
 
 The model, not a selector or source layout, decides which issues are executable. It reads issue
 bodies, comments, repository instructions, and relevant tracker/Project context, asks a focused
@@ -98,6 +105,9 @@ shape for the helper and is not a caller-facing source schema; all markers are r
   "repository_rules": "<runtime-substituted complete repository rules>",
   "host": {
     "delivery_capable": true,
+    "workspace_isolation_capable": true,
+    "result_correlation_capable": true,
+    "recovery_capable": true,
     "max_parallel": "<runtime-substituted positive host capability>"
   },
   "scope_evidence": {
@@ -117,7 +127,7 @@ shape for the helper and is not a caller-facing source schema; all markers are r
   },
   "tasks": [
     {
-      "task_id": "<runtime-substituted stable Git-safe task ID>",
+      "task_id": "<runtime-substituted stable opaque task ID>",
       "ordinal": "<runtime-substituted positive tie-break ordinal>",
       "url": "<runtime-substituted canonical executable issue URL>",
       "id": "<runtime-substituted positive native REST issue ID>",
@@ -262,11 +272,25 @@ useful parallelism; the model owns this selection, while Execute/Commit do not s
 `parent_prs` supplies fresh canonical PR discovery for the integration branch and any explicitly
 selected non-predecessor parent. An empty `prs` array means fully proved absence, not unavailable
 access. Otherwise supply one exact PR record with `pr_url`, `repo`, `head_repo`, `branch`,
-`head_sha`, `base_branch`, current `state` (`open`, `closed`, or `merged`), and fully paginated
-current-head `reviews`/`threads` in the [validation readback shape](validation.md#result-schema).
+`head_sha`, `base_branch`, current `state` (`open`, `closed`, or `merged`), and the complete
+[validation readback shape](validation.md#result-schema) observed at that head, including review
+history, thread dispositions, and current repository review policy.
+That policy is the same applicable review policy the validation contract names: the verified native
+stack trunk for a registered stack member, otherwise the PR's own base branch.
 Ambiguous or incomplete discovery blocks selection. Predecessor parents use their fresh complete
 delivery checkpoint instead. Current tips may advance for an already-reserved child only while its
 original start remains an ancestor; do not replace that child's retained start SHA.
+
+When the integration tip changes, `schedule` verifies the canonical repository and branch, the
+previous and proposed commit objects, forward ancestry, and the complete changed-path set. An
+unrelated forward advance is compatible when it does not materially change a selected task's
+contract scope. For a merged selected prerequisite, the shared availability proof compares
+the landing's changed paths to the candidate base; a later change to that content makes only
+that prerequisite and its dependents wait for fresh independent validation. Rewrites, missing
+objects, wrong refs, and impact on unfinished selected work remain `parent-tip-drift` until
+reconciled. A compatible advance is recorded in controller recovery and may supply the refreshed
+parent only to newly eligible roots; it never reparents an existing reservation or replaces its
+workspace, PR, or worker contract.
 
 When a Project is explicitly selected for status mutation, add its independently read identity and
 configured lifecycle mapping:
@@ -348,7 +372,11 @@ dispatched repair attempt binds to the current execution plan and dependency con
 before launch, and its completion must be accepted under that issued plan rather than a stale prior
 attempt revision, while an active repair worker preserves its issued plan binding across any
 subsequent compatible replans. Descendant repair propagation uses the current persisted effective graph.
-the same plan. Every status preserves reservations, claims, workers, deliveries, and recovery
+The execution fingerprint remains useful admission evidence, but it is not a worker-validity
+gate. The helper compares the normalized task-local execution identity (parent, constraints,
+fallback, effective prerequisites, and ancestry) for replan decisions; explanatory layout
+rationale and formatting-only revisions do not invalidate an already issued attempt. Contract,
+permission, parent, or dependency meaning changes still require reconciliation.
 boundaries and requires a fully fresh interpreted snapshot.
 
 Every fresh refill carries the complete recovery inventory described above: checkpoint/state
@@ -390,8 +418,10 @@ revision, with bounded task-relevant source/check evidence; its original head ne
 ancestor after a squash or rebase merge. A closed-unmerged PR, missing/partial evidence, wrong landing
 target, or known reverted behavior remains unresolved. A merged prerequisite does not require its
 source branch to exist locally, whether deleted or remote-only; the verified merge, landed diff
-identity, and containment in the admitted integration base are the evidence. The historical
-delivery checkpoint is never rewritten to look like a current open readback.
+identity, unchanged landed content in the candidate base, and containment are the evidence.
+Later changes to that content need fresh independent validation rather than trusting the old
+landing's checks. The historical delivery checkpoint is never rewritten to look like a current
+open readback.
 
 Every prerequisite is rechecked in dependency order. Missing, stale, or contradictory evidence
 preserves ownership and blocks only that task and its descendants; it never redispatches a
