@@ -118,7 +118,7 @@ is normal and never a failure.
 
 When a selected repository still holds `.omp/agents/woostack-{fast,standard,deep}.md` from the
 retired provisioner, follow the manual, user-initiated cleanup recipe in the
-[OMP harness guide](https://github.com/howarewoo/woostack/blob/main/site/content/docs/harnesses/omp.md#previously-generated-agent-definitions).
+[OMP harness guide](https://github.com/howarewoo/woostack/blob/main/site/content/docs/harnesses/omp.mdx#previously-generated-agent-definitions).
 That recipe requires exact-byte plus provenance proof before any removal and never touches
 user-authored or symlinked files. Woostack never runs it: cleanup stays optional and manual, with no
 migration subsystem.

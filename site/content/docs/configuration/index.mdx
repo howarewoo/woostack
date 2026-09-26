@@ -127,8 +127,8 @@ context. Changing a model leaf never creates or renames an OMP agent.
 
 | Host | Repository model config | Flat fallback | Dispatch behavior |
 | --- | --- | --- | --- |
-| Claude Code | `models.anthropic.fast`, `.standard`, or `.deep` | matching flat leaf | Passes the resolved Anthropic model and effort to each Task call. A single-session host can pass the model, but not effort. |
-| Codex | `models.openai.fast`, `.standard`, or `.deep` | matching flat leaf | Passes the resolved OpenAI model and reasoning effort when the host supports per-call overrides. A single-model session resolves once for the whole run. |
+| Claude Code | `models.anthropic.fast`, `.standard`, or `.deep` | matching flat leaf | Passes the resolved model when the active spawn schema supports it. Effort comes from the worker definition or session unless a per-invocation field is exposed. |
+| Codex | `models.openai.fast`, `.standard`, or `.deep` | matching flat leaf | Requests the resolved model and effort through the local dispatch prompt or agent configuration; passes wire fields only when exposed by the active schema. A single-model Action job resolves once for the whole run. |
 | Gemini | `models.google.fast`, `.standard`, or `.deep` | matching flat leaf | Uses the Google model for the resolved tier. |
 | OpenRouter | `models.openrouter.fast`, `.standard`, or `.deep` | matching flat leaf | Uses the OpenRouter model and reasoning effort for the resolved tier. |
 | omp (Oh My Pi) | ignored for agent selection | ignored | Selects a discovered host agent; OMP owns its model and fallback. |
@@ -170,12 +170,13 @@ Each tier leaf supports all three shared forms:
 - a non-empty ordered array of either form, used as a fallback preference list.
 
 Supported effort levels are `minimal`, `low`, `medium`, `high`, and `xhigh`. The calling workflow
-selects the effective tier and the host applies its documented routing behavior.
+selects the effective tier. The host passes only supported per-invocation fields; when the selected
+effort cannot be applied, it uses documented inheritance and reports that limitation once.
 
 In an array, entry 0 is the primary model. Later entries list fallback models in preference order;
-the host decides whether and how to use them. Hosts with per-call model overrides can retry a
-rate-limited worker with a later entry. Other consumers follow their host reference. omp ignores
-the array. An empty array is a configuration error.
+on hosts without documented spawn-time failover, switching entries requires a manual configuration
+change, not an automatic retry. Other consumers follow their host reference. omp ignores the array.
+An empty array is a configuration error.
 
 ```json
 {
@@ -210,8 +211,9 @@ The default model per provider and tier:
 | openrouter | `openrouter/deepseek/deepseek-v4-flash` | `openrouter/deepseek/deepseek-v4-pro` | `openrouter/deepseek/deepseek-v4-pro` |
 
 Anthropic routes every tier to `claude-opus-4-8`, so the tier is carried by reasoning `effort`
-(`low`/`medium`/`xhigh`) rather than by the model. Effort applies on per-call hosts; single-session
-hosts pass only the model.
+(`low`/`medium`/`xhigh`) rather than by the model. Per-invocation effort applies only when the active
+schema exposes it; otherwise the inherited effort may differ from the selected tier and woostack
+reports that limitation.
 
 On hosts that read repository model policy, resolution follows the explicit model input, the
 provider-specific leaf, the flat leaf, and the provider default. Single-model sessions resolve one

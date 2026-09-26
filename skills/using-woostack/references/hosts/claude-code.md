@@ -25,7 +25,8 @@ when the session has no `general-purpose` subagent to fall back on.
   ([subagents](https://code.claude.com/docs/en/sub-agents)). Pass the resolved model when the
   active schema carries the parameter and the caller's policy requires it.
 - **Per-call effort:** not documented for a single invocation — `effort` is a subagent-definition
-  and session field. Treat a per-call effort argument as absent unless the active schema shows one.
+  and session field. Treat a per-call effort argument as absent unless the active schema shows one;
+  when it is absent, report once that the selected tier's effort was not applied per invocation.
 - **Per-call cwd:** not documented — fill the dispatch-prompt worktree pin and require the worker to
   verify it before writing. A subagent *definition* can request `isolation: worktree`; that is a
   definition choice, not a per-call working directory.

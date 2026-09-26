@@ -12,9 +12,10 @@ When the active tool schema carries a model parameter, woostack passes the resol
 invocation. Claude Code then resolves the worker's model from the per-invocation parameter, the
 worker definition's `model` frontmatter, `CLAUDE_CODE_SUBAGENT_MODEL`, and finally the session model,
 in that order ([subagents](https://code.claude.com/docs/en/sub-agents)). If the active schema has no
-model parameter, the worker uses the session model and woostack reports that limitation once.
-Reasoning effort is a worker-definition and session setting, so woostack does not pass it per
-invocation.
+model parameter, the worker uses the next available source in that order, and woostack reports the
+limitation once. Reasoning effort is a worker-definition and session setting; unless the active
+schema supports a per-invocation effort field, woostack uses the host's inherited effort and reports
+once that the selected tier's effort was not applied per invocation.
 
 The tool takes no separate working directory per worker. Instead, the task prompt names the exact
 worktree, the separate checkout assigned to that task, and the worker must use that directory and
