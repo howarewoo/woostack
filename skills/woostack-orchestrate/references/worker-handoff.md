@@ -269,8 +269,7 @@ only the invariant payload and says when missing capability is a blocker:
 - pass one schedule entry to one delivery-capable subagent;
 - pass the exact absolute workspace, branch, parent branch/SHA, complete packet, child URL,
   specification, repository rules, bounded input object, acceptance, checks, and contract hash;
-- clamp the helper's cap to the real host capability, preserving the host's documented tier
-  routing;
+- clamp the helper's cap to the real host capability; let the host select the model and fallback;
 - never copy secrets into a worker prompt or synthesize credentials; use the host's existing
   authenticated tools;
 - require a worker receipt. Missing capability or receipt is not success and never falls back to
