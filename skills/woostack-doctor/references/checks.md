@@ -29,7 +29,6 @@ inspect credentials or invoke a provider, adapter, HTTP, GraphQL, or hard-coded 
 | `orphan-worktree` (stale) | registered worktree whose directory is gone | warn | auto | `<root>` (`git worktree prune`) |
 | `gitignore-drift` | shipped-template managed line missing from `.woostack/.gitignore` | warn | auto | `<root>` |
 | `omp-session-name` | active managed session-naming asset drift | warn | auto | `<root>` |
-| `config-key` | required non-secret key from the Init template is absent from tracked base config | warn | auto | `<root> <key>` |
 | `config-policy` | malformed canonical policy or resolver failure | error | report | — |
 | `retired-provider` | legacy provider selector/profile is present as opaque inactive data | warn | report | — |
 | `retained-data` | historical local draft/manifest directory is present | warn | report | — |

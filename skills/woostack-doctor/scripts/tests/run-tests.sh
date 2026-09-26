@@ -8,7 +8,6 @@ tests=(
   test-doctor.sh
   test-github-capability.sh
   test-health-checks.sh
-  test-models-leaf-shape.sh
   test-orchestrator.sh
   test-omp-session-name.sh
 )

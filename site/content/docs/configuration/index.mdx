@@ -28,7 +28,7 @@ the tracked base file stops configuration loading with an error.
 | Scalar, array, or `null` override | The local value replaces the base value. Arrays do not concatenate. `null` does not delete a key. |
 | Invalid input | Empty, malformed, non-object, unreadable, symlinked, non-regular, orphaned, or credential-like configuration fails closed with the offending path. |
 | Secrets | GitHub authentication stays in the host secret store. Both configuration files contain non-secret policy only. |
-| OMP agents | OMP discovers and selects host-owned agents; repository model settings do not create or rename them. |
+| Host models | Host configuration owns model selection, effort, and recovery; Woostack preserves existing `models` values but does not route with them. |
 
 This partial example shows how the two files merge. It is not a complete GitHub Project
 configuration; the [GitHub page](/docs/configuration/artifacts/github) lists the supported fields.
@@ -66,14 +66,12 @@ keeps the owner and status options while replacing only `statusField`.
 
 ## Top-level settings
 
-This page covers four top-level settings. Init validates the optional `github` object and scaffolds
-the other shared settings when needed. Consumers supply defaults for omitted settings, subject to the
-requirements below.
+Init validates the optional `github` object; `commit` and `base_branch` are consumed by their
+respective workflows. Other non-secret keys are preserved by configuration layering.
 
 | Setting | Read by | Purpose |
 | --- | --- | --- |
 | `github` | Init and explicit GitHub Project workflows | Optional owner, owner type, Status field, and Project Status option mapping. |
-| `models` | Host subagent drivers | Shared fast, standard, and deep model leaves for hosts that consume repository model policy. OMP selects existing host agents and does not use this setting to create or rename them. |
 | `commit` | [woostack-commit](/docs/skills/woostack-commit) | Command to run before staging. |
 | `base_branch` | Init and worktree workflows | Trunk branch used for worktrees and pull requests. |
 
@@ -87,9 +85,8 @@ requirements below.
 
 ## A complete example
 
-This example combines optional settings; it is not the init template. Use model IDs supported by
-your host and replace `commit.command` with commands your repository actually provides.
-JSON has no comments, so the tables below explain each setting.
+This example combines optional settings; it is not the init template. Replace `commit.command`
+with a command your repository actually provides.
 
 ```json
 {
@@ -105,121 +102,24 @@ JSON has no comments, so the tables below explain each setting.
       "blocked": "Blocked"
     }
   },
-  "models": {
-    "fast": { "model": "google/gemini-3-5-flash", "effort": "low" },
-    "standard": { "model": "openai/gpt-5.5", "effort": "medium" },
-    "deep": { "model": "anthropic/claude-opus-4-8", "effort": "xhigh" }
-  },
   "commit": { "command": "pnpm format && pnpm test" },
   "base_branch": "main"
 }
 ```
 
-## Model selection
+## Model selection compatibility
 
-Each repository-model consumer runs at a tier (`fast`, `standard`, or `deep`). The top-level
-`models` namespace maps that tier to a concrete model and optional effort. The namespace remains
-at the root so host subagent drivers can share it.
+Woostack now inherits the harness's configured agent/model, effort, and fallback. Optional
+`fast | standard | deep` [role preferences](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/model-tiers.md)
+shape the task and verification depth, not model routing. An explicit one-run native model or
+effort override requires a supported field in the active host schema and host authorization;
+unsupported optional requests are reported, while a required exact identity blocks without
+matching host evidence.
 
-OMP is the host-owned exception. It does not use repository model leaves to create a dispatch
-catalog; it selects an agent exposed by the active session and passes the effective tier as task
-context. Changing a model leaf never creates or renames an OMP agent.
-
-| Host | Repository model config | Flat fallback | Dispatch behavior |
-| --- | --- | --- | --- |
-| Claude Code | `models.anthropic.fast`, `.standard`, or `.deep` | matching flat leaf | Passes the resolved model when the active spawn schema supports it and per-invocation selection is permitted. [Forced-model mode](/docs/harnesses/claude-code) omits the override. Effort comes from the worker definition or session unless a per-invocation field is exposed. |
-| Codex | `models.openai.fast`, `.standard`, or `.deep` | matching flat leaf | Requests the resolved model and effort through the local dispatch prompt or agent configuration; passes wire fields only when exposed by the active schema. A single-model Action job resolves once for the whole run. |
-| Gemini | `models.google.fast`, `.standard`, or `.deep` | matching flat leaf | Uses the Google model for the resolved tier. |
-| OpenRouter | `models.openrouter.fast`, `.standard`, or `.deep` | matching flat leaf | Uses the OpenRouter model and reasoning effort for the resolved tier. |
-| omp (Oh My Pi) | ignored for agent selection | ignored | Selects a discovered host agent; OMP owns its model and fallback. |
-
-For hosts that consume this namespace, a provider-specific leaf takes precedence over the
-matching flat leaf. The same config file can therefore supply provider-neutral defaults and
-provider-specific overrides:
-
-```json
-{
-  "models": {
-    "fast": { "model": "google/gemini-3-5-flash", "effort": "low" },
-    "standard": { "model": "openai-codex/gpt-5.6-sol", "effort": "medium" },
-    "deep": { "model": "anthropic/claude-opus-4-8", "effort": "xhigh" },
-    "anthropic": {
-      "fast": { "model": "claude-opus-4-8", "effort": "low" },
-      "standard": { "model": "claude-opus-4-8", "effort": "medium" },
-      "deep": { "model": "claude-opus-4-8", "effort": "xhigh" }
-    },
-    "openai": {
-      "fast": { "model": "gpt-5.5", "effort": "low" },
-      "standard": { "model": "gpt-5.5", "effort": "medium" },
-      "deep": { "model": "gpt-5.5", "effort": "high" }
-    }
-  }
-}
-```
-
-In this example, Claude Code selects the Anthropic branch and Codex selects the OpenAI branch.
-Another repository-model host can use the flat leaves. omp ignores every entry in the block.
-How each non-omp host consumes the schema, including spawn primitives, per-call routing knobs,
-and fallback, lives in its canonical host reference under
-`skills/using-woostack/references/hosts/`.
-
-Each tier leaf supports all three shared forms:
-
-- a model-slug string;
-- an object `{ "model": "<slug>", "effort": "<level>" }`; or
-- a non-empty ordered array of either form, used as a fallback preference list.
-
-Supported effort levels are `minimal`, `low`, `medium`, `high`, and `xhigh`. The calling workflow
-selects the effective tier. The host passes only supported per-invocation fields; when the selected
-effort cannot be applied, it uses documented inheritance and reports that limitation once.
-
-In an array, entry 0 is the primary model. Later entries list fallback models in preference order;
-on hosts without documented spawn-time failover, switching entries requires a manual configuration
-change, not an automatic retry. Other consumers follow their host reference. omp ignores the array.
-An empty array is a configuration error.
-
-```json
-{
-  "models": {
-    "deep": [
-      { "model": "openai-codex/gpt-5.6-sol", "effort": "xhigh" },
-      { "model": "openai-codex/gpt-5.6-sol", "effort": "high" },
-      "google/gemini-3-5-flash"
-    ]
-  }
-}
-```
-
-The [complete example](#a-complete-example) uses flat leaves to assign non-omp hosts a model for
-each tier.
-
-Keep `models` at the top level. Consumer-specific nested model blocks are not part of the shared
-configuration schema.
-
-| Key | Type | Default | Meaning |
-| --- | --- | --- | --- |
-| `models.fast`, `models.standard`, `models.deep` | string, `{model, effort}`, or array of those (fallback list) | provider table | Provider-agnostic model for the three shared tiers on repository-model hosts. |
-| `models.anthropic.*`, `models.openai.*`, `models.google.*`, `models.openrouter.*` | string, `{model, effort}`, or array of those (fallback list) | provider table | Per-provider override, with one `fast`, `standard`, or `deep` leaf. |
-
-The default model per provider and tier:
-
-| Provider | `fast` | `standard` | `deep` |
-| --- | --- | --- | --- |
-| anthropic | `claude-opus-4-8` (effort `low`) | `claude-opus-4-8` (effort `medium`) | `claude-opus-4-8` (effort `xhigh`) |
-| openai | `gpt-5.5` | `gpt-5.5` | `gpt-5.5` |
-| google | `gemini-3-5-flash` | `gemini-3-5-flash` | `gemini-3-5-flash` |
-| openrouter | `openrouter/deepseek/deepseek-v4-flash` | `openrouter/deepseek/deepseek-v4-pro` | `openrouter/deepseek/deepseek-v4-pro` |
-
-Anthropic routes every tier to `claude-opus-4-8`, so the tier is carried by reasoning `effort`
-(`low`/`medium`/`xhigh`) rather than by the model. Per-invocation effort applies only when the active
-schema exposes it; otherwise the inherited effort may differ from the selected tier and woostack
-reports that limitation.
-
-On hosts that read repository model policy, resolution follows the explicit model input, the
-provider-specific leaf, the flat leaf, and the provider default. Single-model sessions resolve one
-model for the whole run. On OMP, agent selection and model recovery remain host-owned; the effective
-tier is task context and never creates a project worker or alias.
-
+Existing `.woostack/config.json` and primary-checkout `config.local.json` values, including
+`models` in any old shape, are preserved as user data. Woostack no longer interprets `models`
+as runtime provider defaults, overrides, or fallback lists. Configure model selection in the
+native harness instead; do not migrate or delete existing configuration just to use Woostack.
 
 ## Commit hook
 
@@ -242,7 +142,7 @@ worktrees are cut from.
 ## Defaults and doctor
 
 <Callout type="info">
-  Init scaffolds shared `models` settings and validates an optional top-level `github` object.
+  Init validates an optional top-level `github` object without seeding model settings.
   Authorized native GitHub capabilities or host-authenticated `gh` may provide narrow non-secret
   defaults; missing GitHub configuration or connectivity never blocks local initialization. Prepare
   and parent-issue Plan use complete plain packets. Prepare delegates direct GitHub issue publication

@@ -14,9 +14,9 @@ directory, or run several workers at once — and a harness page is not proof th
 Giving it a separate conversation context does not by itself restrict which files it can edit; the
 workflow must also set the allowed paths and worktree, a separate checkout for the task.
 
-When a required capability is missing, woostack reports the limitation or stops the workflow. A
-missing optional field falls back to the harness's own default with one notice. Unlisted hosts have
-no documented per-call routing.
+When a required capability is missing, woostack reports the limitation or stops the workflow.
+Normal host model inheritance needs no notice. An unsupported optional explicit override is
+reported; a required exact identity blocks without matching host evidence.
 
 Hermes may coordinate decisions and review results from one persistent OMP process, but woostack
 does not install in Hermes. The coding harness runs the implementation and its workers. See the
@@ -30,17 +30,17 @@ does not install in Hermes. The coding harness runs the implementation and its w
 | [Claude Code](/docs/harnesses/claude-code) | A model parameter is documented for a single invocation; effort is a worker or session setting | Named in the prompt and verified by the worker | Provider usage-limit errors stop the worker |
 | [Codex](/docs/harnesses/codex) | Requested in the prompt or agent configuration, with documented inheritance; one model per Codex Action job | Named in the prompt and verified by the worker | Local and CI routing differ |
 | [opencode](/docs/harnesses/opencode) | Configured per agent; a per-call field is unproven until the active schema shows one | Named in the prompt and verified by the worker | Provider usage-limit errors stop the worker |
-| [Cursor / Composer](/docs/harnesses/cursor) | Session model unless the active runtime exposes per-call routing | Named in the prompt and verified by the worker | Requested tiers may collapse onto one model |
-| [Antigravity CLI](/docs/harnesses/antigravity) | One run model unless the active runtime exposes per-call routing | Named in the prompt and verified by the worker | Requires interactive login; cannot run in temporary headless CI |
+| [Cursor / Composer](/docs/harnesses/cursor) | Host session model; per-call overrides require an exposed native field | Named in the prompt and verified by the worker | Session model inheritance is normal |
+| [Antigravity CLI](/docs/harnesses/antigravity) | Host session model; per-call overrides require an exposed native field | Named in the prompt and verified by the worker | Requires interactive login; cannot run in temporary headless CI |
 
 For OMP,
 [host-owned agent routing](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/hosts/omp.md)
 selects a suitable agent already exposed in the active session. OMP controls the models behind
 those agents, provider credentials, and fallback policy, including when Hermes coordinates the work.
 
-The [model-tier reference](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/model-tiers.md)
-defines the shared `fast`, `standard`, and `deep` policy. Each host page links to its adapter for
-the exact tool calls and rules.
+The [role-preference reference](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/model-tiers.md)
+explains why `fast`, `standard`, and `deep` do not select provider/models. Each host page links
+to its adapter for exact tool mechanics.
 
 ## Native skill invocation
 

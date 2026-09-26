@@ -15,10 +15,9 @@ capability and operation shape the consuming skill requires. A known host withou
 still fails; a compatible unlisted host may be used. Do not guess an adapter, construct a path from
 host text, or read an arbitrary file. Record capability evidence separately from real execution.
 
-Consuming skills keep their generic invariants (law) inline — never-silent degradation, gates,
-and the capability questions to answer. Host files hold *mechanics* (primitive names, knob forms,
-agent selectors, generator invocations); consuming skills hold *law*. A mechanics sentence must
-live in exactly one host file — never duplicated back into a skill.
+Consuming skills keep their generic capability and evidence gates inline. Host files hold
+mechanics (primitive names, native knob forms, agent selectors); a mechanics sentence lives in
+one host file rather than being duplicated in a skill.
 
 ## Conditional mechanics (shared)
 
@@ -33,16 +32,17 @@ that confirm them, and never restates this list.
    work: read-only for exploration and review, write-capable for implementation and delivery.
    Never invent an agent name and never turn a `fast | standard | deep` tier into an agent
    selector.
-3. Pass optional model, effort, and working-directory fields only when the active schema exposes
-   their exact names and the caller's selected policy requires them. Omit every optional field the
-   schema does not carry.
+3. Pass optional native model and effort fields only for an explicit one-run choice, when the
+   active schema exposes their exact names and the host authorizes them. A role preference is
+   never an override. Omit every unsupported optional field.
 4. Missing `cwd` is not missing isolation when the required safe path is otherwise supported:
    keep the task-level workspace pin, require the worker to verify repository, branch, parent, and
    start before it writes, and treat a mismatch as a blocker.
-5. A missing optional tuning knob falls back to the host's documented inheritance with one
-   truthful notice when a requested override cannot be applied. A missing required delivery,
-   isolation, identity-correlation, review, or recovery capability blocks the owning operation.
-   Never execute Orchestrate inline, and never describe sequential dispatch as one parallel wave.
+5. Normal host model/effort inheritance needs no notice. Report an optional explicit override
+   that could not be applied; if exact identity is required and unsupported or unproven, block
+   that operation. Missing required delivery, isolation, identity-correlation, review, or recovery
+   capability also blocks. Never execute Orchestrate inline or describe sequential dispatch as
+   one parallel wave.
 
 ## GitHub capability and authentication (shared)
 
@@ -58,11 +58,9 @@ change belongs here.
 
 ## Host-level fallback (shared note)
 
-A host that documents no spawn-time failover surfaces provider exhaustion as an error on the
-spawn. Recovery is account-level — plan limits, quota, or a second login — and stays outside
-woostack's scope. `models.<tier>` fallback lists (entries 1..n) are a declared preference order
-only: no spawn-time auth probe exists, so switching is a manual configuration change. An adapter
-states what its own host does and links this note instead of repeating it.
+Model recovery belongs to the host. If the host documents no spawn-time recovery, a provider
+error reaches the spawn; Woostack does not enact a repository fallback list, probe accounts,
+or switch models on behalf of the host.
 
 ## Native skill invocation
 
@@ -90,19 +88,14 @@ recorded here; use each host's own documented form and keep the capability-condi
 Every known host file carries these six sections, in order:
 
 1. **Detection** — capability signals that identify the host, plus its native invocation form.
-2. **Subagent spawn** — primitive name; per-call `model`/`effort` knob (documented, then verified
-   against the active schema); per-call `cwd` (documented, then verified); parallel dispatch
-   shape.
-3. **Tier routing** — how `fast | standard | deep` resolves on this host, and the config it
-   reads. The tier→model table and override precedence live in
-   [`../model-tiers.md`](../model-tiers.md) — link, never restate.
-4. **Host-level fallback** — what the host itself does on usage-limit/provider errors, and
-   the boundary: woostack documents this layer, never manages host config. A host with no
-   documented failover links the [shared note](#host-level-fallback-shared-note) instead of
-   restating it.
+2. **Subagent spawn** — primitive name; documented native model/effort and `cwd` fields (verified
+   against the active schema); parallel dispatch shape.
+3. **Model selection** — the host's ordinary inheritance and supported explicit one-run fields,
+   following [role preferences](../model-tiers.md).
+4. **Host-level fallback** — host-owned recovery and its documented boundary.
 5. **Per-skill notes** — host-specific steps consumed by named skills.
-6. **Degradation** — the host-specific fallback path when a capability is absent (the
-   say-so-on-degrade law itself stays inline in each consuming skill).
+6. **Capability limits** — host-specific unavailable capabilities, without treating ordinary model
+   inheritance as degradation.
 
 The conditional mechanics, GitHub capability and authentication, and native-invocation rules live
 in this index only. An adapter links to them instead of copying them.

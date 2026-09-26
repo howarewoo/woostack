@@ -9,17 +9,16 @@ and `Scout` are read-only and never suit a write task ([agents](https://opencode
 Independent tasks are submitted together, and woostack runs them one at a time with a clear notice
 when the installed build cannot run workers in parallel.
 
-opencode documents `model` and provider reasoning options as agent configuration resolved per
-agent, not as a documented per-call `task` argument. Woostack passes a model for a specific worker
-only when the active task schema carries that field. Otherwise the worker runs on its configured or
-session model, and woostack reports that limitation once. A `fast`, `standard`, or `deep` tier that
-cannot be routed per call is reported the same way, never silently applied.
+opencode resolves its model and reasoning options from agent or session configuration. An
+explicit one-run native override is passed only when the active `task` schema exposes its exact
+field and the host permits it. Normal inheritance is not a limitation; unsupported optional
+overrides are reported, and a required exact identity needs matching host evidence.
 
 No per-worker working directory is documented. The task prompt always names the exact worktree, the
 separate checkout assigned to that task, and the worker verifies that path before it writes.
 
-No automatic fallback managed by opencode is documented for provider usage limits; configured
-fallback entries are a manual preference order.
+Provider usage-limit errors surface unless the host recovers. Woostack does not enact a
+repository fallback list.
 
 Ask for a woostack skill by name: opencode's native `skill` tool loads the discovered skill, for
 example `skill({ name: "woostack-execute" })` ([Agent Skills](https://opencode.ai/docs/skills/)).
