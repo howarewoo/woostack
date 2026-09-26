@@ -118,12 +118,14 @@ fabricate a receipt. The result example's markers mean “runtime-substituted fa
 successful fixture. A repair result may omit `note` when no validated delivery note exists. It must
 not replace missing fields with another task's evidence.
 
-For the first submission of a task, the current readback must prove `draft: true`. A verified update
-to that task's retained canonical PR may report either truthful readiness state: its PR URL, reserved
-branch/head/base, child association, current diff, checks, and independent validation must still
-match, and the update must not change readiness or create a replacement. The retained result remains
-the historical submission checkpoint; a separately refreshed `lifecycle` records later readiness or
-other state changes without rewriting that history.
+`readback.draft` is the observed boolean, not a requested state. For the first submission of a
+task, the current readback must prove `draft: true`. A verified update to that task's retained
+canonical PR may report either truthful readiness state: its PR URL, reserved branch/head/base,
+child association, current diff, checks, and independent validation must still match, and the
+update must not change readiness or create a replacement. Neither the worker nor controller marks
+an existing PR ready or resets it to draft. The retained result remains the historical submission
+checkpoint; a separately refreshed `lifecycle` records later readiness or other state changes
+without rewriting that history.
 
 Every active `apply-result` envelope carries `worker.host_id`, `worker.session_id`, and
 `worker.worker_id`, all nonempty strings matching the task's recorded `host_worker` exactly.
@@ -165,6 +167,10 @@ exactly one entry, the canonical child URL, and the PR body must carry exactly o
 `Resolves <child URL>` reference. A specification-parent closing reference, duplicate reference,
 missing reference, foreign repository, foreign head repository, wrong branch/head/base, duplicate
 PR, or closed PR is an identity failure, not permission to retarget or create a replacement.
+
+Draft-only creation is checked against the absence of a retained verified PR; a repair or
+receipt retry must match that PR's identity and may report `draft: false` after a human
+readiness change. Review policy and current-head validation still apply.
 
 For a dependent task whose parent PR is open, the independent read also follows the owner's
 [stack membership contract](../../woostack-commit/references/source-control.md#native-github-stack-membership-for-a-dependent-pr):
@@ -368,6 +374,8 @@ must come from current, complete native reads, not prior worker output:
                        "workflows": [{"name": "<workflow>", "expected": true, "applicable": true}]},
   "downstream_policy": {"state": "require-ci|allow-pending", "complete": true,
                         "source": "<repository/host guidance evidence>"},
+  "repair_policy": {"complete": true, "limit": 3,
+                    "source": "<explicitly selected finite repository/host budget evidence>"},
   "pagination": {"check_runs": true, "commit_statuses": true,
                  "required_checks": true, "logs": false}
 }
@@ -384,6 +392,13 @@ both must pass. Log/annotation reads are required for a relevant failure, not fo
 verified non-applicable result. `workspace_reopen`, when needed, supplies
 `{released:true, complete:true, state:"released", path, branch, head_sha,
 base_branch, task_id, pr_url, writer_status:"stopped", claim_owner}`.
+
+Omit `repair_policy` for the finite default of two attempts. An explicitly selected
+repository/host budget requires a complete, positive integer limit and a nonempty
+evidence source on any observation, including healthy or pending checks. Incomplete
+or unbounded policy evidence blocks that observation rather than silently accepting
+it or increasing the limit. The selected budget persists with attempt history across
+delivery and resume until another explicit policy selection changes it.
 
 The host/repository creates any released linked worktree and verifies the exact
 checkout before the worker writes; the helper never creates Git state. Supply
@@ -435,9 +450,15 @@ just to trigger a workflow. A genuine test/workflow correction is allowed only w
 the original scope and diagnosis. Missing credentials, approval-required jobs, runner outages,
 unrelated existing failures, and broader corrections become explicit blockers or decisions rather
 than speculative source edits. Evidence-backed reruns may use authorized capabilities.
-The controller allows at most two distinct diagnosed repair attempts per task
-and stops repeated identical failures even sooner. Do not blindly retry flaky
-failures or create empty commits to trigger CI indefinitely.
+
+The controller counts actual issued repairs against the finite default of two attempts,
+or the explicitly selected finite repository/host budget. Polls and duplicate observations
+do not issue attempts. Compare check identity and complete failure-log excerpts, not
+diagnosis wording: an unchanged logged failure cannot be retried merely by rephrasing
+its diagnosis. A distinct, diagnosed failure may be corrected within the selected budget;
+an approved budget change can resume an exhausted task without resetting history. Do not
+blindly retry flaky failures or create empty commits to trigger CI indefinitely.
+
 Reconciliation is fail-closed.
 Repairs share existing worker capacity and ownership controls. Coalesce multiple failures on one
 PR/head into one repair task; repeated observations must not launch duplicate workers. One repair

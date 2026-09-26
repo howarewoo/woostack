@@ -3543,10 +3543,15 @@ class OrchestrateBehavior(unittest.TestCase):
             admitted_path, state, "task-a", missing_note, "receipt-pending"
         )
         self.assertEqual(pending.get("status"), "note-pending", pending)
+        self.github.prs["task-a"]["draft"] = False
+        result = make_result(self.github, "task-a", report, admitted)
+        self.assertTrue(json.loads(pending_state.read_text())["tasks"]["task-a"]["lifecycle"]["pr"]["draft"])
+        self.assertFalse(result["readback"]["draft"])
         complete_state, complete, _ = self._apply(
             admitted_path, pending_state, "task-a", result, "receipt-retry"
         )
         self.assertEqual(complete.get("status"), "delivered", complete)
+        self.assertFalse(json.loads(complete_state.read_text())["tasks"]["task-a"]["lifecycle"]["pr"]["draft"])
         self.assertEqual(json.loads(complete_state.read_text())["tasks"]["task-a"]["status"], "delivered")
         self.assertEqual(
             sum(1 for line in self.transport_log.read_text().splitlines()
@@ -3783,6 +3788,7 @@ class OrchestrateBehavior(unittest.TestCase):
         valid = make_result(self.github, "task-a", report, admitted)
 
         mismatch_cases = ["ready-pr"]
+
         changed = copy.deepcopy(valid)
         changed["worker"]["branch"] = "other/branch"
         changed2 = copy.deepcopy(valid)
@@ -3932,6 +3938,11 @@ class OrchestrateBehavior(unittest.TestCase):
         )
         self.assertEqual(delivered_h1["status"], "delivered", delivered_h1)
         self._persist("task-a", h1, initial["dispatch"][0])
+        # Human readiness changes after H1; the refreshed lifecycle records that current
+        # readiness, and the repair must keep this same PR ready.
+        self.github.prs["task-a"]["draft"] = False
+        self.github.delivery["task-a"]["lifecycle"]["pr"]["draft"] = False
+        self.assertFalse(self.github.prs["task-a"]["draft"])
         repair_snapshot = self.github.snapshot()
         repair_snapshot["tasks"] = repair_snapshot["children"] = [
             item for item in repair_snapshot["children"] if item["task_id"] in {"task-a", "task-c"}
@@ -3940,8 +3951,14 @@ class OrchestrateBehavior(unittest.TestCase):
             entry for entry in repair_snapshot["execution_layout"]["entries"]
             if entry["task_id"] in {"task-a", "task-c"}
         ]
-
         failure = self.github.ci_observation("task-a", check_state="failure", diagnosis="Advance to H2.")
+        for closed_state in ("closed", "merged"):
+            unavailable = copy.deepcopy(failure)
+            unavailable["pr"]["state"] = closed_state
+            state, rejected, _ = self._observe(
+                admitted_path, state, "task-a", unavailable, "review-" + closed_state
+            )
+            self.assertEqual(rejected["reason"], "pr-not-open", rejected)
         state, observed, _ = self._observe(admitted_path, state, "task-a", failure, "review-h2-failure")
         self.assertEqual(observed["ci_state"], "repair", observed)
         state, repair = self._schedule(
@@ -3961,6 +3978,7 @@ class OrchestrateBehavior(unittest.TestCase):
         self.assertEqual(h2["readback"]["reviews"]["head_sha"], h2["readback"]["head_sha"])
         state, delivered_h2, _ = self._apply(admitted_path, state, "task-a", h2, "review-h2-result")
         self.assertEqual(delivered_h2["status"], "delivered", delivered_h2)
+        self.assertFalse(self.github.prs["task-a"]["draft"])
         self._persist("task-a", h2, repair_entry)
         repair_snapshot = self.github.snapshot()
         repair_snapshot["tasks"] = repair_snapshot["children"] = [
@@ -4101,9 +4119,27 @@ class OrchestrateBehavior(unittest.TestCase):
         with self.assertRaises(helper.InputError) as raised:
             helper.validate_delivery(
                 admitted, next(task for task in admitted["tasks"] if task["task_id"] == "task-a"),
-                repair_entry, old_validation, self.repo,
+                repair_entry, old_validation, self.repo, retained_pr=repair_entry["retained_pr"],
+                existing_pr=True,
             )
         self.assertEqual(raised.exception.code, "stale-validation")
+
+        task_a = next(task for task in admitted["tasks"] if task["task_id"] == "task-a")
+        for change, reason in (
+            ({"pr_url": self.github.canonical + "/pull/9999"}, "pr-replaced"),
+            ({"open": False}, "pr-not-unique-open"),
+            ({"base_branch": "foreign-base"}, "wrong-base"),
+        ):
+            altered = copy.deepcopy(h2)
+            altered["readback"].update(change)
+            if "pr_url" in change or "base_branch" in change:
+                altered["worker"].update(change)
+            with self.assertRaises(helper.InputError, msg=str(change)) as raised:
+                helper.validate_delivery(
+                    admitted, task_a, repair_entry, altered, self.repo,
+                    retained_pr=repair_entry["retained_pr"], existing_pr=True,
+                )
+            self.assertEqual(raised.exception.code, reason)
 
         task = next(task for task in admitted["tasks"] if task["task_id"] == "task-a")
         for expected_draft, observed_draft in ((True, False), (False, True)):
@@ -4680,6 +4716,7 @@ class OrchestrateBehavior(unittest.TestCase):
         failure = self.github.ci_observation(
             "task-a", check_state="failure", diagnosis="Repair the first diagnosed failure."
         )
+        failure["checks"][1]["log"]["excerpt"] = "A second distinct failure."
         state, repair, _ = self._observe(admitted_path, state, "task-a", failure, "repair-failure")
         self.assertEqual(repair["ci_state"], "repair", repair)
         self.assertEqual(repair["ci_details"]["task-a"]["links"][0]["url"], failure["checks"][0]["url"])
@@ -4729,6 +4766,11 @@ class OrchestrateBehavior(unittest.TestCase):
         repeated["checks"].reverse()
         state, blocked, _ = self._observe(admitted_path, state, "task-a", repeated, "repair-repeated")
         self.assertEqual(blocked["reason"], "repeated-identical-failure", blocked)
+        partial = copy.deepcopy(repeated)
+        next(check for check in partial["checks"] if check["type"] == "commit-status")["state"] = "success"
+        state, blocked, _ = self._observe(admitted_path, state, "task-a", partial, "repair-partial-recovery")
+        self.assertEqual(blocked["reason"], "repeated-identical-failure", blocked)
+        self.assertEqual(len(json.loads(state.read_text())["tasks"]["task-a"]["ci"]["repair_attempts"]), 1)
 
         second_failure = self.github.ci_observation(
             "task-a", check_state="failure", diagnosis="Repair a distinct second failure."
@@ -4756,6 +4798,133 @@ class OrchestrateBehavior(unittest.TestCase):
         self.assertEqual(exhausted["ci_state"], "blocked", exhausted)
         self.assertEqual(exhausted["reason"], "repair-retry-exhausted", exhausted)
         self.assertEqual(len(json.loads(state.read_text())["tasks"]["task-a"]["ci"]["repair_attempts"]), 2)
+
+        rephrased = copy.deepcopy(repeated)
+        rephrased["pr"]["head_sha"] = second_result["worker"]["head_sha"]
+        for check in rephrased["checks"]:
+            check["diagnosis"] = "Different wording for the same log and failure."
+            check["state"] = "error"
+            check["sha"] = second_result["worker"]["head_sha"]
+        state, no_progress, _ = self._observe(
+            admitted_path, state, "task-a", rephrased, "repair-rephrased"
+        )
+        self.assertEqual(no_progress["reason"], "repeated-identical-failure", no_progress)
+        self.assertEqual(len(json.loads(state.read_text())["tasks"]["task-a"]["ci"]["repair_attempts"]), 2)
+
+        for policy, reason in (
+            ({"complete": False, "limit": 3, "source": "test approval"}, "repair-policy-incomplete"),
+            ({"complete": True, "limit": "unbounded", "source": "test approval"}, "repair-policy-incomplete"),
+            ({"complete": True, "limit": 0, "source": "test approval"}, "repair-policy-incomplete"),
+        ):
+            invalid = copy.deepcopy(exhausted_observation)
+            invalid["repair_policy"] = policy
+            state, invalid_result, _ = self._observe(
+                admitted_path, state, "task-a", invalid, "repair-invalid-" + str(policy["limit"])
+            )
+            self.assertEqual(invalid_result["reason"], reason, invalid_result)
+        approved = copy.deepcopy(exhausted_observation)
+        approved["repair_policy"] = {"complete": True, "limit": 3, "source": "explicit test approval"}
+        state, resumed, _ = self._observe(admitted_path, state, "task-a", approved, "repair-approved")
+        self.assertEqual(resumed["ci_state"], "repair", resumed)
+        state, third_dispatch = self._schedule(
+            admitted_path, admitted, state, self._single_task_snapshot(), "repair-third-schedule", cap="1"
+        )
+        self.assertEqual(len(third_dispatch["dispatch"]), 1)
+        self.assertEqual(len(json.loads(state.read_text())["tasks"]["task-a"]["ci"]["repair_attempts"]), 3)
+        third_entry = third_dispatch["dispatch"][0]
+        self.assertEqual(third_entry["retained_pr"], original_pr)
+        host.dispatch([third_entry])
+        third_result = make_result(self.github, "task-a", host.wait_for_report("task-a"), admitted)
+        state, final, _ = self._apply(
+            admitted_path, state, "task-a", third_result, "repair-third-result", observe_ci=False
+        )
+        self.assertEqual(final["status"], "delivered", final)
+        self._persist("task-a", third_result, third_entry)
+        state, green, _ = self._observe(
+            admitted_path, state, "task-a", self.github.ci_observation("task-a"),
+            "repair-third-verified"
+        )
+        self.assertEqual(green["ci_state"], "verified", green)
+
+    def test_stricter_repair_budget_counts_issued_dispatches_only(self) -> None:
+        snapshot = self._single_task_snapshot()
+        admitted_path, admitted = self._admit_issue(snapshot)
+        state, initial = self._schedule(admitted_path, admitted, None, snapshot, "strict-initial")
+        host = self._start_host(workers=1)
+        host.dispatch(initial["dispatch"])
+        first = make_result(self.github, "task-a", host.wait_for_report("task-a"), admitted)
+        state, delivered, _ = self._apply(
+            admitted_path, state, "task-a", first, "strict-delivery", observe_ci=False
+        )
+        self.assertEqual(delivered["status"], "delivered", delivered)
+        self._persist("task-a", first, initial["dispatch"][0])
+        healthy = self.github.ci_observation("task-a")
+        healthy["repair_policy"] = {"complete": True, "limit": 1, "source": "explicit test approval"}
+        state, selected, _ = self._observe(admitted_path, state, "task-a", healthy, "strict-healthy")
+        self.assertEqual(selected["ci_state"], "verified", selected)
+        failure = self.github.ci_observation(
+            "task-a", check_state="failure", diagnosis="First justified fix."
+        )
+        # The later failure omits policy; the previously selected limit must still apply.
+        state, observed, _ = self._observe(admitted_path, state, "task-a", failure, "strict-observed")
+        self.assertEqual(observed["ci_state"], "repair", observed)
+        state, duplicate, _ = self._observe(admitted_path, state, "task-a", failure, "strict-duplicate")
+        self.assertEqual(duplicate["ci_state"], "repair", duplicate)
+        self.assertEqual(json.loads(state.read_text())["tasks"]["task-a"]["ci"]["repair_attempts"], [])
+        state, repair = self._schedule(admitted_path, admitted, state, self._single_task_snapshot(), "strict-dispatch")
+        self.assertEqual(len(repair["dispatch"]), 1, repair)
+        state, no_duplicate = self._schedule(admitted_path, admitted, state, self._single_task_snapshot(), "strict-resume")
+        self.assertEqual(no_duplicate["dispatch"], [])
+        self.assertEqual(len(json.loads(state.read_text())["tasks"]["task-a"]["ci"]["repair_attempts"]), 1)
+        self.launch_context[repair["dispatch"][0]["branch"]] = (admitted_path, state)
+        host.dispatch(repair["dispatch"])
+        repaired = make_result(self.github, "task-a", host.wait_for_report("task-a"), admitted)
+        state, completed, _ = self._apply(
+            admitted_path, state, "task-a", repaired, "strict-completed", observe_ci=False
+        )
+        self.assertEqual(completed["status"], "delivered", completed)
+        self._persist("task-a", repaired, repair["dispatch"][0])
+        second = self.github.ci_observation(
+            "task-a", check_state="failure", diagnosis="A different justified failure."
+        )
+        state, exhausted, _ = self._observe(admitted_path, state, "task-a", second, "strict-exhausted")
+        self.assertEqual(exhausted["reason"], "repair-retry-exhausted", exhausted)
+
+    def test_repair_policy_is_validated_during_healthy_and_pending_checks(self) -> None:
+        snapshot = self._single_task_snapshot()
+        admitted_path, admitted = self._admit_issue(snapshot)
+        state, initial = self._schedule(admitted_path, admitted, None, snapshot, "policy-initial")
+        host = self._start_host(workers=1)
+        host.dispatch(initial["dispatch"])
+        delivered_result = make_result(self.github, "task-a", host.wait_for_report("task-a"), admitted)
+        state, delivered, _ = self._apply(
+            admitted_path, state, "task-a", delivered_result, "policy-delivered", observe_ci=False
+        )
+        self.assertEqual(delivered["status"], "delivered", delivered)
+        self._persist("task-a", delivered_result, initial["dispatch"][0])
+        for applicability in ("applicable", "pending"):
+            observation = self.github.ci_observation(
+                "task-a", applicability=applicability, expected=applicability == "pending"
+            )
+            for label, policy in (
+                ("incomplete", {"complete": False, "limit": 1, "source": "repo policy"}),
+                ("unbounded", {"complete": True, "limit": "unbounded", "source": "repo policy"}),
+                ("unattributed", {"complete": True, "limit": 1, "source": ""}),
+            ):
+                invalid = copy.deepcopy(observation)
+                invalid["repair_policy"] = policy
+                state, rejected, _ = self._observe(
+                    admitted_path, state, "task-a", invalid, "policy-" + applicability + "-" + label
+                )
+                self.assertEqual(rejected["reason"], "repair-policy-incomplete", rejected)
+        pending = self.github.ci_observation("task-a", applicability="pending", expected=True)
+        pending["repair_policy"] = {"complete": True, "limit": 1, "source": "explicit pending approval"}
+        state, selected, _ = self._observe(admitted_path, state, "task-a", pending, "policy-pending-selected")
+        self.assertEqual(selected["ci_state"], "checking", selected)
+        self.assertEqual(
+            json.loads(state.read_text())["tasks"]["task-a"]["ci"]["repair_policy"],
+            {"limit": 1, "source": "explicit pending approval"},
+        )
 
     def test_human_ready_existing_pr_survives_repair_refill_and_resume(self) -> None:
         snapshot = self._single_task_snapshot()
