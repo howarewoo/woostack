@@ -70,6 +70,10 @@ registered, to identify the trunk that supplies its applicable review policy. It
 extends, or reconciles a stack; that is the owner's
 [stack membership contract](../../woostack-commit/references/source-control.md#native-github-stack-membership-for-a-dependent-pr)
 for a delivery, and an unreadable stack read leaves the parent policy unproven.
+For a multi-level open stack, use current native parent PR reads for **every** open ancestor's
+mutable review and draft state; historical draft delivery receipts remain unchanged. The selected
+parent alone is not enough when an older ancestor has changed since delivery.
+
 
 The model, not a selector or source layout, decides which issues are executable. It reads issue
 bodies, comments, repository instructions, and relevant tracker/Project context, asks a focused
@@ -186,6 +190,14 @@ shape for the helper and is not a caller-facing source schema; all markers are r
       "prs": []
     }
   },
+  "review_waivers": [
+    {
+      "pr_url": "<canonical parent PR URL the user explicitly waived>",
+      "head_sha": "<exact full head SHA that read observed>",
+      "thread_ids": ["<exact native unresolved thread ID>"],
+      "approval_reference": "<the user's explicit approval to continue>"
+    }
+  ],
   "recovery": {
     "checkpoints": ["<runtime-substituted controller/worker checkpoint evidence>"],
     "processes": ["<runtime-substituted worker process liveness evidence>"],
@@ -262,9 +274,20 @@ importing a controller-owned delivery or waiting for that task's lifecycle/CI st
 
 The native stack requirement includes only open execution ancestors. A landed ancestor without
 controller-owned delivery is omitted only after its fresh merged availability matches the retained
-satisfaction and its revision is contained in both the candidate integration base and the selected
-open parent's commit. Missing or contradictory evidence blocks dispatch; no historical delivery is
-manufactured for an adopted ancestor.
+satisfaction and verified source is contained in both the candidate integration base and the selected
+open parent's commit. An ordinary controller-owned `delivered` ancestor that has since merged
+retains the canonical merged satisfaction gate and is omitted as non-open; its squash merge
+commit need not belong to an open parent based on the verified source head. Only when that
+ancestor uses separately revalidated historical source does the helper additionally prove
+fresh current integration availability, the original landing in the selected parent, and
+source containment. A merge on another branch needs no integration availability. Closed,
+unknown, or unverified ancestors cannot be skipped.
+For a retained open stack whose original start predates a separately accepted integration
+advance, [fresh historical-source revalidation](validation.md#retained-open-stack-source)
+may prove that exact original stack start independently while current integration acceptance remains
+mandatory. This is not a general older-revision fallback: a new integration-root task uses only
+current source, and every selected open-stack parent still proves ancestry of its original start.
+Missing or contradictory evidence blocks dispatch; no historical delivery is manufactured.
 
 A declared fallback must cover at least one technical join. Once every such join is base-satisfied
 the gate is released, and the admitted task carries no fallback.
@@ -290,20 +313,43 @@ access. Otherwise supply one exact PR record with `pr_url`, `repo`, `head_repo`,
 history, thread dispositions, and current repository review policy.
 That policy is the same applicable review policy the validation contract names: the verified native
 stack trunk for a registered stack member, otherwise the PR's own base branch.
-Ambiguous or incomplete discovery blocks selection. Predecessor parents use their fresh complete
-delivery checkpoint instead. Current tips may advance for an already-reserved child only while its
+Ambiguous or incomplete discovery blocks selection. A predecessor parent with a retained delivery
+checkpoint is described by its fresh complete delivery checkpoint instead, and that checkpoint stays
+the historical source evidence for its own delivery. When the host also supplies `parent_prs` for
+that parent branch, the fresh read is the current evidence: it must describe the same `pr_url` at
+the same head, with the same `base_branch` and the same associated child issue the checkpoint
+recorded, so an absent, replaced, retargeted, or re-associated PR is `parent-pr-evidence` rather than
+a silent substitution; the selected parent's stack member and draft state come from that fresh read,
+not from the older checkpoint. Current tips may advance for an already-reserved child only while its
 original start remains an ancestor; do not replace that child's retained start SHA.
+
+`review_waivers` is optional and exists only for an explicit user decision to continue past a
+specific unresolved review finding. Each entry binds one canonical parent `pr_url`, the exact full
+`head_sha` that read observed, the nonempty unique native `thread_ids` it names, and the nonempty
+`approval_reference` recording the user's own words; anything else is `invalid-review-waiver`, as is
+two entries for one PR head. A waiver is never inferred, defaulted, or widened: it applies only to
+that PR at that head, only to those findings, and only when the fresh native read's unresolved
+threads are exactly the named set, so a finding raised after the approval blocks again, a finding the
+reviewer resolved invalidates the now-unnecessary approval, and every other gate — required
+approvals, code owners, last-push approval, a current change request, and complete policy and history
+reads — still applies unchanged. A selected waiver requires that fresh read: a parent described only
+by its historical checkpoint is `incomplete-pr-readback`. The selected waiver travels to the worker in
+`parent_readiness.parent.review_waiver` so it acts on the user's approval, not a silent relaxation.
+Waivers are mutable evidence: they never enter the admission `fingerprint`, the scope identity, or
+the execution plan, and they never reach the child's own delivery gate.
 
 When the integration tip changes, `schedule` verifies the canonical repository and branch, the
 previous and proposed commit objects, forward ancestry, and the complete changed-path set. An
 unrelated forward advance is compatible when it does not materially change a selected task's
 contract scope. For a merged selected prerequisite, the shared availability proof compares
 the landing's changed paths to the candidate base; a later change to that content makes only
-that prerequisite and its dependents wait for fresh independent validation. Rewrites, missing
-objects, wrong refs, and impact on unfinished selected work remain `parent-tip-drift` until
-reconciled. A compatible advance is recorded in controller recovery and may supply the refreshed
-parent only to newly eligible roots; it never reparents an existing reservation or replaces its
-workspace, PR, or worker contract.
+that prerequisite and its dependents wait for fresh independent validation. A newly accepted
+integration candidate alone is not proof that its commit belongs to a retained open stack:
+the exact historical stack start needs separate current-context source acceptance when that start's
+content changes. Rewrites, missing objects, wrong refs, and impact on unfinished selected work remain
+`parent-tip-drift` until reconciled. A compatible advance is recorded in controller recovery and may
+supply the refreshed parent only to newly eligible roots; it never reparents an existing reservation
+or replaces its workspace, PR, or worker contract.
 
 When a Project is explicitly selected for status mutation, add its independently read identity and
 configured lifecycle mapping:
@@ -390,13 +436,14 @@ compact separators) over the immutable normalized scope view. It binds:
 - optional Project/lifecycle identity only when the user explicitly selected that Project for
   status mutation.
 
-It deliberately excludes the host capability/cap, mutable integration SHA, fresh `parent_prs`,
-runtime workspace/branch allocation, and delivery evidence. A tracker provider `revision` alone,
-reordered repeated tracker references, reordered task/layout entries, and a matching native-link
-addition that leaves the exact task set, technical graph, and execution plan unchanged are mutable
-evidence, not drift; membership may transition from `declared` to `native` for the same set. Those
-mutable facts are still refreshed and recorded. A changed issue set, contract, identity, meaningful
-tracker scope/specification, actual parent, technical edge endpoint/provenance/evidence, or blocker
+It deliberately excludes the host capability/cap, mutable integration SHA, fresh `parent_prs`, a
+user's `review_waivers`, runtime workspace/branch allocation, and delivery evidence. A tracker
+provider `revision` alone, reordered repeated tracker references, reordered task/layout entries, and
+a matching native-link addition that leaves the exact task set, technical graph, and execution plan
+unchanged are mutable evidence, not drift; membership may transition from `declared` to `native` for
+the same set. Those mutable facts are still refreshed and recorded. A changed issue set, contract,
+identity, meaningful tracker scope/specification, actual parent, or technical edge
+endpoint/provenance/evidence, or blocker
 returns `snapshot-drift`. A changed execution layout returns controlled `execution-plan-drift` when
 it touches started, reserved, claimed, worker-owned, or delivered work. A newer plan revision is
 adopted only when every changed task is genuinely unstarted and compatible with complete retained
@@ -488,8 +535,8 @@ diagnosis, repair-attempt history with ownership, PR identity, delivery checkpoi
 action, and first uncertain boundary distinct. GitHub remains the source for issue and CI facts;
 the controller stores only the observation identities needed to resume safely. The caller must
 externally enforce exclusive ownership of the selected canonical scope/state for the controller
-session, covering every `schedule`, `record-worker`, `apply-result`, `observe-checks`,
-`reconcile`, and `resume` call. If exclusive ownership cannot be proved, block
+session, covering every `schedule`, `record-worker`, `withdraw-unlaunched`, `apply-result`,
+`observe-checks`, `reconcile`, and `resume` call. If exclusive ownership cannot be proved, block
 at controller preflight before invoking the helper.
 
 A task whose landed, verified delivery is already contained in the approved base is `satisfied`
@@ -529,8 +576,8 @@ checkpoint recovery evidence and never adopts arbitrary bytes. The head is indep
 input/output filenames, so a second writer using the same stale `--state` cannot advance a different
 `--state-out`.
 The first schedule omits `--state` and creates state. Every later schedule, record-worker,
-apply-result, observe-checks, reconcile, resume, or stop names an existing state and matching
-admission. An admission retained from before the landed-prerequisite cutover is accepted as
+withdraw-unlaunched, apply-result, observe-checks, reconcile, resume, or stop names an existing
+state and matching admission. An admission retained from before the landed-prerequisite cutover is
 written: its scope, plan identity, and receipts are never rewritten, and only a state that was
 stopped when it was persisted may cross that boundary. Missing state, malformed JSON,
 state/fingerprint/scope mismatch, missing durable checkpoint head, or a state task set that differs

@@ -717,6 +717,53 @@ class OrchestrateBehavior(unittest.TestCase):
         self.assertIn(("dependencies", 2), self.github.calls)
 
 
+    def test_unlaunched_packet_withdrawal_preserves_history_and_claim(self) -> None:
+        admitted_path, admitted = self._admit_issue()
+        state, scheduled = self._schedule(
+            admitted_path, admitted, None, self.github.snapshot(), "withdraw-initial", cap="1")
+        entry = scheduled["dispatch"][0]
+        task_id = entry["task_id"]
+        before = json.loads(state.read_text())
+        fresh = self._write_json("withdraw-fresh.json", self.github.snapshot())
+        evidence = {
+            "checkpoint_digest": hashlib.sha256(state.read_bytes()).hexdigest(),
+            "owner": before["owner"], "reservation": before["tasks"][task_id]["reservation"],
+            "attempt_binding": entry["attempt_binding"], "launch_not_attempted": True,
+            "remote_branch": {"complete": True, "exists": False},
+            "pr_discovery": {"complete": True, "prs": []},
+            "reason": "parent stack metadata changed before host launch",
+        }
+        evidence_path = self._write_json("withdraw-evidence.json", evidence)
+        args = ("withdraw-unlaunched", "--admitted", str(admitted_path),
+                "--state", str(state), "--state-out", str(state), "--git-repo",
+                str(self.repo), "--task", task_id, "--fresh", str(fresh),
+                "--evidence", str(evidence_path))
+        for defect in ("launched", "foreign-branch"):
+            changed = copy.deepcopy(evidence)
+            if defect == "launched":
+                changed["launch_not_attempted"] = False
+            else:
+                changed["remote_branch"]["exists"] = True
+            invalid = self._write_json("withdraw-" + defect + ".json", changed)
+            code, result = invoke_cli(*args[:-1], str(invalid))
+            self.assertNotEqual(code, 0, result)
+            self.assertEqual(json.loads(state.read_text()), before)
+        code, withdrawn = invoke_cli(*args)
+        self.assertEqual(code, 0, withdrawn)
+        self.assertEqual(withdrawn["status"], "withdrawn-unlaunched")
+        retained = json.loads(state.read_text())
+        task = retained["tasks"][task_id]
+        self.assertEqual(task["status"], "pending")
+        self.assertIsNone(task["reservation"])
+        self.assertEqual(task["claim"], before["tasks"][task_id]["claim"])
+        self.assertEqual(task["attempt_history"][0]["binding"], entry["attempt_binding"])
+        self.assertIn("withdrawal", task["attempt_history"][0])
+        _, reissued = self._schedule(
+            admitted_path, admitted, state, self.github.snapshot(), "withdraw-reissue", cap="1")
+        self.assertEqual(reissued["dispatch"][0]["task_id"], task_id)
+        self.assertEqual(len(reissued["dispatch"][0]["packet"]["parent_readiness"]["prerequisites"]), 0)
+        self.assertEqual(len(reissued["dispatch"]), 1)
+
     def test_pre_execution_stack_layout_orders_joins_before_dispatch_and_resume(self) -> None:
         """The model-selected tree keeps every join on one ancestor path."""
 
@@ -818,6 +865,11 @@ class OrchestrateBehavior(unittest.TestCase):
             admitted_path, recovered_state, "task-b", result_b, "stack-b")
         self.assertEqual(applied_b["status"], "delivered")
         self._persist("task-b", result_b, b_entry)
+        # The older open ancestor becomes ready after its draft delivery receipt.
+        # Native stack membership must use current metadata at every depth.
+        self.assertTrue(result_a["readback"]["draft"])
+        self.github.prs["task-a"]["draft"] = False
+        self.github.parent_branches.add(report_a["worker"]["branch"])
         state_c, after_b = self._schedule(
             admitted_path, admitted, state_b, fresh(), "stack-after-b", cap="3",
             decision=None,
@@ -834,6 +886,8 @@ class OrchestrateBehavior(unittest.TestCase):
             [member["pr_url"] for member in c_entry["stack"]["members"]],
             [self.github.prs[task_id]["pr_url"] for task_id in ("task-a", "task-b")],
         )
+        self.assertFalse(c_entry["stack"]["members"][0]["draft"])
+        self.assertTrue(result_a["readback"]["draft"])
         host.dispatch([c_entry])
         report_c = host.wait_for_report("task-c")
         result_c = make_result(self.github, "task-c", report_c, admitted)
@@ -1399,7 +1453,8 @@ class OrchestrateBehavior(unittest.TestCase):
         self.assertEqual(state.read_bytes(), original)
 
     def _exercise_stopped_landed_adoption(self, ci_state, *, candidate=False, linked=False,
-                                          stack_chain=False, invalid_stack_ancestor=False):
+                                          stack_chain=False, invalid_stack_ancestor=False,
+                                          advanced_stack_source=False):
         (self.repo / ".git/info/exclude").write_text(".woostack/\n")
         retained = self._seed_prior_delivery("task-a", same_file_baseline=True)
         selected = {"task-a", "task-b", "task-c"} if stack_chain else {"task-a", "task-c"}
@@ -1587,6 +1642,11 @@ class OrchestrateBehavior(unittest.TestCase):
             self._persist("task-b", result_b, b_entry)
             snapshot = current_snapshot()
             snapshot["repository_rules"] += " Approved policy update."
+            if advanced_stack_source:
+                self._exercise_stopped_advanced_stack_source(
+                    current, fresh, next_state, current_snapshot, external_head,
+                    b_entry, result_b, host, item, claims, original_result)
+                return
             if invalid_stack_ancestor:
                 degraded = current_snapshot()
                 degraded["repository_rules"] += " Approved policy update."
@@ -1620,6 +1680,374 @@ class OrchestrateBehavior(unittest.TestCase):
             self.assertEqual(final["task-a"]["ci"], item["ci"])
             self.assertEqual(final["task-c"]["status"], "delivered")
 
+
+    def _exercise_stopped_advanced_stack_source(
+        self, admitted_path, admitted, state, current_snapshot, source_sha,
+        b_entry, result_b, host, original_a, claims, original_result,
+    ):
+        """A fresh main advance must not turn B's verified historical parent into a fake merge."""
+        stopped, stop_result = self._stop(admitted_path, state, "advanced-stack-stop")
+        self.assertEqual(stop_result["status"], "stop-requested", stop_result)
+        before = json.loads(stopped.read_text())
+        self.assertEqual(before["tasks"]["task-b"]["status"], "delivered")
+        self.assertEqual(before["tasks"]["task-b"]["reservation"]["parent_sha"], source_sha)
+        self.assertEqual(before["tasks"]["task-b"]["delivery"]["head_sha"],
+                         result_b["worker"]["head_sha"])
+        source = self.repo / "src/task-a.txt"
+        source.write_text(source.read_text() + "Compatible main policy and source advance\n")
+        git(self.repo, "add", "src/task-a.txt")
+        git(self.repo, "commit", "-m", "Approved main advance touching landed A")
+        advanced_sha = git(self.repo, "rev-parse", "HEAD")
+        self.github.integration["sha"] = self.github.base_sha = advanced_sha
+        prior_receipt = copy.deepcopy(self.github.delivery["task-a"]["integration_revalidation"])
+        source_diff = prior_receipt["head_diff_identity"]
+        advanced_diff = diff_identity(
+            self.repo, original_a["reservation"]["parent_sha"], advanced_sha)
+        historical = copy.deepcopy(prior_receipt)
+        historical["validation"]["reviewer_id"] = "fresh-independent-source-reviewer"
+        historical["compatibility"] = {
+            "integration_sha": advanced_sha,
+            "integration_diff_identity": advanced_diff,
+            "source_sha": source_sha,
+            "source_diff_identity": source_diff,
+            "contract_hash": historical["validation"]["contract_hash"],
+            "reviewer_id": "fresh-independent-compatibility-reviewer",
+            "approved": True,
+            "approval_reference": "Independent material compatibility of A at B's retained parent",
+        }
+        current_receipt = self.github.delivery["task-a"]["integration_revalidation"]
+        current_receipt["candidate_sha"] = advanced_sha
+        current_receipt["head_diff_identity"] = advanced_diff
+        current_receipt["implementer_ids"].append("main-advance-implementer")
+        current_receipt["checks"].update(head_sha=advanced_sha, diff_identity=advanced_diff)
+        current_receipt["validation"].update(
+            checked_head=advanced_sha, diff_identity=advanced_diff,
+            reviewer_id="fresh-independent-integration-reviewer")
+        final_correction = copy.deepcopy(current_receipt["corrections"]["prs"][-1])
+        final_correction["pr"].update(
+            pr_url=self.github.canonical + "/pull/2003",
+            branch="third-correction", head_sha=advanced_sha,
+            merge_commit_sha=advanced_sha)
+        final_correction["verification"].update(
+            landed_parent=source_sha,
+            diff_identity=diff_identity(self.repo, source_sha, advanced_sha))
+        current_receipt["corrections"]["prs"].append(final_correction)
+        self.github.delivery["task-a"]["historical_source_revalidation"] = historical
+        snapshot = current_snapshot()
+        snapshot["repository_rules"] += " Approved policy update."
+        snapshot["recovery"]["sessions"] = [
+            {"task_id": task_id, "worker": copy.deepcopy(item["host_worker"]),
+             "reservation": copy.deepcopy(item["reservation"]), "status": "stopped"}
+            for task_id, item in before["tasks"].items() if item.get("host_worker") is not None
+        ]
+        approval, fresh = self._policy_approval(admitted, stopped, snapshot)
+        code, accepted = self._policy_call(admitted_path, stopped, snapshot, approval)
+        self.assertEqual(code, 0, accepted)
+        self.assertTrue(json.loads(stopped.read_text())["stop_requested"])
+        current = self._write_json("advanced-stack-admission.json", accepted["admitted"])
+        self.assertEqual(json.loads(stopped.read_text())["tasks"], before["tasks"])
+        code, resumed = self._policy_call(current, stopped, snapshot)
+        self.assertEqual(code, 0, resumed)
+        self.assertEqual(resumed["dispatch"], [])
+        self.assertEqual(json.loads(stopped.read_text())["tasks"]["task-b"]["reservation"],
+                         before["tasks"]["task-b"]["reservation"])
+
+        # Probe each trust boundary through independent admission without poisoning
+        # B's verified delivery in the persistent continuation.
+        defects = {
+            "missing-source": lambda delivery: delivery.pop("historical_source_revalidation"),
+            "stale-source": lambda delivery: delivery["historical_source_revalidation"].update(
+                candidate_sha=original_a["reservation"]["parent_sha"]),
+            "wrong-source": lambda delivery: delivery["historical_source_revalidation"][
+                "compatibility"].update(source_sha=advanced_sha),
+            "wrong-integration-diff": lambda delivery: delivery["historical_source_revalidation"][
+                "compatibility"].update(integration_diff_identity=source_diff),
+            "wrong-source-diff": lambda delivery: delivery["historical_source_revalidation"][
+                "compatibility"].update(source_diff_identity=advanced_diff),
+            "wrong-contract": lambda delivery: delivery["historical_source_revalidation"][
+                "compatibility"].update(contract_hash="sha256:" + "0" * 64),
+            "self-review": lambda delivery: delivery["historical_source_revalidation"][
+                "compatibility"].update(reviewer_id="original-native"),
+            "self-source-review": lambda delivery: delivery["historical_source_revalidation"][
+                "validation"].update(reviewer_id="original-native"),
+            "failed-source-check": lambda delivery: delivery["historical_source_revalidation"][
+                "checks"]["commands"][0].update(passed=False),
+            "missing-provenance": lambda delivery: delivery["historical_source_revalidation"][
+                "corrections"].update(prs=[]),
+            "foreign-provenance": lambda delivery: delivery["historical_source_revalidation"][
+                "corrections"]["prs"][0]["pr"].update(
+                    head_repo="https://github.com/foreign/repo"),
+            "rejected-compatibility": lambda delivery: delivery["historical_source_revalidation"][
+                "compatibility"].update(approved=False),
+            "stale-integration": lambda delivery: delivery["integration_revalidation"].update(
+                candidate_sha=source_sha),
+        }
+        helper = self._helper_module()
+        for defect, corrupt in defects.items():
+            with self.subTest(defect=defect):
+                bad = copy.deepcopy(snapshot)
+                corrupt(next(task for task in bad["tasks"] if task["task_id"] == "task-a")[
+                    "existing_delivery"])
+                _, rejected = self._admit_issue(bad)
+                ancestor = next(task for task in rejected["tasks"] if task["task_id"] == "task-a")
+                if defect == "missing-source":
+                    self.assertEqual(ancestor["own_availability"]["revision"], advanced_sha)
+                    self.assertIsNone(helper._landed_source_in_parent(
+                        ancestor["own_availability"], result_b["worker"]["head_sha"],
+                        b_entry["parent_sha"], self.repo))
+                else:
+                    self.assertIsNone(ancestor["own_availability"], (defect, rejected))
+                    self.assertIsNotNone(ancestor["own_availability_error"], (defect, rejected))
+        state, released = self._schedule(
+            current, fresh, stopped, snapshot, "advanced-stack-released", cap="1")
+        self.assertEqual([row["task_id"] for row in released["dispatch"]], ["task-c"],
+                         released)
+        c_entry = released["dispatch"][0]
+        self.assertEqual(c_entry["packet"]["parent_readiness"]["execution_ancestry"],
+                         ["task-a", "task-b"])
+        self.assertEqual((c_entry["parent_branch"], c_entry["parent_sha"]),
+                         (result_b["worker"]["branch"], result_b["worker"]["head_sha"]))
+        self.assertEqual([member["pr_url"] for member in c_entry["stack"]["members"]],
+                         [result_b["readback"]["pr_url"]])
+        saved = json.loads(state.read_text())
+        self.assertEqual(saved["tasks"]["task-a"]["satisfaction"]["revision"], advanced_sha)
+        self.assertEqual(saved["tasks"]["task-a"]["satisfaction"][
+            "source_revalidation"]["revision"], source_sha)
+        self.assertEqual(saved["tasks"]["task-b"]["reservation"],
+                         before["tasks"]["task-b"]["reservation"])
+        for key in ("attempt_history", "attempt_binding", "ci", "delivery", "report", "host_worker"):
+            self.assertEqual(saved["tasks"]["task-b"][key], before["tasks"]["task-b"][key], key)
+        self.assertEqual(saved["tasks"]["task-a"]["reservation"],
+                         original_a["reservation"])
+        self.assertEqual(saved["tasks"]["task-a"]["ci"], original_a["ci"])
+        self.assertEqual(saved["landed_adoption_history"][0]["evidence"]["result"],
+                         original_result)
+        self.assertEqual(claims, {path: path.read_bytes() for path in claims})
+        host.dispatch([c_entry])
+        result_c = make_result(self.github, "task-c", host.wait_for_report("task-c"), fresh)
+        _, applied_c, _ = self._apply(
+            current, state, "task-c", result_c, "advanced-stack-c-result")
+        self.assertEqual(applied_c["status"], "delivered", applied_c)
+
+    def test_stopped_main_advance_revalidates_historical_stack_source_before_releasing_c(self):
+        self._exercise_stopped_landed_adoption(
+            "repair", candidate=True, stack_chain=True, advanced_stack_source=True)
+
+    def test_delivered_merged_ancestor_uses_first_open_stack_source_after_main_advance(self):
+        def stack_snapshot():
+            snapshot = self._scoped_tasks_snapshot({"task-a", "task-b", "task-c"})
+            next(task for task in snapshot["tasks"] if task["task_id"] == "task-c")[
+                "prerequisites"] = ["task-b"]
+            snapshot["execution_layout"] = self.github.execution_layout(
+                {"task-a", "task-b", "task-c"},
+                {"task-a": None, "task-b": "task-a", "task-c": "task-b"})
+            return snapshot
+
+        initial = stack_snapshot()
+        admitted_path, admitted = self._admit_issue(initial)
+        state, first = self._schedule(admitted_path, admitted, None, initial,
+                                      "delivered-merged-a-start", cap="1")
+        self.assertEqual([entry["task_id"] for entry in first["dispatch"]], ["task-a"])
+        host = self._start_host(workers=1)
+        host.dispatch(first["dispatch"])
+        result_a = make_result(self.github, "task-a", host.wait_for_report("task-a"), admitted)
+        state, applied_a, _ = self._apply(
+            admitted_path, state, "task-a", result_a, "delivered-merged-a-result")
+        self.assertEqual(applied_a["status"], "delivered", applied_a)
+        self._persist("task-a", result_a, first["dispatch"][0])
+        delivery = self.github.delivery["task-a"]
+        a_branch = result_a["worker"]["branch"]
+        git(self.repo, "merge", "--no-ff", a_branch, "-m", "Human merge delivered A")
+        merged_sha = git(self.repo, "rev-parse", "HEAD")
+        delivery["lifecycle"] = {
+            "pr": {
+                "pr_url": result_a["readback"]["pr_url"], "repo": self.github.canonical,
+                "head_repo": self.github.canonical, "association": result_a["readback"]["association"],
+                "branch": a_branch, "head_sha": result_a["worker"]["head_sha"],
+                "base_branch": "main", "state": "merged", "merged_base_branch": "main",
+                "merge_commit_sha": merged_sha,
+            },
+            "source": {"branch": a_branch, "head_sha": result_a["worker"]["head_sha"],
+                       "deleted": False},
+            "landed_verification": {
+                "complete": True, "source_verified": True, "checks_verified": True,
+                "reverted": False, "landed_parent": self.base_sha,
+                "diff_identity": diff_identity(self.repo, self.base_sha, merged_sha),
+            },
+        }
+        source = self.repo / "src/task-a.txt"
+        source.write_text(source.read_text() + "First independently landed A correction\n")
+        git(self.repo, "add", "src/task-a.txt")
+        git(self.repo, "commit", "-m", "First approved A correction")
+        historical_sha = git(self.repo, "rev-parse", "HEAD")
+        correction = {
+            "pr": {
+                "pr_url": self.github.canonical + "/pull/3001",
+                "repo": self.github.canonical, "head_repo": self.github.canonical,
+                "branch": "first-approved-correction", "head_sha": historical_sha,
+                "base_branch": "main", "state": "merged", "draft": False,
+                "merged_base_branch": "main", "merge_commit_sha": historical_sha,
+            },
+            "verification": {
+                "complete": True, "landed_parent": merged_sha,
+                "diff_identity": diff_identity(self.repo, merged_sha, historical_sha),
+            },
+        }
+        historical_diff = diff_identity(self.repo, self.base_sha, historical_sha)
+        historical = {
+            "candidate_sha": historical_sha, "approved": True,
+            "approval_reference": "Independently accepted corrected A before B",
+            "head_parent": self.base_sha, "head_diff_identity": historical_diff,
+            "implementer_ids": [result_a["worker"]["worker_id"], "correction-author"],
+            "checks": copy.deepcopy(result_a["checks"]),
+            "validation": copy.deepcopy(result_a["validation"]),
+            "corrections": {"complete": True, "prs": [correction]},
+        }
+        historical["checks"].update(head_sha=historical_sha, diff_identity=historical_diff)
+        historical["validation"].update(
+            checked_head=historical_sha, diff_identity=historical_diff,
+            reviewer_id="independent-historical-merged-reviewer")
+        delivery["integration_revalidation"] = copy.deepcopy(historical)
+        self.github.integration["sha"] = historical_sha
+        prior = stack_snapshot()
+        state, b_ready = self._schedule(
+            admitted_path, admitted, state, prior, "delivered-merged-b-ready", cap="1")
+        self.assertEqual([entry["task_id"] for entry in b_ready["dispatch"]], ["task-b"], b_ready)
+        b_entry = b_ready["dispatch"][0]
+        self.assertEqual(b_entry["parent_sha"], historical_sha)
+        self.assertEqual(json.loads(state.read_text())["tasks"]["task-a"]["status"], "delivered")
+        host.dispatch([b_entry])
+        result_b = make_result(self.github, "task-b", host.wait_for_report("task-b"), admitted)
+        state, applied_b, _ = self._apply(
+            admitted_path, state, "task-b", result_b, "delivered-merged-b-result")
+        self.assertEqual(applied_b["status"], "delivered", applied_b)
+        self._persist("task-b", result_b, b_entry)
+
+        stopped, _ = self._stop(admitted_path, state, "delivered-merged-stop")
+        before = json.loads(stopped.read_text())
+        source.write_text(source.read_text() + "Further approved A-owned main advance\n")
+        git(self.repo, "add", "src/task-a.txt")
+        git(self.repo, "commit", "-m", "Second approved A correction")
+        advanced_sha = git(self.repo, "rev-parse", "HEAD")
+        self.github.integration["sha"] = advanced_sha
+        advanced_diff = diff_identity(self.repo, self.base_sha, advanced_sha)
+        full_receipt = copy.deepcopy(historical)
+        full_receipt.update(candidate_sha=advanced_sha, head_diff_identity=advanced_diff)
+        full_receipt["implementer_ids"].append("second-correction-author")
+        full_receipt["checks"].update(head_sha=advanced_sha, diff_identity=advanced_diff)
+        full_receipt["validation"].update(
+            checked_head=advanced_sha, diff_identity=advanced_diff,
+            reviewer_id="independent-current-merged-reviewer")
+        second = copy.deepcopy(correction)
+        second["pr"].update(
+            pr_url=self.github.canonical + "/pull/3002", branch="second-approved-correction",
+            head_sha=advanced_sha, merge_commit_sha=advanced_sha)
+        second["verification"].update(
+            landed_parent=historical_sha,
+            diff_identity=diff_identity(self.repo, historical_sha, advanced_sha))
+        full_receipt["corrections"]["prs"].append(second)
+        historical["validation"]["reviewer_id"] = "fresh-independent-source-reviewer"
+        historical["compatibility"] = {
+            "integration_sha": advanced_sha, "integration_diff_identity": advanced_diff,
+            "source_sha": historical_sha, "source_diff_identity": historical_diff,
+            "contract_hash": historical["validation"]["contract_hash"],
+            "reviewer_id": "fresh-independent-compatibility-reviewer",
+            "approved": True, "approval_reference": "B's source remains compatible with A's main advance",
+        }
+        delivery["integration_revalidation"] = full_receipt
+        delivery["historical_source_revalidation"] = historical
+        snapshot = stack_snapshot()
+        snapshot["recovery"]["sessions"] = [
+            {"task_id": task_id, "worker": copy.deepcopy(item["host_worker"]),
+             "reservation": copy.deepcopy(item["reservation"]), "status": "stopped"}
+            for task_id, item in before["tasks"].items() if item.get("host_worker") is not None
+        ]
+        approval, _ = self._policy_approval(admitted, stopped, snapshot)
+        code, accepted = self._policy_call(admitted_path, stopped, snapshot, approval)
+        self.assertEqual(code, 0, accepted)
+        self.assertEqual(json.loads(stopped.read_text())["tasks"], before["tasks"])
+        current = self._write_json("delivered-merged-current-admission.json", accepted["admitted"])
+        code, resumed = self._policy_call(current, stopped, snapshot)
+        self.assertEqual(code, 0, resumed)
+        self.assertEqual(resumed["dispatch"], [])
+        retained = json.loads(stopped.read_text())
+        self.assertEqual(retained["tasks"]["task-a"]["status"], "delivered")
+        self.assertEqual(retained["tasks"]["task-a"]["satisfaction"]["kind"], "merged")
+        self.assertEqual(retained["tasks"]["task-b"]["reservation"],
+                         before["tasks"]["task-b"]["reservation"])
+        self.assertEqual(retained["tasks"]["task-b"]["attempt_history"],
+                         before["tasks"]["task-b"]["attempt_history"])
+
+        next_state, released = self._schedule(
+            current, accepted["admitted"], stopped, snapshot, "delivered-merged-c-release", cap="1")
+        self.assertEqual([entry["task_id"] for entry in released["dispatch"]], ["task-c"],
+                         released)
+        c_entry = released["dispatch"][0]
+        branch, head = result_b["worker"]["branch"], result_b["worker"]["head_sha"]
+        self.assertEqual((c_entry["parent_branch"], c_entry["parent_sha"]), (branch, head))
+        self.assertEqual([member["pr_url"] for member in c_entry["stack"]["members"]],
+                         [result_b["readback"]["pr_url"]])
+        final = json.loads(next_state.read_text())
+        self.assertEqual(final["tasks"]["task-a"]["status"], "delivered")
+        self.assertEqual(final["tasks"]["task-b"]["reservation"],
+                         before["tasks"]["task-b"]["reservation"])
+        helper = self._helper_module()
+        task_c = next(task for task in accepted["admitted"]["tasks"] if task["task_id"] == "task-c")
+        anchor = helper._retained_stack_source(
+            accepted["admitted"], task_c, final, branch, head, self.repo)
+        self.assertEqual(anchor, historical_sha)
+        for defect in ("closed-b", "unknown-b", "wrong-b-root", "closed-a", "mismatched-a"):
+            with self.subTest(defect=defect):
+                degraded = copy.deepcopy(final)
+                if defect == "closed-b":
+                    degraded["tasks"]["task-b"]["lifecycle"]["pr"]["state"] = "closed"
+                elif defect == "unknown-b":
+                    degraded["tasks"]["task-b"]["status"] = "unknown"
+                elif defect == "wrong-b-root":
+                    degraded["tasks"]["task-b"]["reservation"]["parent_sha"] = merged_sha
+                elif defect == "closed-a":
+                    degraded["tasks"]["task-a"]["lifecycle"]["pr"]["state"] = "closed"
+                else:
+                    degraded["tasks"]["task-a"]["satisfaction"]["revision"] = "f" * 40
+                if defect == "mismatched-a":
+                    with self.assertRaises(helper.InputError):
+                        helper._retained_stack_source(
+                            accepted["admitted"], task_c, degraded, branch, head, self.repo)
+                    continue
+                selected = helper._retained_stack_source(
+                    accepted["admitted"], task_c, degraded, branch, head, self.repo)
+                if defect == "wrong-b-root":
+                    self.assertNotEqual(selected, historical_sha)
+                    self.assertIsNone(helper._landed_source_in_parent(
+                        next(task for task in accepted["admitted"]["tasks"]
+                             if task["task_id"] == "task-a")["own_availability"],
+                        head, selected, self.repo))
+                else:
+                    self.assertIsNone(selected)
+        missing = copy.deepcopy(snapshot)
+        next(task for task in missing["tasks"] if task["task_id"] == "task-a")[
+            "existing_delivery"].pop("integration_revalidation")
+        _, rejected = self._admit_issue(missing)
+        unavailable = next(task for task in rejected["tasks"] if task["task_id"] == "task-a")
+        self.assertIsNone(unavailable["own_availability"])
+        self.assertIsNotNone(unavailable["own_availability_error"])
+
+        with self.assertRaises(helper.InputError):
+            helper.stack_requirement(
+                rejected, task_c, c_entry["packet"]["parent_readiness"],
+                final, self.repo)
+        unknown_ancestor = copy.deepcopy(final)
+        unknown_ancestor["tasks"]["task-a"]["status"] = "unknown"
+        with self.assertRaises(helper.InputError):
+            helper.stack_requirement(
+                accepted["admitted"], task_c, c_entry["packet"]["parent_readiness"],
+                unknown_ancestor, self.repo)
+        host.dispatch([c_entry])
+        result_c = make_result(self.github, "task-c", host.wait_for_report("task-c"),
+                               accepted["admitted"])
+        _, applied_c, _ = self._apply(
+            current, next_state, "task-c", result_c, "delivered-merged-c-result")
+        self.assertEqual(applied_c["status"], "delivered", applied_c)
 
     def test_stopped_landed_adoption_requires_full_evidence_and_preserves_native_history(self):
         self._exercise_stopped_landed_adoption("blocked")
@@ -4661,6 +5089,222 @@ class OrchestrateBehavior(unittest.TestCase):
                         existing_pr=True, expected_draft=expected_draft,
                     )
                 self.assertEqual(raised.exception.code, "readiness-changed")
+
+    def _delivered_stack_with_current_parent_finding(self) -> Dict[str, Any]:
+        """Deliver A then B, then leave an unresolved COMMENTED finding on B's unchanged head.
+
+        The retained delivery checkpoint still describes B's original draft PR with no
+        review, so only a fresh native readback of the same head can observe the finding.
+        """
+
+        def fresh(**extras: Any) -> Dict[str, Any]:
+            snapshot = self.github.snapshot()
+            snapshot["tasks"] = snapshot["children"] = [
+                item for item in snapshot["children"]
+                if item["task_id"] in {"task-a", "task-b", "task-c"}
+            ]
+            next(item for item in snapshot["tasks"] if item["task_id"] == "task-c")[
+                "prerequisites"] = ["task-b"]
+            snapshot["execution_layout"] = self.github.execution_layout(
+                ("task-a", "task-b", "task-c"),
+                {"task-a": None, "task-b": "task-a", "task-c": "task-b"})
+            snapshot.update(extras)
+            return snapshot
+
+        initial = fresh()
+        admitted_path, admitted = self._admit_issue(initial)
+        state, first = self._schedule(admitted_path, admitted, None, initial, "finding-a", cap="1")
+        self.assertEqual([entry["task_id"] for entry in first["dispatch"]], ["task-a"], first)
+        host = self._start_host(workers=1)
+        host.dispatch(first["dispatch"])
+        result_a = make_result(self.github, "task-a", host.wait_for_report("task-a"), admitted)
+        state, applied_a, _ = self._apply(admitted_path, state, "task-a", result_a, "finding-a-result")
+        self.assertEqual(applied_a["status"], "delivered", applied_a)
+        self._persist("task-a", result_a, first["dispatch"][0])
+        state, second = self._schedule(admitted_path, admitted, state, fresh(), "finding-b", cap="1")
+        self.assertEqual([entry["task_id"] for entry in second["dispatch"]], ["task-b"], second)
+        host.dispatch(second["dispatch"])
+        host.release_b()
+        result_b = make_result(self.github, "task-b", host.wait_for_report("task-b"), admitted)
+        state, applied_b, _ = self._apply(admitted_path, state, "task-b", result_b, "finding-b-result")
+        self.assertEqual(applied_b["status"], "delivered", applied_b)
+        self._persist("task-b", result_b, second["dispatch"][0])
+
+        retained = json.loads(state.read_text())["tasks"]["task-b"]
+        checkpoint = self.github.delivery["task-b"]["result"]["readback"]
+        self.assertIs(checkpoint["draft"], True)
+        self.assertEqual(checkpoint["reviews"]["items"], [])
+        self.assertEqual(checkpoint["threads"]["items"], [])
+        pr = copy.deepcopy(self.github.prs["task-b"])
+        # A human later marks B ready and comments on it.  The reviewed head never moves.
+        self.github.prs["task-b"]["draft"] = False
+        finding = {"id": 501, "commit_id": pr["head_sha"], "state": "COMMENTED",
+                   "submitted_at": "2026-09-25T00:00:00Z", "user": {"login": "external-reviewer"}}
+        thread = {"id": "PRRT_kwDORP1kW86mRbLp", "review_id": 501, "is_resolved": False}
+        self.github.review_history["task-b"] = [[finding]]
+        self.github.thread_history["task-b"] = [[thread]]
+        self.github.parent_branches.add(pr["branch"])
+        return {
+            "admitted_path": admitted_path, "admitted": admitted, "state": state, "host": host,
+            "pr": pr, "branch": pr["branch"], "finding": finding, "thread": thread,
+            "retained": retained, "fresh": fresh,
+            "waiver": {"pr_url": pr["pr_url"], "head_sha": pr["head_sha"],
+                       "thread_ids": [thread["id"]],
+                       "approval_reference": "User approved continuing past the current B finding."},
+        }
+
+    @staticmethod
+    def _parent_read(snapshot: Dict[str, Any], branch: str) -> Dict[str, Any]:
+        return snapshot["parent_prs"][branch]["prs"][0]
+
+    def test_user_waived_parent_finding_releases_c_from_the_current_native_read(self) -> None:
+        fixture = self._delivered_stack_with_current_parent_finding()
+        admitted_path, admitted = fixture["admitted_path"], fixture["admitted"]
+        state, retained = fixture["state"], fixture["retained"]
+        pr, thread, waiver = fixture["pr"], fixture["thread"], fixture["waiver"]
+        preserved = ("delivery", "attempt_history", "attempt_binding", "verified_pr")
+        expected = {key: retained.get(key) for key in preserved}
+
+        # The retained checkpoint still reads "draft, unreviewed". Releasing C from it
+        # would trust a stale historical parent readback, so the live finding blocks C.
+        state, blocked = self._schedule(
+            admitted_path, admitted, state, fixture["fresh"](), "finding-unwaived", cap="1")
+        self.assertEqual(blocked["dispatch"], [], blocked)
+        self.assertEqual([(row["task_id"], row["reason"]) for row in blocked["blocked"]],
+                         [("task-c", "unresolved-review-finding")], blocked)
+        saved = json.loads(state.read_text())["tasks"]["task-b"]
+        self.assertEqual({key: saved.get(key) for key in preserved}, expected)
+        self.assertEqual(self.github.thread_history["task-b"][0][0]["is_resolved"], False)
+
+        # The user's explicit approval releases C and travels with the worker packet.
+        state, waived = self._schedule(
+            admitted_path, admitted, state, fixture["fresh"](review_waivers=[waiver]),
+            "finding-waived", cap="1")
+        self.assertEqual(waived["blocked"], [], waived)
+        c_entry = waived["dispatch"][0]
+        self.assertEqual(c_entry["task_id"], "task-c")
+        parent = c_entry["packet"]["parent_readiness"]["parent"]
+        self.assertEqual({key: parent["review_waiver"][key] for key in
+                          ("pr_url", "head_sha", "thread_ids", "approval_reference")}, waiver)
+        evidence = parent["pr_evidence"]["prs"][0]
+        self.assertEqual(evidence["pr_url"], pr["pr_url"])
+        self.assertIs(evidence["draft"], False, "current native parent readiness must win")
+        self.assertEqual(evidence["reviews"]["items"], [fixture["finding"]])
+        self.assertEqual(evidence["threads"],
+                         {"head_sha": pr["head_sha"], "complete": True, "items": [thread]})
+        self.assertIs(c_entry["stack"]["members"][-1]["draft"], False)
+        retained_readback = c_entry["packet"]["parent_readiness"]["prerequisites"][0][
+            "checkpoint"]["readback"]
+        self.assertIs(retained_readback["draft"], True)
+        self.assertEqual(retained_readback["reviews"]["items"], [])
+        saved = json.loads(state.read_text())["tasks"]["task-b"]
+        self.assertEqual({key: saved.get(key) for key in preserved}, expected,
+                         "a waiver must not rewrite retained delivery, readback, or attempt history")
+        self.assertEqual([item["is_resolved"] for item in self.github.thread_history["task-b"][0]],
+                         [False], "a waiver must not fabricate native resolution")
+
+        # The parent approval never waives the delivered child's own finding.
+        host = fixture["host"]
+        host.dispatch([c_entry])
+        report_c = host.wait_for_report("task-c")
+        self.github.review_history["task-c"] = [[{
+            "id": 601, "commit_id": self.github.prs["task-c"]["head_sha"], "state": "COMMENTED",
+            "submitted_at": "2026-09-25T02:00:00Z", "user": {"login": "external-reviewer"}}]]
+        self.github.thread_history["task-c"] = [[{
+            "id": "PRRT_kwDORP1kW86mRbLq", "review_id": 601, "is_resolved": False}]]
+        result_c = make_result(self.github, "task-c", report_c, admitted)
+        child_state, rejected, _ = self._apply(
+            admitted_path, state, "task-c", result_c, "finding-c-result")
+        self.assertEqual((rejected["status"], rejected["reason"]),
+                         ("unknown", "unresolved-review-finding"), rejected)
+        self.assertNotEqual(json.loads(child_state.read_text())["tasks"]["task-c"]["status"],
+                            "delivered")
+
+    def test_cleared_parent_finding_releases_c_with_no_approval(self) -> None:
+        """Control for the unapproved rejection: only the live finding holds C back."""
+        fixture = self._delivered_stack_with_current_parent_finding()
+        admitted_path, admitted = fixture["admitted_path"], fixture["admitted"]
+        self.github.thread_history["task-b"] = [[dict(fixture["thread"], is_resolved=True)]]
+        state, released = self._schedule(
+            admitted_path, admitted, fixture["state"], fixture["fresh"](), "finding-cleared", cap="1")
+        self.assertEqual(released["blocked"], [], released)
+        c_entry = released["dispatch"][0]
+        self.assertEqual(c_entry["task_id"], "task-c")
+        parent = c_entry["packet"]["parent_readiness"]["parent"]
+        self.assertIsNone(parent["review_waiver"], "a cleared finding needs no user approval")
+        self.assertIs(parent["pr_evidence"]["prs"][0]["draft"], False)
+        self.assertEqual(c_entry["stack"]["members"][-1]["draft"], False)
+        self.assertEqual(json.loads(state.read_text())["tasks"]["task-b"]["delivery"],
+                         fixture["retained"]["delivery"])
+
+    def test_review_waiver_covers_only_its_own_pr_head_and_exact_unresolved_threads(self) -> None:
+        fixture = self._delivered_stack_with_current_parent_finding()
+        admitted_path, admitted = fixture["admitted_path"], fixture["admitted"]
+        state, branch, pr = fixture["state"], fixture["branch"], fixture["pr"]
+        thread, waiver = fixture["thread"], fixture["waiver"]
+        sibling = {"id": "PRRT_kwDORP1kW86mRbLq", "review_id": 501, "is_resolved": False}
+        foreign_pr = self.github.canonical + "/pull/9001"
+
+        def blocked(current: Path, reason: str, snapshot: Dict[str, Any],
+                    name: str) -> Path:
+            outcome, payload = self._schedule(
+                admitted_path, admitted, current, snapshot, name, cap="1")
+            self.assertEqual(payload["dispatch"], [], (name, payload))
+            self.assertEqual([(row["task_id"], row["reason"]) for row in payload["blocked"]],
+                             [("task-c", reason)], (name, payload))
+            return outcome
+
+        # A waiver may not release C from the retained checkpoint when no fresh native
+        # parent read was supplied at all.
+        stale = fixture["fresh"](review_waivers=[waiver])
+        stale["parent_prs"].pop(branch)
+        state = blocked(state, "incomplete-pr-readback", stale, "waiver-stale-historical-readback")
+
+        # A fresh native read naming another PR is never substituted for the retained one.
+        foreign = fixture["fresh"](review_waivers=[waiver])
+        self._parent_read(foreign, branch)["pr_url"] = foreign_pr
+        state = blocked(state, "parent-pr-evidence", foreign, "waiver-foreign-parent-pr")
+
+        # The user approved one finding on one parent, not a reparented parent.
+        reparented = fixture["fresh"](review_waivers=[waiver])
+        self._parent_read(reparented, branch)["base_branch"] = "main"
+        state = blocked(state, "parent-pr-evidence", reparented, "waiver-changed-parent-base")
+
+        state = blocked(state, "unresolved-review-finding", fixture["fresh"](review_waivers=[
+            dict(waiver, head_sha="f" * 40)]), "waiver-changed-head")
+        state = blocked(state, "unresolved-review-finding", fixture["fresh"](review_waivers=[
+            dict(waiver, pr_url=foreign_pr)]), "waiver-other-pr")
+        state = blocked(state, "unresolved-review-finding", fixture["fresh"](review_waivers=[
+            dict(waiver, thread_ids=[thread["id"], sibling["id"]])]), "waiver-unseen-thread")
+
+        # A thread that appeared natively after the approval is never covered by it.
+        self.github.thread_history["task-b"] = [[thread, sibling]]
+        state = blocked(state, "unresolved-review-finding",
+                        fixture["fresh"](review_waivers=[waiver]), "waiver-new-native-thread")
+        self.github.thread_history["task-b"] = [[thread]]
+
+        # A waivable COMMENTED finding never covers blocking review state or policy.
+        changes = fixture["fresh"](review_waivers=[waiver])
+        self._parent_read(changes, branch)["reviews"]["items"].append({
+            "id": 502, "commit_id": pr["head_sha"], "state": "CHANGES_REQUESTED",
+            "submitted_at": "2026-09-25T03:00:00Z", "user": {"login": "blocking-reviewer"}})
+        state = blocked(state, "changes-requested", changes, "waiver-changes-requested")
+
+        self.github.review_policy["required_approvals"] = 1
+        try:
+            state = blocked(state, "review-approval-required",
+                            fixture["fresh"](review_waivers=[waiver]), "waiver-approval-required")
+        finally:
+            self.github.review_policy["required_approvals"] = 0
+
+        partial = fixture["fresh"](review_waivers=[waiver])
+        self._parent_read(partial, branch)["threads"]["complete"] = False
+        state = blocked(state, "incomplete-pr-readback", partial, "waiver-incomplete-thread-pages")
+
+        # The exact approval still releases C, so every rejection above is a scope failure.
+        _, waived = self._schedule(admitted_path, admitted, state,
+                                   fixture["fresh"](review_waivers=[waiver]), "waiver-exact", cap="1")
+        self.assertEqual([entry["task_id"] for entry in waived["dispatch"]], ["task-c"], waived)
 
     def test_alias_workspace_collision_and_same_parent_repair(self) -> None:
         worktree_root = Path(self.github.children[0]["workspace"]).parent
