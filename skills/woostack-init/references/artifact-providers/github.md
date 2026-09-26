@@ -172,7 +172,9 @@ the DAG.
 Retain the exact issue/Project identity, marker, repository, scope, last independently read boundary,
 and delivery note needed to recover an interrupted publication. Unknown create, link, relation, or
 read-back outcomes stop at that boundary; rediscovery uses the same identity and never duplicates work.
-Persist local checkpoints with the shared run-store locking/CAS contract when a caller requires them.
+A caller that needs its own recovery checkpoint keeps it private and owner-only; the shared
+[run-store reader](../artifact-backends.md#owner-only-local-run-store-reader) only reads retained
+records.
 
 Orchestrate owns scheduling and independent delivery-note recovery for its admitted task/DAG scope.
 Execute owns one bounded task through one PR. Git, branches, commits, pull requests, reviews, and merge
