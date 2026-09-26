@@ -99,8 +99,11 @@ is disclosed honestly; it does not erase declarations from a tracker that was ac
 
 ## Normalized snapshot
 
-The controller writes one private JSON snapshot from completed reads. The example is an internal
-shape for the helper and is not a caller-facing source schema; all markers are runtime facts.
+The controller writes one private JSON input snapshot from completed reads. This is the smallest
+already-supported caller shape, not a new admission type or a public source schema. Markers are
+runtime facts; keep complete native identity, repository rules, host capability, recovery, parent-PR,
+and source-scope evidence. Use file/tool operations to retain verified reads rather than transcribing
+unchanged normalized fields. The helper may retain redundant fields in its normalized output.
 
 ```json
 {
@@ -135,7 +138,6 @@ shape for the helper and is not a caller-facing source schema; all markers are r
   "tasks": [
     {
       "task_id": "<runtime-substituted stable opaque task ID>",
-      "ordinal": "<runtime-substituted positive tie-break ordinal>",
       "url": "<runtime-substituted canonical executable issue URL>",
       "id": "<runtime-substituted positive native REST issue ID>",
       "node_id": "<runtime-substituted opaque GraphQL issue node ID>",
@@ -144,9 +146,6 @@ shape for the helper and is not a caller-facing source schema; all markers are r
       "title": "<runtime-substituted complete native title>",
       "body": "<runtime-substituted complete native body>",
       "actual_parent": "<runtime-substituted independently read native parent URL or null>",
-      "prerequisites": [],
-      "external_prerequisites": [],
-      "specification": "<runtime-substituted complete task specification or issue body>",
       "contract": {
         "goal": "<runtime-substituted resolved goal>",
         "scope": ["<runtime-substituted bounded path or surface>"],
@@ -174,8 +173,7 @@ shape for the helper and is not a caller-facing source schema; all markers are r
         "rationale": "<why this approved-base root is safe>",
         "constraints": ["<repository or compatibility evidence>"]
       }
-    ],
-    "effective_edges": []
+    ]
   },
   "parent_prs": {
     "<runtime-substituted integration or approved parent branch>": {
@@ -198,6 +196,15 @@ shape for the helper and is not a caller-facing source schema; all markers are r
   }
 }
 ```
+
+Give every task a stable explicit `task_id` in both admission and raw fresh snapshots; runtime
+allocation and result processing use it before normalization. The helper derives sorted ordinals,
+issue numbers from canonical URLs, contract hashes/revisions, technical prerequisites from the
+single root `edges` list, and effective edges, ancestry, and fingerprints from `execution_layout`.
+Do not author those derived fields or duplicate the same prerequisite set through task aliases,
+`graph`, or layout output fields. Native REST IDs and GraphQL node IDs are independent facts and
+must remain. Omit task `specification` only when its complete issue `body` is the effective
+specification; supply the complete distinct approved specification otherwise.
 The admission's canonical `scope_identity` is `{ "canonical_repo": <repository>, "issues":
 [<sorted canonical executable issue URLs>] }`. It is derived from verified tasks, not from the
 user's wording or the source container.
@@ -326,8 +333,8 @@ creates a Project, changes membership, mutates an issue, or publishes an edge.
 
 ## Invoking the bridge
 
-Assemble the normalized snapshot from actual native/Git reads, serialize it with a JSON writer, and
-invoke the shipped helper. These examples describe runtime fields, not fixtures to submit unchanged.
+Assemble the compact input snapshot from actual native/Git reads, serialize it with a JSON writer,
+and invoke the shipped helper. These examples describe runtime fields, not fixtures to submit unchanged.
 Keep snapshot, admission, result, and state files private (`umask 077`). Only `schedule` without
 `--state` initializes the state; every later call uses the existing state and newly assembled
 `--fresh` evidence. Do not omit `--fresh` on an initial or subsequent refill, and do not pass a newly
@@ -345,13 +352,12 @@ python3 <orchestrate-skill>/scripts/orchestrate.py schedule \
   --git-repo <canonical-git-repository> --fresh <fresh-snapshot.json> \
   [--cap <host-cap>] [--parent-decision <decision.json>]
 
-# Every later refill: state must already exist. Re-read and assemble a new fresh snapshot first.
+# Every later refill: state must already exist. Re-read and assemble a new compact fresh snapshot first.
 python3 <orchestrate-skill>/scripts/orchestrate.py schedule \
   --admitted admitted.json --state controller-state.json \
   --state-out controller-state.json \
   --git-repo <canonical-git-repository> --fresh <fresh-snapshot.json> \
   [--cap <host-cap>] [--parent-decision <decision.json>]
-
 # Explicit recovery for a stopped controller with import-only uncertainty.
 python3 <orchestrate-skill>/scripts/orchestrate.py resume \
   --admitted admitted.json --state controller-state.json \
@@ -363,6 +369,10 @@ python3 <orchestrate-skill>/scripts/orchestrate.py stop \
   --state-out controller-state.json --git-repo <canonical-git-repository> \
   [--reason <safe-stop-reason>]
 ```
+
+Fresh reads still include complete recovery inventory, current parent PRs, host capability, and
+workspace/branch allocation at their existing operation boundaries. Copy verified unchanged
+evidence with file/tool operations; compact input does not waive freshness or pagination.
 
 ## Fingerprints and fresh refills
 
