@@ -1,6 +1,6 @@
 # Workflow smoke
 
-These are three on-demand recipes for material Plan, Execute, or Orchestrate changes and for regression investigation. They are not a corpus, a model grader, a mandatory check after every instruction edit, or a replacement test command. Run the smallest recipe that covers the changed behavior and add a scenario only after a valuable observed failure.
+These are four on-demand recipes for material routing, Plan, Execute, or Orchestrate changes and for regression investigation. They are not a corpus, a model grader, a mandatory check after every instruction edit, or a replacement test command. Run the smallest recipe that covers the changed behavior and add a scenario only after a valuable observed failure.
 
 ## Evidence classes and shared fixture
 
@@ -186,3 +186,23 @@ draft-PR writes are required by this recipe.
 - The actual-host record names the revision, host, exact invocation, worker identities, A/B/C schedule order, persisted plan revision/fingerprint, recovery receipt, and canonical PR read-backs. The recording-driver run is reported separately and never as an actual model/host pass.
 
 **Cleanup:** leave delivered PRs draft and unmerged, stop task-owned workers, retain controller evidence until the run is recorded, then use only the separately authorized disposable-repository cleanup. Remove task worktrees only after verifying they contain no user work.
+
+## 4. Routing and reference-loading matrix
+
+Read the router's table, follow each row to its named skill, and record the references that skill
+loads on that path, its next action, and its prohibited side effects. Nothing live is required; the
+result is **manual instruction-text evidence**, never a host result.
+
+| Request | Route and loaded owners | Next action | Must not happen |
+| --- | --- | --- | --- |
+| Adopt/choose a workflow | using-woostack; project rules | Name one matching skill | Init, GitHub access, or loading all skills |
+| Prepare a complete specification | woostack-prepare → Harden/Plan; publication references | Publish one issue graph and stop | Repeated Ideate questions; Execute/Orchestrate dispatch |
+| Prepare an unproved defect | woostack-prepare → Debug, then correction planning | Prove a cause first | Source edits from an unproved theory |
+| Execute a complete inline bounded task | woostack-execute; source control at delivery | One commit and one PR | Project/provider graph discovery |
+| Execute one exact issue URL | woostack-execute; exact-issue read, then Commit association | One task's one PR | Dropping the issue, siblings, or Project discovery |
+| Commit without an issue | woostack-commit; source control only | One commit; PR per the caller | Association/profile reads |
+| Explicit Reflect | woostack-reflect; exactly one invocation | One report-only pass | Automatic reflection on every final reply |
+
+**Assertions:** every row resolves to exactly one skill, and each owner it loads is that skill's own
+reference rather than a router-wide rule. Orchestrate alone owns its scheduling algorithm, and the
+router's remaining gates still resolve.
