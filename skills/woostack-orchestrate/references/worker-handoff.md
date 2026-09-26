@@ -10,7 +10,7 @@ are in [scheduling](scheduling.md); delivery gates are in [validation](validatio
 Use the shared [source-control contract](../../woostack-commit/references/source-control.md),
 the outcome-level [worktree guidance](scheduling.md#runtime-workspace-and-branch-evidence),
 the [least-code standard](../../woostack-bootstrap/references/patterns.md#7-least-code--comments),
-and [model tiers](../../using-woostack/references/model-tiers.md). Host mechanics do not belong in
+and [host-owned model and role-preference contract](../../using-woostack/references/model-tiers.md). Host mechanics do not belong in
 this file.
 
 ## Dispatch entry emitted by the helper

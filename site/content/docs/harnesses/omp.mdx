@@ -17,9 +17,9 @@ then the parent session's model. Effort is conditional. When the host setting `t
 enabled (default `false`), the active task schema exposes optional `effort` with exactly `"lo"`,
 `"med"`, or `"hi"`.
 When it is disabled, that field is absent. Woostack inspects the active schema or tool description
-before dispatch and does not enable host settings or set the optional effort field. OMP owns effort
-selection. Woostack records verified host effort evidence separately; it does not translate
-repository model-tier values into this knob. A selector is not proof of the model or effort used.
+before dispatch and does not enable host settings or set the optional effort field. OMP owns
+effort selection; a role preference never implies an effort wire value. A selector is not proof
+of the model or effort used, so exact-identity comparisons require separate host evidence.
 
 The conditional schema and setting are documented in OMP's [task-agent discovery reference](https://github.com/can1357/oh-my-pi/blob/main/docs/task-agent-discovery.md)
 and implemented by [`task/types.ts`](https://github.com/can1357/oh-my-pi/blob/main/packages/coding-agent/src/task/types.ts).

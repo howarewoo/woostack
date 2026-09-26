@@ -12,7 +12,7 @@ repo="$TMP/repo"
 mkdir -p "$repo/.woostack"
 git -C "$repo" init -q
 cat >"$repo/.woostack/config.json" <<'JSON'
-{"models":{},"review":{}}
+{"review":{}}
 JSON
 
 run_doctor() {
@@ -25,6 +25,26 @@ run_doctor() {
 run_doctor "$repo"
 assert_exit 0 "$CODE" "valid local workspace exits zero"
 assert_not_contains "$OUT" "github-live" "static diagnosis does not emit live-receipt findings"
+
+for model in '"old/provider"' '{"standard":{"model":"old/provider"},"other":{"effort":"low"}}' '{"standard":["old/provider",42],"fast":[]}' 'false'; do
+  printf '{"github":{"owner":"acme"},"models":%s,"custom":{"enabled":true}}\n' "$model" >"$repo/.woostack/config.json"
+  before="$(shasum -a 256 "$repo/.woostack/config.json")"
+  run_doctor --check "$repo"
+  assert_exit 0 "$CODE" "old model values are opaque to Doctor"
+  assert_not_contains "$OUT" "models-leaf-shape" "no retired model grammar diagnostic"
+  assert_eq "$(shasum -a 256 "$repo/.woostack/config.json")" "$before" "Doctor preserves user config bytes"
+done
+
+printf '{"models":{"fast":[]}}\n' >"$repo/.woostack/config.json"
+printf '{"models":{"deep":{"effort":"old"}},"custom":{"enabled":true}}\n' >"$repo/.woostack/config.local.json"
+run_doctor --check "$repo"
+assert_exit 0 "$CODE" "local model overlay has no model-specific error"
+assert_not_contains "$OUT" "models-leaf-shape" "local old values are not model-validated"
+printf '{"models":{"apiKey":"not-a-real-secret"}}\n' >"$repo/.woostack/config.local.json"
+run_doctor --check "$repo"
+assert_exit 1 "$CODE" "generic credential-like key check remains active inside models"
+assert_contains "$OUT" "credential-like key: models.apiKey" "security diagnostic remains specific"
+rm "$repo/.woostack/config.local.json"
 
 printf '%s\n' '{"models":{},"status":{"staleDays":14}}' >"$repo/.woostack/config.json"
 run_doctor "$repo"
@@ -51,14 +71,12 @@ fi
 blocking_reason="${resolver_error##*$'\n'}"
 run_doctor --check "$repo"
 assert_exit 1 "$CODE" "invalid active policy fails the check despite a retirement notice"
-for check in config-policy models-leaf-shape; do
-  annotation=""
-  while IFS= read -r line; do
-    case "$line" in
-      "::error:: [$check] "*) annotation="$line" ;;
-    esac
-  done <<<"$OUT"
-  assert_contains "$annotation" "$blocking_reason" "$check retains the resolver's blocking diagnostic"
-done
+annotation=""
+while IFS= read -r line; do
+  case "$line" in
+    "::error:: [config-policy] "*) annotation="$line" ;;
+  esac
+done <<<"$OUT"
+assert_contains "$annotation" "$blocking_reason" "config-policy retains the resolver's blocking diagnostic"
 
 finish

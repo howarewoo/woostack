@@ -43,10 +43,10 @@ changes or taking external actions.
 
 ## Isolated agents receive bounded envelopes
 
-Before choosing inline or delegated implementation, weigh the shared
-[model-tier guidance](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/model-tiers.md),
-including speed and cost benefits for simple tasks, against dispatch, context preparation,
-verification overhead, and risk. Delegated work uses the host's appropriate model or role.
+Before choosing inline or delegated implementation, weigh the task's scope against dispatch,
+context preparation, verification overhead, and risk. Optional
+[role preferences](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/model-tiers.md)
+shape task and verification depth; delegation inherits the host-configured agent/model.
 Independent validation still checks the complete result.
 
 Each worker gets a bounded assignment, also called an envelope:
@@ -61,8 +61,7 @@ read results may accompany it but cannot expand its scope or permissions.
 
 ## Model routing stays host-owned
 
-Hosts map `fast`, `standard`, and `deep` work to concrete models through the canonical
-[model-tier reference](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/model-tiers.md).
-OMP instead selects an existing agent exposed by the active session. The host owns agent
-capabilities, models, credentials, and fallbacks; woostack supplies the effective tier as task
-context and preserves the workspace and evidence contract.
+`fast`, `standard`, and `deep` are optional task/verification-depth preferences, not a
+provider/model map. The [host contract](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/model-tiers.md)
+uses configured agents and host-owned model/fallback settings. OMP selects an agent discovered
+in the active session; Woostack preserves workspace and evidence boundaries.

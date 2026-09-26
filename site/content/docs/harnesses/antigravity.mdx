@@ -1,23 +1,21 @@
 ---
 title: Antigravity CLI
-description: Dynamic subagents, run-model routing, and interactive authentication.
+description: Dynamic subagents, host model inheritance, and interactive authentication.
 ---
 
 Antigravity CLI (`agy`) creates a worker with its own conversation context for each task.
 Independent tasks can run together. This context isolation keeps each worker focused on its assigned
 task; the task still needs an explicit worktree and permission boundary.
 
-No official Antigravity dispatch parameter surface is verified in woostack, so treat per-worker
-model and effort selection as unavailable until the active runtime exposes a matching field.
-Woostack therefore resolves one run model before the run, and all task tiers use it; split into
-multiple jobs for per-tier split behavior. The runtime has no documented per-worker working
-directory, so the task prompt names the expected worktree and the worker must use it before writing.
+No official Antigravity dispatch parameter surface is verified here. The configured session
+model is the normal default; an explicit one-run override requires the active schema to expose
+its exact native field and host authorization. Role preferences do not select a model. The
+runtime has no documented per-worker working directory, so the task prompt pins a worktree.
 
 Antigravity authenticates through the system keyring and Google Sign-In. It has no documented
 non-interactive API-key login, so it cannot run without an interactive login in a temporary CI
-environment. If the provider's usage limit is exhausted, the worker returns an error; no automatic
-fallback managed by Antigravity is documented, and configured fallback entries are a manual
-preference order.
+environment. Provider usage-limit errors surface unless the host recovers; Woostack does not
+enact a repository fallback list.
 
 Use your Antigravity CLI's own documented way to invoke a skill explicitly; a `/woostack-*` example
 in this documentation names the logical command, and no Antigravity-specific invocation form is

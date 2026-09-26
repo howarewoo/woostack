@@ -8,13 +8,11 @@ Claude Code starts workers through its subagent spawn tool, documented as `Agent
 worker whose capabilities fit the task; `general-purpose` is the plain write-capable worker.
 Independent tasks are submitted together so Claude Code can run them concurrently.
 
-When the active tool schema carries a model parameter and the host permits per-invocation selection,
-woostack passes the resolved model for that invocation. Without forced-model mode, Claude Code
-resolves the worker's model from the per-invocation parameter, the worker definition's `model`
-frontmatter (`inherit` selects the session model), `CLAUDE_CODE_SUBAGENT_MODEL`, and finally the
-session model, in that order
-([choose a model](https://code.claude.com/docs/en/sub-agents#choose-a-model)). If the active schema
-has no model parameter, woostack omits it and the worker uses the next available source in that order.
+Without an explicit native override, Claude Code selects the worker model from its definition's
+`model` frontmatter (`inherit` selects the session model), `CLAUDE_CODE_SUBAGENT_MODEL`, then the
+session model ([choose a model](https://code.claude.com/docs/en/sub-agents#choose-a-model)).
+An explicit one-run `model` request can take precedence only if the active schema exposes it
+and the host permits it. Normal inheritance needs no notice.
 
 With `CLAUDE_CODE_SUBAGENT_MODEL_FORCE=1`, Claude Code instead ignores the worker definition's
 `model` and prevents per-invocation selection. Woostack omits the model override; the worker uses
@@ -23,18 +21,17 @@ See the [forced-model contract](https://code.claude.com/docs/en/sub-agents#run-e
 for its fork, inherited-skill, and built-in Explore cap exceptions. In either case, woostack reports
 once when a requested model override cannot be applied, identifying the applicable source.
 
-Reasoning effort is a worker-definition and session setting; unless the active schema supports a
-per-invocation effort field, woostack omits it, uses the host's inherited effort, and reports once
-that the selected tier's effort was not applied per invocation.
+Reasoning effort is a worker-definition and session setting. An explicit one-run effort request
+needs a supported native field and host authorization; otherwise report the unsupported optional
+request or block a required exact effort comparison without matching evidence.
 
 The tool takes no separate working directory per worker. Instead, the task prompt names the exact
 worktree, the separate checkout assigned to that task, and the worker must use that directory and
 stop before writing if the path does not match. A worker definition can request
 `isolation: worktree`; that is a definition choice, not a per-call directory.
 
-If the provider's usage limit is exhausted, starting the worker returns an error. Claude Code has
-no documented automatic fallback for spawned workers, and configured fallback entries are a manual
-preference order.
+If the provider's usage limit is exhausted, starting the worker may return an error. Recovery
+belongs to the host, not a repository fallback list.
 
 Invoke a woostack skill in Claude Code with its documented command, for example
 `/woostack-execute` ([skills](https://code.claude.com/docs/en/skills)). It is the same skill and the

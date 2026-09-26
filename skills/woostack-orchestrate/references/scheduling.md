@@ -9,7 +9,7 @@ reuses an isolated workspace and delivers the helper packet through an authorize
 Link rather than copy the shared [source-control contract](../../woostack-commit/references/source-control.md),
 the outcome-level [runtime workspace guidance](#runtime-workspace-and-branch-evidence),
 the [least-code standard](../../woostack-bootstrap/references/patterns.md#7-least-code--comments),
-the [model tiers](../../using-woostack/references/model-tiers.md), and canonical
+the [host-owned model and role-preference contract](../../using-woostack/references/model-tiers.md), and canonical
 [`#artifact-delivery-note`](../../woostack-commit/references/provider-attribution.md#artifact-delivery-note)
 contract.
 
