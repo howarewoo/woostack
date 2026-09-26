@@ -1,6 +1,6 @@
 # Workflow smoke
 
-These are three on-demand recipes for material Plan, Execute, or Orchestrate changes and for regression investigation. They are not a corpus, a model grader, a mandatory check after every instruction edit, or a replacement test command. Run the smallest recipe that covers the changed behavior and add a scenario only after a valuable observed failure.
+These are four on-demand recipes for material routing, Plan, Execute, or Orchestrate changes and for regression investigation. They are not a corpus, a model grader, a mandatory check after every instruction edit, or a replacement test command. Run the smallest recipe that covers the changed behavior and add a scenario only after a valuable observed failure.
 
 ## Evidence classes and shared fixture
 
@@ -186,3 +186,44 @@ draft-PR writes are required by this recipe.
 - The actual-host record names the revision, host, exact invocation, worker identities, A/B/C schedule order, persisted plan revision/fingerprint, recovery receipt, and canonical PR read-backs. The recording-driver run is reported separately and never as an actual model/host pass.
 
 **Cleanup:** leave delivered PRs draft and unmerged, stop task-owned workers, retain controller evidence until the run is recorded, then use only the separately authorized disposable-repository cleanup. Remove task worktrees only after verifying they contain no user work.
+
+## 4. Routing and reference-loading matrix
+
+**Prerequisites:** the repository's current `skills/using-woostack/SKILL.md`, the loaded skill each
+row names, and that skill's own references. No live repository, GitHub capability, disposable
+fixture, or extra permission is required.
+
+**Setup:** none. This is a bounded read-and-compare trace of the shipped instruction text, so it
+exercises changed assets without a model.
+
+**Invocation:** for each row below, read the router's routing table, follow it to the named skill,
+and record the references that skill loads on that path, the next action it must take, and the side
+effects it must not have.
+
+| Request | Route and loaded owners | Expected next action | Prohibited |
+| --- | --- | --- | --- |
+| Adopt/choose a workflow | Router plus project rules | Name one matching skill | Init, GitHub access, or loading all skills |
+| Prepare a complete specification | Harden/Plan plus their publication references | Publish one issue graph and stop | Repeated Ideate questions; Execute/Orchestrate dispatch |
+| Prepare an unproved defect | Debug, then correction planning | Prove a cause first | Source edits from an unproved theory |
+| Execute a complete inline bounded task | Execute, then Commit/source-control at delivery | One commit and one PR | Project/provider graph discovery |
+| Execute one exact issue URL | Narrow exact-issue read, Execute, Commit association | One task's one PR | Dropping the issue, selecting siblings, or Project discovery |
+| Commit without an issue | Commit/source-control only | One commit; PR per the caller's PR requirement | Association/profile reads |
+| Explicit Reflect | Exactly one Reflect invocation | One report-only pass | Automatic reflection on every final reply |
+
+**Assertions:**
+
+- Every row resolves to exactly one skill through the router's table, and each listed owner is the
+  skill's own reference rather than a blanket instruction in the router.
+- The router and Prepare name no downstream scheduling step that only Orchestrate owns; Orchestrate
+  remains the single place its DAG, parent-selection, and join behavior is specified.
+- No GitHub-publishing or GitHub-inspecting row is routed through provider or Project machinery that
+  the row's operation does not need; an exact issue URL alone does not select Project discovery.
+- Ordinary Commit without an issue reads no issue-association reference, while an exact-issue
+  Execute/Commit still independently reads that issue and verifies one closing reference.
+- The router's intent table, project-policy precedence, namesake loading, host selection, shared
+  output discipline, missing-skill handling, planning-versus-execution boundary, retired-command
+  notice, and Reflect candidate gate all still resolve.
+
+The trace is a **manual instruction-text result**. It is not an actual-host pass: record it as
+manual evidence, and label the actual-host variant **Unrun** unless a supported host invoked the
+installed router for the same rows.
