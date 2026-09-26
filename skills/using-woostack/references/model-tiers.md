@@ -20,17 +20,18 @@ optional; keep work inline when the total cost or risk favors it.
 | `deep` | skeptical validation, design/architecture judgment, code-quality review | `claude-opus-4-8` + `effort: xhigh` | `gpt-5.5` + `reasoning_effort: high` | `gemini-3-5-flash` | `openrouter/deepseek/deepseek-v4-pro` + `reasoning_effort: xhigh` |
 
 > **Provider notes:**
-> - **Anthropic** routes every tier to `claude-opus-4-8`; model selection is a no-op, so the tier is expressed entirely through reasoning `effort` (`low` for fast, `medium` for standard, `xhigh` for deep). `effort` is a real config field (`models.anthropic.<tier>.effort`); callers apply it per invocation.
+> - **Anthropic** routes every tier to `claude-opus-4-8`; model selection is a no-op, so the tier is expressed entirely through reasoning `effort` (`low` for fast, `medium` for standard, `xhigh` for deep). `effort` is a real config field (`models.anthropic.<tier>.effort`); pass it per invocation only when the active schema supports it. Otherwise use the host's documented effort inheritance and report once that the requested tier effort could not be applied.
 > - **Google** currently ships only `gemini-3-5-flash` in the 3.5 line; no Pro/Ultra/Thinking variant exists yet, so all tiers collapse onto flash (tier routing is effectively a no-op until Google releases a larger model).
 > - **OpenAI** GPT-5-family reasoning is a parameter on the same slug, not a slug suffix. Use `gpt-5.5` for every tier, with `reasoning_effort: low` for fast, `medium` for standard, and `high` for deep. There is no `gpt-5-pro`.
 > - **OpenRouter** DeepSeek exposes exactly two slugs — `deepseek/deepseek-v4-flash` and `deepseek/deepseek-v4-pro`. Reasoning is a `reasoning_effort` parameter (`high` / `xhigh`, where `xhigh` maps to max). Use plain `v4-pro` for standard and `v4-pro` with `reasoning_effort: xhigh` for deep. Do not route to `deepseek-r1` — V4 supersedes it.
 
 ## Routing by host capability (generic)
 
-Three capability classes: **per-call model routing** (the spawn accepts an explicit model/effort;
-resolve the effective tier and pass everything it specifies), **single model per session**
-(resolve one run model up front; per-tier behavior collapses onto it), and **host-owned agent
-routing** (the spawn selects an agent exposed by the host; the host owns the concrete model).
+Three capability classes: **per-call model routing** (the spawn accepts an explicit model and may
+accept effort; resolve the effective tier and pass only fields the active schema supports),
+**single model per session** (resolve one run model up front; per-tier behavior collapses onto it),
+and **host-owned agent routing** (the spawn selects an agent exposed by the host; the host owns the
+concrete model).
 Host-owned routing is non-degraded only when the host proves the selected agent's capabilities;
 the host adapter owns agent discovery, selection, and fallback. It never creates a repository
 catalog or aliases. The [known host references](hosts/README.md) are optional mechanics recipes.

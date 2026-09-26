@@ -1,19 +1,29 @@
 ---
 title: opencode
-description: Per-call model routing through opencode's subagent primitive.
+description: Delegation to discovered subagents through opencode's task tool.
 ---
 
-opencode lets woostack select a model when starting each worker. Woostack resolves the task's
-`fast`, `standard`, or `deep` tier and passes the corresponding model. Independent tasks are
-submitted together. Woostack limits concurrency only when the installed runtime cannot run
-workers in parallel.
+opencode delegates to a subagent through its `task` tool, and woostack selects a discovered agent
+whose capabilities fit the task. The built-in `General` agent has full tool access, while `Explore`
+and `Scout` are read-only and never suit a write task ([agents](https://opencode.ai/docs/agents/)).
+Independent tasks are submitted together, and woostack runs them one at a time with a clear notice
+when the installed build cannot run workers in parallel.
 
-Woostack passes the working directory when the runtime supports it. The task prompt always names
-the exact worktree, the separate checkout assigned to that task.
+opencode documents `model` and provider reasoning options as agent configuration resolved per
+agent, not as a documented per-call `task` argument. Woostack passes a model for a specific worker
+only when the active task schema carries that field. Otherwise the worker runs on its configured or
+session model, and woostack reports that limitation once. A `fast`, `standard`, or `deep` tier that
+cannot be routed per call is reported the same way, never silently applied.
 
-No automatic fallback managed by opencode is documented for provider usage limits. If the runtime
-cannot accept the selected model, the worker uses the session model and woostack reports that
-limitation.
+No per-worker working directory is documented. The task prompt always names the exact worktree, the
+separate checkout assigned to that task, and the worker verifies that path before it writes.
+
+No automatic fallback managed by opencode is documented for provider usage limits; configured
+fallback entries are a manual preference order.
+
+Ask for a woostack skill by name: opencode's native `skill` tool loads the discovered skill, for
+example `skill({ name: "woostack-execute" })` ([Agent Skills](https://opencode.ai/docs/skills/)).
+Mentioning a subagent with `@` is a user chat shortcut, not a dispatch interface an agent can call.
 
 For detection, worker behavior, per-skill instructions, and fallback rules, read the
 [canonical opencode reference](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/hosts/opencode.md).

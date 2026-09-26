@@ -1,20 +1,28 @@
 ---
 title: Antigravity CLI
-description: Dynamic subagents, single-session routing, and interactive authentication.
+description: Dynamic subagents, run-model routing, and interactive authentication.
 ---
 
 Antigravity CLI (`agy`) creates a worker with its own conversation context for each task.
-Independent tasks can run together. This context isolation keeps each worker focused on its
-assigned task; the task still needs an explicit worktree and permission boundary.
+Independent tasks can run together. This context isolation keeps each worker focused on its assigned
+task; the task still needs an explicit worktree and permission boundary.
 
-Antigravity uses one model per session. Woostack selects that model before the run, and all task
-tiers use it. The runtime cannot set a separate working directory for each worker, so the task
-prompt names the expected worktree and the worker must use it before writing.
+No official Antigravity dispatch parameter surface is verified in woostack, so treat per-worker
+model and effort selection as unavailable until the active runtime exposes a matching field.
+Woostack therefore resolves one run model before the run, and all task tiers use it; split into
+multiple jobs for per-tier split behavior. The runtime has no documented per-worker working
+directory, so the task prompt names the expected worktree and the worker must use it before writing.
 
 Antigravity authenticates through the system keyring and Google Sign-In. It has no documented
 non-interactive API-key login, so it cannot run without an interactive login in a temporary CI
 environment. If the provider's usage limit is exhausted, the worker returns an error; no automatic
-fallback managed by Antigravity is documented.
+fallback managed by Antigravity is documented, and configured fallback entries are a manual
+preference order.
+
+Use your Antigravity CLI's own documented way to invoke a skill explicitly; a `/woostack-*` example
+in this documentation names the logical command, and no Antigravity-specific invocation form is
+recorded in the
+[host reference](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/hosts/README.md#native-skill-invocation).
 
 For detection, worker behavior, per-skill instructions, and fallback rules, read
 the [canonical Antigravity reference](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/hosts/antigravity.md).

@@ -1,20 +1,34 @@
 ---
 title: Claude Code
-description: Task-based dispatch with per-call model routing and prompt-pinned worktrees.
+description: Task-based dispatch with a documented per-invocation model and prompt-pinned worktrees.
 ---
 
-Claude Code starts workers through the `Task` tool. For each worker, woostack selects a model
-from the task's tier (`fast`, `standard`, or `deep`) and passes the model explicitly. It also
-passes the reasoning effort setting when the model family supports one. Independent tasks are
-submitted together so Claude Code can run them concurrently.
+Claude Code starts workers through its subagent spawn tool, documented as `Agent` in the
+[tools reference](https://code.claude.com/docs/en/tools-reference). Woostack selects a discovered
+worker whose capabilities fit the task; `general-purpose` is the plain write-capable worker.
+Independent tasks are submitted together so Claude Code can run them concurrently.
 
-The tool cannot set a separate working directory for each worker. Instead, the task prompt names
-the exact worktree, the separate checkout assigned to that task. The worker must use that directory
-and stop before writing if the path does not match.
+When the active tool schema carries a model parameter, woostack passes the resolved model for that
+invocation. Claude Code then resolves the worker's model from the per-invocation parameter, the
+worker definition's `model` frontmatter, `CLAUDE_CODE_SUBAGENT_MODEL`, and finally the session model,
+in that order ([subagents](https://code.claude.com/docs/en/sub-agents)). If the active schema has no
+model parameter, the worker uses the next available source in that order, and woostack reports the
+limitation once. Reasoning effort is a worker-definition and session setting; unless the active
+schema supports a per-invocation effort field, woostack uses the host's inherited effort and reports
+once that the selected tier's effort was not applied per invocation.
+
+The tool takes no separate working directory per worker. Instead, the task prompt names the exact
+worktree, the separate checkout assigned to that task, and the worker must use that directory and
+stop before writing if the path does not match. A worker definition can request
+`isolation: worktree`; that is a definition choice, not a per-call directory.
 
 If the provider's usage limit is exhausted, starting the worker returns an error. Claude Code has
-no documented automatic fallback for spawned workers. If the runtime cannot accept the selected
-model, the worker uses the session model and woostack reports that limitation.
+no documented automatic fallback for spawned workers, and configured fallback entries are a manual
+preference order.
+
+Invoke a woostack skill in Claude Code with its documented command, for example
+`/woostack-execute` ([skills](https://code.claude.com/docs/en/skills)). It is the same skill and the
+same permissions as the `/woostack-*` form used elsewhere in this documentation.
 
 For detection, worker-profile rules, per-skill instructions, and fallback behavior, read the
 [canonical Claude Code reference](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/hosts/claude-code.md).

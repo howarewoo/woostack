@@ -1,21 +1,33 @@
 ---
 title: Codex
-description: Local per-call routing and Codex Action's single-session mode.
+description: Local prompt and configuration-based routing and Codex Action's single-session mode.
 ---
 
 Codex supports two ways to run woostack:
 
-- Local Codex can select a model for each worker. Woostack passes the model and, for GPT-5-family
-  reasoning models, a separate `reasoning_effort` value for each task.
-- A Codex Action job runs in one session. Woostack selects one model before the job starts, and all
-  task tiers use it.
+- Local Codex clients — the CLI, IDE extension, and desktop app — enable subagent workflows by
+  default. A worker's model and reasoning effort come from the custom agent file or `config.toml`
+  `[agents]` defaults, or from a request in the dispatch prompt. When neither is configured, the
+  worker inherits the parent agent's model and reasoning effort
+  ([subagents](https://learn.chatgpt.com/docs/agent-configuration/subagents)). Woostack states the
+  requested model and effort in the prompt and passes a field only when the active schema exposes
+  that exact name.
+- A Codex GitHub Action job runs one non-interactive `codex exec` step whose `model` and `effort`
+  inputs select the run configuration
+  ([Codex GitHub Action](https://learn.chatgpt.com/docs/github-action)). All task tiers in that job
+  use the one run model; whether such a job can fan out is a capability of the active run to verify.
 
-For local workers, woostack passes the working directory when the runtime supports it. The task
-prompt always names the exact worktree, the separate checkout assigned to the task.
+No per-worker working directory is documented. The task prompt always names the exact worktree, the
+separate checkout assigned to the task, and the worker verifies that path before it writes.
 
 If the provider's usage limit is exhausted, the worker returns an error. Configured fallback
 entries give you a manual preference order; woostack does not automatically try each model when
 starting a worker.
+
+Invoke a woostack skill in Codex with its documented mention, for example `$woostack-execute` — type
+`$` to mention a skill, or run `/skills`
+([build skills](https://learn.chatgpt.com/docs/build-skills)). It is the same skill and the same
+permissions as the `/woostack-*` form used elsewhere in this documentation.
 
 ## Receive a ChatGPT planning handoff
 
@@ -40,6 +52,9 @@ planning context to Codex. A canonical tracker URL is a convenient hint:
 ```text
 /woostack-orchestrate --issue <verified canonical tracker URL>
 ```
+
+In Codex, write that same request as `$woostack-orchestrate --issue <verified canonical tracker
+URL>`.
 
 Orchestrate independently reads the tracker and every selected issue, resolves executable tasks and
 a bounded technical dependency DAG, and then selects and summarizes a model-chosen single-parent
