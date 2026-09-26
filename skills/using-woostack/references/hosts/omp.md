@@ -8,9 +8,6 @@ registered session tools or tool routes. Prefer a suitable native capability; ho
 GitHub CLI (`gh`) remains supported for explicit GitHub operations under the selected workflow's
 artifact admission. Discover actual GitHub operation capabilities and read/write shapes rather than
 assuming tool names or schemas. Never use custom HTTP/REST/GraphQL transport or fallback tokens.
-GitHub operations follow the canonical
-[artifact backends contract](../../../woostack-init/references/artifact-backends.md) and
-[GitHub profile](../../../woostack-init/references/artifact-providers/github.md#configuration-and-scope).
 
 When a woostack skill is invoked, rename the active session with a concise title derived from the
 user's current goal. For `woostack-prepare` and `woostack-execute`, derive the title from the user's
@@ -155,4 +152,4 @@ emit one concise warning and proceed with the workflow.
 
 If no authorized GitHub interface (native capability or host-authenticated `gh`) supports a
 required operation capability, fail closed for required GitHub boundaries; for optional operations,
-report the missing capability per the canonical artifact contract.
+report the missing capability without an unauthorized fallback.

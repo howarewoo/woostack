@@ -7,9 +7,7 @@ Discover authorized native GitHub capabilities exposed through Cursor Composer /
 configuration. Prefer a suitable native capability; host-authenticated GitHub CLI (`gh`) remains
 supported for explicit GitHub operations under the selected workflow's admission. Discover actual
 GitHub operation capabilities and read/write shapes rather than assuming tool names or schemas.
-Never use custom HTTP/REST/GraphQL transport or fallback tokens. GitHub operations follow the
-canonical [artifact backends contract](../../../woostack-init/references/artifact-backends.md) and
-[GitHub profile](../../../woostack-init/references/artifact-providers/github.md#configuration-and-scope).
+Never use custom HTTP/REST/GraphQL transport or fallback tokens.
 
 ## Subagent spawn
 
@@ -49,4 +47,4 @@ Tier requested but not routable per call → run at the session model and say so
 per the inline law of the dispatching skill.
 If no authorized GitHub interface (native capability or host-authenticated `gh`) supports a
 required operation capability, fail closed for required GitHub boundaries; for optional operations,
-report the missing capability per the canonical artifact contract.
+report the missing capability without an unauthorized fallback.

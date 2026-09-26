@@ -195,13 +195,13 @@ result is **manual instruction-text evidence**, never a host result.
 
 | Request | Route and loaded owners | Next action | Must not happen |
 | --- | --- | --- | --- |
-| Adopt/choose a workflow | Router plus project rules | Name one matching skill | Init, GitHub access, or loading all skills |
-| Prepare a complete specification | Harden/Plan plus publication references | Publish one issue graph and stop | Repeated Ideate questions; Execute/Orchestrate dispatch |
-| Prepare an unproved defect | Debug, then correction planning | Prove a cause first | Source edits from an unproved theory |
-| Execute a complete inline bounded task | Execute; source control at delivery | One commit and one PR | Project/provider graph discovery |
-| Execute one exact issue URL | Exact-issue read; Execute; Commit association | One task's one PR | Dropping the issue, siblings, or Project discovery |
-| Commit without an issue | Source control only | One commit; PR per the caller | Association/profile reads |
-| Explicit Reflect | Exactly one Reflect invocation | One report-only pass | Automatic reflection on every final reply |
+| Adopt/choose a workflow | using-woostack; project rules | Name one matching skill | Init, GitHub access, or loading all skills |
+| Prepare a complete specification | woostack-prepare → Harden/Plan; publication references | Publish one issue graph and stop | Repeated Ideate questions; Execute/Orchestrate dispatch |
+| Prepare an unproved defect | woostack-prepare → Debug, then correction planning | Prove a cause first | Source edits from an unproved theory |
+| Execute a complete inline bounded task | woostack-execute; source control at delivery | One commit and one PR | Project/provider graph discovery |
+| Execute one exact issue URL | woostack-execute; exact-issue read, then Commit association | One task's one PR | Dropping the issue, siblings, or Project discovery |
+| Commit without an issue | woostack-commit; source control only | One commit; PR per the caller | Association/profile reads |
+| Explicit Reflect | woostack-reflect; exactly one invocation | One report-only pass | Automatic reflection on every final reply |
 
 **Assertions:** every row resolves to exactly one skill, and each owner it loads is that skill's own
 reference rather than a router-wide rule. Orchestrate alone owns its scheduling algorithm, and the
