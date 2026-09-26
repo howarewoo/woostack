@@ -70,6 +70,10 @@ registered, to identify the trunk that supplies its applicable review policy. It
 extends, or reconciles a stack; that is the owner's
 [stack membership contract](../../woostack-commit/references/source-control.md#native-github-stack-membership-for-a-dependent-pr)
 for a delivery, and an unreadable stack read leaves the parent policy unproven.
+For a multi-level open stack, use current native parent PR reads for **every** open ancestor's
+mutable review and draft state; historical draft delivery receipts remain unchanged. The selected
+parent alone is not enough when an older ancestor has changed since delivery.
+
 
 The model, not a selector or source layout, decides which issues are executable. It reads issue
 bodies, comments, repository instructions, and relevant tracker/Project context, asks a focused
@@ -531,8 +535,8 @@ diagnosis, repair-attempt history with ownership, PR identity, delivery checkpoi
 action, and first uncertain boundary distinct. GitHub remains the source for issue and CI facts;
 the controller stores only the observation identities needed to resume safely. The caller must
 externally enforce exclusive ownership of the selected canonical scope/state for the controller
-session, covering every `schedule`, `record-worker`, `apply-result`, `observe-checks`,
-`reconcile`, and `resume` call. If exclusive ownership cannot be proved, block
+session, covering every `schedule`, `record-worker`, `withdraw-unlaunched`, `apply-result`,
+`observe-checks`, `reconcile`, and `resume` call. If exclusive ownership cannot be proved, block
 at controller preflight before invoking the helper.
 
 A task whose landed, verified delivery is already contained in the approved base is `satisfied`
@@ -572,8 +576,8 @@ checkpoint recovery evidence and never adopts arbitrary bytes. The head is indep
 input/output filenames, so a second writer using the same stale `--state` cannot advance a different
 `--state-out`.
 The first schedule omits `--state` and creates state. Every later schedule, record-worker,
-apply-result, observe-checks, reconcile, resume, or stop names an existing state and matching
-admission. An admission retained from before the landed-prerequisite cutover is accepted as
+withdraw-unlaunched, apply-result, observe-checks, reconcile, resume, or stop names an existing
+state and matching admission. An admission retained from before the landed-prerequisite cutover is
 written: its scope, plan identity, and receipts are never rewritten, and only a state that was
 stopped when it was persisted may cross that boundary. Missing state, malformed JSON,
 state/fingerprint/scope mismatch, missing durable checkpoint head, or a state task set that differs

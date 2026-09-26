@@ -3153,7 +3153,9 @@ def stack_requirement(admitted, task, readiness, state, repo):
         if satisfaction["kind"] != "open":
             continue
         readback = satisfaction["checkpoint"]["readback"]
-        members.append({key: readback[key] for key in (
+        current, _ = parent_pr_evidence(admitted, readback["branch"], readback["head_sha"],
+                                        satisfaction["checkpoint"])
+        members.append({key: current["prs"][0][key] for key in (
             "pr_url", "branch", "head_sha", "base_branch", "draft")})
     require(members and members[-1]["pr_url"] == parent_prs[0]["pr_url"],
             "parent-pr-evidence", "open parent PR is outside the approved execution chain")
@@ -4054,6 +4056,56 @@ def cmd_record_worker(args):
     return {"status": "worker-recorded", "task_id": args.task}
 
 
+def cmd_withdraw_unlaunched(args):
+    """Withdraw an issued packet only before any native launch or source mutation."""
+    admitted = continuation_admission(load_json(args.admitted))
+    repository(args.git_repo, admitted["canonical_repo"])
+    state = state_read(args.state, admitted, repo=args.git_repo, active_task_id=args.task)
+    require(Path(args.state).resolve() == Path(args.state_out).resolve(),
+            "state-mismatch", "withdrawal must preserve the same checkpoint")
+    require(args.task in state["tasks"], "unknown-task", "task outside admitted scope")
+    item = state["tasks"][args.task]
+    reservation = item.get("reservation")
+    history = item.get("attempt_history") or []
+    require(item["status"] == "running" and isinstance(reservation, dict)
+            and item.get("host_worker") is None and item.get("report") is None
+            and item.get("delivery") is None and item.get("verified_pr") is None
+            and item.get("ci", {}).get("state") == "unverified"
+            and history and history[-1].get("binding") == item.get("attempt_binding")
+            and history[-1].get("worker") is None,
+            "worker-liveness", "only an issued, never-launched packet can be withdrawn")
+    receipt = load_json(args.evidence)
+    require(receipt.get("checkpoint_digest") == state["_loaded_digest"]
+            and receipt.get("owner") == state["owner"]
+            and receipt.get("reservation") == reservation
+            and receipt.get("attempt_binding") == item["attempt_binding"]
+            and receipt.get("launch_not_attempted") is True,
+            "evidence-mismatch", "host withdrawal must bind the exact unlaunched attempt")
+    fresh = admit(load_json(args.fresh), admitted["max_parallel"], args.git_repo)
+    require(fresh["fingerprint"] == admitted["fingerprint"]
+            and fresh["execution_fingerprint"] == admitted["execution_fingerprint"],
+            "snapshot-drift", "withdrawal requires the same fresh task and execution identities")
+    inventory = recovery_inventory(fresh["recovery"])
+    require(all(row.get("task_id") != args.task and row.get("reservation") != reservation
+                for family in ("sessions", "processes") for row in inventory[family]),
+            "worker-liveness", "native inventory contains a reserved writer")
+    require(not Path(reservation["workspace"]).exists()
+            and branch_tip(args.git_repo, reservation["branch"]) is None
+            and not any(pr.get("head", {}).get("ref") == reservation["branch"]
+                        for pr in inventory["prs"])
+            and receipt.get("remote_branch") == {"complete": True, "exists": False}
+            and receipt.get("pr_discovery") == {"complete": True, "prs": []},
+            "source-conflict", "source or remote delivery may exist for the issued packet")
+    retained_claims(args.git_repo, admitted, state)
+    history[-1]["withdrawal"] = {"reason": text(receipt.get("reason")) or "unlaunched-packet",
+                                  "checkpoint_digest": state["_loaded_digest"],
+                                  "inventory_digest": digest(inventory)}
+    item.update(status="pending", reservation=None, attempt_binding=None,
+                last_evidence={"withdrawal": copy.deepcopy(history[-1]["withdrawal"])})
+    write_state(args, state)
+    return {"status": "withdrawn-unlaunched", "task_id": args.task, **_state_summary(state)}
+
+
 def cmd_apply_result(args):
     admitted = continuation_admission(load_json(args.admitted))
     repository(args.git_repo, admitted["canonical_repo"])
@@ -4561,6 +4613,15 @@ def parser():
     record_worker.add_argument("--task", required=True)
     record_worker.add_argument("--evidence", required=True)
     record_worker.set_defaults(run=cmd_record_worker)
+    withdraw = commands.add_parser("withdraw-unlaunched")
+    withdraw.add_argument("--admitted", required=True)
+    withdraw.add_argument("--state", required=True)
+    withdraw.add_argument("--state-out", required=True)
+    withdraw.add_argument("--git-repo", required=True)
+    withdraw.add_argument("--task", required=True)
+    withdraw.add_argument("--fresh", required=True)
+    withdraw.add_argument("--evidence", required=True)
+    withdraw.set_defaults(run=cmd_withdraw_unlaunched)
     reconcile = commands.add_parser("reconcile")
     reconcile.add_argument("--admitted", required=True)
     reconcile.add_argument("--state", required=True)

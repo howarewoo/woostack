@@ -567,6 +567,27 @@ substitute for a recorded native writer. Once recovered and recorded, apply a bo
 observation before unknown reconciliation when the response itself is missing or malformed.
 `record-worker` uses the same durable claims and checkpoint CAS as other controller mutations.
 
+An issued packet can be withdrawn **only before host launch** if a fresh parent/stack read
+invalidates its reservation. Under the same exclusive controller owner, first confirm native host
+session/process inventory has no matching writer, the reserved workspace and local/remote branch
+do not exist, and a complete native PR search for that branch is empty. Bind that fresh snapshot
+and a host `launch_not_attempted` attestation to the exact checkpoint digest, owner, reservation,
+and attempt binding:
+
+```text
+python3 <orchestrate-skill>/scripts/orchestrate.py withdraw-unlaunched \
+  --admitted admitted.json --state controller-state.json \
+  --state-out controller-state.json --git-repo <canonical-repository> \
+  --task <task-id> --fresh fresh-snapshot.json --evidence native-absence.json
+```
+
+The receipt records `remote_branch: {"complete": true, "exists": false}` and
+`pr_discovery: {"complete": true, "prs": []}` from independently read native endpoints.
+The helper retains the owner claim and withdrawn attempt history while returning the task to
+`pending`; the next schedule issues a new binding from current evidence. A launched writer,
+ambiguous transport result, source mutation, or unproved absence **cannot** use this path:
+preserve its reservation and reconcile normally. Never manufacture absence from a missing reply.
+
 ## Unknown reconciliation
 
 An unknown task remains reserved and blocks only that task and its descendants. Before reconciling,

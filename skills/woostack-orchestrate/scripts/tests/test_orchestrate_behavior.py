@@ -717,6 +717,53 @@ class OrchestrateBehavior(unittest.TestCase):
         self.assertIn(("dependencies", 2), self.github.calls)
 
 
+    def test_unlaunched_packet_withdrawal_preserves_history_and_claim(self) -> None:
+        admitted_path, admitted = self._admit_issue()
+        state, scheduled = self._schedule(
+            admitted_path, admitted, None, self.github.snapshot(), "withdraw-initial", cap="1")
+        entry = scheduled["dispatch"][0]
+        task_id = entry["task_id"]
+        before = json.loads(state.read_text())
+        fresh = self._write_json("withdraw-fresh.json", self.github.snapshot())
+        evidence = {
+            "checkpoint_digest": hashlib.sha256(state.read_bytes()).hexdigest(),
+            "owner": before["owner"], "reservation": before["tasks"][task_id]["reservation"],
+            "attempt_binding": entry["attempt_binding"], "launch_not_attempted": True,
+            "remote_branch": {"complete": True, "exists": False},
+            "pr_discovery": {"complete": True, "prs": []},
+            "reason": "parent stack metadata changed before host launch",
+        }
+        evidence_path = self._write_json("withdraw-evidence.json", evidence)
+        args = ("withdraw-unlaunched", "--admitted", str(admitted_path),
+                "--state", str(state), "--state-out", str(state), "--git-repo",
+                str(self.repo), "--task", task_id, "--fresh", str(fresh),
+                "--evidence", str(evidence_path))
+        for defect in ("launched", "foreign-branch"):
+            changed = copy.deepcopy(evidence)
+            if defect == "launched":
+                changed["launch_not_attempted"] = False
+            else:
+                changed["remote_branch"]["exists"] = True
+            invalid = self._write_json("withdraw-" + defect + ".json", changed)
+            code, result = invoke_cli(*args[:-1], str(invalid))
+            self.assertNotEqual(code, 0, result)
+            self.assertEqual(json.loads(state.read_text()), before)
+        code, withdrawn = invoke_cli(*args)
+        self.assertEqual(code, 0, withdrawn)
+        self.assertEqual(withdrawn["status"], "withdrawn-unlaunched")
+        retained = json.loads(state.read_text())
+        task = retained["tasks"][task_id]
+        self.assertEqual(task["status"], "pending")
+        self.assertIsNone(task["reservation"])
+        self.assertEqual(task["claim"], before["tasks"][task_id]["claim"])
+        self.assertEqual(task["attempt_history"][0]["binding"], entry["attempt_binding"])
+        self.assertIn("withdrawal", task["attempt_history"][0])
+        _, reissued = self._schedule(
+            admitted_path, admitted, state, self.github.snapshot(), "withdraw-reissue", cap="1")
+        self.assertEqual(reissued["dispatch"][0]["task_id"], task_id)
+        self.assertEqual(len(reissued["dispatch"][0]["packet"]["parent_readiness"]["prerequisites"]), 0)
+        self.assertEqual(len(reissued["dispatch"]), 1)
+
     def test_pre_execution_stack_layout_orders_joins_before_dispatch_and_resume(self) -> None:
         """The model-selected tree keeps every join on one ancestor path."""
 
@@ -818,6 +865,11 @@ class OrchestrateBehavior(unittest.TestCase):
             admitted_path, recovered_state, "task-b", result_b, "stack-b")
         self.assertEqual(applied_b["status"], "delivered")
         self._persist("task-b", result_b, b_entry)
+        # The older open ancestor becomes ready after its draft delivery receipt.
+        # Native stack membership must use current metadata at every depth.
+        self.assertTrue(result_a["readback"]["draft"])
+        self.github.prs["task-a"]["draft"] = False
+        self.github.parent_branches.add(report_a["worker"]["branch"])
         state_c, after_b = self._schedule(
             admitted_path, admitted, state_b, fresh(), "stack-after-b", cap="3",
             decision=None,
@@ -834,6 +886,8 @@ class OrchestrateBehavior(unittest.TestCase):
             [member["pr_url"] for member in c_entry["stack"]["members"]],
             [self.github.prs[task_id]["pr_url"] for task_id in ("task-a", "task-b")],
         )
+        self.assertFalse(c_entry["stack"]["members"][0]["draft"])
+        self.assertTrue(result_a["readback"]["draft"])
         host.dispatch([c_entry])
         report_c = host.wait_for_report("task-c")
         result_c = make_result(self.github, "task-c", report_c, admitted)
