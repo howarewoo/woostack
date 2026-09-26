@@ -10,9 +10,25 @@ the [least-code standard](../../woostack-bootstrap/references/patterns.md#7-leas
 and canonical [`#artifact-delivery-note`](../../woostack-commit/references/provider-attribution.md#artifact-delivery-note)
 contract. Known host files are optional mechanics references, not an allowlist.
 
+Load only the section you need: [result schema](#result-schema) ·
+[evidence calculations](#evidence-calculations) · [gate order and statuses](#gate-order-and-statuses) ·
+[independent read-only specification validation](#independent-read-only-specification-validation) ·
+[PR-check observation and repair](#pr-check-observation-and-repair) ·
+[GitHub delivery note and optional Project status](#github-delivery-note-and-optional-project-status) ·
+[record the native writer](#record-the-native-writer) ·
+[unknown reconciliation](#unknown-reconciliation).
+
 ## Result schema
 
 `apply-result --git-repo <canonical-repository>` accepts one result for one helper-reserved task.
+
+```text
+python3 <orchestrate-skill>/scripts/orchestrate.py apply-result \
+  --admitted admitted.json --state controller-state.json \
+  --state-out controller-state.json --git-repo <canonical-repository> \
+  --task <task-id> --result <complete-result.json>
+```
+
 All runtime markers below are facts that the skill must substitute from direct reads; they are not
 values to invent:
 
@@ -356,9 +372,15 @@ consumes host-provided authoritative evidence with revision-scoped identity whil
 native-worker identity checks. It also carries host-assembled applicability and downstream-start
 policy evidence; neither is inferred from elapsed time or an empty response.
 
-The helper's `observe-checks` transition consumes one freshly assembled observation
-for a delivered task ([invocation](../SKILL.md#one-real-helper-path)). All values
-must come from current, complete native reads, not prior worker output:
+The helper's `observe-checks` transition consumes one freshly assembled observation for a delivered
+task. All values must come from current, complete native reads, not prior worker output:
+
+```text
+python3 <orchestrate-skill>/scripts/orchestrate.py observe-checks \
+  --admitted admitted.json --state controller-state.json \
+  --state-out controller-state.json --git-repo <canonical-repository> \
+  --task <task-id> --observation <fresh-pr-check-observation.json>
+```
 
 ```json
 {
@@ -513,7 +535,7 @@ Immediately after dispatch, read the actual host's worker handle and its owning 
 correlate that launch with the complete reserved task packet, and checkpoint it:
 
 ```text
-python3 skills/woostack-orchestrate/scripts/orchestrate.py record-worker \
+python3 <orchestrate-skill>/scripts/orchestrate.py record-worker \
   --admitted admitted.json --state controller-state.json \
   --state-out controller-state.json --git-repo <canonical-repository> \
   --task <task-id> --evidence host-launch-readback.json
@@ -522,10 +544,6 @@ python3 skills/woostack-orchestrate/scripts/orchestrate.py record-worker \
 The launch receipt contains `worker` (exactly nonempty `host_id`, `session_id`, `worker_id`),
 `reservation` (the complete unchanged scheduled reservation), and `state_digest` (lowercase
 SHA-256 hex of the exact current checkpoint file bytes, without a prefix). Use native runtime
-The launch receipt also carries the packet's exact `attempt_binding`; this value is recorded
-alongside the native identity and must be echoed by the completion result. Version-2 checkpoints
-that predate attempt bindings remain readable for already-issued work, but the helper never invents
-a binding for them and accepts their existing result only when the reservation has no binding.
 identities, including the session/host incarnation, not a model-chosen label or reusable PID alone.
 The helper records this identity separately as `host_worker`; worker result prose cannot replace
 it. Another identity is rejected until the controller emits a new repair dispatch. Each dispatch
@@ -533,6 +551,10 @@ clears the prior native identity; record the new launch even when branch/workspa
 Completion envelopes retain the identity of their originating handle, not whichever writer is
 currently recorded for the task. Note/evidence-only retries keep that same recorded identity;
 a new repair launch receives its own native identity even when its reservation and PR are unchanged.
+The launch receipt also carries the packet's exact `attempt_binding`; this value is recorded
+alongside the native identity and must be echoed by the completion result. Version-2 checkpoints
+that predate attempt bindings remain readable for already-issued work, but the helper never invents
+a binding for them and accepts their existing result only when the reservation has no binding.
 
 If the dispatch reply was lost, direct host discovery may supply the missing identity against the
 still-running or unknown reservation through the same command. Correlate the actual launch/session
@@ -552,7 +574,7 @@ Hold the exclusive controller/task claims while obtaining a fresh complete recov
 reconciling; do not resume or relaunch that session between the read and reconciliation.
 
 ```text
-python3 skills/woostack-orchestrate/scripts/orchestrate.py reconcile \
+python3 <orchestrate-skill>/scripts/orchestrate.py reconcile \
   --admitted admitted.json --state controller-state.json \
   --state-out controller-state.json --git-repo <canonical-repository> \
   --task <task-id> --inventory current-recovery-inventory.json \

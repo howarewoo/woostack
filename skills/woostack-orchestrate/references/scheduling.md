@@ -13,6 +13,13 @@ the [model tiers](../../using-woostack/references/model-tiers.md), and canonical
 [`#artifact-delivery-note`](../../woostack-commit/references/provider-attribution.md#artifact-delivery-note)
 contract.
 
+Load only the section you need: [runtime workspace and branch evidence](#runtime-workspace-and-branch-evidence) ·
+[native reads before JSON assembly](#native-reads-before-json-assembly) ·
+[normalized snapshot](#normalized-snapshot) · [invoking the bridge](#invoking-the-bridge) ·
+[fingerprints and fresh refills](#fingerprints-and-fresh-refills) ·
+[state, reservations, and joins](#state-reservations-and-joins) ·
+[helper status meanings](#helper-status-meanings).
+
 ## Runtime workspace and branch evidence
 
 The admitted task contract contains scope, dependencies, verification, and intended Git-parent
@@ -320,11 +327,42 @@ creates a Project, changes membership, mutates an issue, or publishes an edge.
 ## Invoking the bridge
 
 Assemble the normalized snapshot from actual native/Git reads, serialize it with a JSON writer, and
-use the [canonical CLI sequence](../SKILL.md#one-real-helper-path). The examples describe runtime
-fields, not fixtures to submit unchanged. Keep snapshot, admission, result, and state files private
-(`umask 077`). Only `schedule` without `--state` initializes the state; every later call uses the
-existing state and newly assembled `--fresh` evidence. Follow the [completion- and check-driven refill
-loop](../SKILL.md#continuously-refill-on-completion-and-observed-pr-checks), not batch barriers.
+invoke the shipped helper. These examples describe runtime fields, not fixtures to submit unchanged.
+Keep snapshot, admission, result, and state files private (`umask 077`). Only `schedule` without
+`--state` initializes the state; every later call uses the existing state and newly assembled
+`--fresh` evidence. Do not omit `--fresh` on an initial or subsequent refill, and do not pass a newly
+created replacement state after admission. Follow the [completion- and check-driven refill
+loop](../SKILL.md#procedure), not batch barriers.
+
+```text
+python3 <orchestrate-skill>/scripts/orchestrate.py admit \
+  --snapshot <freshly-assembled-snapshot.json> \
+  [--max-parallel <n>] > admitted.json
+
+# Initial refill: deliberately omit --state. --fresh and --git-repo are required.
+python3 <orchestrate-skill>/scripts/orchestrate.py schedule \
+  --admitted admitted.json --state-out controller-state.json \
+  --git-repo <canonical-git-repository> --fresh <fresh-snapshot.json> \
+  [--cap <host-cap>] [--parent-decision <decision.json>]
+
+# Every later refill: state must already exist. Re-read and assemble a new fresh snapshot first.
+python3 <orchestrate-skill>/scripts/orchestrate.py schedule \
+  --admitted admitted.json --state controller-state.json \
+  --state-out controller-state.json \
+  --git-repo <canonical-git-repository> --fresh <fresh-snapshot.json> \
+  [--cap <host-cap>] [--parent-decision <decision.json>]
+
+# Explicit recovery for a stopped controller with import-only uncertainty.
+python3 <orchestrate-skill>/scripts/orchestrate.py resume \
+  --admitted admitted.json --state controller-state.json \
+  --state-out controller-state.json --git-repo <canonical-git-repository> \
+  --fresh <fresh-snapshot.json>
+
+python3 <orchestrate-skill>/scripts/orchestrate.py stop \
+  --admitted admitted.json --state controller-state.json \
+  --state-out controller-state.json --git-repo <canonical-git-repository> \
+  [--reason <safe-stop-reason>]
+```
 
 ## Fingerprints and fresh refills
 
@@ -531,6 +569,9 @@ approved integration branch is considered when the selected parent has landed. A
 only when its actual local tip is the recorded candidate SHA and `git merge-base --is-ancestor` proves
 that it contains every current prerequisite revision. Dependency count alone never forces a merge
 checkpoint, and ordinary joins do not require a new parent or integration decision.
+Dispatch readiness also requires every effective prerequisite's verified delivery and persisted
+note; an independently unsatisfied gate pauses exactly that dependent while unrelated ready work
+continues.
 
 If no candidate is suitable, the helper leaves the task pending with `waiting-for-merge` only when
 the selected layout explicitly carries the `merge-checkpoint` fallback. The record includes the
