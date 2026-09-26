@@ -4215,6 +4215,8 @@ def cmd_resume(args):
         return adopt_stopped_landed(args, admitted, fresh, load_json(args.landed_evidence))
     state = state_read(args.state, admitted, repo=args.git_repo)
     require(state["stop_requested"], "not-stopped", "resume requires a persisted stop request")
+    if state.get("policy_transition_history"):
+        retained_claims(root, admitted, state)
     claim_scope(args.git_repo, admitted, state)
     fresh = admit(load_json(args.fresh), admitted["max_parallel"], args.git_repo)
     require(fresh.get("recovery") is not None, "incomplete-recovery",
@@ -4228,7 +4230,6 @@ def cmd_resume(args):
     inventory = recovery_inventory(fresh["recovery"])
     if state.get("policy_transition_history"):
         stopped_recovery(state, inventory)
-        retained_claims(root, admitted, state)
     tasks = {task["task_id"]: task for task in fresh["tasks"]}
     released, retained = [], []
     for item in state["tasks"].values():

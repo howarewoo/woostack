@@ -1257,6 +1257,23 @@ class OrchestrateBehavior(unittest.TestCase):
         self.assertEqual(scheduled["dispatch"], [])
         self.assertIn("task-a", scheduled["unknown"])
 
+    def test_reconciled_resume_rejects_missing_scope_claim(self):
+        old_path, old, state, snapshot = self._policy_fixture()
+        approval, _ = self._policy_approval(old, state, snapshot)
+        code, result = self._policy_call(old_path, state, snapshot, approval)
+        self.assertEqual(code, 0, result)
+        current_path = self._write_json("current-policy-admission.json", result["admitted"])
+        checkpoint = state.read_bytes()
+        scope_claim = next(path for path in
+                           (self.repo / ".woostack/tmp/orchestrate-claims").glob("*.json")
+                           if json.loads(path.read_text())["kind"] == "scope")
+        scope_claim.unlink()
+
+        code, rejected = self._policy_call(current_path, state, snapshot)
+        self.assertEqual((code, rejected["error"]), (1, "ownership-conflict"))
+        self.assertFalse(scope_claim.exists())
+        self.assertEqual(state.read_bytes(), checkpoint)
+
     def test_policy_transition_rejects_stale_incomplete_live_and_changed_contracts(self):
         old_path, old, state, snapshot = self._policy_fixture()
         approval, _ = self._policy_approval(old, state, snapshot)
