@@ -345,11 +345,13 @@ class OrchestrateBehavior(unittest.TestCase):
             "attempt_binding": entry["packet"]["attempt_binding"],
             "state_digest": hashlib.sha256(state.read_bytes()).hexdigest(),
         })
-        code, payload = invoke_cli(
+        args = [
             "record-worker", "--admitted", str(admitted_path), "--state", str(state),
-            "--state-out", str(state), "--git-repo", str(self.repo),
-            "--task", entry["task_id"], "--evidence", str(receipt),
-        )
+            "--git-repo", str(self.repo), "--task", entry["task_id"], "--evidence", str(receipt),
+        ]
+        if not getattr(self, "inplace_launch", False):
+            args += ["--state-out", str(state)]
+        code, payload = invoke_cli(*args)
         self.assertEqual(code, 0, payload)
 
     def _stop_receipt(self, host, task_id, state):
@@ -3382,6 +3384,126 @@ class OrchestrateBehavior(unittest.TestCase):
             [{"task_id": "task-a", "reason": "workspace-not-linked"}],
             [item for item in output["blocked"] if item["task_id"] == "task-a"],
         )
+
+    def test_state_destination_defaults_only_for_continuations(self) -> None:
+        snapshot = compact_input(self._single_task_snapshot())
+        admitted_path, admitted = self._admit_issue(snapshot)
+        fresh = self._write_json("state-default-fresh.json", snapshot)
+        destination = self.tmp / "state-default.json"
+        claims_root = self.repo / ".woostack" / "tmp"
+        initial = ["schedule", "--admitted", str(admitted_path),
+                   "--git-repo", str(self.repo), "--fresh", str(fresh)]
+        code, _ = invoke_cli(*initial)
+        self.assertNotEqual(code, 0)
+        self.assertFalse(destination.exists())
+        self.assertFalse(claims_root.exists())
+        code, started = invoke_cli(*initial, "--state-out", str(destination), "--cap", "1")
+        self.assertEqual(code, 0, started)
+        self.assertEqual([row["task_id"] for row in started["dispatch"]], ["task-a"])
+        code, continued = invoke_cli(*initial, "--state", str(destination), "--cap", "1")
+        self.assertEqual(code, 0, continued)
+        self.assertEqual(continued["dispatch"], [])
+        code, stopped = invoke_cli(
+            "stop", "--admitted", str(admitted_path), "--state", str(destination),
+            "--git-repo", str(self.repo))
+        self.assertEqual(code, 0, stopped)
+        self.assertTrue(json.loads(destination.read_text())["stop_requested"])
+        before = destination.read_bytes()
+        code, existing = invoke_cli(*initial, "--state-out", str(destination))
+        self.assertEqual((code, existing["error"]), (1, "existing-state"))
+        self.assertEqual(destination.read_bytes(), before)
+        code, invalid_output = invoke_cli(
+            "stop", "--admitted", str(admitted_path), "--state", str(destination),
+            "--state-out", "", "--git-repo", str(self.repo))
+        self.assertNotEqual(code, 0, invalid_output)
+        self.assertEqual(destination.read_bytes(), before)
+        for absent in (self.tmp / "absent-state.json",):
+            code, missing = invoke_cli(
+                "stop", "--admitted", str(admitted_path), "--state", str(absent),
+                "--git-repo", str(self.repo))
+            self.assertNotEqual(code, 0, missing)
+            self.assertFalse(absent.exists())
+            self.assertEqual(destination.read_bytes(), before)
+        code, required = invoke_cli(
+            "stop", "--admitted", str(admitted_path), "--state-out", str(self.tmp / "no-source.json"),
+            "--git-repo", str(self.repo))
+        self.assertNotEqual(code, 0, required)
+        self.assertFalse((self.tmp / "no-source.json").exists())
+        for unsafe in ("symlink", "hardlink"):
+            link = self.tmp / (unsafe + "-default.json")
+            if unsafe == "symlink":
+                link.symlink_to(destination)
+            else:
+                os.link(destination, link)
+            code, rejected = invoke_cli(
+                "stop", "--admitted", str(admitted_path), "--state", str(link),
+                "--git-repo", str(self.repo))
+            self.assertEqual((code, rejected["error"]), (1, "unsafe-state"), rejected)
+            self.assertEqual(destination.read_bytes(), before)
+
+
+    def test_compact_state_continuations_use_one_destination(self) -> None:
+        snapshot = self.github.snapshot()
+        snapshot["tasks"] = snapshot["children"] = snapshot["children"][:3]
+        snapshot["execution_layout"]["entries"] = snapshot["execution_layout"]["entries"][:3]
+        snapshot = compact_input(snapshot)
+        admitted_path, admitted = self._admit_issue(snapshot)
+        state, first = self._schedule(admitted_path, admitted, None, snapshot, "inplace-initial", cap="2")
+        self.assertEqual([entry["task_id"] for entry in first["dispatch"]], ["task-a", "task-b"])
+        self.inplace_launch = True
+        host = self._start_host(workers=2)
+        host.dispatch(first["dispatch"])
+
+        def call(command, *arguments):
+            code, response = invoke_cli(
+                command, "--admitted", str(admitted_path), "--state", str(state),
+                "--git-repo", str(self.repo), *map(str, arguments))
+            self.assertEqual(code, 0, response)
+            return response
+
+        report_a = host.wait_for_report("task-a")
+        result_a = make_result(self.github, "task-a", report_a, admitted)
+        delivered = call("apply-result", "--task", "task-a", "--result",
+                         self._write_json("inplace-a-result.json", result_a))
+        self.assertEqual(delivered["status"], "delivered")
+        self._persist("task-a", result_a, first["dispatch"][0])
+        observed = call("observe-checks", "--task", "task-a", "--observation",
+                        self._write_json("inplace-a-ci.json", self.github.ci_observation("task-a")))
+        self.assertEqual(observed["status"], "ci-observed")
+        self.assertEqual(call("stop")["status"], "stop-requested")
+        fresh = self.github.snapshot()
+        fresh["tasks"] = fresh["children"] = fresh["children"][:3]
+        fresh["execution_layout"]["entries"] = fresh["execution_layout"]["entries"][:3]
+        fresh_path = self._write_json("inplace-fresh.json", compact_input(fresh))
+        code, resumed = invoke_cli(
+            "resume", "--admitted", str(admitted_path), "--state", str(state),
+            "--git-repo", str(self.repo), "--fresh", str(fresh_path))
+        self.assertEqual(code, 0, resumed)
+        self.assertEqual(resumed["status"], "resumed")
+        refill = call("schedule", "--fresh", fresh_path, "--cap", "2")
+        self.assertEqual([entry["task_id"] for entry in refill["dispatch"]], ["task-c"])
+        self.launch_context[refill["dispatch"][0]["branch"]] = (admitted_path, state)
+        host.dispatch(refill["dispatch"])
+        report_c = host.wait_for_report("task-c")
+        result_c = make_result(self.github, "task-c", report_c, admitted)
+        self.assertEqual(call("apply-result", "--task", "task-c", "--result",
+                              self._write_json("inplace-c-result.json", result_c))["status"], "delivered")
+        self._persist("task-c", result_c, refill["dispatch"][0])
+        host.release_b()
+        report_b = host.wait_for_report("task-b")
+        unknown = call("apply-result", "--task", "task-b", "--result",
+                       self._write_json("inplace-b-unknown.json", {
+                           "outcome": "unknown", "worker": report_b["worker"]}))
+        self.assertEqual(unknown["status"], "unknown")
+        evidence = self.github.readback("task-b")
+        evidence["worker_stop"] = self._stop_receipt(host, "task-b", state)
+        reconciled = call("reconcile", "--task", "task-b",
+                          "--evidence", self._write_json("inplace-b-evidence.json", evidence),
+                          "--inventory", self._write_json("inplace-inventory.json",
+                                                           host.recovery_inventory()))
+        self.assertEqual(reconciled["status"], "reconciled")
+        self.assertEqual(json.loads(state.read_text())["tasks"]["task-b"]["status"],
+                         "evidence-pending")
 
     def test_checkpoint_cas_rejects_stale_writer_without_overwriting_evidence(self) -> None:
         snapshot = self._single_task_snapshot()

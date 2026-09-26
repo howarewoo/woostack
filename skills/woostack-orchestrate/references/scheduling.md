@@ -355,18 +355,17 @@ python3 <orchestrate-skill>/scripts/orchestrate.py schedule \
 # Every later refill: state must already exist. Re-read and assemble a new compact fresh snapshot first.
 python3 <orchestrate-skill>/scripts/orchestrate.py schedule \
   --admitted admitted.json --state controller-state.json \
-  --state-out controller-state.json \
   --git-repo <canonical-git-repository> --fresh <fresh-snapshot.json> \
   [--cap <host-cap>] [--parent-decision <decision.json>]
 # Explicit recovery for a stopped controller with import-only uncertainty.
 python3 <orchestrate-skill>/scripts/orchestrate.py resume \
   --admitted admitted.json --state controller-state.json \
-  --state-out controller-state.json --git-repo <canonical-git-repository> \
+  --git-repo <canonical-git-repository> \
   --fresh <fresh-snapshot.json>
 
 python3 <orchestrate-skill>/scripts/orchestrate.py stop \
   --admitted admitted.json --state controller-state.json \
-  --state-out controller-state.json --git-repo <canonical-git-repository> \
+  --git-repo <canonical-git-repository> \
   [--reason <safe-stop-reason>]
 ```
 
@@ -531,7 +530,8 @@ exact next pair (finishing the head publication); if next state bytes are presen
 head, only a caller that loaded those next bytes may finish recovery. Any other pairing blocks as
 checkpoint recovery evidence and never adopts arbitrary bytes. The head is independent of
 input/output filenames, so a second writer using the same stale `--state` cannot advance a different
-`--state-out`.
+explicit `--state-out`. For continuations, omitting `--state-out` writes back to `--state` through
+the same checkpoint writer; an initial schedule still requires an explicit `--state-out`.
 The first schedule omits `--state` and creates state. Every later schedule, record-worker,
 apply-result, observe-checks, reconcile, resume, or stop names an existing state and matching
 admission. An admission retained from before the landed-prerequisite cutover is accepted as
@@ -542,7 +542,7 @@ from the admission blocks; never silently reinitialize. The initial state is pub
 scope claim is acquired, and the claim becomes visible only after its complete owner-bearing record
 is durable. A first-schedule interruption therefore leaves resumable owner-bearing state with either
 no claim or one complete same-owner claim. Keep the state path private and use the helper's atomic
-`--state-out` replace.
+state replace.
 
 Under that exclusive ownership, the helper persists the actual selected task branch, absolute
 workspace, parent branch, and parent SHA before host dispatch. The branch and workspace are runtime
@@ -610,7 +610,7 @@ Run `admit` on the fresh snapshot with `--max-parallel` equal to the retained ad
 ```text
 python3 <orchestrate-skill>/scripts/orchestrate.py resume \
   --admitted original-admitted.json --fresh fresh-snapshot.json \
-  --state controller-state.json --state-out controller-state.json \
+  --state controller-state.json \
   --git-repo <canonical-git-repository> --policy-transition approved-transition.json
 ```
 

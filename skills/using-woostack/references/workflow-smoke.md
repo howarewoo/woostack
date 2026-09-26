@@ -167,6 +167,16 @@ live GitHub execution—and must be labeled as a deterministic controller simula
 actual-host pass. The compact caller shape is documented in
 [scheduling](../../woostack-orchestrate/references/scheduling.md#normalized-snapshot).
 
+For a controller state-path change, use the same compact A/B/C fixture with the
+production CLI: initialize with `schedule --state-out S` and no `--state`, then
+use `--state S` without `--state-out` for each refill, record-worker,
+apply-result, observe-checks, reconcile, stop, and resume. Compare each operation
+with an explicit same-path invocation in a separate disposable repository. A
+missing initial destination or missing continuation state must not create state
+or claims; stale writers and interrupted pending generations must retain the
+existing checkpoint protections. Keep this deterministic helper smoke distinct
+from the actual-host run below.
+
 **Invocation:** run the actual skill in the supported host:
 
 ```text
