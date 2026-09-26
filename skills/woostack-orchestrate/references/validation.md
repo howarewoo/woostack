@@ -395,9 +395,10 @@ base_branch, task_id, pr_url, writer_status:"stopped", claim_owner}`.
 
 Omit `repair_policy` for the finite default of two attempts. An explicitly selected
 repository/host budget requires a complete, positive integer limit and a nonempty
-evidence source; unavailable or unbounded policy evidence blocks that repair rather
-than silently increasing the limit. The selected budget persists with attempt history
-across delivery and resume until another explicit policy selection changes it.
+evidence source on any observation, including healthy or pending checks. Incomplete
+or unbounded policy evidence blocks that observation rather than silently accepting
+it or increasing the limit. The selected budget persists with attempt history across
+delivery and resume until another explicit policy selection changes it.
 
 The host/repository creates any released linked worktree and verifies the exact
 checkout before the worker writes; the helper never creates Git state. Supply

@@ -2071,6 +2071,13 @@ def _classify_checks(observation, item, state):
                           else None)} for record in current]
     ci = item.setdefault("ci", _new_ci(item))
     ci.update(downstream_start=downstream_start, downstream_policy_source=policy_source)
+    if "repair_policy" in observation:
+        policy = observation["repair_policy"]
+        require(isinstance(policy, dict) and policy.get("complete") is True
+                and type(policy.get("limit")) is int and policy["limit"] > 0
+                and text(policy.get("source")),
+                "repair-policy-incomplete", "explicit repair budget needs a finite limit and source")
+        ci["repair_policy"] = {"limit": policy["limit"], "source": policy["source"]}
     failures = []
     for record in current:
         if record["state"] not in CI_ACTIONABLE:
@@ -2080,13 +2087,6 @@ def _classify_checks(observation, item, state):
             raise InputError(reason, "current failed check is not eligible for automatic repair")
         failures.append(record)
     if failures:
-        if "repair_policy" in observation:
-            policy = observation["repair_policy"]
-            require(isinstance(policy, dict) and policy.get("complete") is True
-                    and type(policy.get("limit")) is int and policy["limit"] > 0
-                    and text(policy.get("source")),
-                    "repair-policy-incomplete", "explicit repair budget needs a finite limit and source")
-            ci["repair_policy"] = {"limit": policy["limit"], "source": policy["source"]}
         limit = ci.get("repair_policy", {}).get("limit", DEFAULT_CI_REPAIR_LIMIT)
         fingerprint = digest(sorted(
             ({"name": record["name"], "source": record["source"],
