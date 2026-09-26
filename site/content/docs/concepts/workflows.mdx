@@ -135,6 +135,16 @@ session ends. The final result distinguishes submitted, checking, repairing, CI-
 waiting, and unverified work with check links and the next safe action—not closed issues or product
 acceptance.
 
+An explicitly approved policy change can be reconciled on the same stopped controller checkpoint,
+with unchanged tasks, claims, reservations, and historical evidence. The helper binds approval to
+the exact old/new admission, forward integration revision, reviewed task impact, and complete
+native stopped-worker inventory. It returns the sole current admission but leaves the controller
+stopped until a separate fresh resume. Externally landed work needs independent source, checks,
+smoke and acceptance verification at its current head or an explicitly approved corrected integration
+candidate. Separate corrective PRs need complete native merge provenance; their evidence never
+relabels the original failing head as accepted. Merge alone does not clear a known defect.
+See [Orchestrate recovery](/docs/skills/woostack-orchestrate#procedure).
+
 ## Execute
 
 ```text

@@ -90,6 +90,10 @@ each emitted packet through an actually available authorized host primitive.
    unrelated ready work stays dispatchable only within proven spare capacity. Never create a
    duplicate writer, a new identity, or a replacement PR, and never discard recoverable work. →
    [unknown reconciliation](references/validation.md#unknown-reconciliation)
+   For explicitly approved policy drift, use
+   [same-checkpoint recovery](references/scheduling.md#guarded-same-checkpoint-policy-recovery):
+   reconcile while stopped, save the returned admission, independently verify any landed adoption,
+   then resume. Approval never resets task-local uncertainty or substitutes merge for acceptance.
 
 7. **Return verified state, separate from human authority.** Report submitted, checking, repairing,
    CI-verified, blocked, waiting, and unverified work with check links and the exact next safe
