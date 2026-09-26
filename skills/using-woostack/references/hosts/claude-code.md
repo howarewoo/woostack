@@ -19,11 +19,13 @@ when the session has no `general-purpose` subagent to fall back on.
 - **Primitive:** the subagent spawn tool; independent tasks run concurrently and the host schedules
   them. A session without the spawn tools offers no subagent primitive.
 - **Per-call model:** documented — Claude Code can pass a `model` parameter for a specific
-  invocation, and resolves the subagent model in this order: that per-invocation parameter, the
-  subagent definition's `model` frontmatter (`inherit` selects the session model),
+  invocation. Without forced-model mode, it resolves the model in this order: that per-invocation
+  parameter, the subagent definition's `model` frontmatter (`inherit` selects the session model),
   `CLAUDE_CODE_SUBAGENT_MODEL`, then the session model
-  ([subagents](https://code.claude.com/docs/en/sub-agents)). Pass the resolved model when the
-  active schema carries the parameter and the caller's policy requires it.
+  ([choose a model](https://code.claude.com/docs/en/sub-agents#choose-a-model)). Pass the resolved
+  model only when the active schema carries the parameter, the host permits per-invocation
+  selection, and the caller's policy requires it; forced-model behavior is covered under
+  [Degradation](#degradation).
 - **Per-call effort:** not documented for a single invocation — `effort` is a subagent-definition
   and session field. Treat a per-call effort argument as absent unless the active schema shows one;
   when it is absent, report once that the selected tier's effort was not applied per invocation.
@@ -63,12 +65,19 @@ account-level (plan limits), outside woostack's scope. The
 
 ## Degradation
 
-A spawn that cannot carry the resolved model runs on the host's next source in its documented
-inheritance order — the subagent definition, `CLAUDE_CODE_SUBAGENT_MODEL`, or the session model —
-and the run says so once (degraded), per the inline law of the dispatching skill. A session that
-disables per-invocation model selection, such as `CLAUDE_CODE_SUBAGENT_MODEL_FORCE`, is that same
-documented case. A missing required delivery, isolation, identity-correlation, review, or recovery
-capability blocks the owning operation per the
+Without forced-model mode, a spawn that cannot carry the resolved model uses the next source in
+the ordinary order above: the subagent definition, `CLAUDE_CODE_SUBAGENT_MODEL`, or the session
+model.
+
+With `CLAUDE_CODE_SUBAGENT_MODEL_FORCE=1`, Claude Code instead ignores the subagent definition's
+`model` and prevents per-invocation model selection. Omit the model override: the worker uses
+`CLAUDE_CODE_SUBAGENT_MODEL` when set to a model, otherwise the main conversation's model.
+The official [forced-model contract](https://code.claude.com/docs/en/sub-agents#run-every-subagent-on-one-model)
+also documents the fork, inherited-skill, and built-in Explore cap exceptions.
+
+In either case, report once that the requested model override was not applied, identifying the
+applicable ordinary or forced source rather than claiming the selected tier ran. A missing required
+delivery, isolation, identity-correlation, review, or recovery capability blocks the owning operation per the
 [conditional mechanics](README.md#conditional-mechanics-shared); a missing authorized GitHub
 interface follows the
 [shared GitHub contract](README.md#github-capability-and-authentication-shared).
