@@ -3543,10 +3543,15 @@ class OrchestrateBehavior(unittest.TestCase):
             admitted_path, state, "task-a", missing_note, "receipt-pending"
         )
         self.assertEqual(pending.get("status"), "note-pending", pending)
+        self.github.prs["task-a"]["draft"] = False
+        result = make_result(self.github, "task-a", report, admitted)
+        self.assertTrue(json.loads(pending_state.read_text())["tasks"]["task-a"]["lifecycle"]["pr"]["draft"])
+        self.assertFalse(result["readback"]["draft"])
         complete_state, complete, _ = self._apply(
             admitted_path, pending_state, "task-a", result, "receipt-retry"
         )
         self.assertEqual(complete.get("status"), "delivered", complete)
+        self.assertFalse(json.loads(complete_state.read_text())["tasks"]["task-a"]["lifecycle"]["pr"]["draft"])
         self.assertEqual(json.loads(complete_state.read_text())["tasks"]["task-a"]["status"], "delivered")
         self.assertEqual(
             sum(1 for line in self.transport_log.read_text().splitlines()
@@ -4115,6 +4120,7 @@ class OrchestrateBehavior(unittest.TestCase):
             helper.validate_delivery(
                 admitted, next(task for task in admitted["tasks"] if task["task_id"] == "task-a"),
                 repair_entry, old_validation, self.repo, retained_pr=repair_entry["retained_pr"],
+                existing_pr=True,
             )
         self.assertEqual(raised.exception.code, "stale-validation")
 
@@ -4131,7 +4137,7 @@ class OrchestrateBehavior(unittest.TestCase):
             with self.assertRaises(helper.InputError, msg=str(change)) as raised:
                 helper.validate_delivery(
                     admitted, task_a, repair_entry, altered, self.repo,
-                    retained_pr=repair_entry["retained_pr"],
+                    retained_pr=repair_entry["retained_pr"], existing_pr=True,
                 )
             self.assertEqual(raised.exception.code, reason)
 
@@ -4710,6 +4716,7 @@ class OrchestrateBehavior(unittest.TestCase):
         failure = self.github.ci_observation(
             "task-a", check_state="failure", diagnosis="Repair the first diagnosed failure."
         )
+        failure["checks"][1]["log"]["excerpt"] = "A second distinct failure."
         state, repair, _ = self._observe(admitted_path, state, "task-a", failure, "repair-failure")
         self.assertEqual(repair["ci_state"], "repair", repair)
         self.assertEqual(repair["ci_details"]["task-a"]["links"][0]["url"], failure["checks"][0]["url"])
@@ -4759,6 +4766,11 @@ class OrchestrateBehavior(unittest.TestCase):
         repeated["checks"].reverse()
         state, blocked, _ = self._observe(admitted_path, state, "task-a", repeated, "repair-repeated")
         self.assertEqual(blocked["reason"], "repeated-identical-failure", blocked)
+        partial = copy.deepcopy(repeated)
+        next(check for check in partial["checks"] if check["type"] == "commit-status")["state"] = "success"
+        state, blocked, _ = self._observe(admitted_path, state, "task-a", partial, "repair-partial-recovery")
+        self.assertEqual(blocked["reason"], "repeated-identical-failure", blocked)
+        self.assertEqual(len(json.loads(state.read_text())["tasks"]["task-a"]["ci"]["repair_attempts"]), 1)
 
         second_failure = self.github.ci_observation(
             "task-a", check_state="failure", diagnosis="Repair a distinct second failure."

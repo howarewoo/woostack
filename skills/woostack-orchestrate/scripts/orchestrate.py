@@ -1858,6 +1858,9 @@ def state_read(path, admitted, *, allow_execution_plan_update=False, repo=None, 
                     and text(attempt.get("head_sha")) and SHA_RE.fullmatch(attempt["head_sha"])
                     and text(attempt.get("target_sha")) and SHA_RE.fullmatch(attempt["target_sha"])
                     and text(attempt.get("failure_fingerprint"))
+                    and ("check_fingerprints" not in attempt or
+                         isinstance(attempt["check_fingerprints"], list) and
+                         all(text(value) for value in attempt["check_fingerprints"]))
                     for attempt in ci["repair_attempts"]),
                 "invalid-state", "CI repair attempt identities are malformed")
         policy = ci.get("repair_policy")
@@ -2088,13 +2091,16 @@ def _classify_checks(observation, item, state):
         failures.append(record)
     if failures:
         limit = ci.get("repair_policy", {}).get("limit", DEFAULT_CI_REPAIR_LIMIT)
-        fingerprint = digest(sorted(
+        checks = sorted(
             ({"name": record["name"], "source": record["source"],
               "type": record["type"], "log": record["log"]["excerpt"]}
              for record in failures),
             key=lambda record: (record["name"], record["source"], record["type"], record["log"]),
-        ))
-        if any(attempt.get("failure_fingerprint") == fingerprint
+        )
+        fingerprint = digest(checks)
+        check_fingerprints = [digest(check) for check in checks]
+        if any(attempt.get("failure_fingerprint") == fingerprint or
+               set(attempt.get("check_fingerprints", [])).intersection(check_fingerprints)
                for attempt in ci.get("repair_attempts", [])):
             raise InputError("repeated-identical-failure",
                              "the same logged failure already received a bounded repair")
@@ -2102,6 +2108,7 @@ def _classify_checks(observation, item, state):
             raise InputError("repair-retry-exhausted", "finite CI repair retry policy is exhausted")
         ci.update(state="repair", reason="ci-failure", head_sha=pr["head_sha"],
                   target_sha=target_sha, failure_fingerprint=fingerprint,
+                  check_fingerprints=check_fingerprints,
                   next_action="dispatch one bounded Execute repair for the retained PR")
         ci["links"] = links
         ci["repair_context"] = {
@@ -2276,7 +2283,8 @@ def _repair_attempt(item):
         return
     attempts = ci.setdefault("repair_attempts", [])
     attempts.append({"head_sha": ci["head_sha"], "target_sha": ci.get("target_sha"),
-                     "failure_fingerprint": ci.get("failure_fingerprint")})
+                     "failure_fingerprint": ci.get("failure_fingerprint"),
+                     "check_fingerprints": list(ci.get("check_fingerprints", []))})
 
 
 
@@ -2846,7 +2854,7 @@ def validate_delivery(admitted, task, reservation, result, repo, *, historical=F
     if expected_draft is not None:
         require(readback["draft"] is expected_draft, "readiness-changed",
                 "repair must preserve the retained PR readiness")
-    elif retained_pr is None and not existing_pr:
+    elif not existing_pr:
         require(readback["draft"] is True, "draft-required", "new orchestrated delivery must be a draft")
     review_readback(readback, readback["head_sha"])
     require(readback["branch"] == reservation["branch"], "wrong-branch", "PR head is not reserved branch")
@@ -3705,8 +3713,9 @@ def cmd_apply_result(args):
                 and type(lifecycle_pr.get("draft")) is bool,
                 "pr-lifecycle-missing", "repair requires fresh retained PR readiness")
         proof = validate_delivery(admitted, task, item["reservation"], result, args.git_repo,
-                                  existing_pr=verified_update,
-                                  expected_draft=lifecycle_pr["draft"] if verified_update else None)
+                                  retained_pr=retained_pr, existing_pr=verified_update,
+                                  expected_draft=(lifecycle_pr["draft"] if verified_update
+                                                  and item["status"] != "note-pending" else None))
         pr_url = result["worker"]["pr_url"]
         require(not any(tid != args.task and other.get("verified_pr") == pr_url
                         for tid, other in state["tasks"].items()),
