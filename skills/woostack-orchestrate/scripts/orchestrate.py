@@ -820,53 +820,137 @@ def collect_edges(snapshot, tasks, canonical):
     return edges
 
 
-def _base_satisfied_prerequisites(raw, task, tasks_by_id, technical, integration, repo):
-    values = raw.get("base_satisfied_prerequisites", [])
-    require(isinstance(values, list),
-            "invalid-execution-layout", "base-satisfied prerequisites must be a list")
-    require(not values or repo is not None, "git-unavailable",
-            "--git-repo is required to verify base-satisfied prerequisites")
-    result, seen = [], set()
-    for value in values:
-        require(isinstance(value, dict) and text(value.get("task_id"))
-                and SHA_RE.fullmatch(value.get("revision") or "")
-                and nonempty_scope_evidence(value.get("evidence")),
-                "invalid-execution-layout",
-                "base-satisfied prerequisite needs task identity, revision, and evidence")
-        task_id = value["task_id"]
-        require(task_id in technical[task["task_id"]], "invalid-execution-layout",
-                "base-satisfied prerequisite must be a technical prerequisite")
-        require(task_id not in seen, "duplicate-execution-task",
-                "base-satisfied prerequisite is repeated")
-        seen.add(task_id)
-        delivery = tasks_by_id[task_id].get("existing_delivery")
-        require(isinstance(delivery, dict), "base-satisfaction-unverified",
-                "base-satisfied prerequisite needs retained delivery evidence")
-        lifecycle = delivery.get("lifecycle")
-        require(isinstance(lifecycle, dict), "base-satisfaction-unverified",
-                "base-satisfied prerequisite needs current lifecycle evidence")
-        pr = lifecycle.get("pr", lifecycle)
-        landed_revision = (pr.get("merge_commit_sha") if isinstance(pr, dict) else None) \
-            or lifecycle.get("landed_revision")
-        landing_target = (pr.get("merged_base_branch") if isinstance(pr, dict) else None) \
-            or lifecycle.get("landing_target")
-        verification = lifecycle.get("landed_verification") or lifecycle.get("verification")
-        require(isinstance(pr, dict) and pr.get("state") == "merged"
-                and landing_target == integration["branch"]
-                and SHA_RE.fullmatch(landed_revision or "")
-                and value["revision"] == landed_revision
-                and isinstance(verification, dict)
-                and verification.get("complete") is True
-                and verification.get("source_verified") is True
-                and verification.get("checks_verified") is True
-                and verification.get("reverted") is not True,
-                "base-satisfaction-unverified",
-                "base-satisfied prerequisite is not verified in the admitted integration base")
-        require(contains(repo, landed_revision, integration["sha"]),
-                "base-satisfaction-unverified",
-                "landed prerequisite is not contained in the admitted integration revision")
-        result.append(copy.deepcopy(value))
-    return sorted(result, key=lambda value: value["task_id"])
+def landed_diff_identity(repo, revision, verification, parent=None):
+    if parent is None:
+        parent = verification.get("landed_parent")
+        if parent is None:
+            parent = git(repo, "rev-parse", revision + "^").decode().strip()
+    require(SHA_RE.fullmatch(parent or "") and parent != revision
+            and contains(repo, parent, revision),
+            "landed-evidence-missing", "landed range must identify an ancestor of the merge")
+    return "sha256:" + hashlib.sha256(git(
+        repo, "diff", "--no-ext-diff", "--no-textconv", "--no-color", "--binary",
+        parent, revision)).hexdigest()
+
+
+def _verified_landed_prerequisite(issue_url, pr, verification, integration,
+                                  repo, canonical):
+    """One landed-availability rule for selected work and outside-scope prerequisites."""
+    require(isinstance(pr, dict), "pr-lifecycle-missing", "current PR lifecycle evidence is missing")
+    url = pr.get("pr_url", pr.get("url"))
+    match = PR_RE.fullmatch(url or "")
+    require(match is not None
+            and "https://github.com/" + "/".join(match.groups()[:2]) == canonical
+            and pr.get("repo") == pr.get("head_repo") == canonical
+            and pr.get("association") == issue_url,
+            "prerequisite-identity",
+            "prerequisite evidence identifies another issue, repository, or invalid lifecycle")
+    require(SHA_RE.fullmatch(pr.get("head_sha") or "") and text(pr.get("branch")),
+            "pr-lifecycle-identity", "prerequisite head identity is incomplete")
+    require(pr.get("state") == "merged"
+            and pr.get("base_branch") == integration["branch"]
+            and pr.get("merged_base_branch") == integration["branch"]
+            and SHA_RE.fullmatch(pr.get("merge_commit_sha") or ""),
+            "pr-merge-target-mismatch", "merged prerequisite is not landed in the candidate base")
+    require(isinstance(verification, dict) and verification.get("complete") is True
+            and verification.get("source_verified") is True
+            and verification.get("checks_verified") is True
+            and verification.get("reverted") is False
+            and re.fullmatch(r"sha256:[0-9a-f]{64}", verification.get("diff_identity") or ""),
+            "landed-evidence-missing",
+            "landed prerequisite needs task-relevant source and check evidence")
+    revision = pr["merge_commit_sha"]
+    parent = verification.get("landed_parent")
+    if parent is None:
+        parent = git(repo, "rev-parse", revision + "^").decode().strip()
+    landed_diff = landed_diff_identity(repo, revision, verification, parent)
+    require(verification["diff_identity"] == landed_diff,
+            "landed-diff-mismatch", "landed evidence does not match the current landed revision")
+    require(contains(repo, revision, integration["sha"]),
+            "base-satisfaction-unverified", "prerequisite is not contained in the candidate base")
+    paths = changed_paths(repo, parent, revision)
+    require(paths, "landed-evidence-missing", "landed prerequisite contains no change")
+    require(not git(repo, "diff", "--no-ext-diff", "--name-only",
+                    revision, integration["sha"], "--", *paths),
+            "base-satisfaction-unverified",
+            "the candidate base changes required landed content without fresh validation")
+    return {"kind": "merged", "revision": revision, "branch": integration["branch"],
+            "pr_url": url, "landed_diff_identity": landed_diff}
+
+
+def _selected_prerequisite_facts(tasks_by_id, integration, repo, canonical):
+    """Verify current selected-task availability once; uncertainty stays task-local."""
+    available, errors = {}, {}
+    for task_id, task in sorted(tasks_by_id.items()):
+        delivery = task.get("existing_delivery")
+        if delivery is None:
+            continue
+        try:
+            require(isinstance(delivery, dict) and isinstance(delivery.get("lifecycle"), dict),
+                    "pr-lifecycle-missing", "current PR lifecycle evidence is missing")
+            lifecycle = delivery["lifecycle"]
+            pr = copy.deepcopy(lifecycle.get("pr", lifecycle))
+            require(isinstance(pr, dict), "pr-lifecycle-missing",
+                    "current PR identity is missing")
+            result = delivery.get("result")
+            readback = result.get("readback") if isinstance(result, dict) else None
+            require(isinstance(readback, dict)
+                    and readback.get("association") == task["url"]
+                    and readback.get("pr_url") == pr.get("pr_url", pr.get("url"))
+                    and readback.get("branch") == pr.get("branch")
+                    and readback.get("head_sha") == pr.get("head_sha"),
+                    "wrong-association", "retained delivery does not match the selected issue and PR")
+            checks = normalize_retained_result(result).get("checks") if isinstance(result, dict) else None
+            review = result.get("validation")
+            worker = result.get("worker")
+            original_diff = readback.get("diff_identity")
+            commands = checks.get("commands") if isinstance(checks, dict) else None
+            smoke = checks.get("smoke") if isinstance(checks, dict) else None
+            observed = {
+                command["command"] for command in commands
+                if isinstance(command, dict) and text(command.get("command"))
+                and command.get("executed") is True and command.get("passed") is True
+            } if isinstance(commands, list) else set()
+            require(re.fullmatch(r"sha256:[0-9a-f]{64}", original_diff or "")
+                    and isinstance(checks, dict) and checks.get("passed") is True
+                    and checks.get("head_sha") == readback["head_sha"]
+                    and checks.get("diff_identity") == original_diff
+                    and isinstance(commands, list) and len(commands) > 0
+                    and all(isinstance(command, dict) and command.get("command") in observed
+                            and command.get("executed") is True and command.get("passed") is True
+                            for command in commands)
+                    and all(command in observed for command in task["contract"]["checks"])
+                    and isinstance(smoke, dict) and text(smoke.get("description"))
+                    and smoke.get("executed") is True and smoke.get("passed") is True
+                    and isinstance(review, dict) and review.get("verdict") == "pass"
+                    and review.get("checked_head") == readback["head_sha"]
+                    and review.get("diff_identity") == original_diff
+                    and review.get("contract_hash") == task["contract_hash"]
+                    and isinstance(worker, dict) and text(worker.get("worker_id"))
+                    and text(review.get("reviewer_id"))
+                    and review["reviewer_id"] != worker["worker_id"],
+                    "stale-validation", "original delivery verification is incomplete or stale")
+            verification = (lifecycle.get("landed_verification")
+                            or lifecycle.get("verification") or lifecycle.get("checks"))
+            fact = _verified_landed_prerequisite(
+                task["url"], pr, verification, integration, repo, canonical)
+            fact["original"] = {
+                "revision": readback.get("head_sha"), "diff_identity": readback.get("diff_identity"),
+            }
+            available[task_id] = fact
+        except (InputError, KeyError, TypeError) as error:
+            errors[task_id] = getattr(error, "code", "prerequisite-evidence-invalid")
+    return available, errors
+
+
+def _base_satisfied_prerequisites(task, technical, planned_parent, available):
+    """Prerequisites already available in the candidate base need no worker delivery."""
+    landed = set(technical[task["task_id"]])
+    if planned_parent is not None:
+        landed.add(planned_parent)
+    return [{"task_id": task_id, "revision": available[task_id]["revision"],
+             "evidence": copy.deepcopy(available[task_id])}
+            for task_id in sorted(landed) if task_id in available]
 
 
 def _verified_external_prerequisite(value, task, integration, repo, canonical):
@@ -884,47 +968,28 @@ def _verified_external_prerequisite(value, task, integration, repo, canonical):
             "base-satisfaction-unverified",
             "satisfied external prerequisite needs source and lifecycle evidence")
     issue, pr = evidence.get("issue"), evidence.get("pr")
-    verification = evidence.get("landed_verification")
     require(source.get("issue_url") == issue_url and text(source.get("pr_url"))
-            and isinstance(pr, dict) and isinstance(verification, dict),
+            and isinstance(pr, dict),
             "base-satisfaction-unverified",
             "satisfied external prerequisite needs canonical issue and merge evidence")
     require(isinstance(issue, dict) and text(issue.get("url")),
             "external-prerequisite-identity", "external issue identity is missing")
     issue_identity(issue, canonical)
-    match = PR_RE.fullmatch(pr["url"]) if text(pr.get("url")) else None
-    require(issue.get("url") == issue_url and pr.get("url") == source.get("pr_url")
-            and match is not None
-            and "https://github.com/" + "/".join(match.groups()[:2]) == canonical
-            and pr.get("repo") == pr.get("head_repo") == canonical
-            and pr.get("association") == issue_url,
+    require(issue.get("url") == issue_url and pr.get("url") == source.get("pr_url"),
             "external-prerequisite-identity",
             "external prerequisite evidence identifies another issue or repository")
-    require(pr.get("state") == "merged"
-            and pr.get("base_branch") == integration["branch"]
-            and pr.get("merged_base_branch") == integration["branch"]
-            and pr.get("merge_commit_sha") == revision
-            and text(pr.get("branch")) and text(pr.get("head_sha"))
-            and SHA_RE.fullmatch(pr["head_sha"]),
+    try:
+        fact = _verified_landed_prerequisite(
+            issue_url, pr, evidence.get("landed_verification"), integration, repo, canonical)
+    except InputError as error:
+        raise InputError({
+            "prerequisite-identity": "external-prerequisite-identity",
+            "pr-merge-target-mismatch": "external-prerequisite-unmerged",
+            "pr-branch-missing": "external-prerequisite-unmerged",
+        }.get(error.code, error.code), str(error)) from error
+    require(fact["kind"] == "merged" and fact["revision"] == revision,
             "external-prerequisite-unmerged",
             "external prerequisite has no verified merge into the candidate base")
-    require(verification.get("complete") is True
-            and verification.get("source_verified") is True
-            and verification.get("checks_verified") is True
-            and verification.get("reverted") is False
-            and text(verification.get("diff_identity")),
-            "landed-evidence-missing",
-            "external prerequisite needs task-relevant source and check evidence")
-    landed_parent = git(repo, "rev-parse", revision + "^").decode().strip()
-    actual_diff = "sha256:" + hashlib.sha256(git(
-        repo, "diff", "--no-ext-diff", "--no-textconv", "--no-color", "--binary",
-        landed_parent, revision)).hexdigest()
-    require(verification["diff_identity"] == actual_diff,
-            "landed-diff-mismatch",
-            "external prerequisite evidence does not match the landed change")
-    require(contains(repo, revision, integration["sha"]),
-            "base-satisfaction-unverified",
-            "external prerequisite is not contained in the candidate integration base")
     return copy.deepcopy(value)
 
 
@@ -970,6 +1035,8 @@ def collect_execution_layout(snapshot, tasks, repo):
     tasks_by_id = {task["task_id"]: task for task in tasks}
     by_id = {}
     technical = {task_id: set(tasks_by_id[task_id]["prerequisites"]) for task_id in sorted(task_ids)}
+    available, evidence_errors = ({}, {}) if repo is None else _selected_prerequisite_facts(
+        tasks_by_id, snapshot["integration"], repo, snapshot["canonical_repo"])
     for entry in raw["entries"]:
         require(isinstance(entry, dict) and text(entry.get("task_id")),
                 "invalid-execution-layout", "execution entry identity required")
@@ -993,10 +1060,18 @@ def collect_execution_layout(snapshot, tasks, repo):
                     "invalid-execution-fallback", "merge fallback needs one release condition")
         entry = copy.deepcopy(entry)
         entry["base_satisfied_prerequisites"] = _base_satisfied_prerequisites(
-            entry, tasks_by_id[task_id], tasks_by_id, technical, snapshot["integration"], repo)
+            tasks_by_id[task_id], technical, entry["execution_parent"], available)
         (entry["satisfied_external_prerequisites"],
          entry["external_evidence_errors"]) = _satisfied_external_prerequisites(
             entry, tasks_by_id[task_id], snapshot["integration"], repo, snapshot["canonical_repo"])
+        tasks_by_id[task_id]["available_prerequisites"] = {
+            predecessor: available[predecessor]
+            for predecessor in sorted(technical[task_id]) if predecessor in available}
+        tasks_by_id[task_id]["prerequisite_evidence_errors"] = {
+            predecessor: evidence_errors[predecessor]
+            for predecessor in sorted(technical[task_id]) if predecessor in evidence_errors}
+        tasks_by_id[task_id]["own_availability"] = copy.deepcopy(available.get(task_id))
+        tasks_by_id[task_id]["own_availability_error"] = copy.deepcopy(evidence_errors.get(task_id))
         by_id[task_id] = entry
     require(set(by_id) == task_ids, "missing-execution-task", "execution layout must select every task once")
 
@@ -1020,13 +1095,18 @@ def collect_execution_layout(snapshot, tasks, repo):
         lineage.reverse()
         fallback = entry.get("fallback")
         base_satisfied = {value["task_id"] for value in entry["base_satisfied_prerequisites"]}
+        joins = technical[task_id] - set(lineage)
         if fallback is None:
-            missing = technical[task_id] - set(lineage) - base_satisfied
-            require(not missing, "missing-execution-ancestor",
+            missing = joins - base_satisfied
+            require(not missing or all(predecessor in evidence_errors for predecessor in missing),
+                    "missing-execution-ancestor",
                     "execution path for " + task_id + " omits " + ", ".join(sorted(missing)))
         else:
-            require(technical[task_id] - base_satisfied, "invalid-execution-fallback",
+            require(joins, "invalid-execution-fallback",
                     "merge fallback requires an unsatisfied technical join")
+            if not joins - base_satisfied:
+                # Every technical join already landed, so the declared merge gate is released.
+                entry["fallback"] = None
         task = tasks_by_id[task_id]
         task["execution_parent"] = entry["execution_parent"]
         task["execution_rationale"] = entry["rationale"]
@@ -1043,11 +1123,8 @@ def collect_execution_layout(snapshot, tasks, repo):
                                   if entry["execution_parent"] is not None else set())) - base_satisfied)
         task["dependency_snapshot"] = {
             "prerequisites": sorted(technical[task_id]),
-            "effective_prerequisites": list(task["effective_prerequisites"]),
             "execution_parent": entry["execution_parent"],
-            "base_satisfied_prerequisites": list(task["base_satisfied_prerequisites"]),
             "external_prerequisites": list(task["external_prerequisites"]),
-            "satisfied_external_prerequisites": list(task["satisfied_external_prerequisites"]),
         }
         normalized_entries.append(entry)
 
@@ -1060,8 +1137,6 @@ def collect_execution_layout(snapshot, tasks, repo):
         if entry["execution_parent"] is not None:
             relationships.setdefault((entry["execution_parent"], entry["task_id"]), set()).add("stack")
     for (predecessor, dependent), kinds in sorted(relationships.items()):
-        if predecessor not in tasks_by_id[dependent]["effective_prerequisites"]:
-            continue
         effective_edges.append({"predecessor": predecessor, "dependent": dependent,
                                 "relationship": "+".join(sorted(kinds))})
     return {"revision": revision, "rationale": raw["rationale"],
@@ -1070,10 +1145,57 @@ def collect_execution_layout(snapshot, tasks, repo):
 
 
 def execution_layout_fingerprint(layout):
+    return digest(plan_identity(layout))
+
+
+def plan_identity(layout):
+    """Plan identity; landed, external, and merge-gate satisfaction are mutable evidence."""
+    identity = copy.deepcopy(layout)
+    for entry in identity["entries"]:
+        # A merge fallback only holds a join that has not landed, so its necessity moves with
+        # mutable satisfaction evidence instead of the declared plan.
+        entry.pop("fallback", None)
+        entry.pop("base_satisfied_prerequisites", None)
+        entry.pop("satisfied_external_prerequisites", None)
+    return identity
+
+def _retired_execution_fingerprint(layout):
     identity = copy.deepcopy(layout)
     for entry in identity["entries"]:
         entry.pop("satisfied_external_prerequisites", None)
     return digest(identity)
+
+
+def continuation_admission(admitted):
+    """Accept a retained pre-cutover admission without changing its scope or receipts."""
+    layout = admitted["execution_layout"]
+    if admitted["execution_fingerprint"] == execution_layout_fingerprint(layout):
+        return admitted
+    require(admitted["execution_fingerprint"] == _retired_execution_fingerprint(layout),
+            "execution-plan-drift", "retained execution identity is not verified")
+    normalized = copy.deepcopy(admitted)
+    relations = {}
+    for task in normalized["tasks"]:
+        for predecessor in task["prerequisites"]:
+            relations.setdefault((predecessor, task["task_id"]), set()).add("technical")
+        parent = task["execution_parent"]
+        if parent is not None:
+            relations.setdefault((parent, task["task_id"]), set()).add("stack")
+    normalized["execution_layout"]["effective_edges"] = [
+        {"predecessor": predecessor, "dependent": dependent,
+         "relationship": "+".join(sorted(kinds))}
+        for (predecessor, dependent), kinds in sorted(relations.items())]
+    normalized["execution_fingerprint"] = execution_layout_fingerprint(normalized["execution_layout"])
+    for task in normalized["tasks"]:
+        task["dependency_snapshot"] = {
+            key: copy.deepcopy(task["dependency_snapshot"][key])
+            for key in ("prerequisites", "execution_parent", "external_prerequisites")}
+    normalized["_legacy_layout"] = layout
+    return normalized
+
+
+def plan_entries(layout):
+    return {entry["task_id"]: entry for entry in plan_identity(layout)["entries"]}
 
 
 def admit(snapshot, limit, repo=None):
@@ -1369,32 +1491,6 @@ def path_in_scope(path, scope):
     return candidate == allowed or allowed in candidate.parents
 
 
-def selected_landing_paths(repo, task, branch, proposed):
-    """Return paths introduced by a verified selected delivery merge."""
-    retained = task.get("existing_delivery")
-    lifecycle = retained.get("lifecycle") if isinstance(retained, dict) else None
-    pr = lifecycle.get("pr", lifecycle) if isinstance(lifecycle, dict) else None
-    if not isinstance(pr, dict) or pr.get("state") != "merged":
-        return set()
-    target = pr.get("merged_base_branch") or lifecycle.get("landing_target")
-    merge_sha = pr.get("merge_commit_sha") or lifecycle.get("landed_revision")
-    verification = lifecycle.get("landed_verification") or lifecycle.get("verification")
-    if (target != branch or not SHA_RE.fullmatch(merge_sha or "")
-            or not isinstance(verification, dict)
-            or verification.get("complete") is not True
-            or verification.get("source_verified") is not True
-            or verification.get("checks_verified") is not True
-            or verification.get("reverted") is True
-            or not contains(repo, merge_sha, proposed)):
-        return set()
-    landed_parent = verification.get("landed_parent")
-    if landed_parent is None:
-        landed_parent = git(repo, "rev-parse", merge_sha + "^").decode().strip()
-    elif not SHA_RE.fullmatch(landed_parent):
-        return set()
-    return set(changed_paths(repo, landed_parent, merge_sha))
-
-
 def integration_advance_evidence(repo, admitted, fresh):
     """Verify that a changed integration tip is a compatible forward advance."""
     branch = admitted["integration"]["branch"]
@@ -1411,41 +1507,22 @@ def integration_advance_evidence(repo, admitted, fresh):
     require(contains(repo, previous, proposed), "parent-tip-drift",
             "integration tip is not a fast-forward from the admitted revision")
     paths = changed_paths(repo, previous, proposed)
-    scope_paths, landing_paths, impacted = {}, {}, []
+    impacted, uncovered = [], []
     for task in fresh["tasks"]:
         scope = task.get("contract", {}).get("scope", [])
-        scope_paths[task["task_id"]] = scope
-        if any(path_in_scope(path, item) for path in paths for item in scope):
-            impacted.append(task["task_id"])
-            landing_paths[task["task_id"]] = selected_landing_paths(
-                repo, task, branch, proposed)
-    uncovered = []
-    for path in paths:
-        task_ids = [task_id for task_id in impacted
-                    if any(path_in_scope(path, item) for item in scope_paths[task_id])]
-        if not task_ids:
+        changed = [path for path in paths if any(path_in_scope(path, item) for item in scope)]
+        if not changed:
             continue
-        allowed = True
-        for task_id in task_ids:
-            if path not in landing_paths[task_id]:
-                allowed = False
-                break
-            retained = next(task for task in fresh["tasks"]
-                            if task["task_id"] == task_id).get("existing_delivery")
-            lifecycle = retained.get("lifecycle") if isinstance(retained, dict) else None
-            pr = lifecycle.get("pr", lifecycle) if isinstance(lifecycle, dict) else None
-            merge_sha = pr.get("merge_commit_sha") or lifecycle.get("landed_revision")
-            result = subprocess.run(
-                ["git", "-C", str(repo), "diff", "--quiet", merge_sha, proposed, "--", path],
-                capture_output=True, timeout=30)
-            if result.returncode != 0:
-                allowed = False
-                break
-        if not allowed:
-            uncovered.append(path)
+        impacted.append(task["task_id"])
+        retained = task.get("existing_delivery")
+        lifecycle = retained.get("lifecycle") if isinstance(retained, dict) else None
+        if lifecycle_state(lifecycle) != "merged":
+            uncovered.extend(changed)
+        # Merged work is checked against this exact candidate base by the task-local
+        # prerequisite validator; stale or reverted evidence blocks dependents only.
     require(not uncovered, "parent-tip-drift",
             "integration advance materially changes selected task scope: "
-            + ", ".join(uncovered))
+            + ", ".join(sorted(set(uncovered))))
     return {"previous_sha": previous, "proposed_sha": proposed,
             "changed_paths": paths, "impacted_tasks": sorted(impacted),
             "compatible": True}
@@ -1526,9 +1603,7 @@ def _execution_ancestry(entries, task_id):
         parent = entries[parent]["execution_parent"]
     return list(reversed(lineage))
 def _entry_identity(entry):
-    return {key: entry.get(key) for key in (
-        "task_id", "execution_parent", "constraints", "fallback",
-        "base_satisfied_prerequisites", "effective_prerequisites")}
+    return {key: entry.get(key) for key in ("task_id", "execution_parent", "constraints")}
 
 
 def _execution_identity(layout):
@@ -1601,22 +1676,21 @@ def _execution_plan_update(state, admitted, repo):
             "to_revision": admitted["execution_layout"]["revision"],
             "to_fingerprint": admitted["execution_fingerprint"], "changed_tasks": [],
         }
-    current_entries = {entry["task_id"]: entry for entry in current["entries"]}
-    revised_entries = {entry["task_id"]: entry for entry in admitted["execution_layout"]["entries"]}
+    require(admitted["execution_layout"]["revision"] > current["revision"],
+            "execution-plan-drift", "changed execution layout requires a newer plan revision")
+    current_entries = plan_entries(current)
+    revised_entries = plan_entries(admitted["execution_layout"])
     changed = set()
     for task in admitted["tasks"]:
         task_id = task["task_id"]
         item = state["tasks"].get(task_id)
         require(isinstance(item, dict), "invalid-state", "retained task is missing")
         retained_parent = current_entries[task_id]["execution_parent"]
-        retained_effective = set((item.get("dependency_snapshot") or {}).get(
-            "effective_prerequisites", []))
         require(item.get("execution_parent") == retained_parent
                 and _known_execution_revision(state, item.get("execution_plan_revision")),
                 "invalid-state", "retained task execution identity is invalid")
         if (_entry_identity(current_entries[task_id]) != _entry_identity(revised_entries[task_id])
-                or _execution_ancestry(current_entries, task_id) != task["execution_ancestry"]
-                or retained_effective != set(task["effective_prerequisites"])):
+                or _execution_ancestry(current_entries, task_id) != task["execution_ancestry"]):
             changed.add(task_id)
     legacy_drift = set(_legacy_execution_drift_tasks(state))
     for task_id in sorted(changed - legacy_drift):
@@ -1674,11 +1748,19 @@ def state_read(path, admitted, *, allow_execution_plan_update=False, repo=None, 
     legacy_layout = "execution_layout" not in state
     execution_plan_update = None
     execution_plan_error = None
-    plan_matches = (state.get("execution_layout") is not None
-                    and _execution_identity(state["execution_layout"])
+    old_layout = admitted.get("_legacy_layout")
+    if old_layout is not None and state.get("execution_fingerprint") == _retired_execution_fingerprint(old_layout):
+        require(state.get("stop_requested") is True
+                and state.get("execution_layout") == old_layout,
+                "execution-plan-drift", "only the stopped retained plan may cross the cutover")
+        state["execution_layout"] = copy.deepcopy(admitted["execution_layout"])
+        state["execution_fingerprint"] = admitted["execution_fingerprint"]
+    retained_layout = state.get("execution_layout")
+    plan_matches = (isinstance(retained_layout, dict)
+                    and _execution_identity(retained_layout)
                     == _execution_identity(admitted["execution_layout"]))
-    plan_revision_matches = (state.get("execution_layout") is not None
-                             and state["execution_layout"].get("revision")
+    plan_revision_matches = (isinstance(retained_layout, dict)
+                             and retained_layout.get("revision")
                              == admitted["execution_layout"].get("revision"))
     if legacy_layout:
         state["execution_layout"] = copy.deepcopy(admitted["execution_layout"])
@@ -1686,8 +1768,8 @@ def state_read(path, admitted, *, allow_execution_plan_update=False, repo=None, 
     elif not plan_matches:
         if not allow_execution_plan_update:
             item = state.get("tasks", {}).get(active_task_id)
-            current_entries = {entry["task_id"]: entry for entry in state["execution_layout"]["entries"]}
-            prior_entries = {entry["task_id"]: entry for entry in admitted["execution_layout"]["entries"]}
+            current_entries = plan_entries(state["execution_layout"])
+            prior_entries = plan_entries(admitted["execution_layout"])
             historical = (isinstance(item, dict) and active_task_id in current_entries
                           and active_task_id in prior_entries
                           and _known_execution_revision(state, item.get("execution_plan_revision"))
@@ -1731,9 +1813,13 @@ def state_read(path, admitted, *, allow_execution_plan_update=False, repo=None, 
     for item in state["tasks"].values():
         require(isinstance(item, dict) and item.get("status") in
                 ("pending", "running", "delivered", "repair-ready", "note-pending",
-                 "evidence-pending", "unknown"),
+                 "evidence-pending", "satisfied", "unknown"),
                 "invalid-state", "invalid task state")
-        if item["status"] != "pending":
+        if item["status"] == "satisfied":
+            require((item.get("satisfaction") or {}).get("kind") == "merged"
+                    and item.get("lifecycle_error") is None,
+                    "invalid-state", "satisfied prerequisite needs verified merged availability")
+        elif item["status"] != "pending":
             require(isinstance(item.get("reservation"), dict), "invalid-state", "reservation missing")
             reservation = item["reservation"]
             require(all(text(reservation.get(k)) for k in ("branch", "workspace", "parent_branch", "parent_sha"))
@@ -1752,9 +1838,14 @@ def state_read(path, admitted, *, allow_execution_plan_update=False, repo=None, 
             item["dependency_snapshot"] = copy.deepcopy(task["dependency_snapshot"])
         elif execution_plan_update is None and execution_plan_error is None:
             if plan_matches or item["task_id"] == active_task_id:
+                snapshot = item.get("dependency_snapshot")
+                expected = task["dependency_snapshot"]
+                compatible = (snapshot == expected or
+                              (old_layout is not None and isinstance(snapshot, dict)
+                               and {key: snapshot.get(key) for key in expected} == expected))
                 require(item.get("execution_parent") == task["execution_parent"]
                         and _known_execution_revision(state, item.get("execution_plan_revision"))
-                        and item.get("dependency_snapshot") == task["dependency_snapshot"],
+                        and compatible,
                         "invalid-state", "task execution plan identity changed")
         for key in ("lifecycle", "lifecycle_error", "satisfaction", "failure_reason"):
             if key not in item:
@@ -1837,9 +1928,10 @@ def _invalidate_descendants(admitted, state, task_id, reason):
         predecessor = frontier.pop()
         for child_id, child in state["tasks"].items():
             dependencies = child.get("dependency_snapshot", {})
-            if predecessor in dependencies.get(
-                    "effective_prerequisites", dependencies.get("prerequisites", [])) \
-                    and child_id not in affected:
+            effective = set(dependencies.get("prerequisites", []))
+            if dependencies.get("execution_parent") is not None:
+                effective.add(dependencies["execution_parent"])
+            if predecessor in effective and child_id not in affected:
                 affected.add(child_id)
                 frontier.append(child_id)
     for child_id in affected:
@@ -2144,7 +2236,7 @@ def _observed_ci(admitted, state, item, observation, repo=None):
 
 
 def cmd_observe_checks(args):
-    admitted = load_json(args.admitted)
+    admitted = continuation_admission(load_json(args.admitted))
     repository(args.git_repo, admitted["canonical_repo"])
     state = state_read(args.state, admitted, repo=args.git_repo, active_task_id=args.task)
     require(args.task in state["tasks"], "unknown-task", "task outside admitted scope")
@@ -2430,6 +2522,8 @@ def prerequisite_satisfaction(item, task, repo, lifecycle=None, canonical=None, 
                 "pr_url": delivery["pr_url"], "checkpoint": copy.deepcopy(delivery["checkpoint"]),
                 "lifecycle": copy.deepcopy(lifecycle),
                 "ci_state": item.get("ci", {}).get("state")}
+    require(pr.get("association") == delivery["association"] == task["url"],
+            "wrong-association", "merged prerequisite PR no longer identifies the task issue")
     require(pr.get("base_branch") == delivery["base_branch"], "pr-lifecycle-base",
             "merged prerequisite PR no longer identifies the verified delivery base")
     merge_sha = pr.get("merge_commit_sha") or lifecycle.get("landed_revision")
@@ -2443,37 +2537,16 @@ def prerequisite_satisfaction(item, task, repo, lifecycle=None, canonical=None, 
     require(isinstance(verification, dict) and verification.get("complete") is True
             and verification.get("source_verified") is True
             and verification.get("checks_verified") is True
-            and verification.get("reverted") is not True
-            and text(verification.get("diff_identity")),
+            and verification.get("reverted") is False
+            and re.fullmatch(r"sha256:[0-9a-f]{64}", verification.get("diff_identity") or ""),
             "landed-evidence-missing", "landed prerequisite needs task-relevant source and check evidence")
-    landed_parent = git(repo, "rev-parse", merge_sha + "^").decode().strip()
-    candidate_parents = [landed_parent]
-    declared_parent = verification.get("landed_parent")
-    if declared_parent is not None:
-        require(SHA_RE.fullmatch(declared_parent),
-                "landed-evidence-missing", "landed parent evidence is not a commit")
-        candidate_parents.append(declared_parent)
-    reservation_parent = (item.get("reservation") or {}).get("parent_sha")
-    if SHA_RE.fullmatch(reservation_parent or ""):
-        candidate_parents.append(reservation_parent)
-    actual_diffs = {
-        "sha256:" + hashlib.sha256(git(
-            repo, "diff", "--no-ext-diff", "--no-textconv", "--no-color", "--binary",
-            parent, merge_sha)).hexdigest()
-        for parent in dict.fromkeys(candidate_parents)
-    }
-    require(verification["diff_identity"] in actual_diffs
-            and verification["diff_identity"] == delivery["validated_diff"],
-            "landed-diff-mismatch", "landed evidence does not match the verified task diff")
-    source = lifecycle.get("source")
-    require(isinstance(source, dict) and source.get("branch") == delivery["branch"],
-            "pr-source-mismatch", "merged prerequisite source evidence identifies another branch")
-    if source.get("deleted") is not True:
-        require(source.get("head_sha") == pr["head_sha"]
-                and branch_tip(repo, delivery["branch"]) == source["head_sha"],
-                "pr-source-mismatch", "merged prerequisite source evidence does not match the current PR")
+    landed_diff = landed_diff_identity(repo, merge_sha, verification)
+    require(verification["diff_identity"] == landed_diff,
+            "landed-diff-mismatch", "landed evidence does not match the verified landing")
     return {"kind": "merged", "revision": merge_sha, "branch": delivery["branch"],
             "pr_url": delivery["pr_url"], "landing_branch": target, "landing_sha": target_tip,
+            "original_diff_identity": delivery["validated_diff"],
+            "landed_diff_identity": verification["diff_identity"],
             "checkpoint": copy.deepcopy(delivery["checkpoint"]), "lifecycle": copy.deepcopy(lifecycle)}
 def legacy_execution_reservation_compatible(repo, state, admitted, task, reservation):
     if not isinstance(reservation, dict) or repo is None:
@@ -2571,15 +2644,30 @@ def parent_readiness(scope, task, state, reservation, decision, repo, retained=F
     selected = next((entry for entry in predecessors
                      if (entry[2]["kind"] == "open" or retained)
                      and entry[1]["branch"] == branch and entry[1]["head_sha"] == head), None)
+    parent_checkpoint = selected[1]["checkpoint"] if selected is not None else None
     if not effective:
-        require((task["execution_parent"] is None
-                 or task["execution_parent"] in task["base_satisfied_prerequisites"])
-                and branch == scope["integration"]["branch"],
+        planned = task["execution_parent"]
+        require(planned is None or planned in task["base_satisfied_prerequisites"],
                 "unapproved-parent", "root delivery must retain the admitted integration branch")
-        current = branch_tip(repo, branch)
-        require(current is not None and (contains(repo, head, current) if retained else current == head),
-                "parent-tip-drift", "selected parent changed incompatibly")
-        kind = "integration"
+        if branch == scope["integration"]["branch"]:
+            current = branch_tip(repo, branch)
+            require(current is not None and (contains(repo, head, current) if retained else current == head),
+                    "parent-tip-drift", "selected parent changed incompatibly")
+            kind = "integration"
+        else:
+            # A retained stack reservation survives only while its planned parent is delivered
+            # and that parent is landed in the candidate base.
+            parent_delivery = (state["tasks"].get(planned) or {}).get("delivery") \
+                if planned is not None else None
+            landed = next((entry for entry in base_satisfied_entries(scope, task)
+                           if entry["task_id"] == planned), None) if planned is not None else None
+            require(retained and isinstance(parent_delivery, dict) and isinstance(landed, dict)
+                    and branch == parent_delivery["branch"] and head == parent_delivery["head_sha"]
+                    and contains(repo, head, landed["revision"]),
+                    "unapproved-parent",
+                    "retained stack parent is not a delivered, landed planned parent")
+            current, kind = head, "landed-stack-parent"
+            parent_checkpoint = parent_delivery["checkpoint"]
     elif selected is not None:
         if task["execution_parent"] is None:
             require(task["execution_fallback"] is not None, "unapproved-parent",
@@ -2608,8 +2696,7 @@ def parent_readiness(scope, task, state, reservation, decision, repo, retained=F
         require(current is not None and contains(repo, head, current),
                 "parent-tip-drift", "selected parent changed incompatibly")
         kind = "explicit"
-    proof = parent_pr_evidence(scope, branch, current,
-                               selected[1]["checkpoint"] if selected is not None else None)
+    proof = parent_pr_evidence(scope, branch, current, parent_checkpoint)
     records = []
     for tid, delivery, satisfaction in predecessors:
         revision = delivery["head_sha"] if retained and selected is not None and selected[0] == tid \
@@ -2938,6 +3025,7 @@ def _state_summary(state, blocked=None, waiting=None, paused=None, unknown_detai
         "active": sorted(tid for tid, item in tasks.items() if item["status"] in ("running", "note-pending")),
         "unknown": sorted(tid for tid, item in tasks.items() if item["status"] == "unknown"),
         "unknown_details": unknown_details,
+        "satisfied": sorted(tid for tid, item in tasks.items() if item["status"] == "satisfied"),
         "evidence_pending": sorted(tid for tid, item in tasks.items() if item["status"] == "evidence-pending"),
         "repair_ready": sorted(tid for tid, item in tasks.items() if item["status"] == "repair-ready"),
         "pending": sorted(tid for tid, item in tasks.items() if item["status"] == "pending"),
@@ -3070,8 +3158,10 @@ def _external_wait(task):
 
 
 
+
+
 def cmd_schedule(args):
-    admitted = load_json(args.admitted)
+    admitted = continuation_admission(load_json(args.admitted))
     require(admitted.get("status") in ("admitted", "no-work"), "not-admitted", "admission required")
     root = repository(args.git_repo, admitted["canonical_repo"])
     state = (state_read(args.state, admitted, allow_execution_plan_update=True, repo=args.git_repo)
@@ -3101,6 +3191,9 @@ def cmd_schedule(args):
         plan_update = state.pop("_execution_plan_update", None)
         if plan_update is not None:
             _apply_execution_plan_update(state, fresh, plan_update)
+        if plan_identity(state["execution_layout"]) == plan_identity(fresh["execution_layout"]):
+            # The plan is unchanged; refresh mutable merged and external satisfaction evidence.
+            state["execution_layout"] = copy.deepcopy(fresh["execution_layout"])
     except InputError as error:
         state.pop("_execution_plan_update", None)
         state.pop("_execution_plan_error", None)
@@ -3175,9 +3268,30 @@ def cmd_schedule(args):
         task = fresh_tasks[tid]
         item = state["tasks"][tid]
         retained = task.get("existing_delivery")
-        if not (item["status"] == "delivered" or (item["status"] == "pending" and retained is not None)):
+        if not (item["status"] in ("delivered", "satisfied")
+                or (item["status"] == "pending" and retained is not None)):
+            continue
+        if item["status"] == "satisfied":
+            if task.get("own_availability") is not None:
+                item["satisfaction"] = copy.deepcopy(task["own_availability"])
+                continue
+            item.update(status="pending", satisfaction=None, lifecycle_error=None,
+                        failure_reason=None)
+        if item["status"] == "pending" and task.get("own_availability") is not None:
+            # A merged delivery is repository evidence; its old claim belongs to its old writer.
+            item.update(status="satisfied", satisfaction=copy.deepcopy(task["own_availability"]),
+                        lifecycle_error=None, failure_reason=None)
             continue
         if item["status"] == "pending":
+            if (isinstance(retained, dict) and task.get("own_availability_error")
+                    and lifecycle_state(retained.get("lifecycle")) == "merged"):
+                reason = task["own_availability_error"]
+                item["lifecycle_error"] = {
+                    "reason": reason,
+                    "next_action": "refresh historical PR, merge, and check evidence for this prerequisite"}
+                blocked.append({"task_id": tid, "reason": reason,
+                                "next_action": item["lifecycle_error"]["next_action"]})
+                continue
             prior_claim = retained.get("claim") if isinstance(retained, dict) else None
             if not (isinstance(prior_claim, dict)
                     and prior_claim.get("owner") == state["owner"]["controller_id"]
@@ -3255,6 +3369,15 @@ def cmd_schedule(args):
                 blocked.append({"task_id": tid, "reason": reason,
                                 "next_action": item["lifecycle_error"]["next_action"]})
                 continue
+            if item["status"] == "pending":
+                # A read-only historical import never launched a writer, so uncertain evidence
+                # blocks this task and its dependents without occupying capacity.
+                item["lifecycle_error"] = {
+                    "reason": reason,
+                    "next_action": "refresh historical PR, merge, and check evidence for this prerequisite"}
+                blocked.append({"task_id": tid, "reason": reason,
+                                "next_action": item["lifecycle_error"]["next_action"]})
+                continue
             if item["reservation"] is None and isinstance(retained, dict):
                 item["reservation"] = retained.get("reservation")
             halt(state, item, reason)
@@ -3264,8 +3387,20 @@ def cmd_schedule(args):
             continue
     cap = min(positive(args.cap) if args.cap is not None else admitted["max_parallel"],
               admitted["max_parallel"], fresh["host_cap"])
+    import_only = set()
+    for tid, item in state["tasks"].items():
+        retained = fresh_tasks[tid].get("existing_delivery")
+        if (item["status"] == "unknown" and isinstance(retained, dict)
+                and item.get("last_evidence") == retained
+                and item.get("host_worker") is None and item.get("report") is None):
+            try:
+                if _import_only(item, fresh["recovery"], args.git_repo,
+                                admitted, fresh_tasks[tid], state):
+                    import_only.add(tid)
+            except InputError:
+                pass  # Unproved ownership or liveness keeps this slot occupied.
     occupied = [tid for tid, item in state["tasks"].items()
-                if item["status"] in ("running", "unknown")]
+                if item["status"] in ("running", "unknown") and tid not in import_only]
     slots = max(0, cap - len(occupied))
     inventory = worktree_inventory(args.git_repo)
     dispatch = []
@@ -3462,7 +3597,7 @@ def cmd_schedule(args):
         dispatch.append({"task_id": tid, "ordinal": task["ordinal"], "child_url": task["url"],
                          "repair": repair, "retained_pr": retained_pr, **reservation,
                          "workspace_reopen": copy.deepcopy(item.get("ci", {}).get("workspace_reopen")) if repair else None,
-                         "packet": packet(admitted, task, reservation, repair, retained_pr,
+                         "packet": packet(fresh, task, reservation, repair, retained_pr,
                                           readiness, fresh.get("scope_evidence"), repair_evidence)})
         occupied.append(tid)
         slots -= 1
@@ -3475,7 +3610,7 @@ def cmd_schedule(args):
 
 
 def cmd_record_worker(args):
-    admitted = load_json(args.admitted)
+    admitted = continuation_admission(load_json(args.admitted))
     repository(args.git_repo, admitted["canonical_repo"])
     state = state_read(args.state, admitted, repo=args.git_repo, active_task_id=args.task)
     require(args.task in state["tasks"], "unknown-task", "task outside admitted scope")
@@ -3505,7 +3640,7 @@ def cmd_record_worker(args):
 
 
 def cmd_apply_result(args):
-    admitted = load_json(args.admitted)
+    admitted = continuation_admission(load_json(args.admitted))
     repository(args.git_repo, admitted["canonical_repo"])
     state = state_read(args.state, admitted, repo=args.git_repo, active_task_id=args.task)
     require(args.task in state["tasks"], "unknown-task", "task outside admitted scope")
@@ -3590,7 +3725,7 @@ def cmd_apply_result(args):
     write_state(args, state)
     return outcome
 def cmd_reconcile(args):
-    admitted = load_json(args.admitted)
+    admitted = continuation_admission(load_json(args.admitted))
     repository(args.git_repo, admitted["canonical_repo"])
     state = state_read(args.state, admitted, repo=args.git_repo, active_task_id=args.task)
     require(args.task in state["tasks"], "unknown-task", "task outside admitted scope")
@@ -3690,7 +3825,7 @@ def cmd_reconcile(args):
             "detail": "Same task retained; full apply-result gates still required.",
             **_state_summary(state)}
 def cmd_stop(args):
-    admitted = load_json(args.admitted)
+    admitted = continuation_admission(load_json(args.admitted))
     repository(args.git_repo, admitted["canonical_repo"])
     state = state_read(args.state, admitted, repo=args.git_repo)
     claim_scope(args.git_repo, admitted, state)
@@ -3709,6 +3844,79 @@ def cmd_stop(args):
             **_state_summary(state)}
 
 
+
+
+def _import_only(item, inventory, repo, admitted, task, state):
+    """An import-only uncertainty has no bound writer; prove it stopped and unowned."""
+    if item.get("host_worker") is not None or item.get("report") is not None:
+        return False
+    reservation = item.get("reservation")
+    for rows in (inventory["sessions"], inventory["processes"]):
+        require(isinstance(rows, list) and all(isinstance(row, dict) for row in rows),
+                "incomplete-recovery", "host session/process inventory must be explicit lists")
+        for row in rows:
+            if row.get("task_id") == task["task_id"] or (reservation is not None
+                                                        and row.get("reservation") == reservation):
+                require(row.get("status") == "stopped", "worker-liveness",
+                        "current host readback must prove the reserved writer stopped")
+    if isinstance(reservation, dict) and Path(reservation["workspace"]).exists():
+        workspace_identity(repo, admitted["canonical_repo"],
+                           reservation["workspace"], reservation["branch"])
+    key = _claim_key(admitted, task)
+    path = _claims_root(repository(repo, admitted["canonical_repo"])) / (key + ".json")
+    if path.is_symlink():
+        raise InputError("unsafe-ownership", "orchestration claim cannot be a symlink")
+    if path.exists():
+        claim = load_json(path)
+        require(claim.get("owner") == state["owner"]["controller_id"]
+                and claim.get("canonical_repo") == admitted["canonical_repo"]
+                and claim.get("scope") == admitted["scope_identity"]
+                and claim.get("issue_url") == task["url"],
+                "ownership-conflict", "uncertain task is owned by another controller")
+    return True
+
+
+def cmd_resume(args):
+    admitted = continuation_admission(load_json(args.admitted))
+    root = repository(args.git_repo, admitted["canonical_repo"])
+    state = state_read(args.state, admitted, repo=args.git_repo)
+    require(state["stop_requested"], "not-stopped", "resume requires a persisted stop request")
+    claim_scope(args.git_repo, admitted, state)
+    fresh = admit(load_json(args.fresh), admitted["max_parallel"], args.git_repo)
+    require(fresh.get("recovery") is not None, "incomplete-recovery",
+            "resume requires a complete fresh recovery inventory")
+    require(fresh["fingerprint"] == admitted["fingerprint"],
+            "snapshot-drift", "scope/native identity/contract changed")
+    require(fresh["execution_fingerprint"] == admitted["execution_fingerprint"],
+            "execution-plan-drift", "execution layout changed without a newer admitted plan")
+    advance = integration_advance_evidence(root, admitted, fresh)
+    state.setdefault("recovery", {})["integration_advance"] = copy.deepcopy(advance)
+    inventory = recovery_inventory(fresh["recovery"])
+    tasks = {task["task_id"]: task for task in fresh["tasks"]}
+    released, retained = [], []
+    for item in state["tasks"].values():
+        if item["status"] != "unknown" and item.get("lifecycle_error") is None:
+            continue
+        task_id = item["task_id"]
+        fact = tasks[task_id].get("own_availability")
+        if fact is None or not _import_only(item, inventory, args.git_repo, admitted, tasks[task_id], state):
+            retained.append(task_id)
+            continue
+        item.update(status="satisfied", satisfaction=copy.deepcopy(fact), lifecycle_error=None,
+                    failure_reason=None, first_uncertain_boundary=None)
+        released.append(task_id)
+    stop_boundary = state.get("recovery", {}).get("first_uncertain_boundary")
+    stop_reason = stop_boundary.get("reason") if isinstance(stop_boundary, dict) \
+        and stop_boundary.get("status") == "stop-requested" else None
+    state["stop_requested"] = False
+    if state.get("halt_reason") == "user-stop" or (stop_reason is not None
+                                                  and state.get("halt_reason") == stop_reason):
+        state["halt_new_dispatch"], state["halt_reason"] = False, None
+        state.setdefault("recovery", {}).pop("first_uncertain_boundary", None)
+    write_state(args, state)
+    return {"status": "resumed", "released": sorted(released),
+            "retained_unknown": sorted(set(retained)),
+            "dispatch": [], **_state_summary(state)}
 
 
 def cmd_admit(args):
@@ -3772,6 +3980,13 @@ def parser():
     stop.add_argument("--git-repo", required=True)
     stop.add_argument("--reason", default="user-stop")
     stop.set_defaults(run=cmd_stop)
+    resume = commands.add_parser("resume")
+    resume.add_argument("--admitted", required=True)
+    resume.add_argument("--fresh", required=True)
+    resume.add_argument("--state", required=True)
+    resume.add_argument("--state-out", required=True)
+    resume.add_argument("--git-repo", required=True)
+    resume.set_defaults(run=cmd_resume)
     return root
 
 def main():

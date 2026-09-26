@@ -127,7 +127,9 @@ normalized admission and local Git reservation, never evidence to invent.
 ```
 The packet also carries the admitted `execution_layout`, its `execution_order` for this task, the
 technical `prerequisites` with provenance, and the controller's `effective_prerequisites` (technical
-prerequisites plus the selected `execution_parent`). The execution order is a pre-execution
+prerequisites plus the selected `execution_parent`, minus prerequisites already landed in the
+approved base).
+The execution order is a pre-execution
 compatibility forest chosen by the model before branch/worktree allocation. It is not native issue
 relationship evidence, and it never expands scope or lets Execute schedule siblings.
 

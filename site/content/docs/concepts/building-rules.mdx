@@ -55,11 +55,13 @@ issue/task identities, executable tasks, and a bounded technical DAG with proven
 and summarizes a model-chosen single-parent execution forest before allocation. Added ordering is
 compatibility evidence, not native relationship evidence; technical prerequisites remain visible
 separately, useful parallelism is retained, and effective prerequisites govern readiness and repair
-propagation. Verified landed prerequisites outside the selected issue set remain recorded external
-dependencies, not imported tasks: their issue, merge, diff, checks, and exact candidate-base
-containment stay in the handoff without creating an external claim, worker, or PR. Issue, issue-list,
-and Project arguments are convenience hints, not an exhaustive admission taxonomy; a complete
-tracker index can establish declared membership without native links,
+propagation. A selected task whose own landed, verified delivery is already contained in the approved
+integration base is satisfied evidence, not an imported worker delivery, and the same holds for
+verified landed prerequisites outside the selected issue set: they remain recorded external
+dependencies, not imported tasks, and their issue, merge, diff, checks, and exact candidate-base
+containment stay in the handoff without creating an external claim, worker, or PR.
+Issue, issue-list, and Project arguments are convenience hints, not an exhaustive admission taxonomy;
+a complete tracker index can establish declared membership without native links,
 while every selected issue and contract still needs independent reads. For Orchestrate, a Project is
 included only when explicitly selected; its status lifecycle is used only when that selection requests
 status mutation, and inferred edges are not published.

@@ -35,8 +35,9 @@ of required work; the layout is a single-parent execution forest with approved-b
 selected task appears exactly once with its `execution_parent`, rationale, and compatibility
 constraints. A selected parent adds optional compatibility ordering only; it is not native
 relationship evidence and does not change the technical prerequisites. Every technical prerequisite
-must lie on the selected task's execution ancestor path unless the layout records a verified
-`base_satisfied_prerequisites` entry with its landed revision and evidence. If existing divergence
+must lie on the selected task's execution ancestor path unless admission records a verified
+`base_satisfied_prerequisites` entry from that task's landed delivery evidence; a prerequisite
+already landed in the base never needs a controller-owned delivery. If existing divergence
 or repository constraints make that impossible, record the approved `merge-checkpoint` fallback and
 its release condition instead of inventing a relationship. Preserve useful parallelism; this is not
 a wave plan.
@@ -121,6 +122,12 @@ python3 <orchestrate-skill>/scripts/orchestrate.py reconcile \
   --state-out controller-state.json --git-repo <canonical-git-repository> \
   --task <task-id> --inventory <fresh-recovery-inventory.json> \
   --evidence <canonical-reconciliation-evidence.json>
+
+python3 <orchestrate-skill>/scripts/orchestrate.py resume \
+  --admitted admitted.json --state controller-state.json \
+  --state-out controller-state.json --git-repo <canonical-git-repository> \
+  --fresh <fresh-snapshot.json>
+
 python3 <orchestrate-skill>/scripts/orchestrate.py stop \
   --admitted admitted.json --state controller-state.json \
   --state-out controller-state.json --git-repo <canonical-git-repository> \
@@ -130,6 +137,14 @@ python3 <orchestrate-skill>/scripts/orchestrate.py stop \
 Observe only a delivered task's admitted PR. Assemble the observation from fresh authorized
 GitHub and host reads using the [PR-check observation contract](references/validation.md#pr-check-observation-and-repair);
 invoke `observe-checks` independently of `apply-result` and then refill with `schedule`.
+`resume` is the explicit recovery for a stopped controller with import-only uncertainty: it
+clears the stop, releases only records whose fresh evidence proves a landed, verified delivery
+after checking host liveness and ownership, and retains every genuine unknown writer with its
+reservation, uncertain boundary, and last evidence. A live host session or another controller's
+claim blocks release. It never redispatches, fabricates a stop receipt, or releases unverified work.
+An admission retained from before the landed-prerequisite cutover continues as written; it is
+not re-admitted, replanned, or hand-edited.
+
 Use complete check/workflow context to distinguish verified non-applicability from pending or
 inaccessible evidence. Downstream starts default to waiting for applicable CI unless existing
 repository/host guidance explicitly permits verified unmerged stacking while CI is pending; that
@@ -229,15 +244,16 @@ receives a worker or PR, and is not a prerequisite merely because the executable
    an `execution_parent` (the approved-base root is `null`), a rationale, non-empty compatibility
    constraints, and only when needed a `fallback` with `reason: "merge-checkpoint"` and a concrete
    `release_condition`. The combined technical-plus-execution graph is acyclic, and every technical
-   prerequisite is on the selected execution ancestor path or has a verified
-   `base_satisfied_prerequisites` entry naming the merged revision contained in the approved
-   integration base. External prerequisites use `satisfied_external_prerequisites` for the same
+   prerequisite is on the selected execution ancestor path or is a selected task whose landed,
+   verified delivery is contained in the approved integration base; admission derives that
+   `base_satisfied_prerequisites` entry itself. External prerequisites use
+   `satisfied_external_prerequisites` for the same
    exact-base proof. Added ordering is compatibility evidence, not native relationship evidence;
    the technical DAG and its provenance remain visible separately. The model owns this selection;
    ordinals do not create execution edges, and Execute/Commit do not schedule siblings.
 6. Assemble the snapshot from those completed reads and invoke only
    `admit --snapshot <file> --git-repo <canonical-checkout>`. The Git checkout is required when
-   claiming base-satisfied or satisfied external prerequisites; admission verifies containment under the
+   proving base-satisfied or satisfied external prerequisites; admission verifies containment under the
    [execution-layout contract](references/scheduling.md). Admission is read-only: it performs no issue mutation, does not create
    a Project, and does not close, reparent, or publish relationships. It validates exact identities,
    `scope_evidence` when present, contracts, technical edge provenance/endpoints, the complete
