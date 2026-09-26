@@ -143,11 +143,11 @@ the repository's simplify/comments guidance.
   verification, approved artifacts, and accepted reviews mean submit or update a reviewable open
   PR only. They do not grant merge authority. Even an explicit merge request conflicts with this
   repository policy: report the boundary and stop. Never run `gh pr ready`, `gh pr merge`, a
-  merge-queue mutation, or an equivalent Graphite/GitHub operation.
+  merge-queue mutation, or an equivalent GitHub operation.
 - Use native Git with an available, authorized GitHub integration for source control; prefer the
   host's native GitHub tools when suitable and use host-authenticated `gh` where appropriate.
-  Discover the actual capabilities and preserve the [source-control contract](skills/woostack-commit/references/graphite.md);
-  Graphite is optional and must be selected explicitly or by verified existing management evidence.
+  Discover the actual capabilities and preserve the
+  [source-control contract](skills/woostack-commit/references/source-control.md).
   Backend errors stop the operation rather than trigger a fallback. Never force-push.
 - Cross-link, do not duplicate. If a fact belongs in a reference file, link to it from
   related docs instead of restating it.

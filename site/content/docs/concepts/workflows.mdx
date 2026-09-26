@@ -76,8 +76,10 @@ constraints are resolved, Orchestrate selects and summarizes a model-chosen sing
 execution forest before branch/worktree allocation. Added ordering is compatibility evidence, not
 native relationship evidence. Technical prerequisites remain visible separately, useful
 parallelism is retained, and effective prerequisites govern worker readiness and repair propagation.
-A technical prerequisite may be omitted from the execution ancestry only when the layout records
-independent evidence that its merged revision is already contained in the approved integration base.
+A technical prerequisite may be omitted from the execution ancestry when admission verifies from that
+task's own landed, verified delivery that its merged revision is already contained in the approved
+integration base. Such a prerequisite is repository evidence: it is never reconstructed as a
+controller-owned worker delivery.
 The plan and fingerprint persist in controller state; equivalent reordered input resumes it. A newer
 execution-plan revision is adopted atomically for genuinely unstarted changes. An incompatible
 legacy candidate leaves the retained state and worker contract unchanged. A previously persisted

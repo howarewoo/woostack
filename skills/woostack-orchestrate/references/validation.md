@@ -4,11 +4,11 @@ Every worker result is gated by the helper and by an independent read-only valid
 ordinary Execute report is evidence to check, never delivery by itself. The helper owns state
 transitions; this reference defines the facts the skill must collect before invoking it.
 
-Use the shared [source-control contract](../../woostack-commit/references/graphite.md),
+Use the shared [source-control contract](../../woostack-commit/references/source-control.md),
 the outcome-level [runtime workspace guidance](scheduling.md#runtime-workspace-and-branch-evidence),
 the [least-code standard](../../woostack-bootstrap/references/patterns.md#7-least-code--comments),
 and canonical [`#artifact-delivery-note`](../../woostack-commit/references/provider-attribution.md#artifact-delivery-note)
-contract. Host mechanics remain in the allowlisted host references.
+contract. Known host files are optional mechanics references, not an allowlist.
 
 ## Result schema
 
@@ -29,7 +29,8 @@ values to invent:
     "head_sha": "<runtime-substituted head SHA>",
     "base_branch": "<runtime-substituted PR base branch>",
     "commit_sha": "<runtime-substituted commit SHA>",
-    "association": "<runtime-substituted exact child issue URL>"
+    "association": "<runtime-substituted exact child issue URL>",
+    "attempt_binding": "<runtime-substituted exact issued attempt binding>"
   },
   "readback": {
     "repo": "<runtime-substituted canonical PR repository>",
@@ -58,12 +59,32 @@ values to invent:
     },
     "diff_identity": "sha256:<runtime-substituted exact binary-diff hash>"
   },
+  "stack": {
+    "complete": true,
+    "number": 123,
+    "trunk": "<runtime-substituted configured integration branch>",
+    "members": [
+      {
+        "pr_url": "<runtime-substituted canonical member PR URL>",
+        "branch": "<runtime-substituted member head branch>",
+        "head_sha": "<runtime-substituted member head SHA>",
+        "base_branch": "<runtime-substituted member base branch>",
+        "draft": true
+      }
+    ]
+  },
   "checks": {
     "passed": true,
-    "commands": ["<runtime-substituted exact required contract command>"],
+    "commands": [
+      {"command": "<observed required or extra command>", "executed": true, "passed": true}
+    ],
     "head_sha": "<runtime-substituted same head SHA>",
     "diff_identity": "sha256:<runtime-substituted same binary-diff hash>",
-    "smoke": "<runtime-substituted exact contract.smoke>"
+    "smoke": {
+      "description": "<runtime-substituted observed scenario in ordinary report language>",
+      "executed": true,
+      "passed": true
+    }
   },
   "validation": {
     "verdict": "pass",
@@ -97,9 +118,14 @@ fabricate a receipt. The result example's markers mean “runtime-substituted fa
 successful fixture. A repair result may omit `note` when no validated delivery note exists. It must
 not replace missing fields with another task's evidence.
 
-`readback.draft` is the observed boolean, not a requested state: initial creation must be
-draft, while a previously verified, same-PR update retains the human's current readiness.
-Neither the worker nor controller marks an existing PR ready or resets it to draft.
+`readback.draft` is the observed boolean, not a requested state. For the first submission of a
+task, the current readback must prove `draft: true`. A verified update to that task's retained
+canonical PR may report either truthful readiness state: its PR URL, reserved branch/head/base,
+child association, current diff, checks, and independent validation must still match, and the
+update must not change readiness or create a replacement. Neither the worker nor controller marks
+an existing PR ready or resets it to draft. The retained result remains the historical submission
+checkpoint; a separately refreshed `lifecycle` records later readiness or other state changes
+without rewriting that history.
 
 Every active `apply-result` envelope carries `worker.host_id`, `worker.session_id`, and
 `worker.worker_id`, all nonempty strings matching the task's recorded `host_worker` exactly.
@@ -130,6 +156,12 @@ status. Recover the originating identity through direct host reads; never guess 
 `unknown` transition. Standalone validation/admission of already-delivered work has no active launch
 and keeps its existing delivery-evidence contract.
 
+The `stack` receipt is required only when the reserved task has an open parent PR. It is a fresh,
+fully paginated native stack read in bottom-to-top order, including the child; its positive native
+number, configured trunk, and every member's canonical PR URL, branch, head, base, and readiness
+must exactly match the reserved approved chain. Independent tasks omit `stack` rather than
+fabricating membership.
+
 The `worker` and `readback` identities must agree. `readback.closing_references` must contain
 exactly one entry, the canonical child URL, and the PR body must carry exactly one
 `Resolves <child URL>` reference. A specification-parent closing reference, duplicate reference,
@@ -139,6 +171,13 @@ PR, or closed PR is an identity failure, not permission to retarget or create a 
 Draft-only creation is checked against the absence of a retained verified PR; a repair or
 receipt retry must match that PR's identity and may report `draft: false` after a human
 readiness change. Review policy and current-head validation still apply.
+
+For a dependent task whose parent PR is open, the independent read also follows the owner's
+[stack membership contract](../../woostack-commit/references/source-control.md#native-github-stack-membership-for-a-dependent-pr):
+confirm the approved parent PR and chain state are current and the child belongs to the intended
+native stack. Chained bases cannot substitute for the `stack` receipt. An absent, partial, or
+conflicting stack read-back blocks success and dependent release; preserve the verified PR and report
+the exact unproved boundary without fabricating a passing `apply-result`.
 
 For every normalized task, `readback.association` and the sole closing reference remain that task's
 canonical issue URL. The selected tracker, scope identity, source context, and inferred DAG never
@@ -189,7 +228,13 @@ thread's review association and resolution disposition. A `COMMENTED` review is 
 event and cannot replace an earlier approval or change request from that reviewer. A `DISMISSED`
 review must retain the original commit association and identify both its dismissing pusher and
 dismissal time; a missing or unattributed dismissal is incomplete evidence. `review_policy` is a
-complete fresh read of the applicable base-branch review requirements and PR evidence.
+complete fresh read of the applicable review requirements and PR evidence. Those requirements come
+from the verified native stack trunk when the readback proves the PR is a registered stack member
+under the owner's
+[stack membership contract](../../woostack-commit/references/source-control.md#native-github-stack-membership-for-a-dependent-pr),
+and otherwise from the PR's own base branch. Chained bases alone are not a stack, and the child's
+immediate base never supplies the policy for a registered member. The helper evaluates one complete
+policy read and needs no stack field of its own.
 `eligible_reviewers` contains the logins currently authorized to satisfy required reviews (write
 permission); it is not a copy of all review authors. When code-owner review is required, resolve
 the CODEOWNERS rules against the changed paths and supply `code_owner_requirements` as one
@@ -231,13 +276,16 @@ only that prerequisite and its descendants. A deleted source ref is permitted on
 verified merged lifecycle. Never fabricate an open readback, reopen or reset a human-ready PR, or
 replace the retained delivery checkpoint with current lifecycle data.
 
-Checks are bound to the same `head_sha` and `diff_identity`. `checks.commands` is exactly the
-admitted `contract.checks` list, with observed outcomes held by the skill; `checks.smoke` is exactly
-the admitted `contract.smoke`. A `passed: true` flag without the exact command list is malformed,
-not a pass. Independent validation computes `contract_hash` as `sha256:` plus canonical JSON
-(sorted keys, compact separators) of the exact admitted contract, records the same diff identity,
-and uses `checked_head == readback.head_sha`. `reviewer_id` must be distinct from `worker.worker_id`.
-A changed head invalidates all check/validation/diff evidence and requires fresh reads.
+Checks are bound to the same `head_sha` and `diff_identity`. `checks.commands` records each actually
+executed command and its outcome. Every admitted required command must be present and pass; extra
+checks and harmless ordering differences are allowed, and any extra failure keeps the aggregate
+from passing. `checks.smoke` records the actual scenario, execution, and outcome in ordinary report
+language. The independent validator assesses whether it covers the admitted smoke rather than
+copying or string-matching the scenario text. Independent validation computes `contract_hash` as
+`sha256:` plus canonical JSON (sorted keys, compact separators) of the exact admitted contract,
+records the same diff identity, and uses `checked_head == readback.head_sha`. `reviewer_id` must be
+distinct from `worker.worker_id`. A changed head invalidates all check/validation/diff evidence
+and requires fresh reads.
 
 ## Gate order and statuses
 
@@ -255,8 +303,8 @@ skill must not implement an alternate acceptance path:
    report fields, dispatch another worker, or clear identity from a report.
 2. **Focused checks or independent specification review fail:** return `repair-ready`, preserving
    the exact original branch, absolute workspace, parent branch/SHA, reservation, and retained PR.
-   The note may be absent. Repairs return through the same branch/PR and may not be reparents or
-   replacements.
+   The note may be absent. Repairs return through the same branch/PR and may not be reparents,
+   replacements, or readiness changes.
 3. **Exact PR recovered after unknown:** return `evidence-pending`, retaining the same reservation and
    canonical PR/source evidence. Accept the independent full result through `apply-result`; do not
    dispatch a second Execute worker for repository work already represented by that PR.
@@ -266,7 +314,8 @@ skill must not implement an alternate acceptance path:
 5. **Worker/readback or canonical identity conflict:** return a blocked `unknown` result for that
    task, preserving its reservation and stopping only its descendants. Wrong repository/head
    repository, PR URL, branch/head, base, child association, duplicate/closed PR, or a non-unique
-   readback is an identity failure, never permission to retarget or create a replacement.
+   readback is an identity failure, never permission to retarget or create a replacement. A new
+   non-draft PR also fails; a verified retained PR accepts its truthful current readiness.
 6. **All evidence pass:** require the note to have been written and read back under the canonical
    [`#artifact-delivery-note`](../../woostack-commit/references/provider-attribution.md#artifact-delivery-note)
    contract. When the snapshot admitted a Project and lifecycle for status mutation, also require
@@ -416,17 +465,23 @@ per task/head applies, and one writable owner per task branch/workspace remains 
 an active or unknown previous writer before any repair takeover. Independent PRs may be repaired
 concurrently under the shared cap, and unrelated runnable work continues while one task waits on CI
 or a blocker. A repair retains the original branch, PR, and ownership; it never creates a replacement
-PR and never forges an `apply-result`.
+PR and never forges an `apply-result`. Preserve its independently observed readiness in either
+direction; it is not evidence that a workflow may mark the PR ready or convert it back to draft.
 
 A newly observed relevant failure or repair invalidates that task's applicable readiness/evidence
 and pauses affected downstream starts without erasing existing PR/delivery history. When a repaired
 parent branch advances, reassess affected descendants against the actual new parent and task
 contracts using the persisted effective graph; never silently mutate a running child's checkout,
 reuse old validation for a changed diff/base, or patch the same inherited defect independently in
-every child. Any necessary descendant repair or permitted reconciliation gets its own exclusively
-owned worker task and fresh verification under the existing source-control policy. Where safe
-propagation cannot be established, pause the affected work and report the decision required. No
-automatic integration branch, dependency rewriting, force-push, or PR merge. Never modify or reopen a
+every child. Any necessary descendant repair gets its own exclusively owned worker task and fresh
+verification under the existing source-control policy. Reconciliation of a registered stack follows
+the owner's
+[stack reconciliation contract](../../woostack-commit/references/source-control.md#stack-reconciliation):
+the controller names the affected set, does not merge each moved parent into its child, cascade a
+restack, or rewrite a published head, and pauses the affected work for a human-maintenance boundary
+when reconciliation would require one. Where safe propagation cannot be established, pause the
+affected work and report the decision required. No automatic integration branch, dependency
+rewriting, force-push, or PR merge. Never modify or reopen a
 closed/merged PR automatically. The controller output distinguishes submitted, checking, verified
 non-applicable, repairing, CI-verified, blocked, waiting, and unverified work, including the observed
 downstream-start decision and its evidence source.
@@ -466,6 +521,10 @@ python3 skills/woostack-orchestrate/scripts/orchestrate.py record-worker \
 The launch receipt contains `worker` (exactly nonempty `host_id`, `session_id`, `worker_id`),
 `reservation` (the complete unchanged scheduled reservation), and `state_digest` (lowercase
 SHA-256 hex of the exact current checkpoint file bytes, without a prefix). Use native runtime
+The launch receipt also carries the packet's exact `attempt_binding`; this value is recorded
+alongside the native identity and must be echoed by the completion result. Version-2 checkpoints
+that predate attempt bindings remain readable for already-issued work, but the helper never invents
+a binding for them and accepts their existing result only when the reservation has no binding.
 identities, including the session/host incarnation, not a model-chosen label or reusable PID alone.
 The helper records this identity separately as `host_worker`; worker result prose cannot replace
 it. Another identity is rejected until the controller emits a new repair dispatch. Each dispatch

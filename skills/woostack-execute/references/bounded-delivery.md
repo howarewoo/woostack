@@ -11,12 +11,10 @@ consumes that bounded packet for one task and does not schedule siblings or own 
 delivery goes through Commit; Git and canonical GitHub reads supply source-control evidence, not
 permission to implement or authority to merge.
 
-Before mutation, apply the shared [source-control selection and ancestry contract](../../woostack-commit/references/graphite.md).
+Before mutation, apply the shared [source-control contract](../../woostack-commit/references/source-control.md).
 Use native Git and an authorized GitHub capability for repository delivery (prefer native GitHub
 tools when suitable; host-authenticated `gh` is supported). Discover actual operation capabilities,
-read shapes, pagination, and independent readback before any consequential operation. Optional
-Graphite selection follows the shared contract; unknown selection blocks, and `gt` failure never
-authorizes backend switching.
+read shapes, pagination, and independent readback before any consequential operation.
 
 ## Keep one bounded contract
 
@@ -82,13 +80,22 @@ findings and rerun affected checks; material scope changes return to Execute adm
 ## Deliver and read back one PR
 
 Only after required verification passes on the complete task diff, use
-[Commit](../../woostack-commit/SKILL.md) to submit at most one PR under the source-control contract. In native mode,
-add a Git commit (never automatically amend), explicitly push only the task branch without force,
+[Commit](../../woostack-commit/SKILL.md) to submit at most one PR under the source-control contract.
+Add a Git commit (never automatically amend), explicitly push only the task branch without force,
 and use the selected authorized GitHub submission capability to create a draft only after excluding
 an existing matching PR; host-authenticated `gh pr create --draft` and `gh pr edit` are supported
 equivalents for draft creation and body updates. Preserve the exact repository/head/base identity and
 intended base.
 Never merge, mark ready, enable auto-merge, enqueue, or force-push.
+
+When the admitted dependent's parent PR is open, Commit also performs
+[native stack membership](../../woostack-commit/references/source-control.md#native-github-stack-membership-for-a-dependent-pr)
+after this PR exists, using the verified parent PR and the configured integration/trunk branch.
+Read back the stack identity, trunk, ordered membership, and the affected PR heads/bases; a chained
+base is not membership. Conflicting or uncertain membership, a moved parent, or unavailable stack
+capability is a bounded incomplete delivery boundary — preserve the verified commit and PR and
+report it, rather than restructuring the stack or calling the delivery complete. An independent PR
+performs no stack operation.
 
 For a selected exact issue, re-read it before submission and on resume to verify its
 identity, repository, open state, and continued agreement with the accepted contract. Changed scope
@@ -103,17 +110,19 @@ the issue is closed or close it directly. An unknown submission or association o
 discovery before retry; report repository delivery and association separately.
 
 Independently read back the exact repository, branch, parent, commit, changed paths, PR URL,
-PR head/base, and open state. The success boundary is one complete reviewable PR whose verified
-commit contains every requested bounded change.
+PR head/base, open state, and — for a registered dependent — the stack identity, trunk, and ordered
+membership. The success boundary is one complete reviewable PR whose verified commit contains
+every requested bounded change; membership is a separate fact that a chained base does not supply.
 
 After delivery, retain the selected workspace unless its owner explicitly supplies a safe lifecycle
 operation. Never remove a user-owned, host-managed, or external checkout as workflow cleanup.
 Publication does not create a workspace obligation. If implementation, verification, review, commit,
 submission, read-back, or lifecycle handling fails, is blocked, or has an unknown outcome, retain the
-workspace and return exact Git, GitHub, and selected-backend resume evidence: repository/base,
-task/workspace, branch/parent, head/commit, status/diff, verification/review results, and PR
-URL/state when known. On resume, reread those facts and continue at the first unproved boundary
-without duplicating a branch, commit, PR, or cleanup.
+workspace and return exact Git and GitHub resume evidence: repository/base, task/workspace,
+branch/parent, head/commit, status/diff, verification/review results, PR
+URL/state, and observed stack identity/trunk/membership when known. On resume, reread those facts
+and continue at the first unproved boundary without duplicating a branch, commit, PR, stack, or
+cleanup.
 
 ## Return
 

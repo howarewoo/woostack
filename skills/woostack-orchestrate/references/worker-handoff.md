@@ -3,11 +3,11 @@
 This reference defines the exact bridge between helper output and a real
 [`woostack-execute`](../../woostack-execute/SKILL.md) worker. The helper emits data; it never
 contacts a host. The skill supplies the selected isolated workspace/branch through the host's
-supported mechanism, then invokes only the selected allowlisted host's documented subagent
-primitive. Scheduling and state rules are in [scheduling](scheduling.md); delivery gates are in
-[validation](validation.md).
+supported mechanism, then invokes an actually available authorized primitive that provides
+delivery, workspace isolation, native result correlation, and recovery. Scheduling and state rules
+are in [scheduling](scheduling.md); delivery gates are in [validation](validation.md).
 
-Use the shared [source-control contract](../../woostack-commit/references/graphite.md),
+Use the shared [source-control contract](../../woostack-commit/references/source-control.md),
 the outcome-level [worktree guidance](scheduling.md#runtime-workspace-and-branch-evidence),
 the [least-code standard](../../woostack-bootstrap/references/patterns.md#7-least-code--comments),
 and [model tiers](../../using-woostack/references/model-tiers.md). Host mechanics do not belong in
@@ -127,7 +127,9 @@ normalized admission and local Git reservation, never evidence to invent.
 ```
 The packet also carries the admitted `execution_layout`, its `execution_order` for this task, the
 technical `prerequisites` with provenance, and the controller's `effective_prerequisites` (technical
-prerequisites plus the selected `execution_parent`). The execution order is a pre-execution
+prerequisites plus the selected `execution_parent`, minus prerequisites already landed in the
+approved base).
+The execution order is a pre-execution
 compatibility forest chosen by the model before branch/worktree allocation. It is not native issue
 relationship evidence, and it never expands scope or lets Execute schedule siblings.
 
@@ -253,14 +255,16 @@ later repair launch or reconciled using another worker's stopped receipt.
 
 The worker must not create its own alternate workspace, switch to another branch, infer a parent
 from ordinal order, read/write a sibling workspace, alter hierarchy/dependencies, or own Project
-progress. It may use Execute/Commit for its one task and one child-associated PR, created as a draft.
+progress. It may use Execute/Commit for its one task and one child-associated PR: a new PR starts
+as a draft, while an update preserves the retained PR's independently observed readiness.
 
 ## Host handoff
 
-Resolve the host slug against the exact allowlist before using a spawn primitive and load only that
-host's reference. The host adapter owns primitive names, worker selectors, per-call directory/model
-knobs, fallback, and concurrency mechanics. This skill owns only the invariant payload and says
-when missing delivery capability is a blocker:
+Use an actually available authorized host primitive only after proving worker delivery, isolated
+workspaces, native result correlation, and recovery. Known host files are optional mechanics
+references, not an allowlist or proof by name. The selected mechanism owns primitive names, worker
+selectors, per-call directory/model knobs, fallback, and concurrency mechanics. This skill owns
+only the invariant payload and says when missing capability is a blocker:
 
 - pass one schedule entry to one delivery-capable subagent;
 - pass the exact absolute workspace, branch, parent branch/SHA, complete packet, child URL,
@@ -289,6 +293,10 @@ before `apply-result`. Do not invent missing evidence or let the worker approve 
 Failed checks/specification validation preserve the
 same reservation and PR for repair; note/evidence-only retries keep the same recorded native
 identity without replaying repository delivery. A new repair launch has its own native identity.
+Each dispatch also issues an `attempt_binding` covering the exact task contract, reservation,
+repair/retained-PR facts, and parent-readiness context. The host launch receipt and worker result
+must echo that binding; the controller records it with the attempt history so a compatible global
+replan cannot relabel or invalidate the launched attempt.
 
 For a missing or malformed response, construct a valid envelope from the originating native handle
 with `outcome: "unknown"` or the malformed report fields. Only a bound envelope may transition the
@@ -298,8 +306,9 @@ Follow [native identity recovery](validation.md#record-the-native-writer) when t
 never relabel an old completion using current task state.
 
 The child PR carries exactly one `Resolves <child URL>` reference. It never closes or references
-the specification parent. New PRs are drafts; updates preserve a human's current readiness.
-No workflow step marks ready, merges, queues, force-pushes, or silently retargets a PR.
+the specification parent. New PRs remain drafts; updates preserve a human's current readiness. No
+workflow step marks an existing PR ready, changes its readiness, merges, queues, force-pushes, or
+silently retargets it.
 
 ## Existing delivery and resume
 

@@ -128,7 +128,8 @@ and a parent-selection policy. At execution, Orchestrate first preserves that te
 selects and summarizes a model-chosen single-parent execution forest before branch/worktree
 allocation. The selected parent is optional compatibility ordering, not native relationship
 evidence. The layout must include every selected task exactly once, retain useful parallelism, and
-make every technical prerequisite part of the selected execution ancestor path. A join can use a
+make every technical prerequisite part of the selected execution ancestor path unless admission proves
+that prerequisite is already landed in the approved integration base. A join can use a
 verified existing parent when eligible. Only an explicit `merge-checkpoint` fallback for existing
 divergence or repository constraints becomes `waiting-for-merge`; a join otherwise does not require
 a new parent or integration decision. Planning never creates an automatic integration branch, combines

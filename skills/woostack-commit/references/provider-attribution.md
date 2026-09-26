@@ -10,7 +10,7 @@ issue's native identity, canonical URL/repository, open state, title/body, and n
 the canonical PR facts below. This exact read-only association needs no Project selection or GitHub
 configuration. It follows the [Execute issue contract](../../woostack-execute/SKILL.md#optional-exact-github-issue).
 Git and canonical GitHub reads remain authoritative for repositories, branches, commits, ancestry,
-PRs, reviews, and merge state; Graphite supplies additional ancestry evidence only when selected.
+PRs, reviews, and merge state.
 
 ## Admission
 For an exact canonical GitHub issue, resolve only that URL through the host's authorized GitHub

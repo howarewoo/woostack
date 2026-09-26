@@ -4,9 +4,8 @@ This reference defines outcome-level safeguards for isolated implementation work
 select task scope, dependencies, approval, acceptance, publication, or merge authority. Those
 boundaries belong to the active workflow; Git and canonical provider reads own repository state.
 Select native Git plus an authorized GitHub capability (prefer native GitHub tools when suitable;
-host-authenticated `gh` is supported), or Graphite only when explicitly selected or verified as
-already managing this task/stack, under the
-[source-control contract](../../woostack-commit/references/graphite.md).
+host-authenticated `gh` is supported) under the
+[source-control contract](../../woostack-commit/references/source-control.md).
 Direct Git/GitHub publication owns artifact scope; no provider-specific artifact context is selected here.
 
 ## Required isolation and identity
@@ -49,6 +48,12 @@ recorded stack order or parent intent does not add, remove, or rewrite requireme
 join pauses that task as a human-merge checkpoint; this fallback covers divergent work, fixed-parent
 or independent-landing constraints, or no safe suitable stack. Do not infer order, rewrite heads,
 rebase, reset, silently switch parents, combine branches, or require a merge automatically.
+
+Workspace isolation and ancestry admission are unchanged by native stack membership. A dependent's
+workspace, branch, and parent proof come from this reference; the remote stack object is publication
+evidence owned by the
+[source-control contract](../../woostack-commit/references/source-control.md#native-github-stack-membership-for-a-dependent-pr)
+and never a reason to move a checkout, switch a parent, or restack a branch.
 
 ## Discovery, operation, and recovery
 
