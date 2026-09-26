@@ -2,50 +2,10 @@
 set -uo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-TEMPLATE="$HERE/../../../woostack-init/templates/config.json"
 CONFIG_RESOLVER="$HERE/../../../woostack-init/scripts/config/resolve-config.sh"
 emit() { printf '%s\t%s\t%s\t%s\t%s\n' "$1" "$2" "$3" "$4" "$5"; }
 
-if [ "${1:-}" = "--fix" ]; then
-  WOO_ROOT="${2:-.}"
-  key="${3:-}"
-  [ -n "$key" ] || { echo "config-keys.sh: --fix requires a key argument" >&2; exit 2; }
-  command -v jq >/dev/null 2>&1 || exit 2
-  [ -f "$TEMPLATE" ] || exit 2
-  if ! jq -e --arg key "$key" 'has($key)' "$TEMPLATE" >/dev/null 2>&1; then
-    echo "config-keys.sh: unsupported template key: $key" >&2
-    exit 2
-  fi
-  CFG="$WOO_ROOT/.woostack/config.json"
-  [ -d "$WOO_ROOT/.woostack" ] || { echo "config-keys.sh: .woostack is missing" >&2; exit 2; }
-  if [ -L "$CFG" ] || { [ -e "$CFG" ] && [ ! -f "$CFG" ]; }; then
-    echo "config-keys.sh: config.json must be a regular non-symlink file" >&2
-    exit 2
-  fi
-  if [ -f "$CFG" ]; then
-    jq -e 'type == "object"' "$CFG" >/dev/null 2>&1 || {
-      echo "config-keys.sh: config.json must contain a JSON object" >&2
-      exit 2
-    }
-    if jq -e --arg key "$key" 'has($key)' "$CFG" >/dev/null 2>&1; then
-      exit 0
-    fi
-  else
-    printf '{}\n' >"$CFG" || exit 1
-  fi
-  value="$(jq -c --arg key "$key" '.[$key]' "$TEMPLATE")" || exit 1
-  tmp="$(mktemp)"
-  if ! jq --arg key "$key" --argjson value "$value" '.[$key]=$value' "$CFG" >"$tmp"; then
-    rm -f "$tmp"
-    exit 1
-  fi
-  mv "$tmp" "$CFG"
-  exit $?
-fi
-
 WOO_ROOT="${1:-.}"
-CFG="$WOO_ROOT/.woostack/config.json"
-[ -f "$TEMPLATE" ] || exit 0
 if ! command -v jq >/dev/null 2>&1; then
   emit error config-policy report ".woostack/config.json" "jq is required for canonical configuration validation"
   exit 0
@@ -67,20 +27,9 @@ EFFECTIVE_CFG="$(mktemp)"
 printf '%s\n' "$effective_config" >"$EFFECTIVE_CFG"
 trap 'rm -f "$EFFECTIVE_CFG"' EXIT
 
-if [ -f "$CFG" ]; then
-  base_config="$(cat "$CFG")"
-else
-  base_config='{}'
-fi
-while IFS= read -r key; do
-  if ! jq -e --arg key "$key" 'has($key)' <<<"$base_config" >/dev/null 2>&1; then
-    emit warn config-key auto ".woostack/config.json" "missing required config key: $key"
-  fi
-done < <(jq -r 'keys[]' "$TEMPLATE")
 if jq -e 'has("status") and (.status | type == "object" and has("staleDays"))' "$EFFECTIVE_CFG" >/dev/null 2>&1; then
   emit warn retired-status-config report ".woostack/config.json" "top-level status.staleDays is retired; existing configuration is preserved and may be removed manually"
 fi
-
 
 retained_dir_has_data() {
   local dir="$1" entry
