@@ -125,22 +125,23 @@ values to invent:
 }
 ```
 
-`project_status` is required only when the normalized snapshot explicitly admitted a Project and
-lifecycle for status mutation, after the configured `inReview` write and canonical readback. Its
-`item_id` must equal the admission-bound native Project item ID and its `status` must equal the
-admitted `lifecycle.inReview` option. When no such Project was selected, omit `project_status`; never
-fabricate a receipt. The result example's markers mean “runtime-substituted fact required”, not a
-successful fixture. A repair result may omit `note` when no validated delivery note exists. It must
-not replace missing fields with another task's evidence.
+`note` is requested for ordinary child delivery; omit it when the exact issue readback is still
+pending. Include `project_status` only when the normalized snapshot explicitly selected a Project
+for status mutation. An absent selected-Project readback is pending; without that selection, omit it
+and make no Project call. Malformed, foreign, or denied reporting readbacks remain blocked reporting
+evidence, never valid receipts. The example markers require observed facts, not invented success.
+Neither a repair nor a reporting retry may substitute another task's receipt.
 
 `readback.draft` is the observed boolean, not a requested state. For the first submission of a
 task, the current readback must prove `draft: true`. A verified update to that task's retained
 canonical PR may report either truthful readiness state: its PR URL, reserved branch/head/base,
 child association, current diff, checks, and independent validation must still match, and the
 update must not change readiness or create a replacement. Neither the worker nor controller marks
-an existing PR ready or resets it to draft. The retained result remains the historical submission
-checkpoint; a separately refreshed `lifecycle` records later readiness or other state changes
-without rewriting that history.
+an existing PR ready or resets it to draft. The retained technical validation stays bound to
+its head; a same-head reporting retry cannot substitute its independent review receipt. A later
+reporting retry may refresh the delivery checkpoint with native readback, while previous receipts
+remain in reporting history. A separately refreshed `lifecycle` records later readiness or other
+state changes without treating them as new technical delivery.
 
 Every active `apply-result` envelope carries `worker.host_id`, `worker.session_id`, and
 `worker.worker_id`, all nonempty strings matching the task's recorded `host_worker` exactly.
@@ -304,11 +305,12 @@ and requires fresh reads.
 
 ## Gate order and statuses
 
-The helper first requires a result for a running task or a note/evidence receipt retry and enforces
-the [active native-identity binding](#result-schema). A non-active task is rejected; an unparseable
-or unbound envelope returns `worker-identity`, without entering the unknown catch path or mutating
-the current writer's state. Once bound, apply these gates against the current reservation; the
-skill must not implement an alternate acceptance path:
+The helper first requires a result for a running task, a legacy note/evidence receipt retry, or
+a delivered task's same-PR reporting retry, and enforces the
+[active native-identity binding](#result-schema). A result without an admitted retry is rejected;
+an unparseable or unbound envelope returns `worker-identity`, without entering the unknown catch
+path or mutating the current writer's state. Once bound, apply these gates against the current
+reservation; the skill must not implement an alternate acceptance path:
 
 1. **Bound missing, malformed, or `unknown` worker result:** persist the task as `unknown` with its
    complete reservation/workspace, direct evidence, and first uncertain boundary intact. Unknown
@@ -323,25 +325,30 @@ skill must not implement an alternate acceptance path:
 3. **Exact PR recovered after unknown:** return `evidence-pending`, retaining the same reservation and
    canonical PR/source evidence. Accept the independent full result through `apply-result`; do not
    dispatch a second Execute worker for repository work already represented by that PR.
-4. **Note or optional Project receipt missing:** return `note-pending`, retaining the validated
-   PR, checks, diff, and complete result. Retry only the failed note/Project read-back with the same
-   result and recorded native identity; never replay repository delivery or dispatch a worker.
+4. **Note or selected Project reporting pending/blocked:** retain the complete independently verified
+   delivery checkpoint as `delivered` with separate `reporting.note` and `reporting.project` states.
+   A missing receipt is `pending`; denied, malformed, or foreign evidence is `blocked`. Reporting
+   occupies no worker slot and cannot release a technically blocked task or veto an otherwise ready
+   descendant. Re-read the exact target and reconcile unknown remote outcomes before retrying
+   readback on the same PR/attempt; never replay repository delivery or an unknown note creation.
+   Each same-head retry supplies both the current note readback and, when a Project was selected,
+   its current status readback. Explicit `null` records an observed missing receipt (`pending`);
+   denial evidence is `blocked`. Omitting a channel cannot erase its prior reporting outcome.
 5. **Worker/readback or canonical identity conflict:** return a blocked `unknown` result for that
    task, preserving its reservation and stopping only its descendants. Wrong repository/head
    repository, PR URL, branch/head, base, child association, duplicate/closed PR, or a non-unique
    readback is an identity failure, never permission to retarget or create a replacement. A new
    non-draft PR also fails; a verified retained PR accepts its truthful current readiness.
-6. **All evidence pass:** require the note to have been written and read back under the canonical
-   [`#artifact-delivery-note`](../../woostack-commit/references/provider-attribution.md#artifact-delivery-note)
-   contract. When the snapshot admitted a Project and lifecycle for status mutation, also require
-   the `project_status` delivery readback to carry exactly the admission-bound `item_id` and the
-   admitted `lifecycle.inReview` option. Only then may the helper transition to `delivered` and
-   release dependents.
+6. **Technical evidence passes:** persist the complete delivery/check/review/worker checkpoint
+   before `delivered` releases dependents. Current CI, independent review, identity, ancestry, and
+   freshness gates remain unchanged. Expose separately whether the requested child note and selected
+   Project update are verified, pending, or blocked; absent Project selection is `not-requested`.
 
-`outcome: "needs-repair"` requests the second gate. `outcome: "ok"` must pass every gate; it
-cannot waive a failed check, stale validation, absent note, Project mismatch, or identity issue.
-Worker success output alone is never delivery. `unknown`, `evidence-pending`, `note-pending`, and
-blocked outcomes retain all recoverable Git, PR, workspace, and evidence state for reconciliation.
+`outcome: "needs-repair"` requests the second gate. `outcome: "ok"` cannot waive a failed check,
+stale validation, or identity issue. Worker success output alone is never delivery. Historical
+`note-pending` state is readable but not promoted on load; fresh complete technical verification of
+its retained task/PR is required. `unknown`, `evidence-pending`, and blocked outcomes retain all
+recoverable Git, PR, workspace, and evidence state for reconciliation.
 
 ## Independent read-only specification validation
 
@@ -510,23 +517,24 @@ downstream-start decision and its evidence source.
 
 ## GitHub delivery note and optional Project status
 
-After the independent readback and validation pass, write one concise child delivery note to the
-exact child GitHub issue using the existing
-[GitHub note mechanism](../../woostack-commit/references/provider-attribution.md#artifact-delivery-note).
-It contains the canonical repository, branch/commit, PR/head/base, changed paths, observed
-check/review outcome, contract hash, diff identity, and safe resume boundary. Read the exact note
-back and include its `id`, child issue URL, PR URL, head, contract hash, and diff identity as `note`.
-Preserve unrelated issue content and managed markers. Note write/readback is before dependent
-release; an intent, mutation response, or worker claim is not a receipt. A selected tracker may
-retain the complete handback, but it receives no delivery note; notes and closing references remain
-bound to the one executable child.
+After independent readback and technical validation, persist the full delivery checkpoint even
+when reporting remains pending. Request one concise child delivery note on the exact child issue
+using the existing [GitHub note mechanism](../../woostack-commit/references/provider-attribution.md#artifact-delivery-note).
+It includes repository, branch/commit, PR/head/base, changed paths, observed check/review outcome,
+contract hash, diff identity, and safe resume boundary. Re-read the exact issue before writing,
+reconcile an unknown write before retrying, and preserve unrelated issue content and managed markers.
+Read the exact note back with `id`, child issue URL, PR URL, head, contract hash, and diff identity.
+A missing readback is pending, not a success receipt; a foreign/malformed/denied readback is blocked
+for reporting only. A selected tracker receives no delivery note.
 
 Only a Project explicitly selected for status mutation may receive a lifecycle write, and only to
-the admitted configured `lifecycle.inReview` option. Read the Project item/status back and include
-exactly the selected Project URL, task issue URL, admission-bound native `item_id`, and exactly the
-admitted `lifecycle.inReview` status in `project_status`. Without that selection, perform no Project
-call. Never set another lifecycle option, create a Project, claim a status from a schedule intent,
-or use Project progress as evidence of PR delivery.
+the admitted configured `lifecycle.inReview` option. Read the exact Project item/status back with
+selected Project URL, task issue URL, admission-bound `item_id`, and admitted status. No selection
+means `not-requested` and no Project calls. A denied or mismatched update remains blocked and visible
+without changing technical delivery. Reporting retries use the retained same PR, fresh technical
+validation, and fresh exact-target readback; they never launch a worker, replay source changes, or
+manufacture a review. Keep prior-head reporting receipts as historical evidence when repair changes
+the head, not as receipts for the new head.
 
 ## Record the native writer
 
