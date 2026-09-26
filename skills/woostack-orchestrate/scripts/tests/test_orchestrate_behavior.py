@@ -612,6 +612,9 @@ class OrchestrateBehavior(unittest.TestCase):
                 admitted_path, admitted, resumed_path, fresh(), label + "-refill", cap="2")
             self.assertEqual([entry["task_id"] for entry in refill["dispatch"]], ["task-c"])
             entry_c = refill["dispatch"][0]
+            for entry in initial["dispatch"] + [entry_c]:
+                self.assertEqual(entry["packet"]["specification"],
+                                 next(task["body"] for task in source["tasks"] if task["task_id"] == entry["task_id"]))
             self.assertEqual(entry_c["parent_sha"], report_a["worker"]["head_sha"])
             host.dispatch([entry_c])
             report_c = host.wait_for_report("task-c")
@@ -629,7 +632,8 @@ class OrchestrateBehavior(unittest.TestCase):
                 "fingerprints": (admitted["fingerprint"], admitted["execution_fingerprint"]),
                 "scope": admitted["scope_identity"],
                 "graph": admitted["graph"],
-                "obligations": [(entry["task_id"], entry["packet"]["bounded_input"],
+                "obligations": [(entry["task_id"], entry["packet"]["specification"],
+                                 entry["packet"]["bounded_input"],
                                  entry["packet"]["parent_readiness"]["logical_prerequisites"])
                                 for entry in initial["dispatch"] + [entry_c]],
                 "decisions": (initial["status"], refill["status"], resumed["status"]),
@@ -651,8 +655,10 @@ class OrchestrateBehavior(unittest.TestCase):
         self.assertEqual(distinct_admitted["tasks"][0]["specification"],
                          "Separately approved full task specification.")
         self.assertEqual(distinct_admitted["tasks"][0]["body"], expanded["tasks"][0]["body"])
-        state, _ = self._schedule(distinct_path, distinct_admitted, None, distinct,
-                                  "distinct-initial", cap="1")
+        state, initial = self._schedule(distinct_path, distinct_admitted, None, distinct,
+                                        "distinct-initial", cap="1")
+        self.assertEqual(initial["dispatch"][0]["packet"]["specification"],
+                         "Separately approved full task specification.")
         for label, change in (
             ("specification", lambda row: row["tasks"][0].__setitem__(
                 "specification", "A changed approved specification.")),
