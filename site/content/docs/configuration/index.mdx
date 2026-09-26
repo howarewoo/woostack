@@ -127,7 +127,7 @@ context. Changing a model leaf never creates or renames an OMP agent.
 
 | Host | Repository model config | Flat fallback | Dispatch behavior |
 | --- | --- | --- | --- |
-| Claude Code | `models.anthropic.fast`, `.standard`, or `.deep` | matching flat leaf | Passes the resolved model when the active spawn schema supports it. Effort comes from the worker definition or session unless a per-invocation field is exposed. |
+| Claude Code | `models.anthropic.fast`, `.standard`, or `.deep` | matching flat leaf | Passes the resolved model when the active spawn schema supports it and per-invocation selection is permitted. [Forced-model mode](/docs/harnesses/claude-code) omits the override. Effort comes from the worker definition or session unless a per-invocation field is exposed. |
 | Codex | `models.openai.fast`, `.standard`, or `.deep` | matching flat leaf | Requests the resolved model and effort through the local dispatch prompt or agent configuration; passes wire fields only when exposed by the active schema. A single-model Action job resolves once for the whole run. |
 | Gemini | `models.google.fast`, `.standard`, or `.deep` | matching flat leaf | Uses the Google model for the resolved tier. |
 | OpenRouter | `models.openrouter.fast`, `.standard`, or `.deep` | matching flat leaf | Uses the OpenRouter model and reasoning effort for the resolved tier. |
