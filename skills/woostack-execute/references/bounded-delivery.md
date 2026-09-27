@@ -62,8 +62,8 @@ for new or materially changed boundaries; do not migrate untouched legacy bounda
 wrappers for shared identity contracts.
 
 When considering optional implementation delegation, use the shared
-[model-tier guidance](../../using-woostack/references/model-tiers.md), including its speed and
-cost considerations for simple tasks. The calling skill retains delivery ownership.
+[role-preference guidance](../../using-woostack/references/model-tiers.md) to weigh delegation,
+context, and verification overhead for simple tasks. The calling skill retains delivery ownership.
 
 Inspect the complete diff and changed paths. Run focused verification and the changed-path smoke
 scenario, retaining exact commands and observed results. A failed or incomplete required check

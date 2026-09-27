@@ -26,6 +26,10 @@ You need:
   where your agent runs commands. Init's OMP support script requires Python 3.
 - An existing Git repository open in both your terminal and your agent.
 
+The Orchestrate controller and optional historical run-store reader additionally require Unix/POSIX
+locking, ownership, directory, and no-follow filesystem primitives. Python 3 alone does not make
+these two helpers native Windows programs; installing and reading the skills does not require them.
+
 Before using a workflow that delivers a pull request (PR), ensure Git is available and the host
 exposes an authorized GitHub capability for the required reads/writes. Prefer native host GitHub
 tools when suitable; authenticated `gh` is a supported alternative. The selected interface must

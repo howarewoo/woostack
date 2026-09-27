@@ -1,6 +1,7 @@
 ---
 name: woostack-orchestrate
 description: Interpret GitHub work from prose, tracker context, issue lists, parents, or Projects, then orchestrate verified executable tasks through parallel Execute workers with stacked PRs, independently verified delivery, active-session PR-check observation with same-PR repair, and joins. Never implements inline or merges.
+compatibility: Requires Python 3, Git, and Unix/POSIX locking, ownership, and no-follow filesystem primitives for the controller helper.
 ---
 
 # woostack-orchestrate

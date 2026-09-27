@@ -20,6 +20,25 @@ spec = importlib.util.spec_from_file_location("run_store", HELPER)
 store = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(store)
 RETIRED = (["init"], ["update", "--expected-revision", "1"], ["write-spec"], ["write-plan"])
+UNAVAILABLE_RUNNER = '''import builtins
+import os
+import runpy
+import sys
+
+path, missing, *args = sys.argv[1:]
+if missing == "fcntl":
+    original = builtins.__import__
+    def without_fcntl(name, *arguments, **kwargs):
+        if name == "fcntl":
+            raise ModuleNotFoundError("No module named 'fcntl'", name="fcntl")
+        return original(name, *arguments, **kwargs)
+    builtins.__import__ = without_fcntl
+else:
+    delattr(os, missing)
+sys.argv = [path, *args]
+runpy.run_path(path, run_name="__main__")
+'''
+
 
 
 class RunStoreTests(unittest.TestCase):
@@ -82,6 +101,36 @@ class RunStoreTests(unittest.TestCase):
         """Retained bytes, mode, and owner per entry; access timestamps are not an immutability oracle."""
         return {path.name: (path.read_bytes(), stat.S_IMODE(path.stat().st_mode), path.stat().st_uid)
                 for path in self.run_dir.iterdir()}
+
+    def test_missing_unix_capabilities_reject_without_touching_retained_records(self):
+        self.record()
+        for missing in ("fcntl", "O_NOFOLLOW", "O_DIRECTORY", "geteuid"):
+            with self.subTest(missing=missing):
+                before = {
+                    str(path.relative_to(self.root)): (
+                        "directory" if path.is_dir() else path.read_bytes(),
+                        stat.S_IMODE(path.stat().st_mode),
+                        path.stat().st_uid,
+                    )
+                    for path in self.root.rglob("*")
+                }
+                result = subprocess.run(
+                    [sys.executable, "-c", UNAVAILABLE_RUNNER, str(HELPER), missing,
+                     *self.command("read")[2:]], capture_output=True, timeout=15)
+                self.assertNotEqual(result.returncode, 0)
+                self.assertEqual(result.stdout, b"")
+                self.assertIn(b"run-store:", result.stderr)
+                self.assertIn(missing.encode(), result.stderr)
+                self.assertIn(b"Unix", result.stderr)
+                self.assertNotIn(b"Traceback", result.stderr)
+                self.assertEqual({
+                    str(path.relative_to(self.root)): (
+                        "directory" if path.is_dir() else path.read_bytes(),
+                        stat.S_IMODE(path.stat().st_mode),
+                        path.stat().st_uid,
+                    )
+                    for path in self.root.rglob("*")
+                }, before)
 
     def test_valid_reads_return_the_exact_retained_bytes(self):
         manifest_bytes = json.dumps(self.manifest, indent=2, ensure_ascii=False).encode() + b"\n"

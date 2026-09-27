@@ -53,6 +53,7 @@ assert_eq "$(jq -r '.github.owner' <<<"$actual")" "acme" "committed GitHub owner
 assert_eq "$(jq -r '.github.projectStatuses.done' <<<"$actual")" "Done" "committed Status mapping is used"
 assert_eq "$(jq -r '.review.required' <<<"$actual")" "true" "unrelated review settings are preserved"
 assert_eq "$(jq -r '.host.custom' <<<"$actual")" "preserve-me" "unrelated custom settings are preserved"
+assert_eq "$(jq -c '.models.standard' <<<"$actual")" '{"model":"gpt-5.5","effort":"high","nits":true}' "old model object is preserved as opaque data"
 
 cat >"$repo/.woostack/config.local.json" <<'JSON'
 {"github":{"owner":"local-org","projectStatuses":{"done":"Shipped"}},"models":{"standard":{"effort":"low","custom":"opt"}},"status":{"staleDays":7}}
@@ -79,6 +80,26 @@ assert_eq "$(jq -r '.commit' <<<"$actual")" "null" "local null replaces"
 git -C "$repo" worktree add -q "$worktree"
 actual="$(bash "$RESOLVER" "$worktree")"
 assert_eq "$(jq -r '.github.owner' <<<"$actual")" "local-org" "linked worktree inherits local policy"
+
+# Legacy model values are arbitrary user data, not routing policy.
+for model in '"old/provider"' '{"standard":"old/provider","deep":{"model":"old/deep"}}' '{"fast":[],"deep":["old/provider",42]}'; do
+  printf '{"github":{"owner":"acme"},"models":%s,"custom":{"enabled":true}}\n' "$model" >"$repo/.woostack/config.json"
+  printf '{"github":{"owner":"local-org"},"custom":{"extra":"kept"}}\n' >"$repo/.woostack/config.local.json"
+  base_before="$(shasum -a 256 "$repo/.woostack/config.json")"
+  local_before="$(shasum -a 256 "$repo/.woostack/config.local.json")"
+  actual="$(bash "$RESOLVER" "$repo")"
+  assert_eq "$(jq -c '.models' <<<"$actual")" "$model" "old model shape survives resolution"
+  assert_eq "$(jq -r '.github.owner' <<<"$actual")" "local-org" "GitHub overlay still wins"
+  assert_eq "$(jq -r '.custom.extra' <<<"$actual")" "kept" "unrelated local data survives"
+  assert_eq "$(shasum -a 256 "$repo/.woostack/config.json")" "$base_before" "base bytes preserved"
+  assert_eq "$(shasum -a 256 "$repo/.woostack/config.local.json")" "$local_before" "local bytes preserved"
+done
+
+printf '{"github":{"owner":"acme"},"custom":{"enabled":true}}\n' >"$repo/.woostack/config.json"
+printf '{"github":{"owner":"local-org"}}\n' >"$repo/.woostack/config.local.json"
+actual="$(bash "$RESOLVER" "$repo")"
+assert_eq "$(jq -r 'has("models")' <<<"$actual")" "false" "absent models stay absent"
+assert_eq "$(jq -r '.custom.enabled' <<<"$actual")" "true" "unrelated custom data survives"
 
 mkdir -p "$TMP/empty_repo" "$TMP/orphan/.woostack" "$TMP/empty_base/.woostack"
 assert_eq "$(bash "$RESOLVER" "$TMP/empty_repo")" "{}" "both config layers absent yield an empty policy"
