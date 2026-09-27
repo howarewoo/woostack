@@ -37,10 +37,9 @@ needs; routing alone loads none. Retired managed-provider data is never imported
 | Adopt woostack or choose a workflow | `using-woostack` |
 | Initialize or repair local woostack support | `woostack-init` |
 | Create a genuinely greenfield codebase | `woostack-bootstrap` |
-| Elicit a complete user-verified specification from a goal or existing specification | `woostack-ideate` |
-| Reconcile a supplied specification or candidate issue plan against repository evidence | `woostack-harden` |
-| Prepare a feature or proved defect for a verified GitHub issue graph without implementation | `woostack-prepare` |
-| Turn an approved specification into reviewable increments and publish the selected GitHub issue graph | `woostack-plan` |
+| Explore requirements explicitly requested by the user | `woostack-ideate` |
+| Review a supplied specification or candidate plan against repository evidence | `woostack-harden` |
+| Plan a goal or incomplete issue; publish issues only when requested | `woostack-plan` |
 | Coordinate approved multi-task work through native host facilities, resolve real dependencies, and verify delivered work | `woostack-orchestrate` |
 | Implement one bounded task — enhancement, refactor, test-only work, or authorized understood correction — and deliver one PR | `woostack-execute` |
 | Commit current changes and submit or update their PR | `woostack-commit` |
@@ -53,20 +52,20 @@ needs; routing alone loads none. Retired managed-provider data is never imported
 | Explore a running app and report browser QA findings | `woostack-qa` |
 | Reflect on this conversation for durable instruction suggestions | `woostack-reflect` |
 
-`woostack-build`, `woostack-fix`, `woostack-change`, `woostack-status`, and
-`woostack-tdd` are retired, not missing installations, and have no aliases. Do not invoke them.
-For old Build/Fix planning inputs, explain Prepare's retained-input boundary rather than loading or
-reinstalling a retired wrapper. Route bounded enhancements, corrections, or test-only work to
-Execute; unresolved scope belongs in the public planning phases.
+`woostack-build`, `woostack-fix`, `woostack-change`, `woostack-status`,
+`woostack-tdd`, and `woostack-prepare` are retired, not missing installations, and have no
+aliases. Explain a removed explicit command briefly; do not silently run Plan in its place.
+Natural-language requests to prepare a plan route to Plan. Old Build/Fix planning input may be
+read as historical evidence without migration or mandatory packet exchange.
 
-Every supported explicit `/woostack-*` command loads its namesake skill. Intent-equivalent wording follows
-the same route. Ideate and Harden are public, directly callable phases that exchange complete plain
-packets. Prepare composes Debug for defects, Ideate, Harden, and Plan as needed and ends at a fully
-read-back GitHub issue graph; it never implements, creates source branches, dispatches workers, or
-invokes Execute or Orchestrate. Plan is the sole issue publisher. Execute is the explicit bounded
-implementation and draft-PR path, including proven corrections and test-only tasks under its
-[testing guidance](../woostack-execute/references/tdd.md). Unknown defects require Debug's causal
-proof before correction. Planning phases never edit source, commit, submit a PR, or grant merge authority.
+Every supported explicit `/woostack-*` command loads its namesake skill. Intent-equivalent wording
+follows the same route. Ideate is optional requirements exploration; Harden is optional read-only
+review. Plan inspects relevant source, resolves material decisions, and returns a plan without
+GitHub writes unless issue publication is requested. A request to file issues already supplies
+publication intent; no additional approval is required. Debug proves unknown defects before a
+correction. Execute owns bounded implementation and draft-PR delivery under its
+[testing guidance](../woostack-execute/references/tdd.md). Planning and review never edit
+implementation source, commit, submit a PR, or grant merge authority.
 
 An exact task-bearing GitHub issue URL alone, or `/woostack-execute --issue <url>`, routes to
 Execute: it reads the selected issue and resolves one bounded task before implementation. Inline

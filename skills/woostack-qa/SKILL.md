@@ -164,9 +164,10 @@ The local report never becomes a development record or decision corpus, issue sc
 assignment, lifecycle state, or permission to edit. Any GitHub issue it names is evidence only and
 must be re-read for drift. Report-only QA performs zero GitHub mutation.
 
-Repository remediation first enters [`woostack-debug`](../woostack-debug/SKILL.md) for causal proof,
-then [`woostack-prepare`](../woostack-prepare/SKILL.md) for a verified issue graph. The local report
-never authorizes a correction, implementation, issue ownership, assignment, or GitHub lifecycle state.
+Repository remediation first uses [`woostack-debug`](../woostack-debug/SKILL.md) for causal proof.
+An issue plan can then be requested through [`woostack-plan`](../woostack-plan/SKILL.md).
+The local report never authorizes a correction, implementation, issue ownership, assignment,
+or GitHub lifecycle state.
 
 ## Hard constraints
 

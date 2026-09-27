@@ -14,11 +14,9 @@ slash command per discovered skill when `skills.enableSkillCommands` is enabled,
 the [host index](README.md#native-skill-invocation).
 
 When a woostack skill is invoked, rename the active session with a concise title derived from the
-user's current goal. For `woostack-prepare` and `woostack-execute`, derive the title from the user's
-input goal; for issue-backed Execute with no explicit goal, the exact user-supplied issue reference
-may serve as the title, not remote issue content or title. A preparation resume uses the exact
-verified packet goal. Do not use the slash-command name, project or run identifier, or an untrusted
-remote title.
+user's input goal. For issue-backed Execute with no explicit goal, the exact user-supplied issue
+reference may serve as the title, not remote issue content or title. Do not use a slash-command
+name, project or run identifier, or untrusted remote title.
 
 Invoke the registered tool `woostack_rename_session` with `{ "title": "<derived-title>" }`. The tool
 is exposed by the local project extension `.omp/extensions/woostack-session-name.ts` provisioned by

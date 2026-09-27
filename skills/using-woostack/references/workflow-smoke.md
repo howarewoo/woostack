@@ -11,16 +11,23 @@ Label every result as one of these classes:
 - **Actual host:** the installed Plan, Execute, or Orchestrate skill runs in a supported coding host with real subagents where the workflow requires them. Record the repository revision, host, exact invocation, outcome, and relevant read-back.
 - **Unrun:** the recipe was not attempted because its exact live-resource permission, host capability, or safe interruption facility is unavailable. Never report an unrun recipe as passed.
 
-The live recipes use this disposable fixture graph:
+The live recipes (§1.4, §1.5, 2, and 3) use this disposable fixture graph in one disposable
+repository:
 
 ```text
-P specification parent
-├── A independent
-├── B independent
-└── C blocked by A
+P  readable index issue naming the three issues below
+A  independent
+B  independent
+C  blocked by A
 ```
 
-Before Plan, obtain separate permission for one exact disposable GitHub repository, native issue hierarchy and dependency writes, draft-PR writes used by Execute/Orchestrate, and the stated cleanup. The repository must have no Project requirement. In a fresh clone, create the admitted baseline:
+The native sub-issue and dependency links are evidence, not the only record: when that capability
+is unavailable, the same facts are readable in issue content and P's index.
+
+Before any live recipe, obtain separate permission for one exact disposable GitHub repository, the
+issue writes the Plan filing recipe makes, the draft-PR writes Execute/Orchestrate make, and the
+stated cleanup. Native relationship writes are requested only where a recipe asks for them, and no
+recipe requires them. The repository must have no Project requirement.
 
 ```bash
 git clone https://github.com/<owner>/<test-repository>.git <local-directory>
@@ -36,84 +43,156 @@ git push --set-upstream origin HEAD:refs/heads/main
 test "$(git ls-remote origin refs/heads/main | cut -f1)" = "$BASE_SHA"
 ```
 
-Use this same complete packet for the Plan publication and its retry:
+Use this same request for every Plan scenario, with only the stated variation:
 
 ```text
-## Repository identity
-- Canonical repository: https://github.com/<owner>/<test-repository>
-- Baseline: main at <BASE_SHA>
-- Checkout: <local-directory>
+Goal: split a small repository change into PR-sized work and, when I ask for it,
+record that work as issues in the repository named below.
 
-## Evidence identity
-- Git: <BASE_SHA>, README.md and a.txt
-- Runtime: none; this planning fixture has not run an implementation check.
+Repository: https://github.com/<owner>/<test-repository>, branch main at <BASE_SHA>,
+cloned at <local-directory>. Baseline evidence: README.md and an empty a.txt. No
+implementation check has run.
 
-## Content
-Approved specification: publish one top-level specification parent P for three
-PR-sized tasks in a disposable repository. A writes `A` to a.txt. B writes `B`
-to b.txt. C writes `C` to c.txt and verifies that A remains available in a.txt.
-A and B are independent; only C is blocked by A. No Project, application, merge,
-or production deployment is included.
+Work:
+- A: write the single line A to a.txt, changing nothing else. Verify with
+  `python3 -c "from pathlib import Path; assert Path('a.txt').read_text() == 'A\n'"`.
+- B: write the single line B to b.txt. Independent of A. Verify with
+  `python3 -c "from pathlib import Path; assert Path('b.txt').read_text() == 'B\n'"`.
+- C: write the single line C to c.txt after consuming A, leaving a.txt at exactly
+  A. Blocked by A only, and no merge is required. Verify with
+  `python3 -c "from pathlib import Path; assert Path('a.txt').read_text() == 'A\n' and Path('c.txt').read_text() == 'C\n'"`.
 
-Candidate issue plan:
-
-1. Stable task ID A, ordinal 1. Goal: write `A` to a.txt.
-   Scope: a.txt. Non-goals: b.txt, c.txt, siblings, Project state.
-   Acceptance: a.txt is exactly the single line A.
-   Check: `python3 -c "from pathlib import Path; assert Path('a.txt').read_text() == 'A\n'"`.
-   Smoke: the same command. Parent policy: admitted main baseline.
-   Risk: none; the baseline file is intentionally empty.
-2. Stable task ID B, ordinal 2. Goal: write `B` to b.txt.
-   Scope: b.txt. Non-goals: a.txt, c.txt, siblings, Project state.
-   Acceptance: b.txt is exactly the single line B.
-   Check: `python3 -c "from pathlib import Path; assert Path('b.txt').read_text() == 'B\n'"`.
-   Smoke: the same command. Prerequisite set: empty. Parent policy: admitted main baseline.
-   Risk: none; b.txt is created by this task.
-3. Stable task ID C, ordinal 3. Goal: write `C` to c.txt while consuming A.
-   Scope: a.txt, c.txt. Non-goals: b.txt, siblings, Project state.
-   Acceptance: a.txt is exactly the single line A and c.txt is exactly the single line C.
-   Check: `python3 -c "from pathlib import Path; assert Path('a.txt').read_text() == 'A\n' and Path('c.txt').read_text() == 'C\n'"`.
-   Smoke: the same command. Prerequisite set: A. Parent policy: use the verified
-   delivered A branch and SHA selected by Orchestrate; no merge is required.
-   Risk: A and C both name a.txt, so C must not start before A is proved.
+No Project, application, merge, or production deployment is included.
 ```
+
+Variations: ask for no publication (§1.1); file only A and C, with C blocked by A, and create
+nothing else (§1.4). Give the identical request again for the unknown-result retry in §1.5.
 
 Keep credentials, host-private output, and personal data out of the fixture and its evidence.
 
-## 1. Plan publication and stop
+## 1. Plan: planning only, destination resolution, and requested filing
 
-**Prerequisites:** the shared fixture, separate live-test permission, a supported host that can load the actual Plan skill and use authorized GitHub issue, native parent/sub-issue, dependency, and complete read-back operations. This repository ships no deterministic Plan transport; an old normalized Eval fixture is not one.
+**Prerequisites:** the shared fixture, a supported host that can load the actual Plan skill, and —
+for §1.4 and §1.5 only — separate live-test permission plus a host able to use authorized GitHub
+issue writes and read-back. This repository ships no deterministic Plan transport; an old normalized
+Eval fixture is not one. §1.1–§1.3 need no disposable repository: point the request at any local
+clone, or trace the installed text alone. They are **manual trace** recipes; a host run of one is
+recorded separately under its own class.
 
-**Setup:** use the fresh clone and complete packet above. Record `BASE_SHA`, the installed Plan skill revision, and the canonical test repository before the first write.
+**Setup:** for §1.4 and §1.5, use the fresh clone and the shared request above. Record `BASE_SHA`,
+the installed Plan skill revision, and the canonical test repository before the first write.
 
-**Invocation:** run the actual skill with one explicit new-parent selector:
+### 1.1 A plan with no publication
+
+**Invocation:** run the actual skill on the shared request with no publication instruction:
 
 ```text
-/woostack-plan <the complete shared packet above> --parent-issue new
+/woostack-plan <the shared request above>
+I want the plan only. Do not create anything in GitHub.
 ```
 
-For the unknown-result variant, interrupt only the Plan host after GitHub confirms creation of P but before Plan returns. Resume with the exact same packet and selector. If the host cannot preserve the invocation and stop it at that boundary, mark this variant **Unrun** rather than simulating a timeout. After successful recovery, run the identical unchanged invocation once more.
+**Assertions:** the run returns one coherent plan covering the actual work, and it creates no
+issue, Project, parent, marker, or relationship. It requires no template, no repeated confirmation
+of facts the repository already shows, and no separate review invocation. Read the installed
+instruction path once as a **manual trace** and record its owners, next action, and forbidden
+effects; that trace is evidence about the installed text only and never counts as a host pass.
+
+### 1.2 An unambiguous destination, then an ambiguous one
+
+This recipe is the destination-resolution trace; §1.4 runs the same filing for real and checks what
+was written.
+
+**Invocation:** run the actual skill twice. First, on the shared request, whose repository is named
+exactly:
+
+```text
+/woostack-plan <the shared request above>
+File only A and C as issues, with C blocked by A, and create nothing else.
+```
+
+Then repeat it with the repository named only as "the repository", while the account can write to
+two candidates:
+
+```text
+/woostack-plan <the same request> File only A and C as issues in the repository.
+```
+
+**Assertions:** with one named repository, the run resolves that exact repository and proceeds.
+With two plausible candidates it asks which one and writes nothing until the user answers; it
+never picks by title, recency, or search rank. This is a **manual trace**; the ambiguous case must
+not be resolved by an invented default.
+
+### 1.3 Known facts and one unresolved decision
+
+**Invocation:** add to the shared request one verified fact and one open question the repository
+cannot answer:
+
+```text
+README.md already documents the `version` column as text. The question I have not
+decided: what the read endpoint should do when it is given an unknown version.
+```
+
+**Assertions:** the plan records the column as a verified observation and keeps the unknown-version
+behavior as an open decision for the user. It neither invents an answer, blocks the whole plan
+behind it, nor turns one open question into an approval ceremony. A follow-up request that settles
+only that question resumes without restating the rest of the specification.
+
+### 1.4 Filing two dependent issues with native relationship capability absent
+
+**Prerequisites:** separate live-test permission, a supported host with authorized GitHub issue
+writes and independent read-back, and no capability to create native sub-issue or dependency links.
+Record which relationship capability the host actually lacks. If the host does expose those links,
+run §1.4 anyway and report the missing-capability path as **Unrun — not exercised on this host**
+instead of claiming it.
+
+**Invocation:** run the actual skill on the shared request with the filing variation:
+
+```text
+/woostack-plan <the shared request above>
+File only A and C as issues, with C blocked by A, and create nothing else.
+```
 
 **Assertions:**
 
-- Native read-back shows exactly one top-level P, exactly three direct children A/B/C, and no other issue created by this publication.
-- Each child has its complete task contract, actual-parent read-back, and stable task identity. The only dependency is C blocked by A; A and B have no dependency edges.
-- P is not a task, worker, branch, PR, or dependency endpoint. No implementation source, source branch, worktree, commit, PR, worker dispatch, approval, or merge occurred. A printed issue list alone is not evidence.
-- The unknown-result retry reuses P and any already-created child identities without replacement or duplicate objects. The unchanged repeat performs zero issue or relationship mutations.
-- The actual-host record names the revision, host, exact invocation, and direct GitHub read-back. If live permission is absent, report this recipe **Unrun — no authorized disposable GitHub repository and native relationship writes**.
+- Independent read-back shows exactly two new issues in that repository, A and C, and no other
+  issue, parent container, or Project.
+- Each issue states its outcome, the constraints that matter, acceptance with its verification
+  command, and the dependency that exists. The wording is the writer's; no prescribed heading set
+  is required and none is invented to satisfy a template.
+- The run states plainly which relationships it did not create. With the capability absent, that
+  means the native `blocked-by` edge and any native sub-issue link, and it says so in those terms.
+  It never describes a readable index as a native relationship, and it never reports a filing that
+  was required to produce native links as complete.
+- No implementation source, source branch, worktree, commit, PR, worker dispatch, approval, or
+  merge occurred, and no issue was closed. A printed issue list alone is not evidence.
+- The actual-host record names the revision, host, exact invocation, and direct GitHub read-back.
+  If live permission is absent, report this recipe **Unrun — no authorized disposable GitHub
+  repository and issue writes**.
+
+### 1.5 Unknown create result
+
+**Invocation:** interrupt only the Plan host after GitHub confirms creation of A but before the run
+returns, then re-enter the identical §1.4 invocation. If the host cannot preserve the invocation
+and stop it at that boundary, mark this variant **Unrun** rather than simulating a timeout. After
+successful recovery, run the identical unchanged invocation once more.
+
+**Assertions:** the retry discovers the existing A by exact identity, reads it back, and continues
+from there. It creates no second A, allocates no replacement identity, and repeats no create. The
+unchanged repeat performs zero issue mutations. Recovery is decided by discovery before retry, not
+by a blind repeat.
 
 **Cleanup:** after evidence is saved, use only the separately authorized cleanup plan to close/remove the test PRs and issues and delete the test repository; remove the local clone. Do not mark a PR ready or merge it as smoke cleanup.
 
 ## 2. Execute one task through delivery
 
-**Prerequisites:** a newly published P/A/B/C graph, A's exact canonical issue URL, a clean isolated task checkout at the fixture `BASE_SHA`, an authenticated supported host that can load the actual Execute and Commit skills, and separate draft-PR write permission. Use a fresh copy of the shared fixture if A was already delivered through Orchestrate.
+**Prerequisites:** the published A issue, its exact canonical issue URL, a clean isolated task checkout at the fixture `BASE_SHA`, an authenticated supported host that can load the actual Execute and Commit skills, and separate draft-PR write permission. Use a fresh copy of the shared fixture if A was already delivered through Orchestrate.
 
 **Setup:** leave `a.txt` empty on the admitted baseline. This makes the required check observably fail before implementation while keeping the fixture deterministic. Use this complete bounded input with the actual skill:
 
 ```text
 Implement task A in the current isolated checkout. Replace the empty a.txt with
-the single line A. Do not edit b.txt, c.txt, sibling issues, Project state, or
-parent P. Acceptance is a.txt containing A. Observe the required check failing
+the single line A. Do not edit b.txt, c.txt, the other fixture issues, or Project
+state. Acceptance is a.txt containing A. Observe the required check failing
 before the change, then pass it after the minimum change; run the same command as
 the smoke scenario. Commit and deliver exactly one draft PR through Commit with
 base main and exactly one Resolves line for the selected A issue.
@@ -137,7 +216,7 @@ alone, or `--issue` alone per the Execute skill):
 
 ## 3. Orchestrate multi-task coordination and uncertainty
 
-**Prerequisites:** a newly published P/A/B/C graph, a clean fixture repository, a supported host that
+**Prerequisites:** the published A/B/C issues and the readable index that names them, a clean fixture repository, a supported host that
 can load the actual Orchestrate skill, and separate permission for the draft-PR writes its tasks
 make. A subagent primitive is optional: a host without one runs the same scope sequentially in the
 calling session. The host must expose a safe worker interruption or stop receipt to attempt the
@@ -201,8 +280,9 @@ result is **manual instruction-text evidence**, never a host result.
 | Request | Route and loaded owners | Next action | Must not happen |
 | --- | --- | --- | --- |
 | Adopt/choose a workflow | using-woostack; project rules | Name one matching skill | Init, GitHub access, or loading all skills |
-| Prepare a complete specification | woostack-prepare → Harden/Plan; publication references | Publish one issue graph and stop | Repeated Ideate questions; Execute/Orchestrate dispatch |
-| Prepare an unproved defect | woostack-prepare → Debug, then correction planning | Prove a cause first | Source edits from an unproved theory |
+| Plan a change or a goal | woostack-plan; no publication owner unless filing is requested | One coherent plan, then stop | GitHub writes, a required template, or a separate review call |
+| File issues from a plan | woostack-plan plus its GitHub publication context and procedure | Write the requested issues and read them back | Inventing a parent graph, a Project, or an unrequested destination |
+| Plan an unproved defect | woostack-plan → Debug, then correction planning | Prove a cause first | Source edits from an unproved theory |
 | Execute a complete inline bounded task | woostack-execute; source control at delivery | One commit and one PR | Project/provider graph discovery |
 | Execute one exact issue URL | woostack-execute; exact-issue read, then Commit association | One task's one PR | Dropping the issue, siblings, or Project discovery |
 | Commit without an issue | woostack-commit; source control only | One commit; PR per the caller | Association/profile reads |
@@ -259,7 +339,8 @@ not trigger another interpreter, lock implementation, model, or transport fallba
 | Checkout and installed layout | `pnpm -C site test`; disposable copy above | **Deterministic:** catalog and retained Claude links resolve, retired links are absent, local runtime references remain within installed assets; missing/escaping targets reject |
 | Inline Execute; issue-free Commit | Trace §4 with shared task A, omitting issue selection | **Manual trace:** Execute implements; Commit owns submission; no issue/Project/profile load or artifact calls |
 | Exact issue Execute | Trace §4 with A's exact issue selector; live variant §2 only with separate permission | **Manual trace:** exact issue and paginated comments read, Commit revalidates association; no sibling/Project discovery |
-| Settled Prepare; unproved defect | Trace §4 with complete shared packet, then with an unproved defect instead | **Manual trace:** reuse settled decisions; defect goes to Debug before correction planning; Plan stops before implementation |
+| Plan without publication; unproved defect | Trace §1.1 and §1.3 with the shared request, then with an unproved defect instead | **Manual trace:** Plan returns a plan with no GitHub write; a verified fact stays an observation and the open question stays a user decision; a defect goes to Debug before correction planning |
+| Requested issue filing | §1.4 live only with separate issue-write permission; §1.5 unknown-result variant likewise | **Actual host:** only the requested issues exist, each read back; a missing native edge is reported as missing, and a lost create is recovered by discovery. **Unrun** with a reason when no authorized disposable repository or safe interruption exists |
 | Multi-task coordination without a subagent | Trace §4 into Orchestrate, then read §3's sequential variant | **Manual trace:** one skill owns order, concurrency, and each task's base; sequential execution is an allowed outcome that is reported as sequential, never as a parallel wave or independent review |
 | Uncertain worker result | §3 unknown-result variant, live only with separate permission | **Actual host:** outcome rediscovered before any repeat; no second writer or duplicate PR. **Unrun** with a reason when the host exposes no safe interruption |
 | Host inheritance, unsupported override, Unix helper | Trace installed host-mechanics/model-selection owners; run the installed Init/Doctor fixtures | **Manual trace:** native defaults inherited; unsupported exact override blocks without invented arguments. **Deterministic:** missing Unix capability rejects before mutation; legacy/config bytes preserved |
@@ -273,7 +354,7 @@ separately authorized and observed. A deterministic helper fixture is not a host
 Use audit baseline `e073b35f630b82de4d9361b596af2ed8da3743e8` and the exact final candidate
 commit (record its binary diff hash). Export each revision with `git archive` into separate
 disposable directories, without changing either source worktree. Use the same A/B/C tasks and
-the inline/issue-backed/Prepare traces above. Record commands and outcomes, including failures.
+the inline/issue-backed/Plan traces above. Record commands and outcomes, including failures.
 
 Count UTF-8 bytes with `wc -c` for `AGENTS.md`, the router, and each selected workflow
 `SKILL.md`. For each manual path, list its mandatory references explicitly and sum each loaded

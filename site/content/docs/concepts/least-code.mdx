@@ -41,17 +41,16 @@ The standard applies during planning, implementation, and review:
 
 - The full generated-code standard is
   [`patterns.md §7`](https://github.com/howarewoo/woostack/blob/main/skills/woostack-bootstrap/references/patterns.md#7-least-code--comments).
-- Public [woostack-ideate](/docs/skills/woostack-ideate) owns explicit user verification and
-  [woostack-harden](/docs/skills/woostack-harden) owns evidence reconciliation; each can be called
-  directly with a complete plain packet. [woostack-prepare](/docs/skills/woostack-prepare) composes
-  them with Debug when needed and passes the complete candidate to
-  [woostack-plan](/docs/skills/woostack-plan), which remains the sole direct GitHub publisher.
-  Harden checks whether safe deletion, reuse, or simplification can satisfy the scope before accepting
-  additions.
+- Public [woostack-ideate](/docs/skills/woostack-ideate) explores requirements and
+  [woostack-harden](/docs/skills/woostack-harden) reconciles a specification or candidate issue plan
+  against repository evidence; each is an optional standalone phase.
+  [woostack-plan](/docs/skills/woostack-plan) is the complete planning workflow and the only direct
+  GitHub publisher. Harden checks whether safe deletion, reuse, or simplification can satisfy the
+  scope before accepting additions.
 - [woostack-plan](/docs/skills/woostack-plan) applies the ladder before fixing increment scope,
   recording concrete reuse opportunities and material reasons for additions in the existing contract.
   [woostack-execute](/docs/skills/woostack-execute) loads it before choosing an implementation and
-  carries it into any delegated implementation packet. A smaller solution must still satisfy the
+  carries it into any delegated implementation task. A smaller solution must still satisfy the
   complete accepted scope and required verification.
 
 The full least-code standard is the governing simplification check for generated projects and

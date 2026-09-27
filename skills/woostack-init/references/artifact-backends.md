@@ -49,9 +49,10 @@ needed one reports retirement guidance and requires either local mode or the sup
 operation. No automatic cleanup, import, migration, credential acquisition, or provider fallback is
 allowed.
 
-- Prepare, Ideate, Harden, and Plan make no provider-mirror calls;
-- direct Plan still requires its exact GitHub scope and performs the required issue/Project reads and
-  writes;
+- Ideate and Harden make no provider-mirror calls; Plan may read relevant issue context
+  while planning but makes no GitHub mutation unless the request asks for publication;
+- requested publication resolves one exact scope and performs only the issue or Project reads and
+  writes that scope needs;
 - goal-only Execute makes no development-artifact provider call. Execute may instead select one
   canonical GitHub issue URL as its complete task input or add that URL to inline bounded
   instructions; either form uses authorized read-only GitHub capability (host-native tools where
@@ -80,30 +81,54 @@ an old Project as a current direct-publication scope.
 
 ## Direct publication and recovery
 
-Plan publishes directly to one exact GitHub scope selected by the caller:
+Publication happens only when the request asks for it, and only into one exact destination resolved
+from the request and the actual repository context:
 
-- `--parent-issue new` allocates one specification parent, or an exact existing parent URL is read and
-  admitted; native direct children and declared blocked-by edges are the strict Plan publication
-  handoff. The parent must contain a complete readable implementation index and dependency
-  declarations so the handoff remains usable if a later consumer observes the issues but not those
-  native links.
-- `--project <exact URL>` is an explicit optional Project path. It reads and writes only the admitted
-  Project span, membership, Status field, and dependency graph. It never guesses or creates a Project
-  from a goal.
+- Resolve a unique authorized repository and destination from the request, the checked-out
+  repository, and trusted Git/GitHub evidence. Two plausible candidates, a title or search match, or
+  a remembered scope is a question to the user, not a guess. One exact caller-named issue or Project
+  is an exact selector; an explicit Project URL is an optional destination and a Project is never
+  inferred from a goal, from configuration, or from an old record.
+- Inspect the relevant existing resources in that scope, complete to the end of the query the
+  operation needs, and reuse an exact existing match instead of creating a near-duplicate.
+- Write only what the request asked for. A parent issue, a task key, an ordinal, a Project
+  membership, and a Status change are never required. Native links are required only when
+  requested; report an expressly required graph as incomplete if its links cannot be written.
 
-These are Plan publication scopes, not an exhaustive set of Orchestrate inputs. Orchestrate may
-interpret a complete planning handback or understandable tracker content into verified bounded
-tasks and a dependency DAG. Its tracker is read-only context and never an executable task, worker,
-PR, or dependency endpoint. Execute accepts one complete bounded task from inline instructions or
-one canonical task-bearing issue URL and owns one PR. Commit owns source/PR attribution and an
+Pagination is scoped to the query an operation needs, not to the repository: exhaust the pages of
+that relevant query, verify canonical repository and exact identity, and read no unrelated
+inventory.
+
+These are publication boundaries, not an exhaustive set of Orchestrate inputs. Orchestrate may
+interpret a complete readable index or understandable tracker content into verified bounded tasks
+and a dependency DAG. Its tracker is read-only context and never an executable task, worker, PR, or
+dependency endpoint. Execute accepts one complete bounded task from inline instructions or one
+canonical task-bearing issue URL and owns one PR. Commit owns source/PR attribution and an
 explicitly requested issue note. No path closes issues or Projects, claims product acceptance, or
 grants merge authority.
 
-Before any create, link, membership, Status, or dependency mutation, the owning GitHub profile must
-completely read the exact selected scope, paginate to a terminal page, verify canonical repository and
-identity, and prove the required capability. An unknown, partial, foreign, stale, or unsupported read
-blocks before mutation. After each mutation, independently read back the complete affected identity,
-fields, scope, parent/membership, and graph. Unrelated fields and historical resources are preserved.
+A written issue carries what a reader needs to act on it: the outcome, the constraints that
+matter, acceptance with how to verify it, and the dependencies that actually exist. The heading
+set is the writer's choice; no prescribed template, repeated approval, or separate review handoff
+is a publication prerequisite.
+
+Before a create or relationship write, prove the capability that operation needs through the
+authorized interface. An unknown, partial, foreign, or unsupported read blocks that operation
+instead of inviting a fallback, and issue-write access alone never proves a relationship-write
+capability. After each write, independently read back the affected identity and its actual
+content. Unrelated fields and human content are preserved.
+
+When the request asks for native sub-issue or dependency links, write them only where the
+capability exists and verify each one by independent read-back. When it does not, keep the issues
+that were written plus one explicit readable index of them, and report plainly which relationships
+were not created. An expressly required native graph that was not written is reported as
+incomplete, never as an equivalent substitute.
+
+Recover an unknown write outcome by discovering the same exact identity in the relevant scope, to
+the end of that query, then reading the one ownership-valid match. Never allocate a replacement
+identity, replay a create, or add a second copy of an issue that may already exist. Retain the
+last independently read boundary, delivery/source identity, dirty-worktree evidence, and exact
+parent branch/SHA needed for safe resume. A mismatch stops recovery instead of duplicating work.
 
 Empty, malformed, non-object, unreadable, symlinked, non-regular, orphaned, or credential-like
 configuration fails closed with the offending path. Both files contain non-secret policy only;
@@ -112,11 +137,6 @@ runtime, while template presence and repair apply only to the tracked base file.
 settings in both layers because active-session agent selection and role routing are host-owned; the
 repository does not create or rename worker definitions.
 
-Preallocate one stable marker/identity for a new issue or relation. Search the exact scope for that
-same identity before creation. Recover an unknown outcome only by repeating complete discovery and
-reading the one ownership-valid match; never allocate another identity or replay a create. Retain the
-last independently read boundary, delivery/source identity, dirty-worktree evidence, and exact parent
-branch/SHA needed for safe resume. A mismatch stops recovery instead of duplicating work.
 
 ## Owner-only local run store reader
 

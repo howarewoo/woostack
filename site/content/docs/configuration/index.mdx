@@ -144,9 +144,9 @@ worktrees are cut from.
 <Callout type="info">
   Init validates an optional top-level `github` object without seeding model settings.
   Authorized native GitHub capabilities or host-authenticated `gh` may provide narrow non-secret
-  defaults; missing GitHub configuration or connectivity never blocks local initialization. Prepare
-  and parent-issue Plan use complete plain packets. Prepare delegates direct GitHub issue publication
-  to Plan; neither requires Project configuration, a local run, or a second remote record. Goal-only
+  defaults; missing GitHub configuration or connectivity never blocks local initialization. Plan
+  publishes issues directly when the request asks for it and requires no Project configuration, a
+  local run, or a second remote record. Goal-only
   Execute makes no remote calls;
   an exact GitHub issue permits only its documented read through authorized GitHub capabilities
   (native tools preferred; host-authenticated `gh` supported), without Project configuration or issue

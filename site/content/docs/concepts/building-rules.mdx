@@ -1,21 +1,21 @@
 ---
 title: Building rules
-description: Planning packets, verified GitHub planning handoffs, and bounded one-PR execution routes.
+description: Planning, optional issue publication, and bounded one-PR execution routes.
 ---
 
 The user decides the product and authorizes work. Git and GitHub show what was delivered.
-Plan produces a verified native issue graph; Orchestrate may also consume a complete readable
-tracker and independently read its executable issues when native relationship metadata is absent,
-partial, or unavailable. Implementation remains a separate explicit workflow.
+Plan plans a change and publishes GitHub issues only when the request asks for it; Orchestrate may
+also consume a complete readable tracker and independently read its executable issues when native
+relationship metadata is absent, partial, or unavailable. Implementation remains a separate
+explicit workflow.
 
 ## Workflow scope
 
 | Shape | Commands | Active contract | Provider/input behavior |
 | --- | --- | --- | --- |
-| Feature or proved defect needing several increments | [woostack-prepare](/docs/skills/woostack-prepare) | complete user-verified specification, evidence-bound diagnosis when applicable, and Plan's read-back GitHub graph | no local run or mirror; exact parent or Project selector belongs to Plan |
-| Specification elicitation | [woostack-ideate](/docs/skills/woostack-ideate) | complete plain user-verified decisions | no provider or run required |
-| Repository reconciliation | [woostack-harden](/docs/skills/woostack-harden) | complete plain candidate after bounded evidence checks | no provider or run required |
-| Approved issue publication | [woostack-plan](/docs/skills/woostack-plan) | one exact GitHub parent/child or Project graph with native prerequisite edges | direct host-authenticated GitHub reads/writes; no mirror required |
+| Feature, proved defect, or requested issue filing | [woostack-plan](/docs/skills/woostack-plan) | outcomes, important constraints, acceptance and verification, and real dependencies; GitHub issues written only when the request asks for them | direct host-authenticated GitHub reads/writes only for a requested publication; no mirror required |
+| Requested requirements exploration | [woostack-ideate](/docs/skills/woostack-ideate) | the user's decisions and open questions | no provider or run required |
+| Requested read-only specification or issue-plan review | [woostack-harden](/docs/skills/woostack-harden) | reconciled content after bounded evidence checks | no provider or run required |
 | Bounded enhancement, refactor, tests, or authorized correction | [woostack-execute](/docs/skills/woostack-execute) | one complete bounded contract from inline input or one canonical task-bearing issue, and one PR | goal-only is provider-free; an exact issue is read-only task input and Commit association |
 | Greenfield codebase | [woostack-bootstrap](/docs/skills/woostack-bootstrap) | complete approved design | exact target only; direct GitHub Project publication is explicit |
 
@@ -24,33 +24,31 @@ scope into a complete contract or replace direct repository evidence.
 
 ## Planning and informed approval
 
-Prepare is the thin composition for a feature or defect. A defect first uses [Debug](/docs/skills/woostack-debug)
-or independently revalidates a complete diagnosis: observed and expected behavior, causal chain,
-immutable source/runtime evidence, correction boundary, risks, and verification. Missing proof blocks;
-Prepare never guesses a correction.
+[Plan](/docs/skills/woostack-plan) is the complete planning workflow. It inspects the relevant
+source, identifies the decisions that still matter, and returns a coherent plan. A planning-only
+request makes no GitHub writes. A request to file issues already supplies publication intent, so
+Plan resolves an unambiguous destination from the request and its context, inspects the relevant
+existing issues, creates or reuses the requested issues, and reads their actual content and
+relationships back. It asks one focused question when the destination is ambiguous. An unknown
+defect cause stays with [Debug](/docs/skills/woostack-debug); Plan does not guess a correction.
 
-Public [Ideate](/docs/skills/woostack-ideate) collects decisions the user verifies and returns
-complete plain content. Public [Harden](/docs/skills/woostack-harden) checks supplied specification or
-candidate-plan content against bounded repository evidence and raises each material discrepancy before
-changing it. Both accept explicit repository/evidence identity without a Prepare run. Complete input
-may start at the relevant phase, so settled approvals are not repeated.
+Native sub-issue and dependency links are used when they are available and requested. When that
+capability is unavailable, the written issues and an explicit readable index are preserved, the
+missing relationships are reported, and an explicitly required native graph is never called
+complete. A partial publication keeps exact confirmed identities and resumes at the first unproved
+step. It creates no branch, worktree, commit, PR, worker, local run, or second remote record.
 
-Plan divides the work into increments, each small enough for one PR. It records outcomes, scope,
-acceptance criteria, verification, risks, explicit technical prerequisites, and parent-selection
-policy. It does not prescribe every coding step or estimate changed lines. [GitHub plans](/docs/configuration/artifacts/github#identities-hierarchy-and-graph)
-support technical dependency DAGs in explicit Project mode and parent-issue mode
-(`--parent-issue new` or an exact parent issue URL, exclusive with `--project`). Plan's
-parent-issue mode needs the exact canonical repository and native relationship capabilities; it does
-not require a provider selector, Project, mirror, or Build/Fix run. Direct and composed Plan use the
-same public Harden reconciliation and publisher. Its native parent hierarchy only groups the plan and
-is distinct from `blocked-by` edges and Git branch ancestry; the parent is never a task, dependency
-endpoint, execution, or PR, and unsupported nested or partial hierarchy fails closed. A complete
-readable tracker index can remain useful to Orchestrate when those native relationships are absent,
-but that declared handoff is not successful native Plan publication.
+[Ideate](/docs/skills/woostack-ideate) and [Harden](/docs/skills/woostack-harden) are optional
+standalone phases. Ideate explores requirements when the user asks for it; Harden performs a
+read-only review of a specification or candidate issue plan against bounded repository evidence and
+raises each material discrepancy. Verified schemas and interfaces are observations, and routine
+technical details follow the requested outcome. Unresolved product behavior, breaking
+compatibility, security and data boundaries, irreversible effects, cost, and scope still need a
+user decision.
 
 Execute accepts one selected bounded task under its [admission contract](/docs/skills/woostack-execute#admit-one-task), not a whole plan.
-An explicit [Orchestrate](/docs/skills/woostack-orchestrate) invocation interprets the complete
-planning handback or other understandable work context. It resolves the canonical repository,
+An explicit [Orchestrate](/docs/skills/woostack-orchestrate) invocation interprets the plan, the
+published issues, or other understandable work context. It resolves the canonical repository,
 issue/task identities, executable tasks, and real dependencies with provenance, then chooses the
 execution order, concurrency, and each task's base when it starts that task. Added ordering is
 compatibility evidence, not native relationship evidence; technical prerequisites remain visible
@@ -65,12 +63,10 @@ while every selected issue and contract still needs independent reads. A Project
 when explicitly selected; its status lifecycle is used only when that selection requests status
 mutation, and inferred edges are not published.
 
-Plan is the sole issue publisher. It independently reads every parent, child, hierarchy, and edge
-back. A partial Plan graph preserves exact identities and resumes at the first unproved Plan boundary;
-it is not a complete native publication. A declared tracker handoff can still be independently read
-and coordinated by Orchestrate when its selected issues and contracts are complete. Prepare reports
-the complete planning handback and may include `/woostack-orchestrate --issue <verified-parent-url>`
-as a convenience suggestion, but never invokes it.
+Plan independently reads back the identity and content of every issue it publishes, plus any
+relationship it actually wrote. A readable index with independently readable issues can still be
+read and coordinated by Orchestrate when its selected issues and contracts are complete. Plan may
+suggest `/woostack-orchestrate --issue <exact canonical GitHub issue URL>`, but it never invokes it.
 
 ## Execution invariants
 
@@ -100,8 +96,8 @@ uses only its exact selected scope.
 
 | Surface | Authority |
 | --- | --- |
-| Prepare/Ideate/Harden plain packets | complete planning content and evidence handbacks; no source or issue authority |
-| Plan's verified GitHub graph | publication identity, child contracts, and native prerequisite read-back |
+| Planning content from Plan, Ideate, or Harden | plans, user decisions, and evidence; no source or issue authority |
+| Plan's published issues | verified issue identities and content, plus only the relationships actually read back |
 | Git and GitHub | source, ancestry, commits, PRs, checks, reviews, merge evidence |
 | Audit, QA, response reports | sanitized non-authoritative diagnostic evidence |
 

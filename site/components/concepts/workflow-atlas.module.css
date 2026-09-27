@@ -234,74 +234,6 @@
   line-height: 1.4;
 }
 
-.branchGroup {
-  position: relative;
-  margin: 0.75rem 0 0 auto;
-  padding-top: 0.6rem;
-  border-top: 1px solid var(--atlas-border);
-}
-
-.branchGroup::before {
-  position: absolute;
-  bottom: 100%;
-  left: 87.5%;
-  width: 1px;
-  height: 0.8rem;
-  background: var(--atlas-border);
-  content: '';
-}
-
-.branchGroup[data-workflow='build']::before {
-  left: 37.5%;
-}
-
-.branchGroup h4 {
-  margin: 0 0 0.4rem;
-  color: var(--atlas-subtle);
-  font-size: 0.875rem;
-  font-weight: 600;
-}
-
-.branches {
-  display: flex;
-  gap: 0.5rem;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  font-size: 0.875rem;
-}
-
-.branches > li {
-  min-width: 0;
-  flex: 1 1 0;
-  padding: 0.5rem;
-  border: 1px solid var(--atlas-border);
-  border-radius: 8px;
-  background: var(--atlas-muted);
-}
-
-.branches strong {
-  display: block;
-  margin-bottom: 0.2rem;
-}
-
-.branches ol {
-  margin: 0;
-  padding: 0;
-  color: var(--atlas-subtle);
-  line-height: 1.35;
-  list-style: none;
-}
-
-.branches li {
-  overflow-wrap: anywhere;
-}
-
-.branches .outcomeLabel {
-  color: var(--atlas-text);
-  font-weight: 600;
-}
-
 .atlas figcaption {
   margin-top: 0.75rem;
   color: var(--atlas-subtle);
@@ -345,13 +277,4 @@
     min-height: 0;
   }
 
-  .branchGroup::before,
-  .branchGroup[data-workflow='build']::before {
-    right: auto;
-    left: 1.25rem;
-  }
-  .branches {
-    flex-direction: column;
-    margin-left: 1.25rem;
-  }
 }

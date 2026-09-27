@@ -1,6 +1,6 @@
 ---
 title: Core concepts
-description: Repository delivery evidence, plain planning packets, and verified GitHub planning handoffs that precede implementation.
+description: Repository delivery evidence, planning with optional issue publication, and the boundaries that precede implementation.
 ---
 
 import { ContextEconomy } from '@/components/concepts/context-economy';
@@ -14,11 +14,10 @@ commits it came from, and whether its pull requests (PRs) have been reviewed or 
   authorized correction with causal evidence, then implements and verifies it. New PRs start as
   drafts; updates preserve existing readiness. It requires no preparatory project or planning
   workflow.
-- **Prepared work** starts with a specification and evidence. When a GitHub handoff is requested,
-  Prepare composes Debug for defects, Ideate for user-owned decisions, Harden for repository
-  reconciliation, and Plan for the sole GitHub parent/child publisher. It stops before source edits,
-  branches, workers, or PRs.
-- **Execution** is separate. The user may hand Orchestrate the complete planning handback or other
+- **Planning** starts from a goal or an ordinary amount of task context. Plan inspects the relevant
+  source, surfaces the decisions that still matter, and writes GitHub issues only when the request
+  asks for them. It stops before source edits, branches, workers, or PRs.
+- **Execution** is separate. The user may hand Orchestrate the published issues or other
   understandable multi-task context, or select one complete bounded task for Execute. Orchestrate
   interprets the available repository and tracker evidence; issue lifecycle alone never proves code
   delivery, review, acceptance, or merge.
@@ -26,43 +25,46 @@ commits it came from, and whether its pull requests (PRs) have been reviewed or 
 See [Workflow maps](/docs/concepts/workflows) for the sequences and
 [Building rules](/docs/concepts/building-rules) for the planning and delivery boundaries.
 
-## Complete user understanding
+## Optional exploration and review
 
-Ideate is a public planning conversation. Invoke it as `/woostack-ideate <goal-or-specification>` with
-complete plain content and the exact repository/evidence identity when repository-grounded decisions
-are needed. The user verifies goals, behavior, exclusions, architecture, data models, API details,
-and verification expectations that matter to the work. Ideate returns the complete specification,
-confirmed decisions, evidence, and unresolved questions.
+Ideate is a public requirements conversation. Invoke it as `/woostack-ideate <goal-or-specification>`.
+It returns the explored specification, relevant evidence, technical details it filled in, and
+unresolved decisions. No complete packet or exact baseline supplied by the user is required
+when the checkout can answer repository questions.
 
-Harden is also directly callable: `/woostack-harden <specification-or-issue-plan>`. It checks supplied
-content against bounded repository evidence, raises material discrepancies before changing approved
-decisions, and returns complete reconciled content. Neither phase requires a Prepare run, writable
-checkout, or GitHub Project configuration. Existing conventions and plausible defaults never replace
-the user's decision.
+Harden is also directly callable: `/woostack-harden <specification-or-issue-plan>`. It checks
+supplied content against bounded repository evidence, raises material discrepancies, and returns
+reconciled content. Both are optional, and neither needs a writable checkout or GitHub Project
+configuration. Verified schemas and interfaces are observations, and agents fill in routine
+technical details consistent with the requested outcome. Unresolved product behavior, breaking
+compatibility, security and data boundaries, irreversible effects, cost, and scope still need a
+user decision.
 
-Prepare is the thin composition for feature and defect planning:
-`/woostack-prepare <goal-or-defect> [--parent-issue new|<exact-url>]`. Complete input may start at
-any relevant phase without repeating settled approval. A defect must carry Debug's observed/expected
-behavior, causal chain, exact evidence, correction boundary, risks, and verification. Missing or stale
-causal proof blocks before Plan; Prepare never guesses a fix.
+Plan is the complete planning workflow:
+`/woostack-plan <goal-or-specification>`. A planning-only request returns the plan and makes no
+GitHub writes. A request to file issues already supplies publication intent, so Plan inspects the
+relevant existing issues, creates or reuses the requested issues, and verifies their actual content
+back. It resolves an unambiguous destination from the request and its context, and asks one focused
+question when that destination is ambiguous. Native sub-issue and dependency links are used when
+they are available and requested; when they are not, the written issues and an explicit readable
+index are preserved, the missing relationships are reported, and an explicitly required native
+graph is never called complete. A partial publication preserves exact confirmed identities and
+resumes at the first unproved step. An unknown defect cause stays with Debug.
 
-Plan consumes one complete approved packet and publishes one exact GitHub parent/child hierarchy or
-explicit Project graph with native prerequisite edges. It independently reads every identity and
-relationship back. A partial graph is a recoverable planning result, not a complete handoff. The
-verified handback can be passed to Orchestrate, which interprets it or other understandable tracker
-context into executable tasks and a bounded dependency DAG; native links are evidence when present,
-not a universal admission requirement. A suggested
-`/woostack-orchestrate --issue <verified-parent-url>` is a convenience hint and is never invoked by
-Prepare or Plan.
+The result can be passed to Orchestrate, which interprets the published issues or other
+understandable tracker context into executable tasks and a bounded dependency DAG; native links are
+evidence when present, not a universal admission requirement. A suggested
+`/woostack-orchestrate --issue <exact canonical GitHub issue URL>` is a convenience hint and is
+never invoked by Plan.
 
-Plans describe outcomes and acceptance criteria: the conditions the finished work must meet. They
-leave coding steps to the implementer without changing the agreed scope.
+A plan describes outcomes and acceptance criteria: the conditions the finished work must meet. It
+leaves coding steps to the implementer without changing the agreed scope.
 
 ## Retained records and direct GitHub publication
 
 Existing `.woostack/tmp/runs/<run-id>/` records from retired planning wrappers remain readable
-historical user data. They are never migrated or mutated. A caller may supply a complete retained
-packet and exact identity for fresh validation, but a record does not authorize publication,
+historical user data. They are never migrated or mutated. A caller may supply a record's exact
+identity and content for fresh validation, but a record does not authorize publication,
 implementation, assignment, or ownership. Plan's GitHub issue publication is direct; legacy
 managed-provider records remain opaque and inactive.
 
@@ -84,14 +86,14 @@ contains a concrete observed preventable instruction gap; otherwise it has no re
 Its candidate gate defines that condition, and the first pass is report-only.
 
 Diagnostic outputs from QA or production-response workflows can support a decision but cannot
-authorize a correction. Repairs first use Debug for causal proof, then Prepare if an issue graph is
-needed, or Execute for an authorized bounded correction.
+authorize a correction. Repairs first use Debug for causal proof, then Plan when the correction
+needs published issues, or Execute for an authorized bounded correction.
 
 ### Tools compute, agents read compact results
 
 Helpers gather and check evidence that can be processed mechanically. The historical run-store
-reader returns retained record bytes without changing them; it is not a new Prepare authority. The
-user still verifies workflow decisions.
+reader returns retained record bytes without changing them; it is not a publication authority. The
+user still decides what work may start.
 
 ### External engineers and coding harnesses
 
@@ -104,9 +106,9 @@ resume.
 
 <Cards>
   <Card title="Getting started" href="/docs/getting-started" description="Install the skills, initialize local support, and check the installation." />
-  <Card title="Building rules" href="/docs/concepts/building-rules" description="Understand workflow scope, preparation, issue publication, and authority boundaries." />
+  <Card title="Building rules" href="/docs/concepts/building-rules" description="Understand workflow scope, planning, optional issue publication, and authority boundaries." />
   <Card title="Repository structure and rules" href="/docs/concepts/repository-rules" description="Read the complete app-local code, shared extraction, dependencies, production, testing, Git, and scaffold contract." />
-  <Card title="Workflow maps" href="/docs/concepts/workflows" description="Compare Bootstrap, Prepare, Plan, Orchestrate, and Execute under one authority model." />
+  <Card title="Workflow maps" href="/docs/concepts/workflows" description="Compare Bootstrap, Plan, Orchestrate, and Execute under one authority model." />
   <Card title="Context management" href="/docs/concepts/context-management" description="Keep sessions compact and turn durable lessons into reviewed instruction suggestions." />
   <Card title="All skills" href="/docs/skills/using-woostack" description="Per-skill reference, generated from each SKILL.md." />
 </Cards>

@@ -10,12 +10,7 @@ type WorkflowStep = Readonly<{
   kind: StepKind;
 }>;
 
-type WorkflowBranch = Readonly<{
-  label: string;
-  steps: readonly WorkflowStep[];
-}>;
-
-type WorkflowId = 'execute' | 'prepare' | 'bootstrap';
+type WorkflowId = 'execute' | 'bootstrap';
 
 type Workflow = Readonly<{
   id: WorkflowId;
@@ -24,7 +19,6 @@ type Workflow = Readonly<{
   href: string;
   gateCount: number;
   steps: readonly WorkflowStep[];
-  branches?: readonly WorkflowBranch[];
 }>;
 
 const workflows: readonly Workflow[] = [
@@ -42,30 +36,6 @@ const workflows: readonly Workflow[] = [
       { label: 'Commit and submit', kind: 'work' },
       { label: 'Verify PR and retain workspace', kind: 'work' },
       { label: 'One draft PR awaiting human review', kind: 'terminal' },
-    ],
-  },
-  {
-    id: 'prepare',
-    title: 'Prepare',
-    useWhen: 'Use for a feature or proved defect that needs a verified issue graph, not implementation.',
-    href: '/docs/skills/woostack-prepare',
-    gateCount: 1,
-    steps: [
-      { label: 'Classify feature or defect', kind: 'work' },
-      { label: 'Prove defect cause when needed', kind: 'work' },
-      { label: 'Verify user-owned decisions', kind: 'gate' },
-      { label: 'Reconcile repository evidence', kind: 'work' },
-      { label: 'Plan and publish one issue graph', kind: 'work' },
-      {
-        label: 'Read back parent, children, and edges',
-        detail: 'Plan is the sole publisher; no source branch or implementation worker.',
-        kind: 'handoff',
-      },
-      { label: 'Verified graph plus Orchestrate suggestion', kind: 'terminal' },
-    ],
-    branches: [
-      { label: 'Ready', steps: [{ label: 'Separate /woostack-orchestrate suggestion', kind: 'terminal' }] },
-      { label: 'Blocked', steps: [{ label: 'Preserve exact identities and resume Plan at the first unproved boundary', kind: 'terminal' }] },
     ],
   },
   {
@@ -130,31 +100,11 @@ export function WorkflowAtlas() {
                 </li>
               ))}
             </ol>
-
-            {workflow.branches ? (
-              <div className={styles.branchGroup} data-workflow={workflow.id} aria-labelledby={`${workflow.id}-branches`}>
-                <h4 id={`${workflow.id}-branches`}>Branches after {workflow.steps.at(-1)?.label}</h4>
-                <ol className={styles.branches} role="list">
-                  {workflow.branches.map((branch) => (
-                    <li key={branch.label}>
-                      <strong>{branch.label}</strong>
-                      <ol role="list">
-                        {branch.steps.map((step) => (
-                          <li data-kind={step.kind} key={step.label}>
-                            <span className={styles.outcomeLabel}>{kindLabels[step.kind]}:</span> {step.label}
-                          </li>
-                        ))}
-                      </ol>
-                    </li>
-                  ))}
-                </ol>
-              </div>
-            ) : null}
           </section>
         ))}
       </div>
 
-      <figcaption id="workflow-atlas-caption">Three woostack workflows from first action to outcome.</figcaption>
+      <figcaption id="workflow-atlas-caption">Two woostack workflows from first action to outcome.</figcaption>
     </figure>
   );
 }

@@ -15,7 +15,6 @@ export const PUBLIC_ORDER = [
   'woostack-bootstrap',
   'woostack-ideate',
   'woostack-harden',
-  'woostack-prepare',
   'woostack-plan',
   'woostack-orchestrate',
   'woostack-execute',

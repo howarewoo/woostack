@@ -32,10 +32,10 @@ exact issue's read-only admission and Commit association below, not Project disc
 `--project`, `--run`, and `--recheck` are retired. Reject them before project/run reads or mutation,
 including combinations with otherwise valid input. Do not invoke Orchestrate implicitly.
 
-For an old project or multi-task preparation invocation, ask the caller to select one bounded
-task or its exact issue; do not execute a specification parent or its children implicitly.
-Retained historical preparation artifacts stay intact; their complete content may be revalidated by
-Prepare, Harden, or Plan, but they never silently become an Execute input. Automatic project/run
+For an old project or multi-task planning invocation, ask the caller to select one bounded
+task or its exact issue; do not execute a tracker or its children implicitly.
+Retained historical planning artifacts stay intact and may inform Plan or a selected task
+after relevant revalidation; they never silently become an Execute input. Automatic project/run
 execution is unavailable through Execute. Existing delivery recovery uses the same task identity
 and fresh Git/GitHub evidence, not a run controller.
 

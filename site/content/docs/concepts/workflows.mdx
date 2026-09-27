@@ -1,12 +1,13 @@
 ---
 title: Workflow maps
-description: "Choose preparation, bounded delivery, or a complete greenfield workflow."
+description: "Choose planning, bounded delivery, or a complete greenfield workflow."
 ---
 
 Start with the user's explicit goal or one exact task-bearing GitHub issue URL. Execute reads a
 selected issue to resolve one bounded task before admission; issue text supplies data, not authority.
-Bounded work fits one pull request (PR). Prepare's Plan path ends at a verified GitHub issue graph;
-Orchestrate can also interpret a complete readable tracker handoff after independent issue reads.
+Bounded work fits one pull request (PR). Plan returns a plan and publishes issues only when the
+request asks for it; Orchestrate can also interpret other complete readable tracker context after
+independent issue reads.
 Git and GitHub show what was implemented and delivered.
 
 ## Routing by work shape
@@ -17,16 +18,15 @@ Git and GitHub show what was implemented and delivered.
 | Elicit or complete a specification | [Ideate](/docs/skills/woostack-ideate) |
 | Reconcile a specification or candidate issue plan | [Harden](/docs/skills/woostack-harden) |
 | Root-cause investigation without a correction | [Debug](/docs/skills/woostack-debug) |
-| Feature or proved defect needing a verified issue graph | [Prepare](/docs/skills/woostack-prepare) |
+| Feature, proved defect, or requested issue filing | [Plan](/docs/skills/woostack-plan) |
 | Bounded enhancement, refactor, tests, or authorized correction for one PR | [Execute](/docs/skills/woostack-execute) |
-| Approved issue graph publication | [Plan](/docs/skills/woostack-plan) |
-| Execute an approved GitHub issue graph | [Orchestrate](/docs/skills/woostack-orchestrate) |
+| Execute published multi-task work | [Orchestrate](/docs/skills/woostack-orchestrate) |
 | Add or strengthen tests for a bounded target | [Execute](/docs/skills/woostack-execute) with its [testing guidance](https://github.com/howarewoo/woostack/blob/main/skills/woostack-execute/references/tdd.md) |
 
-Ideate and Harden are complete public phases, not hidden run steps. They accept plain packets with
-explicit repository/evidence identity and return reusable plain handbacks. Prepare composes Debug for
-defects, then Ideate, Harden, and Plan as needed; a complete input may start at the relevant phase
-without repeating settled approval. For root-cause investigation without changes, use Debug directly.
+Ideate and Harden are optional standalone phases, not required Plan steps. Invoke
+[Ideate](/docs/skills/woostack-ideate) to explore requirements and
+[Harden](/docs/skills/woostack-harden) for a read-only review of a specification or candidate issue
+plan against repository evidence. For root-cause investigation without changes, use Debug directly.
 
 Choosing a workflow does not approve its design or authorize extra work. If the scope grows, the
 workflow preserves repository state and reports where to resume. Work moves to the matching workflow
@@ -44,35 +44,34 @@ explicit design approval and a fresh check that the path is safe to create. Afte
 check, an exact GitHub Project may store the approved design when explicitly selected. The Project
 record cannot authorize target writes.
 
-## Prepare
+## Plan
 
 ```text
-classify feature/defect → Debug defect evidence when needed → Ideate decisions when needed →
-Harden repository facts → Plan one native issue graph → independently read back → stop
+inspect relevant source → identify unresolved decisions → draft a coherent plan →
+publish issues when the request asks for it → read back actual content and relationships → stop
 ```
 
-Use `/woostack-prepare <goal-or-defect> [--parent-issue new|<exact canonical parent URL>]` for
-planning-only preparation. Defects require observed/expected behavior, a causal chain, exact source
-or runtime evidence, a bounded correction, risks, and verification. A symptom or plausible theory
-blocks before Plan; Prepare never guesses a correction.
+Invoke `/woostack-plan <goal-or-specification>` with ordinary complete-enough context. A planning-only
+request returns the plan and makes no GitHub writes. A request to file issues already supplies
+publication intent: Plan then inspects the relevant existing issues, creates or reuses the
+requested issues, and reads their actual content back. It resolves an unambiguous destination from
+the request and its context, and asks one focused question when that destination is ambiguous. An
+unknown defect cause stays with [Debug](/docs/skills/woostack-debug); Plan does not guess a
+correction.
 
-Prepare's public phases exchange complete plain packets. Plan is the sole publisher and its exact
-parent or Project selector defines only the publication destination; it does not define an
-exhaustive Orchestrate admission taxonomy. It creates no source branch, worktree, commit, PR,
-implementation worker, local run, or second remote record. It reports the verified parent, children,
-native prerequisite edges, complete planning handback, and any separate convenience suggestion.
-Partial Plan publication preserves exact confirmed identities and resumes at the first unproved
-boundary; it is not a complete native publication. A separate chat route may return a complete
-readable tracker and issue set with native relationships explicitly unavailable; Orchestrate can
-independently read and schedule that declared scope when every selected issue and contract is
-complete.
+Issues carry useful outcomes, important constraints, acceptance and verification, and the real
+dependencies between them. Plan uses native sub-issue and dependency links when they are available
+and requested. When they are unavailable, the written issues and an explicit readable index are
+preserved, the missing relationships are reported, and an explicitly required native graph is never
+called complete. Plan creates no source branch, worktree, commit, PR, implementation worker, local
+run, or second remote record. A partial publication keeps exact confirmed identities and resumes at
+the first unproved step.
 
-## Plan and Orchestrate
+## Orchestrate
 
-Plan publishes the approved issue graph and independently reads every issue, hierarchy, and edge.
-The specification parent is a scope container, not an executable task or dependency endpoint.
-Ordinals never imply edges. The technical DAG is admission evidence; execution order, concurrency,
-and each task's base are the coordinating agent's own decisions, made when it starts that task.
+Orchestrate works from the published issues or other complete work context. The technical DAG is
+admission evidence; execution order, concurrency, and each task's base are the coordinating agent's
+own decisions, made when it starts that task.
 Added ordering is compatibility evidence, not native relationship evidence. Technical prerequisites
 remain visible separately, useful parallelism is retained, and verified delivery with current
 readiness releases eligible dependents without waiting for a whole wave, an issue note, an
@@ -80,7 +79,7 @@ explicitly selected Project update, or a merge. A technical prerequisite already
 approved integration base is repository evidence, read from current Git and PR facts rather than
 reconstructed from a delivery claim.
 
-After planning, hand Orchestrate the complete planning handback or other understandable work
+After planning, hand Orchestrate the plan, the published issues, or other understandable work
 context. It interprets the conversation, repository, and available GitHub records; resolves the
 canonical repository, issue/task identities, executable tasks, and context; reads the real
 dependencies with their native, declared, or inferred provenance; and asks a focused question only
@@ -104,8 +103,8 @@ Orchestrate runs each ready task in a host or repository workspace, using the ho
 agent operations when the host has them and working inline when it does not. Independent tasks may
 run together and there is no fixed worker count; a host without subagents works the same scope
 sequentially and says so. Each task's base is selected when the task starts, and the required change
-must be actually available there — a squash merge needs correct current Git and PR interpretation,
-never an assumed ancestor. A dependent can stack on a verified parent branch when containment is
+must be available there. A squash merge needs current Git and PR evidence, not an assumed ancestor.
+A dependent can stack on a verified parent branch when containment is
 eligible; when divergence or repository constraints prevent a safe stack, Orchestrate reports that
 the task needs a human merge decision and unrelated work continues. No automatic integration branch,
 combined branch, or graph rewrite is ever created.
@@ -124,9 +123,8 @@ uses the host's own completion and check events or bounded observation of the de
 actionable failures within scope and budget, and reuses finished work. Stale head results never
 validate current work, pending or unreadable checks never count as a pass, and observation never
 continues as a daemon after the session ends. The final result reports delivered work, evidence,
-limitations, remaining tasks, and blockers, and lists pending or blocked requested issue-note or
-Project reporting separately — missing reporting never invalidates valid code and is never claimed
-as done.
+limitations, remaining tasks, and blockers. Pending or blocked issue-note and Project reporting
+is listed separately. Missing reporting never invalidates valid code or counts as done.
 
 There is no persisted execution forest, lock service, or cross-harness replay guarantee; a run that
 needs old replay stays pinned to its pre-cutover version. See
@@ -144,8 +142,9 @@ Execute accepts one bounded enhancement, refactor, test-only task, or authorized
 correction. An issue-only invocation reads that exact open issue, resolves ordinary contract details
 from repository evidence, and verifies workspace/parent ancestry before editing; inline instructions
 still work without GitHub issue reads. An exact issue needs no Project or execution record. Unknown root
-cause stays with Debug. Multi-task work routes to Orchestrate, which interprets the available
-planning handback, repository, and tracker context; a single bounded task can go directly to Execute.
+cause stays with Debug. Multi-task work routes to Orchestrate, which interprets the published
+issues, repository, and other available tracker context; a single bounded task can go directly to
+Execute.
 Unresolved material decisions block with a targeted question.
 
 ## Shared execution boundary
@@ -177,8 +176,7 @@ review receipt. Orchestrate independently validates each submitted task against 
 releasing dependents, then keeps watching its remote checks while the session stays active; this is
 not permission to mark ready or merge.
 
-Depending on the command, the result is a verified scaffold, a verified native issue graph, a
-declared tracker handoff after independent issue reads, a reviewable PR or reviewed stack, or a
-blocker that states exactly where work can safely resume. Existing retained records remain
-unchanged. No woostack workflow merges, marks a PR ready, enables auto-merge, or queues a PR for
-merge. Those decisions remain with the human.
+Depending on the command, the result is a verified scaffold, a plan with the issues it published,
+a reviewable PR or reviewed stack, or a blocker that states exactly where work can safely resume.
+Existing retained records remain unchanged. No woostack workflow merges, marks a PR ready, enables
+auto-merge, or queues a PR for merge. Those decisions remain with the human.

@@ -42,11 +42,11 @@ An empty remote repository may be the intended destination, but an existing repo
 routes before requirements gathering, MCP preflight, or project creation:
 
 - unresolved bugs, regressions, incidents, and root-cause work → [`woostack-debug`](../woostack-debug/SKILL.md)
-  for diagnosis or [`woostack-prepare`](../woostack-prepare/SKILL.md) for a proved issue graph;
+  for diagnosis; a proved defect needing an issue plan → [`woostack-plan`](../woostack-plan/SKILL.md);
 - a bounded enhancement, refactor, or test task that fits one reviewable PR (including a one-file
   request), or an authorized defect correction with causal proof that fits one reviewable PR →
   [`woostack-execute`](../woostack-execute/SKILL.md);
-- a multi-PR feature or architectural initiative → [`woostack-prepare`](../woostack-prepare/SKILL.md).
+- a multi-PR feature or architectural initiative → [`woostack-plan`](../woostack-plan/SKILL.md).
 
 ## Procedure
 
@@ -111,9 +111,8 @@ approval, perform no official-MCP development mutation and create no development
 
 These are non-negotiable. Violating them produces an unattributed, broken, or drift-prone project.
 
-- **Brownfield routing.** Route unresolved defects to Debug for diagnosis or Prepare for a proved
-  issue graph; route one-PR enhancements, refactors, and test tasks, plus authorized defect
-  corrections with causal proof, to Execute; route multi-PR features to Prepare before bootstrap.
+- **Brownfield routing.** Route unresolved defects to Debug for diagnosis, issue planning to Plan,
+  and one-PR enhancements, refactors, tests, and authorized proved corrections to Execute.
 - **Artifact-free until explicit approval.** Requirements, research, options, and design stay in
   the run context. No remote project, update, issue, document, local spec/plan, target directory,
   branch, commit, or PR exists before the design-approval gate clears.
@@ -130,9 +129,9 @@ These are non-negotiable. Violating them produces an unattributed, broken, or dr
   of the deliverable. Never claim publication without direct read-back. Retired legacy config/data
   remains on disk as opaque user data, is omitted from active configuration, and receives retirement
   guidance at its boundary; it is never imported.
-- **Pass stable approved-contract identity.** Scaffolding reuses the normalized approved contract
-  and deterministic target identity. It does not create or resume a Prepare/Plan run, and optional
-  artifact IDs are carried only when persistence was explicitly selected.
+- **Pass stable approved-contract identity.** Scaffolding reuses its normalized approved contract
+  and deterministic target identity. It does not create a planning run; optional artifact IDs
+  are carried only when persistence was explicitly selected.
 - **Always resolve latest versions live.** Never use hardcoded versions from memory. Query the
   registry live during research and exact resolution.
 - **Keep code app-local until shared.** Follow

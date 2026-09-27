@@ -98,8 +98,8 @@ work, the output belongs in a fresh repo in a different directory, not in this r
   Public command/adoption names and fixed paths are part of the installed interface, and the
   [command catalog](skills/using-woostack/SKILL.md#command-routing) lists the current set. An
   explicitly approved retirement removes the complete skill and its references. Retired Build, Fix,
-  Change, Status, and TDD packages have no compatibility aliases. Direct GitHub integration and
-  supporting utilities add neither a command-routing row nor a per-provider skill.
+  Change, Status, TDD, and Prepare packages have no compatibility aliases. Direct GitHub integration
+  and supporting utilities add neither a command-routing row nor a per-provider skill.
 - Do not rename files under
   [`skills/woostack-bootstrap/references/`](skills/woostack-bootstrap/references/) without
   updating every cross-link and the bootstrap skill table.

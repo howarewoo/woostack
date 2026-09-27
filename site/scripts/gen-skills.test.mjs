@@ -11,11 +11,11 @@ import {
 } from './gen-skills.mjs';
 
 test('parseFrontmatter extracts name + description and returns the body', () => {
-  const raw = '---\nname: woostack-prepare\ndescription: Prepare a feature.\nplugin: preserved-for-site\n---\n\n# woostack-prepare\n\nbody';
-  const { fm, body } = parseFrontmatter(raw, 'woostack-prepare');
-  assert.equal(fm.name, 'woostack-prepare');
-  assert.equal(fm.description, 'Prepare a feature.');
-  assert.match(body, /# woostack-prepare/);
+  const raw = '---\nname: woostack-plan\ndescription: Plan a feature.\nplugin: preserved-for-site\n---\n\n# woostack-plan\n\nbody';
+  const { fm, body } = parseFrontmatter(raw, 'woostack-plan');
+  assert.equal(fm.name, 'woostack-plan');
+  assert.equal(fm.description, 'Plan a feature.');
+  assert.match(body, /# woostack-plan/);
   assert.equal(fm.plugin, 'preserved-for-site');
 });
 
@@ -79,9 +79,9 @@ test('parseFrontmatter rejects colon-space in a plain description deterministica
 });
 
 test('stripTitleHeading removes only the first exact "# <name>" H1', () => {
-  const body = '\n# woostack-prepare\n\n## Overview\n\n# woostack-prepare\n';
-  const out = stripTitleHeading(body, 'woostack-prepare');
-  assert.equal((out.match(/^# woostack-prepare$/gm) || []).length, 1); // one removed, one stays
+  const body = '\n# woostack-plan\n\n## Overview\n\n# woostack-plan\n';
+  const out = stripTitleHeading(body, 'woostack-plan');
+  assert.equal((out.match(/^# woostack-plan$/gm) || []).length, 1); // one removed, one stays
   assert.match(out, /## Overview/);
 });
 
@@ -134,24 +134,23 @@ test('neutralizeTags: block tag -> Callout, prose tag escaped, code-span/fence p
 });
 
 test('renderPage emits title/description and source links for public phases', () => {
-  const fm = { name: 'woostack-prepare', description: 'Prepare a feature: end to end.' };
-  const page = renderPage('woostack-prepare', fm, '## Overview\n\nbody');
-  assert.match(page, /^---\ntitle: woostack-prepare\n/);
-  assert.match(page, /description: "Prepare a feature: end to end\."/); // JSON-quoted, colon-safe
+  const fm = { name: 'woostack-plan', description: 'Plan a feature: end to end.' };
+  const page = renderPage('woostack-plan', fm, '## Overview\n\nbody');
+  assert.match(page, /^---\ntitle: woostack-plan\n/);
+  assert.match(page, /description: "Plan a feature: end to end\."/); // JSON-quoted, colon-safe
   assert.match(
     page,
-    /\[View source on GitHub\]\(https:\/\/github\.com\/howarewoo\/woostack\/blob\/main\/skills\/woostack-prepare\/SKILL\.md\)/
+    /\[View source on GitHub\]\(https:\/\/github\.com\/howarewoo\/woostack\/blob\/main\/skills\/woostack-plan\/SKILL\.md\)/
   );
 });
 
-test('public skill routing retains the 17-skill order', () => {
+test('public skill routing retains the 16-skill order', () => {
   const expectedPublic = [
     'using-woostack',
     'woostack-init',
     'woostack-bootstrap',
     'woostack-ideate',
     'woostack-harden',
-    'woostack-prepare',
     'woostack-plan',
     'woostack-orchestrate',
     'woostack-execute',
@@ -165,7 +164,7 @@ test('public skill routing retains the 17-skill order', () => {
     'woostack-reflect',
   ];
 
-  assert.equal(PUBLIC_ORDER.length, 17);
+  assert.equal(PUBLIC_ORDER.length, 16);
   assert.deepEqual(PUBLIC_ORDER, expectedPublic);
   assert.deepEqual(navOrder([...expectedPublic].reverse()), expectedPublic);
 });
