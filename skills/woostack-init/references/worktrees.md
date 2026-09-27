@@ -40,14 +40,17 @@ upstream ref or merge-base alone is insufficient. Apply the shared
 to its last independently admitted parent tip. Mutable observed refs, heads, commits, and tips are
 repository evidence outside content approval identity.
 
-For roots, the selected parent is the admitted integration branch/SHA. Technical prerequisites and
-any deliberately recorded pre-execution stack order are separate. For a dispatched dependent, the
-caller must still supply one concrete parent branch/SHA containing every required prerequisite and
-prove each required ancestor with `git merge-base --is-ancestor`, even when hashes are equal. A
-recorded stack order or parent intent does not add, remove, or rewrite requirements. An unresolved
-join pauses that task as a human-merge checkpoint; this fallback covers divergent work, fixed-parent
-or independent-landing constraints, or no safe suitable stack. Do not infer order, rewrite heads,
-rebase, reset, silently switch parents, combine branches, or require a merge automatically.
+For roots, the selected parent is the admitted integration branch/SHA; technical prerequisites are
+separate. For a dispatched dependent, the caller must still supply one concrete parent branch/SHA
+whose current content contains every required prerequisite. Prove required ancestry with
+`git merge-base --is-ancestor`, even when hashes are equal, whenever the prerequisite landed as
+commits. A prerequisite landed by squash or rebase merge does not keep its former PR head as an
+ancestor of the integration tip: verify the current native landing and the actually integrated
+content instead, and never substitute a false ancestor assertion for that proof. Parent intent does
+not add, remove, or rewrite requirements. An unresolved join pauses that task as a human-merge
+checkpoint; this fallback covers divergent work, fixed-parent or independent-landing constraints, or
+no safe suitable stack. Do not infer order, rewrite heads, rebase, reset, silently switch parents,
+combine branches, or require a merge automatically.
 
 Workspace isolation and ancestry admission are unchanged by native stack membership. A dependent's
 workspace, branch, and parent proof come from this reference; the remote stack object is publication
@@ -63,16 +66,21 @@ repository identity, filesystem state, dirty/index/conflict/diff state, branch/H
 ancestry, and applicable canonical PR/review/thread evidence. A material change invalidates the
 snapshot; rediscover rather than combining observations from different states.
 
-Orchestrate additionally claims the canonical repository plus each canonical executable issue/task
-identity before reservation. Any overlapping task context therefore cannot claim one physical
-workspace concurrently; a claim without the current controller owner token is a blocker.
+A coordinating workflow inspects native worker state and current Git and canonical PR facts before
+reusing any workspace, branch, or task identity. One physical workspace never carries two
+concurrent writers: overlapping task context runs in another workspace or waits. A workspace whose
+last writer may still be active is not reused — stop that affected work and prove the previous
+writer stopped or relinquished ownership first, because serializing a new writer does not stop an
+old one. These are observation and ownership rules, not locks; instructions create no sandboxing,
+claim token, or enforced exclusion.
 
 An unknown or partial create, checkout, commit, push, publication, handoff, or recovery boundary
 preserves all observed state and blocks. Never delete, overwrite, reset, clean, stash, reassign,
-transfer, or recreate around a collision. A timeout or lost worker response leaves ownership unknown;
-prove the previous writer stopped or relinquished ownership before any overlapping mutation.
-Recovery reuses the exact retained selected workspace, branch, parent, and evidence, or pauses for an
-explicit fresh allocation. It never falls back to a prescribed path or branch projection.
+transfer, or recreate around a collision. A timeout or lost worker response leaves ownership
+unknown; prove the previous writer stopped or relinquished ownership before any overlapping
+mutation, and leave unknown work intact rather than repeating it. Recovery reuses the exact
+retained selected workspace, branch, parent, and evidence, or pauses for an explicit fresh
+allocation. It never falls back to a prescribed path or branch projection.
 
 All source edits and task-scoped checks run only in the selected workspace. Workers never access
 another task workspace, change allocation or scope, mutate artifacts, or exercise merge authority.

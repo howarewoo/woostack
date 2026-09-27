@@ -41,28 +41,6 @@ run_doctor() {
   set -e
 }
 
-complete_receipt() {
-  jq -cn '{
-    schemaVersion:1,
-    provider:"authorized-github",
-    interfaceAvailable:true,
-    authenticated:true,
-    ready:true,
-    viewer:{login:"octocat",id:"MDQ6VXNlcjE="},
-    owner:"acme",
-    ownerResolution:{status:"unique",login:"acme",type:"organization",id:"MDEyOk9yZ2FuaXphdGlvbjEyMzQ1"},
-    repository:"https://github.com/acme/widgets",
-    projectStatuses:{complete:true,statusField:"Status",fieldId:"PVTSSF_12345",fieldType:"SINGLE_SELECT",resolved:{
-      planned:{name:"Todo",id:"opt_1"},
-      executing:{name:"In Progress",id:"opt_2"},
-      inReview:{name:"In Review",id:"opt_3"},
-      done:{name:"Done",id:"opt_4"},
-      blocked:{name:"Blocked",id:"opt_5"}
-    }},
-    capabilities:{projectRead:true,projectWrite:false,issueRead:true,issueWrite:false,dependencyRead:false,dependencyWrite:false,statusFieldRead:true,statusFieldWrite:false,pagination:true,independentReadBack:true},
-    readBack:{status:"verified",complete:true,independent:true}
-  }'
-}
 
 repo="$(make_repo absent-github)"
 run_doctor "$repo"
@@ -118,59 +96,10 @@ assert_exit 0 "$RC" "retained mirror-era data does not block local diagnosis"
 assert_contains "$OUTPUT" "retained-data" "retained data receives report-only guidance"
 assert_eq "$(cat "$repo/.woostack/tmp/runs/old-run/manifest.json")" "$manifest_before" "retained manifest is not mutated"
 
-repo="$(make_repo live-github)"
-git -C "$repo" remote add origin https://github.com/acme/widgets
-cat >"$repo/.woostack/config.json" <<'JSON'
-{"github":{"owner":"acme","ownerType":"organization","projectStatuses":{"planned":"Todo","executing":"In Progress","inReview":"In Review","done":"Done","blocked":"Blocked"}},"models":{},"status":{"staleDays":14}}
-JSON
-receipt="$TMP/github-receipt.json"
-complete_receipt >"$receipt"
-chmod 600 "$receipt"
-run_doctor "$repo" --live-receipt "$receipt"
-assert_exit 0 "$RC" "fixed read-only GitHub receipt passes with unsupported writes"
-
-mutated="$TMP/missing-read.json"
-jq '.capabilities.projectRead=false' "$receipt" >"$mutated"
-chmod 600 "$mutated"
-run_doctor "$repo" --live-receipt "$mutated"
-assert_exit 1 "$RC" "missing fixed project read capability fails"
-assert_contains "$OUTPUT" "missing GitHub capability: projectRead" "missing fixed capability is actionable"
-for missing_capability in statusFieldRead pagination independentReadBack; do
-  mutated="$TMP/missing-$missing_capability.json"
-  jq --arg capability "$missing_capability" '.capabilities[$capability]=false' "$receipt" >"$mutated"
-  chmod 600 "$mutated"
-  run_doctor "$repo" --live-receipt "$mutated"
-  assert_exit 1 "$RC" "missing fixed $missing_capability capability fails"
-  assert_contains "$OUTPUT" "missing GitHub capability: $missing_capability" "missing fixed capability is actionable"
-done
-
-mutated="$TMP/provider-name.json"
-jq '.provider="official-gh-cli"' "$receipt" >"$mutated"
-chmod 600 "$mutated"
-run_doctor "$repo" --live-receipt "$mutated"
-assert_exit 1 "$RC" "hard-coded transport provider is rejected"
-
-mutated="$TMP/declared-requirements.json"
-jq '.requiredCapabilities=["projectWrite"]' "$receipt" >"$mutated"
-chmod 600 "$mutated"
-run_doctor "$repo" --live-receipt "$mutated"
-assert_exit 1 "$RC" "receipt-declared capability lists cannot alter the contract"
-
-mutated="$TMP/owner-mismatch.json"
-jq '.owner="other" | .ownerResolution.login="other"' "$receipt" >"$mutated"
-chmod 600 "$mutated"
-run_doctor "$repo" --live-receipt "$mutated"
-assert_exit 1 "$RC" "receipt owner mismatch fails"
-assert_contains "$OUTPUT" "receipt owner does not match" "owner mismatch is actionable"
-
-repo="$(make_repo no-remote)"
-run_doctor "$repo" --live-receipt "$receipt"
-assert_exit 1 "$RC" "live receipt without a canonical Git remote fails closed"
-assert_contains "$OUTPUT" "repository does not match target repository" "missing remote is actionable"
 if [ -s "$SPY_LOG" ]; then
   fail "provider command spy was invoked: $(cat "$SPY_LOG")"
 else
-  pass "static and receipt checks invoke no provider executable"
+  pass "static checks invoke no provider executable"
 fi
 
 finish

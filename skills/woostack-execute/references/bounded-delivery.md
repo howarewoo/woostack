@@ -5,11 +5,11 @@ complete bounded enhancement, refactor, test task, or authorized correction with
 This reference cannot widen the accepted task or replace its admission gates.
 
 Create no project manifest, specification, or multi-task execution plan. Selected issue input follows
-[Execute's exact GitHub issue admission](../SKILL.md#optional-exact-github-issue). Orchestrate may
-provide this worker a persisted pre-execution layout and effective prerequisite readiness; Execute
-consumes that bounded packet for one task and does not schedule siblings or own the plan. Repository
-delivery goes through Commit; Git and canonical GitHub reads supply source-control evidence, not
-permission to implement or authority to merge.
+[Execute's exact GitHub issue admission](../SKILL.md#optional-exact-github-issue). A coordinating
+workflow may hand this worker its bounded outcome, non-goals, acceptance, prerequisites, and
+selected workspace and base; Execute consumes that packet for one task, schedules no sibling, and
+owns no shared plan or persisted state. Repository delivery goes through Commit; Git and canonical
+GitHub reads supply source-control evidence, not permission to implement or authority to merge.
 
 Before mutation, apply the shared [source-control contract](../../woostack-commit/references/source-control.md).
 Use native Git and an authorized GitHub capability for repository delivery (prefer native GitHub

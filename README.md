@@ -113,7 +113,7 @@ rules, capability gaps, native graph recovery, and join decisions.
 | Prepare a feature or proved defect for issue planning | [/woostack-prepare](skills/woostack-prepare/SKILL.md) | Composes the relevant public phases and ends at one fully read-back GitHub parent/child graph without implementing or dispatching it. |
 | Publish an approved GitHub issue plan | [/woostack-plan](skills/woostack-plan/SKILL.md) | Publishes one verified GitHub parent/child hierarchy or explicit Project graph with native prerequisite edges, without implementing it. |
 | A bounded task that fits one PR | [/woostack-execute](skills/woostack-execute/SKILL.md) | Implements a complete approved task, including an enhancement, refactor, test-only task, or authorized understood correction, and delivers one PR. |
-| Execute a GitHub issue graph | [/woostack-orchestrate](skills/woostack-orchestrate/SKILL.md) | Takes one exact parent issue, explicit Project, or explicit issue list, runs ready tasks in isolated Execute workers, and verifies submitted draft PRs without merging. |
+| Coordinate multiple approved tasks | [/woostack-orchestrate](skills/woostack-orchestrate/SKILL.md) | Resolves tasks and dependencies from prose, issues, or an explicitly selected Project; coordinates inline or native-host workers in isolated workspaces and verifies draft PRs without merging. |
 
 Prepare stops at planning. Direct bounded implementation remains an explicit Execute request; a
 separate `/woostack-orchestrate --issue <verified-parent-url>` is only a suggested next command.

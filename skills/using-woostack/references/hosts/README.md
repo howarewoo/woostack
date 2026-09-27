@@ -40,9 +40,10 @@ that confirm them, and never restates this list.
    start before it writes, and treat a mismatch as a blocker.
 5. Normal host model/effort inheritance needs no notice. Report an optional explicit override
    that could not be applied; if exact identity is required and unsupported or unproven, block
-   that operation. Missing required delivery, isolation, identity-correlation, review, or recovery
-   capability also blocks. Never execute Orchestrate inline or describe sequential dispatch as
-   one parallel wave.
+   that operation. A missing subagent primitive is not itself a blocker: multi-task work can run
+   sequentially in the calling session, and the caller says that is what happened. Never describe
+   sequential dispatch as one parallel wave, and never offer sequential work as the independent
+   review or parallel execution a user explicitly requested.
 
 ## GitHub capability and authentication (shared)
 

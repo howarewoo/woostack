@@ -71,81 +71,66 @@ complete.
 
 Plan publishes the approved issue graph and independently reads every issue, hierarchy, and edge.
 The specification parent is a scope container, not an executable task or dependency endpoint.
-Ordinals never imply edges. The technical DAG is admission evidence; after it and repository
-constraints are resolved, Orchestrate selects and summarizes a model-chosen single-parent
-execution forest before branch/worktree allocation. Added ordering is compatibility evidence, not
-native relationship evidence. Technical prerequisites remain visible separately, useful
-parallelism is retained, and effective prerequisites govern worker readiness and repair propagation.
-A technical prerequisite may be omitted from the execution ancestry when admission verifies from that
-task's own landed, verified delivery that its merged revision is already contained in the approved
-integration base. Such a prerequisite is repository evidence: it is never reconstructed as a
-controller-owned worker delivery.
-The plan and fingerprint persist in controller state; equivalent reordered input resumes it. A newer
-execution-plan revision is adopted atomically for genuinely unstarted changes. An incompatible
-legacy candidate leaves the retained state and worker contract unchanged. A previously persisted
-legacy execution-parent halt can adopt a newer revision only after its reservation and full
-prerequisite ancestry are verified compatible. Other changes to started, reserved, claimed,
-worker-owned, or delivered work are `execution-plan-drift`; changed technical evidence is
-`snapshot-drift`.
-Unchanged active workers retain their issued plan revision and dependency snapshot through a
-compatible replan; their results use the original admission, while current effective dependencies
-govern descendant repair.
+Ordinals never imply edges. The technical DAG is admission evidence; execution order, concurrency,
+and each task's base are the coordinating agent's own decisions, made when it starts that task.
+Added ordering is compatibility evidence, not native relationship evidence. Technical prerequisites
+remain visible separately, useful parallelism is retained, and verified delivery with current
+readiness releases eligible dependents without waiting for a whole wave, an issue note, an
+explicitly selected Project update, or a merge. A technical prerequisite already landed in the
+approved integration base is repository evidence, read from current Git and PR facts rather than
+reconstructed from a delivery claim.
 
 After planning, hand Orchestrate the complete planning handback or other understandable work
 context. It interprets the conversation, repository, and available GitHub records; resolves the
-canonical repository, issue/task identities, executable tasks, and context; constructs the technical
-DAG with native, declared, or inferred edge provenance; and asks a focused question when material
-ambiguity remains. With `--issue`, a complete readable tracker index can establish membership when
-native child links are absent, partial, or unavailable. Every selected issue must still be
-independently readable with a complete contract; design/context issues, PRs, examples, and external
-prerequisites are not scraped into tasks. Native links are evidence when present, not a prerequisite
-for understanding tracker content. Issue, issue-list, and Project arguments are convenience hints
-rather than an exhaustive admission taxonomy. For Orchestrate, a Project is included only when
-explicitly selected; its status lifecycle is used only when that selection requests status mutation.
-Inferred relationships are not published back to GitHub.
+canonical repository, issue/task identities, executable tasks, and context; reads the real
+dependencies with their native, declared, or inferred provenance; and asks a focused question only
+when material ambiguity affects outcome, scope, or authority. An omitted administrative field is not
+a blocker. With `--issue`, a complete readable tracker index can establish membership when native
+child links are absent, partial, or unavailable. Every selected issue must still be independently
+readable with a complete contract; design/context issues, PRs, examples, and external prerequisites
+are not scraped into tasks. Issue, issue-list, and Project arguments are convenience hints rather
+than an exhaustive admission taxonomy. A Project is included only when explicitly selected; its
+status lifecycle is used only when that selection requests status mutation. Inferred relationships
+are never published back to GitHub.
 
 Examples of convenience hints, not an exhaustive route:
 
 ```text
-/woostack-orchestrate --issue <canonical GitHub tracker or parent issue URL> [--max-parallel <positive integer>]
-/woostack-orchestrate --project <canonical GitHub Project URL> [--max-parallel <positive integer>]
+/woostack-orchestrate --issue <canonical GitHub tracker or parent issue URL>
+/woostack-orchestrate --project <canonical GitHub Project URL>
 ```
 
-Orchestrate keeps up to three delivery-capable Execute workers active by default, bounded by host
-capability. Independent roots may run together. Durably verified technical delivery, current CI,
-independent review, and ancestry release eligible dependents without waiting for a whole wave, an
-issue note, an explicitly selected Project update, or a merge. Missing or denied reporting remains
-visible separately and takes no worker slot. A dependent can stack on its selected verified execution
-parent when containment is eligible. If divergence or
-repository constraints prevent a safe stack, only the approved `merge-checkpoint` fallback enters
-`waiting-for-merge`; otherwise a join uses a suitable selected parent without a new parent decision.
-The fallback reserves no worker or speculative checkout, preserves the technical DAG and execution
-plan, and does not ask for a synthetic base or integration strategy. This is a fallback for existing
-divergence, fixed-parent or independent-landing constraints, or no safe suitable stack, not the
-default scheduling strategy. Unrelated tasks continue. A phase label within one issue does not
-create a second issue/writer or premature whole-issue completion. Graph/scope drift preserves running
-reservations and stops fresh dispatch; unknown worker outcomes require direct stopped-worker/branch/
-PR reconciliation before same-identity repair. Current PR lifecycle evidence is reconciled separately
-from retained delivery evidence, so human-ready, merged, closed-unmerged, and deleted-source states
-cannot be mistaken for a fresh delivery. While the host session stays active, Orchestrate keeps
-observing each admitted PR's remote checks—interleaved with completions and scheduling, for admitted
-PRs only—and on an actionable failure diagnoses it and dispatches one Execute repair on the same
-branch/PR under the shared cap. Stale head results never validate current work; pending or unreadable
-checks never count as a pass. Successful checks never authorize closing issues, marking PRs ready,
-enabling auto-merge, queueing, or merging, and observation never continues as a daemon after the
-session ends. The final result distinguishes submitted, checking, repairing, CI-verified, blocked,
-waiting, and unverified work with check links and the next safe action, and separately lists pending
-or blocked requested issue-note/Project reporting—not closed issues or product acceptance.
+Orchestrate runs each ready task in a host or repository workspace, using the host's native task and
+agent operations when the host has them and working inline when it does not. Independent tasks may
+run together and there is no fixed worker count; a host without subagents works the same scope
+sequentially and says so. Each task's base is selected when the task starts, and the required change
+must be actually available there — a squash merge needs correct current Git and PR interpretation,
+never an assumed ancestor. A dependent can stack on a verified parent branch when containment is
+eligible; when divergence or repository constraints prevent a safe stack, Orchestrate reports that
+the task needs a human merge decision and unrelated work continues. No automatic integration branch,
+combined branch, or graph rewrite is ever created.
+A phase label inside one issue never creates a second issue, a second writer, or premature
+whole-issue completion.
 
-An explicitly approved policy change can be reconciled on the same stopped controller checkpoint,
-with unchanged tasks, claims, reservations, and historical evidence. The helper binds approval to
-the exact old/new admission, forward integration revision, reviewed task impact, and complete
-native stopped-worker inventory. It returns the sole current admission but leaves the controller
-stopped until a separate fresh resume. Externally landed work needs independent source, checks,
-smoke and acceptance verification at its current head or an explicitly approved corrected integration
-candidate. Separate corrective PRs need complete native merge provenance; their evidence never
-relabels the original failing head as accepted. Merge alone does not clear a known defect.
-See [Orchestrate recovery](/docs/skills/woostack-orchestrate#procedure).
+No two writers share one workspace. Before reusing a workspace, the run inspects native worker state
+and current Git/PR facts; if an older writer may still be active, it stops that affected work,
+because serializing behind a possibly live writer does not prove it stopped. Instructions and prompts
+do not enforce sandboxing or locks, and the run never claims they do. An unknown worker outcome is
+rediscovered from direct Git, PR, and host evidence before anything is repeated, so no duplicate
+writer or duplicate PR is launched and recoverable work survives. Current PR lifecycle evidence is
+read separately from delivery evidence, so human-ready, merged, closed-unmerged, and deleted-source
+states are never mistaken for a fresh delivery. While the host session stays active, Orchestrate
+uses the host's own completion and check events or bounded observation of the delivered PRs, fixes
+actionable failures within scope and budget, and reuses finished work. Stale head results never
+validate current work, pending or unreadable checks never count as a pass, and observation never
+continues as a daemon after the session ends. The final result reports delivered work, evidence,
+limitations, remaining tasks, and blockers, and lists pending or blocked requested issue-note or
+Project reporting separately — missing reporting never invalidates valid code and is never claimed
+as done.
+
+There is no persisted execution forest, lock service, or cross-harness replay guarantee; a run that
+needs old replay stays pinned to its pre-cutover version. See
+[Orchestrate coordination](/docs/skills/woostack-orchestrate#coordinate).
 
 ## Execute
 
@@ -158,7 +143,7 @@ See [Orchestrate recovery](/docs/skills/woostack-orchestrate#procedure).
 Execute accepts one bounded enhancement, refactor, test-only task, or authorized understood
 correction. An issue-only invocation reads that exact open issue, resolves ordinary contract details
 from repository evidence, and verifies workspace/parent ancestry before editing; inline instructions
-still work without GitHub issue reads. An exact issue needs no Project or persisted plan. Unknown root
+still work without GitHub issue reads. An exact issue needs no Project or execution record. Unknown root
 cause stays with Debug. Multi-task work routes to Orchestrate, which interprets the available
 planning handback, repository, and tracker context; a single bounded task can go directly to Execute.
 Unresolved material decisions block with a targeted question.

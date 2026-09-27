@@ -110,7 +110,6 @@ This repo has no universal test command or CI for its own PRs. [CONTRIBUTING.md]
 owns the editing workflow, the what-to-change table, and per-area guidance. The verified checks are:
 
 - `pnpm -C site test` and `pnpm -C site build` — catalog, generator, and docs-site structure.
-- `bash skills/woostack-orchestrate/scripts/tests/run-tests.sh` — production-controller behavior.
 - [On-demand workflow smoke recipes](skills/using-woostack/references/workflow-smoke.md) for
   material Plan/Execute/Orchestrate changes.
 

@@ -12,7 +12,7 @@ structured/contract fields or to risk-bearing reasoning.
 
 Applies to:
 
-- user-facing replies from controllers and inline workflows,
+- user-facing replies from coordinating skills and inline workflows,
 - subagent→parent handbacks (implementer, spec/quality reviewers, debug),
 - swarm/worker reports,
 - log/report writes.

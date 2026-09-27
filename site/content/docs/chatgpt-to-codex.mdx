@@ -95,7 +95,7 @@ Draft the fewest coherent PR-sized issues covering the outcome. Each issue must 
 - genuine technical prerequisite task IDs, later bound to real issue URLs/native IDs;
 - inspected planning branch/SHA and Git-parent-selection policy.
 Verify named commands/files exist, are created in that issue, or are supplied by a declared prerequisite. No invented runnable checks or unresolved product choices disguised as executable work. Use one specification tracker and one-level issue plan, not nested containers.
-Technical prerequisites form an acyclic evidence graph, not an ordinal chain. Sibling membership and checklist order create no dependencies. Root tasks use the approved integration branch; after publication Orchestrate selects a model-chosen single-parent execution forest before allocation. Its selected parents are compatibility ordering, not native relationship evidence; every technical prerequisite must be on the selected execution ancestor path unless admission proves it is already landed in the approved integration base, and useful parallelism is retained. A dependent can stack on a verified existing parent when current containment and readiness are eligible. Only an explicit `merge-checkpoint` fallback for existing divergence or repository constraints pauses that task as `waiting-for-merge`; this is not an ordinary join strategy or a request for an integration plan. Continue unrelated work, preserve both graphs, and do not create an integration branch, combine branches, rewrite edges, or require an automatic merge. Ask for a decision only when material parent ambiguity remains.
+Technical prerequisites form an acyclic evidence graph, not an ordinal chain. Sibling membership and checklist order create no dependencies. Root tasks use the approved integration branch. After publication, the coding host chooses the execution order, concurrency, and each task's base when it starts that task, and that base must actually contain every required prerequisite change; a prerequisite already landed in the approved integration base needs no restatement. Added bases are compatibility ordering, not native relationship evidence, and useful parallelism is retained. A dependent can stack on a verified existing parent when current containment and readiness are eligible. When existing divergence or repository constraints leave no safe stack, pause only that task for a human merge decision; that is not an ordinary join strategy or a request for an integration plan. Continue unrelated work, preserve both graphs, and do not create an integration branch, combine branches, rewrite edges, or require an automatic merge. Ask for a decision only when material parent ambiguity remains.
 Harden issue contracts and the technical graph as well as the specification: check acceptance coverage, scope, actual verification prerequisites, unique positive ordinals and task identities, duplicate/self edges, cycles, and missing/foreign endpoints. The readable index must distinguish executable issues from design/context issues, baseline/example PRs, exclusions, history, external prerequisites, and the tracker itself. Resolve those roles from that tracker and its fetched issues; issue numbers have no portable meaning. A phase label stays inside the issue that declares it and is not another issue or duplicate writer. Native containment, technical prerequisites, compatibility execution ordering, and Git branch ancestry are separate facts.
 
 5. Publish only approved content through supported GitHub operations.
@@ -108,9 +108,9 @@ On a timeout or unknown issue create, fully rediscover open and closed issues fo
 Do not assign people, alter unrelated records, start execution, or close tracker/issue records or Projects.
 
 6. Stop with the planning handoff.
-Return the canonical tracker URL and real native identity, every issue link/identity, exact readable implementation index, declared or native graph with provenance, independently runnable issues, phase-specific limitations, any expected `waiting-for-merge` checkpoints backed by an explicit `merge-checkpoint` fallback, complete handback, successful-read evidence, and exact setup gaps. State honestly whether native Plan-style relationships were verified. Either verified tracker form has this separate coding-host command:
+Return the canonical tracker URL and real native identity, every issue link/identity, exact readable implementation index, declared or native graph with provenance, independently runnable issues, phase-specific limitations, any expected human merge decisions where no safe stack is available, complete handback, successful-read evidence, and exact setup gaps. State honestly whether native Plan-style relationships were verified. Either verified tracker form has this separate coding-host command:
 /woostack-orchestrate --issue <verified canonical tracker URL>
-Then STOP. Do not invoke it. The user supplies the planning handback; Orchestrate independently reads the tracker and every selected issue, resolves executable tasks and a bounded technical DAG, then selects and summarizes its single-parent execution forest before allocation. It asks about material ambiguity. A selected Project may provide status-lifecycle context only when explicitly requested; it is not required. A tracker receives no worker or PR. Planning/publication authorizes neither implementation in this chat nor merging. Execute later owns each selected issue's implementation, checks, and PR submission under repository policy. In a coding host, the preparation wrapper or independently invoked public phases ending in Plan produce a stricter native publication handoff; those are alternatives, not prerequisites for Orchestrate.
+Then STOP. Do not invoke it. The user supplies the planning handback; Orchestrate independently reads the tracker and every selected issue, resolves executable tasks and their real dependencies, then chooses the execution order, concurrency, and each task's base as it starts that task. It asks only about ambiguity that affects outcome, scope, or authority. A selected Project may provide status-lifecycle context only when explicitly requested; it is not required. A tracker receives no worker or PR. Planning/publication authorizes neither implementation in this chat nor merging. Execute later owns each selected issue's implementation, checks, and PR submission under repository policy. In a coding host, the preparation wrapper or independently invoked public phases ending in Plan produce a stricter native publication handoff; those are alternatives, not prerequisites for Orchestrate.
 
 Begin with bounded repository inspection and missing decisions. Do not create issues yet.
 ```
@@ -142,20 +142,17 @@ flowchart LR
 | A | Direct child of P | None | Approved integration branch |
 | B | Direct child of P | None | Approved integration branch |
 | C | Direct child of P | A | A's independently verified delivered branch, even while its PR is unmerged |
-| D | Direct child of P | B and C | Explicit `merge-checkpoint` fallback when no safe selected parent contains B and C; otherwise a verified existing parent |
-Orchestrate can dispatch A and B together within the actual host's capacity. After independent
+| D | Direct child of P | B and C | A verified existing parent containing B and C when containment is eligible; otherwise a human merge decision before D starts |
+Orchestrate can run A and B together within the actual host's capacity. After independent
 verification of A's delivery and current readiness, C can stack on A without waiting for B or a
-merge. The technical DAG remains visible evidence; the persisted single-parent execution layout adds
-only compatibility ordering and retains independent parallelism. If B and C are on divergent branches
-and the selected layout has no safe parent, only D enters the human-merge `waiting-for-merge`
-checkpoint under its explicit `merge-checkpoint` fallback; unrelated work continues and no integration
-strategy is requested. This fallback covers divergent work, fixed-parent or independent-landing
-constraints, or no safe suitable stack. A branch name alone does not resolve the join: containment
-must be verified. The workflow never creates an automatic integration branch, combines branches,
-rewrites either graph to avoid the join, or merges a PR. Equivalent reordered input resumes the
-persisted plan. A newer execution-layout revision requires genuinely unstarted changes except for
-verified recovery from legacy execution-parent drift; incompatible started work remains controlled
-`execution-plan-drift`. Changed technical evidence is `snapshot-drift`.
+merge. The technical DAG remains visible evidence; the order Orchestrate chooses adds only
+compatibility ordering and retains independent parallelism. If B and C are on divergent branches
+and no verified parent contains both, only D pauses for a human merge decision while unrelated work
+continues; no integration strategy is requested. A branch name alone does not resolve the join:
+containment must be verified from current Git and PR facts. The workflow never creates an automatic
+integration branch, combines branches, rewrites either graph to avoid the join, or merges a PR. It
+persists no execution plan, so an equivalent reordered request is simply re-read, and a task result
+it cannot confirm is rediscovered before anything is repeated.
 
 ### Complete example bodies
 
@@ -186,17 +183,15 @@ A delivers literal filtering; B delivers JSON output independently; C adds Unico
 Protect default output compatibility and ordering; compare parsed JSON rather than formatting. Unicode
 casefold expands some characters; explicitly test Straße/STRASSE. README changes belong to D. No
 deployment beyond the existing CLI package; no migration or data write. Each child is one PR. D may
-pause for a Git-parent containment decision only under the explicit `merge-checkpoint` fallback.
+pause for a Git-parent containment decision when no safe stack is available.
 ## Git parents and stop boundary
 A/B start at the approved main tip after fresh ancestry admission. C may stack on A's verified
-delivered unmerged branch when current readiness is eligible. For D, Orchestrate selects a persisted
-single-parent execution layout before allocation; the selected parent may be an existing verified
-branch containing B and C when containment is eligible. Only if the approved layout explicitly uses
-the `merge-checkpoint` fallback and no safe selected parent exists does D alone enter
-`waiting-for-merge` while unrelated work continues. This is not a request for the user's parent or
-integration decision. Do not create an integration branch, combine branches,
-rewrite the graph, or merge. Publication ends at verified issues; a separate user invocation of
-Orchestrate resumes the same plan.
+delivered unmerged branch when current readiness is eligible. For D, the coding host picks the base
+when the task starts; that base may be an existing verified branch containing B and C when
+containment is eligible. When no safe stack exists, D alone waits for a human merge decision while
+unrelated work continues. This is not a request for the user's parent or integration decision. Do
+not create an integration branch, combine branches, rewrite the graph, or merge. Publication ends
+at verified issues; a separate user invocation of Orchestrate coordinates the work.
 ```
 
 ```markdown title="Mock child A: standalone implementation contract"
@@ -247,13 +242,14 @@ separately configured [Codex session](/docs/harnesses/codex):
 ```
 
 Do not substitute the example URL. Orchestrate reads the tracker and every selected issue, resolves
-executable tasks and a bounded dependency DAG, and schedules them through Execute; it does not
-implement the tracker. Execute owns each selected issue's implementation, checks, and PR submission.
-While the Codex session stays active, Orchestrate keeps observing each admitted PR's remote checks
-and dispatches same-PR Execute repairs for actionable failures; it never merges and never monitors
-after the session ends. Neither the planning chat nor Orchestrate has merge authority. Missing Plan
-relationships must be reported rather than claimed, but do not make a clear declared tracker
-categorically non-executable.
+executable tasks and their real dependencies, and coordinates them; it does not implement the
+tracker. Execute owns each selected issue's implementation, checks, and PR submission. While the
+Codex session stays active, Orchestrate uses the host's own completion and check events or bounded
+observation of the delivered PRs and fixes actionable failures within scope; it never merges and
+never monitors after the session ends. A Codex session without delivery-capable subagents runs the
+same scope sequentially and says so. Neither the planning chat nor Orchestrate has merge authority.
+Missing Plan relationships must be reported rather than claimed, but do not make a clear declared
+tracker categorically non-executable.
 
 ### Coding-host alternatives
 

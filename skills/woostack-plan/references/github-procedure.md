@@ -164,12 +164,12 @@ and a convenience command matching the admitted Plan scope:
 /woostack-orchestrate --project <verified selected-Project-URL>
 ```
 
-These commands are hints, not an exhaustive Orchestrate admission taxonomy. The user may instead
+These commands are hints, not an exhaustive list of Orchestrate inputs. The user may instead
 provide the complete handback or understandable tracker context in conversation. Orchestrate resolves
-the task set and dependency DAG from available evidence, preserves edge provenance, and asks about
-material ambiguity. A complete independently readable tracker index can supply declared membership
-without native links; inaccessible task issues, ambiguous membership, unreadable contracts, or
-unknown dependency meaning still block the affected work. Project mode does not invent a
-specification parent. The suggestion is not an automatic dispatch or execution claim. A partial
+the task set and dependency DAG from available evidence, keeps edge provenance distinct, and asks
+about material ambiguity. A complete independently readable tracker index can supply declared
+membership without native links; inaccessible task issues, ambiguous membership, unreadable
+contracts, or unknown dependency meaning still block the affected work. Project mode does not invent
+a specification parent. The suggestion is not an automatic dispatch or execution claim. A partial
 graph, missing relationship capability, stale specification, unresolved correction, unknown
 identity, or empty executable plan is not Plan publication-ready.

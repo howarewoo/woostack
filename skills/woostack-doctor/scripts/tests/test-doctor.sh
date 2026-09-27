@@ -24,7 +24,7 @@ run_doctor() {
 
 run_doctor "$repo"
 assert_exit 0 "$CODE" "valid local workspace exits zero"
-assert_not_contains "$OUT" "github-live" "static diagnosis does not emit live-receipt findings"
+assert_not_contains "$OUT" $'::error::' "a valid local workspace emits no error finding"
 
 for model in '"old/provider"' '{"standard":{"model":"old/provider"},"other":{"effort":"low"}}' '{"standard":["old/provider",42],"fast":[]}' 'false'; do
   printf '{"github":{"owner":"acme"},"models":%s,"custom":{"enabled":true}}\n' "$model" >"$repo/.woostack/config.json"
@@ -56,10 +56,6 @@ mkdir -p "$TMP/missing"
 run_doctor "$TMP/missing"
 assert_exit 2 "$CODE" "missing workspace exits two"
 assert_contains "$OUT" "run woostack-init first" "missing workspace points to init"
-
-run_doctor --live "$repo"
-assert_exit 2 "$CODE" "raw live mode cannot make a provider call"
-assert_contains "$OUT" "controller-owned" "raw live mode explains the receipt boundary"
 
 cat >"$repo/.woostack/config.json" <<'JSON'
 {"artifacts":{"provider":"linear"},"github":null}

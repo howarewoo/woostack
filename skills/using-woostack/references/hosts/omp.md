@@ -90,21 +90,19 @@ Request the selected existing worker once and let OMP perform host-owned recover
 profiles, weaken worktree isolation, or treat absent evidence as success. Missing write capability
 for a required coding task, missing independent review capability, or missing required result
 evidence is an explicit capability failure. Inline fallback is allowed only when the calling
-workflow's contract explicitly permits it; Orchestrate must block without a delivery-capable
-subagent and Execute must not gain orchestration responsibilities.
+workflow's contract explicitly permits it; Execute must not gain orchestration responsibilities.
 
 ## Per-skill notes
 
 - `woostack-execute`: works inline by default; an optional discovered write-capable worker may
   implement the one supplied bounded task. Execute still owns admission, verification, Commit, and
   delivery; it does not discover or schedule additional tasks.
-- **woostack-orchestrate (parallel dispatch):** preflight whether the active schema exposes the
-  batch shape and whether host capacity supports the required concurrency. If batch is exposed,
-  dispatch up to the effective cap in one `tasks[]` call and refill as workers complete. If it is
-  not exposed, use the supported single-call shape only where Orchestrate's own contract permits
-  it; never describe sequential calls as same-wave or parallel. A host mode that serializes runs at
-  concurrency one gets a clear notice; without a delivery-capable subagent, block rather than
-  executing inline.
+- **woostack-orchestrate (multi-task coordination):** preflight whether the active schema exposes
+  the batch shape. If batch is exposed, submit the independent ready tasks in one `tasks[]` call and
+  start the next task as a worker completes. If it is not exposed, send one flat call at a time and
+  say the tasks ran sequentially. Without a delivery-capable subagent, run the tasks in the calling
+  session and report that. Never describe one-at-a-time dispatch as same-wave or parallel, and never
+  present sequential work as independent review.
 - `woostack-commit`: optional fast drafting may use the discovered write-capable worker; draft
   inline when that optional capability is unavailable. Commit remains responsible for its own
   source-control and PR evidence.
@@ -129,7 +127,7 @@ Woostack agent files is not a failure because Init and Doctor do not create or r
 the effective task tier, exact workspace, and authority boundaries, and report the actual missing
 capability or receipt. Inline fallback remains subject to the calling workflow's contract.
 
-Require each worker to return:
+Ask each worker to report, then verify each item by direct read-back before relying on it:
 - exact worktree and branch/head identity;
 - changed paths and bounded diff summary;
 - commands run with observed results;

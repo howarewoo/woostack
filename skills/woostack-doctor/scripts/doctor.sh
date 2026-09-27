@@ -4,18 +4,11 @@ set -uo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CHECK_ONLY=0
-LIVE_RECEIPT=""
 TARGET="."
 
 while [ "$#" -gt 0 ]; do
   case "$1" in
     --check) CHECK_ONLY=1; shift ;;
-    --live-receipt)
-      [ "$#" -ge 2 ] || { echo "doctor: --live-receipt requires a path" >&2; exit 2; }
-      LIVE_RECEIPT="$2"; shift 2 ;;
-    --live)
-      echo "doctor: --live is controller-owned; supply --live-receipt <path> after the authorized GitHub Project capability preflight" >&2
-      exit 2 ;;
     -*) echo "doctor: unknown flag: $1" >&2; exit 2 ;;
     *) TARGET="$1"; shift ;;
   esac
@@ -29,22 +22,7 @@ if [ ! -d "$WOO_ROOT/.woostack" ]; then
 fi
 
 findings="$(mktemp)"
-live_context="$(mktemp)"
-trap 'rm -f "$findings" "$live_context"' EXIT
-printf '%s\n' '{"ready":false}' >"$live_context"
-export WOOSTACK_DOCTOR_LIVE=0
-export WOOSTACK_DOCTOR_LIVE_CONTEXT="$live_context"
-
-if [ -n "$LIVE_RECEIPT" ]; then
-  if [ ! -f "$LIVE_RECEIPT" ] || [ ! -r "$LIVE_RECEIPT" ]; then
-    printf '%s\t%s\t%s\t%s\t%s\n' error github-live report ".woostack/config.json" \
-      "normalized GitHub capability receipt is missing or unreadable" >>"$findings"
-  else
-    cat "$LIVE_RECEIPT" >"$live_context"
-    chmod 600 "$live_context"
-    export WOOSTACK_DOCTOR_LIVE=1
-  fi
-fi
+trap 'rm -f "$findings"' EXIT
 
 shopt -s nullglob
 for chk in "$HERE"/checks/*.sh; do

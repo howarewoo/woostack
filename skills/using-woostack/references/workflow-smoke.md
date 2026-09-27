@@ -6,7 +6,7 @@ These on-demand recipes cover material routing, Plan, Execute, or Orchestrate ch
 
 Label every result as one of these classes:
 
-- **Deterministic helper:** the shipped production helper runs in a temporary local repository. `recording_driver.py` supplies recorded reads and consumes the emitted packet; it does not run a model or claim host execution.
+- **Deterministic helper:** a shipped script runs in a temporary local repository, such as the Init, Doctor, or docs-site asset tests. It proves shipped-helper behavior only; it never runs a model and never claims host execution.
 - **Manual trace:** read the installed instruction path and record its owners, next action, and forbidden effects; this does not prove a model followed it.
 - **Actual host:** the installed Plan, Execute, or Orchestrate skill runs in a supported coding host with real subagents where the workflow requires them. Record the repository revision, host, exact invocation, outcome, and relevant read-back.
 - **Unrun:** the recipe was not attempted because its exact live-resource permission, host capability, or safe interruption facility is unavailable. Never report an unrun recipe as passed.
@@ -135,72 +135,62 @@ alone, or `--issue` alone per the Execute skill):
 
 **Cleanup:** preserve the evidence, leave the PR draft and unmerged, then follow the separately authorized disposable-repository cleanup. Remove only the local task checkout after confirming it has no retained user work.
 
-## 3. Orchestrate scheduling and recovery
+## 3. Orchestrate multi-task coordination and uncertainty
 
-**Prerequisites:** a newly published P/A/B/C graph, a clean fixture repository, a supported host with the actual Orchestrate skill and delivery-capable Execute subagents, and separate permission for their draft-PR writes. The host must expose a safe worker interruption or stop receipt if the unknown-result variant is attempted.
+**Prerequisites:** a newly published P/A/B/C graph, a clean fixture repository, a supported host that
+can load the actual Orchestrate skill, and separate permission for the draft-PR writes its tasks
+make. A subagent primitive is optional: a host without one runs the same scope sequentially in the
+calling session. The host must expose a safe worker interruption or stop receipt to attempt the
+unknown-result variant.
 
-**Setup:** first run the focused deterministic regression through the shipped production helper. The
-fixture supplies a model-selected execution layout: A and B are approved-base roots, C stacks after
-A, and every technical prerequisite remains separately visible. The helper validates one entry per
-selected task, a single-parent acyclic execution forest, required compatibility constraints, and
-the explicit fallback/release condition for any join that cannot use a safe parent.
-
-```bash
-PYTHONPATH=skills/woostack-orchestrate/scripts/tests \
-python3 -m unittest -v \
-  test_orchestrate_behavior.OrchestrateBehavior.test_compact_input_matches_expanded_production_delivery_and_resume \
-  test_orchestrate_behavior.OrchestrateBehavior.test_full_issue_smoke_uses_real_git_and_concurrent_execute_packets \
-  test_orchestrate_behavior.OrchestrateBehavior.test_ci_failure_dispatches_one_bounded_repair_and_rechecks_new_head \
-  test_orchestrate_behavior.OrchestrateBehavior.test_verified_repaired_parent_releases_dependent_task \
-  test_orchestrate_behavior.OrchestrateBehavior.test_ci_repair_reopens_only_after_authoritative_release_proof \
-  test_orchestrate_behavior.OrchestrateBehavior.test_reconcile_existing_pr_verifies_without_second_worker \
-  test_orchestrate_behavior.OrchestrateBehavior.test_fresh_reuse_blocks_unowned_dirty_existing_worktree \
-  test_orchestrate_behavior.OrchestrateBehavior.test_fresh_reuse_blocks_unowned_committed_existing_branch
-```
-
-This is **deterministic helper evidence**, not model evidence. It crosses
-`scripts/orchestrate.py` through `recording_driver.py` in temporary Git repositories: compares
-expanded and compact caller snapshots through admission, reservation, delivery/refill, and
-stop/resume; validates the model-selected execution layout; schedules A/B concurrently; stacks C
-on unmerged A; propagates effective-prerequisite readiness through repair; and preserves unrelated
-work. Recorded mock checks and repairs prove controller coordination only—never model diagnosis or
-live GitHub execution—and must be labeled as a deterministic controller simulation, not an
-actual-host pass. The compact caller shape is documented in
-[scheduling](../../woostack-orchestrate/references/scheduling.md#normalized-snapshot).
-
-For a controller state-path change, use the same compact A/B/C fixture with the
-production CLI: initialize with `schedule --state-out S` and no `--state`, then
-use `--state S` without `--state-out` for each refill, record-worker,
-apply-result, observe-checks, reconcile, stop, and resume. Compare each operation
-with an explicit same-path invocation in a separate disposable repository. A
-missing initial destination or missing continuation state must not create state
-or claims; stale writers and interrupted pending generations must retain the
-existing checkpoint protections. Keep this deterministic helper smoke distinct
-from the actual-host run below.
+**Setup:** none beyond the shared fixture. A and B are independent roots at the admitted baseline, C
+is blocked by A, and every other file, branch, and issue in the repository is unrelated work. Read
+the installed instruction path once as a **manual trace** — its owners, next action, and forbidden
+effects — before running it. That trace is evidence about the installed text only and never counts as
+a host pass.
 
 **Invocation:** run the actual skill in the supported host:
 
 ```text
-/woostack-orchestrate --issue <P-issue-url> --max-parallel 2
+/woostack-orchestrate --issue <P-issue-url>
 ```
 
-The first wave must schedule A and B, not C. Preserve each native host/session/worker identity and
-the controller's reservation. The run stays active after A/B workers stop: it keeps observing their
-admitted PRs' remote checks while the session continues. For the recovery variant, stop only B after
-its branch or PR may exist but before its result is accepted. Resume the same scope only after direct
-evidence proves the worker stopped. If the host cannot stop and identify B safely, mark the actual-
-host recovery **Unrun**. No new live resources beyond the already-authorized disposable repository and
-draft-PR writes are required by this recipe.
+On a parallel-capable host, start A and B independently, not C. On a sequential host, start one
+ready root at a time. Each task runs in its own workspace and branch; record the host, session, and
+worker identity actually used, if any. While the session stays active, use native completion/check
+events or bounded observation of delivered PRs to fix failures in scope and reuse finished work.
+
+For the unknown-result variant, stop only B after its branch or PR may exist but before its result
+was accepted, then re-enter the same scope. Rediscover B's actual outcome from Git, PR, and native
+worker state before acting on it. If the host cannot stop and identify B safely, mark the actual-host
+variant **Unrun** instead of simulating a timeout. No live resource beyond the already-authorized
+disposable repository and draft-PR writes is required by this recipe.
+
+For the sequential variant, run the same scope in a host or mode that exposes no subagent primitive,
+or one task at a time, and record which shape actually executed.
 
 **Assertions:**
 
-- C is absent from the first wave. After A's PR, focused checks, independent validation, and applicable CI evidence pass, C is scheduled on A's verified unmerged branch/SHA; no merge is required. Missing or failed reporting remains visible and retryable without blocking technical readiness. The technical prerequisite and effective execution prerequisite remain distinct in the packet.
-- Unknown B retains its original reservation and ownership. Reconciliation reuses one matching branch/PR and never creates a duplicate. Only a complete proved PR-absence receipt may release one same-identity repair worker on the same branch/workspace.
-- A later actionable remote-check failure on A's current head is diagnosed and coalesced into at most one Execute repair on A's retained branch/PR under the shared cap; unrelated work continues. Repair propagation follows the effective graph, while technical prerequisites and provenance remain visible. Stale-head results never validate the new head, and pending or unreadable checks never count as a pass. Observation ends with the session: no daemon, merge, or post-session monitoring.
-- An unrelated dirty or committed worktree remains byte-for-byte intact and blocks reuse. No controller, parent, sibling, or user workspace is overwritten.
-- The actual-host record names the revision, host, exact invocation, worker identities, A/B/C schedule order, persisted plan revision/fingerprint, recovery receipt, and canonical PR read-backs. The recording-driver run is reported separately and never as an actual model/host pass.
+- C does not start until A's own delivery is verified at its current head and the required change is
+  actually available in the base selected for C, with its check passing there. No merge is required.
+- B's uncertain result is rediscovered rather than repeated: the run reuses the one matching
+  branch/PR or continues the stopped task, never launches a second writer or a duplicate PR, and
+  reports what it could and could not prove.
+- Unrelated and unknown work stay intact. A dirty or committed worktree the run does not own is never
+  reused, overwritten, or cleaned, and no parent, sibling, or user workspace is disturbed.
+- The sequential variant completes the same scope one task at a time and labels itself sequential. It
+  never reports one-at-a-time work as a parallel wave and never offers it as the independent review
+  the user explicitly asked for.
+- Each delivery is a draft PR whose repository checks and required review are read back at the
+  current head; pending, stale, or unreadable results never count as a pass. Orchestrate never marks
+  a PR ready, queues one, force-pushes, merges, or closes an issue, and the run ends with the session.
+- The actual-host record names the revision, host, exact invocation, task start order, worker
+  identities when the host exposed them, the uncertainty outcome, and canonical PR read-backs. The
+  manual trace is reported separately and never as a host pass.
 
-**Cleanup:** leave delivered PRs draft and unmerged, stop task-owned workers, retain controller evidence until the run is recorded, then use only the separately authorized disposable-repository cleanup. Remove task worktrees only after verifying they contain no user work.
+**Cleanup:** leave delivered PRs draft and unmerged, stop task-owned workers, retain evidence until
+the run is recorded, then use only the separately authorized disposable-repository cleanup. Remove
+task worktrees only after verifying they contain no user work.
 
 ## 4. Routing and reference-loading matrix
 
@@ -219,16 +209,15 @@ result is **manual instruction-text evidence**, never a host result.
 | Explicit Reflect | woostack-reflect; exactly one invocation | One report-only pass | Automatic reflection on every final reply |
 
 **Assertions:** every row resolves to exactly one skill, and each owner it loads is that skill's own
-reference rather than a router-wide rule. Orchestrate alone owns its scheduling algorithm, and the
+reference rather than a router-wide rule. Orchestrate alone owns multi-task coordination, and the
 router's remaining gates still resolve.
 
 ## 5. Installed integration matrix
 
 Run from the candidate checkout on a supported Unix environment with Node, pnpm, Python 3,
-Bash, and Git. The [controller](../../woostack-orchestrate/SKILL.md) and
-[historical reader](../../woostack-init/references/artifact-backends.md) own capability failures.
-No live GitHub fixture or paid model experiment is authorized by this
-recipe. The existing recording driver supplies transport evidence, not a second scheduler.
+Bash, and Git. The [historical reader](../../woostack-init/references/artifact-backends.md) owns
+retained-data capability failures. No live GitHub fixture or paid model experiment is authorized by
+this recipe; a live variant stays **Unrun** until separate permission exists.
 
 First run `pnpm -C site test`: its installed-collection case exports committed skills and copies
 retained Claude links to a temporary directory, invokes the production asset parser, and rejects
@@ -249,7 +238,6 @@ node --input-type=module -e '
 ' "$INSTALL/skills"
 (
   cd "$INSTALL"
-  bash skills/woostack-orchestrate/scripts/tests/run-tests.sh
   bash skills/woostack-init/scripts/tests/test-config-precedence.sh
   bash skills/woostack-init/scripts/tests/test-run-store.sh
   bash skills/woostack-doctor/scripts/tests/test-health-checks.sh
@@ -272,14 +260,13 @@ not trigger another interpreter, lock implementation, model, or transport fallba
 | Inline Execute; issue-free Commit | Trace §4 with shared task A, omitting issue selection | **Manual trace:** Execute implements; Commit owns submission; no issue/Project/profile load or artifact calls |
 | Exact issue Execute | Trace §4 with A's exact issue selector; live variant §2 only with separate permission | **Manual trace:** exact issue and paginated comments read, Commit revalidates association; no sibling/Project discovery |
 | Settled Prepare; unproved defect | Trace §4 with complete shared packet, then with an unproved defect instead | **Manual trace:** reuse settled decisions; defect goes to Debug before correction planning; Plan stops before implementation |
-| Declared tracker, no native children | Installed Orchestrate runner: `test_declared_tracker_fixture_dispatches_exact_reported_issue_set` and tracker ambiguity/recovery cases | **Deterministic:** declared executable set/DAG retained, tracker never dispatched; ambiguous/foreign membership rejects |
-| Compact input, one state path, interrupted writer | Same runner: `test_compact_state_continuations_use_one_destination`, compact equivalence, checkpoint CAS/recovery and live-writer cases | **Deterministic:** A/B then C; missing A note survives resume; B reconciles same identity; no duplicate worker/PR; stale writer/head and absent state reject |
-| Technical delivery, reporting failure | Same runner: `test_reporting_smoke_releases_dependent_with_b_active_and_survives_restart` and `test_reporting_cannot_release_dependent_*` | **Deterministic:** pending/blocked reporting remains visible; valid technical evidence releases C; failed checks/review, wrong base/PR, stale head/diff or lost writer never release C |
-| Host inheritance, unsupported override, Unix helper | Trace installed host-mechanics/model-selection owners; run installed Init/Doctor and Orchestrate capability fixtures | **Manual trace:** native defaults inherited; unsupported exact override blocks without invented arguments. **Deterministic:** missing Unix capability rejects before mutation; legacy/config bytes preserved |
+| Multi-task coordination without a subagent | Trace §4 into Orchestrate, then read §3's sequential variant | **Manual trace:** one skill owns order, concurrency, and each task's base; sequential execution is an allowed outcome that is reported as sequential, never as a parallel wave or independent review |
+| Uncertain worker result | §3 unknown-result variant, live only with separate permission | **Actual host:** outcome rediscovered before any repeat; no second writer or duplicate PR. **Unrun** with a reason when the host exposes no safe interruption |
+| Host inheritance, unsupported override, Unix helper | Trace installed host-mechanics/model-selection owners; run the installed Init/Doctor fixtures | **Manual trace:** native defaults inherited; unsupported exact override blocks without invented arguments. **Deterministic:** missing Unix capability rejects before mutation; legacy/config bytes preserved |
 
 For each manual row record the actual relative paths read, next action and forbidden effects,
 not a regex assertion on instruction wording. Actual-host/model trials remain **Unrun** unless
-separately authorized and observed. A deterministic transport fixture is not a host trial.
+separately authorized and observed. A deterministic helper fixture is not a host trial.
 
 ## 6. Bounded same-task before/after measurement
 
@@ -295,19 +282,12 @@ separately: package size is not loaded context. Use `git diff --numstat BASE CAN
 and classify production `.py`/`.sh` changes separately from tests, docs and assets to report
 added/deleted code lines.
 
-For compact versus expanded JSON, use the existing recording driver's `FakeGitHub.snapshot()`
-and `compact_input()` on the same disposable A/B/C repository. Serialize both with
-`json.dumps(value, sort_keys=True, separators=(',', ':'), ensure_ascii=True).encode('utf-8')`.
-Count authored fields recursively as the sum of dictionary key counts, including dictionaries
-inside arrays; do not count array slots. Record the common fixture identity and both counts.
-The compact-equivalence test checks effective behavior; byte savings alone prove no speedup.
-
 Retain one evidence table with columns **metric/scenario**, **baseline**, **candidate**,
 **command/paths**, **outcome/class**. Include root/router/workflow and mandatory-reference bytes,
-total package bytes, expanded/compact JSON bytes and field counts, production code additions/
-deletions, all six issue-required checks and installed smoke outcomes. Use `unrun` with a reason
-instead of empty cells. Keep measurements outside hot runtime instructions, for example in the
-task PR evidence. Run `git diff --check` on the final task diff.
+total package bytes, production code additions/deletions, the installed smoke outcomes, and every
+recipe class above. Use `unrun` with a reason instead of empty cells. Keep measurements outside hot
+runtime instructions, for example in the task PR evidence. Run `git diff --check` on the final task
+diff.
 
 An optional actual-model comparison needs separate authorization. Freeze task text, consumer
 repository commit, model/version, harness/version, tools, permissions/sandbox/network policy,

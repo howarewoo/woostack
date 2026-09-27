@@ -42,10 +42,12 @@ The dispatch-time setting and rejection path are in
 - Pass the exact workspace, branch, parent/start SHA, allowed paths, authority limits, acceptance,
   required checks, smoke scenario, and result-evidence requirements in the task prompt. The `task`
   primitive does not accept `cwd`; the worker verifies the prompt-pinned workspace before editing.
-- Execute remains one bounded task and does not schedule a project graph. Orchestrate requires a
-  delivery-capable worker and blocks when the host cannot provide one. If batch is unavailable,
-  Orchestrate may use supported single-call dispatch only where its own contract permits it; a
-  sequence of calls does not prove same-wave or parallel execution.
+- Execute remains one bounded task and does not schedule a project graph. Orchestrate submits the
+  independent ready tasks in one `tasks[]` call when batch is available and starts the next task as a
+  worker completes. When batch is unavailable it sends one call at a time and reports that the scope
+  ran sequentially; without a delivery-capable subagent it works the tasks in the calling session and
+  says so. A sequence of calls never proves same-wave or parallel execution, and sequential work is
+  never offered as independent review.
 - Missing capabilities and missing result evidence are reported as blockers. Woostack does not
   switch profiles, weaken isolation, or treat absent evidence as success.
 
