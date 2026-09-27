@@ -55,17 +55,20 @@ the paths this invocation staged, preserve the worktree, and stop with the exact
 
 ## Submit
 
+Before pushing, query PRs across all states for this exact head repository and branch, paginating
+until the matching set is exhausted. Reuse its one matching open PR; only proved absence across
+states permits a new draft with the exact repository, head, and intended base. A closed or merged
+match, duplicate, foreign head repository, conflicting base, or unreadable result blocks before
+remote mutation — never retarget or create around it. For an existing PR, check its body against
+the [PR-body contract](pr-body.md) before publication; unresolved closing references block delivery.
+
 Publish the task branch with a non-force push to the verified remote, then independently read the
 remote ref and confirm it equals the intended commit. A non-fast-forward rejection blocks: never
-pull, rebase, reset, or force-push around it. Updating one PR, including a lower layer of a chain,
-does not resubmit its descendants.
-
-Query PRs across all states for this exact head repository and branch, paginating until the
-matching set is exhausted. Reuse its one matching open PR. Only proved absence across states
-permits a new draft with the exact repository, head, and intended base. A closed or merged match,
-duplicate, foreign head repository, conflicting base, or unreadable result blocks — never retarget
-or create around it. New PRs are always drafts; an existing PR keeps its readiness. Update the
-title and body under the [PR-body contract](pr-body.md) after identity verification.
+pull, rebase, reset, or force-push around it. Refresh the matching PR identity before creating or
+updating it; after an ambiguous write, rediscover the all-state set before retrying. New PRs are
+always drafts; an existing PR keeps its readiness. Update its title and body under the PR-body
+contract after identity verification. Updating one PR, including a lower layer of a chain, does not
+resubmit its descendants.
 
 Host-authenticated `gh` equivalents include
 `git push <remote> HEAD:refs/heads/<task-branch>`,

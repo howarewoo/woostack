@@ -39,9 +39,9 @@ The dispatch-time setting and rejection path are in
   it is disabled, send one flat `{ agent?, task, ... }` call at a time where the workflow permits
   it. Do not send `tasks` or `context` in that mode because OMP rejects those fields before a
   worker starts.
-- Pass the exact workspace, branch, parent/start SHA, allowed paths, authority limits, acceptance,
-  required checks, smoke scenario, and result-evidence requirements in the task prompt. The `task`
-  primitive does not accept `cwd`; the worker verifies the prompt-pinned workspace before editing.
+- Pass the selected workspace, authorized outcome, scope limits, dependencies, repository rules, and
+  required checks in the task prompt. The `task` primitive does not accept `cwd`; the worker checks
+  its actual checkout, branch, and base before editing. An extra smoke scenario is not required.
 - Execute remains one bounded task and does not schedule a project graph. Orchestrate submits the
   independent ready tasks in one `tasks[]` call when batch is available and starts the next task as a
   worker completes. When batch is unavailable it sends one call at a time and reports that the scope

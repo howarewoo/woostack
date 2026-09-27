@@ -49,12 +49,13 @@ Resolves https://github.com/owner/repo/issues/42
 ```
 
 Use one line per fully addressed issue, each with a single closing keyword and the verified URL,
-and reuse an existing exact matching line rather than appending a duplicate. Treat closing lines
-already in the body as preserved text: keep one for an issue this PR fully addresses, and never
-silently delete one whose issue is only partially addressed — leave it and report the discrepancy
-so the caller decides. Related authorized issues may share one PR when it delivers them; when the
-caller mapped issues to separate PRs, keep that mapping. A partially addressed issue gets no new
-closing line, so never imply completion of work this PR does not finish. Do not add a Project
+and reuse an existing exact matching line rather than appending a duplicate. Inspect existing
+closing references before submission: if any would close an issue this PR does not fully address,
+or whose completion cannot be verified, block delivery. Preserve the human-authored line until the
+caller explicitly authorizes its removal or neutralization, or the PR fully addresses that issue;
+report the blocker rather than submitting a live closing reference for incomplete work. Related
+authorized issues may share one PR when it delivers them; when the caller mapped issues to separate
+PRs, keep that mapping. A partially addressed issue gets no new closing line. Do not add a Project
 reference: a merged PR resolves its issue, not the containing Project. The line has GitHub's normal
 post-merge behavior; it never proves PR identity, scope, assignment, ownership, acceptance, review,
 merge, or current issue state. Never infer an issue from the existing body, branch, title, issue
@@ -64,8 +65,9 @@ key, or recent activity.
 
 Before editing, verify the canonical repository, PR number/URL, current head branch/SHA, base, and
 open state. Then validate the proposed body against preservation of unrelated content, accurate
-observed verification outcomes, secret and local-path exclusion, closing URLs that exactly match the
-independently read caller-supplied issues, and no unevidenced merge or acceptance claim.
+observed verification outcomes, secret and local-path exclusion, no active closing reference for
+incomplete work, closing URLs that exactly match the independently read caller-supplied issues, and
+no unevidenced merge or acceptance claim.
 
 After editing, independently read title, full body, head/base, and head SHA back. Exact body content
 and PR identity must match the intended update. A mutation response alone is not proof. On unknown
