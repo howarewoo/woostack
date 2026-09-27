@@ -66,13 +66,11 @@ is enabled and the schema exposes `{ context, tasks[] }`, send dependency-indepe
 tasks in that one call. When it is disabled, send one flat `{ agent?, task, ... }` call at a time
 where the workflow permits it. Do not send `tasks` or `context` in that mode; OMP rejects those
 fields before a worker starts.
-Pass the exact resolved task workspace path in the dispatch prompt. The worker must verify that
-path, branch, parent/start SHA, and allowed paths before reading or writing; `task` cannot receive
-a `cwd` argument.
-Pass the complete task contract: repository rules, authority limits, non-goals, acceptance,
-required checks and smoke scenario, and result-evidence requirements. Do not duplicate a worker
-definition in the prompt. A worker must not expand its task, edit another workspace, review or accept
-itself, merge, or infer hidden context.
+Pass the selected workspace path and authorized outcome, scope limits, dependencies, and relevant
+repository rules in the dispatch. The worker verifies its actual checkout, branch/base, ownership,
+and affected paths before writing; `task` has no `cwd` argument. Include required checks without
+inventing an extra smoke or task packet. A worker must not expand scope, edit another workspace,
+review or accept itself, merge, or infer hidden context.
 
 ## Agent selection and tier handling
 
@@ -127,13 +125,9 @@ Woostack agent files is not a failure because Init and Doctor do not create or r
 the effective task tier, exact workspace, and authority boundaries, and report the actual missing
 capability or receipt. Inline fallback remains subject to the calling workflow's contract.
 
-Ask each worker to report, then verify each item by direct read-back before relying on it:
-- exact worktree and branch/head identity;
-- changed paths and bounded diff summary;
-- commands run with observed results;
-- smoke-test and review-relevant evidence;
-- blockers or decision requests; and
-- optional direct GitHub operations separately from repository results.
+Ask each worker to report the selected workspace and branch/head, changed paths/diff, checks and
+observed results, blockers, and any GitHub operations separately from repository work. Verify
+material delivery claims from current Git/PR evidence before relying on them.
 
 On incomplete or conflicting evidence, stop at the last verified boundary and preserve recoverable
 work. Never claim worker coverage, test success, GitHub success, or delivery without direct read-back.

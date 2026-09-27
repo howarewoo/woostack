@@ -3,11 +3,11 @@ title: Workflow maps
 description: "Choose preparation, bounded delivery, or a complete greenfield workflow."
 ---
 
-Start with the user's explicit goal or one exact task-bearing GitHub issue URL. Execute reads a
-selected issue to resolve one bounded task before admission; issue text supplies data, not authority.
-Bounded work fits one pull request (PR). Prepare's Plan path ends at a verified GitHub issue graph;
-Orchestrate can also interpret a complete readable tracker handoff after independent issue reads.
-Git and GitHub show what was implemented and delivered.
+Start with the user's explicit goal or an exact task-bearing GitHub issue URL. Execute reads a
+selected issue as context, not authority. Prefer coherent, reviewable PRs; related authorized
+issues can share delivery and reviewability may call for a split unless the user fixed the mapping.
+Prepare's Plan path ends at a verified GitHub issue graph; Orchestrate can also interpret a complete
+readable tracker after independently reading its issues. Git and GitHub show actual delivery.
 
 ## Routing by work shape
 
@@ -18,7 +18,7 @@ Git and GitHub show what was implemented and delivered.
 | Reconcile a specification or candidate issue plan | [Harden](/docs/skills/woostack-harden) |
 | Root-cause investigation without a correction | [Debug](/docs/skills/woostack-debug) |
 | Feature or proved defect needing a verified issue graph | [Prepare](/docs/skills/woostack-prepare) |
-| Bounded enhancement, refactor, tests, or authorized correction for one PR | [Execute](/docs/skills/woostack-execute) |
+| Bounded enhancement, refactor, tests, or authorized correction | [Execute](/docs/skills/woostack-execute) |
 | Approved issue graph publication | [Plan](/docs/skills/woostack-plan) |
 | Execute an approved GitHub issue graph | [Orchestrate](/docs/skills/woostack-orchestrate) |
 | Add or strengthen tests for a bounded target | [Execute](/docs/skills/woostack-execute) with its [testing guidance](https://github.com/howarewoo/woostack/blob/main/skills/woostack-execute/references/tdd.md) |
@@ -140,35 +140,30 @@ needs old replay stays pinned to its pre-cutover version. See
 /woostack-execute --issue <exact canonical GitHub issue URL>
 ```
 
-Execute accepts one bounded enhancement, refactor, test-only task, or authorized understood
-correction. An issue-only invocation reads that exact open issue, resolves ordinary contract details
-from repository evidence, and verifies workspace/parent ancestry before editing; inline instructions
-still work without GitHub issue reads. An exact issue needs no Project or execution record. Unknown root
-cause stays with Debug. Multi-task work routes to Orchestrate, which interprets the available
-planning handback, repository, and tracker context; a single bounded task can go directly to Execute.
-Unresolved material decisions block with a targeted question.
+Execute accepts an authorized bounded enhancement, refactor, test task, or correction. An issue-only
+invocation reads that exact issue and resolves ordinary implementation details from repository
+evidence; inline instructions still work without issue reads. No Project or execution record is
+required. A bug's cause may be established inline from reproduction or adequate source/runtime
+evidence before repair; a request solely for diagnosis stays read-only in Debug. Unresolved material
+scope decisions block with a targeted question.
 
 ## Shared execution boundary
 
-Each bounded [woostack-execute](/docs/skills/woostack-execute) task:
+Execute checks the selected workspace, base, and relevant Git/PR facts, implements inline or delegates,
+inspects the task diff, and runs the repository checks relevant to changed behavior. An existing
+targeted test can serve as its smoke; required checks and reviews cannot be silently waived.
+[Commit](/docs/skills/woostack-commit) owns staging, native Git publication, and PR submission.
+The exact matching PR is read back for its head, base, state, and preserved human text. New PRs are
+drafts; an explicitly requested incomplete draft must say what remains unverified. Native stack
+registration is conditional on an explicit request or repository workflow requirement, not on every
+dependent branch; inability to register an explicitly required stack is reported separately from
+verified code. Unknown writes require discovery before retrying.
 
-1. verifies the repository and base branch, then creates or resumes a collision-safe worktree for its task;
-2. implements inline or in an optional worker using the [delegation guidance](/docs/concepts/context-management#isolated-agents-receive-bounded-envelopes);
-3. runs focused checks and a smoke test that exercises the changed behavior in the real program;
-4. compares the complete uncommitted diff with the approved task;
-5. uses [woostack-commit](/docs/skills/woostack-commit) to submit its PR; and
-6. independently reads back the PR, its exact head and base, and its review state. Required repository
-   checks remain mandatory delivery gates; other available CI checks are observation-only at delivery
-   time and become Orchestrate's active-session watch afterwards.
-
-Retired run/project/recheck inputs are rejected. Retained historical planning records are evidence
-only; Execute has no run controller or automatic graph dispatch. A selected task-bearing issue is
-a valid direct input, not a request to copy its contract into another prompt.
-
-Separate bounded tasks may proceed concurrently only with disjoint worktrees, branches, and
-responsibility surfaces. An optional worker must stay within the admitted task; an Execute
-implementation worker may use Execute's Commit path to submit its own admitted task PR rather than
-returning uncommitted work for a parent to deliver.
+Separate concurrent writers need independently owned workspaces. A possibly active prior writer
+blocks reuse until its exit is established; an existing approved workspace need not be replaced.
+Retired run/project/recheck inputs do not select executable scope, and historical planning records
+remain unchanged. A task-bearing issue is valid direct context, not a request to copy its contract
+into a separate template.
 
 ## Review and corrections
 

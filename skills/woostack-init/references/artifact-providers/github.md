@@ -149,7 +149,7 @@ A caller that needs its own recovery checkpoint keeps it private and owner-only;
 [run-store reader](../artifact-backends.md#owner-only-local-run-store-reader) only reads retained
 records.
 
-Orchestrate owns ordering, concurrency, and in-session observation of the scope it resolved;
-Execute owns one bounded task through one PR, and Commit writes an issue note only when a caller
-explicitly requests one. Git, branches, commits, pull requests, reviews, and merge evidence remain
-authoritative; merge authority is human-only.
+Orchestrate owns ordering, concurrency, and in-session observation of its resolved scope; Execute
+owns authorized bounded implementation, and Commit owns Git/PR delivery and explicitly requested
+issue notes. Git, branches, commits, PRs, reviews, and merge evidence remain authoritative; merge
+authority is human-only.

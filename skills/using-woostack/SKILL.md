@@ -42,7 +42,7 @@ needs; routing alone loads none. Retired managed-provider data is never imported
 | Prepare a feature or proved defect for a verified GitHub issue graph without implementation | `woostack-prepare` |
 | Turn an approved specification into reviewable increments and publish the selected GitHub issue graph | `woostack-plan` |
 | Coordinate approved multi-task work through native host facilities, resolve real dependencies, and verify delivered work | `woostack-orchestrate` |
-| Implement one bounded task — enhancement, refactor, test-only work, or authorized understood correction — and deliver one PR | `woostack-execute` |
+| Implement an authorized bounded outcome — enhancement, refactor, tests, or correction — and deliver a reviewable PR | `woostack-execute` |
 | Commit current changes and submit or update their PR | `woostack-commit` |
 | Review a pull request | Use [Pullfrog](https://pullfrog.com/). |
 | Address every unresolved thread on one exact existing PR | `woostack-address-comments` |
@@ -63,16 +63,16 @@ Every supported explicit `/woostack-*` command loads its namesake skill. Intent-
 the same route. Ideate and Harden are public, directly callable phases that exchange complete plain
 packets. Prepare composes Debug for defects, Ideate, Harden, and Plan as needed and ends at a fully
 read-back GitHub issue graph; it never implements, creates source branches, dispatches workers, or
-invokes Execute or Orchestrate. Plan is the sole issue publisher. Execute is the explicit bounded
-implementation and draft-PR path, including proven corrections and test-only tasks under its
-[testing guidance](../woostack-execute/references/tdd.md). Unknown defects require Debug's causal
-proof before correction. Planning phases never edit source, commit, submit a PR, or grant merge authority.
+invokes Execute or Orchestrate. Plan is the sole issue publisher. Execute implements authorized
+bounded work and verifies corrections from reproducible or adequate causal evidence; it may diagnose
+inline. A request solely for investigation routes to read-only Debug. Planning phases never edit
+source, commit, submit a PR, or grant merge authority.
 
 An exact task-bearing GitHub issue URL alone, or `/woostack-execute --issue <url>`, routes to
-Execute: it reads the selected issue and resolves one bounded task before implementation. Inline
-task instructions remain valid with or without an issue association. For work that spans multiple
-tasks, Orchestrate interprets the available conversation, repository, and GitHub context and owns
-its own resolution, dependency, and recovery procedure; the router does not restate it. Issue,
+Execute: it reads the selected issue and resolves its bounded outcome before implementation. Inline
+instructions remain valid with or without issue association. Related authorized issues can share
+delivery when scope and mapping permit; multiple independent tasks route to Orchestrate, which
+interprets the conversation, repository, and GitHub context and owns coordination. Issue,
 issue-list, and Project arguments are convenience interpretation hints, not exhaustive admission
 types. A Project is included only when explicitly selected; its status lifecycle is used only when
 that selection requests status mutation.

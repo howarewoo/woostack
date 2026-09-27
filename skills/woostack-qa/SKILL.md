@@ -160,13 +160,14 @@ itself report only. It records:
 - **Zero findings:** state the exact journey count and coverage; never emit a silent empty.
   **Aborted run:** label it partial/aborted and name findings-so-far and the abort point.
 
-The local report never becomes a development record or decision corpus, issue scope, acceptance,
-assignment, lifecycle state, or permission to edit. Any GitHub issue it names is evidence only and
-must be re-read for drift. Report-only QA performs zero GitHub mutation.
+The local report never becomes scope, acceptance, assignment, lifecycle state, or permission to
+edit. Any GitHub issue it names is evidence only and must be re-read for drift. Report-only QA
+performs zero GitHub mutation.
 
-Repository remediation first enters [`woostack-debug`](../woostack-debug/SKILL.md) for causal proof,
-then [`woostack-prepare`](../woostack-prepare/SKILL.md) for a verified issue graph. The local report
-never authorizes a correction, implementation, issue ownership, assignment, or GitHub lifecycle state.
+An independently authorized bounded correction may enter Execute, which establishes cause from
+reproduction or adequate source/runtime evidence before repair; planning work can use Prepare.
+Neither path is authorized by a QA finding alone. A separately requested read-only diagnosis
+stays in Debug.
 
 ## Hard constraints
 
@@ -176,8 +177,8 @@ never authorizes a correction, implementation, issue ownership, assignment, or G
 - **Never fake browser results.** No CLI or dead server means hard stop and no report.
 - **Reproduce before log.** Unreproduced suspicions are observations, not findings.
 - **Credentials only from the user.** Never guessed or harvested; never retained in the report.
-- **Approval gate before remediation.** A proved root cause, bounded fix contract, and explicit
-  approval must exist before tracked development mutation.
+- **Approval gate before remediation.** The user must authorize bounded correction scope; Execute
+  must establish cause before changing code, without turning a QA finding into permission to fix.
 - **Stay on origin; guard destructive actions; close the session.**
 - **Optional GitHub context only.** Never discover or hand off a local spec, plan, or fix; exact
   caller-supplied GitHub context is verified, read-only context.

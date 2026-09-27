@@ -52,11 +52,9 @@ allowed.
 - Prepare, Ideate, Harden, and Plan make no provider-mirror calls;
 - direct Plan still requires its exact GitHub scope and performs the required issue/Project reads and
   writes;
-- goal-only Execute makes no development-artifact provider call. Execute may instead select one
-  canonical GitHub issue URL as its complete task input or add that URL to inline bounded
-  instructions; either form uses authorized read-only GitHub capability (host-native tools where
-  suitable or host-authenticated `gh`) for issue admission and later exact Commit association. It
-  does not select artifact mirroring or require Project configuration; and
+- goal-only Execute makes no development-artifact provider call. An exact selected GitHub issue is
+  read for task context and later Commit association via an authorized interface; it does not
+  select a Project or require artifact mirroring; and
 - Orchestrate uses authorized GitHub reads for the canonical repository and the issue/task context it
   resolves from the conversation, repository, or tracker records. A complete implementation index
   in an exact tracker can establish declared membership when native hierarchy is absent, partial, or
@@ -93,11 +91,10 @@ Plan publishes directly to one exact GitHub scope selected by the caller:
 
 These are Plan publication scopes, not an exhaustive set of Orchestrate inputs. Orchestrate may
 interpret a complete planning handback or understandable tracker content into verified bounded
-tasks and a dependency DAG. Its tracker is read-only context and never an executable task, worker,
-PR, or dependency endpoint. Execute accepts one complete bounded task from inline instructions or
-one canonical task-bearing issue URL and owns one PR. Commit owns source/PR attribution and an
-explicitly requested issue note. No path closes issues or Projects, claims product acceptance, or
-grants merge authority.
+tasks and dependencies. Its tracker is read-only context, never an executable task. Execute accepts
+an authorized bounded outcome from inline instructions or a task-bearing issue; Commit owns source
+and PR delivery. Related fully addressed issues may share a PR; an issue is not closed merely by
+filing a draft. No path claims product acceptance or grants merge authority.
 
 Before any create, link, membership, Status, or dependency mutation, the owning GitHub profile must
 completely read the exact selected scope, paginate to a terminal page, verify canonical repository and
@@ -154,22 +151,14 @@ Retention policy stays in [Retained data and retirement](#retained-data-and-reti
 
 ## Repository ancestry and base-change detection
 
-A planned or bounded task records the exact canonical integration parent branch and observed tip. Before
-source, branch, worktree, or provider mutation, independently resolve the same branch and current tip.
-If the tip moved, inspect the complete diff including renames/deletions against the task's scope,
-acceptance, checks, dependencies, and retained implementation evidence. Admit a new tip only with a
-concrete no-impact rationale; otherwise stop and request `Continue`, `Revise spec/plan`, or `Stop`.
-Never silently rebase, reset, clean, stash, overwrite, or invent an integration branch.
-
-For a non-root task, the caller supplies complete delivered predecessor evidence and one concrete
-existing parent branch/SHA containing every required prerequisite. Logical prerequisites remain
-separate from the one checkout parent. First use the approved integration branch, then a verified
-unmerged prerequisite branch when stacking is permitted. If neither contains all requirements, the
-task waits for human merges as a local checkpoint; this does not itself request a new parent or
-integration strategy. Git DAG and canonical PR base must agree with the ancestry proof; an upstream
-ref or merge-base alone is not enough. A prerequisite that landed by squash or rebase merge is not
-an ancestor of the current tip; verify its native landing and the actually integrated content
-instead of asserting that ancestry.
+Resolve the intended base and current tip from repository policy, task dependencies, and Git/PR
+evidence. If a previously inspected tip moved, inspect the relevant changes against the task's
+scope, acceptance, dependencies, and checks before continuing. Do not silently rebase, reset,
+clean, stash, overwrite, or invent an integration branch. A technical prerequisite must actually
+be available in the chosen base: prove commit-preserving containment from Git ancestry, or for a
+squash/rebase landing verify native landing and integrated content rather than asserting that its
+former source head is an ancestor. Conflicting bases or unavailable prerequisites block affected
+work; ask only for a material parent/integration decision.
 
 ## Credentials, untrusted content, and authority
 

@@ -6,64 +6,25 @@ description: How woostack isolates bounded implementation work independently fro
 A Git worktree is a separate checkout of the same repository. It lets a task edit its own branch
 without changing files in the primary checkout. A worktree does not grant scope, approval, status,
 or acceptance. The
-[isolated-workspace guidance](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/worktrees.md)
-defines the evidence and safety outcomes: repository identity, physical collision checks, parent
-ancestry, exclusive ownership, recovery, and human-owned lifecycle boundaries.
+[workspace guidance](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/worktrees.md)
+defines identity, collision, writer ownership, base evidence, and recovery.
 
-Each active bounded task has one branch, one isolated workspace, one allowed set of paths, and at
-most one PR. The repository, host, or caller may supply an existing linked worktree or host-managed
-linked checkout at any supported location. Woostack does not require a universal directory prefix,
-branch-name recipe, creation command, adoption mode, or publication-time workspace. It never falls
-back to the primary checkout.
+Use an approved existing workspace and branch or a host/repository-selected isolated checkout. A
+fresh worktree is not mandatory. Inspect the selected index, dirty state, branch, base, and diff;
+preserve unrelated changes. Concurrent writers need distinct, independently owned workspaces and
+responsibility surfaces. Before reuse, inspect native writer state and current Git/PR facts. If a
+former writer may still be active, stop affected work until exit is proved; serialization cannot
+prove it stopped. Instructions do not enforce locks or sandboxing.
 
-Before dispatch, resumption, review reopen, commit, or delivery, the selected workspace is checked
-against the canonical repository, filesystem path aliases, complete `git worktree list --porcelain`
-inventory, local and remote branches, commits, uncommitted changes, approved parent evidence, and
-canonical PR evidence. A branch cannot be checked out in two physical workspaces, and equal,
-aliasing, or ancestor/descendant paths are collisions. Existing suitable workspaces can be reused;
-incompatible or unassigned allocations block without deletion, reset, cleanup, takeover, or silent
-relocation.
-
-The approved task names its parent branch and retained parent SHA. Direct Git evidence verifies the
-selected branch's tip and admitted parent ancestry. Required predecessor changes must actually be
-available at the selected base: use `git merge-base --is-ancestor` for commit-preserving landings,
-but verify the native landing and integrated content after a squash or rebase merge rather than
-asserting that the former PR head is an ancestor. A GitHub technical DAG is evidence of required
-work; the coordinating agent selects each task's concrete base when it starts that task, and any
-added parent is compatibility ordering rather than native relationship evidence. Follow the
-[workspace/ancestry guidance](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/worktrees.md#repository-and-ancestry-evidence).
-Independent roots retain useful parallelism. A join can stack on a verified parent; existing
-divergence or repository constraints that leave no safe stack pause that task for a human merge
-decision while unrelated work continues. Execute admits a selected bounded task, not the whole DAG.
-
-## The primary tree stays clean
-
-<Callout type="info">
-  Tracked implementation writes land only in the selected isolated workspace. The primary checkout
-  remains a clean coordination point, while the host harness pins each worker to its selected
-  workspace. The workspace may be outside the primary checkout or under a host-managed linked-worktree
-  location; isolation and direct repository evidence are the invariant.
-</Callout>
-
-Each bounded task runs with its own workspace, branch, allowed paths, and at most one PR. Separate
-tasks can proceed concurrently only when their allowed paths, branches, workspaces, and PRs do not
-overlap. Before writing, each worker checks that its physical working directory is the exact Git root
-it was assigned.
+Required predecessor changes must actually be available in the chosen base. Git ancestry proves
+commit-preserving containment, while a squash landing requires checking the native landing and
+integrated content rather than assuming the former PR head is an ancestor. Conflicting bases or
+unknown outcomes preserve work and block the affected task, not unrelated work.
 
 ## Recovery and lifecycle
 
-- After success, the calling workflow verifies the finalized commit, selected workspace cleanliness,
-  and canonical PR identity when submission was requested. It retains the selected workspace unless
-  its owner explicitly supplies a safe lifecycle operation; publication does not create a workspace
-  obligation. Host-managed, external, or user-owned workspaces remain intact unless their owner
-  explicitly supplies a safe lifecycle operation.
-- On failure, handoff, collision, or an unknown result, preserve the workspace and report the task,
-  retained parent/ancestry evidence, worktree inventory, branch/head, uncommitted changes, first
-  unverified step, and safe next action. A timeout proves neither success nor absence.
-- Recovery reuses the exact retained workspace and branch only after fresh direct evidence proves
-  repository identity, exclusive ownership, parent ancestry, and current delivery facts. Never adopt
-  an unrelated checkout or create around a collision.
-
-An unavailable optional GitHub read does not weaken collision or ancestry checks. A failed GitHub
-delivery-note operation is reported separately and does not block delivery already verified against
-local task evidence and repository state; it never grants merge authority.
+After a lost response, rediscover the selected workspace, writer, branch/diff, and matching PR
+before repeating a mutation. Do not adopt, reset, clean, stash, overwrite, or remove another
+owner's checkout. Publication does not authorize workspace teardown. A verified code delivery
+remains valid if optional metadata is unavailable; explicitly required registration is reported
+incomplete, not claimed as done.

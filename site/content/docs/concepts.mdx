@@ -10,10 +10,11 @@ commits it came from, and whether its pull requests (PRs) have been reviewed or 
 
 ## Planning before implementation
 
-- **Bounded work** fits one PR. Execute admits an enhancement, refactor, test-only task, or
-  authorized correction with causal evidence, then implements and verifies it. New PRs start as
-  drafts; updates preserve existing readiness. It requires no preparatory project or planning
-  workflow.
+- **Bounded work** has an authorized outcome. Execute chooses routine implementation details,
+  establishes the cause before correcting a defect, and runs relevant verification. Related
+  authorized issues may share a reviewable PR; work may split for reviewability without changing
+  an explicit user mapping. New PRs start as drafts; updates preserve existing readiness.
+  No preparatory project or planning workflow is required.
 - **Prepared work** starts with a specification and evidence. When a GitHub handoff is requested,
   Prepare composes Debug for defects, Ideate for user-owned decisions, Harden for repository
   reconciliation, and Plan for the sole GitHub parent/child publisher. It stops before source edits,
@@ -73,8 +74,8 @@ managed-provider records remain opaque and inactive.
 Keep only the workflow and references needed for the current decision in the agent's context.
 Choose inline or delegated implementation using the
 [delegation guidance](/docs/concepts/context-management#isolated-agents-receive-bounded-envelopes),
-which weighs speed, cost, isolation, overhead, and risk. Verification and independent review still
-check implementation.
+which weighs speed, cost, isolation, overhead, and risk. Run relevant verification; use independent
+review when the task or repository requires it.
 
 ### Session reflection becomes instruction suggestions
 

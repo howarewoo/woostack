@@ -45,16 +45,16 @@ implementation while still requiring a focused check and an observed result.
 
 ## Targets without a test runner
 
-When the target has no test runner, replace the failing-test step with one concrete verification
-command and its exact expected output or exit status. State the command and observation in the task
-contract and run it during Execute. Never substitute a vague assurance such as “verify it works,”
-and never invent a runner or report an unrun command as passing.
+When the target has no test runner, use one concrete verification command with an observable result
+or exit status. Run it during Execute and record the observation. Never invent a runner or report an
+unrun command as passing.
 
 ## Verification and delivery boundary
 
-Use the target's established commands and keep mandatory checks mandatory. A failed or incomplete
-check blocks delivery. Any source change after verification invalidates affected evidence and
-requires fresh checks. Execute owns the focused verification, smoke scenario, commit, push, and one
-reviewable PR through [`woostack-commit`](../../woostack-commit/SKILL.md); a new PR is draft, while
-an update preserves existing readiness. The testing doctrine
-does not add provider requirements, project discovery, orchestration, or a second PR path.
+Use the target's established commands and keep required checks mandatory. A failed or incomplete
+required check blocks completion. Any source change after verification invalidates affected proof
+and requires fresh checks. An existing targeted test can itself exercise the changed path; no
+separate smoke is needed solely for bookkeeping. Execute verifies and delivers through
+[`woostack-commit`](../../woostack-commit/SKILL.md); new PRs are drafts, updates preserve readiness,
+and explicit mappings govern how authorized work is divided into reviewable PRs. This guidance adds
+no provider, project, orchestration, or independent delivery path.
