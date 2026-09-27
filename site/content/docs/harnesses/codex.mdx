@@ -31,9 +31,9 @@ Follow [the ChatGPT-to-Codex guide](/docs/chatgpt-to-codex) to plan without inst
 ChatGPT's standard GitHub app is read-only. With no issue-write capability, the route is
 planning-only. With authorized issue create/update and independent issue read-back but no native
 relationship writes, ChatGPT can produce a complete readable tracker/index that Orchestrate later
-verifies as declared scope; that is not successful native Plan publication. Full native Plan-style
-publication still requires the strict issue, native containment/dependency, pagination, and read-back
-operations. A subscription or API documentation does not prove any capability.
+verifies as declared scope; that is not a verified native graph. When the request requires native
+relationships, they stay outstanding until the host can actually write and read them. A
+subscription or API documentation does not prove any capability.
 
 Install woostack in local Codex using [Getting started](/docs/getting-started). Confirm the current
 runtime exposes Git, isolated workspaces, and an authorized native GitHub interface or
@@ -70,11 +70,11 @@ completion and check events or bounded observation of the delivered PRs and fixe
 failures within scope. There is no automatic integration branch or merge, no persisted execution
 plan, and no monitoring after the session ends.
 
-If chat tools cannot write issues, explicitly pass the complete approved packet to Plan in Codex.
-This is coding-host planning, not a chat-only allowance-saving route. Plan remains the sole
-skill-owned publisher and keeps its strict native publication gates. Prepare and the public phases
-are also available here; a complete bounded task can go directly to Execute. Model and usage rules
-are linked with their last-verified date in the guide.
+If chat tools cannot write issues, pass the plan and its evidence to Plan in Codex. This is
+coding-host planning, not a chat-only allowance-saving route. Plan is the only skill that publishes
+GitHub issues, and it does so only when the request asks for it. Debug, Ideate, and Harden are
+available here as optional phases; a complete bounded task can go directly to Execute. Model and
+usage rules are linked with their last-verified date in the guide.
 
 For detection, local and Action behavior, per-skill instructions, and fallback rules,
 read the [canonical Codex reference](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/hosts/codex.md).

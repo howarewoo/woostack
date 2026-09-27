@@ -8,10 +8,9 @@ Each skill owns its procedure:
 
 | Phase | Skill |
 |---|---|
-| Elicit and reconcile a feature or proved defect for issue planning | `woostack-prepare` |
-| Elicit a complete user-verified specification | `woostack-ideate` |
-| Reconcile a supplied specification or candidate issue plan | `woostack-harden` |
-| Publish an approved GitHub parent/child or Project issue graph | `woostack-plan` |
+| Plan a feature or proved defect, optionally filing issues | `woostack-plan` |
+| Explore requirements on request | `woostack-ideate` |
+| Review a supplied specification or candidate plan read-only | `woostack-harden` |
 | Deliver an authorized bounded outcome in a reviewable PR | `woostack-execute` |
 | Check a running app in a browser | `woostack-qa` |
 | Prove a root cause without applying a correction | `woostack-debug` |
@@ -22,11 +21,12 @@ Follow the selected command's handoff rules. Only a human can merge a PR.
 
 ## Retained artifact records
 
-Prepare and Plan exchange complete plain packets and publish only the verified GitHub issue graph;
-they do not create `.woostack/tmp/runs/<run-id>/`, source branches, or implementation
-workers. Existing run artifacts and retired managed-provider records are historical user data, remain
-readable, and are never migrated, rewritten, or imported. A supplied retained record is evidence only
-after exact identity, complete content, and freshness validation.
+Plan can return a plan without GitHub writes or publish issues when requested. Ideate and Harden
+remain standalone read-only options, not mandatory handoffs. These workflows do not create
+`.woostack/tmp/runs/<run-id>/`, source branches, or implementation workers. Existing run artifacts
+and retired managed-provider records remain historical user data; they are never migrated,
+rewritten, or imported. A supplied retained record is evidence only after relevant identity and
+freshness checks.
 
 The [artifact contract](../../woostack-init/references/artifact-backends.md#retained-data-and-retirement)
 defines retained-data handling and direct publication recovery. GitHub's

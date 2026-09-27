@@ -1,10 +1,9 @@
 # Contributing
 
 This repo publishes skills for AI coding assistants, their supporting files, and a documentation
-site. The [command index](skills/using-woostack/SKILL.md#command-routing) lists the public
-commands, including the standalone Ideate, Harden, and planning-only Prepare phases, and explains
-when to use each one. Read [AGENTS.md](AGENTS.md) for the standing repository rules, the sanctioned
-`site/` exception, and the verified checks this repo has.
+site. The [command index](skills/using-woostack/SKILL.md#command-routing) lists Plan,
+standalone Ideate and Harden, and the other public commands. Read [AGENTS.md](AGENTS.md)
+for standing repository rules, the sanctioned `site/` exception, and verified checks.
 
 ## What to change
 
@@ -21,10 +20,9 @@ when to use each one. Read [AGENTS.md](AGENTS.md) for the standing repository ru
 | Update the branching model | `skills/woostack-bootstrap/references/development.md` |
 | Refine the bootstrap procedure | `skills/woostack-bootstrap/references/bootstrap.md` |
 | Change the bootstrap skill entry / discovery description | `skills/woostack-bootstrap/SKILL.md` |
-| Prepare a feature or proved defect for issue planning | `skills/woostack-prepare/SKILL.md` |
-| Change requirements gathering (Ideate) | `skills/woostack-ideate/SKILL.md` |
-| Change the check of requirements against the repository (Harden) | `skills/woostack-harden/SKILL.md` |
-| Change the Plan publisher and issue graph contract | `skills/woostack-plan/SKILL.md` |
+| Plan work and optional GitHub issue publication | `skills/woostack-plan/SKILL.md` and its references |
+| Change requirements exploration (Ideate) | `skills/woostack-ideate/SKILL.md` |
+| Change read-only specification review (Harden) | `skills/woostack-harden/SKILL.md` |
 | Change multi-task coordination and stacked delivery | `skills/woostack-orchestrate/SKILL.md` |
 | Change the execute phase implementation step | `skills/woostack-execute/SKILL.md` |
 | Change browser-based app checks (`/woostack-qa`) | `skills/woostack-qa/SKILL.md`, `skills/woostack-qa/references/` |
@@ -74,8 +72,8 @@ no-application-code rule. Its [README](site/README.md) covers local development 
   `skills/woostack-bootstrap/references/frameworks.md`.
 - Keep retained run data and direct GitHub publication in the
   [artifact contract](skills/woostack-init/references/artifact-backends.md). Link to the
-  [GitHub profile](skills/woostack-init/references/artifact-providers/github.md) for configuration
-  and capability details; Prepare and parent-issue Plan do not require Project configuration.
+  [GitHub profile](skills/woostack-init/references/artifact-providers/github.md) for resource
+  identity and capability details; Plan requires neither Project configuration nor a parent issue.
 - Use tables to compare options and numbered lists for steps.
 - Keep the command names and fixed skill paths listed in the
   [command index](skills/using-woostack/SKILL.md#command-routing).

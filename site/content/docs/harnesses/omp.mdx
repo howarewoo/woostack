@@ -95,9 +95,9 @@ extension, see the
 ## Goal-derived session naming
 
 When a woostack skill is invoked, OMP uses a concise session title based on the user's input. For
-`/woostack-prepare` and `/woostack-execute`, it uses the input goal; an issue-backed Execute
-invocation may use its explicit goal or exact issue input. A Prepare continuation uses the exact
-verified packet goal, never a guessed run title.
+`/woostack-plan` and `/woostack-execute`, it uses the input goal; an issue-backed invocation may use
+its explicit goal or exact issue input. A resumed planning session uses the exact goal it recorded,
+never a guessed title.
 
 A local extension handles session naming inside OMP:
 
@@ -112,11 +112,11 @@ A local extension handles session naming inside OMP:
   to load the extension. If `.omp/settings.json` is tracked by Git or malformed, provisioning stops
   without changing it to protect shared configuration.
 
-## Plain packets and retained records
+## Planning and retained records
 
-Prepare, Ideate, Harden, and Plan exchange complete plain packets. Plan publishes the selected native
-GitHub graph directly; parent mode needs no Project configuration, local run, or second remote record.
-Explicit Project mode remains available when Plan receives an exact Project selector. Historical
+Plan produces a plan from ordinary task context and publishes issues only when the request asks for
+it. Ideate and Harden are optional read-only phases. Publication needs no Project configuration,
+local run, or second remote record; an explicit Project selection only adds membership. Historical
 records under `.woostack/tmp/runs/<run-id>/` remain readable and are not migrated or rewritten.
 
 Credentials stay in the host's secret store and never enter repository config, prompts, logs, or
@@ -130,8 +130,9 @@ complete bounded task and supply `/woostack-execute <bounded input>` with its pa
 [Execute retired inputs](/docs/skills/woostack-execute#retired-inputs).
 
 Saved records do not grant permission to assign workers, edit code, commit, review, or accept a
-product. They also do not prove delivery. Prepare does not publish directly; Plan owns its GitHub
-issue-graph publication. Goal-only Execute makes no remote calls and needs no planning-provider call.
+product. They also do not prove delivery. Goal-only Execute makes no remote calls and needs no
+planning-provider call.
+
 An explicitly selected exact GitHub issue permits only its required read through an authorized GitHub
 capability (native host tools preferred; host-authenticated `gh` supported), with no Project
 configuration or issue lifecycle writes. Commit owns repository/PR delivery.

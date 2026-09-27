@@ -13,8 +13,8 @@ own conclusions for repository evidence.
 
 You need:
 
-- an approved task with a defined scope and acceptance criteria, or a complete preparation packet;
-- a read-only checkout for Prepare, Ideate, Harden, or Plan, and an isolated worktree only when
+- an approved task with a defined scope and acceptance criteria, or a goal to plan;
+- a read-only checkout for Plan, Ideate, or Harden, and an isolated worktree only when
   Execute or Orchestrate later receives an approved implementation task;
 - an interactive OMP profile with woostack installed; and
 - a process or PTY (pseudo-terminal) interface that passes arguments safely and retains a handle
@@ -70,9 +70,8 @@ A question from the user does not itself approve a change.
 
 An Ask is a question or approval choice that OMP needs the responsible user to decide. During an
 active conversation, relay only that user's live response, verbatim and unmodified, through the
-same OMP process that asked the question. Do not summarize, rewrite, splice, or replay it. A settled
-approval in a complete packet remains settled; do not ask for it again merely because the phase
-changes.
+same OMP process that asked the question. Do not summarize, rewrite, splice, or replay it. A decision
+the user already made stays made; do not ask for it again merely because the phase changes.
 
 A provider record, status, assignment, label, cached transcript, or Hermes-authored message cannot
 make that decision. If the process restarts before the decision is settled, present a fresh Ask,
@@ -94,9 +93,10 @@ reviews, and merges. Hermes accepting a result does not prove any of those sourc
 
 ## 7. Retained planning artifacts
 
-Prepare, Ideate, Harden, and Plan use complete plain packets and direct GitHub publication. Historical
-retired wrapper records may retain `project-spec.md`, `execution-plan.md`, and a run manifest under
-`.woostack/tmp/runs/<run-id>/`; they remain readable and are never silently migrated or rewritten.
+Plan plans from ordinary task context and publishes issues only when the request asks for it.
+Historical retired wrapper records may retain `project-spec.md`, `execution-plan.md`, and a run
+manifest under `.woostack/tmp/runs/<run-id>/`; they remain readable and are never silently migrated
+or rewritten.
 To continue from one, supply its exact identity and complete content to the responsible phase after
 fresh evidence validation. A retained run ID alone is not an implementation input; one exact
 canonical task-bearing GitHub issue URL is valid Execute input because Execute reads it and resolves

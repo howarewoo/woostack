@@ -3,9 +3,9 @@ title: Local
 description: Reference for retained local planning records, preservation, and recovery boundaries.
 ---
 
-Local files are retained historical records, not an active publication selector. Prepare and Plan
-exchange complete plain packets and publish direct GitHub issue graphs; they do not create a new run
-or duplicate a remote record. Ideate and Harden are read-only public phases.
+Local files are retained historical records, not an active publication selector. Plan publishes
+issues directly and creates no new run or duplicate remote record. Ideate and Harden are read-only
+public phases.
 
 ## Retained storage layout
 
@@ -21,7 +21,7 @@ Existing records from retired planning wrappers may contain:
 
 The [artifact contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-backends.md#owner-only-local-run-store-reader)
 defines historical naming, owner-only permissions, locking, and the exact read-only interface. Do
-not create, rewrite, migrate, or delete a retained record as part of Prepare or Plan.
+not create, rewrite, migrate, or delete a retained record as part of Plan, Ideate, or Harden.
 
 | Entry | Historical purpose |
 | --- | --- |
@@ -39,9 +39,11 @@ Git and GitHub own source, branches, commits, pull requests, reviews, and merge 
 record preserves decisions and evidence; it does not authorize publication, implementation,
 assignment, ownership, acceptance, or merge.
 
-Retained local files do not select a GitHub destination. Plan publishes only to the exact caller-selected
-`--parent-issue` or `--project` scope; parent mode needs no Project settings or retained run, and
-Project mode follows the [GitHub configuration contract](/docs/configuration/artifacts/github).
+Retained local files do not select a GitHub destination. Plan publishes only to the repository and
+destination the request resolves; an explicit Project selection follows the
+[GitHub configuration contract](/docs/configuration/artifacts/github) and never needs a retained
+run.
+
 One exact canonical task-bearing Execute issue URL is read through an authorized GitHub capability
 (native tools preferred; host-authenticated `gh` supported) and needs no Project settings or retained
 plan. Execute resolves its bounded contract from that verified issue before normal admission. A

@@ -164,10 +164,13 @@ The local report never becomes scope, acceptance, assignment, lifecycle state, o
 edit. Any GitHub issue it names is evidence only and must be re-read for drift. Report-only QA
 performs zero GitHub mutation.
 
-An independently authorized bounded correction may enter Execute, which establishes cause from
-reproduction or adequate source/runtime evidence before repair; planning work can use Prepare.
-Neither path is authorized by a QA finding alone. A separately requested read-only diagnosis
-stays in Debug.
+An independently authorized bounded correction may enter
+[`woostack-execute`](../woostack-execute/SKILL.md), which establishes cause from reproduction or
+adequate source/runtime evidence before repair; a separately requested read-only diagnosis stays
+in [`woostack-debug`](../woostack-debug/SKILL.md), and planning work can use
+[`woostack-plan`](../woostack-plan/SKILL.md). Neither path is authorized by a QA finding alone.
+The local report never authorizes a correction, implementation, issue ownership, assignment, or
+GitHub lifecycle state.
 
 ## Hard constraints
 

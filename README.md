@@ -4,9 +4,9 @@ woostack is a collection of skills that teach AI coding assistants how to plan w
 change code. You make the product decisions. The assistant checks the repository and GitHub
 before reporting what changed or what is ready for review.
 
-Use one PR for a small change or a well-understood fix. For larger work, settle the specification
-and publish a verified GitHub parent with PR-sized native children before requesting execution.
-Changes still need verification and independent review.
+Use one PR for a small change or a well-understood fix. For larger work, Plan can inspect
+the repository and return a coherent plan without writing to GitHub, or publish requested
+issues with verified dependencies. Changes still need verification and independent review.
 
 Start with the [getting-started guide](site/content/docs/getting-started.mdx), or use the
 [command index](skills/using-woostack/SKILL.md#command-routing) to choose a workflow.
@@ -24,8 +24,8 @@ pnpx skills add howarewoo/woostack
 
 
 The public commands are listed in the
-[command index](skills/using-woostack/SKILL.md#command-routing), including the directly callable
-Ideate, Harden, and planning-only Prepare composition.
+[command index](skills/using-woostack/SKILL.md#command-routing), including standalone
+Ideate, Harden, and Plan.
 
 For frontend work, you can also install [impeccable](https://github.com/pbakaus/impeccable).
 woostack recommends it for design reviews:
@@ -76,14 +76,12 @@ For the full policy surface, see the authored
 [configuration reference](site/content/docs/configuration/index.mdx).
 
 
-Prepare is the planning-only entrypoint for features and proved defects. It composes public Ideate,
-Harden, Debug, and Plan from complete plain packets and ends at a verified GitHub parent/child
-graph; it does not create local run state, a replacement work board, source branches, or
-implementation. Plan is the sole GitHub issue publisher. An explicit GitHub Project remains a
-direct Plan selector. Existing `.woostack/tmp/runs/<run-id>/` records from retired workflows
-remain readable historical user data and are never migrated or mutated. A retained draft may be
-supplied explicitly after identity and freshness revalidation, but it never authorizes publication
-or code changes.
+Plan handles a goal or incomplete issue directly. It inspects relevant source, asks about
+material unresolved choices, and publishes issues only when requested. Ideate remains available
+for requirements exploration, Harden for read-only review, and Debug for diagnosis; none is a
+mandatory Plan handoff. An explicit GitHub Project is optional. Existing
+`.woostack/tmp/runs/<run-id>/` records remain historical user data and are never migrated or
+mutated; retained drafts are evidence, not publication or implementation authority.
 
 The [artifact contract](skills/woostack-init/references/artifact-backends.md) explains direct
 GitHub publication, recovery, and retained historical record handling. Saved plans and remote
@@ -96,27 +94,23 @@ in the coding assistant.
 
 ## Choose a development workflow
 
-To plan in a normal ChatGPT chat, start with the complete
-[ChatGPT-to-Codex prompt](site/content/docs/chatgpt-to-codex.mdx). It requires no installed chat
-skills. The default GitHub app is read-only: publication needs actual authorized issue, native
-sub-issue, and dependency tools; otherwise keep a planning-only draft or explicitly use Plan in a
-coding host. After approved publication, the chat stops. Separately invoke
-`/woostack-orchestrate --issue <verified canonical parent URL>` in Codex to execute the children.
-No Project is required, and the parent gets no worker or PR. See the guide for dated product/usage
-rules, capability gaps, native graph recovery, and join decisions.
+To plan in a normal ChatGPT chat, start with the
+[ChatGPT-to-Codex guide](site/content/docs/chatgpt-to-codex.mdx). In a coding host, Plan can
+return a plan without publication, or file issues on request using authorized GitHub access.
+Native links are verified when requested and available; missing relationships are reported,
+not invented. Execution is a separate request to Orchestrate for multiple tasks or Execute
+for one bounded task.
 
 | What you need | Command | What happens |
 | --- | --- | --- |
 | A new application | [/woostack-bootstrap](skills/woostack-bootstrap/SKILL.md) | Checks the target directory, asks you to approve the design, then creates the project. |
-| Elicit a complete specification | [/woostack-ideate](skills/woostack-ideate/SKILL.md) | Takes a goal or existing specification, asks only for missing user-owned decisions, and returns complete plain content. |
-| Reconcile a specification or candidate issue plan | [/woostack-harden](skills/woostack-harden/SKILL.md) | Checks supplied content against bounded repository/evidence identity and returns complete reconciled content after explicit corrections. |
-| Prepare a feature or proved defect for issue planning | [/woostack-prepare](skills/woostack-prepare/SKILL.md) | Composes the relevant public phases and ends at one fully read-back GitHub parent/child graph without implementing or dispatching it. |
-| Publish an approved GitHub issue plan | [/woostack-plan](skills/woostack-plan/SKILL.md) | Publishes one verified GitHub parent/child hierarchy or explicit Project graph with native prerequisite edges, without implementing it. |
+| Explore requirements | [/woostack-ideate](skills/woostack-ideate/SKILL.md) | Asks about unresolved product decisions and returns a readable specification. |
+| Review a specification or plan | [/woostack-harden](skills/woostack-harden/SKILL.md) | Checks selected content against relevant repository evidence without writes. |
+| Plan work or file issues | [/woostack-plan](skills/woostack-plan/SKILL.md) | Plans directly from a goal or issue; publishes and reads back issues only when requested. |
 | A bounded task that fits one PR | [/woostack-execute](skills/woostack-execute/SKILL.md) | Implements a complete approved task, including an enhancement, refactor, test-only task, or authorized understood correction, and delivers one PR. |
 | Coordinate multiple approved tasks | [/woostack-orchestrate](skills/woostack-orchestrate/SKILL.md) | Resolves tasks and dependencies from prose, issues, or an explicitly selected Project; coordinates inline or native-host workers in isolated workspaces and verifies draft PRs without merging. |
 
-Prepare stops at planning. Direct bounded implementation remains an explicit Execute request; a
-separate `/woostack-orchestrate --issue <verified-parent-url>` is only a suggested next command.
+Plan stops before implementation. A separate Execute or Orchestrate request starts delivery.
 
 See the [workflow maps](site/content/docs/concepts/workflows.mdx) for the full sequences.
 
@@ -127,7 +121,7 @@ See the [workflow maps](site/content/docs/concepts/workflows.mdx) for the full s
 | Investigate and address every unresolved review thread | [/woostack-address-comments](skills/woostack-address-comments/SKILL.md) |
 | Explore a running web app and reproduce browser bugs | [/woostack-qa](skills/woostack-qa/SKILL.md) |
 | Prove a root cause without implementing a correction | [/woostack-debug](skills/woostack-debug/SKILL.md) |
-| Prepare a proved defect for issue planning | [/woostack-prepare](skills/woostack-prepare/SKILL.md) |
+| Plan a proved defect as issues | [/woostack-plan](skills/woostack-plan/SKILL.md) |
 | Find concrete improvements to instructions from this conversation | [/woostack-reflect](skills/woostack-reflect/SKILL.md) |
 
 Pullfrog handles pull-request review. Address-comments can resolve the resulting GitHub threads;

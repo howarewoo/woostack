@@ -1,12 +1,12 @@
 ---
 title: Overview
-description: "woostack's planning packets, verified GitHub issue graphs, delivery boundaries, and context management."
+description: "woostack's planning, optional issue publication, delivery boundaries, and context management."
 ---
 
 woostack uses explicit user decisions, separate workspaces for implementation, and independent
-review. A bounded change fits one pull request (PR). Prepare and Plan produce a complete plain
-specification, evidence, and verified native GitHub issue graph before any implementation. Git and
-GitHub show the actual code and PR state.
+review. A bounded change fits one pull request (PR). Plan turns a goal into a coherent plan and
+files GitHub issues only when the request asks for it, before any implementation. Git and GitHub
+show the actual code and PR state.
 
 The [core concepts](/docs/concepts) explain who can authorize work and which records prove its
 results. The [workflow maps](/docs/concepts/workflows) help you choose and run a workflow.
@@ -15,9 +15,9 @@ fixed snapshot of the current conversation. It directs each suggestion to the fi
 owns the rule. Its report, like other diagnostic reports, does not authorize changes.
 
 <Cards>
-  <Card title="Building rules" href="/docs/concepts/building-rules" description="How plain packets, user decisions, and repository evidence guide preparation and delivery." />
+  <Card title="Building rules" href="/docs/concepts/building-rules" description="How plans, user decisions, and repository evidence guide planning and delivery." />
   <Card title="Repository structure and rules" href="/docs/concepts/repository-rules" description="The complete app-local code, shared extraction, dependencies, production, testing, Git, and scaffold contract." />
-  <Card title="Workflow maps" href="/docs/concepts/workflows" description="Compare Bootstrap, Prepare, Execute, Plan, and execution under one authority model." />
+  <Card title="Workflow maps" href="/docs/concepts/workflows" description="Compare Bootstrap, Plan, Orchestrate, and Execute under one authority model." />
   <Card title="Least code, still safe" href="/docs/concepts/least-code" description="Write as little code as necessary without cutting edge cases or risks." />
   <Card title="Context management" href="/docs/concepts/context-management" description="Keep reasoning focused with compact reads, isolated sessions, and explicit handoffs." />
   <Card title="Parallelism with worktrees" href="/docs/concepts/worktrees" description="Isolate bounded implementation tasks and concurrent disjoint work in separate Git worktrees." />

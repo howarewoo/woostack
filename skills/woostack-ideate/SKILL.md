@@ -1,14 +1,13 @@
 ---
 name: woostack-ideate
-description: Public phase for turning a goal or existing specification into a complete user-verified specification with explicit repository and evidence identity; read-only and composable.
+description: Public standalone requirements exploration that turns a goal or existing specification into a focused, decision-complete specification, filling routine technical detail and asking only for material user-owned choices. Read-only.
 ---
 
 # woostack-ideate
 
-`woostack-ideate` is the public specification phase. It is directly callable and is also composed by
-[`woostack-prepare`](../woostack-prepare/SKILL.md) for a feature or defect whose user-owned
-decisions are incomplete. It returns one complete plain packet; it does not create runs, publish
-issues, edit source, or invoke another phase.
+`woostack-ideate` explores requirements when a user explicitly asks for it. It is a standalone
+read-only phase: nothing invokes it by default, and it never edits source, publishes issues,
+dispatches another phase, or writes repository or GitHub state.
 
 ## Command and input
 
@@ -16,90 +15,58 @@ issues, edit source, or invoke another phase.
 /woostack-ideate <goal-or-specification>
 ```
 
-Callers pass a complete plain input packet with the goal or diagnosis, exact repository and evidence
-identity, known decisions, constraints, exclusions, and any retained content. A Prepare caller may
-start here with a goal; a direct caller may provide an existing specification. No writable checkout,
-provider, project, or permission-restricted run is required merely to elicit decisions. If an
-existing packet is complete and its settled choices are fresh, preserve them instead of repeating
-approval questions.
+The user supplies a goal, a question, or an existing specification. Resolve the canonical
+repository and its immutable baseline from the explicitly selected or unambiguous checkout with
+read-only tools; do not ask for facts that checkout already answers, and never substitute a
+repository found by title, branch, or recent activity. Ask only when the target is ambiguous or
+inaccessible. Revalidate stale or conflicting evidence while keeping the user's existing decisions.
 
-When content or a material decision is missing, ask for that specific input. Establish repository
-and evidence identity through the shared input contract before relying on repository observations.
-Resolve available checkout facts with read-only tools; do not discover a fuzzy run or replace an
-explicit target with a different repository. Revalidate stale evidence without silently changing
-the user's decisions, and ask only for an unresolved target or material choice.
+## Decision ownership
 
-## Decision ownership invariant
+Verified repository and product facts are evidence, not questions. Schemas, routes, migrations,
+existing conventions, dependency versions, and file placement resolved read-only are observations
+you rely on. Routine technical details consistent with the requested outcome — field types, index
+choices, endpoint shapes, module boundaries, naming — are yours to fill; state them so the user can
+correct them.
 
-**No inferred, repository-derived, agent-preferred, or merely plausible content enters the
-specification until the user explicitly verifies it.** Repository inspection, existing issue text,
-conventions, and recommendations are evidence or prompts only. Silence is not verification. The
-user verifies every material goal, user, behavior, constraint, exclusion, architecture decision,
-acceptance criterion, verification expectation, and applicable technical detail.
+Ask the user only where a choice can change the outcome and is not derivable from the request or the
+code: unresolved product behavior, a breaking compatibility change, a security or data boundary, an
+irreversible or destructive effect, cost or capacity, or scope. Resolve upstream decisions before
+dependent ones, batch currently independent questions, and recommend an option without preselecting
+it.
 
-At the specification boundary, identify removal, reuse, simplification, and generalization
-opportunities before additive proposals. For each opportunity, ask the user to verify safe deletion
-or simplification, or to state the bounded reason addition remains necessary. Keep required safety,
-compatibility, accessibility, and data-loss protections while applying the
-[least-code doctrine](../woostack-bootstrap/references/patterns.md#7-least-code--comments).
+Never silently override an explicit user choice. When evidence or your judgment conflicts with it,
+say so with the exact consequence and ask which holds.
 
-When the change modifies or introduces storage/tables or public/internal APIs, the specification
-must contain one `## Data models` section. It must capture all applicable entities/tables,
-fields/types, constraints, relationships, indexes, migration/backfill details, method/path,
-authorization, request/response/error shapes, and compatibility details. When neither storage nor
-API changes apply, omit that section. Every detail is explicitly user-verified; never infer a
-schema, migration, endpoint, or compatibility default from repository inspection.
+A useful exploration usually covers the problem, users, intended outcome, prioritized behavior,
+constraints and non-goals, the removal/reuse result, data and interface implications, risks that can
+change the design, and observable acceptance. Follow that dependency order, not a required set of
+headings.
+
+## Removal and reuse
+
+Before proposing new work, look for safe deletion, reuse, simplification, and generalization, and
+apply the [least-code doctrine](../woostack-bootstrap/references/patterns.md#7-least-code--comments).
+Keep required safety, compatibility, accessibility, and data-loss protection while removing.
 
 ## Elicitation
 
-Use the active host's supported ask/question capability when available. Load the host adapter through
-the [host index](../using-woostack/references/hosts/README.md); do not assume a tool name or schema.
-Submit currently independent questions together, subject only to host batch limits. If the host
-cannot represent a required question, ask a clearly numbered chat batch instead. Recommendations
-and preselected options help explain a choice but never settle it.
-
-Ask only questions whose answers can affect the selected work. Resolve upstream decisions before
-dependent ones, while asking all currently known independent questions together. Use this coverage
-order when relevant:
-
-1. establish the problem, users, evidence, intended outcome, and prioritized behavior;
-2. quantify relevant system qualities, constraints, compatibility, and non-goals;
-3. resolve removal and reuse before additive architecture;
-4. define entities and the conditional `## Data models` section;
-5. define meaningful request, event, or data flows and state transitions;
-6. capture material user-owned architecture and interface choices, leaving repository reconciliation
-to Harden and issue decomposition to Plan;
-7. examine capacity, failure, security, data-loss, operational, and edge risks when they can change
-the design; and
-8. define observable acceptance and verification expectations.
-
-After each answer, distinguish explicitly verified decisions from unresolved or ambiguous material.
-Do not add placeholders, defaults, or summaries that the user did not verify. Reusing an approved
-specification or diagnosis does not repeat settled decisions; revalidate only a stale, conflicting,
-or newly exposed item.
+Use the active host's supported ask/question capability when available, loaded through the
+[host index](../using-woostack/references/hosts/README.md); do not assume a tool name or schema. If
+the host cannot represent a question, ask a numbered chat batch instead. Reuse decisions already
+settled for the same goal; revalidate only what is stale, conflicting, or newly exposed.
 
 ## Read-only boundary
 
-Ideate reads only the bounded repository and evidence needed to ask or explain a decision. It makes
-no provider calls, remote writes, issue creation, source edits, implementation-worker dispatch,
-commit, branch, worktree, Plan, Execute, Orchestrate, or PR action. An explicit user request to save
-the plain handback may write that user-selected document through the host, but that is not a
-canonical planning ledger and does not authorize later work.
+Ideate reads only the bounded repository and evidence needed to explore a decision. It makes no
+provider calls, remote writes, issue creation, source edits, implementation-worker dispatch, commit,
+branch, worktree, or PR action. An explicit request to save the result writes only that
+user-selected document, which grants no later authority.
 
-## Complete handback
+## Return
 
-When every material decision is explicitly verified, return the complete plain handback from
-[`planning-inputs.md`](../using-woostack/references/planning-inputs.md), not only the latest answers:
-
-- exact repository identity and admitted baseline;
-- every evidence identity and the observations used;
-- the complete specification, including the removal/reuse result and the conditional `## Data
-  models` section;
-- confirmed user decisions;
-- an empty unresolved-question section; or, if incomplete, every unresolved question and why it
-  blocks completion; and
-- the read-only boundary plus a separate suggested next consumer such as Harden or Plan.
-
-This is a reusable input, not approval, issue authority, or an automatic transition. The caller
-explicitly decides whether to save it, pass it to Harden, pass an approved specification to Plan,
-or stop.
+Return a focused, readable result rather than a fixed envelope: the explored specification or the
+answer, the evidence and observed repository facts it rests on, what you filled in technically, the
+open questions with the decision each one blocks, and any uncertainty or read limitation that bounds
+confidence. Length follows the question. Exploration is not approval to plan, publish, or implement;
+the user decides what happens next.

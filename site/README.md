@@ -14,10 +14,8 @@ pnpm dev      # predev regenerates the skill pages, then next dev
 ```
 
 Run `pnpm build` to generate skill pages and build the site for production.
-`pnpm test` runs the generator and authored planning-fixture tests with Node's built-in test runner
-(`node --test`). The ChatGPT guide's bounded mock transcript can also be inspected with
-`node --test scripts/chatgpt-to-codex.test.mjs`. It reads the exact canonical prompt from the authored
-page and checks mock request/response evidence; it does not invoke a model or contact GitHub.
+`pnpm test` checks the generator and installed skill assets with Node's built-in test runner
+(`node --test`). It does not invoke a planner, model, or GitHub.
 
 ## Deploy to Vercel
 

@@ -1,9 +1,9 @@
 # GitHub direct publication profile
 
-This profile owns GitHub identities, exact scope, native issue hierarchy, prerequisite edges, Project
+This profile owns GitHub identities, exact scope, issue and dependency relationships, Project
 membership/Status operations, and direct-publication recovery. The shared [artifact contract](../artifact-backends.md)
-owns local authority, retained data, filesystem safety, ordering, and independent read-back. There is
-no provider selector and no remote mirror of a local plan.
+owns local authority, retained data, filesystem safety, and the read-back and recovery invariants.
+There is no provider selector and no remote mirror of a local plan.
 
 ## Configuration and scope
 
@@ -12,31 +12,34 @@ The optional canonical policy is the top-level `github` object described by
 only `owner`, `ownerType`, `statusField`, and `projectStatuses`; `visibility` is not a setting. The
 resolver validates this object once. Existing Projects retain and report their actual visibility.
 
-Select the exact GitHub operation scope before any GitHub read or write. Use an available,
-authorized GitHub capability that supports that operation and its verification. Prefer the host's
-native GitHub tools when suitable; host-authenticated official `gh` remains supported where
-appropriate. Discover actual capabilities, supported read/query shapes, and schemas from the host
-rather than assuming tool names or request forms. Custom HTTP/REST/GraphQL clients, credential reads,
-and token forwarding remain forbidden. Plan publication stays within its exact parent-issue or
-Project destination; Orchestrate reads the canonical repository and the issue/task context needed to
-resolve the user's work. For Orchestrate, a Project is included only when explicitly selected; its
+Select the exact GitHub operation scope before any GitHub read or write. Resolve one unique
+authorized repository and destination from the request and the actual context; when two candidates
+remain plausible, ask the user instead of guessing. Use an available, authorized GitHub capability
+that supports that operation and its verification. Prefer the host's native GitHub tools when
+suitable; host-authenticated official `gh` remains supported where appropriate. Discover actual
+capabilities, supported read/query shapes, and schemas from the host rather than assuming tool names
+or request forms. Custom HTTP/REST/GraphQL clients, credential reads, and token forwarding remain
+forbidden. Plan may read relevant issues while planning but makes no GitHub mutation unless the
+request asks for publication. Orchestrate reads the canonical repository and the issue/task context
+needed to resolve the user's work; a Project is included only when explicitly selected, and its
 status lifecycle is used only when that selection requests status mutation.
 
 Orchestrate's tracker interpretation is read-only and has different evidence requirements. It may
-use a complete verified implementation index to establish membership when native child hierarchy is
+use a complete verified readable index to establish membership when native child hierarchy is
 absent, partial, or unavailable. Read every selected issue, keep native/declared/inferred edge
 provenance distinct, and disclose failed relation reads honestly; declared membership never becomes
-`actual_parent` or a fabricated native receipt. This relaxation does not weaken Plan: Plan
-parent/Project publication still requires its native relationship capabilities and complete
-read-back before it calls the publication verified.
+an actual parent or a fabricated native receipt. Plan holds the same bar for what it writes, and
+reports a native relationship it could not create as missing rather than waived.
 
-- Plan parent-issue publication uses the canonical repository plus `--parent-issue new` or one
-  exact existing parent issue URL. Orchestrate may receive an issue URL as a convenience hint, but
-  admission is resolved from the understood conversation, repository, and tracker context.
-- Explicit Project operations require one exact caller-supplied Project and only the capabilities
-  needed for the selected operation. When status mutation is explicitly requested, require its
-  mappings and capabilities; never infer a Project from configuration, create a destination from a
-  goal, or make Project access a condition for other work.
+- Publication targets the one resolved destination: the canonical repository, plus the exact issue
+  or Project the caller named when one was named. Orchestrate may receive an issue URL as a
+  convenience hint, but admission is resolved from the understood conversation, repository, and
+  tracker context.
+- `--project <exact canonical Project URL>` is the one optional selector. It requires one exact
+  caller-supplied Project and only the capabilities needed for the selected operation. When status
+  mutation is explicitly requested, require its mappings and capabilities; never infer a Project
+  from configuration, create a destination from a goal, or make Project access a condition for
+  other work.
 - Exact issue association is read-only context until the owning Commit path records its verified
   closing reference. It never selects a publication destination.
 
@@ -45,68 +48,69 @@ host-authenticated `gh` CLI is supported. Do not invent tool names, read credent
 or add another transport layer. Scope every operation to the canonical repository and exact selected
 Plan destination or Orchestrate evidence set.
 
-## Capabilities and native graph
+Publication is read-only until the request asks for a write, and a planning-only request performs no
+GitHub mutation at all.
+
+## Capabilities and native relationships
 
 Prove each operation's capabilities independently through the selected authorized GitHub interface.
-Plan publication must prove issue reads/writes, native parent/sub-issue reads/writes, dependency
-reads/writes, terminal pagination, and independent read-back. Issue-write access alone does not prove
-sub-issue or dependency-write access. Before publication, preflight every required write family
-without a test mutation; unsupported or unknown capability blocks only the operation that requires
-it. Project read/write, membership, and Status capabilities are required only for selected Project
-operations.
+Prove only what the selected operation needs: writing issue content requires issue reads/writes,
+pagination to the end of the relevant query, and independent read-back, while native sub-issue and
+dependency reads/writes are proven only when a relationship is actually requested. Issue-write
+access alone does not prove sub-issue or dependency-write access. Preflight every required write
+family without a test mutation; unsupported or unknown capability blocks only the operation that
+requires it. Project read/write, membership, and Status capabilities are required only for selected
+Project operations.
 
-Use GitHub's native sub-issue semantics through the selected host capability for Plan publication.
-The REST route forms below describe the required resource and identity semantics, not a mandatory
-transport: `GET repos/{owner}/{repo}/issues/{number}/sub_issues` must exhaust all pages; read the
-actual parent independently (`GET .../parent` or an explicitly selected nullable GraphQL `parent`).
-An HTTP or tool error is not proof of `parent = null`. A link operation takes the child's numeric
-REST `id` as `sub_issue_id`, not its issue number or GraphQL node ID. Never set `replace_parent` to
-true. API permission to link another repository's issue does not widen the canonical-repository
-scope. Require native reads in both directions after a link write.
+When a native sub-issue link is requested and available, use GitHub's native sub-issue semantics
+through the selected host capability. The REST route forms below describe the required resource and
+identity semantics, not a mandatory transport: `GET repos/{owner}/{repo}/issues/{number}/sub_issues`
+must exhaust all pages; read the actual parent independently (`GET .../parent` or an explicitly
+selected nullable GraphQL `parent`). An HTTP or tool error is not proof of `parent = null`. A link
+operation takes the child's numeric REST `id` as `sub_issue_id`, not its issue number or GraphQL node
+ID. Never set `replace_parent` to true. API permission to link another repository's issue does not
+widen the canonical-repository scope. Require native reads in both directions after a link write.
 
-Normalize each Plan prerequisite as `[prerequisite, dependent]`. Read both endpoint collections
-completely, verify repository and scope, then write only the declared edge and independently read both
-endpoint identities back. Do not flatten nested containers, infer missing Plan edges from prose, or
-silently adopt a foreign issue.
+Normalize a requested dependency as `[prerequisite, dependent]`. Read both endpoint collections to
+the end of the relevant query, verify repository and scope, then write only the declared edge and
+independently read both endpoint identities back. Do not infer a missing edge from prose, adopt a
+foreign issue, or treat display order as a dependency.
 
-Plan normalizes every direct child with a stable task identity, a positive ordinal, and a complete
-declared predecessor set. Orchestrate instead resolves each executable task from the conversation,
-repository, tracker/specification, and real issue evidence, keeping native, declared, and inferred
-edge provenance distinct in its own resolution. A complete readable implementation index can
-declare the executable set without a native child hierarchy; every named issue must still be
-independently readable and context-only references must be excluded. Ordinals are display/order
-metadata, not an implicit dependency chain. Reject duplicate or missing task identities, foreign
-predecessor references, self-dependencies, cycles, and edges whose endpoints were not independently
-read in the exact scope. A blocked external prerequisite remains blocked; it never widens the
-scope or becomes an invented task. An omitted administrative field is not a blocker.
+Orchestrate resolves each executable task from the conversation, repository, tracker/specification,
+and real issue evidence, keeping native, declared, and inferred edge provenance distinct in its own
+resolution. A complete readable index can declare the executable set without a native child
+hierarchy; every named issue must still be independently readable and context-only references must
+be excluded. Reject foreign prerequisite references, self-dependencies, cycles, and edges whose
+endpoints were not independently read in the exact scope. A blocked external prerequisite remains
+blocked; it never widens the scope or becomes an invented task. An omitted administrative field is
+not a blocker.
 
 ## Direct issue publication
 
-Plan publishes the complete specification and one-level PR-sized children directly to the exact new
-or existing parent, or synchronizes only the exact explicit Project span. A specification parent is
-not an executable task. Existing unrelated issue fields, Project state, labels, views, parent links,
-and historical resources are preserved. Publication never closes issues or Projects, changes product
-acceptance, or grants merge authority.
+Write the requested issues into the resolved scope, or synchronize only the exact explicit Project
+span. A parent, container, or ordinal is never required, and a written issue is not by itself a
+task, worker, branch, PR, or dependency endpoint. Existing unrelated issue fields, Project state,
+labels, views, links, and historical resources are preserved. Publication never closes issues or
+Projects, changes product acceptance, or grants merge authority.
 
-For an existing parent, read its open issue state, actual parent, complete body/comments, every native
-child page, each child's actual parent, contract, prerequisite pages, and delivery evidence before any
-mutation. Require a top-level parent (`parent = null`), complete pagination, unique task identities,
-and one direct child level. A changed or incomplete read blocks rather than expanding scope.
+Before writing, read the relevant existing resources in that scope and reuse an exact match rather
+than creating a near-duplicate. After each create or update, independently read the issue back and
+verify its canonical identity and actual content. A changed or incomplete read blocks instead of
+expanding scope, and an unchanged repeat performs no write.
 
-Every newly created issue uses a preallocated mutation marker in its body. Before creation, completely
-search the exact scope for that marker; recover an unknown outcome by repeating that discovery and
-reading the one ownership-valid match. Never allocate another marker or replay a create. Bind each
-native identity once after independent read-back. Existing missing links are drift, not permission to
-adopt unrelated issues.
+Each issue carries what a reader needs to act on it: the outcome, the constraints that matter,
+acceptance with how to verify it, and the dependencies that actually exist. The heading set is the
+writer's choice.
 
-This native publication shape belongs to Plan. Orchestrate interprets the planning handback or other
-understandable tracker context; native child links are evidence, not an admission requirement. The
-readable index must enumerate exactly the intended implementation issues and their genuine
-prerequisite declarations so later Orchestrate reads can safely interpret either native or declared
-membership. Missing native relationship operations in a chat-created tracker do not erase that
-declared execution scope, but they cannot be reported as successful Plan native publication.
-Orchestrate still performs its own issue, contract, dependency, and repository validation. Bounded
-Execute admits one complete task.
+Relationship links are a separate, requested step. When the request asks for native sub-issues or
+dependency edges and the capability is present, write them and verify each by two-sided read-back.
+When the capability is absent or unsupported, keep the issues that were written plus one explicit
+readable index naming them and their real prerequisites, and state plainly which relationships were
+not created. That index is the human-readable record, not a native graph: a publication that was
+required to produce native links and did not is reported incomplete.
+
+Orchestrate still performs its own issue, contract, dependency, and repository validation before it
+resolves a task set, and bounded Execute admits one complete task.
 
 ## Selected Project content
 
@@ -142,9 +146,16 @@ repeat an append blindly, or report publication success from the mutation respon
 
 ## Recovery and delivery boundary
 
-Retain the exact issue/Project identity, marker, repository, scope, last independently read boundary,
-and delivery note needed to recover an interrupted publication. Unknown create, link, relation, or
-read-back outcomes stop at that boundary; rediscovery uses the same identity and never duplicates work.
+Retain the exact issue/Project identity, any bound span marker, repository, scope, last independently
+read boundary, and delivery note needed to recover an interrupted publication. An unknown create,
+link, relation, or read-back outcome stops at that boundary and reports the confirmed objects plus
+whatever relation is still missing. Rediscovery searches the relevant scope to the end of its query
+for that same exact identity, reads the one ownership-valid match, and never duplicates work or
+allocates a replacement. For an issue create, retain a distinct preallocated identity and intended
+repository/content before the write, prove that identity absent beforehand, and include it in the
+created body. Recovery requires the same identity and matching content in the exact repository;
+matching title and body without the retained identity is not ownership evidence.
+
 A caller that needs its own recovery checkpoint keeps it private and owner-only; the shared
 [run-store reader](../artifact-backends.md#owner-only-local-run-store-reader) only reads retained
 records.
