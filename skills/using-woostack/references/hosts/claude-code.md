@@ -50,13 +50,13 @@ switch a repository model list; see the [shared note](README.md#host-level-fallb
   path here.
 - **woostack-commit (drafting):** an optional role preference shapes the drafting task, not
   a model selector.
-- **woostack-orchestrate (parallel dispatch):** for each schedule packet, dispatch one
-  delivery-capable worker through the spawn tool with the prompt worktree pin. Pass `workspace`,
-  `branch`, `parent_branch`, `parent_sha`, child issue URL, and packet
-  `bounded_input`/`acceptance`/`checks` as the complete Execute contract. Clamp `effective_cap`
-  to host capability, batch and refill as workers complete, and apply the self-pin guard per
-  worker. A serialize-only mode runs at concurrency one with a clear notice; without a subagent
-  spawn primitive, block rather than executing inline.
+- **woostack-orchestrate (multi-task coordination):** deliver each ready task through one
+  delivery-capable worker spawned by the subagent spawn tool with the dispatch-prompt worktree pin,
+  passing the complete bounded task contract, acceptance, and required checks. Batch independent
+  tasks, start the next task as a worker completes, and apply the self-pin guard per worker. A
+  serialize-only mode runs one task at a time with a clear notice. A session with no spawn
+  primitive runs the tasks sequentially in the calling session and reports that; never describe
+  one-at-a-time dispatch as parallel, and never present sequential work as independent review.
 
 ## Capability limits
 
@@ -66,6 +66,6 @@ otherwise the main conversation's model
 ([forced-model contract](https://code.claude.com/docs/en/sub-agents#run-every-subagent-on-one-model)).
 Report an explicit optional override that was not applied; block a required exact identity
 comparison without matching host evidence. Ordinary inheritance is not degraded. A missing
-required delivery, isolation, identity-correlation, review, or recovery capability blocks per
+required delivery, isolation, review, or recovery capability blocks per
 [conditional mechanics](README.md#conditional-mechanics-shared); GitHub operations follow the
 [shared GitHub contract](README.md#github-capability-and-authentication-shared).

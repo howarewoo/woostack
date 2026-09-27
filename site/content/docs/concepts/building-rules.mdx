@@ -51,27 +51,26 @@ but that declared handoff is not successful native Plan publication.
 Execute accepts one selected bounded task under its [admission contract](/docs/skills/woostack-execute#admit-one-task), not a whole plan.
 An explicit [Orchestrate](/docs/skills/woostack-orchestrate) invocation interprets the complete
 planning handback or other understandable work context. It resolves the canonical repository,
-issue/task identities, executable tasks, and a bounded technical DAG with provenance, then selects
-and summarizes a model-chosen single-parent execution forest before allocation. Added ordering is
+issue/task identities, executable tasks, and real dependencies with provenance, then chooses the
+execution order, concurrency, and each task's base when it starts that task. Added ordering is
 compatibility evidence, not native relationship evidence; technical prerequisites remain visible
-separately, useful parallelism is retained, and effective prerequisites govern readiness and repair
-propagation. A selected task whose own landed, verified delivery is already contained in the approved
-integration base is satisfied evidence, not an imported worker delivery, and the same holds for
-verified landed prerequisites outside the selected issue set: they remain recorded external
-dependencies, not imported tasks, and their issue, merge, diff, checks, and exact candidate-base
-containment stay in the handoff without creating an external claim, worker, or PR.
+separately and useful parallelism is retained. A task whose own landed, verified delivery is already
+contained in the approved integration base is satisfied evidence, not an imported worker delivery,
+and the same holds for verified landed prerequisites outside the selected issue set: they remain
+recorded external dependencies, not imported tasks, and their issue, merge, diff, checks, and exact
+base containment stay in the handoff without creating an external claim, worker, or PR.
 Issue, issue-list, and Project arguments are convenience hints, not an exhaustive admission taxonomy;
 a complete tracker index can establish declared membership without native links,
-while every selected issue and contract still needs independent reads. For Orchestrate, a Project is
-included only when explicitly selected; its status lifecycle is used only when that selection requests
-status mutation, and inferred edges are not published.
+while every selected issue and contract still needs independent reads. A Project is included only
+when explicitly selected; its status lifecycle is used only when that selection requests status
+mutation, and inferred edges are not published.
 
 Plan is the sole issue publisher. It independently reads every parent, child, hierarchy, and edge
 back. A partial Plan graph preserves exact identities and resumes at the first unproved Plan boundary;
 it is not a complete native publication. A declared tracker handoff can still be independently read
-and scheduled by Orchestrate when its selected issues and contracts are complete. Prepare reports the
-complete planning handback and may include `/woostack-orchestrate --issue <verified-parent-url>` as a
-convenience suggestion, but never invokes it.
+and coordinated by Orchestrate when its selected issues and contracts are complete. Prepare reports
+the complete planning handback and may include `/woostack-orchestrate --issue <verified-parent-url>`
+as a convenience suggestion, but never invokes it.
 
 ## Execution invariants
 
@@ -83,8 +82,8 @@ convenience suggestion, but never invokes it.
 - Each bounded task runs its own worktree, branch, allowed paths, and PR. Separate tasks may proceed
   concurrently only when their paths, branches, worktrees, PRs, and responsibilities do not overlap.
 - Focused checks, a smoke test of changed behavior, and comparison against the approved task precede
-  delivery. Orchestrate requires delivery-capable Execute workers and independent post-submission
-  validation before releasing dependents.
+  delivery. Orchestrate verifies each delivered task and its current PR head before releasing
+  dependents, and works sequentially when the host has no delivery-capable subagent.
 - Git and GitHub prove parent-child branch relationships, PRs, commits, reviews, and merge state.
   Required repository checks remain mandatory delivery gates; non-required available CI checks are
   observation-only.

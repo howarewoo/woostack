@@ -124,24 +124,20 @@ verified. Stable ordinals control display and tie-breaking, not dependencies or 
 chain edges are preserved unless the approved plan explicitly changes them.
 
 Each root records its approved integration parent. Dependents record their technical prerequisites
-and a parent-selection policy. At execution, Orchestrate first preserves that technical DAG, then
-selects and summarizes a model-chosen single-parent execution forest before branch/worktree
-allocation. The selected parent is optional compatibility ordering, not native relationship
-evidence. The layout must include every selected task exactly once, retain useful parallelism, and
-make every technical prerequisite part of the selected execution ancestor path unless admission proves
-that prerequisite is already landed in the approved integration base. A join can use a
-verified existing parent when eligible. Only an explicit `merge-checkpoint` fallback for existing
-divergence or repository constraints becomes `waiting-for-merge`; a join otherwise does not require
-a new parent or integration decision. Planning never creates an automatic integration branch, combines
+and a parent-selection policy. At execution, Orchestrate preserves that technical DAG, then selects
+each task's concrete base when it starts that task. The selected parent is optional compatibility
+ordering, not native relationship evidence, and it must actually contain the required change; a
+prerequisite already landed in the approved integration base is satisfied evidence rather than
+another task's work. A join uses a verified existing parent when eligible; when divergence or
+repository constraints leave no safe stack, that task pauses for a human merge decision and
+unrelated work continues. Planning never creates an automatic integration branch, combines
 branches, or rewrites either graph.
 
-Orchestrate persists the normalized layout and fingerprint. Equivalent reordered task/layout input
-resumes the same plan. A newer layout revision requires genuinely unstarted changes except for
-verified recovery from legacy execution-parent drift; incompatible changes to started work remain
-controlled `execution-plan-drift`, while a changed technical graph is `snapshot-drift`. Worker
-packets retain technical prerequisites and provenance separately, and effective prerequisites
-govern readiness, repair propagation, and resume. Execute accepts one selected bounded task, not a
-complete DAG.
+No execution forest, fingerprint, or worker state is persisted: Orchestrate keeps the technical
+prerequisites and their provenance separate from the order it actually chose, verifies what it
+needs at the current head, and re-reads current Git and PR facts before each dependent. A task whose
+result is unknown is rediscovered, never repeated blindly. Execute accepts one selected bounded
+task, not a complete DAG.
 
 Plan's only supported publication scopes are the explicit GitHub Project and parent-issue selectors
 above; both retain the same prerequisite DAG and read-back contract. For Orchestrate, `--issue`,
@@ -171,7 +167,7 @@ completion leave any retained Project artifact unchanged.
 | --- | --- |
 | [woostack-prepare](/docs/skills/woostack-prepare) | Produces or accepts a complete packet and delegates direct native graph publication to Plan; it does not create implementation work, branches, PRs, or execution. |
 | [woostack-plan](/docs/skills/woostack-plan) | `--project` requires an exact existing canonical Project URL and direct issue-graph publication; `--parent-issue new` or an exact parent URL publishes the native parent/child graph without a Project. Direct and composed Plan use the same publisher; there is no draft-only mode. |
-| [woostack-orchestrate](/docs/skills/woostack-orchestrate) | Interprets a complete planning handback or other understandable work context, resolves executable tasks and a bounded dependency DAG with provenance, dispatches ready tasks, verifies worker PRs, and records delivery without closing issues or merging. Issue, issue-list, and Project arguments are convenience hints; native links are evidence when present. |
+| [woostack-orchestrate](/docs/skills/woostack-orchestrate) | Interprets a complete planning handback or other understandable work context, resolves executable tasks and real dependencies with provenance, coordinates ready tasks through native host operations or sequential inline work, and verifies delivered PRs without closing issues or merging. Issue, issue-list, and Project arguments are convenience hints; native links are evidence when present. |
 | [woostack-execute](/docs/skills/woostack-execute) | Accepts inline bounded instructions or one canonical task-bearing issue URL as the complete input; retired `--project`, `--run`, and `--recheck` are rejected. Goal-only Execute makes no remote calls; an exact issue permits only its documented read through authorized GitHub capabilities (native tools preferred; host-authenticated `gh` supported), with no Project configuration or issue lifecycle writes. Commit owns repository/PR delivery. |
 | [woostack-init](/docs/skills/woostack-init) | Validates optional `github` configuration once and may discover non-secret owner/status defaults through authorized native GitHub capabilities or host-authenticated `gh`; it never selects persistence or probes writes. |
 | [woostack-bootstrap](/docs/skills/woostack-bootstrap) | May publish an approved design only to an exact explicitly selected Project after target approval and collision checks. |

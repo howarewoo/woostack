@@ -16,9 +16,10 @@ bash checks/<name>.sh <WOO_ROOT>
 bash checks/<name>.sh --fix <WOO_ROOT> <extra-args...>
 ```
 
-The orchestrator exports `WOOSTACK_DOCTOR_LIVE=0` for ordinary runs. An explicit controller-owned
-live run supplies one normalized, non-secret receipt through `--live-receipt`; static checks never
-inspect credentials or invoke a provider, adapter, HTTP, GraphQL, or hard-coded tool name.
+Every check is static. A check never inspects credentials or invokes a provider, adapter, HTTP,
+GraphQL, or hard-coded tool name. GitHub capability evidence comes from the host's authorized
+native tools or host-authenticated `gh` at the calling workflow's own read boundary, never from a
+Doctor receipt.
 
 
 ## Checks
@@ -32,7 +33,6 @@ inspect credentials or invoke a provider, adapter, HTTP, GraphQL, or hard-coded 
 | `config-policy` | malformed canonical policy or resolver failure | error | report | — |
 | `retired-provider` | legacy provider selector/profile is present as opaque inactive data | warn | report | — |
 | `retained-data` | historical local draft/manifest directory is present | warn | report | — |
-| `github-live` | trusted receipt is missing, malformed, foreign, or lacks a fixed read-only capability | error | report | — |
 | `retired-status-config` | legacy top-level `status.staleDays` is present | warn | report | — |
 
 OMP agent selection is host-owned. Doctor checks and repairs only its managed session-naming
@@ -43,21 +43,12 @@ registration whose directory is gone can be pruned.
 Legacy provider settings and retained records are not active policy and are never migration input
 for this engine. Their findings are actionable retirement guidance, not local-operation blockers.
 
-## Canonical policy and live receipt
+## Canonical policy
 
 `config-policy` invokes the Init resolver and does not duplicate its schema. The resolver validates
 only the optional top-level `github` object; `artifacts.provider`, `artifacts.linear`,
 `artifacts.plane`, and older root provider settings remain opaque and inactive. Template presence
 and repair apply only to the tracked base file.
-
-The controller resolves an authorized GitHub capability for an explicit Project operation, preferring
-native host tools when suitable and supporting host-authenticated `gh`. Its fixed semantic contract
-is defined at
-[`artifact-providers/github.md#doctor-live-receipt`](../../woostack-init/references/artifact-providers/github.md#doctor-live-receipt).
-It contains canonical owner/repository and Status-option evidence, and these capabilities:
-`projectRead`, `statusFieldRead`, `pagination`, and `independentReadBack`. It never derives
-requirements from a receipt-declared list; unrelated write/dependency capabilities may be false.
-Parent-issue and exact issue paths do not require a receipt.
 
 ## Adding a check
 

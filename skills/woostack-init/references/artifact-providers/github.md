@@ -22,13 +22,13 @@ Project destination; Orchestrate reads the canonical repository and the issue/ta
 resolve the user's work. For Orchestrate, a Project is included only when explicitly selected; its
 status lifecycle is used only when that selection requests status mutation.
 
-Orchestrate's tracker interpretation is read-only and has different evidence requirements. An exact
-`--issue` tracker may use a complete verified implementation index to establish membership when
-native child hierarchy is absent, partial, or unavailable. Read every selected issue, preserve
-native/declared/inferred edge provenance, and disclose failed relation reads honestly; declared
-membership never becomes `actual_parent` or a fabricated native receipt. This relaxation does not
-weaken Plan: Plan parent/Project publication still requires its native relationship capabilities and
-complete read-back before it calls the publication verified.
+Orchestrate's tracker interpretation is read-only and has different evidence requirements. It may
+use a complete verified implementation index to establish membership when native child hierarchy is
+absent, partial, or unavailable. Read every selected issue, keep native/declared/inferred edge
+provenance distinct, and disclose failed relation reads honestly; declared membership never becomes
+`actual_parent` or a fabricated native receipt. This relaxation does not weaken Plan: Plan
+parent/Project publication still requires its native relationship capabilities and complete
+read-back before it calls the publication verified.
 
 - Plan parent-issue publication uses the canonical repository plus `--parent-issue new` or one
   exact existing parent issue URL. Orchestrate may receive an issue URL as a convenience hint, but
@@ -70,15 +70,15 @@ endpoint identities back. Do not flatten nested containers, infer missing Plan e
 silently adopt a foreign issue.
 
 Plan normalizes every direct child with a stable task identity, a positive ordinal, and a complete
-declared predecessor set. Orchestrate instead resolves each executable task from the admitted
-conversation, repository, tracker/specification, and real issue evidence, then records native,
-declared, or inferred edge provenance separately. An exact tracker's complete readable
-implementation index can declare the executable set without a native child hierarchy; every named
-issue must still be independently readable and context-only references must be excluded. Ordinals
-are display/order metadata, not an implicit dependency chain. Reject duplicate or missing task
-identities, foreign predecessor references, self-dependencies, cycles, and edges whose endpoints
-were not independently read in the admitted exact scope. A blocked external prerequisite remains
-blocked; it never widens the scope or becomes an invented task.
+declared predecessor set. Orchestrate instead resolves each executable task from the conversation,
+repository, tracker/specification, and real issue evidence, keeping native, declared, and inferred
+edge provenance distinct in its own resolution. A complete readable implementation index can
+declare the executable set without a native child hierarchy; every named issue must still be
+independently readable and context-only references must be excluded. Ordinals are display/order
+metadata, not an implicit dependency chain. Reject duplicate or missing task identities, foreign
+predecessor references, self-dependencies, cycles, and edges whose endpoints were not independently
+read in the exact scope. A blocked external prerequisite remains blocked; it never widens the
+scope or becomes an invented task. An omitted administrative field is not a blocker.
 
 ## Direct issue publication
 
@@ -140,33 +140,6 @@ matching content confirms the same operation without another append; missing, ch
 ambiguous content blocks pending reconciliation. Never allocate a replacement marker or Project,
 repeat an append blindly, or report publication success from the mutation response alone.
 
-## Doctor live receipt
-
-The optional controller-owned receipt is normalized, mode 0600, non-secret, and consumed by the shell
-engine without provider calls. It has exactly these semantic requirements:
-
-- `schemaVersion: 1`, `provider: "authorized-github"`, `interfaceAvailable: true`, authenticated
-  ready state, a non-secret viewer, unique owner resolution, and a canonical repository URL;
-- complete single-select `projectStatuses` with five distinct option IDs and names for `planned`,
-  `executing`, `inReview`, `done`, and `blocked`, plus the resolved Status field; and
-- boolean capability evidence including fixed read-only requirements `projectRead`, `statusFieldRead`,
-  `pagination`, and `independentReadBack`.
-
-The shell rejects extra/secret keys, malformed or foreign identity/read-back evidence, and any missing
-fixed capability. It never trusts receipt-declared required-capability lists. `projectWrite`,
-`statusFieldWrite`, `issueWrite`, and dependency writes may be false. A parent-issue operation does not
-need this Project-oriented receipt.
-
-Retain the complete DAG for explicit Orchestrate execution; Execute cannot accept or dispatch it as a
-graph. A caller may select one task from any valid DAG for
-[bounded Execute admission](../../../woostack-execute/SKILL.md#admit-one-task), supplying its concrete
-parent and complete prerequisite-readiness evidence under the
-[workspace/ancestry guidance](../worktrees.md#repository-and-ancestry-evidence). An unresolved join
-waits as a task-local checkpoint, not as a request for a new parent or integration strategy; it does
-not block unrelated tasks. Run-store storage retains the existing
-task/dependency/mapping forms without schema migration or edge rewriting; workflow admission validates
-the DAG.
-
 ## Recovery and delivery boundary
 
 Retain the exact issue/Project identity, marker, repository, scope, last independently read boundary,
@@ -176,6 +149,7 @@ A caller that needs its own recovery checkpoint keeps it private and owner-only;
 [run-store reader](../artifact-backends.md#owner-only-local-run-store-reader) only reads retained
 records.
 
-Orchestrate owns scheduling and independent delivery-note recovery for its admitted task/DAG scope.
-Execute owns one bounded task through one PR. Git, branches, commits, pull requests, reviews, and merge
-evidence remain authoritative; merge authority is human-only.
+Orchestrate owns ordering, concurrency, and in-session observation of the scope it resolved;
+Execute owns one bounded task through one PR, and Commit writes an issue note only when a caller
+explicitly requests one. Git, branches, commits, pull requests, reviews, and merge evidence remain
+authoritative; merge authority is human-only.

@@ -37,17 +37,18 @@ repository fallback list; see the [shared note](README.md#host-level-fallback-sh
 
 ## Per-skill notes
 
-- **woostack-orchestrate (parallel dispatch):** for each schedule packet, instantiate one
-  delivery-capable isolated-context subagent with the dispatch-prompt worktree pin. Pass `workspace`,
-  `branch`, `parent_branch`, `parent_sha`, child issue URL, and packet
-  `bounded_input`/`acceptance`/`checks` as the complete Execute contract. Clamp `effective_cap` to
-  host capability, refill as workers complete. A serializing mode runs at concurrency one with
-  a clear notice; without delivery-capable subagents, block rather than executing inline.
+- **woostack-orchestrate (multi-task coordination):** instantiate one delivery-capable
+  isolated-context subagent per ready task with the dispatch-prompt worktree pin, passing the
+  complete bounded task contract, acceptance, and required checks, and start the next task as a
+  worker completes. A serializing mode runs one task at a time with a clear notice; a runtime
+  without delivery-capable subagents runs the tasks sequentially in the calling session and reports
+  that. Never describe one-at-a-time dispatch as parallel, and never present sequential work as
+  independent review.
 
 ## Capability limits
 
 Normal session-model inheritance needs no notice. Report an unsupported optional explicit
 override; block when exact model/effort identity is required but unproven. Missing required
-delivery, isolation, identity-correlation, review, or recovery capability blocks per
+delivery, isolation, review, or recovery capability blocks per
 [conditional mechanics](README.md#conditional-mechanics-shared); GitHub operations follow the
 [shared GitHub contract](README.md#github-capability-and-authentication-shared).

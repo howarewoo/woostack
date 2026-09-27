@@ -39,11 +39,7 @@ finding_codes() {
 assert_eq "$(finding_codes "$fixture_root/local-project")" "retired-status-config" "local-policy fixture emits retirement guidance"
 assert_eq "$(finding_codes "$fixture_root/incomplete-project")" "" "missing historical models is not a config finding"
 assert_eq "$(finding_codes "$fixture_root/legacy-project")" $'retired-provider,retained-data' "legacy fixture emits only its exact findings"
-assert_eq "$(finding_codes "$fixture_root/ci-project")" "" "receipt fixture stays free of unrelated findings"
-git -C "$fixture_root/ci-project" init -q
-git -C "$fixture_root/ci-project" remote add origin https://github.com/acme/widgets.git
-assert_eq "$(WOOSTACK_DOCTOR_LIVE=1 WOOSTACK_DOCTOR_LIVE_CONTEXT="$HERE/fixtures/receipts/github-success.json" finding_codes "$fixture_root/ci-project")" "" "successful receipt fixture remains clean"
-assert_eq "$(WOOSTACK_DOCTOR_LIVE=1 WOOSTACK_DOCTOR_LIVE_CONTEXT="$HERE/fixtures/receipts/github-missing-read.json" finding_codes "$fixture_root/ci-project")" "github-live" "rejected receipt emits only the live finding"
+assert_eq "$(finding_codes "$fixture_root/ci-project")" "" "complete canonical policy stays free of unrelated findings"
 
 
 # Retained records are report-only and byte-preserved.

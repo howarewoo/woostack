@@ -26,9 +26,9 @@ You need:
   where your agent runs commands. Init's OMP support script requires Python 3.
 - An existing Git repository open in both your terminal and your agent.
 
-The Orchestrate controller and optional historical run-store reader additionally require Unix/POSIX
-locking, ownership, directory, and no-follow filesystem primitives. Python 3 alone does not make
-these two helpers native Windows programs; installing and reading the skills does not require them.
+The optional historical run-store reader additionally requires Unix/POSIX locking, ownership,
+directory, and no-follow filesystem primitives. Python 3 alone does not make that helper a native
+Windows program; installing and reading the skills does not require it.
 
 Installed runtime paths need only the skill collection and your consumer repository, not this
 project's source checkout or docs application. Maintainers can check that boundary with the
@@ -98,8 +98,8 @@ Send this command to your coding agent:
 In `--check` mode, Doctor reports local configuration and support-file problems without repairing
 them or contacting GitHub. Resolve any reported local configuration error before starting
 repository work. To request proposed repairs, invoke `/woostack-doctor` without `--check`; it must
-ask for approval before changing anything. An explicit `--live` request validates only the fixed
-read-only GitHub contract selected by Doctor; it is not required for parent-issue workflows.
+ask for approval before changing anything. Doctor has no live GitHub mode; the selected workflow
+reads its own required GitHub evidence through an authorized host capability.
 
 <Callout type="info">
   Keep project-specific rules in the root `AGENTS.md`. The
@@ -119,14 +119,15 @@ chat recipe and Prepare stop after publication; neither starts execution. An alr
 bounded task can go straight to [Execute](/docs/skills/woostack-execute) without a planning graph.
 For approved multi-task work, hand Orchestrate the complete planning handback or understandable
 issue/task context. It interprets the conversation, repository, and GitHub records, separates
-executable issues from context, resolves a bounded dependency DAG with provenance, and asks a
-focused question when material ambiguity remains. With `--issue`, a complete readable tracker index
-can establish declared membership when native child links are absent, partial, or unavailable; every
-selected issue still needs real identity and a complete contract. `--issue`, `--issues`, and
-`--project` are convenience hints, not an exhaustive admission taxonomy. For Orchestrate, a Project
-is included only when explicitly selected; its status lifecycle is used only when that selection
-requests status mutation. See [Orchestrate](/docs/skills/woostack-orchestrate) for worker
-capabilities, graph evidence, and recovery boundaries.
+executable issues from context, reads the real dependencies with provenance, and asks a focused
+question only when material ambiguity affects outcome, scope, or authority. With `--issue`, a
+complete readable tracker index can establish declared membership when native child links are
+absent, partial, or unavailable; every selected issue still needs real identity and a complete
+contract. `--issue`, `--issues`, and `--project` are convenience hints, not an exhaustive admission
+taxonomy. A Project is included only when explicitly selected; its status lifecycle is used only
+when that selection requests status mutation. See
+[Orchestrate](/docs/skills/woostack-orchestrate#coordinate) for coordination, graph evidence, and
+uncertainty boundaries.
 
 <Cards>
   <Card title="Plan in ChatGPT, implement in Codex" href="/docs/chatgpt-to-codex" description="Publish a native or honestly declared issue tracker, then request execution separately." />

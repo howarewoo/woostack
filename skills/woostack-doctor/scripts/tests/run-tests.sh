@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")"
-# Static tests are provider-free; live behavior consumes only normalized fixture receipts.
-unset WOOSTACK_DOCTOR_LIVE WOOSTACK_DOCTOR_LIVE_CONTEXT
+# Every test is static and provider-free.
 rc=0
 tests=(
   test-doctor.sh

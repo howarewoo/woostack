@@ -100,7 +100,7 @@ successful result reports:
    /woostack-orchestrate --issue <verified specification-parent-URL>
    ```
 
-The command is a handoff hint, not an exhaustive Orchestrate admission type. The user may instead
+The command is a handoff hint, not an exhaustive Orchestrate input form. The user may instead
 provide the complete handback or understandable tracker content in conversation. A successful Plan
 publication is the native parent/child graph plus a complete read-back of its declared native
 prerequisite edges; independently verified tracker content whose native relationships are absent or

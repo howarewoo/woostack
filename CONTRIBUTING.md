@@ -25,7 +25,7 @@ when to use each one. Read [AGENTS.md](AGENTS.md) for the standing repository ru
 | Change requirements gathering (Ideate) | `skills/woostack-ideate/SKILL.md` |
 | Change the check of requirements against the repository (Harden) | `skills/woostack-harden/SKILL.md` |
 | Change the Plan publisher and issue graph contract | `skills/woostack-plan/SKILL.md` |
-| Change GitHub issue-graph dispatch and stacked delivery | `skills/woostack-orchestrate/SKILL.md`, `skills/woostack-orchestrate/scripts/` |
+| Change multi-task coordination and stacked delivery | `skills/woostack-orchestrate/SKILL.md` |
 | Change the execute phase implementation step | `skills/woostack-execute/SKILL.md` |
 | Change browser-based app checks (`/woostack-qa`) | `skills/woostack-qa/SKILL.md`, `skills/woostack-qa/references/` |
 | Change session reflection (`/woostack-reflect`) | `skills/woostack-reflect/SKILL.md`, `skills/woostack-reflect/scripts/` |
@@ -48,11 +48,9 @@ when to use each one. Read [AGENTS.md](AGENTS.md) for the standing repository ru
 4. Run the changed asset's actual command or focused smoke, plus relevant behavioral tests and
    syntax checks. Tests should check behavior, not exact instruction wording or a test-only copy.
    This repo has no universal test command or CI for its own PRs. For this collection, use
-   `pnpm -C site test` and `pnpm -C site build` for catalog/parser structure,
-   `bash skills/woostack-orchestrate/scripts/tests/run-tests.sh` for production-controller behavior,
-   and the [on-demand workflow smoke recipes](skills/using-woostack/references/workflow-smoke.md)
-   for material Plan/Execute/Orchestrate changes. Their installed integration matrix and bounded
-   before/after recipe cover cross-boundary changes without a model benchmark service. Run
+   `pnpm -C site test` and `pnpm -C site build` for catalog/parser structure, the
+   [on-demand workflow smoke recipes](skills/using-woostack/references/workflow-smoke.md)
+   for material Plan/Execute/Orchestrate changes, and
    `bash skills/woostack-init/scripts/tests/run-tests.sh` and
    `bash skills/woostack-doctor/scripts/tests/run-tests.sh` when those helpers are affected.
    Report deterministic helper results, manual instruction traces, and real host/model outcomes

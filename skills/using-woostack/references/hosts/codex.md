@@ -44,18 +44,18 @@ does not manually select entries from repository fallback lists; see the
 
 ## Per-skill notes
 
-- **woostack-orchestrate (parallel dispatch):** for each schedule packet, dispatch one
-  delivery-capable subagent with the dispatch-prompt worktree pin. Pass `workspace`, `branch`,
-  `parent_branch`, `parent_sha`, child issue URL, and packet `bounded_input`/`acceptance`/`checks`
-  as the complete Execute contract; clamp `effective_cap` to real capability, refilling as
-  workers complete. A Codex Action job cannot be assumed to fan out and blocks rather than
-  executing inline.
+- **woostack-orchestrate (multi-task coordination):** deliver each ready task through one
+  delivery-capable subagent with the dispatch-prompt worktree pin, passing the complete bounded
+  task contract, acceptance, and required checks, and start the next task as a worker completes. A
+  local client with no delivery-capable subagent runs the tasks sequentially in the calling session
+  and reports that. A Codex Action job cannot be assumed to fan out; never describe one-at-a-time
+  dispatch as parallel, and never present sequential work as independent review.
 
 ## Capability limits
 
 One model per Codex Action job is the normal host behavior. A local spawn without an explicit
 model inherits its configured or parent agent model without a degradation notice. Report an
 unsupported optional explicit request; block an exact-identity requirement without matching
-host evidence. Missing required delivery, isolation, identity-correlation, review, or recovery
+host evidence. Missing required delivery, isolation, review, or recovery
 capability blocks per [conditional mechanics](README.md#conditional-mechanics-shared); GitHub
 operations follow the [shared GitHub contract](README.md#github-capability-and-authentication-shared).

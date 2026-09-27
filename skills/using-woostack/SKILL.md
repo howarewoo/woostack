@@ -41,7 +41,7 @@ needs; routing alone loads none. Retired managed-provider data is never imported
 | Reconcile a supplied specification or candidate issue plan against repository evidence | `woostack-harden` |
 | Prepare a feature or proved defect for a verified GitHub issue graph without implementation | `woostack-prepare` |
 | Turn an approved specification into reviewable increments and publish the selected GitHub issue graph | `woostack-plan` |
-| Interpret understandable multi-task work, resolve executable tasks and dependencies, and schedule verified bounded work | `woostack-orchestrate` |
+| Coordinate approved multi-task work through native host facilities, resolve real dependencies, and verify delivered work | `woostack-orchestrate` |
 | Implement one bounded task — enhancement, refactor, test-only work, or authorized understood correction — and deliver one PR | `woostack-execute` |
 | Commit current changes and submit or update their PR | `woostack-commit` |
 | Review a pull request | Use [Pullfrog](https://pullfrog.com/). |
