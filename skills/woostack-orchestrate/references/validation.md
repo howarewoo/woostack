@@ -262,8 +262,11 @@ is null. All submitted and pushed times use GitHub's UTC ISO-8601 `Z` form.
 The helper applies each reviewer's latest substantive state and dispositions: an unresolved
 change-request state remains blocking even when a related thread is marked resolved, while a
 resolved thread may close that thread's finding without rewriting the review verdict. Unresolved
-threads block; resolved threads and attributed dismissed reviews do not. Only eligible reviewers
-count toward required approvals, and each owned changed path needs an eligible owner approval.
+threads block; resolved threads and attributed dismissed reviews do not. A selected parent's own
+threads are read fresh, and only an explicit user approval may carry one exact finding forward under
+the [`review_waivers`](scheduling.md#normalized-snapshot) contract; a child's own delivery readback
+never accepts one. Only eligible reviewers count toward required approvals, and each owned changed
+path needs an eligible owner approval.
 Approvals count only from the current head when repository policy dismisses stale approvals or
 requires approval of the last push; the latter also requires a current-head approval submitted
 after that push by an eligible reviewer other than the pusher. A review for an older commit remains
@@ -570,6 +573,27 @@ substitute for a recorded native writer. Once recovered and recorded, apply a bo
 observation before unknown reconciliation when the response itself is missing or malformed.
 `record-worker` uses the same durable claims and checkpoint CAS as other controller mutations.
 
+An issued packet can be withdrawn **only before host launch** if a fresh parent/stack read
+invalidates its reservation. Under the same exclusive controller owner, first confirm native host
+session/process inventory has no matching writer, the reserved workspace and local/remote branch
+do not exist, and a complete native PR search for that branch is empty. Bind that fresh snapshot
+and a host `launch_not_attempted` attestation to the exact checkpoint digest, owner, reservation,
+and attempt binding:
+
+```text
+python3 <orchestrate-skill>/scripts/orchestrate.py withdraw-unlaunched \
+  --admitted admitted.json --state controller-state.json \
+  --state-out controller-state.json --git-repo <canonical-repository> \
+  --task <task-id> --fresh fresh-snapshot.json --evidence native-absence.json
+```
+
+The receipt records `remote_branch: {"complete": true, "exists": false}` and
+`pr_discovery: {"complete": true, "prs": []}` from independently read native endpoints.
+The helper retains the owner claim and withdrawn attempt history while returning the task to
+`pending`; the next schedule issues a new binding from current evidence. A launched writer,
+ambiguous transport result, source mutation, or unproved absence **cannot** use this path:
+preserve its reservation and reconcile normally. Never manufacture absence from a missing reply.
+
 ## Unknown reconciliation
 
 An unknown task remains reserved and blocks only that task and its descendants. Before reconciling,
@@ -713,8 +737,12 @@ defective forever. Do not claim it passed or overwrite its historical result. Wi
 candidate evidence, the unchanged-source gate continues to reject changed landing paths.
 Instead of `landed_revalidation`, supply exactly one `existing_delivery.integration_revalidation`.
 It uses the same receipt fields above, but `checks.head_sha` and `validation.checked_head` identify
-the exact fresh integration SHA, and `head_diff_identity` is the complete locally calculated
-binary diff from the original retained `reservation.parent_sha` through that candidate.
+the exact fresh integration SHA. For an ancestor-preserving landing, `head_parent` remains the
+original retained `reservation.parent_sha` and the diff covers that full range. When the native
+merge squashes or rebases a source parent absent from integration, `head_parent` is the original
+native `merge_commit_sha` and the calculated binary diff covers that landing through the candidate.
+That second range requires the separate exact-native-head source receipt below; it never claims
+the original source parent is in main.
 
 Additionally require `candidate_sha` equal to fresh `integration.sha`, `approved: true`,
 an `approval_reference` to the user's exact corrective-candidate decision, and
@@ -741,6 +769,74 @@ The saved availability identifies the candidate revision and retains the origina
 corrective PR identities. Future admissions/refills require fresh evidence at their exact
 candidate too. While corrections remain drafts or the current candidate fails acceptance,
 withhold this receipt; policy reconciliation alone cannot release those tasks.
+
+### Retained open stack source
+
+Fresh `integration_revalidation` always proves the current integration candidate, including
+the original contract, complete required checks/smoke, independent review, exact diff, and every
+corrective landing through the current tip. Its candidate revision is **not** automatically a
+source ancestor of an already-open stack whose reserved start predates that tip. Do not rewrite
+that stack's parent, treat an earlier approval as current, or infer compatibility from unchanged
+path names: a later integration change can touch the original task's paths.
+
+For that one retained open-stack start, add
+`existing_delivery.historical_source_revalidation` beside (not instead of) the current
+`integration_revalidation`. For an ancestor-preserving landing, it carries the same candidate
+receipt fields described above: `head_parent` equal to the original `reservation.parent_sha`,
+`candidate_sha` equal to the exact historical source commit, its calculated `head_diff_identity`,
+independent complete contract `checks` and `validation` at that commit, `implementer_ids`, explicit
+`approved` and `approval_reference`, and complete uniquely verified native `corrections` through
+that source. This historical source must precede the current integration commit. For a squash or
+rebase landing where the reserved source parent is not an integration ancestor, the source receipt
+instead names **exactly the current original merged PR's native `head_sha`** as `candidate_sha`;
+its original reserved `head_parent` and binary diff cover the complete source range. Independent
+checks, smoke, contract review, implementer identities and explicit approval are still mandatory.
+The helper verifies the merged native PR identity and original landing on current integration;
+the source head itself need not be an ancestor of integration. Corrections after the original
+landing belong in the integration receipt's complete native PR enumeration, not a fictitious
+source-branch ancestry.
+
+Stopped adoption preserves that split: the original reserved parent binds the historical native
+source receipt, while the integration receipt starts at the original native landing. Neither
+receipt may substitute its parent for the other or rewrite the retained worker's reservation.
+
+```json
+{
+  "compatibility": {
+    "integration_sha": "<current integration SHA>",
+    "integration_diff_identity": "<current integration_revalidation.head_diff_identity>",
+    "source_sha": "<historical candidate_sha>",
+    "source_diff_identity": "<historical head_diff_identity>",
+    "contract_hash": "<original admitted task contract hash>",
+    "reviewer_id": "<fresh independent compatibility reviewer>",
+    "approved": true,
+    "approval_reference": "<explicit current-context compatibility decision>"
+  }
+}
+```
+
+The compatibility reviewer differs from all recorded implementers and the original worker.
+Both source and current receipts independently pass their original-contract review; every
+correction on integration (and on an ancestor-preserving historical source) needs complete native
+enumeration. A historical failure stays failed. Each fresh snapshot supplies both receipts at
+its exact selected historical source and current integration SHA/diff (the native PR head is
+mandatory for a disjoint squash/rebase source); any failed/missing receipt blocks the prerequisite
+rather than falling back to stale saved satisfaction. The helper keeps current integration as the
+availability revision, and records the separately verified source only as
+conditional ancestry evidence. That source may satisfy containment only when it equals the
+original reserved parent SHA of the retained open stack's first still-open execution ancestor
+(or the same task's retained open integration-start reservation), is contained in the selected
+open parent, and the current integration contains the original native landing. An ordinary
+controller-owned merged ancestor retains its canonical merged satisfaction gate without requiring
+its squash merge commit
+in an open parent based on the verified source head. If its own historical source is used, its
+reconciled landing must also be contained in that parent and fresh current integration availability
+must match it. Merges on other branches do not acquire an integration-availability requirement.
+Closed, unknown, or unverified ancestors remain blockers. A new root at the current integration
+tip never selects the old source.
+The open parent PR and every later stack ancestor retain their normal lifecycle, head,
+CI, identity, and native-stack checks; this receipt grants no controller state reset, historical
+result rewrite, or authority to dispatch under an outdated admission.
 
 If the response is lost, read the same checkpoint and its `landed_adoption_history`, verify the
 exact binding and selected task evidence against the durable checkpoint, and continue from that

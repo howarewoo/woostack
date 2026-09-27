@@ -288,7 +288,9 @@ class FakeGitHub:
     def parent_pr_readbacks(self) -> Dict[str, Any]:
         result = {}
         for branch in self.parent_branches:
-            head = git(self.repo, "rev-parse", "refs/heads/" + branch)
+            head = git(self.repo, "rev-parse", "--verify", "refs/heads/" + branch, check=False)
+            if not head:
+                continue
             matches = [task for task, pr in self.prs.items()
                        if pr["branch"] == branch and pr["head_sha"] == head]
             result[branch] = {
