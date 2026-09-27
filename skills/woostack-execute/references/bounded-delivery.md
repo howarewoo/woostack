@@ -1,133 +1,65 @@
-# Bounded one-PR delivery
+# Bounded delivery
 
-Shared implementation and delivery safeguards owned by [Execute](../SKILL.md). Execute admits one
-complete bounded enhancement, refactor, test task, or authorized correction with causal evidence.
-This reference cannot widen the accepted task or replace its admission gates.
+Delivery safeguards for one admitted [`woostack-execute`](../SKILL.md) outcome. They narrow
+execution; they cannot widen the accepted scope or replace admission. Git and canonical GitHub reads
+supply source-control evidence, not permission to implement or authority to merge, and repository
+delivery runs through [`woostack-commit`](../../woostack-commit/SKILL.md) under the shared
+[source-control contract](../../woostack-commit/references/source-control.md). Implementation,
+verification, and workspace selection stay in [Execute](../SKILL.md); only the delivery-time
+specifics follow.
 
-Create no project manifest, specification, or multi-task execution plan. Selected issue input follows
-[Execute's exact GitHub issue admission](../SKILL.md#optional-exact-github-issue). A coordinating
-workflow may hand this worker its bounded outcome, non-goals, acceptance, prerequisites, and
-selected workspace and base; Execute consumes that packet for one task, schedules no sibling, and
-owns no shared plan or persisted state. Repository delivery goes through Commit; Git and canonical
-GitHub reads supply source-control evidence, not permission to implement or authority to merge.
+## One outcome, no hidden state
 
-Before mutation, apply the shared [source-control contract](../../woostack-commit/references/source-control.md).
-Use native Git and an authorized GitHub capability for repository delivery (prefer native GitHub
-tools when suitable; host-authenticated `gh` is supported). Discover actual operation capabilities,
-read shapes, pagination, and independent readback before any consequential operation.
+Create no project manifest, specification, multi-task plan, or persisted workflow state. A
+coordinating workflow may hand over its bounded outcome, non-goals, acceptance, and selected
+workspace and base; Execute consumes that for one outcome, schedules no sibling, and owns no shared
+plan. Repository defaults cannot widen the accepted scope. If the outcome grows, retain the
+workspace and return to the caller's admission boundary. A reviewability split stays within
+authorized scope; ask before changing an explicit PR mapping.
 
-## Keep one bounded contract
+Resume an exact existing workspace, branch, base, and head instead of creating a duplicate, and
+revalidate the admitted outcome plus direct repository evidence before each mutation boundary and
+after interruptions. Require either no task state or one exact recoverable state; never reset,
+clean, stash, or overwrite unexpected user work.
 
-Keep the following resolved contract explicit in the active conversation or completely verified
-handoff packet; derive it from a selected exact issue and repository evidence when applicable:
+## Correct and review in place
 
-- stable task identity, goal, exact repository/target, bounded paths, non-goals, and acceptance;
-- intended change, relevant technical consequences, risks, finite checks, and changed-path smoke;
-- integration base commit, approved parent-branch intent, and retained start/old-parent SHA;
-- for a correction, evidence-bound diagnosis and the user's authorization for the complete scope; and
-- for a selected issue, the independently verified canonical URL, native identity, and accepted
-  issue-derived scope.
+A repair dispatched from PR-check observation on this PR is an authorized correction of that
+failing revision: establish cause from reproduction or adequate evidence, apply the smallest
+in-scope change, rerun affected checks, and update the same PR through Commit. A separate
+read-only Debug invocation is optional, not a prerequisite. Execute adds no monitoring loop.
 
-Do not create hidden workflow state. Repository defaults cannot widen the accepted scope. If
-scope expands, retain the workspace and return to the calling skill's planning/admission boundary;
-never silently change the contract or split it into additional PRs.
+Independent review applies only when requested, required by repository workflow, or warranted by
+risk. Bind its observations to the exact outcome, repository, base, and complete diff, correct
+in-scope findings, and rerun affected checks; a material scope change returns to admission.
 
-## Create or resume one isolated workspace
+## Submit and read back
 
-Apply the [isolated-workspace guidance](../../woostack-init/references/worktrees.md) for identity,
-workspace evidence, base admission, collision discovery, and task-only writes. Independently read the
-physical repository root, canonical remote, configured integration base and exact commit, complete
-worktree/branch/status/diff inventory, Git ancestry, and canonical GitHub PR state. Require either no
-task state or one exact recoverable state. Never reset, clean, stash, overwrite, or create around
-unexpected user work.
-
-The repository, host, or caller selects one isolated task workspace and branch. It may reuse a suitable
-linked checkout, including an external or host-managed worktree, or create a new linked checkout using
-its supported capabilities. Do not require a fixed path, branch recipe, creation command, or
-managed-worktree flag.
-Resume an exact existing task/workspace/branch/parent/head instead of creating a duplicate. Revalidate
-the approved contract and direct repository evidence before each mutation boundary and after
-interruptions.
-
-## Implement and verify
-
-Implement every change needed for the accepted bounded scope and no other change. Before choosing
-an implementation, load and apply the canonical
-[least-code standard](../../woostack-bootstrap/references/patterns.md#7-least-code--comments):
-trace the affected flow, then take the first safe rung that satisfies the complete contract.
-Carry that standard into any delegated implementation packet. Simplification cannot reduce accepted
-scope, compatibility, safety protections, or required verification. Follow the canonical
-[application-boundary adapters rule](../../woostack-bootstrap/references/patterns.md#3-application-boundary-adapters)
-for new or materially changed boundaries; do not migrate untouched legacy boundaries or add no-op
-wrappers for shared identity contracts.
-
-When considering optional implementation delegation, use the shared
-[role-preference guidance](../../using-woostack/references/model-tiers.md) to weigh delegation,
-context, and verification overhead for simple tasks. The calling skill retains delivery ownership.
-
-Inspect the complete diff and changed paths. Run focused verification and the changed-path smoke
-scenario, retaining exact commands and observed results. A failed or incomplete required check
-blocks delivery. A same-PR repair dispatched by Orchestrate from PR-check observation is an
-authorized correction of the supplied failing revision: diagnose it (using the surviving Debug
-workflow when root-cause proof is missing), apply the smallest in-scope change, and update that PR
-through Commit. Execute adds no monitoring loop and schedules no sibling.
-
-Execute does not require an independent pre-commit review receipt. If the caller requests an
-independent reviewer, bind its observations to the exact task, repository, parent, and complete
-diff identity. The implementer cannot claim independent review of their own work. Correct in-scope
-findings and rerun affected checks; material scope changes return to Execute admission.
-
-## Deliver and read back one PR
-
-Only after required verification passes on the complete task diff, use
-[Commit](../../woostack-commit/SKILL.md) to submit at most one PR under the source-control contract.
-Add a Git commit (never automatically amend), explicitly push only the task branch without force,
-and use the selected authorized GitHub submission capability to create a draft only after excluding
-an existing matching PR; host-authenticated `gh pr create --draft` and `gh pr edit` are supported
-equivalents for draft creation and body updates. Preserve the exact repository/head/base identity and
-intended base.
-Never merge, mark ready, enable auto-merge, enqueue, or force-push.
-
-When the admitted dependent's parent PR is open, Commit also performs
-[native stack membership](../../woostack-commit/references/source-control.md#native-github-stack-membership-for-a-dependent-pr)
-after this PR exists, using the verified parent PR and the configured integration/trunk branch.
-Read back the stack identity, trunk, ordered membership, and the affected PR heads/bases; a chained
-base is not membership. Conflicting or uncertain membership, a moved parent, or unavailable stack
-capability is a bounded incomplete delivery boundary — preserve the verified commit and PR and
-report it, rather than restructuring the stack or calling the delivery complete. An independent PR
-performs no stack operation.
-
-For a selected exact issue, re-read it before submission and on resume to verify its
-identity, repository, open state, and continued agreement with the accepted contract. Changed scope
-returns to the calling skill's admission boundary. An unavailable or invalid issue blocks associated
-delivery; retain any verified repository progress rather than dropping the association.
-Apply the canonical
+After required checks pass on the complete in-scope diff, let Commit submit the reviewable
+PR(s) appropriate to the authorized mapping and read back the exact relevant repository, branch,
+and matching PR facts. Re-read selected exact issues before submission and on resume; changed
+scope returns to admission. Apply the
 [PR association rules](../../woostack-commit/references/provider-attribution.md#pr-association):
-preserve human-authored PR text, add exactly one `Resolves <canonical GitHub issue URL>` line, and
-verify the full PR body and intended reference on read-back alongside head/base/SHA. This uses only
-the selected issue's reads and GitHub PR operations, not Project writes or issue writes. Do not claim
-the issue is closed or close it directly. An unknown submission or association outcome requires
-discovery before retry; report repository delivery and association separately.
+preserve human-authored PR text and close only fully addressed work, without claiming or performing
+issue closure. Report repository delivery and association separately.
 
-Independently read back the exact repository, branch, parent, commit, changed paths, PR URL,
-PR head/base, open state, and — for a registered dependent — the stack identity, trunk, and ordered
-membership. The success boundary is one complete reviewable PR whose verified commit contains
-every requested bounded change; membership is a separate fact that a chained base does not supply.
+Register [native stack membership](../../woostack-commit/references/source-control.md#native-github-stack-membership-for-a-dependent-pr)
+only when explicitly requested or required by repository workflow, and verify its identity,
+trunk, order, and affected PR heads/bases; chained bases and mutation responses alone prove
+nothing. Read back the repository, branch, base, commit, changed paths, PR URL, head, and open
+state for each delivered PR.
 
-After delivery, retain the selected workspace unless its owner explicitly supplies a safe lifecycle
-operation. Never remove a user-owned, host-managed, or external checkout as workflow cleanup.
-Publication does not create a workspace obligation. If implementation, verification, review, commit,
-submission, read-back, or lifecycle handling fails, is blocked, or has an unknown outcome, retain the
-workspace and return exact Git and GitHub resume evidence: repository/base, task/workspace,
-branch/parent, head/commit, status/diff, verification/review results, PR
-URL/state, and observed stack identity/trunk/membership when known. On resume, reread those facts
-and continue at the first unproved boundary without duplicating a branch, commit, PR, stack, or
-cleanup.
+## Recover and return
 
-## Return
+On any failed, blocked, or unknown step, retain the workspace and return exact resume evidence:
+repository and base, workspace and branch, head and commit, status and diff, check and review
+results, PR URL and state, and required stack identity and order when known. On resume, reread
+those facts and continue at the first unproved boundary without duplicating a branch, commit, PR,
+stack, or cleanup. Retain the selected workspace unless its owner supplies a safe lifecycle
+operation, and never remove a user-owned, host-managed, or external checkout as cleanup; publication
+creates no workspace obligation.
 
-Return the stable task identity, accepted scope and correction authorization when applicable, worktree/branch,
-base/parent, changed paths, verification/smoke and any independent-review results, commit SHA, canonical
-PR URL/head/base/state, and cleanup result. For an exact issue association, include the canonical
-issue URL and verified closing-reference outcome. For a reroute or retained failure, name the
-destination or blocker and exact safe resume boundary. Never claim evidence not directly observed.
+Return the admitted outcome and scope, worktree/branch/base, changed paths, check and review
+results, commit SHA, canonical PR URL/head/base/state, and any issue-association outcome. For a
+reroute or retained failure, name the destination or blocker and the exact safe resume boundary.
+Never claim evidence not directly observed.

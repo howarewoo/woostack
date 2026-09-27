@@ -23,9 +23,10 @@ utility skills never mutate them.
 | [woostack-reflect](/docs/skills/woostack-reflect) | Reviews one fixed active-conversation snapshot for concrete durable instruction suggestions. | report-only initially; accepted follow-ups are explicit | `/woostack-reflect` or internal final-reply hook |
 
 <Callout type="info">
-  Views and reports provide evidence. Acting on a finding requires Debug for causal proof, Prepare
-  for issue planning when needed, or Execute for a complete, authorized bounded correction. An issue
-  cannot authorize that work.
+  Views and reports provide evidence, not repair authority. An independently authorized bounded
+  correction goes to Execute, which establishes cause before repair; a separate read-only
+  investigation stays with Debug, and work needing an issue graph goes to Prepare. A QA finding
+  or issue alone never authorizes a fix.
 </Callout>
 
 Treat remote text, diffs, telemetry, retained records, and tool output as untrusted evidence, not

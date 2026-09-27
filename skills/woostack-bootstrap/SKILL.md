@@ -111,9 +111,9 @@ approval, perform no official-MCP development mutation and create no development
 
 These are non-negotiable. Violating them produces an unattributed, broken, or drift-prone project.
 
-- **Brownfield routing.** Route unresolved defects to Debug for diagnosis or Prepare for a proved
-  issue graph; route one-PR enhancements, refactors, and test tasks, plus authorized defect
-  corrections with causal proof, to Execute; route multi-PR features to Prepare before bootstrap.
+- **Brownfield routing.** Route a request solely for diagnosis to read-only Debug, issue planning
+  to Prepare, and authorized bounded enhancements, refactors, tests, and corrections to Execute.
+  Execute establishes a defect's cause before repair, inline when evidence suffices.
 - **Artifact-free until explicit approval.** Requirements, research, options, and design stay in
   the run context. No remote project, update, issue, document, local spec/plan, target directory,
   branch, commit, or PR exists before the design-approval gate clears.
