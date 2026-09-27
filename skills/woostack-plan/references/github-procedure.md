@@ -18,6 +18,10 @@ worktree, commit, PR, review, merge, or issue lifecycle here.
 3. Re-read the issues being reused or edited immediately before writing, and preserve everything
    the plan does not own: human paragraphs, comments, labels, assignees, history, and unrelated
    links.
+4. For each new issue, preallocate a distinct UUID and retain it with the intended repository,
+   title, and body before calling create. Include `<!-- woostack-issue-create:<UUID> -->` in that
+   body's content; prove the marker absent from the complete open/closed scope before creating. If
+   the intent cannot be retained across an uncertain response, stop rather than guess on resume.
 
 ## Order of operations
 
@@ -38,10 +42,11 @@ worktree, commit, PR, review, merge, or issue lifecycle here.
 
 ## Uncertain outcomes
 
-- A create whose response was lost is not re-created. Search the exact repository for that exact
-  issue — its exact title within the scope, paginated to completion — read the candidates, and bind
-  the one ownership-valid match. Zero matches, several matches, or content that does not match the
-  plan is a blocker to report, never a second issue written to resolve the doubt.
+- A create whose response was lost is not re-created. Search the exact repository's open and closed
+  issues to the end of the relevant query for the retained create identity. Bind only one issue whose
+  independently read identity, title, body, and repository match the retained intent. Zero or
+  multiple matches, missing retained intent, or mismatched content block recovery; title and plan
+  content alone never establish ownership. Do not allocate a replacement or repeat the create.
 - A link or membership write whose outcome is unknown is rediscovered from both sides before any
   retry.
 - Keep every confirmed identity and the last verified boundary across a failure. Report the

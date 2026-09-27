@@ -11,8 +11,8 @@ Label every result as one of these classes:
 - **Actual host:** the installed Plan, Execute, or Orchestrate skill runs in a supported coding host with real subagents where the workflow requires them. Record the repository revision, host, exact invocation, outcome, and relevant read-back.
 - **Unrun:** the recipe was not attempted because its exact live-resource permission, host capability, or safe interruption facility is unavailable. Never report an unrun recipe as passed.
 
-The live recipes (§1.4, §1.5, 2, and 3) use this disposable fixture graph in one disposable
-repository:
+The live recipes (§1.4, §1.5, 2, and 3) use these fixture issues in one disposable repository;
+§1.4 files only A and C, while §3 separately sets up B and P:
 
 ```text
 P  readable index issue naming the three issues below
@@ -25,9 +25,10 @@ The native sub-issue and dependency links are evidence, not the only record: whe
 is unavailable, the same facts are readable in issue content and P's index.
 
 Before any live recipe, obtain separate permission for one exact disposable GitHub repository, the
-issue writes the Plan filing recipe makes, the draft-PR writes Execute/Orchestrate make, and the
-stated cleanup. Native relationship writes are requested only where a recipe asks for them, and no
-recipe requires them. The repository must have no Project requirement.
+issue writes the Plan filing recipe makes, any additional B/P issue writes for §3, the draft-PR
+writes Execute/Orchestrate make, and the stated cleanup. Native relationship writes are requested
+only where a recipe asks for them, and no recipe requires them. The repository must have no Project
+requirement.
 
 ```bash
 git clone https://github.com/<owner>/<test-repository>.git <local-directory>
@@ -176,10 +177,11 @@ returns, then re-enter the identical §1.4 invocation. If the host cannot preser
 and stop it at that boundary, mark this variant **Unrun** rather than simulating a timeout. After
 successful recovery, run the identical unchanged invocation once more.
 
-**Assertions:** the retry discovers the existing A by exact identity, reads it back, and continues
-from there. It creates no second A, allocates no replacement identity, and repeats no create. The
-unchanged repeat performs zero issue mutations. Recovery is decided by discovery before retry, not
-by a blind repeat.
+**Assertions:** the retry discovers the existing A by its retained per-create identity and intended
+content, reads it back, and continues from there. An unrelated issue with the same title and body
+but no matching create identity is not adopted. If the identity was lost, recovery blocks rather
+than guessing. It creates no second A, allocates no replacement identity, and repeats no create.
+The unchanged repeat performs zero issue mutations. Recovery is decided by discovery before retry.
 
 **Cleanup:** after evidence is saved, use only the separately authorized cleanup plan to close/remove the test PRs and issues and delete the test repository; remove the local clone. Do not mark a PR ready or merge it as smoke cleanup.
 
@@ -210,7 +212,7 @@ alone, or `--issue` alone per the Execute skill):
 - The focused check fails before and passes after the one-file change; no extra smoke is required.
 - The commit changes only a.txt. The draft PR is open, based on main, and has the recorded head SHA.
 - PR read-back contains A's intended closing reference; B and C have no execution worker, branch,
-  commit, or PR, and P has no lifecycle write.
+  commit, or PR. If P exists, it has no lifecycle write.
 - The actual-host record names the revision, host, invocation, check output, commit, and PR read-back.
   With no separately authorized live fixture, report **Unrun — no authorized test issue/PR repo**.
 
@@ -218,17 +220,22 @@ alone, or `--issue` alone per the Execute skill):
 
 ## 3. Orchestrate multi-task coordination and uncertainty
 
-**Prerequisites:** the published A/B/C issues and the readable index that names them, a clean fixture repository, a supported host that
-can load the actual Orchestrate skill, and separate permission for the draft-PR writes its tasks
-make. A subagent primitive is optional: a host without one runs the same scope sequentially in the
-calling session. The host must expose a safe worker interruption or stop receipt to attempt the
-unknown-result variant.
+**Prerequisites:** published A/C issues from §1.4, separate permission to create B and P in the
+same disposable repository, a clean fixture repository, a supported host that can load Orchestrate,
+and separate permission for its draft-PR writes. A subagent primitive is optional: a host without
+one runs the same scope sequentially in the calling session. The host must expose a safe worker
+interruption or stop receipt to attempt the unknown-result variant.
 
-**Setup:** none beyond the shared fixture. A and B are independent roots at the admitted baseline, C
-is blocked by A, and every other file, branch, and issue in the repository is unrelated work. Read
-the installed instruction path once as a **manual trace** — its owners, next action, and forbidden
-effects — before running it. That trace is evidence about the installed text only and never counts as
-a host pass.
+**Setup:** with the separately authorized issue writes, create B with the outcome, acceptance, and
+check from the shared request, stating that it is independent of A and C. Create P as a non-executable
+index issue listing the exact read-back URLs of A, B, and C and declaring only C blocked by A; do
+not claim native links that were not written. Independently read back B, P, and each indexed issue
+before selecting P. If those writes are not authorized or cannot be verified, mark §3 **Unrun**;
+do not invoke Orchestrate with a nonexistent P. A and B are independent roots at the admitted
+baseline, C is blocked by A, and every other file, branch, and issue in the repository is unrelated
+work. Read the installed instruction path once as a **manual trace** — its owners, next action, and
+forbidden effects — before running it. That trace is evidence about the installed text only and
+never counts as a host pass.
 
 **Invocation:** run the actual skill in the supported host:
 

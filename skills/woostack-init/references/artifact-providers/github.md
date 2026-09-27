@@ -151,7 +151,10 @@ read boundary, and delivery note needed to recover an interrupted publication. A
 link, relation, or read-back outcome stops at that boundary and reports the confirmed objects plus
 whatever relation is still missing. Rediscovery searches the relevant scope to the end of its query
 for that same exact identity, reads the one ownership-valid match, and never duplicates work or
-allocates a replacement.
+allocates a replacement. For an issue create, retain a distinct preallocated identity and intended
+repository/content before the write, prove that identity absent beforehand, and include it in the
+created body. Recovery requires the same identity and matching content in the exact repository;
+matching title and body without the retained identity is not ownership evidence.
 
 A caller that needs its own recovery checkpoint keeps it private and owner-only; the shared
 [run-store reader](../artifact-backends.md#owner-only-local-run-store-reader) only reads retained
