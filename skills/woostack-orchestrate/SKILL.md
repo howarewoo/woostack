@@ -13,6 +13,9 @@ Plan stops before implementation; Orchestrate coordinates separately approved wo
 
 ## Coordinate
 
+For an explicit one-run model or effort request, apply the shared
+[identity check](../using-woostack/SKILL.md#project-entry) before dispatching dependent work.
+
 1. **Resolve tasks and dependencies.** Read the selected scope and each executable task, including
    its outcome, acceptance, technical prerequisites, and repository state. Distinguish trackers and
    specifications from executable tasks. Reconcile declared dependencies with source and actual

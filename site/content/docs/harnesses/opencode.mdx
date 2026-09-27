@@ -3,26 +3,21 @@ title: opencode
 description: Delegation to discovered subagents through opencode's task tool.
 ---
 
-opencode delegates to a subagent through its `task` tool, and woostack selects a discovered agent
-whose capabilities fit the task. The built-in `General` agent has full tool access, while `Explore`
-and `Scout` are read-only and never suit a write task ([agents](https://opencode.ai/docs/agents/)).
-Independent tasks are submitted together, and woostack runs them one at a time with a clear notice
-when the installed build cannot run workers in parallel.
+opencode can delegate through its `task` tool when that permission is available. Select an agent
+exposed by the session whose permissions suit the work; inline implementation remains available
+without an optional subagent.
 
 opencode resolves its model and reasoning options from agent or session configuration. An
 explicit one-run native override is passed only when the active `task` schema exposes its exact
 field and the host permits it. Normal inheritance is not a limitation; unsupported optional
 overrides are reported, and a required exact identity needs matching host evidence.
 
-No per-worker working directory is documented. The task prompt always names the exact worktree, the
-separate checkout assigned to that task, and the worker verifies that path before it writes.
-
-Provider usage-limit errors surface unless the host recovers. Woostack does not enact a
-repository fallback list.
+No per-worker working directory is documented. Pass the selected workspace in a delegated task
+and have the worker verify it before writing. Provider recovery belongs to opencode.
 
 Ask for a woostack skill by name: opencode's native `skill` tool loads the discovered skill, for
 example `skill({ name: "woostack-execute" })` ([Agent Skills](https://opencode.ai/docs/skills/)).
 Mentioning a subagent with `@` is a user chat shortcut, not a dispatch interface an agent can call.
 
-For detection, worker behavior, per-skill instructions, and fallback rules, read the
-[canonical opencode reference](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/hosts/opencode.md).
+The optional [opencode host notes](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/hosts/opencode.md)
+record these mechanics against their sources.

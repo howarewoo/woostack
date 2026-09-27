@@ -1,26 +1,18 @@
 ---
 title: Antigravity CLI
-description: Dynamic subagents, host model inheritance, and interactive authentication.
+description: Subagent workspace choices and permission inheritance.
 ---
 
-Antigravity CLI (`agy`) creates a worker with its own conversation context for each task.
-Independent tasks can run together. This context isolation keeps each worker focused on its assigned
-task; the task still needs an explicit worktree and permission boundary.
-
-No official Antigravity dispatch parameter surface is verified here. The configured session
-model is the normal default; an explicit one-run override requires the active schema to expose
-its exact native field and host authorization. Role preferences do not select a model. The
-runtime has no documented per-worker working directory, so the task prompt pins a worktree.
-
-Antigravity authenticates through the system keyring and Google Sign-In. It has no documented
-non-interactive API-key login, so it cannot run without an interactive login in a temporary CI
-environment. Provider usage-limit errors surface unless the host recovers; Woostack does not
-enact a repository fallback list.
+Antigravity CLI (`agy`) runs subagents in separate conversation contexts. Its documented workspace
+modes include inheriting the parent workspace, sharing directory storage, or creating an isolated
+Git worktree. Choose a safe workspace for concurrent writers. Subagents inherit the parent's
+allowed command and file scopes; permission requests return to the main interface. The active tool
+schema governs any per-call model or effort fields.
 
 Use your Antigravity CLI's own documented way to invoke a skill explicitly; a `/woostack-*` example
 in this documentation names the logical command, and no Antigravity-specific invocation form is
 recorded in the
 [host reference](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/hosts/README.md#native-skill-invocation).
 
-For detection, worker behavior, per-skill instructions, and fallback rules, read
-the [canonical Antigravity reference](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/hosts/antigravity.md).
+The optional [Antigravity host notes](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/hosts/antigravity.md)
+record these mechanics against their sources.

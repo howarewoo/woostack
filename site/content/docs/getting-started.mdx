@@ -19,8 +19,9 @@ chat.
 
 You need:
 
-- A supported [agent harness](/docs/harnesses), the application that runs your coding agent and
-  loads its skills. Check that page for your harness's setup and capability limits.
+- A coding [agent harness](/docs/harnesses), the application that runs your coding agent and
+  loads its skills. That page covers the harnesses with documented host notes. Any other host that
+  loads the skills works when it exposes the capabilities a task needs.
 - Node.js and pnpm. The installation command below uses `pnpx`, pnpm's tool for running a package.
 - Bash, Git, `jq` (a command-line JSON tool), and Python 3 available as `python3` in the environment
   where your agent runs commands. Init's OMP support script requires Python 3.
@@ -134,5 +135,5 @@ uncertainty boundaries.
   <Card title="Workflow maps" href="/docs/concepts/workflows" description="Choose Bootstrap, Plan, Ideate, Harden, Debug, Orchestrate, or Execute based on the shape of the work." />
   <Card title="Configuration" href="/docs/configuration" description="Look up repository policy and optional direct GitHub Project configuration." />
   <Card title="How to use Hermes as an external engineer" href="/docs/hermes" description="Drive one persistent OMP process without installing woostack in Hermes." />
-  <Card title="Harness reference" href="/docs/harnesses" description="Compare supported coding harnesses and their native capabilities." />
+  <Card title="Harness reference" href="/docs/harnesses" description="Compare documented coding harnesses and their native capabilities." />
 </Cards>

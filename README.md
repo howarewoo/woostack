@@ -6,7 +6,8 @@ before reporting what changed or what is ready for review.
 
 Use one PR for a small change or a well-understood fix. For larger work, Plan can inspect
 the repository and return a coherent plan without writing to GitHub, or publish requested
-issues with verified dependencies. Changes still need verification and independent review.
+issues with verified dependencies. Verify changes; delegate or request independent review when
+required, requested, or warranted by risk.
 
 Start with the [getting-started guide](site/content/docs/getting-started.mdx), or use the
 [command index](skills/using-woostack/SKILL.md#command-routing) to choose a workflow.
@@ -88,7 +89,7 @@ GitHub publication, recovery, and retained historical record handling. Saved pla
 records record decisions; they do not authorize new work or prove that code was delivered.
 
 If you use Hermes to coordinate an OMP session, follow the
-[Hermes guide](site/content/docs/hermes.mdx). Install woostack in OMP or another supported coding
+[Hermes guide](site/content/docs/hermes.mdx). Install woostack in a compatible coding
 assistant, not in Hermes. Hermes can relay decisions and review evidence; implementation stays
 in the coding assistant.
 
