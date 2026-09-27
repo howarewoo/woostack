@@ -1,12 +1,13 @@
 # Workflow smoke
 
-These are four on-demand recipes for material routing, Plan, Execute, or Orchestrate changes and for regression investigation. They are not a corpus, a model grader, a mandatory check after every instruction edit, or a replacement test command. Run the smallest recipe that covers the changed behavior and add a scenario only after a valuable observed failure.
+These on-demand recipes cover material routing, Plan, Execute, or Orchestrate changes and regression investigation. They are not a corpus, a model grader, a mandatory check after every instruction edit, or a replacement test command. Run the smallest recipe that covers the changed behavior.
 
 ## Evidence classes and shared fixture
 
 Label every result as one of these classes:
 
 - **Deterministic helper:** the shipped production helper runs in a temporary local repository. `recording_driver.py` supplies recorded reads and consumes the emitted packet; it does not run a model or claim host execution.
+- **Manual trace:** read the installed instruction path and record its owners, next action, and forbidden effects; this does not prove a model followed it.
 - **Actual host:** the installed Plan, Execute, or Orchestrate skill runs in a supported coding host with real subagents where the workflow requires them. Record the repository revision, host, exact invocation, outcome, and relevant read-back.
 - **Unrun:** the recipe was not attempted because its exact live-resource permission, host capability, or safe interruption facility is unavailable. Never report an unrun recipe as passed.
 
@@ -193,7 +194,7 @@ draft-PR writes are required by this recipe.
 
 **Assertions:**
 
-- C is absent from the first wave. After A's PR, focused checks, independent validation, and delivery-note read-back pass, C is scheduled on A's verified unmerged branch/SHA; no merge is required. The technical prerequisite and effective execution prerequisite remain distinct in the packet.
+- C is absent from the first wave. After A's PR, focused checks, independent validation, and applicable CI evidence pass, C is scheduled on A's verified unmerged branch/SHA; no merge is required. Missing or failed reporting remains visible and retryable without blocking technical readiness. The technical prerequisite and effective execution prerequisite remain distinct in the packet.
 - Unknown B retains its original reservation and ownership. Reconciliation reuses one matching branch/PR and never creates a duplicate. Only a complete proved PR-absence receipt may release one same-identity repair worker on the same branch/workspace.
 - A later actionable remote-check failure on A's current head is diagnosed and coalesced into at most one Execute repair on A's retained branch/PR under the shared cap; unrelated work continues. Repair propagation follows the effective graph, while technical prerequisites and provenance remain visible. Stale-head results never validate the new head, and pending or unreadable checks never count as a pass. Observation ends with the session: no daemon, merge, or post-session monitoring.
 - An unrelated dirty or committed worktree remains byte-for-byte intact and blocks reuse. No controller, parent, sibling, or user workspace is overwritten.
@@ -220,3 +221,101 @@ result is **manual instruction-text evidence**, never a host result.
 **Assertions:** every row resolves to exactly one skill, and each owner it loads is that skill's own
 reference rather than a router-wide rule. Orchestrate alone owns its scheduling algorithm, and the
 router's remaining gates still resolve.
+
+## 5. Installed integration matrix
+
+Run from the candidate checkout on a supported Unix environment with Node, pnpm, Python 3,
+Bash, and Git. The [controller](../../woostack-orchestrate/SKILL.md) and
+[historical reader](../../woostack-init/references/artifact-backends.md) own capability failures.
+No live GitHub fixture or paid model experiment is authorized by this
+recipe. The existing recording driver supplies transport evidence, not a second scheduler.
+
+First run `pnpm -C site test`: its installed-collection case exports committed skills and copies
+retained Claude links to a temporary directory, invokes the production asset parser, and rejects
+a checkout-only reference even when that target exists. The checkout test covers discovery too.
+`pnpm -C site build` separately checks the documentation application, not the installed runtime.
+
+From a committed candidate, export only tracked installable assets outside the checkout:
+
+```bash
+INSTALL=$(mktemp -d)
+CANDIDATE=$(git rev-parse HEAD)
+printf 'Installed candidate: %s\n' "$CANDIDATE"
+git archive "$CANDIDATE" skills | tar -x -C "$INSTALL"
+node --input-type=module -e '
+  import { validateSkillAssets } from "./site/scripts/skill-assets.mjs";
+  import { PUBLIC_ORDER } from "./site/scripts/gen-skills.mjs";
+  await validateSkillAssets(process.argv[1], PUBLIC_ORDER);
+' "$INSTALL/skills"
+(
+  cd "$INSTALL"
+  bash skills/woostack-orchestrate/scripts/tests/run-tests.sh
+  bash skills/woostack-init/scripts/tests/test-config-precedence.sh
+  bash skills/woostack-init/scripts/tests/test-run-store.sh
+  bash skills/woostack-doctor/scripts/tests/test-health-checks.sh
+)
+# After saving native output, remove only this task-owned disposable copy:
+rm -rf "$INSTALL"
+```
+
+These runtime fixtures create disposable consumer repositories and need neither the source checkout
+nor the docs application. Run the full Init and Doctor runners in the actual checkout: Init also
+audits checkout-only ignore files, which are not installed-runtime evidence. Keep output and the
+exact candidate identity before cleanup. The retained reader, config and Doctor fixtures cover
+preservation of user bytes; do not point
+these scenarios at a real user's legacy store. Unsupported capabilities must fail before writes,
+not trigger another interpreter, lock implementation, model, or transport fallback.
+
+| Case | Reproducible setup / existing command | Expected observation and evidence class |
+| --- | --- | --- |
+| Checkout and installed layout | `pnpm -C site test`; disposable copy above | **Deterministic:** catalog and retained Claude links resolve, retired links are absent, local runtime references remain within installed assets; missing/escaping targets reject |
+| Inline Execute; issue-free Commit | Trace §4 with shared task A, omitting issue selection | **Manual trace:** Execute implements; Commit owns submission; no issue/Project/profile load or artifact calls |
+| Exact issue Execute | Trace §4 with A's exact issue selector; live variant §2 only with separate permission | **Manual trace:** exact issue and paginated comments read, Commit revalidates association; no sibling/Project discovery |
+| Settled Prepare; unproved defect | Trace §4 with complete shared packet, then with an unproved defect instead | **Manual trace:** reuse settled decisions; defect goes to Debug before correction planning; Plan stops before implementation |
+| Declared tracker, no native children | Installed Orchestrate runner: `test_declared_tracker_fixture_dispatches_exact_reported_issue_set` and tracker ambiguity/recovery cases | **Deterministic:** declared executable set/DAG retained, tracker never dispatched; ambiguous/foreign membership rejects |
+| Compact input, one state path, interrupted writer | Same runner: `test_compact_state_continuations_use_one_destination`, compact equivalence, checkpoint CAS/recovery and live-writer cases | **Deterministic:** A/B then C; missing A note survives resume; B reconciles same identity; no duplicate worker/PR; stale writer/head and absent state reject |
+| Technical delivery, reporting failure | Same runner: `test_reporting_smoke_releases_dependent_with_b_active_and_survives_restart` and `test_reporting_cannot_release_dependent_*` | **Deterministic:** pending/blocked reporting remains visible; valid technical evidence releases C; failed checks/review, wrong base/PR, stale head/diff or lost writer never release C |
+| Host inheritance, unsupported override, Unix helper | Trace installed host-mechanics/model-selection owners; run installed Init/Doctor and Orchestrate capability fixtures | **Manual trace:** native defaults inherited; unsupported exact override blocks without invented arguments. **Deterministic:** missing Unix capability rejects before mutation; legacy/config bytes preserved |
+
+For each manual row record the actual relative paths read, next action and forbidden effects,
+not a regex assertion on instruction wording. Actual-host/model trials remain **Unrun** unless
+separately authorized and observed. A deterministic transport fixture is not a host trial.
+
+## 6. Bounded same-task before/after measurement
+
+Use audit baseline `e073b35f630b82de4d9361b596af2ed8da3743e8` and the exact final candidate
+commit (record its binary diff hash). Export each revision with `git archive` into separate
+disposable directories, without changing either source worktree. Use the same A/B/C tasks and
+the inline/issue-backed/Prepare traces above. Record commands and outcomes, including failures.
+
+Count UTF-8 bytes with `wc -c` for `AGENTS.md`, the router, and each selected workflow
+`SKILL.md`. For each manual path, list its mandatory references explicitly and sum each loaded
+file once; record conditional/unloaded references separately. Count all installed package files
+separately: package size is not loaded context. Use `git diff --numstat BASE CANDIDATE -- skills`
+and classify production `.py`/`.sh` changes separately from tests, docs and assets to report
+added/deleted code lines.
+
+For compact versus expanded JSON, use the existing recording driver's `FakeGitHub.snapshot()`
+and `compact_input()` on the same disposable A/B/C repository. Serialize both with
+`json.dumps(value, sort_keys=True, separators=(',', ':'), ensure_ascii=True).encode('utf-8')`.
+Count authored fields recursively as the sum of dictionary key counts, including dictionaries
+inside arrays; do not count array slots. Record the common fixture identity and both counts.
+The compact-equivalence test checks effective behavior; byte savings alone prove no speedup.
+
+Retain one evidence table with columns **metric/scenario**, **baseline**, **candidate**,
+**command/paths**, **outcome/class**. Include root/router/workflow and mandatory-reference bytes,
+total package bytes, expanded/compact JSON bytes and field counts, production code additions/
+deletions, all six issue-required checks and installed smoke outcomes. Use `unrun` with a reason
+instead of empty cells. Keep measurements outside hot runtime instructions, for example in the
+task PR evidence. Run `git diff --check` on the final task diff.
+
+An optional actual-model comparison needs separate authorization. Freeze task text, consumer
+repository commit, model/version, harness/version, tools, permissions/sandbox/network policy,
+token/time budgets and sampling settings; change only the skill revision. Use equivalent fresh
+sessions and three paired trials per chosen scenario, not a claim of statistical significance.
+Record success/regressions, loaded instruction paths, host-supplied input/output tokens, tool
+calls, retries, elapsed time, unnecessary clarifications, permission violations and human review
+corrections. Separate the intentional reporting-policy improvement from behavior-preserving
+comparisons. No Observe installation, model grader, service, telemetry prompts or CI trigger is
+needed. Never infer tokens from bytes, unavailable latency gains or universal portability.
+A smaller prompt with more errors or retries is not an improvement.

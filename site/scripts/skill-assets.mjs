@@ -409,10 +409,17 @@ async function collectFiles(root) {
 
 export async function validateSkillAssets(skillsDir, publicOrder) {
   const root = path.resolve(skillsDir);
-  const names = (await readdir(root, { withFileTypes: true }))
-    .filter((entry) => entry.isDirectory())
-    .map((entry) => entry.name)
-    .sort();
+  const names = [];
+  for (const entry of await readdir(root, { withFileTypes: true })) {
+    if (!entry.isDirectory()) continue;
+    try {
+      await lstat(path.join(root, entry.name, 'SKILL.md'));
+      names.push(entry.name);
+    } catch (error) {
+      if (error?.code !== 'ENOENT') throw error;
+    }
+  }
+  names.sort();
   const expected = [...publicOrder].sort();
   if (JSON.stringify(names) !== JSON.stringify(expected)) {
     throw new Error(`skill catalog mismatch: discovered ${names.join(', ')}; expected ${expected.join(', ')}`);

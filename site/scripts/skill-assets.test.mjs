@@ -1,10 +1,12 @@
 import assert from 'node:assert/strict';
-import { mkdtemp, mkdir, readFile, readdir, readlink, realpath, rm, stat, symlink, writeFile } from 'node:fs/promises';
+import { execFileSync } from 'node:child_process';
+import { cp, mkdtemp, mkdir, readFile, readdir, readlink, realpath, rm, stat, symlink, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { parseFrontmatter, validateSkillAssets } from './skill-assets.mjs';
+import { PUBLIC_ORDER } from './gen-skills.mjs';
 
 async function makeRoot(t) {
   const root = await mkdtemp(path.join(os.tmpdir(), 'woostack-skill-assets-'));
@@ -114,6 +116,59 @@ test('structural validation rejects mismatched metadata and catalog discovery', 
 
 test('every checkout-local skill link resolves to a skill directory', async () => {
   assert.deepEqual(await findBrokenSkillLinks(path.join(REPO_ROOT, '.claude', 'skills')), []);
+});
+
+test('catalog ignores non-skill debris but requires expected skills and rejects extra skills', async (t) => {
+  const root = await makeRoot(t);
+  await writeSkill(root, 'sample-skill');
+  await mkdir(path.join(root, 'cache-only', 'scripts'), { recursive: true });
+  await writeFile(path.join(root, 'cache-only', 'scripts', 'retained.bin'), 'user bytes');
+  assert.deepEqual((await validateSkillAssets(root, ['sample-skill'])).map(({ name }) => name),
+    ['sample-skill']);
+  await assert.rejects(validateSkillAssets(root, ['sample-skill', 'cache-only']),
+    /skill catalog mismatch/);
+  await writeSkill(root, 'unknown-skill');
+  await assert.rejects(validateSkillAssets(root, ['sample-skill']), /skill catalog mismatch/);
+  assert.equal(await readFile(path.join(root, 'cache-only', 'scripts', 'retained.bin'), 'utf8'),
+    'user bytes');
+});
+
+test('catalog discovery does not admit a symlinked skill entry point', async (t) => {
+  const root = await makeRoot(t);
+  const skill = await writeSkill(root, 'sample-skill');
+  await writeFile(path.join(skill, 'entry.md'), await readFile(path.join(skill, 'SKILL.md')));
+  await rm(path.join(skill, 'SKILL.md'));
+  await symlink('entry.md', path.join(skill, 'SKILL.md'));
+  await assert.rejects(validateSkillAssets(root, ['sample-skill']),
+    /skill assets must be regular files or directories/);
+});
+
+test('installed collection resolves without a checkout or docs application', async (t) => {
+  const root = await makeRoot(t);
+  const installed = path.join(root, 'skills');
+  const archive = execFileSync('git', ['archive', 'HEAD', 'skills'], {
+    cwd: REPO_ROOT, maxBuffer: 32 * 1024 * 1024,
+  });
+  execFileSync('tar', ['-xf', '-', '-C', root], { input: archive });
+  assert.deepEqual(
+    (await validateSkillAssets(installed, PUBLIC_ORDER)).map(({ name }) => name),
+    [...PUBLIC_ORDER].sort(),
+  );
+  const links = path.join(root, '.claude', 'skills');
+  await cp(path.join(REPO_ROOT, '.claude', 'skills'), links, {
+    recursive: true, verbatimSymlinks: true,
+  });
+  assert.deepEqual(await findBrokenSkillLinks(links), []);
+  assert.deepEqual((await readdir(links)).sort(),
+    ['woostack-address-comments', 'woostack-bootstrap', 'woostack-commit']);
+
+  // A checkout-only target must fail even when a neighboring docs tree exists.
+  const entry = path.join(installed, 'using-woostack', 'SKILL.md');
+  await mkdir(path.join(root, 'site'), { recursive: true });
+  await writeFile(path.join(root, 'site', 'guide.md'), '# Checkout-only guide\n');
+  await writeFile(entry, `${await readFile(entry, 'utf8')}\n[Guide](../../site/guide.md)\n`);
+  await assert.rejects(validateSkillAssets(installed, PUBLIC_ORDER),
+    /local link target escapes the skill collection/);
 });
 
 test('broken skill links are reported for the intended reason', async (t) => {
