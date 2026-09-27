@@ -796,6 +796,10 @@ the source head itself need not be an ancestor of integration. Corrections after
 landing belong in the integration receipt's complete native PR enumeration, not a fictitious
 source-branch ancestry.
 
+Stopped adoption preserves that split: the original reserved parent binds the historical native
+source receipt, while the integration receipt starts at the original native landing. Neither
+receipt may substitute its parent for the other or rewrite the retained worker's reservation.
+
 ```json
 {
   "compatibility": {

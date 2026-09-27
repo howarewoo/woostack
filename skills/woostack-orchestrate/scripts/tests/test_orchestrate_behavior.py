@@ -1993,6 +1993,17 @@ class OrchestrateBehavior(unittest.TestCase):
         git(source_start_tree, "commit", "-m", "Reserved original source parent")
         source_start = git(source_start_tree, "rev-parse", "HEAD")
         retained = self._seed_prior_delivery("task-a", parent_sha=source_start)
+        initial = self._scoped_tasks_snapshot({"task-a", "task-c"})
+        admitted_path, admitted = self._admit_issue(initial)
+        state, _ = self._schedule(admitted_path, admitted, None, initial, "squash-adoption-start")
+        saved = json.loads(state.read_text())
+        saved["tasks"]["task-a"].update(
+            status="unknown", reservation=retained["reservation"],
+            host_worker={"worker_id": "original-native"},
+            report={"pr_url": retained["result"]["readback"]["pr_url"]},
+            failure_reason="external-squash")
+        saved.update(stop_requested=True, halt_new_dispatch=True, halt_reason="user-stop")
+        state = self._publish_state("squash-adoption-stopped.json", saved)
         source_tree = Path(retained["reservation"]["workspace"])
         source_file = source_tree / "src/task-a.txt"
         source_file.write_text(source_file.read_text() + "Native final PR amendment\n")
@@ -2112,6 +2123,30 @@ class OrchestrateBehavior(unittest.TestCase):
                     {"task-a": invalid}, self.github.integration, self.repo, self.github.canonical)
                 self.assertNotIn("task-a", facts)
                 self.assertIn("task-a", errors)
+        snapshot = self._scoped_tasks_snapshot({"task-a", "task-c"})
+        snapshot["recovery"]["sessions"] = [{
+            "task_id": "task-a", "worker": saved["tasks"]["task-a"]["host_worker"],
+            "reservation": saved["tasks"]["task-a"]["reservation"], "status": "stopped",
+        }]
+        _, current = self._admit_issue(snapshot)
+        evidence = {
+            "owner": saved["owner"],
+            "checkpoint_digest": hashlib.sha256(state.read_bytes()).hexdigest(),
+            "inventory_digest": helper.digest(current["recovery"]),
+            "admission_digest": helper.admission_digest(current),
+            "tasks": ["task-a"],
+        }
+        before = state.read_bytes()
+        code, adopted = self._policy_call(admitted_path, state, snapshot, landed=evidence)
+        self.assertEqual(code, 0, adopted)
+        self.assertEqual(adopted["status"], "landed-adopted")
+        self.assertEqual(adopted["adopted"], ["task-a"])
+        persisted = json.loads(state.read_text())
+        self.assertEqual(persisted["tasks"]["task-a"]["status"], "satisfied")
+        self.assertEqual(persisted["tasks"]["task-a"]["satisfaction"]["revision"], candidate)
+        self.assertEqual(persisted["landed_adoption_history"][-1]["previous_task"],
+                         json.loads(before)["tasks"]["task-a"])
+
 
     def test_delivered_merged_ancestor_uses_first_open_stack_source_after_main_advance(self):
         def stack_snapshot():

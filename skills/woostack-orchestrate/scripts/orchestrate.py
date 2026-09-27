@@ -4517,10 +4517,17 @@ def adopt_stopped_landed(args, admitted, fresh, evidence):
         require(isinstance(receipt, dict)
                 and receipt["validation"]["reviewer_id"] != item["host_worker"].get("worker_id"),
                 "stale-validation", "a distinct independent landed revalidation receipt is required")
-        require(receipt["head_parent"] == item["reservation"]["parent_sha"],
-                "wrong-ancestry", "landed adoption must retain the original admitted source base")
         pr = task["existing_delivery"]["lifecycle"]
         pr = pr.get("pr", pr)
+        reserved_parent = item["reservation"]["parent_sha"]
+        if receipt["head_parent"] != reserved_parent:
+            source = task["existing_delivery"].get("historical_source_revalidation")
+            require(isinstance(source, dict) and source.get("head_parent") == reserved_parent
+                    and receipt["head_parent"] == pr["merge_commit_sha"]
+                    and not contains(args.git_repo, reserved_parent, fresh["integration"]["sha"])
+                    and (facts[task_id].get("source_revalidation") or {}).get("revision")
+                    == pr["head_sha"],
+                    "wrong-ancestry", "landed adoption must retain the original admitted source base")
         retained_url = item.get("verified_pr") or (item.get("report") or {}).get("pr_url")
         require(retained_url == facts[task_id]["pr_url"]
                 and pr["branch"] == item["reservation"]["branch"],
