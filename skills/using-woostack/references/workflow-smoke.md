@@ -66,6 +66,7 @@ In this repository, `lines.txt` currently holds two lines, `alpha` and `beta`. R
 `beta`, leaving exactly `alpha` and its trailing newline, and change nothing else. Run
 the focused check above before and after the edit. Do not publish to a remote without
 separate permission.
+```
 
 **Observe:**
 
