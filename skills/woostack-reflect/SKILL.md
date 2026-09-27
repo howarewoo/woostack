@@ -34,12 +34,10 @@ Admit a finding only when the snapshot contains a concrete observed problem or p
 and a durable instruction change would prevent recurrence. Report every qualifying finding, but
 collapse repeated instances of the same root cause into one finding. Order findings by impact, then
 recurrence. Reject task-specific facts, transient state, preferences already covered by loaded
-instructions, vague advice, and weaker duplicates or conflicts.
-
-Distinguish an absent or contradictory instruction from a one-off failure to follow an already-clear
-rule. The latter warrants no durable suggestion unless captured evidence supports a specific loading,
-ownership, or wording correction; do not append a stronger duplicate warning. Prefer deletion,
-replacement, consolidation, or clarification at the existing owner over another imperative.
+instructions, vague advice, and weaker duplicates or conflicts. Isolated failure to follow an
+already-clear rule is not an instruction defect absent evidence of a loading, ownership, or wording
+gap. Prefer deletion, replacement, or clarification at the existing owner over a stronger duplicate
+warning; a genuine gap or supported security need can justify correction.
 
 Assign each finding to the narrowest owner and state both its target scope and source:
 
@@ -53,9 +51,6 @@ source blocks automatic filing; return a sanitized ready-to-file draft instead. 
 `AGENTS.md` suggestion and a Skill suggestion only when the distinct responsibilities of both are
 necessary; never duplicate one contract across them.
 
-In the proposed change, identify the targeted clause and edit when known. A useful local clarification
-may stand alone where no clause exists; do not copy a procedure across root, router, worker, and host
-instructions.
 
 ## Report contract
 
