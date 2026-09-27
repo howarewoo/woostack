@@ -8,85 +8,36 @@ host-authenticated `gh` is supported) under the
 [source-control contract](../../woostack-commit/references/source-control.md).
 Direct Git/GitHub publication owns artifact scope; no provider-specific artifact context is selected here.
 
-## Required isolation and identity
+## Workspace and ownership
 
-Every active implementation task has one approved task identity, one selected branch, and one
-selected workspace. The repository, host, or workflow caller may provide an existing linked worktree
-or host-managed linked checkout at any supported location. No universal path, directory prefix,
-branch-name recipe, creation command, adoption flag, or teardown timing is part of this contract.
-Runtime allocation is evidence, not publication identity.
+Use an existing approved workspace and branch when suitable; otherwise select an isolated checkout
+through the host or repository. A fresh linked worktree is not required for every invocation. Verify
+the physical repository, branch, HEAD, index, dirty state, and task diff before writing. Inspect
+relevant worktrees and path aliases for collisions; preserve unrelated work. Never create around a
+conflicting checkout or silently take over a workspace.
 
-The selected workspace MUST:
+Concurrent writers need independently owned workspaces and non-overlapping responsibility. Before
+reuse, inspect native worker state and current Git/PR facts. If an earlier writer may still be active,
+stop the affected work until its exit or relinquishment is proved. Waiting or serializing a new
+writer does not establish that proof. Instructions provide neither locking nor sandboxing.
 
-- be a real linked Git worktree backed by the admitted repository's common Git directory and present
-  in its complete `git worktree list --porcelain` inventory;
-- be physically distinct from the primary checkout and from every other active task workspace;
-- have the selected branch checked out and expose a directly read HEAD;
-- preserve the approved parent branch/SHA and prove required prerequisite ancestry; and
-- be owned by one active writer for the task surface.
+## Base and recovery
 
-Resolve physical paths before comparing them. Treat symlink aliases, equal paths, and ancestor/
-descendant paths as collisions. Compare the complete `git worktree list --porcelain` inventory and
-relevant local/remote branch evidence before dispatch, reuse, handoff, recovery, or delivery. A
-suitable existing isolated checkout MAY be reused. A missing or conflicting allocation blocks without
-silently choosing the primary checkout, relocating the task, or inventing a replacement branch.
+Select the intended base from repository policy and task dependencies; verify the required changes
+are actually available before working. Git ancestry proves commit-preserving containment, not
+intent: an upstream or merge-base alone does not choose the parent. For a squash or rebase landing,
+verify the native landing and integrated content instead of demanding ancestry from the former PR
+head. Follow [base-change detection](artifact-backends.md#repository-ancestry-and-base-change-detection)
+when a previously inspected base changes. An unresolved dependency or conflicting parent blocks
+that task; do not silently choose an integration strategy.
 
-## Repository and ancestry evidence
-
-A caller supplies one complete task-bound ancestry contract with stable approved parent-branch
-intent, retained parent/start SHA, Git DAG evidence, and canonical PR base when a PR exists. An
-upstream ref or merge-base alone is insufficient. Apply the shared
-[repository ancestry contract](artifact-backends.md#repository-ancestry-and-base-change-detection)
-to its last independently admitted parent tip. Mutable observed refs, heads, commits, and tips are
-repository evidence outside content approval identity.
-
-For roots, the selected parent is the admitted integration branch/SHA; technical prerequisites are
-separate. For a dispatched dependent, the caller must still supply one concrete parent branch/SHA
-whose current content contains every required prerequisite. Prove required ancestry with
-`git merge-base --is-ancestor`, even when hashes are equal, whenever the prerequisite landed as
-commits. A prerequisite landed by squash or rebase merge does not keep its former PR head as an
-ancestor of the integration tip: verify the current native landing and the actually integrated
-content instead, and never substitute a false ancestor assertion for that proof. Parent intent does
-not add, remove, or rewrite requirements. An unresolved join pauses that task as a human-merge
-checkpoint; this fallback covers divergent work, fixed-parent or independent-landing constraints, or
-no safe suitable stack. Do not infer order, rewrite heads, rebase, reset, silently switch parents,
-combine branches, or require a merge automatically.
-
-Workspace isolation and ancestry admission are unchanged by native stack membership. A dependent's
-workspace, branch, and parent proof come from this reference; the remote stack object is publication
-evidence owned by the
-[source-control contract](../../woostack-commit/references/source-control.md#native-github-stack-membership-for-a-dependent-pr)
-and never a reason to move a checkout, switch a parent, or restack a branch.
-
-## Discovery, operation, and recovery
-
-Before dispatch or any retained operation, take one coherent direct-evidence snapshot of the
-approved task contract, selected workspace/branch, complete Git worktree inventory, canonical
-repository identity, filesystem state, dirty/index/conflict/diff state, branch/HEAD facts, parent
-ancestry, and applicable canonical PR/review/thread evidence. A material change invalidates the
-snapshot; rediscover rather than combining observations from different states.
-
-A coordinating workflow inspects native worker state and current Git and canonical PR facts before
-reusing any workspace, branch, or task identity. One physical workspace never carries two
-concurrent writers: overlapping task context runs in another workspace or waits. A workspace whose
-last writer may still be active is not reused — stop that affected work and prove the previous
-writer stopped or relinquished ownership first, because serializing a new writer does not stop an
-old one. These are observation and ownership rules, not locks; instructions create no sandboxing,
-claim token, or enforced exclusion.
-
-An unknown or partial create, checkout, commit, push, publication, handoff, or recovery boundary
-preserves all observed state and blocks. Never delete, overwrite, reset, clean, stash, reassign,
-transfer, or recreate around a collision. A timeout or lost worker response leaves ownership
-unknown; prove the previous writer stopped or relinquished ownership before any overlapping
-mutation, and leave unknown work intact rather than repeating it. Recovery reuses the exact
-retained selected workspace, branch, parent, and evidence, or pauses for an explicit fresh
-allocation. It never falls back to a prescribed path or branch projection.
-
-All source edits and task-scoped checks run only in the selected workspace. Workers never access
-another task workspace, change allocation or scope, mutate artifacts, or exercise merge authority.
-Workflow-owned delivery may retain the workspace after publication; publication does not create a
-workspace obligation or authorize teardown. Human-owned, host-managed, and external linked workspaces
-are left intact unless their owner explicitly supplies a safe lifecycle operation.
+For an unknown checkout, handoff, or worker result, inspect the relevant workspace, writer state,
+Git branch/diff, and matching PR before repeating any operation. Retain recoverable state and
+unrelated changes; never reset, clean, stash, rebase, overwrite, or assume a timeout means no work
+occurred. Run task-scoped edits and checks in the selected workspace. Publication alone does not
+authorize its teardown; leave user-owned and host-managed workspaces intact absent an authorized
+safe lifecycle operation. [Source control](../../woostack-commit/references/source-control.md)
+owns commit, push, PR, and selected native-stack recovery.
 
 ## Greenfield boundary
 

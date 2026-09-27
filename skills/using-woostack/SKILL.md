@@ -41,7 +41,7 @@ needs; routing alone loads none. Retired managed-provider data is never imported
 | Review a supplied specification or candidate plan against repository evidence | `woostack-harden` |
 | Plan a goal or incomplete issue; publish issues only when requested | `woostack-plan` |
 | Coordinate approved multi-task work through native host facilities, resolve real dependencies, and verify delivered work | `woostack-orchestrate` |
-| Implement one bounded task — enhancement, refactor, test-only work, or authorized understood correction — and deliver one PR | `woostack-execute` |
+| Implement an authorized bounded outcome — enhancement, refactor, tests, or correction — and deliver a reviewable PR | `woostack-execute` |
 | Commit current changes and submit or update their PR | `woostack-commit` |
 | Review a pull request | Use [Pullfrog](https://pullfrog.com/). |
 | Address every unresolved thread on one exact existing PR | `woostack-address-comments` |
@@ -60,18 +60,22 @@ read as historical evidence without migration or mandatory packet exchange.
 
 Every supported explicit `/woostack-*` command loads its namesake skill. Intent-equivalent wording
 follows the same route. Ideate is optional requirements exploration; Harden is optional read-only
-review. Plan inspects relevant source, resolves material decisions, and returns a plan without
-GitHub writes unless issue publication is requested. A request to file issues already supplies
-publication intent; no additional approval is required. Debug proves unknown defects before a
-correction. Execute owns bounded implementation and draft-PR delivery under its
-[testing guidance](../woostack-execute/references/tdd.md). Planning and review never edit
-implementation source, commit, submit a PR, or grant merge authority.
+review; both are public, directly callable phases that exchange complete plain packets. Plan is the
+sole issue publisher: it inspects relevant source, resolves material decisions, and returns one
+coherent plan without GitHub writes unless publication is requested. A request to file issues
+already supplies publication intent; no additional approval is required. Debug proves unknown
+defects before a correction, and a request solely for investigation routes to it. Execute owns
+authorized bounded implementation and draft-PR delivery under its
+[testing guidance](../woostack-execute/references/tdd.md); it verifies corrections from
+reproducible or adequate causal evidence and may diagnose inline. No planning or review phase
+implements, creates a source branch, dispatches a worker, edits implementation source, commits,
+submits a PR, or grants merge authority.
 
 An exact task-bearing GitHub issue URL alone, or `/woostack-execute --issue <url>`, routes to
-Execute: it reads the selected issue and resolves one bounded task before implementation. Inline
-task instructions remain valid with or without an issue association. For work that spans multiple
-tasks, Orchestrate interprets the available conversation, repository, and GitHub context and owns
-its own resolution, dependency, and recovery procedure; the router does not restate it. Issue,
+Execute: it reads the selected issue and resolves its bounded outcome before implementation. Inline
+instructions remain valid with or without issue association. Related authorized issues can share
+delivery when scope and mapping permit; multiple independent tasks route to Orchestrate, which
+interprets the conversation, repository, and GitHub context and owns coordination. Issue,
 issue-list, and Project arguments are convenience interpretation hints, not exhaustive admission
 types. A Project is included only when explicitly selected; its status lifecycle is used only when
 that selection requests status mutation.

@@ -10,10 +10,11 @@ commits it came from, and whether its pull requests (PRs) have been reviewed or 
 
 ## Planning before implementation
 
-- **Bounded work** fits one PR. Execute admits an enhancement, refactor, test-only task, or
-  authorized correction with causal evidence, then implements and verifies it. New PRs start as
-  drafts; updates preserve existing readiness. It requires no preparatory project or planning
-  workflow.
+- **Bounded work** has one authorized outcome. Execute chooses routine implementation details,
+  establishes the cause before correcting a defect, and runs relevant verification. Related
+  authorized issues may share a reviewable PR, and work may split for reviewability without
+  changing an explicit user mapping. New PRs start as drafts; updates preserve existing readiness.
+  It requires no preparatory project or planning workflow.
 - **Planning** starts from a goal or an ordinary amount of task context. Plan inspects the relevant
   source, surfaces the decisions that still matter, and writes GitHub issues only when the request
   asks for them. It stops before source edits, branches, workers, or PRs.
@@ -75,8 +76,8 @@ managed-provider records remain opaque and inactive.
 Keep only the workflow and references needed for the current decision in the agent's context.
 Choose inline or delegated implementation using the
 [delegation guidance](/docs/concepts/context-management#isolated-agents-receive-bounded-envelopes),
-which weighs speed, cost, isolation, overhead, and risk. Verification and independent review still
-check implementation.
+which weighs speed, cost, isolation, overhead, and risk. Run relevant verification; use independent
+review when the task or repository requires it.
 
 ### Session reflection becomes instruction suggestions
 

@@ -33,7 +33,7 @@ Plan stops before implementation; Orchestrate coordinates separately approved wo
    task and its dependents until host evidence proves it stopped; merely serializing a new writer
    does not stop an old one. Preserve unknown and unrelated changes. Native permissions govern
    isolation; instructions do not create locks or sandboxing. Follow the
-   [workspace recovery guard](../woostack-init/references/worktrees.md#discovery-operation-and-recovery).
+   [workspace recovery guard](../woostack-init/references/worktrees.md#base-and-recovery).
 4. **Select the base at task start.** Check the repository-approved integration tip or approved
    dependent parent against fresh Git and canonical PR facts. Prove every required change is
    available in the selected base, including joined prerequisites. For an open parent PR, use its
@@ -42,14 +42,13 @@ Plan stops before implementation; Orchestrate coordinates separately approved wo
    ancestor of main. Never persist a global execution forest, infer a dependency from branch
    naming, or manufacture a source/landing receipt. A task whose required changes are not
    available waits; a safe independent task may continue.
-5. **Implement and verify bounded work.** An inline task follows
-   [Execute](../woostack-execute/SKILL.md) and [Commit](../woostack-commit/SKILL.md) with the same
-   scope, checks, isolated writer, draft-PR, and read-back requirements as a delegated task. A
-   delegated task receives its bounded outcome, non-goals, acceptance, prerequisites, chosen
-   workspace/base, and relevant repository rules; it owns implementation and its one PR. Never
-   treat a worker success sentence as verification. Read the actual diff, relevant checks, required
-   review, current PR head/base/state, and issue association independently before releasing
-   dependents. Inspect the final diff for scope and unrelated work.
+5. **Implement and verify bounded work.** Inline or delegated work follows
+   [Execute](../woostack-execute/SKILL.md) and [Commit](../woostack-commit/SKILL.md).
+   Give delegates the authorized outcome, non-goals, dependencies, selected workspace/base, and
+   relevant repository rules. Never treat a worker success sentence as verification: inspect its
+   diff, relevant checks and required review, current PR head/base/state, and fully addressed issue
+   association before releasing dependents. An explicit PR mapping remains binding; related issues
+   may share a PR when authorized. Keep unrelated work out of the diff.
 6. **Observe and recover during the active session.** Use native completion/check events or bounded
    observation of relevant delivered PRs. Diagnose actionable failures and repair within the
    approved scope and budget, reusing the existing branch, workspace, and PR after proving the

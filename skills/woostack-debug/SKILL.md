@@ -10,9 +10,10 @@ is woostack's systematic investigation phase: every skill can route a stuck veri
 confirmed defect here instead of guessing. It owns no approval gate, writes no repository or GitHub
 state, and hands back evidence plus a bounded remediation candidate.
 
-It is a public command, `/woostack-debug <target>`, and an internal hook used during
-bounded [`woostack-execute`](../woostack-execute/SKILL.md) verification. It always runs
-autonomously.
+It is a public read-only command, `/woostack-debug <target>`. Bounded
+[`woostack-execute`](../woostack-execute/SKILL.md) verification may diagnose inline and calls
+Debug only when a separate read-only investigation is useful. Debug always runs autonomously and
+never implements the proposed repair.
 
 <IRON-LAW>
 NO FIX WITHOUT ROOT CAUSE INVESTIGATION FIRST.
@@ -70,14 +71,12 @@ GitHub resource, and it never writes its diagnosis remotely. If no explicit GitH
 supplied, continue the separately scoped code/runtime investigation while stating that no
 development context was used.
 
-When a bounded `woostack-execute` task supplied its task contract and the proved defect is inside
-that contract, return the evidence and minimal fix to that same task. Debug neither expands scope
-nor creates authority. Otherwise return the evidence-bound diagnosis to the user or caller, who
-chooses whether to explore requirements with public
-[`woostack-ideate`](../woostack-ideate/SKILL.md), review a specification or plan with
-[`woostack-harden`](../woostack-harden/SKILL.md), plan with
-[`woostack-plan`](../woostack-plan/SKILL.md), or run an already-authorized bounded Execute task.
-Debug selects and launches none of them.
+When called from an authorized bounded `woostack-execute` correction and the proved defect stays
+inside its scope, return the evidence and minimal fix to that task. Debug neither expands scope
+nor creates authority. Otherwise return the complete evidence-bound diagnosis to the user or
+caller as reusable input for public [`woostack-ideate`](../woostack-ideate/SKILL.md),
+[`woostack-harden`](../woostack-harden/SKILL.md), [`woostack-plan`](../woostack-plan/SKILL.md),
+or an already-authorized bounded Execute task. Debug selects and launches none of them.
 
 ## The four phases
 

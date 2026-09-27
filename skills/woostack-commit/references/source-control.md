@@ -1,131 +1,136 @@
 # Source-control branch and submission boundary
 
-This contract applies to Commit, worktrees, delivery, planning, and reconciliation. Git and
-canonical GitHub reads prove repository state; provider artifacts never authorize source mutations.
+This file is the canonical owner of Commit delivery, PR submission, and their recovery. Git and
+canonical GitHub reads prove repository state; provider artifacts never authorize a source
+mutation.
 
-Use native Git with an available, authorized GitHub integration for PR delivery. Prefer suitable
-host-native tools; host-authenticated `gh` is supported. Discover operation capabilities, complete
-read shapes, and read-back support before mutation. Keep credentials in the host. Unsupported or
-unknown capability blocks that operation, never licenses a different transport after failure.
-`--no-pr-update` requires only local Git: no push, PR, or stack operation and no GitHub authentication
-or remote discovery. Retain known PR identity without claiming an unperformed read.
+Use native Git with an available, authorized GitHub integration, preferring the host's native
+GitHub tools; host-authenticated `gh` is supported. Discover read shape, pagination, and read-back
+support before a consequential write. An unknown or unsupported capability blocks that operation; a
+backend error is not permission to switch transport or credentials.
 
-## Resolve the task branch and parent
+Read only what the current step needs: this working tree's branch, base, and diff, plus a targeted
+query for the PR or stack it acts on. A complete repository inventory is warranted only when that
+targeted query is ambiguous.
 
-The caller supplies an approved bounded task, stable identity, canonical repository, integration
-base/start commit, intended parent branch, selected worktree, and verified diff identity. Before
-mutation verify:
+`--no-pr-update` is local-only: no push, PR, or stack write, and no GitHub authentication or
+remote read. Retain known PR identity without claiming a read that did not happen.
 
-- the physical worktree path, complete `git worktree list --porcelain` inventory, branch, and HEAD;
-- canonical remote, integration base, parent branch intent, retained start/old-parent SHA, and
-  ancestry;
-- index, unstaged, untracked, conflict, and complete diff state; every changed path belongs to
-  the approved task;
-- for PR delivery, complete canonical PR inventory: absence or one open current-branch PR with
-  matching head repository and base; local-only commits preserve known conflicting PR facts; and
-- no competing branch, checkout, commit, or PR.
+## Resolve the working tree and base
 
-Use `parentBranch` for parent identity in task contracts and delivery checkpoints. An upstream
-usually tracks the task branch; a merge-base proves shared history, not intended parent identity.
-Parent intent comes from the approved task and retained start SHA, reconciled with the canonical
-PR base/head graph for submitted branches. Prove the admitted parent SHA is an ancestor of the
-child with `git merge-base --is-ancestor <admitted-parent-sha> <child-head>` and compare current
-parent and PR base separately. A moved parent tip need not already be in the child. Apply the
+The caller's authorized outcome plus current Git evidence — not a branch name, commit message, PR,
+artifact, or prior session — decide what belongs in this commit. Before mutation, read the physical
+worktree, branch, HEAD, intended base, index, tracked and untracked changes, and complete diff;
+classify every changed path. Resolve the canonical remote for publication, not local-only Commit.
+
+Parent identity is the approved parent branch, reconciled with the PR base for a submitted branch;
+an upstream or a merge-base proves shared history, not intended parent. The branch's own current
+evidence is the proof: where a dependency, a base change, or a submitted PR must be established,
+read that branch rather than a caller packet. Prove ordinary linear history with
+`git merge-base --is-ancestor <parent-sha> <child-head>`, and prove a squash-merged parent by content
+present in the parent branch, since it leaves no source-head ancestry.
+A moved parent tip need not already be in the child, and no admitted parent or start SHA is
+required once branch and PR evidence already establish the relationship. Apply the
 [base-change contract](../../woostack-init/references/artifact-backends.md#repository-ancestry-and-base-change-detection)
-before fresh work. Missing, conflicting, or rewritten ancestry blocks. Branch names alone do not
-prove task identity. Preserve unrelated work; never reset, clean, stash, delete, or overwrite it.
+to fresh work. Missing, conflicting, or rewritten ancestry blocks.
+
+Block protected-primary work, detached HEAD, unresolved conflicts, unexplained staged paths, a
+competing checkout or writer on the same tree, an existing PR whose repository, head, base, or
+ancestry conflicts, and any path outside the outcome. A mixed worktree is usable only when every
+in-scope hunk can be staged without touching or hiding unrelated changes; ambiguous mixed hunks
+block. Preserve unrelated work: never switch branches, reset, clean, stash, delete, or overwrite it
+to make the state convenient. Inspect the wider worktree inventory only when reuse, collision, or
+ownership is actually in question.
 
 ## Create or modify
 
-Use the caller/host-selected isolated worktree and branch under the
-[workspace guidance](../../woostack-init/references/worktrees.md). Verify checkout, canonical
-repository, branch, HEAD, parent ancestry, and collision-free physical path before mutation. Do
-not prescribe a path, branch recipe, or cleanup. Stage only verified task hunks, and append a
-`git commit -m <subject>` when the index contains a new task change; never automatically amend.
-With no new staged change, reuse the verified commit for pending submission or PR metadata recovery.
+Stage verified in-scope paths or hunks and append `git commit -m <subject>`; never amend or rewrite
+another branch automatically. With no new staged change, reuse the verified commit for pending
+submission or PR metadata recovery.
 
 After committing, independently read branch, HEAD, parent, message, committed diff, index, and
-worktree. The new commit's diff must equal the approved staged diff, the complete base-to-head diff
-must remain in scope, and the index must be empty. Leave unrelated unstaged content untouched.
-An error or timeout has an unknown outcome: rediscover state before deciding whether to retry.
+worktree: the commit's diff equals the approved staged diff, the base-to-head diff stays in scope,
+and the index is empty. If a hook or staging operation changed content unexpectedly, unstage only
+the paths this invocation staged, preserve the worktree, and stop with the exact mismatch.
 
 ## Submit
 
-Re-read branch, HEAD, parent, remote branch, and fully paginated canonical PR inventory. Use only
-the verified remote for the canonical repository. Publish exactly the task branch without force;
-independently verify its remote ref equals the intended commit. A non-fast-forward rejection blocks:
-do not implicitly pull, rebase, reset, or force-push. New PRs are drafts; preserve existing PR
-readiness. Updating an existing PR, including a lower stack layer, does not resubmit descendants.
+Before pushing, query PRs across all states for this exact head repository and branch, paginating
+until the matching set is exhausted. Reuse its one matching open PR; only proved absence across
+states permits a new draft with the exact repository, head, and intended base. A closed or merged
+match, duplicate, foreign head repository, conflicting base, or unreadable result blocks before
+remote mutation — never retarget or create around it. For an existing PR, check its body against
+the [PR-body contract](pr-body.md) before publication; unresolved closing references block delivery.
 
-### GitHub submission
+Publish the task branch with a non-force push to the verified remote, then independently read the
+remote ref and confirm it equals the intended commit. A non-fast-forward rejection blocks: never
+pull, rebase, reset, or force-push around it. Refresh the matching PR identity before creating or
+updating it; after an ambiguous write, rediscover the all-state set before retrying. New PRs are
+always drafts; an existing PR keeps its readiness. Update its title and body under the PR-body
+contract after identity verification. Updating one PR, including a lower layer of a chain, does not
+resubmit its descendants.
 
-Reuse the one matching open PR. Only complete absence proof permits a new draft with the exact
-repository, head, and intended parent/base. Foreign head repository, conflicting base, duplicate,
-or closed PR state blocks; never retarget or create around it. After identity verification, update
-title/body while preserving human-authored content under the [PR-body contract](pr-body.md).
-Host-authenticated `gh` equivalents include `git push <remote> HEAD:refs/heads/<task-branch>`,
+Host-authenticated `gh` equivalents include
+`git push <remote> HEAD:refs/heads/<task-branch>`,
 `gh pr create --repo <owner/repo> --head <task-branch> --base <parent-branch> --draft --title <title> --body-file <body-file>`,
 and `gh pr edit` for a verified existing PR.
 
-### Native GitHub stack membership for a dependent PR
+## Native GitHub stack membership for a dependent PR
 
-Only a caller-approved dependent PR needs this step, after its exact PR is submitted. The caller
-supplies the intended parent and chain; Commit does not infer dependencies, choose a parent, or
-schedule siblings. Read each chain PR (including the child) and fully paginate the repository's
-native stack inventory; resolve candidate stacks by PR number and read their exact stack records.
-Prove unique open PRs, same-repository heads, unchanged head SHA/base/readiness, the child base
-equals its approved parent's head branch, each earlier base equals its predecessor's head, the
-bottom base is the configured integration/trunk branch, and admitted Git ancestry still holds.
-A chained PR base alone is not native stack membership.
+Register a dependent PR in a native GitHub stack only when the caller explicitly requests it or
+repository workflow requires it. A chained base delivers without registration; unavailable optional
+stack metadata does not invalidate an otherwise verified commit and PR, and registration is never
+claimed without a verified read. When registration was explicitly required and cannot be
+completed, report that boundary precisely.
 
-If the child already belongs to precisely the intended stack at the intended position, reuse it
-without mutation. If the parent is the top of an existing matching stack and the child is unstacked,
-append only the child. Otherwise, with no member already registered, create one stack from the
-verified bottom-to-top PR numbers. Use a narrowly scoped authorized GitHub stack operation, such as
-the [REST stack create/add endpoints](https://docs.github.com/en/rest/pulls/stacks):
-`POST /repos/{owner}/{repo}/stacks` with `pull_requests` for creation or
-`POST /repos/{owner}/{repo}/stacks/{stack_number}/add` for a top-only append. Host-authenticated
-`gh api` supports these REST operations. Never use stack-wide submit/push/sync or require the
-`gh stack` extension or local tracking. Its
-[`link` command](https://docs.github.com/en/pull-requests/reference/stacked-prs-cli-commands#gh-stack-link)
-is optional only when the exact PR-URL invocation is proven not to push, create/retarget PRs, or
-change readiness; branch inputs and `--open` are unsafe substitutes.
+When it is required, the caller supplies the intended parent and chain; Commit infers no
+dependency, parent, or order. Read the child and each chain PR, then query the repository's stacks
+for those PR numbers and read the matching stack records. Prove unique open PRs, same-repository
+heads, unchanged head SHA/base/readiness, that the child base equals its approved parent's head
+branch, that each earlier base equals its predecessor's head, that the bottom base is the
+configured trunk, and that admitted Git ancestry still holds. A chained PR base alone is not
+membership.
 
-Conflicting or uncertain membership, a registered non-top parent, foreign repository, moved parent,
-or unavailable stack capability blocks stack delivery without altering the existing commit/PR.
-After mutation or an unknown outcome, re-read native membership (including trunk, stack number,
-and complete ordered PR numbers) and each affected PR's head SHA, base, content, and readiness.
-Verify the child follows its approved parent and all earlier members are unchanged. Recover only
-the missing operation from this fresh evidence; never create a replacement stack or claim a
-registered stack from chained bases or a mutation response alone. Independent PRs and local-only
-commits skip this step entirely.
+Reuse precise membership without mutation. If the parent tops a matching stack and the child is
+unstacked, append only the child. Create one stack from the verified bottom-to-top PR numbers only
+when none of its members is registered. A child in another stack, a registered non-top parent, or
+any conflicting or uncertain membership blocks registration without altering the verified PR.
+Use a narrowly scoped authorized stack operation, such as
+[the REST stack create/add endpoints](https://docs.github.com/en/rest/pulls/stacks):
+`POST /repos/{owner}/{repo}/stacks` with `pull_requests` for creation, or
+`POST /repos/{owner}/{repo}/stacks/{stack_number}/add` for a top-only append; host-authenticated
+`gh api` supports both. Never run a stack-wide submit/push/sync or require `gh stack` tracking.
 
-### Read-back and recovery
+## Read-back and recovery
 
-Independently read the canonical GitHub PR and verify repository, URL/number, head branch/SHA,
-base, open state, and uniqueness; for a dependent PR also verify the native stack as above.
-Successful command output alone is not proof. After unknown push, PR, or stack mutation,
-rediscover remote ref, complete PR inventory, and affected stack membership; resume only the
-missing boundary, never recommit or create a second PR or stack. Never submit unrelated branches,
-merge, mark ready, enable auto-merge, enqueue, or force-push.
+Read the canonical PR back and verify repository, URL/number, head branch/SHA, base, open state, and
+uniqueness; for a registered stack also verify stack number, trunk, and complete ordered
+membership. Successful command output alone is not proof.
+
+After an unknown commit, push, PR, or stack outcome, rediscover the remote ref, the targeted PR
+query, and affected stack membership, then resume only the missing boundary. A lost create response
+is not proof of absence: never recommit, create a second PR or stack, or repeat a write merely
+because a response was missing. Never submit unrelated branches, merge, mark ready, enable
+auto-merge, enqueue, close issues, or force-push.
 
 ## Stack reconciliation
 
 The calling workflow owns affected-set discovery, conflict gates, review invalidation, and
-descendant reconciliation. [GitHub's stack requirements](https://docs.github.com/en/pull-requests/reference/stacked-pull-requests)
-evaluate protections against the native stack's trunk, not each child's PR base, and require
-linear inter-branch history for merging. A changed lower-layer head or trunk can break that
-linearity. Do not automatically merge each moved parent into its child, cascade restacks,
-rewrite published heads, force-push, or request a server-side rebase. Preserve the affected
-branches/PRs and report a human-maintenance boundary when reconciliation requires a rewrite;
-re-read Git and native stack evidence after that change. This is not a merge-readiness gate on
-ordinary task commits or same-PR updates.
+descendant reconciliation. [GitHub's stack
+requirements](https://docs.github.com/en/pull-requests/reference/stacked-pull-requests) evaluate
+protections against the native stack's trunk, not each child's PR base, and require linear
+inter-branch history for merging, so a changed lower-layer head or trunk can break that linearity.
+Do not automatically merge each moved parent into its child, cascade restacks, rewrite published
+heads, force-push, or request a server-side rebase. Preserve the affected branches and PRs, report
+the human-maintenance boundary when reconciliation needs a rewrite, and re-read Git and stack
+evidence afterward. This is not a merge-readiness gate on an ordinary task commit or same-PR
+update.
 
-## Optional GitHub issue context and return
+## Optional GitHub issue context
 
-A caller-selected exact GitHub issue may supply context or a delivery note under
-[provider-attribution.md](provider-attribution.md). It never selects branch, worktree, parent,
-commit, PR, or submission authority. Return exact worktree, branch, parent/base, commit SHA/message
-and diff identity, PR URL/head/base (or `not submitted`), and for a dependent PR the verified
-stack number/trunk/order or first incomplete boundary. Claim no history or remote mutation
-without independent read-back.
+A caller-selected exact GitHub issue supplies context, PR association, and an explicitly requested
+note under [provider-attribution.md](provider-attribution.md). It never selects the branch,
+worktree, parent, commit, PR, or submission authority, and its note stays optional and separate
+from repository delivery. Commit reports the branch/base, commit, changed paths, PR identity, any
+required stack read-back, and the first incomplete boundary, claiming no history or remote
+mutation without independent read-back.

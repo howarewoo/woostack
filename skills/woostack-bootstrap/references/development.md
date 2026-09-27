@@ -11,7 +11,7 @@ Each skill owns its procedure:
 | Plan a feature or proved defect, optionally filing issues | `woostack-plan` |
 | Explore requirements on request | `woostack-ideate` |
 | Review a supplied specification or candidate plan read-only | `woostack-harden` |
-| Deliver one bounded task in one PR | `woostack-execute` |
+| Deliver an authorized bounded outcome in a reviewable PR | `woostack-execute` |
 | Check a running app in a browser | `woostack-qa` |
 | Prove a root cause without applying a correction | `woostack-debug` |
 | Reflect on the fixed active-conversation snapshot for concrete durable instruction suggestions | `woostack-reflect` |
@@ -41,11 +41,10 @@ target inspection and fresh collision-safe write admission. Optional project per
 separate from write authority. Init persists only non-secret policy, never local specs or plans.
 
 
-Implementation branches begin from verified repository base evidence and use one selected isolated
-workspace under the [workspace guidance](../../woostack-init/references/worktrees.md). Bootstrap's
-initial new-repository scaffold is the one pre-base worktree exception. Later PRs require direct
-Git/GitHub identity and may include an ordinary optional artifact link. Git and GitHub remain the
-source of truth for commits, branches, PRs, reviews, and merges.
+Implementation branches begin from verified repository base evidence. Use an approved workspace or
+host/repository-selected isolated checkout under the [workspace guidance](../../woostack-init/references/worktrees.md).
+Bootstrap's initial new-repository scaffold is the pre-base exception. Later PRs require direct
+Git/GitHub identity; Git and GitHub prove commits, branches, reviews, and merges.
 
 Work tracking uses canonical GitHub parent/child issues, native dependency relations, and linked
 pull requests. GitHub Project Status fields may describe provider records, but issue lifecycle or

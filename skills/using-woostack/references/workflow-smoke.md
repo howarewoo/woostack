@@ -192,10 +192,10 @@ by a blind repeat.
 ```text
 Implement task A in the current isolated checkout. Replace the empty a.txt with
 the single line A. Do not edit b.txt, c.txt, the other fixture issues, or Project
-state. Acceptance is a.txt containing A. Observe the required check failing
-before the change, then pass it after the minimum change; run the same command as
-the smoke scenario. Commit and deliver exactly one draft PR through Commit with
-base main and exactly one Resolves line for the selected A issue.
+state. Acceptance is a.txt containing A. Observe the focused check failing before
+the change and passing after it; this same command exercises the changed path.
+Deliver a draft PR through Commit with base main and a closing reference for the
+fully addressed A issue.
 ```
 
 **Invocation:** use the current issue-URL entry contract (bounded input plus `--issue`, issue URL
@@ -207,10 +207,12 @@ alone, or `--issue` alone per the Execute skill):
 
 **Assertions:**
 
-- The focused check first fails with the empty baseline and later passes after the one-file change; the smoke is the passing focused command. No final pass is substituted for Red evidence.
-- The commit changes only a.txt. The draft PR is unique, open, based on main, and has the recorded task head SHA.
-- Full PR read-back contains exactly `Resolves <A-issue-url>` once. B and C have no execution worker, branch, commit, or PR, and P has no lifecycle write.
-- The actual-host record names the revision, host, exact invocation, check output, commit, and canonical PR read-back. With no separately authorized live issue/PR fixture, report this recipe **Unrun — no authorized A issue and draft-PR test repository**.
+- The focused check fails before and passes after the one-file change; no extra smoke is required.
+- The commit changes only a.txt. The draft PR is open, based on main, and has the recorded head SHA.
+- PR read-back contains A's intended closing reference; B and C have no execution worker, branch,
+  commit, or PR, and P has no lifecycle write.
+- The actual-host record names the revision, host, invocation, check output, commit, and PR read-back.
+  With no separately authorized live fixture, report **Unrun — no authorized test issue/PR repo**.
 
 **Cleanup:** preserve the evidence, leave the PR draft and unmerged, then follow the separately authorized disposable-repository cleanup. Remove only the local task checkout after confirming it has no retained user work.
 
@@ -282,15 +284,28 @@ result is **manual instruction-text evidence**, never a host result.
 | Adopt/choose a workflow | using-woostack; project rules | Name one matching skill | Init, GitHub access, or loading all skills |
 | Plan a change or a goal | woostack-plan; no publication owner unless filing is requested | One coherent plan, then stop | GitHub writes, a required template, or a separate review call |
 | File issues from a plan | woostack-plan plus its GitHub publication context and procedure | Write the requested issues and read them back | Inventing a parent graph, a Project, or an unrequested destination |
-| Plan an unproved defect | woostack-plan → Debug, then correction planning | Prove a cause first | Source edits from an unproved theory |
-| Execute a complete inline bounded task | woostack-execute; source control at delivery | One commit and one PR | Project/provider graph discovery |
-| Execute one exact issue URL | woostack-execute; exact-issue read, then Commit association | One task's one PR | Dropping the issue, siblings, or Project discovery |
-| Commit without an issue | woostack-commit; source control only | One commit; PR per the caller | Association/profile reads |
+| Plan an unproved defect | woostack-plan → Debug, then correction planning | Prove cause before planning | Source edits from an unproved theory |
+| Execute a complete inline bounded task | woostack-execute; source and runtime evidence, source control at delivery | Deliver the bounded outcome in one commit and one PR | Guessed repair, mandatory Debug handback, or Project/provider graph discovery |
+| Execute one exact issue URL | woostack-execute; exact-issue read, then Commit association | Deliver the bounded outcome | Dropping the issue, siblings, or Project discovery |
+| Commit without an issue | woostack-commit; source control only | Deliver scope-limited changes | Association/profile reads |
 | Explicit Reflect | woostack-reflect; exactly one invocation | One report-only pass | Automatic reflection on every final reply |
 
 **Assertions:** every row resolves to exactly one skill, and each owner it loads is that skill's own
 reference rather than a router-wide rule. Orchestrate alone owns multi-task coordination, and the
 router's remaining gates still resolve.
+
+**Delivery edge traces (manual instruction evidence):**
+
+| Case | Owner and next action | Forbidden effect |
+| --- | --- | --- |
+| Two related fully addressed issues, one authorized PR | Execute admits combined scope; Commit reads both exact issues and preserves both closing references | One-issue/one-PR rejection or closing only partially addressed work |
+| Dependent branch, optional stack capability absent | Commit delivers and reads back branch/base PR; labels registration unavailable | Blocking verified code or claiming registration |
+| Explicitly required stack registration unavailable | Commit preserves verified code/PR and reports registration incomplete | Claiming requested metadata succeeded |
+| Lost PR-create response | Commit queries matching head PR and remote ref before retry | A duplicate PR or commit from assumed absence |
+| Previous writer may still be active | Workspace owner stops reuse pending proven exit/relinquishment | Starting another writer by serializing alone |
+
+These traces inspect instructions only. Actual GitHub stack/PR mutations require separate live
+permission; do not mislabel these rows as actual-host results.
 
 ## 5. Installed integration matrix
 
@@ -338,8 +353,9 @@ not trigger another interpreter, lock implementation, model, or transport fallba
 | --- | --- | --- |
 | Checkout and installed layout | `pnpm -C site test`; disposable copy above | **Deterministic:** catalog and retained Claude links resolve, retired links are absent, local runtime references remain within installed assets; missing/escaping targets reject |
 | Inline Execute; issue-free Commit | Trace §4 with shared task A, omitting issue selection | **Manual trace:** Execute implements; Commit owns submission; no issue/Project/profile load or artifact calls |
-| Exact issue Execute | Trace §4 with A's exact issue selector; live variant §2 only with separate permission | **Manual trace:** exact issue and paginated comments read, Commit revalidates association; no sibling/Project discovery |
+| Exact issue Execute | Trace §4 with A's exact issue selector; live variant §2 only with separate permission | **Manual trace:** exact issue and relevant comments read; Commit revalidates association; no sibling/Project discovery |
 | Plan without publication; unproved defect | Trace §1.1 and §1.3 with the shared request, then with an unproved defect instead | **Manual trace:** Plan returns a plan with no GitHub write; a verified fact stays an observation and the open question stays a user decision; a defect goes to Debug before correction planning |
+| Authorized bounded correction | Trace §4 with a proved defect and a separately authorized correction | **Manual trace:** Execute can establish cause inline before repair; no mandatory Debug handback |
 | Requested issue filing | §1.4 live only with separate issue-write permission; §1.5 unknown-result variant likewise | **Actual host:** only the requested issues exist, each read back; a missing native edge is reported as missing, and a lost create is recovered by discovery. **Unrun** with a reason when no authorized disposable repository or safe interruption exists |
 | Multi-task coordination without a subagent | Trace §4 into Orchestrate, then read §3's sequential variant | **Manual trace:** one skill owns order, concurrency, and each task's base; sequential execution is an allowed outcome that is reported as sequential, never as a parallel wave or independent review |
 | Uncertain worker result | §3 unknown-result variant, live only with separate permission | **Actual host:** outcome rediscovered before any repeat; no second writer or duplicate PR. **Unrun** with a reason when the host exposes no safe interruption |
