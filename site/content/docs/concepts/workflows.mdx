@@ -126,9 +126,8 @@ continues as a daemon after the session ends. The final result reports delivered
 limitations, remaining tasks, and blockers. Pending or blocked issue-note and Project reporting
 is listed separately. Missing reporting never invalidates valid code or counts as done.
 
-There is no persisted execution forest, lock service, or cross-harness replay guarantee; a run that
-needs old replay stays pinned to its pre-cutover version. See
-[Orchestrate coordination](/docs/skills/woostack-orchestrate#coordinate).
+There is no persisted execution forest, lock service, or cross-harness replay guarantee; see
+[upgrading from a pre-cutover release](#upgrading-from-a-pre-cutover-release).
 
 ## Execute
 
@@ -164,6 +163,23 @@ blocks reuse until its exit is established; an existing approved workspace need 
 Retired run/project/recheck inputs do not select executable scope, and historical planning records
 remain unchanged. A task-bearing issue is valid direct context, not a request to copy its contract
 into a separate template.
+
+## Upgrading from a pre-cutover release
+
+Prepare and the custom execution controller's CLI and protocol are retired. Nothing installs,
+invokes, or emulates them, and no compatibility layer stands in for them.
+
+- A recorded run that still needs the old controller replays from the pre-cutover installation
+  recorded with it. Retained checkpoints are not converted, and no automatic cleanup runs.
+- New work is never resumed from a retained record. Execute and Orchestrate inspect actual
+  source, PR, and host worker state, and recovery is proved from that evidence rather than
+  assumed to reproduce the same way on another host.
+- Retained `.woostack/tmp/runs/<run-id>/` records, installed old copies, and existing worktrees
+  stay exactly as their owner left them. Removing them is optional, manual, and user-initiated.
+
+Retained-data authority and recovery boundaries belong to the
+[local artifacts reference](/docs/configuration/artifacts/local) and
+[Orchestrate coordination](/docs/skills/woostack-orchestrate#coordinate).
 
 ## Review and corrections
 

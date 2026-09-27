@@ -29,9 +29,8 @@ for standing repository rules, the sanctioned `site/` exception, and verified ch
 | Change session reflection (`/woostack-reflect`) | `skills/woostack-reflect/SKILL.md`, `skills/woostack-reflect/scripts/` |
 | Change the systematic-debugging behavior (`/woostack-debug`) | `skills/woostack-debug/SKILL.md` |
 | Change test-writing guidance | `skills/woostack-execute/SKILL.md`, `skills/woostack-execute/references/tdd.md` |
-| Run Plan/Execute/Orchestrate smoke checks | `skills/using-woostack/references/workflow-smoke.md` |
+| Run workflow smoke checks | `skills/using-woostack/references/workflow-smoke.md` |
 | Change how review comments are addressed | `skills/woostack-address-comments/SKILL.md` |
-
 | Change workspace checks and repairs (`/woostack-doctor`) | `skills/woostack-doctor/SKILL.md` |
 | Update agent instructions (Claude or any) | `AGENTS.md` (`.claude/CLAUDE.md` is a symlink to it) |
 | Update reader-facing guides | `site/content/docs/` |
