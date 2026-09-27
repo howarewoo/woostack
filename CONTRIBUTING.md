@@ -79,8 +79,6 @@ no-application-code rule. Its [README](site/README.md) covers local development 
   [GitHub profile](skills/woostack-init/references/artifact-providers/github.md) for configuration
   and capability details; Prepare and parent-issue Plan do not require Project configuration.
 - Use tables to compare options and numbered lists for steps.
-- Keep examples short. Skills explain the workflow; project-local docs cover project details.
-- Link to the document that owns a fact instead of repeating it elsewhere.
 - Keep the command names and fixed skill paths listed in the
   [command index](skills/using-woostack/SKILL.md#command-routing).
 - GitHub operations do not add commands.
@@ -89,14 +87,46 @@ no-application-code rule. Its [README](site/README.md) covers local development 
 - Update affected authored site guides when behavior changes. Do not edit generated skill pages;
   they are rebuilt from `skills/*/SKILL.md`.
 
-## Reviewing
+## Instruction and complexity review
 
-Reviewers should ask:
+Apply the [least-code standard](skills/woostack-bootstrap/references/patterns.md#7-least-code--comments)
+to instruction and runtime changes in this collection:
 
-- Does this change make the skill clearer or just longer?
-- Does each added instruction address a real need?
-- Will an AI agent following it produce a working result, such as a project, posted review, or resolved thread?
-- Does it conflict with existing guidance? Update the owning document so readers do not get two different answers.
+- **Establish the need.** Name an observed failure, demonstrable risk, or requested capability.
+  Evidence-backed security hardening need not wait for an incident. An isolated model mistake
+  does not justify a universal rule or speculative exception list.
+- **Repair the owner first.** Remove obsolete/conflicting rules and dependent explanations,
+  clarify the existing rule, or reuse a host/helper capability before appending instructions.
+  Keep one general invariant at its narrowest owner and link to it. When relaxing a restriction,
+  retain only necessary positive invariants, not lists of newly permitted behavior. Put incident
+  IDs, transcripts, debugging narratives, and one-off examples in issue/PR evidence or focused
+  regressions, not permanent entry instructions.
+- **Keep loading boundaries real.** Root instructions hold standing truths, the router selects
+  workflows, and owning skills hold procedures. Detailed schemas, recovery, and host mechanics
+  load only for applicable operations; required runtime references must resolve in an installed
+  collection. Moving prose to a reference every invocation must read saves no context.
+- **Justify machinery.** For a new helper, wrapper, config key, state/receipt, gate, adapter, or
+  fallback, explain why deletion, reuse, and the existing host cannot satisfy the need. Prefer
+  existing deterministic checks to model-authored bookkeeping. Retirement includes obsolete code,
+  examples, callers, and mutation-only tests in the same bounded change; preserve required
+  compatibility and all user-owned data.
+- **Show recurring cost where it changes.** Growth in standing/entry context, mandatory reads,
+  recurring tool calls, or protocol steps needs relevant before/after evidence and a short
+  necessity rationale in the existing PR description. Use the
+  [measurement recipe](skills/using-woostack/references/workflow-smoke.md#6-bounded-same-task-beforeafter-measurement)
+  and [installed smoke guidance](skills/using-woostack/references/workflow-smoke.md#5-installed-integration-matrix):
+  distinguish file bytes, actual loaded context, and tokens; include transitive reads, repeated
+  worker payloads, and new runtime concepts. This is not a benchmark requirement for typo fixes.
+- **Keep correctness above size.** Justified features and security fixes may grow. Retain
+  independent action-boundary checks, security, ownership, identity/head/diff binding, error
+  handling, and recovery; explain deliberate safety redundancy rather than deduplicating it.
+  No global line/byte ceiling, one-in/one-out quota, mandatory net-negative diff, or size-only
+  rejection applies.
+
+Review whether following the changed instructions produces the intended working result. A finding
+must name the duplicated owner, unnecessary required read/step, or unsupported mechanism and a
+concrete smaller correction; “too verbose” alone is not a finding. Use existing review, not another
+review agent, approval round, or required GitHub status check.
 
 ## Questions
 

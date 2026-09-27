@@ -36,6 +36,11 @@ collapse repeated instances of the same root cause into one finding. Order findi
 recurrence. Reject task-specific facts, transient state, preferences already covered by loaded
 instructions, vague advice, and weaker duplicates or conflicts.
 
+Distinguish an absent or contradictory instruction from a one-off failure to follow an already-clear
+rule. The latter warrants no durable suggestion unless captured evidence supports a specific loading,
+ownership, or wording correction; do not append a stronger duplicate warning. Prefer deletion,
+replacement, consolidation, or clarification at the existing owner over another imperative.
+
 Assign each finding to the narrowest owner and state both its target scope and source:
 
 1. the closest directory `AGENTS.md` governing the affected subsystem;
@@ -48,6 +53,10 @@ source blocks automatic filing; return a sanitized ready-to-file draft instead. 
 `AGENTS.md` suggestion and a Skill suggestion only when the distinct responsibilities of both are
 necessary; never duplicate one contract across them.
 
+In the proposed change, identify the targeted clause and edit when known. A useful local clarification
+may stand alone where no clause exists; do not copy a procedure across root, router, worker, and host
+instructions.
+
 ## Report contract
 
 For every admitted pass, return structured output with these sections, in this order:
@@ -57,14 +66,14 @@ AGENTS.md suggestions
 - Problem: <concrete observed, preventable problem>
   Session evidence: <minimal evidence from the snapshot>
   Target scope/source: <repository-relative AGENTS.md path or loaded global source>
-  Proposed change: <self-contained durable imperative rule>
+  Proposed change: <targeted clause and concrete deletion, replacement, consolidation, or clarification>
   Offered action: <report-only; after explicit acceptance, offer updating the nearest applicable `AGENTS.md`>
 
 Skill suggestions
 - Problem: <concrete observed, preventable problem>
   Session evidence: <minimal evidence from the snapshot>
   Target scope/source: <local canonical skill path, or verified upstream source>
-  Proposed change: <self-contained skill change>
+  Proposed change: <targeted clause and concrete deletion, replacement, consolidation, or clarification>
   Offered action: <report-only; after explicit acceptance, offer fixing the local skill or filing an exact verified upstream issue for a global skill>
 ```
 
