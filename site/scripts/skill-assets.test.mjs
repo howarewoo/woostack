@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
 import { cp, mkdtemp, mkdir, readFile, readdir, readlink, realpath, rm, stat, symlink, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
@@ -145,9 +146,10 @@ test('catalog discovery does not admit a symlinked skill entry point', async (t)
 test('installed collection resolves without a checkout or docs application', async (t) => {
   const root = await makeRoot(t);
   const installed = path.join(root, 'skills');
-  for (const name of PUBLIC_ORDER) {
-    await cp(path.join(REPO_ROOT, 'skills', name), path.join(installed, name), { recursive: true });
-  }
+  const archive = execFileSync('git', ['archive', 'HEAD', 'skills'], {
+    cwd: REPO_ROOT, maxBuffer: 32 * 1024 * 1024,
+  });
+  execFileSync('tar', ['-xf', '-', '-C', root], { input: archive });
   assert.deepEqual(
     (await validateSkillAssets(installed, PUBLIC_ORDER)).map(({ name }) => name),
     [...PUBLIC_ORDER].sort(),

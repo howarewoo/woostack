@@ -230,7 +230,7 @@ Bash, and Git. The [controller](../../woostack-orchestrate/SKILL.md) and
 No live GitHub fixture or paid model experiment is authorized by this
 recipe. The existing recording driver supplies transport evidence, not a second scheduler.
 
-First run `pnpm -C site test`: its installed-collection case copies the shipped skills and
+First run `pnpm -C site test`: its installed-collection case exports committed skills and copies
 retained Claude links to a temporary directory, invokes the production asset parser, and rejects
 a checkout-only reference even when that target exists. The checkout test covers discovery too.
 `pnpm -C site build` separately checks the documentation application, not the installed runtime.
@@ -242,6 +242,11 @@ INSTALL=$(mktemp -d)
 CANDIDATE=$(git rev-parse HEAD)
 printf 'Installed candidate: %s\n' "$CANDIDATE"
 git archive "$CANDIDATE" skills | tar -x -C "$INSTALL"
+node --input-type=module -e '
+  import { validateSkillAssets } from "./site/scripts/skill-assets.mjs";
+  import { PUBLIC_ORDER } from "./site/scripts/gen-skills.mjs";
+  await validateSkillAssets(process.argv[1], PUBLIC_ORDER);
+' "$INSTALL/skills"
 (
   cd "$INSTALL"
   bash skills/woostack-orchestrate/scripts/tests/run-tests.sh
