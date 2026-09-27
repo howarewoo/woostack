@@ -25,8 +25,7 @@ Load only the section you need: [result schema](#result-schema) ·
 ```text
 python3 <orchestrate-skill>/scripts/orchestrate.py apply-result \
   --admitted admitted.json --state controller-state.json \
-  --state-out controller-state.json --git-repo <canonical-repository> \
-  --task <task-id> --result <complete-result.json>
+  --git-repo <canonical-repository> --task <task-id> --result <complete-result.json>
 ```
 
 All runtime markers below are facts that the skill must substitute from direct reads; they are not
@@ -378,7 +377,7 @@ task. All values must come from current, complete native reads, not prior worker
 ```text
 python3 <orchestrate-skill>/scripts/orchestrate.py observe-checks \
   --admitted admitted.json --state controller-state.json \
-  --state-out controller-state.json --git-repo <canonical-repository> \
+  --git-repo <canonical-repository> \
   --task <task-id> --observation <fresh-pr-check-observation.json>
 ```
 
@@ -537,8 +536,7 @@ correlate that launch with the complete reserved task packet, and checkpoint it:
 ```text
 python3 <orchestrate-skill>/scripts/orchestrate.py record-worker \
   --admitted admitted.json --state controller-state.json \
-  --state-out controller-state.json --git-repo <canonical-repository> \
-  --task <task-id> --evidence host-launch-readback.json
+  --git-repo <canonical-repository> --task <task-id> --evidence host-launch-readback.json
 ```
 
 The launch receipt contains `worker` (exactly nonempty `host_id`, `session_id`, `worker_id`),
@@ -576,8 +574,8 @@ reconciling; do not resume or relaunch that session between the read and reconci
 ```text
 python3 <orchestrate-skill>/scripts/orchestrate.py reconcile \
   --admitted admitted.json --state controller-state.json \
-  --state-out controller-state.json --git-repo <canonical-repository> \
-  --task <task-id> --inventory current-recovery-inventory.json \
+  --git-repo <canonical-repository> --task <task-id> \
+  --inventory current-recovery-inventory.json \
   --evidence canonical-reconciliation-evidence.json
 ```
 
@@ -652,8 +650,8 @@ the controller stopped and use the current returned admission:
 ```text
 python3 <orchestrate-skill>/scripts/orchestrate.py resume \
   --admitted current-admitted.json --fresh fresh-snapshot.json \
-  --state controller-state.json --state-out controller-state.json \
-  --git-repo <canonical-git-repository> --landed-evidence landed-binding.json
+  --state controller-state.json --git-repo <canonical-git-repository> \
+  --landed-evidence landed-binding.json
 ```
 
 The binding contains the exact `owner` object, current raw-byte `checkpoint_digest`,
