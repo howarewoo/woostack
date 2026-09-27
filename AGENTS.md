@@ -61,9 +61,8 @@ work, the output belongs in a fresh repo in a different directory, not in this r
   and data-loss handling stay, and deliberate multi-layer safety redundancy is kept, not
   DRY-removed. Full standard — the ladder, its deltas, comments, and magic-literal rules — is
   [`patterns.md §7`](skills/woostack-bootstrap/references/patterns.md#7-least-code--comments).
-- **Remove before add.** When relaxing or removing a repository restriction, delete the obsolete
-  rule and its dependent explanations first. Add replacement text only when needed to preserve a
-  necessary positive invariant; never enumerate behavior that is merely no longer forbidden.
+- For edits to this collection, apply the
+  [instruction and complexity review rubric](CONTRIBUTING.md#instruction-and-complexity-review).
 - No fabricated versions or invented commands. Resolve a needed version live with
   `npm view <pkg> version` or an equivalent registry command, and do not invent CI, app tests,
   package scripts, or app build steps for this repo.
