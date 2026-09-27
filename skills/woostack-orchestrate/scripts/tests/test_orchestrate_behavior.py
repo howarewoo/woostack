@@ -365,6 +365,7 @@ class OrchestrateBehavior(unittest.TestCase):
 
     def _persist(self, task_id: str, result: Dict[str, Any], dispatch: Dict[str, Any]) -> None:
         self.github.persist_delivery(task_id, result, self._reservation(dispatch))
+        self.github.parent_branches.add(result["readback"]["branch"])
 
     def _single_task_snapshot(self, task_id: str = "task-a") -> Dict[str, Any]:
         snapshot = self.github.snapshot()
@@ -5900,6 +5901,33 @@ class OrchestrateBehavior(unittest.TestCase):
         self.assertNotEqual(json.loads(child_state.read_text())["tasks"]["task-c"]["status"],
                             "delivered")
 
+    def test_missing_older_open_ancestor_read_blocks_descendant(self) -> None:
+        fixture = self._delivered_stack_with_current_parent_finding()
+        admitted_path, admitted = fixture["admitted_path"], fixture["admitted"]
+        ancestor = self.github.prs["task-a"]
+        finding = {"id": 502, "commit_id": ancestor["head_sha"], "state": "COMMENTED",
+                   "submitted_at": "2026-09-25T01:00:00Z",
+                   "user": {"login": "external-reviewer"}}
+        thread = {"id": "PRRT_kwDORP1kW86mRbLr", "review_id": 502, "is_resolved": False}
+        self.github.review_history["task-a"] = [[finding]]
+        self.github.thread_history["task-a"] = [[thread]]
+        self.github.thread_history["task-b"] = [[dict(fixture["thread"], is_resolved=True)]]
+
+        missing = fixture["fresh"]()
+        missing["parent_prs"].pop(ancestor["branch"])
+        self.assertIn(fixture["branch"], missing["parent_prs"])
+        state, blocked = self._schedule(
+            admitted_path, admitted, fixture["state"], missing, "missing-ancestor-read", cap="1")
+        self.assertEqual(blocked["dispatch"], [], blocked)
+        self.assertEqual([(row["task_id"], row["reason"]) for row in blocked["blocked"]],
+                         [("task-b", "parent-pr-evidence")], blocked)
+
+        _, observed = self._schedule(
+            admitted_path, admitted, state, fixture["fresh"](), "ancestor-finding", cap="1")
+        self.assertEqual(observed["dispatch"], [], observed)
+        self.assertEqual([(row["task_id"], row["reason"]) for row in observed["blocked"]],
+                         [("task-b", "unresolved-review-finding")], observed)
+
     def test_cleared_parent_finding_releases_c_with_no_approval(self) -> None:
         """Control for the unapproved rejection: only the live finding holds C back."""
         fixture = self._delivered_stack_with_current_parent_finding()
@@ -5926,19 +5954,19 @@ class OrchestrateBehavior(unittest.TestCase):
         foreign_pr = self.github.canonical + "/pull/9001"
 
         def blocked(current: Path, reason: str, snapshot: Dict[str, Any],
-                    name: str) -> Path:
+                    name: str, task_id: str = "task-c") -> Path:
             outcome, payload = self._schedule(
                 admitted_path, admitted, current, snapshot, name, cap="1")
             self.assertEqual(payload["dispatch"], [], (name, payload))
             self.assertEqual([(row["task_id"], row["reason"]) for row in payload["blocked"]],
-                             [("task-c", reason)], (name, payload))
+                             [(task_id, reason)], (name, payload))
             return outcome
 
         # A waiver may not release C from the retained checkpoint when no fresh native
         # parent read was supplied at all.
         stale = fixture["fresh"](review_waivers=[waiver])
         stale["parent_prs"].pop(branch)
-        state = blocked(state, "incomplete-pr-readback", stale, "waiver-stale-historical-readback")
+        state = blocked(state, "parent-pr-evidence", stale, "waiver-stale-historical-readback")
 
         # A fresh native read naming another PR is never substituted for the retained one.
         foreign = fixture["fresh"](review_waivers=[waiver])
@@ -5973,7 +6001,8 @@ class OrchestrateBehavior(unittest.TestCase):
         self.github.review_policy["required_approvals"] = 1
         try:
             state = blocked(state, "review-approval-required",
-                            fixture["fresh"](review_waivers=[waiver]), "waiver-approval-required")
+                            fixture["fresh"](review_waivers=[waiver]), "waiver-approval-required",
+                            task_id="task-b")
         finally:
             self.github.review_policy["required_approvals"] = 0
 
@@ -6209,6 +6238,7 @@ class OrchestrateBehavior(unittest.TestCase):
 
         self._persist("task-a", substituted, entry)
         fresh = copy.deepcopy(project_snapshot)
+        fresh["parent_prs"] = self.github.parent_pr_readbacks()
         fresh["members"][1]["existing_delivery"] = copy.deepcopy(self.github.delivery["task-a"])
         fresh["tasks"][0]["existing_delivery"] = copy.deepcopy(self.github.delivery["task-a"])
 

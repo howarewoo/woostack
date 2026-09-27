@@ -2737,13 +2737,9 @@ def parent_pr_evidence(scope, branch, head, checkpoint=None):
     """Read the parent PR now; a retained checkpoint only proves the same PR continues."""
     discovery = scope.get("parent_prs")
     fresh = discovery.get(branch) if isinstance(discovery, dict) else None
-    if checkpoint is not None and fresh is None:
-        readback = checkpoint["readback"]
-        evidence = {"repo": scope["canonical_repo"], "branch": branch, "head_sha": head,
-                    "complete": True, "prs": [{**readback, "state": "open"}]}
-    else:
-        require(isinstance(discovery, dict), "parent-pr-evidence", "parent PR reads missing")
-        evidence = fresh
+    require(isinstance(discovery, dict), "parent-pr-evidence", "parent PR reads missing")
+    require(fresh is not None, "parent-pr-evidence", "current parent PR read missing")
+    evidence = fresh
     field_object(evidence, ("repo", "branch", "head_sha", "complete", "prs"), "parent PR discovery")
     require(evidence["repo"] == scope["canonical_repo"] and evidence["branch"] == branch
             and evidence["head_sha"] == head and evidence["complete"] is True
@@ -2769,8 +2765,6 @@ def parent_pr_evidence(scope, branch, head, checkpoint=None):
                 "parent-pr-evidence",
                 "fresh parent PR read does not continue the retained checkpoint PR")
         waiver = select_review_waiver(scope.get("review_waivers") or [], pr["pr_url"], head)
-        require(waiver is None or fresh is not None, "incomplete-pr-readback",
-                "a selected review waiver requires a fresh complete native parent read")
         review_readback(pr, head, waiver)
     return copy.deepcopy(evidence), copy.deepcopy(waiver)
 

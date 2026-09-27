@@ -312,18 +312,18 @@ parent is optional compatibility ordering, not native relationship evidence. The
 useful parallelism; the model owns this selection, while Execute/Commit do not schedule siblings.
 
 
-`parent_prs` supplies fresh canonical PR discovery for the integration branch and any explicitly
-selected non-predecessor parent. An empty `prs` array means fully proved absence, not unavailable
+`parent_prs` supplies fresh canonical PR discovery for the integration branch, every open
+execution ancestor, and any explicitly selected non-predecessor parent. An empty `prs` array
+means fully proved absence, not unavailable
 access. Otherwise supply one exact PR record with `pr_url`, `repo`, `head_repo`, `branch`,
 `head_sha`, `base_branch`, current `state` (`open`, `closed`, or `merged`), and the complete
 [validation readback shape](validation.md#result-schema) observed at that head, including review
 history, thread dispositions, and current repository review policy.
 That policy is the same applicable review policy the validation contract names: the verified native
 stack trunk for a registered stack member, otherwise the PR's own base branch.
-Ambiguous or incomplete discovery blocks selection. A predecessor parent with a retained delivery
-checkpoint is described by its fresh complete delivery checkpoint instead, and that checkpoint stays
-the historical source evidence for its own delivery. When the host also supplies `parent_prs` for
-that parent branch, the fresh read is the current evidence: it must describe the same `pr_url` at
+Ambiguous or incomplete discovery blocks selection. A predecessor parent's retained delivery
+checkpoint stays the historical source evidence for its own delivery. The fresh read is the current
+evidence: it must describe the same `pr_url` at
 the same head, with the same `base_branch` and the same associated child issue the checkpoint
 recorded, so an absent, replaced, retargeted, or re-associated PR is `parent-pr-evidence` rather than
 a silent substitution; the selected parent's stack member and draft state come from that fresh read,
