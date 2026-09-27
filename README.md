@@ -140,6 +140,8 @@ Open a PR to improve a skill, correct guidance, or document a known problem. Rea
 
 `2.0.0`
 
+For older installations, see [upgrading from a pre-cutover release](site/content/docs/concepts/workflows.mdx#upgrading-from-a-pre-cutover-release).
+
 ## License
 
 [MIT](LICENSE) &copy; Adam Woo
