@@ -20,10 +20,9 @@ Inspect the active `task` tool schema before dispatch.
 
 - **Primitive:** the `task` tool, gated by the host's `task` permission. A runtime that denies that
   permission or omits the tool has no delivery primitive.
-- **Per-spawn model/effort:** not documented as a per-call field. opencode documents `model` and
-  provider reasoning options as *agent configuration* resolved per agent, so a per-call value stays
-  unproven until the active schema shows one. Pass it when the schema carries the exact name;
-  otherwise the subagent runs on its configured or session model.
+- **Per-spawn model/effort:** not documented as per-call fields. opencode resolves model and
+  reasoning options from agent configuration or the session. Pass an explicit native request
+  only when the active schema exposes its exact field and host authorization permits it.
 - **Per-call cwd:** not documented — fill the dispatch-prompt worktree pin and require the worker to
   verify it before writing.
 - **Worker selection:** select a discovered agent whose observed capabilities fit the task. The
@@ -33,34 +32,29 @@ Inspect the active `task` tool schema before dispatch.
   `effective_cap` to observed behavior and serialize at concurrency one with a clear notice when the
   build cannot run workers in parallel.
 
-## Tier routing
+## Model selection
 
-**Per-call routing when the active schema supports it.** Resolve the caller's effective tier through
-the active provider's column in [`../model-tiers.md`](../model-tiers.md) plus its override
-precedence, and pass everything the resolved tier specifies only when the active schema exposes
-that exact field (the pass-or-inherit law lives in the dispatching skill).
+The agent's configured or session model is the normal default. Optional
+[role preferences](../model-tiers.md) do not select a concrete model; an explicit one-run override
+requires a verified native field and host authorization.
 
 ## Host-level fallback
 
-None documented — provider exhaustion surfaces as errors, and recovery is account-level, outside
-woostack's scope. The [shared fallback note](README.md#host-level-fallback-shared-note) applies to
-`models.<tier>` lists.
+The host owns recovery. Provider exhaustion may surface as an error; Woostack does not enact
+repository fallback lists. See the [shared note](README.md#host-level-fallback-shared-note).
 
 ## Per-skill notes
 
 - **woostack-orchestrate (parallel dispatch):** for each schedule packet, dispatch one
   delivery-capable worker from the discovered agent set with the dispatch-prompt worktree pin.
   Pass `workspace`, `branch`, `parent_branch`, `parent_sha`, child issue URL, and packet
-  `bounded_input`/`acceptance`/`checks` as the complete Execute contract; request the resolved model
-  only where the active schema supports it, clamp `effective_cap` to host capability, and refill as
-  workers complete. Without delivery-capable subagents, block rather than executing inline.
+  `bounded_input`/`acceptance`/`checks` as the complete Execute contract; clamp
+  `effective_cap` to host capability and refill as workers complete.
 
-## Degradation
+## Capability limits
 
-A spawn with no per-call model field runs on the agent's configured or session model: run it and say
-so once (degraded), per the inline law of the dispatching skill. A requested tier that cannot be
-routed per call is reported the same way, never silently applied. A missing required delivery,
-isolation, identity-correlation, review, or recovery capability blocks the owning operation per the
-[conditional mechanics](README.md#conditional-mechanics-shared); a missing authorized GitHub
-interface follows the
+Normal configured/session-model inheritance needs no notice. Report an unsupported optional
+explicit override; block an exact-identity requirement without matching host evidence. Missing
+required delivery, isolation, identity-correlation, review, or recovery capability blocks per
+[conditional mechanics](README.md#conditional-mechanics-shared); GitHub operations follow the
 [shared GitHub contract](README.md#github-capability-and-authentication-shared).

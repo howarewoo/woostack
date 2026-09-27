@@ -9,7 +9,7 @@ reuses an isolated workspace and delivers the helper packet through an authorize
 Link rather than copy the shared [source-control contract](../../woostack-commit/references/source-control.md),
 the outcome-level [runtime workspace guidance](#runtime-workspace-and-branch-evidence),
 the [least-code standard](../../woostack-bootstrap/references/patterns.md#7-least-code--comments),
-the [model tiers](../../using-woostack/references/model-tiers.md), and canonical
+the [host-owned model and role-preference contract](../../using-woostack/references/model-tiers.md), and canonical
 [`#artifact-delivery-note`](../../woostack-commit/references/provider-attribution.md#artifact-delivery-note)
 contract.
 
@@ -103,8 +103,11 @@ is disclosed honestly; it does not erase declarations from a tracker that was ac
 
 ## Normalized snapshot
 
-The controller writes one private JSON snapshot from completed reads. The example is an internal
-shape for the helper and is not a caller-facing source schema; all markers are runtime facts.
+The controller writes one private JSON input snapshot from completed reads. This is the smallest
+already-supported caller shape, not a new admission type or a public source schema. Markers are
+runtime facts; keep complete native identity, repository rules, host capability, recovery, parent-PR,
+and source-scope evidence. Use file/tool operations to retain verified reads rather than transcribing
+unchanged normalized fields. The helper may retain redundant fields in its normalized output.
 
 ```json
 {
@@ -139,7 +142,6 @@ shape for the helper and is not a caller-facing source schema; all markers are r
   "tasks": [
     {
       "task_id": "<runtime-substituted stable opaque task ID>",
-      "ordinal": "<runtime-substituted positive tie-break ordinal>",
       "url": "<runtime-substituted canonical executable issue URL>",
       "id": "<runtime-substituted positive native REST issue ID>",
       "node_id": "<runtime-substituted opaque GraphQL issue node ID>",
@@ -148,9 +150,6 @@ shape for the helper and is not a caller-facing source schema; all markers are r
       "title": "<runtime-substituted complete native title>",
       "body": "<runtime-substituted complete native body>",
       "actual_parent": "<runtime-substituted independently read native parent URL or null>",
-      "prerequisites": [],
-      "external_prerequisites": [],
-      "specification": "<runtime-substituted complete task specification or issue body>",
       "contract": {
         "goal": "<runtime-substituted resolved goal>",
         "scope": ["<runtime-substituted bounded path or surface>"],
@@ -178,8 +177,7 @@ shape for the helper and is not a caller-facing source schema; all markers are r
         "rationale": "<why this approved-base root is safe>",
         "constraints": ["<repository or compatibility evidence>"]
       }
-    ],
-    "effective_edges": []
+    ]
   },
   "parent_prs": {
     "<runtime-substituted integration or approved parent branch>": {
@@ -210,6 +208,15 @@ shape for the helper and is not a caller-facing source schema; all markers are r
   }
 }
 ```
+
+Give every task a stable explicit `task_id` in both admission and raw fresh snapshots; runtime
+allocation and result processing use it before normalization. The helper derives sorted ordinals,
+issue numbers from canonical URLs, contract hashes/revisions, technical prerequisites from the
+single root `edges` list, and effective edges, ancestry, and fingerprints from `execution_layout`.
+Do not author those derived fields or duplicate the same prerequisite set through task aliases,
+`graph`, or layout output fields. Native REST IDs and GraphQL node IDs are independent facts and
+must remain. Omit task `specification` only when its complete issue `body` is the effective
+specification; supply the complete distinct approved specification otherwise.
 The admission's canonical `scope_identity` is `{ "canonical_repo": <repository>, "issues":
 [<sorted canonical executable issue URLs>] }`. It is derived from verified tasks, not from the
 user's wording or the source container.
@@ -378,8 +385,8 @@ creates a Project, changes membership, mutates an issue, or publishes an edge.
 
 ## Invoking the bridge
 
-Assemble the normalized snapshot from actual native/Git reads, serialize it with a JSON writer, and
-invoke the shipped helper. These examples describe runtime fields, not fixtures to submit unchanged.
+Assemble the compact input snapshot from actual native/Git reads, serialize it with a JSON writer,
+and invoke the shipped helper. These examples describe runtime fields, not fixtures to submit unchanged.
 Keep snapshot, admission, result, and state files private (`umask 077`). Only `schedule` without
 `--state` initializes the state; every later call uses the existing state and newly assembled
 `--fresh` evidence. Do not omit `--fresh` on an initial or subsequent refill, and do not pass a newly
@@ -397,24 +404,26 @@ python3 <orchestrate-skill>/scripts/orchestrate.py schedule \
   --git-repo <canonical-git-repository> --fresh <fresh-snapshot.json> \
   [--cap <host-cap>] [--parent-decision <decision.json>]
 
-# Every later refill: state must already exist. Re-read and assemble a new fresh snapshot first.
+# Every later refill: state must already exist. Re-read and assemble a new compact fresh snapshot first.
 python3 <orchestrate-skill>/scripts/orchestrate.py schedule \
   --admitted admitted.json --state controller-state.json \
-  --state-out controller-state.json \
   --git-repo <canonical-git-repository> --fresh <fresh-snapshot.json> \
   [--cap <host-cap>] [--parent-decision <decision.json>]
-
 # Explicit recovery for a stopped controller with import-only uncertainty.
 python3 <orchestrate-skill>/scripts/orchestrate.py resume \
   --admitted admitted.json --state controller-state.json \
-  --state-out controller-state.json --git-repo <canonical-git-repository> \
+  --git-repo <canonical-git-repository> \
   --fresh <fresh-snapshot.json>
 
 python3 <orchestrate-skill>/scripts/orchestrate.py stop \
   --admitted admitted.json --state controller-state.json \
-  --state-out controller-state.json --git-repo <canonical-git-repository> \
+  --git-repo <canonical-git-repository> \
   [--reason <safe-stop-reason>]
 ```
+
+Fresh reads still include complete recovery inventory, current parent PRs, host capability, and
+workspace/branch allocation at their existing operation boundaries. Copy verified unchanged
+evidence with file/tool operations; compact input does not waive freshness or pagination.
 
 ## Fingerprints and fresh refills
 
@@ -499,14 +508,16 @@ A fresh snapshot for a task already delivered must carry complete `existing_deli
 ```
 
 The skill obtains that result from fresh canonical branch/PR/head/base/repository/review/thread,
-focused-check, diff, independent validation, note, and selected Project-status reads. It also supplies
-the separate `lifecycle` read from that same refill; saved controller lifecycle state is compatibility
-state, never a substitute for this required current evidence. Before restoring `delivered`, the helper
-revalidates the retained delivery and reconciles that fresh lifecycle. An open prerequisite must still
-identify the verified delivery head and current approved base; a ready PR is not a reason to redispatch
-or reset its draft state. A merged prerequisite must identify the canonical landing target and landed
-revision, with bounded task-relevant source/check evidence; its original head need not remain an
-ancestor after a squash or rebase merge. A closed-unmerged PR, missing/partial evidence, wrong landing
+focused-check, diff, independent validation, and separately observed note and selected Project-status
+reads. It also supplies the separate `lifecycle` read from that same refill; saved controller
+lifecycle state is compatibility state, never a substitute for current technical evidence. Before
+restoring `delivered`, the helper revalidates the retained complete delivery and reconciles fresh
+lifecycle. Missing or denied reporting receipts stay visible separately and do not undo delivery.
+An open prerequisite must still identify the verified delivery head and current approved base;
+a ready PR is not a reason to redispatch or reset its draft state. A merged prerequisite must
+identify the canonical landing target and landed revision, with bounded task-relevant source/check
+evidence; its original head need not remain an ancestor after a squash or rebase merge. A closed-unmerged
+PR, missing/partial evidence, wrong landing
 target, or known reverted behavior remains unresolved. A merged prerequisite does not require its
 source branch to exist locally, whether deleted or remote-only; the verified merge, landed diff
 identity, unchanged landed content in the candidate base, and containment are the evidence.
@@ -574,7 +585,8 @@ exact next pair (finishing the head publication); if next state bytes are presen
 head, only a caller that loaded those next bytes may finish recovery. Any other pairing blocks as
 checkpoint recovery evidence and never adopts arbitrary bytes. The head is independent of
 input/output filenames, so a second writer using the same stale `--state` cannot advance a different
-`--state-out`.
+explicit `--state-out`. For continuations, omitting `--state-out` writes back to `--state` through
+the same checkpoint writer; an initial schedule still requires an explicit `--state-out`.
 The first schedule omits `--state` and creates state. Every later schedule, record-worker,
 withdraw-unlaunched, apply-result, observe-checks, reconcile, resume, or stop names an existing
 state and matching admission. An admission retained from before the landed-prerequisite cutover is
@@ -585,7 +597,7 @@ from the admission blocks; never silently reinitialize. The initial state is pub
 scope claim is acquired, and the claim becomes visible only after its complete owner-bearing record
 is durable. A first-schedule interruption therefore leaves resumable owner-bearing state with either
 no claim or one complete same-owner claim. Keep the state path private and use the helper's atomic
-`--state-out` replace.
+state replace.
 
 Under that exclusive ownership, the helper persists the actual selected task branch, absolute
 workspace, parent branch, and parent SHA before host dispatch. The branch and workspace are runtime
@@ -622,9 +634,10 @@ approved integration branch is considered when the selected parent has landed. A
 only when its actual local tip is the recorded candidate SHA and `git merge-base --is-ancestor` proves
 that it contains every current prerequisite revision. Dependency count alone never forces a merge
 checkpoint, and ordinary joins do not require a new parent or integration decision.
-Dispatch readiness also requires every effective prerequisite's verified delivery and persisted
-note; an independently unsatisfied gate pauses exactly that dependent while unrelated ready work
-continues.
+Dispatch readiness requires every effective prerequisite's verified technical delivery and current
+CI/review/ancestry evidence. Pending or blocked note/selected-Project reporting is not a worker
+reservation or dependency gate; another independently unsatisfied technical gate pauses exactly
+that dependent while unrelated ready work continues.
 
 If no candidate is suitable, the helper leaves the task pending with `waiting-for-merge` only when
 the selected layout explicitly carries the `merge-checkpoint` fallback. The record includes the
@@ -653,7 +666,7 @@ Run `admit` on the fresh snapshot with `--max-parallel` equal to the retained ad
 ```text
 python3 <orchestrate-skill>/scripts/orchestrate.py resume \
   --admitted original-admitted.json --fresh fresh-snapshot.json \
-  --state controller-state.json --state-out controller-state.json \
+  --state controller-state.json \
   --git-repo <canonical-git-repository> --policy-transition approved-transition.json
 ```
 
@@ -708,8 +721,11 @@ The helper writes machine-readable JSON and exits zero for controlled workflow s
 `no-work`, `snapshot-drift`, `halted`, `stopped`, and per-task `unknown`; it exits one with
 `{"ok":false,"error":...}` for blocked input. The skill must inspect the status and retain output,
 not treat process exit zero as delivery. `schedule` output includes dispatch entries, delivered,
-satisfied, active, unknown, evidence-pending, repair-ready, pending, and paused/blocked/waiting IDs
-with exact next actions.
+reporting-pending and reporting-blocked task lists with per-operation reasons/receipts, satisfied,
+active, unknown, evidence-pending, repair-ready, pending, and paused/blocked/waiting IDs with exact
+next actions. A legacy `note-pending` checkpoint remains unpromoted until fresh complete technical
+verification of its retained delivery; it takes no reporting retry worker slot.
+
 `record-worker`, `apply-result`, `observe-checks`, `reconcile`, `resume`, and `stop` outputs are
 authoritative state transitions; `resume` reports `released` and `retained_unknown`; never invent a
 success response around them. A user stop prevents new dispatch but does not declare active workers

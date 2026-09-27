@@ -10,7 +10,7 @@ are in [scheduling](scheduling.md); delivery gates are in [validation](validatio
 Use the shared [source-control contract](../../woostack-commit/references/source-control.md),
 the outcome-level [worktree guidance](scheduling.md#runtime-workspace-and-branch-evidence),
 the [least-code standard](../../woostack-bootstrap/references/patterns.md#7-least-code--comments),
-and [model tiers](../../using-woostack/references/model-tiers.md). Host mechanics do not belong in
+and [host-owned model and role-preference contract](../../using-woostack/references/model-tiers.md). Host mechanics do not belong in
 this file.
 
 ## Dispatch entry emitted by the helper
@@ -18,6 +18,9 @@ this file.
 For every ready task, `schedule` emits one reservation/packet entry. This is an internal bridge
 shape, not a caller-facing source schema: all markers are runtime-substituted facts from the
 normalized admission and local Git reservation, never evidence to invent.
+The caller supplies the compact input in [scheduling](scheduling.md#normalized-snapshot), not
+this expanded helper output. Derived ordinals, hashes, graph/layout metadata, and the effective
+specification remain in the worker packet even when omitted from caller input.
 
 ```json
 {
@@ -269,8 +272,7 @@ only the invariant payload and says when missing capability is a blocker:
 - pass one schedule entry to one delivery-capable subagent;
 - pass the exact absolute workspace, branch, parent branch/SHA, complete packet, child URL,
   specification, repository rules, bounded input object, acceptance, checks, and contract hash;
-- clamp the helper's cap to the real host capability, preserving the host's documented tier
-  routing;
+- clamp the helper's cap to the real host capability; let the host select the model and fallback;
 - never copy secrets into a worker prompt or synthesize credentials; use the host's existing
   authenticated tools;
 - require a worker receipt. Missing capability or receipt is not success and never falls back to
@@ -290,11 +292,13 @@ focused verification, and read-only specification validation using the single
 the current head. The controller retains every native review and thread disposition from the same
 fresh PR read, then the helper evaluates applicability against the independently read repository
 policy. Historical records cannot stand in for the required current-head specification validation.
-The controller then persists/read-backs the child note and any explicitly selected Project status
-before `apply-result`. Do not invent missing evidence or let the worker approve its own result.
-Failed checks/specification validation preserve the
-same reservation and PR for repair; note/evidence-only retries keep the same recorded native
-identity without replaying repository delivery. A new repair launch has its own native identity.
+The controller reads the exact child note and any explicitly selected Project status after technical
+validation and supplies observed receipts, or leaves them absent/pending or reports denied evidence;
+it does not invent reporting success. The helper durably records complete independently validated
+technical delivery before a dependent can use it, then tracks note and Project outcomes separately.
+Failed checks/specification validation preserve the same reservation and PR for repair; reporting
+retries keep the recorded native identity and same PR without replaying delivery. A new repair launch
+has its own native identity.
 Each dispatch also issues an `attempt_binding` covering the exact task contract, reservation,
 repair/retained-PR facts, and parent-readiness context. The host launch receipt and worker result
 must echo that binding; the controller records it with the attempt history so a compatible global
@@ -320,8 +324,10 @@ A fresh snapshot that includes a delivered task must include `existing_delivery.
 Without an active launch, admission does not require the active-result `host_id`/`session_id`
 binding; its existing `worker_id` and independent delivery checks remain required. The skill re-reads
 the canonical tracker/scope evidence, branch/ref, PR/head/base/repository, focused checks, binary
-diff, independent validation, note, and selected Project status immediately before assembly. The
-helper restores `delivered` only when the reservation, meaningful tracker context, and every result
-identity/evidence field match; a provider revision, reference order, or matching native membership
-alone does not require redispatch, while stale or partial material evidence blocks. Never redispatch
-a task merely because its prior worker output is absent when canonical delivery already exists.
+diff, independent validation, and separately the note and selected Project status immediately before
+assembly. The helper restores `delivered` only after fresh complete technical validation of the same
+reservation, meaningful tracker context, and result identity/evidence; missing or denied reporting
+stays visible in `reporting` without blocking descendants. A provider revision, reference order, or
+matching native membership alone does not require redispatch, while stale or partial technical
+evidence blocks. A legacy `note-pending` checkpoint is not promoted by loading its saved status;
+revalidate the same PR before reporting retry, without a new implementation worker.

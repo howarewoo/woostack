@@ -18,21 +18,19 @@ shape; no per-call `model`, effort, or `cwd` argument is verified for it.
 
 - **Primitive:** parallel subagent dispatch — submit independent tasks and let the host schedule or
   queue workers.
-- **Per-call model/effort knob:** unverified. Pass it only when the active schema exposes that exact
-  field; otherwise workers run on the host-selected model and the run says so once.
+- **Per-call model/effort knob:** unverified. Pass an explicit one-run native request only if the
+  active schema exposes the exact field and the host permits it; otherwise inherit host settings.
 - **Per-call cwd:** not exposed — fill the dispatch-prompt worktree pin; the subagent self-pins.
 
-## Tier routing
+## Model selection
 
-No per-call tier mechanism is verified for Cursor dispatch. Treat the session's model as the run
-model until the active schema exposes a per-call field; a forced tier then applies by changing the
-session model before the run. Tier→model semantics: [`../model-tiers.md`](../model-tiers.md).
+The session-selected model is the normal default; optional
+[role preferences](../model-tiers.md) do not change it. No per-call override is verified here.
 
 ## Host-level fallback
 
-None documented — provider exhaustion surfaces as errors, and recovery is account-level, outside
-woostack's scope. The [shared fallback note](README.md#host-level-fallback-shared-note) applies to
-`models.<tier>` lists.
+The host owns recovery. If provider exhaustion surfaces as an error, Woostack does not enact a
+repository fallback list; see the [shared note](README.md#host-level-fallback-shared-note).
 
 ## Per-skill notes
 
@@ -44,11 +42,10 @@ woostack's scope. The [shared fallback note](README.md#host-level-fallback-share
   active schema exposes a per-call field. A queue-only runtime runs at concurrency one with a clear
   notice; without delivery-capable subagents, block rather than executing inline.
 
-## Degradation
+## Capability limits
 
-A tier requested but not routable per call runs at the session model and says so once (degraded),
-per the inline law of the dispatching skill. A missing required delivery, isolation,
-identity-correlation, review, or recovery capability blocks the owning operation per the
-[conditional mechanics](README.md#conditional-mechanics-shared); a missing authorized GitHub
-interface follows the
+Normal session-model inheritance needs no notice. Report an unsupported optional explicit
+override; block when an exact model/effort identity is required but unproven. Missing required
+delivery, isolation, identity-correlation, review, or recovery capability blocks per
+[conditional mechanics](README.md#conditional-mechanics-shared); GitHub operations follow the
 [shared GitHub contract](README.md#github-capability-and-authentication-shared).
