@@ -18,17 +18,14 @@ when the session has no `general-purpose` subagent to fall back on.
 
 - **Primitive:** the subagent spawn tool; independent tasks run concurrently and the host schedules
   them. A session without the spawn tools offers no subagent primitive.
-- **Per-call model:** documented — Claude Code can pass a `model` parameter for a specific
-  invocation. Without forced-model mode, it resolves the model in this order: that per-invocation
-  parameter, the subagent definition's `model` frontmatter (`inherit` selects the session model),
-  `CLAUDE_CODE_SUBAGENT_MODEL`, then the session model
-  ([choose a model](https://code.claude.com/docs/en/sub-agents#choose-a-model)). Pass the resolved
-  model only when the active schema carries the parameter, the host permits per-invocation
-  selection, and the caller's policy requires it; forced-model behavior is covered under
-  [Degradation](#degradation).
-- **Per-call effort:** not documented for a single invocation — `effort` is a subagent-definition
-  and session field. Treat a per-call effort argument as absent unless the active schema shows one;
-  when it is absent, report once that the selected tier's effort was not applied per invocation.
+- **Per-call model:** Claude Code documents `model` for a specific invocation
+  ([choose a model](https://code.claude.com/docs/en/sub-agents#choose-a-model)). Normally it
+  precedes the definition's `model`, `CLAUDE_CODE_SUBAGENT_MODEL`, and session model. Pass it only
+  for an explicit one-run choice when the active schema and host permit it. Forced-model mode
+  prevents that choice; see [Capability limits](#capability-limits).
+- **Per-call effort:** not documented for a single invocation; `effort` is a definition/session
+  field. Do not infer it from a role preference. An explicit optional request that cannot be
+  applied is reported; a required exact effort identity needs independent host evidence.
 - **Per-call cwd:** not documented — fill the dispatch-prompt worktree pin and require the worker to
   verify it before writing. A subagent *definition* can request `isolation: worktree`; that is a
   definition choice, not a per-call working directory.
@@ -36,25 +33,23 @@ when the session has no `general-purpose` subagent to fall back on.
   `general-purpose` is the plain write-capable worker, and read-only profiles suit exploration and
   review only. Never a skill-scoped profile.
 
-## Tier routing
+## Model selection
 
-**Per-call routing when the parameter is available.** Resolve the caller's effective tier through
-the active provider's column in [`../model-tiers.md`](../model-tiers.md) plus its override
-precedence, and pass everything the resolved tier specifies when the active schema supports the
-exact field (the pass-or-inherit law lives in the dispatching skill).
+Without an explicit native override, use the host-selected agent/model and effort. The optional
+[role preferences](../model-tiers.md) do not choose a concrete model. An explicit override uses
+only a field verified in the active spawn schema and authorized by the host.
 
 ## Host-level fallback
 
-None documented — provider exhaustion surfaces as an error on the spawn, and recovery is
-account-level (plan limits), outside woostack's scope. The
-[shared fallback note](README.md#host-level-fallback-shared-note) applies to `models.<tier>` lists.
+Recovery belongs to Claude Code. A provider exhaustion error from the spawn is not a signal to
+switch a repository model list; see the [shared note](README.md#host-level-fallback-shared-note).
 
 ## Per-skill notes
 
 - **woostack-execute:** the no-per-call-cwd case — prompt pin plus self-pin guard — is the normal
   path here.
-- **woostack-commit (fast drafting):** route the drafting subagent at the `fast` tier when the
-  active schema carries the model parameter.
+- **woostack-commit (drafting):** an optional role preference shapes the drafting task, not
+  a model selector.
 - **woostack-orchestrate (parallel dispatch):** for each schedule packet, dispatch one
   delivery-capable worker through the spawn tool with the prompt worktree pin. Pass `workspace`,
   `branch`, `parent_branch`, `parent_sha`, child issue URL, and packet
@@ -63,21 +58,14 @@ account-level (plan limits), outside woostack's scope. The
   worker. A serialize-only mode runs at concurrency one with a clear notice; without a subagent
   spawn primitive, block rather than executing inline.
 
-## Degradation
+## Capability limits
 
-Without forced-model mode, a spawn that cannot carry the resolved model uses the next source in
-the ordinary order above: the subagent definition, `CLAUDE_CODE_SUBAGENT_MODEL`, or the session
-model.
-
-With `CLAUDE_CODE_SUBAGENT_MODEL_FORCE=1`, Claude Code instead ignores the subagent definition's
-`model` and prevents per-invocation model selection. Omit the model override: the worker uses
-`CLAUDE_CODE_SUBAGENT_MODEL` when set to a model, otherwise the main conversation's model.
-The official [forced-model contract](https://code.claude.com/docs/en/sub-agents#run-every-subagent-on-one-model)
-also documents the fork, inherited-skill, and built-in Explore cap exceptions.
-
-In either case, report once that the requested model override was not applied, identifying the
-applicable ordinary or forced source rather than claiming the selected tier ran. A missing required
-delivery, isolation, identity-correlation, review, or recovery capability blocks the owning operation per the
-[conditional mechanics](README.md#conditional-mechanics-shared); a missing authorized GitHub
-interface follows the
+With `CLAUDE_CODE_SUBAGENT_MODEL_FORCE=1`, Claude Code prevents per-invocation model selection
+and ignores the subagent definition's model. It uses `CLAUDE_CODE_SUBAGENT_MODEL` when set,
+otherwise the main conversation's model
+([forced-model contract](https://code.claude.com/docs/en/sub-agents#run-every-subagent-on-one-model)).
+Report an explicit optional override that was not applied; block a required exact identity
+comparison without matching host evidence. Ordinary inheritance is not degraded. A missing
+required delivery, isolation, identity-correlation, review, or recovery capability blocks per
+[conditional mechanics](README.md#conditional-mechanics-shared); GitHub operations follow the
 [shared GitHub contract](README.md#github-capability-and-authentication-shared).

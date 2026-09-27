@@ -21,23 +21,19 @@ isolated-context subagent per task, instantiated on demand — are the documente
 - **Primitive:** dynamically orchestrated subagents — submit independent tasks in a single turn and
   let the host instantiate isolated-context subagents; rely on the isolation pattern for token
   economy.
-- **Per-call model/effort knob:** unverified. Pass it only when the active schema exposes that exact
-  field; otherwise workers run on the session model and the run says so once.
+- **Per-call model/effort knob:** unverified. Pass an explicit one-run native request only if the
+  active schema exposes its exact field and the host permits it; otherwise inherit host settings.
 - **Per-call cwd:** not exposed — fill the dispatch-prompt worktree pin; the subagent self-pins.
 
-## Tier routing
+## Model selection
 
-No per-call tier mechanism is verified for Antigravity dispatch, so resolve one run model up front
-(a forced fast/deep tier if set, otherwise standard) and let per-tier behavior collapse onto it for
-the whole job. Split into multiple jobs for per-tier split behavior. Tier→model values:
-[`../model-tiers.md`](../model-tiers.md). Revisit only if the active runtime exposes per-call
-routing.
+The session-selected model is the normal default; optional
+[role preferences](../model-tiers.md) do not select a run model. No per-call override is verified.
 
 ## Host-level fallback
 
-None documented — provider exhaustion surfaces as errors, and recovery is account-level, outside
-woostack's scope. The [shared fallback note](README.md#host-level-fallback-shared-note) applies to
-`models.<tier>` lists.
+The host owns recovery. If provider exhaustion surfaces as an error, Woostack does not enact a
+repository fallback list; see the [shared note](README.md#host-level-fallback-shared-note).
 
 ## Per-skill notes
 
@@ -45,16 +41,13 @@ woostack's scope. The [shared fallback note](README.md#host-level-fallback-share
   delivery-capable isolated-context subagent with the dispatch-prompt worktree pin. Pass `workspace`,
   `branch`, `parent_branch`, `parent_sha`, child issue URL, and packet
   `bounded_input`/`acceptance`/`checks` as the complete Execute contract. Clamp `effective_cap` to
-  host capability, refill as workers complete, and keep one concrete run model for all workers
-  unless the active schema exposes per-call routing. A serializing mode runs at concurrency one with
+  host capability, refill as workers complete. A serializing mode runs at concurrency one with
   a clear notice; without delivery-capable subagents, block rather than executing inline.
 
-## Degradation
+## Capability limits
 
-One run model per session is the mode to plan around, not a degradation. A run that cannot resolve
-any model uses the session default and says so once, per the inline law of the dispatching skill. A
-missing required delivery, isolation, identity-correlation, review, or recovery capability blocks
-the owning operation per the
-[conditional mechanics](README.md#conditional-mechanics-shared); a missing authorized GitHub
-interface follows the
+Normal session-model inheritance needs no notice. Report an unsupported optional explicit
+override; block when exact model/effort identity is required but unproven. Missing required
+delivery, isolation, identity-correlation, review, or recovery capability blocks per
+[conditional mechanics](README.md#conditional-mechanics-shared); GitHub operations follow the
 [shared GitHub contract](README.md#github-capability-and-authentication-shared).

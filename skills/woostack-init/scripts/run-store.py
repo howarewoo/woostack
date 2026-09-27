@@ -3,7 +3,12 @@
 
 import argparse
 from contextlib import ExitStack
-import fcntl
+try:
+    import fcntl
+except ModuleNotFoundError as error:
+    if error.name != "fcntl":
+        raise
+    fcntl = None
 import json
 import os
 from pathlib import PurePath
@@ -14,8 +19,6 @@ import sys
 
 
 FILES = {"manifest": "manifest.json", "spec": "project-spec.md", "plan": "execution-plan.md"}
-DIR_FLAGS = os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW
-FILE_FLAGS = os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK
 
 
 class StoreError(Exception):
@@ -27,12 +30,33 @@ def require(condition, message):
         raise StoreError(message)
 
 
+def require_environment():
+    """Reject unsupported readers before opening even the repository directory."""
+    for module, names in (
+        (fcntl, ("flock", "LOCK_EX")),
+        (os, ("O_RDONLY", "O_DIRECTORY", "O_NOFOLLOW", "O_NONBLOCK",
+              "open", "close", "fstat", "fdopen", "geteuid", "listdir")),
+    ):
+        for name in names:
+            if module is None or not hasattr(module, name):
+                capability = "fcntl" if module is None else f"{module.__name__}.{name}"
+                raise StoreError(f"missing {capability}; run in an environment with the required "
+                                 "Unix locking, ownership, and no-follow filesystem primitives")
+    if os.open not in getattr(os, "supports_dir_fd", ()):
+        raise StoreError("missing os.open(dir_fd=...); run in an environment with the required "
+                         "Unix locking, ownership, and no-follow filesystem primitives")
+    if os.listdir not in getattr(os, "supports_fd", ()):
+        raise StoreError("missing os.listdir(fd); run in an environment with the required "
+                         "Unix locking, ownership, and no-follow filesystem primitives")
+
+
+
 def inode(info):
     return info.st_dev, info.st_ino
 
 
 def directory(stack, path, parent=None):
-    fd = os.open(path, DIR_FLAGS, dir_fd=parent)
+    fd = os.open(path, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=parent)
     stack.callback(os.close, fd)
     return fd
 
@@ -54,7 +78,7 @@ def private(info, mode, device, name):
 
 
 def file_bytes(run_fd, name):
-    fd = os.open(name, FILE_FLAGS, dir_fd=run_fd)
+    fd = os.open(name, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=run_fd)
     with os.fdopen(fd, "rb") as stream:
         before = os.fstat(stream.fileno())
         private(before, 0o600, os.fstat(run_fd).st_dev, name)
@@ -110,7 +134,8 @@ class RunStore:
         require(not git("ls-files", "-z", "--", ".woostack/tmp/"),
                 ".woostack/tmp/ contains tracked files")
         self.run_fd = self.open_run(stack)
-        self.lock_fd = os.open(".lock", FILE_FLAGS, dir_fd=self.run_fd)
+        self.lock_fd = os.open(".lock", os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK,
+                               dir_fd=self.run_fd)
         stack.callback(os.close, self.lock_fd)
         private(os.fstat(self.lock_fd), 0o600, os.fstat(self.run_fd).st_dev, ".lock")
         fcntl.flock(self.lock_fd, fcntl.LOCK_EX)
@@ -131,7 +156,7 @@ class RunStore:
         with ExitStack() as stack:
             fd = self.open_run(stack)
             require(inode(os.fstat(fd)) == inode(os.fstat(self.run_fd)), "run directory changed")
-            lock = os.open(".lock", FILE_FLAGS, dir_fd=fd)
+            lock = os.open(".lock", os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=fd)
             stack.callback(os.close, lock)
             private(os.fstat(lock), 0o600, os.fstat(fd).st_dev, ".lock")
             require(inode(os.fstat(lock)) == inode(os.fstat(self.lock_fd)), "run lock changed")
@@ -168,6 +193,7 @@ def main():
     reader.add_argument("--artifact", choices=FILES, default="manifest")
     args = parser.parse_args()
     try:
+        require_environment()
         sys.stdout.buffer.write(run(args))
         sys.stdout.buffer.flush()
     except (StoreError, OSError, ValueError) as error:

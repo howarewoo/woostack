@@ -9,7 +9,7 @@ reuses an isolated workspace and delivers the helper packet through an authorize
 Link rather than copy the shared [source-control contract](../../woostack-commit/references/source-control.md),
 the outcome-level [runtime workspace guidance](#runtime-workspace-and-branch-evidence),
 the [least-code standard](../../woostack-bootstrap/references/patterns.md#7-least-code--comments),
-the [model tiers](../../using-woostack/references/model-tiers.md), and canonical
+the [host-owned model and role-preference contract](../../using-woostack/references/model-tiers.md), and canonical
 [`#artifact-delivery-note`](../../woostack-commit/references/provider-attribution.md#artifact-delivery-note)
 contract.
 
@@ -266,6 +266,12 @@ prove containment. Scheduling repeats these checks on its fresh snapshot. Verifi
 prerequisites remain technical requirements but are excluded from `effective_prerequisites`, while
 `effective_edges` keeps every plan edge: dependent readiness uses the landed-base evidence without
 importing a controller-owned delivery or waiting for that task's lifecycle/CI state.
+
+The native stack requirement includes only open execution ancestors. A landed ancestor without
+controller-owned delivery is omitted only after its fresh merged availability matches the retained
+satisfaction and its revision is contained in both the candidate integration base and the selected
+open parent's commit. Missing or contradictory evidence blocks dispatch; no historical delivery is
+manufactured for an adopted ancestor.
 
 A declared fallback must cover at least one technical join. Once every such join is base-satisfied
 the gate is released, and the admitted task carries no fallback.

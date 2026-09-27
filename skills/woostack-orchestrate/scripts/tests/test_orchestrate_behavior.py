@@ -35,6 +35,27 @@ from recording_driver import (
     make_result,
 )
 
+HELPER = Path(__file__).resolve().parents[1] / "orchestrate.py"
+UNAVAILABLE_RUNNER = '''import builtins
+import os
+import runpy
+import sys
+
+path, missing, *args = sys.argv[1:]
+if missing == "fcntl":
+    original = builtins.__import__
+    def without_fcntl(name, *arguments, **kwargs):
+        if name == "fcntl":
+            raise ModuleNotFoundError("No module named 'fcntl'", name="fcntl")
+        return original(name, *arguments, **kwargs)
+    builtins.__import__ = without_fcntl
+else:
+    delattr(os, missing)
+sys.argv = [path, *args]
+runpy.run_path(path, run_name="__main__")
+'''
+
+
 FAULT_RUNNER = '''"""Run the shipped helper with one deterministic interruption installed.
 
 The behavioral suite crosses a real subprocess boundary for every controller
@@ -68,6 +89,7 @@ elif fault == "die-before-claim-publication":
         return original_link(source, target, **kwargs)
 
     helper.os.link = die_before_link
+    os.supports_follow_symlinks.add(die_before_link)
 elif fault == "die-after-claim-publication":
     original_fsync_parent = helper._fsync_parent
 
@@ -114,6 +136,42 @@ class OrchestrateBehavior(unittest.TestCase):
         else:
             os.environ["WOOSTACK_ORCHESTRATE_TRANSPORT_LOG"] = self.old_transport_log
         shutil.rmtree(self.tmp, ignore_errors=True)
+
+    def _filesystem(self):
+        """Compare the complete disposable repository and inputs, including directory modes."""
+        return {
+            str(path.relative_to(self.tmp)): (
+                "directory" if path.is_dir() else path.read_bytes(),
+                path.stat().st_mode & 0o777,
+            )
+            for path in self.tmp.rglob("*")
+        }
+
+    def test_missing_unix_capabilities_reject_before_admission_or_scheduling(self):
+        snapshot = self._write_json("environment-snapshot.json", self.github.snapshot())
+        admitted_path, _ = self._admit_issue()
+        fresh = self._write_json("environment-fresh.json", self.github.snapshot())
+        for operation, arguments in (
+            ("admit", ["admit", "--snapshot", str(snapshot), "--git-repo", str(self.repo)]),
+            ("schedule", ["schedule", "--admitted", str(admitted_path),
+                          "--fresh", str(fresh), "--state-out", str(self.tmp / "blocked-state.json"),
+                          "--git-repo", str(self.repo)]),
+        ):
+            for missing in ("fcntl", "O_NOFOLLOW", "O_DIRECTORY", "getuid", "fsync"):
+                with self.subTest(operation=operation, missing=missing):
+                    before = self._filesystem()
+                    worktrees = self._run(["git", "-C", str(self.repo), "worktree", "list", "--porcelain"])
+                    result = subprocess.run(
+                        [sys.executable, "-c", UNAVAILABLE_RUNNER, str(HELPER), missing, *arguments],
+                        capture_output=True, text=True, timeout=20)
+                    self.assertNotEqual(result.returncode, 0)
+                    self.assertEqual(result.stderr, "")
+                    self.assertEqual(json.loads(result.stdout)["error"], "unsupported-environment")
+                    self.assertIn(missing, json.loads(result.stdout)["message"])
+                    self.assertIn("Unix", json.loads(result.stdout)["message"])
+                    self.assertEqual(self._filesystem(), before)
+                    self.assertEqual(self._run(["git", "-C", str(self.repo), "worktree", "list",
+                                                "--porcelain"]), worktrees)
 
     @staticmethod
     def _run(command: Sequence[str], *, cwd: Optional[Path] = None) -> str:
@@ -615,6 +673,9 @@ class OrchestrateBehavior(unittest.TestCase):
                 admitted_path, admitted, resumed_path, fresh(), label + "-refill", cap="2")
             self.assertEqual([entry["task_id"] for entry in refill["dispatch"]], ["task-c"])
             entry_c = refill["dispatch"][0]
+            for entry in initial["dispatch"] + [entry_c]:
+                self.assertEqual(entry["packet"]["specification"],
+                                 next(task["body"] for task in source["tasks"] if task["task_id"] == entry["task_id"]))
             self.assertEqual(entry_c["parent_sha"], report_a["worker"]["head_sha"])
             host.dispatch([entry_c])
             report_c = host.wait_for_report("task-c")
@@ -632,7 +693,8 @@ class OrchestrateBehavior(unittest.TestCase):
                 "fingerprints": (admitted["fingerprint"], admitted["execution_fingerprint"]),
                 "scope": admitted["scope_identity"],
                 "graph": admitted["graph"],
-                "obligations": [(entry["task_id"], entry["packet"]["bounded_input"],
+                "obligations": [(entry["task_id"], entry["packet"]["specification"],
+                                 entry["packet"]["bounded_input"],
                                  entry["packet"]["parent_readiness"]["logical_prerequisites"])
                                 for entry in initial["dispatch"] + [entry_c]],
                 "decisions": (initial["status"], refill["status"], resumed["status"]),
@@ -654,8 +716,10 @@ class OrchestrateBehavior(unittest.TestCase):
         self.assertEqual(distinct_admitted["tasks"][0]["specification"],
                          "Separately approved full task specification.")
         self.assertEqual(distinct_admitted["tasks"][0]["body"], expanded["tasks"][0]["body"])
-        state, _ = self._schedule(distinct_path, distinct_admitted, None, distinct,
-                                  "distinct-initial", cap="1")
+        state, initial = self._schedule(distinct_path, distinct_admitted, None, distinct,
+                                        "distinct-initial", cap="1")
+        self.assertEqual(initial["dispatch"][0]["packet"]["specification"],
+                         "Separately approved full task specification.")
         for label, change in (
             ("specification", lambda row: row["tasks"][0].__setitem__(
                 "specification", "A changed approved specification.")),
@@ -1484,11 +1548,22 @@ class OrchestrateBehavior(unittest.TestCase):
         self.assertEqual((code, result["error"]), (1, "snapshot-drift"))
         self.assertEqual(state.read_bytes(), original)
 
-    def _exercise_stopped_landed_adoption(self, ci_state, *, candidate=False, linked=False):
+    def _exercise_stopped_landed_adoption(self, ci_state, *, candidate=False, linked=False,
+                                          stack_chain=False, invalid_stack_ancestor=False):
         (self.repo / ".git/info/exclude").write_text(".woostack/\n")
         retained = self._seed_prior_delivery("task-a", same_file_baseline=True)
-        selected = {"task-a", "task-c"}
-        snapshot = self._scoped_tasks_snapshot(selected)
+        selected = {"task-a", "task-b", "task-c"} if stack_chain else {"task-a", "task-c"}
+
+        def current_snapshot():
+            result = self._scoped_tasks_snapshot(selected)
+            if stack_chain:
+                next(task for task in result["tasks"] if task["task_id"] == "task-c")[
+                    "prerequisites"] = ["task-b"]
+                result["execution_layout"] = self.github.execution_layout(
+                    selected, {"task-a": None, "task-b": "task-a", "task-c": "task-b"})
+            return result
+
+        snapshot = current_snapshot()
         old_path, old = self._admit_issue(snapshot)
         state, _ = self._schedule(old_path, old, None, snapshot, "landed-policy-start")
         saved = json.loads(state.read_text())
@@ -1560,7 +1635,7 @@ class OrchestrateBehavior(unittest.TestCase):
                            approval_reference="Exact corrective integration approved",
                            corrections={"complete": True, "prs": corrective})
         self.github.delivery["task-a"][receipt_key] = receipt
-        snapshot = self._scoped_tasks_snapshot(selected)
+        snapshot = current_snapshot()
         snapshot["repository_rules"] += " Approved policy update."
         item = saved["tasks"]["task-a"]
         snapshot["recovery"]["sessions"] = [{
@@ -1643,10 +1718,58 @@ class OrchestrateBehavior(unittest.TestCase):
         self.assertEqual(code, 0, resumed)
         self.assertIn("task-a", resumed["satisfied"])
         next_state, continued = self._schedule(current, fresh, state, snapshot, "landed-continued")
-        self.assertEqual([entry["task_id"] for entry in continued["dispatch"]], ["task-c"])
+        self.assertEqual([entry["task_id"] for entry in continued["dispatch"]],
+                         ["task-b" if stack_chain else "task-c"])
         self.assertIn("task-a", continued["satisfied"])
         self.assertNotIn("task-a", [row["task_id"] for row in continued["blocked"]])
         self.assertEqual(json.loads(next_state.read_text())["tasks"]["task-a"]["ci"], item["ci"])
+        if stack_chain:
+            b_entry = continued["dispatch"][0]
+            self.assertEqual((b_entry["parent_branch"], b_entry["parent_sha"]),
+                             ("main", external_head))
+            host = self._start_host(workers=1)
+            host.dispatch([b_entry])
+            result_b = make_result(self.github, "task-b",
+                                   host.wait_for_report("task-b"), fresh)
+            next_state, applied_b, _ = self._apply(current, next_state, "task-b", result_b,
+                                                   "landed-open-b")
+            self.assertEqual(applied_b["status"], "delivered", applied_b)
+            self._persist("task-b", result_b, b_entry)
+            snapshot = current_snapshot()
+            snapshot["repository_rules"] += " Approved policy update."
+            if invalid_stack_ancestor:
+                degraded = current_snapshot()
+                degraded["repository_rules"] += " Approved policy update."
+                next(task for task in degraded["tasks"] if task["task_id"] == "task-a")[
+                    "existing_delivery"]["integration_revalidation"]["validation"]["verdict"] = "fail"
+                _, rejected = self._schedule(current, fresh, next_state, degraded,
+                                             "landed-open-b-invalid-a", cap="1")
+                self.assertEqual(rejected["dispatch"], [], rejected)
+                self.assertIn("task-c", [entry["task_id"] for entry in rejected["waiting"]], rejected)
+                self.assertIn("task-a", [entry["task_id"] for entry in rejected["blocked"]], rejected)
+                return
+            next_state, after_b = self._schedule(current, fresh, next_state, snapshot,
+                                                 "landed-open-b-c", cap="1")
+            self.assertEqual([entry["task_id"] for entry in after_b["dispatch"]], ["task-c"], after_b)
+            c_entry = after_b["dispatch"][0]
+            self.assertEqual(c_entry["packet"]["parent_readiness"]["execution_ancestry"],
+                             ["task-a", "task-b"])
+            self.assertEqual((c_entry["parent_branch"], c_entry["parent_sha"]),
+                             (result_b["worker"]["branch"], result_b["worker"]["head_sha"]))
+            self.assertEqual([member["pr_url"] for member in c_entry["stack"]["members"]],
+                             [result_b["readback"]["pr_url"]])
+            host.dispatch([c_entry])
+            result_c = make_result(self.github, "task-c",
+                                   host.wait_for_report("task-c"), fresh)
+            next_state, applied_c, _ = self._apply(current, next_state, "task-c", result_c,
+                                                   "landed-open-b-c-result")
+            self.assertEqual(applied_c["status"], "delivered", applied_c)
+            final = json.loads(next_state.read_text())["tasks"]
+            self.assertEqual(final["task-a"]["status"], "satisfied")
+            self.assertIsNone(final["task-a"].get("delivery"))
+            self.assertEqual(final["task-a"]["ci"], item["ci"])
+            self.assertEqual(final["task-c"]["status"], "delivered")
+
 
     def test_stopped_landed_adoption_requires_full_evidence_and_preserves_native_history(self):
         self._exercise_stopped_landed_adoption("blocked")
@@ -1656,6 +1779,14 @@ class OrchestrateBehavior(unittest.TestCase):
 
     def test_corrected_integration_adoption_preserves_failed_original_head(self):
         self._exercise_stopped_landed_adoption("repair", candidate=True)
+
+    def test_corrected_landed_root_stacks_only_open_parent(self):
+        self._exercise_stopped_landed_adoption("repair", candidate=True, stack_chain=True)
+
+    def test_corrected_landed_root_rejects_unverified_ancestor_before_next_stack_layer(self):
+        self._exercise_stopped_landed_adoption("repair", candidate=True, stack_chain=True,
+                                               invalid_stack_ancestor=True)
+
 
     def test_policy_transition_retains_legacy_compatibility_without_rewriting_tasks(self):
         old_path, old, state, snapshot = self._policy_fixture()

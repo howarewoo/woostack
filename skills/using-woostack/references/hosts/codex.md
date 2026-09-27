@@ -20,48 +20,42 @@ skill with `@` instead. Every form is listed in the
   closing agent threads are host-owned; the caller states how to divide the work, whether to wait,
   and what summary to return. A session that exposes no delivery-capable subagent has no delivery
   primitive.
-- **Per-spawn model/effort:** documented as configuration and prompt request, not as a wire field.
-  Codex documents `model` and `model_reasoning_effort` as custom-agent and `[agents]` defaults in
-  `config.toml`; a spawn can request a model or reasoning effort in the prompt; and an
-  unconfigured subagent inherits the parent agent's model and reasoning effort. State the requested
-  values in the dispatch prompt, and pass a field only when the active schema exposes that exact
-  name. Never derive a per-call argument name from the repository tier table.
+- **Per-spawn model/effort:** Codex documents `model` and `model_reasoning_effort` as
+  custom-agent and `[agents]` defaults in `config.toml`; unconfigured subagents inherit the
+  parent's model and effort. For an explicit one-run choice, request the native values in the
+  dispatch prompt and pass a wire field only when the active schema exposes its exact name and
+  host authorization permits it. A prompt request alone is not proof the override took effect.
 - **Per-call cwd:** not documented — fill the dispatch-prompt worktree pin and require the worker to
   verify it before writing.
 - **Codex Action job:** one run model per job from the action's `model` and `effort` inputs. Whether
   that run can fan out is a capability of the active run to verify, not a guarantee of the action.
 
-## Tier routing
+## Model selection
 
-- **Local (per-spawn routing when available):** resolve the effective tier through the OpenAI
-  column in [`../model-tiers.md`](../model-tiers.md) plus its override precedence, then request it
-  through the dispatch prompt or the documented agent configuration keys.
-- **Codex Action (one run model per job):** resolve one run model up front (a forced fast/deep tier
-  if set, otherwise standard); per-tier behavior collapses onto that model for the whole job.
-  Split into multiple jobs for per-tier split behavior.
+Local subagents inherit their configured or parent agent model and reasoning effort. A Codex Action
+job uses its host-configured `model` and `effort` inputs for the run. Optional
+[role preferences](../model-tiers.md) shape work, not provider/model selection.
 
 ## Host-level fallback
 
-None documented at the subagent layer — usage-limit exhaustion surfaces as provider errors, and
-account-level recovery (a second login, plan quota) is outside woostack's scope. The
-[shared fallback note](README.md#host-level-fallback-shared-note) applies to `models.<tier>` lists.
+Provider errors reach the subagent if the host has no documented spawn-time recovery. Woostack
+does not manually select entries from repository fallback lists; see the
+[shared note](README.md#host-level-fallback-shared-note).
 
 ## Per-skill notes
 
 - **woostack-orchestrate (parallel dispatch):** for each schedule packet, dispatch one
   delivery-capable subagent with the dispatch-prompt worktree pin. Pass `workspace`, `branch`,
   `parent_branch`, `parent_sha`, child issue URL, and packet `bounded_input`/`acceptance`/`checks`
-  as the complete Execute contract; use the tier routing above and clamp `effective_cap` to real
-  capability, refilling as workers complete. A Codex Action job cannot be assumed to fan out and
-  blocks rather than executing inline.
+  as the complete Execute contract; clamp `effective_cap` to real capability, refilling as
+  workers complete. A Codex Action job cannot be assumed to fan out and blocks rather than
+  executing inline.
 
-## Degradation
+## Capability limits
 
-One run model per job (Codex Action) is not a degradation — it is the documented collapse for that
-surface. A local spawn with no configured or requested model inherits the parent agent's model and
-reasoning effort: run it and say so once (degraded), per the inline law of the dispatching skill.
-A missing required delivery, isolation, identity-correlation, review, or recovery capability
-blocks the owning operation per the
-[conditional mechanics](README.md#conditional-mechanics-shared); a missing authorized GitHub
-interface follows the
-[shared GitHub contract](README.md#github-capability-and-authentication-shared).
+One model per Codex Action job is the normal host behavior. A local spawn without an explicit
+model inherits its configured or parent agent model without a degradation notice. Report an
+unsupported optional explicit request; block an exact-identity requirement without matching
+host evidence. Missing required delivery, isolation, identity-correlation, review, or recovery
+capability blocks per [conditional mechanics](README.md#conditional-mechanics-shared); GitHub
+operations follow the [shared GitHub contract](README.md#github-capability-and-authentication-shared).
