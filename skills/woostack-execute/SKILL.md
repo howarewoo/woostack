@@ -47,6 +47,9 @@ outcome. Old `/woostack-tdd` requests are retired; use `/woostack-execute <bound
 
 ## Admit one task
 
+For an explicit one-run model or effort request, apply the shared
+[identity check](../using-woostack/SKILL.md#project-entry) before implementation or delegation.
+
 Resolve the authorized outcome from the request or the selected issue plus verified repository
 evidence: the goal, bounded scope and paths, non-goals, and acceptance. Resolve ordinary paths,
 implementation details, checks, and workspace facts from current source and repository conventions

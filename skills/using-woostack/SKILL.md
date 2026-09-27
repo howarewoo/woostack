@@ -15,12 +15,19 @@ evidence, not permission to expand it.
    the table below directly. That skill owns its operation, approvals, and recovery.
 2. Use the active harness's tools and schemas. Host-specific [notes](references/hosts/README.md)
    are optional when a task needs them, not an adapter-loading prerequisite.
+   In OMP, follow [session naming](references/hosts/omp.md#session-naming) for each woostack invocation;
+   other OMP notes remain optional.
 3. Apply [output discipline](references/output-discipline.md). At an ordinary final reply, load
    Reflect only when its [candidate gate](../woostack-reflect/SKILL.md#invocation-and-snapshot-boundary)
    admits a concrete observed instruction gap. An explicit `/woostack-reflect` always runs once.
 
 Do not initialize `.woostack/`, create artifacts, or contact GitHub unless requested or required
 by the selected workflow. Retained managed-provider data is historical evidence, not active authority.
+
+For an explicit one-run model or effort request, use the exact native field only if the active tool
+schema exposes it and the host permits it. Omit an unsupported optional choice and report that it
+was not applied. If exact identity is required, do not perform the dependent operation without
+matching host evidence; an inherited model or accepted agent selector does not prove identity.
 
 ## Command routing
 
