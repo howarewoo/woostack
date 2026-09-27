@@ -2,7 +2,6 @@
 
 Canonical rules for woostack communication — user-facing replies, subagent→parent handbacks,
 swarm/worker reports, and log/report writes. Cross-linked from the channels that emit them; never
-restated. Sibling of [model-tiers.md](model-tiers.md).
 
 **Governing principle: strip the envelope, never the reasoning.** Terseness applies to the
 *wrapper prose* — preamble, narration, pleasantries, hedging, and repetition. It never applies to

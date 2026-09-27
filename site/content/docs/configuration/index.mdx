@@ -109,12 +109,10 @@ with a command your repository actually provides.
 
 ## Model selection compatibility
 
-Woostack now inherits the harness's configured agent/model, effort, and fallback. Optional
-`fast | standard | deep` [role preferences](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/model-tiers.md)
-shape the task and verification depth, not model routing. An explicit one-run native model or
-effort override requires a supported field in the active host schema and host authorization;
-unsupported optional requests are reported, while a required exact identity blocks without
-matching host evidence.
+Woostack uses the harness's configured agent, model, and effort; the host owns recovery. An
+explicit one-run model or effort choice uses only fields the active tool schema supports and
+permissions allow. Report an unsupported optional choice; a required exact identity blocks
+without matching host evidence.
 
 Existing `.woostack/config.json` and primary-checkout `config.local.json` values, including
 `models` in any old shape, are preserved as user data. Woostack no longer interprets `models`

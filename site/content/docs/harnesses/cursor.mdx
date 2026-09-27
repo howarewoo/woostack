@@ -1,22 +1,16 @@
 ---
 title: Cursor / Composer
-description: Parallel dispatch whose routing depends on the active runtime's schema.
+description: Custom subagent models and shared or isolated workspaces.
 ---
 
-Cursor's Composer runtime can run independent workers in parallel. The session-configured model
-is the normal default. No official per-call model or effort field is verified here; an explicit
-one-run override requires the active schema to expose the exact native field and host authorization.
-An optional role preference does not change the model or require a degradation notice.
+Cursor can run independent subagents concurrently. A custom subagent's definition selects its
+model and options; the active tool schema governs per-call arguments. Subagents share the parent's
+checkout by default. For concurrent writers, request separate workspaces and verify their
+ownership before editing.
 
-Cursor also has no documented per-worker working directory. The task prompt names the expected
-worktree, the separate checkout assigned to that task, and the worker must use it before writing.
+Invoke a woostack skill in Cursor by typing `/` in Agent chat and searching for the skill name
+([Agent Skills](https://cursor.com/docs/skills)). It is the same skill and the same permissions as
+the `/woostack-*` form used elsewhere in this documentation.
 
-Provider usage-limit errors surface unless the host recovers. Woostack does not enact a
-repository fallback list.
-
-Use your Cursor's own documented way to invoke a skill explicitly; a `/woostack-*` example in this
-documentation names the logical command, and no Cursor-specific invocation form is recorded in the
-[host reference](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/hosts/README.md#native-skill-invocation).
-
-For detection, worker behavior, per-skill instructions, and fallback rules, read the
-[canonical Cursor reference](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/hosts/cursor.md).
+The optional [Cursor host notes](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/hosts/cursor.md)
+record these mechanics against their sources.

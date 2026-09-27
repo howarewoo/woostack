@@ -51,10 +51,10 @@ Keep required safety, compatibility, accessibility, and data-loss protection whi
 
 ## Elicitation
 
-Use the active host's supported ask/question capability when available, loaded through the
-[host index](../using-woostack/references/hosts/README.md); do not assume a tool name or schema. If
-the host cannot represent a question, ask a numbered chat batch instead. Reuse decisions already
-settled for the same goal; revalidate only what is stale, conflicting, or newly exposed.
+Use the active host's supported ask/question capability when available; its name and shape come
+from the active tool schema, not from a host guide. If the host cannot represent a question, ask
+a numbered chat batch instead. Reuse decisions already settled for the same goal; revalidate only
+what is stale, conflicting, or newly exposed.
 
 ## Read-only boundary
 

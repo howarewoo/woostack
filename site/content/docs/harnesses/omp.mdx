@@ -10,46 +10,14 @@ agent catalog.
 
 ## Native OMP agent routing
 
-OMP's `task` tool accepts a worker selector but does not expose a per-call model, tier, or working
-directory setting to Woostack: the task wire schema exposes no model field at all, and OMP resolves
-the worker's model from the `task.agentModelOverrides` setting, the agent frontmatter `model` list,
-then the parent session's model. Effort is conditional. When the host setting `task.enableEffort` is
-enabled (default `false`), the active task schema exposes optional `effort` with exactly `"lo"`,
-`"med"`, or `"hi"`.
-When it is disabled, that field is absent. Woostack inspects the active schema or tool description
-before dispatch and does not enable host settings or set the optional effort field. OMP owns
-effort selection; a role preference never implies an effort wire value. A selector is not proof
-of the model or effort used, so exact-identity comparisons require separate host evidence.
+OMP's `task` tool selects an agent exposed by the active session. Its schema determines the
+dispatch shape and whether effort is available; model routing and recovery belong to OMP. It has
+no per-call model or working-directory field. Pass the selected workspace in a delegated task and
+have the worker verify its checkout before writing. Without optional delegation, Execute can work
+inline and Orchestrate can run tasks sequentially in the calling session.
 
-The conditional schema and setting are documented in OMP's [task-agent discovery reference](https://github.com/can1357/oh-my-pi/blob/main/docs/task-agent-discovery.md)
-and implemented by [`task/types.ts`](https://github.com/can1357/oh-my-pi/blob/main/packages/coding-agent/src/task/types.ts).
-The dispatch-time setting and rejection path are in
-[`task/index.ts`](https://github.com/can1357/oh-my-pi/blob/main/packages/coding-agent/src/task/index.ts).
-
-- Run `woostack-init` before relying on session naming. It provisions only the session-name extension,
-  settings entry, and ignore lines while preserving other project content. Init and Doctor never
-  create or repair OMP agent definitions; delegated work selects agents already exposed by the host.
-
-- Use only names actually exposed by the active session. OMP's bundled set includes `task` as a
-  write-capable general-purpose agent, `scout` for read-only exploration, and `reviewer` /
-  `security-reviewer` for read-only review; a session can expose more. Do not create aliases or
-  project definitions to fill a missing name.
-- Inspect the active task schema before choosing a wire shape. When `task.batch` is enabled, OMP
-  exposes `{ context, tasks[] }`; send dependency-independent bounded tasks in that shape. When
-  it is disabled, send one flat `{ agent?, task, ... }` call at a time where the workflow permits
-  it. Do not send `tasks` or `context` in that mode because OMP rejects those fields before a
-  worker starts.
-- Pass the selected workspace, authorized outcome, scope limits, dependencies, repository rules, and
-  required checks in the task prompt. The `task` primitive does not accept `cwd`; the worker checks
-  its actual checkout, branch, and base before editing. An extra smoke scenario is not required.
-- Execute remains one bounded task and does not schedule a project graph. Orchestrate submits the
-  independent ready tasks in one `tasks[]` call when batch is available and starts the next task as a
-  worker completes. When batch is unavailable it sends one call at a time and reports that the scope
-  ran sequentially; without a delivery-capable subagent it works the tasks in the calling session and
-  says so. A sequence of calls never proves same-wave or parallel execution, and sequential work is
-  never offered as independent review.
-- Missing capabilities and missing result evidence are reported as blockers. Woostack does not
-  switch profiles, weaken isolation, or treat absent evidence as success.
+Init provisions a session-name extension, not agent definitions. Older generated definitions are
+user-owned files and are never cleaned automatically; the manual recipe below governs them.
 
 ## Native skill invocation
 
@@ -90,7 +58,7 @@ Repeating the comparison and removal is idempotent and never follows or deletes 
 
 For the exact dispatch mechanics, the conditional batch shape, and the retained session-naming
 extension, see the
-[canonical OMP adapter](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/hosts/omp.md).
+[OMP host notes](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/hosts/omp.md).
 
 ## Goal-derived session naming
 

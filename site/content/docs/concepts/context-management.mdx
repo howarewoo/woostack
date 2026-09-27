@@ -44,10 +44,9 @@ external actions.
 ## Isolated agents receive bounded envelopes
 
 Before choosing inline or delegated implementation, weigh the task's scope against dispatch,
-context preparation, verification overhead, and risk. Optional
-[role preferences](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/model-tiers.md)
-shape task and verification depth; delegation inherits the host-configured agent/model.
-Independent validation is used when required, requested, or warranted by risk, not as a universal receipt.
+context preparation, verification overhead, and risk. Delegation uses an agent the host already
+exposes and inherits the host's configured model. Independent validation is used when required,
+requested, or warranted by risk, not as a universal receipt.
 
 Each worker gets a bounded assignment, also called an envelope:
 
@@ -61,7 +60,6 @@ read results may accompany it but cannot expand its scope or permissions.
 
 ## Model routing stays host-owned
 
-`fast`, `standard`, and `deep` are optional task/verification-depth preferences, not a
-provider/model map. The [host contract](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/model-tiers.md)
-uses configured agents and host-owned model/fallback settings. OMP selects an agent discovered
-in the active session; Woostack preserves workspace and evidence boundaries.
+The harness chooses the model and effort for inline work and delegated tasks. Woostack does not
+translate task labels into model choices or switch providers after an error. It preserves workspace
+and evidence boundaries.

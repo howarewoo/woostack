@@ -1,22 +1,23 @@
 ---
 title: Harness reference
-description: Supported coding harnesses, native capability differences, and host-specific behavior.
+description: Documented coding harnesses, native capability differences, and host-specific behavior.
 ---
 
 A harness is the application that runs your coding agent and gives it tools to read files, edit
 code, and run commands. Woostack provides skills for that agent to follow. The six harnesses below
-have documented adapters, which tell woostack how to use each host's tools.
+have documented host notes covering each host's own mechanics. Another host that loads the skills
+works too when it exposes the capabilities a task needs.
 
 Capabilities differ, and only the active session's tool schema and discovered agents prove what a
 harness accepts. A host may expose a model or effort field for each worker, set its working
 directory, or run several workers at once — and a harness page is not proof that it does. A worker
 (also called a subagent) handles an assigned task and returns its results to the main agent.
-Giving it a separate conversation context does not by itself restrict which files it can edit; the
-workflow must also set the allowed paths and worktree, a separate checkout for the task.
+Giving it a separate conversation context does not by itself restrict which files it can edit;
+concurrent writers need independently owned workspaces and scoped tasks.
 
-When a required capability is missing, woostack reports the limitation or stops the workflow.
-Normal host model inheritance needs no notice. An unsupported optional explicit override is
-reported; a required exact identity blocks without matching host evidence.
+An absent optional subagent does not block inline work. Missing permission for a required
+publication or other side effect blocks that operation. An unsupported optional explicit model
+override is reported; a required exact identity blocks without matching host evidence.
 
 Hermes may coordinate decisions and review results from one persistent OMP process, but woostack
 does not install in Hermes. The coding harness runs the implementation and its workers. See the
@@ -24,23 +25,19 @@ does not install in Hermes. The coding harness runs the implementation and its w
 
 ## Capability comparison
 
-| Harness | Model and effort routing | Working directory | Host behavior |
-| --- | --- | --- | --- |
-| [omp (Oh My Pi)](/docs/harnesses/omp) | Selects an agent the session exposes; model is host-owned and effort appears only when the active schema has it | Named in the prompt and verified by the worker | OMP manages models and recovery |
-| [Claude Code](/docs/harnesses/claude-code) | A model parameter is documented for a single invocation; effort is a worker or session setting | Named in the prompt and verified by the worker | Provider usage-limit errors stop the worker |
-| [Codex](/docs/harnesses/codex) | Requested in the prompt or agent configuration, with documented inheritance; one model per Codex Action job | Named in the prompt and verified by the worker | Local and CI routing differ |
-| [opencode](/docs/harnesses/opencode) | Configured per agent; a per-call field is unproven until the active schema shows one | Named in the prompt and verified by the worker | Provider usage-limit errors stop the worker |
-| [Cursor / Composer](/docs/harnesses/cursor) | Host session model; per-call overrides require an exposed native field | Named in the prompt and verified by the worker | Session model inheritance is normal |
-| [Antigravity CLI](/docs/harnesses/antigravity) | Host session model; per-call overrides require an exposed native field | Named in the prompt and verified by the worker | Requires interactive login; cannot run in temporary headless CI |
+| Harness | Model and effort choices | Workspace behavior |
+| --- | --- | --- |
+| [omp (Oh My Pi)](/docs/harnesses/omp) | Host-owned model selection; effort only when the active schema exposes it | Pass the workspace in the task; worker verifies it |
+| [Claude Code](/docs/harnesses/claude-code) | Per-invocation model documented; effort is a worker or session setting | Worktree isolation is a definition choice |
+| [Codex](/docs/harnesses/codex) | Configured model and reasoning effort; one model per Codex Action job | Subagents inherit sandbox and local permission mode |
+| [opencode](/docs/harnesses/opencode) | Agent configuration selects the model | `task` permission controls delegation |
+| [Cursor / Composer](/docs/harnesses/cursor) | Custom subagent definitions select model and options | Subagents share the checkout by default; isolation is available |
+| [Antigravity CLI](/docs/harnesses/antigravity) | Custom subagent definitions select a model tier | Per-subagent workspace modes include isolated worktrees |
 
 For OMP,
 [host-owned agent routing](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/hosts/omp.md)
 selects a suitable agent already exposed in the active session. OMP controls the models behind
 those agents, provider credentials, and fallback policy, including when Hermes coordinates the work.
-
-The [role-preference reference](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/model-tiers.md)
-explains why `fast`, `standard`, and `deep` do not select provider/models. Each host page links
-to its adapter for exact tool mechanics.
 
 ## Native skill invocation
 
@@ -55,17 +52,18 @@ and the same result.
 | [Claude Code](/docs/harnesses/claude-code) | `/woostack-execute` |
 | [Codex](/docs/harnesses/codex) | `$woostack-execute` |
 | [opencode](/docs/harnesses/opencode) | Ask for the named skill; the native `skill` tool loads it |
+| [Cursor / Composer](/docs/harnesses/cursor) | `/woostack-execute` |
 
 Each harness page links the official documentation its example was verified against, and the
 [host reference](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/hosts/README.md#native-skill-invocation)
-lists them together. Cursor and Antigravity CLI have no source-verified invocation form recorded
-here; use each harness's own documented form.
+lists them together. Antigravity CLI has no source-verified invocation form recorded here; use
+the host's own documented form.
 
 <Cards>
   <Card title="omp (Oh My Pi)" href="/docs/harnesses/omp" description="Use existing OMP agents while OMP controls their models." />
   <Card title="opencode" href="/docs/harnesses/opencode" description="Delegate to a discovered subagent and check what its schema accepts." />
   <Card title="Claude Code" href="/docs/harnesses/claude-code" description="Assign a model to a single invocation and pin each worktree in the prompt." />
   <Card title="Codex" href="/docs/harnesses/codex" description="Compare local workers with the single-model CI setup." />
-  <Card title="Cursor / Composer" href="/docs/harnesses/cursor" description="Run workers in parallel using the session model." />
-  <Card title="Antigravity CLI" href="/docs/harnesses/antigravity" description="Use workers with one run model and an interactive login." />
+  <Card title="Cursor / Composer" href="/docs/harnesses/cursor" description="Use host subagents with shared or isolated workspaces." />
+  <Card title="Antigravity CLI" href="/docs/harnesses/antigravity" description="Choose a documented subagent workspace mode." />
 </Cards>

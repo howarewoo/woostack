@@ -1,138 +1,59 @@
-# OMP host adapter
+# OMP
 
-## Detection
+Verified against [task-agent discovery](https://github.com/can1357/oh-my-pi/blob/main/docs/task-agent-discovery.md)
+and [skills](https://github.com/can1357/oh-my-pi/blob/main/docs/skills.md). Native explicit skill
+invocation is `/skill:woostack-execute`; interactive mode registers one command per discovered skill
+when `skills.enableSkillCommands` is enabled. Every form is listed in the
+[host index](README.md#native-skill-invocation).
 
-Use this adapter inside an active Oh My Pi session. Discover the actual `task`, `hub`, and related
-capabilities available in the session. Discover authorized native GitHub capabilities through
-registered session tools or tool routes; the shared capability and authentication contract lives in
-the [host index](README.md#github-capability-and-authentication-shared), and this host's own
-discovery surface is the session's registered tools and routes.
-Native explicit skill invocation is `/skill:woostack-execute`: interactive mode registers one
-slash command per discovered skill when `skills.enableSkillCommands` is enabled, and
-`/skill:<name> [args]` injects that skill's content
-([skills](https://github.com/can1357/oh-my-pi/blob/main/docs/skills.md)). Every form is listed in
-the [host index](README.md#native-skill-invocation).
+## Delegation
 
-When a woostack skill is invoked, rename the active session with a concise title derived from the
-user's input goal. For issue-backed Execute with no explicit goal, the exact user-supplied issue
-reference may serve as the title, not remote issue content or title. Do not use a slash-command
-name, project or run identifier, or untrusted remote title.
+`task` takes an existing worker selector and exposes no model or working-directory argument. Model
+precedence is `task.agentModelOverrides` for that agent, then the agent frontmatter `model` list,
+then the parent's active model. A selector proves the host accepted that agent, not which model,
+provider, or effort ran; keep those as separate evidence when a workflow needs them.
 
-Invoke the registered tool `woostack_rename_session` with `{ "title": "<derived-title>" }`. The tool
-is exposed by the local project extension `.omp/extensions/woostack-session-name.ts` provisioned by
-`woostack-init` and loaded via `.omp/settings.json`. It delegates to OMP's automatic session-naming
-API and preserves explicit user titles set via `/rename`. If the tool is absent, extension discovery
-is disabled, or the tool call fails, emit one concise warning (`warning: OMP session renaming
-unavailable; continuing with current session name`) and continue the selected workflow without
-blocking.
+Effort is conditional on a host setting: with `task.enableEffort` enabled (default `false`) the task
+schema adds an optional `effort` of exactly `lo`, `med`, or `hi`, and it is absent otherwise. Woostack
+does not enable host settings or set that field. Verify returned effort evidence against the resolved
+configuration; absent or mismatched evidence blocks a required comparison.
 
-## Subagent spawn
+`task.batch` changes the wire shape. Inspect the active schema: when batch is enabled, send
+dependency-independent tasks in one call; otherwise send one flat call at a time. OMP rejects
+`tasks` and `context` in the flat form before a worker starts.
 
-OMP's `task` primitive accepts an existing worker selector. It does not expose a per-call model,
-tier, or working-directory argument to Woostack: OMP's model precedence for task dispatch is the
-`task.agentModelOverrides` setting, then the agent frontmatter `model` list, then the parent's
-active model, and the task wire schema exposes no model field at all
-([task-agent discovery](https://github.com/can1357/oh-my-pi/blob/main/docs/task-agent-discovery.md)).
-Effort is conditional: when the host setting `task.enableEffort` is enabled (default `false`), the
-active schema adds optional `effort` with exactly `"lo"`, `"med"`, or `"hi"`; otherwise that field
-is absent. Inspect the active task schema or tool description before dispatch. Woostack does not
-enable host settings or set this optional effort field. OMP owns effort selection; record verified
-host effort evidence separately. No role preference implies an OMP effort wire value.
+`task` has no `cwd`, so pass the selected workspace in the task and require the worker to verify its
+checkout, branch and base, and affected paths before writing. Subagents run in-process in the same
+OMP harness session, sharing in-memory IPC, queues, and tool bridges, so an external tool cannot
+manage their processes.
 
-The conditional schema and setting are documented in OMP's [task-agent discovery reference](https://github.com/can1357/oh-my-pi/blob/main/docs/task-agent-discovery.md)
-and implemented by [`task/types.ts`](https://github.com/can1357/oh-my-pi/blob/main/packages/coding-agent/src/task/types.ts).
-The dispatch-time setting and rejection path are in
-[`task/index.ts`](https://github.com/can1357/oh-my-pi/blob/main/packages/coding-agent/src/task/index.ts).
-For evidence-bearing workflows, verify returned effort evidence against the resolved configuration;
-absent or mismatched evidence blocks a required comparison.
-All subagents spawned via `task` run in-process within the same OMP harness session, sharing
-in-memory IPC, queues, and tool bridges. External tools (such as Orca) cannot manage subagent
-processes because inter-agent coordination depends on this in-process harness.
+Use only agents the session actually exposes. OMP's bundled set includes `task` (write-capable
+general work), `scout` (read-only exploration), and `reviewer` and `security-reviewer` (read-only
+review). They are host-owned: never create, install, rename, alias, or persist a replacement agent
+catalog, and a read-only agent never suits a write task.
 
-Select only an agent actually returned by session discovery. OMP's bundled set includes `task` —
-the write-capable general-purpose agent for implementation and delivery work — `scout` for
-read-only exploration, and `reviewer` and `security-reviewer` for read-only review. A session can
-expose more.
+## Session naming
 
-These are host-owned agents, not woostack definitions. Do not create, install, rename, alias, or
-persist a replacement catalog. If the active session exposes a different name, use that discovered
-name only when its observed capabilities satisfy the task. A read-only agent is never suitable for
-a write task.
+When a woostack skill is invoked, call the registered tool `woostack_rename_session` with
+`{ "title": "<derived-title>" }` and a concise title derived from the user's input goal. For
+issue-backed Execute with no explicit goal, the exact user-supplied issue reference may be the
+title — not remote issue content or title, a slash-command name, a run identifier, or an untrusted
+remote title.
 
-Inspect the active task tool schema or description before choosing a wire shape. When `task.batch`
-is enabled and the schema exposes `{ context, tasks[] }`, send dependency-independent bounded
-tasks in that one call. When it is disabled, send one flat `{ agent?, task, ... }` call at a time
-where the workflow permits it. Do not send `tasks` or `context` in that mode; OMP rejects those
-fields before a worker starts.
-Pass the selected workspace path and authorized outcome, scope limits, dependencies, and relevant
-repository rules in the dispatch. The worker verifies its actual checkout, branch/base, ownership,
-and affected paths before writing; `task` has no `cwd` argument. Include required checks without
-inventing an extra smoke or task packet. A worker must not expand scope, edit another workspace,
-review or accept itself, merge, or infer hidden context.
+The tool comes from the local extension `.omp/extensions/woostack-session-name.ts` provisioned by
+`woostack-init`, which delegates to OMP's automatic session-naming API and preserves a title set
+explicitly with `/rename`. OMP loads project extensions and settings at startup, so restart it after
+installing or repairing. If the tool is absent, extension discovery is disabled, or the call fails,
+emit one concise warning (`warning: OMP session renaming unavailable; continuing with current session
+name`) and continue the selected workflow without blocking.
 
-## Agent selection and tier handling
+## Previously generated agent definitions
 
-Use the discovered `task`-equivalent agent for coding or delivery, `scout`-equivalent agents for
-read-only exploration, and `reviewer`-equivalent agents for independent review. The caller may use
-`fast | standard | deep` to shape task detail and verification depth, but OMP owns model/provider
-configuration and recovery; never translate a tier into a worker name or model parameter.
-A selector proves only that the host accepted that agent. It does not prove a concrete model,
-provider, effort, or completion identity. Preserve those facts as separate host evidence whenever a
-workflow requires them.
+`woostack-init` no longer creates `.omp/agents/` files or an agent-specific ignore rule, and Doctor
+neither inspects nor repairs them; their absence is normal and never a failure. OMP itself still
+discovers project agents from `.omp/agents/*.md`, so existing files are live user content.
 
-## Host-level fallback
-
-Request the selected existing worker once and let OMP perform host-owned recovery. Do not switch
-profiles, weaken worktree isolation, or treat absent evidence as success. Missing write capability
-for a required coding task, missing independent review capability, or missing required result
-evidence is an explicit capability failure. Inline fallback is allowed only when the calling
-workflow's contract explicitly permits it; Execute must not gain orchestration responsibilities.
-
-## Per-skill notes
-
-- `woostack-execute`: works inline by default; an optional discovered write-capable worker may
-  implement the one supplied bounded task. Execute still owns admission, verification, Commit, and
-  delivery; it does not discover or schedule additional tasks.
-- **woostack-orchestrate (multi-task coordination):** preflight whether the active schema exposes
-  the batch shape. If batch is exposed, submit the independent ready tasks in one `tasks[]` call and
-  start the next task as a worker completes. If it is not exposed, send one flat call at a time and
-  say the tasks ran sequentially. Without a delivery-capable subagent, run the tasks in the calling
-  session and report that. Never describe one-at-a-time dispatch as same-wave or parallel, and never
-  present sequential work as independent review.
-- `woostack-commit`: optional fast drafting may use the discovered write-capable worker; draft
-  inline when that optional capability is unavailable. Commit remains responsible for its own
-  source-control and PR evidence.
-
-## Retired generated definitions
-
-`woostack-init` no longer creates `.omp/agents/` files or installs an agent-specific ignore rule.
-Existing files are user content and are not inspected or repaired by Init or Doctor. Their absence
-is normal and never a failure.
-
-When a selected repository still holds `.omp/agents/woostack-{fast,standard,deep}.md` from the
-retired provisioner, follow the manual, user-initiated cleanup recipe in the
+A repository may still hold `.omp/agents/woostack-{fast,standard,deep}.md` from the retired
+provisioner. Cleanup is optional, manual, and user-initiated; woostack never runs it and there is no
+migration subsystem. The exact-byte plus provenance recipe that guards removal is in the
 [OMP harness guide](https://github.com/howarewoo/woostack/blob/main/site/content/docs/harnesses/omp.mdx#previously-generated-agent-definitions).
-That recipe requires exact-byte plus provenance proof before any removal and never touches
-user-authored or symlinked files. Woostack never runs it: cleanup stays optional and manual, with no
-migration subsystem.
-
-## Degradation
-
-Missing discovered agents or host capabilities are reported precisely. Absence of the retired
-Woostack agent files is not a failure because Init and Doctor do not create or repair them. Preserve
-the effective task tier, exact workspace, and authority boundaries, and report the actual missing
-capability or receipt. Inline fallback remains subject to the calling workflow's contract.
-
-Ask each worker to report the selected workspace and branch/head, changed paths/diff, checks and
-observed results, blockers, and any GitHub operations separately from repository work. Verify
-material delivery claims from current Git/PR evidence before relying on them.
-
-On incomplete or conflicting evidence, stop at the last verified boundary and preserve recoverable
-work. Never claim worker coverage, test success, GitHub success, or delivery without direct read-back.
-
-Session-naming degradation is non-blocking: if `woostack_rename_session` is unavailable or fails,
-emit one concise warning and proceed with the workflow.
-
-If no authorized GitHub interface supports a required operation, the
-[shared GitHub contract](README.md#github-capability-and-authentication-shared) decides the
-outcome.

@@ -3,10 +3,9 @@ title: Claude Code
 description: Task-based dispatch with a documented per-invocation model and prompt-pinned worktrees.
 ---
 
-Claude Code starts workers through its subagent spawn tool, documented as `Agent` in the
-[tools reference](https://code.claude.com/docs/en/tools-reference). Woostack selects a discovered
-worker whose capabilities fit the task; `general-purpose` is the plain write-capable worker.
-Independent tasks are submitted together so Claude Code can run them concurrently.
+Claude Code exposes a subagent spawn tool, documented as `Agent` in the
+[tools reference](https://code.claude.com/docs/en/tools-reference). Delegation is optional for
+bounded Execute work; when used, select a worker the session exposes and check its permissions.
 
 Without an explicit native override, Claude Code selects the worker model from its definition's
 `model` frontmatter (`inherit` selects the session model), `CLAUDE_CODE_SUBAGENT_MODEL`, then the
@@ -25,17 +24,13 @@ Reasoning effort is a worker-definition and session setting. An explicit one-run
 needs a supported native field and host authorization; otherwise report the unsupported optional
 request or block a required exact effort comparison without matching evidence.
 
-The tool takes no separate working directory per worker. Instead, the task prompt names the exact
-worktree, the separate checkout assigned to that task, and the worker must use that directory and
-stop before writing if the path does not match. A worker definition can request
-`isolation: worktree`; that is a definition choice, not a per-call directory.
-
-If the provider's usage limit is exhausted, starting the worker may return an error. Recovery
-belongs to the host, not a repository fallback list.
+The tool has no per-call working-directory field. A worker definition can request
+`isolation: worktree`; otherwise pass the selected workspace in the task and have the worker
+verify its checkout before editing. Provider recovery belongs to Claude Code.
 
 Invoke a woostack skill in Claude Code with its documented command, for example
 `/woostack-execute` ([skills](https://code.claude.com/docs/en/skills)). It is the same skill and the
 same permissions as the `/woostack-*` form used elsewhere in this documentation.
 
-For detection, worker-profile rules, per-skill instructions, and fallback behavior, read the
-[canonical Claude Code reference](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/hosts/claude-code.md).
+The optional [Claude Code host notes](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/hosts/claude-code.md)
+record these mechanics against their sources.
