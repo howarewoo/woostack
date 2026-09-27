@@ -949,7 +949,8 @@ def admission_digest(admitted):
     return digest({key: value for key, value in admitted.items() if key != "ok"})
 
 
-def _revalidated_landed_prerequisite(task, delivery, integration, repo, canonical, source=False):
+def _revalidated_landed_prerequisite(task, delivery, integration, repo, canonical,
+                                     source=False, squashed=False):
     """Independent exact-head evidence never rewrites the retained worker result."""
     candidate = source or "integration_revalidation" in delivery
     require(source or not candidate or "landed_revalidation" not in delivery,
@@ -967,12 +968,18 @@ def _revalidated_landed_prerequisite(task, delivery, integration, repo, canonica
             and readback.get("branch") == pr.get("branch"),
             "wrong-association", "current landed PR must retain the original issue and PR identity")
     parent = receipt.get("head_parent")
-    head = integration["sha"] if candidate else pr.get("head_sha")
+    head = receipt.get("candidate_sha") if source else (
+        integration["sha"] if candidate else pr.get("head_sha"))
     require(SHA_RE.fullmatch(parent or "") and SHA_RE.fullmatch(head or ""),
             "landed-evidence-missing", "current source parent and head are required")
+    reserved_parent = (delivery.get("reservation") or {}).get("parent_sha")
+    if squashed and not source:
+        require(parent == pr.get("merge_commit_sha"),
+                "wrong-ancestry", "integration revalidation must start at the native landing")
+    else:
+        require(parent == reserved_parent,
+                "wrong-ancestry", "revalidation must cover the complete retained admitted source range")
     head_diff = delivery_head_diff(repo, {"parent_sha": parent}, head)
-    require(parent == (delivery.get("reservation") or {}).get("parent_sha"),
-            "wrong-ancestry", "revalidation must cover the complete retained admitted source range")
     require(head_diff is not None and receipt.get("head_diff_identity") == head_diff,
             "landed-diff-mismatch", "revalidation must identify the exact current head diff")
     checks, review = receipt.get("checks"), receipt.get("validation")
@@ -999,7 +1006,16 @@ def _revalidated_landed_prerequisite(task, delivery, integration, repo, canonica
             and review.get("diff_identity") == head_diff
             and review.get("contract_hash") == task["contract_hash"],
             "stale-validation", "current contract acceptance must be independently revalidated")
-    if candidate:
+    if squashed and source:
+        require(receipt.get("approved") is True and text(receipt.get("approval_reference")),
+                "stale-validation", "native source needs explicit exact-head approval")
+        fact, _ = _landed_identity(
+            task["url"], pr, lifecycle.get("landed_verification"), integration, repo, canonical)
+        require(head == pr["head_sha"] and contains(repo, reserved_parent, head),
+                "wrong-ancestry", "source receipt must cover the current native PR head")
+        fact["revision"] = head
+        fact["corrective_prs"] = []
+    elif candidate:
         fact = _corrected_landed_prerequisite(task, delivery, receipt, integration, repo, canonical)
     else:
         fact = _verified_landed_prerequisite(
@@ -1023,24 +1039,30 @@ def _selected_prerequisite_facts(tasks_by_id, integration, repo, canonical):
             pr = copy.deepcopy(lifecycle.get("pr", lifecycle))
             require(isinstance(pr, dict), "pr-lifecycle-missing",
                     "current PR identity is missing")
+            historical = delivery.get("historical_source_revalidation")
             if "historical_source_revalidation" in delivery:
                 require("integration_revalidation" in delivery
                         and "landed_revalidation" not in delivery,
                         "landed-evidence-missing",
                         "historical source requires unambiguous fresh integration acceptance")
+            reserved_parent = (delivery.get("reservation") or {}).get("parent_sha")
+            squashed = (historical is not None and SHA_RE.fullmatch(reserved_parent or "")
+                        and not contains(repo, reserved_parent, integration["sha"]))
             if "landed_revalidation" in delivery or "integration_revalidation" in delivery:
                 fact = _revalidated_landed_prerequisite(
-                    task, delivery, integration, repo, canonical)
-                if "historical_source_revalidation" in delivery:
-                    historical = delivery["historical_source_revalidation"]
+                    task, delivery, integration, repo, canonical, squashed=squashed)
+                if historical is not None:
                     require(isinstance(historical, dict)
                             and SHA_RE.fullmatch(historical.get("candidate_sha") or "")
                             and historical["candidate_sha"] != integration["sha"]
-                            and contains(repo, historical["candidate_sha"], integration["sha"]),
-                            "stale-validation", "historical source must precede the current integration")
+                            and (squashed or contains(
+                                repo, historical["candidate_sha"], integration["sha"])),
+                            "stale-validation",
+                            "historical source must be the current native head or precede integration")
                     source = _revalidated_landed_prerequisite(
-                        task, delivery, {**integration, "sha": historical["candidate_sha"]},
-                        repo, canonical, source=True)
+                        task, delivery, integration if squashed else
+                        {**integration, "sha": historical["candidate_sha"]},
+                        repo, canonical, source=True, squashed=squashed)
                     compatibility = historical.get("compatibility")
                     original_worker = (delivery.get("result") or {}).get("worker") or {}
                     implementers = set(historical.get("implementer_ids") or []) | set(

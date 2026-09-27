@@ -731,8 +731,12 @@ defective forever. Do not claim it passed or overwrite its historical result. Wi
 candidate evidence, the unchanged-source gate continues to reject changed landing paths.
 Instead of `landed_revalidation`, supply exactly one `existing_delivery.integration_revalidation`.
 It uses the same receipt fields above, but `checks.head_sha` and `validation.checked_head` identify
-the exact fresh integration SHA, and `head_diff_identity` is the complete locally calculated
-binary diff from the original retained `reservation.parent_sha` through that candidate.
+the exact fresh integration SHA. For an ancestor-preserving landing, `head_parent` remains the
+original retained `reservation.parent_sha` and the diff covers that full range. When the native
+merge squashes or rebases a source parent absent from integration, `head_parent` is the original
+native `merge_commit_sha` and the calculated binary diff covers that landing through the candidate.
+That second range requires the separate exact-native-head source receipt below; it never claims
+the original source parent is in main.
 
 Additionally require `candidate_sha` equal to fresh `integration.sha`, `approved: true`,
 an `approval_reference` to the user's exact corrective-candidate decision, and
@@ -771,12 +775,20 @@ path names: a later integration change can touch the original task's paths.
 
 For that one retained open-stack start, add
 `existing_delivery.historical_source_revalidation` beside (not instead of) the current
-`integration_revalidation`. It carries the same candidate receipt fields described above:
-`head_parent` equal to the original `reservation.parent_sha`, `candidate_sha` equal to the exact
-historical source commit, its calculated `head_diff_identity`, independent complete contract
-`checks` and `validation` at that historical commit, `implementer_ids`, explicit `approved` and
-`approval_reference`, and complete uniquely verified native `corrections` through that source.
-The historical source must precede the current integration commit. It also carries:
+`integration_revalidation`. For an ancestor-preserving landing, it carries the same candidate
+receipt fields described above: `head_parent` equal to the original `reservation.parent_sha`,
+`candidate_sha` equal to the exact historical source commit, its calculated `head_diff_identity`,
+independent complete contract `checks` and `validation` at that commit, `implementer_ids`, explicit
+`approved` and `approval_reference`, and complete uniquely verified native `corrections` through
+that source. This historical source must precede the current integration commit. For a squash or
+rebase landing where the reserved source parent is not an integration ancestor, the source receipt
+instead names **exactly the current original merged PR's native `head_sha`** as `candidate_sha`;
+its original reserved `head_parent` and binary diff cover the complete source range. Independent
+checks, smoke, contract review, implementer identities and explicit approval are still mandatory.
+The helper verifies the merged native PR identity and original landing on current integration;
+the source head itself need not be an ancestor of integration. Corrections after the original
+landing belong in the integration receipt's complete native PR enumeration, not a fictitious
+source-branch ancestry.
 
 ```json
 {
@@ -794,16 +806,19 @@ The historical source must precede the current integration commit. It also carri
 ```
 
 The compatibility reviewer differs from all recorded implementers and the original worker.
-Both source and current receipts independently pass their original-contract review and full
-correction enumeration; a historical failure stays failed. Each fresh snapshot supplies both
-receipts at its exact current integration SHA/diff, and any failed/missing receipt blocks that
-prerequisite rather than falling back to a stale saved satisfaction. The helper keeps current
-integration as the availability revision, and records the separately verified source only as
+Both source and current receipts independently pass their original-contract review; every
+correction on integration (and on an ancestor-preserving historical source) needs complete native
+enumeration. A historical failure stays failed. Each fresh snapshot supplies both receipts at
+its exact selected historical source and current integration SHA/diff (the native PR head is
+mandatory for a disjoint squash/rebase source); any failed/missing receipt blocks the prerequisite
+rather than falling back to stale saved satisfaction. The helper keeps current integration as the
+availability revision, and records the separately verified source only as
 conditional ancestry evidence. That source may satisfy containment only when it equals the
 original reserved parent SHA of the retained open stack's first still-open execution ancestor
 (or the same task's retained open integration-start reservation), is contained in the selected
-open parent, and the current integration also contains it. An ordinary controller-owned merged
-ancestor retains its canonical merged satisfaction gate without requiring its squash merge commit
+open parent, and the current integration contains the original native landing. An ordinary
+controller-owned merged ancestor retains its canonical merged satisfaction gate without requiring
+its squash merge commit
 in an open parent based on the verified source head. If its own historical source is used, its
 reconciled landing must also be contained in that parent and fresh current integration availability
 must match it. Merges on other branches do not acquire an integration-availability requirement.

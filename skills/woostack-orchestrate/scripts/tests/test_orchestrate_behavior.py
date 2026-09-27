@@ -1833,6 +1833,136 @@ class OrchestrateBehavior(unittest.TestCase):
         self._exercise_stopped_landed_adoption(
             "repair", candidate=True, stack_chain=True, advanced_stack_source=True)
 
+    def test_squash_landed_source_and_corrected_main_need_distinct_exact_receipts(self):
+        """A native PR head need not be an ancestor of its squash landing."""
+        original_base = self.base_sha
+        source_start_tree = self.tmp / "source-start"
+        git(self.repo, "worktree", "add", "-b", "source-start", str(source_start_tree), self.base_sha)
+        (source_start_tree / "source-parent.txt").write_text("Reserved source parent\n")
+        git(source_start_tree, "add", "source-parent.txt")
+        git(source_start_tree, "commit", "-m", "Reserved original source parent")
+        source_start = git(source_start_tree, "rev-parse", "HEAD")
+        retained = self._seed_prior_delivery("task-a", parent_sha=source_start)
+        source_tree = Path(retained["reservation"]["workspace"])
+        source_file = source_tree / "src/task-a.txt"
+        source_file.write_text(source_file.read_text() + "Native final PR amendment\n")
+        git(source_tree, "add", "src/task-a.txt")
+        git(source_tree, "commit", "-m", "Final native PR source")
+        native_head = git(source_tree, "rev-parse", "HEAD")
+        (self.repo / "src").mkdir()
+        landed_file = self.repo / "src/task-a.txt"
+        landed_file.write_text(source_file.read_text())
+        git(self.repo, "add", "src/task-a.txt")
+        git(self.repo, "commit", "-m", "Squash original PR")
+        landed = git(self.repo, "rev-parse", "HEAD")
+        landed_file.write_text(landed_file.read_text() + "Native corrective PR\n")
+        git(self.repo, "add", "src/task-a.txt")
+        git(self.repo, "commit", "-m", "Squash correction PR")
+        candidate = git(self.repo, "rev-parse", "HEAD")
+        self.github.integration = {"branch": "main", "sha": candidate}
+        self.github.base_sha = candidate
+        delivery = self.github.delivery["task-a"]
+        prior = retained["result"]
+        pr = {
+            "pr_url": prior["readback"]["pr_url"], "repo": self.github.canonical,
+            "head_repo": self.github.canonical, "association": prior["readback"]["association"],
+            "branch": retained["reservation"]["branch"], "head_sha": native_head,
+            "base_branch": "main", "merged_base_branch": "main", "state": "merged",
+            "merge_commit_sha": landed,
+        }
+        delivery["lifecycle"] = {
+            "pr": pr, "landed_verification": {
+                "complete": True, "source_verified": False, "checks_verified": False,
+                "reverted": False, "landed_parent": original_base,
+                "diff_identity": diff_identity(self.repo, original_base, landed),
+            },
+        }
+        correction = {
+            "pr": {
+                "pr_url": self.github.canonical + "/pull/9002", "repo": self.github.canonical,
+                "head_repo": self.github.canonical, "branch": "native-correction",
+                "head_sha": candidate, "base_branch": "main", "merged_base_branch": "main",
+                "state": "merged", "draft": False, "merge_commit_sha": candidate,
+            },
+            "verification": {"complete": True, "landed_parent": landed,
+                             "diff_identity": diff_identity(self.repo, landed, candidate)},
+        }
+        source_diff = diff_identity(self.repo, source_start, native_head)
+        integration_diff = diff_identity(self.repo, landed, candidate)
+
+        def receipt(parent, head, identity, reviewer):
+            checks = copy.deepcopy(prior["checks"])
+            checks.update(head_sha=head, diff_identity=identity)
+            review = copy.deepcopy(prior["validation"])
+            review.update(checked_head=head, diff_identity=identity, reviewer_id=reviewer)
+            return {
+                "head_parent": parent, "head_diff_identity": identity,
+                "implementer_ids": ["original-native", "external-native-author"],
+                "checks": checks, "validation": review, "candidate_sha": head,
+                "approved": True, "approval_reference": "Independent exact candidate approval",
+            }
+
+        source_receipt = receipt(source_start, native_head, source_diff, "source-reviewer")
+        integration_receipt = receipt(landed, candidate, integration_diff, "integration-reviewer")
+        integration_receipt["corrections"] = {"complete": True, "prs": [correction]}
+        source_receipt["compatibility"] = {
+            "integration_sha": candidate, "integration_diff_identity": integration_diff,
+            "source_sha": native_head, "source_diff_identity": source_diff,
+            "contract_hash": prior["validation"]["contract_hash"],
+            "reviewer_id": "compatibility-reviewer", "approved": True,
+            "approval_reference": "Current native source and main remain compatible",
+        }
+        delivery["historical_source_revalidation"] = source_receipt
+        delivery["integration_revalidation"] = integration_receipt
+        helper = self._helper_module()
+        self.assertFalse(helper.contains(self.repo, source_start, candidate))
+        self.assertFalse(helper.contains(self.repo, native_head, candidate))
+        _, admitted = self._admit_issue(self._scoped_tasks_snapshot({"task-a", "task-c"}))
+        task = next(item for item in admitted["tasks"] if item["task_id"] == "task-a")
+        facts, errors = helper._selected_prerequisite_facts(
+            {"task-a": task}, self.github.integration, self.repo, self.github.canonical)
+        self.assertEqual(errors, {})
+        self.assertEqual(facts["task-a"]["revision"], candidate)
+        self.assertEqual(facts["task-a"]["source_revalidation"]["revision"], native_head)
+        self.assertEqual(facts["task-a"]["corrective_prs"], [correction["pr"]["pr_url"]])
+        defects = {
+            "missing-source": lambda value: value.pop("historical_source_revalidation"),
+            "stale-source": lambda value: value["historical_source_revalidation"].update(
+                candidate_sha=retained["result"]["readback"]["head_sha"]),
+            "wrong-native-head": lambda value: value["lifecycle"]["pr"].update(
+                head_sha=retained["result"]["readback"]["head_sha"]),
+            "changed-native-head-after-squash": lambda value: value["lifecycle"]["pr"].update(
+                head_sha=source_start),
+            "foreign-correction": lambda value: value["integration_revalidation"][
+                "corrections"]["prs"][0]["pr"].update(head_repo="https://github.com/other/repo"),
+            "missing-correction": lambda value: value["integration_revalidation"][
+                "corrections"].update(prs=[]),
+            "wrong-correction-sequence": lambda value: value["integration_revalidation"][
+                "corrections"]["prs"][0]["pr"].update(merge_commit_sha=landed),
+            "unreviewed-source": lambda value: value["historical_source_revalidation"][
+                "validation"].update(verdict="fail"),
+            "unreviewed-candidate": lambda value: value["integration_revalidation"][
+                "validation"].update(verdict="fail"),
+            "wrong-integration-parent": lambda value: value["integration_revalidation"].update(
+                head_parent=source_start),
+            "stale-integration-candidate": lambda value: value["integration_revalidation"].update(
+                candidate_sha=landed),
+            "wrong-original-association": lambda value: value["result"]["readback"].update(
+                association=self.github.canonical + "/issues/9999"),
+            "wrong-reserved-parent": lambda value: value["reservation"].update(
+                parent_sha=original_base),
+            "wrong-compatibility": lambda value: value["historical_source_revalidation"][
+                "compatibility"].update(source_sha=landed),
+        }
+        for label, corrupt in defects.items():
+            with self.subTest(defect=label):
+                invalid = copy.deepcopy(task)
+                corrupt(invalid["existing_delivery"])
+                facts, errors = helper._selected_prerequisite_facts(
+                    {"task-a": invalid}, self.github.integration, self.repo, self.github.canonical)
+                self.assertNotIn("task-a", facts)
+                self.assertIn("task-a", errors)
+
     def test_delivered_merged_ancestor_uses_first_open_stack_source_after_main_advance(self):
         def stack_snapshot():
             snapshot = self._scoped_tasks_snapshot({"task-a", "task-b", "task-c"})
