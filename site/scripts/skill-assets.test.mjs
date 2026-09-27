@@ -117,10 +117,37 @@ test('every checkout-local skill link resolves to a skill directory', async () =
   assert.deepEqual(await findBrokenSkillLinks(path.join(REPO_ROOT, '.claude', 'skills')), []);
 });
 
+test('catalog ignores non-skill debris but requires expected skills and rejects extra skills', async (t) => {
+  const root = await makeRoot(t);
+  await writeSkill(root, 'sample-skill');
+  await mkdir(path.join(root, 'cache-only', 'scripts'), { recursive: true });
+  await writeFile(path.join(root, 'cache-only', 'scripts', 'retained.bin'), 'user bytes');
+  assert.deepEqual((await validateSkillAssets(root, ['sample-skill'])).map(({ name }) => name),
+    ['sample-skill']);
+  await assert.rejects(validateSkillAssets(root, ['sample-skill', 'cache-only']),
+    /skill catalog mismatch/);
+  await writeSkill(root, 'unknown-skill');
+  await assert.rejects(validateSkillAssets(root, ['sample-skill']), /skill catalog mismatch/);
+  assert.equal(await readFile(path.join(root, 'cache-only', 'scripts', 'retained.bin'), 'utf8'),
+    'user bytes');
+});
+
+test('catalog discovery does not admit a symlinked skill entry point', async (t) => {
+  const root = await makeRoot(t);
+  const skill = await writeSkill(root, 'sample-skill');
+  await writeFile(path.join(skill, 'entry.md'), await readFile(path.join(skill, 'SKILL.md')));
+  await rm(path.join(skill, 'SKILL.md'));
+  await symlink('entry.md', path.join(skill, 'SKILL.md'));
+  await assert.rejects(validateSkillAssets(root, ['sample-skill']),
+    /skill assets must be regular files or directories/);
+});
+
 test('installed collection resolves without a checkout or docs application', async (t) => {
   const root = await makeRoot(t);
   const installed = path.join(root, 'skills');
-  await cp(path.join(REPO_ROOT, 'skills'), installed, { recursive: true });
+  for (const name of PUBLIC_ORDER) {
+    await cp(path.join(REPO_ROOT, 'skills', name), path.join(installed, name), { recursive: true });
+  }
   assert.deepEqual(
     (await validateSkillAssets(installed, PUBLIC_ORDER)).map(({ name }) => name),
     [...PUBLIC_ORDER].sort(),

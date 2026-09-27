@@ -235,24 +235,29 @@ retained Claude links to a temporary directory, invokes the production asset par
 a checkout-only reference even when that target exists. The checkout test covers discovery too.
 `pnpm -C site build` separately checks the documentation application, not the installed runtime.
 
-Then copy only installable assets outside the checkout and run their existing runners:
+From a committed candidate, export only tracked installable assets outside the checkout:
 
 ```bash
 INSTALL=$(mktemp -d)
-cp -R skills "$INSTALL/skills"
+CANDIDATE=$(git rev-parse HEAD)
+printf 'Installed candidate: %s\n' "$CANDIDATE"
+git archive "$CANDIDATE" skills | tar -x -C "$INSTALL"
 (
   cd "$INSTALL"
   bash skills/woostack-orchestrate/scripts/tests/run-tests.sh
-  bash skills/woostack-init/scripts/tests/run-tests.sh
-  bash skills/woostack-doctor/scripts/tests/run-tests.sh
+  bash skills/woostack-init/scripts/tests/test-config-precedence.sh
+  bash skills/woostack-init/scripts/tests/test-run-store.sh
+  bash skills/woostack-doctor/scripts/tests/test-health-checks.sh
 )
 # After saving native output, remove only this task-owned disposable copy:
 rm -rf "$INSTALL"
 ```
 
-The runners create disposable consumer repositories; they need neither the source checkout nor
-the docs application. Keep output and exact candidate identity before cleanup. Init's retained
-reader and config fixtures and Doctor's fixtures cover preservation of user bytes; do not point
+These runtime fixtures create disposable consumer repositories and need neither the source checkout
+nor the docs application. Run the full Init and Doctor runners in the actual checkout: Init also
+audits checkout-only ignore files, which are not installed-runtime evidence. Keep output and the
+exact candidate identity before cleanup. The retained reader, config and Doctor fixtures cover
+preservation of user bytes; do not point
 these scenarios at a real user's legacy store. Unsupported capabilities must fail before writes,
 not trigger another interpreter, lock implementation, model, or transport fallback.
 
