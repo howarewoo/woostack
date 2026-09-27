@@ -30,6 +30,11 @@ The Orchestrate controller and optional historical run-store reader additionally
 locking, ownership, directory, and no-follow filesystem primitives. Python 3 alone does not make
 these two helpers native Windows programs; installing and reading the skills does not require them.
 
+Installed runtime paths need only the skill collection and your consumer repository, not this
+project's source checkout or docs application. Maintainers can check that boundary with the
+[installed integration smoke](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/workflow-smoke.md#5-installed-integration-matrix);
+its deterministic helper checks and manual traces are not actual-host benchmark results.
+
 Before using a workflow that delivers a pull request (PR), ensure Git is available and the host
 exposes an authorized GitHub capability for the required reads/writes. Prefer native host GitHub
 tools when suitable; authenticated `gh` is a supported alternative. The selected interface must

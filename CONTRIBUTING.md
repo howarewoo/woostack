@@ -51,9 +51,12 @@ when to use each one. Read [AGENTS.md](AGENTS.md) for the standing repository ru
    `pnpm -C site test` and `pnpm -C site build` for catalog/parser structure,
    `bash skills/woostack-orchestrate/scripts/tests/run-tests.sh` for production-controller behavior,
    and the [on-demand workflow smoke recipes](skills/using-woostack/references/workflow-smoke.md)
-   for material Plan/Execute/Orchestrate changes. Add a regression only after a valuable observed
-   failure, and report deterministic helper results separately from real host/model outcomes;
-   never report an unrun smoke as passed.
+   for material Plan/Execute/Orchestrate changes. Their installed integration matrix and bounded
+   before/after recipe cover cross-boundary changes without a model benchmark service. Run
+   `bash skills/woostack-init/scripts/tests/run-tests.sh` and
+   `bash skills/woostack-doctor/scripts/tests/run-tests.sh` when those helpers are affected.
+   Report deterministic helper results, manual instruction traces, and real host/model outcomes
+   separately; never report an unrun smoke as passed.
 5. Push the exact branch without force and open a draft PR with `gh`, filling out the PR template.
    Follow the
    [source-control contract](skills/woostack-commit/references/source-control.md).

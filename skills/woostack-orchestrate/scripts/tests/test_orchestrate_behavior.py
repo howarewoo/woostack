@@ -3594,10 +3594,11 @@ class OrchestrateBehavior(unittest.TestCase):
             return response
 
         report_a = host.wait_for_report("task-a")
-        result_a = make_result(self.github, "task-a", report_a, admitted)
+        result_a = make_result(self.github, "task-a", report_a, admitted, include_note=False)
         delivered = call("apply-result", "--task", "task-a", "--result",
                          self._write_json("inplace-a-result.json", result_a))
         self.assertEqual(delivered["status"], "delivered")
+        self.assertEqual(delivered["reporting"]["note"]["state"], "pending")
         self._persist("task-a", result_a, first["dispatch"][0])
         observed = call("observe-checks", "--task", "task-a", "--observation",
                         self._write_json("inplace-a-ci.json", self.github.ci_observation("task-a")))
@@ -3614,6 +3615,7 @@ class OrchestrateBehavior(unittest.TestCase):
         self.assertEqual(resumed["status"], "resumed")
         refill = call("schedule", "--fresh", fresh_path, "--cap", "2")
         self.assertEqual([entry["task_id"] for entry in refill["dispatch"]], ["task-c"])
+        self.assertEqual(refill["reporting_pending"], ["task-a"])
         self.launch_context[refill["dispatch"][0]["branch"]] = (admitted_path, state)
         host.dispatch(refill["dispatch"])
         report_c = host.wait_for_report("task-c")
@@ -3636,6 +3638,8 @@ class OrchestrateBehavior(unittest.TestCase):
         self.assertEqual(reconciled["status"], "reconciled")
         self.assertEqual(json.loads(state.read_text())["tasks"]["task-b"]["status"],
                          "evidence-pending")
+        self.assertEqual(sorted(host.identities), ["task-a", "task-b", "task-c"])
+        self.assertEqual(sorted(self.github.prs), ["task-a", "task-b", "task-c"])
 
     def test_checkpoint_cas_rejects_stale_writer_without_overwriting_evidence(self) -> None:
         snapshot = self._single_task_snapshot()
