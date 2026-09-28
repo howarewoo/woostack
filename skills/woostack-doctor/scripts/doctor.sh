@@ -16,6 +16,10 @@ done
 
 WOO_ROOT="$(cd "$TARGET" 2>/dev/null && pwd)" \
   || { echo "doctor: path not found: $TARGET" >&2; exit 2; }
+if [ -L "$WOO_ROOT/.woostack" ]; then
+  echo "doctor: .woostack directory must not be a symlink" >&2
+  exit 2
+fi
 if [ ! -d "$WOO_ROOT/.woostack" ]; then
   echo "doctor: no .woostack/ at $WOO_ROOT — run woostack-init first" >&2
   exit 2

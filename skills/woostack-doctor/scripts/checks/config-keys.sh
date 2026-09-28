@@ -6,6 +6,10 @@ CONFIG_RESOLVER="$HERE/../../../woostack-init/scripts/config/resolve-config.sh"
 emit() { printf '%s\t%s\t%s\t%s\t%s\n' "$1" "$2" "$3" "$4" "$5"; }
 
 WOO_ROOT="${1:-.}"
+if [ -L "$WOO_ROOT/.woostack" ]; then
+  emit error config-policy report ".woostack" ".woostack directory must not be a symlink; inspection stopped without following it"
+  exit 0
+fi
 if ! command -v jq >/dev/null 2>&1; then
   emit error config-policy report ".woostack/config.json" "jq is required for canonical configuration validation"
   exit 0

@@ -12,6 +12,10 @@ case "${1:-}" in
     exit 2
     ;;
 esac
+if [ -L "${1:-.}/.woostack" ]; then
+  emit error gitignore-drift report ".woostack" ".woostack directory must not be a symlink; inspection stopped without following it"
+  exit 0
+fi
 GI="${1:-.}/.woostack/.gitignore"
 
 # An absent or unreadable template proves nothing about the consumer's ignore file,

@@ -39,9 +39,10 @@ agent definitions or host extensions, and it never inspects, prunes, or removes 
 registrations: workspace lifecycle belongs to the host or repository under the
 [init workspace guidance](../../woostack-init/references/worktrees.md).
 
-A diagnostic that cannot complete is reported, not treated as healthy: a symlinked managed file
-stops inspection without following the link, and an unreadable template or non-regular target is an
-`error` finding rather than a clean result.
+A diagnostic that cannot complete is reported, not treated as healthy: a symlinked `.woostack`
+directory stops the runner and direct checks before child reads; a symlinked managed file stops
+inspection without following it. An unreadable template or non-regular target is an `error` finding
+rather than a clean result.
 
 Legacy provider settings and retained records are not active policy and are never migration input
 for this engine. Their findings are actionable retirement guidance, not local-operation blockers.
