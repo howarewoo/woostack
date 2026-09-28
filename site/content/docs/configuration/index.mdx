@@ -140,14 +140,16 @@ worktrees are cut from.
 ## Defaults and doctor
 
 <Callout type="info">
-  Init validates an optional top-level `github` object without seeding model settings.
-  Authorized native GitHub capabilities or host-authenticated `gh` may provide narrow non-secret
-  defaults; missing GitHub configuration or connectivity never blocks local initialization. Plan
-  publishes issues directly when requested and requires no Project configuration, local run, or
-  second remote record. Local implementation needs no GitHub access unless an exact issue was
-  selected for context; that issue read grants neither implementation nor publication authority.
-  [woostack-doctor](/docs/skills/woostack-doctor) validates policy locally; its explicit live
-  request is a separate fixed read-only GitHub contract.
+  Init and [woostack-doctor](/docs/skills/woostack-doctor) inspect local configuration only. Init
+  validates the optional top-level `github` object without seeding model settings, and it contacts
+  no provider or infers no owner, Status field, or destination. Doctor's checks are static: they
+  read no credentials and make no network call, and an approved local repair is handed to Execute
+  with the requested delivery limit. A workflow that uses GitHub proves the access its own selected
+  operation needs. Plan publishes issues directly when requested and requires no Project
+  configuration, local run, or second remote record. Local implementation needs no GitHub access
+  unless an exact issue was selected for context; that issue read grants neither implementation nor
+  publication authority. Keep credentials in the host secret store. A clean local check is not proof
+  of remote authorization, and an incomplete check is not a healthy one.
 </Callout>
 
 ## Migration notes
