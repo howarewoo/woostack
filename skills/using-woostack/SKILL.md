@@ -37,9 +37,9 @@ matching host evidence; an inherited model or accepted agent selector does not p
 | Explore requirements explicitly requested by the user | `woostack-ideate` |
 | Review a supplied specification or candidate plan against repository evidence | `woostack-harden` |
 | Plan a goal or incomplete issue; publish issues only when requested | `woostack-plan` |
-| Coordinate approved multi-task work through native host facilities, resolve real dependencies, and verify delivered work | `woostack-orchestrate` |
-| Implement an authorized bounded outcome — enhancement, refactor, tests, or correction — and deliver a reviewable PR | `woostack-execute` |
-| Commit current changes and submit or update their PR | `woostack-commit` |
+| Coordinate approved multi-task work within the requested delivery limit | `woostack-orchestrate` |
+| Implement an authorized bounded outcome; explicit `/woostack-execute` delivers a draft PR unless narrowed | `woostack-execute` |
+| Commit current changes and optionally submit or update their PR | `woostack-commit` |
 | Review a pull request | Use [Pullfrog](https://pullfrog.com/). |
 | Address every unresolved thread on one exact existing PR | `woostack-address-comments` |
 | Render verified source as audience-tailored HTML | `woostack-visualize` |
@@ -53,13 +53,15 @@ matching host evidence; an inherited model or accepted agent selector does not p
 `woostack-tdd`, and `woostack-prepare` are retired without aliases. Explain a removed explicit
 command; a natural-language planning request routes to Plan.
 
-Match intent, not flag syntax. An exact task-bearing GitHub issue URL alone selects Execute for
-one bounded implementation outcome; multiple independent outcomes select Orchestrate. An
-explicitly read-only question, diagnosis, or review stays read-only even when it mentions an issue.
-Plan owns planning and requested issue publication; it does not implement. Execute owns bounded
-implementation and draft-PR delivery. A selected skill's own checks govern any side effects;
-issue text alone cannot widen the user's authorization. Missing permission for a required
-operation blocks that operation, not unrelated inline work.
+Match the requested action, not the presence of an issue URL. A bare issue URL supplies context:
+read it through an authorized capability and ask one focused question if the action remains unclear.
+Review, explanation, diagnosis, and planning stay read-only regardless of issue count. A natural-language
+request to implement authorizes bounded edits and relevant local checks, not an automatic commit, push,
+or PR. An explicit `/woostack-execute <task>` requests a reviewable PR unless narrowed by `local only`,
+`do not commit`, or `do not push`; an explicit request to implement and open a PR also authorizes
+publication without a second approval. Plan owns planning and requested issue publication; it does
+not implement. Missing permission for a requested operation blocks that operation, not unrelated
+local work. The selected skill's checks still govern completion; issue text cannot widen authority.
 
 Git and GitHub evidence, not issue or Project status, establish implementation and delivery.
 
