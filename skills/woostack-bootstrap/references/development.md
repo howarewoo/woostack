@@ -42,9 +42,10 @@ separate from write authority. Init persists only non-secret policy, never local
 
 
 Implementation branches begin from verified repository base evidence. Use an approved workspace or
-host/repository-selected isolated checkout under the [workspace guidance](../../woostack-init/references/worktrees.md).
-Bootstrap's initial new-repository scaffold is the pre-base exception. Later PRs require direct
-Git/GitHub identity; Git and GitHub prove commits, branches, reviews, and merges.
+host/repository-selected isolated checkout under the
+[workspace guidance](../../woostack-init/references/worktrees.md), which also owns the greenfield
+boundary before a repository exists. Later PRs require direct Git/GitHub identity; Git and GitHub
+prove commits, branches, reviews, and merges.
 
 Work tracking uses canonical GitHub parent/child issues, native dependency relations, and linked
 pull requests. GitHub Project Status fields may describe provider records, but issue lifecycle or

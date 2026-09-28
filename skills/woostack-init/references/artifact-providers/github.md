@@ -12,10 +12,10 @@ The optional canonical policy is the top-level `github` object described by
 only `owner`, `ownerType`, `statusField`, and `projectStatuses`; `visibility` is not a setting. The
 resolver validates this object once. Existing Projects retain and report their actual visibility.
 
-Select the exact GitHub operation scope before any GitHub read or write. Resolve one unique
-authorized repository and destination from the request and the actual context; when two candidates
-remain plausible, ask the user instead of guessing. Use an available, authorized GitHub capability
-that supports that operation and its verification. Prefer the host's native GitHub tools when
+Select the exact GitHub operation scope before any GitHub read or write. Resolve the destination
+under the shared [publication boundary](../artifact-backends.md#direct-publication-and-recovery);
+when two candidates remain plausible, ask the user instead of guessing. Use an available, authorized
+GitHub capability that supports that operation and its verification. Prefer the host's native GitHub tools when
 suitable; host-authenticated official `gh` remains supported where appropriate. Discover actual
 capabilities, supported read/query shapes, and schemas from the host rather than assuming tool names
 or request forms. Custom HTTP/REST/GraphQL clients, credential reads, and token forwarding remain
@@ -31,8 +31,8 @@ provenance distinct, and disclose failed relation reads honestly; declared membe
 an actual parent or a fabricated native receipt. Plan holds the same bar for what it writes, and
 reports a native relationship it could not create as missing rather than waived.
 
-- Publication targets the one resolved destination: the canonical repository, plus the exact issue
-  or Project the caller named when one was named. Orchestrate may receive an issue URL as a
+- Publication targets the one resolved destination: the canonical repository for repository-scoped
+  work, or the exact selected Project for Project-only content. Orchestrate may receive an issue URL as a
   convenience hint, but admission is resolved from the understood conversation, repository, and
   tracker context.
 - `--project <exact canonical Project URL>` is the one optional selector. It requires one exact
@@ -45,8 +45,8 @@ reports a native relationship it could not create as missing rather than waived.
 
 Use an authorized native GitHub capability when the host exposes a suitable interface; the
 host-authenticated `gh` CLI is supported. Do not invent tool names, read credentials, forward tokens,
-or add another transport layer. Scope every operation to the canonical repository and exact selected
-Plan destination or Orchestrate evidence set.
+or add another transport layer. Scope every operation to its exact selected destination and, for
+repository-scoped work, the canonical repository.
 
 Publication is read-only until the request asks for a write, and a planning-only request performs no
 GitHub mutation at all.
@@ -117,14 +117,14 @@ resolves a task set, and bounded Execute admits one complete task.
 The managed specification lives in `ProjectV2.readme` between the existing whole-line markers
 `<!-- woostack-spec-start -->` and `<!-- woostack-spec-end -->`. Preserve every byte outside that span.
 Before its first write, retain one UUID for `<!-- woostack-project-mutation:<UUID> -->` inside the span,
-bound to the exact Project URL/node ID and approved-contract identity. This identifies a README
-mutation, not permission to create a Project or import a historical record.
+bound to the exact Project URL/node ID. This identifies a README mutation, not permission to create a
+Project or import a historical record.
 
-Bootstrap's span contains that marker, the approved-contract identity, canonical intended repository
-URL, integration/base branch, and a `### designApproved` section containing the complete approved goal,
-architecture, scope, and decisions. After scaffold verification, add or reconcile a
-`### bootstrapVerified` section in the same span with the observed repository URL/branch, resolved
-stack and versions, created surfaces, and individual command outcomes, distinguishing unrun checks.
+Bootstrap's span contains that marker and a `### designApproved` section containing the complete
+approved goal, architecture, scope, and decisions. After scaffold verification, add or reconcile a
+`### bootstrapVerified` section in the same span with the observed repository URL/branch when a
+remote exists, resolved stack and versions, created surfaces, and individual command outcomes,
+distinguishing unrun checks.
 Preserve the approved design. These are Markdown sections in the README, not Project fields or
 separate status-update objects. Plan's explicit Project path uses the same admitted specification span;
 its approved reconciliation must preserve unrelated Bootstrap verification and human content.
@@ -133,7 +133,7 @@ Read the Project's `id`, `url`, owner, actual visibility, and complete `readme` 
 that visibility is approved for the content. Bootstrap needs Project read/update capability, not issue,
 membership, or Status writes. With no existing markers,
 append one owned span after the unchanged README. Reuse a span only when its retained marker and
-contract binding match; missing paired markers, duplicates, unbound ownership, or conflicting content
+Project binding match; missing paired markers, duplicates, unbound ownership, or conflicting content
 block rather than authorizing replacement. Reject supplied content that contains the boundary-marker
 lines. Re-read immediately before writing and stop on drift. Bootstrap updates only `readme` through
 `updateProjectV2(input: {projectId, readme})` or an equivalent authorized native capability; do not

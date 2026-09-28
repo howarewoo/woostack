@@ -40,9 +40,10 @@ approve design → refresh collision check → scaffold → run and verify
 ```
 
 Bootstrap is greenfield-only: it creates a new codebase. It writes nothing to the target before
-explicit design approval and a fresh check that the path is safe to create. After approval and that
-check, an exact GitHub Project may store the approved design when explicitly selected. The Project
-record cannot authorize target writes.
+explicit design approval and a fresh check that the path is safe to create. A local scaffold needs no
+GitHub repository, account, or Project, and a nonempty or symlinked target still blocks writes. After
+approval and that check, remote setup or storage of the approved design in an exact GitHub Project
+happens only when explicitly selected, and neither record can authorize target writes.
 
 ## Plan
 

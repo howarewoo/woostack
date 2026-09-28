@@ -80,13 +80,15 @@ an old Project as a current direct-publication scope.
 ## Direct publication and recovery
 
 Publication happens only when the request asks for it, and only into one exact destination resolved
-from the request and the actual repository context:
+from the request and the applicable context:
 
-- Resolve a unique authorized repository and destination from the request, the checked-out
-  repository, and trusted Git/GitHub evidence. Two plausible candidates, a title or search match, or
-  a remembered scope is a question to the user, not a guess. One exact caller-named issue or Project
-  is an exact selector; an explicit Project URL is an optional destination and a Project is never
-  inferred from a goal, from configuration, or from an old record.
+- For repository-scoped operations, resolve a unique authorized repository and destination from the
+  request, the checked-out repository when one exists, and trusted Git/GitHub evidence. For an exact
+  selected Project-only operation, resolve and verify that Project's identity, scope, and capability
+  without requiring a repository. Two plausible candidates, a title or search match, or a remembered
+  scope is a question to the user, not a guess. One exact caller-named issue or Project is an exact
+  selector; an explicit Project URL is an optional destination and a Project is never inferred from a
+  goal, from configuration, or from an old record.
 - Inspect the relevant existing resources in that scope, complete to the end of the query the
   operation needs, and reuse an exact existing match instead of creating a near-duplicate.
 - Write only what the request asked for. A parent issue, a task key, an ordinal, a Project
@@ -94,8 +96,8 @@ from the request and the actual repository context:
   requested; report an expressly required graph as incomplete if its links cannot be written.
 
 Pagination is scoped to the query an operation needs, not to the repository: exhaust the pages of
-that relevant query, verify canonical repository and exact identity, and read no unrelated
-inventory.
+that relevant query, verify the canonical repository when applicable and the exact destination
+identity, and read no unrelated inventory.
 
 These are publication boundaries, not an exhaustive set of Orchestrate inputs. Orchestrate may
 interpret a complete planning handback, readable index, or understandable tracker content into
