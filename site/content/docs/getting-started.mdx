@@ -1,11 +1,15 @@
 ---
 title: Getting started
-description: Install woostack in a coding harness and initialize local repository support.
+description: Install woostack, confirm local setup, and return a read-only plan for your repository's README.
 ---
 
-This tutorial installs woostack in an existing Git repository and sets up its local configuration.
-Run the terminal command in step 1 yourself, then send the slash commands in steps 2 and 3 to
-your coding agent.
+This tutorial installs woostack in a Git repository you already have, checks that the local setup
+works, and finishes with a read-only plan for a Verification section in that repository's README.
+The planning step edits no application source, files no issue, and opens no pull request; Init
+does create local support files in step 2.
+
+Run the terminal command in step 1 yourself. Send the slash requests in the later steps to your
+coding assistant, with the same repository open in both places.
 
 If you want to discover requirements in ChatGPT before using your coding allowance, follow
 [Plan in ChatGPT, implement in Codex](/docs/chatgpt-to-codex). Its starter prompt returns a
@@ -18,34 +22,19 @@ separate execution step, not as a prerequisite for that chat.
 
 You need:
 
-- A coding [agent harness](/docs/harnesses), the application that runs your coding agent and
-  loads its skills. That page covers the harnesses with documented host notes. Any other host that
-  loads the skills works when it exposes the capabilities a task needs.
+- An existing Git repository, open in your terminal and in your coding assistant.
+- A [coding assistant](/docs/harnesses), the application that runs your agent and loads its skills.
+  Another host works when it exposes the capabilities a task needs.
 - Node.js and pnpm. The installation command below uses `pnpx`, pnpm's tool for running a package.
-- Bash, Git, `jq` (a command-line JSON tool), and Python 3 available as `python3` in the environment
-  where your agent runs commands. Init's OMP support script requires Python 3.
-- An existing Git repository open in both your terminal and your agent.
+- Bash, Git, and `jq`, a command-line JSON tool, available where your assistant runs commands.
+  Init and Doctor validate `.woostack/config.json` with `jq`.
+- Python 3, available as `python3`, only if you want the optional reader for retained local run
+  records. Installing the skills, running Init, and running Doctor do not need it.
 
-The optional historical run-store reader additionally requires Unix/POSIX locking, ownership,
-directory, and no-follow filesystem primitives. Python 3 alone does not make that helper a native
-Windows program; installing and reading the skills does not require it.
-
-Installed runtime paths need only the skill collection and your consumer repository, not this
-project's source checkout or docs application. Maintainers can check that boundary with the
-[installed integration smoke](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/workflow-smoke.md#installed-integration);
-its deterministic helper checks and manual traces are not actual-host results.
-
-Before using a workflow that delivers a pull request (PR), ensure Git is available and the host
-exposes an authorized GitHub capability for the required reads/writes. Prefer native host GitHub
-tools when suitable; authenticated `gh` is a supported alternative. The selected interface must
-provide exact repository/branch/PR reads and independent write read-back; see the
-[source-control contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-commit/references/source-control.md).
-These delivery tools are separate from the local setup in this tutorial.
-
-You do not need GitHub Project configuration for local setup. By default, woostack keeps
-configuration, diagnostics, and any retained historical run records in the repository's local
-`.woostack/` workspace. Direct GitHub issue or Project operations are explicit and never create a
-second remote record.
+This tutorial needs no GitHub Project and publishes no issue or pull request. Installing the skills
+requires network access, and Plan may read existing GitHub issues. A `/woostack-*` example names the
+logical request, and each assistant has its own documented way to invoke a skill explicitly, listed
+in the [harness reference](/docs/harnesses#native-skill-invocation).
 
 ## 1. Install the skills
 
@@ -55,80 +44,76 @@ Run this in your terminal from the repository root:
 pnpx skills add howarewoo/woostack
 ```
 
-Confirm that your harness can find `using-woostack` and the `/woostack-*` command skills. These are
-instructions for the agent, not shell programs. `/woostack-init` and the other examples on this page
-name the logical command; each harness has its own documented way to invoke a skill explicitly, and
-the [harness reference](/docs/harnesses#native-skill-invocation) lists them. If the skills do not
-appear, stop here and fix the harness installation before continuing.
+Then confirm your assistant can find `using-woostack` and the `/woostack-*` workflow skills. They are
+instructions for the agent, not shell programs. If your assistant cannot see them,
+[fix the installation before continuing](/docs/guides/troubleshooting#your-assistant-cannot-find-a-woostack-skill).
 
 ## 2. Initialize local support
 
-Send this to your coding agent with the same repository open. Do not run it in your terminal:
+Send this to your coding assistant:
 
 ```text
 /woostack-init
 ```
 
-Init creates missing `.woostack/` configuration, diagnostic report directories, and support for
-Git worktrees (separate working directories used to isolate changes). Delegation uses agents
-already exposed by the active session, not project-managed agent definitions. It preserves
-unrelated OMP agents, extensions, and valid user configuration.
+Init is local-only. It creates the missing `.woostack/config.json`, local diagnostic report roots,
+and worktree support, and it stops at any path, permission, or file collision that would make a
+change unsafe. It preserves what is already there, including legacy settings and retained run
+records, then reports what it created, preserved, skipped, or blocked.
 
-Init does not create a development plan, issue, branch, or PR, and it does not commit or push.
-It stops when a path or file collision makes a change unsafe. Existing policy and reports require
-an explicitly approved repair before replacement; legacy records are never migrated or deleted
-implicitly.
+Init never contacts GitHub, discovers a Project, creates an issue, branch, or pull request, or edits
+your `AGENTS.md`. It does not read or write credentials either, so keep GitHub authentication in
+your host's secret store.
 
-When it finishes, check the agent's report for local setup errors and confirm that
-`.woostack/config.json` exists. Init may perform narrow read-only GitHub discovery through an
-authorized native capability or host-authenticated `gh` when an explicit GitHub operation needs
-defaults. Missing GitHub configuration or capability does not block local setup, and discovery does
-not authorize later writes. Keep credentials in your harness's authentication store, never in
-`.woostack/config.json`.
+When it finishes, read the setup report and confirm that `.woostack/config.json` exists. A blocked
+path is a result to report, not something to work around by overwriting the file.
 
 ## 3. Check the installation
 
-Send this command to your coding agent:
+Send this to your coding assistant:
 
 ```text
 /woostack-doctor --check
 ```
 
-In `--check` mode, Doctor reports local configuration and support-file problems without repairing
-them or contacting GitHub. Resolve any reported local configuration error before starting
-repository work. To request proposed repairs, invoke `/woostack-doctor` without `--check`; it must
-ask for approval before changing anything. Execute can apply approved tracked edits only when PR
-delivery is separately authorized; local-only approval does not authorize a commit, push, or PR.
-Doctor has no live GitHub mode; the selected workflow reads its own required GitHub evidence through
-an authorized host capability.
+In `--check` mode Doctor runs static local checks. It reads your configuration and support files,
+makes no GitHub call, and changes nothing. It exits nonzero when it finds an error or cannot finish
+a check, so a failed or incomplete inspection is not a healthy one, and a clean local check is not
+proof of GitHub access. Resolve a reported local problem before continuing; the matching recovery
+is in [Doctor reports a local configuration error](/docs/guides/troubleshooting#doctor-reports-a-local-configuration-error),
+and remote access is a separate question in
+[Doctor passes but GitHub fails](/docs/guides/troubleshooting#doctor-passes-but-github-fails).
 
-<Callout type="info">
-  Keep project-specific rules in the root `AGENTS.md`. The
-  [adoption skill](/docs/skills/using-woostack) provides a short routing paragraph you can add
-  to that file. Init does not edit `AGENTS.md`; avoid copying workflow internals into it.
-</Callout>
+## 4. Create your first plan
+
+Send this request to your coding assistant:
+
+```text
+/woostack-plan Plan a Verification section for this repository's README.
+Use the repository's existing instructions and actual check commands.
+Reuse an existing section if it already serves this purpose.
+Keep the scope to documentation. Return the plan here; do not file
+GitHub issues or implement changes.
+```
+
+Read the returned plan before deciding anything else. A complete answer names the documentation it
+inspected and the change it proposes, and says how someone would confirm the result is accurate. Two
+honest outcomes count as success: the repository already has a Verification section that serves the
+purpose, so the plan leaves it alone, and a check command the repository does not actually have is
+reported as missing instead of invented.
+
+This step writes nothing. Plan does not edit your README, create an issue, branch, commit, or pull
+request. The files under `.woostack/` from step 2 are local setup you created on purpose, and they
+are not the start of an implementation.
 
 ## Choose what to do next
 
-Use the workflow map to choose a command for your next task. Plan returns a plan and files GitHub
-issues only when the request asks for it; the configuration reference explains surviving repository
-policy and optional direct GitHub Project configuration.
+Your plan stays in the conversation until you act on it. Delivering it is a separate, explicit
+request: [Deliver one change](/docs/guides/ship-change) covers implementing the plan and submitting
+a draft pull request, along with the GitHub capability and isolated workspace that delivery needs.
+You decide whether it happens, and only you mark a draft ready or merge it.
 
-For planning in the coding host, use [Plan](/docs/skills/woostack-plan), and call the public
-[Debug](/docs/skills/woostack-debug), [Ideate](/docs/skills/woostack-ideate), and
-[Harden](/docs/skills/woostack-harden) phases directly when you want them. An already-complete
-bounded task can go straight to [Execute](/docs/skills/woostack-execute) without any planning.
-For approved multi-task work, hand Orchestrate the plan, the published issues, or understandable
-issue/task context. It interprets the conversation, repository, and GitHub records, separates
-executable issues from context, reads the real dependencies with provenance, and asks a focused
-question only when material ambiguity affects outcome, scope, or authority. With `--issue`, a
-complete readable tracker index can establish declared membership when native child links are
-absent, partial, or unavailable; every selected issue still needs real identity and a complete
-contract. `--issue`, `--issues`, and `--project` are convenience hints, not an exhaustive admission
-taxonomy. A Project is included only when explicitly selected; its status lifecycle is used only
-when that selection requests status mutation. See
-[Orchestrate](/docs/skills/woostack-orchestrate#coordinate) for coordination, graph evidence, and
-uncertainty boundaries.
+For any other task, the [task guides](/docs/guides) start from the result you want.
 
 <Cards>
   <Card title="Plan in ChatGPT, implement in Codex" href="/docs/chatgpt-to-codex" description="Get a read-only plan in chat; request issue publication separately if needed, then implement in Codex." />
@@ -137,3 +122,8 @@ uncertainty boundaries.
   <Card title="How to use Hermes as an external engineer" href="/docs/hermes" description="Drive one persistent OMP process without installing woostack in Hermes." />
   <Card title="Harness reference" href="/docs/harnesses" description="Compare documented coding harnesses and their native capabilities." />
 </Cards>
+
+To make this routine in later sessions, add the short
+[routing paragraph](/docs/skills/using-woostack#agentsmd-usage) from the adoption skill to your
+repository's `AGENTS.md`. It points each new session at the matching skill, so keep workflow details
+in the skills rather than in your project rules.
