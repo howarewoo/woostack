@@ -51,6 +51,14 @@ mkdir -p "$tpl/woostack-doctor/scripts/checks" "$tpl/woostack-init/templates"
 cp "$C/gitignore-drift.sh" "$tpl/woostack-doctor/scripts/checks/"
 assert_contains "$(bash "$tpl/woostack-doctor/scripts/checks/gitignore-drift.sh" "$r")" $'error\tgitignore-drift\treport\t' "missing template is not healthy evidence"
 
+# A failed target read is an inspection error, not a missing managed line.
+read_failure="$(mktemp -d)"
+printf '#!/bin/sh\nexit 2\n' >"$read_failure/grep"
+chmod +x "$read_failure/grep"
+out="$(PATH="$read_failure:$PATH" bash "$C/gitignore-drift.sh" "$r")"
+assert_contains "$out" $'error\tgitignore-drift\treport\t' "failed target read reports an error"
+assert_not_contains "$out" "missing managed line" "failed target read does not report drift"
+
 # config-keys delegates canonical GitHub validation to Init's resolver.
 r2="$(mktemp -d)"
 mkdir -p "$r2/.woostack"

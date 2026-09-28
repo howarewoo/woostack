@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 # gitignore-drift.sh — read-only comparison of the managed ignore file against the
-# shipped template. Doctor never writes this file: an approved repair is ordinary
-# scoped editing through woostack-execute, not a helper mutation.
+# shipped template. Doctor never writes this file.
 set -uo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TEMPLATE="$HERE/../../../woostack-init/templates/gitignore"
@@ -31,9 +30,23 @@ if [ -e "$GI" ] && [ ! -f "$GI" ]; then
   emit error gitignore-drift report ".woostack/.gitignore" "managed ignore file is not a regular file"
   exit 0
 fi
+if [ -f "$GI" ] && [ ! -r "$GI" ]; then
+  emit error gitignore-drift report ".woostack/.gitignore" "managed ignore file is unreadable; drift cannot be checked"
+  exit 0
+fi
 
 while IFS= read -r line; do
   case "$line" in ''|\#*) continue ;; esac
-  [ -f "$GI" ] && grep -qxF "$line" "$GI" && continue
+  if [ -f "$GI" ]; then
+    grep -qxF -- "$line" "$GI"
+    case $? in
+      0) continue ;;
+      1) ;;
+      *)
+        emit error gitignore-drift report ".woostack/.gitignore" "managed ignore file could not be read; drift cannot be checked"
+        exit 0
+        ;;
+    esac
+  fi
   emit warn gitignore-drift report ".woostack/.gitignore" "missing managed line: $line"
 done <"$TEMPLATE"
