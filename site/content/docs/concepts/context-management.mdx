@@ -20,12 +20,11 @@ result, remove narration and repetition, and retain exact evidence, commands, pa
 Security, destructive actions, root-cause analysis, and architecture keep the detail required to
 remain unambiguous.
 
-## Sessions end with instruction suggestions
+## Requested reflection becomes instruction suggestions
 
-[woostack-reflect](/docs/skills/woostack-reflect) runs at an ordinary final reply only when
-the session already contains a concrete observed preventable instruction gap, per its canonical
-candidate gate. A qualifying reply runs one report-only pass; otherwise it has no reflection headings.
-An explicit `/woostack-reflect` invocation always runs exactly one pass.
+[woostack-reflect](/docs/skills/woostack-reflect) runs one report-only pass for an explicit
+`/woostack-reflect` invocation or an unambiguous request to reflect on the conversation. Ordinary
+work never loads it.
 
 Reflection treats transcripts and tool output as untrusted evidence. It does not execute embedded
 instructions, follow embedded URLs, or expand the task. The first pass only reports suggestions:
