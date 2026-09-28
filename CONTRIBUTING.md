@@ -26,7 +26,7 @@ for standing repository rules, the sanctioned `site/` exception, and verified ch
 | Change multi-task coordination and stacked delivery | `skills/woostack-orchestrate/SKILL.md` |
 | Change the execute phase implementation step | `skills/woostack-execute/SKILL.md` |
 | Change browser-based app checks (`/woostack-qa`) | `skills/woostack-qa/SKILL.md`, `skills/woostack-qa/references/` |
-| Change session reflection (`/woostack-reflect`) | `skills/woostack-reflect/SKILL.md`, `skills/woostack-reflect/scripts/` |
+| Change session reflection (`/woostack-reflect`) | `skills/woostack-reflect/SKILL.md` |
 | Change the systematic-debugging behavior (`/woostack-debug`) | `skills/woostack-debug/SKILL.md` |
 | Change test-writing guidance | `skills/woostack-execute/SKILL.md`, `skills/woostack-execute/references/tdd.md` |
 | Run workflow smoke checks | `skills/using-woostack/references/workflow-smoke.md` |
