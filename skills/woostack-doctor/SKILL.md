@@ -24,7 +24,7 @@ It has two layers:
 - `/woostack-doctor [path]` — diagnose the workspace, then offer a gated repair changeset for
   auto-fixable local findings.
 - `/woostack-doctor [path] --check` — diagnose only, print GitHub-style annotations, and exit
-  nonzero only when an `error` finding exists. It mutates nothing.
+  nonzero when an `error` finding exists or a check could not complete. It mutates nothing.
 
 The engine depends on [`woostack-init`](../woostack-init/SKILL.md) for the shipped template and
 canonical resolver.
