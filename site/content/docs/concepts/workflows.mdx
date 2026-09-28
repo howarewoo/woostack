@@ -1,37 +1,32 @@
 ---
 title: Workflow maps
-description: "Choose planning, bounded delivery, or a complete greenfield workflow."
+description: How the workflows relate, and why a bounded change can skip planning.
 ---
 
-Start with the user's requested action. An issue URL supplies context, not permission to implement
-or publish. Explicit `/woostack-execute` requests a reviewable draft PR unless narrowed; ordinary
-requests to implement authorize local edits and checks, with commit or publication only when asked.
-Related authorized issues may share PR delivery when requested, unless the user fixed the mapping.
-Plan returns a plan and publishes issues only when asked; Orchestrate can also interpret other
-complete readable tracker context after independent issue reads. Git and GitHub show what was
-implemented and delivered.
+These pages explain how the workflows relate to each other. The [task guides](/docs/guides) carry
+the procedures, and each [skill reference](/docs/skills/using-woostack) owns the exact contract,
+evidence rules, and recovery behavior. Start from the result you need rather than from a required
+sequence. An issue URL supplies context, not permission to implement or publish, and Git and GitHub
+show what was implemented and delivered.
 
 ## Routing by work shape
 
-| Work shape | Workflow |
-| --- | --- |
-| Fresh project in a new target | [Bootstrap](/docs/skills/woostack-bootstrap) |
-| Elicit or complete a specification | [Ideate](/docs/skills/woostack-ideate) |
-| Reconcile a specification or candidate issue plan | [Harden](/docs/skills/woostack-harden) |
-| Root-cause investigation without a correction | [Debug](/docs/skills/woostack-debug) |
-| Feature, proved defect, or requested issue filing | [Plan](/docs/skills/woostack-plan) |
-| Bounded enhancement, refactor, tests, or authorized correction | [Execute](/docs/skills/woostack-execute) |
-| Execute approved multi-task work | [Orchestrate](/docs/skills/woostack-orchestrate) |
-| Add or strengthen tests for a bounded target | [Execute](/docs/skills/woostack-execute) with its [testing guidance](https://github.com/howarewoo/woostack/blob/main/skills/woostack-execute/references/tdd.md) |
+One authorized outcome is enough to begin. A bounded enhancement, refactor, test task, or
+authorized correction goes to [Execute](/docs/skills/woostack-execute) with no planning stage
+first, and tests for a bounded target are ordinary Execute input under the
+[testing guidance](https://github.com/howarewoo/woostack/blob/main/skills/woostack-execute/references/tdd.md).
 
-Ideate and Harden are optional standalone phases, not required Plan steps. Invoke
-[Ideate](/docs/skills/woostack-ideate) to explore requirements and
-[Harden](/docs/skills/woostack-harden) for a read-only review of a specification or candidate issue
-plan against repository evidence. For root-cause investigation without changes, use Debug directly.
+The other workflows answer different questions.
+[Bootstrap](/docs/skills/woostack-bootstrap) is for a new codebase in a new directory and nothing
+else. [Plan](/docs/skills/woostack-plan) suits a feature, a defect whose cause is already proved,
+or a request to file issues. [Ideate](/docs/skills/woostack-ideate) explores requirements and
+[Harden](/docs/skills/woostack-harden) reviews a specification or candidate issue plan against
+repository evidence when you want that check. [Debug](/docs/skills/woostack-debug) is for
+root-cause investigation that changes nothing. [Orchestrate](/docs/skills/woostack-orchestrate) is
+for several approved tasks with real prerequisites between them.
 
-Choosing a workflow does not approve its design or authorize extra work. If the scope grows, the
-workflow preserves repository state and reports where to resume. Work moves to the matching workflow
-instead of silently expanding the agreed scope.
+When the shape is still unclear, [Plan work and file issues](/docs/guides/plan-work) starts from a
+goal, and [Troubleshoot a blocked workflow](/docs/guides/troubleshooting) starts from a symptom.
 
 ## Bootstrap
 
@@ -41,10 +36,10 @@ approve design → refresh collision check → scaffold → run and verify
 ```
 
 Bootstrap is greenfield-only: it creates a new codebase. It writes nothing to the target before
-explicit design approval and a fresh check that the path is safe to create. A local scaffold needs no
-GitHub repository, account, or Project, and a nonempty or symlinked target still blocks writes. After
-approval and that check, remote setup or storage of the approved design in an exact GitHub Project
-happens only when explicitly selected, and neither record can authorize target writes.
+explicit design approval and a fresh check that the path is safe to create. A local scaffold needs
+no GitHub repository, account, or Project, and a nonempty or symlinked target still blocks writes.
+Remote setup or storing the approved design in an exact GitHub Project happens only when explicitly
+selected, and neither record can authorize target writes.
 
 ## Plan
 
@@ -53,143 +48,114 @@ inspect relevant source → identify unresolved decisions → draft a coherent p
 publish issues when the request asks for it → read back actual content and relationships → stop
 ```
 
-Invoke `/woostack-plan <goal-or-specification>` with ordinary complete-enough context. A planning-only
-request returns the plan and makes no GitHub writes. A request to file issues already supplies
-publication intent: Plan then inspects the relevant existing issues, creates or reuses the
-requested issues, and reads their actual content back. It resolves an unambiguous destination from
-the request and its context, and asks one focused question when that destination is ambiguous. An
-unknown defect cause stays with [Debug](/docs/skills/woostack-debug); Plan does not guess a
-correction.
+Plan inspects the relevant source, settles the decisions that still change the outcome, and
+returns a few reviewable increments. It publishes GitHub issues only when the request asks for it,
+and publication does not start implementation: what happens next stays the user's decision. A
+planning-only request makes no GitHub write.
 
-Issues carry useful outcomes, important constraints, acceptance and verification, and the real
-dependencies between them. Plan uses native sub-issue and dependency links when they are available
-and requested. When they are unavailable, the written issues and an explicit readable index are
-preserved, the missing relationships are reported, and an explicitly required native graph is never
-called complete. Plan creates no source branch, worktree, commit, PR, implementation worker, local
-run, or second remote record. A partial publication keeps exact confirmed identities and resumes at
-the first unproved step.
+Each issue carries its outcome, the constraints that matter, what is out of scope, acceptance and
+verification, and its real prerequisites. Native sub-issue and dependency links are used when they
+are available and requested. Otherwise the written issues and a readable index are preserved, the
+missing relationships are reported, and an explicitly required native graph is never called
+complete. An unknown defect cause stays with [Debug](/docs/skills/woostack-debug).
+
+[Plan work and file issues](/docs/guides/plan-work) is the procedure, and
+[Plan's reference](/docs/skills/woostack-plan) owns destination resolution and read-back.
 
 ## Orchestrate
 
-Orchestrate works from the published issues or other complete work context. The technical DAG is
-admission evidence; execution order, concurrency, and each task's base are the coordinating agent's
-own decisions, made when it starts that task.
-Added ordering is compatibility evidence, not native relationship evidence. Technical prerequisites
-remain visible separately, useful parallelism is retained, and verified delivery with current
-readiness releases eligible dependents without waiting for a whole wave, an issue note, an
-explicitly selected Project update, or a merge. A technical prerequisite already landed in the
-approved integration base is repository evidence, read from current Git and PR facts rather than
-reconstructed from a delivery claim.
-
-After planning, hand Orchestrate the plan, the published issues, or other understandable work
-context. It interprets the conversation, repository, and available GitHub records; resolves the
-canonical repository, issue/task identities, executable tasks, and context; reads the real
-dependencies with their native, declared, or inferred provenance; and asks a focused question only
-when material ambiguity affects outcome, scope, or authority. An omitted administrative field is not
-a blocker. With `--issue`, a complete readable tracker index can establish membership when native
-child links are absent, partial, or unavailable. Every selected issue must still be independently
-readable with a complete contract; design/context issues, PRs, examples, and external prerequisites
-are not scraped into tasks. Issue, issue-list, and Project arguments are convenience hints rather
-than an exhaustive admission taxonomy. A Project is included only when explicitly selected; its
-status lifecycle is used only when that selection requests status mutation. Inferred relationships
-are never published back to GitHub.
-
-Examples of convenience hints, not an exhaustive route:
-
 ```text
-/woostack-orchestrate --issue <canonical GitHub tracker or parent issue URL>
-/woostack-orchestrate --project <canonical GitHub Project URL>
+approved work context → resolve executable tasks and their real prerequisites →
+start ready work in separately owned workspaces → verify delivery from Git and PR evidence →
+release eligible dependents
 ```
 
-Orchestrate runs each ready task in a host or repository workspace, using the host's native task and
-agent operations when the host has them and working inline when it does not. Independent tasks may
-run together and there is no fixed worker count; a host without subagents works the same scope
-sequentially and says so. Each task's base is selected when the task starts, and the required change
-must be available there. A squash merge needs current Git and PR evidence, not an assumed ancestor.
-A dependent can stack on a verified parent branch when containment is
-eligible; when divergence or repository constraints prevent a safe stack, Orchestrate reports that
-the task needs a human merge decision and unrelated work continues. No automatic integration branch,
-combined branch, or graph rewrite is ever created.
-A phase label inside one issue never creates a second issue, a second writer, or premature
-whole-issue completion.
+Orchestrate works from approved tasks: published issues, a tracker, or other complete readable
+context. Readable context is valid input, and a native issue hierarchy is not universally
+mandatory. A readable tracker plus independently readable tasks is enough to coordinate work, so a
+missing administrative link is not a blocker while missing task scope is.
 
-No two writers share one workspace. Before reusing a workspace, the run inspects native worker state
-and current Git/PR facts; if an older writer may still be active, it stops that affected work,
-because serializing behind a possibly live writer does not prove it stopped. Instructions and prompts
-do not enforce sandboxing or locks, and the run never claims they do. An unknown worker outcome is
-rediscovered from direct Git, PR, and host evidence before anything is repeated, so no duplicate
-writer or duplicate PR is launched and recoverable work survives. Current PR lifecycle evidence is
-read separately from delivery evidence, so human-ready, merged, closed-unmerged, and deleted-source
-states are never mistaken for a fresh delivery. While the host session stays active, Orchestrate
-uses the host's own completion and check events or bounded observation of the delivered PRs, fixes
-actionable failures within scope and budget, and reuses finished work. Stale head results never
-validate current work, pending or unreadable checks never count as a pass, and observation never
-continues as a daemon after the session ends. The final result reports delivered work, evidence,
-limitations, remaining tasks, and blockers. Pending or blocked issue-note and Project reporting
-is listed separately. Missing reporting never invalidates valid code or counts as done.
+Every task starts from a base that actually contains the changes it requires. That is a content
+question answered by current Git and PR facts, not by an assumed ancestor or a similar branch name.
+Concurrent writers never share one physical workspace, and a prior writer whose exit is unproved
+blocks reuse of its workspace while other safe work continues.
 
-There is no persisted execution forest, lock service, or cross-harness replay guarantee; see
-[upgrading from a pre-cutover release](#upgrading-from-a-pre-cutover-release).
+Execution order, concurrency, and each task's base are the coordinating agent's own decisions,
+made when a task starts. Verified delivery with current readiness releases eligible dependents
+without waiting for a whole wave, and a prerequisite already landed in the approved integration
+base counts as repository evidence. There is no persisted execution forest, lock service, or
+cross-harness replay guarantee.
+
+[Coordinate several tasks](/docs/guides/coordinate-work) is the procedure, and
+[Orchestrate's reference](/docs/skills/woostack-orchestrate) owns admission, base selection, and
+recovery.
 
 ## Execute
 
 ```text
-/woostack-execute <bounded input> [--issue <exact canonical GitHub issue URL>]
-/woostack-execute <exact canonical GitHub issue URL>
-/woostack-execute --issue <exact canonical GitHub issue URL>
+one authorized outcome → select the workspace and base → implement → run the relevant checks →
+deliver exactly what the request asked for
 ```
 
-Execute accepts one authorized bounded enhancement, refactor, test task, or correction. An explicit
-issue-only Execute invocation reads that exact issue and requests PR delivery unless the caller
-limits it to local work; a bare issue URL outside that command does not authorize implementation.
-Inline instructions work without issue reads. No Project or execution record is required. A bug's
-cause is established from reproduction or adequate source/runtime evidence before repair; a
-request solely for diagnosis stays read-only in Debug. Multi-task work routes to Orchestrate,
-which preserves the requested delivery limit. Unresolved material decisions block with a targeted
-question.
+Execute resolves one outcome from the request and any selected issue, implements it, and verifies
+it. An ordinary request to implement authorizes local edits and checks, while an explicit Execute
+request delivers a reviewable draft PR unless it is narrowed; a bare issue URL outside that
+command authorizes no implementation at all. [Deliver one change](/docs/guides/ship-change) shows
+the draft-PR path.
+
+A correction needs cause evidence from reproduction or adequate source and runtime facts. A
+proposed fix is not proof, and a separate [Debug](/docs/skills/woostack-debug) session is an option
+rather than a required handback. A failure found after publication is a correction of the same
+outcome on the same branch and PR. Multi-task work belongs to Orchestrate, which preserves the
+requested delivery limit.
 
 ## Shared execution boundary
 
-Execute checks the selected workspace and base, implements inline or delegates, inspects the diff,
-and runs checks relevant to the changed behavior. An existing targeted test can serve as its smoke;
-required checks and reviews cannot be silently waived. Local-only completion reports the verified
-change without a commit, push, or PR. For a requested local commit or PR, [Commit](/docs/skills/woostack-commit)
-owns staging and the requested publication; the exact PR is read back for head, base, state, and
-preserved human text. New PRs are drafts; requested delivery unavailable through the host remains
-incomplete, not a local substitute. Native stack registration is conditional on an explicit
-request or repository workflow requirement. Unknown writes require discovery before retrying.
+Both implementation workflows report the same way. An existing targeted test can serve as the
+smoke for a change, and required repository checks and reviews cannot be waived by an agent's
+success sentence. A failed, pending, or unrun required check is a delivery blocker.
 
-Separate concurrent writers need independently owned workspaces. A possibly active prior writer
-blocks reuse until its exit is established; an existing approved workspace need not be replaced.
-Retired run/project/recheck inputs do not select executable scope, and historical planning records
-remain unchanged. A task-bearing issue is valid direct context, not a request to copy its contract
-into a separate template.
+Requested delivery goes through [Commit](/docs/skills/woostack-commit), which owns staging, the
+push, the PR body, and the read-back of head, base, state, and preserved human text. New PRs are
+drafts, and requested delivery the host cannot perform stays incomplete instead of becoming a local
+substitute. Native stack registration is conditional on an explicit request or a repository
+requirement, so its absence does not invalidate verified code. An unknown commit, push, or PR
+outcome is rediscovered from current Git and PR facts before anything is retried, which is what
+keeps a duplicate writer or duplicate PR from appearing.
+
+Separate concurrent writers need independently owned workspaces, and a possibly active prior writer
+blocks reuse until its exit is proved. An approved existing workspace need not be replaced. Retired
+run, project, and recheck inputs select no executable scope, and retained records stay unchanged.
+When a write or a check leaves an uncertain state, [Troubleshoot a blocked
+workflow](/docs/guides/troubleshooting) lists the symptom and the safe way to resume.
 
 ## Upgrading from a pre-cutover release
 
-Prepare and the custom execution controller's CLI and protocol are retired. Nothing installs,
-invokes, or emulates them, and no compatibility layer stands in for them.
+Prepare and the custom execution controller's command line and protocol are retired. Nothing
+installs, invokes, or emulates them, and no compatibility layer stands in for them.
 
+- New work never resumes from a retained record. It starts from fresh task, source, and host
+  context, and recovery is proved from current evidence instead of assumed to repeat on another
+  host.
+- Retained `.woostack/tmp/runs/<run-id>/` records, installed old copies, and existing worktrees
+  stay exactly as their owner left them. Migrating or removing them is optional, manual, and
+  user-initiated.
 - A recorded run that still needs the old controller replays from the pre-cutover installation
   recorded with it. Retained checkpoints are not converted, and no automatic cleanup runs.
-- New work is never resumed from a retained record. Execute and Orchestrate inspect actual source,
-  relevant PRs, and host worker state where applicable; recovery is proved from that evidence rather
-  than assumed to reproduce the same way on another host.
-- Retained `.woostack/tmp/runs/<run-id>/` records, installed old copies, and existing worktrees
-  stay exactly as their owner left them. Removing them is optional, manual, and user-initiated.
 
-Retained-data authority and recovery boundaries belong to the
+Retained-data authority and recovery belong to the
 [local artifacts reference](/docs/configuration/artifacts/local) and
-[Orchestrate coordination](/docs/skills/woostack-orchestrate#coordinate).
+[Orchestrate's coordination contract](/docs/skills/woostack-orchestrate#coordinate).
 
 ## Review and corrections
 
-PR review uses [Pullfrog](https://pullfrog.com/). Execute does not require an independent pre-commit
-review receipt. Orchestrate independently validates each task against its requested completion
-contract before releasing dependents, and observes remote checks for submitted PRs while the session
-stays active; this is not permission to mark ready or merge.
+Review is independent evidence. Orchestrate validates each task against its requested completion
+contract before releasing dependents, and Execute needs no pre-commit review receipt unless the
+repository or the request asks for one. Checks on a submitted PR are observed while the host
+session stays active: pending or unreadable checks never count as a pass, and observation does not
+continue as a daemon after the session ends.
 
 Depending on the request, the result is a verified local change, a scaffold, a plan with requested
-issues, a reviewable PR or reviewed stack, or a blocker at the first safe resume boundary.
-Existing retained records remain unchanged. No woostack workflow merges, marks a PR ready, enables
-auto-merge, or queues a PR for merge. Those decisions remain with the human.
+issues, a reviewable PR, or a blocker reported at the first safe resume boundary. Existing retained
+records remain unchanged. No woostack workflow marks a PR ready, enables auto-merge, queues a PR
+for merge, or merges one. Those decisions stay with the human.
