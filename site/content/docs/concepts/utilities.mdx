@@ -35,14 +35,14 @@ instructions. Reports remove secrets and raw remote payloads.
 ## Local support maintenance
 
 Doctor diagnoses `.woostack/` configuration and workspace problems. Its checks are read-only:
-they report evidence and may describe a proposed repair. Execute can apply approved tracked edits
-only when PR delivery is separately authorized; local-only approval does not authorize publication.
-Remote resources, legacy development records, and workspace or worktree cleanup stay with their
-owner and remain report-only.
+they report evidence and may describe a proposed repair. Execute applies a specifically approved
+repair with the user's commit/publication limit; local-only approval authorizes no commit or
+publication. Remote resources, legacy development records, and workspace or worktree cleanup stay
+with their owner and remain report-only.
 
 | Skill | What it does | Writes? | Invoke |
 | --- | --- | --- | --- |
-| [woostack-doctor](/docs/skills/woostack-doctor) | Diagnoses local policy and workspace integrity, then routes approved repairs when delivery is authorized. | no direct writes; authorized PR delivery goes through Execute | `/woostack-doctor` |
+| [woostack-doctor](/docs/skills/woostack-doctor) | Diagnoses local policy and workspace integrity, then hands approved repairs to Execute. | no direct writes; Execute honors the approved delivery limit | `/woostack-doctor` |
 
 ## Where to go next
 

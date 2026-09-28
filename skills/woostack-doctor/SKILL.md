@@ -14,10 +14,10 @@ It has two layers:
 - The headless [`scripts/doctor.sh`](scripts/doctor.sh) engine is provider-free. Every check is
   static: it reads no credentials and makes no network call.
 - The interactive repair layer proposes a local changeset and mutates nothing before approval.
-  Publication needs separate authorization before routing tracked changes through
-  [`woostack-execute`](../woostack-execute/SKILL.md) in an isolated task worktree. Remote and
-  retained data are report-only. OMP agent selection is host-owned; Doctor never inspects, creates,
-  repairs, or removes project agent definitions.
+  Route an explicitly approved repair through [`woostack-execute`](../woostack-execute/SKILL.md)
+  with the approved scope and commit/publication limit, including a local-only limit when applicable.
+  Remote and retained data are report-only. OMP agent selection is host-owned; Doctor never inspects,
+  creates, repairs, or removes project agent definitions.
 
 ## Commands
 
@@ -46,10 +46,10 @@ canonical resolver.
 5. Propose a changeset grouped by finding code, path, and exact local change. A finding may describe
    a repair; no check applies one.
 6. **HARD GATE — approval.** Silence is not approval. Approval to edit a local file does not
-   authorize commit, push, or PR creation. Route explicitly approved tracked changes through
-   `woostack-execute` in its isolated task worktree only when PR delivery is independently
-   authorized. If only local editing is approved, stop and report that Execute cannot honor a
-   local-only repair. No helper command contacts a provider or mutates retained data.
+   authorize commit, push, or PR creation. Hand the specific approved repair to `woostack-execute`
+   with the user's actual delivery limit: explicitly qualify a local-only handoff as no commit,
+   push, or PR; pass an authorized commit-only or PR request as given. No helper command contacts
+   a provider or mutates retained data.
 7. Confirm in the same static mode and report residual findings.
 
 ## Hard constraints
