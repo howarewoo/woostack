@@ -77,19 +77,21 @@ and `gh pr edit` for a verified existing PR.
 
 ## Native GitHub stack membership for a dependent PR
 
-Register a dependent PR in a native GitHub stack only when the caller explicitly requests it or
-repository workflow requires it. A chained base delivers without registration; unavailable optional
-stack metadata does not invalidate an otherwise verified commit and PR, and registration is never
-claimed without a verified read. When registration was explicitly required and cannot be
-completed, report that boundary precisely.
+Register a dependent PR in a native GitHub stack only when the caller explicitly requires it or
+repository workflow requires it. Coordinated multi-task delivery requires registration for its
+dependent PRs; a direct Commit or Execute request keeps the optional path. A chained base delivers
+without registration; unavailable optional stack metadata does not invalidate an otherwise
+verified commit and PR, and registration is never claimed without a verified read. When
+registration was required and cannot be completed, that delivery stays incomplete: report the
+boundary precisely and keep the verified commit and PR.
 
 When it is required, the caller supplies the intended parent and chain; Commit infers no
-dependency, parent, or order. Read the child and each chain PR, then query the repository's stacks
-for those PR numbers and read the matching stack records. Prove unique open PRs, same-repository
-heads, unchanged head SHA/base/readiness, that the child base equals its approved parent's head
-branch, that each earlier base equals its predecessor's head, that the bottom base is the
-configured trunk, and that admitted Git ancestry still holds. A chained PR base alone is not
-membership.
+dependency, parent, or order.
+Read the child and each chain PR, then query the repository's stacks for those PR numbers and
+read the matching stack records. Prove unique open PRs, same-repository heads, unchanged head
+SHA/base/readiness, that the child base equals its approved parent's head branch, that each earlier
+base equals its predecessor's head, that the bottom base is the configured trunk, and that admitted
+Git ancestry still holds. A chained PR base alone is not membership.
 
 Reuse precise membership without mutation. If the parent tops a matching stack and the child is
 unstacked, append only the child. Create one stack from the verified bottom-to-top PR numbers only

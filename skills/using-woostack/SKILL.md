@@ -35,7 +35,7 @@ matching host evidence; an inherited model or accepted agent selector does not p
 | Explore requirements explicitly requested by the user | `woostack-ideate` |
 | Review a supplied specification or candidate plan against repository evidence | `woostack-harden` |
 | Plan a goal or incomplete issue; publish issues only when requested | `woostack-plan` |
-| Coordinate approved multi-task work within the requested delivery limit | `woostack-orchestrate` |
+| Coordinate approved multi-task work; an explicit request plans groups and delivers draft PRs | `woostack-orchestrate` |
 | Implement an authorized bounded outcome; explicit `/woostack-execute` delivers a draft PR unless narrowed | `woostack-execute` |
 | Commit current changes and optionally submit or update their PR | `woostack-commit` |
 | Review a pull request | Use [Pullfrog](https://pullfrog.com/). |
@@ -60,6 +60,12 @@ or PR. An explicit `/woostack-execute <task>` requests a reviewable PR unless na
 publication without a second approval. Plan owns planning and requested issue publication; it does
 not implement. Missing permission for a requested operation blocks that operation, not unrelated
 local work. The selected skill's checks still govern completion; issue text cannot widen authority.
+
+An explicit `/woostack-orchestrate` request plans the change first, delegates each coherent group to
+a worker with its own task worktree, and delivers draft PRs with required native stacks for the
+dependent PRs. It is bounded by real permissions and repository policy, and `local only`,
+`do not commit`, `do not push`, or read-only limits still narrow it; an issue link or automatic
+routing never acquires that delivery authority.
 
 A natural-language request to commit without requesting a PR routes to Commit with `--no-pr-update`;
 explicit `/woostack-commit` retains its default PR submission unless narrowed.

@@ -14,7 +14,7 @@ OMP's `task` tool selects an agent exposed by the active session. Its schema det
 dispatch shape and whether effort is available; model routing and recovery belong to OMP. It has
 no per-call model or working-directory field. Pass the selected workspace in a delegated task and
 have the worker verify its checkout before writing. Without optional delegation, Execute can work
-inline and Orchestrate can run tasks sequentially in the calling session.
+inline; Orchestrate reports the missing worker capability for the affected delivery instead.
 
 Init provisions no project extension and no agent definitions. Older generated definitions are
 user-owned files and are never cleaned automatically; the manual recipe below governs them.

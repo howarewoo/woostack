@@ -48,15 +48,18 @@ user decision.
 
 Execute accepts one selected bounded task under its [admission contract](/docs/skills/woostack-execute#admit-one-task), not a whole plan.
 An explicit [Orchestrate](/docs/skills/woostack-orchestrate) invocation interprets the plan, the
-published issues, or other understandable work context. It resolves the canonical repository,
-issue/task identities, executable tasks, and real dependencies with provenance, then chooses the
-execution order, concurrency, and each task's base when it starts that task. Added ordering is
-compatibility evidence, not native relationship evidence; technical prerequisites remain visible
-separately and useful parallelism is retained. A task whose own landed, verified delivery is already
-contained in the approved integration base is satisfied evidence, not an imported worker delivery,
-and the same holds for verified landed prerequisites outside the selected issue set: they remain
-recorded external dependencies, not imported tasks, and their issue, merge, diff, checks, and exact
-base containment stay in the handoff without creating an external claim, worker, or PR.
+published issues, or other understandable work context. It reads the selected outcomes, source, and
+PR evidence, then states a plan that groups them into coherent PRs with their required changes,
+intended parent and landing order, and safe parallel work before anything is written. It dispatches
+each group to a delegated worker in its own task worktree and delivers draft PRs, with required
+native stacks for the dependent PRs. Added ordering is compatibility evidence, not native
+relationship evidence; technical prerequisites stay visible separately from deliberate integration
+order, and a missing dependency field is not evidence that none exists. A task whose own landed,
+verified delivery is already contained in the approved integration base is satisfied evidence, not
+an imported worker delivery, and the same holds for verified landed prerequisites outside the
+selected issue set: they remain recorded external dependencies, not imported tasks, and their
+issue, merge, diff, checks, and exact base containment stay in the handoff without creating an
+external claim, worker, or PR.
 Issue, issue-list, and Project arguments are convenience hints, not an exhaustive admission taxonomy;
 a complete tracker index can establish declared membership without native links,
 while every selected issue and contract still needs independent reads. A Project is included only
@@ -74,14 +77,15 @@ suggest `/woostack-orchestrate --issue <exact canonical GitHub issue URL>`, but 
   bounded outcome from the requested action and selected issue; ordinary local implementation
   does not commit or publish. Explicit Execute requests a PR unless narrowed. A closing reference
   identifies only fully addressed work when PR delivery was requested.
-- Use an approved existing workspace or an isolated checkout as appropriate. Concurrent writers
-  require separate ownership; unknown writer liveness blocks reuse. Inspect relevant Git and PR
-  evidence, not a mandatory packet or all-repository inventory.
+- Use an approved existing workspace or an isolated checkout as appropriate. Each delegated writer
+  owns its workspace, and concurrent writers never share one; unknown writer liveness blocks reuse.
+  Inspect relevant Git and PR evidence, not a mandatory packet or all-repository inventory.
 - Establish cause before correcting a defect, inline when sufficient. Run checks relevant to the
   changed behavior; an existing targeted test may be the smoke. Required repository checks/reviews
   still gate completion. Label an explicitly requested incomplete draft truthfully.
-- Optional native stack registration is not a universal delivery gate. Explicitly required
-  registration is reported incomplete if unavailable, without invalidating verified code.
+- Native stack registration stays optional for a direct Commit or Execute request; coordinated
+  multi-task delivery requires it for dependent PRs, and unavailable required registration is
+  reported incomplete without invalidating verified code.
 - Agents never force-push, merge, mark a PR ready, enable auto-merge, or queue a PR for merge.
 
 ## Retained records and authority boundaries

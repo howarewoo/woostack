@@ -108,11 +108,12 @@ explicitly required native graph is called incomplete rather than published.
 
 Issue content is flexible: the outcome, the important constraints, acceptance and verification, and
 the real prerequisites are the floor, not a fixed section order. Independent increments may run in
-parallel. Orchestrate resolves the actual execution order, concurrency, and each task's base when
-it starts that task; a prerequisite already landed in the approved integration base is satisfied
-evidence rather than another task's work. When divergence or repository constraints leave no safe
-stack, that task pauses for a human merge decision and unrelated work continues. Planning never
-creates an integration branch or combines branches.
+parallel. Orchestrate states the grouping, execution order, concurrency, and each task's intended
+parent in its plan before implementation, then verifies the actual base content when the task
+starts; a prerequisite already landed in the approved integration base is satisfied evidence rather
+than another task's work. When divergence or repository constraints leave no safe stack, that task
+pauses for a human merge decision and unrelated work continues. Planning never creates an
+integration branch or combines branches.
 
 Orchestrate accepts `--issue`, `--issues`, and `--project` as convenience hints rather than an
 exhaustive admission taxonomy. It uses conversation, repository, and GitHub evidence to resolve

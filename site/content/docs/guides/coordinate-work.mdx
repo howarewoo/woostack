@@ -1,27 +1,27 @@
 ---
 title: Coordinate several tasks
-description: Implement approved tasks in prerequisite order and verify each draft PR.
+description: Plan grouped multi-task work, delegate each group, and verify stacked draft PRs.
 ---
 
-Use this guide for **approved executable tasks**, not a goal that still needs a plan. Supply task descriptions, exact issue URLs, a tracker, or an explicitly selected Project. Your assistant needs repository access and GitHub PR publication capability for the example below. Implementation changes source; requested delivery commits and opens draft PRs. [Skill requests differ from terminal commands](/docs/harnesses#native-skill-invocation).
+Use this guide for **approved executable tasks**, not a goal that still needs a plan. Supply task descriptions, exact issue URLs, a tracker, or an explicitly selected Project. Your assistant needs repository access, a host that can open workers, and GitHub PR publication capability for the example below. Implementation changes source; requested delivery commits and opens draft PRs. [Skill requests differ from terminal commands](/docs/harnesses#native-skill-invocation).
 
 ## 1. Select the work
 
 Provide the scope, acceptance, and real prerequisites for each task, or select the exact source containing them. A tracker is context, not an extra task. For example:
 
 ```text
-/woostack-orchestrate Implement the approved tasks below. Read their scope and real prerequisites, run relevant checks, and deliver reviewable draft pull requests. Do not merge.
+/woostack-orchestrate Plan the tasks below, then implement them. Read their scope and real prerequisites, run relevant checks, and deliver reviewable draft pull requests. Do not merge.
 
 <task 1: outcome, acceptance, non-goals, and prerequisites>
 <task 2: outcome, acceptance, non-goals, and prerequisites>
 ```
 
-Replace the angle-bracket lines with real tasks. `--issue <canonical GitHub tracker URL>` can select an exact tracker instead; it does not require a native sub-issue graph or a fixed input schema.
+Replace the angle-bracket lines with real tasks. `--issue <canonical GitHub tracker URL>` can select an exact tracker instead; it does not require a native sub-issue graph or a fixed input schema. An explicit request delivers draft PRs and native stacks for the dependent PRs; add `local only` or `do not push` to narrow it, and a bare issue link grants none of that delivery authority.
 
-## 2. Let ready work proceed
+## 2. Plan the groups, then delegate them
 
-Check that each item is executable and each edge reflects a change the dependent task really needs. Ready independent work can proceed without waiting for a whole wave. Concurrent writers need separate owned workspaces; a host without subagents can work sequentially, but cannot claim required parallelism or independent review. A dependent task starts from a base that actually contains its prerequisites, not merely a similarly named branch or a Project status. [Orchestrate's reference](/docs/skills/woostack-orchestrate) owns base and worker admission.
+The plan comes before any edit or worker: which tasks form which pull request, what each group must change, the intended parent and landing order, and which groups are safe in parallel. Small related tasks that make one coherent change can share a branch, one worker, and one PR; the task count does not set the PR count, and a mapping you requested yourself is kept. Each group is implemented by a delegated worker in its own task worktree — including a run that groups everything into one PR — and a dependent task starts from a base that actually contains its prerequisites. A host that cannot open workers or isolate worktrees reports that limitation instead of quietly editing your primary checkout.
 
 ## 3. Verify progress and resume safely
 
-For each result, inspect the diff, relevant checks and review, and the actual PR head, base, state, and issue association. Local edits alone do not release a dependency requiring delivered PR evidence. Observation lasts only during the active session. If a previous writer may still be active, do not reuse its workspace until its exit is proved; other safe independent work can continue. For a lost result or uncertain write, [inspect current state before retrying](/docs/guides/troubleshooting). Report pending checks, review, blocked work, and the next safe action separately. New PRs remain drafts; humans decide readiness and merge.
+For each result, inspect the diff, relevant checks and review, and the actual PR head, base, state, and issue association. A dependent PR targets its predecessor's head branch and is registered in a native stack; a chained base is not membership, and an unavailable required stack capability is an unfinished delivery rather than a completed stack. Local edits alone do not release a dependency requiring delivered PR evidence. Observation lasts only during the active session. If a previous writer may still be active, do not reuse its workspace until its exit is proved; other safe independent work can continue. For a lost result or uncertain write, [inspect current state before retrying](/docs/guides/troubleshooting). Report task-to-PR coverage, pending checks, review, blocked work, and the next safe action separately. New PRs remain drafts; humans decide readiness and merge.
