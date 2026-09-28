@@ -81,10 +81,9 @@ review when the task or repository requires it.
 
 ### Session reflection becomes instruction suggestions
 
-[woostack-reflect](/docs/skills/woostack-reflect) always runs exactly once for an explicit
-`/woostack-reflect` invocation. An ordinary final reply loads it only when the session already
-contains a concrete observed preventable instruction gap; otherwise it has no reflection headings.
-Its candidate gate defines that condition, and the first pass is report-only.
+[woostack-reflect](/docs/skills/woostack-reflect) runs one report-only pass for an explicit
+`/woostack-reflect` invocation or an unambiguous request to reflect on the conversation. Ordinary
+work never loads it.
 
 Diagnostic outputs from QA or production-response workflows can support a decision but cannot
 authorize a correction. Repairs first use Debug for causal proof, then Plan when the correction

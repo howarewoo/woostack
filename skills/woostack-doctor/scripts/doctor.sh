@@ -22,11 +22,25 @@ if [ ! -d "$WOO_ROOT/.woostack" ]; then
 fi
 
 findings="$(mktemp)"
-trap 'rm -f "$findings"' EXIT
+detail="$(mktemp)"
+trap 'rm -f "$findings" "$detail"' EXIT
 
 shopt -s nullglob
 for chk in "$HERE"/checks/*.sh; do
-  bash "$chk" "$WOO_ROOT" >>"$findings" 2>/dev/null || true
+  : >"$detail"
+  status=0
+  bash "$chk" "$WOO_ROOT" >>"$findings" 2>"$detail" || status=$?
+  [ "$status" -eq 0 ] && continue
+  # A check that could not complete is an incomplete inspection, not a clean
+  # one. Report it in the existing finding format — naming the check, its exit
+  # status, and a bounded single-line excerpt of its own stderr — and keep the
+  # findings it already emitted. Independent checks still run.
+  excerpt="$(head -n 1 "$detail" | tr -cd '[:print:]' | cut -c1-200)"
+  if [ -s "$findings" ] && [ "$(tail -c 1 "$findings" | wc -l)" -eq 0 ]; then
+    printf '\n' >>"$findings"
+  fi
+  printf 'error\tcheck-failed\treport\t%s\tcheck did not complete: exit %s%s\n' \
+    "${chk##*/}" "$status" "${excerpt:+; $excerpt}" >>"$findings"
 done
 
 errors=0

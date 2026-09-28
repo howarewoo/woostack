@@ -22,8 +22,11 @@ command is supported.
 ## Preflight
 
 1. Resolve the canonical repository and the exact supplied PR number.
-2. Read the PR URL, state, head/base branches and SHAs, author, complete changed-path set, reviews,
-   checks, and every unresolved top-level thread with pagination.
+2. Read through the host's authorized GitHub capability — native tools when suitable,
+   host-authenticated `gh` otherwise, never a custom transport — the PR URL, state, head/base
+   branches and SHAs, author, complete changed-path set, reviews, checks, and every unresolved
+   top-level thread with pagination. A missing capability or a partial, truncated, or failed read
+   blocks the affected work; it is never an empty successful snapshot.
 3. Verify the selected workspace's ownership, branch, current head, index/diff, intended base, and
    authorized correction scope before touching source. Follow the
    [source-control contract](../woostack-commit/references/source-control.md).
@@ -68,10 +71,11 @@ snapshot before editing; one unsafe thread never blocks independent safe correct
    One batch may support several replies, but never substitute a batch-level reply for a thread's
    own evidence.
 6. **Resolve and read back independently.** Before resolving each thread, freshly verify the
-   canonical head, target conversation, and posted reply. Resolve only if the head contains the
-   verified fix, or evidence-backed non-fix fully answers the thread. Read back the reply and
-   resolution state. Unknown outcomes require discovery by stable identity before retry; never
-   duplicate a commit, push, reply, or resolution.
+   canonical head, target conversation, and posted reply. A failed or unverified reply never
+   authorizes resolution. Resolve only if the head contains the verified fix, or evidence-backed
+   non-fix fully answers the thread. Read back the reply and resolution state. Unknown outcomes
+   require discovery by stable identity before retry; never duplicate a commit, push, reply, or
+   resolution.
 
 External head or thread drift requires fresh discovery and invalidates affected evidence. Reconcile
 the changed source/conversations and reverify affected corrections before further side effects;

@@ -7,6 +7,8 @@ Each check under `../scripts/checks/` emits one tab-delimited finding:
 - `fixable` is always `report`. No check owns a filesystem repair: a finding may name a proposed
   repair, and applying it is ordinary scoped editing through
   [`woostack-execute`](../../woostack-execute/SKILL.md).
+- A check that cannot complete is an incomplete inspection, not a clean one: the runner emits a
+  `check-failed` error naming the check and its exit status, so both invocation modes exit nonzero.
 - CI (`--check`) exits nonzero only when an `error` finding exists.
 
 ## Calling convention
@@ -27,6 +29,7 @@ writing and is never treated as a target directory.
 |---|---|---|---|
 | `gitignore-drift` | shipped-template managed line missing from `.woostack/.gitignore` | warn | report |
 | `config-policy` | malformed canonical policy or resolver failure | error | report |
+| `check-failed` | check could not complete; emitted by the runner, naming the check and its exit status | error | report |
 | `retired-provider` | legacy provider selector/profile is present as opaque inactive data | warn | report |
 | `retained-data` | historical local draft/manifest directory is present | warn | report |
 | `retired-status-config` | legacy top-level `status.staleDays` is present | warn | report |
@@ -42,6 +45,16 @@ stops inspection without following the link, and an unreadable template or non-r
 
 Legacy provider settings and retained records are not active policy and are never migration input
 for this engine. Their findings are actionable retirement guidance, not local-operation blockers.
+
+## Runner failure handling
+
+`doctor.sh` runs every check in `../scripts/checks/` and keeps going after a failure, so one broken
+check never costs the findings of the others. A check that exits nonzero has its already-emitted
+findings preserved, and the runner appends one `check-failed` error finding. That finding carries no
+repair (`fixable` is `report`): a check that cannot complete is evidence to investigate, not
+something Doctor fixes. The excerpt of the check's own stderr, when present, is bounded to one short
+line. A check that emits an `error` finding and exits 0 is a completed inspection with an unhealthy
+result, and keeps the same nonzero exit.
 
 ## Canonical policy
 
