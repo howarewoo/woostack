@@ -29,16 +29,14 @@ Doctor receipt.
 | `orphan-worktree` (present) | unregistered directory under `.woostack/worktrees/` (may hold work) | warn | report | — |
 | `orphan-worktree` (stale) | registered worktree whose directory is gone | warn | auto | `<root>` (`git worktree prune`) |
 | `gitignore-drift` | shipped-template managed line missing from `.woostack/.gitignore` | warn | auto | `<root>` |
-| `omp-session-name` | active managed session-naming asset drift | warn | auto | `<root>` |
 | `config-policy` | malformed canonical policy or resolver failure | error | report | — |
 | `retired-provider` | legacy provider selector/profile is present as opaque inactive data | warn | report | — |
 | `retained-data` | historical local draft/manifest directory is present | warn | report | — |
 | `retired-status-config` | legacy top-level `status.staleDays` is present | warn | report | — |
 
-OMP agent selection is host-owned. Doctor checks and repairs only its managed session-naming
-asset; it never inspects, creates, repairs, or removes project agent definitions. A present
-unregistered worktree directory may hold work and remains report-only; only a stale worktree
-registration whose directory is gone can be pruned.
+OMP agent selection is host-owned. Doctor never inspects, creates, repairs, or removes project
+agent definitions or host extensions. A present unregistered worktree directory may hold work and
+remains report-only; only a stale worktree registration whose directory is gone can be pruned.
 
 Legacy provider settings and retained records are not active policy and are never migration input
 for this engine. Their findings are actionable retirement guidance, not local-operation blockers.

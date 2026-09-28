@@ -32,20 +32,15 @@ general work), `scout` (read-only exploration), and `reviewer` and `security-rev
 review). They are host-owned: never create, install, rename, alias, or persist a replacement agent
 catalog, and a read-only agent never suits a write task.
 
-## Session naming
+## Retired session naming
 
-When a woostack skill is invoked, call the registered tool `woostack_rename_session` with
-`{ "title": "<derived-title>" }` and a concise title derived from the user's input goal. For
-issue-backed Execute with no explicit goal, the exact user-supplied issue reference may be the
-title — not remote issue content or title, a slash-command name, a run identifier, or an untrusted
-remote title.
+Automatic session naming is retired. Woostack no longer ships a naming extension, Init and Doctor
+no longer create, repair, or check `.omp/` naming assets, and no skill calls a naming tool. The
+host and user own session titles.
 
-The tool comes from the local extension `.omp/extensions/woostack-session-name.ts` provisioned by
-`woostack-init`, which delegates to OMP's automatic session-naming API and preserves a title set
-explicitly with `/rename`. OMP loads project extensions and settings at startup, so restart it after
-installing or repairing. If the tool is absent, extension discovery is disabled, or the call fails,
-emit one concise warning (`warning: OMP session renaming unavailable; continuing with current session
-name`) and continue the selected workflow without blocking.
+Already-installed `.omp/extensions/woostack-session-name.ts`, its `.omp/settings.json` entry, and
+its `.omp/.gitignore` lines are user data: nothing rewrites, strips, or removes them, and a
+retained extension may stay active under OMP until the user removes it.
 
 ## Previously generated agent definitions
 

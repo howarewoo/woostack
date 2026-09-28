@@ -16,8 +16,6 @@ creates a specification, plan, issue, project, branch, pull request, or lifecycl
 
 ## Procedure
 
-`<wi>` below means the installed `woostack-init` skill directory.
-
 1. Resolve the canonical target repository without changing it. Verify repository root, branch,
    working state, existing `.woostack/` files, and collision/symlink/path safety.
 2. Resolve the effective local policy with
@@ -28,11 +26,7 @@ creates a specification, plan, issue, project, branch, pull request, or lifecycl
 3. Create only missing local support paths:
    - `.woostack/config.json` from [`templates/config.json`](templates/config.json);
    - local diagnostic report roots for Doctor, audit, and QA; and
-   - worktree/recovery support declared by the canonical [worktree contract](references/worktrees.md);
-   - the managed project OMP session-naming extension, settings entry, and ignore rules by running
-     `bash <wi>/scripts/provision-omp-session-name.sh <canonical-repository>`. This deterministic
-     provisioner updates only `.omp/extensions/woostack-session-name.ts`, `.omp/settings.json`, and
-     `.omp/.gitignore`, preserves other extensions/settings/ignore lines, and rejects tracked settings.
+   - worktree/recovery support declared by the canonical [worktree contract](references/worktrees.md).
 
    Delegated work uses agents the host already exposes; the
    [OMP host notes](../using-woostack/references/hosts/omp.md) record the optional cleanup path
@@ -95,10 +89,9 @@ read boundary.
 ## Hard constraints
 
 - Initialization is local-only and provider-free; it never selects persistence or publication.
-- No source edit outside `.woostack/` except the managed project OMP session-naming assets
-  (`.omp/extensions/woostack-session-name.ts`, `.omp/settings.json`, and `.omp/.gitignore`); no
-  application scaffold. Delegated work uses agents already exposed by the host; Init never creates
-  or repairs agent definitions.
+- No source edit outside `.woostack/`; no application scaffold. Delegated work uses agents already
+  exposed by the host; Init never creates or repairs agent definitions or host extensions, and
+  never creates `.omp/` for session naming.
 - No credential read/write, automatic migration, destructive cleanup, commit, push, pull request, or
   merge.
 - Preserve user-owned files, legacy settings, retained manifests, dirty worktrees, and reports.

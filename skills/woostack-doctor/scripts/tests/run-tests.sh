@@ -8,7 +8,6 @@ tests=(
   test-github-capability.sh
   test-health-checks.sh
   test-orchestrator.sh
-  test-omp-session-name.sh
 )
 for t in "${tests[@]}"; do
   echo "== $t =="

@@ -36,10 +36,10 @@ canonical resolver.
 2. Resolve the effective tracked plus primary-checkout local policy through
    `woostack-init/scripts/config/resolve-config.sh`. Doctor consumes that authoritative validation;
    it does not duplicate the GitHub schema.
-3. Run static checks for configuration, diagnostics, ignore drift, OMP session naming, worktree
-   hygiene, and retained data. OMP agent selection is host-owned; Doctor never inspects, creates,
-   repairs, or removes project agent definitions. Legacy provider settings and mirror-era manifests
-   are preserved and produce actionable retirement guidance only; they never select a destination,
+3. Run static checks for configuration, diagnostics, ignore drift, worktree hygiene, and retained
+   data. OMP agent selection is host-owned; Doctor never inspects, creates, repairs, or removes
+   project agent definitions. Legacy provider settings and mirror-era manifests are preserved and
+   produce actionable retirement guidance only; they never select a destination,
    recreate a wrapper, or block unrelated local diagnosis.
 4. If there is no `.woostack/`, stop and point the user to [`woostack-init`](../woostack-init/SKILL.md).
    Doctor never scaffolds.
