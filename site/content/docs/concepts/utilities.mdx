@@ -34,13 +34,14 @@ instructions. Reports remove secrets and raw remote payloads.
 
 ## Local support maintenance
 
-Doctor diagnoses `.woostack/` configuration and workspace problems. Repairs require explicit
-approval. Approved tracked-file repairs go through Execute; filesystem-only repairs run directly.
-Remote resources and legacy development records remain report-only.
+Doctor diagnoses `.woostack/` configuration and workspace problems. Its checks are read-only:
+they report evidence and may describe a proposed repair, and applying that repair is ordinary
+scoped editing through Execute after explicit approval. Remote resources, legacy development
+records, and workspace or worktree cleanup stay with their owner and remain report-only.
 
 | Skill | What it does | Writes? | Invoke |
 | --- | --- | --- | --- |
-| [woostack-doctor](/docs/skills/woostack-doctor) | Diagnoses local policy and workspace integrity, then applies approved repairs. | gated local changes | `/woostack-doctor` |
+| [woostack-doctor](/docs/skills/woostack-doctor) | Diagnoses local policy and workspace integrity, then routes approved repairs. | no direct writes; approved changes go through Execute | `/woostack-doctor` |
 
 ## Where to go next
 

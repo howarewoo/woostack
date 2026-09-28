@@ -98,8 +98,9 @@ Send this command to your coding agent:
 In `--check` mode, Doctor reports local configuration and support-file problems without repairing
 them or contacting GitHub. Resolve any reported local configuration error before starting
 repository work. To request proposed repairs, invoke `/woostack-doctor` without `--check`; it must
-ask for approval before changing anything. Doctor has no live GitHub mode; the selected workflow
-reads its own required GitHub evidence through an authorized host capability.
+ask for approval before changing anything, and approved changes are applied as ordinary scoped
+edits through Execute rather than by a helper command. Doctor has no live GitHub mode; the selected
+workflow reads its own required GitHub evidence through an authorized host capability.
 
 <Callout type="info">
   Keep project-specific rules in the root `AGENTS.md`. The

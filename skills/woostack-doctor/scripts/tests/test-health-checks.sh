@@ -5,16 +5,51 @@ source "$HERE/../../../woostack-init/scripts/tests/assert.sh"
 set +e
 C="$HERE/../checks"
 
-# gitignore-drift
+# gitignore-drift is read-only report evidence: no check-owned repair remains.
 r="$(mktemp -d)"
 mkdir -p "$r/.woostack"
 : >"$r/.woostack/.gitignore"
-assert_contains "$(bash "$C/gitignore-drift.sh" "$r")" "gitignore-drift" "empty .gitignore drifts"
-bash "$C/gitignore-drift.sh" --fix "$r"
-assert_eq "$(bash "$C/gitignore-drift.sh" "$r")" "" "after fix there is no gitignore drift"
-before="$(wc -l <"$r/.woostack/.gitignore")"
-bash "$C/gitignore-drift.sh" --fix "$r"
-assert_eq "$(wc -l <"$r/.woostack/.gitignore")" "$before" "gitignore repair is idempotent"
+out="$(bash "$C/gitignore-drift.sh" "$r")"
+assert_contains "$out" "gitignore-drift" "empty .gitignore drifts"
+assert_contains "$out" $'warn\tgitignore-drift\treport\t' "drift is report-only"
+assert_not_contains "$out" $'auto\t' "drift never recommends a helper repair"
+
+# A retired --fix fails, writes nothing, and is never mistaken for a target directory.
+bash "$C/gitignore-drift.sh" --fix "$r" >/dev/null 2>&1
+assert_exit 2 "$?" "retired --fix fails"
+assert_eq "$(wc -c <"$r/.woostack/.gitignore" | tr -d ' ')" "0" "retired --fix writes nothing"
+assert_eq "$(bash "$C/gitignore-drift.sh" "$r")" "$out" "retired --fix leaves the finding unchanged"
+assert_eq "$(bash "$C/gitignore-drift.sh" --fix 2>/dev/null)" "" "retired --fix reads no target directory"
+
+# A .gitignore without a final newline keeps every byte through diagnosis and a
+# retired repair attempt.
+rnl="$(mktemp -d)"
+mkdir -p "$rnl/.woostack"
+printf 'tmp/' >"$rnl/.woostack/.gitignore"
+before_nl="$(cat "$rnl/.woostack/.gitignore")"
+bash "$C/gitignore-drift.sh" "$rnl" >/dev/null
+bash "$C/gitignore-drift.sh" --fix "$rnl" >/dev/null 2>&1
+assert_eq "$(cat "$rnl/.woostack/.gitignore")" "$before_nl" "no-newline ignore bytes are preserved"
+assert_eq "$(wc -c <"$rnl/.woostack/.gitignore" | tr -d ' ')" "4" "no final newline is appended"
+
+# A symlinked ignore file is reported, not followed: the external sentinel and the
+# link itself are untouched.
+rl="$(mktemp -d)"
+mkdir -p "$rl/.woostack" "$rl/external"
+printf 'sentinel-bytes' >"$rl/external/target"
+ln -s "$rl/external/target" "$rl/.woostack/.gitignore"
+outl="$(bash "$C/gitignore-drift.sh" "$rl")"
+assert_contains "$outl" "symlink" "symlinked ignore file reports an inspection limitation"
+assert_not_contains "$outl" "missing managed line" "symlinked ignore file is not read through"
+bash "$C/gitignore-drift.sh" --fix "$rl" >/dev/null 2>&1
+assert_eq "$(cat "$rl/external/target")" "sentinel-bytes" "external sentinel bytes are preserved"
+assert_eq "$(readlink "$rl/.woostack/.gitignore")" "$rl/external/target" "symlink is preserved"
+
+# An unreadable template is an inspection failure, never a clean result.
+tpl="$(mktemp -d)"
+mkdir -p "$tpl/woostack-doctor/scripts/checks" "$tpl/woostack-init/templates"
+cp "$C/gitignore-drift.sh" "$tpl/woostack-doctor/scripts/checks/"
+assert_contains "$(bash "$tpl/woostack-doctor/scripts/checks/gitignore-drift.sh" "$r")" $'error\tgitignore-drift\treport\t' "missing template is not healthy evidence"
 
 # config-keys delegates canonical GitHub validation to Init's resolver.
 r2="$(mktemp -d)"
@@ -59,20 +94,21 @@ mkdir -p "$r2c/.woostack"
 out="$(bash "$C/config-keys.sh" "$r2c")"
 assert_not_contains "$out" $'error\tconfig-policy' "missing config is not a policy error"
 
-# A registered-prefix collision must not hide an unregistered directory.
-r4prefix="$(cd "$(mktemp -d)" && pwd -P)"
-( cd "$r4prefix" && git -c user.email=t@t -c user.name=t init -q && git -c user.email=t@t -c user.name=t commit -q --allow-empty -m init )
-mkdir -p "$r4prefix/.woostack/worktrees/app"
-( cd "$r4prefix" && git worktree add -q "$r4prefix/.woostack/worktrees/app2" -b wt-app2 )
-assert_contains "$(bash "$C/orphan-worktree.sh" "$r4prefix")" $'worktrees/app\t' "prefix collision is reported"
-git -C "$r4prefix" worktree add -q "$r4prefix/.woostack/worktrees/stale" -b wt-stale
-rm -rf "$r4prefix/.woostack/worktrees/stale"
-assert_contains "$(cd "$r4prefix" && bash "$C/orphan-worktree.sh" .)" "stale worktree registration" "stale registration is reported"
-# orphan-worktree
-r4="$(cd "$(mktemp -d)" && pwd -P)"
-( cd "$r4" && git -c user.email=t@t -c user.name=t init -q && git -c user.email=t@t -c user.name=t commit -q --allow-empty -m init )
-mkdir -p "$r4/.woostack/worktrees/ghost"
-assert_contains "$(bash "$C/orphan-worktree.sh" "$r4")" "orphan-worktree" "unregistered worktree is reported"
-assert_contains "$(bash "$C/orphan-worktree.sh" "$r4")" "report" "present unregistered worktree is never auto-pruned"
+# Worktree cleanup is retired: a real registered worktree whose path contains spaces
+# survives diagnosis unchanged, with no orphan finding or repair recommendation.
+r4="$(mktemp -d)"
+wt="$r4/task worktree one"
+mkdir -p "$r4/repo/.woostack"
+printf '%s\n' '{"models":{}}' >"$r4/repo/.woostack/config.json"
+cp "$HERE/../../../woostack-init/templates/gitignore" "$r4/repo/.woostack/.gitignore"
+( cd "$r4/repo" && git -c user.email=t@t -c user.name=t init -q && git -c user.email=t@t -c user.name=t commit -q --allow-empty -m init )
+git -C "$r4/repo" worktree add -q "$wt" -b wt-spaced
+reg_before="$(git -C "$r4/repo" worktree list --porcelain)"
+out="$(bash "$HERE/../doctor.sh" "$r4/repo" 2>&1)"
+assert_not_contains "$out" "worktree" "no worktree cleanup finding remains"
+assert_not_contains "$out" "prune" "no worktree repair recommendation remains"
+assert_eq "$(git -C "$r4/repo" worktree list --porcelain)" "$reg_before" "git registrations are preserved"
+assert_eq "$([ -d "$wt" ] && echo present)" "present" "spaced worktree directory is preserved"
+assert_eq "$(git -C "$wt" rev-parse --abbrev-ref HEAD)" "wt-spaced" "spaced worktree branch is preserved"
 
 finish
