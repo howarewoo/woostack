@@ -132,7 +132,7 @@ parent branch/SHA needed for safe resume. A mismatch stops recovery instead of d
 Empty, malformed, non-object, unreadable, symlinked, non-regular, orphaned, or credential-like
 configuration fails closed with the offending path. Both files contain non-secret policy only;
 provider authentication stays in the host secret store. Doctor validates effective configuration at
-runtime, while template presence and repair apply only to the tracked base file. OMP ignores model
+runtime, and it reads the shipped ignore template only to report drift. OMP ignores model
 settings in both layers because active-session agent selection and role routing are host-owned; the
 repository does not create or rename worker definitions.
 
