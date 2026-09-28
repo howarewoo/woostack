@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { chmod, copyFile, lstat, mkdir, mkdtemp, readFile, readdir, readlink, realpath, rm, stat, symlink, writeFile } from 'node:fs/promises';
+import { chmod, copyFile, lstat, mkdir, mkdtemp, readFile, readdir, readlink, realpath, rename, rm, stat, symlink, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
@@ -26,7 +26,8 @@ async function writeSkill(root, name, body = '') {
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 
-async function findBrokenSkillLinks(skillsDir) {
+async function findBrokenSkillLinks(skillsDir, collectionRoot) {
+  const collection = await realpath(collectionRoot);
   const broken = [];
   for (const entry of await readdir(skillsDir, { withFileTypes: true })) {
     if (!entry.isSymbolicLink()) continue;
@@ -47,10 +48,16 @@ async function findBrokenSkillLinks(skillsDir) {
     try {
       if (!(await stat(path.join(resolved, 'SKILL.md'))).isFile()) {
         broken.push(`${entry.name} -> ${target}: has no SKILL.md`);
+        continue;
       }
     } catch (error) {
       if (error?.code !== 'ENOENT') throw error;
       broken.push(`${entry.name} -> ${target}: has no SKILL.md`);
+      continue;
+    }
+    const expected = path.join(collection, entry.name);
+    if (resolved !== expected) {
+      broken.push(`${entry.name} -> ${target}: resolves to ${resolved} instead of ${expected}`);
     }
   }
   return broken.sort();
@@ -235,8 +242,9 @@ test('structural validation rejects mismatched metadata and catalog discovery', 
   await assert.rejects(validateSkillAssets(root, []), /skill catalog mismatch/);
 });
 
-test('every checkout-local skill link resolves to a skill directory', async () => {
-  assert.deepEqual(await findBrokenSkillLinks(path.join(REPO_ROOT, '.claude', 'skills')), []);
+test('every checkout-local skill link resolves to its skill in this collection', async () => {
+  assert.deepEqual(await findBrokenSkillLinks(path.join(REPO_ROOT, '.claude', 'skills'),
+    path.join(REPO_ROOT, 'skills')), []);
 });
 
 test('catalog ignores non-skill debris but requires expected skills and rejects extra skills', async (t) => {
@@ -277,7 +285,7 @@ test('installed candidate collection resolves without a checkout or docs applica
   const links = path.join(root, '.claude', 'skills');
   assert.deepEqual((await readdir(links, { withFileTypes: true })).map((entry) => entry.isSymbolicLink()),
     [true, true, true]);
-  assert.deepEqual(await findBrokenSkillLinks(links), []);
+  assert.deepEqual(await findBrokenSkillLinks(links, installed), []);
   assert.deepEqual((await readdir(links)).sort(),
     ['woostack-address-comments', 'woostack-bootstrap', 'woostack-commit']);
 
@@ -328,14 +336,75 @@ test('unstaged discovery links are included and dangling links remain detectable
   assert.deepEqual((await validateSkillAssets(path.join(install, 'skills'), ['sample-skill', 'new-skill']))
     .map(({ name }) => name), ['new-skill', 'sample-skill']);
   assert.equal((await lstat(path.join(install, '.claude', 'skills', 'new-skill'))).isSymbolicLink(), true);
-  assert.deepEqual(await findBrokenSkillLinks(path.join(install, '.claude', 'skills')), []);
+  assert.deepEqual(await findBrokenSkillLinks(path.join(install, '.claude', 'skills'),
+    path.join(install, 'skills')), []);
 
   await rm(link);
   await symlink('../../skills/missing-skill', link);
   const broken = path.join(root, 'broken-install');
   await installCandidate(checkout, broken);
-  assert.deepEqual(await findBrokenSkillLinks(path.join(broken, '.claude', 'skills')),
-    ['new-skill -> ../../skills/missing-skill: is a dangling link']);
+  assert.deepEqual(await findBrokenSkillLinks(path.join(broken, '.claude', 'skills'),
+    path.join(broken, 'skills')), ['new-skill -> ../../skills/missing-skill: is a dangling link']);
+});
+
+test('copied relative discovery link survives removal of its source checkout', async (t) => {
+  const root = await makeRoot(t);
+  const checkout = await makeCandidateCheckout(root, ['sample-skill']);
+  const install = path.join(root, 'candidate-install');
+  await installCandidate(checkout, install);
+  await rename(checkout, path.join(root, 'retired-source'));
+
+  const link = path.join(install, '.claude', 'skills', 'sample-skill');
+  assert.equal(await readlink(link), '../../skills/sample-skill');
+  assert.deepEqual(await findBrokenSkillLinks(path.dirname(link), path.join(install, 'skills')), []);
+  assert.equal(await readFile(path.join(link, 'SKILL.md'), 'utf8'),
+    await readFile(path.join(install, 'skills', 'sample-skill', 'SKILL.md'), 'utf8'));
+});
+
+test('copied discovery links reject available external skills', async (t) => {
+  const root = await makeRoot(t);
+  const checkout = await makeCandidateCheckout(root, ['sample-skill']);
+  const sourceLink = path.join(checkout, '.claude', 'skills', 'sample-skill');
+  const external = await writeSkill(root, 'external-skill');
+  const targets = [path.join(checkout, 'skills', 'sample-skill'),
+    path.relative(path.dirname(sourceLink), external)];
+
+  for (const [index, target] of targets.entries()) {
+    await rm(sourceLink);
+    await symlink(target, sourceLink);
+    const install = path.join(root, `candidate-install-${index}`);
+    await installCandidate(checkout, install);
+    const links = path.join(install, '.claude', 'skills');
+    assert.equal(await readlink(path.join(links, 'sample-skill')), target);
+    const actual = await realpath(path.join(links, 'sample-skill'));
+    assert.equal(actual, await realpath(index === 0
+      ? path.join(checkout, 'skills', 'sample-skill') : external));
+    assert.equal((await stat(path.join(actual, 'SKILL.md'))).isFile(), true);
+    const broken = await findBrokenSkillLinks(links, path.join(install, 'skills'));
+    assert.equal(broken.length, 1);
+    assert.ok(broken[0].includes(`sample-skill -> ${target}:`));
+    assert.ok(broken[0].includes(actual));
+  }
+});
+
+test('copied discovery link rejects another skill in its own collection', async (t) => {
+  const root = await makeRoot(t);
+  const checkout = await makeCandidateCheckout(root, ['sample-skill', 'other-skill']);
+  const link = path.join(checkout, '.claude', 'skills', 'sample-skill');
+  const valid = path.join(root, 'valid-install');
+  await installCandidate(checkout, valid);
+  assert.deepEqual(await findBrokenSkillLinks(path.join(valid, '.claude', 'skills'),
+    path.join(valid, 'skills')), []);
+
+  await rm(link);
+  await symlink('../../skills/other-skill', link);
+  const invalid = path.join(root, 'invalid-install');
+  await installCandidate(checkout, invalid);
+  const broken = await findBrokenSkillLinks(path.join(invalid, '.claude', 'skills'),
+    path.join(invalid, 'skills'));
+  assert.equal(broken.length, 1);
+  assert.ok(broken[0].includes('sample-skill -> ../../skills/other-skill:'));
+  assert.ok(broken[0].includes(await realpath(path.join(invalid, 'skills', 'other-skill'))));
 });
 
 test('a substituted skill directory cannot be flattened into the candidate', async (t) => {
@@ -384,7 +453,8 @@ test('staged additions and retirements install as one candidate, and unknown ski
     (await validateSkillAssets(path.join(install, 'skills'), order)).map(({ name }) => name),
     order,
   );
-  assert.deepEqual(await findBrokenSkillLinks(path.join(install, '.claude', 'skills')), []);
+  assert.deepEqual(await findBrokenSkillLinks(path.join(install, '.claude', 'skills'),
+    path.join(install, 'skills')), []);
   assert.deepEqual((await readdir(path.join(install, '.claude', 'skills'))).sort(),
     ['sample-skill', 'staged-skill']);
   assert.equal(await readFile(path.join(install, 'skills', 'INDEX.md'), 'utf8'), '# Tracked candidate index\n');
@@ -421,12 +491,15 @@ test('broken skill links are reported for the intended reason', async (t) => {
   await mkdir(path.join(skills, 'live-skill'), { recursive: true });
   await writeFile(path.join(skills, 'live-skill', 'SKILL.md'), '# live-skill\n');
   await mkdir(path.join(skills, 'not-a-skill'));
+  await writeFile(path.join(skills, 'not-a-directory'), '# not a skill directory\n');
   await mkdir(links, { recursive: true });
   await symlink('../../skills/live-skill', path.join(links, 'live-skill'));
   await symlink('../../skills/retired-skill', path.join(links, 'retired-skill'));
   await symlink('../../skills/not-a-skill', path.join(links, 'not-a-skill'));
+  await symlink('../../skills/not-a-directory', path.join(links, 'not-a-directory'));
 
-  assert.deepEqual(await findBrokenSkillLinks(links), [
+  assert.deepEqual(await findBrokenSkillLinks(links, skills), [
+    'not-a-directory -> ../../skills/not-a-directory: is not a skill directory',
     'not-a-skill -> ../../skills/not-a-skill: has no SKILL.md',
     'retired-skill -> ../../skills/retired-skill: is a dangling link',
   ]);
