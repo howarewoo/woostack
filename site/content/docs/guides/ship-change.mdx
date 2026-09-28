@@ -1,0 +1,24 @@
+---
+title: Deliver one change
+description: Implement and verify a bounded task, then inspect its requested draft pull request.
+---
+
+Use this guide when the outcome and non-goals fit one reviewable change. Have the plan or exact issue URL, repository access, and a GitHub capability for a draft PR. Your assistant will edit source and, **because this guide requests PR delivery**, commit and publish the result. A natural-language request for local implementation alone does not authorize a push or PR. These are [logical skill requests, not terminal commands](/docs/harnesses#native-skill-invocation).
+
+## 1. Request the task and delivery
+
+Supply the bounded plan in the same session, or include it in a new session; chat history is not shared automatically. For example:
+
+```text
+/woostack-execute Implement the reviewed README documentation plan. Use the repository's actual verification commands, run relevant checks, and submit a draft pull request. Do not merge.
+```
+
+With a selected executable issue, `/woostack-execute <canonical GitHub issue URL>` is an alternative. An explicit Execute request delivers a draft PR unless you limit it to local work. Planning is optional; so is a separate Debug session. For a defect, establish the cause from evidence before correcting it. Resolve material scope or safety questions rather than guessing.
+
+## 2. Inspect the implementation
+
+Confirm the complete diff and changed paths match the outcome and leave unrelated work alone. Read the actual command results; required checks or independent review cannot be replaced by an agent's success sentence. A failed or unrun required check remains a delivery blocker. [Execute's reference](/docs/skills/woostack-execute) owns workspace admission and verification.
+
+## 3. Verify delivery
+
+Check the draft PR's URL, current head commit, base, body, and open state against Git and GitHub. If you selected an issue, check its exact closing association only when the PR fully addresses it. A draft is for human review; only a human advances readiness or merges. An in-scope failure belongs on the **same** task branch and PR after diagnosis and renewed checks, not a duplicate PR. For a missing check or uncertain write, [start with the matching symptom](/docs/guides/troubleshooting). [Commit's reference](/docs/skills/woostack-commit) owns source-control delivery.
