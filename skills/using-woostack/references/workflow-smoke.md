@@ -34,7 +34,7 @@ remote, no Project, and no live resource:
 ```bash
 REPO=$(mktemp -d)
 cd "$REPO"
-git init -q
+git init -q -b main
 git config user.name 'Workflow Smoke'
 git config user.email 'workflow-smoke@example.invalid'
 printf 'alpha\nbeta\n' > lines.txt
@@ -108,35 +108,73 @@ them; otherwise label that variant **Unrun**.
 - Without an authorized repository, record publication **Unrun** and keep the plan itself as the
   evidence.
 
-## 3. A and B with C blocked by A, an interrupted writer, and sequential fallback
+## 3. Grouped, delegated Orchestrate delivery
 
-**Invocation:** run the actual Orchestrate skill on the same three tasks given as prose, in a clean
-copy of the fixture. Prose, an issue list, and a tracker are all valid inputs; the host that cannot
-open a worker is still a supported host.
+**Invocation:** extend a clean copy of the shared fixture with a small helper and consumer:
 
-With no authorized PR destination, local task ordering and completed edits can be observed, but
-PR-dependent release remains **Unrun**; do not call local checks verified PR delivery.
+```bash
+cat > helper.py <<'PY'
+def parse_lines(text):
+    return text.splitlines()
+PY
+cat > consumer.py <<'PY'
+from helper import parse_lines
+
+def consume(text):
+    return len(parse_lines(text))
+PY
+git add helper.py consumer.py
+git commit -qm 'Seed helper and consumer'
+```
+
+In an authorized disposable GitHub repository, run the installed candidate in an actual coding
+host with worker, task-worktree, and native stack capabilities. Record the exact installed revision
+and resolved skill path. Keep a harmless unrelated sentinel edit in the primary checkout. Supply
+only this explicit command and task descriptions, without a reminder to plan, delegate, or stack:
+
+```text
+/woostack-orchestrate
+
+A1: Add `single_line(text)` to `helper.py`. Return the one nonempty line from input ending in a
+newline; raise ValueError for empty or multiple lines. Keep `parse_lines` available.
+A2: Add focused regression coverage for `single_line`: one accepted line, empty input, and two
+lines. Run the checks with Python's unittest runner.
+B: Change `consumer.py` to use the strict `single_line` behavior and return the accepted line
+in uppercase. Keep this consumer change in a separately reviewable PR; check both accepted and
+rejected input. The current consumer calls `parse_lines`.
+C: Add `notes.txt` explaining the existing `lines.txt` fixture. Keep this unrelated change
+separately reviewable.
+```
+
+No issue metadata supplies an edge. `B` names the new helper behavior and the source confirms the
+consumer currently uses `parse_lines`; its dependency must be discovered before dispatch.
+Without an authorized remote, mark the positive PR and native-stack steps **Unrun**. Do not call
+local checks verified PR delivery.
 
 **Observe:**
 
-- C does not start until A's own delivery is verified and the required change is actually available
-  in the base C selects, with its check passing there. No merge is required. A and B are
-  independent roots.
-- Parallel work is demonstrated only where the host gives safe isolation — separate workspaces and
-  branches, never two writers in one workspace. On a host without that, the run completes the same
-  scope one task at a time and labels itself sequential; one-at-a-time work is never reported as a
-  parallel wave or as the independent review the user asked for.
-- Interrupted-writer variant: stop one worker after its branch or PR may exist but before its result
-  was accepted, then re-enter the same scope. The outcome is rediscovered from native worker state
-  and current Git and PR facts before anything repeats — no second writer, no duplicate PR, and an
-  honest report of what it could and could not prove. If the host has no safe interruption, record
-  this variant **Unrun** rather than simulating a timeout.
-- Work the run does not own survives: a dirty or committed worktree, an unknown branch, and
-  unrelated issues stay intact and are never reused, overwritten, or cleaned.
-- When PR delivery was requested, each delivered PR's checks and required review are read back at
-  its current head; pending, stale, or unreadable results never count as a pass. Local-only success
-  does not release a task whose prerequisite requires a PR. Nothing is marked ready, queued,
-  force-pushed, merged, or closed.
+- The evidence-based plan precedes the first source write and worker dispatch. It groups A1/A2
+  into one helper PR, keeps B as a separate dependent PR and C as an independent PR, states the
+  required changes, intended parents and landing order, and safe parallel work. The source-level
+  prerequisite for B is discovered without a declared edge; shared files alone create none.
+- Each group gets a real worker in its own task worktree and topic branch. Sequential delegation is
+  valid, including for one grouped PR; neither task implementation nor the sentinel touches the
+  primary HEAD/index, and no two writers share a physical workspace.
+- The B worker starts from the verified A1/A2 head containing `single_line`. Read back the root
+  helper PR against trunk, B against the helper head branch, and independent C against trunk.
+  Inspect their scoped diffs, draft state, head/base, checks, review, and task coverage. Native
+  stack read-back confirms helper then B in order and the configured trunk; C is not a fake
+  prerequisite. A chained base or a "depends on" comment is not stack membership.
+- Re-enter the same completed scope and verify reuse/read-back without duplicate workers, branches,
+  PRs, or stacks. If a required stack operation is genuinely unavailable, preserve valid work and
+  report the unfinished delivery; do not simulate an outage or substitute another transport.
+- Bare-reference/read-only input dispatches no implementation worker or publication. An explicit
+  local-only Orchestrate run uses isolated workers but makes no commit, push, PR, or stack write,
+  even if a task mentions a PR scenario. A host genuinely lacking workers reports the limitation
+  rather than implementing inline; mark unavailable restricted-capability variants **Unrun**.
+- If an actual worker result or write is lost, rediscover native worker state and Git/PR facts
+  before retrying. Without a safe interruption point, mark this variant **Unrun**. Preserve unknown
+  branches and unrelated edits. Nothing is marked ready, queued, force-pushed, merged, or closed.
 
 ## Installed integration
 

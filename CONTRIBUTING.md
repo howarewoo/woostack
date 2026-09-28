@@ -38,7 +38,8 @@ for standing repository rules, the sanctioned `site/` exception, and verified ch
 
 ## Workflow
 
-1. Create a Git branch from `main`. The branch is a separate line of work;
+1. Create a Git branch from the approved base: `main` for an independent change, or the approved
+   predecessor branch for one layer of a planned stack. The branch is a separate line of work;
    `main` is protected, so changes go through a pull request (PR).
 2. Edit the relevant files. Keep each PR focused on one concern where possible.
 3. Check that relative links and heading links still resolve (`[label](path.md#anchor)`).

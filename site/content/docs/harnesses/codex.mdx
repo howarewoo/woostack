@@ -34,10 +34,11 @@ subscription or API documentation does not prove any capability.
 
 Install woostack in local Codex using [Getting started](/docs/getting-started). Confirm the current
 runtime exposes Git, isolated workspaces, and an authorized native GitHub interface or
-host-authenticated `gh`; delivery-capable subagents let it run ready tasks together, and a session
-without them still runs the same scope sequentially in one conversation. Tracker interpretation
-includes a Project only when explicitly selected; its status lifecycle is used only when that
-selection requests status mutation.
+host-authenticated `gh`; delivery-capable subagents let it run ready groups together. A session
+without them reports that missing worker capability for the affected delivery instead of editing
+the primary checkout.
+Tracker interpretation includes a Project only when explicitly selected; its status lifecycle is
+used only when that selection requests status mutation.
 
 After the planning chat has stopped with a verified native or declared handback, send the complete
 planning context to Codex. A canonical tracker URL is a convenient hint:
@@ -49,10 +50,10 @@ planning context to Codex. A canonical tracker URL is a convenient hint:
 In Codex, write that same request as `$woostack-orchestrate --issue <verified canonical tracker
 URL>`.
 
-Orchestrate independently reads the selected scope and dependencies, then coordinates only
-executable tasks. It can run tasks sequentially in the calling session when optional subagents
-are unavailable. See [Orchestrate](/docs/skills/woostack-orchestrate) for scope, ordering, and
-delivery boundaries.
+Orchestrate independently reads the selected scope and dependencies, states the group plan, then
+delegates each group to a worker in its own task worktree. When the host exposes no subagents, it
+reports that boundary rather than running the same scope inline. See
+[Orchestrate](/docs/skills/woostack-orchestrate) for scope, ordering, and delivery boundaries.
 
 If chat tools cannot write issues, pass the plan and its evidence to Plan in Codex. Plan publishes
 issues only when requested. Debug, Ideate, and Harden are optional phases; a bounded task can go

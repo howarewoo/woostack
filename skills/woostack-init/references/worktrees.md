@@ -16,10 +16,16 @@ the physical repository, branch, HEAD, index, dirty state, and task diff before 
 relevant worktrees and path aliases for collisions; preserve unrelated work. Never create around a
 conflicting checkout or silently take over a workspace.
 
-Concurrent writers need independently owned workspaces and non-overlapping responsibility. Before
-reuse, inspect native worker state and current Git/PR facts. If an earlier writer may still be active,
-stop the affected work until its exit or relinquishment is proved. Waiting or serializing a new
-writer does not establish that proof. Instructions provide neither locking nor sandboxing.
+Every implementation writer needs an independently owned workspace and branch with non-overlapping
+responsibility — delegation requires its own workspace, not merely concurrency — and an approved
+existing workspace is reused when it is verified suitable. Before reuse, inspect native worker
+state and current Git/PR facts. If an earlier writer may still be active, stop the affected work
+until its exit or relinquishment is proved. Waiting or serializing a new writer does not establish
+that proof. Instructions provide neither locking nor sandboxing.
+
+A session that dispatches writers does not treat the primary checkout's existing edits as spare
+capacity: uncommitted work there is recovery evidence, never permission to reset, stash, or keep
+writing on the protected trunk.
 
 ## Base and recovery
 

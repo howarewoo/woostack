@@ -65,9 +65,9 @@ complete. An unknown defect cause stays with [Debug](/docs/skills/woostack-debug
 ## Orchestrate
 
 ```text
-approved work context → resolve executable tasks and their real prerequisites →
-start ready work in separately owned workspaces → verify delivery from Git and PR evidence →
-release eligible dependents
+approved work context → read outcomes, source, and PR evidence → state the group plan →
+delegate each group to a worker in its own task worktree → deliver draft PRs, stacked in order →
+verify delivery from Git and PR evidence
 ```
 
 Orchestrate works from approved tasks: published issues, a tracker, or other complete readable
@@ -75,16 +75,23 @@ context. Readable context is valid input, and a native issue hierarchy is not un
 mandatory. A readable tracker plus independently readable tasks is enough to coordinate work, so a
 missing administrative link is not a blocker while missing task scope is.
 
-Every task starts from a base that actually contains the changes it requires. That is a content
-question answered by current Git and PR facts, not by an assumed ancestor or a similar branch name.
-Concurrent writers never share one physical workspace, and a prior writer whose exit is unproved
-blocks reuse of its workspace while other safe work continues.
+The change plan comes before any implementation: which tasks group into which pull request, the
+required changes, the intended parent and landing order, and the safe parallel work. Prerequisites
+are discovered from source and PR evidence, not from a missing dependency field. Small related
+tasks that form one reviewable change can share a branch, one worker, and one PR; every task keeps
+its own acceptance, and a user-requested issue-to-PR mapping is preserved.
 
-Execution order, concurrency, and each task's base are the coordinating agent's own decisions,
-made when a task starts. Verified delivery with current readiness releases eligible dependents
-without waiting for a whole wave, and a prerequisite already landed in the approved integration
-base counts as repository evidence. There is no persisted execution forest, lock service, or
-cross-harness replay guarantee.
+Each group is implemented by a delegated worker in an independently owned task worktree, including
+a run that groups everything into one PR, and every task starts from a base that actually contains
+the changes it requires. That is a content question answered by current Git and PR facts, not by an
+assumed ancestor or a similar branch name. Two writers never share one physical workspace, and a
+prior writer whose exit is unproved blocks reuse of its workspace while other safe work continues.
+
+Root pull requests target the approved trunk, each dependent pull request targets its planned
+predecessor's head branch, and native stack registration is required for those dependent PRs and
+read back after publication. Sequential dispatch is normal when a real prerequisite or host
+capacity requires it. There is no persisted execution forest, lock service, or cross-harness replay
+guarantee.
 
 [Coordinate several tasks](/docs/guides/coordinate-work) is the procedure, and
 [Orchestrate's reference](/docs/skills/woostack-orchestrate) owns admission, base selection, and

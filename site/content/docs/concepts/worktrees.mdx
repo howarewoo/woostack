@@ -10,11 +10,12 @@ or acceptance. The
 defines identity, collision, writer ownership, base evidence, and recovery.
 
 Use an approved existing workspace and branch or a host/repository-selected isolated checkout. A
-fresh worktree is not mandatory. Inspect the selected index, dirty state, branch, base, and diff;
-preserve unrelated changes. Concurrent writers need distinct, independently owned workspaces and
-responsibility surfaces. Before reuse, inspect native writer state and current Git/PR facts. If a
-former writer may still be active, stop affected work until exit is proved; serialization cannot
-prove it stopped. Instructions do not enforce locks or sandboxing.
+fresh worktree is not mandatory, but each delegated implementation writer gets its own
+independently owned workspace and branch, not only concurrent ones. Inspect the selected index,
+dirty state, branch, base, and diff; preserve unrelated changes. Before reuse, inspect native
+writer state and current Git/PR facts. If a former writer may still be active, stop affected work
+until exit is proved; serialization cannot prove it stopped. Instructions do not enforce locks or
+sandboxing.
 
 Required predecessor changes must actually be available in the chosen base. Git ancestry proves
 commit-preserving containment, while a squash landing requires checking the native landing and

@@ -28,10 +28,11 @@ commit or publish; an explicit Execute request delivers a reviewable draft PR un
 narrows it to local work.
 
 [Orchestrate](/docs/skills/woostack-orchestrate) is the multi-task case. It resolves approved tasks
-and their real prerequisites from published issues or other readable context, starts the work that
-is ready, and releases a dependent only after delivery is verified. Issue and Project metadata are
-its input rather than its authority: a closed issue or a finished status never proves that code
-landed, was reviewed, or was merged.
+and their real prerequisites from published issues or other readable context, states the plan that
+groups them into coherent pull requests, delegates each group to a worker in its own task worktree,
+and releases a dependent only after delivery is verified. Issue and Project metadata are its input
+rather than its authority: a closed issue or a finished status never proves that code landed, was
+reviewed, or was merged.
 
 [Workflow maps](/docs/concepts/workflows) compare the workflows, and
 [Building rules](/docs/concepts/building-rules) own the detailed boundaries.
@@ -104,7 +105,7 @@ resume.
   <Card title="Workflow maps" href="/docs/concepts/workflows" description="Compare Bootstrap, Plan, Orchestrate, and Execute under one authority model." />
   <Card title="Least code, still safe" href="/docs/concepts/least-code" description="Write as little code as necessary without cutting edge cases or risks." />
   <Card title="Context management" href="/docs/concepts/context-management" description="Keep reasoning focused with compact reads, isolated sessions, and explicit handoffs." />
-  <Card title="Parallelism with worktrees" href="/docs/concepts/worktrees" description="Isolate bounded implementation tasks and concurrent disjoint work in separate Git worktrees." />
+  <Card title="Parallelism with worktrees" href="/docs/concepts/worktrees" description="Isolate each delegated implementation task and concurrent disjoint work in separate Git worktrees." />
   <Card title="Utility skill reference" href="/docs/concepts/utilities" description="Look up investigation, diagnostic, and maintenance skill behavior." />
   <Card title="All skills" href="/docs/skills/using-woostack" description="Per-skill reference, generated from each SKILL.md." />
 </Cards>
