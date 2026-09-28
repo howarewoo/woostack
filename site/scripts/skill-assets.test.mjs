@@ -90,9 +90,25 @@ async function candidateSkillPackages(checkout) {
 async function installCandidate(checkout, destination) {
   const tracked = new Set(candidatePaths(checkout, '--cached'));
   const packages = await candidateSkillPackages(checkout);
+  const checkedDirectories = new Set();
   for (const relative of candidatePaths(checkout, '--cached', '--others', '--exclude-standard')) {
     const [area, name] = relative.split('/');
-    if (!tracked.has(relative) && !(area === 'skills' && packages.has(name))) continue;
+    if (!tracked.has(relative) && !(area === 'skills' && packages.has(name))
+      && !(area === '.claude' && name === 'skills' && relative.split('/').length === 3)) continue;
+    let parent = checkout;
+    for (const part of relative.split('/').slice(0, -1)) {
+      parent = path.join(parent, part);
+      if (checkedDirectories.has(parent)) continue;
+      let directory;
+      try {
+        directory = await lstat(parent);
+      } catch (error) {
+        if (error?.code !== 'ENOENT') throw error;
+        break;
+      }
+      if (directory.isSymbolicLink()) throw new Error(`symlinked candidate directory: ${parent}`);
+      checkedDirectories.add(parent);
+    }
     const source = path.join(checkout, relative);
     const target = path.join(destination, relative);
     let info;
@@ -298,6 +314,40 @@ test('an uncommitted candidate error is not hidden by the committed release byte
   await rm(install, { recursive: true, force: true });
   assert.equal(await readFile(entry, 'utf8'), broken);
   assert.equal(await exists(path.join(root, 'committed-release', 'skills')), true);
+});
+
+test('unstaged discovery links are included and dangling links remain detectable', async (t) => {
+  const root = await makeRoot(t);
+  const checkout = await makeCandidateCheckout(root, ['sample-skill']);
+  await writeSkill(path.join(checkout, 'skills'), 'new-skill');
+  const link = path.join(checkout, '.claude', 'skills', 'new-skill');
+  await symlink('../../skills/new-skill', link);
+
+  const install = path.join(root, 'candidate-install');
+  await installCandidate(checkout, install);
+  assert.deepEqual((await validateSkillAssets(path.join(install, 'skills'), ['sample-skill', 'new-skill']))
+    .map(({ name }) => name), ['new-skill', 'sample-skill']);
+  assert.equal((await lstat(path.join(install, '.claude', 'skills', 'new-skill'))).isSymbolicLink(), true);
+  assert.deepEqual(await findBrokenSkillLinks(path.join(install, '.claude', 'skills')), []);
+
+  await rm(link);
+  await symlink('../../skills/missing-skill', link);
+  const broken = path.join(root, 'broken-install');
+  await installCandidate(checkout, broken);
+  assert.deepEqual(await findBrokenSkillLinks(path.join(broken, '.claude', 'skills')),
+    ['new-skill -> ../../skills/missing-skill: is a dangling link']);
+});
+
+test('a substituted skill directory cannot be flattened into the candidate', async (t) => {
+  const root = await makeRoot(t);
+  const checkout = await makeCandidateCheckout(root, ['sample-skill']);
+  const replacement = await writeSkill(root, 'sample-skill');
+  const skill = path.join(checkout, 'skills', 'sample-skill');
+  await rm(skill, { recursive: true });
+  await symlink(replacement, skill);
+
+  await assert.rejects(installCandidate(checkout, path.join(root, 'candidate-install')),
+    /symlinked candidate directory/);
 });
 
 test('staged additions and retirements install as one candidate, and unknown skills stay visible', async (t) => {
