@@ -206,14 +206,20 @@ For every approved surface:
 
 ## Git and workspace initialization
 
+A local-only scaffold needs no Git repository, GitHub account, or remote destination. When Git
+initialization is part of the requested deliverable:
+
 - Initialize Git only after creating the approved scaffold in the verified target.
-- Configure the canonical remote without embedding credentials.
-- Configure the intended integration branch.
-- Initialize `.woostack/` through `woostack-init`.
-- Do not create `.woostack/specs/`, `.woostack/plans/`, `.woostack/fixes/`, or a shadow development
+- Name the initial branch from normal repository and host policy.
+- Resolve and configure a remote only for explicitly requested remote setup or publication, without
+  embedding credentials.
+- Initialize `.woostack/` through `woostack-init` only when the user selects Woostack adoption for the
+  project or the generated project actually needs its support.
+- Never create `.woostack/specs/`, `.woostack/plans/`, `.woostack/fixes/`, or a shadow development
   ledger.
-- The initial greenfield scaffold is the only primary-worktree exception.
-- Use isolated worktrees for every later feature or fix.
+- Use the
+  [workspace guidance](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/worktrees.md)
+  for every later bounded feature or fix.
 - Do not commit or push until generated files, environment files, lockfiles, ignore rules, and code
   ownership have been classified.
 

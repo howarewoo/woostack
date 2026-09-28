@@ -13,9 +13,7 @@ Keep only in active run context:
 3. required application surfaces;
 4. security, compliance, scale, budget, and deployment constraints;
 5. researched stack and live-resolved package/tool versions;
-6. complete approved architecture, scope, and initial feature set;
-7. intended canonical future repository URL and integration branch; and
-8. deterministic stable approved-contract identity.
+6. complete approved architecture, scope, and initial feature set.
 
 ## Filesystem write barrier and collision check
 
@@ -26,11 +24,10 @@ project contents, invoke Git, or mutate the target. A discovered existing codeba
 Create no local specification/plan, remote Project, branch, commit, or PR before design approval.
 No GitHub operation occurs before design approval and collision admission.
 
-All of these must hold before target admission:
+Both of these must hold before target admission:
 
-1. complete design explicitly approved in the current conversation;
-2. stable approved-contract identity plus intended canonical repository/base retained; and
-3. a fresh read-only collision check proves the target is absent or an empty non-Git directory.
+1. complete design explicitly approved in the current conversation; and
+2. a fresh read-only collision check proves the target is absent or an empty non-Git directory.
 
 Reject a symlink, non-directory object, unreadable/ambiguous result, existing Git worktree or
 repository, populated directory, or path owned by another process/run. Never reset, clean, delete,
@@ -48,8 +45,8 @@ and [Project content contract](../../woostack-init/references/artifact-providers
 
 - prove the authorized GitHub capability and exact Project scope;
 - resolve the exact selected Project;
-- write the approved goal, architecture, scope, decisions, and repository/base intent;
-- use the stable operation identity;
+- write the approved goal, architecture, scope, and decisions;
+- use the exact selected Project's retained mutation identity;
 - preserve unrelated human content; and
 - independently read the exact resource, fields, identity, scope, and content back.
 
@@ -96,16 +93,16 @@ already supplies one.
 
 ## Repository initialization
 
-Because a genuinely greenfield target has no base branch, the initial scaffold is the sole primary
-worktree exemption.
+A local scaffold needs no remote. When local Git initialization is part of the approved deliverable:
 
 1. initialize Git only after scaffold creation at the verified target;
-2. configure the intended integration branch and canonical remote without embedding credentials;
-3. initialize `.woostack/` non-authoritative support through
-   [`woostack-init`](../../woostack-init/SKILL.md);
-4. do not create `.woostack/specs/`, `.woostack/plans/`, `.woostack/fixes/`, or a shadow development
-   ledger; and
-5. use isolated worktrees for every later bounded feature or fix.
+2. name the initial branch from normal repository and host policy;
+3. resolve and configure a remote only for explicitly requested remote setup or publication, using
+   its exact identity and permissions and never embedding credentials;
+4. invoke [`woostack-init`](../../woostack-init/SKILL.md) only when the user selects Woostack
+   adoption for the project or the generated project actually needs its support; and
+5. use the shared [isolated-workspace guidance](../../woostack-init/references/worktrees.md) for
+   every later bounded feature or fix.
 
 Do not commit or push until generated files, environment files, lockfiles, ignore rules, and code
 ownership are classified under repository policy.
@@ -137,17 +134,17 @@ Run the generated project's real commands from the target:
 6. production build; and
 7. boot/smoke of each approved deployable surface, exercising at least one vertical path.
 
-Inspect the target tree and Git status afterward. Reject committed secrets, `.env*`, generated build
-output, stray examples, premature or duplicated shared packages, unexpected files, missing
-lockfiles, or dirty formatter output. A command that does not exist is not a passing check; fix the
-scaffold or report the explicit gap.
+Inspect the target tree and, when a repository was initialized, its status afterward. Reject
+committed secrets, `.env*`, generated build output, stray examples, premature or duplicated shared
+packages, unexpected files, missing lockfiles, or dirty formatter output. A command that does not
+exist is not a passing check; fix the scaffold or report the explicit gap.
 
 ## Optional GitHub delivery note
 
-When selected, append the verified repository URL, branch, resolved stack/versions, created surfaces,
-and observed checks to the exact GitHub Project record and independently read it back. Do not create
-issues, assign owners, transition lifecycle, accept work, or claim source state from GitHub. Publication
-failure remains separate from scaffold verification.
+When a Project was selected, append the observed repository URL and branch when a remote exists,
+resolved stack/versions, created surfaces, and observed checks to the exact GitHub Project record and
+independently read it back. Do not create issues, assign owners, transition lifecycle, accept work,
+or claim source state from GitHub. Publication failure remains separate from scaffold verification.
 
 ## Handoff
 
@@ -156,7 +153,7 @@ Return:
 - target path and collision-check result;
 - approved architecture and created surfaces;
 - exact resolved technology versions and authoritative lookup source;
-- canonical repository/base intent;
+- observed local Git state, and the resolved remote or Project identity when one was requested;
 - verification commands and observed results;
 - boot/smoke observations;
 - README and environment/setup status;

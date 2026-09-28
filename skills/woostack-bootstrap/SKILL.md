@@ -10,11 +10,12 @@ description: Bootstrap a genuinely greenfield web, mobile, desktop, API, or daem
 Bootstrap is the greenfield, project-first entry point. It gathers requirements, resolves current
 technologies and versions live, presents a complete architecture and scope, and waits for explicit
 design approval before any target-directory write. That approval—not a provider receipt—releases
-the write barrier after repository and target collision checks pass.
+the write barrier once the target collision check passes. A local scaffold needs no GitHub
+repository, account, remote URL, or Project.
 
 The stack remains dynamic rather than template-selected. Validate the user's supplied stack against
 the project's requirements, then scaffold each approved app with code local to that app.
-Extract a package only when multiple apps need the same code. An exact canonical GitHub Project URL
+Extract a package only when multiple apps need the same code. An explicitly selected GitHub Project
 may retain the approved design and requested delivery notes, but is optional and never authorizes
 writes.
 
@@ -71,28 +72,25 @@ preference, partial agreement, or approval inferred by the agent does not clear 
 approval, perform no official-MCP development mutation and create no development artifact.
 </HARD-GATE>
 
-5. **Establish repository/base intent and a stable approved-contract identity.** Only after approval,
-   retain the exact canonical future `https://github.com/<owner>/<repository>` URL, intended
-   integration/base branch, normalized approved goal/scope, and deterministic contract identity. This
-   identity prevents duplicate work within/resumed from the same supplied contract; it is not a run,
-   provider, or development record.
-6. **Admit the filesystem write barrier.** Follow the canonical
+5. **Admit the filesystem write barrier.** Follow the canonical
    [collision-check procedure](references/bootstrap.md#filesystem-write-barrier-and-collision-check)
-   after approval and repository/base intent are retained. Early inspection cannot replace the
-   fresh pre-write check.
-7. **Optionally publish the approved design.** Only after design approval and target collision checks pass,
-   and only when the caller explicitly selects an exact canonical GitHub Project URL, apply the shared
+   after design approval. The approved scope and the actual selected target stay in conversation
+   context; create no run record, hash, or manifest to stand in for them. Early inspection cannot
+   replace the fresh pre-write check.
+6. **Optionally set up a remote or publish the approved design.** Only after design approval and
+   target collision checks pass, and only when the caller explicitly requests remote setup or selects
+   an exact GitHub Project, apply the shared
    [artifact contract](../woostack-init/references/artifact-backends.md#direct-publication-and-recovery),
    load the [Project content contract](../woostack-init/references/artifact-providers/github.md#selected-project-content),
    and follow the [bootstrap publication procedure](references/bootstrap.md). No GitHub operation occurs
-   before design approval and collision/filesystem admission. Resolve the exact selected Project and
+   before design approval and collision/filesystem admission. Resolve the exact selected destination and
    append/read back `designApproved` under its actual scope, identity, capability, and read-back rules.
-   Missing, partial, ambiguous, or unknown GitHub outcomes block only this requested publication unless it
+   Missing, partial, ambiguous, or unknown GitHub outcomes block only that requested operation unless it
    was explicitly part of the deliverable. Artifact text never releases the filesystem barrier.
-8. **Scaffold and verify.** Follow [references/bootstrap.md](references/bootstrap.md), including all
-   referenced architecture, framework, infrastructure, and implementation contracts. Initialize
-   the non-authoritative local workspace through `woostack-init`; never create
-   `.woostack/specs/`, `.woostack/plans/`, or `.woostack/fixes/`. Run the build, test, lint, format,
+7. **Scaffold and verify.** Follow [references/bootstrap.md](references/bootstrap.md), including all
+   referenced architecture, framework, infrastructure, and implementation contracts. Invoke
+   [`woostack-init`](../woostack-init/SKILL.md) only when the user selects Woostack adoption for the
+   project or the generated project actually needs its support. Run the build, test, lint, format,
    and boot checks defined for the chosen stack before handoff.
 
 ## References (load on demand)
@@ -120,19 +118,17 @@ These are non-negotiable. Violating them produces an unattributed, broken, or dr
 - **Approval before writes.** Follow the
   [filesystem barrier](references/bootstrap.md#filesystem-write-barrier-and-collision-check);
   early read-only inspection and GitHub receipts never authorize mutation.
-- **GitHub publication is opt-in.** Without an explicitly selected Project, make no GitHub call. When
-  selected, use only the authorized native GitHub capability or host-authenticated `gh`, exact
-  identities, stable mutation IDs, complete pagination, and independent read-back. Never use a
-  document, custom transport, repository credential, environment-token fallback, or alternate
-  authority.
+- **Remote work is opt-in.** A local-only scaffold makes no GitHub call and needs no account,
+  Project, remote URL, push, or PR; never infer a repository name or create a remote resource to
+  satisfy a local deliverable. When remote setup or publication is requested, use only the authorized
+  native GitHub capability or host-authenticated `gh`, exact identities, stable mutation IDs,
+  complete pagination, and independent read-back. Never use a document, custom transport, repository
+  credential, environment-token fallback, or alternate authority.
 - **Publication failure is scoped.** Missing access or an unknown/partial result blocks requested
   publication, not an otherwise approved artifact-free scaffold, unless publication was explicitly part
   of the deliverable. Never claim publication without direct read-back. Retired legacy config/data
   remains on disk as opaque user data, is omitted from active configuration, and receives retirement
   guidance at its boundary; it is never imported.
-- **Pass stable approved-contract identity.** Scaffolding reuses its normalized approved contract
-  and deterministic target identity. It does not create a planning run; optional artifact IDs
-  are carried only when persistence was explicitly selected.
 - **Always resolve latest versions live.** Never use hardcoded versions from memory. Query the
   registry live during research and exact resolution.
 - **Keep code app-local until shared.** Follow
@@ -143,14 +139,7 @@ These are non-negotiable. Violating them produces an unattributed, broken, or dr
 - **Record decisions.** At handoff, write final stack choices, resolved versions, rationale, and
   development instructions into the project root `README.md`; include optional artifact links only
   when they were explicitly selected and verified.
-- **Initial scaffold is the one worktree exemption.** A fresh repo has no base branch from which to
-  create an isolated workspace, so initial scaffold plus first commit land in the primary tree. All
-  subsequent feature/fix work follows the shared
-  [isolated-workspace guidance](../woostack-init/references/worktrees.md).
 
 ## SPEC_VERSION
 
-`5.0.0` — Greenfield bootstrap with approval-gated scaffolding and optional direct GitHub Project publication.
-
-
-Wall time: 0.11 seconds
+`6.0.0` — Local-first greenfield bootstrap: approval-gated scaffolding with no mandatory remote, and optional direct GitHub Project publication.
