@@ -104,9 +104,9 @@ Use the existing information architecture rather than adding a second naming sch
 - Task procedures, including the Hermes workflow, are how-to guides.
 - `content/docs/configuration/`, `content/docs/harnesses/`, generated `content/docs/skills/`, and
   `utilities.mdx` are reference.
-- `content/docs/concepts.mdx` and the remaining topic pages under `content/docs/concepts/` are
-  explanation.
-- `content/docs/index.mdx` and section index pages are navigation surfaces.
+- `content/docs/concepts/index.mdx` and the remaining concept topic pages are explanation.
+- `content/docs/index.mdx`, `content/docs/guides/index.mdx`, and reference-section index pages are
+  navigation surfaces.
 
 When existing content crosses these boundaries, improve the separation in the smallest safe edit.
 Do not duplicate canonical facts to make a page self-contained. Link to the owning page.

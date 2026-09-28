@@ -1,25 +1,110 @@
 ---
-title: Overview
-description: "woostack's planning, optional issue publication, delivery boundaries, and context management."
+title: Core concepts
+description: Who authorizes work, which evidence proves it, and how planning, implementation, and context stay separate.
 ---
 
-woostack uses explicit user decisions, separate workspaces for implementation, and independent
-review. A bounded change fits one pull request (PR). Plan turns a goal into a coherent plan and
-files GitHub issues only when the request asks for it, before any implementation. Git and GitHub
-show the actual code and PR state.
+import { ContextEconomy } from '@/components/concepts/context-economy';
 
-The [core concepts](/docs/concepts) explain who can authorize work and which records prove its
-results. The [workflow maps](/docs/concepts/workflows) help you choose and run a workflow.
-[woostack-reflect](/docs/skills/woostack-reflect) looks for reusable instruction improvements in a
-fixed snapshot of the current conversation. It directs each suggestion to the file or skill that
-owns the rule. Its report, like other diagnostic reports, does not authorize changes.
+woostack keeps three things apart: the user's decisions, the agent's planning, and the
+implementation. The user decides what may change. Git and GitHub show what code changed, which
+branches and commits it came from, and whether its pull requests (PRs) have been reviewed or
+merged. Issues, Project status, retained records, and an agent's own summary are context for those
+decisions, not proof of them.
+
+A bounded change fits one PR, and a new codebase starts from an approved design. Choosing a
+workflow never approves its design or authorizes extra work.
+
+## Planning before implementation
+
+Planning and implementation are separate decisions.
+[Plan](/docs/skills/woostack-plan) inspects the relevant source, settles the decisions that still
+change the outcome, and returns a few reviewable increments. It writes GitHub issues only when the
+request asks for it, and filing a plan never starts implementation.
+
+Bounded work needs no planning step first. [Execute](/docs/skills/woostack-execute) takes one
+authorized outcome, chooses routine implementation details, establishes the cause before
+correcting a defect, and runs the checks relevant to the changed behavior. Local work need not
+commit or publish; an explicit Execute request delivers a reviewable draft PR unless the request
+narrows it to local work.
+
+[Orchestrate](/docs/skills/woostack-orchestrate) is the multi-task case. It resolves approved tasks
+and their real prerequisites from published issues or other readable context, starts the work that
+is ready, and releases a dependent only after delivery is verified. Issue and Project metadata are
+its input rather than its authority: a closed issue or a finished status never proves that code
+landed, was reviewed, or was merged.
+
+[Workflow maps](/docs/concepts/workflows) compare the workflows, and
+[Building rules](/docs/concepts/building-rules) own the detailed boundaries.
+
+## Optional exploration and review
+
+[Ideate](/docs/skills/woostack-ideate) explores requirements when you ask for it and returns the
+explored specification with the technical details it filled in.
+[Harden](/docs/skills/woostack-harden) checks a specification or candidate issue plan against
+bounded repository evidence and reports the discrepancies it finds. Both are optional, and neither
+needs a writable checkout or a Project.
+
+Verified schemas and interfaces are observations, and routine technical details follow the
+requested outcome. Unresolved product behavior, breaking compatibility, security and data
+boundaries, irreversible effects, cost, and scope still need a user decision.
+
+## Retained records and direct GitHub publication
+
+Plan publishes issues directly through the host's authorized GitHub capability. A mutation
+response proves nothing on its own, so each write is read back and checked against the actual issue
+content and the relationships that were actually written.
+
+Existing `.woostack/tmp/runs/<run-id>/` records from retired planning wrappers remain readable
+historical user data. Nothing migrates, mutates, or deletes them, and a record authorizes no
+publication, implementation, assignment, or ownership. A supplied record is evidence only after its
+exact identity, complete content, and freshness are validated. The
+[local artifacts reference](/docs/configuration/artifacts/local) owns the retained-data contract and
+its recovery rules.
+
+## Context economy
+
+<ContextEconomy />
+
+Keep only what the current decision needs. Scoped rules, scripts that compute an answer, and
+subagents that return a compact result protect the same scarce resource. Choose inline or
+delegated implementation with the
+[delegation guidance](/docs/concepts/context-management#isolated-agents-receive-bounded-envelopes),
+which weighs speed, cost, isolation, overhead, and risk. Run the checks relevant to the changed
+behavior, and add independent review when the task or the repository requires it.
+
+### Session reflection becomes instruction suggestions
+
+[woostack-reflect](/docs/skills/woostack-reflect) runs one report-only pass over a fixed snapshot
+of the current conversation. Only an explicit `/woostack-reflect` request or an unambiguous request
+to reflect starts it; noticing a possible gap mid-task does not. It reports durable instruction
+improvements and points each one at the file or skill that owns the rule, and it edits no
+instruction file. Diagnostic reports from QA or production work can support a decision but never
+authorize a correction. A correction starts from cause evidence, and published issues come
+afterwards only when the fix needs them.
+
+### Tools compute, agents read compact results
+
+Helpers gather and check evidence that can be processed mechanically, including reading retained
+record bytes without changing them. Their output describes what was observed; it does not widen the
+approved scope or start work. The user still decides what may be implemented.
+
+### External engineers and coding harnesses
+
+Hermes is an external engineer, not an installed coding harness. It may drive a persistent session,
+review evidence, and relay the responsible user's live decisions verbatim; it gains no
+implementation authority. See the [Hermes guide](/docs/hermes) for that boundary and cross-session
+resume.
+
+## Where to go next
 
 <Cards>
-  <Card title="Building rules" href="/docs/concepts/building-rules" description="How plans, user decisions, and repository evidence guide planning and delivery." />
-  <Card title="Repository structure and rules" href="/docs/concepts/repository-rules" description="The complete app-local code, shared extraction, dependencies, production, testing, Git, and scaffold contract." />
+  <Card title="Getting started" href="/docs/getting-started" description="Install the skills, initialize local support, and check the installation." />
+  <Card title="Building rules" href="/docs/concepts/building-rules" description="Understand workflow scope, planning, optional issue publication, and authority boundaries." />
+  <Card title="Repository structure and rules" href="/docs/concepts/repository-rules" description="Read the complete app-local code, shared extraction, dependencies, production, testing, Git, and scaffold contract." />
   <Card title="Workflow maps" href="/docs/concepts/workflows" description="Compare Bootstrap, Plan, Orchestrate, and Execute under one authority model." />
   <Card title="Least code, still safe" href="/docs/concepts/least-code" description="Write as little code as necessary without cutting edge cases or risks." />
   <Card title="Context management" href="/docs/concepts/context-management" description="Keep reasoning focused with compact reads, isolated sessions, and explicit handoffs." />
   <Card title="Parallelism with worktrees" href="/docs/concepts/worktrees" description="Isolate bounded implementation tasks and concurrent disjoint work in separate Git worktrees." />
   <Card title="Utility skill reference" href="/docs/concepts/utilities" description="Look up investigation, diagnostic, and maintenance skill behavior." />
+  <Card title="All skills" href="/docs/skills/using-woostack" description="Per-skill reference, generated from each SKILL.md." />
 </Cards>
