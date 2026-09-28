@@ -78,17 +78,11 @@ complete bounded task and supply `/woostack-execute <bounded input>` with its pa
 [Execute retired inputs](/docs/skills/woostack-execute#retired-inputs).
 
 Saved records do not grant permission to assign workers, edit code, commit, review, or accept a
-product. They also do not prove delivery. Goal-only Execute makes no remote calls and needs no
-planning-provider call.
-
-An explicitly selected exact GitHub issue permits only its required read through an authorized GitHub
-capability (native host tools preferred; host-authenticated `gh` supported), with no Project
-configuration or issue lifecycle writes. Commit owns repository/PR delivery.
-
-Bootstrap and Commit use direct GitHub operations only when explicitly requested: Project publication
-after design approval and target collision checks for Bootstrap, or an exact issue association for
-Commit. Each write requires a separate read to confirm its result. A GitHub note failure is reported
-separately from repository delivery, and Git/GitHub remain authoritative for repository results.
+product. They also do not prove delivery. Local implementation needs no planning-provider or
+GitHub call unless an exact issue was selected for context. That read grants neither implementation
+nor publication authority. Commit owns requested local commits or PR delivery; each remote write
+requires independent read-back. A GitHub note failure is separate from repository delivery, and
+Git/GitHub remain authoritative for repository results.
 
 ## Recovery
 

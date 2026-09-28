@@ -99,9 +99,9 @@ Historical retired wrapper records may retain `project-spec.md`, `execution-plan
 manifest under `.woostack/tmp/runs/<run-id>/`; they remain readable and are never silently migrated
 or rewritten.
 To continue from one, supply its exact identity and complete content to the responsible phase after
-fresh evidence validation. A retained run ID alone is not an implementation input; one exact
-canonical task-bearing GitHub issue URL is valid Execute input because Execute reads it and resolves
-the bounded contract during admission.
+fresh evidence validation. A retained run ID alone is not an implementation input; an exact
+GitHub issue URL supplies context to an authorized Execute invocation, not implementation or
+publication permission by itself.
 
 ## 8. Clean up legacy launchers when safe
 

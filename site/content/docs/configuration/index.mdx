@@ -143,13 +143,11 @@ worktrees are cut from.
   Init validates an optional top-level `github` object without seeding model settings.
   Authorized native GitHub capabilities or host-authenticated `gh` may provide narrow non-secret
   defaults; missing GitHub configuration or connectivity never blocks local initialization. Plan
-  publishes issues directly when the request asks for it and requires no Project configuration, a
-  local run, or a second remote record. Goal-only
-  Execute makes no remote calls;
-  an exact GitHub issue permits only its documented read through authorized GitHub capabilities
-  (native tools preferred; host-authenticated `gh` supported), without Project configuration or issue
-  lifecycle writes or a planning-provider call. [woostack-doctor](/docs/skills/woostack-doctor)
-  validates policy locally; its explicit live request is a separate fixed read-only GitHub contract.
+  publishes issues directly when requested and requires no Project configuration, local run, or
+  second remote record. Local implementation needs no GitHub access unless an exact issue was
+  selected for context; that issue read grants neither implementation nor publication authority.
+  [woostack-doctor](/docs/skills/woostack-doctor) validates policy locally; its explicit live
+  request is a separate fixed read-only GitHub contract.
 </Callout>
 
 ## Migration notes

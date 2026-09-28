@@ -74,9 +74,8 @@ separate permission.
   exercises the changed path, so no extra smoke is needed.
 - The diff touches only the named file. There is no issue, Project, or provider-graph discovery and
   no source edit from an unproved theory.
-- Commit owns the commit and PR submission; without authorized remote access, report
-  that delivery boundary **Unrun**, retaining the local check output and diff as evidence,
-  not claiming a delivered Execute run.
+- No commit or PR is requested, so the verified local diff is completion, not a failed delivery.
+  Report the focused check and that no PR was submitted; GitHub access is unnecessary.
 
 ## 2. Plan ordinary content with unavailable relationship metadata
 
@@ -115,8 +114,8 @@ them; otherwise label that variant **Unrun**.
 copy of the fixture. Prose, an issue list, and a tracker are all valid inputs; the host that cannot
 open a worker is still a supported host.
 
-With no authorized PR destination, local task ordering can be observed, but delivery and its
-dependent-release gate remain **Unrun**; do not call local commits verified PR delivery.
+With no authorized PR destination, local task ordering and completed edits can be observed, but
+PR-dependent release remains **Unrun**; do not call local checks verified PR delivery.
 
 **Observe:**
 
@@ -134,8 +133,9 @@ dependent-release gate remain **Unrun**; do not call local commits verified PR d
   this variant **Unrun** rather than simulating a timeout.
 - Work the run does not own survives: a dirty or committed worktree, an unknown branch, and
   unrelated issues stay intact and are never reused, overwritten, or cleaned.
-- Each delivery is a draft PR whose checks and required review are read back at its current head;
-  pending, stale, or unreadable results never count as a pass. Nothing is marked ready, queued,
+- When PR delivery was requested, each delivered PR's checks and required review are read back at
+  its current head; pending, stale, or unreadable results never count as a pass. Local-only success
+  does not release a task whose prerequisite requires a PR. Nothing is marked ready, queued,
   force-pushed, merged, or closed.
 
 ## Installed integration

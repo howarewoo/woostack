@@ -16,7 +16,7 @@ explicit workflow.
 | Feature, proved defect, or requested issue filing | [woostack-plan](/docs/skills/woostack-plan) | outcomes, important constraints, acceptance and verification, and real dependencies; GitHub issues written only when the request asks for them | direct host-authenticated GitHub reads/writes only for a requested publication; no mirror required |
 | Requested requirements exploration | [woostack-ideate](/docs/skills/woostack-ideate) | the user's decisions and open questions | no provider or run required |
 | Requested read-only specification or issue-plan review | [woostack-harden](/docs/skills/woostack-harden) | reconciled content after bounded evidence checks | no provider or run required |
-| Bounded enhancement, refactor, tests, or authorized correction | [woostack-execute](/docs/skills/woostack-execute) | authorized outcome from inline input or a task-bearing issue; causal evidence before bug repair | routine implementation and relevant checks are agent-chosen; Commit owns PR delivery |
+| Bounded enhancement, refactor, tests, or authorized correction | [woostack-execute](/docs/skills/woostack-execute) | authorized outcome from inline input or an issue selected for implementation; causal evidence before bug repair | local checks suffice for local-only work; explicit Execute requests a PR unless narrowed; Commit runs only for requested commit or publication |
 | Greenfield codebase | [woostack-bootstrap](/docs/skills/woostack-bootstrap) | complete approved design | exact target only; direct GitHub Project publication is explicit |
 
 The shape of the work determines the workflow. Historical development records cannot turn ambiguous
@@ -70,9 +70,10 @@ suggest `/woostack-orchestrate --issue <exact canonical GitHub issue URL>`, but 
 
 ## Execution invariants
 
-- Execute resolves an authorized bounded outcome from inline instructions or a selected task-bearing
-  issue. Related authorized issues may share a PR; split work when needed for reviewability and
-  honor explicit mapping. A closing reference identifies only fully addressed work.
+- An issue URL supplies context, not implementation permission. Execute resolves an authorized
+  bounded outcome from the requested action and selected issue; ordinary local implementation
+  does not commit or publish. Explicit Execute requests a PR unless narrowed. A closing reference
+  identifies only fully addressed work when PR delivery was requested.
 - Use an approved existing workspace or an isolated checkout as appropriate. Concurrent writers
   require separate ownership; unknown writer liveness blocks reuse. Inspect relevant Git and PR
   evidence, not a mandatory packet or all-repository inventory.
