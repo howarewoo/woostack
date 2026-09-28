@@ -40,7 +40,7 @@ matching host evidence; an inherited model or accepted agent selector does not p
 | Commit current changes and submit or update their PR | `woostack-commit` |
 | Review a pull request | Use [Pullfrog](https://pullfrog.com/). |
 | Address every unresolved thread on one exact existing PR | `woostack-address-comments` |
-| Render verified source as audience-tailored HTML | `woostack-visualize` |
+| Render a supplied document or verified source as audience-tailored HTML | `woostack-visualize` |
 | Organize multi-step UI design flows | `woostack-design` |
 | Investigate a root cause without implementing a fix | `woostack-debug` |
 | Diagnose or explicitly repair workspace health | `woostack-doctor` |
