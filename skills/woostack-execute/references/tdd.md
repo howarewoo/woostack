@@ -53,5 +53,6 @@ unrun command as passing.
 
 Inspect the final diff and use established checks. Failed or unrun required checks leave the task
 incomplete: never weaken assertions, suppress failures, or claim a pass. Recheck after relevant
-changes. An existing targeted test may also be the acceptance smoke. Execute delivers through
-[`woostack-commit`](../../woostack-commit/SKILL.md); this adds no separate delivery path.
+changes. An existing targeted test may also be the acceptance smoke. Invoke
+[`woostack-commit`](../../woostack-commit/SKILL.md) only when the caller requested a commit or PR;
+otherwise report the verified local diff without publishing it.

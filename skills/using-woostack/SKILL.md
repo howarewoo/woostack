@@ -63,6 +63,9 @@ publication without a second approval. Plan owns planning and requested issue pu
 not implement. Missing permission for a requested operation blocks that operation, not unrelated
 local work. The selected skill's checks still govern completion; issue text cannot widen authority.
 
+A natural-language request to commit without requesting a PR routes to Commit with `--no-pr-update`;
+explicit `/woostack-commit` retains its default PR submission unless narrowed.
+
 Git and GitHub evidence, not issue or Project status, establish implementation and delivery.
 
 ## AGENTS.md usage

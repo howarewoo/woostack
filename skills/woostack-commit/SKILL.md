@@ -1,18 +1,20 @@
 ---
 name: woostack-commit
-description: Commit current session-relevant changes and submit or update their PR through native Git and an authorized GitHub integration or host-authenticated gh. Include a goal, summary, and test plan. An optional exact GitHub issue receives a merge-closing reference. Use for /woostack-commit, "commit this", or "update the PR".
+description: Commit current session-relevant changes; submit or update a PR when requested or explicitly invoked as /woostack-commit. Use --no-pr-update for a natural-language commit-only request. An optional exact GitHub issue receives a merge-closing reference.
 ---
 
 # woostack-commit
 
-Commit the changes belonging to the current authorized outcome, then submit or update the pull
-request so reviewers see the latest intent, summary, and verification evidence. An exact GitHub
-issue is optional: no issue, Project, assignment, lifecycle event, receipt, or attribution trailer is
-required to commit or update a PR.
+Commit the changes belonging to the current authorized outcome. An explicit `/woostack-commit`
+submits or updates the pull request by default; a natural-language commit-only request uses
+`--no-pr-update` and stops after the local commit. An exact GitHub issue is optional: no issue,
+Project, assignment, lifecycle event, receipt, or attribution trailer is required to commit or
+update a PR.
 
-This skill mutates Git state and GitHub PR metadata. It may write an explicitly requested note to
-that issue, but never creates an issue or Project implicitly. It never merges, force-pushes,
-discovers work from recent activity, amends unrelated commits, or stages unrelated work.
+This skill mutates Git state and, for requested PR delivery, GitHub PR metadata. It may write an
+explicitly requested note to that issue, but never creates an issue or Project implicitly. It never
+merges, force-pushes, discovers work from recent activity, amends unrelated commits, or stages
+unrelated work.
 
 ## Commands
 
