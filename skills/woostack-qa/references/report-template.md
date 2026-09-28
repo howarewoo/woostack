@@ -22,7 +22,7 @@ permission to mutate the repository.
 - **Bound:** one pass, no re-crawl{{; ended early by --stop-first, scope end, cancellation, or budget}}
 - **Session released:** {{task-owned browser resources released; unrelated sessions left open}}
 - **Uncovered:** {{auth walls; destructive surfaces skipped; cross-origin boundaries | none}}
-- **Aborted:** {{n/a | journey N, cause (stop-first, scope end, cancellation, budget, target failure), and result of the one reconnect attempt}}
+- **Aborted:** {{n/a | journey N, target/browser failure and reconnect result if attempted}}
 
 ## Findings ({{N}}, ranked)
 

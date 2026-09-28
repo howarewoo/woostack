@@ -86,7 +86,7 @@ never becomes fabricated empty context.
 The resolved journey list is the run bound. Blind exploration is one pass over the discovered nav
 surface (each page once, plus its edge attacks), with no re-crawl loop. Honor explicit journey
 scope, user cancellation, and any requested time or tool-call budget: when one ends, stop at the
-next safe boundary and use the partial/aborted coverage reporting. Name the limit you actually
+next safe boundary and report partial coverage, not an abort. Name the limit you actually
 hit — never claim wall-clock enforcement the host cannot provide, and never add a timer or budget
 record. `--stop-first` still ends the run at the first confirmed, reproduced bug; scope,
 cancellation, and budget are equally valid early exits.
