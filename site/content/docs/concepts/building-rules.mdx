@@ -1,107 +1,53 @@
 ---
 title: Building rules
-description: Planning with optional issue publication, and outcome-led bounded delivery.
+description: Who authorizes work, and which evidence proves it landed.
 ---
 
-The user decides the product and authorizes work. Git and GitHub show what was delivered.
-Plan plans a change and publishes GitHub issues only when the request asks for it; Orchestrate may
-also consume a complete readable tracker and independently read its executable issues when native
-relationship metadata is absent, partial, or unavailable. Implementation remains a separate
-explicit workflow.
+woostack keeps two questions apart: what the user decided to build, and what the repository
+actually contains. The user decides the product and authorizes each workflow. Git and GitHub own
+source, branches, commits, pull requests, checks, reviews, and merge evidence. A plan, an issue, a
+status board, a retained record, or an agent's success sentence is context for those facts, not
+proof of them.
 
-## Workflow scope
+## Where the detail lives
 
-| Shape | Commands | Active contract | Provider/input behavior |
-| --- | --- | --- | --- |
-| Feature, proved defect, or requested issue filing | [woostack-plan](/docs/skills/woostack-plan) | outcomes, important constraints, acceptance and verification, and real dependencies; GitHub issues written only when the request asks for them | direct host-authenticated GitHub reads/writes only for a requested publication; no mirror required |
-| Requested requirements exploration | [woostack-ideate](/docs/skills/woostack-ideate) | the user's decisions and open questions | no provider or run required |
-| Requested read-only specification or issue-plan review | [woostack-harden](/docs/skills/woostack-harden) | reconciled content after bounded evidence checks | no provider or run required |
-| Bounded enhancement, refactor, tests, or authorized correction | [woostack-execute](/docs/skills/woostack-execute) | authorized outcome from inline input or an issue selected for implementation; causal evidence before bug repair | local checks suffice for local-only work; explicit Execute requests a PR unless narrowed; Commit runs only for requested commit or publication |
-| Greenfield codebase | [woostack-bootstrap](/docs/skills/woostack-bootstrap) | complete approved design | exact target only; direct GitHub Project publication is explicit |
+The workflows are documented where they run, not summarized here.
 
-The shape of the work determines the workflow. Historical development records cannot turn ambiguous
-scope into a complete contract or replace direct repository evidence.
+- [Plan](/docs/skills/woostack-plan) plans a change and publishes GitHub issues only when the
+  request asks for it.
+- [Coordinate several tasks](/docs/guides/coordinate-work) covers plan-first grouping, one
+  delegated worker per group in its own task worktree, the draft pull requests a requested
+  delivery produces, and the native stacks that dependent pull requests require.
+- [Deliver one change](/docs/guides/ship-change) covers one bounded task, its checks, and its
+  draft pull request.
+- [Workflow maps](/docs/concepts/workflows) compare the workflows by the shape of the work.
+- [Troubleshoot a blocked workflow](/docs/guides/troubleshooting) lists observable symptoms and
+  the safe way to resume.
 
-## Planning and informed approval
+No workflow merges anything. Agents never force-push, mark a pull request ready, enable
+auto-merge, or queue a pull request, and those decisions stay with a human.
 
-[Plan](/docs/skills/woostack-plan) is the complete planning workflow. It inspects the relevant
-source, identifies the decisions that still matter, and returns a coherent plan. A planning-only
-request makes no GitHub writes. A request to file issues already supplies publication intent, so
-Plan resolves an unambiguous destination from the request and its context, inspects the relevant
-existing issues, creates or reuses the requested issues, and reads their actual content and
-relationships back. It asks one focused question when the destination is ambiguous. An unknown
-defect cause stays with [Debug](/docs/skills/woostack-debug); Plan does not guess a correction.
+## Authority boundaries
 
-Native sub-issue and dependency links are used when they are available and requested. When that
-capability is unavailable, the written issues and an explicit readable index are preserved, the
-missing relationships are reported, and an explicitly required native graph is never called
-complete. A partial publication keeps exact confirmed identities and resumes at the first unproved
-step. It creates no branch, worktree, commit, PR, worker, local run, or second remote record.
-
-[Ideate](/docs/skills/woostack-ideate) and [Harden](/docs/skills/woostack-harden) are optional
-standalone phases. Ideate explores requirements when the user asks for it; Harden performs a
-read-only review of a specification or candidate issue plan against bounded repository evidence and
-raises each material discrepancy. Verified schemas and interfaces are observations, and routine
-technical details follow the requested outcome. Unresolved product behavior, breaking
-compatibility, security and data boundaries, irreversible effects, cost, and scope still need a
-user decision.
-
-Execute accepts one selected bounded task under its [admission contract](/docs/skills/woostack-execute#admit-one-task), not a whole plan.
-An explicit [Orchestrate](/docs/skills/woostack-orchestrate) invocation interprets the plan, the
-published issues, or other understandable work context. It reads the selected outcomes, source, and
-PR evidence, then states a plan that groups them into coherent PRs with their required changes,
-intended parent and landing order, and safe parallel work before anything is written. It dispatches
-each group to a delegated worker in its own task worktree and delivers draft PRs, with required
-native stacks for the dependent PRs. Added ordering is compatibility evidence, not native
-relationship evidence; technical prerequisites stay visible separately from deliberate integration
-order, and a missing dependency field is not evidence that none exists. A task whose own landed,
-verified delivery is already contained in the approved integration base is satisfied evidence, not
-an imported worker delivery, and the same holds for verified landed prerequisites outside the
-selected issue set: they remain recorded external dependencies, not imported tasks, and their
-issue, merge, diff, checks, and exact base containment stay in the handoff without creating an
-external claim, worker, or PR.
-Issue, issue-list, and Project arguments are convenience hints, not an exhaustive admission taxonomy;
-a complete tracker index can establish declared membership without native links,
-while every selected issue and contract still needs independent reads. A Project is included only
-when explicitly selected; its status lifecycle is used only when that selection requests status
-mutation, and inferred edges are not published.
-
-Plan independently reads back the identity and content of every issue it publishes, plus any
-relationship it actually wrote. A readable index with independently readable issues can still be
-read and coordinated by Orchestrate when its selected issues and contracts are complete. Plan may
-suggest `/woostack-orchestrate --issue <exact canonical GitHub issue URL>`, but it never invokes it.
-
-## Execution invariants
-
-- An issue URL supplies context, not implementation permission. Execute resolves an authorized
-  bounded outcome from the requested action and selected issue; ordinary local implementation
-  does not commit or publish. Explicit Execute requests a PR unless narrowed. A closing reference
-  identifies only fully addressed work when PR delivery was requested.
-- Use an approved existing workspace or an isolated checkout as appropriate. Each delegated writer
-  owns its workspace, and concurrent writers never share one; unknown writer liveness blocks reuse.
-  Inspect relevant Git and PR evidence, not a mandatory packet or all-repository inventory.
-- Establish cause before correcting a defect, inline when sufficient. Run checks relevant to the
-  changed behavior; an existing targeted test may be the smoke. Required repository checks/reviews
-  still gate completion. Label an explicitly requested incomplete draft truthfully.
-- Native stack registration stays optional for a direct Commit or Execute request; coordinated
-  multi-task delivery requires it for dependent PRs, and unavailable required registration is
-  reported incomplete without invalidating verified code.
-- Agents never force-push, merge, mark a PR ready, enable auto-merge, or queue a PR for merge.
-
-## Retained records and authority boundaries
-
-Existing `.woostack/tmp/runs/<run-id>/` artifacts from retired planning wrappers remain readable
-historical user data and are never migrated or mutated. A supplied record is evidence only after exact
-identity, complete content, and freshness validation. It does not authorize publication, assignment,
-implementation, or ownership. Legacy managed-provider records remain opaque; direct GitHub publication
-uses only its exact selected scope.
-
-| Surface | Authority |
+| Surface | What it proves |
 | --- | --- |
-| Planning content from Plan, Ideate, or Harden | plans, user decisions, and evidence; no source or issue authority |
-| Plan's published issues | verified issue identities and content, plus only the relationships actually read back |
-| Git and GitHub | source, ancestry, commits, PRs, checks, reviews, merge evidence |
-| Audit, QA, response reports | sanitized non-authoritative diagnostic evidence |
+| A plan, or a recorded user decision | intent and constraints; no source or issue authority |
+| A published issue | its verified identity and content, plus only the relationships actually read back |
+| Git and GitHub | source, ancestry, commits, pull requests, checks, reviews, and merge evidence |
+| Audit, QA, or response reports | sanitized, non-authoritative observations |
 
-The [Hermes guide](/docs/hermes) documents how an external engineer can review harness evidence
+A closed issue or a finished status never proves that code landed, was reviewed, or was merged. An
+issue URL supplies context, not implementation permission, and a partial publication keeps the
+confirmed part while reporting the unproved part.
+
+## Retained records
+
+Existing `.woostack/tmp/runs/<run-id>/` artifacts from retired planning wrappers stay readable
+historical user data and are never migrated, rewritten, or deleted. Such a record becomes evidence
+only after its exact identity, complete content, and freshness are validated, and it never
+authorizes publication, assignment, implementation, or ownership. The
+[local artifacts reference](/docs/configuration/artifacts/local) owns their preservation and
+recovery.
+
+The [Hermes guide](/docs/hermes) shows how an external engineer can review harness evidence
 without receiving implementation authority.

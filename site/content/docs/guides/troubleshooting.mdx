@@ -11,7 +11,24 @@ Confirm `pnpx skills add howarewoo/woostack` ran in the intended repository and 
 
 ## Doctor reports a local configuration error
 
-Run `/woostack-doctor --check` through your assistant and inspect the finding's path and code. The check is static, makes no GitHub call, and changes nothing; a failed or incomplete inspection is not healthy. Compare the local policy with [configuration reference](/docs/configuration) and use [Doctor's repair contract](/docs/skills/woostack-doctor) for any proposed change. Verify by running the check again after an authorized repair, not by assuming a report means a fix occurred.
+Run `/woostack-doctor --check` through your assistant and look up the reported code. The check is
+static, makes no GitHub call, and changes nothing. A failed or incomplete inspection is not a
+healthy one.
+
+| Code | Meaning | Action | Verify |
+| --- | --- | --- | --- |
+| `config-policy` | Malformed policy, or the resolver failed | Inspect the named path and error, then correct only approved policy | Rerun; the error is gone |
+| `check-failed` | A check could not complete; the finding names the check and its exit status, not raw stderr | Find that check, fix its real cause, then rerun. The rest is unproved | Rerun; no `check-failed` finding is left |
+| `gitignore-drift` | A managed ignore line from the shipped template is missing | Ask for a scoped correction from the template; keep unrelated rules and unsafe paths | Recheck; the drift is gone |
+| `retired-provider` | A legacy provider setting is present as inactive data | Keep the data: retirement guidance, not a migration, a deletion, or a reason to contact a retired provider | Ordinary local work still runs |
+| `retained-data` | A historical local draft or manifest directory is present | Keep the data and follow the [retained local records](/docs/configuration/artifacts/local) contract | Ordinary local work still runs |
+
+Compare local policy with the [configuration reference](/docs/configuration). The
+[check catalog](https://github.com/howarewoo/woostack/blob/main/skills/woostack-doctor/references/checks.md)
+owns every code and its severity, and [Doctor's reference](/docs/skills/woostack-doctor) owns the
+repair procedure. Approving a repair authorizes that local edit only: hand it to
+[Execute](/docs/skills/woostack-execute) with the user's real delivery limit, so a local-only
+repair commits and pushes nothing. A report is not proof of a fix, so run the check again.
 
 ## Doctor passes but GitHub fails
 
