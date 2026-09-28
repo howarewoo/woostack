@@ -14,8 +14,7 @@ PR toward merge.
 
 [Source control](../woostack-commit/references/source-control.md) owns Git and PR delivery plus
 recovery; [workspace guidance](../woostack-init/references/worktrees.md) owns checkout isolation,
-ownership, and base selection. [Bounded delivery](references/bounded-delivery.md) holds this
-skill's delivery and read-back specifics.
+ownership, and base selection.
 
 ## Command
 
@@ -124,39 +123,23 @@ secrets or personal data, and never commit secrets or generated app files.
 
 ## Deliver through Commit
 
-Invoke [`woostack-commit`](../woostack-commit/SKILL.md) with the admitted outcome, verified
-workspace/branch/base, classified changed paths, and observed checks; pass each selected verified
-`--issue <canonical GitHub issue URL>` for association. Commit owns staging,
-commit, push, PR body preservation, submission, and read-back under the source-control contract,
-so Execute requires no independent pre-commit receipt and no task packet. `--no-pr-update` is not
-Execute delivery.
+An in-scope failure on this task's PR is a correction of the same outcome: establish its cause,
+repair it, rerun affected checks, and update the same PR. A separate Debug invocation is optional.
 
-Prefer small coherent PRs. Related authorized issues may share one PR when the scope fits, and work
-may be split when reviewability needs it; honor an explicit caller mapping and ask before changing
-it. Closing references identify only fully addressed work, applied under
-[PR association](../woostack-commit/references/provider-attribution.md#pr-association); never close
-an issue directly or manufacture completion. Register a
-[native stack](../woostack-commit/references/source-control.md#native-github-stack-membership-for-a-dependent-pr)
-only when the request or repository workflow explicitly requires it, and never claim registration
-without verification — report a required registration that could not be verified as an incomplete
-delivery boundary without invalidating verified code. Otherwise a normal branch/base PR is complete.
-
-New PRs are drafts; preserve an existing PR's human-authored text and readiness. Never mark ready,
-enable auto-merge, enqueue, merge, retarget for merge, force-push, or push unrelated branches. Even
-explicit merge wording conflicts with this boundary: report it instead of executing it.
+Invoke [`woostack-commit`](../woostack-commit/SKILL.md) with the verified outcome, workspace, base,
+changed paths, and checks; pass each selected exact issue URL for association. Commit owns staging,
+push, PR submission, body preservation, and read-back. `--no-pr-update` is not Execute delivery.
+Prefer small coherent PRs; related authorized issues may share one, but honor an explicit PR
+mapping. Only fully addressed issues earn [closing references](../woostack-commit/references/provider-attribution.md#pr-association).
+Register a [native stack](../woostack-commit/references/source-control.md#native-github-stack-membership-for-a-dependent-pr)
+only when required or requested; report an unverified required registration as incomplete without
+invalidating verified code. New PRs are drafts; never mark ready, merge, enqueue, enable auto-merge,
+force-push, or advance another person's PR toward merge.
 
 ## Recover and return
 
-At interruption or any unknown commit, push, PR, or stack outcome, rediscover the exact remote and
-canonical PR facts and resume at the first unproved boundary. A lost response is not proof of
-absence: establish the outcome before repeating anything, and never recommit or create a second
-PR. Uncertain ownership, conflicting PR state, or incomplete discovery blocks rather than creating
-around it.
-
-Retain the selected workspace unless its owner supplies a safe lifecycle operation, and preserve
-supplied, external, and user-owned workspaces, branches, commits, and PRs. Return the outcome and
-scope, workspace/branch/base, changed paths, checks and smoke result, commit SHA, verified PR
-URL/head/base/state, any issue association, and each blocker with its exact safe resume action
-under [bounded delivery](references/bounded-delivery.md#recover-and-return). Label an explicitly
-requested incomplete draft as incomplete, and claim no evidence you did not directly observe. No
-orchestration envelope, project checkpoint, sibling progression, or acceptance claim is required.
+On unknown commit, push, PR, or stack outcomes, rediscover exact Git and PR facts before retrying;
+never duplicate a commit or PR. Preserve the selected workspace and unrelated work, and report the
+outcome, changed paths, checks and review, commit, PR URL/head/base/state, issue association, and
+the first blocked or unproved boundary. Label an explicitly requested incomplete draft as
+incomplete; claim no unobserved evidence. No orchestration envelope or task packet is required.
