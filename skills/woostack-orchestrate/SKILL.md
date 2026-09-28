@@ -41,19 +41,7 @@ For an explicit one-run model or effort request, apply the shared
    a table, or the host's existing plan facility. No prescribed schema, ID, artifact, or approval
    handshake: continue when the plan fits approved scope and ask only for a material unresolved
    choice. Do not force a dependency graph into a tree or invent an edge to suit a stack shape.
-2. **Delegate every group.** Give each coherent group its own implementation writer through the
-   host's actual task/agent operations, each in an independently owned task worktree and topic
-   branch. Reuse a verified suitable task worktree rather than requiring a fresh directory, and let
-   the host and repository choose paths, naming, and tools. A single group still delegates. The
-   coordinator owns planning, dispatch, verification, and delivery coordination; it does not
-   silently implement in the primary checkout. Sequential dispatch is valid for real dependencies
-   or host capacity; inline implementation requires the user to change the workflow. A missing
-   worker, isolation, or delivery capability is a reported blocker, not an equivalent local result.
-   Give each writer only its group's outcome and limits, invariants, relevant prerequisites,
-   workspace and base, delivery limit, and relevant evidence — not a full-world snapshot or a
-   duplicated protocol manual. [Execute](../woostack-execute/SKILL.md) owns the writer's
-   implementation and checks.
-3. **Admit each workspace before writing.** Inspect native worker state and the current Git
+2. **Admit each workspace before dispatch.** Inspect native worker state and the current Git
    worktree, branch, index, and diff; read remote/PR facts for requested delivery, not as a
    local-only authentication gate. Never run two writers in one physical workspace. If a prior
    writer may still be active, stop that task and its dependents until host evidence proves it
@@ -62,7 +50,7 @@ For an explicit one-run model or effort request, apply the shared
    continue on the protected trunk. Preserve unknown and unrelated changes. Native permissions
    govern isolation; instructions do not create locks or sandboxing. Follow the
    [workspace recovery guard](../woostack-init/references/worktrees.md#base-and-recovery).
-4. **Select the base at dispatch and plan parents now.** Check the repository-approved integration
+3. **Select the base before dispatch and plan parents now.** Check the repository-approved integration
    tip or the planned predecessor's head branch against fresh Git, and canonical PR facts where a
    PR prerequisite exists. Prove every required change is available in the selected base,
    including joined prerequisites. For a join, account for every prerequisite: group the related
@@ -72,6 +60,18 @@ For an explicit one-run model or effort request, apply the shared
    demanding that its former PR head be an ancestor of main. Never persist a global execution
    forest, infer a dependency from branch naming, or manufacture a source/landing receipt. A task
    whose required changes are not available waits; a safe independent task may continue.
+4. **Delegate every group.** After admitting its workspace and verifying its base, give each
+   coherent group its own implementation writer through the host's actual task/agent operations,
+   each in an independently owned task worktree and topic branch. Reuse a verified suitable task
+   worktree rather than requiring a fresh directory, and let the host and repository choose paths,
+   naming, and tools. A single group still delegates. The coordinator owns planning, dispatch,
+   verification, and delivery coordination; it does not silently implement in the primary checkout.
+   Sequential dispatch is valid for real dependencies or host capacity; inline implementation
+   requires the user to change the workflow. A missing worker, isolation, or delivery capability is
+   a reported blocker, not an equivalent local result. Give each writer only its group's outcome
+   and limits, invariants, relevant prerequisites, verified workspace and base identities, delivery
+   limit, and relevant evidence — not a full-world snapshot or a duplicated protocol manual.
+   [Execute](../woostack-execute/SKILL.md) owns the writer's implementation and checks.
 5. **Deliver the group's PR and its stack.** Hand the intended parent and ordered chain to
    [Commit](../woostack-commit/SKILL.md) and require native registration for the dependent PRs;
    Commit owns the procedure in
