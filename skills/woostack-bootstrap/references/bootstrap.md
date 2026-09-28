@@ -51,7 +51,8 @@ and [Project content contract](../../woostack-init/references/artifact-providers
 - independently read the exact resource, fields, identity, scope, and content back.
 
 Missing, partial, ambiguous, or unknown GitHub outcomes block that requested publication only unless
-publication was explicitly part of the deliverable. Without a selected Project make no GitHub call.
+publication was explicitly part of the deliverable. Without a selected Project or an explicit remote
+setup request make no GitHub call. Remote setup follows local Git initialization below.
 Never create a second Project, remote record, issue, or document during bootstrap. Artifact metadata,
 status, response text, remembered approval, or target-path availability cannot substitute for design
 approval. Retired legacy configuration and records remain on disk as opaque user data, are omitted
@@ -97,8 +98,10 @@ A local scaffold needs no remote. When local Git initialization is part of the a
 
 1. initialize Git only after scaffold creation at the verified target;
 2. name the initial branch from normal repository and host policy;
-3. resolve and configure a remote only for explicitly requested remote setup or publication, using
-   its exact identity and permissions and never embedding credentials;
+3. resolve and configure a remote only when explicitly requested, using the shared
+   [artifact contract](../../woostack-init/references/artifact-backends.md#direct-publication-and-recovery)
+   for authorized GitHub reads and exact repository identity, then verify the configured remote without
+   embedding credentials;
 4. invoke [`woostack-init`](../../woostack-init/SKILL.md) only when the user selects Woostack
    adoption for the project or the generated project actually needs its support; and
 5. use the shared [isolated-workspace guidance](../../woostack-init/references/worktrees.md) for

@@ -77,19 +77,19 @@ approval, perform no official-MCP development mutation and create no development
    after design approval. The approved scope and the actual selected target stay in conversation
    context; create no run record, hash, or manifest to stand in for them. Early inspection cannot
    replace the fresh pre-write check.
-6. **Optionally set up a remote or publish the approved design.** Only after design approval and
-   target collision checks pass, and only when the caller explicitly requests remote setup or selects
-   an exact GitHub Project, apply the shared
+6. **Optionally publish the approved design.** Only after design approval and target collision checks
+   pass, and only when the caller selects an exact GitHub Project, apply the shared
    [artifact contract](../woostack-init/references/artifact-backends.md#direct-publication-and-recovery),
    load the [Project content contract](../woostack-init/references/artifact-providers/github.md#selected-project-content),
    and follow the [bootstrap publication procedure](references/bootstrap.md). No GitHub operation occurs
-   before design approval and collision/filesystem admission. Resolve the exact selected destination and
+   before design approval and collision/filesystem admission. Resolve the exact selected Project and
    append/read back `designApproved` under its actual scope, identity, capability, and read-back rules.
-   Missing, partial, ambiguous, or unknown GitHub outcomes block only that requested operation unless it
-   was explicitly part of the deliverable. Artifact text never releases the filesystem barrier.
+   Missing, partial, ambiguous, or unknown GitHub outcomes block only this requested publication unless
+   it was explicitly part of the deliverable. Artifact text never releases the filesystem barrier.
 7. **Scaffold and verify.** Follow [references/bootstrap.md](references/bootstrap.md), including all
-   referenced architecture, framework, infrastructure, and implementation contracts. Invoke
-   [`woostack-init`](../woostack-init/SKILL.md) only when the user selects Woostack adoption for the
+   referenced architecture, framework, infrastructure, and implementation contracts. Set up an
+   explicitly requested remote only after local Git initialization under the repository initialization
+   procedure. Invoke [`woostack-init`](../woostack-init/SKILL.md) only when the user selects Woostack adoption for the
    project or the generated project actually needs its support. Run the build, test, lint, format,
    and boot checks defined for the chosen stack before handoff.
 

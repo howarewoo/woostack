@@ -12,10 +12,10 @@ The optional canonical policy is the top-level `github` object described by
 only `owner`, `ownerType`, `statusField`, and `projectStatuses`; `visibility` is not a setting. The
 resolver validates this object once. Existing Projects retain and report their actual visibility.
 
-Select the exact GitHub operation scope before any GitHub read or write. Resolve one unique
-authorized repository and destination from the request and the actual context; when two candidates
-remain plausible, ask the user instead of guessing. Use an available, authorized GitHub capability
-that supports that operation and its verification. Prefer the host's native GitHub tools when
+Select the exact GitHub operation scope before any GitHub read or write. Resolve the destination
+under the shared [publication boundary](../artifact-backends.md#direct-publication-and-recovery);
+when two candidates remain plausible, ask the user instead of guessing. Use an available, authorized
+GitHub capability that supports that operation and its verification. Prefer the host's native GitHub tools when
 suitable; host-authenticated official `gh` remains supported where appropriate. Discover actual
 capabilities, supported read/query shapes, and schemas from the host rather than assuming tool names
 or request forms. Custom HTTP/REST/GraphQL clients, credential reads, and token forwarding remain
@@ -31,8 +31,8 @@ provenance distinct, and disclose failed relation reads honestly; declared membe
 an actual parent or a fabricated native receipt. Plan holds the same bar for what it writes, and
 reports a native relationship it could not create as missing rather than waived.
 
-- Publication targets the one resolved destination: the canonical repository, plus the exact issue
-  or Project the caller named when one was named. Orchestrate may receive an issue URL as a
+- Publication targets the one resolved destination: the canonical repository for repository-scoped
+  work, or the exact selected Project for Project-only content. Orchestrate may receive an issue URL as a
   convenience hint, but admission is resolved from the understood conversation, repository, and
   tracker context.
 - `--project <exact canonical Project URL>` is the one optional selector. It requires one exact
@@ -45,8 +45,8 @@ reports a native relationship it could not create as missing rather than waived.
 
 Use an authorized native GitHub capability when the host exposes a suitable interface; the
 host-authenticated `gh` CLI is supported. Do not invent tool names, read credentials, forward tokens,
-or add another transport layer. Scope every operation to the canonical repository and exact selected
-Plan destination or Orchestrate evidence set.
+or add another transport layer. Scope every operation to its exact selected destination and, for
+repository-scoped work, the canonical repository.
 
 Publication is read-only until the request asks for a write, and a planning-only request performs no
 GitHub mutation at all.
