@@ -33,10 +33,11 @@ missing concrete check. Debug remains read-only and does not add or rewrite test
 
 ## Optional GitHub context resolution (one path, read-only)
 
-A local code/runtime target is investigated as it stands: without caller-supplied context, load no
-artifact contract, GitHub profile, or remote read, and state that no development context was used.
+A local code/runtime target is investigated as it stands: without an explicitly selected GitHub
+Project, issue, or PR identity, load no artifact contract, GitHub profile, or remote read, and state
+that no development context was used, even when the caller supplies local logs or traces.
 
-When the caller explicitly supplies context material to the diagnosis, first load the shared
+When the caller explicitly selects a GitHub Project, issue, or PR identity, first load the shared
 [artifact contract](../woostack-init/references/artifact-backends.md#direct-publication-and-recovery)
 and the [GitHub profile](../woostack-init/references/artifact-providers/github.md#configuration-and-scope).
 Those references own transport, identity, scope, trust, and read-back; do not duplicate them. Git and
