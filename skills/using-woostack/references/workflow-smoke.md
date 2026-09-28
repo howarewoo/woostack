@@ -141,17 +141,20 @@ dependent-release gate remain **Unrun**; do not call local commits verified PR d
 ## Installed integration
 
 `pnpm -C site test` covers the catalog, the production parser, and the installed-collection case: it
-exports the committed skills, resolves the retained `.claude/skills` links, and rejects a link target
-that escapes the collection even when that target exists nearby. `pnpm -C site build` checks the
-documentation application, not the installed runtime.
+copies the candidate under edit — the working tree's installable skill assets and retained
+`.claude/skills` links, including uncommitted, staged, and untracked changes — into a disposable
+directory, validates that copy with the checkout's production validator and catalog, resolves the
+copied links, and rejects a link target that escapes the collection even when that target exists
+nearby. It never writes to the checkout, and it reports on the candidate, never on a released
+installation. `pnpm -C site build` checks the documentation application, not the installed runtime.
 
-To validate an installed export directly, run this from the source checkout on a supported Unix
-host with Git, Node, and Bash. The parser is the checkout's production validator; the assets it
-validates come from the export:
+To validate an immutable committed release instead, run this from the source checkout on a
+supported Unix host with Git, Node, and Bash. The parser is the checkout's production validator; the
+assets it validates come from the export, and the printed revision is the release under test:
 
 ```bash
 INSTALL=$(mktemp -d)
-printf 'Installed candidate: %s\n' "$(git rev-parse HEAD)"
+printf 'Installed release: %s\n' "$(git rev-parse HEAD)"
 git archive HEAD skills | tar -x -C "$INSTALL"
 node --input-type=module -e '
   import { validateSkillAssets } from "./site/scripts/skill-assets.mjs";
@@ -176,7 +179,8 @@ model, or transport. The [historical reader](../../woostack-init/references/arti
 owns retained-data capability failures.
 
 **Checkout-only audits.** These need this repository and are never installed-runtime evidence:
-`pnpm -C site build`, the `.claude/skills` link-discovery case, and the full Init runner
+`pnpm -C site build`, the direct `.claude/skills` link-discovery case that reads this checkout rather
+than the disposable copy above, and the full Init runner
 (`bash skills/woostack-init/scripts/tests/run-tests.sh`), whose ignore-file audit reads this
 repository's own `.gitignore` rather than an installed template. The full Doctor runner
 (`bash skills/woostack-doctor/scripts/tests/run-tests.sh`) is static and needs no checkout.

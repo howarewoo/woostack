@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { cp, mkdtemp, mkdir, readFile, readdir, readlink, realpath, rm, stat, symlink, writeFile } from 'node:fs/promises';
+import { chmod, copyFile, lstat, mkdir, mkdtemp, readFile, readdir, readlink, realpath, rm, stat, symlink, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
@@ -54,6 +54,111 @@ async function findBrokenSkillLinks(skillsDir) {
     }
   }
   return broken.sort();
+}
+
+const CANDIDATE_PATHS = ['skills', '.claude/skills'];
+
+// What this checkout offers to install: tracked paths, including staged additions and deletions,
+// plus untracked files that no ignore rule excludes.
+function candidatePaths(checkout, ...modes) {
+  return execFileSync('git', ['ls-files', ...modes, '-z', '--', ...CANDIDATE_PATHS], {
+    cwd: checkout, encoding: 'utf8', maxBuffer: 32 * 1024 * 1024,
+  }).split('\0').filter(Boolean);
+}
+
+// The candidate's discoverable skill packages, by the production entry-point rule: a top-level
+// directory whose SKILL.md exists, whether or not the catalog or Git knows it.
+async function candidateSkillPackages(checkout) {
+  const skills = path.join(checkout, 'skills');
+  const packages = new Set();
+  for (const entry of await readdir(skills, { withFileTypes: true })) {
+    if (!entry.isDirectory()) continue;
+    try {
+      await lstat(path.join(skills, entry.name, 'SKILL.md'));
+    } catch (error) {
+      if (error?.code !== 'ENOENT') throw error;
+      continue;
+    }
+    packages.add(entry.name);
+  }
+  return packages;
+}
+
+// Copy the candidate into a disposable install: tracked shipped files, every candidate skill
+// package, and the discovery links. Untracked non-skill debris, ignored caches, and personal
+// files are not installable content, and links stay links instead of being dereferenced.
+async function installCandidate(checkout, destination) {
+  const tracked = new Set(candidatePaths(checkout, '--cached'));
+  const packages = await candidateSkillPackages(checkout);
+  for (const relative of candidatePaths(checkout, '--cached', '--others', '--exclude-standard')) {
+    const [area, name] = relative.split('/');
+    if (!tracked.has(relative) && !(area === 'skills' && packages.has(name))) continue;
+    const source = path.join(checkout, relative);
+    const target = path.join(destination, relative);
+    let info;
+    try {
+      info = await lstat(source);
+    } catch (error) {
+      if (error?.code !== 'ENOENT') throw error;
+      continue; // removed from the worktree, so absent from this candidate
+    }
+    if (info.isDirectory()) {
+      await mkdir(target, { recursive: true });
+      continue;
+    }
+    await mkdir(path.dirname(target), { recursive: true });
+    if (info.isSymbolicLink()) {
+      await symlink(await readlink(source), target);
+      continue;
+    }
+    await copyFile(source, target);
+    await chmod(target, info.mode & 0o777);
+  }
+}
+
+function git(checkout, ...args) {
+  return execFileSync('git', args, { cwd: checkout, encoding: 'utf8', maxBuffer: 32 * 1024 * 1024 });
+}
+
+async function exists(target) {
+  try {
+    await lstat(target);
+    return true;
+  } catch (error) {
+    if (error?.code !== 'ENOENT') throw error;
+    return false;
+  }
+}
+
+// A disposable checkout whose committed candidate is already coherent, so any later uncommitted
+// or staged edit is the only difference an installed-candidate check can report.
+async function makeCandidateCheckout(root, names) {
+  const checkout = path.join(root, 'candidate-source');
+  await mkdir(checkout, { recursive: true });
+  git(checkout, 'init', '-q');
+  git(checkout, 'config', 'user.name', 'Skill Assets');
+  git(checkout, 'config', 'user.email', 'skill-assets@example.invalid');
+  await writeFile(path.join(checkout, '.gitignore'),
+    'skills/ignored-cache/\nskills/*/node_modules/\n*.log\n');
+  await mkdir(path.join(checkout, '.claude', 'skills'), { recursive: true });
+  for (const name of names) {
+    await writeSkill(path.join(checkout, 'skills'), name);
+    await symlink(`../../skills/${name}`, path.join(checkout, '.claude', 'skills', name));
+  }
+  // A tracked file outside any skill package is still shipped content.
+  await writeFile(path.join(checkout, 'skills', 'INDEX.md'), '# Tracked candidate index\n');
+  git(checkout, 'add', '-A');
+  git(checkout, '-c', 'commit.gpgsign=false', 'commit', '-qm', 'Seed candidate');
+  return checkout;
+}
+
+// The immutable committed release, which the separate documented smoke still exercises.
+async function exportCommittedRelease(checkout, destination) {
+  await mkdir(destination, { recursive: true });
+  execFileSync('tar', ['-xf', '-', '-C', destination], {
+    input: execFileSync('git', ['archive', 'HEAD', 'skills'], { cwd: checkout, maxBuffer: 32 * 1024 * 1024 }),
+  });
+  return path.join(destination, 'skills');
 }
 
 test('structural validation accepts corpus-free skills, local references, JSON, and catalog order', async (t) => {
@@ -143,21 +248,19 @@ test('catalog discovery does not admit a symlinked skill entry point', async (t)
     /skill assets must be regular files or directories/);
 });
 
-test('installed collection resolves without a checkout or docs application', async (t) => {
+test('installed candidate collection resolves without a checkout or docs application', async (t) => {
   const root = await makeRoot(t);
+  await installCandidate(REPO_ROOT, root);
   const installed = path.join(root, 'skills');
-  const archive = execFileSync('git', ['archive', 'HEAD', 'skills'], {
-    cwd: REPO_ROOT, maxBuffer: 32 * 1024 * 1024,
-  });
-  execFileSync('tar', ['-xf', '-', '-C', root], { input: archive });
   assert.deepEqual(
     (await validateSkillAssets(installed, PUBLIC_ORDER)).map(({ name }) => name),
     [...PUBLIC_ORDER].sort(),
   );
+
+  // Links stay links, and they resolve against the copied collection.
   const links = path.join(root, '.claude', 'skills');
-  await cp(path.join(REPO_ROOT, '.claude', 'skills'), links, {
-    recursive: true, verbatimSymlinks: true,
-  });
+  assert.deepEqual((await readdir(links, { withFileTypes: true })).map((entry) => entry.isSymbolicLink()),
+    [true, true, true]);
   assert.deepEqual(await findBrokenSkillLinks(links), []);
   assert.deepEqual((await readdir(links)).sort(),
     ['woostack-address-comments', 'woostack-bootstrap', 'woostack-commit']);
@@ -169,6 +272,96 @@ test('installed collection resolves without a checkout or docs application', asy
   await writeFile(entry, `${await readFile(entry, 'utf8')}\n[Guide](../../site/guide.md)\n`);
   await assert.rejects(validateSkillAssets(installed, PUBLIC_ORDER),
     /local link target escapes the skill collection/);
+});
+
+test('an uncommitted candidate error is not hidden by the committed release bytes', async (t) => {
+  const root = await makeRoot(t);
+  const checkout = await makeCandidateCheckout(root, ['sample-skill']);
+  const entry = path.join(checkout, 'skills', 'sample-skill', 'SKILL.md');
+  const broken = `${await readFile(entry, 'utf8')}\n[Missing](references/missing.md)\n`;
+  await writeFile(entry, broken);
+
+  // HEAD still validates, which is exactly why committed bytes cannot stand in for the candidate.
+  const release = await exportCommittedRelease(checkout, path.join(root, 'committed-release'));
+  assert.deepEqual((await validateSkillAssets(release, ['sample-skill'])).map(({ name }) => name),
+    ['sample-skill']);
+
+  const before = git(checkout, 'status', '--porcelain');
+  const install = path.join(root, 'candidate-install');
+  await installCandidate(checkout, install);
+  await assert.rejects(validateSkillAssets(path.join(install, 'skills'), ['sample-skill']),
+    /sample-skill\/SKILL\.md: local link target does not exist/);
+  assert.equal(git(checkout, 'status', '--porcelain'), before);
+  assert.equal(await readFile(entry, 'utf8'), broken);
+
+  // Cleanup removes the disposable copy and nothing else.
+  await rm(install, { recursive: true, force: true });
+  assert.equal(await readFile(entry, 'utf8'), broken);
+  assert.equal(await exists(path.join(root, 'committed-release', 'skills')), true);
+});
+
+test('staged additions and retirements install as one candidate, and unknown skills stay visible', async (t) => {
+  const root = await makeRoot(t);
+  const checkout = await makeCandidateCheckout(root, ['sample-skill', 'retired-skill']);
+  const skills = path.join(checkout, 'skills');
+  const order = ['sample-skill', 'staged-skill'];
+
+  // A staged addition and a not-yet-staged retirement are one candidate, never HEAD mixed with
+  // a new catalog.
+  await writeSkill(skills, 'staged-skill');
+  await symlink('../../skills/staged-skill', path.join(checkout, '.claude', 'skills', 'staged-skill'));
+  git(checkout, 'add', '-A');
+  await rm(path.join(skills, 'retired-skill'), { recursive: true, force: true });
+  await rm(path.join(checkout, '.claude', 'skills', 'retired-skill'), { force: true });
+
+  // Untracked content inside a candidate package ships; ignored runtime data, personal files, and
+  // untracked non-skill debris do not.
+  await mkdir(path.join(skills, 'ignored-cache'), { recursive: true });
+  await writeFile(path.join(skills, 'ignored-cache', 'session.json'), '{"token":"user"}\n');
+  await mkdir(path.join(skills, 'staged-skill', 'node_modules', 'dep'), { recursive: true });
+  await writeFile(path.join(skills, 'staged-skill', 'node_modules', 'dep', 'index.js'), 'module.exports = 1;\n');
+  await writeFile(path.join(skills, 'staged-skill', 'debug.log'), 'local noise\n');
+  await writeFile(path.join(skills, 'staged-skill', 'references', 'notes.md'), '# Untracked notes\n');
+  await mkdir(path.join(skills, 'cache-only', 'scripts'), { recursive: true });
+  await writeFile(path.join(skills, 'cache-only', 'scripts', 'retained.bin'), 'user bytes\n');
+
+  const release = await exportCommittedRelease(checkout, path.join(root, 'committed-release'));
+  await assert.rejects(validateSkillAssets(release, order), /skill catalog mismatch/);
+
+  const install = path.join(root, 'candidate-install');
+  await installCandidate(checkout, install);
+  assert.deepEqual(
+    (await validateSkillAssets(path.join(install, 'skills'), order)).map(({ name }) => name),
+    order,
+  );
+  assert.deepEqual(await findBrokenSkillLinks(path.join(install, '.claude', 'skills')), []);
+  assert.deepEqual((await readdir(path.join(install, '.claude', 'skills'))).sort(),
+    ['sample-skill', 'staged-skill']);
+  assert.equal(await readFile(path.join(install, 'skills', 'INDEX.md'), 'utf8'), '# Tracked candidate index\n');
+  assert.equal(await readFile(path.join(install, 'skills', 'staged-skill', 'references', 'notes.md'), 'utf8'),
+    '# Untracked notes\n');
+  for (const excluded of ['cache-only/scripts/retained.bin', 'ignored-cache/session.json',
+    'staged-skill/node_modules/dep/index.js', 'staged-skill/debug.log']) {
+    assert.equal(await exists(path.join(install, 'skills', excluded)), false, `${excluded} is not installable`);
+  }
+
+  // A discoverable skill missing from the catalog is not filtered away.
+  await writeSkill(skills, 'unknown-skill');
+  const discovered = path.join(root, 'discovered-install');
+  await installCandidate(checkout, discovered);
+  await assert.rejects(validateSkillAssets(path.join(discovered, 'skills'), order),
+    /skill catalog mismatch: discovered sample-skill, staged-skill, unknown-skill/);
+  await rm(path.join(skills, 'unknown-skill'), { recursive: true, force: true });
+
+  // Link identity survives the copy, so a symlinked entry point is still rejected.
+  const stagedEntry = path.join(skills, 'staged-skill', 'SKILL.md');
+  await writeFile(path.join(skills, 'staged-skill', 'entry.md'), await readFile(stagedEntry, 'utf8'));
+  await rm(stagedEntry, { force: true });
+  await symlink('entry.md', stagedEntry);
+  const linked = path.join(root, 'linked-install');
+  await installCandidate(checkout, linked);
+  await assert.rejects(validateSkillAssets(path.join(linked, 'skills'), order),
+    /skill assets must be regular files or directories/);
 });
 
 test('broken skill links are reported for the intended reason', async (t) => {
