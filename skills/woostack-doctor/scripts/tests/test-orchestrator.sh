@@ -77,6 +77,15 @@ assert_exit 1 "$code" "a partially completed check fails the inspection"
 assert_contains "$out" "kept finding" "findings emitted before a failure are retained"
 assert_contains "$out" "zz-partial.sh" "the incomplete check is still named"
 
+# A failed check can leave its final finding without a newline.
+unterminated="$(make_runner)"
+write_check "$unterminated" $'printf "warn\tpartial\treport\tp\tunfinished"\nexit 42' 'zz-unterminated.sh'
+out="$(run_doctor "$unterminated" "$failed" 2>&1)"; code=$?
+assert_exit 1 "$code" "unterminated output cannot hide a failed check"
+assert_contains "$out" $'unfinished\nerror\tcheck-failed\treport\tzz-unterminated.sh' "failure has its own finding row"
+run_doctor "$unterminated" --check "$failed" >/dev/null 2>&1
+assert_exit 1 "$?" "--check fails after unterminated output"
+
 # Independent checks still run after another one fails. The crash sorts first
 # (aa- before zz-) so the surviving check is genuinely evaluated after it.
 continue_run="$(make_runner)"
