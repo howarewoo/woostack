@@ -12,10 +12,17 @@ declared membership when native child links are absent, partial, or unavailable,
 selected issue and contract is independently readable. Missing native metadata is not a reason to
 reject a complete declared scope, but it is never reported as a verified relationship.
 
-For explicit Project workflows, replace the example owner and status options with verified values from
-your GitHub account or organization. The five status options must exist on the selected single-select
-field and have distinct names. Issue publication without a Project needs none of these: the
-`github` object, `owner`, and `projectStatuses` may all be absent.
+The `github` object is optional policy, and the resolver validates it once when it is present. Only
+`owner`, `ownerType`, `statusField`, and `projectStatuses` are allowed, and a supplied
+`projectStatuses` mapping must name all five supported keys with nonempty, distinct option values.
+Replace the example values with verified ones from your GitHub account or organization, and check
+that the five options exist on the selected single-select field. Optional does not mean loose:
+malformed values still fail the resolver.
+
+Each requested operation then needs only its own requirements. Reading a Project, adding requested
+membership, and reconciling an approved README span need no Status configuration. A Status change
+needs its own request and the verified mappings for it. Issue publication without a Project needs
+none of these fields, so the `github` object, `owner`, and `projectStatuses` may all be absent.
 
 ```json
 {
@@ -36,10 +43,10 @@ field and have distinct names. Issue publication without a Project needs none of
 
 | Field | Type | Constraint |
 | --- | --- | --- |
-| `github.owner` | string | Required for explicit Project workflows: nonempty GitHub organization or user login. Optional for issue publication without a Project; when present it must match the canonical repository owner. |
-| `github.ownerType` | string | Optional `"organization"` or `"user"`. Resolved via discovery when omitted. |
-| `github.statusField` | string | Optional exact case-sensitive single-select field name. Defaults to `"Status"`. |
-| `github.projectStatuses` | object | Required for explicit Project workflows: mapping of exactly five keys (`planned`, `executing`, `inReview`, `done`, `blocked`) to nonempty, distinct option names on the configured status field. Not required for issue publication without a Project. |
+| `github.owner` | string | Optional nonempty GitHub organization or user login. A requested Project operation resolves its exact Project under the selected owner; when present it must match the canonical repository owner. |
+| `github.ownerType` | string | Optional `"organization"` or `"user"`. The selected Project's actual owner type is read from GitHub when the field is omitted. |
+| `github.statusField` | string | Optional exact case-sensitive single-select field name. Defaults to `"Status"`. Only a requested Status change uses it. |
+| `github.projectStatuses` | object | Optional. When supplied, a mapping of exactly five keys (`planned`, `executing`, `inReview`, `done`, `blocked`) to nonempty, distinct option names on the configured status field. A requested Status change requires the mapping it needs; other Project operations do not. |
 
 Credentials belong in the host's secret store, never in repository configuration. Use an available,
 authorized GitHub capability exposed by the host (prefer native GitHub tools when suitable;
@@ -52,11 +59,13 @@ reads, and token forwarding are forbidden.
 Preflight only the capabilities needed by the selected operation through the authorized GitHub
 interface. Requested issue publication needs issue reads/writes and independent read-back; native
 sub-issue and dependency writes are used only when they are available and requested. Issue-write
-access does not prove native relationship-write access. Project selection additionally requires the
-selected Project and membership operations; Status operations are required only when status
-mutation is explicitly selected. Unavailable Project access does not block an issue publication that
-did not request one. Orchestrate's read-only tracker interpretation can proceed from a complete
-readable implementation index and independently read selected issues when
+access does not prove native relationship-write access. A selected Project is resolved by its exact
+identity, and each Project operation carries its own requirements: reading it needs Project read,
+requested membership needs Project membership write, and reconciling an approved README span needs
+`readme` read and update. Status capabilities and the matching mapping are required only when a
+Status change is explicitly requested. Unavailable Project access does not block an issue
+publication that did not request one. Orchestrate's read-only tracker interpretation can proceed
+from a complete readable implementation index and independently read selected issues when
 native relationship reads are unavailable; it never mutates relationships or issues. Unsupported
 capabilities, unauthorized scopes, another operation's markers, unexpected changes, or partial
 responses stop the relevant GitHub operation. No test mutation is used to prove publication
@@ -72,10 +81,11 @@ Accepted canonical URL forms are:
 Use these URLs to select resources and associate them with a PR. GitHub's internal GraphQL node
 IDs and Project item IDs are kept separately for API changes.
 
-Explicit Project workflows resolve an exact supplied Project URL under the configured owner. The
-complete specification may be represented in `ProjectV2.readme` between markers
-`<!-- woostack-spec-start -->` and `<!-- woostack-spec-end -->`, preserving unrelated README bytes.
-`shortDescription` contains a concise goal summary.
+Explicit Project operations resolve one exact caller-supplied Project URL, which is never inferred
+from configuration. The complete specification may be represented in `ProjectV2.readme` between
+markers `<!-- woostack-spec-start -->` and `<!-- woostack-spec-end -->`, preserving unrelated README
+bytes. Writing that span updates only `readme`; no other Project field, such as title, visibility,
+or lifecycle, is changed.
 
 An explicitly selected Project may already contain parentless repository issues; Plan preserves
 their actual relationships and membership. Project README spans retain their own recovery marker.
@@ -141,9 +151,9 @@ blockers, and completion leave any retained Project artifact unchanged.
 | [woostack-plan](/docs/skills/woostack-plan) | Plans a goal or partial issue and writes nothing unless the request asks for issues. Publication reuses an existing issue, creates the missing ones, writes only the requested relationships, and reads every write back. `--project` adds membership in one exact existing Project; it never creates a Project. |
 | [woostack-orchestrate](/docs/skills/woostack-orchestrate) | Coordinates selected multi-task work and verifies requested delivery without closing issues or merging. Local-only work requires no GitHub publication; issue, issue-list, and Project arguments supply context, not extra authority. |
 | [woostack-execute](/docs/skills/woostack-execute) | A selected exact issue can provide bounded context, not blanket authority; retired `--project`, `--run`, and `--recheck` are rejected. Local-only work needs no GitHub access or Commit invocation; explicit Execute requests a draft PR unless narrowed. Commit owns requested repository/PR delivery and issue association. |
-| [woostack-init](/docs/skills/woostack-init) | Validates optional `github` configuration once and may discover non-secret owner/status defaults through authorized native GitHub capabilities or host-authenticated `gh`; it never selects persistence or probes writes. |
+| [woostack-init](/docs/skills/woostack-init) | Creates and repairs local `.woostack/` support and validates optional `github` configuration once. It contacts no provider, discovers no owner, Status field, issue, or destination, selects no persistence, and probes no write. |
 | [woostack-bootstrap](/docs/skills/woostack-bootstrap) | May publish an approved design only to an exact explicitly selected Project after target approval and collision checks. |
-| [woostack-doctor](/docs/skills/woostack-doctor) | Checks config types locally. An explicit live request validates a trusted fixed read-only GitHub contract and never grants publication capabilities. |
+| [woostack-doctor](/docs/skills/woostack-doctor) | Runs static local checks through the same resolver; no check reads a credential or makes a network call. An approved local repair is handed to Execute with the requested delivery limit. Doctor never opens a provider session or grants publication capability. |
 
 See the [GitHub profile contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-providers/github.md)
 for exact capability, resource identity, and recovery requirements.
