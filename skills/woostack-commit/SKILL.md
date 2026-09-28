@@ -89,41 +89,22 @@ imperative subject from the authorized outcome. Re-read branch, HEAD, parent/bas
 working-tree state after the mutation. Unrelated unstaged changes may remain; staged changes may
 not.
 
-### 5. Submit the branch, and register a stack only when required
+### 5. Submit and read back
 
-Follow the [submission boundary](references/source-control.md#submit) with the authorized GitHub
-capability that supports exact branch publication, a targeted matching-PR query, draft creation or
-reuse, and independent read-back. Do not force-push, submit unrelated descendants, or create a
-duplicate PR. Independently verify the canonical PR's repository, URL/number, head branch/SHA, base,
-and open state.
-
-Register [native GitHub stack membership](references/source-control.md#native-github-stack-membership-for-a-dependent-pr)
-only when the caller explicitly requests it or repository workflow requires it. Ordinary
-branch/base delivery completes without it: unavailable optional stack metadata does not invalidate
-an otherwise verified commit and PR, an explicitly required registration that cannot complete is
-reported as that precise incomplete boundary, and registration is never claimed without a verified
-read. Do not block an ordinary same-PR update on a newly non-linear registered stack; leave its
-[reconciliation](references/source-control.md#stack-reconciliation) to the calling workflow or human.
-
-Skip this step only when `--no-pr-update` was explicitly supplied, and then report the local branch
-and commit rather than implying a PR or registered stack exists.
+Follow [source control](references/source-control.md#submit) for targeted PR discovery, non-force
+push, exact branch/head/base verification, draft creation or reuse, and uncertain-write recovery.
+Register [native stack membership](references/source-control.md#native-github-stack-membership-for-a-dependent-pr)
+only when requested or required; an unavailable optional registration does not block a verified
+PR, and a required one remains incomplete until read back. `--no-pr-update` stops after the local
+commit without implying a PR or stack.
 
 ### 6. Update PR title and body
 
-Unless `--no-pr-update` is present, update the current PR only after exact identity verification.
-Keep repository-required sections and replace or append the woostack-owned fields without deleting
-unrelated human-authored content, following the
-[pull-request body contract](references/pr-body.md) for that block, preservation, validation, and
-read-back.
-
-When `--issue` is present, load
-[GitHub issue association](references/provider-attribution.md), independently read each exact issue,
-and verify its canonical repository and identifier before changing the PR.
-
-Add no issue reference in issue-free mode. Otherwise append one verified
-`Resolves <canonical GitHub issue URL>` line per fully addressed issue, which takes effect only
-after the PR merges. Read the PR back and compare title, body, head/base, and head SHA. A successful
-mutation response without read-back is not success.
+After exact PR identity verification, follow the [PR-body contract](references/pr-body.md):
+reuse the applicable repository template, preserve human content and readiness, and record only
+observed outcomes, changes, and checks. Independently verify each selected issue under
+[GitHub issue association](references/provider-attribution.md); add a closing reference only for
+fully addressed work. Read back title, full body, head/base, and head SHA before claiming success.
 
 ### 7. Write an explicitly requested GitHub delivery note (optional)
 
@@ -140,12 +121,9 @@ issue-note result separately, unless the note was explicitly part of the deliver
 
 ## Recovery
 
-On interruption or ambiguous output, re-read the last verified facts (branch, base, HEAD, staged
-paths, commit, PR URL/head, and any required stack or note state) and resume from the first
-missing proof under the
-[source-control recovery owner](references/source-control.md#read-back-and-recovery). Never replay a
-commit, submit, stack link, PR update, or issue-note write merely because a previous call did not
-return cleanly.
+After an unknown write, use the [source-control recovery owner](references/source-control.md#read-back-and-recovery)
+to rediscover the targeted branch and PR and continue from the first unproved boundary. Never
+repeat a commit, push, PR update, stack link, or note write merely because its response was lost.
 
 ## Return
 

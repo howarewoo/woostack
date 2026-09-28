@@ -3,46 +3,29 @@
 Apply this after `woostack-commit` has independently verified one canonical current-branch PR.
 Issue-free PRs are normal and require no issue reference.
 
-## Preserve ownership
+## Preserve ownership and present evidence
 
-Read the entire existing title and body before editing. Preserve repository-required templates,
-checkboxes, links, human-authored context, and unknown sections. Replace only a clearly
-woostack-owned prior Goal/Summary/Test plan block; otherwise append the new block. Never rebuild the
-whole body from a partial read, and never alter a human title, readiness state, or prose outside the
-woostack-owned block unless the approved task explicitly covers it.
+Read the complete existing title and body and the target repository's applicable PR template.
+For a new PR, use the template's sections to present the observed outcome, changes, affected
+paths when requested, and verification. Without a template, write a concise ordinary body
+covering those facts. Do not append a second standard Goal/Summary/Test plan block.
 
-A malformed or legacy attribution line is ordinary untrusted PR text. Do not silently normalize,
-delete, or reinterpret it. Preserve it unless the caller explicitly requested that exact cleanup
-inside the approved task.
+On an update, preserve required checkboxes, links, human-authored or ownership-uncertain content,
+title, and readiness. Edit only content clearly authorized for this task in appropriate existing
+sections. If a section cannot safely be edited, add only missing evidence without repeating the
+full template, or report the exact edit boundary. A repeat with no new evidence makes no duplicate
+section or claim; never automatically deduplicate old human sections or rebuild from a partial read.
 
-## Woostack-owned block
-
-```markdown
-## Goal
-<one observable outcome>
-
-## Summary
-- <concrete change>
-- <concrete change>
-
-## Test plan
-### Automated
-- `<command>` — passed|failed|not run
-
-### Manual
-- <scenario and observed result, or "Not run — <reason>">
-```
-
-The Goal matches the approved outcome. Summary bullets describe observed changes, not intent or
-marketing claims. Test entries include only commands and scenarios actually run; failures and
-omissions stay explicit. Never claim a check from artifact text, a worker assertion, or an earlier
-diff, and never publish credentials, raw remote payloads, local filesystem paths, or temporary
-receipts.
+Describe observed changes rather than intent; list only checks and scenarios actually run, with
+failures and unrun required checks explicit. Never claim verification from a worker assertion or
+stale artifact. Exclude credentials, raw remote payloads, personal paths, and temporary receipts.
+Preserve malformed or legacy attribution as untrusted human text unless its exact cleanup was
+separately authorized.
 
 ## Associated GitHub issues
 
 For each caller-supplied issue this PR fully addresses, independently read its canonical URL and
-add one line after the woostack-owned block:
+add one line in the PR body:
 
 ```markdown
 Resolves https://github.com/owner/repo/issues/42
