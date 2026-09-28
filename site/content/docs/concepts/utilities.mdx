@@ -15,7 +15,7 @@ read-only context; utility skills never mutate them.
 
 | Skill | What it does | Writes? | Invoke |
 | --- | --- | --- | --- |
-| [woostack-visualize](/docs/skills/woostack-visualize) | Renders an exact GitHub Project, issue, PR, repository source, or repository-grounded concept as one self-contained HTML view. Repository claims must be pinned to immutable Git content or an exact PR. | disposable HTML view | `/woostack-visualize <source>` |
+| [woostack-visualize](/docs/skills/woostack-visualize) | Renders a supplied document, a current working-copy file, or an exact GitHub/Git source as one self-contained HTML view, labeled with the provenance actually read. | disposable HTML view | `/woostack-visualize <source>` |
 | [woostack-design](/docs/skills/woostack-design) | Arranges multi-step UI flows and screen sequences into a standardized horizontal layout with aligned branches. | design layout updates | `/woostack-design [target]` |
 | [woostack-debug](/docs/skills/woostack-debug) | Runs root-cause analysis and returns a proposed correction. | no | `/woostack-debug <target>` |
 | [woostack-qa](/docs/skills/woostack-qa) | Explores a running app and writes a sanitized report. | non-authoritative report | `/woostack-qa <url> [focus…]` |
