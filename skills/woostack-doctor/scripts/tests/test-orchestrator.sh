@@ -77,12 +77,14 @@ assert_exit 1 "$code" "a partially completed check fails the inspection"
 assert_contains "$out" "kept finding" "findings emitted before a failure are retained"
 assert_contains "$out" "zz-partial.sh" "the incomplete check is still named"
 
-# Independent checks still run after another one fails.
+# Independent checks still run after another one fails. The crash sorts first
+# (aa- before zz-) so the surviving check is genuinely evaluated after it.
 continue_run="$(make_runner)"
-write_check "$continue_run" $'printf "error\tindependent\treport\tq\tindependent finding\\n"\nexit 0' 'aa-independent.sh'
-write_check "$continue_run" 'exit 3' 'zz-crashing.sh'
+write_check "$continue_run" 'exit 3' 'aa-crashing.sh'
+write_check "$continue_run" $'printf "error\tindependent\treport\tq\tindependent finding\\n"\nexit 0' 'zz-independent.sh'
 out="$(run_doctor "$continue_run" "$failed" 2>&1)"; code=$?
 assert_exit 1 "$code" "the crashing check still fails the run"
+assert_contains "$out" "aa-crashing.sh" "the failed check is named in the mixed run"
 assert_contains "$out" "independent finding" "an independent check is still evaluated after a failure"
 
 # Failure detail stays bounded and stays on one sanitized line.
