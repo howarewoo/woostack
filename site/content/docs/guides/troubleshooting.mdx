@@ -17,7 +17,7 @@ healthy one.
 
 | Code | Meaning | Action | Verify |
 | --- | --- | --- | --- |
-| `config-policy` | Malformed policy, or the resolver failed | Inspect the named path and error, then correct only approved policy | Rerun; the error is gone |
+| `config-policy` | Missing `jq`, malformed policy, or resolver failure | Read the finding: install `jq` if missing; otherwise inspect the named error and correct only approved policy | Rerun; the error is gone |
 | `check-failed` | A check could not complete; the finding names the check and its exit status, not raw stderr | Find that check, fix its real cause, then rerun. The rest is unproved | Rerun; no `check-failed` finding is left |
 | `gitignore-drift` | A managed ignore line from the shipped template is missing | Ask for a scoped correction from the template; keep unrelated rules and unsafe paths | Recheck; the drift is gone |
 | `retired-provider` | A legacy provider setting is present as inactive data | Keep the data: retirement guidance, not a migration, a deletion, or a reason to contact a retired provider | Ordinary local work still runs |
