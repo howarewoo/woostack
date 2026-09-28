@@ -1,0 +1,46 @@
+---
+title: Troubleshoot a blocked workflow
+description: Diagnose common Woostack blockers without overwriting work or repeating uncertain writes.
+---
+
+Start with the symptom you can observe. Keep existing files, branches, issues, and PRs intact while you inspect. A local check is not proof of remote access.
+
+## Your assistant cannot find a Woostack skill
+
+Confirm `pnpx skills add howarewoo/woostack` ran in the intended repository and that your assistant discovers `using-woostack` and the requested workflow. Installation is a terminal action; invoking a skill is [host-specific](/docs/harnesses#native-skill-invocation). Check the host's installed-skill view before reinstalling or retrying. See [getting started](/docs/getting-started) for the setup route.
+
+## Doctor reports a local configuration error
+
+Run `/woostack-doctor --check` through your assistant and inspect the finding's path and code. The check is static, makes no GitHub call, and changes nothing; a failed or incomplete inspection is not healthy. Compare the local policy with [configuration reference](/docs/configuration) and use [Doctor's repair contract](/docs/skills/woostack-doctor) for any proposed change. Verify by running the check again after an authorized repair, not by assuming a report means a fix occurred.
+
+## Doctor passes but GitHub fails
+
+Doctor diagnoses local support, not credentials or remote authorization. Inspect the active host's GitHub capability and the **exact** repository or issue access needed for the operation. Re-read the target with the authorized integration before retrying a failed publication; do not create credentials in a docs example. [GitHub configuration](/docs/configuration) and [Plan publication](/docs/skills/woostack-plan) describe their separate boundaries. A passing local check remains local evidence.
+
+## Issues exist but native links are missing
+
+Check the issue URLs, descriptions, and written prerequisite index. Native sub-issue or blocked-by links count only when a supported mutation was read back. Missing administrative links do not erase executable scope or automatically block [coordination](/docs/guides/coordinate-work). If the user explicitly required a native graph, report it incomplete; [Plan](/docs/skills/woostack-plan) owns relationship publication.
+
+## Orchestrate is blocked by missing sub-issues
+
+Read the selected tracker and its executable issue links. If all tasks and real prerequisites are available in readable form, a missing native hierarchy alone is not a blocker. If task scope or a required change is absent from the selected base, stop that dependent task and request the missing scope or delivery evidence. [Orchestrate](/docs/skills/woostack-orchestrate) owns the base check; verify the actual source and PR facts before releasing work.
+
+## An issue or pull-request write has an unknown result
+
+Search the **exact** target repository for the issue identity or matching branch PR and read the current remote result before another write. A timeout or lost response is not proof of failure. Preserve a found issue or PR; resume only the unproved step. [Plan's publication rules](/docs/skills/woostack-plan) and [Commit's recovery rules](/docs/skills/woostack-commit) own the detailed read-back. Verify the final content, head/base, and association independently.
+
+## A prior worker may still be active
+
+Inspect native worker state and the worktree's branch, index, and diff. Do not start a second writer in the same physical workspace until the first worker has exited or relinquished it. Safe independent work can continue in a separate owned workspace. [Orchestrate](/docs/skills/woostack-orchestrate) describes recovery; a quiet process or elapsed time alone is not exit proof.
+
+## A check failed or did not run
+
+Read the specific command, output, and affected path. Diagnose an in-scope failure and rerun the affected check after correction; do not mark an incomplete required check as passed or use a worker's summary instead of results. If the environment prevents it, try a materially different recovery, then report the criterion still unverified. [Execute](/docs/skills/woostack-execute) owns the verification boundary.
+
+## A command has been retired
+
+`woostack-build`, `woostack-fix`, `woostack-change`, `woostack-status`, `woostack-tdd`, and `woostack-prepare` have no compatibility aliases. Choose the current task from the [routing reference](/docs/skills/using-woostack): for example, use Plan for planning or Execute for one bounded implementation. Retained old runs are historical data, not commands to replay.
+
+## Still blocked
+
+Share a sanitized report with the responsible person: the intended outcome and exact repository, the relevant skill and host, the observed error or finding, the last verified branch/commit or issue/PR URL, checks run and their outcomes, and which step remains unproved. Remove credentials, tokens, private source, and personal paths. Do not reset, clean, delete, or duplicate work to get past the blocker.

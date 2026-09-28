@@ -1,0 +1,33 @@
+---
+title: Plan work and file issues
+description: Turn a repository goal into reviewable increments, with optional verified GitHub publication.
+---
+
+Use this guide when you know the goal but need a source-grounded plan before anyone implements it. You need a repository your assistant can read. To file issues, it also needs authorized GitHub issue-write access and an unambiguous destination. These are **requests to your assistant**, not terminal commands; use your [host's invocation form](/docs/harnesses#native-skill-invocation).
+
+## 1. Describe the outcome
+
+Start with a read-only request you can edit:
+
+```text
+/woostack-plan Reduce duplication in configuration parsing.
+Keep public behavior and accepted configuration formats unchanged.
+Prefer removing or reusing code over adding new abstractions.
+Return a plan only; do not file issues or implement changes.
+```
+
+The result should name the source inspected, reviewable increments, acceptance and verification for each, and **real** prerequisites. A plan is not a passing check or an implementation. If a choice changes scope or safety, settle it before publication. Neither a template nor an earlier Ideate or Harden session is required.
+
+## 2. Review and optionally publish
+
+Check that the increments do not repeat an existing issue and that dependencies reflect actual requirements, not their order in a list. If you want issues, ask explicitly:
+
+```text
+File this plan as GitHub issues in OWNER/REPOSITORY. Reuse existing issues that already cover the increments. Include acceptance criteria and the real prerequisites, then read back the affected issues. Do not start implementation.
+```
+
+Replace `OWNER/REPOSITORY` with the actual destination. A request to plan **and** file issues in one message already authorizes publication; this read-only-first example is a choice, not an approval ceremony. A Project or fixed issue hierarchy is not required. Ask for native relationships only when you need them: they count only after their writes and read-back succeed. If relationship operations are unavailable, keep the verified issue URLs and readable prerequisites. An explicitly required native graph remains incomplete until verified.
+
+## 3. Check the handoff
+
+Compare the returned issues and their content with the plan; don't infer publication from a success sentence. If a write has an unknown result, [inspect it before trying again](/docs/guides/troubleshooting#an-issue-or-pull-request-write-has-an-unknown-result). Choose implementation separately: [deliver one change](/docs/guides/ship-change) or [coordinate several approved tasks](/docs/guides/coordinate-work). [Plan's reference](/docs/skills/woostack-plan) owns the exact publication rules.
