@@ -45,11 +45,10 @@ Open your coding assistant in the project root and enter:
 /woostack-init
 ```
 
-Init creates `.woostack/` configuration, diagnostic folders, and worktree support. OMP delegation
-uses agents already exposed by the active session; Init does not create a parallel project agent
-catalog. It may use authorized native GitHub capabilities or host-authenticated `gh` for narrow
-read-only discovery when an explicit GitHub operation needs it. Missing GitHub configuration or
-capability does not block local setup. Init does not create remote issues or projects. See
+Init is local-only: it creates and validates files under `.woostack/` and never contacts GitHub,
+discovers a Project, or creates a remote issue. OMP delegation uses agents already exposed by the
+active session; Init does not create a parallel project agent catalog. Missing GitHub
+configuration or capability does not block local setup. See
 [Init](skills/woostack-init/SKILL.md) for details.
 
 ### 3. Tell your assistant to use woostack
