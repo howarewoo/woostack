@@ -69,9 +69,9 @@ Choose the private helpers, files, and abstractions that best deliver the outcom
 repository already provides, and apply the
 [least-code standard](../woostack-bootstrap/references/patterns.md#7-least-code--comments) without
 reducing accepted scope, compatibility, safety protections, or required verification. Delegate
-implementation or add independent review only when requested, required by repository workflow, or
-warranted by risk; neither is a delivery prerequisite, and the implementer never claims independent
-review of their own work.
+implementation or seek independent review when requested, required, or warranted by risk. Required
+review must be satisfied before completion is claimed; self-review is not independent. Report an
+unavailable required capability as unmet rather than substituting a weaker step.
 
 ### Optional exact GitHub issue
 

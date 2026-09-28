@@ -37,9 +37,10 @@ When data crosses between applications, use explicit adapters at the receiving a
 ## 4. Test-Driven Development
 
 Apply the canonical [testing guidance](../../woostack-execute/references/tdd.md) for
-Red → Green → Refactor, meaningful coverage, characterization tests, and concrete no-runner
-verification. Use the repository's approved test runner, file layout, and naming conventions. A
-change is incomplete until its required verification passes.
+test-first sequences when the repository or task requires them, meaningful coverage,
+characterization tests, and concrete no-runner verification. Use the repository's approved test
+runner, file layout, and naming conventions. A change is incomplete until its required verification
+passes.
 
 ## 5. API stability
 

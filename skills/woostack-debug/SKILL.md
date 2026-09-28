@@ -33,14 +33,17 @@ missing concrete check. Debug remains read-only and does not add or rewrite test
 
 ## Optional GitHub context resolution (one path, read-only)
 
-Load the shared [artifact contract](../woostack-init/references/artifact-backends.md#direct-publication-and-recovery)
+A local code/runtime target is investigated as it stands: without an explicitly selected GitHub
+Project, issue, or PR identity, load no artifact contract, GitHub profile, or remote read, and state
+that no development context was used, even when the caller supplies local logs or traces.
+
+When the caller explicitly selects a GitHub Project, issue, or PR identity, first load the shared
+[artifact contract](../woostack-init/references/artifact-backends.md#direct-publication-and-recovery)
 and the [GitHub profile](../woostack-init/references/artifact-providers/github.md#configuration-and-scope).
 Those references own transport, identity, scope, trust, and read-back; do not duplicate them. Git and
 GitHub remain the source of truth for repository, PR, review, check, and merge evidence. Issue
-lifecycle and Project Status metadata never prove implementation or delivery.
-
-A code/runtime target may always be investigated without GitHub context. When the caller explicitly
-supplies context material to the diagnosis, follow exactly this path:
+lifecycle and Project Status metadata never prove implementation or delivery. Then follow exactly
+this path:
 
 1. **Classify the source once.** Accept a canonical GitHub Project URL, canonical GitHub issue
    reference, or exact GitHub PR URL/number in the canonical repository. A PR is valid repository
@@ -67,9 +70,7 @@ supplies context material to the diagnosis, follow exactly this path:
 
 No local specification, plan, or fix record is discovered or used. The GitHub boundary is strictly
 read-only: Debug never creates, edits, comments on, assigns, delegates, transitions, or relates a
-GitHub resource, and it never writes its diagnosis remotely. If no explicit GitHub source is
-supplied, continue the separately scoped code/runtime investigation while stating that no
-development context was used.
+GitHub resource, and it never writes its diagnosis remotely.
 
 When called from an authorized bounded `woostack-execute` correction and the proved defect stays
 inside its scope, return the evidence and minimal fix to that task. Debug neither expands scope
@@ -185,6 +186,3 @@ rather than guessing.
   approval, planning identity, or delivery permission. The receiving workflow independently verifies
   freshness, scope, and authority; Debug only returns evidence-bound content.
 - **Autonomous and terminal.** Run all phases and return; never chain remediation.
-
-
-Wall time: 0.20 seconds
