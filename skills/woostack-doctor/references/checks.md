@@ -5,6 +5,8 @@ Each check under `../scripts/checks/` emits one tab-delimited finding:
 
 - `severity` is `error` for structural breakage or `warn` for hygiene/retirement guidance.
 - `fixable` is `auto` for an approved local repair or `report` for judgment-only evidence.
+- A check that cannot complete is an incomplete inspection, not a clean one: the runner emits a
+  `check-failed` error naming the check and its exit status, so both invocation modes exit nonzero.
 - CI (`--check`) exits nonzero only when an `error` finding exists.
 
 ## Calling convention
@@ -30,6 +32,7 @@ Doctor receipt.
 | `orphan-worktree` (stale) | registered worktree whose directory is gone | warn | auto | `<root>` (`git worktree prune`) |
 | `gitignore-drift` | shipped-template managed line missing from `.woostack/.gitignore` | warn | auto | `<root>` |
 | `config-policy` | malformed canonical policy or resolver failure | error | report | — |
+| `check-failed` | check could not complete; emitted by the runner, naming the check and its exit status | error | report | — |
 | `retired-provider` | legacy provider selector/profile is present as opaque inactive data | warn | report | — |
 | `retained-data` | historical local draft/manifest directory is present | warn | report | — |
 | `retired-status-config` | legacy top-level `status.staleDays` is present | warn | report | — |
@@ -40,6 +43,16 @@ remains report-only; only a stale worktree registration whose directory is gone 
 
 Legacy provider settings and retained records are not active policy and are never migration input
 for this engine. Their findings are actionable retirement guidance, not local-operation blockers.
+
+## Runner failure handling
+
+`doctor.sh` runs every check in `../scripts/checks/` and keeps going after a failure, so one broken
+check never costs the findings of the others. A check that exits nonzero has its already-emitted
+findings preserved, and the runner appends one `check-failed` error finding. That finding carries no
+repair (`fixable` is `report`): a check that cannot complete is evidence to investigate, not
+something Doctor fixes. The excerpt of the check's own stderr, when present, is bounded to one short
+line. A check that emits an `error` finding and exits 0 is a completed inspection with an unhealthy
+result, and keeps the same nonzero exit.
 
 ## Canonical policy
 
