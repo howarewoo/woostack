@@ -2,15 +2,13 @@
 name: woostack-qa
 description: Use to explore a running web app in a real browser, reproduce confirmed bugs, and create sanitized, severity-ranked, non-authoritative diagnostic reports. Report-only runs never mutate GitHub or application source.
 install: pnpx skills add howarewoo/woostack
-recommends:
-  bins: [agent-browser]
 ---
 
 # woostack-qa
 
 Exploratory-QA a **running application** the way a user would. `woostack-qa` drives the live
-app in a real browser: it walks the core journeys, attacks edge cases, watches an always-on
-assertion floor, reproduces every suspected bug once before logging it, and emits a
+app in a real browser: it walks the core journeys, attacks edge cases, gathers the evidence each
+step warrants, reproduces every suspected bug once before logging it, and emits a
 severity-ranked, sanitized, **non-authoritative report-only** findings document under
 `.woostack/qa/`.
 
@@ -27,38 +25,32 @@ and it never starts, builds, or restarts the target app.
 ## Commands
 
 - `/woostack-qa <url> [focus…]` — QA the app at `<url>`. **The URL is required** (no
-  accidental default target). Optional free-form focus instructions narrow the journey set,
-  supply credentials, or authorize destructive surfaces.
+  accidental default target). Optional free-form focus instructions narrow the journey set, set a
+  time or tool-call budget, supply credentials, or authorize destructive surfaces.
 - `/woostack-qa <url> --stop-first` — halt at the first **confirmed** (reproduced) bug and
   deep-dive it: inspect the relevant source in the repo, and write the report with that one
   finding's suspected cause and proposed fix direction.
 
-## Browser binding
+## Browser capability
 
-Drive the browser from bash via the **`agent-browser`** CLI (reference binding). At run
-start, load its version-matched shipped guidance instead of guessing commands:
-
-```bash
-agent-browser skills get core --full   # command reference + patterns
-agent-browser skills get dogfood       # its systematic app-exploration guide
-```
-
-Fallback: the Playwright agent CLI (`@playwright/cli`) when `agent-browser` is unavailable —
-first available wins. Reference both by name only; never pin versions. Any equivalent
-snapshot/act/console/network/screenshot CLI satisfies the contract.
+Use a browser capability the host already provides: native browser tools, or an already installed
+browser CLI. Either is valid — select the one that can drive the resolved journeys and capture
+the evidence this run needs, and load only that interface's own guidance or schema (for a CLI,
+its version-matched shipped guidance) instead of guessing commands. Never install, fetch, or
+`npx`-run a browser to satisfy a preferred binding, and never build a browser adapter or command
+registry. No usable browser → **stop** and report the missing capability; installing one is a
+separate request for the user to authorize.
 
 ## Preflight (hard gates — never fake results)
 
-1. **Browser CLI present.** Probe `agent-browser --version` (fall back to
-   `npx -y agent-browser --version`), then the Playwright agent CLI. Neither runs → **stop**
-   with the install hint `pnpm i -g agent-browser` (engine floor: node ≥ 24, pnpm ≥ 11; the
-   `npx -y agent-browser` path needs no global install). Never simulate browser results.
-2. **Target responds.** `agent-browser open <url>` (or a `curl -sf -o /dev/null <url>`
-   probe first). Unreachable → **stop**, naming the URL and the failure. Do not guess
-   another port; do not start the app.
+1. **Browser available.** Confirm the selected capability can open a page. None available →
+   **stop**, naming the missing capability. Never simulate browser results.
+2. **Target responds.** Open `<url>` with it (a `curl -sf -o /dev/null <url>` probe is enough to
+   fail fast). Unreachable → **stop**, naming the URL and the failure. Do not guess another port;
+   do not start the app.
 
-A failed preflight produces **no report** — "no findings" from a run that never ran is the
-false-clean the receipts doctrine forbids.
+A preflight that never starts produces **no report** — "no findings" from a run that never ran is
+the false-clean the receipts doctrine forbids.
 
 ## Journey and optional GitHub context resolution
 
@@ -92,8 +84,12 @@ read. Missing optional context degrades to the independently established queue w
 never becomes fabricated empty context.
 
 The resolved journey list is the run bound. Blind exploration is one pass over the discovered nav
-surface (each page once, plus its edge attacks), with no re-crawl loop or wall-clock cap.
-`--stop-first` is the only early exit.
+surface (each page once, plus its edge attacks), with no re-crawl loop. Honor explicit journey
+scope, user cancellation, and any requested time or tool-call budget: when one ends, stop at the
+next safe boundary and report partial coverage, not an abort. Name the limit you actually
+hit — never claim wall-clock enforcement the host cannot provide, and never add a timer or budget
+record. `--stop-first` still ends the run at the first confirmed, reproduced bug; scope,
+cancellation, and budget are equally valid early exits.
 
 ## Exploration doctrine
 
@@ -109,23 +105,25 @@ surface (each page once, plus its edge attacks), with no re-crawl loop or wall-c
   gated surface as uncovered.
 - **Destructive-action guard.** Avoid irreversible app actions (deletes, payments, sends)
   unless the focus args explicitly authorize them; name every skipped surface in the report.
-- **Session hygiene.** `agent-browser close` on completion **and** on abort paths, so the
-  CLI daemon never leaks between runs.
+- **Session hygiene.** Release the browser resources this run created, on completion **and** on
+  abort paths. Never close an unrelated shared session just to imitate a CLI close command.
 
-## Assertion floor (every step)
+## Evidence floor (per step, by risk)
 
-After each interaction, check all four signal classes:
+After an interaction, gather the evidence that interaction and its risk warrant:
 
-- **Console:** `agent-browser console` + `agent-browser errors` — unhandled exceptions,
-  error-level logs.
-- **Network:** `agent-browser network requests` — 4xx/5xx responses tied to the interaction.
-- **Visual:** `agent-browser snapshot` (+ `screenshot` for evidence) — overflow, overlapping
-  text, off-screen controls, unreadable contrast.
-- **Dead controls:** links/buttons that produce no navigation, no request, and no DOM
-  change.
+- **Rendered behavior:** overflow, overlapping text, off-screen controls, unreadable contrast.
+- **Console:** relevant errors, unhandled exceptions, error-level logs.
+- **Network:** 4xx/5xx responses tied to the interaction.
+- **Dead controls:** links/buttons that produce no navigation, no request, and no DOM change.
+
+These are investigation signals, not four fresh tool calls per step: reuse what the selected
+capability already observed and spend calls where the risk or the anomaly is. Evidence you could
+not obtain — a console or network channel the capability does not expose — is a stated coverage
+limitation or blocker, never proof that the signal was clean.
 
 Triage before logging: expected noise (a 401 on logout, dev-mode warnings) is not a bug.
-Multiple floor signals from one root interaction dedupe into **one** finding.
+Multiple signals from one root interaction dedupe into **one** finding.
 
 ## Reproduce before log
 
@@ -147,8 +145,9 @@ data-loss, or journey-blocking bugs.
 Every report opens with `Authority: non-authoritative diagnostic evidence` and visibly labels
 itself report only. It records:
 
-- **Coverage:** the resolved journey queue and its provenance, run bound, browser binding, auth
-  walls, destructive surfaces skipped, and complete/partial/aborted outcome.
+- **Coverage:** the resolved journey queue and its provenance, run bound, browser capability, any
+  scope, cancellation, or budget limit that ended the run, auth walls, destructive surfaces
+  skipped, and complete/partial/aborted outcome naming completed, skipped, and unconfirmed work.
 - **Each finding:** severity, numbered repro steps executed twice, expected versus actual,
   sanitized textual evidence, transient screenshot paths, suspected source symbols, root-cause
   confidence, bounded remediation direction, and one proposed bounded remediation contract.
@@ -158,7 +157,8 @@ itself report only. It records:
 - **Evidence:** screenshots under `.woostack/qa/evidence/<date>-<slug>/` remain gitignored,
   per-clone, and transient. Inline only the minimum sanitized text needed to support a finding.
 - **Zero findings:** state the exact journey count and coverage; never emit a silent empty.
-  **Aborted run:** label it partial/aborted and name findings-so-far and the abort point.
+  **Aborted run:** label it partial/aborted and name findings-so-far, the exact stop point, and the
+  journeys left completed, skipped, or unconfirmed.
 
 The local report never becomes scope, acceptance, assignment, lifecycle state, or permission to
 edit. Any GitHub issue it names is evidence only and must be re-read for drift. Report-only QA
@@ -177,13 +177,13 @@ GitHub lifecycle state.
 - **Report-only and non-authoritative.** No GitHub mutation, application source/test write, commit,
   code-host post, auto-fix, or merge.
 - **Explicit URL required.** Never pick a default target.
-- **Never fake browser results.** No CLI or dead server means hard stop and no report.
+- **Never fake browser results.** No usable browser or dead server means hard stop and no report.
 - **Reproduce before log.** Unreproduced suspicions are observations, not findings.
 - **Credentials only from the user.** Never guessed or harvested; never retained in the report.
 - **Approval gate before remediation.** The user must authorize bounded correction scope; Execute
   must establish cause before changing code, without turning a QA finding into permission to fix.
-- **Stay on origin; guard destructive actions; close the session.**
+- **Stay on origin; guard destructive actions; release task-owned browser resources.**
 - **Optional GitHub context only.** Never discover or hand off a local spec, plan, or fix; exact
   caller-supplied GitHub context is verified, read-only context.
-
-Wall time: 0.19 seconds
+- **Bounded runs end honestly.** Scope end, cancellation, or a requested budget stops the run at
+  the next safe boundary and yields partial coverage, never a full-acceptance claim.

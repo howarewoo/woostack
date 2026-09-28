@@ -9,7 +9,7 @@ permission to mutate the repository.
 
 - **Target:** {{URL}}
 - **Canonical repository:** {{REPOSITORY}}
-- **Browser binding:** {{agent-browser|playwright-cli}}
+- **Browser capability:** {{native host browser tool | installed CLI actually used}}
 - **Outcome:** {{complete|partial|aborted}}
 - **Findings:** {{N}}
 - **Sanitization:** passed residual check {{RECEIPT_OR_TIMESTAMP}}
@@ -19,10 +19,10 @@ permission to mutate the repository.
 
 - **Journey source:** {{focus args | verified GitHub context (canonical PR, issue, or Project URL) | blind exploration}}
 - **Queue:** {{numbered journey list — the run bound}}
-- **Bound:** one pass, no re-crawl{{; --stop-first exit at finding 1 if applicable}}
-- **Session closed:** {{yes/no}}
+- **Bound:** one pass, no re-crawl{{; ended early by --stop-first, scope end, cancellation, or budget}}
+- **Session released:** {{task-owned browser resources released; unrelated sessions left open}}
 - **Uncovered:** {{auth walls; destructive surfaces skipped; cross-origin boundaries | none}}
-- **Aborted:** {{n/a | journey N, reason, and result of the one reconnect attempt}}
+- **Aborted:** {{n/a | journey N, target/browser failure and reconnect result if attempted}}
 
 ## Findings ({{N}}, ranked)
 
@@ -57,5 +57,5 @@ permission to mutate the repository.
 
 ## Zero-finding or abort receipt
 
-- {{When N=0: exact completed journey count and coverage. When aborted: findings-so-far and exact
-  abort point. Otherwise: n/a.}}
+- {{When N=0: exact completed journey count and coverage. When interrupted: findings-so-far, the
+  exact stop point, and the journeys left completed, skipped, or unconfirmed. Otherwise: n/a.}}
