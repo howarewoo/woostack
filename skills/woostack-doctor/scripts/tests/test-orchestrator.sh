@@ -86,8 +86,36 @@ assert_contains "$out" $'unfinished\nerror\tcheck-failed\treport\tzz-unterminate
 run_doctor "$unterminated" --check "$failed" >/dev/null 2>&1
 assert_exit 1 "$?" "--check fails after unterminated output"
 
-# Independent checks still run after another one fails. The crash sorts first
-# (aa- before zz-) so the surviving check is genuinely evaluated after it.
+# A successful check can also end with an unterminated error record.
+final_error="$(make_runner)"
+write_check "$final_error" $'printf "error\tfixture\treport\tp\tproblem"\nexit 0' 'aa-error.sh'
+out="$(run_doctor "$final_error" "$failed" 2>&1)"; code=$?
+assert_exit 1 "$code" "unterminated successful error fails normal mode"
+assert_contains "$out" $'error\tfixture\treport\tp\tproblem' "unterminated error record is displayed"
+assert_contains "$out" "doctor: 1 error(s), 0 warning(s)" "unterminated error is counted"
+out="$(run_doctor "$final_error" --check "$failed" 2>&1)"; code=$?
+assert_exit 1 "$code" "unterminated successful error fails check mode"
+assert_contains "$out" "::error:: [fixture] p: problem" "check mode annotates the unterminated error"
+
+# A successful unterminated warning remains separate from the next check's record.
+final_warn="$(make_runner)"
+write_check "$final_warn" $'printf "warn\tlast-warning\treport\tp\tadvice"\nexit 0' 'aa-warning.sh'
+out="$(run_doctor "$final_warn" "$failed" 2>&1)"; code=$?
+assert_exit 0 "$code" "unterminated warning alone stays non-error"
+assert_contains "$out" "doctor: 0 error(s), 1 warning(s)" "unterminated warning is counted"
+out="$(run_doctor "$final_warn" --check "$failed" 2>&1)"; code=$?
+assert_exit 0 "$code" "unterminated warning alone stays non-error in check mode"
+assert_contains "$out" "::warning:: [last-warning] p: advice" "check mode annotates the warning"
+write_check "$final_warn" $'printf "error\tnext-error\treport\tq\tnext problem\\n"\nexit 0' 'zz-error.sh'
+out="$(run_doctor "$final_warn" "$failed" 2>&1)"; code=$?
+assert_exit 1 "$code" "following independent error fails inspection"
+assert_contains "$out" $'advice\nerror\tnext-error\treport\tq\tnext problem' "independent error begins a separate row"
+assert_contains "$out" "doctor: 1 error(s), 1 warning(s)" "both independent findings are counted"
+out="$(run_doctor "$final_warn" --check "$failed" 2>&1)"; code=$?
+assert_exit 1 "$code" "independent error fails check mode"
+assert_contains "$out" "::error:: [next-error] q: next problem" "check mode preserves independent error"
+
+# A crash sorts before the independent check, which still runs afterward.
 continue_run="$(make_runner)"
 write_check "$continue_run" 'exit 3' 'aa-crashing.sh'
 write_check "$continue_run" $'printf "error\tindependent\treport\tq\tindependent finding\\n"\nexit 0' 'zz-independent.sh'
@@ -96,12 +124,20 @@ assert_exit 1 "$code" "the crashing check still fails the run"
 assert_contains "$out" "aa-crashing.sh" "the failed check is named in the mixed run"
 assert_contains "$out" "independent finding" "an independent check is still evaluated after a failure"
 
-# Failure detail stays bounded and stays on one sanitized line.
+# Failed-check identity and status survive; arbitrary child stderr does not.
 noisy="$(make_runner)"
-write_check "$noisy" 'printf "line %s\n" {1..200} >&2; exit 9' 'zz-noisy.sh'
-out="$(run_doctor "$noisy" --check "$failed" 2>&1)"
-assert_eq "$(grep -c 'zz-noisy.sh' <<<"$out")" "1" "a failing check's stderr is reported on one line"
-assert_contains "$out" "::error:: [check-failed]" "the failure is an error finding in --check mode"
+write_check "$noisy" 'printf "fake-token-private-path-sentinel\n" >&2; exit 9' 'zz-noisy.sh'
+for mode in normal check; do
+  if [ "$mode" = check ]; then
+    out="$(run_doctor "$noisy" --check "$failed" 2>&1)"; code=$?
+  else
+    out="$(run_doctor "$noisy" "$failed" 2>&1)"; code=$?
+  fi
+  assert_exit 1 "$code" "stderr-only failure exits nonzero in $mode mode"
+  assert_contains "$out" "zz-noisy.sh" "failed check remains named in $mode mode"
+  assert_contains "$out" "exit 9" "failed status remains visible in $mode mode"
+  assert_not_contains "$out" "fake-token-private-path-sentinel" "stderr sentinel is suppressed in $mode mode"
+done
 
 # Successful checks keep their existing exit semantics.
 ok="$(make_runner)"

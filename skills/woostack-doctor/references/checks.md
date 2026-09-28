@@ -50,11 +50,12 @@ for this engine. Their findings are actionable retirement guidance, not local-op
 ## Runner failure handling
 
 `doctor.sh` runs every check in `../scripts/checks/` and keeps going after a failure, so one broken
-check never costs the findings of the others. A check that exits nonzero has its already-emitted
-findings preserved, and the runner appends one `check-failed` error finding. That finding carries no
-repair (`fixable` is `report`): a check that cannot complete is evidence to investigate, not
-something Doctor fixes. The excerpt of the check's own stderr, when present, is bounded to one short
-line. A check that emits an `error` finding and exits 0 is a completed inspection with an unhealthy
+check never costs the findings of the others. It terminates each check's final record even when
+the check omits a newline, keeping the next check's findings separate. A check that exits nonzero
+has its already-emitted findings preserved, and the runner appends one `check-failed` error finding
+with the check name and exit status, not raw stderr. That finding carries no repair (`fixable` is
+`report`): a check that cannot complete is evidence to investigate, not something Doctor fixes.
+A check that emits an `error` finding and exits 0 is a completed inspection with an unhealthy
 result, and keeps the same nonzero exit.
 
 ## Canonical policy
