@@ -80,6 +80,9 @@ assert_eq "$(jq -r '.commit' <<<"$actual")" "null" "local null replaces"
 git -C "$repo" worktree add -q "$worktree"
 actual="$(bash "$RESOLVER" "$worktree")"
 assert_eq "$(jq -r '.github.owner' <<<"$actual")" "local-org" "linked worktree inherits local policy"
+ln -s "$repo" "$TMP/repo-alias"
+actual="$(bash "$RESOLVER" "$TMP/repo-alias")"
+assert_eq "$(jq -r '.github.owner' <<<"$actual")" "local-org" "repository-root alias keeps valid local policy"
 
 # Legacy model values are arbitrary user data, not routing policy.
 for model in '"old/provider"' '{"standard":"old/provider","deep":{"model":"old/deep"}}' '{"fast":[],"deep":["old/provider",42]}'; do
@@ -107,6 +110,37 @@ printf '{"github":{"owner":"orphan"}}\n' >"$TMP/orphan/.woostack/config.local.js
 must_fail "$TMP/orphan" ".woostack/config.json is missing" "orphaned local config fails"
 : >"$TMP/empty_base/.woostack/config.json"
 must_fail "$TMP/empty_base" ".woostack/config.json must not be empty" "empty base config fails"
+
+# The support directory itself is a read boundary, even if its children are ordinary files.
+outside="$TMP/outside"
+linked="$TMP/linked"
+mkdir -p "$outside" "$linked"
+printf '{"commit":{"command":"sentinel-not-executed"}}\n' >"$outside/config.json"
+printf '{"commit":{"command":"external-local-override"}}\n' >"$outside/config.local.json"
+printf 'external-ignore-sentinel\n' >"$outside/.gitignore"
+ln -s "$outside" "$linked/.woostack"
+must_fail "$linked" ".woostack directory must not be a symlink" "external support directory fails before config read"
+assert_eq "$(cat "$outside/config.json")" '{"commit":{"command":"sentinel-not-executed"}}' "external config remains unchanged"
+assert_eq "$(cat "$outside/.gitignore")" "external-ignore-sentinel" "external diagnostic remains unchanged"
+assert_eq "$(readlink "$linked/.woostack")" "$outside" "support directory link remains unchanged"
+assert_eq "$(cat "$outside/config.local.json")" '{"commit":{"command":"external-local-override"}}' "external local override remains unchanged"
+mkdir -p "$TMP/dangling"
+ln -s "$TMP/missing-target" "$TMP/dangling/.woostack"
+must_fail "$TMP/dangling" ".woostack directory must not be a symlink" "dangling support directory fails"
+
+primary="$TMP/primary"
+secondary="$TMP/secondary"
+mkdir -p "$primary/.woostack"
+git -C "$primary" init -q
+printf '{}\n' >"$primary/.woostack/config.json"
+git -C "$primary" add .woostack/config.json
+git -C "$primary" -c user.name=t -c user.email=t@t commit -qm init
+git -C "$primary" worktree add -q "$secondary"
+assert_eq "$(bash "$RESOLVER" "$secondary")" "{}" "ordinary linked worktree stays valid"
+mv "$primary/.woostack" "$TMP/original-primary-support"
+ln -s "$outside" "$primary/.woostack"
+must_fail "$secondary" "primary checkout .woostack directory must not be a symlink" "linked worktree cannot import external local override"
+assert_eq "$(readlink "$primary/.woostack")" "$outside" "primary support link remains unchanged"
 
 bad="$TMP/bad/.woostack"
 mkdir -p "$bad"

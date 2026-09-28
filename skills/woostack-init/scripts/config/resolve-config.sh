@@ -33,6 +33,13 @@ else
   primary_root="$repo_root"
 fi
 
+if [ -L "$repo_root/.woostack" ]; then
+  fail ".woostack directory must not be a symlink"
+fi
+if [ -L "$primary_root/.woostack" ]; then
+  fail "primary checkout .woostack directory must not be a symlink"
+fi
+
 config_path="$repo_root/.woostack/config.json"
 local_path="$primary_root/.woostack/config.local.json"
 

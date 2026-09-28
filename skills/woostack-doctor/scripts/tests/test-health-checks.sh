@@ -45,6 +45,35 @@ bash "$C/gitignore-drift.sh" --fix "$rl" >/dev/null 2>&1
 assert_eq "$(cat "$rl/external/target")" "sentinel-bytes" "external sentinel bytes are preserved"
 assert_eq "$(readlink "$rl/.woostack/.gitignore")" "$rl/external/target" "symlink is preserved"
 
+# The containing support directory must not be followed by either direct check
+# or the aggregate runner, including when its target is missing.
+for kind in populated dangling; do
+  boundary="$(mktemp -d)"
+  if [ "$kind" = populated ]; then
+    outside="$(mktemp -d)"
+    printf '{"commit":{"command":"sentinel-not-executed"}}\n' >"$outside/config.json"
+    printf 'external-ignore-sentinel\n' >"$outside/.gitignore"
+    ln -s "$outside" "$boundary/.woostack"
+  else
+    ln -s "$boundary/missing" "$boundary/.woostack"
+  fi
+  for check in config-keys gitignore-drift; do
+    finding="$(bash "$C/$check.sh" "$boundary")"
+    assert_contains "$finding" $'error\t' "$kind support link is an error in direct $check"
+    assert_contains "$finding" "directory must not be a symlink" "$kind direct $check reports the boundary"
+    assert_not_contains "$finding" "missing managed line" "$kind direct $check does not follow the target"
+  done
+  report="$(bash "$HERE/../doctor.sh" "$boundary" 2>&1)"; status=$?
+  assert_exit 2 "$status" "$kind support link fails aggregate Doctor"
+  assert_contains "$report" "directory must not be a symlink" "$kind aggregate diagnosis reports the boundary"
+  assert_not_contains "$report" "0 error(s)" "$kind aggregate diagnosis is not healthy"
+  assert_eq "$(readlink "$boundary/.woostack")" "$([ "$kind" = populated ] && printf '%s' "$outside" || printf '%s' "$boundary/missing")" "$kind support link is preserved"
+  if [ "$kind" = populated ]; then
+    assert_eq "$(cat "$outside/config.json")" '{"commit":{"command":"sentinel-not-executed"}}' "external config remains unchanged"
+    assert_eq "$(cat "$outside/.gitignore")" "external-ignore-sentinel" "external diagnostic remains unchanged"
+  fi
+done
+
 # An unreadable template is an inspection failure, never a clean result.
 tpl="$(mktemp -d)"
 mkdir -p "$tpl/woostack-doctor/scripts/checks" "$tpl/woostack-init/templates"
