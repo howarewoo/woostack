@@ -67,10 +67,11 @@ a branch such as `staging` before a human merges a release into `main`.
 | First feature branch | First PR in a plan | Verified integration branch |
 | Dependent feature branch | Next PR in a stack | The approved predecessor's branch |
 
-Use native Git with an authorized GitHub interface for delivery; host-authenticated `gh` remains
-supported where appropriate. The
-[source-control contract](../../woostack-commit/references/source-control.md) owns delivery
-mechanics. Follow the
+[`woostack-commit`](../../woostack-commit/SKILL.md) owns the commit and pull-request delivery
+workflow, using native Git with an authorized GitHub interface; host-authenticated `gh` remains
+supported where appropriate. Its
+[source-control reference](../../woostack-commit/references/source-control.md) covers the shared
+authorized-tool and stack guidance. Follow the
 [workspace/base-branch guidance](../../woostack-init/references/worktrees.md) to resolve the base,
 select an isolated workspace, and verify each predecessor before starting dependent work. Never
 force-push.

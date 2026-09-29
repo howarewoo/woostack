@@ -81,9 +81,11 @@ Use an approved topic branch: `main` is the base for independent work; an approv
 predecessor is the base for a stack layer. Submit changes through a draft PR using
 [the PR template](.github/pull_request_template.md).
 
-Use native Git and an available authorized GitHub integration, following the
-[source-control contract](skills/woostack-commit/references/source-control.md).
-Never force-push. Backend failures stop the operation rather than trigger a fallback.
+[Commit](skills/woostack-commit/SKILL.md) owns the commit and pull-request delivery
+workflow, using native Git with an available authorized GitHub integration as its
+[source-control reference](skills/woostack-commit/references/source-control.md)
+describes. Never force-push. Backend failures stop the operation rather than trigger
+a fallback.
 
 Ready-for-review transitions, auto-merge, merge queues, and merging are human-only,
 even when explicitly requested. Stop at a reviewable draft PR; do not advance it

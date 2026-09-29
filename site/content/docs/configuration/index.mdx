@@ -72,7 +72,7 @@ respective workflows. Other non-secret keys are preserved by configuration layer
 | Setting | Read by | Purpose |
 | --- | --- | --- |
 | `github` | Init and explicit GitHub Project workflows | Optional owner, owner type, Status field, and Project Status option mapping. |
-| `commit` | [woostack-commit](/docs/skills/woostack-commit) | Command to run before staging. |
+| `commit` | [woostack-commit](/docs/skills/woostack-commit) | Command to run before the commit. |
 | `base_branch` | Init and worktree workflows | Trunk branch used for worktrees and pull requests. |
 
 ## Artifact references
@@ -119,14 +119,14 @@ Existing `.woostack/config.json` and primary-checkout `config.local.json` values
 as runtime provider defaults, overrides, or fallback lists. Configure model selection in the
 native harness instead; do not migrate or delete existing configuration just to use Woostack.
 
-## Commit hook
+## Commit preparation command
 
 [woostack-commit](/docs/skills/woostack-commit) can run a command before it stages anything: a
 formatter, linter, or test runner.
 
 | Key | Type | Default | Meaning |
 | --- | --- | --- | --- |
-| `commit.command` | string | absent (no command) | Nonempty command run exactly once before staging. Failure blocks the commit. If it changes files, prior verification is invalidated and Commit returns to the calling workflow. |
+| `commit.command` | string | absent (no command) | Nonempty command run before Commit stages and commits. A failure blocks the commit. An expected edit to the intended files is reviewed, the affected verification is refreshed, and the commit continues once the intended result is proven. |
 
 ## Base branch
 

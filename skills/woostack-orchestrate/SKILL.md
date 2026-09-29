@@ -74,8 +74,9 @@ For an explicit one-run model or effort request, apply the shared
    [Execute](../woostack-execute/SKILL.md) owns the writer's implementation and checks.
 5. **Deliver the group's PR and its stack.** Hand the intended parent and ordered chain to
    [Commit](../woostack-commit/SKILL.md) and require native registration for the dependent PRs;
-   Commit owns the procedure in
-   [source control](../woostack-commit/references/source-control.md#native-github-stack-membership-for-a-dependent-pr).
+   Commit owns the procedure, and the shared
+   [stack membership guidance](../woostack-commit/references/source-control.md#native-stack-membership)
+   covers registration.
    Each root PR targets the approved trunk; each dependent PR targets its planned predecessor's
    head branch. A one-PR run and independent PRs need no stack. Verify the prerequisite content
    before execution and the current refs, stack membership, and order by independent read-back
