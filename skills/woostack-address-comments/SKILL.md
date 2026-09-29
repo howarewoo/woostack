@@ -58,9 +58,10 @@ snapshot before editing; one unsafe thread never blocks independent safe correct
    blocks delivery of that batch, not unrelated safe threads.
 4. **Deliver once per cohesive batch.** Recheck canonical head and batch-thread freshness before
    committing/pushing through [`woostack-commit`](../woostack-commit/SKILL.md). Add a Git commit (no
-   automatic amend) and use an explicit single-branch non-force push; preserve the existing exact
-   PR/head/base identity and update its body only through the selected authorized GitHub capability
-   when needed (`gh pr edit` is one supported equivalent).
+   automatic amend) and use an explicit single-branch non-force push; requested rebases, restacks,
+   and readiness are separate Commit work, never a side effect of these threads. Preserve the
+   existing exact PR/head/base identity and update its body only through the selected authorized
+   GitHub capability when needed (`gh pr edit` is one supported equivalent).
    Commit/push once for the verified batch and independently read the canonical PR head to prove it
    contains the exact corrected commit.
    Retain the before/after heads and each thread's verification evidence. This intentional own head
@@ -84,14 +85,13 @@ threads in classification before the next batch. Verified own replies/resolution
 transitions, not external drift.
 
 Continue until every discovered thread is handled or has an exact unresolved URL/ID and blocker.
-Never claim an unobserved edit, verification, push, reply, or resolution. Report the safe resume
-boundary for failed or unsafe threads while continuing independent work.
+Never claim an unobserved edit, verification, push, reply, or resolution.
 
 ## Recovery and return
 
 Retain the exact PR number/URL, last verified head, worktree/branch, handled thread IDs, commit and
 reply IDs, and resolution read-backs. After interruption, re-fetch GitHub/Git state and resume from
-the first unproved boundary. Never reset, stash, overwrite, force-push, or merge.
+the first unproved boundary. Never reset, stash, or overwrite.
 
 Report:
 

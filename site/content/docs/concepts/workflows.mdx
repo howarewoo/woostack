@@ -164,5 +164,6 @@ continue as a daemon after the session ends.
 
 Depending on the request, the result is a verified local change, a scaffold, a plan with requested
 issues, a reviewable PR, or a blocker reported at the first safe resume boundary. Existing retained
-records remain unchanged. No woostack workflow marks a PR ready, enables auto-merge, queues a PR
-for merge, or merges one. Those decisions stay with the human.
+records remain unchanged. No woostack workflow merges, enables auto-merge, or queues a PR for merge;
+those decisions stay with the human. A new PR is a draft, and an explicit request to rebase, restack,
+consolidate, or mark ready applies to the selected pull requests only.

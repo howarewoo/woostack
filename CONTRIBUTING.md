@@ -39,9 +39,8 @@ for standing repository rules, the sanctioned `site/` exception, and verified ch
 
 ## Workflow
 
-1. Create a Git branch from the approved base: `main` for an independent change, or the approved
-   predecessor branch for one layer of a planned stack. The branch is a separate line of work;
-   `main` is protected, so changes go through a pull request (PR).
+1. Create a Git branch from the approved base — `main` for an independent change, the approved
+   predecessor branch for one layer of a planned stack — and work there; `main` is protected.
 2. Edit the relevant files. Keep each PR focused on one concern where possible.
 3. Check that relative links and heading links still resolve (`[label](path.md#anchor)`).
 4. Run the changed asset's actual command or focused smoke, plus relevant behavioral tests and
@@ -54,10 +53,10 @@ for standing repository rules, the sanctioned `site/` exception, and verified ch
    `bash skills/woostack-doctor/scripts/tests/run-tests.sh` when those helpers are affected.
    Report deterministic helper results, manual instruction traces, and real host/model outcomes
    separately; never report an unrun smoke as passed.
-5. Push the exact branch without force and open a draft PR with `gh`, filling out the PR template,
-   through [Commit](skills/woostack-commit/SKILL.md) and its
-   [source-control reference](skills/woostack-commit/references/source-control.md).
-   Agents must not mark it ready, enable auto-merge, queue it for merging, or merge it.
+5. Push the branch and open a draft PR with `gh`, filling out the PR template, through
+   [Commit](skills/woostack-commit/SKILL.md) and its
+   [source-control reference](skills/woostack-commit/references/source-control.md), which also owns
+   requested rebases, stack consolidation, and readiness. Never merge, auto-merge, or queue a PR.
 
 For site changes, run `pnpm -C site build`. The site is the exception to this repository's
 no-application-code rule. Its [README](site/README.md) covers local development and deployment.
