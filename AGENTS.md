@@ -1,116 +1,94 @@
 # AGENTS.md
 
-Follow this file first when it conflicts with generic agent defaults. `.claude/CLAUDE.md` is a
-symlink to this file, and Antigravity CLI (`agy`) reads `AGENTS.md` natively, so this is the
-single source of truth across agents.
+Woostack publishes coding-agent skills and supporting assets. `site/` is its only
+application subtree. These instructions apply repository-wide; site work also
+follows [site/AGENTS.md](site/AGENTS.md). Keep `.claude/CLAUDE.md` as a symlink here.
 
-## What this repo is
+## Boundaries
 
-This is a published collection of skills, not an application codebase. It packages decisions for
-building new web, mobile, and API projects so agents can install it with
-`pnpx skills add howarewoo/woostack`. The public command/adoption catalog and routing table live in
-[`using-woostack`](skills/using-woostack/SKILL.md#command-routing); this file owns standing
-policy, not the catalog.
+- Keep application source, build configuration, and app lockfiles in `site/`.
+  Supporting skill scripts are allowed outside it. Bootstrap new projects in a
+  different repository, not this checkout.
+- Public skill names and paths are installed interfaces. Moving, renaming, or
+  retiring a public skill requires explicit approval. Approved retirements remove
+  the complete skill and its references; do not add compatibility aliases.
+- Never commit `.env*`, credentials, generated app artifacts, or personal
+  compressed prose. Preserve unrelated work; do not silently rebase, reset, clean,
+  stash, delete, or overwrite changes you have not verified as yours.
+- Retained runs, drafts, and retired provider records are historical user data.
+  Read them for recovery evidence; never migrate or mutate them.
 
-The documentation site [`site/`](site/) is a shipped Fumadocs (Next.js) application subtree and
-the one sanctioned exception to this repository's no-application-code rule. Its `package.json`,
-`pnpm-lock.yaml`, and build config live there; its per-skill reference pages are **generated**
-from `skills/*/SKILL.md` at build time and gitignored, so only the app shell and authored framing
-pages are committed. [`site/AGENTS.md`](site/AGENTS.md) owns that subtree and
-[`site/README.md`](site/README.md) covers local development and deploy notes. Outside `site/`, this
-repository has no application source code, app lockfile, build, or CI for its own push/PR events,
-and `skills-lock.json` is the dev-skill manifest.
+## Where to work
 
-## Authority, evidence, and retained data
+| Change | Owner |
+| --- | --- |
+| Skill behavior and supporting assets | The relevant `skills/<name>/SKILL.md` and its references, scripts, or templates |
+| Public command routing | [using-woostack](skills/using-woostack/SKILL.md#command-routing) |
+| Authored documentation | `site/content/docs/` |
+| Documentation application and generator | `site/`; follow its local instructions |
 
-The user's request and explicit conversation choices authorize repository work. Git and GitHub own
-source, branches, commits, pull requests, reviews, and merge evidence; issue, tracker, or project
-lifecycle state never proves implementation, delivery, passing checks, review, or merge. The
-loaded skill owns its own provider calls, approval gates, persistence choices, and Project use.
+[CONTRIBUTING.md](CONTRIBUTING.md#what-to-change) has the detailed ownership map.
+When asked to run a Woostack command rather than edit its implementation, load the
+matching skill through the command router before acting. That skill owns its
+workflow, provider calls, and approval gates.
 
-Retained local runs, drafts, and retired managed-provider records are historical user data, not
-authority: read them for recovery evidence and never migrate or mutate them. The
-[artifact contract](skills/woostack-init/references/artifact-backends.md#retained-data-and-retirement)
-owns that retained data, direct GitHub publication, and recovery. Non-secret defaults belong in
-`.woostack/config.json` only after configuration is selected, and credentials stay in the host
-secret store.
+## Editing rules
 
-External engineers such as Hermes are not a supported woostack host and grant no implementation
-authority; the [Hermes guide](site/content/docs/hermes.mdx) owns the relay and resume contract.
+- Simplify or remove instructions at their existing owner before adding more.
+  Prefer deletion and existing capabilities over new helpers. Preserve necessary
+  validation, security, accessibility, error handling, data-loss protection, and
+  independent safety checks. See the [instruction review](CONTRIBUTING.md#instruction-and-complexity-review).
+- Keep each `SKILL.md` description focused on when to use the skill. Keep behavior
+  consistent with its references; link to canonical contracts instead of copying
+  them. Renaming bootstrap references also requires updating every cross-link and
+  the bootstrap skill table.
+- Name frameworks without versions. Resolve a needed version from its registry;
+  document required incompatibility pins in
+  [frameworks.md](skills/woostack-bootstrap/references/frameworks.md).
+- Update affected authored guides when behavior changes. Never edit generated
+  `site/content/docs/skills/` pages; change `skills/*/SKILL.md` instead. The site
+  build regenerates these pages, which remain gitignored.
+- For configuration, retained-data, or publication changes, read the
+  [artifact contract](skills/woostack-init/references/artifact-backends.md).
+  Non-secret defaults belong in `.woostack/config.json` only after configuration
+  is selected; credentials stay in the host secret store.
 
-## Modes
+## Validation
 
-Identify the mode before acting.
+There is no root application install or universal test command. Run commands from
+the repository root, selecting only checks that cover the changed behavior.
 
-**Mode A: edit this skill collection.** Use this when updating skill Markdown, reference docs,
-HTML templates, supporting scripts, prompts, or JSON config. Keep edits in skill assets; do not add
-application code, app build configs, or app lockfiles **outside the sanctioned [`site/`](site/)
-docs-app subtree**. Editing `site/` is also Mode A.
+| Changed area | Check |
+| --- | --- |
+| Skill entrypoints, catalog, parser, generator, or installation layout | `pnpm -C site test` |
+| Site code/content or generated-page inputs (`skills/*/SKILL.md`) | `pnpm -C site build` |
+| Init helpers | `bash skills/woostack-init/scripts/tests/run-tests.sh` |
+| Doctor helpers | `bash skills/woostack-doctor/scripts/tests/run-tests.sh` |
+| Material Plan, Execute, Commit, or Orchestrate behavior | The relevant [workflow smoke recipe](skills/using-woostack/references/workflow-smoke.md) |
 
-**Mode B: run a woostack command.** When the user asks for a `/woostack-*` command or
-intent-equivalent wording, load the matching skill from the
-[command catalog](skills/using-woostack/SKILL.md#command-routing) before acting. For bootstrap
-work, the output belongs in a fresh repo in a different directory, not in this repo.
+Before a site build in a checkout without its own dependencies, run
+`pnpm -C site install --frozen-lockfile`. Do not symlink `node_modules` from another
+checkout; see the site instructions for the Turbopack restriction.
 
-## Hard constraints
+For reference-only edits, check affected links and claims. For changed scripts,
+run the actual entrypoint or focused behavioral test and relevant syntax checks.
+Test behavior, not exact instruction wording or a test-only copy. Site tests and
+builds do not prove that a model followed a workflow.
 
-- **Least code, still safe.** Skills — and the code they generate — write as little code as
-  necessary: understand the change first, then take the first rung that holds, preferring deletion
-  over addition and boring over clever — small because it is necessary, not golfed. Never buy that
-  smallness by cutting edge cases or risks: validation, error handling, security, accessibility,
-  and data-loss handling stay, and deliberate multi-layer safety redundancy is kept, not
-  DRY-removed. For instruction changes, remove or simplify the existing owner before adding rules;
-  load detailed guidance only for applicable work. Full least-code standard:
-  [`patterns.md §7`](skills/woostack-bootstrap/references/patterns.md#7-least-code--comments).
-  Contributor guidance: [instruction review](CONTRIBUTING.md#instruction-and-complexity-review).
-- No fabricated versions or invented commands. Resolve a needed version live with
-  `npm view <pkg> version` or an equivalent registry command, and do not invent CI, app tests,
-  package scripts, or app build steps for this repo.
-- **Protected main, PR workflow, authorized tooling.** `main` is protected and requires PRs. Use
-  native Git with an available authorized GitHub integration; prefer the host's native GitHub tools
-  when suitable and use host-authenticated `gh` where appropriate. Discover the actual capabilities
-  and preserve the [source-control contract](skills/woostack-commit/references/source-control.md);
-  backend errors stop the operation rather than trigger a fallback. Never force-push.
-- **Preserve user work and secrets.** Never commit `.env*`, secrets, generated app files, or
-  personal compressed prose, and treat local diagnostic reports as non-authoritative. Preserve
-  unrelated changes: never silently rebase, reset, clean, stash, delete, or overwrite work you have
-  not verified as yours.
-- **Merge authority is human-only.** Agents never mark a PR ready, enable auto-merge, enqueue it,
-  merge it, or otherwise advance it toward merge. `Complete`, `deliver`, `execute`, passing
-  verification, approved artifacts, and accepted reviews mean submit or update a reviewable open PR
-  only. They do not grant merge authority. Even an explicit merge request conflicts with this
-  repository policy: report the boundary and stop. Never run `gh pr ready`, `gh pr merge`, a
-  merge-queue mutation, or an equivalent GitHub operation.
-- Cross-link, do not duplicate. If a fact belongs in a reference file, link to it from related docs
-  instead of restating it.
-- Reference frameworks by name, not version, except in
-  [`frameworks.md`](skills/woostack-bootstrap/references/frameworks.md) when an incompatibility
-  forces an exact version.
-- Keep `SKILL.md` descriptions accurate and concise. The description drives discovery; the workflow
-  belongs in referenced docs.
-- Keep the docs site in sync. When a change alters what an **authored** [`site/`](site/) page
-  states — the skill surface or its count, the build loop and its gates, the core concepts, or the
-  getting-started flow — update the matching page under
-  [`site/content/docs/`](site/content/docs/) as part of the same change. The per-skill reference
-  pages need no manual edit: they regenerate from each `SKILL.md` at build time. When in doubt, run
-  `pnpm -C site build`.
-- **Fixed public interface.** Do not move or rename a public `SKILL.md` without explicit approval.
-  Public command/adoption names and fixed paths are part of the installed interface, and the
-  [command catalog](skills/using-woostack/SKILL.md#command-routing) lists the current set. An
-  explicitly approved retirement removes the complete skill and its references. Retired Build, Fix,
-  Change, Status, TDD, and Prepare packages have no compatibility aliases. Direct GitHub integration
-  and supporting utilities add neither a command-routing row nor a per-provider skill.
-- Do not rename files under
-  [`skills/woostack-bootstrap/references/`](skills/woostack-bootstrap/references/) without
-  updating every cross-link and the bootstrap skill table.
+## Delivery
 
-## Checks
+Use an approved topic branch: `main` is the base for independent work; an approved
+predecessor is the base for a stack layer. Submit changes through a draft PR using
+[the PR template](.github/pull_request_template.md).
 
-This repo has no universal test command or CI for its own PRs. [CONTRIBUTING.md](CONTRIBUTING.md)
-owns the editing workflow, the what-to-change table, and per-area guidance. The verified checks are:
+Use native Git and an available authorized GitHub integration, following the
+[source-control contract](skills/woostack-commit/references/source-control.md).
+Never force-push. Backend failures stop the operation rather than trigger a fallback.
 
-- `pnpm -C site test` and `pnpm -C site build` — catalog, generator, and docs-site structure.
-- [On-demand workflow smoke recipes](skills/using-woostack/references/workflow-smoke.md) for
-  material Plan/Execute/Orchestrate changes.
+Ready-for-review transitions, auto-merge, merge queues, and merging are human-only,
+even when explicitly requested. Stop at a reviewable draft PR; do not advance it
+toward merge. Issue or project status is not proof of implementation or delivery.
 
-Run only the checks a change needs, and report an unrun check honestly instead of claiming it.
+Report what changed, checks actually run, and checks not run with reasons. Keep
+deterministic helper results, manual instruction traces, and actual host/model
+outcomes separate.
