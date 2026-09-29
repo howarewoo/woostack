@@ -176,6 +176,58 @@ local checks verified PR delivery.
   before retrying. Without a safe interruption point, mark this variant **Unrun**. Preserve unknown
   branches and unrelated edits. Nothing is marked ready, queued, force-pushed, merged, or closed.
 
+## 4. Commit preparation, delivery, and content
+
+**Invocation:** on a fresh copy of the shared fixture, prepare the intended removal yourself — drop
+`beta` and run the focused check — then run the actual Commit skill on the already-prepared change,
+issue-free and local-only. Repeat it with an unrelated unstaged sentinel, then with an unrelated
+pre-existing staged sentinel. Add one run started from a nested directory. Finally, set
+`commit.command` to a script that normalizes the intended file, and separately to one that exits
+nonzero.
+
+```text
+/woostack-commit --no-pr-update
+Commit the already-prepared removal of `beta` from `lines.txt`, leaving `alpha` and its
+trailing newline. The focused check above is the required verification. Nothing else is in scope.
+```
+
+**Observe:**
+
+- Only the intended change reaches the commit, and the reported SHA, subject, and verification match
+  an actual `git show`. Unrelated unstaged bytes and a pre-existing staged blob keep their content,
+  mode, and staging across the commit; their presence is not a blocker. Genuinely ambiguous mixed
+  hunks in one file are left exactly as found, in whatever staging state they started in, and
+  explained instead of guessed.
+- A run started from a nested directory behaves identically, with no working-directory requirement.
+- A `commit.command` that rewrites the intended file is reviewed, the affected check runs again on
+  the new content, and the commit proceeds with the verified result. A required command or check
+  that cannot pass blocks the commit and is reported unresolved. No check is skipped, no assertion
+  weakened, and no side-effectful command rerun blindly.
+- The local-only run performs no push, PR, stack, or issue write, reads no remote state, and says
+  so in its report.
+
+**With an authorized disposable remote, in that one repository:** cover an update to an existing
+open PR, a branch whose earlier PR is closed or merged, a lost write response, and optional versus
+required native-stack registration. Ask for `commit this and link #N` for one issue and for two
+related issues, and for a PR update that must keep existing human text and readiness while a second
+issue is only partially addressed. Include one repeat invocation with no new evidence and one
+genuinely ambiguous issue reference.
+
+**Observe:**
+
+- The open PR for the branch is reused and the delivered diff is the whole cumulative PR. A closed
+  or merged match is inspected and reasoned about, not a refusal. An ambiguous issue reference is
+  asked about instead of guessed.
+- A lost response is rediscovered before any retry, and no commit, PR, or comment is duplicated.
+- Optional stack registration that is genuinely unavailable still leaves a valid commit and PR;
+  required registration that cannot be verified is reported incomplete rather than assumed.
+- Title and body describe the cumulative PR and are confirmed present as written after the write;
+  human text and readiness survive untouched, a repeat adds no duplicate section, and a closing
+  reference appears only for fully addressed work while partial work gets a non-closing one.
+  Writing a reference is never reported as closing an issue, and no assignment, label, or Project
+  state changes.
+- Without the remote permission, mark these steps **Unrun** and keep the local observation.
+
 ## Installed integration
 
 `pnpm -C site test` covers the catalog, the production parser, and the installed-collection case: it

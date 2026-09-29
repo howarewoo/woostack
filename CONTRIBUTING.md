@@ -25,6 +25,7 @@ for standing repository rules, the sanctioned `site/` exception, and verified ch
 | Change read-only specification review (Harden) | `skills/woostack-harden/SKILL.md` |
 | Change multi-task coordination and stacked delivery | `skills/woostack-orchestrate/SKILL.md` |
 | Change the execute phase implementation step | `skills/woostack-execute/SKILL.md` |
+| Change commit and pull-request delivery | `skills/woostack-commit/SKILL.md` and its references |
 | Change browser-based app checks (`/woostack-qa`) | `skills/woostack-qa/SKILL.md`, `skills/woostack-qa/references/` |
 | Change session reflection (`/woostack-reflect`) | `skills/woostack-reflect/SKILL.md` |
 | Change the systematic-debugging behavior (`/woostack-debug`) | `skills/woostack-debug/SKILL.md` |
@@ -53,9 +54,9 @@ for standing repository rules, the sanctioned `site/` exception, and verified ch
    `bash skills/woostack-doctor/scripts/tests/run-tests.sh` when those helpers are affected.
    Report deterministic helper results, manual instruction traces, and real host/model outcomes
    separately; never report an unrun smoke as passed.
-5. Push the exact branch without force and open a draft PR with `gh`, filling out the PR template.
-   Follow the
-   [source-control contract](skills/woostack-commit/references/source-control.md).
+5. Push the exact branch without force and open a draft PR with `gh`, filling out the PR template,
+   through [Commit](skills/woostack-commit/SKILL.md) and its
+   [source-control reference](skills/woostack-commit/references/source-control.md).
    Agents must not mark it ready, enable auto-merge, queue it for merging, or merge it.
 
 For site changes, run `pnpm -C site build`. The site is the exception to this repository's

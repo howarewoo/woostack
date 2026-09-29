@@ -5,8 +5,9 @@ select task scope, dependencies, approval, acceptance, publication, or merge aut
 boundaries belong to the active workflow; Git and canonical provider reads own repository state.
 Select native Git plus an authorized GitHub capability (prefer native GitHub tools when suitable;
 host-authenticated `gh` is supported) under the
-[source-control contract](../../woostack-commit/references/source-control.md).
-Direct Git/GitHub publication owns artifact scope; no provider-specific artifact context is selected here.
+[source-control reference](../../woostack-commit/references/source-control.md) for authorized
+tool selection. Direct Git/GitHub publication owns artifact scope; no provider-specific artifact
+context is selected here.
 
 ## Workspace and ownership
 
@@ -42,8 +43,10 @@ Git branch/diff, and matching PR before repeating any operation. Retain recovera
 unrelated changes; never reset, clean, stash, rebase, overwrite, or assume a timeout means no work
 occurred. Run task-scoped edits and checks in the selected workspace. Publication alone does not
 authorize its teardown; leave user-owned and host-managed workspaces intact absent an authorized
-safe lifecycle operation. [Source control](../../woostack-commit/references/source-control.md)
-owns commit, push, PR, and selected native-stack recovery.
+safe lifecycle operation. [`woostack-commit`](../../woostack-commit/SKILL.md) owns commit, push,
+PR, and selected native-stack recovery; its
+[source-control reference](../../woostack-commit/references/source-control.md) covers the shared
+authorized-tool and stack guidance those steps share with other workflows.
 
 ## Greenfield boundary
 
