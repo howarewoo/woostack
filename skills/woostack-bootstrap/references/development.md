@@ -71,10 +71,9 @@ a branch such as `staging` before a human merges a release into `main`.
 workflow, using native Git with an authorized GitHub interface; host-authenticated `gh` remains
 supported where appropriate. Its
 [source-control reference](../../woostack-commit/references/source-control.md) covers the shared
-authorized-tool and stack guidance. Follow the
+authorized-tool, stack, and requested history-maintenance guidance. Follow the
 [workspace/base-branch guidance](../../woostack-init/references/worktrees.md) to resolve the base,
-select an isolated workspace, and verify each predecessor before starting dependent work. Never
-force-push.
+select an isolated workspace, and verify each predecessor before starting dependent work.
 
 ## When to deviate
 

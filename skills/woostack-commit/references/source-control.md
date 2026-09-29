@@ -1,8 +1,5 @@
 # Delivery and authorized Git tools
 
-Shared guidance for workflows that commit, push, or open a pull request. The owning skill defines
-its own workflow and content; this file covers only what several workflows share.
-
 ## Authorized delivery
 
 Use native Git with an available authorized GitHub integration, preferring the host's native
@@ -19,36 +16,33 @@ PR or stack it acts on. Widen the read only when that target is genuinely ambigu
 
 ## Targets and uncertain writes
 
-Identify the delivery target from current evidence. An open PR for this branch is reused. A closed
-or merged match is evidence about the branch's history, not a prohibition; deciding whether this
-work needs a new topic branch and PR, without overwriting history or duplicating one, is ordinary
-judgment. Genuine ambiguity about the target, the base, or the scope blocks and is asked about.
-
-Verify scope before committing, the target before publishing, and the resulting state afterward.
-Recheck whatever a step changed or left uncertain. A lost write response is not proof of absence:
-inspect the actual result before retrying, and never recommit, create a second PR or stack, or
-push around a rejection with a reset, rebase, or force-push. Preserve unrelated work throughout.
+Reuse the open PR for this branch. A closed or merged match informs branch and PR selection; it
+does not prohibit new work. Ask about genuinely ambiguous targets, bases, or scope. Verify before
+and after each write. On a lost response, inspect actual state before retrying; never duplicate a
+commit, PR, or stack or push around a rejection. Preserve unrelated work.
 
 ## Native stack membership
 
-A chained PR base is not native membership. Register a dependent PR only when the request or
-repository workflow requires it, such as coordinated multi-task delivery where the caller supplies
-the intended parent and ordered chain. Optional registration that is unavailable does not
-invalidate an otherwise verified commit and PR; required registration that cannot be verified
-stays incomplete and is reported as such.
+A chained base is not native membership. Register only when requested or required, using the
+verified parent and order. Optional unavailable registration does not invalidate a verified PR;
+required unverified membership stays incomplete.
 
-Reuse precise existing membership without mutation. Otherwise make the smallest change that
-establishes the intended order: append a child to its parent's stack, or create one stack from
-verified bottom-to-top PRs when none of them is registered. A child already in another stack, a
-non-top parent, or uncertain membership blocks registration and leaves the verified PR alone. Use
-the repository's native stack capability scoped to that membership, not a stack-wide push,
-submit, or sync, and claim no membership without a verified read.
+Reuse correct membership. For ordinary delivery, append to the parent's stack or create a stack
+from unregistered PRs in bottom-to-top order; conflicting membership or non-top parents require
+explicit maintenance scope. For consolidation, inspect affected stacks and use supported native
+operations. GitHub's [unstack operation](https://docs.github.com/en/rest/pulls/stacks#remove-pull-requests-from-a-pull-request-stack)
+removes removable unmerged PRs, not a selected member. Resolve collateral effects on unselected
+members before writing; never assume a per-PR move endpoint or claim membership without read-back.
 
-The calling workflow owns affected-set discovery, conflict gates, review invalidation, and
-descendant reconciliation. GitHub evaluates stacked-PR protections against the stack's trunk
-rather than each child's base and expects linear history, so a changed lower-layer head or trunk
-can break that linearity. Report the human-maintenance boundary instead of restacking, cascading,
-or rewriting published heads, then re-read the affected evidence. An ordinary commit or same-PR
-update is not a merge-readiness audit; see [GitHub's stacked pull
-requests](https://docs.github.com/en/pull-requests/reference/stacked-pull-requests) for the
-provider's own requirements.
+GitHub evaluates stacked protections against the trunk and expects linear history. Changed
+lower-layer heads or trunks may invalidate descendants; reconcile within authorized scope, never
+as an ordinary update's implicit cascade or readiness audit. See
+[GitHub's stacked pull requests](https://docs.github.com/en/pull-requests/reference/stacked-pull-requests).
+
+## Published head safeguard
+
+For an authorized rewrite, retain recoverable original heads and publish only the selected refs
+with `--force-with-lease=<refname>:<expect>`, where `<expect>` is the exact remote SHA inspected
+before rewriting, not an implicit lease from a mutable remote-tracking ref. An unexpected remote
+advance requires reconciling that writer's work, never refreshing the lease just to overwrite it.
+See [Git's lease semantics](https://git-scm.com/docs/git-push#Documentation/git-push.txt---force-with-leaseltrefnamegtltexpectgt).

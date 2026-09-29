@@ -174,7 +174,8 @@ local checks verified PR delivery.
   rather than implementing inline; mark unavailable restricted-capability variants **Unrun**.
 - If an actual worker result or write is lost, rediscover native worker state and Git/PR facts
   before retrying. Without a safe interruption point, mark this variant **Unrun**. Preserve unknown
-  branches and unrelated edits. Nothing is marked ready, queued, force-pushed, merged, or closed.
+  branches and unrelated edits. Ordinary Orchestrate does not mark PRs ready, rewrite unrelated
+  heads, queue, merge, or close anything without separate authority.
 
 ## 4. Commit preparation, delivery, and content
 
@@ -227,6 +228,44 @@ genuinely ambiguous issue reference.
   Writing a reference is never reported as closing an issue, and no assignment, label, or Project
   state changes.
 - Without the remote permission, mark these steps **Unrun** and keep the local observation.
+
+## 5. Requested published-PR maintenance
+
+**Local Git fixture:** use disposable repositories and a bare remote to create three published
+branches with distinct intended changes. Record the original remote SHAs before rewriting. Rebase
+one layer locally, advance its remote ref from a second clone after inspection, then try publishing
+the first clone's rewrite with an explicit `--force-with-lease=<refname>:<recorded-sha>`.
+Observe rejection, preservation of the other writer's commit, and recoverability of all original
+heads. Simulate a lost push response by reading the actual remote ref before deciding whether any
+push is missing; never blindly repeat it. This proves Git concurrency behavior, not native stack
+or readiness behavior.
+
+**Actual host, only with an already-authorized disposable remote and native-stack/readiness
+capabilities:** start with at least three published PRs across two native stacks. Include an
+unselected member in one source stack. Run the installed Commit workflow with this request:
+
+```text
+Rebase the selected published PRs into one ordered native stack, preserving their PR numbers and
+intended individual and combined changes. Publish the result and mark only the selected PRs ready.
+Do not merge, enable auto-merge, or enqueue.
+```
+
+Supply the exact selected PRs and intended order for that fixture. Inspect every selected PR's
+complete diff against its intended base and the combined diff against trunk; read back the heads,
+bases, native stack order/membership, readiness, and affected checks. The unselected member stays
+untouched: GitHub's unstack operation can remove all removable unmerged members, so resolve its
+collateral scope before writing; a genuine provider/permission limit remains incomplete rather
+than a claimed pass. Run a variant without readiness instruction and verify existing draft/ready
+states survive, then request readiness alone on an already committed PR. Repeat completed
+maintenance: no duplicate commits, PRs, or stacks. Confirm ordinary commit-only delivery has no
+remote writes, and ordinary delivery/comment correction grants no restack or readiness authority.
+No merge, auto-merge, or queue operation occurs. Without an authorized remote or native capability,
+label these variants **Unrun**, not simulated.
+
+**Manual trace:** follow router → caller (Execute, Orchestrate, or Address Comments) → Commit →
+source-control reference → AGENTS.md. Record how request scope, original-head lease, unselected
+membership, readiness, and merge prohibition pass through without contradictory instructions.
+Keep this trace separate from local Git observations and actual-host evidence.
 
 ## Installed integration
 

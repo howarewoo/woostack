@@ -40,13 +40,13 @@ that task; do not silently choose an integration strategy.
 
 For an unknown checkout, handoff, or worker result, inspect the relevant workspace, writer state,
 Git branch/diff, and matching PR before repeating any operation. Retain recoverable state and
-unrelated changes; never reset, clean, stash, rebase, overwrite, or assume a timeout means no work
-occurred. Run task-scoped edits and checks in the selected workspace. Publication alone does not
-authorize its teardown; leave user-owned and host-managed workspaces intact absent an authorized
-safe lifecycle operation. [`woostack-commit`](../../woostack-commit/SKILL.md) owns commit, push,
-PR, and selected native-stack recovery; its
+unrelated changes; never reset, clean, stash, rebase, or overwrite them unrequested, and never
+assume a timeout means no work occurred. Run task-scoped edits and checks in the selected
+workspace. Publication alone does not authorize its teardown; leave user-owned and host-managed
+workspaces intact absent an authorized safe lifecycle operation. [`woostack-commit`](../../woostack-commit/SKILL.md)
+owns commit, push, PR, selected native-stack, and requested rebase or restack work; its
 [source-control reference](../../woostack-commit/references/source-control.md) covers the shared
-authorized-tool and stack guidance those steps share with other workflows.
+authorized-tool and stack guidance.
 
 ## Greenfield boundary
 

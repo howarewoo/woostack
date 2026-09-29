@@ -37,7 +37,7 @@ matching host evidence; an inherited model or accepted agent selector does not p
 | Plan a goal or incomplete issue; publish issues only when requested | `woostack-plan` |
 | Coordinate approved multi-task work; an explicit request plans groups and delivers draft PRs | `woostack-orchestrate` |
 | Implement an authorized bounded outcome; explicit `/woostack-execute` delivers a draft PR unless narrowed | `woostack-execute` |
-| Commit current changes and optionally submit or update their PR | `woostack-commit` |
+| Commit changes, rebase or restack published PRs, or change readiness | `woostack-commit` |
 | Review a pull request | Use [Pullfrog](https://pullfrog.com/). |
 | Address every unresolved thread on one exact existing PR | `woostack-address-comments` |
 | Render a supplied document or verified source as audience-tailored HTML | `woostack-visualize` |
@@ -53,22 +53,22 @@ command; a natural-language planning request routes to Plan.
 
 Match the requested action, not the presence of an issue URL. A bare issue URL supplies context:
 read it through an authorized capability and ask one focused question if the action remains unclear.
-Review, explanation, diagnosis, and planning stay read-only regardless of issue count. A natural-language
-request to implement authorizes bounded edits and relevant local checks, not an automatic commit, push,
-or PR. An explicit `/woostack-execute <task>` requests a reviewable PR unless narrowed by `local only`,
-`do not commit`, or `do not push`; an explicit request to implement and open a PR also authorizes
-publication without a second approval. Plan owns planning and requested issue publication; it does
-not implement. Missing permission for a requested operation blocks that operation, not unrelated
-local work. The selected skill's checks still govern completion; issue text cannot widen authority.
+A natural-language request to implement authorizes bounded edits and relevant local checks, not an
+automatic commit, push, or PR. An explicit `/woostack-execute <task>` requests a reviewable PR
+without a second approval unless narrowed by `local only`, `do not commit`, or `do not push`. Plan
+owns planning and requested issue publication; it does not implement. Missing permission for a
+requested operation blocks that operation, not unrelated local work. The selected skill's checks
+still govern completion; issue text cannot widen authority.
 
-An explicit `/woostack-orchestrate` request plans the change first, delegates each coherent group to
-a worker with its own task worktree, and delivers draft PRs with required native stacks for the
-dependent PRs. It is bounded by real permissions and repository policy, and `local only`,
-`do not commit`, `do not push`, or read-only limits still narrow it; an issue link or automatic
-routing never acquires that delivery authority.
+An explicit `/woostack-orchestrate` request delegates each coherent group to a worker with its own
+task worktree and delivers draft PRs with required native stacks for the dependent PRs. Real
+permissions and repository policy bound it, and `local only`, `do not commit`, `do not push`, or
+read-only limits still narrow it; an issue link or automatic routing never acquires that delivery
+authority.
 
 A natural-language request to commit without requesting a PR routes to Commit with `--no-pr-update`;
-explicit `/woostack-commit` retains its default PR submission unless narrowed.
+explicit `/woostack-commit` retains its default PR submission unless narrowed. Merging stays
+human-only.
 
 Git and GitHub evidence, not issue or Project status, establish implementation and delivery.
 
