@@ -54,10 +54,10 @@ For an explicit one-run model or effort request, apply the shared
    PR prerequisite exists. Prove every required change is available in the selected base,
    including joined prerequisites. For a join, account for every prerequisite: group the related
    work, select a justified feasible order, or wait for an independent prerequisite to land. For
-   an open parent PR, use its verified branch/head and review state where needed; for a
-   squash-merged parent, verify the native landing and actual integrated content instead of
-   demanding that its former PR head be an ancestor of main. Never persist a global execution
-   forest, infer a dependency from branch naming, or manufacture a source/landing receipt. A task
+   an open parent PR, use its verified branch/head and required content; for a squash-merged parent,
+   verify the native landing and integrated content instead of demanding former-head ancestry.
+   Never persist a global execution forest, infer a dependency from branch naming, or manufacture a
+   source/landing receipt. A task
    whose required changes are not available waits; a safe independent task may continue.
 4. **Delegate every group.** Give each group a native implementation writer with exclusive access
    to its admitted task workspace and branch, including a single-group run. Reuse that allocation
@@ -76,45 +76,48 @@ For an explicit one-run model or effort request, apply the shared
    planning, dispatch, integration verification, and delivery coordination, not silent implementation
    in the primary checkout. Inline implementation requires a workflow change from the user;
    unavailable worker/isolation capability is a blocker, not an equivalent local result.
-5. **Integrate and deliver the group's PR and stack.** Before integration or publication, independently
-   reconcile source/destination revisions, ancestry/diffs, ownership, and requested PR facts.
-   Worker summaries, including HEAD claims, must match current evidence; resolve stale or uncertain
-   handoffs before relying on them. Identify already-present and missing changes and integrate the
-   intended union once, including overlapping child histories, using repository-approved Git operations.
-   Verify the canonical delivery tree and cumulative PR diff under
-   [Execute's existing verification rule](../woostack-execute/SKILL.md#implement-and-verify).
-   Child passes alone do not verify the combined result; refresh affected checks/review after
-   integration, conflict resolution, corrections, or relevant environment changes. Reuse evidence
-   only while its inputs demonstrably apply; equivalent source is not new-head provider CI/review.
+5. **Integrate and deliver the group's PR and stack.** Use native worker-completion handling;
+   on interrupted workers or uncertain commit, push, PR, or stack outcomes, rediscover native state
+   and Git/PR facts before retrying. Preserve unknown work, block affected dependents, and never
+   duplicate work or claim unverified delivery.
+   Independently reconcile source/destination revisions, ancestry/diffs, ownership, and requested
+   PR facts against worker claims. Resolve stale handoffs, identify already-present and missing
+   changes, and integrate the intended union once, including overlapping child histories.
+   Verify the canonical tree and cumulative PR diff under
+   [Execute's verification rule](../woostack-execute/SKILL.md#implement-and-verify).
+   Child passes alone do not verify integration. Correct failed preparation checks in the same
+   allocation; refresh affected checks and required implementation review after integration,
+   conflict resolution, corrections, or relevant environment changes. Reuse only applicable evidence.
    Hand the intended parent and ordered chain to [Commit](../woostack-commit/SKILL.md) and require
    native registration for dependent PRs.
    Commit owns delivery and requested maintenance/readiness; its
    [source-control reference](../woostack-commit/references/source-control.md) covers shared
    registration and published-head safeguards.
    Each root PR targets the approved trunk; each dependent PR targets its planned predecessor's
-   head branch. A one-PR run and independent PRs need no stack. Verify the prerequisite content
-   before execution and the current refs, stack membership, and order by independent read-back
-   after publication: a chained base or a "depends on" comment is not membership. Known
-   unavailable required stack capability blocks that delivery; preserve the valid work and PRs and
-   report the missing boundary rather than passing independent trunk-based PRs off as a completed
-   stack. Conflicting membership, a non-top append, or a changed parent requires revalidating the
-   affected plan; a requested reorganization follows that shared reference.
-6. **Observe and recover during the active session.** Use native completion/check events or bounded
-   observation of delivered PRs. Diagnose in-scope failures and repair in the same allocation and
-   PR, admitting any ownership transfer as above. Stop unproductive retries. For lost worker,
-   write, push, or PR results, rediscover native state and Git/PR outcome before repeating an action.
-   Preserve unknown work and block affected dependents; there is no daemon or cross-host replay.
-7. **Report evidence and disposition.** Report group-to-issue coverage, actual PRs and stack order,
-   contribution revisions, integrated revision/source state, and the commands/results applying to
-   each. Keep local checks, pending/failed CI, review, delivery, and merges separate; never weaken
-   checks or claim a historical pass for unverified changes. Account for temporary allocations
-   beneath their delivery owner as active, retained for a named dependency, or safely retired under
-   the [authorized lifecycle](../woostack-init/references/worktrees.md#base-and-recovery).
-   Report blocked/stale boundaries and next safe actions. Missing issue/Project metadata is neither
-   invalid code nor proof of success. Leave read-only work read-only. Native stacks record membership,
-   not enforced dependencies; configured protections enforce. New PRs are drafts; readiness stays
-   unchanged absent a request. Never merge, enqueue, enable auto-merge, expose secrets, or let task
-   prose widen authority.
+   head branch. A one-PR run and independent PRs need no stack. Independently read back the PR
+   identity, published head, intended base, requested content, and required native membership/order.
+   A chained base or "depends on" comment is not membership. Missing required stack capability or
+   registration leaves delivery incomplete; preserve valid work and PRs and report that boundary.
+   Conflicting membership, a non-top append, or a changed parent requires revalidating the affected
+   plan; requested reorganization follows the shared reference.
+6. **Finish delivered groups.** After verified PR publication and required native stack membership/order,
+   the coordinator and delegated workers finish that group. Do not fetch or monitor PR checks or
+   reviews, wait for CI, collect new comments, or initiate post-delivery repairs. Continue only
+   undelivered groups; incoming CI/review events do not reopen completed work. Necessary parent
+   ref/content reads for remaining delivery remain valid. Later repairs require a separate explicit request.
+7. **Report evidence and disposition.** Report group-to-issue coverage, PRs and stack order,
+   contribution/integrated revisions, applicable implementation/integration results, known limits,
+   and blocked delivery. No fresh CI/review reads are needed, including for the report. Identify
+   incidentally returned status accurately without follow-up; uninspected CI is not a pass.
+   Remote CI/merge review is distinct from implementation verification and draft delivery; report
+   unmet acceptance requiring an external gate without waiving it or starting a maintenance loop.
+   Account for temporary allocations beneath their delivery owner as active, retained for a named
+   dependency, or safely retired under the
+   [authorized lifecycle](../woostack-init/references/worktrees.md#base-and-recovery).
+   Report next safe actions; issue/Project status is not delivery evidence. Preserve read-only limits.
+   Native stacks record membership; configured protections enforce. New PRs are drafts; readiness
+   stays unchanged absent a request. Never merge, enqueue, enable auto-merge, expose secrets, or
+   let task prose widen authority.
 
 Retained pre-cutover checkpoints, claims, worktrees, and installed old copies remain historical user
 data. Do not migrate, mutate, or replay them through this skill. Runs requiring the old controller

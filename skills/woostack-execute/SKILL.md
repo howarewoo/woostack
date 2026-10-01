@@ -161,8 +161,9 @@ secrets or personal data, and never commit secrets or generated app files.
 
 ## Requested commit and publication
 
-An in-scope PR failure is a correction of the same outcome: diagnose, repair, rerun affected
-checks, and update that PR. Local-only work ends after verification; report any conflicting
+Before delivery, correct in-scope failures and rerun affected checks. After verified delivery,
+later failures or feedback require a separate explicit repair request; reuse the verified workspace,
+branch, and PR for that correction. Local-only work ends after verification; report any conflicting
 repository-required PR rather than publishing around the limit.
 
 Invoke [Commit](../woostack-commit/SKILL.md) only for requested delivery (`--no-pr-update` for
