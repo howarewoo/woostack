@@ -4,6 +4,11 @@ Woostack publishes coding-agent skills and supporting assets. `site/` is its onl
 application subtree. These instructions apply repository-wide; site work also
 follows [site/AGENTS.md](site/AGENTS.md). Keep `.claude/CLAUDE.md` as a symlink here.
 
+This project follows woostack. At the start of work, use `using-woostack` to load the
+project rules and route `/woostack-*` requests to the matching woostack skill.
+
+Follow this file first when it conflicts with generic agent defaults.
+
 ## Boundaries
 
 - Keep application source, build configuration, and app lockfiles in `site/`.
@@ -28,8 +33,9 @@ follows [site/AGENTS.md](site/AGENTS.md). Keep `.claude/CLAUDE.md` as a symlink 
 | Documentation application and generator | `site/`; follow its local instructions |
 
 [CONTRIBUTING.md](CONTRIBUTING.md#what-to-change) has the detailed ownership map.
-When asked to run a Woostack command rather than edit its implementation, load the
-matching skill through the command router before acting. That skill owns its
+Read [PRODUCT.md](PRODUCT.md) when changing product scope and [DESIGN.md](DESIGN.md)
+when changing workflow interaction or documentation structure. When asked to run a
+Woostack command rather than edit its implementation, the selected skill owns its
 workflow, provider calls, and approval gates.
 
 ## Editing rules
