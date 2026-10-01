@@ -161,31 +161,33 @@ local checks verified PR delivery.
 - Each group gets a real worker in its own task worktree and topic branch. Sequential delegation is
   valid, including for one grouped PR; neither task implementation nor the sentinel touches the
   primary HEAD/index, and no two writers share a physical workspace.
-- The B worker starts from the verified A1/A2 head containing `single_line`. Read back the root
-  helper PR against trunk, B against the helper head branch, and independent C against trunk.
-  Inspect their scoped diffs, draft state, head/base, checks, review, and task coverage. Native
-  stack read-back confirms helper then B in order and the configured trunk; C is not a fake
-  prerequisite. A chained base or a "depends on" comment is not stack membership.
-- Re-enter completed scope and verify reuse/read-back without duplicate workers, branches, PRs, or
-  stacks. Unavailable required stack operations leave delivery unfinished; do not simulate outages.
+- B starts from the verified helper head containing `single_line`. Read back root helper and C PRs
+  against trunk, B against helper, with correct identity, published head, content, draft state, and
+  task coverage. Native stack read-back confirms helper then B and the configured trunk.
+- With pending/unavailable or incidentally failed remote checks, delivery ends without further
+  CI/review reads, waiting, repairs, or merge-readiness claims. While B/C runs, a helper CI failure
+  or review event causes no repair dispatch, edit, push, or reopening; necessary parent-ref/content
+  reads still work. Mark unavailable event variants **Unrun**.
+- Re-enter delivered scope: no maintenance discovery or duplicate workers, branches, PRs, or stacks.
+  Reconcile uncertain publication/membership before retrying; missing required registration stays
+  incomplete without duplicate PRs/stacks. Use safe interruptions only, not simulated outages.
 - Bare-reference/read-only input dispatches no implementation writer or publication. A local-only
   variant uses isolated workers but makes no commit, push, PR, or stack write, including checkpoint
   bookkeeping. Ordinary execution never changes readiness, rewrites unrelated heads, queues, merges,
   or closes anything. Mark unavailable restricted-capability variants **Unrun**.
 
-**Repair and contribution rounds:** reuse the helper deliverable above, or its local-only equivalent
-without a remote. Run these bounded follow-up inputs through the installed Orchestrate candidate.
-Record each exact invocation, native worker completion/release evidence, physical paths/branches,
-actual contribution and integrated source identities, and the commands/results attached to each.
-Use existing commits where permitted; identify and preserve actual dirty-source evidence otherwise.
+**Explicit repair and contribution rounds:** separately request the bounded corrections below,
+reusing the helper deliverable or its local-only equivalent. Record invocations, worker
+completion/release, physical paths/branches, actual contribution/integrated source, and applicable
+results. Use existing commits where permitted; preserve actual dirty-source evidence otherwise.
 
 | Input or fixture variation | Observe |
 | --- | --- |
-| Start these repair rounds with a deliberately faulty helper fixture that accepts whitespace-only input and a missing final newline; observe both failures. Correct whitespace rejection, then replace the released writer to correct newline rejection; preserve an understood unrelated task edit. | Both rounds require observable corrections, not a no-op on a conforming A1 implementation. Reuse the same workspace/branch/PR after verified release, with no repair-only allocation or stack layer. Primary sentinel and understood edits survive. |
+| Explicitly request corrections to a faulty helper accepting whitespace-only input and missing final newline; observe both failures. Correct whitespace rejection, then replace the released writer for newline rejection; preserve an understood unrelated edit. | Both corrections run affected checks and reuse the verified workspace/branch/PR after release, without a repair-only allocation or stack layer. Primary sentinel and understood edits survive. |
 | Supply unknown writer liveness or an unexplained task edit; separately supply an unsuitable base. | Affected reuse stops without allocating around uncertainty or silently resetting/rebasing. State survives; genuinely independent work remains eligible. If no safe interruption exists, label liveness injection **Unrun**. |
 | Ask two compatible read-only reviewers to inspect the same unchanged identified source; include a formatter or generator that writes. | Review provenance identifies actual bytes/revision, not mutable HEAD or a directory label. Compatible review adds no allocation; conflicting mutation is serialized or justified isolation, not called read-only. |
 | Concurrently add rejection coverage and document the helper in disjoint paths from an inspected common base, as bounded temporary contributions to the existing helper delivery target. | Each allocation has its owner, role, responsibility, base, isolation reason, destination, delivery limit, and retirement condition in the ordinary handoff. No child issue/PR/stack layer is created; only the canonical target is updated. |
-| In the split above, let one contribution history include the other's change; supply an older worker HEAD claim that disagrees with fresh target state. | Reconcile source/destination evidence before integration. The intended union appears once, with neither replay nor dropped contribution. Child checks are not combined-result proof: check the canonical tree/cumulative diff, then make a relevant correction and refresh affected evidence. Report current local results, PR head checks, and review separately. |
+| Let one contribution history include the other's change and an older worker HEAD claim disagree with fresh target state. Make a local integration check fail before delivery. | Reconcile revisions; integrate the union once without replay or loss. Child passes are insufficient: correct the canonical tree, inspect the cumulative diff, and refresh affected checks/required review before publication. Report that evidence without new PR-check/review reads. |
 | Let both temporary operations use one harmless synthetic mutable file outside their checkouts. | Source isolation alone does not isolate the resource. Separate it through available authorized means or serialize access. Never use real credentials/keychains, databases, accounts, or production services. |
 | End the split with one released/integrated temporary checkout eligible for authorized retirement and another with a required checkpoint, unknown edit, or missing cleanup permission. | Account for both beneath their deliverable: safely retire only after contribution/recovery/dependency inspection and permission; retain the other with its reason and next safe action. No forced or broad cleanup. |
 

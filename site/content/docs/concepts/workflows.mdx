@@ -159,11 +159,11 @@ Retained-data authority and recovery belong to the
 
 ## Review and corrections
 
-Review is independent evidence. Orchestrate validates each task against its requested completion
-contract before releasing dependents, and Execute needs no pre-commit review receipt unless the
-repository or the request asks for one. Checks on a submitted PR are observed while the host
-session stays active: pending or unreadable checks never count as a pass, and observation does not
-continue as a daemon after the session ends.
+Review is independent evidence. Orchestrate verifies implementation before releasing dependents;
+Execute needs no pre-commit review receipt unless required. Verified PR publication and required
+stack registration finish delivery. Neither coordinator nor workers inspect new CI/reviews or
+reopen delivered groups on incoming events. Later corrections require a separate explicit request;
+remote checks and merge approval remain distinct from implementation evidence.
 
 Depending on the request, the result is a verified local change, a scaffold, a plan with requested
 issues, a reviewable PR, or a blocker reported at the first safe resume boundary. Existing retained
