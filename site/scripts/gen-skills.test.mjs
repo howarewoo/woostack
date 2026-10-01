@@ -144,11 +144,10 @@ test('renderPage emits title/description and source links for public phases', ()
   );
 });
 
-test('public skill routing retains the 16-skill order', () => {
+test('public skill routing retains the 15-skill order', () => {
   const expectedPublic = [
     'using-woostack',
     'woostack-init',
-    'woostack-bootstrap',
     'woostack-ideate',
     'woostack-harden',
     'woostack-plan',
@@ -164,7 +163,7 @@ test('public skill routing retains the 16-skill order', () => {
     'woostack-reflect',
   ];
 
-  assert.equal(PUBLIC_ORDER.length, 16);
+  assert.equal(PUBLIC_ORDER.length, 15);
   assert.deepEqual(PUBLIC_ORDER, expectedPublic);
   assert.deepEqual(navOrder([...expectedPublic].reverse()), expectedPublic);
 });

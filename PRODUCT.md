@@ -8,9 +8,10 @@ verify outcomes. The [README](README.md) owns the project overview and installat
 
 ## Current scope
 
-- Repository-specific project guidance and greenfield project bootstrap.
+- Repository-specific project guidance and greenfield planning without a checkout.
 - Requirements exploration, specification review, planning, and requested issue publication.
-- Bounded implementation, multi-task coordination, and pull-request delivery without merging.
+- Bounded implementation including initial project creation, multi-task coordination, and
+  pull-request delivery without merging. Local-only creation needs no GitHub destination.
 - Diagnosis, browser QA, workspace checks, review-comment handling, and conversation reflection.
 - A documentation site with authored guides and references generated from skill sources.
 

@@ -11,21 +11,23 @@ branches and commits it came from, and whether its pull requests (PRs) have been
 merged. Issues, Project status, retained records, and an agent's own summary are context for those
 decisions, not proof of them.
 
-A bounded change fits one PR, and a new codebase starts from an approved design. Choosing a
-workflow never approves its design or authorizes extra work.
+A bounded change fits one PR, and a codebase that does not exist yet starts from a settled
+decision about what to build. Choosing a workflow never approves its design or authorizes extra
+work.
 
 ## Planning before implementation
 
 Planning and implementation are separate decisions.
-[Plan](/docs/skills/woostack-plan) inspects the relevant source, settles the decisions that still
-change the outcome, and returns a few reviewable increments. It writes GitHub issues only when the
-request asks for it, and filing a plan never starts implementation.
+[Plan](/docs/skills/woostack-plan) inspects the relevant source when it exists, settles the
+decisions that still change the outcome, and returns a few reviewable increments. With no source,
+it plans from the supplied goal, constraints, and authoritative research. It writes GitHub issues
+only when the request asks for it, and filing a plan never starts implementation.
 
 Bounded work needs no planning step first. [Execute](/docs/skills/woostack-execute) takes one
 authorized outcome, chooses routine implementation details, establishes the cause before
-correcting a defect, and runs the checks relevant to the changed behavior. Local work need not
-commit or publish; an explicit Execute request delivers a reviewable draft PR unless the request
-narrows it to local work.
+correcting a defect, and runs the checks relevant to the changed behavior. Creating a project from
+nothing is ordinary Execute input. Local work need not commit or publish; an explicit Execute
+request delivers a reviewable draft PR unless the request narrows it to local work.
 
 [Orchestrate](/docs/skills/woostack-orchestrate) is the multi-task case. It resolves approved tasks
 and their real prerequisites from published issues or other readable context, states the plan that
@@ -102,8 +104,8 @@ resume.
 <Cards>
   <Card title="Getting started" href="/docs/getting-started" description="Install the skills, initialize local support, and check the installation." />
   <Card title="Building rules" href="/docs/concepts/building-rules" description="Understand who authorizes work and which evidence proves delivery." />
-  <Card title="Repository structure and rules" href="/docs/concepts/repository-rules" description="Read the complete app-local code, shared extraction, dependencies, production, testing, Git, and scaffold contract." />
-  <Card title="Workflow maps" href="/docs/concepts/workflows" description="Compare Bootstrap, Plan, Orchestrate, and Execute under one authority model." />
+  <Card title="Repository structure and rules" href="/docs/concepts/repository-rules" description="Read how repository conventions, placement, dependencies, testing, and delivery rules fit together." />
+  <Card title="Workflow maps" href="/docs/concepts/workflows" description="Compare Plan, Orchestrate, and Execute under one authority model." />
   <Card title="Least code, still safe" href="/docs/concepts/least-code" description="Write as little code as necessary without cutting edge cases or risks." />
   <Card title="Context management" href="/docs/concepts/context-management" description="Keep reasoning focused with compact reads, isolated sessions, and explicit handoffs." />
   <Card title="Parallelism with worktrees" href="/docs/concepts/worktrees" description="Isolate each delegated implementation task and concurrent disjoint work in separate Git worktrees." />

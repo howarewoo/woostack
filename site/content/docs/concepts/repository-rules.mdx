@@ -1,147 +1,94 @@
 ---
 title: Repository structure and rules
-description: Technology-neutral ownership, dependency, production, testing, Git, and scaffold rules for projects bootstrapped with woostack.
+description: Why placement, boundary, dependency, testing, and delivery rules follow the repository's own conventions, and where each rule is owned.
 ---
 
-[woostack-bootstrap](/docs/skills/woostack-bootstrap) defines engineering requirements for new
-projects without prescribing a technology stack. It researches current options, gets explicit
-approval, and records the selected technologies and versions checked against live registries.
-Greenfield means a new codebase; brownfield means an existing one. For brownfield work, follow
-the repository's conventions and history and use Build, Fix, or Execute.
+A repository's own instructions, architecture, native conventions, selected dependencies, and
+lockfiles are authoritative. Woostack's implementation rules describe the outcomes worth preserving
+on top of that foundation; they never impose a layout, an abstraction, or a version the work did
+not require. That is true for a codebase that already exists and for one you are creating now, so
+there is one set of rules rather than separate contracts for greenfield and existing work.
+
+[Execute](/docs/skills/woostack-execute) owns the executable form of this guidance. Its
+[implementation patterns](https://github.com/howarewoo/woostack/blob/main/skills/woostack-execute/references/patterns.md)
+cover placement, shared extraction, boundaries, API compatibility, type safety, dependencies, and
+the least-code standard, and its
+[infrastructure reference](https://github.com/howarewoo/woostack/blob/main/skills/woostack-execute/references/infrastructure.md)
+covers deployment, migrations, environment and secrets, client lifecycle, and observability. This
+page explains why those rules read the way they do and when each one applies.
 
 ## Repository-owned structure
 
-- Follow the approved stack's native structure in a new repository and the established structure in
-  an existing one.
-- Keep product code in the deployable application or unit that owns it.
-- Keep business logic, data access, authentication, observability, UI, utilities, and vendor
-  integrations with that owner.
-- Extract only the smallest coherent implementation or contract genuinely shared by multiple
-  applications, place and name it according to repository conventions, and remove local duplicates.
-- Create only directories and modules required by the approved product.
-- Do not create placeholder packages, speculative abstractions, pass-through wrappers, duplicate
-  tooling, or a second convention beside the repository's own.
-
-### Application internals
-
-Group code according to the selected technology and repository conventions. Role names such as
+The application that owns a capability keeps its code. Business logic, data access,
+authentication, observability, UI, utilities, and vendor integrations belong to the unit that
+needs them, organized by the unit's own module and export conventions. Role names such as
 services, layouts, or validation do not require matching directories.
 
-A boundary adapter translates data and errors between an external API or client and the models used
-inside your application. See [Application-boundary adapters](https://github.com/howarewoo/woostack/blob/main/skills/woostack-bootstrap/references/patterns.md#3-application-boundary-adapters).
+Shared code is a consequence of real reuse, not a starting layout. When several applications need
+the same implementation or contract, the smallest coherent surface is extracted to the repository's
+shared-code location, named for the capability it owns, and the application-local duplicates are
+removed. Placeholder packages, speculative abstractions, and pass-through wrappers add a second
+convention beside the repository's own, so they stay out. In a mixed-technology repository each
+unit keeps its native structure and manifest, and root orchestration appears only when it
+simplifies real cross-application commands.
 
 ## APIs and application boundaries
 
-### API compatibility
+A boundary adapter translates data and errors between an external API or client and the models used
+inside the application. Keeping transport, client, and vendor formats out of business logic is what
+lets the domain logic stay testable and portable, so the guidance covers both directions across
+HTTP/RPC, webhooks, queues, events, and third-party APIs. Database persistence mapping and
+ordinary in-process calls sit outside that rule.
 
-Within the repository's supported compatibility window:
+The pattern reaches new flows and existing flows the task materially changes. Migrating untouched
+legacy boundaries is separate work, and a deliberately shared contract that already matches the
+application's model needs no identity-only wrapper, although validation and error translation still
+apply.
 
-- Existing route or operation identifiers remain stable.
-- Inputs may gain optional fields; do not remove or rename existing fields.
-- Outputs may gain fields; do not remove existing fields or change their meaning or type.
-- Existing error codes retain their meaning; add distinct codes for new conditions.
-- An approved breaking change uses the repository's documented versioning mechanism.
-
-### Application-boundary adapters
-
-When applications exchange data through HTTP/RPC, webhooks, queues, events, or third-party APIs:
-
-- Use adapters to keep client, transport, and vendor-specific formats out of business logic.
-- Validate untrusted input, translate data in both directions, and translate transport errors.
-- Keep adapters in the owning application. Share them only when multiple applications need the
-  exact same contract or implementation.
-- Functions or modules are enough; classes are not required.
-- Skip wrappers that only return the same data when a deliberately shared contract already matches
-  the application's model. Input validation and error handling still apply.
-- Apply this rule to new flows and existing flows materially changed by the task. Leave untouched
-  legacy flows alone. Ordinary calls within one process and database persistence mapping are excluded.
-- Review can block concrete leaks of transport details into business logic or missing required
-  validation and error translation. It does not dictate file names, classes, or no-op wrappers.
-
-See [patterns.md §3](https://github.com/howarewoo/woostack/blob/main/skills/woostack-bootstrap/references/patterns.md#3-application-boundary-adapters) for the canonical pattern.
-
-## Technology selection and dependencies
-
-- Gather relevant product, scale, traffic, hosting, data, identity, compliance, integration, budget,
-  and team constraints before selecting technologies.
-- Validate a user-specified stack with current sources. Compare cohesive alternatives when material
-  technology tradeoffs remain unresolved.
-- Obtain explicit approval of the complete stack and architecture before scaffolding. Do not infer a
-  default for an undecided category.
-- Record the exact selected technologies, material choices, and live-resolved versions in the root
-  README.
-- Resolve every dependency version live from its authoritative registry; never use model memory.
-- Use stable releases unless the approved design explicitly requires a prerelease.
-- Each application declares the dependencies required by its runtime in its own manifest.
-- Shared code declares its own dependency categories when the selected ecosystem supports them.
-- Keep only genuine repository-wide tooling at the root.
-- Enable lifecycle scripts only for dependencies whose required installation behavior has been
-  verified.
-- Resolve dependency compatibility warnings in each consumer. Check that shared local code loads
-  from the repository and that dependencies support the target runtime.
-- Preserve the approved package manager's lockfile and integrity metadata.
+Published compatibility follows the same restraint. Existing identifiers stay stable, inputs gain
+optional fields rather than losing any, outputs gain fields rather than changing meaning, and a
+breaking change uses the repository's documented versioning mechanism. See
+[patterns.md §3](https://github.com/howarewoo/woostack/blob/main/skills/woostack-execute/references/patterns.md#3-application-boundary-adapters)
+and
+[§4](https://github.com/howarewoo/woostack/blob/main/skills/woostack-execute/references/patterns.md#4-api-compatibility).
 
 ## Type safety
 
-- Use the approved stack's strongest practical compile-time and runtime checks.
-- Check untrusted values at entry points before application code uses them.
-- Derive related contract types from one definition when the technology supports it.
-- Do not bypass type checks without a narrow, documented reason.
-- Keep type and contract helpers in the application; share only definitions needed by multiple
-  applications.
+Types are how an application states its own contracts, so the strongest practical compile-time and
+runtime checks in the selected stack are worth their cost. Untrusted values are narrowed at the
+entry point before application code consumes them, related contract types derive from one
+definition where the technology allows it, and bypassing a check needs a narrow documented reason.
+Type helpers stay with the unit that owns them.
 
-## Data, identity, and observability
+## Dependencies
 
-### Data and migrations
+Versions come from authoritative current sources, never from model memory, but only when a
+dependency is actually being selected or changed. A task that needs no dependency change preserves
+the existing versions and lockfile; treating a version lookup as a mandate to upgrade turns a
+bounded task into an unrelated one. Each application declares the dependencies its runtime needs
+in its own manifest, shared code declares its own categories where the ecosystem distinguishes
+them, and only genuine repository-wide tooling belongs at the root. Compatibility warnings are
+resolved in the consuming unit, lifecycle scripts are enabled only where the required installation
+behavior was verified, and the selected package manager's lockfile and integrity metadata are
+preserved.
 
-- Keep each database schema change separate, ordered, version-controlled, and repeatable with the
-  approved data tooling.
-- Do not run production migrations directly from a developer machine; use controlled deployment
-  automation with observable failure and recovery behavior.
-- Configure connection limits, pooling, retries, backups, restoration, and destructive-change
-  safeguards to match the selected database and runtime.
-- Add your own interface around a vendor client only when it improves portability, testing,
-  isolation, or reuse. Do not add a wrapper that merely forwards calls.
-- Create clients or connections in one place when their shared lifecycle, pooling, or rate limits
-  require it.
+## Least code, still safe
 
-### Authentication
+Less code means less to read, test, and maintain, but correctness and safety decide how small a
+solution may be. Before adding code, trace the affected flow and stop at the first rung that
+holds: confirm the code is needed, reuse an in-tree helper or pattern, use standard facilities,
+use a native platform feature, use an already-installed dependency, write a direct one-line
+implementation, and only then add the minimum new code.
 
-- Wrap a third-party identity client only when your own interface improves portability, testing,
-  isolation, or reuse.
-- Verify tokens and sessions only on trusted servers. Check permissions explicitly at each
-  protected boundary.
-
-### Observability
-
-Observability means being able to understand a running system through its logs and other monitoring
-data.
-
-- Emit structured, queryable events with consistent time, severity, message, service, and
-  environment fields.
-- Capture unhandled failures through the approved monitoring path.
-- Redact credentials, authorization material, personal data, and other secrets before transmitting
-  telemetry.
-
-## Environment and secrets
-
-- Use the approved production secret store or managed runtime configuration as the production source
-  of truth.
-- Keep local development secrets out of source control and provide a non-secret inventory of required
-  configuration names.
-- Ensure ignore rules cover local secret files used by the selected stack.
-- Validate required configuration at startup and fail with descriptive, non-secret errors.
-
-## CI/CD and deployment
-
-- Use the repository's approved automation and commands.
-- Run every applicable formatting, static-analysis, type/compile, build, and test check defined by the
-  scaffold on pull requests.
-- Match deployment architecture to runtime duration, scaling, latency, state, networking, and
-  regional requirements.
-- Automate preview/staging and production deployments, migrations, rollback, and release credential
-  handling according to the approved delivery model.
-- Never report a nonexistent or unobserved command as passing.
+When two approaches are the same size, choose the edge-case-correct one, and prefer deletion over
+addition. Validation, error handling, security, accessibility, and data-loss protection are never
+cut to shrink a diff, and deliberate layers of protection survive even when they repeat a check.
+A simplification that changes behavior keeps its regression test, and a knowingly cut corner gets
+a `why` comment naming the limit and the upgrade path. Comments explain reasons the code cannot
+state; they do not repeat it. See [Least code, still safe](/docs/concepts/least-code) for the
+rationale and
+[patterns.md §7](https://github.com/howarewoo/woostack/blob/main/skills/woostack-execute/references/patterns.md#7-least-code--comments)
+for the full standard.
 
 ## Testing
 
@@ -151,144 +98,78 @@ It defines when a test-first sequence applies, meaningful coverage, characteriza
 existing code, repository conventions, and concrete verification when no test runner exists. A
 change is incomplete until its required verification passes.
 
-## Least code, still safe
+## Production concerns
 
-Before adding code, stop at the first rung that works:
+Deployment shape, migration safety, environment and secret handling, external client lifecycle, and
+observability all depend on the selected stack and delivery model, so the
+[infrastructure reference](https://github.com/howarewoo/woostack/blob/main/skills/woostack-execute/references/infrastructure.md)
+states the outcomes rather than a vendor default. The reasoning behind them is short. Migrations
+run through controlled automation with observable failure and recovery rather than from a
+developer's machine. Production secrets come from the host's secret store or managed runtime
+configuration, while the repository keeps a non-secret inventory of required configuration names
+and validates them at startup. Vendor clients get an interface only when it improves portability,
+testing, isolation, or reuse. Telemetry is structured and queryable, with credentials, personal
+data, and other secrets redacted before transmission.
 
-1. Confirm the code is needed.
-2. Reuse an in-tree helper or pattern.
-3. Use standard facilities.
-4. Use a native platform feature.
-5. Use an already-installed dependency.
-6. Use a direct one-line implementation.
-7. Add the minimum new implementation.
+## Creating a project that does not exist yet
 
-Additional rules:
+New-project work uses the same workflows as everything else. Nothing about it requires a separate
+command, a checkout, a GitHub destination, or an extra approval event.
 
-- Trace the affected flow before choosing the smallest solution.
-- When approaches are equally small, choose the edge-case-correct one.
-- Prefer deletion over addition and boring code over clever code.
-- Never remove validation, error handling, security, accessibility, or data-loss protection to make
-  code smaller.
-- Keep deliberate layers of protection, even when they repeat a check.
-- Keep a regression test for a simplification that changes behavior.
-- Give a deliberate known limitation a `why` comment explaining its limit and when to replace it.
-- Document user-facing components and procedures using the repository's usual format.
-- Use comments for non-obvious reasons, constraints, workarounds, or conditions that must hold.
-  Do not repeat what the code already states.
-- Replace unexplained repeated or policy-bearing literals with descriptively named constants using
-  the repository's naming convention.
+Planning a product before any code exists belongs to
+[Plan](/docs/skills/woostack-plan). It works from the supplied goal, constraints, and
+authoritative research, resolves only the material decisions that change the outcome, and writes
+nothing unless the request asks for issues. Settled technology choices are reused rather than
+re-asked.
 
-See [Least code, still safe](/docs/concepts/least-code) for the rationale and review behavior.
+Creating the first slice belongs to [Execute](/docs/skills/woostack-execute) as an authorized
+bounded outcome. Repository, HEAD, index, base, and worktree checks apply where those objects
+exist, so their absence is not a blocker. What replaces them is target admission before the first
+write: one unambiguous intended path and physical parent, no symlinks in the target or its
+ancestors, nothing unreadable, ambiguous, or unsafe, no competing writer, and a target that is
+absent or empty. A collision blocks writing there; it is never permission to delete, overwrite,
+reset, or scaffold around existing content.
 
-## Greenfield admission and scaffolding
+The scaffold itself is the smallest requested working slice in the selected ecosystem's native
+structure, with unrequested demo content removed, the project's own applicable checks actually
+run, each requested surface booted or smoked through a meaningful path, and setup prerequisites,
+selected technologies and lookup sources, non-secret environment names, and real commands
+recorded in the README. A command that does not exist is never reported as passing, and requested
+`AGENTS.md`, `DESIGN.md`, `PRODUCT.md`, or local support remain
+[Init's](/docs/skills/woostack-init) work rather than automatic scaffold output.
 
-Scaffolding creates the initial files for a new project. Before doing so:
+A local-only scaffold needs no GitHub account, Project, remote, commit, push, or PR. Git
+initialization happens only when requested or needed for requested delivery. A missing delivery
+destination is an unmet delivery boundary, not permission to create remote resources or a reason
+to block otherwise authorized local work.
 
-- Inspect the target path without changing it before committing to a design.
-- Complete live research and get explicit approval of the technology choices and complete design.
-- Check the target again immediately before scaffolding to catch newly created files or directories.
-- Proceed only when the path is absent or an empty non-Git directory.
-- Reject symlinks, populated directories, existing repositories or worktrees, unreadable paths,
-  ambiguous results, and paths owned by another run.
-- Never reset, clean, delete, overwrite, or scaffold around an existing target.
+## Delivery and workspaces
 
-For every approved surface:
+Branching, commits, pull requests, and remote writes belong to
+[Commit](/docs/skills/woostack-commit) and its
+[source-control contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-commit/references/source-control.md),
+which owns staging, publication, PR content, read-back of head, base, and state, and the shared
+authorized-tool and stack rules. New PRs are drafts, readiness changes only when the request asks,
+and merging, auto-merge, and merge queues stay human decisions.
 
-- Resolve exact dependency versions live.
-- Use the smallest supported scaffold for the selected stack.
-- Remove demo and example code outside the approved product.
-- Establish each application's native structure and only the shared code the approved surfaces need.
-- Implement only the minimum working path through each application needed to prove the architecture.
-- Configure environment validation without including secret values.
-- Add required security, error, accessibility, data-loss, migration, and observability protections.
-- Keep generated output and runtime evidence out of source control.
-
-## Git and workspace initialization
-
-A local-only scaffold needs no Git repository, GitHub account, or remote destination. When Git
-initialization is part of the requested deliverable:
-
-- Initialize Git only after creating the approved scaffold in the verified target.
-- Name the initial branch from normal repository and host policy.
-- Resolve and configure a remote only when explicitly requested, without embedding credentials.
-- Never create `.woostack/specs/`, `.woostack/plans/`, `.woostack/fixes/`, or a shadow development
-  ledger.
-- Use the
-  [workspace guidance](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/worktrees.md)
-  for every later bounded feature or fix.
-- Do not commit or push until generated files, environment files, lockfiles, ignore rules, and code
-  ownership have been classified.
-
-With or without Git, Init's document handoff reuses approved product/design decisions and actual
-scaffold commands when project guidance or Woostack adoption is selected within scope, without
-another interview. Its separate `.woostack/` support path runs only when explicitly needed.
-
-## Branching
-
-- `main` represents production.
-- Each repository configures its integration branch; `staging` is only an example.
-- A `feature/<name>` branch represents one change and one PR.
-- A standalone feature starts from the resolved integration branch. In a planned stack, a dependent
-  increment starts from its approved predecessor and targets that parent branch.
-- Humans promote the integration branch to `main` after integration testing and according to the
-  release cadence.
-- Do not open a PR directly against `main` except for an emergency hotfix.
-- Cherry-pick an emergency hotfix back into the integration branch immediately.
-- Ordinary delivery never force-pushes. A request to rebase, restack, or consolidate selected
-  published pull requests authorizes the scoped rewrite, published with a lease tied to the remote
-  heads inspected before rewriting and leaving unrelated branches and unselected members alone.
-- Use Git with an authorized GitHub interface for delivery; prefer native host tools when suitable
-  and use authenticated `gh` where appropriate, following the
-  [source-control contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-commit/references/source-control.md).
-- Agents never merge, enable auto-merge, or queue a PR for merge. A new PR is a draft, existing
-  readiness changes only when the request asks for it, and readiness is never approval to merge.
-
-## Required README
-
-Write the root README after the scaffold works. Include:
-
-- product purpose and approved deployable surfaces;
-- architecture and application-local/shared-code placement decisions;
-- exact selected technologies and live-resolved versions;
-- setup prerequisites and non-secret configuration names;
-- development, build, test, analysis, format, migration, and boot commands that actually exist;
-- deployment and observability assumptions;
-- rationale for material choices; and
-- an artifact link only when persistence was explicitly selected and verified.
-
-Do not copy Woostack's complete internal workflow or artifact protocol into the application README.
-
-## Required verification
-
-A bootstrap is incomplete until it runs every applicable command defined by the approved scaffold:
-
-dependency installation and lockfile generation, format/check mode, static analysis, type checking or
-compilation, tests, production build, boot/smoke verification of every deployable surface, and at
-least one vertical path through each surface.
-
-The final tree inspection rejects committed secrets, local secret files, generated build output,
-leftover examples, premature or duplicated shared code, unexpected files, missing lockfiles, or dirty
-formatter output. A nonexistent command cannot be reported as passing.
+Once Git exists, the
+[workspace guidance](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/worktrees.md)
+owns isolation, ownership, and base selection for every later bounded feature or fix. A target with
+no Git repository yet cannot use it, which is why scaffold admission is described separately above.
+Retained runs, drafts, and provider records stay as their owner left them.
 
 ## Existing repositories
 
-Do not apply new-project architecture rules to an existing repository without an approved reason.
-Follow its established conventions and history:
-
-- bugs, regressions, and root-cause work route to [Debug](/docs/skills/woostack-debug) for proof and
-  then [Plan](/docs/skills/woostack-plan) for the plan and any requested issues;
-- bounded one-PR enhancements and refactors route to [Execute](/docs/skills/woostack-execute); and
-- larger initiatives route to [Plan](/docs/skills/woostack-plan).
+The same guidance preserves an existing repository's conventions and limits changes to the requested
+scope. A read-only root-cause investigation belongs to [Debug](/docs/skills/woostack-debug);
+an authorized bounded correction belongs directly to [Execute](/docs/skills/woostack-execute).
+[Plan](/docs/skills/woostack-plan) produces a plan when requested. None requires an extra skill handoff.
 
 ## Canonical sources
 
-This page summarizes the project contract. The executable skill and references remain authoritative:
+This page explains the contract. The executable skill and its references remain authoritative:
 
-- [`woostack-bootstrap/SKILL.md`](https://github.com/howarewoo/woostack/blob/main/skills/woostack-bootstrap/SKILL.md)
-- [`architecture.md`](https://github.com/howarewoo/woostack/blob/main/skills/woostack-bootstrap/references/architecture.md)
-- [`frameworks.md`](https://github.com/howarewoo/woostack/blob/main/skills/woostack-bootstrap/references/frameworks.md)
-- [`infrastructure.md`](https://github.com/howarewoo/woostack/blob/main/skills/woostack-bootstrap/references/infrastructure.md)
-- [`patterns.md`](https://github.com/howarewoo/woostack/blob/main/skills/woostack-bootstrap/references/patterns.md)
-- [`development.md`](https://github.com/howarewoo/woostack/blob/main/skills/woostack-bootstrap/references/development.md)
-- [`bootstrap.md`](https://github.com/howarewoo/woostack/blob/main/skills/woostack-bootstrap/references/bootstrap.md)
+- [`woostack-execute/SKILL.md`](https://github.com/howarewoo/woostack/blob/main/skills/woostack-execute/SKILL.md)
+- [`patterns.md`](https://github.com/howarewoo/woostack/blob/main/skills/woostack-execute/references/patterns.md)
+- [`infrastructure.md`](https://github.com/howarewoo/woostack/blob/main/skills/woostack-execute/references/infrastructure.md)
+- [`tdd.md`](https://github.com/howarewoo/woostack/blob/main/skills/woostack-execute/references/tdd.md)

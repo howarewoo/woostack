@@ -46,8 +46,9 @@ headings.
 ## Removal and reuse
 
 Before proposing new work, look for safe deletion, reuse, simplification, and generalization, and
-apply the [least-code doctrine](../woostack-bootstrap/references/patterns.md#7-least-code--comments).
+apply the [least-code doctrine](../woostack-execute/references/patterns.md#7-least-code--comments).
 Keep required safety, compatibility, accessibility, and data-loss protection while removing.
+Reading that reference does not invoke Execute or authorize implementation.
 
 ## Elicitation
 

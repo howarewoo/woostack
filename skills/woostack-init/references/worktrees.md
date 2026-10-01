@@ -13,9 +13,10 @@ context is selected here.
 
 Use an existing approved workspace and branch when suitable; otherwise select an isolated checkout
 through the host or repository. A fresh linked worktree is not required for every invocation. Verify
-the physical repository, branch, HEAD, index, dirty state, and task diff before writing. Inspect
-relevant worktrees and path aliases for collisions; preserve unrelated work. Never create around a
-conflicting checkout or silently take over a workspace.
+the physical repository, branch, index, dirty state, and task diff before writing; verify HEAD and
+base where they exist, inspecting existing files and index for an unborn repository instead.
+Inspect relevant worktrees and path aliases for collisions; preserve unrelated work. Never create
+around a conflicting checkout or silently take over a workspace.
 
 Every implementation writer needs an independently owned workspace and branch with non-overlapping
 responsibility — delegation requires its own workspace, not merely concurrency — and an approved
@@ -50,6 +51,7 @@ authorized-tool and stack guidance.
 
 ## Greenfield boundary
 
-A genuinely greenfield target has no Git repository yet and therefore cannot use this reference
-before scaffolding. [`woostack-bootstrap`](../../woostack-bootstrap/SKILL.md) owns collision-safe
-creation. Once Git exists, later bounded tasks use these isolation and evidence outcomes normally.
+A target without a Git repository uses
+[Execute's initial scaffold admission](../../woostack-execute/SKILL.md#initial-project-scaffold),
+not checkout/HEAD/base checks. Once the relevant Git objects exist, these isolation and evidence
+outcomes apply normally. Reading this reference does not authorize scaffolding or invoke Execute.

@@ -27,6 +27,6 @@ body:
     id: impact
     attributes:
       label: Impact on existing projects
-      description: Would projects bootstrapped from the current spec need to update? Anything breaking?
+      description: Would projects using the current guidance need to update? Anything breaking?
     validations:
       required: false
