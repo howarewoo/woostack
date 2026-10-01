@@ -9,13 +9,13 @@ or acceptance. The
 [workspace guidance](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/worktrees.md)
 defines identity, collision, writer ownership, base evidence, and recovery.
 
-Use an approved existing workspace and branch or a host/repository-selected isolated checkout. A
-fresh worktree is not mandatory, but each delegated implementation writer gets its own
-independently owned workspace and branch, not only concurrent ones. Inspect the selected index,
-dirty state, branch, base, and diff; preserve unrelated changes. Before reuse, inspect native
-writer state and current Git/PR facts. If a former writer may still be active, stop affected work
-until exit is proved; serialization cannot prove it stopped. Instructions do not enforce locks or
-sandboxing.
+The deliverable owns its workspace and branch; a writer temporarily holds exclusive write access.
+Sequential writers can reuse that allocation after native host evidence proves the previous writer
+exited or relinquished access and current Git/PR facts confirm it remains suitable. Concurrent
+writers need separate workspaces and non-overlapping responsibility. Unknown writer liveness
+blocks affected work; waiting does not prove release. Instructions do not enforce locks or
+sandboxing. The [ownership rule](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/worktrees.md#workspace-and-ownership)
+defines allocation and handoff safeguards.
 
 Required predecessor changes must actually be available in the chosen base. Git ancestry proves
 commit-preserving containment, while a squash landing requires checking the native landing and

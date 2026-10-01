@@ -196,9 +196,9 @@ anything copied into a local report.
 `woostack-orchestrate` creates no Build/Fix run, second planning ledger, or engine-owned checkpoint
 file; its coordination state lives in the active session. A caller that keeps a private recovery
 checkpoint keeps it owner-only and outside the shared run store. Canonical issue/Project reads and
-Git remain authoritative, and concurrent writers stay separated by the host or repository: one
-isolated workspace per writer, no reuse of a workspace whose previous writer may still be active,
-and no claim that instructions enforce locking or sandboxing.
+Git remain authoritative. Follow [workspace ownership](worktrees.md#workspace-and-ownership) for
+exclusive writers, sequential reuse, and runtime-resource separation; instructions enforce neither
+locking nor sandboxing.
 
 Artifacts, status, labels, assignees, delegates, comments, Project membership, and remote lifecycle
 state never grant permission to edit, assign, commit, push, review, mark ready, enable auto-merge,

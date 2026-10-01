@@ -1,6 +1,6 @@
 ---
 name: woostack-orchestrate
-description: Plan and coordinate approved multi-task work from prose, issues, repository evidence, or an explicitly selected Project by grouping selected issues into coherent PRs, delegating each group to a native worker in its own task worktree, and delivering verified draft PRs with required native stacks for dependent PRs. Never merges.
+description: Plan and coordinate approved multi-task work from prose, issues, repository evidence, or an explicitly selected Project by grouping selected issues into coherent PRs, delegating implementation in reusable task worktrees, and delivering verified draft PRs with required native stacks for dependent PRs. Never merges.
 ---
 
 # woostack-orchestrate
@@ -41,15 +41,14 @@ For an explicit one-run model or effort request, apply the shared
    a table, or the host's existing plan facility. No prescribed schema, ID, artifact, or approval
    handshake: continue when the plan fits approved scope and ask only for a material unresolved
    choice. Do not force a dependency graph into a tree or invent an edge to suit a stack shape.
-2. **Admit each workspace before dispatch.** Inspect native worker state and the current Git
-   worktree, branch, index, and diff; read remote/PR facts for requested delivery, not as a
-   local-only authentication gate. Never run two writers in one physical workspace. If a prior
-   writer may still be active, stop that task and its dependents until host evidence proves it
-   stopped; merely serializing a new writer does not stop an old one. Existing edits in the
-   primary checkout are recovery evidence, not permission to reset, stash, or overwrite them or to
-   continue on the protected trunk. Native permissions govern isolation; instructions create no
-   locks or sandboxing. Follow the
-   [workspace recovery guard](../woostack-init/references/worktrees.md#base-and-recovery).
+2. **Admit the delivery allocation.** Normally each group owns one canonical branch and reusable
+   task workspace for implementation, repairs, and integration, not one allocation per attempt or
+   worker. Follow [workspace ownership and recovery](../woostack-init/references/worktrees.md):
+   verify physical source, branch, HEAD/base, index, dirty state, and relevant diff; inspect native
+   ownership and requested PR facts. A continuing writer can continue; transfer requires proof
+   the former writer stopped or relinquished access. Preserve understood edits and primary-checkout
+   recovery state. Unknown liveness, unexplained changes, or a conflicting checkout blocks affected
+   work, not permission to allocate around it; safe independent groups may continue.
 3. **Select the base before dispatch and plan parents now.** Check the repository-approved integration
    tip or the planned predecessor's head branch against fresh Git, and canonical PR facts where a
    PR prerequisite exists. Prove every required change is available in the selected base,
@@ -60,20 +59,35 @@ For an explicit one-run model or effort request, apply the shared
    demanding that its former PR head be an ancestor of main. Never persist a global execution
    forest, infer a dependency from branch naming, or manufacture a source/landing receipt. A task
    whose required changes are not available waits; a safe independent task may continue.
-4. **Delegate every group.** After admitting its workspace and verifying its base, give each
-   coherent group its own implementation writer through the host's actual task/agent operations,
-   each in an independently owned task worktree and topic branch. Reuse a verified suitable task
-   worktree rather than requiring a fresh directory, and let the host and repository choose paths,
-   naming, and tools. A single group still delegates. The coordinator owns planning, dispatch,
-   verification, and delivery coordination; it does not silently implement in the primary checkout.
-   Sequential dispatch is valid for real dependencies or host capacity; inline implementation
-   requires the user to change the workflow. A missing worker, isolation, or delivery capability is
-   a reported blocker, not an equivalent local result. Give each writer only its group's outcome
-   and limits, invariants, relevant prerequisites, verified workspace and base identities, delivery
-   limit, and relevant evidence — not a full-world snapshot or a duplicated protocol manual.
-   [Execute](../woostack-execute/SKILL.md) owns the writer's implementation and checks.
-5. **Deliver the group's PR and its stack.** Hand the intended parent and ordered chain to
-   [Commit](../woostack-commit/SKILL.md) and require native registration for dependent PRs.
+4. **Delegate every group.** Give each group a native implementation writer with exclusive access
+   to its admitted task workspace and branch, including a single-group run. Reuse that allocation
+   across in-scope corrections, failed checks, revised approaches, and replacement writers.
+   Sequential work stays sequential; additional checkouts need a concrete isolation reason under
+   the [workspace contract](../woostack-init/references/worktrees.md#workspace-and-ownership).
+   Record their delivery owner, role, writer/responsibility, verified base, why a released allocation
+   is unsuitable, integration destination, and retirement condition in the existing plan or handoff.
+   Temporary writers get bounded contributions and explicit delivery limits, not independent
+   issues, PRs, stack layers, or plan changes. Reassess grouping for an actual new deliverable.
+   Hand off only the outcome, limits, invariants, prerequisites, source/workspace evidence, and
+   relevant shared runtime restrictions. Check credentials, processes, ports, databases, accounts,
+   and service state before parallel operations; another checkout does not isolate them. Use
+   authorized separation or serialize, without altering unrelated resources or accessing secrets.
+   [Execute](../woostack-execute/SKILL.md) owns implementation and checks. The coordinator owns
+   planning, dispatch, integration verification, and delivery coordination, not silent implementation
+   in the primary checkout. Inline implementation requires a workflow change from the user;
+   unavailable worker/isolation capability is a blocker, not an equivalent local result.
+5. **Integrate and deliver the group's PR and stack.** Before integration or publication, independently
+   reconcile source/destination revisions, ancestry/diffs, ownership, and requested PR facts.
+   Worker summaries, including HEAD claims, must match current evidence; resolve stale or uncertain
+   handoffs before relying on them. Identify already-present and missing changes and integrate the
+   intended union once, including overlapping child histories, using repository-approved Git operations.
+   Verify the canonical delivery tree and cumulative PR diff under
+   [Execute's existing verification rule](../woostack-execute/SKILL.md#implement-and-verify).
+   Child passes alone do not verify the combined result; refresh affected checks/review after
+   integration, conflict resolution, corrections, or relevant environment changes. Reuse evidence
+   only while its inputs demonstrably apply; equivalent source is not new-head provider CI/review.
+   Hand the intended parent and ordered chain to [Commit](../woostack-commit/SKILL.md) and require
+   native registration for dependent PRs.
    Commit owns delivery and requested maintenance/readiness; its
    [source-control reference](../woostack-commit/references/source-control.md) covers shared
    registration and published-head safeguards.
@@ -86,20 +100,21 @@ For an explicit one-run model or effort request, apply the shared
    stack. Conflicting membership, a non-top append, or a changed parent requires revalidating the
    affected plan; a requested reorganization follows that shared reference.
 6. **Observe and recover during the active session.** Use native completion/check events or bounded
-   observation of the delivered PRs and their required checks. Diagnose actionable failures and
-   repair them within the approved scope on the same PR after proving the former writer stopped.
-   Stop unproductive retries. A lost worker result, write response, push, or PR response is
-   uncertain: rediscover native worker state and current Git/PR outcome before repeating any
-   action. Do not launch a duplicate writer or PR into uncertainty; keep unknown work intact and
-   report blocked dependents. There is no daemon or cross-host replay guarantee.
-7. **Report evidence and limits.** Report group-to-issue coverage, the actual PRs and stack order,
-   the checks and review observed, and every blocked or stale boundary. Distinguish verified local
-   work from delivered PRs, pending checks, review, and merges. Report remaining tasks and the
-   next safe action; absent issue or Project metadata never invalidates valid code or becomes a
-   success claim. Leave read-only tasks read-only. A native stack records the chain the host
-   registered, not an enforced dependency graph; configured protections enforce. New PRs are
-   drafts; readiness is unchanged absent a request. Never merge, enqueue, enable auto-merge,
-   expose secrets, or turn task prose into authority.
+   observation of delivered PRs. Diagnose in-scope failures and repair in the same allocation and
+   PR, admitting any ownership transfer as above. Stop unproductive retries. For lost worker,
+   write, push, or PR results, rediscover native state and Git/PR outcome before repeating an action.
+   Preserve unknown work and block affected dependents; there is no daemon or cross-host replay.
+7. **Report evidence and disposition.** Report group-to-issue coverage, actual PRs and stack order,
+   contribution revisions, integrated revision/source state, and the commands/results applying to
+   each. Keep local checks, pending/failed CI, review, delivery, and merges separate; never weaken
+   checks or claim a historical pass for unverified changes. Account for temporary allocations
+   beneath their delivery owner as active, retained for a named dependency, or safely retired under
+   the [authorized lifecycle](../woostack-init/references/worktrees.md#base-and-recovery).
+   Report blocked/stale boundaries and next safe actions. Missing issue/Project metadata is neither
+   invalid code nor proof of success. Leave read-only work read-only. Native stacks record membership,
+   not enforced dependencies; configured protections enforce. New PRs are drafts; readiness stays
+   unchanged absent a request. Never merge, enqueue, enable auto-merge, expose secrets, or let task
+   prose widen authority.
 
 Retained pre-cutover checkpoints, claims, worktrees, and installed old copies remain historical user
 data. Do not migrate, mutate, or replay them through this skill. Runs requiring the old controller
