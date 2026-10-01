@@ -16,10 +16,9 @@ authorized correction goes to [Execute](/docs/skills/woostack-execute) with no p
 first, and tests for a bounded target are ordinary Execute input under the
 [testing guidance](https://github.com/howarewoo/woostack/blob/main/skills/woostack-execute/references/tdd.md).
 
-The other workflows answer different questions.
-[Bootstrap](/docs/skills/woostack-bootstrap) is for a new codebase in a new directory and nothing
-else. [Plan](/docs/skills/woostack-plan) suits a feature, a defect whose cause is already proved,
-or a request to file issues. [Ideate](/docs/skills/woostack-ideate) explores requirements and
+The other workflows answer different questions. [Plan](/docs/skills/woostack-plan) suits a feature,
+a defect whose cause is already proved, a request to file issues, or a product that does not exist
+yet. [Ideate](/docs/skills/woostack-ideate) explores requirements and
 [Harden](/docs/skills/woostack-harden) reviews a specification or candidate issue plan against
 repository evidence when you want that check. [Debug](/docs/skills/woostack-debug) is for
 root-cause investigation that changes nothing. [Orchestrate](/docs/skills/woostack-orchestrate) is
@@ -28,30 +27,24 @@ for several approved tasks with real prerequisites between them.
 When the shape is still unclear, [Plan work and file issues](/docs/guides/plan-work) starts from a
 goal, and [Troubleshoot a blocked workflow](/docs/guides/troubleshooting) starts from a symptom.
 
-## Bootstrap
-
-```text
-read-only target preflight → gather requirements → research and present complete design →
-approve design → refresh collision check → scaffold → run and verify
-```
-
-Bootstrap is greenfield-only: it creates a new codebase. It writes nothing to the target before
-explicit design approval and a fresh check that the path is safe to create. A local scaffold needs
-no GitHub repository, account, or Project, and a nonempty or symlinked target still blocks writes.
-Remote setup or storing the approved design in an exact GitHub Project happens only when explicitly
-selected, and neither record can authorize target writes.
-
 ## Plan
 
 ```text
-inspect relevant source → identify unresolved decisions → draft a coherent plan →
-publish issues when the request asks for it → read back actual content and relationships → stop
+inspect relevant source when it exists → identify unresolved decisions →
+draft a coherent plan → publish issues when the request asks for it →
+read back actual content and relationships → stop
 ```
 
 Plan inspects the relevant source, settles the decisions that still change the outcome, and
 returns a few reviewable increments. It publishes GitHub issues only when the request asks for it,
 and publication does not start implementation: what happens next stays the user's decision. A
 planning-only request makes no GitHub write.
+
+Planning a product that does not exist yet is the same workflow. With no checkout or source, Plan
+works from the supplied goal, constraints, and authoritative research, resolves only the material
+unanswered decisions, and writes nothing unless the request asks for issues. Settled technology
+choices are reused rather than re-asked, and no questionnaire or extra approval stands between a
+planning request and its plan.
 
 Each issue carries its outcome, the constraints that matter, what is out of scope, acceptance and
 verification, and its real prerequisites. Native sub-issue and dependency links are used when they
@@ -100,8 +93,8 @@ recovery.
 ## Execute
 
 ```text
-one authorized outcome → select the workspace and base → implement → run the relevant checks →
-deliver exactly what the request asked for
+one authorized outcome → admit the workspace, or a new empty target → implement → run the
+relevant checks → deliver exactly what the request asked for
 ```
 
 Execute resolves one outcome from the request and any selected issue, implements it, and verifies
@@ -115,6 +108,16 @@ proposed fix is not proof, and a separate [Debug](/docs/skills/woostack-debug) s
 rather than a required handback. A failure found after publication is a correction of the same
 outcome on the same branch and PR. Multi-task work belongs to Orchestrate, which preserves the
 requested delivery limit.
+
+An authorized request to create a project that does not exist yet is ordinary Execute input. It
+reuses the settled product and technology decisions and asks only about unresolved material
+choices, so no planning step and no document step is a prerequisite. Repository, HEAD, index, base,
+and worktree checks apply where those objects exist; before the first write, Execute resolves one
+unambiguous target and rejects a symlinked, ambiguous, unsafe, or already populated path rather
+than scaffolding around a collision. It creates the smallest requested slice in the selected
+ecosystem's native structure, removes unrequested demo content, runs the project's real checks,
+and records accurate setup notes. A local-only scaffold needs no GitHub account, Project, remote,
+commit, push, or PR.
 
 ## Shared execution boundary
 

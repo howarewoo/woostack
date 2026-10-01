@@ -281,13 +281,14 @@ test('installed candidate collection resolves without a checkout or docs applica
     [...PUBLIC_ORDER].sort(),
   );
 
-  // Links stay links, and they resolve against the copied collection.
+  // Discovery links stay links, resolve into the copied collection, and name only catalog skills.
   const links = path.join(root, '.claude', 'skills');
-  assert.deepEqual((await readdir(links, { withFileTypes: true })).map((entry) => entry.isSymbolicLink()),
-    [true, true, true]);
+  const linkEntries = await readdir(links, { withFileTypes: true });
+  assert.ok(linkEntries.length > 0, 'the collection ships discovery links');
+  assert.deepEqual(linkEntries.filter((entry) => !entry.isSymbolicLink()), []);
   assert.deepEqual(await findBrokenSkillLinks(links, installed), []);
-  assert.deepEqual((await readdir(links)).sort(),
-    ['woostack-address-comments', 'woostack-bootstrap', 'woostack-commit']);
+  const unlinked = linkEntries.map((entry) => entry.name).filter((name) => !PUBLIC_ORDER.includes(name));
+  assert.deepEqual(unlinked, [], 'no discovery link names a skill outside the installable catalog');
 
   // A checkout-only target must fail even when a neighboring docs tree exists.
   const entry = path.join(installed, 'using-woostack', 'SKILL.md');
