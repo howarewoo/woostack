@@ -166,17 +166,34 @@ local checks verified PR delivery.
   Inspect their scoped diffs, draft state, head/base, checks, review, and task coverage. Native
   stack read-back confirms helper then B in order and the configured trunk; C is not a fake
   prerequisite. A chained base or a "depends on" comment is not stack membership.
-- Re-enter the same completed scope and verify reuse/read-back without duplicate workers, branches,
-  PRs, or stacks. If a required stack operation is genuinely unavailable, preserve valid work and
-  report the unfinished delivery; do not simulate an outage or substitute another transport.
-- Bare-reference/read-only input dispatches no implementation worker or publication. An explicit
-  local-only Orchestrate run uses isolated workers but makes no commit, push, PR, or stack write,
-  even if a task mentions a PR scenario. A host genuinely lacking workers reports the limitation
-  rather than implementing inline; mark unavailable restricted-capability variants **Unrun**.
-- If an actual worker result or write is lost, rediscover native worker state and Git/PR facts
-  before retrying. Without a safe interruption point, mark this variant **Unrun**. Preserve unknown
-  branches and unrelated edits. Ordinary Orchestrate does not mark PRs ready, rewrite unrelated
-  heads, queue, merge, or close anything without separate authority.
+- Re-enter completed scope and verify reuse/read-back without duplicate workers, branches, PRs, or
+  stacks. Unavailable required stack operations leave delivery unfinished; do not simulate outages.
+- Bare-reference/read-only input dispatches no implementation writer or publication. A local-only
+  variant uses isolated workers but makes no commit, push, PR, or stack write, including checkpoint
+  bookkeeping. Ordinary execution never changes readiness, rewrites unrelated heads, queues, merges,
+  or closes anything. Mark unavailable restricted-capability variants **Unrun**.
+
+**Repair and contribution rounds:** reuse the helper deliverable above, or its local-only equivalent
+without a remote. Run these bounded follow-up inputs through the installed Orchestrate candidate.
+Record each exact invocation, native worker completion/release evidence, physical paths/branches,
+actual contribution and integrated source identities, and the commands/results attached to each.
+Use existing commits where permitted; identify and preserve actual dirty-source evidence otherwise.
+
+| Input or fixture variation | Observe |
+| --- | --- |
+| Start these repair rounds with a deliberately faulty helper fixture that accepts whitespace-only input and a missing final newline; observe both failures. Correct whitespace rejection, then replace the released writer to correct newline rejection; preserve an understood unrelated task edit. | Both rounds require observable corrections, not a no-op on a conforming A1 implementation. Reuse the same workspace/branch/PR after verified release, with no repair-only allocation or stack layer. Primary sentinel and understood edits survive. |
+| Supply unknown writer liveness or an unexplained task edit; separately supply an unsuitable base. | Affected reuse stops without allocating around uncertainty or silently resetting/rebasing. State survives; genuinely independent work remains eligible. If no safe interruption exists, label liveness injection **Unrun**. |
+| Ask two compatible read-only reviewers to inspect the same unchanged identified source; include a formatter or generator that writes. | Review provenance identifies actual bytes/revision, not mutable HEAD or a directory label. Compatible review adds no allocation; conflicting mutation is serialized or justified isolation, not called read-only. |
+| Concurrently add rejection coverage and document the helper in disjoint paths from an inspected common base, as bounded temporary contributions to the existing helper delivery target. | Each allocation has its owner, role, responsibility, base, isolation reason, destination, delivery limit, and retirement condition in the ordinary handoff. No child issue/PR/stack layer is created; only the canonical target is updated. |
+| In the split above, let one contribution history include the other's change; supply an older worker HEAD claim that disagrees with fresh target state. | Reconcile source/destination evidence before integration. The intended union appears once, with neither replay nor dropped contribution. Child checks are not combined-result proof: check the canonical tree/cumulative diff, then make a relevant correction and refresh affected evidence. Report current local results, PR head checks, and review separately. |
+| Let both temporary operations use one harmless synthetic mutable file outside their checkouts. | Source isolation alone does not isolate the resource. Separate it through available authorized means or serialize access. Never use real credentials/keychains, databases, accounts, or production services. |
+| End the split with one released/integrated temporary checkout eligible for authorized retirement and another with a required checkpoint, unknown edit, or missing cleanup permission. | Account for both beneath their deliverable: safely retire only after contribution/recovery/dependency inspection and permission; retain the other with its reason and next safe action. No forced or broad cleanup. |
+
+Keep actual-host repair/replacement and split observations separate from deterministic Git results
+and manual instruction traces; narrated exchanges or source-text assertions prove neither behavior.
+Without an authorized disposable remote, PR reuse/update and native-stack observations remain
+**Unrun**, not inferred from local branches. A lost write/result variant needs a safe interruption:
+rediscover native state and Git/PR facts before retrying, preserving unknown work.
 
 ## 4. Commit preparation, delivery, and content
 
