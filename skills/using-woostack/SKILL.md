@@ -30,7 +30,7 @@ matching host evidence; an inherited model or accepted agent selector does not p
 | Request or intent | Load |
 | --- | --- |
 | Adopt woostack or choose a workflow | `using-woostack` |
-| Initialize or repair local woostack support | `woostack-init` |
+| Create or maintain `AGENTS.md`, `DESIGN.md`, or `PRODUCT.md`; explicitly initialize or repair local support | `woostack-init` |
 | Create a genuinely greenfield codebase | `woostack-bootstrap` |
 | Explore requirements explicitly requested by the user | `woostack-ideate` |
 | Review a supplied specification or candidate plan against repository evidence | `woostack-harden` |

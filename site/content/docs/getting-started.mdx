@@ -1,12 +1,12 @@
 ---
 title: Getting started
-description: Install woostack, confirm local setup, and return a read-only plan for your repository's README.
+description: Install woostack, create useful project guidance, and return a read-only plan for your repository's README.
 ---
 
-This tutorial installs woostack in a Git repository you already have, checks that the local setup
-works, and finishes with a read-only plan for a Verification section in that repository's README.
-The planning step edits no application source, files no issue, and opens no pull request; Init
-does create local support files in step 2.
+This tutorial installs woostack in a Git repository you already have, helps you create or improve
+its project guidance, and finishes with a read-only plan for a Verification section in its README.
+Init edits only the guidance you authorize. The planning step edits nothing, files no issue, and
+opens no pull request.
 
 Run the terminal command in step 1 yourself. Send the slash requests in the later steps to your
 coding assistant, with the same repository open in both places.
@@ -19,15 +19,11 @@ You need:
 - A [coding assistant](/docs/harnesses), the application that runs your agent and loads its skills.
   Another host works when it exposes the capabilities a task needs.
 - Node.js and pnpm. The installation command below uses `pnpx`, pnpm's tool for running a package.
-- Bash, Git, and `jq`, a command-line JSON tool, available where your assistant runs commands.
-  Init and Doctor validate `.woostack/config.json` with `jq`.
-- Python 3, available as `python3`, only if you want the optional reader for retained local run
-  records. Installing the skills, running Init, and running Doctor do not need it.
 
-This tutorial needs no GitHub Project and publishes no issue or pull request. Installing the skills
-requires network access, and Plan may read existing GitHub issues. A `/woostack-*` example names the
-logical request, and each assistant has its own documented way to invoke a skill explicitly, listed
-in the [harness reference](/docs/harnesses#native-skill-invocation).
+Document authoring needs no `.woostack/`, Doctor check, or GitHub access. Installing the skills
+requires network access, and Plan may read existing GitHub issues. This tutorial publishes no issue
+or pull request. A `/woostack-*` example names the logical request; each assistant's explicit skill
+invocation is listed in the [harness reference](/docs/harnesses#native-skill-invocation).
 
 ## 1. Install the skills
 
@@ -41,43 +37,35 @@ Then confirm your assistant can find `using-woostack` and the `/woostack-*` work
 instructions for the agent, not shell programs. If your assistant cannot see them,
 [fix the installation before continuing](/docs/guides/troubleshooting#your-assistant-cannot-find-a-woostack-skill).
 
-## 2. Initialize local support
+## 2. Create your project guidance
 
 Send this to your coding assistant:
 
 ```text
-/woostack-init
+/woostack-init Help me adopt Woostack in this repository. Create or update
+AGENTS.md, DESIGN.md, and PRODUCT.md where useful. Inspect existing evidence
+and reuse decisions we have already made. Ask only about meaningful gaps,
+show the proposed changes, and apply edits within this document scope.
+Do not initialize local support, change application source, commit, or publish.
 ```
 
-Init is local-only. It creates the missing `.woostack/config.json`, local diagnostic report roots,
-and worktree support, and it stops at any path, permission, or file collision that would make a
-change unsafe. It preserves what is already there, including legacy settings and retained run
-records, then reports what it created, preserved, skipped, or blocked.
+Init first reports what needs creating, updating, or preserving. Answer questions about unresolved
+product behavior, design direction, or working agreements; you can defer a decision rather than
+inventing an answer. Review meaningful changes to direction, constraints, and agent permissions.
 
-Init never contacts GitHub, discovers a Project, creates an issue, branch, or pull request, or edits
-your `AGENTS.md`. It does not read or write credentials either, so keep GitHub authentication in
-your host's secret store.
+The result should give each document a distinct job: `PRODUCT.md` explains the intended users and
+scope, `DESIGN.md` records relevant product/system design, and `AGENTS.md` gives an agent actual
+commands, boundaries, and contextual links to the other guidance. Existing canonical documents and
+scoped instructions stay authoritative. Init includes the concise
+[routing paragraph](/docs/skills/using-woostack#agentsmd-usage) in the proposed agent instructions
+instead of copying the workflow catalog.
 
-When it finishes, read the setup report and confirm that `.woostack/config.json` exists. A blocked
-path is a result to report, not something to work around by overwriting the file.
+Read the report and the resulting guidance. Check that referenced files exist and that commands
+match the repository. A good existing document may need no edits. Deferred decisions should be
+visible, not presented as settled facts. Init distinguishes checks it ran from commands it only
+inspected. An unsafe or ambiguous file/symlink target remains blocked rather than overwritten.
 
-## 3. Check the installation
-
-Send this to your coding assistant:
-
-```text
-/woostack-doctor --check
-```
-
-In `--check` mode Doctor runs static local checks. It reads your configuration and support files,
-makes no GitHub call, and changes nothing. It exits nonzero when it finds an error or cannot finish
-a check, so a failed or incomplete inspection is not a healthy one, and a clean local check is not
-proof of GitHub access. Resolve a reported local problem before continuing; the matching recovery
-is in [Doctor reports a local configuration error](/docs/guides/troubleshooting#doctor-reports-a-local-configuration-error),
-and remote access is a separate question in
-[Doctor passes but GitHub fails](/docs/guides/troubleshooting#doctor-passes-but-github-fails).
-
-## 4. Create your first plan
+## 3. Create your first plan
 
 Send this request to your coding assistant:
 
@@ -90,14 +78,12 @@ GitHub issues or implement changes.
 ```
 
 Read the returned plan before deciding anything else. A complete answer names the documentation it
-inspected and the change it proposes, and says how someone would confirm the result is accurate. Two
-honest outcomes count as success: the repository already has a Verification section that serves the
-purpose, so the plan leaves it alone, and a check command the repository does not actually have is
-reported as missing instead of invented.
+inspected and the change it proposes, and says how someone would confirm the result is accurate.
+The repository may already have a useful Verification section, in which case the plan leaves it
+alone. A check command the repository does not have is reported as missing instead of invented.
 
-This step writes nothing. Plan does not edit your README, create an issue, branch, commit, or pull
-request. The files under `.woostack/` from step 2 are local setup you created on purpose, and they
-are not the start of an implementation.
+This step writes nothing. Plan does not edit your README or create an issue, branch, commit, or
+pull request. The guidance edits from step 2 are not permission to implement the plan.
 
 ## Choose what to do next
 
@@ -107,9 +93,19 @@ a draft pull request, along with the GitHub capability and isolated workspace th
 You decide whether it happens, and only you merge it; marking a draft ready is a separate
 explicit request.
 
-For any other task, the [task guides](/docs/guides) start from the result you want.
+If you need local configuration or diagnostic support, ask Init separately:
 
-To make this routine in later sessions, add the short
-[routing paragraph](/docs/skills/using-woostack#agentsmd-usage) from the adoption skill to your
-repository's `AGENTS.md`. It points each new session at the matching skill, so keep workflow details
-in the skills rather than in your project rules.
+```text
+/woostack-init Initialize local .woostack/ support only. Do not edit project guidance.
+```
+
+That support path needs Bash, Git, and `jq`. It preserves existing settings and retained records,
+creates missing support paths, and uses Doctor's static checks without contacting GitHub or
+handling credentials. You can inspect support health later with `/woostack-doctor --check`; a
+clean local check is not proof of GitHub access. Neither support setup nor a failed support check
+blocks document drafting or the local plan above. See
+[local configuration troubleshooting](/docs/guides/troubleshooting#doctor-reports-a-local-configuration-error)
+and the [configuration reference](/docs/configuration) when you need those settings. Python 3 is
+needed only for the optional retained-record reader, not document authoring or Doctor.
+
+For any other task, the [task guides](/docs/guides) start from the result you want.

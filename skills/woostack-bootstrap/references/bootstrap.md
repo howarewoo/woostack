@@ -102,8 +102,11 @@ A local scaffold needs no remote. When local Git initialization is part of the a
    [artifact contract](../../woostack-init/references/artifact-backends.md#direct-publication-and-recovery)
    for authorized GitHub reads and exact repository identity, then verify the configured remote without
    embedding credentials;
-4. invoke [`woostack-init`](../../woostack-init/SKILL.md) only when the user selects Woostack
-   adoption for the project or the generated project actually needs its support; and
+4. invoke [`woostack-init`](../../woostack-init/SKILL.md) only for selected Woostack adoption or
+   project guidance within the approved scope, or explicitly needed local support. Pass approved
+   product/design decisions and actual scaffold commands to document authoring without reopening
+   settled requirements or expanding scope; select the
+   [local-support path](../../woostack-init/SKILL.md#local-support) for support-only requests; and
 5. use the shared [isolated-workspace guidance](../../woostack-init/references/worktrees.md) for
    every later bounded feature or fix.
 

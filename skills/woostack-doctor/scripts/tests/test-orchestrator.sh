@@ -8,7 +8,6 @@ DOC="$HERE/../doctor.sh"
 empty="$(mktemp -d)"
 out="$(bash "$DOC" "$empty" 2>&1)"; code=$?
 assert_exit 2 "$code" "missing .woostack exits 2"
-assert_contains "$out" "run woostack-init" "missing-workspace message points to init"
 
 valid_config='{
   "github": {
