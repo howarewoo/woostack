@@ -41,8 +41,9 @@ canonical resolver.
    definitions. Legacy provider settings and mirror-era manifests are preserved and produce
    actionable retirement guidance only; they never select a destination, recreate a wrapper, or
    block unrelated local diagnosis.
-4. If there is no `.woostack/`, stop and point the user to [`woostack-init`](../woostack-init/SKILL.md).
-   Doctor never scaffolds.
+4. If there is no `.woostack/`, stop and refer to
+   [`woostack-init`'s local-support path](../woostack-init/SKILL.md#local-support), explicitly for
+   support initialization only, without a document interview. Doctor never scaffolds.
 5. Propose a changeset grouped by finding code, path, and exact local change. A finding may describe
    a repair; no check applies one.
 6. **HARD GATE — approval.** Silence is not approval. Approval to edit a local file does not

@@ -21,7 +21,7 @@ if [ -L "$WOO_ROOT/.woostack" ]; then
   exit 2
 fi
 if [ ! -d "$WOO_ROOT/.woostack" ]; then
-  echo "doctor: no .woostack/ at $WOO_ROOT — run woostack-init first" >&2
+  echo "doctor: no .woostack/ at $WOO_ROOT — ask woostack-init to initialize local support only" >&2
   exit 2
 fi
 

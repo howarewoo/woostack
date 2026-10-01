@@ -212,8 +212,6 @@ initialization is part of the requested deliverable:
 - Initialize Git only after creating the approved scaffold in the verified target.
 - Name the initial branch from normal repository and host policy.
 - Resolve and configure a remote only when explicitly requested, without embedding credentials.
-- Initialize `.woostack/` through `woostack-init` only when the user selects Woostack adoption for the
-  project or the generated project actually needs its support.
 - Never create `.woostack/specs/`, `.woostack/plans/`, `.woostack/fixes/`, or a shadow development
   ledger.
 - Use the
@@ -221,6 +219,10 @@ initialization is part of the requested deliverable:
   for every later bounded feature or fix.
 - Do not commit or push until generated files, environment files, lockfiles, ignore rules, and code
   ownership have been classified.
+
+With or without Git, Init's document handoff reuses approved product/design decisions and actual
+scaffold commands when project guidance or Woostack adoption is selected within scope, without
+another interview. Its separate `.woostack/` support path runs only when explicitly needed.
 
 ## Branching
 

@@ -89,9 +89,12 @@ approval, perform no official-MCP development mutation and create no development
 7. **Scaffold and verify.** Follow [references/bootstrap.md](references/bootstrap.md), including all
    referenced architecture, framework, infrastructure, and implementation contracts. Set up an
    explicitly requested remote only after local Git initialization under the repository initialization
-   procedure. Invoke [`woostack-init`](../woostack-init/SKILL.md) only when the user selects Woostack adoption for the
-   project or the generated project actually needs its support. Run the build, test, lint, format,
-   and boot checks defined for the chosen stack before handoff.
+   procedure. Invoke [`woostack-init`](../woostack-init/SKILL.md) only when the user selects Woostack
+   adoption or project guidance within the approved scope, or explicitly needs local support.
+   For document authoring, pass the approved product/design decisions and observed scaffold commands;
+   reuse them without a second requirements interview or expansion of scaffold scope. A support-only
+   handoff selects Init's [local-support path](../woostack-init/SKILL.md#local-support) directly.
+   Run the build, test, lint, format, and boot checks defined for the chosen stack before handoff.
 
 ## References (load on demand)
 

@@ -38,7 +38,8 @@ remote record.
 [`woostack-bootstrap`](../SKILL.md) owns greenfield routing and complete-design approval; its
 [filesystem procedure](bootstrap.md#filesystem-write-barrier-and-collision-check) owns bounded
 target inspection and fresh collision-safe write admission. Optional project persistence remains
-separate from write authority. Init persists only non-secret policy, never local specs or plans.
+separate from write authority. Init authors authorized project guidance; its explicit support path
+persists non-secret policy, never a local development ledger or retained-run spec/plan.
 
 
 Implementation branches begin from verified repository base evidence. Use an approved workspace or

@@ -55,7 +55,7 @@ assert_eq "$(jq -r '.status.staleDays' "$repo/.woostack/config.json")" "14" "leg
 mkdir -p "$TMP/missing"
 run_doctor "$TMP/missing"
 assert_exit 2 "$CODE" "missing workspace exits two"
-assert_contains "$OUT" "run woostack-init first" "missing workspace points to init"
+assert_contains "$OUT" "initialize local support only" "missing workspace refers to support-only Init"
 
 cat >"$repo/.woostack/config.json" <<'JSON'
 {"artifacts":{"provider":"linear"},"github":null}

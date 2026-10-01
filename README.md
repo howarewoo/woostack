@@ -37,7 +37,7 @@ pnpx skills add pbakaus/impeccable
 
 Claude Code users can alternatively run `/plugin marketplace add pbakaus/impeccable`.
 
-### 2. Set up your project
+### 2. Create useful project guidance
 
 Open your coding assistant in the project root and enter:
 
@@ -45,29 +45,27 @@ Open your coding assistant in the project root and enter:
 /woostack-init
 ```
 
-Init is local-only: it creates and validates files under `.woostack/` and never contacts GitHub,
-discovers a Project, or creates a remote issue. OMP delegation uses agents already exposed by the
-active session; Init does not create a parallel project agent catalog. Missing GitHub
-configuration or capability does not block local setup. See
-[Init](skills/woostack-init/SKILL.md) for details.
+Init inspects your repository and existing decisions, asks only about meaningful gaps, and helps
+create or update `PRODUCT.md`, `DESIGN.md`, and `AGENTS.md`. It preserves useful guidance and links
+to canonical documents rather than copying them. You can limit the request to one document or ask
+for drafts without writes. During Woostack adoption, Init includes the concise
+[routing paragraph](skills/using-woostack/SKILL.md#agentsmd-usage) in the proposed agent instructions;
+there is no separate manual adoption step.
 
-### 3. Tell your assistant to use woostack
+Document authoring needs no `.woostack/`, Doctor check, or GitHub access. Init does not scaffold an
+application, handle credentials, or create issues, branches, commits, or PRs. See
+[Init](skills/woostack-init/SKILL.md) for the workflow.
 
-Add this block to your repository's agent instructions file (`AGENTS.md` or `CLAUDE.md`):
+### 3. Set up local support only when needed
 
-```markdown
-This project follows woostack. At the start of work, use `using-woostack` to load the
-project rules and route `/woostack-*` requests to the matching woostack skill.
-```
+If you need `.woostack/` configuration or diagnostic support, explicitly ask Init to initialize
+local support only, then use `/woostack-doctor --check` to inspect its health. This path preserves
+existing settings and retained records without a document interview or GitHub call. OMP delegation
+uses agents already exposed by the session, not a project agent catalog.
 
-The [using-woostack](skills/using-woostack/SKILL.md) skill reads your project rules and chooses the
-matching installed workflow.
-
-### 4. Configure project defaults
-
-Store non-secret settings in `.woostack/config.json`. Keep credentials in your host's secret store.
-Configuration supplies defaults; it does not give the assistant permission to change remote records
-or override your decisions.
+Store selected non-secret defaults in `.woostack/config.json`; keep credentials in your host's
+secret store. Configuration supplies defaults, not permission to change remote records or override
+your decisions. Support setup and Doctor are not prerequisites for project guidance or local plans.
 
 For pull-request review, use [Pullfrog](https://pullfrog.com/). This repository includes the
 Pullfrog workflow at [`.github/workflows/pullfrog.yml`](.github/workflows/pullfrog.yml).

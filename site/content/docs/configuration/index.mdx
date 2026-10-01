@@ -14,7 +14,7 @@ remote content.
 
 | File | Tracking | Scope |
 | --- | --- | --- |
-| `.woostack/config.json` | Tracked | Shared repository policy. `woostack-init` creates this file. |
+| `.woostack/config.json` | Tracked | Shared repository policy. Init's explicit local-support path creates this file. |
 | `.woostack/config.local.json` | Gitignored by `*.local.*` | Optional primary-checkout overrides. Linked worktrees inherit it through the Git common directory. |
 
 If both files are absent, each consumer keeps its built-in defaults. A local override without
