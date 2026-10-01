@@ -120,24 +120,18 @@ Before its first write, retain one UUID for `<!-- woostack-project-mutation:<UUI
 bound to the exact Project URL/node ID. This identifies a README mutation, not permission to create a
 Project or import a historical record.
 
-Bootstrap's span contains that marker and a `### designApproved` section containing the complete
-approved goal, architecture, scope, and decisions. After scaffold verification, add or reconcile a
-`### bootstrapVerified` section in the same span with the observed repository URL/branch when a
-remote exists, resolved stack and versions, created surfaces, and individual command outcomes,
-distinguishing unrun checks.
-Preserve the approved design. These are Markdown sections in the README, not Project fields or
-separate status-update objects. Plan's explicit Project path uses the same admitted specification span;
-its approved reconciliation must preserve unrelated Bootstrap verification and human content.
+Plan's explicitly selected Project path uses this admitted specification span. Preserve unrelated
+historical verification sections and human content; their presence grants no active workflow authority.
 
 Read the Project's `id`, `url`, owner, actual visibility, and complete `readme` before mutation; confirm
-that visibility is approved for the content. Bootstrap needs Project read/update capability, not issue,
-membership, or Status writes. With no existing markers,
-append one owned span after the unchanged README. Reuse a span only when its retained marker and
-Project binding match; missing paired markers, duplicates, unbound ownership, or conflicting content
-block rather than authorizing replacement. Reject supplied content that contains the boundary-marker
-lines. Re-read immediately before writing and stop on drift. Bootstrap updates only `readme` through
-`updateProjectV2(input: {projectId, readme})` or an equivalent authorized native capability; do not
-change title, visibility, lifecycle, or unrelated fields. README replacement has no claimed atomic CAS.
+that visibility is approved for the content and prove Project read/update capability separately
+from issue, membership, or Status writes. With no existing markers, append one owned span after
+the unchanged README. Reuse a span only when its retained marker and Project binding match;
+missing paired markers, duplicates, unbound ownership, or conflicting content block replacement.
+Reject supplied content containing the boundary-marker lines. Re-read immediately before writing
+and stop on drift. Update only `readme` through `updateProjectV2(input: {projectId, readme})` or an
+equivalent authorized native capability; do not change title, visibility, lifecycle, or unrelated
+fields. README replacement has no claimed atomic CAS.
 Independently read the same Project and complete README back, verifying identity, the marker, exact
 approved/observed content, and preserved outside bytes. On an unknown write, re-read this exact Project:
 matching content confirms the same operation without another append; missing, changed, partial, or

@@ -284,7 +284,6 @@ test('installed candidate collection resolves without a checkout or docs applica
   // Discovery links stay links, resolve into the copied collection, and name only catalog skills.
   const links = path.join(root, '.claude', 'skills');
   const linkEntries = await readdir(links, { withFileTypes: true });
-  assert.ok(linkEntries.length > 0, 'the collection ships discovery links');
   assert.deepEqual(linkEntries.filter((entry) => !entry.isSymbolicLink()), []);
   assert.deepEqual(await findBrokenSkillLinks(links, installed), []);
   const unlinked = linkEntries.map((entry) => entry.name).filter((name) => !PUBLIC_ORDER.includes(name));

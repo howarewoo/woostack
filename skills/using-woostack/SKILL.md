@@ -31,12 +31,11 @@ matching host evidence; an inherited model or accepted agent selector does not p
 | --- | --- |
 | Adopt woostack or choose a workflow | `using-woostack` |
 | Create or maintain `AGENTS.md`, `DESIGN.md`, or `PRODUCT.md`; explicitly initialize or repair local support | `woostack-init` |
-| Create a genuinely greenfield codebase | `woostack-bootstrap` |
 | Explore requirements explicitly requested by the user | `woostack-ideate` |
 | Review a supplied specification or candidate plan against repository evidence | `woostack-harden` |
-| Plan a goal or incomplete issue; publish issues only when requested | `woostack-plan` |
+| Plan a goal or incomplete issue, including a new project without source; publish issues only when requested | `woostack-plan` |
 | Coordinate approved multi-task work; an explicit request plans groups and delivers draft PRs | `woostack-orchestrate` |
-| Implement an authorized bounded outcome; explicit `/woostack-execute` delivers a draft PR unless narrowed | `woostack-execute` |
+| Implement an authorized bounded outcome, including initial project creation; explicit `/woostack-execute` delivers a draft PR unless narrowed | `woostack-execute` |
 | Commit changes, rebase or restack published PRs, or change readiness | `woostack-commit` |
 | Review a pull request | Use [Pullfrog](https://pullfrog.com/). |
 | Address every unresolved thread on one exact existing PR | `woostack-address-comments` |
@@ -47,9 +46,11 @@ matching host evidence; an inherited model or accepted agent selector does not p
 | Explore a running app and report browser QA findings | `woostack-qa` |
 | Reflect on this conversation for durable instruction suggestions | `woostack-reflect` |
 
-`woostack-build`, `woostack-fix`, `woostack-change`, `woostack-status`,
+`woostack-bootstrap`, `woostack-build`, `woostack-fix`, `woostack-change`, `woostack-status`,
 `woostack-tdd`, and `woostack-prepare` are retired without aliases. Explain a removed explicit
-command; a natural-language planning request routes to Plan.
+command without executing a replacement. Route natural-language new-project requests by intent:
+planning to Plan, authorized bounded creation to Execute, and requested project guidance to Init.
+These workflows are independent; no Plan → Execute → Init sequence is required.
 
 Match the requested action, not the presence of an issue URL. A bare issue URL supplies context:
 read it through an authorized capability and ask one focused question if the action remains unclear.

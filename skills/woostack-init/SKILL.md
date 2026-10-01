@@ -34,9 +34,9 @@ and contracts only for relevant support work.
    one. Preserve the authority and scope of existing instructions.
 2. **Resolve material gaps.** Ask repository-informed questions only where answers change product
    behavior, design direction, or working agreements. Offer a recommendation and tradeoff when
-   useful. Do not ask for repository facts or previously answered decisions, including Bootstrap's
-   approved requirements and design. Product → design → agent instructions is a useful default,
-   not a required sequence. Adapt to the project and allow decisions to remain explicitly deferred.
+   useful. Do not ask for repository facts or previously answered product and technology decisions.
+   Product → design → agent instructions is a useful default, not a required sequence.
+   Adapt to the project and allow decisions to remain explicitly deferred.
 3. **Draft focused guidance.** Use the [document responsibilities](#document-responsibilities) below.
    Create missing guidance or propose targeted revisions, preserving useful project-specific content.
    Identify stale, contradictory, and duplicated material for removal rather than appending another

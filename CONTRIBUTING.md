@@ -11,15 +11,11 @@ for standing repository rules, the sanctioned `site/` exception, and verified ch
 |---|---|
 | Change project adoption / command routing guidance | `skills/using-woostack/SKILL.md` |
 | Change retained run handling or direct GitHub publication | `skills/woostack-init/references/artifact-backends.md` and the GitHub profile |
-| Add/revise a bootstrap decision or its default | `skills/woostack-bootstrap/references/decisions.md` |
-| Swap a default framework | `skills/woostack-bootstrap/references/frameworks.md` |
-| Document a new gotcha | `skills/woostack-bootstrap/references/frameworks.md` (Known gotchas section) |
-| Adjust the monorepo layout or naming | `skills/woostack-bootstrap/references/architecture.md` |
-| Recommend a new hosting/CI/auth choice | `skills/woostack-bootstrap/references/infrastructure.md` |
-| Add or revise a development pattern | `skills/woostack-bootstrap/references/patterns.md` |
-| Update the branching model | `skills/woostack-bootstrap/references/development.md` |
-| Refine the bootstrap procedure | `skills/woostack-bootstrap/references/bootstrap.md` |
-| Change the bootstrap skill entry / discovery description | `skills/woostack-bootstrap/SKILL.md` |
+| Refine material technology-selection decisions | `skills/woostack-plan/SKILL.md` |
+| Change placement, boundary, dependency, or least-code guidance | `skills/woostack-execute/references/patterns.md` |
+| Change deployment, migration, secrets, or client-lifecycle guidance | `skills/woostack-execute/references/infrastructure.md` |
+| Refine safe initial project creation | `skills/woostack-execute/SKILL.md#initial-project-scaffold` |
+| Change checkout isolation or base selection | `skills/woostack-init/references/worktrees.md` |
 | Plan work and optional GitHub issue publication | `skills/woostack-plan/SKILL.md` and its references |
 | Change requirements exploration (Ideate) | `skills/woostack-ideate/SKILL.md` |
 | Change read-only specification review (Harden) | `skills/woostack-harden/SKILL.md` |
@@ -67,9 +63,10 @@ no-application-code rule. Its [README](site/README.md) covers local development 
   prompts, or JSON. Application code, build configuration, and lockfiles belong only in `site/`.
 - Pull-request review uses [Pullfrog](https://pullfrog.com/); the shipped workflow is
   `.github/workflows/pullfrog.yml`.
-- Resolve package versions from the registry when needed (`npm view <pkg> version`).
-  Name frameworks without versions, except where a known incompatibility requires a pin in
-  `skills/woostack-bootstrap/references/frameworks.md`.
+- Resolve selected or changed dependency versions from authoritative current registries.
+  Preserve unrelated versions and lockfiles. Name frameworks without versions; document
+  necessary incompatibility pins at the consuming owner under
+  `skills/woostack-execute/references/patterns.md#6-dependencies-resolution-ownership-and-integrity`.
 - Keep retained run data and direct GitHub publication in the
   [artifact contract](skills/woostack-init/references/artifact-backends.md). Link to the
   [GitHub profile](skills/woostack-init/references/artifact-providers/github.md) for resource

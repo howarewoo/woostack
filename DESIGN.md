@@ -6,6 +6,9 @@ Inspect repository evidence before asking questions. Ask only about material unr
 preserve user decisions, and keep the requested action separate from contextual evidence.
 The [command router](skills/using-woostack/SKILL.md) owns routing and authorization semantics;
 individual skills own workflow steps and approval gates.
+New-project planning and bounded creation belong to Plan and Execute by requested intent.
+Neither requires the other or Init; Init remains the owner of requested project guidance.
+Execute owns reusable implementation standards, loaded only for relevant changes.
 
 Report observed outcomes and blockers. Distinguish verified facts from inference. Git and GitHub evidence establish
 delivery; issue status and agent reports do not. The

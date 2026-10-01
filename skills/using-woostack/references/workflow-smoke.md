@@ -28,8 +28,9 @@ Label each result with the class that actually produced it:
 
 ## Shared local fixture
 
-Every recipe starts from a disposable local repository with one file and one check. It needs no
-remote, no Project, and no live resource:
+Existing-project recipes start from a disposable local repository with one file and one check.
+The new-project recipe below instead starts with a safe temporary parent and no repository.
+Neither needs a remote, Project, or live resource:
 
 ```bash
 REPO=$(mktemp -d)
@@ -266,6 +267,47 @@ label these variants **Unrun**, not simulated.
 source-control reference → AGENTS.md. Record how request scope, original-head lease, unselected
 membership, readiness, and merge prohibition pass through without contradictory instructions.
 Keep this trace separate from local Git observations and actual-host evidence.
+
+## 6. Independent new-project planning and local creation
+
+Use a disposable physical parent owned by the current user. Leave the chosen child target absent;
+do not initialize Git or configure GitHub. Read the installed candidate's router and selected
+skill, recording its revision/path rather than silently using a released copy.
+
+**Planning input:**
+
+```text
+/woostack-plan
+Plan a local Python CLI that prints a supplied name in uppercase. Python's standard library is
+selected; no repository exists. Return the smallest bounded increment and its verification.
+Do not write files or publish anything.
+```
+
+**Creation input, a separate run with no planning prerequisite:**
+
+```text
+/woostack-execute
+Create a local-only Python CLI in <absent-child-target> using only the standard library.
+It accepts one positional name and prints it in uppercase followed by a newline. Include
+accurate setup/run documentation, run it with "Ada", and exercise the missing-argument error.
+No Git initialization, remote, commit, push, PR, project-guidance documents, or local support.
+```
+
+**Observe:**
+
+- Planning returns scope and acceptance from the supplied decisions with no checkout, GitHub
+  destination, material-choice re-interview, filesystem writes, or implementation dispatch.
+- Creation reuses the selected stack, checks fresh target/ancestor metadata and collisions before
+  writing, produces the smallest working native slice, exercises success/error behavior, and
+  documents real commands without requiring Plan or Init.
+- Repeat creation against a populated target with sentinel content, a symlinked target or
+  ancestor, and an ambiguous target. Preserve bytes, entries, and link targets; no destructive
+  cleanup, alternate-target scaffold, or incidental GitHub operation occurs.
+- Trace an existing-repository task retaining its native conventions and unrelated locked versions,
+  and a document-only Init request creating no application or support. Canonical reference reads
+  authorize no cross-skill invocation.
+- Keep helper checks, manual traces, actual-host runs, and unavailable variants separate under the
+  evidence classes above. Save safe evidence, then remove only task-owned temporary fixtures.
 
 ## Installed integration
 

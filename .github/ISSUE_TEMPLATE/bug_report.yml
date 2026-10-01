@@ -1,5 +1,5 @@
 name: Spec Issue
-description: Report a problem with the spec — incorrect guidance, broken bootstrap step, outdated gotcha, etc.
+description: Report incorrect skill guidance, a broken workflow step, or an outdated constraint.
 labels: ["spec-issue"]
 body:
   - type: dropdown
@@ -7,12 +7,11 @@ body:
     attributes:
       label: Affected spec section
       options:
-        - spec/architecture.md
-        - spec/frameworks.md
-        - spec/infrastructure.md
-        - spec/patterns.md
-        - spec/development.md
-        - spec/bootstrap.md
+        - skills/woostack-execute/SKILL.md
+        - skills/woostack-execute/references/patterns.md
+        - skills/woostack-execute/references/infrastructure.md
+        - skills/woostack-plan/SKILL.md
+        - skills/woostack-init/SKILL.md
         - README.md
         - Other
     validations:
@@ -28,6 +27,6 @@ body:
     id: context
     attributes:
       label: Context
-      description: Did you hit this while bootstrapping a project? Reviewing existing code? Reading the spec?
+      description: Did you hit this while creating a project, changing existing code, or reading the guidance?
     validations:
       required: false

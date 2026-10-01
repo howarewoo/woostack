@@ -1,6 +1,6 @@
 ---
 name: woostack-execute
-description: Implement one authorized bounded enhancement, refactor, test task, or correction from instructions or selected GitHub issues; verify it locally. Explicit /woostack-execute delivers a reviewable PR unless the caller limits publication. Never merges.
+description: Implement one authorized bounded enhancement, refactor, test task, correction, or initial project scaffold from instructions or selected GitHub issues; verify locally and deliver a draft PR when requested. Never merges.
 ---
 
 # woostack-execute
@@ -63,13 +63,21 @@ when separately requested, not a mandatory handback before Execute repairs. Stop
 decision when findings exceed the admitted outcome. An explicitly requested read-only diagnosis
 or QA/review stays read-only, and a QA finding alone never authorizes remediation.
 
-Choose the private helpers, files, and abstractions that best deliver the outcome, reuse what the
-repository already provides, and apply the
-[least-code standard](../woostack-bootstrap/references/patterns.md#7-least-code--comments) without
-reducing accepted scope, compatibility, safety protections, or required verification. Delegate
-implementation or seek independent review when requested, required, or warranted by risk. Required
-review must be satisfied before completion is claimed; self-review is not independent. Report an
-unavailable required capability as unmet rather than substituting a weaker step.
+Follow repository instructions, existing architecture, native conventions, selected dependencies,
+and lockfiles. Prefer safe deletion and reuse to new code; keep code with its owning application
+and extract only genuinely shared surfaces. Preserve compatibility, validation, security,
+error handling, accessibility, and data-loss protections. Do not refactor untouched flows or
+upgrade unrelated dependencies.
+
+Load [patterns](references/patterns.md) for code placement, boundary, API/type, dependency, or
+substantive simplification decisions, including the [least-code standard](references/patterns.md#7-least-code--comments).
+Load [infrastructure](references/infrastructure.md) only for relevant deployment, migration,
+environment/secrets, client lifecycle, or observability changes; use [testing](references/tdd.md)
+for verification design. Reading a reference does not invoke another workflow.
+
+Delegate implementation or seek independent review when requested, required, or warranted by risk.
+Required review must precede completion; self-review is not independent. Report an unavailable
+required capability as unmet rather than substituting a weaker step.
 
 ### Optional exact GitHub issue
 
@@ -77,10 +85,11 @@ For each selected issue, resolve its exact URL through an authorized GitHub read
 exposed by the host (prefer native tools; host-authenticated `gh` remains supported). Verify
 native identity, canonical URL/repository, issue type rather than PR, open state, complete
 title/body, and task-relevant comments with necessary pagination. Match the canonical Git remote
-and reconcile any inline scope. A malformed URL, PR URL, conflicting selector, missing, foreign,
-closed, inaccessible, ambiguous, partial, or conflicting read blocks that selection — never
-silently drop or substitute its association. Re-read on resume and before submission; a material
-scope change returns to admission.
+when the target has one; without a checkout/remote, verify the caller-selected issue's repository
+directly without creating local Git or a remote. Reconcile inline scope and any requested delivery
+destination. A malformed URL, PR URL, conflicting selector, missing, foreign, closed, inaccessible,
+ambiguous, partial, or conflicting read blocks that selection; never drop or substitute its
+association. Re-read on resume and before submission; a material scope change returns to admission.
 
 Do not discover a Project graph, siblings, assignments, or lifecycle mappings; status never proves
 delivery. Pass verified issue URLs to [`woostack-commit`](../woostack-commit/SKILL.md) only for
@@ -88,20 +97,51 @@ requested association, never as publication authority.
 
 ## Select the workspace and base
 
-Use the approved task workspace or a host- or repository-selected isolated checkout; a fresh
-worktree is not required per invocation. Verify the physical repository, branch, HEAD, index and
-dirty state, intended base, and relevant diff before writing; remote PR reads belong to requested
-publication, not local-only work. Preserve unrelated work. Parallel writers need independently
-owned workspaces; an earlier writer whose liveness or ownership is uncertain blocks reuse until its
-exit or relinquishment is proved.
+For an existing repository, use the approved task workspace or a host- or repository-selected
+isolated checkout; a fresh worktree is not required per invocation. Verify the physical repository,
+branch, index, dirty state, and relevant diff, plus HEAD and intended base where they exist, before
+writing. An unborn repository has no HEAD/base to compare; inspect its index and existing files
+instead. Remote PR reads belong to requested publication, not local-only work. Preserve unrelated
+work. Parallel writers need independently owned workspaces; uncertain earlier ownership blocks reuse.
 
-Select the intended base from repository policy and the outcome's dependencies, and verify the
-required prerequisites are actually present: a squash- or rebase-landed dependency is a content
-question, not a demand for the former head's ancestry. Follow
+Where a base exists, select it from repository policy and the outcome's dependencies and verify
+required prerequisites are present: a squash- or rebase-landed dependency is a content question,
+not a demand for the former head's ancestry. Follow
 [base-change detection](../woostack-init/references/artifact-backends.md#repository-ancestry-and-base-change-detection)
-when an inspected base moves. Unresolved parent intent, conflicting ownership, competing checkouts,
-unexplained changes, or a wrong-base or duplicate PR block delivery. Never silently rebase, reset,
-clean, stash, delete, or overwrite work you have not verified as yours.
+when an inspected base moves. Unresolved parent intent, conflicting ownership, unexplained changes,
+or a wrong-base or duplicate PR block delivery. Never silently rebase, reset, clean, stash, delete,
+or overwrite work you have not verified as yours. Without a repository, use the target admission below;
+do not require Git, HEAD, index, base, or a worktree before an authorized scaffold.
+
+### Initial project scaffold
+
+For authorized bounded creation, reuse settled product and technology decisions. Ask only about
+unresolved material choices; neither Plan, Init, a questionnaire, nor another design-approval event
+is a prerequisite.
+
+Before the first mkdir, write, or generator invocation, resolve one unambiguous intended target
+and its physical parent. Use fresh no-follow metadata and a complete directory listing: reject
+symlinks in the target or ancestors, non-directory objects, unreadable or ambiguous paths, unsafe
+ownership/permissions, and a target claimed by another writer. The new target must be absent or
+empty; for an existing repository use the workspace checks above and preserve every existing file.
+A collision or changed admission result blocks writing there, not permission to delete, overwrite,
+reset, or scaffold around it. Never redirect to another target silently.
+
+Create the smallest requested working slice in the selected ecosystem's native structure; remove
+unrequested generated demos and omit speculative shared packages or adapters. Load applicable
+patterns and infrastructure guidance, resolving selected or changed dependencies from authoritative
+current sources rather than memory. Run the project's applicable real checks and boot/smoke each
+requested surface through a meaningful path. Inspect the resulting tree for unexpected files,
+secrets, build output, leftover demos, and missing ecosystem-required lockfiles. Record accurate
+setup prerequisites, selected technologies and lookup sources, non-secret environment names,
+material choices, and commands/results in its README; do not invent commands.
+Requested AGENTS.md, DESIGN.md, PRODUCT.md, or local support remain
+[Init's responsibility](../woostack-init/SKILL.md), not automatic scaffold output.
+
+A local-only scaffold needs no GitHub account, Project, remote, Git initialization, commit, push,
+or PR. Initialize local Git only when requested or needed for requested delivery. Missing delivery
+scope is an unmet publication boundary, not permission to create a remote repository/Project or
+block otherwise authorized local work; Commit retains the delivery authority checks.
 
 ## Implement and verify
 

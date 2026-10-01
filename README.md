@@ -101,14 +101,17 @@ for one bounded task.
 
 | What you need | Command | What happens |
 | --- | --- | --- |
-| A new application | [/woostack-bootstrap](skills/woostack-bootstrap/SKILL.md) | Checks the target directory, asks you to approve the design, then creates the project. |
+| Plan a new project | [/woostack-plan](skills/woostack-plan/SKILL.md) | Uses supplied goals, constraints, and research without requiring a checkout or GitHub. |
+| Create a bounded initial application | [/woostack-execute](skills/woostack-execute/SKILL.md) | Checks target safety, creates the requested working slice, and verifies it; local-only needs no GitHub or PR. |
 | Explore requirements | [/woostack-ideate](skills/woostack-ideate/SKILL.md) | Asks about unresolved product decisions and returns a readable specification. |
 | Review a specification or plan | [/woostack-harden](skills/woostack-harden/SKILL.md) | Checks selected content against relevant repository evidence without writes. |
 | Plan work or file issues | [/woostack-plan](skills/woostack-plan/SKILL.md) | Plans directly from a goal or issue; publishes and reads back issues only when requested. |
-| A bounded task that fits one PR | [/woostack-execute](skills/woostack-execute/SKILL.md) | Implements a complete approved task, including an enhancement, refactor, test-only task, or authorized understood correction, and delivers one PR. |
+| A bounded implementation task | [/woostack-execute](skills/woostack-execute/SKILL.md) | Implements and verifies an enhancement, refactor, test-only task, or understood correction; delivers a draft PR when requested. |
 | Coordinate multiple approved tasks | [/woostack-orchestrate](skills/woostack-orchestrate/SKILL.md) | Resolves tasks and dependencies from prose, issues, or an explicitly selected Project; coordinates inline or native-host workers in isolated workspaces and verifies draft PRs without merging. |
 
-Plan stops before implementation. A separate Execute or Orchestrate request starts delivery.
+Plan stops before implementation. Execute and Orchestrate start only on an implementation request;
+planning is not a prerequisite for a bounded task with settled decisions. Init separately owns
+requested project guidance and local support, not application scaffolding.
 
 See the [workflow maps](site/content/docs/concepts/workflows.mdx) for the full sequences.
 

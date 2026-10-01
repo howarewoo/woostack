@@ -12,7 +12,7 @@ Follow this file first when it conflicts with generic agent defaults.
 ## Boundaries
 
 - Keep application source, build configuration, and app lockfiles in `site/`.
-  Supporting skill scripts are allowed outside it. Bootstrap new projects in a
+  Supporting skill scripts are allowed outside it. Create new projects in a
   different repository, not this checkout.
 - Public skill names and paths are installed interfaces. Moving, renaming, or
   retiring a public skill requires explicit approval. Approved retirements remove
@@ -46,11 +46,11 @@ workflow, provider calls, and approval gates.
   independent safety checks. See the [instruction review](CONTRIBUTING.md#instruction-and-complexity-review).
 - Keep each `SKILL.md` description focused on when to use the skill. Keep behavior
   consistent with its references; link to canonical contracts instead of copying
-  them. Renaming bootstrap references also requires updating every cross-link and
-  the bootstrap skill table.
-- Name frameworks without versions. Resolve a needed version from its registry;
-  document required incompatibility pins in
-  [frameworks.md](skills/woostack-bootstrap/references/frameworks.md).
+  them. Moving references requires updating every affected cross-link and anchor.
+- Name frameworks without versions. Resolve a needed dependency change from its
+  authoritative registry; preserve unrelated versions and lockfiles. Document
+  required incompatibility pins at the dependency owner under
+  [patterns.md](skills/woostack-execute/references/patterns.md#6-dependencies-resolution-ownership-and-integrity).
 - Update affected authored guides when behavior changes. Never edit generated
   `site/content/docs/skills/` pages; change `skills/*/SKILL.md` instead. The site
   build regenerates these pages, which remain gitignored.

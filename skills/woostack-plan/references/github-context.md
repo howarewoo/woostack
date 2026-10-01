@@ -1,16 +1,16 @@
 # GitHub publication context
 
-This file owns how Plan finds its destination and what it must know about GitHub before it plans
-or publishes. The [GitHub profile](../../woostack-init/references/artifact-providers/github.md#configuration-and-scope)
+This file owns Plan's destination resolution for requested publication or relevant named GitHub
+context. Planning without such context needs no GitHub preflight. The [GitHub profile](../../woostack-init/references/artifact-providers/github.md#configuration-and-scope)
 owns identities, native relationship operations, and API semantics; the
 [GitHub publication procedure](github-procedure.md) owns the writes and the read-back.
 
 ## Resolving the destination
 
 1. Establish `https://github.com/<owner>/<repo>` from the request and the actual context: the
-   checkout's remote, a repository or issue the user named, an explicitly selected Project. Trusted
-   Git and GitHub evidence only. Never choose by title, recent activity, search ranking, or an
-   unrelated configured owner.
+   checkout's remote when one exists, a repository or issue the user named, or an explicitly
+   selected Project. Trusted Git and GitHub evidence only. Never choose by title, recent activity,
+   search ranking, or an unrelated configured owner.
 2. The destination follows the request. A goal in the current repository publishes there. An exact
    issue URL the user gave is either the destination or an existing increment, whichever the
    request says. An explicit `--project` URL is that Project, used as given.
