@@ -73,9 +73,10 @@ meaning of `DESIGN.md` and link to deeper sources where they already own the sub
 Keep `AGENTS.md` operational: no copied product specification, exhaustive file inventory, generic
 coding advice, or duplicated Woostack workflows. Include contextual pointers to `PRODUCT.md` and
 `DESIGN.md` when applicable so an agent knows when to read them; do not assume automatic loading.
-During Woostack adoption, incorporate the existing concise
-[routing paragraph](../using-woostack/SKILL.md#agentsmd-usage) into the proposed instructions,
-without copying the workflow catalog or flattening scoped instructions.
+When creating or updating `AGENTS.md` during Woostack adoption, use the concise, availability-aware
+[routing paragraph](../using-woostack/SKILL.md#agentsmd-usage), replacing unconditional Woostack
+usage or installation requirements. Use installed skills when available; missing skills must not
+block ordinary repository work. Do not copy the workflow catalog or flatten scoped instructions.
 
 ## Local support
 
