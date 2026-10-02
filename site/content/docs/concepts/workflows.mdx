@@ -119,9 +119,21 @@ ecosystem's native structure, removes unrequested demo content, runs the project
 and records accurate setup notes. A local-only scaffold needs no GitHub account, Project, remote,
 commit, push, or PR.
 
+## Simplify
+
+[Simplify](/docs/skills/woostack-simplify) starts from an existing implementation whose complexity
+is the problem. Execute can also refactor, but Simplify has a narrower objective: preserve required
+behavior while reducing the code and concepts that need maintenance. A useful simplification may
+replace a whole internal flow rather than produce the smallest diff.
+
+Simplify applies changes unless the request is analysis-only. Even an explicit Simplify invocation
+stays local unless a commit or PR is requested. It shares the least-code engineering reference
+with Execute without invoking that workflow, and neither Plan nor Execute is a prerequisite.
+An implementation that is already simple enough can remain unchanged.
+
 ## Shared execution boundary
 
-Both implementation workflows report the same way. An existing targeted test can serve as the
+Implementation workflows report the same way. An existing targeted test can serve as the
 smoke for a change, and required repository checks and reviews cannot be waived by an agent's
 success sentence. A failed, pending, or unrun required check is a delivery blocker.
 

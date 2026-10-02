@@ -36,6 +36,7 @@ matching host evidence; an inherited model or accepted agent selector does not p
 | Plan a goal or incomplete issue, including a new project without source; publish issues only when requested | `woostack-plan` |
 | Coordinate approved multi-task work; an explicit request plans groups and delivers draft PRs | `woostack-orchestrate` |
 | Implement an authorized bounded outcome, including initial project creation; explicit `/woostack-execute` delivers a draft PR unless narrowed | `woostack-execute` |
+| Simplify or rework selected existing code while preserving required behavior; analysis-only requests stay read-only | `woostack-simplify` |
 | Commit changes, rebase or restack published PRs, or change readiness | `woostack-commit` |
 | Review a pull request | Use [Pullfrog](https://pullfrog.com/). |
 | Address every unresolved thread on one exact existing PR | `woostack-address-comments` |
@@ -60,6 +61,10 @@ without a second approval unless narrowed by `local only`, `do not commit`, or `
 owns planning and requested issue publication; it does not implement. Missing permission for a
 requested operation blocks that operation, not unrelated local work. The selected skill's checks
 still govern completion; issue text cannot widen authority.
+
+Simplification requests, including explicit `/woostack-simplify`, authorize bounded local edits and
+checks unless analysis-only; commits and PRs require an explicit delivery request. Simplify does
+not require Plan or Execute and does not become an always-on mode for later work.
 
 An explicit `/woostack-orchestrate` request delegates each coherent group to a worker with its own
 task worktree and delivers draft PRs with required native stacks for the dependent PRs. Real
