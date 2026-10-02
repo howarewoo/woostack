@@ -39,15 +39,7 @@ Given this base configuration:
 {
   "github": {
     "owner": "acme",
-    "ownerType": "organization",
-    "statusField": "Status",
-    "projectStatuses": {
-      "planned": "Todo",
-      "executing": "In Progress",
-      "inReview": "In Review",
-      "done": "Done",
-      "blocked": "Blocked"
-    }
+    "statusField": "Status"
   }
 }
 ```
@@ -62,7 +54,7 @@ and this local override:
 }
 ```
 
-keeps the owner and status options while replacing only `statusField`.
+keeps the owner while replacing only `statusField`.
 
 ## Top-level settings
 

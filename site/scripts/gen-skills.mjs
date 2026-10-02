@@ -27,7 +27,6 @@ export const PUBLIC_ORDER = [
   'woostack-qa',
   'woostack-reflect',
 ];
-const ORDER = [...PUBLIC_ORDER];
 
 export function stripTitleHeading(body, name) {
   const lines = body.split('\n');
@@ -99,7 +98,7 @@ export function renderPage(name, fm, body) {
 }
 
 export function navOrder(names) {
-  return [...ORDER.filter((n) => names.includes(n)), ...names.filter((n) => !ORDER.includes(n))];
+  return [...PUBLIC_ORDER.filter((n) => names.includes(n)), ...names.filter((n) => !PUBLIC_ORDER.includes(n))];
 }
 
 async function main() {

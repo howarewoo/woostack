@@ -90,14 +90,13 @@ For an explicit one-run model or effort request, apply the shared
    conflict resolution, corrections, or relevant environment changes. Reuse only applicable evidence.
    Hand the intended parent and ordered chain to [Commit](../woostack-commit/SKILL.md) and require
    native registration for dependent PRs.
-   Commit owns delivery and requested maintenance/readiness; its
-   [source-control reference](../woostack-commit/references/source-control.md) covers shared
-   registration and published-head safeguards.
+   Commit owns delivery, native stack registration, and read-back under its
+   [source-control reference](../woostack-commit/references/source-control.md#native-stack-membership).
    Each root PR targets the approved trunk; each dependent PR targets its planned predecessor's
-   head branch. A one-PR run and independent PRs need no stack. Independently read back the PR
-   identity, published head, intended base, requested content, and required native membership/order.
-   A chained base or "depends on" comment is not membership. Missing required stack capability or
+   head branch. A one-PR run and independent PRs need no stack. Missing required stack capability or
    registration leaves delivery incomplete; preserve valid work and PRs and report that boundary.
+   Independently read back the PR identity, published head, intended base, requested content, and
+   required native membership/order.
    Conflicting membership, a non-top append, or a changed parent requires revalidating the affected
    plan; requested reorganization follows the shared reference.
 6. **Finish delivered groups.** After verified PR publication and required native stack membership/order,

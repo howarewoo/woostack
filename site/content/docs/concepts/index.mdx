@@ -78,19 +78,16 @@ behavior, and add independent review when the task or the repository requires it
 
 ### Session reflection becomes instruction suggestions
 
-[woostack-reflect](/docs/skills/woostack-reflect) runs one report-only pass over a fixed snapshot
-of the current conversation. Only an explicit `/woostack-reflect` request or an unambiguous request
-to reflect starts it; noticing a possible gap mid-task does not. It reports durable instruction
-improvements and points each one at the file or skill that owns the rule, and it edits no
-instruction file. Diagnostic reports from QA or production work can support a decision but never
-authorize a correction. A correction starts from cause evidence, and published issues come
-afterwards only when the fix needs them.
+[Reflection](/docs/concepts/context-management#requested-reflection-becomes-instruction-suggestions)
+turns observed instruction gaps into suggestions for their existing owners. It starts only on
+request and changes no instruction file. QA and production reports remain evidence; a correction
+still needs cause evidence and authorization, with issues published only when the fix needs them.
 
 ### Tools compute, agents read compact results
 
-Helpers gather and check evidence that can be processed mechanically, including reading retained
-record bytes without changing them. Their output describes what was observed; it does not widen the
-approved scope or start work. The user still decides what may be implemented.
+Helpers compute evidence, including reading retained records without changing them.
+[Context management](/docs/concepts/context-management#helpers-reduce-bulk-without-replacing-authority)
+explains how their results stay separate from permission to implement.
 
 ### External engineers and coding harnesses
 

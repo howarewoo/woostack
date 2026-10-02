@@ -16,8 +16,7 @@ It has two layers:
 - The interactive repair layer proposes a local changeset and mutates nothing before approval.
   Route an explicitly approved repair through [`woostack-execute`](../woostack-execute/SKILL.md)
   with the approved scope and commit/publication limit, including a local-only limit when applicable.
-  Remote and retained data are report-only. OMP agent selection is host-owned; Doctor never inspects,
-  creates, repairs, or removes project agent definitions.
+  Remote and retained data are report-only.
 
 ## Commands
 

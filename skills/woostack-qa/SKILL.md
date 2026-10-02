@@ -160,17 +160,15 @@ itself report only. It records:
   **Aborted run:** label it partial/aborted and name findings-so-far, the exact stop point, and the
   journeys left completed, skipped, or unconfirmed.
 
-The local report never becomes scope, acceptance, assignment, lifecycle state, or permission to
-edit. Any GitHub issue it names is evidence only and must be re-read for drift. Report-only QA
-performs zero GitHub mutation.
+The local report is diagnostic evidence, never scope, acceptance, assignment, lifecycle state, or
+permission to edit. Any named GitHub issue is evidence only and must be re-read for drift; report-only
+QA performs zero GitHub mutation.
 
-An independently authorized bounded correction may enter
-[`woostack-execute`](../woostack-execute/SKILL.md), which establishes cause from reproduction or
-adequate source/runtime evidence before repair; a separately requested read-only diagnosis stays
-in [`woostack-debug`](../woostack-debug/SKILL.md), and planning work can use
-[`woostack-plan`](../woostack-plan/SKILL.md). Neither path is authorized by a QA finding alone.
-The local report never authorizes a correction, implementation, issue ownership, assignment, or
-GitHub lifecycle state.
+An independently authorized bounded correction may enter [`woostack-execute`](../woostack-execute/SKILL.md),
+which establishes cause from reproduction or adequate source/runtime evidence before repair; a
+separately requested read-only diagnosis stays in [`woostack-debug`](../woostack-debug/SKILL.md), and
+planning work can use [`woostack-plan`](../woostack-plan/SKILL.md). Neither path is authorized by a
+QA finding alone.
 
 ## Hard constraints
 
