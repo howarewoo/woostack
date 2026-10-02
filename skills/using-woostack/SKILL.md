@@ -79,13 +79,19 @@ human-only; Git and GitHub evidence, not issue or Project status, establish impl
 Keep project policy in `AGENTS.md` and reusable workflow details in their owning skills:
 
 ```markdown
-This project follows woostack. At the start of work, use `using-woostack` to load the
-project rules and route `/woostack-*` requests to the matching woostack skill.
+Use woostack skills when available. At the start of work, use `using-woostack` if
+available to load the project rules and route `/woostack-*` requests to the matching
+installed skill. If woostack skills are unavailable, follow this file and continue
+ordinary work with the host's available capabilities; installation is not required.
+For an explicit `/woostack-*` command whose skill is unavailable, name the missing
+skill and ask whether to install it or proceed without it before continuing.
 
 Follow this file first when it conflicts with generic agent defaults.
 ```
 
 ## Missing skills
 
-Name the missing skill and ask whether to install the collection. Do not approximate a gated
-workflow unless the user explicitly asks to proceed without that skill.
+Missing skills must not block ordinary repository work or trigger an installation prerequisite.
+For an explicit Woostack command whose skill is unavailable, name the missing skill and ask
+whether to install it or proceed without it. Do not approximate a gated workflow unless the user
+explicitly asks to proceed without that skill.
