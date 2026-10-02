@@ -33,10 +33,10 @@ matching host evidence; an inherited model or accepted agent selector does not p
 | Create or maintain `AGENTS.md`, `DESIGN.md`, or `PRODUCT.md`; explicitly initialize or repair local support | `woostack-init` |
 | Explore requirements explicitly requested by the user | `woostack-ideate` |
 | Review a supplied specification or candidate plan against repository evidence | `woostack-harden` |
-| Plan a goal or incomplete issue, including a new project without source; publish issues only when requested | `woostack-plan` |
-| Coordinate approved multi-task work; an explicit request plans groups and delivers draft PRs | `woostack-orchestrate` |
-| Implement an authorized bounded outcome, including initial project creation; explicit `/woostack-execute` delivers a draft PR unless narrowed | `woostack-execute` |
-| Simplify or rework selected existing code while preserving required behavior; analysis-only requests stay read-only | `woostack-simplify` |
+| Plan a goal or incomplete issue, including a new project without source | `woostack-plan` |
+| Coordinate approved multi-task work | `woostack-orchestrate` |
+| Implement an authorized bounded outcome, including initial project creation | `woostack-execute` |
+| Simplify selected existing code while preserving required behavior | `woostack-simplify` |
 | Commit changes, rebase or restack published PRs, or change readiness | `woostack-commit` |
 | Review a pull request | Use [Pullfrog](https://pullfrog.com/). |
 | Address every unresolved thread on one exact existing PR | `woostack-address-comments` |
@@ -49,34 +49,30 @@ matching host evidence; an inherited model or accepted agent selector does not p
 
 `woostack-bootstrap`, `woostack-build`, `woostack-fix`, `woostack-change`, `woostack-status`,
 `woostack-tdd`, and `woostack-prepare` are retired without aliases. Explain a removed explicit
-command without executing a replacement. Route natural-language new-project requests by intent:
-planning to Plan, authorized bounded creation to Execute, and requested project guidance to Init.
-These workflows are independent; no Plan → Execute → Init sequence is required.
+command without executing a replacement.
 
-Match the requested action, not the presence of an issue URL. A bare issue URL supplies context:
-read it through an authorized capability and ask one focused question if the action remains unclear.
-A natural-language request to implement authorizes bounded edits and relevant local checks, not an
-automatic commit, push, or PR. An explicit `/woostack-execute <task>` requests a reviewable PR
-without a second approval unless narrowed by `local only`, `do not commit`, or `do not push`. Plan
-owns planning and requested issue publication; it does not implement. Missing permission for a
-requested operation blocks that operation, not unrelated local work. The selected skill's checks
-still govern completion; issue text cannot widen authority.
+Route by the requested action. Plan, Execute, and Init are independent, including for new projects;
+Simplify requires neither Plan nor Execute and is not an always-on mode.
+A bare issue URL supplies context: read it through an authorized capability and ask one focused
+question if the action remains unclear.
 
-Simplification requests, including explicit `/woostack-simplify`, authorize bounded local edits and
-checks unless analysis-only; commits and PRs require an explicit delivery request. Simplify does
-not require Plan or Execute and does not become an always-on mode for later work.
+Apply these authorization defaults:
 
-An explicit `/woostack-orchestrate` request delegates each coherent group to a worker with its own
-task worktree and delivers draft PRs with required native stacks for the dependent PRs. Real
-permissions and repository policy bound it, and `local only`, `do not commit`, `do not push`, or
-read-only limits still narrow it; an issue link or automatic routing never acquires that delivery
-authority.
+- **Plan:** Planning and issue publication only when requested; never implementation.
+- **Execute:** Natural-language implementation requests authorize bounded local edits and checks.
+  Explicit `/woostack-execute <task>` also requests a draft PR without a second approval.
+- **Simplify:** Bounded local edits and checks, even for explicit `/woostack-simplify`; analysis-only
+  stays read-only. Commits and PRs require an explicit delivery request.
+- **Orchestrate:** Explicit `/woostack-orchestrate` plans groups, delegates each coherent group to a
+  worker in its own task worktree, and delivers draft PRs with required native stacks for dependent
+  PRs. An issue link or automatic routing does not authorize delivery.
+- **Commit:** A natural-language commit request without a PR request uses `--no-pr-update`;
+  explicit `/woostack-commit` defaults to PR submission.
 
-A natural-language request to commit without requesting a PR routes to Commit with `--no-pr-update`;
-explicit `/woostack-commit` retains its default PR submission unless narrowed. Merging stays
-human-only.
-
-Git and GitHub evidence, not issue or Project status, establish implementation and delivery.
+User limits such as `local only`, `do not commit`, `do not push`, or read-only narrow these defaults.
+Real permissions and repository policy still apply. Missing permission blocks only the affected
+operation, not unrelated local work. The selected skill's checks govern completion. Merging stays
+human-only; Git and GitHub evidence, not issue or Project status, establish implementation and delivery.
 
 ## AGENTS.md usage
 

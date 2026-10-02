@@ -51,8 +51,8 @@ unrun command as passing.
 
 ## Verification and delivery boundary
 
-Inspect the final diff and use established checks. Failed or unrun required checks leave the task
-incomplete: never weaken assertions, suppress failures, or claim a pass. Recheck after relevant
-changes. An existing targeted test may also be the acceptance smoke. Invoke
+Inspect the final diff and use established checks under
+[Execute's verification rule](../SKILL.md#implement-and-verify). Failed or unrun required checks
+leave the task incomplete: never weaken assertions, suppress failures, or claim a pass. Invoke
 [`woostack-commit`](../../woostack-commit/SKILL.md) only when the caller requested a commit or PR;
 otherwise report the verified local diff without publishing it.

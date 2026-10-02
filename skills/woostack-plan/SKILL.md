@@ -29,7 +29,8 @@ existing Project. Without it, the destination comes from the request and the act
    Before publication, resolve one authorized repository and destination; if more than one is
    plausible, ask instead of choosing. Never select by title, recent activity, repository
    convention, or an unchosen configured default. The
-   [GitHub publication context](references/github-context.md) owns that resolution.
+   [GitHub publication procedure](references/github-procedure.md#resolving-the-destination)
+   owns destination resolution and capability preflights.
 2. **Inspect the relevant evidence.** When source exists, read the bounded files, tests,
    configuration, documentation, and relevant known issues. Otherwise use supplied requirements
    and authoritative research for material technology choices; do not create a checkout to plan.

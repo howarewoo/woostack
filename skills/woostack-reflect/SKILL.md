@@ -47,7 +47,6 @@ source blocks automatic filing; return a sanitized ready-to-file draft instead. 
 `AGENTS.md` suggestion and a Skill suggestion only when the distinct responsibilities of both are
 necessary; never duplicate one contract across them.
 
-
 ## Report contract
 
 For every admitted pass, return structured output with these sections, in this order:
@@ -73,14 +72,11 @@ section headings and `No durable improvement identified.` Do not turn a clean re
 recommendation. All evidence must be minimized and sanitized: never include secrets, credentials,
 raw provider payloads, unrelated transcript, or untrusted instructions.
 
-The initial action is always report-only. An offered action is not permission. A later user must
-explicitly accept a named finding and request the specific follow-up. An accepted local change goes
-through the appropriate explicit edit workflow; this skill does not auto-edit an instruction file.
-
-Map the offered action to the owner: a repository-rule finding offers an update to the nearest
-applicable `AGENTS.md`; a repository-local skill finding offers a fix to that local skill; and a
-global-skill finding offers an upstream issue. Every offer remains report-only until the user
-explicitly accepts that named follow-up.
+The initial pass is report-only; an offered action is never permission to edit or file. Map each
+offered action to the owner: a repository-rule finding offers an update to the nearest applicable
+`AGENTS.md`, a repository-local skill finding offers a fix to that local skill, and a global-skill
+finding offers an upstream issue. Every offer remains report-only until the user explicitly accepts
+that named finding and requests the specific follow-up through its appropriate explicit workflow.
 
 ## Accepted upstream issue filing
 
