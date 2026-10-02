@@ -82,7 +82,9 @@ Keep project policy in `AGENTS.md` and reusable workflow details in their owning
 Use woostack skills when available. At the start of work, use `using-woostack` if
 available to load the project rules and route `/woostack-*` requests to the matching
 installed skill. If woostack skills are unavailable, follow this file and continue
-with the host's available capabilities; do not require installation to proceed.
+ordinary work with the host's available capabilities; installation is not required.
+For an explicit `/woostack-*` command whose skill is unavailable, name the missing
+skill and ask whether to install it or proceed without it before continuing.
 
 Follow this file first when it conflicts with generic agent defaults.
 ```
