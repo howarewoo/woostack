@@ -107,11 +107,13 @@ for one bounded task.
 | Review a specification or plan | [/woostack-harden](skills/woostack-harden/SKILL.md) | Checks selected content against relevant repository evidence without writes. |
 | Plan work or file issues | [/woostack-plan](skills/woostack-plan/SKILL.md) | Plans directly from a goal or issue; publishes and reads back issues only when requested. |
 | A bounded implementation task | [/woostack-execute](skills/woostack-execute/SKILL.md) | Implements and verifies an enhancement, refactor, test-only task, or understood correction; delivers a draft PR when requested. |
+| Simplify an existing implementation | [/woostack-simplify](skills/woostack-simplify/SKILL.md) | Reworks selected code and removes unnecessary machinery while preserving required behavior; local edits by default, analysis-only when requested. |
 | Coordinate multiple approved tasks | [/woostack-orchestrate](skills/woostack-orchestrate/SKILL.md) | Resolves tasks and dependencies from prose, issues, or an explicitly selected Project; coordinates inline or native-host workers in isolated workspaces and verifies draft PRs without merging. |
 
-Plan stops before implementation. Execute and Orchestrate start only on an implementation request;
-planning is not a prerequisite for a bounded task with settled decisions. Init separately owns
-requested project guidance and local support, not application scaffolding.
+Plan stops before implementation. Execute, Simplify, and Orchestrate start only on an authorized
+change request; planning is not a prerequisite for a bounded task with settled decisions. Simplify
+does not require Execute; commits and PRs remain opt-in. Init separately owns requested project
+guidance and local support, not application scaffolding.
 
 See the [workflow maps](site/content/docs/concepts/workflows.mdx) for the full sequences.
 

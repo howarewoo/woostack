@@ -21,6 +21,7 @@ for standing repository rules, the sanctioned `site/` exception, and verified ch
 | Change read-only specification review (Harden) | `skills/woostack-harden/SKILL.md` |
 | Change multi-task coordination and stacked delivery | `skills/woostack-orchestrate/SKILL.md` |
 | Change the execute phase implementation step | `skills/woostack-execute/SKILL.md` |
+| Change behavior-preserving code simplification | `skills/woostack-simplify/SKILL.md` |
 | Change commit and pull-request delivery | `skills/woostack-commit/SKILL.md` and its references |
 | Change browser-based app checks (`/woostack-qa`) | `skills/woostack-qa/SKILL.md`, `skills/woostack-qa/references/` |
 | Change session reflection (`/woostack-reflect`) | `skills/woostack-reflect/SKILL.md` |
