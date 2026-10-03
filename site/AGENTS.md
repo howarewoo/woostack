@@ -144,8 +144,12 @@ Keep authored pages in sync with the skills they describe, as required by the ro
 
 - Confirm the page still has one primary reader need and that misplaced material was linked or
   moved rather than duplicated.
+- Select verification by risk under the root [validation policy](../AGENTS.md#validation),
+  which owns the shared command policy. A wording or link correction needs only the
+  affected claims, links, and anchors checked, never a build solely because site content
+  changed. Run `pnpm -C site build` from the repository root only when the change can affect
+  the production build and narrower established checks do not adequately cover that risk.
 - In an isolated worktree without `site/node_modules`, run
-  `pnpm -C site install --frozen-lockfile` from the repository root before building. Never symlink
-  `node_modules` from another checkout because Turbopack rejects dependency links that point
-  outside the current project root.
-- Run `pnpm -C site build` from the repository root.
+  `pnpm -C site install --frozen-lockfile` from the repository root only when a selected
+  check needs it. Never symlink `node_modules` from another checkout because Turbopack
+  rejects dependency links that point outside the current project root.

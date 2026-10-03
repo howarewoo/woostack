@@ -40,23 +40,22 @@ for standing repository rules, the sanctioned `site/` exception, and verified ch
    predecessor branch for one layer of a planned stack — and work there; `main` is protected.
 2. Edit the relevant files. Keep each PR focused on one concern where possible.
 3. Check that relative links and heading links still resolve (`[label](path.md#anchor)`).
-4. Run the changed asset's actual command or focused smoke, plus relevant behavioral tests and
-   syntax checks. Tests should check behavior, not exact instruction wording or a test-only copy.
-   This repo has no universal test command or CI for its own PRs. For this collection, use
-   `pnpm -C site test` and `pnpm -C site build` for catalog/parser structure, the
-   [on-demand workflow smoke recipes](skills/using-woostack/references/workflow-smoke.md)
-   for material Plan/Execute/Orchestrate changes, and
-   `bash skills/woostack-init/scripts/tests/run-tests.sh` and
-   `bash skills/woostack-doctor/scripts/tests/run-tests.sh` when those helpers are affected.
-   Report deterministic helper results, manual instruction traces, and real host/model outcomes
-   separately; never report an unrun smoke as passed.
+4. Select verification by change risk under the root [validation policy](AGENTS.md#validation),
+   which owns the shared command policy. Run the changed asset's actual command or focused
+   smoke, plus relevant behavioral tests and syntax checks. Tests should check behavior, not
+   exact instruction wording or a test-only copy. This repo has no universal test command or
+   CI for its own PRs. A wording or link correction never triggers the full site tests or a
+   production build solely because of the files it touches; broader checks apply when the
+   change can break rendering, the build, or shared helpers. Report deterministic helper
+   results, manual instruction traces, and real host/model outcomes separately; never report
+   an unrun smoke as passed.
 5. Push the branch and open a draft PR with `gh`, filling out the PR template, through
    [Commit](skills/woostack-commit/SKILL.md) and its
    [source-control reference](skills/woostack-commit/references/source-control.md), which also owns
    requested rebases, stack consolidation, and readiness. Never merge, auto-merge, or queue a PR.
 
-For site changes, run `pnpm -C site build`. The site is the exception to this repository's
-no-application-code rule. Its [README](site/README.md) covers local development and deployment.
+For site changes, select rendering or build checks by risk under the root [validation policy](AGENTS.md#validation).
+The site is the exception to this repository's no-application-code rule. Its [README](site/README.md) covers local development and deployment.
 
 ## Editing conventions
 
