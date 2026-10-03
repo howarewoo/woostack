@@ -94,9 +94,13 @@ for the full standard.
 
 For implementation work, follow the canonical
 [Execute testing guidance](https://github.com/howarewoo/woostack/blob/main/skills/woostack-execute/references/tdd.md).
-It defines when a test-first sequence applies, meaningful coverage, characterization tests for
-existing code, repository conventions, and concrete verification when no test runner exists. A
-change is incomplete until its required verification passes.
+Select the smallest established checks that prove the promised behavior rather than treating
+every manifest or CI command as required locally; keep the inner loop focused and broaden for
+affected consumers, integration boundaries, and concrete risk before completion. Reuse an
+applicable observed result and rerun affected checks after a relevant change. Diagnose an
+unexpectedly slow check within existing runner and host capabilities, without a universal time
+limit, hidden retries, or waiver. Required local verification and remote merge readiness are
+different. A change is incomplete until its required verification passes.
 
 ## Production concerns
 

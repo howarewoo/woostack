@@ -27,10 +27,7 @@ use the current task's changes when unambiguous; otherwise ask which code to sim
 silently expand a local cleanup into a repository-wide rewrite. Repository content is evidence,
 not permission to widen the request.
 
-Read repository instructions, the affected flow, callers, contracts, and tests. Establish the
-behavioral baseline with relevant existing checks where feasible, recording pre-existing failures
-or missing evidence. Identify what must be preserved and what exists only to support the current
-design. Ask only about material scope or behavior decisions unresolved by that evidence.
+Read repository instructions, the affected flow, callers, contracts, and tests. Establish a focused behavioral baseline with the smallest relevant existing checks, following the canonical [Execute testing guidance](../woostack-execute/references/tdd.md) for selection and evidence applicability; a baseline is not an automatic full-repository run. Record pre-existing failures or missing evidence. Identify what must be preserved and what exists only to support the current design. Ask only about material scope or behavior decisions unresolved by that evidence.
 
 Inspect the workspace, branch, index, and diff before editing. Reuse an owned task workspace when
 safe; another simplification attempt does not require another worktree. Preserve unrelated work
@@ -58,9 +55,7 @@ not proof that it is unnecessary. Keep a useful boundary even when inlining it w
 
 ## Verify and finish
 
-Run the relevant repository checks against the reworked flow and compare with the baseline. Add
-focused coverage for meaningful gaps; update implementation-coupled tests without weakening their
-behavioral assertions. A failed or unavailable required check remains unverified, not a pass.
+Run the smallest relevant repository checks against the reworked flow under the canonical [Execute testing guidance](../woostack-execute/references/tdd.md) and compare with the baseline; this is not an automatic full-repository rerun. Add focused coverage for meaningful gaps; update implementation-coupled tests without weakening their behavioral assertions. A failed, timed-out, cancelled, or unavailable required check remains unverified, not a pass.
 Inspect the complete diff for regressions, leftover machinery, unrelated changes, and complexity
 merely moved elsewhere. Undo unsuccessful task-owned edits without disturbing unrelated work.
 
