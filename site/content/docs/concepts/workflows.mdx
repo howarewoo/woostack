@@ -83,8 +83,11 @@ prior writer whose exit is unproved blocks reuse of its workspace while other sa
 Root pull requests target the approved trunk, each dependent pull request targets its planned
 predecessor's head branch, and native stack registration is required for those dependent PRs and
 read back after publication. Sequential dispatch is normal when a real prerequisite or host
-capacity requires it. There is no persisted execution forest, lock service, or cross-harness replay
-guarantee.
+capacity requires it. Applicable child results carry forward under the canonical [testing
+guidance](https://github.com/howarewoo/woostack/blob/main/skills/woostack-execute/references/tdd.md#when-evidence-still-applies);
+the coordinator independently verifies the canonical tree, cumulative diff, and new interactions.
+Only conflicting heavy checks share a concurrency limit; light checks can proceed. There is no
+persisted execution forest, lock service, or cross-harness replay guarantee.
 
 [Coordinate several tasks](/docs/guides/coordinate-work) is the procedure, and
 [Orchestrate's reference](/docs/skills/woostack-orchestrate) owns admission, base selection, and
@@ -138,12 +141,14 @@ smoke for a change, and required repository checks and reviews cannot be waived 
 success sentence. A failed, pending, or unrun required check is a delivery blocker.
 
 Requested delivery goes through [Commit](/docs/skills/woostack-commit), which owns staging, the
-push, the PR body, and the read-back of head, base, state, and preserved human text. New PRs are
-drafts, and requested delivery the host cannot perform stays incomplete instead of becoming a local
-substitute. Native stack registration is conditional on an explicit request or a repository
-requirement, so its absence does not invalidate verified code. An unknown commit, push, or PR
-outcome is rediscovered from current Git and PR facts before anything is retried, which is what
-keeps a duplicate writer or duplicate PR from appearing.
+push, the PR body, and the read-back of head, base, state, and preserved human text. Commit
+reuses applicable observed results under the canonical [testing
+guidance](https://github.com/howarewoo/woostack/blob/main/skills/woostack-execute/references/tdd.md#when-evidence-still-applies).
+Required hooks and configured commands still run. New PRs are drafts, and unavailable requested
+delivery remains incomplete. Native stack registration is conditional on an explicit
+request or a repository requirement, so its absence does not invalidate verified code. An unknown
+commit, push, or PR outcome is rediscovered from current Git and PR facts before anything is
+retried, which is what keeps a duplicate writer or duplicate PR from appearing.
 
 Separate concurrent writers need independently owned workspaces, and a possibly active prior writer
 blocks reuse until its exit is proved. An approved existing workspace need not be replaced. Retired
