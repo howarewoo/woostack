@@ -50,9 +50,10 @@ staging, commit, and push when no ref change is needed.
    subsystem. Independently check applicability against the real source and required acceptance
    under [When evidence still applies](../woostack-execute/references/tdd.md#when-evidence-still-applies):
    a worker's unsupported claim is never a pass, and unknown applicability, missing capability,
-   timeouts, and failed required checks stay explicit unmet boundaries. Run the checks that lack
-   applicable proof, plus the repository-required checks for this change and the configured
-   `commit.command` when it is nonempty. Reuse never skips a required hook or configured command.
+   timeouts, and failed required checks stay explicit unmet boundaries. Satisfy required
+   verification through applicable evidence, running only checks that lack applicable proof.
+   Separately execute required hooks and the configured `commit.command` when nonempty: evidence
+   reuse preserves their policy and never authorizes skipping a required hook or configured command.
    An unrelated prose/metadata-only change preserves unaffected behavioral evidence. An expected
    formatter or hook edit to an intended file is a normal correction, not a reason to return to
    the caller: review the change, refresh only the affected verification without blindly repeating
