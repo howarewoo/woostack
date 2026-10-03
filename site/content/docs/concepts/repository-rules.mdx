@@ -92,11 +92,12 @@ for the full standard.
 
 ## Testing
 
-For implementation work, follow the canonical
-[Execute testing guidance](https://github.com/howarewoo/woostack/blob/main/skills/woostack-execute/references/tdd.md).
-It defines when a test-first sequence applies, meaningful coverage, characterization tests for
-existing code, repository conventions, and concrete verification when no test runner exists. A
-change is incomplete until its required verification passes.
+The canonical
+[Execute testing guidance](https://github.com/howarewoo/woostack/blob/main/skills/woostack-execute/references/tdd.md)
+keeps feedback focused on the promised behavior, with broader checks for affected consumers,
+integration risks, and explicit requirements. Still-applicable results can be reused. Required
+checks must pass; slowness or unavailable services do not waive them. Local proof does not establish
+remote merge readiness.
 
 ## Production concerns
 

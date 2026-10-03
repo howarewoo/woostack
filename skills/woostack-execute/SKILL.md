@@ -150,12 +150,10 @@ complete diff and classify every changed path against the outcome; out-of-scope 
 delivery. Mixed changes are safe only when all in-scope hunks can be staged without touching or
 hiding unrelated work; ambiguous mixed hunks block and remain preserved.
 
-Discover the relevant checks from repository instructions, manifests, CI, and the changed behavior.
-An existing targeted test that covers the change can be the acceptance smoke — do not add another
-scenario or a fixed test sequence for bookkeeping. A failed or incomplete required check blocks
-delivery. If the environment prevents a check, try one materially different recovery; absent new
-evidence, report the unverified criterion instead of claiming success or waiving it. A change after
-verification invalidates affected proof. Track temporary servers, helpers, and recorders, and stop
+Select and run checks under the canonical [testing guidance](references/tdd.md).
+A failed or incomplete required check blocks delivery. If the environment prevents a check, try one
+materially different recovery; absent new evidence, report the unverified criterion instead of
+claiming success or waiving it. Track temporary servers, helpers, and recorders, and stop
 task-owned resources when their scenario ends. Never publish screenshots or logs containing
 secrets or personal data, and never commit secrets or generated app files.
 
