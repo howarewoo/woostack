@@ -63,14 +63,12 @@ workflow, provider calls, and approval gates.
 
 There is no root application install or universal test command. Run commands from
 the repository root, selecting only checks that cover what the edit can break.
-Install site dependencies only when a selected check actually needs them. A plain
-wording or link correction never triggers the full site test command or a
+A plain wording or link correction never triggers the full site test command or a
 production build solely because it touches `skills/*/SKILL.md` or site content.
 
 - Ordinary prose or reference edits: inspect changed claims, links, and anchors
   (`[label](path.md#anchor)`). When workflow semantics change, trace the relevant
-  instruction path as evidence. Neither prose-only status nor a site build proves
-  agent behavior.
+  instruction path as evidence.
 - Skill frontmatter, catalog, parser, generator, link-rewriting, or installation
   layout changes: run the relevant existing parser/generator/asset tests, for
   example `node --test site/scripts/gen-skills.test.mjs` and
