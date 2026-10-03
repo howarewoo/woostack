@@ -85,12 +85,10 @@ predecessor's head branch, and native stack registration is required for those d
 read back after publication. Sequential dispatch is normal when a real prerequisite or host
 capacity requires it. Reuse applicable child results under the canonical [testing
 guidance](https://github.com/howarewoo/woostack/blob/main/skills/woostack-execute/references/tdd.md#when-evidence-still-applies):
-child passes alone never verify an untested combination, so the affected integration/consumer
-checks run on the canonical tree after a new combination, conflict resolution, correction, or
-relevant environment/dependency change. Account for aggregate heavy-check load and shared services
-before parallel builds, browser suites, or live-host runs, and stagger, cap, or serialize only the
-conflicting runs; light checks may proceed. There is no persisted execution forest, lock service,
-or cross-harness replay guarantee.
+verify the canonical tree and cumulative diff, and run affected integration checks on newly
+combined results rather than rerunning every child suite. Coordinate heavy checks by staggering,
+capping, or serializing only conflicting runs while light checks proceed. There is no persisted
+execution forest, lock service, or cross-harness replay guarantee.
 
 [Coordinate several tasks](/docs/guides/coordinate-work) is the procedure, and
 [Orchestrate's reference](/docs/skills/woostack-orchestrate) owns admission, base selection, and
@@ -145,10 +143,10 @@ success sentence. A failed, pending, or unrun required check is a delivery block
 
 Requested delivery goes through [Commit](/docs/skills/woostack-commit), which owns staging, the
 push, the PR body, and the read-back of head, base, state, and preserved human text. Commit
-defaults to reusing an applicable observed result after independently checking command/selection,
-tested source state, outcome, and environment limits against the real source and acceptance; it
-never skips a required hook or configured command, and only affected checks rerun after a relevant
-correction. New PRs are drafts, and requested delivery the host cannot perform stays incomplete
+defaults to reusing an applicable observed result under the canonical [testing
+guidance](https://github.com/howarewoo/woostack/blob/main/skills/woostack-execute/references/tdd.md#when-evidence-still-applies),
+running only checks that lack proof while preserving required hooks and configured commands. New
+PRs are drafts, and requested delivery the host cannot perform stays incomplete
 instead of becoming a local substitute. Native stack registration is conditional on an explicit
 request or a repository requirement, so its absence does not invalidate verified code. An unknown
 commit, push, or PR outcome is rediscovered from current Git and PR facts before anything is
