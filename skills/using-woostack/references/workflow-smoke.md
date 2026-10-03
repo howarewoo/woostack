@@ -168,9 +168,9 @@ local checks verified PR delivery.
   CI/review reads, waiting, repairs, or merge-readiness claims. While B/C runs, a helper CI failure
   or review event causes no repair dispatch, edit, push, or reopening; necessary parent-ref/content
   reads still work. Mark unavailable event variants **Unrun**.
-- Coordinator reuse stays independent: child passes alone never verify an untested combination,
-  but unchanged tested inputs reuse applicable child evidence on the canonical tree. A new
-  coordinator or changed revision identifier alone never reruns every suite.
+- Coordinator independently checks child evidence against the canonical tree: unchanged tested
+  inputs reuse results without reruns for a new coordinator or revision identifier; untested
+  combinations receive affected integration checks.
 - Re-enter delivered scope: no maintenance discovery or duplicate workers, branches, PRs, or stacks.
   Reconcile uncertain publication/membership before retrying; missing required registration stays
   incomplete without duplicate PRs/stacks. Use safe interruptions only, not simulated outages.
@@ -226,12 +226,10 @@ trailing newline. The focused check above is the required verification. Nothing 
   hunks in one file are left exactly as found, in whatever staging state they started in, and
   explained instead of guessed.
 - A run started from a nested directory behaves identically, with no working-directory requirement.
-- The Commit recipient independently checks the handed command/selection, tested source state,
-  outcome, and environment against the real tree and acceptance under
-  [When evidence still applies](../../woostack-execute/references/tdd.md#when-evidence-still-applies):
-  on unchanged inputs it reuses the observed result without rerunning (counter unchanged), and an
-  unrelated prose/metadata-only sentinel preserves it. A relevant correction reruns only the
-  affected check (counter increments); a handoff or revision-identifier change alone never does.
+- On unchanged inputs, independent applicability inspection under
+  [When evidence still applies](../../woostack-execute/references/tdd.md#when-evidence-still-applies)
+  leaves the counter unchanged, including with an unrelated prose/metadata sentinel or a new
+  handoff/revision identifier. A relevant correction increments only the affected check's counter.
 - A `commit.command` that rewrites the intended file is reviewed, the affected check runs again on
   the new content, and the commit proceeds with the verified result. A required command or check
   that cannot pass blocks the commit and is reported unresolved. No check is skipped, no assertion

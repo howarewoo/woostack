@@ -43,25 +43,19 @@ just because the task names a child.
 For metadata-only maintenance or readiness, reuse the existing commits and skip preparation,
 staging, commit, and push when no ref change is needed.
 
-2. **Prepare and verify.** Default to reusing an applicable observed result instead of rerunning
-   it because Commit owns the next step. Read the command/selection, actual tested source state,
-   observed outcome, and relevant environment limits from the existing worker result, handoff,
-   plan, or verification summary, with no new file, schema, receipt, hash inventory, or cache
-   subsystem. Independently check applicability against the real source and required acceptance
-   under [When evidence still applies](../woostack-execute/references/tdd.md#when-evidence-still-applies):
-   a worker's unsupported claim is never a pass, and unknown applicability, missing capability,
-   timeouts, and failed required checks stay explicit unmet boundaries. Satisfy required
-   verification through applicable evidence, running only checks that lack applicable proof.
-   Separately execute required hooks and the configured `commit.command` when nonempty: evidence
-   reuse preserves their policy and never authorizes skipping a required hook or configured command.
-   An unrelated prose/metadata-only change preserves unaffected behavioral evidence. An expected
-   formatter or hook edit to an intended file is a normal correction, not a reason to return to
-   the caller: review the change, refresh only the affected verification without blindly repeating
-   side-effectful commands, and continue once the intended result is proven. Never rerun a
-   completed check for a handoff or revision-identifier change alone, and never skip a check or
-   weaken an assertion to finish. An unresolved required failure, or a correction outside the
-   authorized outcome, stops the commit and is reported. Diagnose slow checks under
-   [Slow checks](../woostack-execute/references/tdd.md#slow-checks-bounded-diagnosis-no-waiver).
+2. **Prepare and verify.** Default to reusing observed results from the existing worker result,
+   handoff, plan, or verification summary. Use its command/selection, actual tested source state,
+   outcome, and relevant environment limits; require no new file, schema, receipt, hash inventory,
+   or cache subsystem. Independently check applicability against real source and required acceptance
+   under [When evidence still applies](../woostack-execute/references/tdd.md#when-evidence-still-applies),
+   then run only required checks that lack applicable proof. An unsupported worker claim is not proof.
+   Execute required hooks and the configured `commit.command` when nonempty regardless of reused
+   test results. Review expected formatter or hook edits to intended files, refresh only affected
+   verification, and continue once the intended result is proven; do not return normal corrections
+   to the caller or blindly repeat side-effectful commands. Never skip required verification or
+   weaken assertions to finish. An unresolved required failure or an out-of-scope correction stops
+   the commit and is reported. Handle slow checks, missing capability, timeouts, and other unverified
+   requirements under [Slow checks](../woostack-execute/references/tdd.md#slow-checks-bounded-diagnosis-no-waiver).
 
 3. **Stage the outcome.** Stage explicit paths or hunks, then re-read the diff this commit will
    contain: it must cover the whole authorized outcome and none of the user's unrelated work. The
