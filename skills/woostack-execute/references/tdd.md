@@ -26,12 +26,13 @@ accepted-task requirements; ambiguous requirements are not permission to waive t
 
 ## Keep the inner loop focused, broaden before completion
 
-When test-first is required, observe Red and Green with the focused test selection, without
-mutating and restoring production code to manufacture a Red result. Do not restart the full
-repository suite after every edit. Before completion, cover affected consumers and integration
-boundaries; expand for shared infrastructure, changed dependencies or configuration,
-cross-cutting changes, uncertain impact, or an explicit requirement. These are selection
-principles, not three mandatory test stages.
+When repository policy, the admitted outcome, or the user requires a test-first sequence, write the
+failing test first and observe the expected Red result, add the minimum implementation and observe
+Green, then refactor while green — all with the focused test selection. Do not mutate and restore
+production code to manufacture a Red result. Do not restart the full repository suite after every
+edit. Before completion, cover affected consumers and integration boundaries; expand for shared
+infrastructure, changed dependencies or configuration, cross-cutting changes, uncertain impact, or an
+explicit requirement. These are selection principles, not three mandatory test stages.
 
 Otherwise, establish the behavior from source and acceptance, use the repository's effective
 existing checks, and add a regression test when it adds real coverage. Demonstrating that a new

@@ -150,7 +150,12 @@ complete diff and classify every changed path against the outcome; out-of-scope 
 delivery. Mixed changes are safe only when all in-scope hunks can be staged without touching or
 hiding unrelated work; ambiguous mixed hunks block and remain preserved.
 
-Select the smallest established checks that prove the promised behavior, following the canonical [testing guidance](references/tdd.md) for selection, evidence applicability, and slow-run handling. A command's presence in a manifest or CI configuration does not make it required locally for every task. Keep the inner loop focused and broaden for affected consumers, integration boundaries, and concrete risk before completion. Reuse an applicable observed result; rerun affected checks after a relevant change. A failed, timed-out, cancelled, or unrun required check blocks delivery. If the environment prevents a check, try one materially different recovery; absent new evidence, report the unverified criterion instead of claiming success or waiving it. Required local verification and remote merge readiness are different: do not invent CI coverage or wait for post-delivery CI. A change after verification invalidates affected proof. Track temporary servers, helpers, and recorders, and stop task-owned resources when their scenario ends. Never publish screenshots or logs containing secrets or personal data, and never commit secrets or generated app files.
+Select and run checks under the canonical [testing guidance](references/tdd.md).
+A failed or incomplete required check blocks delivery. If the environment prevents a check, try one
+materially different recovery; absent new evidence, report the unverified criterion instead of
+claiming success or waiving it. Track temporary servers, helpers, and recorders, and stop
+task-owned resources when their scenario ends. Never publish screenshots or logs containing
+secrets or personal data, and never commit secrets or generated app files.
 
 ## Requested commit and publication
 
