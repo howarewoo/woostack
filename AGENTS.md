@@ -62,24 +62,40 @@ workflow, provider calls, and approval gates.
 ## Validation
 
 There is no root application install or universal test command. Run commands from
-the repository root, selecting only checks that cover the changed behavior.
+the repository root, selecting only checks that cover what the edit can break.
+A plain wording or link correction never triggers the full site test command or a
+production build solely because it touches `skills/*/SKILL.md` or site content.
 
-| Changed area | Check |
-| --- | --- |
-| Skill entrypoints, catalog, parser, generator, or installation layout | `pnpm -C site test` |
-| Site code/content or generated-page inputs (`skills/*/SKILL.md`) | `pnpm -C site build` |
-| Init helpers | `bash skills/woostack-init/scripts/tests/run-tests.sh` |
-| Doctor helpers | `bash skills/woostack-doctor/scripts/tests/run-tests.sh` |
-| Material Plan, Execute, Commit, or Orchestrate behavior | The relevant [workflow smoke recipe](skills/using-woostack/references/workflow-smoke.md) |
+- Ordinary prose or reference edits: inspect changed claims, links, and anchors
+  (`[label](path.md#anchor)`). When workflow semantics change, trace the relevant
+  instruction path as evidence.
+- Skill frontmatter, catalog, parser, generator, link-rewriting, or installation
+  layout changes: run the relevant existing parser/generator/asset tests, for
+  example `node --test site/scripts/gen-skills.test.mjs` and
+  `node --test site/scripts/skill-assets.test.mjs`. Prefer the small complete
+  relevant suite (`pnpm -C site test`, which runs `node --test scripts/*.test.mjs`)
+  when that is simpler and cheaper than elaborate selection.
+- MDX syntax, embedded components, generated rendering, routing, site application,
+  dependency, or build-configuration changes: run the applicable rendering or build
+  check. A production build (`pnpm -C site build`) remains required when the change
+  can affect the production build and narrower established checks do not adequately
+  cover that risk. When impact is uncertain, choose broader verification rather than
+  an unsupported exemption.
+- Init or Doctor helper changes: run the focused behavioral and syntax checks for the
+  affected helpers, including consumers of shared helpers. Do not run those suites
+  merely because a nearby instruction file changed.
+- Material Plan, Execute, Commit, or Orchestrate behavior changes: run the relevant
+  [workflow smoke recipe](skills/using-woostack/references/workflow-smoke.md).
 
-Before a site build in a checkout without its own dependencies, run
-`pnpm -C site install --frozen-lockfile`. Do not symlink `node_modules` from another
-checkout; see the site instructions for the Turbopack restriction.
+When a selected site test or build needs dependencies in a checkout without its own,
+run `pnpm -C site install --frozen-lockfile` first. Do not symlink `node_modules`
+from another checkout; see the site instructions for the Turbopack restriction.
 
-For reference-only edits, check affected links and claims. For changed scripts,
-run the actual entrypoint or focused behavioral test and relevant syntax checks.
-Test behavior, not exact instruction wording or a test-only copy. Site tests and
-builds do not prove that a model followed a workflow.
+For changed scripts, run the actual entrypoint or focused behavioral test and relevant
+syntax checks. Test behavior, not exact instruction wording or a test-only copy. Site
+tests and builds do not prove that a model followed a workflow. This policy never
+waives an explicit acceptance command stated in an unrelated existing issue, and no
+guidance here claims that an unconfigured CI job will run deferred checks.
 
 ## Delivery
 

@@ -144,8 +144,6 @@ Keep authored pages in sync with the skills they describe, as required by the ro
 
 - Confirm the page still has one primary reader need and that misplaced material was linked or
   moved rather than duplicated.
-- In an isolated worktree without `site/node_modules`, run
-  `pnpm -C site install --frozen-lockfile` from the repository root before building. Never symlink
-  `node_modules` from another checkout because Turbopack rejects dependency links that point
-  outside the current project root.
-- Run `pnpm -C site build` from the repository root.
+- Follow the root [validation policy](../AGENTS.md#validation) for check selection and
+  dependency installation. Never symlink `node_modules` from another checkout because
+  Turbopack rejects dependency links that point outside the current project root.
