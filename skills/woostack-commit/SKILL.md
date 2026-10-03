@@ -43,14 +43,24 @@ just because the task names a child.
 For metadata-only maintenance or readiness, reuse the existing commits and skip preparation,
 staging, commit, and push when no ref change is needed.
 
-2. **Prepare and verify.** Run the checks the repository requires for this change, and the
-   configured `commit.command` when it is nonempty. Reuse an observed result only while the
-   working tree still matches the state it verified. An expected formatter or hook edit to an
-   intended file is a normal correction, not a reason to return to the caller: review the change,
-   refresh the affected verification, and continue once the intended result is proven. Never rerun
-   a side-effectful command blindly or skip a check or weaken an assertion to finish. An
-   unresolved required failure, or a correction outside the authorized outcome, stops the commit
-   and is reported.
+2. **Prepare and verify.** Default to reusing an applicable observed result instead of rerunning
+   it because Commit owns the next step. Read the command/selection, actual tested source state,
+   observed outcome, and relevant environment limits from the existing worker result, handoff,
+   plan, or verification summary, with no new file, schema, receipt, hash inventory, or cache
+   subsystem. Independently check applicability against the real source and required acceptance
+   under [When evidence still applies](../woostack-execute/references/tdd.md#when-evidence-still-applies):
+   a worker's unsupported claim is never a pass, and unknown applicability, missing capability,
+   timeouts, and failed required checks stay explicit unmet boundaries. Run the checks that lack
+   applicable proof, plus the repository-required checks for this change and the configured
+   `commit.command` when it is nonempty. Reuse never skips a required hook or configured command.
+   An unrelated prose/metadata-only change preserves unaffected behavioral evidence. An expected
+   formatter or hook edit to an intended file is a normal correction, not a reason to return to
+   the caller: review the change, refresh only the affected verification without blindly repeating
+   side-effectful commands, and continue once the intended result is proven. Never rerun a
+   completed check for a handoff or revision-identifier change alone, and never skip a check or
+   weaken an assertion to finish. An unresolved required failure, or a correction outside the
+   authorized outcome, stops the commit and is reported. Diagnose slow checks under
+   [Slow checks](../woostack-execute/references/tdd.md#slow-checks-bounded-diagnosis-no-waiver).
 
 3. **Stage the outcome.** Stage explicit paths or hunks, then re-read the diff this commit will
    contain: it must cover the whole authorized outcome and none of the user's unrelated work. The

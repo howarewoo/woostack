@@ -69,8 +69,15 @@ For an explicit one-run model or effort request, apply the shared
    Temporary writers get bounded contributions and explicit delivery limits, not independent
    issues, PRs, stack layers, or plan changes. Reassess grouping for an actual new deliverable.
    Hand off only the outcome, limits, invariants, prerequisites, source/workspace evidence, and
-   relevant shared runtime restrictions. Check credentials, processes, ports, databases, accounts,
-   and service state before parallel operations; another checkout does not isolate them. Use
+   relevant shared runtime restrictions. Before parallel heavy checks (expensive builds, browser
+   suites, live-host runs), account for aggregate CPU/memory/process load and shared services:
+   reuse active relevant work where ownership and source applicability are established, otherwise
+   use existing host/runner controls to stagger, cap, or serialize only the conflicting heavy
+   runs. Small isolated tests and genuinely independent work stay concurrent; a separate worktree
+   is not separate compute, ports, databases, or service state. Never kill other workers'
+   processes, add a scheduler or semaphore service, or blanket-serialize all tests. Check
+   credentials, processes, ports, databases, accounts, and service state before parallel
+   operations; another checkout does not isolate them. Use
    authorized separation or serialize, without altering unrelated resources or accessing secrets.
    [Execute](../woostack-execute/SKILL.md) owns implementation and checks. The coordinator owns
    planning, dispatch, integration verification, and delivery coordination, not silent implementation
@@ -85,9 +92,21 @@ For an explicit one-run model or effort request, apply the shared
    changes, and integrate the intended union once, including overlapping child histories.
    Verify the canonical tree and cumulative PR diff under
    [Execute's verification rule](../woostack-execute/SKILL.md#implement-and-verify).
-   Child passes alone do not verify integration. Correct failed preparation checks in the same
+   Default to reusing applicable child results instead of repeating every worker suite: reuse the
+   command/selection, actual tested source state, observed outcome, and relevant environment
+   limits from the existing worker result, handoff, or verification summary, and check
+   applicability against the real source and required acceptance under
+   [When evidence still applies](../woostack-execute/references/tdd.md#when-evidence-still-applies).
+   An unchanged tested tree reuses its results. A new combination, conflict resolution,
+   correction, or relevant environment/dependency change runs the affected integration/consumer
+   checks on the canonical result: child passes alone never verify an untested combination, but
+   neither a new coordinator nor a changed revision identifier alone reruns every suite.
+   Correct failed preparation checks in the same
    allocation; refresh affected checks and required implementation review after integration,
-   conflict resolution, corrections, or relevant environment changes. Reuse only applicable evidence.
+   conflict resolution, corrections, or relevant environment changes. Diagnose slow checks under
+   [Slow checks](../woostack-execute/references/tdd.md#slow-checks-bounded-diagnosis-no-waiver).
+   Report unknown applicability, missing capability, timeouts, and failed required checks as
+   unmet boundaries, never silent passes.
    Hand the intended parent and ordered chain to [Commit](../woostack-commit/SKILL.md) and require
    native registration for dependent PRs.
    Commit owns delivery, native stack registration, and read-back under its
