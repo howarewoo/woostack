@@ -92,15 +92,12 @@ for the full standard.
 
 ## Testing
 
-For implementation work, follow the canonical
-[Execute testing guidance](https://github.com/howarewoo/woostack/blob/main/skills/woostack-execute/references/tdd.md).
-Select the smallest established checks that prove the promised behavior rather than treating
-every manifest or CI command as required locally; keep the inner loop focused and broaden for
-affected consumers, integration boundaries, and concrete risk before completion. Reuse an
-applicable observed result and rerun affected checks after a relevant change. Diagnose an
-unexpectedly slow check within existing runner and host capabilities, without a universal time
-limit, hidden retries, or waiver. Required local verification and remote merge readiness are
-different. A change is incomplete until its required verification passes.
+The canonical
+[Execute testing guidance](https://github.com/howarewoo/woostack/blob/main/skills/woostack-execute/references/tdd.md)
+keeps feedback focused on the promised behavior, with broader checks for affected consumers,
+integration risks, and explicit requirements. Still-applicable results can be reused. Required
+checks must pass; slowness or unavailable services do not waive them. Local proof does not establish
+remote merge readiness.
 
 ## Production concerns
 

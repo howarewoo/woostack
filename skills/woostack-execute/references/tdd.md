@@ -1,11 +1,8 @@
 # Testing guidance for bounded Execute tasks
 
-This is the canonical testing doctrine for woostack. It is guidance for a bounded
-[`woostack-execute`](../SKILL.md) task, not a separate command or delegation workflow.
-[`woostack-simplify`](../../woostack-simplify/SKILL.md) uses this same rule for its
-focused baseline and final checks. Reading this reference invokes no workflow and
-installs nothing; there is no mandatory cross-skill invocation or installation
-dependency.
+This is the canonical testing guidance for bounded [`woostack-execute`](../SKILL.md)
+tasks and [`woostack-simplify`](../../woostack-simplify/SKILL.md) baseline and final
+checks. Reading it invokes no workflow and requires no skill installation or handoff.
 
 A request to add tests is ordinary bounded Execute input. Resolve the exact target, the observable
 behavior and boundaries it covers, the acceptance-defined success and failure conditions, and the
@@ -41,23 +38,18 @@ Do not invent a new test contract when the outcome and source already supply eno
 
 ## Meaningful coverage
 
-Choose tests for the behavior the task promises, not for implementation trivia. Cover:
+Choose fast, deterministic tests at the lowest level that exercises the real contract. Cover:
 
 - the happy path;
 - every material error path;
 - edge and boundary conditions; and
 - each acceptance-defined success and failure outcome.
 
-Prefer fast, deterministic tests at the lowest level that exercises the real contract. Retain
-material success, error, boundary, and acceptance coverage. Add tests for actual gaps, not
-duplicate cases at every layer, exact instruction wording, or implementation trivia. Expensive
-end-to-end and live-host checks are appropriate when their boundary is implicated, not as default
-extra ceremony.
-
-Test observable behavior, boundaries, conditions that must hold, state transitions, rule precedence,
-and real failures. Follow the repository's existing runner, file layout, and naming conventions.
-A materially unclear behavior decision — inputs, outputs, errors, or integration boundaries — is
-clarified before tests are written rather than guessed into them.
+Test observable behavior, conditions that must hold, state transitions, rule precedence, and real
+failures. Add tests for actual gaps, not duplicate cases at every layer, exact instruction wording,
+or implementation trivia. Use expensive end-to-end and live-host checks when their boundary is
+implicated. Follow the repository's existing runner, file layout, and naming conventions.
+Clarify materially unclear inputs, outputs, errors, or integration boundaries before writing tests.
 
 ## Existing code: focused characterization baseline
 
@@ -73,8 +65,7 @@ Reuse an observed command and result while its relevant source, tests, fixtures,
 configuration, and environment remain applicable. A handoff, commit-message change, new revision
 identifier, or unrelated prose edit alone does not invalidate it. Changed relevant inputs or
 uncertain equivalence require the affected checks to be rerun. A newly integrated combination
-needs evidence for its interactions; successful child tests alone cannot establish that. A change
-after verification invalidates affected proof.
+needs evidence for its interactions; successful child tests alone cannot establish that.
 
 ## Slow checks: bounded diagnosis, no waiver
 
