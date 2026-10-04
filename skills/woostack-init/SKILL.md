@@ -37,8 +37,9 @@ and contracts only for relevant support work.
    useful. Do not ask for repository facts or previously answered product and technology decisions.
    Product → design → agent instructions is a useful default, not a required sequence.
    Adapt to the project and allow decisions to remain explicitly deferred.
-3. **Draft focused guidance.** Use the [document responsibilities](#document-responsibilities) below.
-   Create missing guidance or propose targeted revisions, preserving useful project-specific content.
+3. **Draft focused guidance.** Use the [document responsibilities](#document-responsibilities) and
+   applicable [document schemas](references/document-schemas.md). Create missing guidance or propose
+   targeted revisions, preserving useful project-specific content.
    Identify stale, contradictory, and duplicated material for removal rather than appending another
    generated layer. Link to canonical specifications, architecture decisions, design systems, and
    contributor guidance instead of copying them; propose consolidation before replacing established
@@ -50,9 +51,11 @@ and contracts only for relevant support work.
    unrelated work, file ownership, and existing file/symlink relationships: verify a linked target's
    identity and authorization before editing it, never replace the link or write through an unsafe or
    ambiguous path. A blocked write does not prevent presenting a draft.
-5. **Verify within scope.** Check consistency across the affected documents, referenced paths/links,
-   and technical claims against current repository evidence. Use relevant safe checks authorized by
-   the request and project rules; distinguish commands inspected from commands actually executed.
+5. **Verify within scope.** Check the applicable schema, consistency across affected documents,
+   referenced paths/links, and technical claims against current repository evidence. Verify a format
+   before adding its version marker; report applicability limits and unresolved conversions. Use
+   relevant safe checks authorized by the request and project rules; distinguish commands inspected
+   from commands actually executed.
    Do not run unrelated setup, network operations, or side-effectful commands to validate prose.
 6. **Report the result.** State what was created, updated, intentionally preserved, or blocked, the
    verification evidence, and unresolved decisions. Leave good guidance unchanged rather than
@@ -60,15 +63,15 @@ and contracts only for relevant support work.
 
 ## Document responsibilities
 
-Use flexible headings and omit irrelevant sections. A UI app, API service, and skills library need
-different guidance, not the same questionnaire or an exhaustive template. Preserve an established
-meaning of `DESIGN.md` and link to deeper sources where they already own the subject.
+Use the current applicable [document formats](references/document-schemas.md), not an exhaustive
+template or the same questionnaire for every project. Omit irrelevant sections. Preserve an
+established architecture-focused meaning of `DESIGN.md`; the visual schema does not replace it.
 
 | Document | Purpose | Useful content |
 | --- | --- | --- |
-| `PRODUCT.md` | What are we building, for whom, and why? | Intended users, problems and core workflows, current scope, non-goals, important constraints, and agreed success criteria. Separate current scope from future direction. |
-| `DESIGN.md` | How should the product work and feel? | Relevant interaction/visual principles, interface conventions, important system-design decisions, constraints, and evidence-backed rationale. Adapt to the project's surfaces and existing design documentation. |
-| `AGENTS.md` | How should an agent work effectively in this repository? | Actual commands and working directories, conditional verification guidance, non-obvious boundaries/conventions/pitfalls, and links to deeper documentation. |
+| `PRODUCT.md` | What are we building, for whom, and why? | The [product record](references/document-schemas.md#productmd): users, purpose, operating context, capabilities, constraints, and confirmed principles. Separate current scope from future direction. |
+| `DESIGN.md` | How should the product work and feel? | The [visual format](references/document-schemas.md#designmd) where applicable: observed or agreed identity, tokens, components, and usage. Preserve canonical system-design decisions where the document already owns them. |
+| `AGENTS.md` | How should an agent work effectively in this repository? | [Unversioned operational Markdown](references/document-schemas.md#agentsmd): actual commands and working directories, conditional verification, boundaries, pitfalls, and links to deeper documentation. |
 
 Keep `AGENTS.md` operational: no copied product specification, exhaustive file inventory, generic
 coding advice, or duplicated Woostack workflows. Include contextual pointers to `PRODUCT.md` and

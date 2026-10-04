@@ -52,6 +52,10 @@ for drafts without writes. During Woostack adoption, Init includes the concise
 [routing paragraph](skills/using-woostack/SKILL.md#agentsmd-usage) in the proposed agent instructions;
 there is no separate manual adoption step.
 
+Init uses the current applicable [document formats](skills/woostack-init/references/document-schemas.md):
+Impeccable's product record, the visual DESIGN.md specification, and unversioned AGENTS.md guidance.
+Architecture-focused design documents keep their established role.
+
 Document authoring needs no `.woostack/`, Doctor check, or GitHub access. Init does not scaffold an
 application, handle credentials, or create issues, branches, commits, or PRs. See
 [Init](skills/woostack-init/SKILL.md) for the workflow.
