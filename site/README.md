@@ -14,8 +14,9 @@ pnpm dev      # predev regenerates the skill pages, then next dev
 ```
 
 Run `pnpm build` to generate skill pages and build the site for production.
-`pnpm test` checks the generator and installed skill assets with Node's built-in test runner
-(`node --test`). It does not invoke a planner, model, or GitHub.
+`pnpm test` checks generator rendering, frontmatter, local asset links (including angle-bracket
+destinations), and installation discovery with Node's built-in test runner (`node --test`).
+It does not invoke a planner, model, or GitHub.
 
 ## Deploy to Vercel
 

@@ -43,21 +43,15 @@ fi
 config_path="$repo_root/.woostack/config.json"
 local_path="$primary_root/.woostack/config.local.json"
 
-has_config=0
-has_local=0
-if [ -e "$config_path" ] || [ -L "$config_path" ]; then
-  has_config=1
-fi
-if [ -e "$local_path" ] || [ -L "$local_path" ]; then
-  has_local=1
-fi
+# A dangling symlink still counts as present so validation, not absence, reports it.
+present() { [ -e "$1" ] || [ -L "$1" ]; }
 
-if [ "$has_config" -eq 0 ] && [ "$has_local" -eq 0 ]; then
+if ! present "$config_path" && ! present "$local_path"; then
   printf '{}\n'
   exit 0
 fi
 
-if [ "$has_config" -eq 0 ]; then
+if ! present "$config_path"; then
   fail ".woostack/config.json is missing"
 fi
 
@@ -78,16 +72,15 @@ read_and_validate_file() {
     fail "$display_name must not be empty"
   fi
 
-  local content
-  if ! content="$(jq -e -c 'if type == "object" then . else error("non-object") end' "$(tool_path_arg jq "$file_path")" 2>/dev/null)"; then
-    if jq -e . "$(tool_path_arg jq "$file_path")" >/dev/null 2>&1; then
+  local jq_file content
+  jq_file="$(tool_path_arg jq "$file_path")"
+  if ! content="$(jq -e -c 'if type == "object" then . else error("non-object") end' "$jq_file" 2>/dev/null)"; then
+    if jq -e . "$jq_file" >/dev/null 2>&1; then
       fail "$display_name must contain a JSON object"
+    elif [ -z "$(tr -d '[:space:]' < "$file_path")" ]; then
+      fail "$display_name must not be empty"
     else
-      if [ -z "$(tr -d '[:space:]' < "$file_path")" ]; then
-        fail "$display_name must not be empty"
-      else
-        fail "$display_name must contain valid JSON"
-      fi
+      fail "$display_name must contain valid JSON"
     fi
   fi
   if jq -e 'has("artifacts") or has("linear") or has("plane")' <<<"$content" >/dev/null; then
@@ -151,7 +144,7 @@ validate_github() {
 
 base_config="$(read_and_validate_file "$config_path" ".woostack/config.json")"
 
-if [ "$has_local" -eq 1 ]; then
+if present "$local_path"; then
   local_config="$(read_and_validate_file "$local_path" ".woostack/config.local.json")"
   effective="$(jq -n --argjson base "$base_config" --argjson local "$local_config" '
     def deep_merge(base; local):

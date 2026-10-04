@@ -72,13 +72,6 @@ No local specification, plan, or fix record is discovered or used. The GitHub bo
 read-only: Debug never creates, edits, comments on, assigns, delegates, transitions, or relates a
 GitHub resource, and it never writes its diagnosis remotely.
 
-When called from an authorized bounded `woostack-execute` correction and the proved defect stays
-inside its scope, return the evidence and minimal fix to that task. Debug neither expands scope
-nor creates authority. Otherwise return the complete evidence-bound diagnosis to the user or
-caller as reusable input for public [`woostack-ideate`](../woostack-ideate/SKILL.md),
-[`woostack-harden`](../woostack-harden/SKILL.md), [`woostack-plan`](../woostack-plan/SKILL.md),
-or an already-authorized bounded Execute task. Debug selects and launches none of them.
-
 ## The four phases
 
 Complete each phase before the next.
@@ -128,24 +121,19 @@ The diagnosis states:
 4. acceptance outcomes, regression/reproduction verification, changed-path smoke strategy, and what
    remains uncertain; and
 5. the exact bounded execution task identity for an in-scope Execute failure, or the diagnosis the
-   user or caller can take into Ideate, Harden, Plan, or an already-authorized Execute task, with
-   every evidence identity it depends on.
+   user or caller can take into public [`woostack-ideate`](../woostack-ideate/SKILL.md),
+   [`woostack-harden`](../woostack-harden/SKILL.md),
+   [`woostack-plan`](../woostack-plan/SKILL.md), or an already-authorized bounded Execute task,
+   with every evidence identity it depends on.
 
 The receiver independently revalidates repository/source identity and relevant runtime assumptions.
 Unchanged evidence can transfer without repeating all four phases; stale, missing, or contradictory
 links require targeted investigation before reliance. A prior report's conclusion alone never
 establishes proof or approval. For flaky/timing failures, prefer condition-based waiting over sleeps.
 
-Return an in-scope candidate to its existing bounded Execute task; otherwise return the
-evidence-bound diagnosis directly to the user or caller. A receiver independently checks its scope
-and freshness, then chooses what to do with the diagnosis. Do not chain remediation or create,
-assign, comment on, transition, or repurpose an issue here. Debug alone never owns a writable
-target or project link.
-
 `/woostack-debug <target>` runs all four phases end to end and hands back the diagnosis. It has no
 per-hypothesis approval gate, interactive mode, or `--auto` flag. With no target, ask what is broken
 rather than guessing.
-
 
 ## Red flags — return to Phase 1
 
@@ -158,7 +146,6 @@ rather than guessing.
 
 ## Degradation
 
-- No explicit GitHub identity means no development context; code/runtime diagnosis may continue.
 - Invalid identity, attribution drift, incomplete read-back, or unavailable authorized GitHub capability
   blocks managed-context use until the exact official path succeeds.
 - A non-reproducible issue remains unresolved evidence, not a guessed root cause.

@@ -56,12 +56,8 @@ boundaries, irreversible effects, cost, and scope still need a user decision.
 
 Plan publishes issues directly through the host's authorized GitHub capability. A mutation
 response proves nothing on its own, so each write is read back and checked against the actual issue
-content and the relationships that were actually written.
-
-Existing `.woostack/tmp/runs/<run-id>/` records from retired planning wrappers remain readable
-historical user data. Nothing migrates, mutates, or deletes them, and a record authorizes no
-publication, implementation, assignment, or ownership. A supplied record is evidence only after its
-exact identity, complete content, and freshness are validated. The
+content and the relationships that were actually written. Existing `.woostack/tmp/runs/<run-id>/`
+records stay readable historical data that authorizes nothing. The
 [local artifacts reference](/docs/configuration/artifacts/local) owns the retained-data contract and
 its recovery rules.
 
@@ -76,30 +72,19 @@ delegated implementation with the
 which weighs speed, cost, isolation, overhead, and risk. Run the checks relevant to the changed
 behavior, and add independent review when the task or the repository requires it.
 
-### Session reflection becomes instruction suggestions
+### Related mechanisms
 
 [Reflection](/docs/concepts/context-management#requested-reflection-becomes-instruction-suggestions)
-turns observed instruction gaps into suggestions for their existing owners. It starts only on
-request and changes no instruction file. QA and production reports remain evidence; a correction
-still needs cause evidence and authorization, with issues published only when the fix needs them.
-
-### Tools compute, agents read compact results
-
-Helpers compute evidence, including reading retained records without changing them.
-[Context management](/docs/concepts/context-management#helpers-reduce-bulk-without-replacing-authority)
-explains how their results stay separate from permission to implement.
-
-### External engineers and coding harnesses
-
-Hermes is an external engineer, not an installed coding harness. It may drive a persistent session,
-review evidence, and relay the responsible user's live decisions verbatim; it gains no
-implementation authority. See the [Hermes guide](/docs/hermes) for that boundary and cross-session
-resume.
+starts only on request and turns observed gaps into suggestions for their existing owners.
+[Helpers](/docs/concepts/context-management#helpers-reduce-bulk-without-replacing-authority)
+compute evidence without replacing authority. [Hermes](/docs/hermes) is an external engineer rather
+than a coding harness: it may drive a persistent session, review evidence, and relay the
+responsible user's live decisions verbatim, and it gains no implementation authority.
 
 ## Where to go next
 
 <Cards>
-  <Card title="Getting started" href="/docs/getting-started" description="Install the skills, initialize local support, and check the installation." />
+  <Card title="Getting started" href="/docs/getting-started" description="Install the skills, create project guidance, and return a read-only plan." />
   <Card title="Building rules" href="/docs/concepts/building-rules" description="Understand who authorizes work and which evidence proves delivery." />
   <Card title="Repository structure and rules" href="/docs/concepts/repository-rules" description="Read how repository conventions, placement, dependencies, testing, and delivery rules fit together." />
   <Card title="Workflow maps" href="/docs/concepts/workflows" description="Compare Plan, Orchestrate, and Execute under one authority model." />

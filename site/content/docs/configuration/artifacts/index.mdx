@@ -4,11 +4,9 @@ description: Direct GitHub publication, retained local records, and recovery bou
 ---
 
 Development records are specifications, plans, and evidence retained for history. Plan publishes
-issues directly when the request asks for it and does not allocate a run or create a second remote
-record. Orchestrate may interpret the published issues or other understandable tracker context
-without requiring native links. A complete readable tracker index with independently readable
-executable issues can be a declared handoff when native relationships are absent, partial, or
-unavailable; that does not retroactively make them a verified native graph. Existing
+issues directly when the request asks for it and creates no run or second remote record. A readable
+tracker index with independently readable executable issues can be a declared handoff when native
+relationships are absent, partial, or unavailable; that is not a verified native graph. Existing
 `.woostack/tmp/runs/<run-id>/` files remain readable user data and are never migrated or mutated.
 Execute accepts one complete bounded task and does not consume a Project or retained run as
 executable scope.
@@ -22,23 +20,14 @@ executable scope.
 ## Guarantees
 
 Configuration is non-secret policy. The optional top-level `github` object is the only active remote
-configuration surface. Its allowed fields are `owner`, `ownerType`, `statusField`, and
-`projectStatuses`; visibility is not an active setting. Missing GitHub configuration is valid, and
-issue or exact-issue workflows do not require Project or Status settings.
+configuration surface; its allowed fields are `owner`, `ownerType`, `statusField`, and
+`projectStatuses`. Missing GitHub configuration is valid, and issue or exact-issue workflows do not
+require Project or Status settings.
 
-A requested Plan publication uses the repository and destination the request resolves. Before
-writing, woostack checks the capabilities that operation needs, reads the relevant resources, and
-independently reads created or reused issues before continuing. Missing, partial, ambiguous,
-duplicate, foreign, or out-of-scope results stop at the last safe boundary. No Project destination
-is guessed. Orchestrate admission is model-led from the available context and does not turn Plan's
-destination choice into an exclusive input type.
-
-A GitHub failure is reported with its confirmed identity boundary. Project status never grants
-permission to merge a PR; agents never merge. Local implementation needs no GitHub access unless
-an exact issue was selected for context; reading that issue grants no publication authority.
-Commit owns only requested commits and repository/PR delivery. Retired managed-provider
-configuration and records remain opaque and inactive; they are not imported or rewritten.
-
-The canonical implementation rules live in the
+A requested Plan publication uses the repository and destination the request resolves. No Project
+destination is guessed, and a GitHub failure is reported with its confirmed identity boundary. The
+[GitHub page](/docs/configuration/artifacts/github) owns capability preflight, read-back, and
+lifecycle; the [local page](/docs/configuration/artifacts/local) owns retained-record preservation
+and recovery. Both trace to the
 [artifact contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-backends.md#direct-publication-and-recovery)
 and the [GitHub profile](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-providers/github.md#configuration-and-scope).

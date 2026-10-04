@@ -75,20 +75,10 @@ preserved.
 ## Least code, still safe
 
 Less code means less to read, test, and maintain, but correctness and safety decide how small a
-solution may be. Before adding code, trace the affected flow and stop at the first rung that
-holds: confirm the code is needed, reuse an in-tree helper or pattern, use standard facilities,
-use a native platform feature, use an already-installed dependency, write a direct one-line
-implementation, and only then add the minimum new code.
-
-When two approaches are the same size, choose the edge-case-correct one, and prefer deletion over
-addition. Validation, error handling, security, accessibility, and data-loss protection are never
-cut to shrink a diff, and deliberate layers of protection survive even when they repeat a check.
-A simplification that changes behavior keeps its regression test, and a knowingly cut corner gets
-a `why` comment naming the limit and the upgrade path. Comments explain reasons the code cannot
-state; they do not repeat it. See [Least code, still safe](/docs/concepts/least-code) for the
-rationale and
+solution may be. [Least code, still safe](/docs/concepts/least-code) gives the rationale for the
+ladder, and
 [patterns.md §7](https://github.com/howarewoo/woostack/blob/main/skills/woostack-execute/references/patterns.md#7-least-code--comments)
-for the full standard.
+the full standard.
 
 ## Testing
 
@@ -115,12 +105,6 @@ data, and other secrets redacted before transmission.
 
 New-project work uses the same workflows as everything else. Nothing about it requires a separate
 command, a checkout, a GitHub destination, or an extra approval event.
-
-Planning a product before any code exists belongs to
-[Plan](/docs/skills/woostack-plan). It works from the supplied goal, constraints, and
-authoritative research, resolves only the material decisions that change the outcome, and writes
-nothing unless the request asks for issues. Settled technology choices are reused rather than
-re-asked.
 
 Creating the first slice belongs to [Execute](/docs/skills/woostack-execute) as an authorized
 bounded outcome. Repository, HEAD, index, base, and worktree checks apply where those objects

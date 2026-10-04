@@ -222,6 +222,12 @@ test('structural validation rejects invalid JSON and missing local references', 
   await assert.rejects(validateSkillAssets(root, ['sample-skill']), /local link target does not exist/);
 });
 
+test('local reference validation rejects missing angle-bracket destinations', async (t) => {
+  const root = await makeRoot(t);
+  await writeSkill(root, 'sample-skill', '[Missing](<references/missing.md>)');
+  await assert.rejects(validateSkillAssets(root, ['sample-skill']), /local link target does not exist/);
+});
+
 test('local reference validation preserves escaped backticks and uppercase Markdown files', async (t) => {
   const root = await makeRoot(t);
   const skillRoot = await writeSkill(root, 'sample-skill', 'Literal \\` [Missing](references/missing.md) \\` text');

@@ -42,15 +42,13 @@ fi
 while IFS= read -r line; do
   case "$line" in ''|\#*) continue ;; esac
   if [ -f "$GI" ]; then
-    grep -qxF -- "$line" "$GI"
-    case $? in
-      0) continue ;;
-      1) ;;
-      *)
-        emit error gitignore-drift report ".woostack/.gitignore" "managed ignore file could not be read; drift cannot be checked"
-        exit 0
-        ;;
-    esac
+    grep -qxF -- "$line" "$GI" && continue
+    # grep exits 1 for a missing line; any other nonzero status means the target
+    # itself could not be read.
+    if [ "$?" -gt 1 ]; then
+      emit error gitignore-drift report ".woostack/.gitignore" "managed ignore file could not be read; drift cannot be checked"
+      exit 0
+    fi
   fi
   emit warn gitignore-drift report ".woostack/.gitignore" "missing managed line: $line"
 done <"$TEMPLATE"

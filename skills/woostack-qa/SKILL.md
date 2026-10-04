@@ -160,9 +160,7 @@ itself report only. It records:
   **Aborted run:** label it partial/aborted and name findings-so-far, the exact stop point, and the
   journeys left completed, skipped, or unconfirmed.
 
-The local report is diagnostic evidence, never scope, acceptance, assignment, lifecycle state, or
-permission to edit. Any named GitHub issue is evidence only and must be re-read for drift; report-only
-QA performs zero GitHub mutation.
+Any named GitHub issue stays evidence only and must be re-read for drift before it is relied on.
 
 An independently authorized bounded correction may enter [`woostack-execute`](../woostack-execute/SKILL.md),
 which establishes cause from reproduction or adequate source/runtime evidence before repair; a

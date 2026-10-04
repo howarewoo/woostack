@@ -43,11 +43,6 @@ reports a native relationship it could not create as missing rather than waived.
 - Exact issue association is read-only context until the owning Commit path records its verified
   closing reference. It never selects a publication destination.
 
-Use an authorized native GitHub capability when the host exposes a suitable interface; the
-host-authenticated `gh` CLI is supported. Do not invent tool names, read credentials, forward tokens,
-or add another transport layer. Scope every operation to its exact selected destination and, for
-repository-scoped work, the canonical repository.
-
 Publication is read-only until the request asks for a write, and a planning-only request performs no
 GitHub mutation at all.
 

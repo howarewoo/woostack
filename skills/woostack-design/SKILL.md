@@ -13,7 +13,7 @@ execution; this skill contributes only the layout standard.
 ## Command
 
 - `/woostack-design [target]`
-  - Standardizes spatial flow layout for multi-step UI sequences, screen flows, or user journeys.
+  - Applies the layout standard below to the target flow.
 
 ## Layout standard
 
@@ -34,12 +34,11 @@ Apply this spatial standard to all arranged flows:
   step frames across the sequence.
 - **Preserve frame design.** Preserve supplied frame dimensions, aspect ratios, and visual styling.
   Do not resize, restyle, or alter the internal content of any frame.
-- **Screen-frame backgrounds only.** Give each actual screen frame a background that makes its outer
-  edge unambiguous. Do not add backgrounds to flow groups, sequence or fork rows, titles,
-  descriptions, labels, or surrounding canvas regions.
-- **Preserve clear frame backgrounds.** Keep an existing screen-frame background unchanged when it
-  already defines the screen edge; otherwise add only the frame-level background needed to make
-  that edge clear.
+- **Screen-frame backgrounds.** Give each actual screen frame a background that makes its outer
+  edge unambiguous; keep an existing frame background unchanged when it already defines the
+  screen edge, and otherwise add only the frame-level background that clears it. Do not add
+  backgrounds to flow groups, sequence or fork rows, titles, descriptions, labels, or surrounding
+  canvas regions.
 
 ### 3. Branches and forks
 

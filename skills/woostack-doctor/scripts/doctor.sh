@@ -44,8 +44,7 @@ done
 
 errors=0
 warnings=0
-TAB="$(printf '\t')"
-while IFS="$TAB" read -r sev code fixable path msg; do
+while IFS=$'\t' read -r sev code fixable path msg; do
   [ -z "${sev:-}" ] && continue
   case "$sev" in
     error) errors=$((errors+1)); echo "::error:: [$code] $path: $msg" >&2 ;;
