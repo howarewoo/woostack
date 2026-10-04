@@ -168,6 +168,9 @@ local checks verified PR delivery.
   CI/review reads, waiting, repairs, or merge-readiness claims. While B/C runs, a helper CI failure
   or review event causes no repair dispatch, edit, push, or reopening; necessary parent-ref/content
   reads still work. Mark unavailable event variants **Unrun**.
+- Coordinator independently checks child evidence against the canonical tree: unchanged tested
+  inputs reuse results without reruns for a new coordinator or revision identifier; untested
+  combinations receive affected integration checks.
 - Re-enter delivered scope: no maintenance discovery or duplicate workers, branches, PRs, or stacks.
   Reconcile uncertain publication/membership before retrying; missing required registration stays
   incomplete without duplicate PRs/stacks. Use safe interruptions only, not simulated outages.
@@ -187,8 +190,8 @@ results. Use existing commits where permitted; preserve actual dirty-source evid
 | Supply unknown writer liveness or an unexplained task edit; separately supply an unsuitable base. | Affected reuse stops without allocating around uncertainty or silently resetting/rebasing. State survives; genuinely independent work remains eligible. If no safe interruption exists, label liveness injection **Unrun**. |
 | Ask two compatible read-only reviewers to inspect the same unchanged identified source; include a formatter or generator that writes. | Review provenance identifies actual bytes/revision, not mutable HEAD or a directory label. Compatible review adds no allocation; conflicting mutation is serialized or justified isolation, not called read-only. |
 | Concurrently add rejection coverage and document the helper in disjoint paths from an inspected common base, as bounded temporary contributions to the existing helper delivery target. | Each allocation has its owner, role, responsibility, base, isolation reason, destination, delivery limit, and retirement condition in the ordinary handoff. No child issue/PR/stack layer is created; only the canonical target is updated. |
-| Let one contribution history include the other's change and an older worker HEAD claim disagree with fresh target state. Make a local integration check fail before delivery. | Reconcile revisions; integrate the union once without replay or loss. Child passes are insufficient: correct the canonical tree, inspect the cumulative diff, and refresh affected checks/required review before publication. Report that evidence without new PR-check/review reads. |
-| Let both temporary operations use one harmless synthetic mutable file outside their checkouts. | Source isolation alone does not isolate the resource. Separate it through available authorized means or serialize access. Never use real credentials/keychains, databases, accounts, or production services. |
+| Let one contribution history include the other's change and an older worker HEAD claim disagree with fresh target state. Make the actual combined consumer/helper check fail before delivery while both child suites pass. | Reconcile revisions; integrate the union once without replay or loss. Reuse applicable child evidence on the unchanged tested inputs; run the affected combined integration check on the canonical tree even though children passed. Child passes are insufficient: correct the canonical tree, inspect the cumulative diff, and refresh affected checks/required review before publication. Report execution counts and elapsed times where available, without new PR-check/review reads. |
+| Let both temporary operations use one harmless synthetic mutable file outside their checkouts, and hold one bounded synthetic sleep workload through existing host/runner concurrency controls while light checks proceed. | The coordinator staggers, caps, or serializes only the conflicting heavy workload; small isolated checks stay concurrent. Source isolation alone does not isolate the resource. Separate it through available authorized means or serialize access. Record observed overlap/non-overlap. Never use real credentials/keychains, databases, accounts, or production services, never add a scheduler or semaphore service, and never blanket-serialize all tests. |
 | End the split with one released/integrated temporary checkout eligible for authorized retirement and another with a required checkpoint, unknown edit, or missing cleanup permission. | Account for both beneath their deliverable: safely retire only after contribution/recovery/dependency inspection and permission; retain the other with its reason and next safe action. No forced or broad cleanup. |
 
 Keep actual-host repair/replacement and split observations separate from deterministic Git results
@@ -199,10 +202,13 @@ rediscover native state and Git/PR facts before retrying, preserving unknown wor
 
 ## 4. Commit preparation, delivery, and content
 
-**Invocation:** on a fresh copy of the shared fixture, prepare the intended removal yourself — drop
-`beta` and run the focused check — then run the actual Commit skill on the already-prepared change,
-issue-free and local-only. Repeat it with an unrelated unstaged sentinel, then with an unrelated
-pre-existing staged sentinel. Add one run started from a nested directory. Finally, set
+**Invocation:** on a fresh copy of the shared fixture, prepare the intended removal yourself (drop
+`beta` and run the focused check), then run the actual Commit skill on the already-prepared change,
+issue-free and local-only. Wrap the focused check in a disposable counter (for example a shell
+wrapper appending one line to `check-count.log` per invocation) and hand the recipient the
+command/selection, tested source state, observed outcome, and environment limits with the change.
+Repeat the handoff with an unrelated unstaged `notes.txt`/metadata-only sentinel, then with an
+unrelated pre-existing staged sentinel. Add one run started from a nested directory. Finally, set
 `commit.command` to a script that normalizes the intended file, and separately to one that exits
 nonzero.
 
@@ -220,6 +226,10 @@ trailing newline. The focused check above is the required verification. Nothing 
   hunks in one file are left exactly as found, in whatever staging state they started in, and
   explained instead of guessed.
 - A run started from a nested directory behaves identically, with no working-directory requirement.
+- On unchanged inputs, independent applicability inspection under
+  [When evidence still applies](../../woostack-execute/references/tdd.md#when-evidence-still-applies)
+  leaves the counter unchanged, including with an unrelated prose/metadata sentinel or a new
+  handoff/revision identifier. A relevant correction increments only the affected check's counter.
 - A `commit.command` that rewrites the intended file is reviewed, the affected check runs again on
   the new content, and the commit proceeds with the verified result. A required command or check
   that cannot pass blocks the commit and is reported unresolved. No check is skipped, no assertion
