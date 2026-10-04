@@ -7,9 +7,8 @@ Each check under `../scripts/checks/` emits one tab-delimited finding:
 - `fixable` is always `report`. No check owns a filesystem repair: a finding may name a proposed
   repair, and applying it is ordinary scoped editing through
   [`woostack-execute`](../../woostack-execute/SKILL.md).
-- A check that cannot complete is an incomplete inspection, not a clean one: the runner emits a
-  `check-failed` error naming the check and its exit status, so both invocation modes exit nonzero.
-- CI (`--check`) exits nonzero only when an `error` finding exists.
+- An inspection that cannot complete is not a clean one: [runner failure
+  handling](#runner-failure-handling) owns that finding and its exit behavior.
 
 ## Calling convention
 
@@ -57,6 +56,10 @@ with the check name and exit status, not raw stderr. That finding carries no rep
 `report`): a check that cannot complete is evidence to investigate, not something Doctor fixes.
 A check that emits an `error` finding and exits 0 is a completed inspection with an unhealthy
 result, and keeps the same nonzero exit.
+
+Both invocation modes return 1 when an `error` finding exists, including the runner's
+`check-failed` finding, and emit GitHub-style annotations on stderr. `--check` suppresses the raw
+findings on stdout. Invalid invocation or workspace admission returns 2 before checks run.
 
 ## Canonical policy
 

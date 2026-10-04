@@ -102,18 +102,18 @@ class RunStoreTests(unittest.TestCase):
         return {path.name: (path.read_bytes(), stat.S_IMODE(path.stat().st_mode), path.stat().st_uid)
                 for path in self.run_dir.iterdir()}
 
+    def tree(self):
+        """The whole repository's bytes, mode, and owner; directories are marked, not read."""
+        return {str(path.relative_to(self.root)): (
+            "directory" if path.is_dir() else path.read_bytes(),
+            stat.S_IMODE(path.stat().st_mode), path.stat().st_uid)
+            for path in self.root.rglob("*")}
+
     def test_missing_unix_capabilities_reject_without_touching_retained_records(self):
         self.record()
         for missing in ("fcntl", "O_NOFOLLOW", "O_DIRECTORY", "geteuid"):
             with self.subTest(missing=missing):
-                before = {
-                    str(path.relative_to(self.root)): (
-                        "directory" if path.is_dir() else path.read_bytes(),
-                        stat.S_IMODE(path.stat().st_mode),
-                        path.stat().st_uid,
-                    )
-                    for path in self.root.rglob("*")
-                }
+                before = self.tree()
                 result = subprocess.run(
                     [sys.executable, "-c", UNAVAILABLE_RUNNER, str(HELPER), missing,
                      *self.command("read")[2:]], capture_output=True, timeout=15)
@@ -123,14 +123,7 @@ class RunStoreTests(unittest.TestCase):
                 self.assertIn(missing.encode(), result.stderr)
                 self.assertIn(b"Unix", result.stderr)
                 self.assertNotIn(b"Traceback", result.stderr)
-                self.assertEqual({
-                    str(path.relative_to(self.root)): (
-                        "directory" if path.is_dir() else path.read_bytes(),
-                        stat.S_IMODE(path.stat().st_mode),
-                        path.stat().st_uid,
-                    )
-                    for path in self.root.rglob("*")
-                }, before)
+                self.assertEqual(self.tree(), before)
 
     def test_valid_reads_return_the_exact_retained_bytes(self):
         manifest_bytes = json.dumps(self.manifest, indent=2, ensure_ascii=False).encode() + b"\n"

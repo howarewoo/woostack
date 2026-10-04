@@ -82,9 +82,8 @@ For an explicit one-run model or effort request, apply the shared
    in the primary checkout. Inline implementation requires a workflow change from the user;
    unavailable worker/isolation capability is a blocker, not an equivalent local result.
 5. **Integrate and deliver the group's PR and stack.** Use native worker-completion handling;
-   on interrupted workers or uncertain commit, push, PR, or stack outcomes, rediscover native state
-   and Git/PR facts before retrying. Preserve unknown work, block affected dependents, and never
-   duplicate work or claim unverified delivery.
+   on interrupted workers, rediscover native state and Git/PR facts before retrying. Preserve
+   unknown work, block affected dependents, and never duplicate work or claim unverified delivery.
    Independently reconcile source/destination revisions, ancestry/diffs, ownership, and requested
    PR facts against worker claims. Resolve stale handoffs, identify already-present and missing
    changes, and integrate the intended union once, including overlapping child histories.
@@ -101,15 +100,15 @@ For an explicit one-run model or effort request, apply the shared
    under [Slow checks](../woostack-execute/references/tdd.md#slow-checks-bounded-diagnosis-no-waiver).
    Hand the intended parent and ordered chain to [Commit](../woostack-commit/SKILL.md) and require
    native registration for dependent PRs.
-   Commit owns delivery, native stack registration, and read-back under its
-   [source-control reference](../woostack-commit/references/source-control.md#native-stack-membership).
+   Commit owns delivery, native stack registration, lost-write recovery, and read-back under its
+   [source-control reference](../woostack-commit/references/source-control.md#native-stack-membership);
+   confirm the published identity, head, base, content, and required membership/order yourself.
    Each root PR targets the approved trunk; each dependent PR targets its planned predecessor's
-   head branch. A one-PR run and independent PRs need no stack. Missing required stack capability or
-   registration leaves delivery incomplete; preserve valid work and PRs and report that boundary.
-   Independently read back the PR identity, published head, intended base, requested content, and
-   required native membership/order.
-   Conflicting membership, a non-top append, or a changed parent requires revalidating the affected
-   plan; requested reorganization follows the shared reference.
+   head branch. A one-PR run and independent PRs need no stack. Missing required stack capability
+   or registration leaves delivery incomplete; preserve valid work and PRs and report that
+   boundary.
+   Conflicting membership, a non-top append, or a changed parent requires revalidating the
+   affected plan; requested reorganization follows the shared reference.
 6. **Finish delivered groups.** After verified PR publication and required native stack membership/order,
    the coordinator and delegated workers finish that group. Do not fetch or monitor PR checks or
    reviews, wait for CI, collect new comments, or initiate post-delivery repairs. Continue only

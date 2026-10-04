@@ -26,11 +26,10 @@ existing Project. Without it, the destination comes from the request and the act
 1. **Resolve the request and relevant context.** Read the goal or partial issue and supplied
    constraints. Inspect a checkout and remote when they exist and bear on the request, plus any
    issue or Project the user named. Planning-only needs neither source nor a GitHub destination.
-   Before publication, resolve one authorized repository and destination; if more than one is
-   plausible, ask instead of choosing. Never select by title, recent activity, repository
-   convention, or an unchosen configured default. The
+   Before publication, resolve exactly one authorized repository and destination — never a guess
+   from title, activity, convention, or an unchosen default. The
    [GitHub publication procedure](references/github-procedure.md#resolving-the-destination)
-   owns destination resolution and capability preflights.
+   owns that resolution and capability preflights.
 2. **Inspect the relevant evidence.** When source exists, read the bounded files, tests,
    configuration, documentation, and relevant known issues. Otherwise use supplied requirements
    and authoritative research for material technology choices; do not create a checkout to plan.
@@ -76,19 +75,16 @@ not run them or claim they pass.
 
 ## Publishing and read-back
 
-Publication reuses the existing issue for an increment when there is one, creates the missing
-issues, and adds only the relationships the request asked for. After every write, read the affected
-issues back independently and confirm their actual content and their actual relationships; the
-mutation response alone proves nothing. A create whose response was lost is rediscovered by exact
-identity in the exact repository, never by creating a second copy blind.
+Publication writes one issue per increment and only the relationships the request asked for,
+through the host's authorized GitHub capability under the
+[GitHub profile](../woostack-init/references/artifact-providers/github.md#configuration-and-scope);
+never read credentials, forward tokens, or add a custom transport. Independently read every
+affected issue and relationship back; a mutation response alone proves nothing.
 
-Use the host's authorized GitHub capability — native tools when suitable, host-authenticated `gh`
-otherwise — under the [GitHub profile](../woostack-init/references/artifact-providers/github.md#configuration-and-scope).
-Never read credentials, forward tokens, or add a custom transport.
-
-If the host cannot create a native sub-issue or dependency link, keep the issues you wrote and a
-readable index of them with their declared prerequisites, and report the missing relationships. An
-explicitly required native graph that was not created is incomplete, and Plan says so instead of
+The [publication procedure](references/github-procedure.md) owns destination resolution, capability
+preflights, existing-issue reuse, the retained create identity that recovers a lost response without
+a second copy, and the readable index that stands in for a native relationship the host cannot
+write. A required native graph that was not created stays incomplete, and Plan says so instead of
 calling it published. An explicit Project selection adds membership for the published issues; it
 never creates a Project, and no Status, lifecycle, or acceptance change happens without its own
 request.

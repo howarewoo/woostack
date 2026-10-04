@@ -4,13 +4,11 @@ This is the canonical testing guidance for bounded [`woostack-execute`](../SKILL
 tasks and [`woostack-simplify`](../../woostack-simplify/SKILL.md) baseline and final
 checks. Reading it invokes no workflow and requires no skill installation or handoff.
 
-A request to add tests is ordinary bounded Execute input. Resolve the exact target, the observable
+A request to add tests is ordinary bounded Execute input, under the entrypoint's
+[test-only scope](../SKILL.md#test-only-outcomes). Resolve the exact target, the observable
 behavior and boundaries it covers, the acceptance-defined success and failure conditions, and the
 focused checks that prove the result from the outcome and current source — a caller-supplied
-contract or template is a convenience, never a gate. Execute retains the task's test-only scope: it
-does not turn a test discrepancy into an unapproved production fix, discover a project or provider,
-manage subagents, or add a handoff. Report a behavior discrepancy for a scope decision when the
-admitted task does not authorize a production correction.
+contract or template is a convenience, never a gate.
 
 ## Select checks rather than accumulate them
 

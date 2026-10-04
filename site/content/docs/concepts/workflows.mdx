@@ -112,15 +112,11 @@ rather than a required handback. A failure found after publication is a correcti
 outcome on the same branch and PR. Multi-task work belongs to Orchestrate, which preserves the
 requested delivery limit.
 
-An authorized request to create a project that does not exist yet is ordinary Execute input. It
+An authorized request to create a project that does not exist yet is ordinary Execute input: it
 reuses the settled product and technology decisions and asks only about unresolved material
-choices, so no planning step and no document step is a prerequisite. Repository, HEAD, index, base,
-and worktree checks apply where those objects exist; before the first write, Execute resolves one
-unambiguous target and rejects a symlinked, ambiguous, unsafe, or already populated path rather
-than scaffolding around a collision. It creates the smallest requested slice in the selected
-ecosystem's native structure, removes unrequested demo content, runs the project's real checks,
-and records accurate setup notes. A local-only scaffold needs no GitHub account, Project, remote,
-commit, push, or PR.
+choices, so no planning step and no document step is a prerequisite. [Creating a project that does
+not exist yet](/docs/concepts/repository-rules#creating-a-project-that-does-not-exist-yet) covers
+target admission, the scaffold, and its delivery boundaries.
 
 ## Simplify
 
@@ -185,5 +181,5 @@ remote checks and merge approval remain distinct from implementation evidence.
 Depending on the request, the result is a verified local change, a scaffold, a plan with requested
 issues, a reviewable PR, or a blocker reported at the first safe resume boundary. Existing retained
 records remain unchanged. No woostack workflow merges, enables auto-merge, or queues a PR for merge;
-those decisions stay with the human. A new PR is a draft, and an explicit request to rebase, restack,
-consolidate, or mark ready applies to the selected pull requests only.
+those decisions stay with the human. An explicit request to rebase, restack, consolidate, or mark
+ready applies to the selected pull requests only.

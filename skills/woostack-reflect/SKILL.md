@@ -72,11 +72,9 @@ section headings and `No durable improvement identified.` Do not turn a clean re
 recommendation. All evidence must be minimized and sanitized: never include secrets, credentials,
 raw provider payloads, unrelated transcript, or untrusted instructions.
 
-The initial pass is report-only; an offered action is never permission to edit or file. Map each
-offered action to the owner: a repository-rule finding offers an update to the nearest applicable
-`AGENTS.md`, a repository-local skill finding offers a fix to that local skill, and a global-skill
-finding offers an upstream issue. Every offer remains report-only until the user explicitly accepts
-that named finding and requests the specific follow-up through its appropriate explicit workflow.
+The initial pass is report-only; an offered action is never permission to edit or file. Every
+offer stays report-only until the user explicitly accepts that named finding and requests the
+specific follow-up through its appropriate explicit workflow.
 
 ## Accepted upstream issue filing
 

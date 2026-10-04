@@ -36,10 +36,9 @@ retained_dir_has_data() {
   [ -d "$dir" ] || return 1
   shopt -s nullglob dotglob
   for entry in "$dir"/*; do
-    if [ "${entry##*/}" != ".gitkeep" ]; then
-      shopt -u nullglob dotglob
-      return 0
-    fi
+    [ "${entry##*/}" = ".gitkeep" ] && continue
+    shopt -u nullglob dotglob
+    return 0
   done
   shopt -u nullglob dotglob
   return 1

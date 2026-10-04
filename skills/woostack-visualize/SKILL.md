@@ -11,9 +11,8 @@ HTML is a disposable reading aid, never the authority for what it describes.
 ## Command
 
 - `/woostack-visualize <source> [for <audience>]`
-  - `<source>` is a supplied document, pasted proposal, or attachment; a file in the current working
-    copy, committed or not; an exact GitHub Project, issue, or PR reference; an immutable Git blob
-    or path; or a repository file or directory.
+  - `<source>` is any one of the source kinds resolved under
+    [Read the source](#read-the-source-read-only).
   - `<audience>` is `engineer`, `non-technical`, `investor`, or a free-form reader description.
     It defaults to `engineer`.
   - Examples:
@@ -37,8 +36,7 @@ contents: open the actual text, attachment, or file with available authorized to
 stage, upload, or copy material into a new store to make it admissible.
 
 Resolve the selected source once, and name it the way that read actually proves in ordinary
-language — supplied document/proposal, observed working-copy content, verified Git revision or
-exact PR, or observed mutable GitHub Project/issue:
+language:
 
 1. **Supplied document or proposal.** Use the text the caller pasted, attached, or named; directly
    supplied explanatory prose renders as a proposal with no repository discovery.

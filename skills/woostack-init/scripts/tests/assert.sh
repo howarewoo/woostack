@@ -14,19 +14,35 @@ pass() {
 }
 
 assert_eq() { # actual expected msg
-  if [ "$1" = "$2" ]; then PASS=$((PASS+1)); else
-    FAIL=$((FAIL+1)); echo "  FAIL: $3"; echo "    expected: [$2]"; echo "    actual:   [$1]"; fi
+  if [ "$1" = "$2" ]; then
+    pass
+  else
+    fail "$3"
+    echo "    expected: [$2]"
+    echo "    actual:   [$1]"
+  fi
 }
 assert_contains() { # haystack needle msg
-  if [[ "$1" == *"$2"* ]]; then PASS=$((PASS+1)); else
-    FAIL=$((FAIL+1)); echo "  FAIL: $3"; echo "    [$1] does not contain [$2]"; fi
+  if [[ "$1" == *"$2"* ]]; then
+    pass
+  else
+    fail "$3"
+    echo "    [$1] does not contain [$2]"
+  fi
 }
 assert_not_contains() { # haystack needle msg
   if [[ "$1" == *"$2"* ]]; then
-    FAIL=$((FAIL+1)); echo "  FAIL: $3"; echo "    [$1] unexpectedly contains [$2]"; else PASS=$((PASS+1)); fi
+    fail "$3"
+    echo "    [$1] unexpectedly contains [$2]"
+  else
+    pass
+  fi
 }
 assert_exit() { # expected_code actual_code msg
-  if [ "$1" = "$2" ]; then PASS=$((PASS+1)); else
-    FAIL=$((FAIL+1)); echo "  FAIL: $3 (expected exit $1, got $2)"; fi
+  if [ "$1" = "$2" ]; then
+    pass
+  else
+    fail "$3 (expected exit $1, got $2)"
+  fi
 }
 finish() { echo "  $PASS passed, $FAIL failed"; [ "$FAIL" -eq 0 ]; }

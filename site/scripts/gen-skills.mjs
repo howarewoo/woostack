@@ -5,8 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { validateSkillAssets } from './skill-assets.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const REPO_ROOT = path.resolve(__dirname, '..', '..'); // site/scripts -> repo root
-const SKILLS_DIR = path.join(REPO_ROOT, 'skills');
+const SKILLS_DIR = path.resolve(__dirname, '..', '..', 'skills'); // site/scripts -> repo-root skills/
 const OUT_DIR = path.resolve(__dirname, '..', 'content', 'docs', 'skills');
 const GH_BASE = 'https://github.com/howarewoo/woostack/blob/main';
 export const PUBLIC_ORDER = [
@@ -53,11 +52,11 @@ function humanizeTag(t) {
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
-function escapeBareTagsOutsideCode(line) {
-  // split on inline code spans; only escape uppercase tags in the non-code segments
+// Inline code spans are passed through untouched; `replace` only ever sees prose.
+function mapOutsideCodeSpans(line, pattern, replacement) {
   return line
     .split(/(`[^`]*`)/)
-    .map((seg) => (seg.startsWith('`') ? seg : seg.replace(/<(\/?[A-Z][A-Z-]*)(\s+[^<>]*?)?>/g, '&lt;$1$2&gt;')))
+    .map((segment) => (segment.startsWith('`') ? segment : segment.replace(pattern, replacement)))
     .join('');
 }
 
@@ -70,23 +69,21 @@ export function neutralizeTags(body) {
     if (inFence) { out.push(line); continue; }
     if (/^\s*<!--.*-->\s*$/.test(line)) continue;
     let strippedHardGate = false;
-    const publicLine = line
-      .split(/(`[^`]*`)/)
-      .map((seg) => (seg.startsWith('`') ? seg : seg.replace(
-        /<HARD-GATE\s+[^<>]*>|<\/HARD-GATE>/g,
-        (tag) => {
-          if (tag.startsWith('</') && attributedHardGateDepth === 0) return tag;
-          attributedHardGateDepth += tag.startsWith('</') ? -1 : 1;
-          strippedHardGate = true;
-          return '';
-        }
-      )))
-      .join('');
+    const publicLine = mapOutsideCodeSpans(
+      line,
+      /<HARD-GATE\s+[^<>]*>|<\/HARD-GATE>/g,
+      (tag) => {
+        if (tag.startsWith('</') && attributedHardGateDepth === 0) return tag;
+        attributedHardGateDepth += tag.startsWith('</') ? -1 : 1;
+        strippedHardGate = true;
+        return '';
+      }
+    );
     if (strippedHardGate && publicLine.trim() === '') continue;
     const open = /^<([A-Z][A-Z-]*)>\s*$/.exec(publicLine);
     if (open) { out.push(`<Callout type="warn" title="${humanizeTag(open[1])}">`); continue; }
     if (/^<\/[A-Z][A-Z-]*>\s*$/.test(publicLine)) { out.push('</Callout>'); continue; }
-    out.push(escapeBareTagsOutsideCode(publicLine));
+    out.push(mapOutsideCodeSpans(publicLine, /<(\/?[A-Z][A-Z-]*)(\s+[^<>]*?)?>/g, '&lt;$1$2&gt;'));
   }
   return out.join('\n');
 }
@@ -112,20 +109,17 @@ async function main() {
   const skills = await validateSkillAssets(SKILLS_DIR, PUBLIC_ORDER);
   await rm(OUT_DIR, { recursive: true, force: true });
   await mkdir(OUT_DIR, { recursive: true });
-  const written = [];
   for (const { name, fm, body } of skills) {
-    let renderedBody = stripTitleHeading(body, fm.name);
-    renderedBody = neutralizeTags(renderedBody);
-    renderedBody = rewriteLinks(renderedBody, name);
-    await writeFile(path.join(OUT_DIR, `${name}.mdx`), renderPage(name, fm, renderedBody), 'utf8');
-    written.push(name);
+    const rendered = rewriteLinks(neutralizeTags(stripTitleHeading(body, fm.name)), name);
+    await writeFile(path.join(OUT_DIR, `${name}.mdx`), renderPage(name, fm, rendered), 'utf8');
   }
+  const names = skills.map(({ name }) => name);
   await writeFile(
     path.join(OUT_DIR, 'meta.json'),
-    JSON.stringify({ title: 'Skills', pages: navOrder(written) }, null, 2) + '\n',
+    JSON.stringify({ title: 'Skills', pages: navOrder(names) }, null, 2) + '\n',
     'utf8'
   );
-  console.log(`gen-skills: wrote ${written.length} pages -> ${path.relative(process.cwd(), OUT_DIR)}`);
+  console.log(`gen-skills: wrote ${names.length} pages -> ${path.relative(process.cwd(), OUT_DIR)}`);
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

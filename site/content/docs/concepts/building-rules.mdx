@@ -44,12 +44,8 @@ confirmed part while reporting the unproved part.
 
 ## Retained records
 
-Existing `.woostack/tmp/runs/<run-id>/` artifacts from retired planning wrappers stay readable
-historical user data and are never migrated, rewritten, or deleted. Such a record becomes evidence
-only after its exact identity, complete content, and freshness are validated, and it never
-authorizes publication, assignment, implementation, or ownership. The
-[local artifacts reference](/docs/configuration/artifacts/local) owns their preservation and
-recovery.
-
-The [Hermes guide](/docs/hermes) shows how an external engineer can review harness evidence
-without receiving implementation authority.
+Existing `.woostack/tmp/runs/<run-id>/` artifacts stay readable historical user data and authorize
+nothing. A record becomes evidence only after its exact identity, complete content, and freshness are
+validated. The [local artifacts reference](/docs/configuration/artifacts/local) owns their
+preservation and recovery, and the [Hermes guide](/docs/hermes) shows how an external engineer
+reviews harness evidence without receiving implementation authority.

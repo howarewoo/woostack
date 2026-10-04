@@ -132,16 +132,12 @@ worktrees are cut from.
 ## Defaults and doctor
 
 <Callout type="info">
-  Init and [woostack-doctor](/docs/skills/woostack-doctor) inspect local configuration only. Init
-  validates the optional top-level `github` object without seeding model settings, and it contacts
-  no provider or infers no owner, Status field, or destination. Doctor's checks are static: they
-  read no credentials and make no network call, and an approved local repair is handed to Execute
-  with the requested delivery limit. A workflow that uses GitHub proves the access its own selected
-  operation needs. Plan publishes issues directly when requested and requires no Project
-  configuration, local run, or second remote record. Local implementation needs no GitHub access
-  unless an exact issue was selected for context; that issue read grants neither implementation nor
-  publication authority. Keep credentials in the host secret store. A clean local check is not proof
-  of remote authorization, and an incomplete check is not a healthy one.
+  Init and [woostack-doctor](/docs/skills/woostack-doctor) inspect local configuration only: they
+  contact no provider, read no credentials, and make no network call, and an approved local repair
+  is handed to Execute with the requested delivery limit. Keep credentials in the host secret store.
+  A clean local check is not proof of remote authorization, and an incomplete check is not a healthy
+  one. The [artifacts reference](/docs/configuration/artifacts) owns each workflow's GitHub
+  requirements.
 </Callout>
 
 ## Migration notes

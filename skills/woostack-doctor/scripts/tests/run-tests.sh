@@ -11,6 +11,6 @@ tests=(
 )
 for t in "${tests[@]}"; do
   echo "== $t =="
-  if bash "$t"; then :; else rc=1; fi
+  bash "$t" || rc=1
 done
 exit "$rc"

@@ -81,9 +81,8 @@ required capability as unmet rather than substituting a weaker step.
 
 ### Optional exact GitHub issue
 
-For each selected issue, resolve its exact URL through an authorized GitHub read capability
-exposed by the host (prefer native tools; host-authenticated `gh` remains supported). Verify
-native identity, canonical URL/repository, issue type rather than PR, open state, complete
+For each selected issue, resolve its exact URL through the authorized GitHub read capability.
+Verify native identity, canonical URL/repository, issue type rather than PR, open state, complete
 title/body, and task-relevant comments with necessary pagination. Match the canonical Git remote
 when the target has one; without a checkout/remote, verify the caller-selected issue's repository
 directly without creating local Git or a remote. Reconcile inline scope and any requested delivery

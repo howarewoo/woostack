@@ -53,15 +53,14 @@ Init first reports what needs creating, updating, or preserving. Answer question
 product behavior, design direction, or working agreements; you can defer a decision rather than
 inventing an answer. Review meaningful changes to direction, constraints, and agent permissions.
 
-The result should give each document a distinct job: `PRODUCT.md` explains the intended users and
-scope, `DESIGN.md` records relevant product/system design, and `AGENTS.md` gives an agent actual
-commands, boundaries, and contextual links to the other guidance. Existing canonical documents and
-scoped instructions stay authoritative. Init includes the availability-aware
+The result should give each document a distinct job: `PRODUCT.md` records the intended users and
+scope using the current product-record format; a visual `DESIGN.md` follows the design-system
+format, while an architecture-focused one keeps its established role. `AGENTS.md` remains
+unversioned operational guidance with actual commands, boundaries, and contextual links. See
+[document responsibilities](/docs/skills/woostack-init#document-responsibilities) for the applicable
+formats. Existing canonical documents and scoped instructions stay authoritative. Init includes the
+availability-aware
 [routing paragraph](/docs/skills/using-woostack#agentsmd-usage) in new or updated agent instructions.
-Agents use Woostack when available and continue with repository guidance when it is not;
-installation is not a prerequisite for ordinary work. An explicit Woostack command whose skill
-is missing still asks whether to install it or proceed without it, even when the router is
-unavailable. The workflow catalog stays in the skills.
 
 Read the report and the resulting guidance. Check that referenced files exist and that commands
 match the repository. A good existing document may need no edits. Deferred decisions should be

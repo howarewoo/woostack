@@ -50,7 +50,6 @@ def require_environment():
                          "Unix locking, ownership, and no-follow filesystem primitives")
 
 
-
 def inode(info):
     return info.st_dev, info.st_ino
 
@@ -78,17 +77,26 @@ def private(info, mode, device, name):
 
 
 def file_bytes(run_fd, name):
+    device = os.fstat(run_fd).st_dev
     fd = os.open(name, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=run_fd)
     with os.fdopen(fd, "rb") as stream:
         before = os.fstat(stream.fileno())
-        private(before, 0o600, os.fstat(run_fd).st_dev, name)
+        private(before, 0o600, device, name)
         data = stream.read()
         after = os.fstat(stream.fileno())
-        private(after, 0o600, os.fstat(run_fd).st_dev, name)
+        private(after, 0o600, device, name)
         require((before.st_size, before.st_mtime_ns, before.st_ctime_ns)
                 == (after.st_size, after.st_mtime_ns, after.st_ctime_ns),
                 f"file changed while reading: {name}")
         return data
+
+
+def lock_file(stack, dir_fd):
+    """Open and validate the run's existing exclusive lock; the reader never creates one."""
+    fd = os.open(".lock", os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=dir_fd)
+    stack.callback(os.close, fd)
+    private(os.fstat(fd), 0o600, os.fstat(dir_fd).st_dev, ".lock")
+    return fd
 
 
 def unique_object(pairs):
@@ -134,10 +142,7 @@ class RunStore:
         require(not git("ls-files", "-z", "--", ".woostack/tmp/"),
                 ".woostack/tmp/ contains tracked files")
         self.run_fd = self.open_run(stack)
-        self.lock_fd = os.open(".lock", os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK,
-                               dir_fd=self.run_fd)
-        stack.callback(os.close, self.lock_fd)
-        private(os.fstat(self.lock_fd), 0o600, os.fstat(self.run_fd).st_dev, ".lock")
+        self.lock_fd = lock_file(stack, self.run_fd)
         fcntl.flock(self.lock_fd, fcntl.LOCK_EX)
         self.reopen()
 
@@ -156,9 +161,7 @@ class RunStore:
         with ExitStack() as stack:
             fd = self.open_run(stack)
             require(inode(os.fstat(fd)) == inode(os.fstat(self.run_fd)), "run directory changed")
-            lock = os.open(".lock", os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=fd)
-            stack.callback(os.close, lock)
-            private(os.fstat(lock), 0o600, os.fstat(fd).st_dev, ".lock")
+            lock = lock_file(stack, fd)
             require(inode(os.fstat(lock)) == inode(os.fstat(self.lock_fd)), "run lock changed")
 
     def snapshot(self):

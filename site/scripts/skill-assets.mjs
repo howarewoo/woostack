@@ -157,6 +157,10 @@ function markdownUnescape(value) {
   return value.replace(/\\([!"#$%&'()*+,\-./:;<=>?@[\\\]^_`{|}~])/g, '$1');
 }
 
+function isHorizontalSpace(character) {
+  return character === ' ' || character === '\t';
+}
+
 function parseMarkdownBracket(line, start) {
   if (line[start] !== '[') return null;
   let depth = 1;
@@ -182,7 +186,7 @@ function parseMarkdownBracket(line, start) {
 
 function parseBareMarkdownDestination(line, start) {
   let index = start;
-  while (line[index] === ' ' || line[index] === '\t') index += 1;
+  while (isHorizontalSpace(line[index])) index += 1;
   if (line[index] === '<') {
     let value = '';
     for (index += 1; index < line.length; index += 1) {
@@ -211,7 +215,7 @@ function parseBareMarkdownDestination(line, start) {
       if (depth === 0) break;
       depth -= 1;
       value += character;
-    } else if ((character === ' ' || character === '\t') && depth === 0) {
+    } else if (isHorizontalSpace(character) && depth === 0) {
       break;
     } else {
       value += character;
@@ -225,8 +229,8 @@ function parseInlineMarkdownDestination(line, start) {
   const destination = parseBareMarkdownDestination(line, start + 1);
   if (!destination) return null;
   let index = destination.end;
-  const titleSeparated = line[index] === ' ' || line[index] === '\t';
-  while (line[index] === ' ' || line[index] === '\t') index += 1;
+  const titleSeparated = isHorizontalSpace(line[index]);
+  while (isHorizontalSpace(line[index])) index += 1;
   if (line[index] === ')') return { target: destination.target, end: index + 1 };
   if (!titleSeparated || !['"', "'", '('].includes(line[index])) return null;
 
@@ -247,7 +251,7 @@ function parseInlineMarkdownDestination(line, start) {
     }
   }
   if (depth !== 0) return null;
-  while (line[index] === ' ' || line[index] === '\t') index += 1;
+  while (isHorizontalSpace(line[index])) index += 1;
   if (line[index] !== ')') return null;
   return { target: destination.target, end: index + 1 };
 }
@@ -359,6 +363,16 @@ function isContained(root, candidate) {
   return relative === '' || (!relative.startsWith(`..${path.sep}`) && relative !== '..' && !path.isAbsolute(relative));
 }
 
+// `lstat` follows no links, so a symlinked entry point stays visible here and is rejected later.
+async function lstatOrNull(target) {
+  try {
+    return await lstat(target);
+  } catch (error) {
+    if (error?.code !== 'ENOENT') throw error;
+    return null;
+  }
+}
+
 async function validateLocalLinks(collectionRoot, sourcePath, raw) {
   for (const link of extractMarkdownLinks(raw)) {
     const target = localLinkTarget(link);
@@ -374,14 +388,9 @@ async function validateLocalLinks(collectionRoot, sourcePath, raw) {
     if (!isContained(collectionRoot, candidate)) {
       throw new Error(`${sourcePath}: local link target escapes the skill collection: ${link}`);
     }
-    let state;
-    try {
-      state = await lstat(candidate);
-    } catch (error) {
-      if (error?.code === 'ENOENT') {
-        throw new Error(`${sourcePath}: local link target does not exist: ${link}`);
-      }
-      throw error;
+    const state = await lstatOrNull(candidate);
+    if (!state) {
+      throw new Error(`${sourcePath}: local link target does not exist: ${link}`);
     }
     if (state.isSymbolicLink()) {
       throw new Error(`${sourcePath}: local link target must not be a symlink: ${link}`);
@@ -412,12 +421,7 @@ export async function validateSkillAssets(skillsDir, publicOrder) {
   const names = [];
   for (const entry of await readdir(root, { withFileTypes: true })) {
     if (!entry.isDirectory()) continue;
-    try {
-      await lstat(path.join(root, entry.name, 'SKILL.md'));
-      names.push(entry.name);
-    } catch (error) {
-      if (error?.code !== 'ENOENT') throw error;
-    }
+    if (await lstatOrNull(path.join(root, entry.name, 'SKILL.md'))) names.push(entry.name);
   }
   names.sort();
   const expected = [...publicOrder].sort();

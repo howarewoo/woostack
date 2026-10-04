@@ -9,7 +9,9 @@ export const source = loader({
   plugins: [lucideIconsPlugin()],
 });
 
-export function getPageImage(page: (typeof source)['$inferPage']) {
+type Page = (typeof source)['$inferPage'];
+
+export function getPageImage(page: Page) {
   const segments = [...page.slugs, 'image.png'];
 
   return {
@@ -18,7 +20,7 @@ export function getPageImage(page: (typeof source)['$inferPage']) {
   };
 }
 
-export function getPageMarkdownUrl(page: (typeof source)['$inferPage']) {
+export function getPageMarkdownUrl(page: Page) {
   const segments = [...page.slugs, 'content.md'];
 
   return {
@@ -27,7 +29,7 @@ export function getPageMarkdownUrl(page: (typeof source)['$inferPage']) {
   };
 }
 
-export async function getLLMText(page: (typeof source)['$inferPage']) {
+export async function getLLMText(page: Page) {
   const processed = await page.data.getText('processed');
 
   return `# ${page.data.title} (${page.url})

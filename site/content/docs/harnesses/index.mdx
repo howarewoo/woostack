@@ -9,11 +9,11 @@ have documented host notes covering each host's own mechanics. Another host that
 works too when it exposes the capabilities a task needs.
 
 Capabilities differ, and only the active session's tool schema and discovered agents prove what a
-harness accepts. A host may expose a model or effort field for each worker, set its working
-directory, or run several workers at once — and a harness page is not proof that it does. A worker
-(also called a subagent) handles an assigned task and returns its results to the main agent.
-Giving it a separate conversation context does not by itself restrict which files it can edit;
-concurrent writers need independently owned workspaces and scoped tasks.
+harness accepts. A harness page records a host's documented mechanics; it is not proof that a
+particular run exposes that capability. A worker (also called a subagent) handles an assigned task
+and returns its results to the main agent. Giving it a separate conversation context does not by
+itself restrict which files it can edit, so concurrent writers need independently owned workspaces
+and scoped tasks.
 
 An absent optional subagent does not block inline work. Missing permission for a required
 publication or other side effect blocks that operation. An unsupported optional explicit model
@@ -43,7 +43,7 @@ those agents, provider credentials, and fallback policy, including when Hermes c
 
 Woostack skill names are the same in every harness. A `/woostack-*` example in this documentation
 names the logical command or request; each harness has its own documented way to invoke a skill
-explicitly. Use the form your harness documents — it is the same skill, with the same permissions
+explicitly. Use the form your harness documents. It is the same skill, with the same permissions
 and the same result.
 
 | Harness | Documented explicit invocation |

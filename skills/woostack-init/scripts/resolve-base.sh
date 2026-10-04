@@ -15,11 +15,7 @@
 # Root resolution precedence is WOOSTACK_ROOT -> GITHUB_WORKSPACE ->
 # git rev-parse --show-toplevel -> pwd; `.woostack/` anchors to the repo root.
 if [ -z "${WOOSTACK_ROOT:-}" ]; then
-  if [ -n "${GITHUB_WORKSPACE:-}" ]; then
-    WOOSTACK_ROOT="$GITHUB_WORKSPACE"
-  else
-    WOOSTACK_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
-  fi
+  WOOSTACK_ROOT="${GITHUB_WORKSPACE:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}"
 fi
 export WOOSTACK_ROOT
 
