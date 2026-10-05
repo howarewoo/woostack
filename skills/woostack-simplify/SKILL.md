@@ -8,6 +8,10 @@ description: Use when asked to simplify, de-bloat, or rework existing code, remo
 Rework selected existing code to reduce unnecessary complexity while preserving required behavior.
 Apply changes unless the user requests analysis only. This is a bounded task, not an always-on mode.
 
+When used within an existing implementation task, inherit its scope, workspace, and still-applicable
+verification evidence, then return control without restarting a standalone workflow or publishing
+independently.
+
 Use the shared [least-code standard](../woostack-execute/references/patterns.md#7-least-code--comments)
 for replacement choices. Reading that reference does not invoke Execute; neither Execute nor Plan
 is a prerequisite. The deletion-first approach is inspired by [Ponytail](https://github.com/DietrichGebert/ponytail).
