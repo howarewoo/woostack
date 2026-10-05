@@ -149,6 +149,14 @@ complete diff and classify every changed path against the outcome; out-of-scope 
 delivery. Mixed changes are safe only when all in-scope hunks can be staged without touching or
 hiding unrelated work; ambiguous mixed hunks block and remain preserved.
 
+Before final verification and any required review, make one behavior-preserving simplification pass
+over only the admitted task's changes using [Simplify](../woostack-simplify/SKILL.md) when available,
+or the shared [least-code guidance](references/patterns.md#7-least-code--comments) inline otherwise.
+Reuse the established scope, workspace, and still-applicable verification evidence; an unchanged
+result is valid. Rerun checks affected by edits, then continue Execute's existing review and
+requested delivery. Do not expand scope, restart a standalone workflow, or repeat simplification
+after review or delivery.
+
 Select and run checks under the canonical [testing guidance](references/tdd.md).
 A failed or incomplete required check blocks delivery. If the environment prevents a check, try one
 materially different recovery; absent new evidence, report the unverified criterion instead of
