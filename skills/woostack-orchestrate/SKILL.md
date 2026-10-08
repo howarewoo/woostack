@@ -59,8 +59,11 @@ For an explicit one-run model or effort request, apply the shared
    Never persist a global execution forest, infer a dependency from branch naming, or manufacture a
    source/landing receipt. A task
    whose required changes are not available waits; a safe independent task may continue.
-4. **Delegate every group.** Give each group a native implementation writer with exclusive access
-   to its admitted task workspace and branch, including a single-group run. Reuse that allocation
+4. **Delegate every group.** Use the active harness's native subagent tool and
+   select an existing agent suited to the assignment. Preserve its configured
+   model/role routing unless the user explicitly requests an override. Give each
+   group an implementation writer with exclusive access to its admitted task
+   workspace and branch, including a single-group run. Reuse that allocation
    across in-scope corrections, failed checks, revised approaches, and replacement writers.
    Sequential work stays sequential; additional checkouts need a concrete isolation reason under
    the [workspace contract](../woostack-init/references/worktrees.md#workspace-and-ownership).
