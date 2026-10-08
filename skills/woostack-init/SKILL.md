@@ -1,13 +1,13 @@
 ---
 name: woostack-init
-description: Create or maintain a repository's AGENTS.md, DESIGN.md, and PRODUCT.md through evidence-based guidance and material user decisions; also initialize or repair local .woostack/ support when explicitly requested.
+description: Create or maintain a repository's README.md, AGENTS.md, DESIGN.md, and PRODUCT.md through evidence-based guidance and material user decisions; also initialize or repair local .woostack/ support when explicitly requested.
 ---
 
 # woostack-init
 
-Help the user create or improve project guidance that is accurate, repository-specific, useful for
-decisions, concise, and maintainable. Inspect before asking, preserve what works, and apply only
-changes the request authorizes. A rerun may make no changes.
+Help the user create or improve the root README and project guidance: accurate, repository-specific,
+useful for decisions, concise, and maintainable. Inspect before asking, preserve what works, and
+apply only changes the request authorizes. A rerun may make no changes.
 
 ## Command and scope
 
@@ -32,9 +32,10 @@ and contracts only for relevant support work.
    Summarize what needs creating, updating, or preserving. Distinguish observed implementation,
    documented intent, and unresolved decisions; surface contradictions rather than silently choosing
    one. Preserve the authority and scope of existing instructions.
-2. **Resolve material gaps.** Ask repository-informed questions only where answers change product
-   behavior, design direction, or working agreements. Offer a recommendation and tradeoff when
-   useful. Do not ask for repository facts or previously answered product and technology decisions.
+2. **Resolve material gaps.** Ask repository-informed questions only where answers change a reader's
+   first-use path, product behavior, design direction, or working agreements. Offer a recommendation
+   and tradeoff when useful. Do not ask for repository facts or previously answered product and
+   technology decisions.
    Product → design → agent instructions is a useful default, not a required sequence.
    Adapt to the project and allow decisions to remain explicitly deferred.
 3. **Draft focused guidance.** Use the [document responsibilities](#document-responsibilities) and
@@ -46,8 +47,8 @@ and contracts only for relevant support work.
    documents. Never invent commands, metrics, architectural rationale, or settled decisions.
 4. **Review meaningful changes and apply authorized edits.** Present the proposed result, calling out
    changes to product direction, design constraints, and agent permissions. Reuse authorization
-   already given; do not add approval ceremonies for individual headings or paragraphs. A draft-only
-   or planning request writes nothing. Unapproved scope expansion remains a proposal. Preserve
+   already given; do not add approval ceremonies for individual headings or paragraphs. Review-only,
+   draft-only, or planning requests write nothing. Unapproved scope expansion remains a proposal. Preserve
    unrelated work, file ownership, and existing file/symlink relationships: verify a linked target's
    identity and authorization before editing it, never replace the link or write through an unsafe or
    ambiguous path. A blocked write does not prevent presenting a draft.
@@ -69,6 +70,7 @@ established architecture-focused meaning of `DESIGN.md`; the visual schema does 
 
 | Document | Purpose | Useful content |
 | --- | --- | --- |
+| `README.md` | What is this project, and how do I start using it? | The [README contract](references/document-schemas.md#readmemd): evidence-backed identity, shortest verified first-use path, representative usage, and navigation to canonical docs and policies. |
 | `PRODUCT.md` | What are we building, for whom, and why? | The [product record](references/document-schemas.md#productmd): users, purpose, operating context, capabilities, constraints, and confirmed principles. Separate current scope from future direction. |
 | `DESIGN.md` | How should the product work and feel? | The [visual format](references/document-schemas.md#designmd) where applicable: observed or agreed identity, tokens, components, and usage. Preserve canonical system-design decisions where the document already owns them. |
 | `AGENTS.md` | How should an agent work effectively in this repository? | [Unversioned operational Markdown](references/document-schemas.md#agentsmd): actual commands and working directories, conditional verification, boundaries, pitfalls, and links to deeper documentation. |

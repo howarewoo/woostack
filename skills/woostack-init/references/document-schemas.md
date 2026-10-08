@@ -11,6 +11,7 @@ Keep Woostack Init's evidence-first authoring workflow and requested write scope
 | `PRODUCT.md` | [Impeccable product record](https://github.com/pbakaus/impeccable/blob/main/.agent/skills/impeccable/reference/init.md#step-4-write-productmd) | `impeccable:product-schema 1` |
 | Visual `DESIGN.md` | [DESIGN.md specification](https://github.com/google-labs-code/design.md/blob/main/docs/spec.md) | `alpha` |
 | `AGENTS.md` | [AGENTS.md convention](https://agents.md/) | Unversioned Markdown; no required fields |
+| Root `README.md` | [GitHub README guidance](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-readmes) | Unversioned Markdown; no required headings |
 
 The product baseline was checked against Impeccable revision
 `6b9d0ffa3a9a884fc95928d2d2d896b0befa5d3e`; the design baseline against the linked specification.
@@ -25,6 +26,54 @@ and safe symlink relationships. Reconcile old headings with the applicable recor
 appending a second specification. Do not stamp a file merely to silence a legacy warning: first
 bring the requested content into the format. Missing facts remain explicit decisions or omissions,
 not template filler. No extra skill installation, configuration, or generated token file is required.
+
+## README.md
+
+Author the root README as the human-facing landing page, first-success path, and navigation layer,
+not a duplicate of the documentation system. Use repository evidence and confirmed decisions,
+adapting the content and order to the reader rather than imposing a template.
+
+### Required outcomes
+
+- **Missing:** create concise factual project identity and purpose, with a useful shortest verified
+  first-use path when available. If that path is unknown, surface the material gap in the report;
+  do not fabricate an installation or usage recipe.
+- **Empty or placeholder:** replace unsupported placeholder content with supported information;
+  retain any accurate custom material.
+- **Existing:** preserve accurate custom content, screenshots, examples, and links. Make only
+  targeted changes justified by stale facts, contradictions, or a material reader gap.
+- **Adequate:** leave it unchanged. Repeated invocation with unchanged evidence and scope yields
+  no diff; stylistic novelty is not an improvement.
+
+Prioritize project name and clear factual value, then the shortest first-use path, representative
+usage, and links to deeper documentation and participation. Include commands' prerequisites and
+working directories where needed to make that path usable. Adapt to the repository type:
+
+| Type | First-use evidence to seek |
+| --- | --- |
+| Library or SDK | Actual package/install source and a minimal example using the public API. |
+| CLI | Verified installation or local invocation and one useful command. |
+| Application | The supported access or local-run path and a representative user task. |
+| Template | The evidenced creation/copy path and required customization before first use. |
+| Other or mixed | The primary audience's actual entrypoint; link secondary surfaces instead of assuming a web app or package. |
+
+### Conditional content and verification
+
+Include prerequisites, installation, configuration, development/testing, compatibility, contributing,
+security, support, releases, or license only when applicable and supported. Link canonical docs,
+`CONTRIBUTING.md`, `SECURITY.md`, `LICENSE`, and release history when they exist instead of copying
+their content. Prefer repository-relative links for repository-owned resources.
+
+Use copyable, language-tagged code fences for evidenced commands and examples. Never invent commands,
+output, URLs, badges, supported platforms, license, or project claims. Preserve useful real assets;
+do not invent screenshots or diagrams. Omit empty headings, generic marketing, decorative badge
+collections, and unnecessary manual tables of contents.
+
+Check referenced local files, images, and anchors and confirm commands/examples against scripts,
+source, or canonical docs. Execute commands only when safe, authorized, and feasible under Init's
+[verification step](../SKILL.md#guided-authoring); distinguish inspected from executed commands and
+report verification limits. The [guided workflow](../SKILL.md#guided-authoring) retains write scope,
+support-only separation, ownership, dirty-edit, and symlink/path protections.
 
 ## PRODUCT.md
 

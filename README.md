@@ -46,15 +46,16 @@ Open your coding assistant in the project root and enter:
 ```
 
 Init inspects your repository and existing decisions, asks only about meaningful gaps, and helps
-create or update `PRODUCT.md`, `DESIGN.md`, and `AGENTS.md`. It preserves useful guidance and links
-to canonical documents rather than copying them. You can limit the request to one document or ask
-for drafts without writes. During Woostack adoption, Init includes the concise
+create or update `README.md`, `PRODUCT.md`, `DESIGN.md`, and `AGENTS.md`. It preserves useful content
+and links to canonical documents rather than copying them. You can limit the request to one document
+or ask for drafts without writes. During Woostack adoption, Init includes the concise
 [routing paragraph](skills/using-woostack/SKILL.md#agentsmd-usage) in the proposed agent instructions;
 there is no separate manual adoption step.
 
 Init uses the current applicable [document formats](skills/woostack-init/references/document-schemas.md):
-Impeccable's product record, the visual DESIGN.md specification, and unversioned AGENTS.md guidance.
-Architecture-focused design documents keep their established role.
+an evidence-backed README landing page, Impeccable's product record, the visual DESIGN.md
+specification, and unversioned AGENTS.md guidance. Architecture-focused design documents keep their
+established role.
 
 Document authoring needs no `.woostack/`, Doctor check, or GitHub access. Init does not scaffold an
 application, handle credentials, or create issues, branches, commits, or PRs. See
