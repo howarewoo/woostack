@@ -43,7 +43,7 @@ Send this to your coding assistant:
 
 ```text
 /woostack-init Help me adopt Woostack in this repository. Create or update
-AGENTS.md, DESIGN.md, and PRODUCT.md where useful. Inspect existing evidence
+README.md, AGENTS.md, DESIGN.md, and PRODUCT.md where useful. Inspect existing evidence
 and reuse decisions we have already made. Ask only about meaningful gaps,
 show the proposed changes, and apply edits within this document scope.
 Do not initialize local support, change application source, commit, or publish.
@@ -53,10 +53,12 @@ Init first reports what needs creating, updating, or preserving. Answer question
 product behavior, design direction, or working agreements; you can defer a decision rather than
 inventing an answer. Review meaningful changes to direction, constraints, and agent permissions.
 
-The result should give each document a distinct job: `PRODUCT.md` records the intended users and
-scope using the current product-record format; a visual `DESIGN.md` follows the design-system
-format, while an architecture-focused one keeps its established role. `AGENTS.md` remains
-unversioned operational guidance with actual commands, boundaries, and contextual links. See
+The result should give each document a distinct job: `README.md` introduces the project and its
+shortest verified first-use path, linking deeper docs and policies without duplicating them.
+`PRODUCT.md` records the intended users and scope using the current product-record format; a visual
+`DESIGN.md` follows the design-system format, while an architecture-focused one keeps its established
+role. `AGENTS.md` remains unversioned operational guidance with actual commands, boundaries, and
+contextual links. See
 [document responsibilities](/docs/skills/woostack-init#document-responsibilities) for the applicable
 formats. Existing canonical documents and scoped instructions stay authoritative. Init includes the
 availability-aware
