@@ -59,11 +59,12 @@ For an explicit one-run model or effort request, apply the shared
    Never persist a global execution forest, infer a dependency from branch naming, or manufacture a
    source/landing receipt. A task
    whose required changes are not available waits; a safe independent task may continue.
-4. **Delegate every group.** Use the active harness's native subagent tool and
-   select an existing agent suited to the assignment. Preserve its configured
-   model/role routing unless the user explicitly requests an override. Give each
-   group an implementation writer with exclusive access to its admitted task
-   workspace and branch, including a single-group run. Reuse that allocation
+4. **Delegate every group.** Use native delegation or another worker launcher
+   permitted by the user or repository. Select a worker suited to the assignment
+   and preserve the harness's configured role/model routing for that work across
+   either launch path, unless the user explicitly requests an override.
+   Give each group an implementation writer with exclusive access to its admitted
+   task workspace and branch, including a single-group run. Reuse that allocation
    across in-scope corrections, failed checks, revised approaches, and replacement writers.
    Sequential work stays sequential; additional checkouts need a concrete isolation reason under
    the [workspace contract](../woostack-init/references/worktrees.md#workspace-and-ownership).
@@ -84,9 +85,9 @@ For an explicit one-run model or effort request, apply the shared
    planning, dispatch, integration verification, and delivery coordination, not silent implementation
    in the primary checkout. Inline implementation requires a workflow change from the user;
    unavailable worker/isolation capability is a blocker, not an equivalent local result.
-5. **Integrate and deliver the group's PR and stack.** Use native worker-completion handling;
-   on interrupted workers, rediscover native state and Git/PR facts before retrying. Preserve
-   unknown work, block affected dependents, and never duplicate work or claim unverified delivery.
+5. **Integrate and deliver the group's PR and stack.** Use the selected worker runtime's
+   completion handling; on interrupted workers, rediscover its state and Git/PR facts before retrying.
+   Preserve unknown work, block affected dependents, and never duplicate work or claim unverified delivery.
    Independently reconcile source/destination revisions, ancestry/diffs, ownership, and requested
    PR facts against worker claims. Resolve stale handoffs, identify already-present and missing
    changes, and integrate the intended union once, including overlapping child histories.
