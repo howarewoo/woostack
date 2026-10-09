@@ -17,7 +17,8 @@ Start with the [getting-started guide](site/content/docs/getting-started.mdx), o
 
 ### 1. Install the skills
 
-Run this in your terminal to install the collection for your coding assistant:
+With Node.js and pnpm installed, run this from your project's repository root
+to install the collection for your coding assistant:
 
 ```bash
 pnpx skills add howarewoo/woostack
