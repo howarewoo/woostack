@@ -4,9 +4,9 @@ description: Existing OMP agents, host-owned model routing, and host-owned sessi
 ---
 
 OMP is a supported coding harness, the application that runs your agent and its tools.
-Woostack uses agents already exposed by the active OMP session. Install woostack in OMP, even
-when an external engineer such as Hermes coordinates the work; woostack does not install a second
-agent catalog.
+For native delegation, Woostack uses agents already exposed by the active OMP session. Install
+woostack in OMP, even when an external engineer such as Hermes coordinates the work; woostack
+does not install a second agent catalog.
 
 ## Native OMP agent routing
 
@@ -15,6 +15,10 @@ dispatch shape and whether effort is available; model routing and recovery belon
 no per-call model or working-directory field. Pass the selected workspace in a delegated task and
 have the worker verify its checkout before writing. Without optional delegation, Execute can work
 inline; Orchestrate reports the missing worker capability for the affected delivery instead.
+
+Orchestrate also supports [standalone workers](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/hosts/omp.md#standalone-workers)
+launched with user or repository permission. The reference covers model-role routing and how it
+differs from native agent profiles.
 
 Init provisions no project extension and no agent definitions. Older generated definitions are
 user-owned files and are never cleaned automatically; the manual recipe below governs them.

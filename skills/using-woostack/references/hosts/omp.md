@@ -32,6 +32,18 @@ general work), `scout` (read-only exploration), and `reviewer` and `security-rev
 review). They are host-owned: never create, install, rename, alias, or persist a replacement agent
 catalog, and a read-only agent never suits a write task.
 
+## Standalone workers
+
+For a permitted standalone OMP worker doing general implementation, use
+[`omp --model @task`](https://omp.sh/docs/cli#models-and-reasoning) with the intended profile and
+project configuration. This selects the configured `task` model role, not the named
+[`task` agent's](https://omp.sh/docs/agents-and-roles#how-an-agent-gets-its-model) instructions,
+tools, or per-agent model overrides.
+
+Preserve specialist routing and saved role settings. Unless the user requests a model override,
+use the role selector rather than the coordinator's model or a copied model ID. If the launcher
+cannot apply the required role, report that before dispatch instead of silently using a default.
+
 ## Retired session naming
 
 Automatic session naming is retired. Woostack no longer ships a naming extension, Init and Doctor
