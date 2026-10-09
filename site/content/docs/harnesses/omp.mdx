@@ -16,9 +16,9 @@ no per-call model or working-directory field. Pass the selected workspace in a d
 have the worker verify its checkout before writing. Without optional delegation, Execute can work
 inline; Orchestrate reports the missing worker capability for the affected delivery instead.
 
-Orchestrate also permits user- or repository-approved standalone worker launchers while preserving
-model-role routing. The [standalone worker reference](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/hosts/omp.md#standalone-workers)
-explains OMP role selection and its distinction from native agent profiles.
+Orchestrate also supports [standalone workers](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/hosts/omp.md#standalone-workers)
+launched with user or repository permission. The reference covers model-role routing and how it
+differs from native agent profiles.
 
 Init provisions no project extension and no agent definitions. Older generated definitions are
 user-owned files and are never cleaned automatically; the manual recipe below governs them.

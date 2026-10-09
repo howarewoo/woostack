@@ -59,10 +59,9 @@ For an explicit one-run model or effort request, apply the shared
    Never persist a global execution forest, infer a dependency from branch naming, or manufacture a
    source/landing receipt. A task
    whose required changes are not available waits; a safe independent task may continue.
-4. **Delegate every group.** Use native delegation or another worker launcher
-   permitted by the user or repository. Select a worker suited to the assignment
-   and preserve the harness's configured role/model routing for that work across
-   either launch path, unless the user explicitly requests an override.
+4. **Delegate every group.** Use native delegation or a worker launcher permitted by the user or
+   repository. Select a worker suited to the assignment and preserve the harness's configured
+   role/model routing unless the user explicitly requests an override.
    Give each group an implementation writer with exclusive access to its admitted
    task workspace and branch, including a single-group run. Reuse that allocation
    across in-scope corrections, failed checks, revised approaches, and replacement writers.
