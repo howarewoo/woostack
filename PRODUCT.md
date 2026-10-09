@@ -1,12 +1,21 @@
 # Product
 
-## Purpose and users
+<!-- impeccable:product-schema 1 -->
 
-Woostack publishes skills for people using AI coding assistants to plan work and change code.
-Users make product decisions and authorize work; assistants inspect repository evidence and
-verify outcomes. The [README](README.md) owns the project overview and installation instructions.
+## Users
 
-## Current scope
+People using AI coding assistants to plan work and change code.
+Users make product decisions and authorize work.
+
+## Product Purpose
+
+Woostack publishes skills that guide assistants to inspect repository evidence
+and verify outcomes. The [README](README.md) owns the project overview and
+installation instructions.
+
+## Capabilities and Constraints
+
+Current scope:
 
 - Repository-specific project guidance and greenfield planning without a checkout.
 - Requirements exploration, specification review, planning, and requested issue publication.
@@ -17,8 +26,6 @@ verify outcomes. The [README](README.md) owns the project overview and installat
 
 The [command router](skills/using-woostack/SKILL.md#command-routing) owns command selection and
 workflow boundaries. Individual skills own their procedures.
-
-## Constraints and non-goals
 
 Woostack is a skills collection, not a new application to scaffold in this checkout.
 Application source is confined to `site/`; supporting skill assets live with their owning skills.

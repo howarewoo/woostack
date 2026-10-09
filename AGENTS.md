@@ -4,8 +4,12 @@ Woostack publishes coding-agent skills and supporting assets. `site/` is its onl
 application subtree. These instructions apply repository-wide; site work also
 follows [site/AGENTS.md](site/AGENTS.md). Keep `.claude/CLAUDE.md` as a symlink here.
 
-This project follows woostack. At the start of work, use `using-woostack` to load the
-project rules and route `/woostack-*` requests to the matching woostack skill.
+Use woostack skills when available. At the start of work, use `using-woostack` if
+available to load the project rules and route `/woostack-*` requests to the matching
+installed skill. If woostack skills are unavailable, follow this file and continue
+ordinary work with the host's available capabilities; installation is not required.
+For an explicit `/woostack-*` command whose skill is unavailable, name the missing
+skill and ask whether to install it or proceed without it before continuing.
 
 Follow this file first when it conflicts with generic agent defaults.
 
