@@ -20,11 +20,15 @@ Replace the angle-bracket lines with real tasks. `--issue <canonical GitHub trac
 
 ## 2. Plan the groups, then delegate them
 
-The plan comes before any edit or worker: which tasks form which pull request, what each group must change, the intended parent and landing order, and which groups are safe in parallel. Small related tasks can share one coherent PR; task count does not set PR count, and your requested mapping is kept. Each group gets delegated implementation with exclusive access to its task workspace, even for a single-group run. A dependent group starts from a verified base containing its prerequisites. Missing worker or isolation capability is reported, not replaced by edits in your primary checkout.
+The plan comes before any edit or worker: task-to-PR mapping, required changes, intended parents and landing order, and safe parallel work. Group small related tasks around an inseparable implementation/verification path, not adjacency or a shared controller, and preserve your requested mapping. Each group has one integrating writer with exclusive access to its task workspace. Substantial groups can use bounded contributions with explicit interfaces and separate writer workspaces under the [coordination procedure](/docs/skills/woostack-orchestrate#coordinate).
+
+A dependent starts from verified prerequisite content, which can be a sufficiently complete immutable checkpoint before its PR lands or publishes. Landing order alone must not serialize implementation; missing capabilities still block affected work. Reconcile checkpoint content with the planned parent before delivery. Missing worker or isolation capability is reported, not replaced by edits in your primary checkout.
 
 ## 3. Verify and finish each delivery
 
 Continue pre-delivery corrections in the same allocation. Admit replacement writers and temporary contributions under the [coordination procedure](/docs/skills/woostack-orchestrate#coordinate); verify ownership, integration destination, and safe disposition.
+
+Before broad consumer integration, complete high-risk new authority, mutation, persistence, or selected-context contracts, check their invariants and delegated callees' side effects, and obtain independent review. Resolve findings and refresh affected evidence before releasing consumers. Final review focuses on changed contracts and consumers; combined-result verification remains required.
 
 Verify the integrated tree and cumulative diff under the canonical [testing guidance](https://github.com/howarewoo/woostack/blob/main/skills/woostack-execute/references/tdd.md#when-evidence-still-applies). Independently reconcile child evidence, check new interactions on the canonical result, and refresh affected checks and required implementation review after changes. Limit only conflicting heavy runs while light tests proceed. Confirm PR identity, published head, base, content, and required native stack membership/order. A dependent targets its predecessor; a chained base is not membership. Reconcile interrupted workers or uncertain publication/registration through [current-state inspection](/docs/guides/troubleshooting) before retrying.
 

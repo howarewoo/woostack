@@ -71,8 +71,10 @@ missing administrative link is not a blocker while missing task scope is.
 The change plan comes before any implementation: which tasks group into which pull request, the
 required changes, the intended parent and landing order, and the safe parallel work. Prerequisites
 are discovered from source and PR evidence, not from a missing dependency field. Small related
-tasks that form one reviewable change can share a branch, one worker, and one PR; every task keeps
-its own acceptance, and a user-requested issue-to-PR mapping is preserved.
+tasks share a PR when their implementation/verification path is inseparable, not just because
+they are adjacent or share a controller. Every task keeps its acceptance, and a user-requested
+issue-to-PR mapping is preserved. Substantial groups retain one integrating writer and can use
+bounded contributions with explicit interfaces in separate owned workspaces.
 
 Each group is implemented by a delegated worker in an independently owned task worktree, including
 a run that groups everything into one PR, and every task starts from a base that actually contains
@@ -82,8 +84,10 @@ prior writer whose exit is unproved blocks reuse of its workspace while other sa
 
 Root pull requests target the approved trunk, each dependent pull request targets its planned
 predecessor's head branch, and native stack registration is required for those dependent PRs and
-read back after publication. Sequential dispatch is normal when a real prerequisite or host
-capacity requires it. Applicable child results carry forward under the canonical [testing
+read back after publication. Landing order is distinct from implementation order: sufficiently
+complete immutable prerequisite checkpoints can enable dependent work before PR publication or
+landing. Missing capabilities or host capacity can still require sequential dispatch.
+Applicable child results carry forward under the canonical [testing
 guidance](https://github.com/howarewoo/woostack/blob/main/skills/woostack-execute/references/tdd.md#when-evidence-still-applies);
 the coordinator independently verifies the canonical tree, cumulative diff, and new interactions.
 Only conflicting heavy checks share a concurrency limit; light checks can proceed. There is no
@@ -172,8 +176,11 @@ Retained-data authority and recovery belong to the
 
 ## Review and corrections
 
-Review is independent evidence. Orchestrate verifies implementation before releasing dependents;
-Execute needs no pre-commit review receipt unless required. Verified PR publication and required
+Review is independent evidence. High-risk new contracts need focused behavioral checks and
+independent review before broad consumer integration to keep foundational defects from spreading.
+Orchestrate's final review focuses on changed contracts and consumers while retaining applicable
+checkpoint evidence and combined-result verification. Execute needs no pre-commit review receipt
+unless required. Deferred manual acceptance remains unmet. Verified PR publication and required
 stack registration finish delivery. Neither coordinator nor workers inspect new CI/reviews or
 reopen delivered groups on incoming events. Later corrections require a separate explicit request;
 remote checks and merge approval remain distinct from implementation evidence.

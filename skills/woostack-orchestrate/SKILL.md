@@ -32,9 +32,9 @@ For an explicit one-run model or effort request, apply the shared
    two tasks merely share are not automatically a technical dependency. A tracker or specification
    is context, not an executable task, and a Project status never proves delivered code. Keep real
    prerequisites separate from deliberate integration order and say why the order is deliberate.
-   Group small related issues that form one coherent, reviewable change — issue count does not set
-   PR count — and preserve each issue's acceptance, non-goals, and any user-requested issue-to-PR
-   mapping.
+   Group small related issues around an inseparable implementation/verification path, not merely
+   adjacent issues or a shared controller; issue count does not set PR count. Preserve each issue's
+   acceptance, non-goals, and any user-requested issue-to-PR mapping.
    Reassess dependencies between the resulting groups — an intra-group prerequisite becomes
    implementation order, not another PR. Then state the plan before writing: group-to-issue
    mapping, required changes, intended parent and landing order, and safe parallel work, in prose,
@@ -52,25 +52,29 @@ For an explicit one-run model or effort request, apply the shared
 3. **Select the base before dispatch and plan parents now.** Check the repository-approved integration
    tip or the planned predecessor's head branch against fresh Git, and canonical PR facts where a
    PR prerequisite exists. Prove every required change is available in the selected base,
-   including joined prerequisites. For a join, account for every prerequisite: group the related
-   work, select a justified feasible order, or wait for an independent prerequisite to land. For
-   an open parent PR, use its verified branch/head and required content; for a squash-merged parent,
-   verify the native landing and integrated content instead of demanding former-head ancestry.
-   Never persist a global execution forest, infer a dependency from branch naming, or manufacture a
-   source/landing receipt. A task
-   whose required changes are not available waits; a safe independent task may continue.
+   including joined prerequisites. For a join, account for every prerequisite by grouping related
+   work or selecting a justified feasible order with verified prerequisite content.
+   For an open parent PR, use its verified branch/head and required content; for a squash-merged
+   parent, verify the native landing and integrated content instead of demanding former-head ancestry.
+   Safe implementation may start from a sufficiently complete immutable prerequisite checkpoint
+   whose identity and required content are verified, without waiting for its PR to land or publish;
+   reconcile that content with the planned parent before delivery. Deliberate landing order alone
+   must not serialize implementation. A task whose required capabilities are missing waits;
+   safe independent work may continue. Never persist a global execution forest, infer a dependency
+   from branch naming, or manufacture a source/landing receipt.
 4. **Delegate every group.** Use native delegation or a worker launcher permitted by the user or
    repository. Select a worker suited to the assignment and preserve the harness's configured
    role/model routing unless the user explicitly requests an override.
    Give each group an implementation writer with exclusive access to its admitted
    task workspace and branch, including a single-group run. Reuse that allocation
    across in-scope corrections, failed checks, revised approaches, and replacement writers.
-   Sequential work stays sequential; additional checkouts need a concrete isolation reason under
-   the [workspace contract](../woostack-init/references/worktrees.md#workspace-and-ownership).
-   Record their delivery owner, role, writer/responsibility, verified base, why a released allocation
-   is unsuitable, integration destination, and retirement condition in the existing plan or handoff.
-   Temporary writers get bounded contributions and explicit delivery limits, not independent
-   issues, PRs, stack layers, or plan changes. Reassess grouping for an actual new deliverable.
+   For substantial groups, use safe bounded contributions beneath that integrating writer when
+   capability dependencies and runtime capacity permit. Give each contribution explicit interfaces,
+   non-overlapping responsibility, and delivery limits. Sharing a delivery owner does not require
+   sequential coding; real prerequisites do. Admit and record additional allocations under the
+   [workspace contract](../woostack-init/references/worktrees.md#workspace-and-ownership).
+   Contributions create no independent issues, PRs, stack layers, or plan changes; reassess grouping
+   for an actual new deliverable.
    Hand off only the outcome, limits, invariants, prerequisites, source/workspace evidence, and
    relevant shared runtime restrictions. Check aggregate CPU/memory/process load and shared
    credentials, processes, ports, databases, accounts, and service state before parallel operations;
@@ -84,6 +88,11 @@ For an explicit one-run model or effort request, apply the shared
    planning, dispatch, integration verification, and delivery coordination, not silent implementation
    in the primary checkout. Inline implementation requires a workflow change from the user;
    unavailable worker/isolation capability is a blocker, not an equivalent local result.
+   Before broad consumer integration of a high-risk new authority, mutation, persistence, or
+   selected-context contract, complete its bounded implementation, run focused invariant checks,
+   and obtain independent review. Inspect actual delegated callees for side effects, not wrapper
+   intent or names. Resolve findings and refresh affected evidence before releasing consumers;
+   work independent of the unsettled contract may continue.
 5. **Integrate and deliver the group's PR and stack.** Use the selected worker runtime's
    completion handling; on interrupted workers, rediscover its state and Git/PR facts before retrying.
    Preserve unknown work, block affected dependents, and never duplicate work or claim unverified delivery.
@@ -98,9 +107,12 @@ For an explicit one-run model or effort request, apply the shared
    [When evidence still applies](../woostack-execute/references/tdd.md#when-evidence-still-applies).
    Run affected integration/consumer checks on new combinations, conflict resolutions, corrections,
    or relevant environment/dependency changes; child passes alone never verify an untested combination.
-   Correct failed preparation checks in the same allocation and refresh affected checks and required
-   implementation review after changes. Handle slow checks and explicit unmet verification boundaries
-   under [Slow checks](../woostack-execute/references/tdd.md#slow-checks-bounded-diagnosis-no-waiver).
+   Keep final implementation review incremental on changed contracts and consumers using applicable
+   checkpoint evidence, without waiving combined-result verification. Correct failed preparation
+   checks in the same allocation and refresh affected checks and required implementation review after
+   changes. Handle slow checks and explicit unmet verification boundaries under
+   [Slow checks](../woostack-execute/references/tdd.md#slow-checks-bounded-diagnosis-no-waiver);
+   deferred manual acceptance remains unmet, not passed evidence.
    Hand the intended parent and ordered chain to [Commit](../woostack-commit/SKILL.md) and require
    native registration for dependent PRs.
    Commit owns delivery, native stack registration, lost-write recovery, and read-back under its
