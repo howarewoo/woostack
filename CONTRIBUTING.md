@@ -24,6 +24,7 @@ for standing repository rules, the sanctioned `site/` exception, and verified ch
 | Change behavior-preserving code simplification | `skills/woostack-simplify/SKILL.md` |
 | Change commit and pull-request delivery | `skills/woostack-commit/SKILL.md` and its references |
 | Change browser-based app checks (`/woostack-qa`) | `skills/woostack-qa/SKILL.md`, `skills/woostack-qa/references/` |
+| Change project-owned design catalog creation, adaptation, or maintenance | `skills/woostack-design-system/SKILL.md`, its references, and versioned `templates/` |
 | Change session reflection (`/woostack-reflect`) | `skills/woostack-reflect/SKILL.md` |
 | Change the systematic-debugging behavior (`/woostack-debug`) | `skills/woostack-debug/SKILL.md` |
 | Change test-writing guidance | `skills/woostack-execute/SKILL.md`, `skills/woostack-execute/references/tdd.md` |
@@ -54,7 +55,9 @@ The site is the exception to this repository's no-application-code rule. Its
 ## Editing conventions
 
 - Keep workflow changes in skill files and their supporting Markdown, templates, scripts,
-  prompts, or JSON. Application code, build configuration, and lockfiles belong only in `site/`.
+  prompts, or JSON. Design System application/configuration sources ship as non-runnable
+  `.template` assets; instantiate them only in target or disposable repositories. Runnable
+  application code, build configuration, and app lockfiles belong only in `site/`.
 - Pull-request review uses [Pullfrog](https://pullfrog.com/); the shipped workflow is
   `.github/workflows/pullfrog.yml`.
 - Resolve selected or changed dependency versions from authoritative current registries.

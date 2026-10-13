@@ -304,6 +304,65 @@ test('installed candidate collection resolves without a checkout or docs applica
     /local link target escapes the skill collection/);
 });
 
+test('installed design-system package carries its canonical inventory and every template', async (t) => {
+  const root = await makeRoot(t);
+  await installCandidate(REPO_ROOT, root);
+  const installed = path.join(root, 'skills');
+  const relativeTemplates = path.join('woostack-design-system', 'templates');
+  const sourceTemplates = path.join(REPO_ROOT, 'skills', relativeTemplates);
+  const installedTemplates = path.join(installed, relativeTemplates);
+
+  async function templateFiles(directory, prefix = '') {
+    const files = [];
+    for (const entry of await readdir(directory, { withFileTypes: true })) {
+      const relative = path.join(prefix, entry.name);
+      if (entry.isDirectory()) {
+        files.push(...await templateFiles(path.join(directory, entry.name), relative));
+      } else {
+        assert.ok(entry.isFile(), `template asset must be a regular file: ${relative}`);
+        files.push(relative);
+      }
+    }
+    return files.sort();
+  }
+
+  const sourceFiles = await templateFiles(sourceTemplates);
+  assert.ok(sourceFiles.some((file) => file.endsWith('.tsx.template')));
+  assert.ok(sourceFiles.some((file) => file.endsWith('.css.template')));
+  assert.deepEqual(await templateFiles(installedTemplates), sourceFiles);
+  for (const relative of sourceFiles) {
+    assert.deepEqual(
+      await readFile(path.join(installedTemplates, relative)),
+      await readFile(path.join(sourceTemplates, relative)),
+      `installed template differs: ${relative}`,
+    );
+  }
+
+  const inventoryPath = path.join(installedTemplates, 'src', 'inventory.json.template');
+  const inventory = JSON.parse(await readFile(inventoryPath, 'utf8'));
+  assert.ok(inventory.version);
+  assert.ok(inventory.reference.repository);
+  assert.ok(inventory.reference.revision);
+  assert.ok(inventory.upstream.catalog);
+  assert.ok(inventory.upstream.provenance);
+  assert.equal(new Set(inventory.entries.map(({ id }) => id)).size, inventory.entries.length);
+  for (const entry of inventory.entries) {
+    assert.ok(entry.id && entry.name && entry.group);
+    assert.ok(entry.source ?? inventory.upstream.catalog);
+    assert.ok(entry.provenance ?? inventory.upstream.provenance);
+    assert.ok(entry.importPath && entry.specimen, `missing adoption contract: ${entry.id}`);
+  }
+  assert.deepEqual(
+    (await validateSkillAssets(installed, PUBLIC_ORDER)).map(({ name }) => name),
+    [...PUBLIC_ORDER].sort(),
+  );
+
+  // The installed instructions link the inventory, so a partial package must fail validation.
+  await rm(inventoryPath);
+  await assert.rejects(validateSkillAssets(installed, PUBLIC_ORDER),
+    /local link target does not exist/);
+});
+
 test('an uncommitted candidate error is not hidden by the committed release bytes', async (t) => {
   const root = await makeRoot(t);
   const checkout = await makeCandidateCheckout(root, ['sample-skill']);

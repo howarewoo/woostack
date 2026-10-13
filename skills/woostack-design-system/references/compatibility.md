@@ -1,0 +1,63 @@
+# Compatibility and preservation
+
+React, shadcn provenance, similar filenames and screenshots are not compatibility evidence.
+Inspect the public contract and a real consumer before choosing reuse. Follow canonical
+[placement and API guidance](../../woostack-execute/references/patterns.md), not a new framework
+migration workflow.
+
+## Inspection record
+
+For each baseline control needed by a specimen or catalog chrome, record:
+
+| Evidence | What to inspect |
+| --- | --- |
+| Public import | Exported module/package, aliases, package exports, supported client/server boundary; no private product source imports |
+| Props and events | Required props, variants, controlled/uncontrolled state, event signatures, disabled/loading semantics, ref support |
+| Composition | Trigger/content ownership, portals/providers, render/slot/child contracts, nested controls, focus and dismissal behavior |
+| Styling | Token names and values, theme selector, CSS order, utility generation/content discovery, fonts, icons and responsive rules |
+| Dependencies | Installed versions, peer ranges, supported runtime, workspace resolution and lockfile; dependencies needed by imported shared code |
+| Consumer evidence | At least one real use of the public API and applicable tests; source declarations alone do not prove interaction behavior |
+
+Catalog chrome is a consumer too: inspect buttons, search/input, navigation, theme control and
+copy feedback alongside specimen controls. A specimen using shared UI while chrome retains
+starter copies is not successful compatible reuse.
+
+## Choose the smallest supported integration
+
+1. **Compatible shared UI:** import actual public components and tokens. Change specimen and
+   chrome callers to the project's props and composition. Remove obsolete task-owned generated
+   controls and imports; do not leave a second Button, Input or overlay merely because its API is familiar.
+   Describe project API adaptations as owned examples, not upstream shadcn defaults.
+2. **Partially compatible UI:** reuse supported controls and create only genuinely missing controls
+   within the repository's UI owner using the current Base UI-backed shadcn CLI. Assess each component,
+   not the library as a whole. Never run CLI initialization over custom setup or use overwrite flags
+   on existing components. If a required composition cannot be implemented without changing a
+   published component contract, report that boundary rather than silently changing the API or
+   duplicating the control.
+3. **Incompatible/non-React product:** put the React catalog in its own deployable unit and manifest.
+   Keep product manifests, runtime dependency declarations, source and behavior unchanged. Do not
+   import framework-specific private components into React or pretend rendered replicas are native
+   product controls. Clearly label catalog-only examples and the compatibility boundary. A workspace
+   lockfile may record catalog dependencies only where native workspace policy requires it; preserve
+   unrelated entries and verify the product dependency graph is unchanged.
+
+An isolated catalog may represent product tokens and guidance without claiming framework-native
+control integration. It must still run and cover the declared baseline. Do not add a package-manager
+workspace or root build system merely to host one catalog if a native independent unit suffices.
+
+## Conflicts and explicit maintenance
+
+Inventory existing catalogs across routes, packages, examples and documentation before selecting
+creation. Ordinary existing-catalog invocation is read-only: no dependency install, lockfile touch,
+formatting, code generation, snapshot update or browser action that persists project state.
+
+For explicit maintenance, identify exact affected owners and callers before editing. Preserve
+custom labels, variants, state examples, navigation IDs, token values, theme conventions and design
+rules outside the authorized change. A template version difference is evidence of drift, not
+permission to replace owned source. Report incompatible requests with the public API or design
+constraint and the smallest viable scoped options. Do not hide conflicts by copying another control,
+renaming the old one, suppressing type errors, or dropping required specimens.
+
+Use focused behavioral coverage from [Execute testing guidance](../../woostack-execute/references/tdd.md)
+to prove reuse, untouched product behavior and preservation. Tests of instruction wording or a
+mock copy of the adaptation logic do not prove these boundaries.

@@ -115,6 +115,7 @@ for one bounded task.
 | A bounded implementation task | [/woostack-execute](skills/woostack-execute/SKILL.md) | Implements and verifies an enhancement, refactor, test-only task, or understood correction; delivers a draft PR when requested. |
 | Simplify an existing implementation | [/woostack-simplify](skills/woostack-simplify/SKILL.md) | Reworks selected code and removes unnecessary machinery while preserving required behavior; local edits by default, analysis-only when requested. |
 | Coordinate multiple approved tasks | [/woostack-orchestrate](skills/woostack-orchestrate/SKILL.md) | Resolves tasks and dependencies from prose, issues, or an explicitly selected Project; coordinates inline or native-host workers in isolated workspaces and verifies draft PRs without merging. |
+| Create or inspect a project component catalog | [/woostack-design-system](skills/woostack-design-system/SKILL.md) | Creates locally when no catalog exists; inspects an existing catalog without writes unless you explicitly request maintenance. |
 
 Plan stops before implementation. Execute, Simplify, and Orchestrate start only on an authorized
 change request; planning is not a prerequisite for a bounded task with settled decisions. Simplify
@@ -122,6 +123,11 @@ does not require Execute; commits and PRs remain opt-in. Init separately owns re
 guidance and local support, not application scaffolding.
 
 See the [workflow maps](site/content/docs/concepts/workflows.mdx) for the full sequences.
+
+For component-system work, follow [Create and maintain a design catalog](site/content/docs/guides/design-system.mdx).
+Design System adapts to project components and design rules; incompatible products get an isolated
+React catalog. The target owns the result without a Woostack or Git Stacks runtime dependency.
+Use `/woostack-design` separately to arrange multi-step UI flows.
 
 ## Review and check your work
 

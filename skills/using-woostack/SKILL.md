@@ -42,6 +42,7 @@ matching host evidence; an inherited model or accepted agent selector does not p
 | Address every unresolved thread on one exact existing PR | `woostack-address-comments` |
 | Render a supplied document or verified source as audience-tailored HTML | `woostack-visualize` |
 | Organize multi-step UI design flows | `woostack-design` |
+| Create, adapt, inspect, or explicitly maintain a project-owned component catalog | `woostack-design-system` |
 | Investigate a root cause without implementing a fix | `woostack-debug` |
 | Diagnose or explicitly repair workspace health | `woostack-doctor` |
 | Explore a running app and report browser QA findings | `woostack-qa` |
@@ -63,6 +64,10 @@ Apply these authorization defaults:
   Explicit `/woostack-execute <task>` also requests a draft PR without a second approval.
 - **Simplify:** Bounded local edits and checks, even for explicit `/woostack-simplify`; analysis-only
   stays read-only. Commits and PRs require an explicit delivery request.
+- **Design System:** With no catalog, invocation authorizes bounded local creation, necessary
+  dependency/configuration changes, and verification. With an existing catalog, ordinary invocation
+  is read-only; an explicit add, repair, or update request authorizes only that scope. It never
+  authorizes branches, commits, PRs, issues, Project changes, or a product-wide UI migration.
 - **Orchestrate:** Explicit `/woostack-orchestrate` plans groups, delegates each coherent group to a
   worker in its own task worktree, and delivers draft PRs with required native stacks for dependent
   PRs. An issue link or automatic routing does not authorize delivery.

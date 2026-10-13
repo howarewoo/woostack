@@ -22,6 +22,8 @@ Current scope:
 - Bounded implementation including initial project creation, multi-task coordination, and
   pull-request delivery without merging. Local-only creation needs no GitHub destination.
 - Diagnosis, browser QA, workspace checks, review-comment handling, and conversation reflection.
+- Project-owned design catalogs adapted to existing UI and design rules, with bounded local
+  creation, read-only inspection, and explicitly scoped maintenance.
 - A documentation site with authored guides and references generated from skill sources.
 
 The [command router](skills/using-woostack/SKILL.md#command-routing) owns command selection and
