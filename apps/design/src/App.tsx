@@ -228,7 +228,8 @@ function Catalog() {
         </>}
       </section>
     </main>
-    <CommandDialog open={command} onOpenChange={setCommand}>
+    <CommandDialog open={command} onOpenChange={setCommand} showCloseButton
+      className="[&_[data-slot=command-input-wrapper]]:pr-10">
       <Command>
         <CommandInput placeholder="Find a component…" />
         <CommandList>
