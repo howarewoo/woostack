@@ -373,82 +373,82 @@ function ButtonIconOnly() {
   return (
     <Example title="Icon Only">
       <div className="flex flex-wrap items-center gap-2">
-        <Button size="icon-xs">
+        <Button size="icon-xs" aria-label="Continue">
           <ArrowRightIcon />
         </Button>
-        <Button size="icon-xs" variant="secondary">
+        <Button size="icon-xs" variant="secondary" aria-label="Continue">
           <ArrowRightIcon />
         </Button>
-        <Button size="icon-xs" variant="outline">
+        <Button size="icon-xs" variant="outline" aria-label="Continue">
           <ArrowRightIcon />
         </Button>
-        <Button size="icon-xs" variant="ghost">
+        <Button size="icon-xs" variant="ghost" aria-label="Continue">
           <ArrowRightIcon />
         </Button>
-        <Button size="icon-xs" variant="destructive">
+        <Button size="icon-xs" variant="destructive" aria-label="Continue">
           <ArrowRightIcon />
         </Button>
-        <Button size="icon-xs" variant="link">
-          <ArrowRightIcon />
-        </Button>
-      </div>
-      <div className="flex flex-wrap items-center gap-2">
-        <Button size="icon-sm">
-          <ArrowRightIcon />
-        </Button>
-        <Button size="icon-sm" variant="secondary">
-          <ArrowRightIcon />
-        </Button>
-        <Button size="icon-sm" variant="outline">
-          <ArrowRightIcon />
-        </Button>
-        <Button size="icon-sm" variant="ghost">
-          <ArrowRightIcon />
-        </Button>
-        <Button size="icon-sm" variant="destructive">
-          <ArrowRightIcon />
-        </Button>
-        <Button size="icon-sm" variant="link">
+        <Button size="icon-xs" variant="link" aria-label="Continue">
           <ArrowRightIcon />
         </Button>
       </div>
       <div className="flex flex-wrap items-center gap-2">
-        <Button size="icon">
+        <Button size="icon-sm" aria-label="Continue">
           <ArrowRightIcon />
         </Button>
-        <Button size="icon" variant="secondary">
+        <Button size="icon-sm" variant="secondary" aria-label="Continue">
           <ArrowRightIcon />
         </Button>
-        <Button size="icon" variant="outline">
+        <Button size="icon-sm" variant="outline" aria-label="Continue">
           <ArrowRightIcon />
         </Button>
-        <Button size="icon" variant="ghost">
+        <Button size="icon-sm" variant="ghost" aria-label="Continue">
           <ArrowRightIcon />
         </Button>
-        <Button size="icon" variant="destructive">
+        <Button size="icon-sm" variant="destructive" aria-label="Continue">
           <ArrowRightIcon />
         </Button>
-        <Button size="icon" variant="link">
+        <Button size="icon-sm" variant="link" aria-label="Continue">
           <ArrowRightIcon />
         </Button>
       </div>
       <div className="flex flex-wrap items-center gap-2">
-        <Button size="icon-lg">
+        <Button size="icon" aria-label="Continue">
           <ArrowRightIcon />
         </Button>
-        <Button size="icon-lg" variant="secondary">
+        <Button size="icon" variant="secondary" aria-label="Continue">
           <ArrowRightIcon />
         </Button>
-        <Button size="icon-lg" variant="outline">
+        <Button size="icon" variant="outline" aria-label="Continue">
           <ArrowRightIcon />
         </Button>
-        <Button size="icon-lg" variant="ghost">
+        <Button size="icon" variant="ghost" aria-label="Continue">
           <ArrowRightIcon />
         </Button>
-        <Button size="icon-lg" variant="destructive">
+        <Button size="icon" variant="destructive" aria-label="Continue">
           <ArrowRightIcon />
         </Button>
-        <Button size="icon-lg" variant="link">
+        <Button size="icon" variant="link" aria-label="Continue">
+          <ArrowRightIcon />
+        </Button>
+      </div>
+      <div className="flex flex-wrap items-center gap-2">
+        <Button size="icon-lg" aria-label="Continue">
+          <ArrowRightIcon />
+        </Button>
+        <Button size="icon-lg" variant="secondary" aria-label="Continue">
+          <ArrowRightIcon />
+        </Button>
+        <Button size="icon-lg" variant="outline" aria-label="Continue">
+          <ArrowRightIcon />
+        </Button>
+        <Button size="icon-lg" variant="ghost" aria-label="Continue">
+          <ArrowRightIcon />
+        </Button>
+        <Button size="icon-lg" variant="destructive" aria-label="Continue">
+          <ArrowRightIcon />
+        </Button>
+        <Button size="icon-lg" variant="link" aria-label="Continue">
           <ArrowRightIcon />
         </Button>
       </div>
@@ -470,7 +470,7 @@ function ButtonExamples() {
         </div>
         <div className="flex items-center gap-2">
           <Button variant="destructive">Delete</Button>
-          <Button size="icon">
+          <Button size="icon" aria-label="Continue">
             <ArrowRightIcon
               data-icon="inline-end" />
           </Button>

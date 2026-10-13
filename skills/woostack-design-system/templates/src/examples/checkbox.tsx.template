@@ -179,6 +179,7 @@ function CheckboxInTable() {
             <TableHead className="w-8">
               <Checkbox
                 id="select-all"
+                aria-label="Select all rows"
                 checked={selectAll}
                 onCheckedChange={handleSelectAll}
               />
@@ -197,6 +198,7 @@ function CheckboxInTable() {
               <TableCell>
                 <Checkbox
                   id={`row-${row.id}`}
+                  aria-label={`Select ${row.name}`}
                   checked={selectedRows.has(row.id)}
                   onCheckedChange={(checked) =>
                     handleSelectRow(row.id, checked === true)
