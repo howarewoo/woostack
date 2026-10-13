@@ -67,7 +67,6 @@ over custom setup. Compatible existing primitives are reused, not migrated. Crea
 CLI network access; the resulting catalog has no remote-source requirement at runtime.
 Resolve only newly selected dependencies from authoritative registries under canonical
 [dependency guidance](../woostack-execute/references/patterns.md#6-dependencies-resolution-ownership-and-integrity).
-Preserve existing versions and lockfiles unless the authorized change requires a bounded edit.
 
 Do not overwrite custom components, tokens, examples, rules or unrelated work. Compare before
 changing existing destinations. Report a conflict and leave the conflicting surface unchanged;

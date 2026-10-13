@@ -42,7 +42,8 @@ visual content, not a dependency of component interactions. Preserve the generat
 target lockfile, but never copy one back into skill assets.
 
 `npm run verify` checks every inventory specimen and typechecks public imports,
-including project extensions. `npm run build` typechecks and produces static assets.
+including project extensions, using the target's installed TypeScript compiler.
+`npm run build` typechecks and produces static assets.
 `npm run dev` starts the local Vite server; use its printed URL, not an assumed port.
 `npm run preview` serves the production output. Browser verification is separate:
 search/empty results, anchors and Back/Forward, narrow navigation, Tab/arrows,

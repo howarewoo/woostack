@@ -78,36 +78,34 @@ function ProgressControlled() {
   )
 }
 
+const files = [
+  {
+    id: "1",
+    name: "document.pdf",
+    progress: 45,
+    timeRemaining: "2m 30s",
+  },
+  {
+    id: "2",
+    name: "presentation.pptx",
+    progress: 78,
+    timeRemaining: "45s",
+  },
+  {
+    id: "3",
+    name: "spreadsheet.xlsx",
+    progress: 12,
+    timeRemaining: "5m 12s",
+  },
+  {
+    id: "4",
+    name: "image.jpg",
+    progress: 100,
+    timeRemaining: "Complete",
+  },
+]
+
 function FileUploadList() {
-  const files = React.useMemo(
-    () => [
-      {
-        id: "1",
-        name: "document.pdf",
-        progress: 45,
-        timeRemaining: "2m 30s",
-      },
-      {
-        id: "2",
-        name: "presentation.pptx",
-        progress: 78,
-        timeRemaining: "45s",
-      },
-      {
-        id: "3",
-        name: "spreadsheet.xlsx",
-        progress: 12,
-        timeRemaining: "5m 12s",
-      },
-      {
-        id: "4",
-        name: "image.jpg",
-        progress: 100,
-        timeRemaining: "Complete",
-      },
-    ],
-    []
-  )
 
   return (
     <Example title="File Upload List">

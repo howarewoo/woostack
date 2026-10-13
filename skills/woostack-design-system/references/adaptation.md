@@ -72,12 +72,11 @@ defaults. CLI sourcing requires network access during creation, not at catalog r
    stylesheets and configuration where compatible. Without project rules, retain the neutral
    shadcn baseline. Remove remaining Git branding/domain assumptions without replacing them with
    a new imposed identity. Include colors/tokens, typography, typeset content and iconography.
-5. Inspect the template manifest and actual source imports. Resolve newly selected packages from
-   authoritative registries, checking peers and target runtime; materialize exact selections and
-   the target package manager's lockfile. A template dependency range is not registry evidence.
-   Retain compatible existing versions; do not upgrade unrelated packages or install app dependencies
-   in the skill distribution. For an isolated catalog, its own manifest owns React and UI runtime
-   dependencies, not the product manifest.
+5. Inspect the template manifest and actual source imports; apply canonical
+   [dependency resolution, ownership and integrity](../../woostack-execute/references/patterns.md#6-dependencies-resolution-ownership-and-integrity).
+   Materialize exact selections and the target package manager's lockfile; a template range is
+   not registry evidence. Do not install app dependencies in the skill distribution. An isolated
+   catalog's own manifest owns React and UI runtime dependencies, not the product manifest.
 6. Retain template/baseline version and upstream URLs/revision in the owned catalog. Record which
    public UI imports are project adaptations versus newly created upstream-based controls, any
    genuine compatibility pins, extension provenance, and the target's native development, build
