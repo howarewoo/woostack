@@ -52,11 +52,10 @@ For an explicit one-run model or effort request, apply the shared
 3. **Select the base before dispatch and plan parents now.** Check the repository-approved integration
    tip or the planned predecessor's head branch against fresh Git, and canonical PR facts where a
    PR prerequisite exists. Prove every required change is available in the selected base,
-   including joined prerequisites. For a join, account for every prerequisite: group the related
-   work, select a justified feasible order with verified prerequisite content, or wait for missing
-   capabilities.
-   For an open parent PR, use its verified branch/head and required content; for a squash-merged parent,
-   verify the native landing and integrated content instead of demanding former-head ancestry.
+   including joined prerequisites. For a join, account for every prerequisite by grouping related
+   work or selecting a justified feasible order with verified prerequisite content.
+   For an open parent PR, use its verified branch/head and required content; for a squash-merged
+   parent, verify the native landing and integrated content instead of demanding former-head ancestry.
    Safe implementation may start from a sufficiently complete immutable prerequisite checkpoint
    whose identity and required content are verified, without waiting for its PR to land or publish;
    reconcile that content with the planned parent before delivery. Deliberate landing order alone
@@ -69,16 +68,13 @@ For an explicit one-run model or effort request, apply the shared
    Give each group an implementation writer with exclusive access to its admitted
    task workspace and branch, including a single-group run. Reuse that allocation
    across in-scope corrections, failed checks, revised approaches, and replacement writers.
-   For substantial groups, identify safe bounded implementation contributions beneath that
-   integrating writer, with explicit interfaces and non-overlapping responsibility. Use them when
-   capability dependencies and runtime capacity permit; sharing a delivery owner is not a reason
-   to serialize coding. Truly dependent work stays sequential; additional checkouts need a concrete
-   isolation reason under the
+   For substantial groups, use safe bounded contributions beneath that integrating writer when
+   capability dependencies and runtime capacity permit. Give each contribution explicit interfaces,
+   non-overlapping responsibility, and delivery limits. Sharing a delivery owner does not require
+   sequential coding; real prerequisites do. Admit and record additional allocations under the
    [workspace contract](../woostack-init/references/worktrees.md#workspace-and-ownership).
-   Record their delivery owner, role, writer/responsibility, interfaces, verified base, why a released
-   allocation is unsuitable, integration destination, and retirement condition in the existing plan
-   or handoff. Temporary writers get bounded contributions and explicit delivery limits, not
-   independent issues, PRs, stack layers, or plan changes. Reassess grouping for an actual new deliverable.
+   Contributions create no independent issues, PRs, stack layers, or plan changes; reassess grouping
+   for an actual new deliverable.
    Hand off only the outcome, limits, invariants, prerequisites, source/workspace evidence, and
    relevant shared runtime restrictions. Check aggregate CPU/memory/process load and shared
    credentials, processes, ports, databases, accounts, and service state before parallel operations;
@@ -92,11 +88,11 @@ For an explicit one-run model or effort request, apply the shared
    planning, dispatch, integration verification, and delivery coordination, not silent implementation
    in the primary checkout. Inline implementation requires a workflow change from the user;
    unavailable worker/isolation capability is a blocker, not an equivalent local result.
-   For a high-risk new authority, mutation, persistence, or selected-context contract, complete the
-   bounded contract and obtain independent review before broad consumer integration. Inspect actual
-   delegated callees for side effects, not just wrapper intent or names, and run focused behavioral
-   checks of the contract's invariants. Resolve findings and refresh affected evidence before
-   releasing consumers onto that checkpoint; safe work not relying on the unsettled contract continues.
+   Before broad consumer integration of a high-risk new authority, mutation, persistence, or
+   selected-context contract, complete its bounded implementation, run focused invariant checks,
+   and obtain independent review. Inspect actual delegated callees for side effects, not wrapper
+   intent or names. Resolve findings and refresh affected evidence before releasing consumers;
+   work independent of the unsettled contract may continue.
 5. **Integrate and deliver the group's PR and stack.** Use the selected worker runtime's
    completion handling; on interrupted workers, rediscover its state and Git/PR facts before retrying.
    Preserve unknown work, block affected dependents, and never duplicate work or claim unverified delivery.
