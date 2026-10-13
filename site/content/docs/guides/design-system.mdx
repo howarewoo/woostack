@@ -1,0 +1,75 @@
+---
+title: Create and maintain a design catalog
+description: Build a project-owned component catalog, inspect drift, or request scoped maintenance.
+---
+
+Use this guide when you need a working catalog of components, foundations, and adoption examples.
+For arranging screens in a multi-step flow, use [Design](/docs/skills/woostack-design).
+
+You need a coding assistant with [Woostack installed](/docs/getting-started), access to the target
+repository, and permission to install any necessary catalog dependencies. The requests below go to
+your assistant; they are not terminal commands.
+
+## Create a catalog
+
+1. Open the target repository in your coding assistant. Point it to existing design rules and
+   component imports when you know them. For example:
+
+   ```text
+   /woostack-design-system Create a catalog using our DESIGN.md, existing UI exports,
+   and application tokens. Keep changes local.
+   ```
+
+2. Review the assistant's compatibility decision. Compatible UI should appear in the catalog
+   chrome and specimens through its existing public imports and APIs. The assistant adapts catalog
+   callers instead of migrating those components or adding duplicate controls. Where no design
+   rules exist, newly created controls use a neutral Base UI-backed shadcn baseline.
+   The skill ships the catalog shell, inventory, specimens, examples, and verification assets.
+   It sources needed new controls through the current shadcn CLI and
+   [component documentation](https://ui.shadcn.com/docs/components), rather than bundling a copied
+   UI library. Compatible existing controls remain in place.
+
+   For an incompatible or non-React product, the result is an isolated React catalog. Its dependencies
+   and configuration must leave the product's framework, runtime dependencies, and behavior unchanged.
+
+3. Use the development, build, and verification commands recorded in the resulting catalog's
+   README. Check the reported baseline coverage and project extensions, then open the running
+   catalog. Try search, empty results, component links, Back/Forward, narrow navigation, keyboard
+   actions, focus transfer, themes, copyable examples, and representative overlays.
+
+4. Read the final report. It should separate command results from browser evidence and name any
+   blocked checks. The target repository owns the components, tokens, examples, and design rules;
+   the catalog has no Woostack or Git Stacks runtime dependency.
+
+Creation authorizes bounded local changes and necessary verification. It does not create a branch,
+commit, PR, issue, or Project update, and it does not migrate the product's UI.
+
+## Inspect an existing catalog
+
+1. Invoke the skill without a maintenance request:
+
+   ```text
+   /woostack-design-system
+   ```
+
+2. Read the gap and drift report against the versioned baseline and your project's rules. Ordinary
+   invocation with an existing catalog changes no files or dependency state. A report is evidence
+   for deciding what to repair; it is not authorization to apply the repair.
+
+## Request scoped maintenance
+
+1. Name the specific addition, repair, or update you want. Include customizations that must remain:
+
+   ```text
+   /woostack-design-system Repair the dialog adoption example to use our existing public
+   Dialog API. Preserve our tokens, other specimens, and product components. Keep changes local.
+   ```
+
+2. Review the result and the checks for that change. The assistant must preserve unrelated work
+   and customizations. If the requested change conflicts with an existing API or design rule, it
+   reports the conflict instead of silently replacing your implementation.
+
+3. Use [Commit](/docs/skills/woostack-commit) separately if you want delivery through Git or a PR.
+
+See the [Design System skill reference](/docs/skills/woostack-design-system) for the canonical
+compatibility, adaptation, and verification procedure.

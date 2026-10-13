@@ -9,6 +9,10 @@ individual skills own workflow steps and approval gates.
 New-project planning and bounded creation belong to Plan and Execute by requested intent.
 Neither requires the other or Init; Init remains the owner of requested project guidance.
 Execute owns reusable implementation standards, loaded only for relevant changes.
+Design System owns project component catalogs and their versioned templates; Design owns flow
+arrangement. A catalog's components, tokens, examples, and rules belong to the target project.
+Existing compatible APIs stay intact, with adaptations at catalog callers. Existing-catalog
+inspection is read-only unless maintenance is explicitly requested.
 
 Report observed outcomes and blockers. Distinguish verified facts from inference. Git and GitHub evidence establish
 delivery; issue status and agent reports do not. The
