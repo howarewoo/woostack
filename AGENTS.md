@@ -1,8 +1,9 @@
 # AGENTS.md
 
-Woostack publishes coding-agent skills and supporting assets. `site/` is its only
-application subtree. These instructions apply repository-wide; site work also
-follows [site/AGENTS.md](site/AGENTS.md). Keep `.claude/CLAUDE.md` as a symlink here.
+Woostack publishes coding-agent skills and supporting assets. Applications live in
+`apps/`: the documentation site in `apps/docs/` and the component catalog in
+`apps/design/`. Docs work also follows
+[apps/docs/AGENTS.md](apps/docs/AGENTS.md). Keep `.claude/CLAUDE.md` as a symlink here.
 
 Use woostack skills when available. At the start of work, use `using-woostack` if
 available to load the project rules and route `/woostack-*` requests to the matching
@@ -15,9 +16,9 @@ Follow this file first when it conflicts with generic agent defaults.
 
 ## Boundaries
 
-- Keep application source, build configuration, and app lockfiles in `site/`.
-  Supporting skill scripts are allowed outside it. Create new projects in a
-  different repository, not this checkout.
+- Keep application source and build configuration in the owning `apps/` package.
+  Root pnpm and Turborepo configuration owns workspace orchestration and the shared
+  lockfile. Supporting skill scripts remain with their skills.
 - Public skill names and paths are installed interfaces. Moving, renaming, or
   retiring a public skill requires explicit approval. Approved retirements remove
   the complete skill and its references; do not add compatibility aliases.
@@ -33,8 +34,10 @@ Follow this file first when it conflicts with generic agent defaults.
 | --- | --- |
 | Skill behavior and supporting assets | The relevant `skills/<name>/SKILL.md` and its references, scripts, or templates |
 | Public command routing | [using-woostack](skills/using-woostack/SKILL.md#command-routing) |
-| Authored documentation | `site/content/docs/` |
-| Documentation application and generator | `site/`; follow its local instructions |
+| Authored documentation | `apps/docs/content/docs/` |
+| Documentation application and generator | `apps/docs/`; follow its local instructions |
+| Component catalog | `apps/design/` |
+| Workspace orchestration and lockfile | Root pnpm and Turborepo configuration |
 
 [CONTRIBUTING.md](CONTRIBUTING.md#what-to-change) has the detailed ownership map.
 Read [PRODUCT.md](PRODUCT.md) when changing product scope and [DESIGN.md](DESIGN.md)
@@ -56,7 +59,7 @@ workflow, provider calls, and approval gates.
   required incompatibility pins at the dependency owner under
   [patterns.md](skills/woostack-execute/references/patterns.md#6-dependencies-resolution-ownership-and-integrity).
 - Update affected authored guides when behavior changes. Never edit generated
-  `site/content/docs/skills/` pages; change `skills/*/SKILL.md` instead. The site
+  `apps/docs/content/docs/skills/` pages; change `skills/*/SKILL.md` instead. The site
   build regenerates these pages, which remain gitignored.
 - For configuration, retained-data, or publication changes, read the
   [artifact contract](skills/woostack-init/references/artifact-backends.md).
@@ -65,8 +68,11 @@ workflow, provider calls, and approval gates.
 
 ## Validation
 
-There is no root application install or universal test command. Run commands from
-the repository root, selecting only checks that cover what the edit can break.
+Install workspace dependencies from the repository root with
+`pnpm install --frozen-lockfile`. Root `pnpm dev`, `pnpm build`, `pnpm test`,
+`pnpm verify`, and `pnpm types:check` run Turborepo tasks. Select only checks that
+cover what the edit can break; filter an app with `--filter=docs` or
+`--filter=design`.
 A plain wording or link correction never triggers the full site test command or a
 production build solely because it touches `skills/*/SKILL.md` or site content.
 
@@ -75,13 +81,13 @@ production build solely because it touches `skills/*/SKILL.md` or site content.
   instruction path as evidence.
 - Skill frontmatter, catalog, parser, generator, link-rewriting, or installation
   layout changes: run the relevant existing parser/generator/asset tests, for
-  example `node --test site/scripts/gen-skills.test.mjs` and
-  `node --test site/scripts/skill-assets.test.mjs`. Prefer the small complete
-  relevant suite (`pnpm -C site test`, which runs `node --test scripts/*.test.mjs`)
+  example `node --test apps/docs/scripts/gen-skills.test.mjs` and
+  `node --test apps/docs/scripts/skill-assets.test.mjs`. Prefer the small complete
+  relevant suite (`pnpm --filter docs test`, which runs `node --test scripts/*.test.mjs`)
   when that is simpler and cheaper than elaborate selection.
 - MDX syntax, embedded components, generated rendering, routing, site application,
   dependency, or build-configuration changes: run the applicable rendering or build
-  check. A production build (`pnpm -C site build`) remains required when the change
+  check. A production build (`pnpm build --filter=docs`) remains required when the change
   can affect the production build and narrower established checks do not adequately
   cover that risk. When impact is uncertain, choose broader verification rather than
   an unsupported exemption.
@@ -91,9 +97,9 @@ production build solely because it touches `skills/*/SKILL.md` or site content.
 - Material Plan, Execute, Commit, or Orchestrate behavior changes: run the relevant
   [workflow smoke recipe](skills/using-woostack/references/workflow-smoke.md).
 
-When a selected site test or build needs dependencies in a checkout without its own,
-run `pnpm -C site install --frozen-lockfile` first. Do not symlink `node_modules`
-from another checkout; see the site instructions for the Turbopack restriction.
+When selected checks need dependencies, install from the root shared lockfile with
+`pnpm install --frozen-lockfile`. Never symlink `node_modules` from another checkout;
+workspace-managed links remain within this repository's root.
 
 For changed scripts, run the actual entrypoint or focused behavioral test and relevant
 syntax checks. Test behavior, not exact instruction wording or a test-only copy. Site

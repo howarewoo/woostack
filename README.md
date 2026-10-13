@@ -9,7 +9,7 @@ the repository and return a coherent plan without writing to GitHub, or publish 
 issues with verified dependencies. Verify changes; delegate or request independent review when
 required, requested, or warranted by risk.
 
-Start with the [getting-started guide](site/content/docs/getting-started.mdx), or use the
+Start with the [getting-started guide](apps/docs/content/docs/getting-started.mdx), or use the
 [command index](skills/using-woostack/SKILL.md#command-routing) to choose a workflow.
 
 
@@ -77,7 +77,7 @@ For pull-request review, use [Pullfrog](https://pullfrog.com/). This repository 
 Pullfrog workflow at [`.github/workflows/pullfrog.yml`](.github/workflows/pullfrog.yml).
 
 For the full policy surface, see the authored
-[configuration reference](site/content/docs/configuration/index.mdx).
+[configuration reference](apps/docs/content/docs/configuration/index.mdx).
 
 
 Plan handles a goal or incomplete issue directly. It inspects relevant source, asks about
@@ -92,14 +92,14 @@ GitHub publication, recovery, and retained historical record handling. Saved pla
 records record decisions; they do not authorize new work or prove that code was delivered.
 
 If you use Hermes to coordinate an OMP session, follow the
-[Hermes guide](site/content/docs/hermes.mdx). Install woostack in a compatible coding
+[Hermes guide](apps/docs/content/docs/hermes.mdx). Install woostack in a compatible coding
 assistant, not in Hermes. Hermes can relay decisions and review evidence; implementation stays
 in the coding assistant.
 
 ## Choose a development workflow
 
 To plan in a normal ChatGPT chat, start with the
-[ChatGPT-to-Codex guide](site/content/docs/chatgpt-to-codex.mdx). In a coding host, Plan can
+[ChatGPT-to-Codex guide](apps/docs/content/docs/chatgpt-to-codex.mdx). In a coding host, Plan can
 return a plan without publication, or file issues on request using authorized GitHub access.
 Native links are verified when requested and available; missing relationships are reported,
 not invented. Execution is a separate request to Orchestrate for multiple tasks or Execute
@@ -122,9 +122,9 @@ change request; planning is not a prerequisite for a bounded task with settled d
 does not require Execute; commits and PRs remain opt-in. Init separately owns requested project
 guidance and local support, not application scaffolding.
 
-See the [workflow maps](site/content/docs/concepts/workflows.mdx) for the full sequences.
+See the [workflow maps](apps/docs/content/docs/concepts/workflows.mdx) for the full sequences.
 
-For component-system work, follow [Create and maintain a design catalog](site/content/docs/guides/design-system.mdx).
+For component-system work, follow [Create and maintain a design catalog](apps/docs/content/docs/guides/design-system.mdx).
 Design System adapts to project components and design rules; incompatible products get an isolated
 React catalog. The target owns the result without a Woostack or Git Stacks runtime dependency.
 Use `/woostack-design` separately to arrange multi-step UI flows.
@@ -150,11 +150,41 @@ Git/GitHub evidence. Agents never merge PRs; merging is a human decision.
 Open a PR to improve a skill, correct guidance, or document a known problem. Read
 [CONTRIBUTING.md](CONTRIBUTING.md) for the editing workflow and [AGENTS.md](AGENTS.md) for repository rules.
 
+## Monorepo development
+
+The pnpm workspace uses Turborepo to run the documentation app in `apps/docs/` and
+the standalone catalog in `apps/design/`. Dependencies stay in each app's
+manifest; installation uses the shared root `pnpm-lock.yaml`.
+
+Run from the repository root with Node `^20.19.0 || >=22.12.0` and pnpm 12.10.1:
+
+```sh
+pnpm install --frozen-lockfile
+pnpm dev
+pnpm build
+pnpm test
+pnpm verify
+pnpm types:check
+```
+
+Root tasks use Turborepo's interactive TUI. Use Up/Down to select a task and inspect its
+logs; `pnpm dev --ui=tui` explicitly selects the same UI.
+
+To select one app while retaining Turborepo, use `pnpm dev --filter=docs` or
+`pnpm dev --filter=design` (and the same filters for other root task commands).
+Docs defaults to port 3000; the catalog defaults to port 5173. See the
+[docs README](apps/docs/README.md) and
+[catalog README](apps/design/README.md) for app-specific development guidance.
+
+`pnpm-workspace.yaml` permits only the reviewed native build scripts for esbuild and
+Sharp. Exact release-age exceptions retain the selected Turborepo release and two
+previously verified design dependencies; the general supply-chain checks remain enabled.
+
 ## Spec version
 
 `2.0.0`
 
-For older installations, see [upgrading from a pre-cutover release](site/content/docs/concepts/workflows.mdx#upgrading-from-a-pre-cutover-release).
+For older installations, see [upgrading from a pre-cutover release](apps/docs/content/docs/concepts/workflows.mdx#upgrading-from-a-pre-cutover-release).
 
 ## License
 
