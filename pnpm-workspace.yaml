@@ -1,0 +1,17 @@
+packages:
+  - apps/*
+minimumReleaseAgeExclude:
+  - '@turbo/darwin-64@2.11.8'
+  - '@turbo/darwin-arm64@2.11.8'
+  - '@turbo/linux-64@2.11.8'
+  - '@turbo/linux-arm64@2.11.8'
+  - '@turbo/windows-64@2.11.8'
+  - '@turbo/windows-arm64@2.11.8'
+  - turbo@2.11.8
+  # Existing design-app selections, already exercised before workspace migration.
+  - lucide-react@1.56.0
+  - react-resizable-panels@4.14.5
+allowBuilds:
+  # Native binary verification for the CLI toolchain and Next image processing.
+  esbuild@0.28.1: true
+  sharp@0.34.5: true

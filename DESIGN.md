@@ -16,7 +16,7 @@ inspection is read-only unless maintenance is explicitly requested.
 
 Report observed outcomes and blockers. Distinguish verified facts from inference. Git and GitHub evidence establish
 delivery; issue status and agent reports do not. The
-[building rules](site/content/docs/concepts/building-rules.mdx) explain these authority boundaries.
+[building rules](apps/docs/content/docs/concepts/building-rules.mdx) explain these authority boundaries.
 The [output discipline](skills/using-woostack/references/output-discipline.md) owns communication
 conventions.
 
@@ -30,15 +30,23 @@ adding new layers, while preserving independent safety checks. The
 Public skill names and paths are installed interfaces. Changes to them require explicit approval
 under [AGENTS.md](AGENTS.md). Preserve retained records as historical user data; they cannot authorize work.
 
+## Application boundaries
+
+The pnpm workspace contains the documentation app in `apps/docs/` and the standalone
+component catalog in `apps/design/`. Each app owns its source, build configuration,
+and dependency manifest. Root pnpm and Turborepo configuration orchestrate app tasks;
+the root `pnpm-lock.yaml` is the shared dependency-resolution record.
+The catalog remains a separate application rather than a documentation route.
+
 ## Documentation surface
 
 The documentation application uses Next.js and Fumadocs. Authored guides live in
-`site/content/docs/`; skill references are generated from `skills/*/SKILL.md` during development
-and builds. Edit the source, not generated pages. The [site README](site/README.md) owns development,
-generation, and deployment instructions.
+`apps/docs/content/docs/`; skill references are generated from `skills/*/SKILL.md` during development
+and builds. Edit the source, not generated pages. The [docs README](apps/docs/README.md) owns app-specific
+development, generation, and deployment instructions.
 
 Keep tutorials, how-to guides, reference, and explanation separate. Preserve the existing
 information architecture and use plain, direct prose, as defined in
-[site/AGENTS.md](site/AGENTS.md). Site changes follow those scoped instructions.
+[apps/docs/AGENTS.md](apps/docs/AGENTS.md). Documentation app changes follow those scoped instructions.
 
 Read [PRODUCT.md](PRODUCT.md) for current product scope.

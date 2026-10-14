@@ -87,13 +87,14 @@ Items 2–6 are the five behavior scenarios; distribution is their installation 
 From the Woostack repository root, run the required existing packaging suites:
 
 ```sh
-node --test site/scripts/gen-skills.test.mjs
-node --test site/scripts/skill-assets.test.mjs
+node --test apps/docs/scripts/gen-skills.test.mjs
+node --test apps/docs/scripts/skill-assets.test.mjs
 ```
 
-For verifier changes, also run `node --test site/scripts/design-system.test.mjs`.
-This suite invokes the shipped verifier with the site's installed TypeScript dependency;
-install site dependencies under repository validation policy before running it.
+For verifier changes, also run `node --test apps/docs/scripts/design-system.test.mjs`.
+This suite invokes the shipped verifier with the docs app's installed TypeScript dependency;
+install workspace dependencies from the root with `pnpm install --frozen-lockfile`
+under repository validation policy before running it.
 
 Select authored-site rendering/build checks under repository validation policy when their boundaries
 are affected. Packaging/parser tests establish discovery and asset inclusion, not that a model

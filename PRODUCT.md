@@ -25,12 +25,16 @@ Current scope:
 - Project-owned design catalogs adapted to existing UI and design rules, with bounded local
   creation, read-only inspection, and explicitly scoped maintenance.
 - A documentation site with authored guides and references generated from skill sources.
+- A standalone component catalog for inspecting components, tokens, and examples.
 
 The [command router](skills/using-woostack/SKILL.md#command-routing) owns command selection and
 workflow boundaries. Individual skills own their procedures.
 
-Woostack is a skills collection, not a new application to scaffold in this checkout.
-Application source is confined to `site/`; supporting skill assets live with their owning skills.
+Woostack is a skills collection with two supporting applications, not a place to scaffold
+unrelated products. Application source is confined to `apps/docs/` and
+`apps/design/`; supporting skill assets live with their owning skills.
+A pnpm workspace and Turborepo coordinate the apps with a shared root lockfile,
+while each app owns its dependencies.
 Plans, issues, status boards, and reports do not authorize additional work or prove delivery.
 Merging remains a human decision.
 

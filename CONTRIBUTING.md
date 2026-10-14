@@ -1,9 +1,9 @@
 # Contributing
 
-This repo publishes skills for AI coding assistants, their supporting files, and a documentation
-site. The [command index](skills/using-woostack/SKILL.md#command-routing) lists Plan,
+This repo publishes skills for AI coding assistants, their supporting files, a documentation
+site, and a standalone component catalog. The [command index](skills/using-woostack/SKILL.md#command-routing) lists Plan,
 standalone Ideate and Harden, and the other public commands. Read [AGENTS.md](AGENTS.md)
-for standing repository rules, the sanctioned `site/` exception, and verified checks.
+for standing repository rules, the two-app boundary, and verified checks.
 
 ## What to change
 
@@ -32,8 +32,10 @@ for standing repository rules, the sanctioned `site/` exception, and verified ch
 | Change how review comments are addressed | `skills/woostack-address-comments/SKILL.md` |
 | Change workspace checks and repairs (`/woostack-doctor`) | `skills/woostack-doctor/SKILL.md` |
 | Update agent instructions (Claude or any) | `AGENTS.md` (`.claude/CLAUDE.md` is a symlink to it) |
-| Update reader-facing guides | `site/content/docs/` |
-| Change the documentation site or skill-page generator | `site/` |
+| Update reader-facing guides | `apps/docs/content/docs/` |
+| Change the documentation site or skill-page generator | `apps/docs/` |
+| Change the standalone component catalog | `apps/design/` |
+| Change workspace orchestration or shared dependency resolution | Root pnpm/Turborepo configuration and `pnpm-lock.yaml` |
 
 ## Workflow
 
@@ -49,15 +51,20 @@ for standing repository rules, the sanctioned `site/` exception, and verified ch
    [source-control reference](skills/woostack-commit/references/source-control.md), which also owns
    requested rebases, stack consolidation, and readiness. Never merge, auto-merge, or queue a PR.
 
-The site is the exception to this repository's no-application-code rule. Its
-[README](site/README.md) covers local development and deployment.
+The approved applications are the documentation site in `apps/docs/` and the standalone
+catalog in `apps/design/`. Their [docs README](apps/docs/README.md) and
+[catalog README](apps/design/README.md) cover app-specific development.
+Root pnpm commands use Turborepo to coordinate both apps; install from the root with
+`pnpm install --frozen-lockfile` using the shared root lockfile.
 
 ## Editing conventions
 
 - Keep workflow changes in skill files and their supporting Markdown, templates, scripts,
   prompts, or JSON. Design System application/configuration sources ship as non-runnable
   `.template` assets; instantiate them only in target or disposable repositories. Runnable
-  application code, build configuration, and app lockfiles belong only in `site/`.
+  application code and app build configuration belong in `apps/docs/` or
+  `apps/design/`. App manifests own their dependencies; the root owns pnpm workspace
+  and Turborepo orchestration configuration and the shared `pnpm-lock.yaml`.
 - Pull-request review uses [Pullfrog](https://pullfrog.com/); the shipped workflow is
   `.github/workflows/pullfrog.yml`.
 - Resolve selected or changed dependency versions from authoritative current registries.

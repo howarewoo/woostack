@@ -1,0 +1,32 @@
+{
+  "$schema": "https://turborepo.com/schema.json",
+  "ui": "tui",
+  "tasks": {
+    "dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**"]
+    },
+    "docs#build": {
+      "dependsOn": ["^build"],
+      "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/skills/**"],
+      "outputs": [".next/**", "!.next/cache/**", ".source/**", "content/docs/skills/**"]
+    },
+    "test": {
+      "cache": false
+    },
+    "verify": {
+      "cache": false
+    },
+    "types:check": {
+      "outputs": []
+    },
+    "docs#types:check": {
+      "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/skills/**"],
+      "outputs": [".source/**", ".next/types/**", "content/docs/skills/**"]
+    }
+  }
+}
