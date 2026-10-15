@@ -84,8 +84,9 @@ the full standard.
 
 The canonical
 [Execute testing guidance](https://github.com/howarewoo/woostack/blob/main/skills/woostack-execute/references/tdd.md)
-keeps feedback focused on the promised behavior, with broader checks for affected consumers,
-integration risks, and explicit requirements. Still-applicable results can be reused. Required
+starts from existing protection: an adequate baseline is a valid stopping point, adding tests only
+for distinct uncovered behavior, regressions, or material risks. It prioritizes meaningful assertions
+over volume, avoids redundant aggregate/component runs, and reuses applicable results. Required
 checks must pass; slowness or unavailable services do not waive them. Local proof does not establish
 remote merge readiness.
 
