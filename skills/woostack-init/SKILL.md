@@ -32,10 +32,30 @@ and contracts only for relevant support work.
    Summarize what needs creating, updating, or preserving. Distinguish observed implementation,
    documented intent, and unresolved decisions; surface contradictions rather than silently choosing
    one. Preserve the authority and scope of existing instructions.
+   When verification guidance is relevant to the requested scope, inspect the repository's actual
+   tools, commands, applicable instructions, CI workflows, test suites, and available timing evidence.
+   Distinguish a demonstrated bottleneck from an unmeasured concern. An adequate verification setup
+   is a valid no-op; unrelated document work and support-only requests do not trigger a mandatory
+   tooling audit.
 2. **Resolve material gaps.** Ask repository-informed questions only where answers change a reader's
    first-use path, product behavior, design direction, or working agreements. Offer a recommendation
    and tradeoff when useful. Do not ask for repository facts or previously answered product and
    technology decisions.
+   When verification improvements are warranted, prefer removing redundant commands or configuring
+   existing native capabilities before adding or replacing tools, guided by the canonical
+   [testing principles](../woostack-execute/references/tdd.md). Consider only capabilities warranted
+   by the gap: focused selection, assertion/coverage quality, deterministic cache reuse, setup costs,
+   resource-aware concurrency, or duplicated/obsolete CI work; do not prescribe all capabilities,
+   invent a pipeline, or defer required verification to non-existent CI.
+   When options need investigation, consult current authoritative sources appropriate to the
+   repository's installed ecosystem. Recommend fit based on compatibility, correctness, execution
+   cost, migration effort, and maintenance burden. Avoid hard-coded framework shortlists, default
+   runners, ecosystem assumptions, standing comparison tables, or claims of a universally optimal
+   framework. Preserve settled viable choices; explain a concrete reason before proposing a change,
+   and qualify unavailable research honestly. Keep current setup, agreed future direction, and
+   unimplemented recommendations distinct: explain the gap, smallest useful improvement, material
+   tradeoffs, and how the result could be verified in ordinary prose, without promising unmeasured
+   speedups.
    Product → design → agent instructions is a useful default, not a required sequence.
    Adapt to the project and allow decisions to remain explicitly deferred.
 3. **Draft focused guidance.** Use the [document responsibilities](#document-responsibilities) and
@@ -45,13 +65,22 @@ and contracts only for relevant support work.
    generated layer. Link to canonical specifications, architecture decisions, design systems, and
    contributor guidance instead of copying them; propose consolidation before replacing established
    documents. Never invent commands, metrics, architectural rationale, or settled decisions.
+   Repository manifests and CI configuration remain authoritative for adopted tooling. Record only
+   useful repository-specific operating guidance and verified command existence, working directory,
+   conditions, and evidence status; link rather than duplicate configuration. Keep current commands
+   distinct from proposals: never document proposed commands as available, claim a cache or CI job
+   exists before configuration does, or convert an advisory recommendation into an established
+   operational requirement. Preserve scoped instructions.
 4. **Review meaningful changes and apply authorized edits.** Present the proposed result, calling out
    changes to product direction, design constraints, and agent permissions. Reuse authorization
    already given; do not add approval ceremonies for individual headings or paragraphs. Review-only,
-   draft-only, or planning requests write nothing. Unapproved scope expansion remains a proposal. Preserve
-   unrelated work, file ownership, and existing file/symlink relationships: verify a linked target's
-   identity and authorization before editing it, never replace the link or write through an unsafe or
-   ambiguous path. A blocked write does not prevent presenting a draft.
+   draft-only, or planning requests write nothing. Unapproved scope expansion remains a proposal.
+   Tooling and verification recommendations are advisory: they do not authorize package installation,
+   manifest, lockfile, or CI edits, application changes, or a mandatory implementation handoff;
+   implementing or migrating them remains separately authorized work. Preserve unrelated work, file
+   ownership, and existing file/symlink relationships: verify a linked target's identity and
+   authorization before editing it, never replace the link or write through an unsafe or ambiguous path.
+   A blocked write does not prevent presenting a draft.
 5. **Verify within scope.** Check the applicable schema, consistency across affected documents,
    referenced paths/links, and technical claims against current repository evidence. Verify a format
    before adding its version marker; report applicability limits and unresolved conversions. Use
@@ -59,7 +88,9 @@ and contracts only for relevant support work.
    from commands actually executed.
    Do not run unrelated setup, network operations, or side-effectful commands to validate prose.
 6. **Report the result.** State what was created, updated, intentionally preserved, or blocked, the
-   verification evidence, and unresolved decisions. Leave good guidance unchanged rather than
+   verification evidence, and unresolved decisions. Clearly separate current setup, agreed future
+   direction, and any unimplemented verification recommendations with their gaps, smallest useful
+   improvements, tradeoffs, and verification approaches. Leave good guidance unchanged rather than
    rewriting it for stylistic novelty.
 
 ## Document responsibilities
@@ -122,7 +153,10 @@ last independently read boundary.
 ## Boundaries
 
 Init authors authorized project guidance and explicit local support, not application source or a
-scaffold. It creates no issue, Project, branch, commit, pull request, or lifecycle state; it never
-pushes, merges, reads/writes credentials, migrates retained data, or performs destructive cleanup.
-It never creates host extensions or `.omp/` for session naming. User-owned files, legacy settings,
-retained records, dirty worktrees, and reports remain preserved.
+scaffold. It installs no packages, writes or updates no package manifests, lockfiles, or CI workflows,
+and schedules no mandatory implementation handoff. Tooling and verification recommendations are
+advisory; implementing or migrating them remains separately authorized work. It creates no issue,
+Project, branch, commit, pull request, or lifecycle state; it never pushes, merges, reads/writes
+credentials, migrates retained data, or performs destructive cleanup. It never creates host extensions
+or `.omp/` for session naming. User-owned files, legacy settings, retained records, dirty worktrees,
+and reports remain preserved.
