@@ -16,7 +16,12 @@ pnpm dev --filter=docs      # generates skill pages, then starts Next on port 30
 Run `pnpm build --filter=docs` to generate skill pages and build the site through Turborepo.
 `pnpm --filter docs test` checks generator rendering, frontmatter, local asset links (including
 angle-bracket destinations), and installation discovery with Node's built-in test runner (`node --test`).
-It does not invoke a planner, model, or GitHub.
+It does not invoke a planner, model, or GitHub. `pnpm types:check --filter=docs` checks Fumadocs
+generation and TypeScript types. `pnpm verify --filter=docs` runs both checks through Turborepo's
+task graph without duplicate execution; direct `pnpm --filter docs run verify` delegates
+to the task graph without duplicate execution.
+Both `pnpm verify --filter=docs --force` and `pnpm --filter docs run verify --force`
+bypass cached results and execute the docs checks freshly.
 
 ## Deploy to Vercel
 

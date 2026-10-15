@@ -1,6 +1,9 @@
 {
   "$schema": "https://turborepo.com/schema.json",
   "ui": "tui",
+  "cacheDir": ".turbo/cache",
+  "globalEnv": ["TURBO_RUNTIME_HASH", "npm_config_user_agent"],
+  "globalPassThroughEnv": ["TURBO_FORCE"],
   "tasks": {
     "dev": {
       "cache": false,
@@ -16,9 +19,23 @@
       "outputs": [".next/**", "!.next/cache/**", ".source/**", "content/docs/skills/**"]
     },
     "test": {
-      "cache": false
+      "outputs": []
+    },
+    "docs#test": {
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/skills/**",
+        "$TURBO_ROOT$/.claude/skills/**",
+        "$TURBO_ROOT$/skills-lock.json",
+        "$TURBO_ROOT$/*.md",
+        "$TURBO_ROOT$/LICENSE"
+      ],
+      "outputs": []
     },
     "verify": {
+      "outputs": []
+    },
+    "docs#verify": {
       "cache": false
     },
     "types:check": {

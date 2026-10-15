@@ -6,11 +6,11 @@
     "node": "^20.19.0 || >=22.12.0"
   },
   "scripts": {
-    "dev": "turbo run dev",
-    "build": "turbo run build",
-    "test": "turbo run test",
-    "verify": "turbo run verify",
-    "types:check": "turbo run types:check"
+    "dev": "node scripts/turbo.mjs run dev",
+    "build": "node scripts/turbo.mjs run build",
+    "test": "node scripts/turbo.mjs run test",
+    "verify": "node scripts/turbo.mjs run verify",
+    "types:check": "node scripts/turbo.mjs run types:check"
   },
   "devDependencies": {
     "turbo": "2.11.8"
