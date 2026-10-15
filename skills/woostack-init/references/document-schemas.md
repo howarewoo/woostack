@@ -69,6 +69,10 @@ output, URLs, badges, supported platforms, license, or project claims. Preserve 
 do not invent screenshots or diagrams. Omit empty headings, generic marketing, decorative badge
 collections, and unnecessary manual tables of contents.
 
+Development and testing sections record only commands with verified existence, their prerequisites,
+and working directories, maintaining the distinction between inspected and executed evidence. Keep
+proposed tooling changes and unconfigured caches or CI workflows out of the primary usage path.
+
 Check referenced local files, images, and anchors and confirm commands/examples against scripts,
 source, or canonical docs. Execute commands only when safe, authorized, and feasible under Init's
 [verification step](../SKILL.md#guided-authoring); distinguish inspected from executed commands and
@@ -159,3 +163,9 @@ required frontmatter, or mandatory heading inventory. Use actual commands and wo
 verification conditions, boundaries, pitfalls, and contextual links. Preserve the repository and
 host's instruction precedence and the scope of existing nested instructions. The operational and
 Woostack-adoption rules remain in [document responsibilities](../SKILL.md#document-responsibilities).
+
+Repository manifests and CI configuration remain authoritative for adopted tooling. Record verified
+command existence, working directories, execution conditions, and evidence status under canonical
+[testing principles](../../woostack-execute/references/tdd.md), distinguishing commands inspected
+from commands executed. Keep current commands, agreed future direction, and unimplemented
+recommendations strictly separate.

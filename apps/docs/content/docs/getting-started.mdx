@@ -64,6 +64,12 @@ formats. Existing canonical documents and scoped instructions stay authoritative
 availability-aware
 [routing paragraph](/docs/skills/using-woostack#agentsmd-usage) in new or updated agent instructions.
 
+When verification guidance is relevant, Init inspects existing check commands, CI, and available
+timing evidence. It can recommend repository-specific improvements, such as removing redundant commands
+or configuring native runner features, without mutating manifests, lockfiles, or CI workflows. An
+adequate verification setup remains unchanged. Current commands, agreed direction, and advisory
+recommendations stay distinct, so proposed tools or unconfigured caches are never documented as available.
+
 Read the report and the resulting guidance. Check that referenced files exist and that commands
 match the repository. A good existing document may need no edits. Deferred decisions should be
 visible, not presented as settled facts. Init distinguishes checks it ran from commands it only
