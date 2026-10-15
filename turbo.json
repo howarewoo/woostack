@@ -3,6 +3,7 @@
   "ui": "tui",
   "cacheDir": ".turbo/cache",
   "globalEnv": ["TURBO_RUNTIME_HASH", "npm_config_user_agent"],
+  "globalPassThroughEnv": ["TURBO_FORCE"],
   "tasks": {
     "dev": {
       "cache": false,

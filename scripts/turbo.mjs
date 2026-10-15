@@ -7,14 +7,22 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const identity = `node:${process.version};platform:${process.platform};arch:${process.arch}`
 const runtimeHash = createHash('sha256').update(identity).digest('hex').slice(0, 16)
 
-const turboBin = path.join(root, 'node_modules', '.bin', 'turbo')
+const turboBin = path.join(root, 'node_modules', 'turbo', 'bin', 'turbo')
+const args = process.argv.slice(2)
+const env = { ...process.env, TURBO_RUNTIME_HASH: runtimeHash }
 
-const result = spawnSync(turboBin, process.argv.slice(2), {
+// Nested verification must inherit an explicit cache bypass, even in strict env mode.
+for (let i = 0; i < args.length && args[i] !== '--'; i++) {
+  if (args[i] === '--force') {
+    env.TURBO_FORCE = /^(true|false)$/.test(args[i + 1]) ? args[++i] : 'true'
+  } else if (args[i].startsWith('--force=')) {
+    env.TURBO_FORCE = args[i].slice('--force='.length)
+  }
+}
+
+const result = spawnSync(process.execPath, [turboBin, ...args], {
   cwd: process.cwd(),
-  env: {
-    ...process.env,
-    TURBO_RUNTIME_HASH: runtimeHash,
-  },
+  env,
   stdio: 'inherit',
 })
 

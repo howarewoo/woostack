@@ -180,6 +180,7 @@ Docs defaults to port 3000; the catalog defaults to port 5173. See the
 plus catalog specimen checks in `apps/design`). Constituent checks are cached
 and run non-redundantly: running `pnpm test` or `pnpm types:check` caches those constituents
 so subsequent `pnpm verify` runs reuse them.
+Use `pnpm verify --force` to execute all checks freshly, including nested docs checks.
 
 Repository caching isolates each checkout via `cacheDir: ".turbo/cache"` in `turbo.json`
 to prevent cross-worktree cache sharing and foreign absolute path leaks in build/typecheck

@@ -20,6 +20,8 @@ It does not invoke a planner, model, or GitHub. `pnpm types:check --filter=docs`
 generation and TypeScript types. `pnpm verify --filter=docs` runs both checks through Turborepo's
 task graph without duplicate execution; direct `pnpm --filter docs run verify` delegates
 to the task graph without duplicate execution.
+Both `pnpm verify --filter=docs --force` and `pnpm --filter docs run verify --force`
+bypass cached results and execute the docs checks freshly.
 
 ## Deploy to Vercel
 
