@@ -66,9 +66,10 @@ or authorize implementation:
 
 - an increment that crosses an application boundary follows the
   [application-boundary adapters rule](../woostack-execute/references/patterns.md#3-application-boundary-adapters);
-- an increment that adds or strengthens tests states the observable contract and points at the
-  [Execute testing guidance](../woostack-execute/references/tdd.md).
-
+- newly authored verification expectations follow canonical
+  [testing guidance](../woostack-execute/references/tdd.md), stating the observable contract and
+  focusing on distinct gaps rather than blanket suites or quotas; do not rewrite acceptance on
+  existing unrelated issues.
 Verify any command or path you name before putting it in an issue — it must exist in the repository
 or be created by that increment or one of its prerequisites. Planning records expectations; it does
 not run them or claim they pass.
