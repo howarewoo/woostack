@@ -1,42 +1,40 @@
 /* MIT: Copyright (c) 2023 shadcn. See LICENSE. Browser-only catalog adaptation. */
-import { useState } from "react"
-import { InfoIcon, SaveIcon } from "lucide-react"
-"use client"
+"use client";
+import { useState } from "react";
+import { InfoIcon, SaveIcon } from "lucide-react";
 
-import {
-  Example,
-  ExampleWrapper,
-} from "@/components/example"
-import { Button } from "@/components/ui/button"
-import { Kbd } from "@/components/ui/kbd"
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"
+import { Example, ExampleWrapper } from "@/components/example";
+import { Button } from "@/components/ui/button";
+import { Kbd } from "@/components/ui/kbd";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 export default function TooltipExample() {
-  const [selectedLink, setSelectedLink] = useState("")
+  const [selectedLink, setSelectedLink] = useState("");
   return (
-    <div className="w-full" onClickCapture={(event) => {
-      const link = (event.target as Element).closest("a[href='#']")
-      if (!link) return
-      event.preventDefault()
-      setSelectedLink(link.getAttribute("aria-label") || link.textContent?.trim() || "Link")
-    }}>
-    <ExampleWrapper>
-      <TooltipBasic />
-      <TooltipSides />
-      <TooltipWithIcon />
-      <TooltipLongContent />
-      <TooltipDisabled />
-      <TooltipWithKeyboard />
-      <TooltipOnLink />
-      <TooltipFormatted />
-    </ExampleWrapper>
-      <p role="status" className="mt-3 text-sm text-muted-foreground">{selectedLink && `Selected example link: ${selectedLink}`}</p>
+    <div
+      className="w-full"
+      onClickCapture={(event) => {
+        const link = (event.target as Element).closest("a[href='#']");
+        if (!link) return;
+        event.preventDefault();
+        setSelectedLink(link.getAttribute("aria-label") || link.textContent?.trim() || "Link");
+      }}
+    >
+      <ExampleWrapper>
+        <TooltipBasic />
+        <TooltipSides />
+        <TooltipWithIcon />
+        <TooltipLongContent />
+        <TooltipDisabled />
+        <TooltipWithKeyboard />
+        <TooltipOnLink />
+        <TooltipFormatted />
+      </ExampleWrapper>
+      <p role="status" className="mt-3 text-sm text-muted-foreground">
+        {selectedLink && `Selected example link: ${selectedLink}`}
+      </p>
     </div>
-  )
+  );
 }
 
 function TooltipBasic() {
@@ -51,27 +49,16 @@ function TooltipBasic() {
         </TooltipContent>
       </Tooltip>
     </Example>
-  )
+  );
 }
 
 function TooltipSides() {
   return (
     <Example title="Sides">
       <div className="flex flex-wrap gap-2">
-        {(
-          [
-            "inline-start",
-            "left",
-            "top",
-            "bottom",
-            "right",
-            "inline-end",
-          ] as const
-        ).map((side) => (
+        {(["inline-start", "left", "top", "bottom", "right", "inline-end"] as const).map((side) => (
           <Tooltip key={side}>
-            <TooltipTrigger
-              render={<Button variant="outline" className="w-fit capitalize" />}
-            >
+            <TooltipTrigger render={<Button variant="outline" className="w-fit capitalize" />}>
               {side.replace("-", " ")}
             </TooltipTrigger>
             <TooltipContent side={side}>
@@ -81,7 +68,7 @@ function TooltipSides() {
         ))}
       </div>
     </Example>
-  )
+  );
 }
 
 function TooltipWithIcon() {
@@ -97,7 +84,7 @@ function TooltipWithIcon() {
         </TooltipContent>
       </Tooltip>
     </Example>
-  )
+  );
 }
 
 function TooltipLongContent() {
@@ -108,12 +95,12 @@ function TooltipLongContent() {
           Show Tooltip
         </TooltipTrigger>
         <TooltipContent>
-          To learn more about how this works, check out the docs. If you have
-          any questions, please reach out to us.
+          To learn more about how this works, check out the docs. If you have any questions, please
+          reach out to us.
         </TooltipContent>
       </Tooltip>
     </Example>
-  )
+  );
 }
 
 function TooltipDisabled() {
@@ -130,7 +117,7 @@ function TooltipDisabled() {
         </TooltipContent>
       </Tooltip>
     </Example>
-  )
+  );
 }
 
 function TooltipWithKeyboard() {
@@ -145,7 +132,7 @@ function TooltipWithKeyboard() {
         </TooltipContent>
       </Tooltip>
     </Example>
-  )
+  );
 }
 
 function TooltipOnLink() {
@@ -168,7 +155,7 @@ function TooltipOnLink() {
         </TooltipContent>
       </Tooltip>
     </Example>
-  )
+  );
 }
 
 function TooltipFormatted() {
@@ -186,5 +173,5 @@ function TooltipFormatted() {
         </TooltipContent>
       </Tooltip>
     </Example>
-  )
+  );
 }

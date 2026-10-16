@@ -1,11 +1,8 @@
 /* MIT: Copyright (c) 2023 shadcn. See LICENSE. Browser-only catalog adaptation. */
-import { BoldIcon, BookmarkIcon, ItalicIcon, UnderlineIcon } from "lucide-react"
-import {
-  Example,
-  ExampleWrapper,
-} from "@/components/example"
-import { Button } from "@/components/ui/button"
-import { Toggle } from "@/components/ui/toggle"
+import { BoldIcon, BookmarkIcon, ItalicIcon, UnderlineIcon } from "lucide-react";
+import { Example, ExampleWrapper } from "@/components/example";
+import { Button } from "@/components/ui/button";
+import { Toggle } from "@/components/ui/toggle";
 
 export default function ToggleExample() {
   return (
@@ -19,7 +16,7 @@ export default function ToggleExample() {
       <ToggleDisabled />
       <ToggleWithIcon />
     </ExampleWrapper>
-  )
+  );
 }
 
 function ToggleBasic() {
@@ -37,7 +34,7 @@ function ToggleBasic() {
         </Toggle>
       </div>
     </Example>
-  )
+  );
 }
 
 function ToggleOutline() {
@@ -54,7 +51,7 @@ function ToggleOutline() {
         </Toggle>
       </div>
     </Example>
-  )
+  );
 }
 
 function ToggleSizes() {
@@ -72,7 +69,7 @@ function ToggleSizes() {
         </Toggle>
       </div>
     </Example>
-  )
+  );
 }
 
 function ToggleWithButtonText() {
@@ -105,7 +102,7 @@ function ToggleWithButtonText() {
         </div>
       </div>
     </Example>
-  )
+  );
 }
 
 function ToggleWithButtonIcon() {
@@ -124,11 +121,7 @@ function ToggleWithButtonIcon() {
           <Button variant="outline" size="icon">
             <ItalicIcon />
           </Button>
-          <Toggle
-            variant="outline"
-            aria-label="Toggle default icon"
-            size="default"
-          >
+          <Toggle variant="outline" aria-label="Toggle default icon" size="default">
             <ItalicIcon />
           </Toggle>
         </div>
@@ -142,7 +135,7 @@ function ToggleWithButtonIcon() {
         </div>
       </div>
     </Example>
-  )
+  );
 }
 
 function ToggleWithButtonIconText() {
@@ -151,8 +144,7 @@ function ToggleWithButtonIconText() {
       <div className="flex flex-col gap-4">
         <div className="flex items-center gap-2">
           <Button size="sm" variant="outline">
-            <BoldIcon
-              data-icon="inline-start" />
+            <BoldIcon data-icon="inline-start" />
             Button
           </Button>
           <Toggle variant="outline" aria-label="Toggle sm icon text" size="sm">
@@ -162,23 +154,17 @@ function ToggleWithButtonIconText() {
         </div>
         <div className="flex items-center gap-2">
           <Button size="default" variant="outline">
-            <ItalicIcon
-              data-icon="inline-start" />
+            <ItalicIcon data-icon="inline-start" />
             Button
           </Button>
-          <Toggle
-            variant="outline"
-            aria-label="Toggle default icon text"
-            size="default"
-          >
+          <Toggle variant="outline" aria-label="Toggle default icon text" size="default">
             <ItalicIcon />
             Toggle
           </Toggle>
         </div>
         <div className="flex items-center gap-2">
           <Button size="lg" variant="outline">
-            <UnderlineIcon
-              data-icon="inline-start" />
+            <UnderlineIcon data-icon="inline-start" />
             Button
           </Button>
           <Toggle variant="outline" aria-label="Toggle lg icon text" size="lg">
@@ -188,7 +174,7 @@ function ToggleWithButtonIconText() {
         </div>
       </div>
     </Example>
-  )
+  );
 }
 
 function ToggleDisabled() {
@@ -203,7 +189,7 @@ function ToggleDisabled() {
         </Toggle>
       </div>
     </Example>
-  )
+  );
 }
 
 function ToggleWithIcon() {
@@ -211,15 +197,13 @@ function ToggleWithIcon() {
     <Example title="With Icon">
       <div className="flex flex-wrap items-center gap-2">
         <Toggle aria-label="Toggle bookmark" defaultPressed>
-          <BookmarkIcon
-            className="group-data-[state=on]/toggle:fill-accent-foreground" />
+          <BookmarkIcon className="group-data-[state=on]/toggle:fill-accent-foreground" />
         </Toggle>
         <Toggle variant="outline" aria-label="Toggle bookmark outline">
-          <BookmarkIcon
-            className="group-data-[state=on]/toggle:fill-accent-foreground" />
+          <BookmarkIcon className="group-data-[state=on]/toggle:fill-accent-foreground" />
           Bookmark
         </Toggle>
       </div>
     </Example>
-  )
+  );
 }

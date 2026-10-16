@@ -1,14 +1,7 @@
 /* MIT: Copyright (c) 2023 shadcn. See LICENSE. Browser-only catalog adaptation. */
-import {
-  Example,
-  ExampleWrapper,
-} from "@/components/example"
-import {
-  Field,
-  FieldDescription,
-  FieldLabel,
-} from "@/components/ui/field"
-import { Textarea } from "@/components/ui/textarea"
+import { Example, ExampleWrapper } from "@/components/example";
+import { Field, FieldDescription, FieldLabel } from "@/components/ui/field";
+import { Textarea } from "@/components/ui/textarea";
 
 export default function TextareaExample() {
   return (
@@ -19,7 +12,7 @@ export default function TextareaExample() {
       <TextareaWithDescription />
       <TextareaDisabled />
     </ExampleWrapper>
-  )
+  );
 }
 
 function TextareaBasic() {
@@ -27,7 +20,7 @@ function TextareaBasic() {
     <Example title="Basic">
       <Textarea placeholder="Type your message here." />
     </Example>
-  )
+  );
 }
 
 function TextareaInvalid() {
@@ -35,7 +28,7 @@ function TextareaInvalid() {
     <Example title="Invalid">
       <Textarea placeholder="Type your message here." aria-invalid="true" />
     </Example>
-  )
+  );
 }
 
 function TextareaWithLabel() {
@@ -43,14 +36,10 @@ function TextareaWithLabel() {
     <Example title="With Label">
       <Field>
         <FieldLabel htmlFor="textarea-demo-message">Message</FieldLabel>
-        <Textarea
-          id="textarea-demo-message"
-          placeholder="Type your message here."
-          rows={6}
-        />
+        <Textarea id="textarea-demo-message" placeholder="Type your message here." rows={6} />
       </Field>
     </Example>
-  )
+  );
 }
 
 function TextareaWithDescription() {
@@ -58,17 +47,11 @@ function TextareaWithDescription() {
     <Example title="With Description">
       <Field>
         <FieldLabel htmlFor="textarea-demo-message-2">Message</FieldLabel>
-        <Textarea
-          id="textarea-demo-message-2"
-          placeholder="Type your message here."
-          rows={6}
-        />
-        <FieldDescription>
-          Type your message and press enter to send.
-        </FieldDescription>
+        <Textarea id="textarea-demo-message-2" placeholder="Type your message here." rows={6} />
+        <FieldDescription>Type your message and press enter to send.</FieldDescription>
       </Field>
     </Example>
-  )
+  );
 }
 
 function TextareaDisabled() {
@@ -76,12 +59,8 @@ function TextareaDisabled() {
     <Example title="Disabled">
       <Field>
         <FieldLabel htmlFor="textarea-demo-disabled">Message</FieldLabel>
-        <Textarea
-          id="textarea-demo-disabled"
-          placeholder="Type your message here."
-          disabled
-        />
+        <Textarea id="textarea-demo-disabled" placeholder="Type your message here." disabled />
       </Field>
     </Example>
-  )
+  );
 }

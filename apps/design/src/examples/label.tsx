@@ -1,13 +1,10 @@
 /* MIT: Copyright (c) 2023 shadcn. See LICENSE. Browser-only catalog adaptation. */
-import {
-  Example,
-  ExampleWrapper,
-} from "@/components/example"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Field } from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
+import { Example, ExampleWrapper } from "@/components/example";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Field } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
 export default function LabelExample() {
   return (
@@ -17,7 +14,7 @@ export default function LabelExample() {
       <LabelDisabled />
       <LabelWithTextarea />
     </ExampleWrapper>
-  )
+  );
 }
 
 function LabelWithCheckbox() {
@@ -28,7 +25,7 @@ function LabelWithCheckbox() {
         <Label htmlFor="label-demo-terms">Accept terms and conditions</Label>
       </Field>
     </Example>
-  )
+  );
 }
 
 function LabelWithInput() {
@@ -39,7 +36,7 @@ function LabelWithInput() {
         <Input id="label-demo-username" placeholder="Username" />
       </Field>
     </Example>
-  )
+  );
 }
 
 function LabelDisabled() {
@@ -50,7 +47,7 @@ function LabelDisabled() {
         <Input id="label-demo-disabled" placeholder="Disabled" disabled />
       </Field>
     </Example>
-  )
+  );
 }
 
 function LabelWithTextarea() {
@@ -61,5 +58,5 @@ function LabelWithTextarea() {
         <Textarea id="label-demo-message" placeholder="Message" />
       </Field>
     </Example>
-  )
+  );
 }

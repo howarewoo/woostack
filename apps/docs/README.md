@@ -16,12 +16,17 @@ pnpm dev --filter=docs      # generates skill pages, then starts Next on port 30
 Run `pnpm build --filter=docs` to generate skill pages and build the site through Turborepo.
 `pnpm --filter docs test` checks generator rendering, frontmatter, local asset links (including
 angle-bracket destinations), and installation discovery with Node's built-in test runner (`node --test`).
-It does not invoke a planner, model, or GitHub. `pnpm types:check --filter=docs` checks Fumadocs
-generation and TypeScript types. `pnpm verify --filter=docs` runs both checks through Turborepo's
+It does not invoke a planner, model, or GitHub. `pnpm lint --filter=docs` and `pnpm format:check --filter=docs`
+run Oxlint and Oxfmt checks. `pnpm types:check --filter=docs` checks Fumadocs generation and TypeScript types.
+`pnpm verify --filter=docs` runs test, typechecking, lint, and formatting checks through Turborepo's
 task graph without duplicate execution; direct `pnpm --filter docs run verify` delegates
 to the task graph without duplicate execution.
 Both `pnpm verify --filter=docs --force` and `pnpm --filter docs run verify --force`
 bypass cached results and execute the docs checks freshly.
+
+Oxlint configuration in `.oxlintrc.json` registers `@shadcn/lint` via `jsPlugins` following upstream
+SETUP.md conservative registration-only policy: no new rules or presets are enabled, and discovery
+settings are scoped locally. Configure custom rules or overrides under `.oxlintrc.json` as needed.
 
 ## Deploy to Vercel
 

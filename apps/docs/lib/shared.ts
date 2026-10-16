@@ -1,10 +1,10 @@
-export const appName = 'woostack';
-export const docsRoute = '/docs';
-export const docsImageRoute = '/og/docs';
-export const docsContentRoute = '/llms.mdx/docs';
+export const appName = "woostack";
+export const docsRoute = "/docs";
+export const docsImageRoute = "/og/docs";
+export const docsContentRoute = "/llms.mdx/docs";
 
 export const gitConfig = {
-  user: 'howarewoo',
-  repo: 'woostack',
-  branch: 'main',
+  user: "howarewoo",
+  repo: "woostack",
+  branch: "main",
 };

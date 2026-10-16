@@ -1,20 +1,9 @@
 /* MIT: Copyright (c) 2023 shadcn. See LICENSE. Browser-only catalog adaptation. */
-import {
-  Example,
-  ExampleWrapper,
-} from "@/components/example"
-import { Button } from "@/components/ui/button"
-import {
-  Field,
-  FieldDescription,
-  FieldGroup,
-  FieldLabel,
-} from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
-import {
-  NativeSelect,
-  NativeSelectOption,
-} from "@/components/ui/native-select"
+import { Example, ExampleWrapper } from "@/components/example";
+import { Button } from "@/components/ui/button";
+import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
 import {
   Select,
   SelectContent,
@@ -22,7 +11,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
+} from "@/components/ui/select";
 
 export default function InputExample() {
   return (
@@ -38,7 +27,7 @@ export default function InputExample() {
       <InputWithNativeSelect />
       <InputForm />
     </ExampleWrapper>
-  )
+  );
 }
 
 function InputBasic() {
@@ -46,7 +35,7 @@ function InputBasic() {
     <Example title="Basic">
       <Input type="email" placeholder="Email" />
     </Example>
-  )
+  );
 }
 
 function InputInvalid() {
@@ -54,7 +43,7 @@ function InputInvalid() {
     <Example title="Invalid">
       <Input type="text" placeholder="Error" aria-invalid="true" />
     </Example>
-  )
+  );
 }
 
 function InputWithLabel() {
@@ -62,14 +51,10 @@ function InputWithLabel() {
     <Example title="With Label">
       <Field>
         <FieldLabel htmlFor="input-demo-email">Email</FieldLabel>
-        <Input
-          id="input-demo-email"
-          type="email"
-          placeholder="name@example.com"
-        />
+        <Input id="input-demo-email" type="email" placeholder="name@example.com" />
       </Field>
     </Example>
-  )
+  );
 }
 
 function InputWithDescription() {
@@ -77,17 +62,11 @@ function InputWithDescription() {
     <Example title="With Description">
       <Field>
         <FieldLabel htmlFor="input-demo-username">Username</FieldLabel>
-        <Input
-          id="input-demo-username"
-          type="text"
-          placeholder="Enter your username"
-        />
-        <FieldDescription>
-          Choose a unique username for your account.
-        </FieldDescription>
+        <Input id="input-demo-username" type="text" placeholder="Enter your username" />
+        <FieldDescription>Choose a unique username for your account.</FieldDescription>
       </Field>
     </Example>
-  )
+  );
 }
 
 function InputDisabled() {
@@ -95,15 +74,10 @@ function InputDisabled() {
     <Example title="Disabled">
       <Field>
         <FieldLabel htmlFor="input-demo-disabled">Email</FieldLabel>
-        <Input
-          id="input-demo-disabled"
-          type="email"
-          placeholder="Email"
-          disabled
-        />
+        <Input id="input-demo-disabled" type="email" placeholder="Email" disabled />
       </Field>
     </Example>
-  )
+  );
 }
 
 function InputTypes() {
@@ -112,27 +86,15 @@ function InputTypes() {
       <div className="flex w-full flex-col gap-6">
         <Field>
           <FieldLabel htmlFor="input-demo-password">Password</FieldLabel>
-          <Input
-            id="input-demo-password"
-            type="password"
-            placeholder="Password"
-          />
+          <Input id="input-demo-password" type="password" placeholder="Password" />
         </Field>
         <Field>
           <FieldLabel htmlFor="input-demo-tel">Phone</FieldLabel>
-          <Input
-            id="input-demo-tel"
-            type="tel"
-            placeholder="+1 (555) 123-4567"
-          />
+          <Input id="input-demo-tel" type="tel" placeholder="+1 (555) 123-4567" />
         </Field>
         <Field>
           <FieldLabel htmlFor="input-demo-url">URL</FieldLabel>
-          <Input
-            id="input-demo-url"
-            type="url"
-            placeholder="https://example.com"
-          />
+          <Input id="input-demo-url" type="url" placeholder="https://example.com" />
         </Field>
         <Field>
           <FieldLabel htmlFor="input-demo-search">Search</FieldLabel>
@@ -156,7 +118,7 @@ function InputTypes() {
         </Field>
       </div>
     </Example>
-  )
+  );
 }
 
 function InputWithSelect() {
@@ -178,7 +140,7 @@ function InputWithSelect() {
         </Select>
       </div>
     </Example>
-  )
+  );
 }
 
 function InputWithButton() {
@@ -189,7 +151,7 @@ function InputWithButton() {
         <Button>Search</Button>
       </div>
     </Example>
-  )
+  );
 }
 
 function InputWithNativeSelect() {
@@ -204,7 +166,7 @@ function InputWithNativeSelect() {
         </NativeSelect>
       </div>
     </Example>
-  )
+  );
 }
 
 function InputForm() {
@@ -218,23 +180,13 @@ function InputForm() {
           </Field>
           <Field>
             <FieldLabel htmlFor="form-email">Email</FieldLabel>
-            <Input
-              id="form-email"
-              type="email"
-              placeholder="john@example.com"
-            />
-            <FieldDescription>
-              We&apos;ll never share your email with anyone.
-            </FieldDescription>
+            <Input id="form-email" type="email" placeholder="john@example.com" />
+            <FieldDescription>We&apos;ll never share your email with anyone.</FieldDescription>
           </Field>
           <div className="grid grid-cols-2 gap-4">
             <Field>
               <FieldLabel htmlFor="form-phone">Phone</FieldLabel>
-              <Input
-                id="form-phone"
-                type="tel"
-                placeholder="+1 (555) 123-4567"
-              />
+              <Input id="form-phone" type="tel" placeholder="+1 (555) 123-4567" />
             </Field>
             <Field>
               <FieldLabel htmlFor="form-country">Country</FieldLabel>
@@ -265,5 +217,5 @@ function InputForm() {
         </FieldGroup>
       </form>
     </Example>
-  )
+  );
 }

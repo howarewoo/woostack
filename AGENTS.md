@@ -70,9 +70,11 @@ workflow, provider calls, and approval gates.
 
 Install workspace dependencies from the repository root with
 `pnpm install --frozen-lockfile`. Root `pnpm dev`, `pnpm build`, `pnpm test`,
-`pnpm verify`, and `pnpm types:check` run Turborepo tasks. Select only checks that
+`pnpm lint`, `pnpm lint:fix`, `pnpm format`, `pnpm format:check`, `pnpm verify`,
+and `pnpm types:check` run Turborepo tasks. Select only checks that
 cover what the edit can break; filter an app with `--filter=docs` or
-`--filter=design`.
+`--filter=design`. Oxlint and Oxfmt tool the workspace, with `@shadcn/lint`
+registered in app configs without persistent rule enforcement.
 A plain wording or link correction never triggers the full site test command or a
 production build solely because it touches `skills/*/SKILL.md` or site content.
 

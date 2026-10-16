@@ -1,13 +1,10 @@
 /* MIT: Copyright (c) 2023 shadcn. See LICENSE. Browser-only catalog adaptation. */
-"use client"
+"use client";
 
-import { toast } from "sonner"
+import { toast } from "sonner";
 
-import {
-  Example,
-  ExampleWrapper,
-} from "@/components/example"
-import { Button } from "@/components/ui/button"
+import { Example, ExampleWrapper } from "@/components/example";
+import { Button } from "@/components/ui/button";
 
 export default function SonnerExample() {
   return (
@@ -15,21 +12,17 @@ export default function SonnerExample() {
       <SonnerBasic />
       <SonnerWithDescription />
     </ExampleWrapper>
-  )
+  );
 }
 
 function SonnerBasic() {
   return (
     <Example title="Basic" className="items-center justify-center">
-      <Button
-        onClick={() => toast("Event has been created")}
-        variant="outline"
-        className="w-fit"
-      >
+      <Button onClick={() => toast("Event has been created")} variant="outline" className="w-fit">
         Show Toast
       </Button>
     </Example>
-  )
+  );
 }
 
 function SonnerWithDescription() {
@@ -47,5 +40,5 @@ function SonnerWithDescription() {
         Show Toast
       </Button>
     </Example>
-  )
+  );
 }

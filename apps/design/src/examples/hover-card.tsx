@@ -1,9 +1,6 @@
 /* MIT: Copyright (c) 2023 shadcn. See LICENSE. Browser-only catalog adaptation. */
-import {
-  Example,
-  ExampleWrapper,
-} from "@/components/example"
-import { Button } from "@/components/ui/button"
+import { Example, ExampleWrapper } from "@/components/example";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -11,12 +8,8 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
-import {
-  HoverCard,
-  HoverCardContent,
-  HoverCardTrigger,
-} from "@/components/ui/hover-card"
+} from "@/components/ui/dialog";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 
 export default function HoverCardExample() {
   return (
@@ -24,17 +17,10 @@ export default function HoverCardExample() {
       <HoverCardSides />
       <HoverCardInDialog />
     </ExampleWrapper>
-  )
+  );
 }
 
-const HOVER_CARD_SIDES = [
-  "inline-start",
-  "left",
-  "top",
-  "bottom",
-  "right",
-  "inline-end",
-] as const
+const HOVER_CARD_SIDES = ["inline-start", "left", "top", "bottom", "right", "inline-end"] as const;
 
 function HoverCardSides() {
   return (
@@ -52,26 +38,21 @@ function HoverCardSides() {
             <HoverCardContent side={side}>
               <div className="flex flex-col style-vega:gap-2 style-nova:gap-1.5 style-lyra:gap-1 style-maia:gap-2 style-mira:gap-1 style-luma:gap-2">
                 <h4 className="font-medium">Hover Card</h4>
-                <p>
-                  This hover card appears on the {side.replace("-", " ")} side
-                  of the trigger.
-                </p>
+                <p>This hover card appears on the {side.replace("-", " ")} side of the trigger.</p>
               </div>
             </HoverCardContent>
           </HoverCard>
         ))}
       </div>
     </Example>
-  )
+  );
 }
 
 function HoverCardInDialog() {
   return (
     <Example title="In Dialog">
       <Dialog>
-        <DialogTrigger render={<Button variant="outline" />}>
-          Open Dialog
-        </DialogTrigger>
+        <DialogTrigger render={<Button variant="outline" />}>Open Dialog</DialogTrigger>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Hover Card Example</DialogTitle>
@@ -90,15 +71,12 @@ function HoverCardInDialog() {
             <HoverCardContent>
               <div className="flex flex-col style-vega:gap-2 style-nova:gap-1.5 style-lyra:gap-1 style-maia:gap-2 style-mira:gap-1 style-luma:gap-2">
                 <h4 className="font-medium">Hover Card</h4>
-                <p>
-                  This hover card appears inside a dialog. Hover over the button
-                  to see it.
-                </p>
+                <p>This hover card appears inside a dialog. Hover over the button to see it.</p>
               </div>
             </HoverCardContent>
           </HoverCard>
         </DialogContent>
       </Dialog>
     </Example>
-  )
+  );
 }

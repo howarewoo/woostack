@@ -1,12 +1,9 @@
 /* MIT: Copyright (c) 2023 shadcn. See LICENSE. Browser-only catalog adaptation. */
-import { ChartBarIcon, ChartLineIcon, ChartPieIcon } from "lucide-react"
-"use client"
+"use client";
+import { ChartBarIcon, ChartLineIcon, ChartPieIcon } from "lucide-react";
 
-import {
-  Example,
-  ExampleWrapper,
-} from "@/components/example"
-import { Button } from "@/components/ui/button"
+import { Example, ExampleWrapper } from "@/components/example";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -14,24 +11,11 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
-import {
-  Field,
-  FieldDescription,
-  FieldError,
-  FieldLabel,
-} from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
-import {
-  Item,
-  ItemContent,
-  ItemDescription,
-  ItemTitle,
-} from "@/components/ui/item"
-import {
-  NativeSelect,
-  NativeSelectOption,
-} from "@/components/ui/native-select"
+} from "@/components/ui/dialog";
+import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { Item, ItemContent, ItemDescription, ItemTitle } from "@/components/ui/item";
+import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
 import {
   Select,
   SelectContent,
@@ -41,7 +25,7 @@ import {
   SelectSeparator,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
+} from "@/components/ui/select";
 
 export default function SelectExample() {
   return (
@@ -62,7 +46,7 @@ export default function SelectExample() {
       <SelectDisabled />
       <SelectInDialog />
     </ExampleWrapper>
-  )
+  );
 }
 
 function SelectBasic() {
@@ -73,7 +57,7 @@ function SelectBasic() {
     { label: "Blueberry", value: "blueberry" },
     { label: "Grapes", value: "grapes" },
     { label: "Pineapple", value: "pineapple" },
-  ]
+  ];
   return (
     <Example title="Basic">
       <Select items={items}>
@@ -91,7 +75,7 @@ function SelectBasic() {
         </SelectContent>
       </Select>
     </Example>
-  )
+  );
 }
 
 function SelectSides() {
@@ -100,20 +84,11 @@ function SelectSides() {
     { label: "Apple", value: "apple" },
     { label: "Banana", value: "banana" },
     { label: "Blueberry", value: "blueberry" },
-  ]
+  ];
   return (
     <Example title="Sides" containerClassName="col-span-2">
       <div className="flex flex-wrap justify-center gap-2">
-        {(
-          [
-            "inline-start",
-            "left",
-            "top",
-            "bottom",
-            "right",
-            "inline-end",
-          ] as const
-        ).map((side) => (
+        {(["inline-start", "left", "top", "bottom", "right", "inline-end"] as const).map((side) => (
           <Select key={side} items={items}>
             <SelectTrigger className="w-28 capitalize" aria-label={`Fruit (${side} alignment)`}>
               <SelectValue placeholder={side.replace("-", " ")} />
@@ -131,7 +106,7 @@ function SelectSides() {
         ))}
       </div>
     </Example>
-  )
+  );
 }
 
 function SelectWithIcons() {
@@ -172,7 +147,7 @@ function SelectWithIcons() {
       ),
       value: "pie",
     },
-  ]
+  ];
   return (
     <Example title="With Icons">
       <div className="flex flex-col gap-4">
@@ -206,7 +181,7 @@ function SelectWithIcons() {
         </Select>
       </div>
     </Example>
-  )
+  );
 }
 
 function SelectWithGroups() {
@@ -214,17 +189,13 @@ function SelectWithGroups() {
     { label: "Apple", value: "apple" },
     { label: "Banana", value: "banana" },
     { label: "Blueberry", value: "blueberry" },
-  ]
+  ];
   const vegetables = [
     { label: "Carrot", value: "carrot" },
     { label: "Broccoli", value: "broccoli" },
     { label: "Spinach", value: "spinach" },
-  ]
-  const allItems = [
-    { label: "Select a fruit", value: null },
-    ...fruits,
-    ...vegetables,
-  ]
+  ];
+  const allItems = [{ label: "Select a fruit", value: null }, ...fruits, ...vegetables];
   return (
     <Example title="With Groups & Labels">
       <Select items={allItems}>
@@ -252,7 +223,7 @@ function SelectWithGroups() {
         </SelectContent>
       </Select>
     </Example>
-  )
+  );
 }
 
 function SelectLargeList() {
@@ -262,7 +233,7 @@ function SelectLargeList() {
       label: `Item ${i}`,
       value: `item-${i}`,
     })),
-  ]
+  ];
   return (
     <Example title="Large List">
       <Select items={items}>
@@ -280,7 +251,7 @@ function SelectLargeList() {
         </SelectContent>
       </Select>
     </Example>
-  )
+  );
 }
 
 function SelectSizes() {
@@ -289,7 +260,7 @@ function SelectSizes() {
     { label: "Apple", value: "apple" },
     { label: "Banana", value: "banana" },
     { label: "Blueberry", value: "blueberry" },
-  ]
+  ];
   return (
     <Example title="Sizes">
       <div className="flex flex-col gap-4">
@@ -323,7 +294,7 @@ function SelectSizes() {
         </Select>
       </div>
     </Example>
-  )
+  );
 }
 
 function SelectWithButton() {
@@ -332,7 +303,7 @@ function SelectWithButton() {
     { label: "Apple", value: "apple" },
     { label: "Banana", value: "banana" },
     { label: "Blueberry", value: "blueberry" },
-  ]
+  ];
   return (
     <Example title="With Button">
       <div className="flex flex-col gap-4">
@@ -374,7 +345,7 @@ function SelectWithButton() {
         </div>
       </div>
     </Example>
-  )
+  );
 }
 
 function SelectItemAligned() {
@@ -385,7 +356,7 @@ function SelectItemAligned() {
     { label: "Blueberry", value: "blueberry" },
     { label: "Grapes", value: "grapes", disabled: true },
     { label: "Pineapple", value: "pineapple" },
-  ]
+  ];
   return (
     <Example title="Item Aligned">
       <Select items={items}>
@@ -395,11 +366,7 @@ function SelectItemAligned() {
         <SelectContent alignItemWithTrigger={true}>
           <SelectGroup>
             {items.map((item) => (
-              <SelectItem
-                key={item.value}
-                value={item.value}
-                disabled={item.disabled}
-              >
+              <SelectItem key={item.value} value={item.value} disabled={item.disabled}>
                 {item.label}
               </SelectItem>
             ))}
@@ -407,7 +374,7 @@ function SelectItemAligned() {
         </SelectContent>
       </Select>
     </Example>
-  )
+  );
 }
 
 function SelectWithField() {
@@ -418,7 +385,7 @@ function SelectWithField() {
     { label: "Blueberry", value: "blueberry" },
     { label: "Grapes", value: "grapes" },
     { label: "Pineapple", value: "pineapple" },
-  ]
+  ];
   return (
     <Example title="With Field">
       <Field>
@@ -437,12 +404,10 @@ function SelectWithField() {
             </SelectGroup>
           </SelectContent>
         </Select>
-        <FieldDescription>
-          Choose your favorite fruit from the list.
-        </FieldDescription>
+        <FieldDescription>Choose your favorite fruit from the list.</FieldDescription>
       </Field>
     </Example>
-  )
+  );
 }
 
 function SelectInvalid() {
@@ -453,7 +418,7 @@ function SelectInvalid() {
     { label: "Blueberry", value: "blueberry" },
     { label: "Grapes", value: "grapes" },
     { label: "Pineapple", value: "pineapple" },
-  ]
+  ];
   return (
     <Example title="Invalid">
       <div className="flex flex-col gap-4">
@@ -491,7 +456,7 @@ function SelectInvalid() {
         </Field>
       </div>
     </Example>
-  )
+  );
 }
 
 function SelectInline() {
@@ -500,7 +465,7 @@ function SelectInline() {
     { label: "All", value: "all" },
     { label: "Active", value: "active" },
     { label: "Inactive", value: "inactive" },
-  ]
+  ];
   return (
     <Example title="Inline with Input & NativeSelect">
       <div className="flex items-center gap-2">
@@ -527,7 +492,7 @@ function SelectInline() {
         </NativeSelect>
       </div>
     </Example>
-  )
+  );
 }
 
 function SelectDisabled() {
@@ -538,7 +503,7 @@ function SelectDisabled() {
     { label: "Blueberry", value: "blueberry" },
     { label: "Grapes", value: "grapes", disabled: true },
     { label: "Pineapple", value: "pineapple" },
-  ]
+  ];
   return (
     <Example title="Disabled">
       <Select items={items} disabled>
@@ -548,11 +513,7 @@ function SelectDisabled() {
         <SelectContent>
           <SelectGroup>
             {items.map((item) => (
-              <SelectItem
-                key={item.value}
-                value={item.value}
-                disabled={item.disabled}
-              >
+              <SelectItem key={item.value} value={item.value} disabled={item.disabled}>
                 {item.label}
               </SelectItem>
             ))}
@@ -560,7 +521,7 @@ function SelectDisabled() {
         </SelectContent>
       </Select>
     </Example>
-  )
+  );
 }
 
 const plans = [
@@ -576,7 +537,7 @@ const plans = [
     name: "Enterprise",
     description: "Advanced features for large organizations.",
   },
-]
+];
 
 function SelectPlan() {
   return (
@@ -601,7 +562,7 @@ function SelectPlan() {
         </SelectContent>
       </Select>
     </Example>
-  )
+  );
 }
 
 function SelectPlanItem({ plan }: { plan: (typeof plans)[number] }) {
@@ -614,7 +575,7 @@ function SelectPlanItem({ plan }: { plan: (typeof plans)[number] }) {
         </ItemDescription>
       </ItemContent>
     </Item>
-  )
+  );
 }
 
 function SelectMultiple() {
@@ -626,7 +587,7 @@ function SelectMultiple() {
     { label: "Pineapple", value: "pineapple" },
     { label: "Strawberry", value: "strawberry" },
     { label: "Watermelon", value: "watermelon" },
-  ]
+  ];
   return (
     <Example title="Multiple Selection">
       <Select items={items} multiple defaultValue={[]}>
@@ -634,12 +595,12 @@ function SelectMultiple() {
           <SelectValue>
             {(value: string[]) => {
               if (value.length === 0) {
-                return "Select fruits"
+                return "Select fruits";
               }
               if (value.length === 1) {
-                return items.find((item) => item.value === value[0])?.label
+                return items.find((item) => item.value === value[0])?.label;
               }
-              return `${value.length} fruits selected`
+              return `${value.length} fruits selected`;
             }}
           </SelectValue>
         </SelectTrigger>
@@ -654,7 +615,7 @@ function SelectMultiple() {
         </SelectContent>
       </Select>
     </Example>
-  )
+  );
 }
 
 function SelectInDialog() {
@@ -665,19 +626,15 @@ function SelectInDialog() {
     { label: "Blueberry", value: "blueberry" },
     { label: "Grapes", value: "grapes" },
     { label: "Pineapple", value: "pineapple" },
-  ]
+  ];
   return (
     <Example title="In Dialog">
       <Dialog>
-        <DialogTrigger render={<Button variant="outline" />}>
-          Open Dialog
-        </DialogTrigger>
+        <DialogTrigger render={<Button variant="outline" />}>Open Dialog</DialogTrigger>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Select Example</DialogTitle>
-            <DialogDescription>
-              Use the select below to choose a fruit.
-            </DialogDescription>
+            <DialogDescription>Use the select below to choose a fruit.</DialogDescription>
           </DialogHeader>
           <Select items={items}>
             <SelectTrigger aria-label="Fruit in dialog">
@@ -696,5 +653,5 @@ function SelectInDialog() {
         </DialogContent>
       </Dialog>
     </Example>
-  )
+  );
 }

@@ -1,34 +1,36 @@
 /* MIT: Copyright (c) 2023 shadcn. See LICENSE. Browser-only catalog adaptation. */
-import { useState } from "react"
-import { ArrowLeftCircleIcon, ArrowRightIcon } from "lucide-react"
-"use client"
+"use client";
+import { useState } from "react";
+import { ArrowLeftCircleIcon, ArrowRightIcon } from "lucide-react";
 
-import {
-  Example,
-  ExampleWrapper,
-} from "@/components/example"
-import { Button, buttonVariants } from "@/components/ui/button"
+import { Example, ExampleWrapper } from "@/components/example";
+import { Button, buttonVariants } from "@/components/ui/button";
 
 export default function ButtonExample() {
-  const [selectedLink, setSelectedLink] = useState("")
+  const [selectedLink, setSelectedLink] = useState("");
   return (
-    <div className="w-full" onClickCapture={(event) => {
-      const link = (event.target as Element).closest("a[href='#']")
-      if (!link) return
-      event.preventDefault()
-      setSelectedLink(link.getAttribute("aria-label") || link.textContent?.trim() || "Link")
-    }}>
-    <ExampleWrapper className="lg:grid-cols-1 2xl:grid-cols-1">
-      <ButtonVariantsAndSizes />
-      <ButtonIconRight />
-      <ButtonIconLeft />
-      <ButtonIconOnly />
-      <ButtonInvalidStates />
-      <ButtonExamples />
-    </ExampleWrapper>
-      <p role="status" className="mt-3 text-sm text-muted-foreground">{selectedLink && `Selected example link: ${selectedLink}`}</p>
+    <div
+      className="w-full"
+      onClickCapture={(event) => {
+        const link = (event.target as Element).closest("a[href='#']");
+        if (!link) return;
+        event.preventDefault();
+        setSelectedLink(link.getAttribute("aria-label") || link.textContent?.trim() || "Link");
+      }}
+    >
+      <ExampleWrapper className="lg:grid-cols-1 2xl:grid-cols-1">
+        <ButtonVariantsAndSizes />
+        <ButtonIconRight />
+        <ButtonIconLeft />
+        <ButtonIconOnly />
+        <ButtonInvalidStates />
+        <ButtonExamples />
+      </ExampleWrapper>
+      <p role="status" className="mt-3 text-sm text-muted-foreground">
+        {selectedLink && `Selected example link: ${selectedLink}`}
+      </p>
     </div>
-  )
+  );
 }
 
 function ButtonVariantsAndSizes() {
@@ -97,7 +99,7 @@ function ButtonVariantsAndSizes() {
         </Button>
       </div>
     </Example>
-  )
+  );
 }
 
 function ButtonIconRight() {
@@ -105,133 +107,87 @@ function ButtonIconRight() {
     <Example title="Icon Right">
       <div className="flex flex-wrap items-center gap-2">
         <Button size="xs">
-          Default{" "}
-          <ArrowRightIcon
-            data-icon="inline-end" />
+          Default <ArrowRightIcon data-icon="inline-end" />
         </Button>
         <Button size="xs" variant="secondary">
-          Secondary{" "}
-          <ArrowRightIcon
-            data-icon="inline-end" />
+          Secondary <ArrowRightIcon data-icon="inline-end" />
         </Button>
         <Button size="xs" variant="outline">
-          Outline{" "}
-          <ArrowRightIcon
-            data-icon="inline-end" />
+          Outline <ArrowRightIcon data-icon="inline-end" />
         </Button>
         <Button size="xs" variant="ghost">
-          Ghost{" "}
-          <ArrowRightIcon
-            data-icon="inline-end" />
+          Ghost <ArrowRightIcon data-icon="inline-end" />
         </Button>
         <Button size="xs" variant="destructive">
-          Destructive{" "}
-          <ArrowRightIcon
-            data-icon="inline-end" />
+          Destructive <ArrowRightIcon data-icon="inline-end" />
         </Button>
         <Button size="xs" variant="link">
-          Link{" "}
-          <ArrowRightIcon
-            data-icon="inline-end" />
+          Link <ArrowRightIcon data-icon="inline-end" />
         </Button>
       </div>
       <div className="flex flex-wrap items-center gap-2">
         <Button size="sm">
           Default
-          <ArrowRightIcon
-            data-icon="inline-end" />
+          <ArrowRightIcon data-icon="inline-end" />
         </Button>
         <Button size="sm" variant="secondary">
-          Secondary{" "}
-          <ArrowRightIcon
-            data-icon="inline-end" />
+          Secondary <ArrowRightIcon data-icon="inline-end" />
         </Button>
         <Button size="sm" variant="outline">
-          Outline{" "}
-          <ArrowRightIcon />
+          Outline <ArrowRightIcon />
         </Button>
         <Button size="sm" variant="ghost">
-          Ghost{" "}
-          <ArrowRightIcon
-            data-icon="inline-end" />
+          Ghost <ArrowRightIcon data-icon="inline-end" />
         </Button>
         <Button size="sm" variant="destructive">
-          Destructive{" "}
-          <ArrowRightIcon
-            data-icon="inline-end" />
+          Destructive <ArrowRightIcon data-icon="inline-end" />
         </Button>
         <Button size="sm" variant="link">
-          Link{" "}
-          <ArrowRightIcon
-            data-icon="inline-end" />
+          Link <ArrowRightIcon data-icon="inline-end" />
         </Button>
       </div>
       <div className="flex flex-wrap items-center gap-2">
         <Button>
-          Default{" "}
-          <ArrowRightIcon
-            data-icon="inline-end" />
+          Default <ArrowRightIcon data-icon="inline-end" />
         </Button>
         <Button variant="secondary">
-          Secondary{" "}
-          <ArrowRightIcon
-            data-icon="inline-end" />
+          Secondary <ArrowRightIcon data-icon="inline-end" />
         </Button>
         <Button variant="outline">
-          Outline{" "}
-          <ArrowRightIcon
-            data-icon="inline-end" />
+          Outline <ArrowRightIcon data-icon="inline-end" />
         </Button>
         <Button variant="ghost">
-          Ghost{" "}
-          <ArrowRightIcon
-            data-icon="inline-end" />
+          Ghost <ArrowRightIcon data-icon="inline-end" />
         </Button>
         <Button variant="destructive">
-          Destructive{" "}
-          <ArrowRightIcon
-            data-icon="inline-end" />
+          Destructive <ArrowRightIcon data-icon="inline-end" />
         </Button>
         <Button variant="link">
-          Link{" "}
-          <ArrowRightIcon
-            data-icon="inline-end" />
+          Link <ArrowRightIcon data-icon="inline-end" />
         </Button>
       </div>
       <div className="flex flex-wrap items-center gap-2">
         <Button size="lg">
-          Default{" "}
-          <ArrowRightIcon
-            data-icon="inline-end" />
+          Default <ArrowRightIcon data-icon="inline-end" />
         </Button>
         <Button size="lg" variant="secondary">
-          Secondary{" "}
-          <ArrowRightIcon
-            data-icon="inline-end" />
+          Secondary <ArrowRightIcon data-icon="inline-end" />
         </Button>
         <Button size="lg" variant="outline">
-          Outline{" "}
-          <ArrowRightIcon
-            data-icon="inline-end" />
+          Outline <ArrowRightIcon data-icon="inline-end" />
         </Button>
         <Button size="lg" variant="ghost">
-          Ghost{" "}
-          <ArrowRightIcon
-            data-icon="inline-end" />
+          Ghost <ArrowRightIcon data-icon="inline-end" />
         </Button>
         <Button size="lg" variant="destructive">
-          Destructive{" "}
-          <ArrowRightIcon
-            data-icon="inline-end" />
+          Destructive <ArrowRightIcon data-icon="inline-end" />
         </Button>
         <Button size="lg" variant="link">
-          Link{" "}
-          <ArrowRightIcon
-            data-icon="inline-end" />
+          Link <ArrowRightIcon data-icon="inline-end" />
         </Button>
       </div>
     </Example>
-  )
+  );
 }
 
 function ButtonIconLeft() {
@@ -239,134 +195,86 @@ function ButtonIconLeft() {
     <Example title="Icon Left">
       <div className="flex flex-wrap items-center gap-2">
         <Button size="xs">
-          <ArrowLeftCircleIcon
-            data-icon="inline-start" />{" "}
-          Default
+          <ArrowLeftCircleIcon data-icon="inline-start" /> Default
         </Button>
         <Button size="xs" variant="secondary">
-          <ArrowLeftCircleIcon
-            data-icon="inline-start" />{" "}
-          Secondary
+          <ArrowLeftCircleIcon data-icon="inline-start" /> Secondary
         </Button>
         <Button size="xs" variant="outline">
-          <ArrowLeftCircleIcon
-            data-icon="inline-start" />{" "}
-          Outline
+          <ArrowLeftCircleIcon data-icon="inline-start" /> Outline
         </Button>
         <Button size="xs" variant="ghost">
-          <ArrowLeftCircleIcon
-            data-icon="inline-start" />{" "}
-          Ghost
+          <ArrowLeftCircleIcon data-icon="inline-start" /> Ghost
         </Button>
         <Button size="xs" variant="destructive">
-          <ArrowLeftCircleIcon
-            data-icon="inline-start" />{" "}
-          Destructive
+          <ArrowLeftCircleIcon data-icon="inline-start" /> Destructive
         </Button>
         <Button size="xs" variant="link">
-          <ArrowLeftCircleIcon
-            data-icon="inline-start" />{" "}
-          Link
+          <ArrowLeftCircleIcon data-icon="inline-start" /> Link
         </Button>
       </div>
       <div className="flex flex-wrap items-center gap-2">
         <Button size="sm">
-          <ArrowLeftCircleIcon
-            data-icon="inline-start" />{" "}
-          Default
+          <ArrowLeftCircleIcon data-icon="inline-start" /> Default
         </Button>
         <Button size="sm" variant="secondary">
-          <ArrowLeftCircleIcon
-            data-icon="inline-start" />{" "}
-          Secondary
+          <ArrowLeftCircleIcon data-icon="inline-start" /> Secondary
         </Button>
         <Button size="sm" variant="outline">
-          <ArrowLeftCircleIcon
-            data-icon="inline-start" />{" "}
-          Outline
+          <ArrowLeftCircleIcon data-icon="inline-start" /> Outline
         </Button>
         <Button size="sm" variant="ghost">
-          <ArrowLeftCircleIcon
-            data-icon="inline-start" />{" "}
-          Ghost
+          <ArrowLeftCircleIcon data-icon="inline-start" /> Ghost
         </Button>
         <Button size="sm" variant="destructive">
-          <ArrowLeftCircleIcon
-            data-icon="inline-start" />{" "}
-          Destructive
+          <ArrowLeftCircleIcon data-icon="inline-start" /> Destructive
         </Button>
         <Button size="sm" variant="link">
-          <ArrowLeftCircleIcon
-            data-icon="inline-start" />{" "}
-          Link
+          <ArrowLeftCircleIcon data-icon="inline-start" /> Link
         </Button>
       </div>
       <div className="flex flex-wrap items-center gap-2">
         <Button>
-          <ArrowLeftCircleIcon
-            data-icon="inline-start" />{" "}
-          Default
+          <ArrowLeftCircleIcon data-icon="inline-start" /> Default
         </Button>
         <Button variant="secondary">
-          <ArrowLeftCircleIcon
-            data-icon="inline-start" />{" "}
-          Secondary
+          <ArrowLeftCircleIcon data-icon="inline-start" /> Secondary
         </Button>
         <Button variant="outline">
-          <ArrowLeftCircleIcon
-            data-icon="inline-start" />{" "}
-          Outline
+          <ArrowLeftCircleIcon data-icon="inline-start" /> Outline
         </Button>
         <Button variant="ghost">
-          <ArrowLeftCircleIcon
-            data-icon="inline-start" />{" "}
-          Ghost
+          <ArrowLeftCircleIcon data-icon="inline-start" /> Ghost
         </Button>
         <Button variant="destructive">
-          <ArrowLeftCircleIcon
-            data-icon="inline-start" />{" "}
-          Destructive
+          <ArrowLeftCircleIcon data-icon="inline-start" /> Destructive
         </Button>
         <Button variant="link">
-          <ArrowLeftCircleIcon
-            data-icon="inline-start" />{" "}
-          Link
+          <ArrowLeftCircleIcon data-icon="inline-start" /> Link
         </Button>
       </div>
       <div className="flex flex-wrap items-center gap-2">
         <Button size="lg">
-          <ArrowLeftCircleIcon
-            data-icon="inline-start" />{" "}
-          Default
+          <ArrowLeftCircleIcon data-icon="inline-start" /> Default
         </Button>
         <Button size="lg" variant="secondary">
-          <ArrowLeftCircleIcon
-            data-icon="inline-start" />{" "}
-          Secondary
+          <ArrowLeftCircleIcon data-icon="inline-start" /> Secondary
         </Button>
         <Button size="lg" variant="outline">
-          <ArrowLeftCircleIcon
-            data-icon="inline-start" />{" "}
-          Outline
+          <ArrowLeftCircleIcon data-icon="inline-start" /> Outline
         </Button>
         <Button size="lg" variant="ghost">
-          <ArrowLeftCircleIcon
-            data-icon="inline-start" />{" "}
-          Ghost
+          <ArrowLeftCircleIcon data-icon="inline-start" /> Ghost
         </Button>
         <Button size="lg" variant="destructive">
-          <ArrowLeftCircleIcon
-            data-icon="inline-start" />{" "}
-          Destructive
+          <ArrowLeftCircleIcon data-icon="inline-start" /> Destructive
         </Button>
         <Button size="lg" variant="link">
-          <ArrowLeftCircleIcon
-            data-icon="inline-start" />{" "}
-          Link
+          <ArrowLeftCircleIcon data-icon="inline-start" /> Link
         </Button>
       </div>
     </Example>
-  )
+  );
 }
 
 function ButtonIconOnly() {
@@ -453,7 +361,7 @@ function ButtonIconOnly() {
         </Button>
       </div>
     </Example>
-  )
+  );
 }
 
 function ButtonExamples() {
@@ -463,16 +371,13 @@ function ButtonExamples() {
         <div className="flex items-center gap-2">
           <Button variant="outline">Cancel</Button>
           <Button>
-            Submit{" "}
-            <ArrowRightIcon
-              data-icon="inline-end" />
+            Submit <ArrowRightIcon data-icon="inline-end" />
           </Button>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="destructive">Delete</Button>
           <Button size="icon" aria-label="Continue">
-            <ArrowRightIcon
-              data-icon="inline-end" />
+            <ArrowRightIcon data-icon="inline-end" />
           </Button>
         </div>
         <a href="#" className={buttonVariants()}>
@@ -480,7 +385,7 @@ function ButtonExamples() {
         </a>
       </div>
     </Example>
-  )
+  );
 }
 
 function ButtonInvalidStates() {
@@ -565,5 +470,5 @@ function ButtonInvalidStates() {
         </Button>
       </div>
     </Example>
-  )
+  );
 }

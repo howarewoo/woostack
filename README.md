@@ -163,6 +163,10 @@ pnpm install --frozen-lockfile
 pnpm dev
 pnpm build
 pnpm test
+pnpm lint
+pnpm lint:fix
+pnpm format
+pnpm format:check
 pnpm verify
 pnpm types:check
 ```
@@ -176,11 +180,19 @@ Docs defaults to port 3000; the catalog defaults to port 5173. See the
 [docs README](apps/docs/README.md) and
 [catalog README](apps/design/README.md) for app-specific development guidance.
 
-`pnpm verify` runs the repository verification graph (docs tests and typechecking,
-plus catalog specimen checks in `apps/design`). Constituent checks are cached
-and run non-redundantly: running `pnpm test` or `pnpm types:check` caches those constituents
-so subsequent `pnpm verify` runs reuse them.
-Use `pnpm verify --force` to execute all checks freshly, including nested docs checks.
+`pnpm verify` runs the repository verification graph: docs tests, typechecking, Oxlint
+and Oxfmt checks, plus catalog specimen and lint/format checks in `apps/design`, alongside
+root script linting and root code/configuration formatting checks. Constituent checks are cached
+and run non-redundantly: running `pnpm test`, `pnpm lint`, `pnpm format:check`, or `pnpm types:check`
+caches those constituents so subsequent `pnpm verify` runs reuse them. App formatting checks track
+changes to the shared root `.oxfmtrc.json`.
+Use `pnpm verify --force` to execute all checks freshly, including nested docs and design checks.
+Oxlint and Oxfmt provide repository-wide linting and code formatting, scoped to code and configuration
+files while ignoring generated artifacts and historical skill prose. UI lint configs in `apps/docs/`
+and `apps/design/` register `@shadcn/lint` via `jsPlugins` following upstream SETUP.md's conservative
+registration-only guidance: no new persistent rules, presets, or overrides are enabled, leaving design
+system policy decisions to user configuration. Theme and component settings are discovered independently
+per app.
 
 Repository caching isolates each checkout via `cacheDir: ".turbo/cache"` in `turbo.json`
 to prevent cross-worktree cache sharing and foreign absolute path leaks in build/typecheck

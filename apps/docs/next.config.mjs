@@ -1,8 +1,8 @@
-import { fileURLToPath } from 'node:url';
-import { createMDX } from 'fumadocs-mdx/next';
+import { fileURLToPath } from "node:url";
+import { createMDX } from "fumadocs-mdx/next";
 
 const withMDX = createMDX();
-const workspaceRoot = fileURLToPath(new URL('../..', import.meta.url));
+const workspaceRoot = fileURLToPath(new URL("../..", import.meta.url));
 
 /** @type {import('next').NextConfig} */
 const config = {
@@ -12,18 +12,18 @@ const config = {
   async redirects() {
     return [
       {
-        source: '/docs/concepts/memory',
-        destination: '/docs/concepts/context-management',
+        source: "/docs/concepts/memory",
+        destination: "/docs/concepts/context-management",
         permanent: true,
       },
       {
-        source: '/docs/skills/woostack-ask',
-        destination: '/docs/concepts/utilities',
+        source: "/docs/skills/woostack-ask",
+        destination: "/docs/concepts/utilities",
         permanent: true,
       },
       {
-        source: '/docs/skills/woostack-dream',
-        destination: '/docs/concepts/context-management',
+        source: "/docs/skills/woostack-dream",
+        destination: "/docs/concepts/context-management",
         permanent: true,
       },
     ];

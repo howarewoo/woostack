@@ -1,50 +1,44 @@
 /* MIT: Copyright (c) 2023 shadcn. See LICENSE. Browser-only catalog adaptation. */
-import { useState } from "react"
-import { ChevronDownIcon, ThumbsDownIcon, ThumbsUpIcon } from "lucide-react"
-"use client"
+"use client";
+import { useState } from "react";
+import { ChevronDownIcon, ThumbsDownIcon, ThumbsUpIcon } from "lucide-react";
 
-import * as React from "react"
-import { toast } from "sonner"
+import * as React from "react";
+import { toast } from "sonner";
 
-import {
-  Example,
-  ExampleWrapper,
-} from "@/components/example"
-import {
-  Bubble,
-  BubbleContent,
-  BubbleGroup,
-  BubbleReactions,
-} from "@/components/ui/bubble"
-import { Button } from "@/components/ui/button"
-import {
-  Collapsible,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible"
-import { Marker, MarkerContent } from "@/components/ui/marker"
+import { Example, ExampleWrapper } from "@/components/example";
+import { Bubble, BubbleContent, BubbleGroup, BubbleReactions } from "@/components/ui/bubble";
+import { Button } from "@/components/ui/button";
+import { Collapsible, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Marker, MarkerContent } from "@/components/ui/marker";
 
 export default function BubbleExample() {
-  const [selectedLink, setSelectedLink] = useState("")
+  const [selectedLink, setSelectedLink] = useState("");
   return (
-    <div className="w-full" onClickCapture={(event) => {
-      const link = (event.target as Element).closest("a[href='#']")
-      if (!link) return
-      event.preventDefault()
-      setSelectedLink(link.getAttribute("aria-label") || link.textContent?.trim() || "Link")
-    }}>
-    <ExampleWrapper>
-      <BubbleSizes />
-      <BubbleVariants />
-      <BubbleAlignment />
-      <BubbleGrouped />
-      <BubbleCollapsible />
-      <BubbleButtonLinks />
-      <BubbleWithReactions />
-      <BubbleReactionsButtons />
-    </ExampleWrapper>
-      <p role="status" className="mt-3 text-sm text-muted-foreground">{selectedLink && `Selected example link: ${selectedLink}`}</p>
+    <div
+      className="w-full"
+      onClickCapture={(event) => {
+        const link = (event.target as Element).closest("a[href='#']");
+        if (!link) return;
+        event.preventDefault();
+        setSelectedLink(link.getAttribute("aria-label") || link.textContent?.trim() || "Link");
+      }}
+    >
+      <ExampleWrapper>
+        <BubbleSizes />
+        <BubbleVariants />
+        <BubbleAlignment />
+        <BubbleGrouped />
+        <BubbleCollapsible />
+        <BubbleButtonLinks />
+        <BubbleWithReactions />
+        <BubbleReactionsButtons />
+      </ExampleWrapper>
+      <p role="status" className="mt-3 text-sm text-muted-foreground">
+        {selectedLink && `Selected example link: ${selectedLink}`}
+      </p>
     </div>
-  )
+  );
 }
 
 function BubbleVariants() {
@@ -53,32 +47,29 @@ function BubbleVariants() {
       <div className="flex w-full max-w-md flex-col gap-8">
         <Bubble>
           <BubbleContent>
-            Default bubbles use the primary color for the active user side of a
-            chat.
+            Default bubbles use the primary color for the active user side of a chat.
           </BubbleContent>
         </Bubble>
         <Bubble variant="secondary">
           <BubbleContent>
-            Secondary bubbles are the standard neutral surface for assistant and
-            conversation content.
+            Secondary bubbles are the standard neutral surface for assistant and conversation
+            content.
           </BubbleContent>
         </Bubble>
         <Bubble variant="muted">
           <BubbleContent>
-            Muted bubbles lower the emphasis for quiet system notes or for
-            displaying supporting content.
+            Muted bubbles lower the emphasis for quiet system notes or for displaying supporting
+            content.
           </BubbleContent>
         </Bubble>
         <Bubble variant="tinted" align="end">
           <BubbleContent>
-            Tinted bubbles use a softer primary tint when primary fill is too
-            strong.
+            Tinted bubbles use a softer primary tint when primary fill is too strong.
           </BubbleContent>
         </Bubble>
         <Bubble variant="outline">
           <BubbleContent>
-            Outline bubbles can be used to frame message content and give it a
-            border.
+            Outline bubbles can be used to frame message content and give it a border.
           </BubbleContent>
         </Bubble>
         <Bubble variant="destructive">
@@ -100,7 +91,7 @@ Ghost bubbles are full width and can take the full width of the container.
         </Bubble>
       </div>
     </Example>
-  )
+  );
 }
 
 function BubbleSizes() {
@@ -112,23 +103,22 @@ function BubbleSizes() {
         </Bubble>
         <Bubble>
           <BubbleContent>
-            This bubble has multiple lines. It should wrap to the next line and
-            you should see a different radius on the corners.
+            This bubble has multiple lines. It should wrap to the next line and you should see a
+            different radius on the corners.
           </BubbleContent>
         </Bubble>
         <Bubble>
           <BubbleContent>
             <p>This bubble has multiple lines.</p>
             <p>
-              It should wrap to the next line and you should see a different
-              radius on the corners.
+              It should wrap to the next line and you should see a different radius on the corners.
             </p>
             <p>Here is some more text to see how it wraps.</p>
           </BubbleContent>
         </Bubble>
       </div>
     </Example>
-  )
+  );
 }
 
 function BubbleGrouped() {
@@ -158,7 +148,7 @@ function BubbleGrouped() {
         </BubbleGroup>
       </div>
     </Example>
-  )
+  );
 }
 
 const text = `The accessibility review found two focus states that were visually too subtle in dark mode.
@@ -167,14 +157,14 @@ I checked the dialog, menu, and drawer paths because each one renders focusable 
 
 The dialog and drawer are fine. The menu needs the hover and focus tokens split so keyboard focus stays visible when the pointer is not involved.
 
-I also recommend keeping the change in the style file instead of the primitive so the other themes can choose their own focus treatment later.`
+I also recommend keeping the change in the style file instead of the primitive so the other themes can choose their own focus treatment later.`;
 
-const previewLength = 180
+const previewLength = 180;
 
 function BubbleCollapsible() {
-  const [open, setOpen] = React.useState(false)
-  const isLong = text.length > previewLength
-  const preview = `${text.slice(0, previewLength)}...`
+  const [open, setOpen] = React.useState(false);
+  const isLong = text.length > previewLength;
+  const preview = `${text.slice(0, previewLength)}...`;
 
   return (
     <Example title="Collapsible">
@@ -185,17 +175,13 @@ function BubbleCollapsible() {
               <div>{open || !isLong ? text : preview}</div>
               {isLong ? (
                 <CollapsibleTrigger
-                  render={
-                    <Button
-                      variant="link"
-                      className="gap-1 p-0 text-muted-foreground"
-                    />
-                  }
+                  render={<Button variant="link" className="gap-1 p-0 text-muted-foreground" />}
                 >
                   {open ? "Show less" : "Show more"}
                   <ChevronDownIcon
                     data-icon="inline-end"
-                    className="group-data-panel-open/button:rotate-180" />
+                    className="group-data-panel-open/button:rotate-180"
+                  />
                 </CollapsibleTrigger>
               ) : null}
             </BubbleContent>
@@ -214,7 +200,7 @@ Use this for content that needs the whole row.`}
         </Bubble>
       </div>
     </Example>
-  )
+  );
 }
 
 function BubbleWithReactions() {
@@ -226,19 +212,13 @@ function BubbleWithReactions() {
         </Marker>
         <Bubble>
           <BubbleContent>This is a one line message.</BubbleContent>
-          <BubbleReactions
-            side="bottom"
-            align="end"
-            role="img"
-            aria-label="Reaction: thumbs up"
-          >
+          <BubbleReactions side="bottom" align="end" role="img" aria-label="Reaction: thumbs up">
             <span>👍</span>
           </BubbleReactions>
         </Bubble>
         <Bubble variant="secondary" align="end">
           <BubbleContent>
-            A longer message that wraps across lines so the reaction offset is
-            easier to inspect.
+            A longer message that wraps across lines so the reaction offset is easier to inspect.
           </BubbleContent>
           <BubbleReactions
             side="bottom"
@@ -252,8 +232,7 @@ function BubbleWithReactions() {
         </Bubble>
         <Bubble variant="tinted">
           <BubbleContent>
-            A longer message that wraps across lines so the reaction offset is
-            easier to inspect.
+            A longer message that wraps across lines so the reaction offset is easier to inspect.
           </BubbleContent>
           <BubbleReactions
             side="bottom"
@@ -273,19 +252,13 @@ function BubbleWithReactions() {
         </Marker>
         <Bubble variant="secondary">
           <BubbleContent>This is a one line message.</BubbleContent>
-          <BubbleReactions
-            side="bottom"
-            align="start"
-            role="img"
-            aria-label="Reaction: fire"
-          >
+          <BubbleReactions side="bottom" align="start" role="img" aria-label="Reaction: fire">
             <span>🔥</span>
           </BubbleReactions>
         </Bubble>
         <Bubble variant="secondary">
           <BubbleContent>
-            A longer message that wraps across lines so the reaction offset is
-            easier to inspect.
+            A longer message that wraps across lines so the reaction offset is easier to inspect.
           </BubbleContent>
           <BubbleReactions
             side="bottom"
@@ -304,19 +277,13 @@ function BubbleWithReactions() {
         </Marker>
         <Bubble variant="secondary">
           <BubbleContent>This is a one line message.</BubbleContent>
-          <BubbleReactions
-            side="top"
-            align="start"
-            role="img"
-            aria-label="Reaction: fire"
-          >
+          <BubbleReactions side="top" align="start" role="img" aria-label="Reaction: fire">
             <span>🔥</span>
           </BubbleReactions>
         </Bubble>
         <Bubble variant="secondary">
           <BubbleContent>
-            A longer message that wraps across lines so the reaction offset is
-            easier to inspect.
+            A longer message that wraps across lines so the reaction offset is easier to inspect.
           </BubbleContent>
           <BubbleReactions
             side="top"
@@ -335,12 +302,7 @@ function BubbleWithReactions() {
         </Marker>
         <Bubble variant="muted">
           <BubbleContent>This is a one line message.</BubbleContent>
-          <BubbleReactions
-            side="top"
-            align="end"
-            role="img"
-            aria-label="Reaction: thumbs up"
-          >
+          <BubbleReactions side="top" align="end" role="img" aria-label="Reaction: thumbs up">
             <span>👍</span>
           </BubbleReactions>
         </Bubble>
@@ -363,7 +325,7 @@ function BubbleWithReactions() {
         </Bubble>
       </div>
     </Example>
-  )
+  );
 }
 
 function BubbleReactionsButtons() {
@@ -376,9 +338,7 @@ function BubbleReactionsButtons() {
             <Button
               variant="outline"
               size="xs"
-              onClick={() =>
-                toast("You clicked the button in the bubble reaction")
-              }
+              onClick={() => toast("You clicked the button in the bubble reaction")}
             >
               Button
             </Button>
@@ -387,19 +347,13 @@ function BubbleReactionsButtons() {
         <Bubble align="end">
           <BubbleContent>This is a one line message.</BubbleContent>
           <BubbleReactions align="start">
-            <Button
-              variant="ghost"
-              size="icon-xs"
-              onClick={() => toast("Confetti!")}
-            >
+            <Button variant="ghost" size="icon-xs" onClick={() => toast("Confetti!")}>
               🎉
             </Button>
           </BubbleReactions>
         </Bubble>
         <Bubble variant="tinted">
-          <BubbleContent>
-            We are going to the movies first then dinner. Are you in?
-          </BubbleContent>
+          <BubbleContent>We are going to the movies first then dinner. Are you in?</BubbleContent>
           <BubbleReactions className="gap-1 bg-background">
             <Button
               variant="secondary"
@@ -421,7 +375,7 @@ function BubbleReactionsButtons() {
         </Bubble>
       </div>
     </Example>
-  )
+  );
 }
 
 function BubbleAlignment() {
@@ -436,20 +390,19 @@ function BubbleAlignment() {
         </Bubble>
         <Bubble variant="muted">
           <BubbleContent>
-            This multiline bubble is aligned to the start. The corners should
-            adjust when the text wraps to show the grouped side of the
-            conversation.
+            This multiline bubble is aligned to the start. The corners should adjust when the text
+            wraps to show the grouped side of the conversation.
           </BubbleContent>
         </Bubble>
         <Bubble align="end">
           <BubbleContent>
-            This multiline bubble is aligned to the end. It should sit on the
-            opposite side with the matching corner radius for wrapped text.
+            This multiline bubble is aligned to the end. It should sit on the opposite side with the
+            matching corner radius for wrapped text.
           </BubbleContent>
         </Bubble>
       </div>
     </Example>
-  )
+  );
 }
 
 const quickReplies = [
@@ -462,20 +415,17 @@ const quickReplies = [
     message: "I forgot my password.",
   },
   {
-    label:
-      "I have another question. I'd like to talk to a human. Can you help me?",
+    label: "I have another question. I'd like to talk to a human. Can you help me?",
     message: "I have another question.",
   },
-]
+];
 
 function BubbleButtonLinks() {
   return (
     <Example title="Button & Links">
       <div className="flex w-full max-w-md flex-col gap-8">
         <Bubble>
-          <BubbleContent render={<a href="#" />}>
-            This bubble is a link.
-          </BubbleContent>
+          <BubbleContent render={<a href="#" />}>This bubble is a link.</BubbleContent>
         </Bubble>
         <Bubble variant="secondary">
           <BubbleContent render={<button type="button" />}>
@@ -498,9 +448,7 @@ function BubbleButtonLinks() {
             <Bubble key={reply.label} variant="outline" align="end">
               <BubbleContent
                 className="border-dashed border-primary"
-                render={
-                  <button type="button" onClick={() => toast(reply.message)} />
-                }
+                render={<button type="button" onClick={() => toast(reply.message)} />}
               >
                 {reply.label}
               </BubbleContent>
@@ -509,5 +457,5 @@ function BubbleButtonLinks() {
         </BubbleGroup>
       </div>
     </Example>
-  )
+  );
 }

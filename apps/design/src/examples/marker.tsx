@@ -1,21 +1,26 @@
 /* MIT: Copyright (c) 2023 shadcn. See LICENSE. Browser-only catalog adaptation. */
-import { useState } from "react"
-import { CheckIcon, ChevronRightIcon, CircleUserIcon, ClockIcon, FileTextIcon, GitBranchIcon, SearchIcon } from "lucide-react"
-"use client"
-
-import { toast } from "sonner"
-
+"use client";
+import { useState } from "react";
 import {
-  Example,
-  ExampleWrapper,
-} from "@/components/example"
+  CheckIcon,
+  ChevronRightIcon,
+  CircleUserIcon,
+  ClockIcon,
+  FileTextIcon,
+  GitBranchIcon,
+  SearchIcon,
+} from "lucide-react";
+
+import { toast } from "sonner";
+
+import { Example, ExampleWrapper } from "@/components/example";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "@/components/ui/accordion"
-import { Button } from "@/components/ui/button"
+} from "@/components/ui/accordion";
+import { Button } from "@/components/ui/button";
 import {
   Drawer,
   DrawerClose,
@@ -25,33 +30,34 @@ import {
   DrawerHeader,
   DrawerTitle,
   DrawerTrigger,
-} from "@/components/ui/drawer"
-import {
-  Marker,
-  MarkerContent,
-  MarkerIcon,
-} from "@/components/ui/marker"
-import { Spinner } from "@/components/ui/spinner"
+} from "@/components/ui/drawer";
+import { Marker, MarkerContent, MarkerIcon } from "@/components/ui/marker";
+import { Spinner } from "@/components/ui/spinner";
 
 export default function MarkerExamples() {
-  const [selectedLink, setSelectedLink] = useState("")
+  const [selectedLink, setSelectedLink] = useState("");
   return (
-    <div className="w-full" onClickCapture={(event) => {
-      const link = (event.target as Element).closest("a[href='#']")
-      if (!link) return
-      event.preventDefault()
-      setSelectedLink(link.getAttribute("aria-label") || link.textContent?.trim() || "Link")
-    }}>
-    <ExampleWrapper>
-      <MarkerExample />
-      <MarkerBorder />
-      <MarkerSeparator />
-      <MarkerAccordion />
-      <MarkerDrawer />
-    </ExampleWrapper>
-      <p role="status" className="mt-3 text-sm text-muted-foreground">{selectedLink && `Selected example link: ${selectedLink}`}</p>
+    <div
+      className="w-full"
+      onClickCapture={(event) => {
+        const link = (event.target as Element).closest("a[href='#']");
+        if (!link) return;
+        event.preventDefault();
+        setSelectedLink(link.getAttribute("aria-label") || link.textContent?.trim() || "Link");
+      }}
+    >
+      <ExampleWrapper>
+        <MarkerExample />
+        <MarkerBorder />
+        <MarkerSeparator />
+        <MarkerAccordion />
+        <MarkerDrawer />
+      </ExampleWrapper>
+      <p role="status" className="mt-3 text-sm text-muted-foreground">
+        {selectedLink && `Selected example link: ${selectedLink}`}
+      </p>
     </div>
-  )
+  );
 }
 
 function MarkerExample() {
@@ -76,9 +82,7 @@ function MarkerExample() {
         <MarkerIcon>
           <Spinner />
         </MarkerIcon>
-        <MarkerContent className="shimmer">
-          Marker with shimmer effect
-        </MarkerContent>
+        <MarkerContent className="shimmer">Marker with shimmer effect</MarkerContent>
       </Marker>
       <Marker role="status">
         <MarkerContent className="shimmer">Thinking...</MarkerContent>
@@ -125,7 +129,7 @@ function MarkerExample() {
         <MarkerContent>Marker with icon at the top</MarkerContent>
       </Marker>
     </Example>
-  )
+  );
 }
 
 function MarkerBorder() {
@@ -150,7 +154,7 @@ function MarkerBorder() {
         <MarkerContent>Opened implementation notes</MarkerContent>
       </Marker>
     </Example>
-  )
+  );
 }
 
 function MarkerSeparator() {
@@ -188,7 +192,7 @@ function MarkerSeparator() {
         </MarkerContent>
       </Marker>
     </Example>
-  )
+  );
 }
 
 function MarkerAccordion() {
@@ -206,15 +210,14 @@ function MarkerAccordion() {
           </AccordionTrigger>
           <AccordionContent>
             <p className="text-sm text-muted-foreground">
-              The user asked for a list of all the files in the current
-              directory. The assistant responded with a list of all the files in
-              the current directory.
+              The user asked for a list of all the files in the current directory. The assistant
+              responded with a list of all the files in the current directory.
             </p>
           </AccordionContent>
         </AccordionItem>
       </Accordion>
     </Example>
-  )
+  );
 }
 
 function MarkerDrawer() {
@@ -223,17 +226,14 @@ function MarkerDrawer() {
       <Drawer swipeDirection="right">
         <Marker variant="separator">
           <DrawerTrigger render={<Button variant="outline" />}>
-            <SearchIcon
-              data-icon="inline-start" />
+            <SearchIcon data-icon="inline-start" />
             Explored 4 files
           </DrawerTrigger>
         </Marker>
         <DrawerContent>
           <DrawerHeader>
             <DrawerTitle>File Activity</DrawerTitle>
-            <DrawerDescription>
-              Files read while preparing the response.
-            </DrawerDescription>
+            <DrawerDescription>Files read while preparing the response.</DrawerDescription>
           </DrawerHeader>
           <div className="grid gap-3 px-4 text-sm">
             <div className="flex items-center justify-between gap-4 rounded-md border px-3 py-2">
@@ -250,12 +250,10 @@ function MarkerDrawer() {
             </div>
           </div>
           <DrawerFooter>
-            <DrawerClose render={<Button variant="outline" />}>
-              Close
-            </DrawerClose>
+            <DrawerClose render={<Button variant="outline" />}>Close</DrawerClose>
           </DrawerFooter>
         </DrawerContent>
       </Drawer>
     </Example>
-  )
+  );
 }

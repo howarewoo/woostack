@@ -1,15 +1,37 @@
 /* MIT: Copyright (c) 2023 shadcn. See LICENSE. Browser-only catalog adaptation. */
-import { BellIcon, CalculatorIcon, CalendarIcon, ClipboardPasteIcon, CodeIcon, CopyIcon, CreditCardIcon, FileTextIcon, FolderIcon, FolderPlusIcon, HelpCircleIcon, HomeIcon, ImageIcon, InboxIcon, LayoutGridIcon, ListIcon, PlusIcon, ScissorsIcon, SettingsIcon, SmileIcon, TrashIcon, UserIcon, ZoomInIcon, ZoomOutIcon } from "lucide-react"
-"use client"
-
-import * as React from "react"
-
+"use client";
 import {
-  Example,
-  ExampleWrapper,
-} from "@/components/example"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
+  BellIcon,
+  CalculatorIcon,
+  CalendarIcon,
+  ClipboardPasteIcon,
+  CodeIcon,
+  CopyIcon,
+  CreditCardIcon,
+  FileTextIcon,
+  FolderIcon,
+  FolderPlusIcon,
+  HelpCircleIcon,
+  HomeIcon,
+  ImageIcon,
+  InboxIcon,
+  LayoutGridIcon,
+  ListIcon,
+  PlusIcon,
+  ScissorsIcon,
+  SettingsIcon,
+  SmileIcon,
+  TrashIcon,
+  UserIcon,
+  ZoomInIcon,
+  ZoomOutIcon,
+} from "lucide-react";
+
+import * as React from "react";
+
+import { Example, ExampleWrapper } from "@/components/example";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Command,
   CommandDialog,
@@ -20,7 +42,7 @@ import {
   CommandList,
   CommandSeparator,
   CommandShortcut,
-} from "@/components/ui/command"
+} from "@/components/ui/command";
 
 export default function CommandExample() {
   return (
@@ -31,7 +53,7 @@ export default function CommandExample() {
       <CommandWithGroups />
       <CommandManyItems />
     </ExampleWrapper>
-  )
+  );
 }
 
 function CommandInline() {
@@ -80,20 +102,16 @@ function CommandInline() {
         </CardContent>
       </Card>
     </Example>
-  )
+  );
 }
 
 function CommandBasic() {
-  const [open, setOpen] = React.useState(false)
+  const [open, setOpen] = React.useState(false);
 
   return (
     <Example title="Basic">
       <div className="flex flex-col gap-4">
-        <Button
-          onClick={() => setOpen(true)}
-          variant="outline"
-          className="w-fit"
-        >
+        <Button onClick={() => setOpen(true)} variant="outline" className="w-fit">
           Open Menu
         </Button>
         <CommandDialog open={open} onOpenChange={setOpen}>
@@ -111,20 +129,16 @@ function CommandBasic() {
         </CommandDialog>
       </div>
     </Example>
-  )
+  );
 }
 
 function CommandWithShortcuts() {
-  const [open, setOpen] = React.useState(false)
+  const [open, setOpen] = React.useState(false);
 
   return (
     <Example title="With Shortcuts">
       <div className="flex flex-col gap-4">
-        <Button
-          onClick={() => setOpen(true)}
-          variant="outline"
-          className="w-fit"
-        >
+        <Button onClick={() => setOpen(true)} variant="outline" className="w-fit">
           Open Menu
         </Button>
         <CommandDialog open={open} onOpenChange={setOpen}>
@@ -154,20 +168,16 @@ function CommandWithShortcuts() {
         </CommandDialog>
       </div>
     </Example>
-  )
+  );
 }
 
 function CommandWithGroups() {
-  const [open, setOpen] = React.useState(false)
+  const [open, setOpen] = React.useState(false);
 
   return (
     <Example title="With Groups">
       <div className="flex flex-col gap-4">
-        <Button
-          onClick={() => setOpen(true)}
-          variant="outline"
-          className="w-fit"
-        >
+        <Button onClick={() => setOpen(true)} variant="outline" className="w-fit">
           Open Menu
         </Button>
         <CommandDialog open={open} onOpenChange={setOpen}>
@@ -212,20 +222,16 @@ function CommandWithGroups() {
         </CommandDialog>
       </div>
     </Example>
-  )
+  );
 }
 
 function CommandManyItems() {
-  const [open, setOpen] = React.useState(false)
+  const [open, setOpen] = React.useState(false);
 
   return (
     <Example title="Many Groups & Items">
       <div className="flex flex-col gap-4">
-        <Button
-          onClick={() => setOpen(true)}
-          variant="outline"
-          className="w-fit"
-        >
+        <Button onClick={() => setOpen(true)} variant="outline" className="w-fit">
           Open Menu
         </Button>
         <CommandDialog open={open} onOpenChange={setOpen}>
@@ -359,5 +365,5 @@ function CommandManyItems() {
         </CommandDialog>
       </div>
     </Example>
-  )
+  );
 }

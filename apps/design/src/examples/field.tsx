@@ -1,15 +1,12 @@
 /* MIT: Copyright (c) 2023 shadcn. See LICENSE. Browser-only catalog adaptation. */
-"use client"
+"use client";
 
-import { useState } from "react"
-import { REGEXP_ONLY_DIGITS } from "input-otp"
+import { useState } from "react";
+import { REGEXP_ONLY_DIGITS } from "input-otp";
 
-import {
-  Example,
-  ExampleWrapper,
-} from "@/components/example"
-import { Badge } from "@/components/ui/badge"
-import { Checkbox } from "@/components/ui/checkbox"
+import { Example, ExampleWrapper } from "@/components/example";
+import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Field,
   FieldContent,
@@ -19,23 +16,20 @@ import {
   FieldLegend,
   FieldSet,
   FieldTitle,
-} from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
+} from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
 import {
   InputOTP,
   InputOTPGroup,
   InputOTPSeparator,
   InputOTPSlot,
-} from "@/components/ui/input-otp"
+} from "@/components/ui/input-otp";
 import {
   NativeSelect,
   NativeSelectOptGroup,
   NativeSelectOption,
-} from "@/components/ui/native-select"
-import {
-  RadioGroup,
-  RadioGroupItem,
-} from "@/components/ui/radio-group"
+} from "@/components/ui/native-select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   Select,
   SelectContent,
@@ -43,10 +37,10 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { Slider } from "@/components/ui/slider"
-import { Switch } from "@/components/ui/switch"
-import { Textarea } from "@/components/ui/textarea"
+} from "@/components/ui/select";
+import { Slider } from "@/components/ui/slider";
+import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
 
 export default function FieldExample() {
   return (
@@ -62,7 +56,7 @@ export default function FieldExample() {
       <InputOTPFields />
       <HorizontalFields />
     </ExampleWrapper>
-  )
+  );
 }
 
 function InputFields() {
@@ -74,34 +68,20 @@ function InputFields() {
           <Input id="input-basic" placeholder="Enter text" />
         </Field>
         <Field>
-          <FieldLabel htmlFor="input-with-desc">
-            Input with Description
-          </FieldLabel>
+          <FieldLabel htmlFor="input-with-desc">Input with Description</FieldLabel>
           <Input id="input-with-desc" placeholder="Enter your username" />
-          <FieldDescription>
-            Choose a unique username for your account.
-          </FieldDescription>
+          <FieldDescription>Choose a unique username for your account.</FieldDescription>
         </Field>
         <Field>
           <FieldLabel htmlFor="input-desc-first">Email Address</FieldLabel>
-          <FieldDescription>
-            We&apos;ll never share your email with anyone.
-          </FieldDescription>
-          <Input
-            id="input-desc-first"
-            type="email"
-            placeholder="email@example.com"
-          />
+          <FieldDescription>We&apos;ll never share your email with anyone.</FieldDescription>
+          <Input id="input-desc-first" type="email" placeholder="email@example.com" />
         </Field>
         <Field>
           <FieldLabel htmlFor="input-required">
             Required Field <span className="text-destructive">*</span>
           </FieldLabel>
-          <Input
-            id="input-required"
-            placeholder="This field is required"
-            required
-          />
+          <Input id="input-required" placeholder="This field is required" required />
           <FieldDescription>This field must be filled out.</FieldDescription>
         </Field>
         <Field>
@@ -120,14 +100,8 @@ function InputFields() {
         </Field>
         <Field data-invalid>
           <FieldLabel htmlFor="input-invalid">Invalid Input</FieldLabel>
-          <Input
-            id="input-invalid"
-            placeholder="This field has an error"
-            aria-invalid
-          />
-          <FieldDescription>
-            This field contains validation errors.
-          </FieldDescription>
+          <Input id="input-invalid" placeholder="This field has an error" aria-invalid />
+          <FieldDescription>This field contains validation errors.</FieldDescription>
         </Field>
         <Field data-disabled>
           <FieldLabel htmlFor="input-disabled-field">Disabled Field</FieldLabel>
@@ -136,7 +110,7 @@ function InputFields() {
         </Field>
       </FieldGroup>
     </Example>
-  )
+  );
 }
 
 function TextareaFields() {
@@ -158,14 +132,8 @@ function TextareaFields() {
         </Field>
         <Field>
           <FieldLabel htmlFor="textarea-bio">Bio</FieldLabel>
-          <FieldDescription>
-            Tell us about yourself in a few sentences.
-          </FieldDescription>
-          <Textarea
-            id="textarea-bio"
-            placeholder="I am a..."
-            className="min-h-[120px]"
-          />
+          <FieldDescription>Tell us about yourself in a few sentences.</FieldDescription>
+          <Textarea id="textarea-bio" placeholder="I am a..." className="min-h-[120px]" />
         </Field>
         <Field>
           <FieldLabel htmlFor="textarea-desc-after">Message</FieldLabel>
@@ -176,29 +144,17 @@ function TextareaFields() {
         </Field>
         <Field data-invalid>
           <FieldLabel htmlFor="textarea-invalid">Invalid Textarea</FieldLabel>
-          <Textarea
-            id="textarea-invalid"
-            placeholder="This field has an error"
-            aria-invalid
-          />
-          <FieldDescription>
-            This field contains validation errors.
-          </FieldDescription>
+          <Textarea id="textarea-invalid" placeholder="This field has an error" aria-invalid />
+          <FieldDescription>This field contains validation errors.</FieldDescription>
         </Field>
         <Field data-disabled>
-          <FieldLabel htmlFor="textarea-disabled-field">
-            Disabled Field
-          </FieldLabel>
-          <Textarea
-            id="textarea-disabled-field"
-            placeholder="Cannot edit"
-            disabled
-          />
+          <FieldLabel htmlFor="textarea-disabled-field">Disabled Field</FieldLabel>
+          <Textarea id="textarea-disabled-field" placeholder="Cannot edit" disabled />
           <FieldDescription>This field is currently disabled.</FieldDescription>
         </Field>
       </FieldGroup>
     </Example>
-  )
+  );
 }
 
 function SelectFields() {
@@ -207,31 +163,31 @@ function SelectFields() {
     { label: "Option 1", value: "option1" },
     { label: "Option 2", value: "option2" },
     { label: "Option 3", value: "option3" },
-  ]
+  ];
   const countryItems = [
     { label: "Select your country", value: null },
     { label: "United States", value: "us" },
     { label: "United Kingdom", value: "uk" },
     { label: "Canada", value: "ca" },
-  ]
+  ];
   const timezoneItems = [
     { label: "Select timezone", value: null },
     { label: "UTC", value: "utc" },
     { label: "Eastern Time", value: "est" },
     { label: "Pacific Time", value: "pst" },
-  ]
+  ];
   const invalidItems = [
     { label: "This field has an error", value: null },
     { label: "Option 1", value: "option1" },
     { label: "Option 2", value: "option2" },
     { label: "Option 3", value: "option3" },
-  ]
+  ];
   const disabledItems = [
     { label: "Cannot select", value: null },
     { label: "Option 1", value: "option1" },
     { label: "Option 2", value: "option2" },
     { label: "Option 3", value: "option3" },
-  ]
+  ];
 
   return (
     <Example title="Select Fields">
@@ -269,15 +225,11 @@ function SelectFields() {
               </SelectGroup>
             </SelectContent>
           </Select>
-          <FieldDescription>
-            Select the country where you currently reside.
-          </FieldDescription>
+          <FieldDescription>Select the country where you currently reside.</FieldDescription>
         </Field>
         <Field>
           <FieldLabel htmlFor="select-timezone">Timezone</FieldLabel>
-          <FieldDescription>
-            Choose your local timezone for accurate scheduling.
-          </FieldDescription>
+          <FieldDescription>Choose your local timezone for accurate scheduling.</FieldDescription>
           <Select items={timezoneItems}>
             <SelectTrigger id="select-timezone">
               <SelectValue />
@@ -309,14 +261,10 @@ function SelectFields() {
               </SelectGroup>
             </SelectContent>
           </Select>
-          <FieldDescription>
-            This field contains validation errors.
-          </FieldDescription>
+          <FieldDescription>This field contains validation errors.</FieldDescription>
         </Field>
         <Field data-disabled>
-          <FieldLabel htmlFor="select-disabled-field">
-            Disabled Field
-          </FieldLabel>
+          <FieldLabel htmlFor="select-disabled-field">Disabled Field</FieldLabel>
           <Select items={disabledItems} disabled>
             <SelectTrigger id="select-disabled-field">
               <SelectValue />
@@ -335,7 +283,7 @@ function SelectFields() {
         </Field>
       </FieldGroup>
     </Example>
-  )
+  );
 }
 
 function NativeSelectFields() {
@@ -343,9 +291,7 @@ function NativeSelectFields() {
     <Example title="Native Select Fields">
       <FieldGroup>
         <Field>
-          <FieldLabel htmlFor="native-select-basic">
-            Basic Native Select
-          </FieldLabel>
+          <FieldLabel htmlFor="native-select-basic">Basic Native Select</FieldLabel>
           <NativeSelect id="native-select-basic">
             <NativeSelectOption value="">Choose an option</NativeSelectOption>
             <NativeSelectOption value="option1">Option 1</NativeSelectOption>
@@ -356,22 +302,16 @@ function NativeSelectFields() {
         <Field>
           <FieldLabel htmlFor="native-select-country">Country</FieldLabel>
           <NativeSelect id="native-select-country">
-            <NativeSelectOption value="">
-              Select your country
-            </NativeSelectOption>
+            <NativeSelectOption value="">Select your country</NativeSelectOption>
             <NativeSelectOption value="us">United States</NativeSelectOption>
             <NativeSelectOption value="uk">United Kingdom</NativeSelectOption>
             <NativeSelectOption value="ca">Canada</NativeSelectOption>
           </NativeSelect>
-          <FieldDescription>
-            Select the country where you currently reside.
-          </FieldDescription>
+          <FieldDescription>Select the country where you currently reside.</FieldDescription>
         </Field>
         <Field>
           <FieldLabel htmlFor="native-select-timezone">Timezone</FieldLabel>
-          <FieldDescription>
-            Choose your local timezone for accurate scheduling.
-          </FieldDescription>
+          <FieldDescription>Choose your local timezone for accurate scheduling.</FieldDescription>
           <NativeSelect id="native-select-timezone">
             <NativeSelectOption value="">Select timezone</NativeSelectOption>
             <NativeSelectOption value="utc">UTC</NativeSelectOption>
@@ -380,9 +320,7 @@ function NativeSelectFields() {
           </NativeSelect>
         </Field>
         <Field>
-          <FieldLabel htmlFor="native-select-grouped">
-            Grouped Options
-          </FieldLabel>
+          <FieldLabel htmlFor="native-select-grouped">Grouped Options</FieldLabel>
           <NativeSelect id="native-select-grouped">
             <NativeSelectOption value="">Select a region</NativeSelectOption>
             <NativeSelectOptGroup label="North America">
@@ -396,30 +334,20 @@ function NativeSelectFields() {
               <NativeSelectOption value="de">Germany</NativeSelectOption>
             </NativeSelectOptGroup>
           </NativeSelect>
-          <FieldDescription>
-            Native select with grouped options using optgroup.
-          </FieldDescription>
+          <FieldDescription>Native select with grouped options using optgroup.</FieldDescription>
         </Field>
         <Field data-invalid>
-          <FieldLabel htmlFor="native-select-invalid">
-            Invalid Native Select
-          </FieldLabel>
+          <FieldLabel htmlFor="native-select-invalid">Invalid Native Select</FieldLabel>
           <NativeSelect id="native-select-invalid" aria-invalid>
-            <NativeSelectOption value="">
-              This field has an error
-            </NativeSelectOption>
+            <NativeSelectOption value="">This field has an error</NativeSelectOption>
             <NativeSelectOption value="option1">Option 1</NativeSelectOption>
             <NativeSelectOption value="option2">Option 2</NativeSelectOption>
             <NativeSelectOption value="option3">Option 3</NativeSelectOption>
           </NativeSelect>
-          <FieldDescription>
-            This field contains validation errors.
-          </FieldDescription>
+          <FieldDescription>This field contains validation errors.</FieldDescription>
         </Field>
         <Field data-disabled>
-          <FieldLabel htmlFor="native-select-disabled-field">
-            Disabled Field
-          </FieldLabel>
+          <FieldLabel htmlFor="native-select-disabled-field">Disabled Field</FieldLabel>
           <NativeSelect id="native-select-disabled-field" disabled>
             <NativeSelectOption value="">Cannot select</NativeSelectOption>
             <NativeSelectOption value="option1">Option 1</NativeSelectOption>
@@ -430,7 +358,7 @@ function NativeSelectFields() {
         </Field>
       </FieldGroup>
     </Example>
-  )
+  );
 }
 
 function CheckboxFields() {
@@ -439,22 +367,16 @@ function CheckboxFields() {
       <FieldGroup>
         <Field orientation="horizontal">
           <Checkbox id="checkbox-basic" defaultChecked />
-          <FieldLabel htmlFor="checkbox-basic">
-            I agree to the terms and conditions
-          </FieldLabel>
+          <FieldLabel htmlFor="checkbox-basic">I agree to the terms and conditions</FieldLabel>
         </Field>
         <Field orientation="horizontal">
-          <FieldLabel htmlFor="checkbox-right">
-            Accept terms and conditions
-          </FieldLabel>
+          <FieldLabel htmlFor="checkbox-right">Accept terms and conditions</FieldLabel>
           <Checkbox id="checkbox-right" />
         </Field>
         <Field orientation="horizontal">
           <Checkbox id="checkbox-with-desc" />
           <FieldContent>
-            <FieldLabel htmlFor="checkbox-with-desc">
-              Subscribe to newsletter
-            </FieldLabel>
+            <FieldLabel htmlFor="checkbox-with-desc">Subscribe to newsletter</FieldLabel>
             <FieldDescription>
               Receive weekly updates about new features and promotions.
             </FieldDescription>
@@ -465,17 +387,13 @@ function CheckboxFields() {
             <Checkbox id="checkbox-with-title" />
             <FieldContent>
               <FieldTitle>Enable Touch ID</FieldTitle>
-              <FieldDescription>
-                Enable Touch ID to quickly unlock your device.
-              </FieldDescription>
+              <FieldDescription>Enable Touch ID to quickly unlock your device.</FieldDescription>
             </FieldContent>
           </Field>
         </FieldLabel>
         <FieldSet>
           <FieldLegend variant="label">Preferences</FieldLegend>
-          <FieldDescription>
-            Select all that apply to customize your experience.
-          </FieldDescription>
+          <FieldDescription>Select all that apply to customize your experience.</FieldDescription>
           <FieldGroup className="gap-3">
             <Field orientation="horizontal">
               <Checkbox id="pref-dark" />
@@ -487,9 +405,7 @@ function CheckboxFields() {
             </Field>
             <Field orientation="horizontal">
               <Checkbox id="pref-notifications" />
-              <FieldLabel htmlFor="pref-notifications">
-                Enable notifications
-              </FieldLabel>
+              <FieldLabel htmlFor="pref-notifications">Enable notifications</FieldLabel>
             </Field>
           </FieldGroup>
         </FieldSet>
@@ -499,13 +415,11 @@ function CheckboxFields() {
         </Field>
         <Field data-disabled orientation="horizontal">
           <Checkbox id="checkbox-disabled-field" disabled />
-          <FieldLabel htmlFor="checkbox-disabled-field">
-            Disabled checkbox
-          </FieldLabel>
+          <FieldLabel htmlFor="checkbox-disabled-field">Disabled checkbox</FieldLabel>
         </Field>
       </FieldGroup>
     </Example>
-  )
+  );
 }
 
 function RadioFields() {
@@ -531,9 +445,7 @@ function RadioFields() {
         </FieldSet>
         <FieldSet>
           <FieldLegend variant="label">Battery Level</FieldLegend>
-          <FieldDescription>
-            Choose your preferred battery level.
-          </FieldDescription>
+          <FieldDescription>Choose your preferred battery level.</FieldDescription>
           <RadioGroup>
             <Field orientation="horizontal">
               <RadioGroupItem value="high" id="battery-high" />
@@ -554,9 +466,7 @@ function RadioFields() {
             <RadioGroupItem value="option1" id="radio-content-1" />
             <FieldContent>
               <FieldLabel htmlFor="radio-content-1">Enable Touch ID</FieldLabel>
-              <FieldDescription>
-                Enable Touch ID to quickly unlock your device.
-              </FieldDescription>
+              <FieldDescription>Enable Touch ID to quickly unlock your device.</FieldDescription>
             </FieldContent>
           </Field>
         </RadioGroup>
@@ -566,9 +476,7 @@ function RadioFields() {
               <RadioGroupItem value="title1" id="radio-title-1" />
               <FieldContent>
                 <FieldTitle>Enable Touch ID</FieldTitle>
-                <FieldDescription>
-                  Enable Touch ID to quickly unlock your device.
-                </FieldDescription>
+                <FieldDescription>Enable Touch ID to quickly unlock your device.</FieldDescription>
               </FieldContent>
             </Field>
           </FieldLabel>
@@ -577,24 +485,12 @@ function RadioFields() {
           <FieldLegend variant="label">Invalid Radio Group</FieldLegend>
           <RadioGroup>
             <Field data-invalid orientation="horizontal">
-              <RadioGroupItem
-                value="invalid1"
-                id="radio-invalid-1"
-                aria-invalid
-              />
-              <FieldLabel htmlFor="radio-invalid-1">
-                Invalid Option 1
-              </FieldLabel>
+              <RadioGroupItem value="invalid1" id="radio-invalid-1" aria-invalid />
+              <FieldLabel htmlFor="radio-invalid-1">Invalid Option 1</FieldLabel>
             </Field>
             <Field data-invalid orientation="horizontal">
-              <RadioGroupItem
-                value="invalid2"
-                id="radio-invalid-2"
-                aria-invalid
-              />
-              <FieldLabel htmlFor="radio-invalid-2">
-                Invalid Option 2
-              </FieldLabel>
+              <RadioGroupItem value="invalid2" id="radio-invalid-2" aria-invalid />
+              <FieldLabel htmlFor="radio-invalid-2">Invalid Option 2</FieldLabel>
             </Field>
           </RadioGroup>
         </FieldSet>
@@ -602,30 +498,18 @@ function RadioFields() {
           <FieldLegend variant="label">Disabled Radio Group</FieldLegend>
           <RadioGroup disabled>
             <Field data-disabled orientation="horizontal">
-              <RadioGroupItem
-                value="disabled1"
-                id="radio-disabled-1"
-                disabled
-              />
-              <FieldLabel htmlFor="radio-disabled-1">
-                Disabled Option 1
-              </FieldLabel>
+              <RadioGroupItem value="disabled1" id="radio-disabled-1" disabled />
+              <FieldLabel htmlFor="radio-disabled-1">Disabled Option 1</FieldLabel>
             </Field>
             <Field data-disabled orientation="horizontal">
-              <RadioGroupItem
-                value="disabled2"
-                id="radio-disabled-2"
-                disabled
-              />
-              <FieldLabel htmlFor="radio-disabled-2">
-                Disabled Option 2
-              </FieldLabel>
+              <RadioGroupItem value="disabled2" id="radio-disabled-2" disabled />
+              <FieldLabel htmlFor="radio-disabled-2">Disabled Option 2</FieldLabel>
             </Field>
           </RadioGroup>
         </FieldSet>
       </FieldGroup>
     </Example>
-  )
+  );
 }
 
 function SwitchFields() {
@@ -635,9 +519,7 @@ function SwitchFields() {
         <Field orientation="horizontal">
           <FieldContent>
             <FieldLabel htmlFor="switch-airplane">Airplane Mode</FieldLabel>
-            <FieldDescription>
-              Turn on airplane mode to disable all connections.
-            </FieldDescription>
+            <FieldDescription>Turn on airplane mode to disable all connections.</FieldDescription>
           </FieldContent>
           <Switch id="switch-airplane" />
         </Field>
@@ -659,48 +541,38 @@ function SwitchFields() {
           <FieldDescription>Manage your privacy preferences.</FieldDescription>
           <Field orientation="horizontal">
             <Switch id="switch-profile" defaultChecked />
-            <FieldLabel htmlFor="switch-profile">
-              Make profile visible to others
-            </FieldLabel>
+            <FieldLabel htmlFor="switch-profile">Make profile visible to others</FieldLabel>
           </Field>
           <Field orientation="horizontal">
             <Switch id="switch-email" />
-            <FieldLabel htmlFor="switch-email">
-              Show email on profile
-            </FieldLabel>
+            <FieldLabel htmlFor="switch-email">Show email on profile</FieldLabel>
           </Field>
         </Field>
         <Field data-invalid orientation="horizontal">
           <FieldContent>
             <FieldLabel htmlFor="switch-invalid">Invalid Switch</FieldLabel>
-            <FieldDescription>
-              This switch has validation errors.
-            </FieldDescription>
+            <FieldDescription>This switch has validation errors.</FieldDescription>
           </FieldContent>
           <Switch id="switch-invalid" aria-invalid />
         </Field>
         <Field data-disabled orientation="horizontal">
           <FieldContent>
-            <FieldLabel htmlFor="switch-disabled-field">
-              Disabled Switch
-            </FieldLabel>
-            <FieldDescription>
-              This switch is currently disabled.
-            </FieldDescription>
+            <FieldLabel htmlFor="switch-disabled-field">Disabled Switch</FieldLabel>
+            <FieldDescription>This switch is currently disabled.</FieldDescription>
           </FieldContent>
           <Switch id="switch-disabled-field" disabled />
         </Field>
       </FieldGroup>
     </Example>
-  )
+  );
 }
 
 function SliderFields() {
-  const [volume, setVolume] = useState([50])
-  const [brightness, setBrightness] = useState([75])
-  const [temperature, setTemperature] = useState([0.3, 0.7])
-  const [priceRange, setPriceRange] = useState([25, 75])
-  const [colorBalance, setColorBalance] = useState([10, 20, 70])
+  const [volume, setVolume] = useState([50]);
+  const [brightness, setBrightness] = useState([75]);
+  const [temperature, setTemperature] = useState([0.3, 0.7]);
+  const [priceRange, setPriceRange] = useState([25, 75]);
+  const [colorBalance, setColorBalance] = useState([10, 20, 70]);
 
   return (
     <Example title="Slider Fields">
@@ -724,27 +596,15 @@ function SliderFields() {
             max={100}
             step={5}
           />
-          <FieldDescription>
-            Current brightness: {brightness[0]}%
-          </FieldDescription>
+          <FieldDescription>Current brightness: {brightness[0]}%</FieldDescription>
         </Field>
         <Field>
           <FieldLabel htmlFor="slider-quality">Video Quality</FieldLabel>
-          <FieldDescription>
-            Higher quality uses more bandwidth.
-          </FieldDescription>
-          <Slider
-            id="slider-quality"
-            defaultValue={[720]}
-            max={1080}
-            min={360}
-            step={360}
-          />
+          <FieldDescription>Higher quality uses more bandwidth.</FieldDescription>
+          <Slider id="slider-quality" defaultValue={[720]} max={1080} min={360} step={360} />
         </Field>
         <Field>
-          <FieldLabel htmlFor="slider-temperature">
-            Temperature Range
-          </FieldLabel>
+          <FieldLabel htmlFor="slider-temperature">Temperature Range</FieldLabel>
           <Slider
             id="slider-temperature"
             value={temperature}
@@ -780,44 +640,27 @@ function SliderFields() {
             step={10}
           />
           <FieldDescription>
-            Red: {colorBalance[0]}%, Green: {colorBalance[1]}%, Blue:{" "}
-            {colorBalance[2]}%
+            Red: {colorBalance[0]}%, Green: {colorBalance[1]}%, Blue: {colorBalance[2]}%
           </FieldDescription>
         </Field>
         <Field data-invalid>
           <FieldLabel htmlFor="slider-invalid">Invalid Slider</FieldLabel>
-          <Slider
-            id="slider-invalid"
-            defaultValue={[30]}
-            max={100}
-            aria-invalid
-          />
-          <FieldDescription>
-            This slider has validation errors.
-          </FieldDescription>
+          <Slider id="slider-invalid" defaultValue={[30]} max={100} aria-invalid />
+          <FieldDescription>This slider has validation errors.</FieldDescription>
         </Field>
         <Field data-disabled>
-          <FieldLabel htmlFor="slider-disabled-field">
-            Disabled Slider
-          </FieldLabel>
-          <Slider
-            id="slider-disabled-field"
-            defaultValue={[50]}
-            max={100}
-            disabled
-          />
-          <FieldDescription>
-            This slider is currently disabled.
-          </FieldDescription>
+          <FieldLabel htmlFor="slider-disabled-field">Disabled Slider</FieldLabel>
+          <Slider id="slider-disabled-field" defaultValue={[50]} max={100} disabled />
+          <FieldDescription>This slider is currently disabled.</FieldDescription>
         </Field>
       </FieldGroup>
     </Example>
-  )
+  );
 }
 
 function InputOTPFields() {
-  const [value, setValue] = useState("")
-  const [pinValue, setPinValue] = useState("")
+  const [value, setValue] = useState("");
+  const [pinValue, setPinValue] = useState("");
 
   return (
     <Example title="OTP Input Fields">
@@ -837,12 +680,7 @@ function InputOTPFields() {
         </Field>
         <Field>
           <FieldLabel htmlFor="otp-with-desc">Enter OTP</FieldLabel>
-          <InputOTP
-            id="otp-with-desc"
-            maxLength={6}
-            value={value}
-            onChange={setValue}
-          >
+          <InputOTP id="otp-with-desc" maxLength={6} value={value} onChange={setValue}>
             <InputOTPGroup>
               <InputOTPSlot index={0} />
               <InputOTPSlot index={1} />
@@ -852,14 +690,10 @@ function InputOTPFields() {
               <InputOTPSlot index={5} />
             </InputOTPGroup>
           </InputOTP>
-          <FieldDescription>
-            Enter the 6-digit code sent to your email.
-          </FieldDescription>
+          <FieldDescription>Enter the 6-digit code sent to your email.</FieldDescription>
         </Field>
         <Field>
-          <FieldLabel htmlFor="otp-separator">
-            Two-Factor Authentication
-          </FieldLabel>
+          <FieldLabel htmlFor="otp-separator">Two-Factor Authentication</FieldLabel>
           <InputOTP id="otp-separator" maxLength={6}>
             <InputOTPGroup>
               <InputOTPSlot index={0} />
@@ -873,9 +707,7 @@ function InputOTPFields() {
               <InputOTPSlot index={5} />
             </InputOTPGroup>
           </InputOTP>
-          <FieldDescription>
-            Enter the code from your authenticator app.
-          </FieldDescription>
+          <FieldDescription>Enter the code from your authenticator app.</FieldDescription>
         </Field>
         <Field>
           <FieldLabel htmlFor="otp-pin">PIN Code</FieldLabel>
@@ -893,9 +725,7 @@ function InputOTPFields() {
               <InputOTPSlot index={3} />
             </InputOTPGroup>
           </InputOTP>
-          <FieldDescription>
-            Enter your 4-digit PIN (numbers only).
-          </FieldDescription>
+          <FieldDescription>Enter your 4-digit PIN (numbers only).</FieldDescription>
         </Field>
         <Field data-invalid>
           <FieldLabel htmlFor="otp-invalid">Invalid OTP</FieldLabel>
@@ -909,9 +739,7 @@ function InputOTPFields() {
               <InputOTPSlot index={5} aria-invalid />
             </InputOTPGroup>
           </InputOTP>
-          <FieldDescription>
-            This OTP field contains validation errors.
-          </FieldDescription>
+          <FieldDescription>This OTP field contains validation errors.</FieldDescription>
         </Field>
         <Field data-disabled>
           <FieldLabel htmlFor="otp-disabled-field">Disabled OTP</FieldLabel>
@@ -925,13 +753,11 @@ function InputOTPFields() {
               <InputOTPSlot index={5} />
             </InputOTPGroup>
           </InputOTP>
-          <FieldDescription>
-            This OTP field is currently disabled.
-          </FieldDescription>
+          <FieldDescription>This OTP field is currently disabled.</FieldDescription>
         </Field>
       </FieldGroup>
     </Example>
-  )
+  );
 }
 
 function HorizontalFields() {
@@ -940,7 +766,7 @@ function HorizontalFields() {
     { label: "Apple", value: "apple" },
     { label: "Banana", value: "banana" },
     { label: "Orange", value: "orange" },
-  ]
+  ];
 
   return (
     <Example title="Horizontal Fields">
@@ -955,23 +781,14 @@ function HorizontalFields() {
         <Field orientation="horizontal">
           <FieldContent>
             <FieldLabel htmlFor="horizontal-textarea">Bio</FieldLabel>
-            <FieldDescription>
-              Write a short description about yourself.
-            </FieldDescription>
+            <FieldDescription>Write a short description about yourself.</FieldDescription>
           </FieldContent>
-          <Textarea
-            id="horizontal-textarea"
-            placeholder="Tell us about yourself..."
-          />
+          <Textarea id="horizontal-textarea" placeholder="Tell us about yourself..." />
         </Field>
         <Field orientation="horizontal">
           <FieldContent>
-            <FieldLabel htmlFor="horizontal-switch">
-              Email Notifications
-            </FieldLabel>
-            <FieldDescription>
-              Receive email updates about your account.
-            </FieldDescription>
+            <FieldLabel htmlFor="horizontal-switch">Email Notifications</FieldLabel>
+            <FieldDescription>Receive email updates about your account.</FieldDescription>
           </FieldContent>
           <Switch id="horizontal-switch" />
         </Field>
@@ -1016,5 +833,5 @@ function HorizontalFields() {
         </Field>
       </FieldGroup>
     </Example>
-  )
+  );
 }

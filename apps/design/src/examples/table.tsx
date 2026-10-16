@@ -1,20 +1,17 @@
 /* MIT: Copyright (c) 2023 shadcn. See LICENSE. Browser-only catalog adaptation. */
-import { MoreHorizontalIcon } from "lucide-react"
-"use client"
+"use client";
+import { MoreHorizontalIcon } from "lucide-react";
 
-import {
-  Example,
-  ExampleWrapper,
-} from "@/components/example"
-import { Button } from "@/components/ui/button"
+import { Example, ExampleWrapper } from "@/components/example";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Input } from "@/components/ui/input"
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -22,7 +19,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -32,7 +29,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
+} from "@/components/ui/table";
 
 const invoices = [
   {
@@ -77,7 +74,7 @@ const invoices = [
     totalAmount: "$300.00",
     paymentMethod: "Credit Card",
   },
-]
+];
 
 export default function TableExample() {
   return (
@@ -90,7 +87,7 @@ export default function TableExample() {
       <TableWithSelect />
       <TableWithInput />
     </ExampleWrapper>
-  )
+  );
 }
 
 function TableBasic() {
@@ -112,15 +109,13 @@ function TableBasic() {
               <TableCell className="font-medium">{invoice.invoice}</TableCell>
               <TableCell>{invoice.paymentStatus}</TableCell>
               <TableCell>{invoice.paymentMethod}</TableCell>
-              <TableCell className="text-right">
-                {invoice.totalAmount}
-              </TableCell>
+              <TableCell className="text-right">{invoice.totalAmount}</TableCell>
             </TableRow>
           ))}
         </TableBody>
       </Table>
     </Example>
-  )
+  );
 }
 
 function TableWithFooter() {
@@ -142,9 +137,7 @@ function TableWithFooter() {
               <TableCell className="font-medium">{invoice.invoice}</TableCell>
               <TableCell>{invoice.paymentStatus}</TableCell>
               <TableCell>{invoice.paymentMethod}</TableCell>
-              <TableCell className="text-right">
-                {invoice.totalAmount}
-              </TableCell>
+              <TableCell className="text-right">{invoice.totalAmount}</TableCell>
             </TableRow>
           ))}
         </TableBody>
@@ -156,7 +149,7 @@ function TableWithFooter() {
         </TableFooter>
       </Table>
     </Example>
-  )
+  );
 }
 
 function TableSimple() {
@@ -189,7 +182,7 @@ function TableSimple() {
         </TableBody>
       </Table>
     </Example>
-  )
+  );
 }
 
 function TableWithBadges() {
@@ -246,7 +239,7 @@ function TableWithBadges() {
         </TableBody>
       </Table>
     </Example>
-  )
+  );
 }
 
 function TableWithActions() {
@@ -267,9 +260,7 @@ function TableWithActions() {
             <TableCell className="text-right">
               <DropdownMenu>
                 <DropdownMenuTrigger
-                  render={
-                    <Button variant="ghost" size="icon" className="size-8" />
-                  }
+                  render={<Button variant="ghost" size="icon" className="size-8" />}
                 >
                   <MoreHorizontalIcon />
                   <span className="sr-only">Open menu</span>
@@ -278,9 +269,7 @@ function TableWithActions() {
                   <DropdownMenuItem>Edit</DropdownMenuItem>
                   <DropdownMenuItem>Duplicate</DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem variant="destructive">
-                    Delete
-                  </DropdownMenuItem>
+                  <DropdownMenuItem variant="destructive">Delete</DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </TableCell>
@@ -291,9 +280,7 @@ function TableWithActions() {
             <TableCell className="text-right">
               <DropdownMenu>
                 <DropdownMenuTrigger
-                  render={
-                    <Button variant="ghost" size="icon" className="size-8" />
-                  }
+                  render={<Button variant="ghost" size="icon" className="size-8" />}
                 >
                   <MoreHorizontalIcon />
                   <span className="sr-only">Open menu</span>
@@ -302,9 +289,7 @@ function TableWithActions() {
                   <DropdownMenuItem>Edit</DropdownMenuItem>
                   <DropdownMenuItem>Duplicate</DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem variant="destructive">
-                    Delete
-                  </DropdownMenuItem>
+                  <DropdownMenuItem variant="destructive">Delete</DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </TableCell>
@@ -315,9 +300,7 @@ function TableWithActions() {
             <TableCell className="text-right">
               <DropdownMenu>
                 <DropdownMenuTrigger
-                  render={
-                    <Button variant="ghost" size="icon" className="size-8" />
-                  }
+                  render={<Button variant="ghost" size="icon" className="size-8" />}
                 >
                   <MoreHorizontalIcon />
                   <span className="sr-only">Open menu</span>
@@ -326,9 +309,7 @@ function TableWithActions() {
                   <DropdownMenuItem>Edit</DropdownMenuItem>
                   <DropdownMenuItem>Duplicate</DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem variant="destructive">
-                    Delete
-                  </DropdownMenuItem>
+                  <DropdownMenuItem variant="destructive">Delete</DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </TableCell>
@@ -336,7 +317,7 @@ function TableWithActions() {
         </TableBody>
       </Table>
     </Example>
-  )
+  );
 }
 
 const people = [
@@ -344,7 +325,7 @@ const people = [
   { value: "marcus", label: "Marc Rodriguez" },
   { value: "emily", label: "Emily Watson" },
   { value: "david", label: "David Kim" },
-]
+];
 
 const tasks = [
   {
@@ -362,7 +343,7 @@ const tasks = [
     assignee: "emily",
     status: "Not Started",
   },
-]
+];
 
 function TableWithSelect() {
   return (
@@ -382,11 +363,9 @@ function TableWithSelect() {
               <TableCell>
                 <Select
                   items={people}
-                  defaultValue={people.find(
-                    (person) => person.value === item.assignee
-                  )}
+                  defaultValue={people.find((person) => person.value === item.assignee)}
                   itemToStringValue={(item) => {
-                    return item.value
+                    return item.value;
                   }}
                 >
                   <SelectTrigger className="w-40" size="sm">
@@ -409,7 +388,7 @@ function TableWithSelect() {
         </TableBody>
       </Table>
     </Example>
-  )
+  );
 }
 
 function TableWithInput() {
@@ -427,41 +406,26 @@ function TableWithInput() {
           <TableRow>
             <TableCell className="font-medium">Wireless Mouse</TableCell>
             <TableCell>
-              <Input
-                type="number"
-                defaultValue="1"
-                className="h-8 w-20"
-                min="0"
-              />
+              <Input type="number" defaultValue="1" className="h-8 w-20" min="0" />
             </TableCell>
             <TableCell>$29.99</TableCell>
           </TableRow>
           <TableRow>
             <TableCell className="font-medium">Mechanical Keyboard</TableCell>
             <TableCell>
-              <Input
-                type="number"
-                defaultValue="2"
-                className="h-8 w-20"
-                min="0"
-              />
+              <Input type="number" defaultValue="2" className="h-8 w-20" min="0" />
             </TableCell>
             <TableCell>$129.99</TableCell>
           </TableRow>
           <TableRow>
             <TableCell className="font-medium">USB-C Hub</TableCell>
             <TableCell>
-              <Input
-                type="number"
-                defaultValue="1"
-                className="h-8 w-20"
-                min="0"
-              />
+              <Input type="number" defaultValue="1" className="h-8 w-20" min="0" />
             </TableCell>
             <TableCell>$49.99</TableCell>
           </TableRow>
         </TableBody>
       </Table>
     </Example>
-  )
+  );
 }

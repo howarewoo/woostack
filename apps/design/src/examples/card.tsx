@@ -1,22 +1,19 @@
 /* MIT: Copyright (c) 2023 shadcn. See LICENSE. Browser-only catalog adaptation. */
-import { useState } from "react"
-import { CaptionsIcon, PlusIcon } from "lucide-react"
-"use client"
+"use client";
+import { useState } from "react";
+import { CaptionsIcon, PlusIcon } from "lucide-react";
 
-import * as React from "react"
+import * as React from "react";
 
-import {
-  Example,
-  ExampleWrapper,
-} from "@/components/example"
+import { Example, ExampleWrapper } from "@/components/example";
 import {
   Avatar,
   AvatarFallback,
   AvatarGroup,
   AvatarGroupCount,
   AvatarImage,
-} from "@/components/ui/avatar"
-import { Button } from "@/components/ui/button"
+} from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardAction,
@@ -25,13 +22,10 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
-import { Field, FieldGroup, FieldLabel } from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
-import {
-  ToggleGroup,
-  ToggleGroupItem,
-} from "@/components/ui/toggle-group"
+} from "@/components/ui/card";
+import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 const spacingOptions = [
   {
@@ -54,34 +48,39 @@ const spacingOptions = [
     label: "32px",
     value: "8",
   },
-]
+];
 
 export default function CardExample() {
-  const [selectedLink, setSelectedLink] = useState("")
+  const [selectedLink, setSelectedLink] = useState("");
   return (
-    <div className="w-full" onClickCapture={(event) => {
-      const link = (event.target as Element).closest("a[href='#']")
-      if (!link) return
-      event.preventDefault()
-      setSelectedLink(link.getAttribute("aria-label") || link.textContent?.trim() || "Link")
-    }}>
-    <ExampleWrapper>
-      <CardDefault />
-      <CardSmall />
-      <CardContentEdgeToEdge />
-      <CardCustomSpacing />
-      <CardHeaderWithBorder />
-      <CardFooterWithBorder />
-      <CardHeaderWithBorderSmall />
-      <CardFooterWithBorderSmall />
-      <CardWithImage />
-      <CardWithImageSmall />
-      <CardLogin />
-      <CardMeetingNotes />
-    </ExampleWrapper>
-      <p role="status" className="mt-3 text-sm text-muted-foreground">{selectedLink && `Selected example link: ${selectedLink}`}</p>
+    <div
+      className="w-full"
+      onClickCapture={(event) => {
+        const link = (event.target as Element).closest("a[href='#']");
+        if (!link) return;
+        event.preventDefault();
+        setSelectedLink(link.getAttribute("aria-label") || link.textContent?.trim() || "Link");
+      }}
+    >
+      <ExampleWrapper>
+        <CardDefault />
+        <CardSmall />
+        <CardContentEdgeToEdge />
+        <CardCustomSpacing />
+        <CardHeaderWithBorder />
+        <CardFooterWithBorder />
+        <CardHeaderWithBorderSmall />
+        <CardFooterWithBorderSmall />
+        <CardWithImage />
+        <CardWithImageSmall />
+        <CardLogin />
+        <CardMeetingNotes />
+      </ExampleWrapper>
+      <p role="status" className="mt-3 text-sm text-muted-foreground">
+        {selectedLink && `Selected example link: ${selectedLink}`}
+      </p>
     </div>
-  )
+  );
 }
 
 function CardContentEdgeToEdge() {
@@ -90,28 +89,25 @@ function CardContentEdgeToEdge() {
       <Card className="mx-auto w-full max-w-sm">
         <CardHeader>
           <CardTitle>Terms of Service</CardTitle>
-          <CardDescription>
-            Review the terms before accepting the agreement.
-          </CardDescription>
+          <CardDescription>Review the terms before accepting the agreement.</CardDescription>
         </CardHeader>
         <CardContent className="-mb-(--card-spacing) px-0">
           <div className="max-h-48 space-y-4 overflow-y-scroll border-t bg-muted/50 px-(--card-spacing) py-4 text-sm leading-relaxed">
             <p>
-              These terms govern your use of the workspace, including access to
-              shared documents, project files, and collaboration tools.
+              These terms govern your use of the workspace, including access to shared documents,
+              project files, and collaboration tools.
             </p>
             <p>
-              You are responsible for the content you upload and for ensuring
-              that your team has the appropriate permissions to view or edit it.
+              You are responsible for the content you upload and for ensuring that your team has the
+              appropriate permissions to view or edit it.
             </p>
             <p>
-              We may update features or limits as the service evolves. When
-              those changes materially affect your workflow, we will notify your
-              workspace administrators.
+              We may update features or limits as the service evolves. When those changes materially
+              affect your workflow, we will notify your workspace administrators.
             </p>
             <p>
-              By continuing, you agree to keep your account credentials secure
-              and to follow your organization&apos;s acceptable use policies.
+              By continuing, you agree to keep your account credentials secure and to follow your
+              organization&apos;s acceptable use policies.
             </p>
           </div>
         </CardContent>
@@ -121,14 +117,12 @@ function CardContentEdgeToEdge() {
         </CardFooter>
       </Card>
     </Example>
-  )
+  );
 }
 
 function CardCustomSpacing() {
-  const [spacing, setSpacing] = React.useState("4")
-  const selectedSpacing = spacingOptions.find(
-    (option) => option.value === spacing
-  )
+  const [spacing, setSpacing] = React.useState("4");
+  const selectedSpacing = spacingOptions.find((option) => option.value === spacing);
 
   return (
     <Example title="Custom Spacing">
@@ -137,7 +131,7 @@ function CardCustomSpacing() {
           value={[spacing]}
           onValueChange={(value) => {
             if (value[0]) {
-              setSpacing(value[0])
+              setSpacing(value[0]);
             }
           }}
           variant="outline"
@@ -153,9 +147,7 @@ function CardCustomSpacing() {
         <Card className={selectedSpacing?.className}>
           <CardHeader>
             <CardTitle>Release Health</CardTitle>
-            <CardDescription>
-              Track readiness across launch signals.
-            </CardDescription>
+            <CardDescription>Track readiness across launch signals.</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid gap-2 rounded-lg bg-muted/50 p-3 text-sm style-lyra:rounded-none style-sera:rounded-none">
@@ -172,7 +164,7 @@ function CardCustomSpacing() {
         </Card>
       </div>
     </Example>
-  )
+  );
 }
 
 function CardLogin() {
@@ -181,29 +173,19 @@ function CardLogin() {
       <Card className="mx-auto w-full max-w-sm">
         <CardHeader>
           <CardTitle>Login to your account</CardTitle>
-          <CardDescription>
-            Enter your email below to login to your account
-          </CardDescription>
+          <CardDescription>Enter your email below to login to your account</CardDescription>
         </CardHeader>
         <CardContent>
           <form>
             <FieldGroup>
               <Field>
                 <FieldLabel htmlFor="email">Email</FieldLabel>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="m@example.com"
-                  required
-                />
+                <Input id="email" type="email" placeholder="m@example.com" required />
               </Field>
               <Field>
                 <div className="flex items-center">
                   <FieldLabel htmlFor="password">Password</FieldLabel>
-                  <a
-                    href="#"
-                    className="ml-auto inline-block underline-offset-4 hover:underline"
-                  >
+                  <a href="#" className="ml-auto inline-block underline-offset-4 hover:underline">
                     Forgot your password?
                   </a>
                 </div>
@@ -228,7 +210,7 @@ function CardLogin() {
         </CardFooter>
       </Card>
     </Example>
-  )
+  );
 }
 
 function CardMeetingNotes() {
@@ -237,22 +219,16 @@ function CardMeetingNotes() {
       <Card className="mx-auto w-full max-w-sm">
         <CardHeader>
           <CardTitle>Meeting Notes</CardTitle>
-          <CardDescription>
-            Transcript from the meeting with the client.
-          </CardDescription>
+          <CardDescription>Transcript from the meeting with the client.</CardDescription>
           <CardAction>
             <Button variant="outline" size="sm">
-              <CaptionsIcon
-                data-icon="inline-start" />
+              <CaptionsIcon data-icon="inline-start" />
               Transcribe
             </Button>
           </CardAction>
         </CardHeader>
         <CardContent>
-          <p>
-            Client requested dashboard redesign with focus on mobile
-            responsiveness.
-          </p>
+          <p>Client requested dashboard redesign with focus on mobile responsiveness.</p>
           <ol className="mt-4 flex list-decimal flex-col gap-2 pl-6">
             <li>New analytics widgets for daily/weekly metrics</li>
             <li>Simplified navigation menu</li>
@@ -268,17 +244,11 @@ function CardMeetingNotes() {
               <AvatarFallback>CN</AvatarFallback>
             </Avatar>
             <Avatar>
-              <AvatarImage
-                src="https://github.com/maxleiter.png"
-                alt="@maxleiter"
-              />
+              <AvatarImage src="https://github.com/maxleiter.png" alt="@maxleiter" />
               <AvatarFallback>LR</AvatarFallback>
             </Avatar>
             <Avatar>
-              <AvatarImage
-                src="https://github.com/evilrabbit.png"
-                alt="@evilrabbit"
-              />
+              <AvatarImage src="https://github.com/evilrabbit.png" alt="@evilrabbit" />
               <AvatarFallback>ER</AvatarFallback>
             </Avatar>
             <AvatarGroupCount>+8</AvatarGroupCount>
@@ -286,7 +256,7 @@ function CardMeetingNotes() {
         </CardFooter>
       </Card>
     </Example>
-  )
+  );
 }
 
 function CardWithImage() {
@@ -308,14 +278,13 @@ function CardWithImage() {
         </CardHeader>
         <CardFooter>
           <Button className="w-full">
-            <PlusIcon
-              data-icon="inline-start" />
+            <PlusIcon data-icon="inline-start" />
             Button
           </Button>
         </CardFooter>
       </Card>
     </Example>
-  )
+  );
 }
 
 function CardWithImageSmall() {
@@ -337,14 +306,13 @@ function CardWithImageSmall() {
         </CardHeader>
         <CardFooter>
           <Button size="sm" className="w-full">
-            <PlusIcon
-              data-icon="inline-start" />
+            <PlusIcon data-icon="inline-start" />
             Button
           </Button>
         </CardFooter>
       </Card>
     </Example>
-  )
+  );
 }
 
 function CardHeaderWithBorder() {
@@ -353,19 +321,17 @@ function CardHeaderWithBorder() {
       <Card className="mx-auto w-full max-w-sm">
         <CardHeader className="border-b">
           <CardTitle>Header with Border</CardTitle>
-          <CardDescription>
-            This is a card with a header that has a bottom border.
-          </CardDescription>
+          <CardDescription>This is a card with a header that has a bottom border.</CardDescription>
         </CardHeader>
         <CardContent>
           <p>
-            The header has a border-b class applied, creating a visual
-            separation between the header and content sections.
+            The header has a border-b class applied, creating a visual separation between the header
+            and content sections.
           </p>
         </CardContent>
       </Card>
     </Example>
-  )
+  );
 }
 
 function CardFooterWithBorder() {
@@ -374,8 +340,8 @@ function CardFooterWithBorder() {
       <Card className="mx-auto w-full max-w-sm">
         <CardContent>
           <p>
-            The footer has a border-t class applied, creating a visual
-            separation between the content and footer sections.
+            The footer has a border-t class applied, creating a visual separation between the
+            content and footer sections.
           </p>
         </CardContent>
         <CardFooter className="border-t">
@@ -385,7 +351,7 @@ function CardFooterWithBorder() {
         </CardFooter>
       </Card>
     </Example>
-  )
+  );
 }
 
 function CardDefault() {
@@ -394,14 +360,12 @@ function CardDefault() {
       <Card size="default" className="mx-auto w-full max-w-sm">
         <CardHeader>
           <CardTitle>Default Card</CardTitle>
-          <CardDescription>
-            This card uses the default size variant.
-          </CardDescription>
+          <CardDescription>This card uses the default size variant.</CardDescription>
         </CardHeader>
         <CardContent>
           <p>
-            The card component supports a size prop that defaults to
-            &quot;default&quot; for standard spacing and sizing.
+            The card component supports a size prop that defaults to &quot;default&quot; for
+            standard spacing and sizing.
           </p>
         </CardContent>
         <CardFooter>
@@ -411,7 +375,7 @@ function CardDefault() {
         </CardFooter>
       </Card>
     </Example>
-  )
+  );
 }
 
 function CardSmall() {
@@ -420,14 +384,12 @@ function CardSmall() {
       <Card size="sm" className="mx-auto w-full max-w-sm">
         <CardHeader>
           <CardTitle>Small Card</CardTitle>
-          <CardDescription>
-            This card uses the small size variant.
-          </CardDescription>
+          <CardDescription>This card uses the small size variant.</CardDescription>
         </CardHeader>
         <CardContent>
           <p>
-            The card component supports a size prop that can be set to
-            &quot;sm&quot; for a more compact appearance.
+            The card component supports a size prop that can be set to &quot;sm&quot; for a more
+            compact appearance.
           </p>
         </CardContent>
         <CardFooter>
@@ -437,7 +399,7 @@ function CardSmall() {
         </CardFooter>
       </Card>
     </Example>
-  )
+  );
 }
 
 function CardHeaderWithBorderSmall() {
@@ -452,13 +414,13 @@ function CardHeaderWithBorderSmall() {
         </CardHeader>
         <CardContent>
           <p>
-            The header has a border-b class applied, creating a visual
-            separation between the header and content sections.
+            The header has a border-b class applied, creating a visual separation between the header
+            and content sections.
           </p>
         </CardContent>
       </Card>
     </Example>
-  )
+  );
 }
 
 function CardFooterWithBorderSmall() {
@@ -467,8 +429,8 @@ function CardFooterWithBorderSmall() {
       <Card size="sm" className="mx-auto w-full max-w-sm">
         <CardContent>
           <p>
-            The footer has a border-t class applied, creating a visual
-            separation between the content and footer sections.
+            The footer has a border-t class applied, creating a visual separation between the
+            content and footer sections.
           </p>
         </CardContent>
         <CardFooter className="border-t">
@@ -478,5 +440,5 @@ function CardFooterWithBorderSmall() {
         </CardFooter>
       </Card>
     </Example>
-  )
+  );
 }

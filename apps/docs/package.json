@@ -8,7 +8,11 @@
     "build": "pnpm generate && next build",
     "start": "next start",
     "test": "node --test scripts/*.test.mjs",
-    "verify": "node ../../scripts/turbo.mjs run test types:check --filter=docs",
+    "lint": "oxlint",
+    "lint:fix": "oxlint --fix",
+    "format": "oxfmt --write",
+    "format:check": "oxfmt --check",
+    "verify": "node ../../scripts/turbo.mjs run test types:check lint format:check --filter=docs",
     "types:check": "pnpm generate && fumadocs-mdx && next typegen && tsc --noEmit",
     "postinstall": "fumadocs-mdx"
   },
@@ -22,11 +26,14 @@
     "react-dom": "^19.2.7"
   },
   "devDependencies": {
+    "@shadcn/lint": "0.2.1",
     "@tailwindcss/postcss": "^4.3.0",
     "@types/mdx": "^2.0.14",
     "@types/node": "^25.9.2",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
+    "oxfmt": "0.73.0",
+    "oxlint": "1.88.0",
     "postcss": "^8.5.15",
     "tailwindcss": "^4.3.0",
     "typescript": "^6.0.3"

@@ -1,12 +1,9 @@
 /* MIT: Copyright (c) 2023 shadcn. See LICENSE. Browser-only catalog adaptation. */
-import { useState } from "react"
-import { ArrowRightIcon } from "lucide-react"
-import {
-  Example,
-  ExampleWrapper,
-} from "@/components/example"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+import { useState } from "react";
+import { ArrowRightIcon } from "lucide-react";
+import { Example, ExampleWrapper } from "@/components/example";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Empty,
   EmptyContent,
@@ -14,34 +11,35 @@ import {
   EmptyHeader,
   EmptyMedia,
   EmptyTitle,
-} from "@/components/ui/empty"
-import { Field, FieldLabel } from "@/components/ui/field"
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupInput,
-} from "@/components/ui/input-group"
-import { Spinner } from "@/components/ui/spinner"
+} from "@/components/ui/empty";
+import { Field, FieldLabel } from "@/components/ui/field";
+import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
+import { Spinner } from "@/components/ui/spinner";
 
 export default function SpinnerExample() {
-  const [selectedLink, setSelectedLink] = useState("")
+  const [selectedLink, setSelectedLink] = useState("");
   return (
-    <div className="w-full" onClickCapture={(event) => {
-      const link = (event.target as Element).closest("a[href='#']")
-      if (!link) return
-      event.preventDefault()
-      setSelectedLink(link.getAttribute("aria-label") || link.textContent?.trim() || "Link")
-    }}>
-    <ExampleWrapper>
-      <SpinnerBasic />
-      <SpinnerInButtons />
-      <SpinnerInBadges />
-      <SpinnerInInputGroup />
-      <SpinnerInEmpty />
-    </ExampleWrapper>
-      <p role="status" className="mt-3 text-sm text-muted-foreground">{selectedLink && `Selected example link: ${selectedLink}`}</p>
+    <div
+      className="w-full"
+      onClickCapture={(event) => {
+        const link = (event.target as Element).closest("a[href='#']");
+        if (!link) return;
+        event.preventDefault();
+        setSelectedLink(link.getAttribute("aria-label") || link.textContent?.trim() || "Link");
+      }}
+    >
+      <ExampleWrapper>
+        <SpinnerBasic />
+        <SpinnerInButtons />
+        <SpinnerInBadges />
+        <SpinnerInInputGroup />
+        <SpinnerInEmpty />
+      </ExampleWrapper>
+      <p role="status" className="mt-3 text-sm text-muted-foreground">
+        {selectedLink && `Selected example link: ${selectedLink}`}
+      </p>
     </div>
-  )
+  );
 }
 
 function SpinnerBasic() {
@@ -52,7 +50,7 @@ function SpinnerBasic() {
         <Spinner className="size-6" />
       </div>
     </Example>
-  )
+  );
 }
 
 function SpinnerInButtons() {
@@ -74,7 +72,7 @@ function SpinnerInButtons() {
         </Button>
       </div>
     </Example>
-  )
+  );
 }
 
 function SpinnerInBadges() {
@@ -99,7 +97,7 @@ function SpinnerInBadges() {
         </Badge>
       </div>
     </Example>
-  )
+  );
 }
 
 function SpinnerInInputGroup() {
@@ -115,7 +113,7 @@ function SpinnerInInputGroup() {
         </InputGroup>
       </Field>
     </Example>
-  )
+  );
 }
 
 function SpinnerInEmpty() {
@@ -128,8 +126,7 @@ function SpinnerInEmpty() {
           </EmptyMedia>
           <EmptyTitle>No projects yet</EmptyTitle>
           <EmptyDescription>
-            You haven&apos;t created any projects yet. Get started by creating
-            your first project.
+            You haven&apos;t created any projects yet. Get started by creating your first project.
           </EmptyDescription>
         </EmptyHeader>
         <EmptyContent>
@@ -145,11 +142,10 @@ function SpinnerInEmpty() {
             nativeButton={false}
             className="text-muted-foreground"
           >
-            Learn more{" "}
-            <ArrowRightIcon />
+            Learn more <ArrowRightIcon />
           </Button>
         </EmptyContent>
       </Empty>
     </Example>
-  )
+  );
 }

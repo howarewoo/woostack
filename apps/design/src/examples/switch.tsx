@@ -1,17 +1,14 @@
 /* MIT: Copyright (c) 2023 shadcn. See LICENSE. Browser-only catalog adaptation. */
-import {
-  Example,
-  ExampleWrapper,
-} from "@/components/example"
+import { Example, ExampleWrapper } from "@/components/example";
 import {
   Field,
   FieldContent,
   FieldDescription,
   FieldLabel,
   FieldTitle,
-} from "@/components/ui/field"
-import { Label } from "@/components/ui/label"
-import { Switch } from "@/components/ui/switch"
+} from "@/components/ui/field";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 
 export default function SwitchExample() {
   return (
@@ -22,7 +19,7 @@ export default function SwitchExample() {
       <SwitchDisabled />
       <SwitchSizes />
     </ExampleWrapper>
-  )
+  );
 }
 
 function SwitchBasic() {
@@ -33,7 +30,7 @@ function SwitchBasic() {
         <FieldLabel htmlFor="switch-basic">Airplane Mode</FieldLabel>
       </Field>
     </Example>
-  )
+  );
 }
 
 function SwitchWithLabel() {
@@ -44,7 +41,7 @@ function SwitchWithLabel() {
         <Label htmlFor="switch-bluetooth">Bluetooth</Label>
       </div>
     </Example>
-  )
+  );
 }
 
 function SwitchWithDescription() {
@@ -55,15 +52,14 @@ function SwitchWithDescription() {
           <FieldContent>
             <FieldTitle>Share across devices</FieldTitle>
             <FieldDescription>
-              Focus is shared across devices, and turns off when you leave the
-              app.
+              Focus is shared across devices, and turns off when you leave the app.
             </FieldDescription>
           </FieldContent>
           <Switch id="switch-focus-mode" />
         </Field>
       </FieldLabel>
     </Example>
-  )
+  );
 }
 
 function SwitchDisabled() {
@@ -72,9 +68,7 @@ function SwitchDisabled() {
       <div className="flex flex-col gap-12">
         <div className="flex items-center gap-2">
           <Switch id="switch-disabled-unchecked" disabled />
-          <Label htmlFor="switch-disabled-unchecked">
-            Disabled (Unchecked)
-          </Label>
+          <Label htmlFor="switch-disabled-unchecked">Disabled (Unchecked)</Label>
         </div>
         <div className="flex items-center gap-2">
           <Switch id="switch-disabled-checked" defaultChecked disabled />
@@ -82,7 +76,7 @@ function SwitchDisabled() {
         </div>
       </div>
     </Example>
-  )
+  );
 }
 
 function SwitchSizes() {
@@ -99,5 +93,5 @@ function SwitchSizes() {
         </div>
       </div>
     </Example>
-  )
+  );
 }

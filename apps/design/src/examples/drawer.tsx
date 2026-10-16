@@ -1,11 +1,8 @@
 /* MIT: Copyright (c) 2023 shadcn. See LICENSE. Browser-only catalog adaptation. */
-"use client"
+"use client";
 
-import {
-  Example,
-  ExampleWrapper,
-} from "@/components/example"
-import { Button } from "@/components/ui/button"
+import { Example, ExampleWrapper } from "@/components/example";
+import { Button } from "@/components/ui/button";
 import {
   Drawer,
   DrawerClose,
@@ -15,7 +12,7 @@ import {
   DrawerHeader,
   DrawerTitle,
   DrawerTrigger,
-} from "@/components/ui/drawer"
+} from "@/components/ui/drawer";
 
 const PARAGRAPHS = [
   "Your changes are saved automatically as you type.",
@@ -30,7 +27,7 @@ const PARAGRAPHS = [
   "API requests are rate-limited to 1,000 calls per hour on the free plan. Exceeding the limit returns a 429 response with a Retry-After header. Upgrade to a paid plan for higher limits and dedicated support. Webhook deliveries are retried up to three times with exponential backoff if your endpoint returns a non-2xx status.",
   "No payment method on file.",
   "Our design team rebuilt the checkout flow last quarter after interviews with forty-two customers. The biggest friction point was surprise fees at the final step, so we moved shipping and tax estimates earlier in the process. Early tests show a twelve percent drop in cart abandonment. We're still rolling out the update region by region, and you may see the old flow until your account is migrated.",
-]
+];
 
 export default function DrawerExample() {
   return (
@@ -44,7 +41,7 @@ export default function DrawerExample() {
       <DrawerNested />
       <DrawerNonModal />
     </ExampleWrapper>
-  )
+  );
 }
 
 function DrawerDemo() {
@@ -52,9 +49,7 @@ function DrawerDemo() {
     <Example title="Demo">
       <div className="flex flex-wrap gap-2">
         <Drawer>
-          <DrawerTrigger render={<Button variant="outline" />}>
-            Open Drawer
-          </DrawerTrigger>
+          <DrawerTrigger render={<Button variant="outline" />}>Open Drawer</DrawerTrigger>
           <DrawerContent>
             <div className="p-4">
               <div className="h-80 w-full bg-muted" />
@@ -62,15 +57,12 @@ function DrawerDemo() {
           </DrawerContent>
         </Drawer>
         <Drawer>
-          <DrawerTrigger render={<Button variant="outline" />}>
-            Header
-          </DrawerTrigger>
+          <DrawerTrigger render={<Button variant="outline" />}>Header</DrawerTrigger>
           <DrawerContent>
             <DrawerHeader>
               <DrawerTitle>Edit profile</DrawerTitle>
               <DrawerDescription>
-                Make changes to your profile here. Click save when you&apos;re
-                done.
+                Make changes to your profile here. Click save when you&apos;re done.
               </DrawerDescription>
             </DrawerHeader>
             <div className="p-4">
@@ -79,31 +71,24 @@ function DrawerDemo() {
           </DrawerContent>
         </Drawer>
         <Drawer>
-          <DrawerTrigger render={<Button variant="outline" />}>
-            Footer
-          </DrawerTrigger>
+          <DrawerTrigger render={<Button variant="outline" />}>Footer</DrawerTrigger>
           <DrawerContent>
             <div className="p-4">
               <div className="h-80 w-full bg-muted" />
             </div>
             <DrawerFooter>
               <Button>Submit</Button>
-              <DrawerClose render={<Button variant="outline" />}>
-                Cancel
-              </DrawerClose>
+              <DrawerClose render={<Button variant="outline" />}>Cancel</DrawerClose>
             </DrawerFooter>
           </DrawerContent>
         </Drawer>
         <Drawer>
-          <DrawerTrigger render={<Button variant="outline" />}>
-            Header and Footer
-          </DrawerTrigger>
+          <DrawerTrigger render={<Button variant="outline" />}>Header and Footer</DrawerTrigger>
           <DrawerContent>
             <DrawerHeader>
               <DrawerTitle>Edit profile</DrawerTitle>
               <DrawerDescription>
-                Make changes to your profile here. Click save when you&apos;re
-                done.
+                Make changes to your profile here. Click save when you&apos;re done.
               </DrawerDescription>
             </DrawerHeader>
             <div className="p-4">
@@ -111,23 +96,19 @@ function DrawerDemo() {
             </div>
             <DrawerFooter>
               <Button>Submit</Button>
-              <DrawerClose render={<Button variant="outline" />}>
-                Cancel
-              </DrawerClose>
+              <DrawerClose render={<Button variant="outline" />}>Cancel</DrawerClose>
             </DrawerFooter>
           </DrawerContent>
         </Drawer>
         <Drawer>
-          <DrawerTrigger render={<Button variant="outline" />}>
-            Edge to Edge
-          </DrawerTrigger>
+          <DrawerTrigger render={<Button variant="outline" />}>Edge to Edge</DrawerTrigger>
           <DrawerContent>
             <div className="h-80 w-full bg-blue-200" />
           </DrawerContent>
         </Drawer>
       </div>
     </Example>
-  )
+  );
 }
 
 function DrawerSwipeHandleExample() {
@@ -136,17 +117,13 @@ function DrawerSwipeHandleExample() {
       <div className="flex flex-wrap gap-2">
         {DRAWER_SIDES.map((side) => (
           <Drawer key={side} swipeDirection={side} showSwipeHandle>
-            <DrawerTrigger
-              render={<Button variant="outline" className="capitalize" />}
-            >
+            <DrawerTrigger render={<Button variant="outline" className="capitalize" />}>
               {side}
             </DrawerTrigger>
             <DrawerContent>
               <DrawerHeader>
                 <DrawerTitle className="capitalize">Drawer</DrawerTitle>
-                <DrawerDescription>
-                  Drawer with a swipe handle.
-                </DrawerDescription>
+                <DrawerDescription>Drawer with a swipe handle.</DrawerDescription>
               </DrawerHeader>
               <div className="flex-1 p-4">
                 <div className="bg-muted group-data-[swipe-axis=x]/drawer-popup:size-full group-data-[swipe-axis=y]/drawer-popup:h-80 group-data-[swipe-axis=y]/drawer-popup:w-full" />
@@ -156,7 +133,7 @@ function DrawerSwipeHandleExample() {
         ))}
       </div>
     </Example>
-  )
+  );
 }
 
 function DrawerCustomWidthAndHeight() {
@@ -164,15 +141,11 @@ function DrawerCustomWidthAndHeight() {
     <Example title="Custom Width and Height">
       <div className="flex flex-wrap gap-2">
         <Drawer swipeDirection="down">
-          <DrawerTrigger render={<Button variant="outline" />}>
-            Down
-          </DrawerTrigger>
+          <DrawerTrigger render={<Button variant="outline" />}>Down</DrawerTrigger>
           <DrawerContent className="data-[swipe-direction=down]:h-64">
             <DrawerHeader>
               <DrawerTitle>Down drawer</DrawerTitle>
-              <DrawerDescription>
-                Drawer with a custom height.
-              </DrawerDescription>
+              <DrawerDescription>Drawer with a custom height.</DrawerDescription>
             </DrawerHeader>
             <div className="flex-1 scroll-fade scrollbar-thin overflow-y-auto p-4">
               {Array.from({ length: 10 }).map((_, index) => (
@@ -185,22 +158,16 @@ function DrawerCustomWidthAndHeight() {
               ))}
             </div>
             <DrawerFooter>
-              <DrawerClose render={<Button variant="outline" />}>
-                Close
-              </DrawerClose>
+              <DrawerClose render={<Button variant="outline" />}>Close</DrawerClose>
             </DrawerFooter>
           </DrawerContent>
         </Drawer>
         <Drawer swipeDirection="up">
-          <DrawerTrigger render={<Button variant="outline" />}>
-            Up
-          </DrawerTrigger>
+          <DrawerTrigger render={<Button variant="outline" />}>Up</DrawerTrigger>
           <DrawerContent className="data-[swipe-direction=up]:h-[50vh]">
             <DrawerHeader>
               <DrawerTitle>Up drawer</DrawerTitle>
-              <DrawerDescription>
-                Drawer with a custom height.
-              </DrawerDescription>
+              <DrawerDescription>Drawer with a custom height.</DrawerDescription>
             </DrawerHeader>
             <div className="flex-1 scroll-fade overflow-y-auto p-4">
               {Array.from({ length: 10 }).map((_, index) => (
@@ -213,16 +180,12 @@ function DrawerCustomWidthAndHeight() {
               ))}
             </div>
             <DrawerFooter>
-              <DrawerClose render={<Button variant="outline" />}>
-                Close
-              </DrawerClose>
+              <DrawerClose render={<Button variant="outline" />}>Close</DrawerClose>
             </DrawerFooter>
           </DrawerContent>
         </Drawer>
         <Drawer swipeDirection="left">
-          <DrawerTrigger render={<Button variant="outline" />}>
-            Left
-          </DrawerTrigger>
+          <DrawerTrigger render={<Button variant="outline" />}>Left</DrawerTrigger>
           <DrawerContent className="data-[swipe-direction=left]:w-xl">
             <DrawerHeader>
               <DrawerTitle>Left drawer</DrawerTitle>
@@ -239,16 +202,12 @@ function DrawerCustomWidthAndHeight() {
               ))}
             </div>
             <DrawerFooter>
-              <DrawerClose render={<Button variant="outline" />}>
-                Close
-              </DrawerClose>
+              <DrawerClose render={<Button variant="outline" />}>Close</DrawerClose>
             </DrawerFooter>
           </DrawerContent>
         </Drawer>
         <Drawer swipeDirection="right">
-          <DrawerTrigger render={<Button variant="outline" />}>
-            Right
-          </DrawerTrigger>
+          <DrawerTrigger render={<Button variant="outline" />}>Right</DrawerTrigger>
           <DrawerContent className="data-[swipe-direction=right]:w-xs">
             <DrawerHeader>
               <DrawerTitle>Right drawer</DrawerTitle>
@@ -265,18 +224,16 @@ function DrawerCustomWidthAndHeight() {
               ))}
             </div>
             <DrawerFooter>
-              <DrawerClose render={<Button variant="outline" />}>
-                Close
-              </DrawerClose>
+              <DrawerClose render={<Button variant="outline" />}>Close</DrawerClose>
             </DrawerFooter>
           </DrawerContent>
         </Drawer>
       </div>
     </Example>
-  )
+  );
 }
 
-const DRAWER_SIDES = ["up", "right", "down", "left"] as const
+const DRAWER_SIDES = ["up", "right", "down", "left"] as const;
 
 function DrawerPosition() {
   return (
@@ -284,33 +241,27 @@ function DrawerPosition() {
       <div className="flex flex-wrap gap-2">
         {DRAWER_SIDES.map((side) => (
           <Drawer key={side} swipeDirection={side}>
-            <DrawerTrigger
-              render={<Button variant="outline" className="capitalize" />}
-            >
+            <DrawerTrigger render={<Button variant="outline" className="capitalize" />}>
               {side}
             </DrawerTrigger>
             <DrawerContent>
               <DrawerHeader>
                 <DrawerTitle>Move Goal</DrawerTitle>
-                <DrawerDescription>
-                  Set your daily activity goal.
-                </DrawerDescription>
+                <DrawerDescription>Set your daily activity goal.</DrawerDescription>
               </DrawerHeader>
               <div className="flex-1 p-4">
                 <div className="bg-muted group-data-[swipe-axis=x]/drawer-popup:size-full group-data-[swipe-axis=y]/drawer-popup:h-80 group-data-[swipe-axis=y]/drawer-popup:w-full" />
               </div>
               <DrawerFooter>
                 <Button>Submit</Button>
-                <DrawerClose render={<Button variant="outline" />}>
-                  Cancel
-                </DrawerClose>
+                <DrawerClose render={<Button variant="outline" />}>Cancel</DrawerClose>
               </DrawerFooter>
             </DrawerContent>
           </Drawer>
         ))}
       </div>
     </Example>
-  )
+  );
 }
 
 function DrawerScrollable() {
@@ -319,17 +270,13 @@ function DrawerScrollable() {
       <div className="flex flex-wrap gap-2">
         {DRAWER_SIDES.map((side) => (
           <Drawer key={side} swipeDirection={side}>
-            <DrawerTrigger
-              render={<Button variant="outline" className="capitalize" />}
-            >
+            <DrawerTrigger render={<Button variant="outline" className="capitalize" />}>
               {side}
             </DrawerTrigger>
             <DrawerContent>
               <DrawerHeader>
                 <DrawerTitle>Move Goal</DrawerTitle>
-                <DrawerDescription>
-                  Set your daily activity goal.
-                </DrawerDescription>
+                <DrawerDescription>Set your daily activity goal.</DrawerDescription>
               </DrawerHeader>
               <div className="flex-1 scroll-fade overflow-y-auto p-4">
                 {Array.from({ length: 20 }).map((_, index) => (
@@ -343,33 +290,28 @@ function DrawerScrollable() {
               </div>
               <DrawerFooter>
                 <Button>Submit</Button>
-                <DrawerClose render={<Button variant="outline" />}>
-                  Cancel
-                </DrawerClose>
+                <DrawerClose render={<Button variant="outline" />}>Cancel</DrawerClose>
               </DrawerFooter>
             </DrawerContent>
           </Drawer>
         ))}
       </div>
     </Example>
-  )
+  );
 }
 
-const SNAP_POINTS = ["31rem", 1]
+const SNAP_POINTS = ["31rem", 1];
 
 function DrawerSnapPoints() {
   return (
     <Example title="Snap Points">
       <Drawer snapPoints={SNAP_POINTS} showSwipeHandle>
-        <DrawerTrigger render={<Button variant="outline" />}>
-          Open Snap Drawer
-        </DrawerTrigger>
+        <DrawerTrigger render={<Button variant="outline" />}>Open Snap Drawer</DrawerTrigger>
         <DrawerContent className="max-h-[calc(100dvh-1rem)]">
           <DrawerHeader>
             <DrawerTitle>Snap points</DrawerTitle>
             <DrawerDescription>
-              Drag the drawer to snap between a compact peek and a near
-              full-height view.
+              Drag the drawer to snap between a compact peek and a near full-height view.
             </DrawerDescription>
           </DrawerHeader>
           <div className="grid flex-1 scroll-fade gap-3 overflow-y-auto p-4">
@@ -380,7 +322,7 @@ function DrawerSnapPoints() {
         </DrawerContent>
       </Drawer>
     </Example>
-  )
+  );
 }
 
 function DrawerNested() {
@@ -389,26 +331,20 @@ function DrawerNested() {
       <div className="flex flex-wrap gap-2">
         {DRAWER_SIDES.map((side) => (
           <Drawer key={side} swipeDirection={side} showSwipeHandle>
-            <DrawerTrigger
-              render={<Button variant="outline" className="capitalize" />}
-            >
+            <DrawerTrigger render={<Button variant="outline" className="capitalize" />}>
               {side}
             </DrawerTrigger>
             <DrawerContent>
               <DrawerHeader>
                 <DrawerTitle className="capitalize">{side} drawer</DrawerTitle>
-                <DrawerDescription>
-                  Open another drawer from the same direction.
-                </DrawerDescription>
+                <DrawerDescription>Open another drawer from the same direction.</DrawerDescription>
               </DrawerHeader>
               <div className="flex-1 p-4">
                 <div className="bg-muted group-data-[swipe-axis=x]/drawer-popup:size-full group-data-[swipe-axis=y]/drawer-popup:h-80 group-data-[swipe-axis=y]/drawer-popup:w-full" />
               </div>
               <DrawerFooter>
                 <Drawer swipeDirection={side}>
-                  <DrawerTrigger render={<Button />}>
-                    Open nested drawer
-                  </DrawerTrigger>
+                  <DrawerTrigger render={<Button />}>Open nested drawer</DrawerTrigger>
                   <DrawerContent>
                     <DrawerHeader>
                       <DrawerTitle>Nested drawer</DrawerTitle>
@@ -421,9 +357,7 @@ function DrawerNested() {
                     </div>
                     <DrawerFooter>
                       <Drawer swipeDirection={side}>
-                        <DrawerTrigger render={<Button />}>
-                          Open third drawer
-                        </DrawerTrigger>
+                        <DrawerTrigger render={<Button />}>Open third drawer</DrawerTrigger>
                         <DrawerContent>
                           <DrawerHeader>
                             <DrawerTitle>Third drawer</DrawerTitle>
@@ -435,37 +369,29 @@ function DrawerNested() {
                             <div className="bg-muted group-data-[swipe-axis=x]/drawer-popup:size-full group-data-[swipe-axis=y]/drawer-popup:h-80 group-data-[swipe-axis=y]/drawer-popup:w-full" />
                           </div>
                           <DrawerFooter>
-                            <DrawerClose render={<Button variant="outline" />}>
-                              Close
-                            </DrawerClose>
+                            <DrawerClose render={<Button variant="outline" />}>Close</DrawerClose>
                           </DrawerFooter>
                         </DrawerContent>
                       </Drawer>
-                      <DrawerClose render={<Button variant="outline" />}>
-                        Close
-                      </DrawerClose>
+                      <DrawerClose render={<Button variant="outline" />}>Close</DrawerClose>
                     </DrawerFooter>
                   </DrawerContent>
                 </Drawer>
-                <DrawerClose render={<Button variant="outline" />}>
-                  Close
-                </DrawerClose>
+                <DrawerClose render={<Button variant="outline" />}>Close</DrawerClose>
               </DrawerFooter>
             </DrawerContent>
           </Drawer>
         ))}
       </div>
     </Example>
-  )
+  );
 }
 
 function DrawerNonModal() {
   return (
     <Example title="Non Modal">
       <Drawer modal={false} disablePointerDismissal swipeDirection="right">
-        <DrawerTrigger render={<Button variant="outline" />}>
-          Non Modal
-        </DrawerTrigger>
+        <DrawerTrigger render={<Button variant="outline" />}>Non Modal</DrawerTrigger>
         <DrawerContent>
           <DrawerHeader>
             <DrawerTitle>Non Modal Drawer</DrawerTitle>
@@ -474,12 +400,10 @@ function DrawerNonModal() {
             <div className="bg-muted group-data-[swipe-axis=x]/drawer-popup:size-full group-data-[swipe-axis=y]/drawer-popup:h-80 group-data-[swipe-axis=y]/drawer-popup:w-full" />
           </div>
           <DrawerFooter>
-            <DrawerClose render={<Button variant="outline" />}>
-              Close
-            </DrawerClose>
+            <DrawerClose render={<Button variant="outline" />}>Close</DrawerClose>
           </DrawerFooter>
         </DrawerContent>
       </Drawer>
     </Example>
-  )
+  );
 }

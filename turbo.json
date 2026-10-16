@@ -38,12 +38,45 @@
     "docs#verify": {
       "cache": false
     },
+    "design#verify": {
+      "cache": false
+    },
+    "check-catalog": {
+      "outputs": []
+    },
+    "lint": {
+      "outputs": []
+    },
+    "lint:fix": {
+      "cache": false
+    },
+    "format": {
+      "cache": false
+    },
+    "format:check": {
+      "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/.oxfmtrc.json"],
+      "outputs": []
+    },
     "types:check": {
       "outputs": []
     },
     "docs#types:check": {
       "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/skills/**"],
       "outputs": [".source/**", ".next/types/**", "content/docs/skills/**"]
+    },
+    "//#lint:root": {
+      "inputs": ["scripts/**", ".oxlintrc.json"],
+      "outputs": []
+    },
+    "//#lint:fix:root": {
+      "cache": false
+    },
+    "//#format:root": {
+      "cache": false
+    },
+    "//#format:check:root": {
+      "inputs": ["scripts/**", "package.json", "turbo.json", ".oxfmtrc.json", ".oxlintrc.json"],
+      "outputs": []
     }
   }
 }
