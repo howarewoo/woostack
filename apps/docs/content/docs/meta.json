@@ -1,1 +1,12 @@
-{"title":"Docs","pages":["index","getting-started","guides","concepts","configuration","harnesses","skills"]}
+{
+  "title": "Docs",
+  "pages": [
+    "index",
+    "getting-started",
+    "guides",
+    "concepts",
+    "configuration",
+    "harnesses",
+    "skills"
+  ]
+}

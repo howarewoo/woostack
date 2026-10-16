@@ -54,8 +54,8 @@ for standing repository rules, the two-app boundary, and verified checks.
 The approved applications are the documentation site in `apps/docs/` and the standalone
 catalog in `apps/design/`. Their [docs README](apps/docs/README.md) and
 [catalog README](apps/design/README.md) cover app-specific development.
-Root pnpm commands use Turborepo to coordinate both apps; install from the root with
-`pnpm install --frozen-lockfile` using the shared root lockfile.
+Root pnpm commands use Turborepo to coordinate both apps (including lint, format, test,
+and verify tasks); install from the root with `pnpm install --frozen-lockfile` using the shared root lockfile.
 
 ## Editing conventions
 

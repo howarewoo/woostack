@@ -1,14 +1,11 @@
 /* MIT: Copyright (c) 2023 shadcn. See LICENSE. Browser-only catalog adaptation. */
-"use client"
+"use client";
 
-import * as React from "react"
+import * as React from "react";
 
-import {
-  Example,
-  ExampleWrapper,
-} from "@/components/example"
-import { Label } from "@/components/ui/label"
-import { Slider } from "@/components/ui/slider"
+import { Example, ExampleWrapper } from "@/components/example";
+import { Label } from "@/components/ui/label";
+import { Slider } from "@/components/ui/slider";
 
 export default function SliderExample() {
   return (
@@ -20,7 +17,7 @@ export default function SliderExample() {
       <SliderControlled />
       <SliderDisabled />
     </ExampleWrapper>
-  )
+  );
 }
 
 function SliderBasic() {
@@ -28,7 +25,7 @@ function SliderBasic() {
     <Example title="Basic">
       <Slider defaultValue={50} max={100} step={1} />
     </Example>
-  )
+  );
 }
 
 function SliderRange() {
@@ -36,7 +33,7 @@ function SliderRange() {
     <Example title="Range">
       <Slider defaultValue={[25, 50]} max={100} step={5} />
     </Example>
-  )
+  );
 }
 
 function SliderMultiple() {
@@ -44,43 +41,29 @@ function SliderMultiple() {
     <Example title="Multiple Thumbs">
       <Slider defaultValue={[10, 20, 70]} max={100} step={10} />
     </Example>
-  )
+  );
 }
 
 function SliderVertical() {
   return (
     <Example title="Vertical">
       <div className="flex items-center gap-6">
-        <Slider
-          defaultValue={[50]}
-          max={100}
-          step={1}
-          orientation="vertical"
-          className="h-40"
-        />
-        <Slider
-          defaultValue={[25]}
-          max={100}
-          step={1}
-          orientation="vertical"
-          className="h-40"
-        />
+        <Slider defaultValue={[50]} max={100} step={1} orientation="vertical" className="h-40" />
+        <Slider defaultValue={[25]} max={100} step={1} orientation="vertical" className="h-40" />
       </div>
     </Example>
-  )
+  );
 }
 
 function SliderControlled() {
-  const [value, setValue] = React.useState([0.3, 0.7])
+  const [value, setValue] = React.useState([0.3, 0.7]);
 
   return (
     <Example title="Controlled">
       <div className="grid w-full gap-3">
         <div className="flex items-center justify-between gap-2">
           <Label htmlFor="slider-demo-temperature">Temperature</Label>
-          <span className="text-sm text-muted-foreground">
-            {value.join(", ")}
-          </span>
+          <span className="text-sm text-muted-foreground">{value.join(", ")}</span>
         </div>
         <Slider
           id="slider-demo-temperature"
@@ -92,7 +75,7 @@ function SliderControlled() {
         />
       </div>
     </Example>
-  )
+  );
 }
 
 function SliderDisabled() {
@@ -100,5 +83,5 @@ function SliderDisabled() {
     <Example title="Disabled">
       <Slider defaultValue={[50]} max={100} step={1} disabled />
     </Example>
-  )
+  );
 }

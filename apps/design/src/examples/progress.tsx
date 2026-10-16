@@ -1,13 +1,10 @@
 /* MIT: Copyright (c) 2023 shadcn. See LICENSE. Browser-only catalog adaptation. */
-import { FileIcon } from "lucide-react"
-"use client"
+"use client";
+import { FileIcon } from "lucide-react";
 
-import * as React from "react"
+import * as React from "react";
 
-import {
-  Example,
-  ExampleWrapper,
-} from "@/components/example"
+import { Example, ExampleWrapper } from "@/components/example";
 import {
   Item,
   ItemActions,
@@ -15,13 +12,9 @@ import {
   ItemGroup,
   ItemMedia,
   ItemTitle,
-} from "@/components/ui/item"
-import {
-  Progress,
-  ProgressLabel,
-  ProgressValue,
-} from "@/components/ui/progress"
-import { Slider } from "@/components/ui/slider"
+} from "@/components/ui/item";
+import { Progress, ProgressLabel, ProgressValue } from "@/components/ui/progress";
+import { Slider } from "@/components/ui/slider";
 
 export default function ProgressExample() {
   return (
@@ -31,7 +24,7 @@ export default function ProgressExample() {
       <ProgressControlled />
       <FileUploadList />
     </ExampleWrapper>
-  )
+  );
 }
 
 function ProgressValues() {
@@ -45,7 +38,7 @@ function ProgressValues() {
         <Progress value={100} />
       </div>
     </Example>
-  )
+  );
 }
 
 function ProgressWithLabel() {
@@ -56,11 +49,11 @@ function ProgressWithLabel() {
         <ProgressValue />
       </Progress>
     </Example>
-  )
+  );
 }
 
 function ProgressControlled() {
-  const [value, setValue] = React.useState(50)
+  const [value, setValue] = React.useState(50);
 
   return (
     <Example title="Controlled">
@@ -75,7 +68,7 @@ function ProgressControlled() {
         />
       </div>
     </Example>
-  )
+  );
 }
 
 const files = [
@@ -103,18 +96,16 @@ const files = [
     progress: 100,
     timeRemaining: "Complete",
   },
-]
+];
 
 function FileUploadList() {
-
   return (
     <Example title="File Upload List">
       <ItemGroup>
         {files.map((file) => (
           <Item key={file.id} size="xs" className="px-0">
             <ItemMedia variant="icon">
-              <FileIcon
-                className="size-5" />
+              <FileIcon className="size-5" />
             </ItemMedia>
             <ItemContent className="inline-block truncate">
               <ItemTitle className="inline">{file.name}</ItemTitle>
@@ -123,13 +114,11 @@ function FileUploadList() {
               <Progress value={file.progress} className="w-32" />
             </ItemContent>
             <ItemActions className="w-16 justify-end">
-              <span className="text-sm text-muted-foreground">
-                {file.timeRemaining}
-              </span>
+              <span className="text-sm text-muted-foreground">{file.timeRemaining}</span>
             </ItemActions>
           </Item>
         ))}
       </ItemGroup>
     </Example>
-  )
+  );
 }

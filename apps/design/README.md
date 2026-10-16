@@ -9,6 +9,8 @@ Requires Node `^20.19.0 || >=22.12.0` and pnpm 12.10.1. Run from the repository 
 ```sh
 pnpm install --frozen-lockfile
 pnpm dev --filter=design
+pnpm lint --filter=design
+pnpm format:check --filter=design
 pnpm verify --filter=design
 pnpm build --filter=design
 pnpm --filter design preview
@@ -53,3 +55,10 @@ and public imports; `pnpm build` built both apps; the TUI typecheck task passed.
 After migration, a browser opened the live dialog specimen at `/#dialog` and
 exercised opening and Escape dismissal. The earlier full catalog browser pass
 above remains standalone evidence, not a repeated workspace-wide interaction audit.
+
+## Linting and formatting
+
+Oxlint and Oxfmt provide linting and code formatting for the catalog. Oxlint configuration in
+`.oxlintrc.json` registers `@shadcn/lint` via `jsPlugins` following upstream SETUP.md conservative
+registration-only guidance: component and theme tokens are discovered automatically via `components.json`,
+with no new rules or presets enabled. Configure custom rules or overrides under `.oxlintrc.json` as needed.

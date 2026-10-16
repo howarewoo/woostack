@@ -1,7 +1,4 @@
 {
   "title": "Configuration",
-  "pages": [
-    "index",
-    "artifacts"
-  ]
+  "pages": ["index", "artifacts"]
 }

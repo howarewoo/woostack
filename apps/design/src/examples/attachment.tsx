@@ -1,14 +1,25 @@
 /* MIT: Copyright (c) 2023 shadcn. See LICENSE. Browser-only catalog adaptation. */
-import { useState } from "react"
-import { CheckIcon, ClockIcon, CopyIcon, DownloadIcon, FileArchiveIcon, FileCodeIcon, FileSearchIcon, FileTextIcon, FileWarningIcon, PresentationIcon, RefreshCwIcon, TableIcon, XIcon } from "lucide-react"
-"use client"
-
-import * as React from "react"
-
+"use client";
+import { useState } from "react";
 import {
-  Example,
-  ExampleWrapper,
-} from "@/components/example"
+  CheckIcon,
+  ClockIcon,
+  CopyIcon,
+  DownloadIcon,
+  FileArchiveIcon,
+  FileCodeIcon,
+  FileSearchIcon,
+  FileTextIcon,
+  FileWarningIcon,
+  PresentationIcon,
+  RefreshCwIcon,
+  TableIcon,
+  XIcon,
+} from "lucide-react";
+
+import * as React from "react";
+
+import { Example, ExampleWrapper } from "@/components/example";
 import {
   Attachment,
   AttachmentAction,
@@ -19,8 +30,8 @@ import {
   AttachmentMedia,
   AttachmentTitle,
   AttachmentTrigger,
-} from "@/components/ui/attachment"
-import { Button } from "@/components/ui/button"
+} from "@/components/ui/attachment";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -28,40 +39,43 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
-import { Spinner } from "@/components/ui/spinner"
+} from "@/components/ui/dialog";
+import { Spinner } from "@/components/ui/spinner";
 
 export default function AttachmentExample() {
-  const [selectedLink, setSelectedLink] = useState("")
+  const [selectedLink, setSelectedLink] = useState("");
   return (
-    <div className="w-full" onClickCapture={(event) => {
-      const link = (event.target as Element).closest("a[href='#']")
-      if (!link) return
-      event.preventDefault()
-      setSelectedLink(link.getAttribute("aria-label") || link.textContent?.trim() || "Link")
-    }}>
-    <ExampleWrapper>
-      <AttachmentFiles />
-      <AttachmentContentOnly />
-      <AttachmentStates />
-      <AttachmentImages />
-      <AttachmentImageStates />
-      <AttachmentSizes />
-      <AttachmentScrollableGroup />
-      <AttachmentTriggers />
-    </ExampleWrapper>
-      <p role="status" className="mt-3 text-sm text-muted-foreground">{selectedLink && `Selected example link: ${selectedLink}`}</p>
+    <div
+      className="w-full"
+      onClickCapture={(event) => {
+        const link = (event.target as Element).closest("a[href='#']");
+        if (!link) return;
+        event.preventDefault();
+        setSelectedLink(link.getAttribute("aria-label") || link.textContent?.trim() || "Link");
+      }}
+    >
+      <ExampleWrapper>
+        <AttachmentFiles />
+        <AttachmentContentOnly />
+        <AttachmentStates />
+        <AttachmentImages />
+        <AttachmentImageStates />
+        <AttachmentSizes />
+        <AttachmentScrollableGroup />
+        <AttachmentTriggers />
+      </ExampleWrapper>
+      <p role="status" className="mt-3 text-sm text-muted-foreground">
+        {selectedLink && `Selected example link: ${selectedLink}`}
+      </p>
     </div>
-  )
+  );
 }
 
 function AttachmentFiles() {
   return (
     <Example title="Files" className="gap-8">
       <div className="flex w-full flex-col gap-2">
-        <div className="px-1 text-xs font-medium text-muted-foreground">
-          Horizontal
-        </div>
+        <div className="px-1 text-xs font-medium text-muted-foreground">Horizontal</div>
         <div className="flex flex-col gap-3">
           <Attachment className="w-full">
             <AttachmentMedia>
@@ -108,9 +122,7 @@ function AttachmentFiles() {
         </div>
       </div>
       <div className="flex w-full flex-col gap-2">
-        <div className="px-1 text-xs font-medium text-muted-foreground">
-          Vertical
-        </div>
+        <div className="px-1 text-xs font-medium text-muted-foreground">Vertical</div>
         <AttachmentGroup className="w-full">
           <Attachment orientation="vertical">
             <AttachmentMedia>
@@ -185,16 +197,14 @@ function AttachmentFiles() {
         </AttachmentGroup>
       </div>
     </Example>
-  )
+  );
 }
 
 function AttachmentContentOnly() {
   return (
     <Example title="Content Only" className="gap-8">
       <div className="flex w-full flex-col gap-2">
-        <div className="px-1 text-xs font-medium text-muted-foreground">
-          Title
-        </div>
+        <div className="px-1 text-xs font-medium text-muted-foreground">Title</div>
         <div className="flex flex-col gap-3">
           <Attachment className="w-full">
             <AttachmentContent>
@@ -234,16 +244,12 @@ function AttachmentContentOnly() {
         </div>
       </div>
       <div className="flex w-full flex-col gap-2">
-        <div className="px-1 text-xs font-medium text-muted-foreground">
-          Title and Description
-        </div>
+        <div className="px-1 text-xs font-medium text-muted-foreground">Title and Description</div>
         <div className="flex flex-col gap-3">
           <Attachment className="w-full">
             <AttachmentContent>
               <AttachmentTitle>Building accessible components</AttachmentTitle>
-              <AttachmentDescription>
-                react.dev · 8 min read
-              </AttachmentDescription>
+              <AttachmentDescription>react.dev · 8 min read</AttachmentDescription>
             </AttachmentContent>
             <AttachmentActions>
               <AttachmentAction aria-label="Remove Building accessible components">
@@ -281,16 +287,14 @@ function AttachmentContentOnly() {
         </div>
       </div>
     </Example>
-  )
+  );
 }
 
 function AttachmentStates() {
   return (
     <Example title="States" className="gap-8">
       <div className="flex w-full flex-col gap-3">
-        <div className="px-1 text-xs font-medium text-muted-foreground">
-          Horizontal
-        </div>
+        <div className="px-1 text-xs font-medium text-muted-foreground">Horizontal</div>
         <div className="flex flex-col gap-2">
           <Attachment state="idle" className="w-full">
             <AttachmentMedia>
@@ -340,9 +344,7 @@ function AttachmentStates() {
             </AttachmentMedia>
             <AttachmentContent>
               <AttachmentTitle>financial-model.xlsx</AttachmentTitle>
-              <AttachmentDescription>
-                Upload failed. Try again.
-              </AttachmentDescription>
+              <AttachmentDescription>Upload failed. Try again.</AttachmentDescription>
             </AttachmentContent>
             <AttachmentActions>
               <AttachmentAction aria-label="Retry upload">
@@ -370,9 +372,7 @@ function AttachmentStates() {
         </div>
       </div>
       <div className="flex w-full flex-col gap-3">
-        <div className="px-1 text-xs font-medium text-muted-foreground">
-          Vertical
-        </div>
+        <div className="px-1 text-xs font-medium text-muted-foreground">Vertical</div>
         <AttachmentGroup className="w-full">
           <Attachment state="idle" orientation="vertical">
             <AttachmentMedia>
@@ -450,16 +450,14 @@ function AttachmentStates() {
         </AttachmentGroup>
       </div>
     </Example>
-  )
+  );
 }
 
 function AttachmentImages() {
   return (
     <Example title="Images" className="gap-8">
       <div className="flex w-full flex-col gap-3">
-        <div className="px-1 text-xs font-medium text-muted-foreground">
-          Horizontal
-        </div>
+        <div className="px-1 text-xs font-medium text-muted-foreground">Horizontal</div>
         <div className="flex flex-col gap-2">
           <Attachment className="w-full">
             <AttachmentMedia variant="image">
@@ -545,9 +543,7 @@ function AttachmentImages() {
         </div>
       </div>
       <div className="flex w-full flex-col gap-2">
-        <div className="px-1 text-xs font-medium text-muted-foreground">
-          Vertical
-        </div>
+        <div className="px-1 text-xs font-medium text-muted-foreground">Vertical</div>
         <AttachmentGroup className="w-full">
           <Attachment orientation="vertical">
             <AttachmentMedia variant="image">
@@ -687,16 +683,14 @@ function AttachmentImages() {
         </AttachmentGroup>
       </div>
     </Example>
-  )
+  );
 }
 
 function AttachmentImageStates() {
   return (
     <Example title="Image States" className="gap-8">
       <div className="flex w-full flex-col gap-3">
-        <div className="px-1 text-xs font-medium text-muted-foreground">
-          Horizontal
-        </div>
+        <div className="px-1 text-xs font-medium text-muted-foreground">Horizontal</div>
         <div className="flex flex-col gap-2">
           <Attachment state="idle" className="w-full">
             <AttachmentMedia variant="image">
@@ -789,9 +783,7 @@ function AttachmentImageStates() {
         </div>
       </div>
       <div className="flex w-full flex-col gap-2">
-        <div className="px-1 text-xs font-medium text-muted-foreground">
-          Vertical
-        </div>
+        <div className="px-1 text-xs font-medium text-muted-foreground">Vertical</div>
         <AttachmentGroup className="w-full">
           <Attachment state="idle" orientation="vertical">
             <AttachmentMedia variant="image">
@@ -884,7 +876,7 @@ function AttachmentImageStates() {
         </AttachmentGroup>
       </div>
     </Example>
-  )
+  );
 }
 
 function AttachmentSizes() {
@@ -917,7 +909,7 @@ function AttachmentSizes() {
         </AttachmentContent>
       </Attachment>
     </Example>
-  )
+  );
 }
 
 function AttachmentScrollableGroup() {
@@ -1063,11 +1055,11 @@ function AttachmentScrollableGroup() {
         </Attachment>
       </AttachmentGroup>
     </Example>
-  )
+  );
 }
 
 function AttachmentTriggers() {
-  const [isVisible, setIsVisible] = React.useState(true)
+  const [isVisible, setIsVisible] = React.useState(true);
 
   return (
     <Example title="Triggers" className="gap-3">
@@ -1084,21 +1076,13 @@ function AttachmentTriggers() {
             <AttachmentAction aria-label="Download attachment">
               <DownloadIcon />
             </AttachmentAction>
-            <AttachmentAction
-              aria-label="Remove attachment"
-              onClick={() => setIsVisible(false)}
-            >
+            <AttachmentAction aria-label="Remove attachment" onClick={() => setIsVisible(false)}>
               <XIcon />
             </AttachmentAction>
           </AttachmentActions>
           <AttachmentTrigger
             render={
-              <a
-                href="#"
-                target="_blank"
-                rel="noreferrer"
-                aria-label="Open contract-review.pdf"
-              />
+              <a href="#" target="_blank" rel="noreferrer" aria-label="Open contract-review.pdf" />
             }
           />
         </Attachment>
@@ -1124,22 +1108,17 @@ function AttachmentTriggers() {
               <XIcon />
             </AttachmentAction>
           </AttachmentActions>
-          <DialogTrigger
-            render={
-              <AttachmentTrigger aria-label="Preview research-summary.pdf" />
-            }
-          />
+          <DialogTrigger render={<AttachmentTrigger aria-label="Preview research-summary.pdf" />} />
         </Attachment>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>research-summary.pdf</DialogTitle>
             <DialogDescription>
-              Attachment triggers can open dialogs while actions remain
-              independently reachable.
+              Attachment triggers can open dialogs while actions remain independently reachable.
             </DialogDescription>
           </DialogHeader>
         </DialogContent>
       </Dialog>
     </Example>
-  )
+  );
 }

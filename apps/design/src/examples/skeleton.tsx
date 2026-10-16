@@ -1,10 +1,7 @@
 /* MIT: Copyright (c) 2023 shadcn. See LICENSE. Browser-only catalog adaptation. */
-import {
-  Example,
-  ExampleWrapper,
-} from "@/components/example"
-import { Card, CardContent, CardHeader } from "@/components/ui/card"
-import { Skeleton } from "@/components/ui/skeleton"
+import { Example, ExampleWrapper } from "@/components/example";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function SkeletonExample() {
   return (
@@ -15,7 +12,7 @@ export default function SkeletonExample() {
       <SkeletonForm />
       <SkeletonTable />
     </ExampleWrapper>
-  )
+  );
 }
 
 function SkeletonAvatar() {
@@ -29,7 +26,7 @@ function SkeletonAvatar() {
         </div>
       </div>
     </Example>
-  )
+  );
 }
 
 function SkeletonCard() {
@@ -45,7 +42,7 @@ function SkeletonCard() {
         </CardContent>
       </Card>
     </Example>
-  )
+  );
 }
 
 function SkeletonText() {
@@ -57,7 +54,7 @@ function SkeletonText() {
         <Skeleton className="h-4 w-3/4" />
       </div>
     </Example>
-  )
+  );
 }
 
 function SkeletonForm() {
@@ -75,7 +72,7 @@ function SkeletonForm() {
         <Skeleton className="h-9 w-24" />
       </div>
     </Example>
-  )
+  );
 }
 
 function SkeletonTable() {
@@ -99,5 +96,5 @@ function SkeletonTable() {
         </div>
       </div>
     </Example>
-  )
+  );
 }

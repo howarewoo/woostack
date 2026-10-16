@@ -1,3 +1,24 @@
-import { Check,Info,Search,Settings,TriangleAlert,X } from "lucide-react"
-import { Button } from "@/components/ui/button"
-export default function IconographyExample(){return <div className="space-y-6"><div className="flex gap-6">{[Check,Info,Search,Settings,TriangleAlert,X].map((Icon,index)=><Icon key={index} aria-hidden size={24}/>)}</div><Button aria-label="Settings" size="icon" variant="outline"><Settings aria-hidden/></Button><p className="text-sm text-muted-foreground">Use named Lucide imports. Decorative icons are hidden from assistive technology; icon-only controls require an accessible name. Pair status icons with text.</p><div className="flex items-center gap-2"><Check aria-hidden/>Complete</div></div>}
+import { Check, Info, Search, Settings, TriangleAlert, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+export default function IconographyExample() {
+  return (
+    <div className="space-y-6">
+      <div className="flex gap-6">
+        {[Check, Info, Search, Settings, TriangleAlert, X].map((Icon, index) => (
+          <Icon key={index} aria-hidden size={24} />
+        ))}
+      </div>
+      <Button aria-label="Settings" size="icon" variant="outline">
+        <Settings aria-hidden />
+      </Button>
+      <p className="text-sm text-muted-foreground">
+        Use named Lucide imports. Decorative icons are hidden from assistive technology; icon-only
+        controls require an accessible name. Pair status icons with text.
+      </p>
+      <div className="flex items-center gap-2">
+        <Check aria-hidden />
+        Complete
+      </div>
+    </div>
+  );
+}

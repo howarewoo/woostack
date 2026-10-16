@@ -1,6 +1,6 @@
-import { test } from 'node:test';
-import assert from 'node:assert/strict';
-import { parseFrontmatter } from './skill-assets.mjs';
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import { parseFrontmatter } from "./skill-assets.mjs";
 import {
   stripTitleHeading,
   rewriteLinks,
@@ -8,161 +8,169 @@ import {
   renderPage,
   navOrder,
   PUBLIC_ORDER,
-} from './gen-skills.mjs';
+} from "./gen-skills.mjs";
 
-test('parseFrontmatter extracts name + description and returns the body', () => {
-  const raw = '---\nname: woostack-plan\ndescription: Plan a feature.\nplugin: preserved-for-site\n---\n\n# woostack-plan\n\nbody';
-  const { fm, body } = parseFrontmatter(raw, 'woostack-plan');
-  assert.equal(fm.name, 'woostack-plan');
-  assert.equal(fm.description, 'Plan a feature.');
+test("parseFrontmatter extracts name + description and returns the body", () => {
+  const raw =
+    "---\nname: woostack-plan\ndescription: Plan a feature.\nplugin: preserved-for-site\n---\n\n# woostack-plan\n\nbody";
+  const { fm, body } = parseFrontmatter(raw, "woostack-plan");
+  assert.equal(fm.name, "woostack-plan");
+  assert.equal(fm.description, "Plan a feature.");
   assert.match(body, /# woostack-plan/);
-  assert.equal(fm.plugin, 'preserved-for-site');
+  assert.equal(fm.plugin, "preserved-for-site");
 });
 
-test('parseFrontmatter throws when name is missing', () => {
-  assert.throws(() => parseFrontmatter('---\ndescription: x\n---\nbody', 'f'), /missing 'name'/);
+test("parseFrontmatter throws when name is missing", () => {
+  assert.throws(() => parseFrontmatter("---\ndescription: x\n---\nbody", "f"), /missing 'name'/);
 });
 
-test('parseFrontmatter throws when description is missing', () => {
+test("parseFrontmatter throws when description is missing", () => {
   assert.throws(
-    () => parseFrontmatter('---\nname: f\n---\nbody', 'f'),
-    (error) => error.code === 'frontmatter-description-missing' && /description/.test(error.message),
+    () => parseFrontmatter("---\nname: f\n---\nbody", "f"),
+    (error) =>
+      error.code === "frontmatter-description-missing" && /description/.test(error.message),
   );
 });
 
-test('parseFrontmatter rejects duplicate fields', () => {
+test("parseFrontmatter rejects duplicate fields", () => {
   assert.throws(
-    () => parseFrontmatter('---\nname: f\nname: g\ndescription: x\n---\nbody', 'f'),
-    (error) => error.code === 'frontmatter-duplicate-field' && /duplicate.*name/.test(error.message),
+    () => parseFrontmatter("---\nname: f\nname: g\ndescription: x\n---\nbody", "f"),
+    (error) =>
+      error.code === "frontmatter-duplicate-field" && /duplicate.*name/.test(error.message),
   );
 });
 
-test('parseFrontmatter rejects malformed quoted metadata', () => {
+test("parseFrontmatter rejects malformed quoted metadata", () => {
   assert.throws(
-    () => parseFrontmatter('---\nname: f\ndescription: "unterminated\n---\nbody', 'f'),
-    (error) => error.code === 'frontmatter-invalid-scalar' && /quoted description/.test(error.message),
+    () => parseFrontmatter('---\nname: f\ndescription: "unterminated\n---\nbody', "f"),
+    (error) =>
+      error.code === "frontmatter-invalid-scalar" && /quoted description/.test(error.message),
   );
 });
 
-test('parseFrontmatter accepts only an opening unfenced block', () => {
+test("parseFrontmatter accepts only an opening unfenced block", () => {
   assert.throws(
-    () => parseFrontmatter('```yaml\n---\nname: f\ndescription: x\n---\n```\n', 'f'),
-    (error) => error.code === 'frontmatter-missing',
+    () => parseFrontmatter("```yaml\n---\nname: f\ndescription: x\n---\n```\n", "f"),
+    (error) => error.code === "frontmatter-missing",
   );
 });
 
-test('parseFrontmatter strips surrounding YAML quotes (some descriptions are quoted)', () => {
-  const raw = '---\nname: woostack-execute\ndescription: "Execute task: red→green. Quoted in source."\n---\nb';
-  const { fm } = parseFrontmatter(raw, 'woostack-execute');
-  assert.equal(fm.description, 'Execute task: red→green. Quoted in source.'); // no leading/trailing "
+test("parseFrontmatter strips surrounding YAML quotes (some descriptions are quoted)", () => {
+  const raw =
+    '---\nname: woostack-execute\ndescription: "Execute task: red→green. Quoted in source."\n---\nb';
+  const { fm } = parseFrontmatter(raw, "woostack-execute");
+  assert.equal(fm.description, "Execute task: red→green. Quoted in source."); // no leading/trailing "
 });
 
-test('parseFrontmatter accepts safe placeholders in plain descriptions', () => {
-  const raw = '---\nname: woostack-plan\ndescription: Plan the approved project at <project-url>.\n---\nbody';
-  const { fm } = parseFrontmatter(raw, 'woostack-plan');
-  assert.equal(fm.description, 'Plan the approved project at <project-url>.');
+test("parseFrontmatter accepts safe placeholders in plain descriptions", () => {
+  const raw =
+    "---\nname: woostack-plan\ndescription: Plan the approved project at <project-url>.\n---\nbody";
+  const { fm } = parseFrontmatter(raw, "woostack-plan");
+  assert.equal(fm.description, "Plan the approved project at <project-url>.");
 });
 
-test('parseFrontmatter accepts quoted colon-space descriptions with safe placeholders', () => {
-  const raw = '---\nname: woostack-plan\ndescription: "Plan source: use <project-url> safely."\n---\nbody';
-  const { fm } = parseFrontmatter(raw, 'woostack-plan');
-  assert.equal(fm.description, 'Plan source: use <project-url> safely.');
+test("parseFrontmatter accepts quoted colon-space descriptions with safe placeholders", () => {
+  const raw =
+    '---\nname: woostack-plan\ndescription: "Plan source: use <project-url> safely."\n---\nbody';
+  const { fm } = parseFrontmatter(raw, "woostack-plan");
+  assert.equal(fm.description, "Plan source: use <project-url> safely.");
 });
 
-test('parseFrontmatter rejects colon-space in a plain description deterministically', () => {
-  const raw = '---\nname: woostack-plan\ndescription: Plan source: use safely.\n---\nbody';
+test("parseFrontmatter rejects colon-space in a plain description deterministically", () => {
+  const raw = "---\nname: woostack-plan\ndescription: Plan source: use safely.\n---\nbody";
   assert.throws(
-    () => parseFrontmatter(raw, 'woostack-plan'),
-    (error) => error.code === 'frontmatter-plain-colon-space' &&
+    () => parseFrontmatter(raw, "woostack-plan"),
+    (error) =>
+      error.code === "frontmatter-plain-colon-space" &&
       /description.*colon-space.*plain scalar/i.test(error.message),
   );
 });
 
 test('stripTitleHeading removes only the first exact "# <name>" H1', () => {
-  const body = '\n# woostack-plan\n\n## Overview\n\n# woostack-plan\n';
-  const out = stripTitleHeading(body, 'woostack-plan');
+  const body = "\n# woostack-plan\n\n## Overview\n\n# woostack-plan\n";
+  const out = stripTitleHeading(body, "woostack-plan");
   assert.equal((out.match(/^# woostack-plan$/gm) || []).length, 1); // one removed, one stays
   assert.match(out, /## Overview/);
 });
 
-test('rewriteLinks maps skill links to routes, refs to GitHub, leaves absolute/anchors', () => {
-  const r = (s) => rewriteLinks(s, 'woostack-plan');
-  assert.equal(r('see [plan](../woostack-plan/SKILL.md)'), 'see [plan](/docs/skills/woostack-plan)');
-  assert.equal(r('[a](../woostack-plan/SKILL.md#x)'), '[a](/docs/skills/woostack-plan#x)');
+test("rewriteLinks maps skill links to routes, refs to GitHub, leaves absolute/anchors", () => {
+  const r = (s) => rewriteLinks(s, "woostack-plan");
   assert.equal(
-    r('[wt](../woostack-init/references/worktrees.md)'),
-    '[wt](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/worktrees.md)'
+    r("see [plan](../woostack-plan/SKILL.md)"),
+    "see [plan](/docs/skills/woostack-plan)",
+  );
+  assert.equal(r("[a](../woostack-plan/SKILL.md#x)"), "[a](/docs/skills/woostack-plan#x)");
+  assert.equal(
+    r("[wt](../woostack-init/references/worktrees.md)"),
+    "[wt](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/worktrees.md)",
   );
   assert.equal(
-    r('[self](references/github-procedure.md)'),
-    '[self](https://github.com/howarewoo/woostack/blob/main/skills/woostack-plan/references/github-procedure.md)'
+    r("[self](references/github-procedure.md)"),
+    "[self](https://github.com/howarewoo/woostack/blob/main/skills/woostack-plan/references/github-procedure.md)",
   );
-  assert.equal(r('[ext](https://example.com)'), '[ext](https://example.com)');
-  assert.equal(r('[here](#section)'), '[here](#section)');
+  assert.equal(r("[ext](https://example.com)"), "[ext](https://example.com)");
+  assert.equal(r("[here](#section)"), "[here](#section)");
 });
 
-test('neutralizeTags: block tag -> Callout, prose tag escaped, code-span/fence preserved', () => {
-  const block = '<HARD-GATE>\nDo not proceed.\n</HARD-GATE>';
+test("neutralizeTags: block tag -> Callout, prose tag escaped, code-span/fence preserved", () => {
+  const block = "<HARD-GATE>\nDo not proceed.\n</HARD-GATE>";
   const out = neutralizeTags(block);
   assert.match(out, /<Callout type="warn" title="Hard gate">/);
   assert.match(out, /<\/Callout>/);
   assert.doesNotMatch(out, /<HARD-GATE>/);
 
-  assert.match(neutralizeTags('a bare <FOO> here'), /a bare &lt;FOO&gt; here/);
+  assert.match(neutralizeTags("a bare <FOO> here"), /a bare &lt;FOO&gt; here/);
 
-  const code = 'POST `gh api repos/<repo>/pulls/<PR>/reviews` now';
+  const code = "POST `gh api repos/<repo>/pulls/<PR>/reviews` now";
   assert.equal(neutralizeTags(code), code); // uppercase tag inside inline code preserved
 
   const attributed = '<FOO scope="feature">**Stop.**</FOO>';
-  assert.equal(
-    neutralizeTags(attributed),
-    '&lt;FOO scope="feature"&gt;**Stop.**&lt;/FOO&gt;'
-  );
+  assert.equal(neutralizeTags(attributed), '&lt;FOO scope="feature"&gt;**Stop.**&lt;/FOO&gt;');
 
   const attributedGate = [
     '<HARD-GATE name="design-approval"></HARD-GATE>',
     '1. <HARD-GATE name="spec-approval">**Stop.**',
-    'Wait for approval.</HARD-GATE>',
-  ].join('\n');
-  assert.equal(neutralizeTags(attributedGate), '1. **Stop.**\nWait for approval.');
+    "Wait for approval.</HARD-GATE>",
+  ].join("\n");
+  assert.equal(neutralizeTags(attributedGate), "1. **Stop.**\nWait for approval.");
 
-  const fenced = '```\n<PR> stays\n```';
+  const fenced = "```\n<PR> stays\n```";
   assert.equal(neutralizeTags(fenced), fenced); // inside fence preserved
 
-  const marker = '<!-- build-gates: design-approval | spec-approval | execution-handoff -->';
-  assert.equal(neutralizeTags(marker), '');
+  const marker = "<!-- build-gates: design-approval | spec-approval | execution-handoff -->";
+  assert.equal(neutralizeTags(marker), "");
 });
 
-test('renderPage emits title/description and source links for public phases', () => {
-  const fm = { name: 'woostack-plan', description: 'Plan a feature: end to end.' };
-  const page = renderPage('woostack-plan', fm, '## Overview\n\nbody');
+test("renderPage emits title/description and source links for public phases", () => {
+  const fm = { name: "woostack-plan", description: "Plan a feature: end to end." };
+  const page = renderPage("woostack-plan", fm, "## Overview\n\nbody");
   assert.match(page, /^---\ntitle: woostack-plan\n/);
   assert.match(page, /description: "Plan a feature: end to end\."/); // JSON-quoted, colon-safe
   assert.match(
     page,
-    /\[View source on GitHub\]\(https:\/\/github\.com\/howarewoo\/woostack\/blob\/main\/skills\/woostack-plan\/SKILL\.md\)/
+    /\[View source on GitHub\]\(https:\/\/github\.com\/howarewoo\/woostack\/blob\/main\/skills\/woostack-plan\/SKILL\.md\)/,
   );
 });
 
-test('public skill routing preserves the declared order', () => {
+test("public skill routing preserves the declared order", () => {
   const expectedPublic = [
-    'using-woostack',
-    'woostack-init',
-    'woostack-ideate',
-    'woostack-harden',
-    'woostack-plan',
-    'woostack-orchestrate',
-    'woostack-execute',
-    'woostack-simplify',
-    'woostack-commit',
-    'woostack-address-comments',
-    'woostack-visualize',
-    'woostack-design',
-    'woostack-design-system',
-    'woostack-debug',
-    'woostack-doctor',
-    'woostack-qa',
-    'woostack-reflect',
+    "using-woostack",
+    "woostack-init",
+    "woostack-ideate",
+    "woostack-harden",
+    "woostack-plan",
+    "woostack-orchestrate",
+    "woostack-execute",
+    "woostack-simplify",
+    "woostack-commit",
+    "woostack-address-comments",
+    "woostack-visualize",
+    "woostack-design",
+    "woostack-design-system",
+    "woostack-debug",
+    "woostack-doctor",
+    "woostack-qa",
+    "woostack-reflect",
   ];
 
   assert.deepEqual(PUBLIC_ORDER, expectedPublic);

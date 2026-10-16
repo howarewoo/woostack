@@ -9,9 +9,9 @@
  */
 export function ContextEconomy() {
   const sources = [
-    { y: 24, title: 'Scoped instructions', sub: 'load only applicable rules' },
-    { y: 116, title: 'Scripts compute', sub: 'read the small output' },
-    { y: 208, title: 'Subagents isolate', sub: 'return a compact result' },
+    { y: 24, title: "Scoped instructions", sub: "load only applicable rules" },
+    { y: 116, title: "Scripts compute", sub: "read the small output" },
+    { y: 208, title: "Subagents isolate", sub: "return a compact result" },
   ];
 
   return (
@@ -20,7 +20,11 @@ export function ContextEconomy() {
         viewBox="0 0 760 300"
         role="img"
         aria-label="Three mechanisms — scoped instructions, shell scripts, and subagents — keeping the agent's working context small."
-        style={{ width: '100%', height: 'auto', fontFamily: 'ui-sans-serif, system-ui, sans-serif' }}
+        style={{
+          width: "100%",
+          height: "auto",
+          fontFamily: "ui-sans-serif, system-ui, sans-serif",
+        }}
       >
         <defs>
           <marker
@@ -49,7 +53,13 @@ export function ContextEconomy() {
               stroke="var(--color-fd-border)"
               strokeWidth="1.5"
             />
-            <text x="40" y={s.y + 30} fontSize="17" fontWeight="600" fill="var(--color-fd-foreground)">
+            <text
+              x="40"
+              y={s.y + 30}
+              fontSize="17"
+              fontWeight="600"
+              fill="var(--color-fd-foreground)"
+            >
               {s.title}
             </text>
             <text x="40" y={s.y + 50} fontSize="13" fill="var(--color-fd-muted-foreground)">
@@ -99,7 +109,12 @@ export function ContextEconomy() {
         </text>
       </svg>
       <figcaption
-        style={{ textAlign: 'center', fontSize: '0.85rem', color: 'var(--color-fd-muted-foreground)', marginTop: '0.5rem' }}
+        style={{
+          textAlign: "center",
+          fontSize: "0.85rem",
+          color: "var(--color-fd-muted-foreground)",
+          marginTop: "0.5rem",
+        }}
       >
         Context economy: three mechanisms, one scarce resource.
       </figcaption>

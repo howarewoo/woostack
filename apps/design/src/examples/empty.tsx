@@ -1,11 +1,8 @@
 /* MIT: Copyright (c) 2023 shadcn. See LICENSE. Browser-only catalog adaptation. */
-import { useState } from "react"
-import { ArrowUpRightIcon, CircleDashedIcon, FolderIcon, PlusIcon } from "lucide-react"
-import {
-  Example,
-  ExampleWrapper,
-} from "@/components/example"
-import { Button } from "@/components/ui/button"
+import { useState } from "react";
+import { ArrowUpRightIcon, CircleDashedIcon, FolderIcon, PlusIcon } from "lucide-react";
+import { Example, ExampleWrapper } from "@/components/example";
+import { Button } from "@/components/ui/button";
 import {
   Empty,
   EmptyContent,
@@ -13,34 +10,35 @@ import {
   EmptyHeader,
   EmptyMedia,
   EmptyTitle,
-} from "@/components/ui/empty"
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupInput,
-} from "@/components/ui/input-group"
-import { Kbd } from "@/components/ui/kbd"
+} from "@/components/ui/empty";
+import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
+import { Kbd } from "@/components/ui/kbd";
 
 export default function EmptyExample() {
-  const [selectedLink, setSelectedLink] = useState("")
+  const [selectedLink, setSelectedLink] = useState("");
   return (
-    <div className="w-full" onClickCapture={(event) => {
-      const link = (event.target as Element).closest("a[href='#']")
-      if (!link) return
-      event.preventDefault()
-      setSelectedLink(link.getAttribute("aria-label") || link.textContent?.trim() || "Link")
-    }}>
-    <ExampleWrapper>
-      <EmptyBasic />
-      <EmptyWithMutedBackground />
-      <EmptyWithBorder />
-      <EmptyWithIcon />
-      <EmptyWithMutedBackgroundAlt />
-      <EmptyInCard />
-    </ExampleWrapper>
-      <p role="status" className="mt-3 text-sm text-muted-foreground">{selectedLink && `Selected example link: ${selectedLink}`}</p>
+    <div
+      className="w-full"
+      onClickCapture={(event) => {
+        const link = (event.target as Element).closest("a[href='#']");
+        if (!link) return;
+        event.preventDefault();
+        setSelectedLink(link.getAttribute("aria-label") || link.textContent?.trim() || "Link");
+      }}
+    >
+      <ExampleWrapper>
+        <EmptyBasic />
+        <EmptyWithMutedBackground />
+        <EmptyWithBorder />
+        <EmptyWithIcon />
+        <EmptyWithMutedBackgroundAlt />
+        <EmptyInCard />
+      </ExampleWrapper>
+      <p role="status" className="mt-3 text-sm text-muted-foreground">
+        {selectedLink && `Selected example link: ${selectedLink}`}
+      </p>
     </div>
-  )
+  );
 }
 
 function EmptyBasic() {
@@ -50,8 +48,7 @@ function EmptyBasic() {
         <EmptyHeader>
           <EmptyTitle>No projects yet</EmptyTitle>
           <EmptyDescription>
-            You haven&apos;t created any projects yet. Get started by creating
-            your first project.
+            You haven&apos;t created any projects yet. Get started by creating your first project.
           </EmptyDescription>
         </EmptyHeader>
         <EmptyContent>
@@ -67,13 +64,12 @@ function EmptyBasic() {
             className="text-muted-foreground"
             nativeButton={false}
           >
-            Learn more{" "}
-            <ArrowUpRightIcon />
+            Learn more <ArrowUpRightIcon />
           </Button>
         </EmptyContent>
       </Empty>
     </Example>
-  )
+  );
 }
 
 function EmptyWithMutedBackground() {
@@ -94,13 +90,12 @@ function EmptyWithMutedBackground() {
             className="text-muted-foreground"
             nativeButton={false}
           >
-            Learn more{" "}
-            <ArrowUpRightIcon />
+            Learn more <ArrowUpRightIcon />
           </Button>
         </EmptyContent>
       </Empty>
     </Example>
-  )
+  );
 }
 
 function EmptyWithBorder() {
@@ -110,8 +105,8 @@ function EmptyWithBorder() {
         <EmptyHeader>
           <EmptyTitle>404 - Not Found</EmptyTitle>
           <EmptyDescription>
-            The page you&apos;re looking for doesn&apos;t exist. Try searching
-            for what you need below.
+            The page you&apos;re looking for doesn&apos;t exist. Try searching for what you need
+            below.
           </EmptyDescription>
         </EmptyHeader>
         <EmptyContent>
@@ -130,7 +125,7 @@ function EmptyWithBorder() {
         </EmptyContent>
       </Empty>
     </Example>
-  )
+  );
 }
 
 function EmptyWithIcon() {
@@ -143,20 +138,18 @@ function EmptyWithIcon() {
           </EmptyMedia>
           <EmptyTitle>Nothing to see here</EmptyTitle>
           <EmptyDescription>
-            No posts have been created yet. Get started by{" "}
-            <a href="#">creating your first post</a>.
+            No posts have been created yet. Get started by <a href="#">creating your first post</a>.
           </EmptyDescription>
         </EmptyHeader>
         <EmptyContent>
           <Button variant="outline">
-            <PlusIcon
-              data-icon="inline-start" />
+            <PlusIcon data-icon="inline-start" />
             New Post
           </Button>
         </EmptyContent>
       </Empty>
     </Example>
-  )
+  );
 }
 
 function EmptyWithMutedBackgroundAlt() {
@@ -166,8 +159,8 @@ function EmptyWithMutedBackgroundAlt() {
         <EmptyHeader>
           <EmptyTitle>404 - Not Found</EmptyTitle>
           <EmptyDescription>
-            The page you&apos;re looking for doesn&apos;t exist. Try searching
-            for what you need below.
+            The page you&apos;re looking for doesn&apos;t exist. Try searching for what you need
+            below.
           </EmptyDescription>
         </EmptyHeader>
         <EmptyContent>
@@ -186,7 +179,7 @@ function EmptyWithMutedBackgroundAlt() {
         </EmptyContent>
       </Empty>
     </Example>
-  )
+  );
 }
 
 function EmptyInCard() {
@@ -199,8 +192,7 @@ function EmptyInCard() {
           </EmptyMedia>
           <EmptyTitle>No projects yet</EmptyTitle>
           <EmptyDescription>
-            You haven&apos;t created any projects yet. Get started by creating
-            your first project.
+            You haven&apos;t created any projects yet. Get started by creating your first project.
           </EmptyDescription>
         </EmptyHeader>
         <EmptyContent>
@@ -216,11 +208,10 @@ function EmptyInCard() {
             className="text-muted-foreground"
             nativeButton={false}
           >
-            Learn more{" "}
-            <ArrowUpRightIcon />
+            Learn more <ArrowUpRightIcon />
           </Button>
         </EmptyContent>
       </Empty>
     </Example>
-  )
+  );
 }

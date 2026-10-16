@@ -1,29 +1,16 @@
 /* MIT: Copyright (c) 2023 shadcn. See LICENSE. Browser-only catalog adaptation. */
-import { ChevronRightIcon, FileIcon, FolderIcon, MaximizeIcon, MinimizeIcon } from "lucide-react"
-"use client"
+"use client";
+import { ChevronRightIcon, FileIcon, FolderIcon, MaximizeIcon, MinimizeIcon } from "lucide-react";
 
-import * as React from "react"
+import * as React from "react";
 
-import {
-  Example,
-  ExampleWrapper,
-} from "@/components/example"
-import { Button } from "@/components/ui/button"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible"
-import { Field, FieldGroup, FieldLabel } from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Example, ExampleWrapper } from "@/components/example";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function CollapsibleExample() {
   return (
@@ -31,10 +18,10 @@ export default function CollapsibleExample() {
       <CollapsibleFileTree />
       <CollapsibleSettings />
     </ExampleWrapper>
-  )
+  );
 }
 
-type FileTreeItem = { name: string } | { name: string; items: FileTreeItem[] }
+type FileTreeItem = { name: string } | { name: string; items: FileTreeItem[] };
 
 function CollapsibleFileTree() {
   const fileTree: FileTreeItem[] = [
@@ -74,11 +61,7 @@ function CollapsibleFileTree() {
     },
     {
       name: "public",
-      items: [
-        { name: "favicon.ico" },
-        { name: "logo.svg" },
-        { name: "images" },
-      ],
+      items: [{ name: "favicon.ico" }, { name: "logo.svg" }, { name: "images" }],
     },
     { name: "app.tsx" },
     { name: "layout.tsx" },
@@ -87,7 +70,7 @@ function CollapsibleFileTree() {
     { name: "tsconfig.json" },
     { name: "README.md" },
     { name: ".gitignore" },
-  ]
+  ];
 
   const renderItem = (fileItem: FileTreeItem) => {
     if ("items" in fileItem) {
@@ -102,8 +85,7 @@ function CollapsibleFileTree() {
               />
             }
           >
-            <ChevronRightIcon
-              className="transition-transform group-data-[state=open]:rotate-90" />
+            <ChevronRightIcon className="transition-transform group-data-[state=open]:rotate-90" />
             <FolderIcon />
             {fileItem.name}
           </CollapsibleTrigger>
@@ -113,7 +95,7 @@ function CollapsibleFileTree() {
             </div>
           </CollapsibleContent>
         </Collapsible>
-      )
+      );
     }
     return (
       <Button
@@ -125,8 +107,8 @@ function CollapsibleFileTree() {
         <FileIcon />
         <span>{fileItem.name}</span>
       </Button>
-    )
-  }
+    );
+  };
 
   return (
     <Example title="File Tree" className="items-center">
@@ -140,33 +122,25 @@ function CollapsibleFileTree() {
           </Tabs>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col gap-1">
-            {fileTree.map((item) => renderItem(item))}
-          </div>
+          <div className="flex flex-col gap-1">{fileTree.map((item) => renderItem(item))}</div>
         </CardContent>
       </Card>
     </Example>
-  )
+  );
 }
 
 function CollapsibleSettings() {
-  const [isOpen, setIsOpen] = React.useState(false)
+  const [isOpen, setIsOpen] = React.useState(false);
 
   return (
     <Example title="Settings" className="items-center">
       <Card className="mx-auto w-full max-w-xs" size="sm">
         <CardHeader>
           <CardTitle>Radius</CardTitle>
-          <CardDescription>
-            Set the corner radius of the element.
-          </CardDescription>
+          <CardDescription>Set the corner radius of the element.</CardDescription>
         </CardHeader>
         <CardContent>
-          <Collapsible
-            open={isOpen}
-            onOpenChange={setIsOpen}
-            className="flex items-start gap-2"
-          >
+          <Collapsible open={isOpen} onOpenChange={setIsOpen} className="flex items-start gap-2">
             <FieldGroup className="grid w-full grid-cols-2 gap-2">
               <Field>
                 <FieldLabel htmlFor="radius-x" className="sr-only">
@@ -196,18 +170,16 @@ function CollapsibleSettings() {
               </CollapsibleContent>
             </FieldGroup>
             <CollapsibleTrigger
-              aria-label={isOpen ? "Hide additional radius settings" : "Show additional radius settings"}
+              aria-label={
+                isOpen ? "Hide additional radius settings" : "Show additional radius settings"
+              }
               render={<Button variant="outline" size="icon" />}
             >
-              {isOpen ? (
-                <MinimizeIcon />
-              ) : (
-                <MaximizeIcon />
-              )}
+              {isOpen ? <MinimizeIcon /> : <MaximizeIcon />}
             </CollapsibleTrigger>
           </Collapsible>
         </CardContent>
       </Card>
     </Example>
-  )
+  );
 }

@@ -1,13 +1,10 @@
 /* MIT: Copyright (c) 2023 shadcn. See LICENSE. Browser-only catalog adaptation. */
-"use client"
+"use client";
 
-import * as React from "react"
+import * as React from "react";
 
-import {
-  Example,
-  ExampleWrapper,
-} from "@/components/example"
-import { Checkbox } from "@/components/ui/checkbox"
+import { Example, ExampleWrapper } from "@/components/example";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Field,
   FieldContent,
@@ -15,7 +12,7 @@ import {
   FieldGroup,
   FieldLabel,
   FieldTitle,
-} from "@/components/ui/field"
+} from "@/components/ui/field";
 import {
   Table,
   TableBody,
@@ -23,7 +20,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
+} from "@/components/ui/table";
 
 export default function CheckboxExample() {
   return (
@@ -36,7 +33,7 @@ export default function CheckboxExample() {
       <CheckboxInTable />
       <CheckboxGroup />
     </ExampleWrapper>
-  )
+  );
 }
 
 function CheckboxBasic() {
@@ -47,7 +44,7 @@ function CheckboxBasic() {
         <FieldLabel htmlFor="terms">Accept terms and conditions</FieldLabel>
       </Field>
     </Example>
-  )
+  );
 }
 
 function CheckboxWithDescription() {
@@ -63,7 +60,7 @@ function CheckboxWithDescription() {
         </FieldContent>
       </Field>
     </Example>
-  )
+  );
 }
 
 function CheckboxInvalid() {
@@ -74,7 +71,7 @@ function CheckboxInvalid() {
         <FieldLabel htmlFor="terms-3">Accept terms and conditions</FieldLabel>
       </Field>
     </Example>
-  )
+  );
 }
 
 function CheckboxDisabled() {
@@ -85,7 +82,7 @@ function CheckboxDisabled() {
         <FieldLabel htmlFor="toggle">Enable notifications</FieldLabel>
       </Field>
     </Example>
-  )
+  );
 }
 
 function CheckboxWithTitle() {
@@ -116,7 +113,7 @@ function CheckboxWithTitle() {
         </FieldLabel>
       </FieldGroup>
     </Example>
-  )
+  );
 }
 
 const tableData = [
@@ -144,32 +141,30 @@ const tableData = [
     email: "david.kim@example.com",
     role: "Editor",
   },
-]
+];
 
 function CheckboxInTable() {
-  const [selectedRows, setSelectedRows] = React.useState<Set<string>>(
-    new Set(["1"])
-  )
+  const [selectedRows, setSelectedRows] = React.useState<Set<string>>(new Set(["1"]));
 
-  const selectAll = selectedRows.size === tableData.length
+  const selectAll = selectedRows.size === tableData.length;
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedRows(new Set(tableData.map((row) => row.id)))
+      setSelectedRows(new Set(tableData.map((row) => row.id)));
     } else {
-      setSelectedRows(new Set())
+      setSelectedRows(new Set());
     }
-  }
+  };
 
   const handleSelectRow = (id: string, checked: boolean) => {
-    const newSelected = new Set(selectedRows)
+    const newSelected = new Set(selectedRows);
     if (checked) {
-      newSelected.add(id)
+      newSelected.add(id);
     } else {
-      newSelected.delete(id)
+      newSelected.delete(id);
     }
-    setSelectedRows(newSelected)
-  }
+    setSelectedRows(newSelected);
+  };
 
   return (
     <Example title="In Table">
@@ -191,18 +186,13 @@ function CheckboxInTable() {
         </TableHeader>
         <TableBody>
           {tableData.map((row) => (
-            <TableRow
-              key={row.id}
-              data-state={selectedRows.has(row.id) ? "selected" : undefined}
-            >
+            <TableRow key={row.id} data-state={selectedRows.has(row.id) ? "selected" : undefined}>
               <TableCell>
                 <Checkbox
                   id={`row-${row.id}`}
                   aria-label={`Select ${row.name}`}
                   checked={selectedRows.has(row.id)}
-                  onCheckedChange={(checked) =>
-                    handleSelectRow(row.id, checked === true)
-                  }
+                  onCheckedChange={(checked) => handleSelectRow(row.id, checked === true)}
                 />
               </TableCell>
               <TableCell className="font-medium">{row.name}</TableCell>
@@ -213,7 +203,7 @@ function CheckboxInTable() {
         </TableBody>
       </Table>
     </Example>
-  )
+  );
 }
 
 function CheckboxGroup() {
@@ -223,41 +213,29 @@ function CheckboxGroup() {
         <FieldLabel>Show these items on the desktop:</FieldLabel>
         <Field orientation="horizontal">
           <Checkbox id="finder-pref-9k2-hard-disks-ljj" />
-          <FieldLabel
-            htmlFor="finder-pref-9k2-hard-disks-ljj"
-            className="font-normal"
-          >
+          <FieldLabel htmlFor="finder-pref-9k2-hard-disks-ljj" className="font-normal">
             Hard disks
           </FieldLabel>
         </Field>
         <Field orientation="horizontal">
           <Checkbox id="finder-pref-9k2-external-disks-1yg" />
-          <FieldLabel
-            htmlFor="finder-pref-9k2-external-disks-1yg"
-            className="font-normal"
-          >
+          <FieldLabel htmlFor="finder-pref-9k2-external-disks-1yg" className="font-normal">
             External disks
           </FieldLabel>
         </Field>
         <Field orientation="horizontal">
           <Checkbox id="finder-pref-9k2-cds-dvds-fzt" />
-          <FieldLabel
-            htmlFor="finder-pref-9k2-cds-dvds-fzt"
-            className="font-normal"
-          >
+          <FieldLabel htmlFor="finder-pref-9k2-cds-dvds-fzt" className="font-normal">
             CDs, DVDs, and iPods
           </FieldLabel>
         </Field>
         <Field orientation="horizontal">
           <Checkbox id="finder-pref-9k2-connected-servers-6l2" />
-          <FieldLabel
-            htmlFor="finder-pref-9k2-connected-servers-6l2"
-            className="font-normal"
-          >
+          <FieldLabel htmlFor="finder-pref-9k2-connected-servers-6l2" className="font-normal">
             Connected servers
           </FieldLabel>
         </Field>
       </Field>
     </Example>
-  )
+  );
 }

@@ -1,9 +1,6 @@
 /* MIT: Copyright (c) 2023 shadcn. See LICENSE. Browser-only catalog adaptation. */
-import {
-  Example,
-  ExampleWrapper,
-} from "@/components/example"
-import { Button } from "@/components/ui/button"
+import { Example, ExampleWrapper } from "@/components/example";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -11,9 +8,9 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
-import { Field, FieldGroup, FieldLabel } from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
+} from "@/components/ui/dialog";
+import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
 import {
   Popover,
   PopoverContent,
@@ -21,7 +18,7 @@ import {
   PopoverHeader,
   PopoverTitle,
   PopoverTrigger,
-} from "@/components/ui/popover"
+} from "@/components/ui/popover";
 
 export default function PopoverExample() {
   return (
@@ -32,7 +29,7 @@ export default function PopoverExample() {
       <PopoverAlignments />
       <PopoverInDialog />
     </ExampleWrapper>
-  )
+  );
 }
 
 function PopoverBasic() {
@@ -45,14 +42,12 @@ function PopoverBasic() {
         <PopoverContent align="start">
           <PopoverHeader>
             <PopoverTitle>Dimensions</PopoverTitle>
-            <PopoverDescription>
-              Set the dimensions for the layer.
-            </PopoverDescription>
+            <PopoverDescription>Set the dimensions for the layer.</PopoverDescription>
           </PopoverHeader>
         </PopoverContent>
       </Popover>
     </Example>
-  )
+  );
 }
 
 function PopoverSides() {
@@ -62,11 +57,7 @@ function PopoverSides() {
         <div className="flex flex-wrap gap-2">
           {(["inline-start", "left", "top"] as const).map((side) => (
             <Popover key={side}>
-              <PopoverTrigger
-                render={
-                  <Button variant="outline" className="w-fit capitalize" />
-                }
-              >
+              <PopoverTrigger render={<Button variant="outline" className="w-fit capitalize" />}>
                 {side.replace("-", " ")}
               </PopoverTrigger>
               <PopoverContent side={side} className="w-40">
@@ -78,11 +69,7 @@ function PopoverSides() {
         <div className="flex flex-wrap gap-2">
           {(["bottom", "right", "inline-end"] as const).map((side) => (
             <Popover key={side}>
-              <PopoverTrigger
-                render={
-                  <Button variant="outline" className="w-fit capitalize" />
-                }
-              >
+              <PopoverTrigger render={<Button variant="outline" className="w-fit capitalize" />}>
                 {side.replace("-", " ")}
               </PopoverTrigger>
               <PopoverContent side={side} className="w-40">
@@ -93,22 +80,18 @@ function PopoverSides() {
         </div>
       </div>
     </Example>
-  )
+  );
 }
 
 function PopoverWithForm() {
   return (
     <Example title="With Form">
       <Popover>
-        <PopoverTrigger render={<Button variant="outline" />}>
-          Open Popover
-        </PopoverTrigger>
+        <PopoverTrigger render={<Button variant="outline" />}>Open Popover</PopoverTrigger>
         <PopoverContent className="w-64" align="start">
           <PopoverHeader>
             <PopoverTitle>Dimensions</PopoverTitle>
-            <PopoverDescription>
-              Set the dimensions for the layer.
-            </PopoverDescription>
+            <PopoverDescription>Set the dimensions for the layer.</PopoverDescription>
           </PopoverHeader>
           <FieldGroup className="gap-4">
             <Field orientation="horizontal">
@@ -127,7 +110,7 @@ function PopoverWithForm() {
         </PopoverContent>
       </Popover>
     </Example>
-  )
+  );
 }
 
 function PopoverAlignments() {
@@ -135,60 +118,47 @@ function PopoverAlignments() {
     <Example title="Alignments">
       <div className="flex gap-6">
         <Popover>
-          <PopoverTrigger render={<Button variant="outline" size="sm" />}>
-            Start
-          </PopoverTrigger>
+          <PopoverTrigger render={<Button variant="outline" size="sm" />}>Start</PopoverTrigger>
           <PopoverContent align="start" className="w-40">
             Aligned to start
           </PopoverContent>
         </Popover>
         <Popover>
-          <PopoverTrigger render={<Button variant="outline" size="sm" />}>
-            Center
-          </PopoverTrigger>
+          <PopoverTrigger render={<Button variant="outline" size="sm" />}>Center</PopoverTrigger>
           <PopoverContent align="center" className="w-40">
             Aligned to center
           </PopoverContent>
         </Popover>
         <Popover>
-          <PopoverTrigger render={<Button variant="outline" size="sm" />}>
-            End
-          </PopoverTrigger>
+          <PopoverTrigger render={<Button variant="outline" size="sm" />}>End</PopoverTrigger>
           <PopoverContent align="end" className="w-40">
             Aligned to end
           </PopoverContent>
         </Popover>
       </div>
     </Example>
-  )
+  );
 }
 
 function PopoverInDialog() {
   return (
     <Example title="In Dialog">
       <Dialog>
-        <DialogTrigger render={<Button variant="outline" />}>
-          Open Dialog
-        </DialogTrigger>
+        <DialogTrigger render={<Button variant="outline" />}>Open Dialog</DialogTrigger>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Popover Example</DialogTitle>
-            <DialogDescription>
-              Click the button below to see the popover.
-            </DialogDescription>
+            <DialogDescription>Click the button below to see the popover.</DialogDescription>
           </DialogHeader>
           <Popover>
-            <PopoverTrigger
-              render={<Button variant="outline" className="w-fit" />}
-            >
+            <PopoverTrigger render={<Button variant="outline" className="w-fit" />}>
               Open Popover
             </PopoverTrigger>
             <PopoverContent align="start">
               <PopoverHeader>
                 <PopoverTitle>Popover in Dialog</PopoverTitle>
                 <PopoverDescription>
-                  This popover appears inside a dialog. Click the button to open
-                  it.
+                  This popover appears inside a dialog. Click the button to open it.
                 </PopoverDescription>
               </PopoverHeader>
             </PopoverContent>
@@ -196,5 +166,5 @@ function PopoverInDialog() {
         </DialogContent>
       </Dialog>
     </Example>
-  )
+  );
 }

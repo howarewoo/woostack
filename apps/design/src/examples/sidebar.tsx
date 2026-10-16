@@ -1,23 +1,17 @@
 /* MIT: Copyright (c) 2023 shadcn. See LICENSE. Browser-only catalog adaptation. */
-import { CheckIcon, ChevronsUpDownIcon, SearchIcon } from "lucide-react"
-"use client"
+"use client";
+import { CheckIcon, ChevronsUpDownIcon, SearchIcon } from "lucide-react";
 
-import * as React from "react"
+import * as React from "react";
 
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import {
-  Item,
-  ItemActions,
-  ItemContent,
-  ItemDescription,
-  ItemTitle,
-} from "@/components/ui/item"
-import { Label } from "@/components/ui/label"
+} from "@/components/ui/dropdown-menu";
+import { Item, ItemActions, ItemContent, ItemDescription, ItemTitle } from "@/components/ui/item";
+import { Label } from "@/components/ui/label";
 import {
   Sidebar,
   SidebarContent,
@@ -33,7 +27,7 @@ import {
   SidebarProvider,
   SidebarRail,
   SidebarTrigger,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/sidebar";
 
 export default function SidebarExample() {
   const data = {
@@ -135,10 +129,10 @@ export default function SidebarExample() {
         ],
       },
     ],
-  }
+  };
 
-  const [selectedVersion, setSelectedVersion] = React.useState(data.versions[0])
-  const [selectedPage, setSelectedPage] = React.useState("Data Fetching")
+  const [selectedVersion, setSelectedVersion] = React.useState(data.versions[0]);
+  const [selectedPage, setSelectedPage] = React.useState("Data Fetching");
 
   return (
     <SidebarProvider className="relative isolate h-[32rem] min-h-0 overflow-hidden [transform:translateZ(0)]">
@@ -167,15 +161,8 @@ export default function SidebarExample() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
                   {data.versions.map((version) => (
-                    <DropdownMenuItem
-                      key={version}
-                      onSelect={() => setSelectedVersion(version)}
-                    >
-                      v{version}{" "}
-                      {version === selectedVersion && (
-                        <CheckIcon
-                          className="ml-auto" />
-                      )}
+                    <DropdownMenuItem key={version} onSelect={() => setSelectedVersion(version)}>
+                      v{version} {version === selectedVersion && <CheckIcon className="ml-auto" />}
                     </DropdownMenuItem>
                   ))}
                 </DropdownMenuContent>
@@ -188,13 +175,8 @@ export default function SidebarExample() {
                 <Label htmlFor="search" className="sr-only">
                   Search
                 </Label>
-                <SidebarInput
-                  id="search"
-                  placeholder="Search the docs..."
-                  className="pl-8"
-                />
-                <SearchIcon
-                  className="pointer-events-none absolute top-1/2 left-2 size-4 -translate-y-1/2 opacity-50 select-none" />
+                <SidebarInput id="search" placeholder="Search the docs..." className="pl-8" />
+                <SearchIcon className="pointer-events-none absolute top-1/2 left-2 size-4 -translate-y-1/2 opacity-50 select-none" />
               </SidebarGroupContent>
             </SidebarGroup>
           </form>
@@ -227,8 +209,12 @@ export default function SidebarExample() {
           <SidebarTrigger className="-ml-1" />
         </header>
         <div className="flex flex-1 flex-col gap-4 p-4">
-          <h2 className="text-lg font-semibold" aria-live="polite">{selectedPage}</h2>
-          <p className="text-sm text-muted-foreground">Documentation preview · v{selectedVersion}</p>
+          <h2 className="text-lg font-semibold" aria-live="polite">
+            {selectedPage}
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            Documentation preview · v{selectedVersion}
+          </p>
           <div className="grid auto-rows-min gap-4 md:grid-cols-3">
             <div className="aspect-video rounded-xl bg-muted/50" />
             <div className="aspect-video rounded-xl bg-muted/50" />
@@ -238,5 +224,5 @@ export default function SidebarExample() {
         </div>
       </SidebarInset>
     </SidebarProvider>
-  )
+  );
 }

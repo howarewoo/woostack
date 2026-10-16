@@ -1,18 +1,11 @@
 /* MIT: Copyright (c) 2023 shadcn. See LICENSE. Browser-only catalog adaptation. */
-"use client"
+"use client";
 
-import * as React from "react"
-import type { Layout } from "react-resizable-panels"
+import * as React from "react";
+import type { Layout } from "react-resizable-panels";
 
-import {
-  Example,
-  ExampleWrapper,
-} from "@/components/example"
-import {
-  ResizableHandle,
-  ResizablePanel,
-  ResizablePanelGroup,
-} from "@/components/ui/resizable"
+import { Example, ExampleWrapper } from "@/components/example";
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 
 export default function ResizableExample() {
   return (
@@ -23,16 +16,13 @@ export default function ResizableExample() {
       <ResizableNested />
       <ResizableControlled />
     </ExampleWrapper>
-  )
+  );
 }
 
 function ResizableHorizontal() {
   return (
     <Example title="Horizontal">
-      <ResizablePanelGroup
-        orientation="horizontal"
-        className="min-h-[200px] rounded-lg border"
-      >
+      <ResizablePanelGroup orientation="horizontal" className="min-h-[200px] rounded-lg border">
         <ResizablePanel defaultSize="25%">
           <div className="flex h-full items-center justify-center p-6">
             <span className="font-semibold">Sidebar</span>
@@ -46,16 +36,13 @@ function ResizableHorizontal() {
         </ResizablePanel>
       </ResizablePanelGroup>
     </Example>
-  )
+  );
 }
 
 function ResizableVertical() {
   return (
     <Example title="Vertical">
-      <ResizablePanelGroup
-        orientation="vertical"
-        className="min-h-[200px] rounded-lg border"
-      >
+      <ResizablePanelGroup orientation="vertical" className="min-h-[200px] rounded-lg border">
         <ResizablePanel defaultSize="25%">
           <div className="flex h-full items-center justify-center p-6">
             <span className="font-semibold">Header</span>
@@ -69,16 +56,13 @@ function ResizableVertical() {
         </ResizablePanel>
       </ResizablePanelGroup>
     </Example>
-  )
+  );
 }
 
 function ResizableWithHandle() {
   return (
     <Example title="With Handle">
-      <ResizablePanelGroup
-        orientation="horizontal"
-        className="min-h-[200px] rounded-lg border"
-      >
+      <ResizablePanelGroup orientation="horizontal" className="min-h-[200px] rounded-lg border">
         <ResizablePanel defaultSize="25%">
           <div className="flex h-full items-center justify-center p-6">
             <span className="font-semibold">Sidebar</span>
@@ -92,16 +76,13 @@ function ResizableWithHandle() {
         </ResizablePanel>
       </ResizablePanelGroup>
     </Example>
-  )
+  );
 }
 
 function ResizableNested() {
   return (
     <Example title="Nested">
-      <ResizablePanelGroup
-        orientation="horizontal"
-        className="rounded-lg border"
-      >
+      <ResizablePanelGroup orientation="horizontal" className="rounded-lg border">
         <ResizablePanel defaultSize="50%">
           <div className="flex h-[200px] items-center justify-center p-6">
             <span className="font-semibold">One</span>
@@ -125,11 +106,11 @@ function ResizableNested() {
         </ResizablePanel>
       </ResizablePanelGroup>
     </Example>
-  )
+  );
 }
 
 function ResizableControlled() {
-  const [layout, setLayout] = React.useState<Layout>({})
+  const [layout, setLayout] = React.useState<Layout>({});
 
   return (
     <Example title="Controlled">
@@ -140,20 +121,16 @@ function ResizableControlled() {
       >
         <ResizablePanel defaultSize="30%" id="left" minSize="20%">
           <div className="flex h-full flex-col items-center justify-center gap-2 p-6">
-            <span className="font-semibold">
-              {Math.round(layout.left ?? 30)}%
-            </span>
+            <span className="font-semibold">{Math.round(layout.left ?? 30)}%</span>
           </div>
         </ResizablePanel>
         <ResizableHandle />
         <ResizablePanel defaultSize="70%" id="right" minSize="30%">
           <div className="flex h-full flex-col items-center justify-center gap-2 p-6">
-            <span className="font-semibold">
-              {Math.round(layout.right ?? 70)}%
-            </span>
+            <span className="font-semibold">{Math.round(layout.right ?? 70)}%</span>
           </div>
         </ResizablePanel>
       </ResizablePanelGroup>
     </Example>
-  )
+  );
 }

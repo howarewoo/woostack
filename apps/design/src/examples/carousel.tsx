@@ -1,16 +1,13 @@
 /* MIT: Copyright (c) 2023 shadcn. See LICENSE. Browser-only catalog adaptation. */
-import {
-  Example,
-  ExampleWrapper,
-} from "@/components/example"
-import { Card, CardContent } from "@/components/ui/card"
+import { Example, ExampleWrapper } from "@/components/example";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Carousel,
   CarouselContent,
   CarouselItem,
   CarouselNext,
   CarouselPrevious,
-} from "@/components/ui/carousel"
+} from "@/components/ui/carousel";
 
 export default function CarouselExample() {
   return (
@@ -19,7 +16,7 @@ export default function CarouselExample() {
       <CarouselMultiple />
       <CarouselWithGap />
     </ExampleWrapper>
-  )
+  );
 }
 
 function CarouselBasic() {
@@ -43,7 +40,7 @@ function CarouselBasic() {
         <CarouselNext className="hidden sm:inline-flex" />
       </Carousel>
     </Example>
-  )
+  );
 }
 
 function CarouselMultiple() {
@@ -72,7 +69,7 @@ function CarouselMultiple() {
         <CarouselNext className="hidden sm:inline-flex" />
       </Carousel>
     </Example>
-  )
+  );
 }
 
 function CarouselWithGap() {
@@ -96,5 +93,5 @@ function CarouselWithGap() {
         <CarouselNext className="hidden sm:inline-flex" />
       </Carousel>
     </Example>
-  )
+  );
 }

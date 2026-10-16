@@ -1,15 +1,12 @@
 /* MIT: Copyright (c) 2023 shadcn. See LICENSE. Browser-only catalog adaptation. */
-import { useState } from "react"
-import { CircleAlertIcon } from "lucide-react"
-"use client"
+"use client";
+import { useState } from "react";
+import { CircleAlertIcon } from "lucide-react";
 
-import * as React from "react"
-import { Link } from "@/components/example"
+import * as React from "react";
+import { Link } from "@/components/example";
 
-import {
-  Example,
-  ExampleWrapper,
-} from "@/components/example"
+import { Example, ExampleWrapper } from "@/components/example";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -18,7 +15,7 @@ import {
   NavigationMenuList,
   NavigationMenuTrigger,
   navigationMenuTriggerStyle,
-} from "@/components/ui/navigation-menu"
+} from "@/components/ui/navigation-menu";
 
 const components: { title: string; href: string; description: string }[] = [
   {
@@ -30,8 +27,7 @@ const components: { title: string; href: string; description: string }[] = [
   {
     title: "Hover Card",
     href: "/docs/primitives/hover-card",
-    description:
-      "For sighted users to preview content available behind a link.",
+    description: "For sighted users to preview content available behind a link.",
   },
   {
     title: "Progress",
@@ -56,23 +52,28 @@ const components: { title: string; href: string; description: string }[] = [
     description:
       "A popup that displays information related to an element when the element receives keyboard focus or the mouse hovers over it.",
   },
-]
+];
 
 export default function NavigationMenuExample() {
-  const [selectedLink, setSelectedLink] = useState("")
+  const [selectedLink, setSelectedLink] = useState("");
   return (
-    <div className="w-full" onClickCapture={(event) => {
-      const link = (event.target as Element).closest("a[href='#']")
-      if (!link) return
-      event.preventDefault()
-      setSelectedLink(link.getAttribute("aria-label") || link.textContent?.trim() || "Link")
-    }}>
-    <ExampleWrapper className="lg:grid-cols-1">
-      <NavigationMenuBasic />
-    </ExampleWrapper>
-      <p role="status" className="mt-3 text-sm text-muted-foreground">{selectedLink && `Selected example link: ${selectedLink}`}</p>
+    <div
+      className="w-full"
+      onClickCapture={(event) => {
+        const link = (event.target as Element).closest("a[href='#']");
+        if (!link) return;
+        event.preventDefault();
+        setSelectedLink(link.getAttribute("aria-label") || link.textContent?.trim() || "Link");
+      }}
+    >
+      <ExampleWrapper className="lg:grid-cols-1">
+        <NavigationMenuBasic />
+      </ExampleWrapper>
+      <p role="status" className="mt-3 text-sm text-muted-foreground">
+        {selectedLink && `Selected example link: ${selectedLink}`}
+      </p>
     </div>
-  )
+  );
 }
 
 function NavigationMenuBasic() {
@@ -101,11 +102,7 @@ function NavigationMenuBasic() {
             <NavigationMenuContent>
               <ul className="grid w-[400px] gap-2 md:w-[500px] md:grid-cols-2 lg:w-[600px]">
                 {components.map((component) => (
-                  <ListItem
-                    key={component.title}
-                    title={component.title}
-                    href={component.href}
-                  >
+                  <ListItem key={component.title} title={component.title} href={component.href}>
                     {component.description}
                   </ListItem>
                 ))}
@@ -118,25 +115,19 @@ function NavigationMenuBasic() {
               <ul className="grid w-[200px]">
                 <li>
                   <NavigationMenuLink
-                    render={
-                      <Link href="#" className="flex-row items-center gap-2" />
-                    }
+                    render={<Link href="#" className="flex-row items-center gap-2" />}
                   >
                     <CircleAlertIcon />
                     Backlog
                   </NavigationMenuLink>
                   <NavigationMenuLink
-                    render={
-                      <Link href="#" className="flex-row items-center gap-2" />
-                    }
+                    render={<Link href="#" className="flex-row items-center gap-2" />}
                   >
                     <CircleAlertIcon />
                     To Do
                   </NavigationMenuLink>
                   <NavigationMenuLink
-                    render={
-                      <Link href="#" className="flex-row items-center gap-2" />
-                    }
+                    render={<Link href="#" className="flex-row items-center gap-2" />}
                   >
                     <CircleAlertIcon />
                     Done
@@ -156,7 +147,7 @@ function NavigationMenuBasic() {
         </NavigationMenuList>
       </NavigationMenu>
     </Example>
-  )
+  );
 }
 
 function ListItem({
@@ -174,5 +165,5 @@ function ListItem({
         </div>
       </NavigationMenuLink>
     </li>
-  )
+  );
 }

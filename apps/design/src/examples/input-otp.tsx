@@ -1,16 +1,13 @@
 /* MIT: Copyright (c) 2023 shadcn. See LICENSE. Browser-only catalog adaptation. */
-import { useState } from "react"
-import { RefreshCwIcon } from "lucide-react"
-"use client"
+"use client";
+import { useState } from "react";
+import { RefreshCwIcon } from "lucide-react";
 
-import * as React from "react"
-import { REGEXP_ONLY_DIGITS, REGEXP_ONLY_DIGITS_AND_CHARS } from "input-otp"
+import * as React from "react";
+import { REGEXP_ONLY_DIGITS, REGEXP_ONLY_DIGITS_AND_CHARS } from "input-otp";
 
-import {
-  Example,
-  ExampleWrapper,
-} from "@/components/example"
-import { Button } from "@/components/ui/button"
+import { Example, ExampleWrapper } from "@/components/example";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -18,42 +15,42 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
-import {
-  Field,
-  FieldDescription,
-  FieldError,
-  FieldLabel,
-} from "@/components/ui/field"
+} from "@/components/ui/card";
+import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field";
 import {
   InputOTP,
   InputOTPGroup,
   InputOTPSeparator,
   InputOTPSlot,
-} from "@/components/ui/input-otp"
+} from "@/components/ui/input-otp";
 
 export default function InputOTPExample() {
-  const [selectedLink, setSelectedLink] = useState("")
+  const [selectedLink, setSelectedLink] = useState("");
   return (
-    <div className="w-full" onClickCapture={(event) => {
-      const link = (event.target as Element).closest("a[href='#']")
-      if (!link) return
-      event.preventDefault()
-      setSelectedLink(link.getAttribute("aria-label") || link.textContent?.trim() || "Link")
-    }}>
-    <ExampleWrapper>
-      <InputOTPForm />
-      <InputOTPSimple />
-      <InputOTPPattern />
-      <InputOTPWithSeparator />
-      <InputOTPAlphanumeric />
-      <InputOTPDisabled />
-      <InputOTPFourDigits />
-      <InputOTPInvalid />
-    </ExampleWrapper>
-      <p role="status" className="mt-3 text-sm text-muted-foreground">{selectedLink && `Selected example link: ${selectedLink}`}</p>
+    <div
+      className="w-full"
+      onClickCapture={(event) => {
+        const link = (event.target as Element).closest("a[href='#']");
+        if (!link) return;
+        event.preventDefault();
+        setSelectedLink(link.getAttribute("aria-label") || link.textContent?.trim() || "Link");
+      }}
+    >
+      <ExampleWrapper>
+        <InputOTPForm />
+        <InputOTPSimple />
+        <InputOTPPattern />
+        <InputOTPWithSeparator />
+        <InputOTPAlphanumeric />
+        <InputOTPDisabled />
+        <InputOTPFourDigits />
+        <InputOTPInvalid />
+      </ExampleWrapper>
+      <p role="status" className="mt-3 text-sm text-muted-foreground">
+        {selectedLink && `Selected example link: ${selectedLink}`}
+      </p>
     </div>
-  )
+  );
 }
 
 function InputOTPSimple() {
@@ -76,7 +73,7 @@ function InputOTPSimple() {
         </InputOTP>
       </Field>
     </Example>
-  )
+  );
 }
 
 function InputOTPPattern() {
@@ -96,22 +93,17 @@ function InputOTPPattern() {
         </InputOTP>
       </Field>
     </Example>
-  )
+  );
 }
 
 function InputOTPWithSeparator() {
-  const [value, setValue] = React.useState("123456")
+  const [value, setValue] = React.useState("123456");
 
   return (
     <Example title="With Separator">
       <Field>
         <FieldLabel htmlFor="with-separator">With Separator</FieldLabel>
-        <InputOTP
-          id="with-separator"
-          maxLength={6}
-          value={value}
-          onChange={setValue}
-        >
+        <InputOTP id="with-separator" maxLength={6} value={value} onChange={setValue}>
           <InputOTPGroup>
             <InputOTPSlot index={0} />
             <InputOTPSlot index={1} />
@@ -129,7 +121,7 @@ function InputOTPWithSeparator() {
         </InputOTP>
       </Field>
     </Example>
-  )
+  );
 }
 
 function InputOTPAlphanumeric() {
@@ -138,11 +130,7 @@ function InputOTPAlphanumeric() {
       <Field>
         <FieldLabel htmlFor="alphanumeric">Alphanumeric</FieldLabel>
         <FieldDescription>Accepts both letters and numbers.</FieldDescription>
-        <InputOTP
-          id="alphanumeric"
-          maxLength={6}
-          pattern={REGEXP_ONLY_DIGITS_AND_CHARS}
-        >
+        <InputOTP id="alphanumeric" maxLength={6} pattern={REGEXP_ONLY_DIGITS_AND_CHARS}>
           <InputOTPGroup>
             <InputOTPSlot index={0} />
             <InputOTPSlot index={1} />
@@ -157,7 +145,7 @@ function InputOTPAlphanumeric() {
         </InputOTP>
       </Field>
     </Example>
-  )
+  );
 }
 
 function InputOTPDisabled() {
@@ -180,7 +168,7 @@ function InputOTPDisabled() {
         </InputOTP>
       </Field>
     </Example>
-  )
+  );
 }
 
 function InputOTPFourDigits() {
@@ -199,19 +187,17 @@ function InputOTPFourDigits() {
         </InputOTP>
       </Field>
     </Example>
-  )
+  );
 }
 
 function InputOTPInvalid() {
-  const [value, setValue] = React.useState("000000")
+  const [value, setValue] = React.useState("000000");
 
   return (
     <Example title="Invalid State">
       <Field>
         <FieldLabel htmlFor="invalid">Invalid State</FieldLabel>
-        <FieldDescription>
-          Example showing the invalid error state.
-        </FieldDescription>
+        <FieldDescription>Example showing the invalid error state.</FieldDescription>
         <InputOTP id="invalid" maxLength={6} value={value} onChange={setValue}>
           <InputOTPGroup>
             <InputOTPSlot index={0} aria-invalid />
@@ -231,7 +217,7 @@ function InputOTPInvalid() {
         <FieldError errors={[{ message: "Invalid code. Please try again." }]} />
       </Field>
     </Example>
-  )
+  );
 }
 
 function InputOTPForm() {
@@ -249,12 +235,9 @@ function InputOTPForm() {
           <form>
             <Field>
               <div className="flex items-center justify-between">
-                <FieldLabel htmlFor="otp-verification">
-                  Verification code
-                </FieldLabel>
+                <FieldLabel htmlFor="otp-verification">Verification code</FieldLabel>
                 <Button variant="outline" size="xs">
-                  <RefreshCwIcon
-                    data-icon="inline-start" />
+                  <RefreshCwIcon data-icon="inline-start" />
                   Resend Code
                 </Button>
               </div>
@@ -293,5 +276,5 @@ function InputOTPForm() {
         </CardFooter>
       </Card>
     </Example>
-  )
+  );
 }

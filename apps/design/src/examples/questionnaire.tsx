@@ -1,14 +1,11 @@
 /* MIT: Copyright (c) 2023 shadcn. See LICENSE. Browser-only catalog adaptation. */
-"use client"
+"use client";
 
-import * as React from "react"
-import { toast } from "sonner"
+import * as React from "react";
+import { toast } from "sonner";
 
-import {
-  Example,
-  ExampleWrapper,
-} from "@/components/example"
-import { Button } from "@/components/ui/button"
+import { Example, ExampleWrapper } from "@/components/example";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardAction,
@@ -17,7 +14,7 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
+} from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -26,7 +23,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
+} from "@/components/ui/dialog";
 import {
   Questionnaire,
   QuestionnaireActions,
@@ -43,24 +40,16 @@ import {
   QuestionnaireSkip,
   QuestionnaireSubmit,
   QuestionnaireTitle,
-} from "@/components/ui/questionnaire"
+} from "@/components/ui/questionnaire";
 
 const questionnaireItems = [
   {
-    choices: [
-      { value: "delegation" },
-      { value: "questions" },
-      { value: "both" },
-    ],
+    choices: [{ value: "delegation" }, { value: "questions" }, { value: "both" }],
     name: "direction",
     required: true,
   },
   {
-    choices: [
-      { value: "progress" },
-      { value: "decisions" },
-      { value: "risks" },
-    ],
+    choices: [{ value: "progress" }, { value: "decisions" }, { value: "risks" }],
     name: "signals",
   },
   {
@@ -68,31 +57,23 @@ const questionnaireItems = [
     name: "timing",
     required: true,
   },
-] as const
+] as const;
 
 const taskItems = [
   {
-    choices: [
-      { value: "inspect" },
-      { value: "implement" },
-      { value: "review" },
-    ],
+    choices: [{ value: "inspect" }, { value: "implement" }, { value: "review" }],
     name: "task",
     required: true,
   },
-] as const
+] as const;
 
 const planItems = [
   {
-    choices: [
-      { value: "plus" },
-      { value: "pro" },
-      { value: "enterprise", disabled: true },
-    ],
+    choices: [{ value: "plus" }, { value: "pro" }, { value: "enterprise", disabled: true }],
     name: "plan",
     required: true,
   },
-] as const
+] as const;
 
 export default function QuestionnaireExample() {
   return (
@@ -103,7 +84,7 @@ export default function QuestionnaireExample() {
       <QuestionnaireNoDescription />
       <QuestionnaireDisabled />
     </ExampleWrapper>
-  )
+  );
 }
 
 function QuestionnaireDisabled() {
@@ -145,7 +126,7 @@ function QuestionnaireDisabled() {
         <QuestionnaireNavigation />
       </Questionnaire>
     </Example>
-  )
+  );
 }
 
 function QuestionnaireNoDescription() {
@@ -160,26 +141,18 @@ function QuestionnaireNoDescription() {
       >
         <QuestionnaireProgress />
         <QuestionnaireItem name="task" required>
-          <QuestionnaireTitle>
-            What should the agent do next?
-          </QuestionnaireTitle>
+          <QuestionnaireTitle>What should the agent do next?</QuestionnaireTitle>
           <QuestionnaireChoices>
-            <QuestionnaireChoice value="inspect">
-              Inspect the codebase
-            </QuestionnaireChoice>
-            <QuestionnaireChoice value="implement">
-              Implement the change
-            </QuestionnaireChoice>
-            <QuestionnaireChoice value="review">
-              Review the result
-            </QuestionnaireChoice>
+            <QuestionnaireChoice value="inspect">Inspect the codebase</QuestionnaireChoice>
+            <QuestionnaireChoice value="implement">Implement the change</QuestionnaireChoice>
+            <QuestionnaireChoice value="review">Review the result</QuestionnaireChoice>
           </QuestionnaireChoices>
           <QuestionnaireError />
         </QuestionnaireItem>
         <QuestionnaireNavigation />
       </Questionnaire>
     </Example>
-  )
+  );
 }
 
 function QuestionnaireStandalone() {
@@ -197,7 +170,7 @@ function QuestionnaireStandalone() {
         <QuestionnaireNavigation />
       </Questionnaire>
     </Example>
-  )
+  );
 }
 
 function QuestionnaireCard() {
@@ -212,7 +185,7 @@ function QuestionnaireCard() {
         <QuestionnaireCardQuestions />
       </Questionnaire>
     </Example>
-  )
+  );
 }
 
 function QuestionnaireDialog() {
@@ -223,19 +196,11 @@ function QuestionnaireDialog() {
       containerClassName="md:col-span-2"
     >
       <Dialog>
-        <DialogTrigger render={<Button variant="outline" />}>
-          Open questionnaire
-        </DialogTrigger>
+        <DialogTrigger render={<Button variant="outline" />}>Open questionnaire</DialogTrigger>
         <DialogContent>
-          <Questionnaire
-            defaultItem="direction"
-            items={questionnaireItems}
-            onSubmit={handleSubmit}
-          >
+          <Questionnaire defaultItem="direction" items={questionnaireItems} onSubmit={handleSubmit}>
             <DialogHeader>
-              <DialogTitle className="sr-only">
-                Plan an agent interface
-              </DialogTitle>
+              <DialogTitle className="sr-only">Plan an agent interface</DialogTitle>
               <DialogDescription className="sr-only">
                 Answer three questions to shape the next prototype.
               </DialogDescription>
@@ -256,21 +221,17 @@ function QuestionnaireDialog() {
         </DialogContent>
       </Dialog>
     </Example>
-  )
+  );
 }
 
 function QuestionnaireCardQuestions() {
-  const directionTitleId = React.useId()
-  const signalsTitleId = React.useId()
-  const timingTitleId = React.useId()
+  const directionTitleId = React.useId();
+  const signalsTitleId = React.useId();
+  const timingTitleId = React.useId();
 
   return (
     <>
-      <QuestionnaireItem
-        aria-labelledby={directionTitleId}
-        name="direction"
-        required
-      >
+      <QuestionnaireItem aria-labelledby={directionTitleId} name="direction" required>
         <Card className="mx-auto w-full max-w-lg">
           <CardHeader>
             <QuestionnaireTitle id={directionTitleId} render={<CardTitle />}>
@@ -315,11 +276,7 @@ function QuestionnaireCardQuestions() {
           </CardFooter>
         </Card>
       </QuestionnaireItem>
-      <QuestionnaireItem
-        aria-labelledby={signalsTitleId}
-        name="signals"
-        multiple
-      >
+      <QuestionnaireItem aria-labelledby={signalsTitleId} name="signals" multiple>
         <Card className="mx-auto w-full max-w-lg">
           <CardHeader>
             <QuestionnaireTitle id={signalsTitleId} render={<CardTitle />}>
@@ -334,12 +291,8 @@ function QuestionnaireCardQuestions() {
           </CardHeader>
           <CardContent>
             <QuestionnaireChoices>
-              <QuestionnaireChoice value="progress">
-                Progress
-              </QuestionnaireChoice>
-              <QuestionnaireChoice value="decisions">
-                Decisions
-              </QuestionnaireChoice>
+              <QuestionnaireChoice value="progress">Progress</QuestionnaireChoice>
+              <QuestionnaireChoice value="decisions">Decisions</QuestionnaireChoice>
               <QuestionnaireChoice value="risks">Risks</QuestionnaireChoice>
             </QuestionnaireChoices>
             <QuestionnaireError />
@@ -365,12 +318,8 @@ function QuestionnaireCardQuestions() {
           <CardContent>
             <QuestionnaireChoices>
               <QuestionnaireChoice value="week">This week</QuestionnaireChoice>
-              <QuestionnaireChoice value="cycle">
-                Next cycle
-              </QuestionnaireChoice>
-              <QuestionnaireChoice value="later">
-                Revisit later
-              </QuestionnaireChoice>
+              <QuestionnaireChoice value="cycle">Next cycle</QuestionnaireChoice>
+              <QuestionnaireChoice value="later">Revisit later</QuestionnaireChoice>
             </QuestionnaireChoices>
             <QuestionnaireError />
           </CardContent>
@@ -380,7 +329,7 @@ function QuestionnaireCardQuestions() {
         </Card>
       </QuestionnaireItem>
     </>
-  )
+  );
 }
 
 function QuestionnaireQuestions() {
@@ -418,9 +367,7 @@ function QuestionnaireQuestions() {
         <QuestionnaireError />
       </QuestionnaireItem>
       <QuestionnaireItem name="signals" multiple>
-        <QuestionnaireTitle>
-          What should every progress update include?
-        </QuestionnaireTitle>
+        <QuestionnaireTitle>What should every progress update include?</QuestionnaireTitle>
         <QuestionnaireDescription>
           Select all that apply, or skip this question.
         </QuestionnaireDescription>
@@ -433,9 +380,7 @@ function QuestionnaireQuestions() {
       </QuestionnaireItem>
       <QuestionnaireItem name="timing" required>
         <QuestionnaireTitle>When should this be revisited?</QuestionnaireTitle>
-        <QuestionnaireDescription>
-          Choose when this should be revisited.
-        </QuestionnaireDescription>
+        <QuestionnaireDescription>Choose when this should be revisited.</QuestionnaireDescription>
         <QuestionnaireChoices>
           <QuestionnaireChoice value="week">This week</QuestionnaireChoice>
           <QuestionnaireChoice value="cycle">Next cycle</QuestionnaireChoice>
@@ -444,7 +389,7 @@ function QuestionnaireQuestions() {
         <QuestionnaireError />
       </QuestionnaireItem>
     </>
-  )
+  );
 }
 
 function QuestionnaireNavigation() {
@@ -455,20 +400,20 @@ function QuestionnaireNavigation() {
       <QuestionnaireNext>Next</QuestionnaireNext>
       <QuestionnaireSubmit>Save answers</QuestionnaireSubmit>
     </QuestionnaireActions>
-  )
+  );
 }
 
 function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-  event.preventDefault()
+  event.preventDefault();
 
-  const formData = new FormData(event.currentTarget)
+  const formData = new FormData(event.currentTarget);
   const values = {
     direction: formData.get("direction"),
     signals: formData.getAll("signals"),
     timing: formData.get("timing"),
-  }
+  };
 
   toast("Questionnaire submitted", {
     description: `Direction: ${values.direction ?? "None"} · Progress signals: ${values.signals.join(", ") || "None"} · Timing: ${values.timing ?? "None"}`,
-  })
+  });
 }

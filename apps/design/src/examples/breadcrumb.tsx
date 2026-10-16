@@ -1,11 +1,8 @@
 /* MIT: Copyright (c) 2023 shadcn. See LICENSE. Browser-only catalog adaptation. */
-import { useState } from "react"
-import { Link } from "@/components/example"
+import { useState } from "react";
+import { Link } from "@/components/example";
 
-import {
-  Example,
-  ExampleWrapper,
-} from "@/components/example"
+import { Example, ExampleWrapper } from "@/components/example";
 import {
   Breadcrumb,
   BreadcrumbEllipsis,
@@ -14,32 +11,37 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb"
-import { Button } from "@/components/ui/button"
+} from "@/components/ui/breadcrumb";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu";
 
 export default function BreadcrumbExample() {
-  const [selectedLink, setSelectedLink] = useState("")
+  const [selectedLink, setSelectedLink] = useState("");
   return (
-    <div className="w-full" onClickCapture={(event) => {
-      const link = (event.target as Element).closest("a[href='#']")
-      if (!link) return
-      event.preventDefault()
-      setSelectedLink(link.getAttribute("aria-label") || link.textContent?.trim() || "Link")
-    }}>
-    <ExampleWrapper>
-      <BreadcrumbBasic />
-      <BreadcrumbWithDropdown />
-      <BreadcrumbWithLink />
-    </ExampleWrapper>
-      <p role="status" className="mt-3 text-sm text-muted-foreground">{selectedLink && `Selected example link: ${selectedLink}`}</p>
+    <div
+      className="w-full"
+      onClickCapture={(event) => {
+        const link = (event.target as Element).closest("a[href='#']");
+        if (!link) return;
+        event.preventDefault();
+        setSelectedLink(link.getAttribute("aria-label") || link.textContent?.trim() || "Link");
+      }}
+    >
+      <ExampleWrapper>
+        <BreadcrumbBasic />
+        <BreadcrumbWithDropdown />
+        <BreadcrumbWithLink />
+      </ExampleWrapper>
+      <p role="status" className="mt-3 text-sm text-muted-foreground">
+        {selectedLink && `Selected example link: ${selectedLink}`}
+      </p>
     </div>
-  )
+  );
 }
 
 function BreadcrumbBasic() {
@@ -61,7 +63,7 @@ function BreadcrumbBasic() {
         </BreadcrumbList>
       </Breadcrumb>
     </Example>
-  )
+  );
 }
 
 function BreadcrumbWithDropdown() {
@@ -75,9 +77,7 @@ function BreadcrumbWithDropdown() {
           <BreadcrumbSeparator />
           <BreadcrumbItem>
             <DropdownMenu>
-              <DropdownMenuTrigger
-                render={<Button size="icon-sm" variant="ghost" />}
-              >
+              <DropdownMenuTrigger render={<Button size="icon-sm" variant="ghost" />}>
                 <BreadcrumbEllipsis />
                 <span className="sr-only">Toggle menu</span>
               </DropdownMenuTrigger>
@@ -99,7 +99,7 @@ function BreadcrumbWithDropdown() {
         </BreadcrumbList>
       </Breadcrumb>
     </Example>
-  )
+  );
 }
 
 function BreadcrumbWithLink() {
@@ -125,5 +125,5 @@ function BreadcrumbWithLink() {
         </BreadcrumbList>
       </Breadcrumb>
     </Example>
-  )
+  );
 }
