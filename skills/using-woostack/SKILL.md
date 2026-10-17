@@ -68,9 +68,11 @@ Apply these authorization defaults:
   dependency/configuration changes, and verification. With an existing catalog, ordinary invocation
   is read-only; an explicit add, repair, or update request authorizes only that scope. It never
   authorizes branches, commits, PRs, issues, Project changes, or a product-wide UI migration.
-- **Orchestrate:** Explicit `/woostack-orchestrate` plans groups, delegates each coherent group to a
-  worker in its own task worktree, and delivers draft PRs with required native stacks for dependent
-  PRs. An issue link or automatic routing does not authorize delivery.
+- **Orchestrate:** Explicit `/woostack-orchestrate` inspects read-only evidence, presents an
+  actionable orchestration proposal, and stops for plan approval or revisions. Approved plans
+  delegate each coherent group to a worker in its own task worktree and deliver draft PRs with
+  required native stacks for dependent PRs. An issue link or automatic routing does not authorize
+  delivery.
 - **Commit:** A natural-language commit request without a PR request uses `--no-pr-update`;
   explicit `/woostack-commit` defaults to PR submission.
 

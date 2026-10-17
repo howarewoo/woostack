@@ -58,9 +58,9 @@ complete. An unknown defect cause stays with [Debug](/docs/skills/woostack-debug
 ## Orchestrate
 
 ```text
-approved work context → read outcomes, source, and PR evidence → state the group plan →
-delegate each group to a worker in its own task worktree → deliver draft PRs, stacked in order →
-verify delivery from Git and PR evidence
+approved work context → read outcomes, source, and PR evidence → propose orchestration plan →
+pause for user approval or revisions → delegate each group to a worker in its own task worktree →
+deliver draft PRs, stacked in order → verify delivery from Git and PR evidence
 ```
 
 Orchestrate works from approved tasks: published issues, a tracker, or other complete readable
@@ -73,8 +73,10 @@ required changes, the intended parent and landing order, and the safe parallel w
 are discovered from source and PR evidence, not from a missing dependency field. Small related
 tasks share a PR when their implementation/verification path is inseparable, not just because
 they are adjacent or share a controller. Every task keeps its acceptance, and a user-requested
-issue-to-PR mapping is preserved. Substantial groups retain one integrating writer and can use
-bounded contributions with explicit interfaces in separate owned workspaces.
+issue-to-PR mapping is preserved. Orchestrate presents this proposal and stops for approval or
+revisions; it allocates no workspaces and dispatches no workers before the user approves the plan.
+Substantial groups retain one integrating writer and can use bounded contributions with explicit
+interfaces in separate owned workspaces.
 
 Each group is implemented by a delegated worker in an independently owned task worktree, including
 a run that groups everything into one PR, and every task starts from a base that actually contains

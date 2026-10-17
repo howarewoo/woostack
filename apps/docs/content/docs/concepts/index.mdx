@@ -30,11 +30,12 @@ nothing is ordinary Execute input. Local work need not commit or publish; an exp
 request delivers a reviewable draft PR unless the request narrows it to local work.
 
 [Orchestrate](/docs/skills/woostack-orchestrate) is the multi-task case. It resolves approved tasks
-and their real prerequisites from published issues or other readable context, states the plan that
-groups them into coherent pull requests, delegates each group to a worker in its own task worktree,
-and releases dependent implementation only from verified prerequisite content, not merely PR
-landing order. Issue and Project metadata are its input rather than its authority: a closed issue
-or a finished status never proves that code landed, was reviewed, or was merged.
+and their real prerequisites from published issues or other readable context, presents a proposal
+grouping them into coherent pull requests, and pauses for user approval or revisions. Once approved,
+it delegates each group to a worker in its own task worktree and releases dependent implementation
+only from verified prerequisite content, not merely PR landing order. Issue and Project metadata are
+its input rather than its authority: a closed issue or a finished status never proves that code landed,
+was reviewed, or was merged.
 
 [Workflow maps](/docs/concepts/workflows) compare the workflows, and
 [Building rules](/docs/concepts/building-rules) explain who authorizes work and what counts as

@@ -149,15 +149,37 @@ separately reviewable.
 
 No issue metadata supplies an edge. `B` names the new helper behavior and the source confirms the
 consumer currently uses `parse_lines`; its dependency must be discovered before dispatch.
+Observe the initial pause: the candidate presents the proposal and stops without execution.
+Then reply with a revision-only request:
+
+```text
+Keep A1 and A2 grouped together, but make C the first independent group landing before B. Show the updated plan.
+```
+
+Observe the second pause: the candidate presents the updated proposal and stops again without
+allocating or executing. Finally, authorize execution:
+
+```text
+Approved, proceed.
+```
+
 Without an authorized remote, mark the positive PR and native-stack steps **Unrun**. Do not call
 local checks verified PR delivery.
 
 **Observe:**
 
-- The evidence-based plan precedes the first source write and worker dispatch. It groups A1/A2
-  into one helper PR, keeps B as a separate dependent PR and C as an independent PR, states the
-  required changes, intended parents and landing order, and safe parallel work. The source-level
-  prerequisite for B is discovered without a declared edge; shared files alone create none.
+- The evidence-based proposal precedes any source write, workspace allocation, or worker dispatch.
+  The initial explicit invocation stops for plan approval or revisions, presenting the scope,
+  grouping (A1/A2 helper PR, B separate dependent PR, C independent PR), required changes,
+  intended parents/landing order, and safe parallel work. The source-level prerequisite for B is
+  discovered without a declared edge; shared files alone create none.
+- Before approval, no execution workspaces or topic branches are allocated, no workers are dispatched,
+  and no source files, commits, or external writes are made.
+- The revision-only response produces an updated proposal reflecting the requested ordering/grouping
+  and pauses again without execution effects.
+- Approval dispatches workers following the revised plan. An explicit authorization to proceed with
+  revisions (or re-invoking an unchanged plan already explicitly approved) proceeds without a
+  redundant approval pause.
 - Each group gets a real worker in its own task worktree and topic branch. Sequential delegation is
   valid, including for one grouped PR; neither task implementation nor the sentinel touches the
   primary HEAD/index, and no two writers share a physical workspace.
@@ -186,6 +208,8 @@ results. Use existing commits where permitted; preserve actual dirty-source evid
 
 | Input or fixture variation | Observe |
 | --- | --- |
+| Re-invoke or continue an unchanged orchestration plan that the user already explicitly approved in the conversation; separately authorize execution with a revision in one step ("combine those groups and then go ahead"). | The unchanged approved plan proceeds to execution without a redundant confirmation pause. The combined revision-plus-proceed instruction incorporates the revision and begins execution of the updated plan immediately. |
+| During execution, encounter a material departure requiring an unplanned deliverable PR or new cross-group dependency; compare with routine defect repairs or check adjustments within scope. | Affected work pauses and seeks renewed approval before allocating or dispatching the departed structure. Routine in-scope fixes, test corrections, and internal contribution adjustments continue without interrupting execution. |
 | Explicitly request corrections to a faulty helper accepting whitespace-only input and missing final newline; observe both failures. Correct whitespace rejection, then replace the released writer for newline rejection; preserve an understood unrelated edit. | Both corrections run affected checks and reuse the verified workspace/branch/PR after release, without a repair-only allocation or stack layer. Primary sentinel and understood edits survive. |
 | Supply unknown writer liveness or an unexplained task edit; separately supply an unsuitable base. | Affected reuse stops without allocating around uncertainty or silently resetting/rebasing. State survives; genuinely independent work remains eligible. If no safe interruption exists, label liveness injection **Unrun**. |
 | Ask two compatible read-only reviewers to inspect the same unchanged identified source; include a formatter or generator that writes. | Review provenance identifies actual bytes/revision, not mutable HEAD or a directory label. Compatible review adds no allocation; conflicting mutation is serialized or justified isolation, not called read-only. |
@@ -295,8 +319,8 @@ No merge, auto-merge, or queue operation occurs. Without an authorized remote or
 label these variants **Unrun**, not simulated.
 
 **Manual trace:** follow router → caller (Execute, Orchestrate, or Address Comments) → Commit →
-source-control reference → AGENTS.md. Record how request scope, original-head lease, unselected
-membership, readiness, and merge prohibition pass through without contradictory instructions.
+source-control reference → AGENTS.md. Record how request scope, plan approval pause, original-head lease,
+unselected membership, readiness, and merge prohibition pass through without contradictory instructions.
 Keep this trace separate from local Git observations and actual-host evidence.
 
 ## 6. Independent new-project planning and local creation
