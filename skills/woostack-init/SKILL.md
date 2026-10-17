@@ -1,6 +1,6 @@
 ---
 name: woostack-init
-description: Create or maintain a repository's README.md, AGENTS.md, DESIGN.md, PRODUCT.md, and ARCHITECTURE.md through evidence-based guidance and material user decisions; also initialize or repair local .woostack/ support when explicitly requested.
+description: Create or maintain root README.md, AGENTS.md, DESIGN.md, PRODUCT.md, and ARCHITECTURE.md; also initialize or repair local .woostack/ support when explicitly requested.
 ---
 
 # woostack-init

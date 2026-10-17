@@ -100,8 +100,7 @@ Ground claims in representative source, entrypoints, manifests, configuration, e
 and confirmed user decisions. Distinguish implemented architecture, agreed future direction, and
 unresolved decisions. In greenfield repositories, label confirmed plans as planned, not implemented.
 Omit unsupported material or explicitly defer it; never invent infrastructure, components,
-constraints, or settled decisions to fill a template. Use the existing material-gap questions only
-when evidence and prior decisions cannot resolve a consequential gap.
+constraints, or settled decisions to fill a template.
 
 When detailed architecture already lives in `DESIGN.md` or elsewhere, provide a concise but useful
 root overview with links, not a competing specification. Preserve established authority; do not
@@ -109,11 +108,9 @@ silently move or repurpose documents. Consolidation requires separate authorizat
 scope, visual/interaction guidance, first-use instructions, and agent operations with their owners
 under [document responsibilities](../SKILL.md#document-responsibilities).
 
-Apply the [guided workflow](../SKILL.md#guided-authoring): create missing guidance or replace
-empty/placeholder content from evidence; correct stale facts and fill meaningful gaps with minimal
-edits, preserving useful custom content and links. Reconcile stale or duplicate material rather
-than adding another layer. Leave adequate guidance unchanged; unchanged scope, evidence, and
-decisions on a repeat invocation must not produce stylistic rewrites or duplicate sections.
+Use the [guided workflow](../SKILL.md#guided-authoring) for creation and targeted updates.
+Leave adequate guidance unchanged; unchanged scope, evidence, and decisions on a repeat invocation
+must not produce stylistic rewrites or duplicate sections.
 
 ## PRODUCT.md
 
