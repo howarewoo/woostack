@@ -50,10 +50,11 @@ planning context to Codex. A canonical tracker URL is a convenient hint:
 In Codex, write that same request as `$woostack-orchestrate --issue <verified canonical tracker
 URL>`.
 
-Orchestrate independently reads the selected scope and dependencies, states the group plan, then
-delegates each group to a worker in its own task worktree. When the host exposes no subagents, it
-reports that boundary rather than running the same scope inline. See
-[Orchestrate](/docs/skills/woostack-orchestrate) for scope, ordering, and delivery boundaries.
+Orchestrate independently reads the selected scope and dependencies, presents the proposed plan, and
+pauses for user approval or revisions. On approval, it delegates each group to a worker in its own task
+worktree. When the host exposes no subagents, it reports that boundary rather than running the same
+scope inline. See [Orchestrate](/docs/skills/woostack-orchestrate) for scope, ordering, and delivery
+boundaries.
 
 If chat tools cannot write issues, pass the plan and its evidence to Plan in Codex. Plan publishes
 issues only when requested. Debug, Ideate, and Harden are optional phases; a bounded task can go
