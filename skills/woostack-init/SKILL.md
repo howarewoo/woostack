@@ -1,6 +1,6 @@
 ---
 name: woostack-init
-description: Create or maintain a repository's README.md, AGENTS.md, DESIGN.md, and PRODUCT.md through evidence-based guidance and material user decisions; also initialize or repair local .woostack/ support when explicitly requested.
+description: Create or maintain root README.md, AGENTS.md, DESIGN.md, PRODUCT.md, and ARCHITECTURE.md; also initialize or repair local .woostack/ support when explicitly requested.
 ---
 
 # woostack-init
@@ -15,20 +15,22 @@ apply only changes the request authorizes. A rerun may make no changes.
 /woostack-init [path]
 ```
 
-The default intent is guided document authoring. Honor a request limited to one document or to
-review, planning, or drafts. An explicit local-support setup/repair request, including Doctor's
+The default intent is guided document authoring, including root `ARCHITECTURE.md`. Honor a request
+limited to one document or to review, planning, or drafts; architecture-only requests do not edit
+other root documents. An explicit local-support setup/repair request, including Doctor's
 missing-support referral, goes directly to [Local support](#local-support) without a document
 interview. When both intents are requested, keep their authorization and verification separate.
 
-Document work requires neither `.woostack/` nor GitHub policy validation, Doctor, or GitHub access.
-Missing support or an unrelated malformed setting must not block drafting. Load support helpers
-and contracts only for relevant support work.
+Document work requires no `.woostack/`, GitHub policy validation, Doctor, GitHub access, or
+dependency installation. Missing support or an unrelated malformed setting must not block drafting.
+Load support helpers and contracts only for relevant support work.
 
 ## Guided authoring
 
 1. **Inspect the evidence.** Resolve the target and requested scope without changing it. Read relevant
    conversation decisions, existing root and scoped agent instructions, README/contributor guidance,
-   product/design documents and their canonical sources, representative code, scripts, and CI.
+   product/design/architecture documents and their canonical sources, representative source,
+   entrypoints, manifests, configuration, scripts, and CI.
    Summarize what needs creating, updating, or preserving. Distinguish observed implementation,
    documented intent, and unresolved decisions; surface contradictions rather than silently choosing
    one. Preserve the authority and scope of existing instructions.
@@ -36,9 +38,9 @@ and contracts only for relevant support work.
    instructions, CI, test suites, and available timing evidence, distinguishing demonstrated bottlenecks
    from unmeasured concerns. An adequate verification setup is a valid no-op.
 2. **Resolve material gaps.** Ask repository-informed questions only where answers change a reader's
-   first-use path, product behavior, design direction, or working agreements. Offer a recommendation
-   and tradeoff when useful. Do not ask for repository facts or previously answered product and
-   technology decisions.
+   first-use path, product behavior, design direction, architecture, or working agreements.
+   Offer a recommendation and tradeoff when useful. Do not ask for repository facts or previously
+   answered product and technology decisions.
    When verification improvements are warranted, prefer removing redundant commands or configuring
    native capabilities before adding or replacing tools, guided by canonical
    [testing principles](../woostack-execute/references/tdd.md). Consider only capabilities warranted
@@ -51,8 +53,9 @@ and contracts only for relevant support work.
    Product → design → agent instructions is a useful default, not a required sequence.
    Adapt to the project and allow decisions to remain explicitly deferred.
 3. **Draft focused guidance.** Use the [document responsibilities](#document-responsibilities) and
-   applicable [document schemas](references/document-schemas.md). Create missing guidance or propose
-   targeted revisions, preserving useful project-specific content.
+   applicable [document schemas](references/document-schemas.md). Create missing guidance, replace
+   empty or placeholder content with supported guidance, or make targeted revisions, preserving
+   useful project-specific content.
    Identify stale, contradictory, and duplicated material for removal rather than appending another
    generated layer. Link to canonical specifications, architecture decisions, design systems, and
    contributor guidance instead of copying them; propose consolidation before replacing established
@@ -61,9 +64,10 @@ and contracts only for relevant support work.
    command existence, working directory, and conditions; keep current commands distinct from proposals
    under the [document schemas](references/document-schemas.md). Preserve scoped instructions.
 4. **Review meaningful changes and apply authorized edits.** Present the proposed result, calling out
-   changes to product direction, design constraints, and agent permissions. Reuse authorization
-   already given; do not add approval ceremonies for individual headings or paragraphs. Review-only,
-   draft-only, or planning requests write nothing. Unapproved scope expansion remains a proposal.
+   changes to product direction, design or architectural constraints, and agent permissions.
+   Reuse authorization already given; do not add approval ceremonies for individual headings or
+   paragraphs. Review-only, draft-only, or planning requests write nothing. Unapproved scope expansion
+   remains a proposal.
    Tooling and verification recommendations are advisory under [Boundaries](#boundaries).
    Preserve unrelated work, file ownership, and existing file/symlink relationships: verify a linked
    target's identity and authorization before editing it, never replace the link or write through an
@@ -90,11 +94,14 @@ established architecture-focused meaning of `DESIGN.md`; the visual schema does 
 | `README.md` | What is this project, and how do I start using it? | The [README contract](references/document-schemas.md#readmemd): evidence-backed identity, shortest verified first-use path, representative usage, and navigation to canonical docs and policies. |
 | `PRODUCT.md` | What are we building, for whom, and why? | The [product record](references/document-schemas.md#productmd): users, purpose, operating context, capabilities, constraints, and confirmed principles. Separate current scope from future direction. |
 | `DESIGN.md` | How should the product work and feel? | The [visual format](references/document-schemas.md#designmd) where applicable: observed or agreed identity, tokens, components, and usage. Preserve canonical system-design decisions where the document already owns them. |
+| `ARCHITECTURE.md` | Where should a change live, how do the parts interact, and what boundaries must it preserve? | [Technical orientation](references/document-schemas.md#architecturemd): major responsibilities and paths, important relationships and flows, constraints, and supported decision links. |
 | `AGENTS.md` | How should an agent work effectively in this repository? | [Unversioned operational Markdown](references/document-schemas.md#agentsmd): actual commands and working directories, conditional verification, boundaries, pitfalls, and links to deeper documentation. |
 
 Keep `AGENTS.md` operational: no copied product specification, exhaustive file inventory, generic
-coding advice, or duplicated Woostack workflows. Include contextual pointers to `PRODUCT.md` and
-`DESIGN.md` when applicable so an agent knows when to read them; do not assume automatic loading.
+coding advice, or duplicated Woostack workflows. When `AGENTS.md` is also in the authorized scope,
+include or refine short conditional pointers to `PRODUCT.md`, `DESIGN.md`, and `ARCHITECTURE.md`
+where applicable. Explain when to read architecture guidance, such as before changing component
+boundaries or cross-component flows; link rather than copying content or assuming automatic loading.
 When creating or updating `AGENTS.md` during Woostack adoption, use the concise, availability-aware
 [routing paragraph](../using-woostack/SKILL.md#agentsmd-usage), replacing unconditional Woostack
 usage or installation requirements. Use installed skills when available; missing skills must not

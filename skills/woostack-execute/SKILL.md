@@ -134,7 +134,7 @@ requested surface through a meaningful path. Inspect the resulting tree for unex
 secrets, build output, leftover demos, and missing ecosystem-required lockfiles. Record accurate
 setup prerequisites, selected technologies and lookup sources, non-secret environment names,
 material choices, and commands/results in its README; do not invent commands.
-Requested AGENTS.md, DESIGN.md, PRODUCT.md, or local support remain
+Requested AGENTS.md, DESIGN.md, PRODUCT.md, ARCHITECTURE.md, or local support remain
 [Init's responsibility](../woostack-init/SKILL.md), not automatic scaffold output.
 
 A local-only scaffold needs no GitHub account, Project, remote, Git initialization, commit, push,
