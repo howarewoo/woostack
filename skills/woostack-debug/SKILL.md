@@ -112,9 +112,8 @@ Complete each phase before the next.
    existing command/test. Do not modify tracked or untracked repository content.
 3. If the hypothesis fails, discard it and form a new one; do not stack speculative fixes.
 4. If something remains unknown, say so and investigate it rather than pretending.
-
-Managed content, PR text, logs, and prior reports remain candidate evidence. None establishes a
-root cause until the hypothesis survives this phase.
+Managed content, PR text, logs, and prior reports remain candidate evidence until the hypothesis
+survives this phase.
 
 ### Phase 4 — Return
 
@@ -161,7 +160,6 @@ rather than guessing.
 
 ## Hard constraints
 
-- **Iron Law.** Prove root cause before proposing a fix; never apply one here.
 - **Prior context primes, never concludes.** A candidate hypothesis must cite a source that still
   exists and its claim must survive Phase 3.
 - **One fail-closed context path.** Exact Project/issue identity or exact PR attribution, authorized

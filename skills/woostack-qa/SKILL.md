@@ -19,7 +19,7 @@ proposed bounded remediation contract and may link an exact caller-supplied GitH
 form establishes scope, acceptance, assignment, or implementation authority.
 QA is an on-demand local engine with no CI delivery or gate. It is not a test-suite author —
 durable test work belongs to a separately authorized implementation workflow with its own testing
-guidance, not a QA run — not a load/perf/security scanner,
+guidance — not a load/perf/security scanner,
 and it never starts, builds, or restarts the target app.
 
 ## Commands

@@ -45,10 +45,10 @@ For an explicit one-run model or effort request, apply the shared
    endpoints outside the selected scope. A prerequisite blocked by an external capability stays
    blocked — do not invent a task, expand scope, or substitute a weaker step, and a missing
    tracking-admin field is not a blocker. Distinguish native, declared, and inferred dependency
-   provenance and say which applies. A complete implementation index in an exact tracker may
-   establish declared membership when native hierarchy is absent, partial, or unavailable; read
-   every selected issue's contract independently. Native links, declared edges, and inferred
-   relationships remain distinct evidence; publish no inferred or declared hierarchy, infer no
+   provenance and say which applies; they remain distinct evidence. A complete implementation
+   index in an exact tracker may establish declared membership when native hierarchy is absent,
+   partial, or unavailable; read every selected issue's contract independently. Publish no
+   inferred or declared hierarchy, infer no
    Project, include a Project only when explicitly selected, and mutate its status lifecycle only
    when that selection requests it.
    Present an actionable proposal covering: intended outcome, scope, important exclusions, and
@@ -151,11 +151,10 @@ task workspaces for implementation, repairs, and integration, not one allocation
    [Slow checks](references/tdd.md#slow-checks-bounded-diagnosis-no-waiver);
    deferred manual acceptance remains unmet, not passed evidence.
    Hand the intended parent and ordered chain to the
-   [delivery procedure](references/delivery.md) and require
-   native registration for dependent PRs.
-   Delivery, native stack registration, lost-write recovery, and read-back follow the
-   [authorized Git tools reference](references/source-control.md#native-stack-membership);
-   confirm the published identity, head, base, content, and required membership/order yourself.
+   [delivery procedure](references/delivery.md), requiring native registration for dependent
+   PRs; delivery, membership, lost-write recovery, and read-back follow the
+   [authorized Git tools reference](references/source-control.md#native-stack-membership).
+   Confirm the published identity, head, base, content, and required membership/order yourself.
    Each root PR targets the approved trunk; each dependent PR targets its planned predecessor's
    head branch. A one-PR run and independent PRs need no stack. Missing required stack capability
    or registration leaves delivery incomplete; preserve valid work and PRs and report that

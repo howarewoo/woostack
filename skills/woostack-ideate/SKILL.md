@@ -59,8 +59,7 @@ what is stale, conflicting, or newly exposed.
 
 ## Read-only boundary
 
-Ideate reads only the bounded repository and evidence needed to explore a decision. It makes no
-provider calls, remote writes, issue creation, source edits, implementation-worker dispatch, commit,
+Beyond the standalone read-only phase above, Ideate makes no provider calls and takes no commit,
 branch, worktree, or PR action. An explicit request to save the result writes only that
 user-selected document, which grants no later authority.
 

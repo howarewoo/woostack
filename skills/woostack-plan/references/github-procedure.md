@@ -41,9 +41,8 @@ error is not an empty result.
 ## Before the first write
 
 1. Confirm that the request authorized publication, that the destination is the one resolved from
-   context, and that the content is appropriate for its actual visibility. Do not add a second
-   approval event to a request to file issues; ask if visibility or a material decision conflicts
-   with what the user requested.
+   context, and that the content is appropriate for its actual visibility; ask if visibility or a
+   material decision conflicts with what the user requested.
 2. Confirm each increment's content and that every command or path it names exists at the current
    tip or is created by that increment or one of its prerequisites. A named command that does not
    exist blocks the write.

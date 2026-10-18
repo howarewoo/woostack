@@ -5,8 +5,7 @@ description: "Use to render one self-contained HTML visualization from a supplie
 
 # woostack-visualize
 
-Render the requested source as one self-contained HTML visualization tailored to its reader. The
-HTML is a disposable reading aid, never the authority for what it describes.
+Render the requested source as one self-contained HTML visualization tailored to its reader.
 
 ## Command
 
@@ -20,9 +19,6 @@ HTML is a disposable reading aid, never the authority for what it describes.
     - `/woostack-visualize docs/billing-proposal.md for an investor`
     - `/woostack-visualize src/billing/invoice.ts for a security auditor`
     - `/woostack-visualize https://github.com/acme/widgets/pull/42 for an engineer`
-
-Render the source that was requested. Never substitute an approximate or "current" stand-in, and
-never discover a source the caller did not select.
 
 ## When to visualize
 

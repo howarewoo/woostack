@@ -41,15 +41,12 @@ Load support helpers and contracts only for relevant support work.
    first-use path, product behavior, design direction, architecture, or working agreements.
    Offer a recommendation and tradeoff when useful. Do not ask for repository facts or previously
    answered product and technology decisions.
-   When verification improvements are warranted, prefer removing redundant commands or configuring
-   native capabilities before adding or replacing tools, guided by the
-   [testing principles](references/tdd.md). Consider only capabilities warranted
-   by the gap (such as focused selection, assertion quality, deterministic cache reuse, setup costs,
-   resource-aware concurrency, or obsolete CI work). If options need investigation, consult current
-   authoritative sources for the repository's ecosystem, preserving settled viable choices and
-   recommending fit based on compatibility, correctness, execution cost, migration effort, and
-   maintenance burden. Keep current setup, agreed future direction, and unimplemented recommendations
-   distinct, stating tradeoffs and verification without promising unmeasured speedups.
+   For verification recommendations, use the [testing principles](references/tdd.md): prefer
+   removing redundant work and configuring native capabilities before adding or replacing tools.
+   Investigate only warranted options against current authoritative ecosystem sources; preserve
+   settled viable choices and compare compatibility, correctness, execution cost, migration effort,
+   and maintenance. Keep current setup, agreed direction, and unimplemented recommendations
+   distinct, with tradeoffs and verification rather than unmeasured speedup claims.
    Product → design → agent instructions is a useful default, not a required sequence.
    Adapt to the project and allow decisions to remain explicitly deferred.
 3. **Draft focused guidance.** Use the [document responsibilities](#document-responsibilities) and
@@ -120,10 +117,8 @@ without it before continuing.
 Follow this file first when it conflicts with generic agent defaults.
 ```
 
-Adoption output must not make another skill, the source checkout, or any shared runtime a
-prerequisite: each installed skill owns its activation and workflow on its own. Use installed
-skills when available; missing skills must not block ordinary repository work. Do not copy the
-workflow catalog or flatten scoped instructions.
+Adoption output must not require another skill, the source checkout, or a shared runtime.
+Do not copy the workflow catalog or flatten scoped instructions.
 
 ## Local support
 

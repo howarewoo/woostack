@@ -54,9 +54,8 @@ a command as passing because it appears in the content.
 
 ## Read-only boundary
 
-Harden performs no GitHub or remote writes, issue creation, source edit, implementation-worker
-dispatch, commit, branch, worktree, PR, or execution action. It only reads. It creates no manifest,
-ledger, mirror, or hidden record, and it never invokes another phase. A user may explicitly save
+Beyond the standalone read-only review above, Harden takes no execution action and creates no
+manifest, ledger, mirror, or hidden record. A user may explicitly save
 the review, but saving it is not approval or authority.
 
 ## Return

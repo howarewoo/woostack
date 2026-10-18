@@ -8,8 +8,7 @@ description: Use when asked to create a project-adapted design system and compon
 Create a working, project-owned component catalog from the versioned assets shipped with this
 skill. Use the [shadcn component documentation](https://ui.shadcn.com/docs/components) for canonical
 upstream guidance; the shipped inventory defines reproducible catalog coverage, not copied upstream
-documentation. The catalog uses shadcn foundations and Git Stacks source provenance, not runtime
-dependencies or remote-documentation fetches. This command owns component-system creation;
+documentation. This command owns component-system creation;
 arranging multi-step flows is the separate woostack-design layout standard, unchanged here.
 
 ## Command and authorization

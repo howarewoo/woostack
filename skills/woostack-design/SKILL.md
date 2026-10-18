@@ -23,7 +23,7 @@ Apply this spatial standard to all arranged flows:
 
 - **One group per flow.** Enclose each distinct flow—including its title, description, main step
   sequence, and all associated forks—in a single dedicated parent group.
-- **Title and description.** Place the flow title above the step sequence. Place the flow
+- **Title and description.** Place the flow title above the step sequence, with the flow
   description directly below the title.
 
 ### 2. Primary sequence
@@ -52,10 +52,10 @@ Apply this spatial standard to all arranged flows:
   Match by meaning, not ordinal position within each row.
 - **Fork start.** When a fork's first frame has an equivalent step, use that step's column;
   otherwise align it directly beneath the source step from which it branches.
-- **Matching rhythm.** Subsequent frames proceed left-to-right using the primary sequence's
-  horizontal spacing rhythm. Leave empty column space for skipped steps and reserve columns for
-  branch-only steps across affected rows; equivalent-step alignment takes precedence over uniform
-  gaps between occupied frames. Preserve each path's step order.
+- **Matching rhythm.** Subsequent frames continue left-to-right at the primary sequence's rhythm.
+  Leave empty column space for skipped steps and reserve columns for branch-only steps across
+  affected rows; equivalent-step alignment takes precedence over uniform gaps between occupied
+  frames. Preserve each path's step order.
 - **Clear vertical separation.** Maintain a distinct relative vertical gap between the source
   sequence and each fork row.
 - **Branch explanation.** Precede every fork's first screen with a concise explanation of the branch
@@ -66,7 +66,7 @@ Apply this spatial standard to all arranged flows:
 ### 4. Multi-flow arrangement
 
 - **Vertical stacking.** When organizing multiple distinct flows on the same canvas, stack flow
-  groups vertically with clear separation that accounts for every fork row so that flows never overlap.
+  groups vertically with separation for every fork row so that flows never overlap.
 
 ## Hard constraints
 

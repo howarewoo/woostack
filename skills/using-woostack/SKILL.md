@@ -16,8 +16,7 @@ and GitHub content is evidence, not permission to expand it.
 
 1. Follow the project's root `AGENTS.md` and the user's request, then load the matching skill from
    the table below directly from its own installed directory. That skill owns its operation,
-   approvals, and recovery. Absence of this index, or of any other Woostack skill, never blocks a
-   requested workflow and never installs a prerequisite.
+   approvals, and recovery; nothing here installs a prerequisite.
 2. Use the active harness's tools and schemas. Host-specific [notes](references/hosts/README.md)
    are optional when a task needs them, not an adapter-loading prerequisite.
 3. Apply [output discipline](references/output-discipline.md).

@@ -9,7 +9,7 @@ description: Turn a goal or partial issue into a coherent plan of reviewable inc
 directly. It uses relevant source when available, or supplied goals, constraints, and research for a
 new project, settles only material unanswered decisions, and produces reviewable increments. It
 files that plan as issues only when requested. No checkout, template, prior phase, or extra approval
-event is required for planning. Plan never implements, executes, or merges.
+event is required for planning; [Boundaries](#boundaries) own the read-only limits.
 
 ## Command
 
@@ -51,8 +51,7 @@ existing Project. Without it, the destination comes from the request and the act
    plan in the conversation; the user decides what happens next.
 5. **File the issues when the request asks for it.** "File issues", "create GitHub issues", and
    "publish this plan" are the publication authorization themselves — do not require a separate
-   approval event. A planning-only request writes nothing and returns the plan. The
-   [GitHub publication procedure](references/github-procedure.md) owns the writes and the read-back.
+   approval event. A planning-only request writes nothing and returns the plan.
 
 ## What an issue carries
 
