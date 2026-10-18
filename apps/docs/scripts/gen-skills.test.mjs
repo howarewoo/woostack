@@ -93,16 +93,11 @@ test('stripTitleHeading removes only the first exact "# <name>" H1', () => {
   assert.match(out, /## Overview/);
 });
 
-test("rewriteLinks maps skill links to routes, refs to GitHub, leaves absolute/anchors", () => {
+test("rewriteLinks maps relative targets to GitHub, leaves absolute and anchors", () => {
   const r = (s) => rewriteLinks(s, "woostack-plan");
   assert.equal(
-    r("see [plan](../woostack-plan/SKILL.md)"),
-    "see [plan](/docs/skills/woostack-plan)",
-  );
-  assert.equal(r("[a](../woostack-plan/SKILL.md#x)"), "[a](/docs/skills/woostack-plan#x)");
-  assert.equal(
-    r("[wt](../woostack-init/references/worktrees.md)"),
-    "[wt](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/worktrees.md)",
+    r("[wt](references/worktrees.md#base-and-recovery)"),
+    "[wt](https://github.com/howarewoo/woostack/blob/main/skills/woostack-plan/references/worktrees.md#base-and-recovery)",
   );
   assert.equal(
     r("[self](references/github-procedure.md)"),

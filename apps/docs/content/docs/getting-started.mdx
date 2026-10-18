@@ -33,8 +33,11 @@ Run this in your terminal from the repository root:
 pnpx skills add howarewoo/woostack
 ```
 
-Then confirm your assistant can find `using-woostack` and the `/woostack-*` workflow skills. They are
-instructions for the agent, not shell programs. If your assistant cannot see them,
+Then confirm your assistant can find the skills you plan to use, for example `woostack-init` and
+`woostack-plan`. Each installed skill is self-contained and works on its own; the
+[command index](/docs/skills/using-woostack#command-routing) is an optional directory, and no
+skill needs another one installed. They are
+instructions for the agent, not shell programs. If a skill cannot be found,
 [fix the installation before continuing](/docs/guides/troubleshooting#your-assistant-cannot-find-a-woostack-skill).
 
 ## 2. Create your project guidance
@@ -63,7 +66,8 @@ guidance with actual commands, boundaries, and conditional links to the other do
 [document responsibilities](/docs/skills/woostack-init#document-responsibilities) for the applicable
 formats. Existing canonical documents and scoped instructions stay authoritative. Init includes the
 availability-aware
-[routing paragraph](/docs/skills/using-woostack#agentsmd-usage) in new or updated agent instructions.
+[adoption paragraph](/docs/skills/woostack-init#document-responsibilities) in new or updated agent
+instructions, so no skill becomes a prerequisite of another.
 
 When verification guidance is relevant, Init inspects existing check commands, CI, and available
 timing evidence. It can recommend repository-specific improvements, such as removing redundant commands
@@ -111,10 +115,10 @@ If you need local configuration or diagnostic support, ask Init separately:
 ```
 
 That support path needs Bash, Git, and `jq`. It preserves existing settings and retained records,
-creates missing support paths, and uses Doctor's static checks without contacting GitHub or
-handling credentials. You can inspect support health later with `/woostack-doctor --check`; a
-clean local check is not proof of GitHub access. Neither support setup nor a failed support check
-blocks document drafting or the local plan above. See
+creates missing support paths, and runs the shipped bundle's static checks without contacting
+GitHub or handling credentials. You can inspect support health later with `/woostack-doctor
+--check`; a clean local check is not proof of GitHub access. Neither support setup nor a failed
+support check blocks document drafting or the local plan above. See
 [local configuration troubleshooting](/docs/guides/troubleshooting#doctor-reports-a-local-configuration-error)
 and the [configuration reference](/docs/configuration) when you need those settings. Python 3 is
 needed only for the optional retained-record reader, not document authoring or Doctor.

@@ -17,9 +17,9 @@ host, or merges. Its sanitized local report is diagnostic evidence, not a spec, 
 acceptance record, lifecycle state, or permission to remediate. Each verified defect includes a
 proposed bounded remediation contract and may link an exact caller-supplied GitHub issue. Neither
 form establishes scope, acceptance, assignment, or implementation authority.
-QA is an on-demand local engine with no CI delivery or gate. It is not a test-suite author
-([`woostack-execute`](../woostack-execute/SKILL.md) owns durable test work under its
-[testing guidance](../woostack-execute/references/tdd.md)), not a load/perf/security scanner,
+QA is an on-demand local engine with no CI delivery or gate. It is not a test-suite author —
+durable test work belongs to a separately authorized implementation workflow with its own testing
+guidance, not a QA run — not a load/perf/security scanner,
 and it never starts, builds, or restarts the target app.
 
 ## Commands
@@ -62,8 +62,8 @@ from, in order:
 2. **Exact canonical PR.** When explicitly supplied, independently read its repository, head/base,
    changed paths, and relevant intended-behavior text. A PR needs no issue association.
 3. **Exact optional GitHub Project or issue.** When explicitly supplied, load the
-   [artifact contract](../woostack-init/references/artifact-backends.md#direct-publication-and-recovery)
-   and [GitHub profile](../woostack-init/references/artifact-providers/github.md#configuration-and-scope),
+   [artifact contract](references/artifact-backends.md#direct-publication-and-recovery)
+   and [GitHub profile](references/artifact-providers/github.md#configuration-and-scope),
    use an authorized host GitHub capability (prefer suitable native tools; host-authenticated `gh` is
    supported), fully paginate relevant fields, and extract only requested specification/fix/plan
    criteria. Missing GitHub access blocks those criteria only. A retired managed-provider reference is
@@ -162,11 +162,12 @@ itself report only. It records:
 
 Any named GitHub issue stays evidence only and must be re-read for drift before it is relied on.
 
-An independently authorized bounded correction may enter [`woostack-execute`](../woostack-execute/SKILL.md),
-which establishes cause from reproduction or adequate source/runtime evidence before repair; a
-separately requested read-only diagnosis stays in [`woostack-debug`](../woostack-debug/SKILL.md), and
-planning work can use [`woostack-plan`](../woostack-plan/SKILL.md). Neither path is authorized by a
-QA finding alone.
+An independently authorized bounded correction may enter a separately requested implementation
+workflow (for example `/woostack-execute`, which independently establishes cause from reproduction
+or adequate source/runtime evidence before repair); a separately requested read-only diagnosis may
+use `/woostack-debug`, and planning work `/woostack-plan`. Naming these public commands is optional
+navigation, not a dependency: no QA finding authorizes either path by itself, and no installed
+sibling skill changes what QA itself runs.
 
 ## Hard constraints
 
@@ -176,8 +177,9 @@ QA finding alone.
 - **Never fake browser results.** No usable browser or dead server means hard stop and no report.
 - **Reproduce before log.** Unreproduced suspicions are observations, not findings.
 - **Credentials only from the user.** Never guessed or harvested; never retained in the report.
-- **Approval gate before remediation.** The user must authorize bounded correction scope; Execute
-  must establish cause before changing code, without turning a QA finding into permission to fix.
+- **Approval gate before remediation.** The user must authorize bounded correction scope before
+  code changes, and the separately authorized repair workflow must establish cause before changing
+  code, without turning a QA finding into permission to fix.
 - **Stay on origin; guard destructive actions; release task-owned browser resources.**
 - **Optional GitHub context only.** Never discover or hand off a local spec, plan, or fix; exact
   caller-supplied GitHub context is verified, read-only context.

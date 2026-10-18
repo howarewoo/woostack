@@ -10,7 +10,7 @@ skill. Use the [shadcn component documentation](https://ui.shadcn.com/docs/compo
 upstream guidance; the shipped inventory defines reproducible catalog coverage, not copied upstream
 documentation. The catalog uses shadcn foundations and Git Stacks source provenance, not runtime
 dependencies or remote-documentation fetches. This command owns component-system creation;
-[`woostack-design`](../woostack-design/SKILL.md) owns arranging multi-step flows and is unchanged.
+arranging multi-step flows is the separate woostack-design layout standard, unchanged here.
 
 ## Command and authorization
 
@@ -37,9 +37,9 @@ mutate Projects, initialize Woostack configuration, or migrate product UI automa
 
 Read repository instructions, design rules, manifests, lockfiles, public UI exports and their
 callers, styles/tokens, existing catalogs and verification commands. Preserve unrelated work.
-Use canonical Execute [implementation patterns](../woostack-execute/references/patterns.md)
-and [testing guidance](../woostack-execute/references/tdd.md); reading these does not invoke
-Execute or its delivery workflow.
+Use bundled [implementation patterns](references/patterns.md)
+and [testing guidance](references/tdd.md); reading these invokes no
+other workflow and authorizes no implementation.
 
 Apply [compatibility](references/compatibility.md) to actual imports, props, composition, style
 setup and dependencies. Choose repository-native catalog placement, not a copied workspace path.
@@ -65,8 +65,8 @@ baseline, not Git Stacks branding or Quiet Workbench styling. Source newly neede
 controls through the current shadcn CLI using Base UI; never CLI-overwrite existing UI or initialize
 over custom setup. Compatible existing primitives are reused, not migrated. Creation may require
 CLI network access; the resulting catalog has no remote-source requirement at runtime.
-Resolve only newly selected dependencies from authoritative registries under canonical
-[dependency guidance](../woostack-execute/references/patterns.md#6-dependencies-resolution-ownership-and-integrity).
+Resolve only newly selected dependencies from authoritative registries under the bundled
+[dependency guidance](references/patterns.md#6-dependencies-resolution-ownership-and-integrity).
 
 Do not overwrite custom components, tokens, examples, rules or unrelated work. Compare before
 changing existing destinations. Report a conflict and leave the conflicting surface unchanged;

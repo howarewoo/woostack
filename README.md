@@ -10,7 +10,8 @@ issues with verified dependencies. Verify changes; delegate or request independe
 required, requested, or warranted by risk.
 
 Start with the [getting-started guide](apps/docs/content/docs/getting-started.mdx), or use the
-[command index](skills/using-woostack/SKILL.md#command-routing) to choose a workflow.
+[command index](skills/using-woostack/SKILL.md#command-routing) to choose a workflow among the
+installed, self-contained commands.
 
 
 ## Getting started
@@ -24,6 +25,15 @@ to install the collection for your coding assistant:
 pnpx skills add howarewoo/woostack
 ```
 
+Each skill is a self-contained installable directory: reusable procedures are bundled into the
+skill from one canonical source, so a skill runs without other Woostack skills present and
+installing or updating one skill does not mutate the others. To install only Execute:
+
+```bash
+pnpx skills add howarewoo/woostack --skill woostack-execute
+```
+
+A single-skill install changes only which directories arrive, not the workflow's semantics.
 
 The public commands are listed in the
 [command index](skills/using-woostack/SKILL.md#command-routing), including standalone
@@ -48,10 +58,10 @@ Open your coding assistant in the project root and enter:
 
 Init inspects your repository and existing decisions, asks only about meaningful gaps, and helps
 create or update `README.md`, `PRODUCT.md`, `DESIGN.md`, `ARCHITECTURE.md`, and `AGENTS.md`. It preserves useful content
-and links to canonical documents rather than copying them. You can limit the request to one document
+linked to canonical documents rather than copying them. You can limit the request to one document
 or ask for drafts without writes. During Woostack adoption, Init includes the concise
-[routing paragraph](skills/using-woostack/SKILL.md#agentsmd-usage) in the proposed agent instructions;
-there is no separate manual adoption step.
+[adoption paragraph](skills/woostack-init/SKILL.md#document-responsibilities) in the proposed agent
+instructions, so no skill becomes a prerequisite of another.
 
 Init uses the current applicable [document formats](skills/woostack-init/references/document-schemas.md):
 an evidence-backed README landing page, Impeccable's product record, the visual DESIGN.md
@@ -87,7 +97,7 @@ mandatory Plan handoff. An explicit GitHub Project is optional. Existing
 `.woostack/tmp/runs/<run-id>/` records remain historical user data and are never migrated or
 mutated; retained drafts are evidence, not publication or implementation authority.
 
-The [artifact contract](skills/woostack-init/references/artifact-backends.md) explains direct
+The [artifact contract](shared/references/artifact-backends.md) explains direct
 GitHub publication, recovery, and retained historical record handling. Saved plans and remote
 records record decisions; they do not authorize new work or prove that code was delivered.
 
@@ -119,7 +129,8 @@ for one bounded task.
 
 Plan stops before implementation. Execute, Simplify, and Orchestrate start only on an authorized
 change request; planning is not a prerequisite for a bounded task with settled decisions. Simplify
-does not require Execute; commits and PRs remain opt-in. Init separately owns requested project
+does not require Execute; commits and PRs remain opt-in, and each skill performs its own requested
+delivery with its bundled procedures. Init separately owns requested project
 guidance and local support, not application scaffolding.
 
 See the [workflow maps](apps/docs/content/docs/concepts/workflows.mdx) for the full sequences.

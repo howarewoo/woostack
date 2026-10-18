@@ -19,7 +19,7 @@ Existing records from retired planning wrappers may contain:
 └── execution-plan.md
 ```
 
-The [artifact contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-backends.md#owner-only-local-run-store-reader)
+The [artifact contract](https://github.com/howarewoo/woostack/blob/main/shared/references/artifact-backends.md#owner-only-local-run-store-reader)
 defines historical naming, owner-only permissions, locking, and the exact read-only interface. Do
 not create, rewrite, migrate, or delete a retained record as part of Plan, Ideate, or Harden.
 
@@ -63,4 +63,4 @@ complete bounded task and supply it as `/woostack-execute <bounded input>` (see
 [Execute retired inputs](/docs/skills/woostack-execute#retired-inputs)). Titles, recent history,
 branch names, and search ranking are not selectors. Legacy tracked records remain unchanged unless
 the user explicitly requests the documented retirement guidance at the
-[artifact contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-backends.md#retained-data-and-retirement).
+[artifact contract](https://github.com/howarewoo/woostack/blob/main/shared/references/artifact-backends.md#retained-data-and-retirement).

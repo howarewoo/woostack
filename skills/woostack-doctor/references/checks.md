@@ -5,8 +5,7 @@ Each check under `../scripts/checks/` emits one tab-delimited finding:
 
 - `severity` is `error` for structural breakage or `warn` for hygiene/retirement guidance.
 - `fixable` is always `report`. No check owns a filesystem repair: a finding may name a proposed
-  repair, and applying it is ordinary scoped editing through
-  [`woostack-execute`](../../woostack-execute/SKILL.md).
+  repair, and applying it requires the active workflow's explicit local-repair approval.
 - An inspection that cannot complete is not a clean one: [runner failure
   handling](#runner-failure-handling) owns that finding and its exit behavior.
 
@@ -36,7 +35,7 @@ writing and is never treated as a target directory.
 OMP agent selection is host-owned. Doctor never inspects, creates, repairs, or removes project
 agent definitions or host extensions, and it never inspects, prunes, or removes Git worktree
 registrations: workspace lifecycle belongs to the host or repository under the
-[init workspace guidance](../../woostack-init/references/worktrees.md).
+[workspace guidance](worktrees.md).
 
 A diagnostic that cannot complete is reported, not treated as healthy: a symlinked `.woostack`
 directory stops the runner and direct checks before child reads; a symlinked managed file stops
@@ -63,7 +62,7 @@ findings on stdout. Invalid invocation or workspace admission returns 2 before c
 
 ## Canonical policy
 
-`config-policy` invokes the Init resolver and does not duplicate its schema. The resolver validates
+`config-policy` invokes the locally bundled canonical resolver and does not duplicate its schema. The resolver validates
 only the optional top-level `github` object; `artifacts.provider`, `artifacts.linear`,
 `artifacts.plane`, and older root provider settings remain opaque and inactive. The managed ignore
 template is only ever read for comparison.

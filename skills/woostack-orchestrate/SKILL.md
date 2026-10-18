@@ -24,21 +24,33 @@ invocation stays optional.
 ## Coordinate
 
 For an explicit one-run model or effort request, apply the shared
-[identity check](../using-woostack/SKILL.md#project-entry) before dispatching dependent work.
+[identity check](references/identity.md) before dispatching dependent work.
 
 1. **Inspect and propose before any write.** Read every selected outcome, its acceptance and limits,
    and the relevant source, checks, and existing PR evidence before allocating workspaces, dispatching
    a worker, editing source, or making external writes. Discover real prerequisites, likely
    integration conflicts, and independent work from that evidence: an absent dependency field or a
    "no prerequisites" sentence proves nothing, and files two tasks merely share are not automatically
-   a technical dependency. A tracker or specification is context, not an executable task, and a
-   Project status never proves delivered code. Keep real prerequisites separate from deliberate
+   a technical dependency. A tracker or specification is context, never an executable task, worker,
+   PR, or dependency endpoint, and a Project status never proves delivered code. Keep real
+   prerequisites separate from deliberate
    integration order and say why the order is deliberate. Group small related issues around an
    inseparable implementation/verification path, not merely adjacent issues or a shared controller;
    issue count does not set PR count. Preserve each issue's acceptance, non-goals, and any
    user-requested issue-to-PR mapping. Reassess dependencies between the resulting groups — an
    intra-group prerequisite becomes implementation order, not another PR. Do not force a dependency
    graph into a tree or invent an edge to suit a stack shape.
+   Validate each selected task against its exact scope: include only outcome-bearing references and
+   exclude context-only ones; reject foreign prerequisites, self-dependencies, cycles, and unread
+   endpoints outside the selected scope. A prerequisite blocked by an external capability stays
+   blocked — do not invent a task, expand scope, or substitute a weaker step, and a missing
+   tracking-admin field is not a blocker. Distinguish native, declared, and inferred dependency
+   provenance and say which applies. A complete implementation index in an exact tracker may
+   establish declared membership when native hierarchy is absent, partial, or unavailable; read
+   every selected issue's contract independently. Native links, declared edges, and inferred
+   relationships remain distinct evidence; publish no inferred or declared hierarchy, infer no
+   Project, include a Project only when explicitly selected, and mutate its status lifecycle only
+   when that selection requests it.
    Present an actionable proposal covering: intended outcome, scope, important exclusions, and
    material assumptions; task-to-PR grouping, issue coverage where applicable, and required changes;
    real prerequisites versus deliberate integration order, intended parents, and landing order;
@@ -57,8 +69,8 @@ For an explicit one-run model or effort request, apply the shared
    dependency or landing structure, or execution approach; routine implementation decisions, checks,
    in-scope repairs, and bounded contributions within the approved plan do not require approval.
 2. **Admit the delivery allocation.** Normally each group owns one canonical branch and reusable
-   task workspace for implementation, repairs, and integration, not one allocation per attempt or
-   worker. Follow [workspace ownership and recovery](../woostack-init/references/worktrees.md):
+task workspaces for implementation, repairs, and integration, not one allocation per attempt or
+   worker. Follow [workspace ownership and recovery](references/worktrees.md):
    verify physical source, branch, HEAD/base, index, dirty state, and relevant diff; inspect native
    ownership and requested PR facts. A continuing writer can continue; transfer requires proof
    the former writer stopped or relinquished access. Preserve understood edits and primary-checkout
@@ -87,11 +99,19 @@ For an explicit one-run model or effort request, apply the shared
    capability dependencies and runtime capacity permit. Give each contribution explicit interfaces,
    non-overlapping responsibility, and delivery limits. Sharing a delivery owner does not require
    sequential coding; real prerequisites do. Admit and record additional allocations under the
-   [workspace contract](../woostack-init/references/worktrees.md#workspace-and-ownership).
+   [workspace contract](references/worktrees.md#workspace-and-ownership).
    Contributions create no independent issues, PRs, stack layers, or plan changes; reassess grouping
    for an actual new deliverable.
-   Hand off only the outcome, limits, invariants, prerequisites, source/workspace evidence, and
-   relevant shared runtime restrictions. Check aggregate CPU/memory/process load and shared
+   Hand off the bounded outcome, acceptance and required evidence, limits (including delivery),
+   invariants, prerequisites, verified base, source/workspace evidence, and relevant shared runtime
+   restrictions. Give workers accessible paths to this skill's bundled
+   [implementation patterns](references/patterns.md), [verification procedures](references/tdd.md),
+   and [delivery procedures](references/delivery.md); load
+   [infrastructure](references/infrastructure.md) or [scaffold admission](references/scaffold.md)
+   only for applicable work. Workers apply the shared least-code guidance in one scoped,
+   behavior-preserving simplification pass before final verification and required review, without
+   starting a standalone workflow.
+   Check aggregate CPU/memory/process load and shared
    credentials, processes, ports, databases, accounts, and service state before parallel operations;
    another worktree does not isolate them. For heavy checks (expensive builds, browser suites,
    live-host runs), reuse active relevant work only with established ownership and source
@@ -99,9 +119,10 @@ For an explicit one-run model or effort request, apply the shared
    conflicting runs. Separate shared resources through authorized means or serialize access,
    without altering unrelated resources or accessing secrets. Small isolated tests and independent work stay concurrent.
    Never kill other workers' processes, add a scheduler or semaphore service, or blanket-serialize tests.
-   [Execute](../woostack-execute/SKILL.md) owns implementation and checks. The coordinator owns
-   planning, dispatch, integration verification, and delivery coordination, not silent implementation
-   in the primary checkout. Inline implementation requires a workflow change from the user;
+   Each worker owns implementation and checks for its group within the assigned limits and this
+   skill's accessible bundled procedures, never by entering another installed skill's workflow.
+   The coordinator owns planning, dispatch, integration verification, and delivery
+   coordination, not silent implementation in the primary checkout. Inline implementation requires a workflow change from the user;
    unavailable worker/isolation capability is a blocker, not an equivalent local result.
    Before broad consumer integration of a high-risk new authority, mutation, persistence, or
    selected-context contract, complete its bounded implementation, run focused invariant checks,
@@ -114,31 +135,34 @@ For an explicit one-run model or effort request, apply the shared
    Independently reconcile source/destination revisions, ancestry/diffs, ownership, and requested
    PR facts against worker claims. Resolve stale handoffs, identify already-present and missing
    changes, and integrate the intended union once, including overlapping child histories.
-   Verify the canonical tree and cumulative PR diff under
-   [Execute's verification rule](../woostack-execute/SKILL.md#implement-and-verify).
+   Verify the canonical tree and cumulative PR diff: they must cover the planned outcome with no
+   unrelated or dropped change, out-of-scope edits block delivery, and failed or unrun required
+   checks block delivery.
    Default to reusing child results from the existing worker result, handoff, or verification summary:
    independently check the command/selection, actual tested source state, observed outcome, and
    relevant environment limits against real source and required acceptance under
-   [When evidence still applies](../woostack-execute/references/tdd.md#when-evidence-still-applies).
+   [When evidence still applies](references/tdd.md#when-evidence-still-applies).
    Run affected integration/consumer checks on new combinations, conflict resolutions, corrections,
    or relevant environment/dependency changes; child passes alone never verify an untested combination.
    Keep final implementation review incremental on changed contracts and consumers using applicable
    checkpoint evidence, without waiving combined-result verification. Correct failed preparation
    checks in the same allocation and refresh affected checks and required implementation review after
    changes. Handle slow checks and explicit unmet verification boundaries under
-   [Slow checks](../woostack-execute/references/tdd.md#slow-checks-bounded-diagnosis-no-waiver);
+   [Slow checks](references/tdd.md#slow-checks-bounded-diagnosis-no-waiver);
    deferred manual acceptance remains unmet, not passed evidence.
-   Hand the intended parent and ordered chain to [Commit](../woostack-commit/SKILL.md) and require
+   Hand the intended parent and ordered chain to the
+   [delivery procedure](references/delivery.md) and require
    native registration for dependent PRs.
-   Commit owns delivery, native stack registration, lost-write recovery, and read-back under its
-   [source-control reference](../woostack-commit/references/source-control.md#native-stack-membership);
+   Delivery, native stack registration, lost-write recovery, and read-back follow the
+   [authorized Git tools reference](references/source-control.md#native-stack-membership);
    confirm the published identity, head, base, content, and required membership/order yourself.
    Each root PR targets the approved trunk; each dependent PR targets its planned predecessor's
    head branch. A one-PR run and independent PRs need no stack. Missing required stack capability
    or registration leaves delivery incomplete; preserve valid work and PRs and report that
    boundary.
    Conflicting membership, a non-top append, or a changed parent requires revalidating the
-   affected plan; requested reorganization follows the shared reference.
+   affected plan; requested reorganization follows the
+   [authorized Git tools reference](references/source-control.md).
 6. **Finish delivered groups.** After verified PR publication and required native stack membership/order,
    the coordinator and delegated workers finish that group. Do not fetch or monitor PR checks or
    reviews, wait for CI, collect new comments, or initiate post-delivery repairs. Continue only
@@ -152,7 +176,7 @@ For an explicit one-run model or effort request, apply the shared
    unmet acceptance requiring an external gate without waiving it or starting a maintenance loop.
    Account for temporary allocations beneath their delivery owner as active, retained for a named
    dependency, or safely retired under the
-   [authorized lifecycle](../woostack-init/references/worktrees.md#base-and-recovery).
+   [authorized lifecycle](references/worktrees.md#base-and-recovery).
    Report next safe actions; issue/Project status is not delivery evidence. Preserve read-only limits.
    Native stacks record membership; configured protections enforce. New PRs are drafts; readiness
    stays unchanged absent a request. Never merge, enqueue, enable auto-merge, expose secrets, or

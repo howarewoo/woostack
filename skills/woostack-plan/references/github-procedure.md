@@ -2,7 +2,7 @@
 
 This is Plan's only write path, and it runs only when the request authorized filing issues.
 Planning without relevant GitHub context needs no GitHub preflight. The
-[GitHub profile](../../woostack-init/references/artifact-providers/github.md#configuration-and-scope)
+[GitHub profile](artifact-providers/github.md#configuration-and-scope)
 owns identities, native relationship operations, and API semantics. Plan changes no source, branch,
 worktree, commit, PR, review, merge, or issue lifecycle here.
 
@@ -100,7 +100,7 @@ evidence that the native links exist.
   fact never answers a user-owned decision.
 - No local run, manifest, provider, Project configuration, or writable checkout is required to
   plan or to file issues. Retained records and earlier issues are
-  [historical user data](../../woostack-init/references/artifact-backends.md#retained-data-and-retirement):
+  [historical user data](artifact-backends.md#retained-data-and-retirement):
   read them as evidence, never migrate, adopt, or rewrite them.
 - Never report a published issue or a written relationship as verified without the observed
   read-back that proves it.

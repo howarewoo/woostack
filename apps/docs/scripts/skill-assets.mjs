@@ -423,7 +423,7 @@ function stripInlineCodeSpans(line) {
   return output;
 }
 
-function extractMarkdownLinks(raw) {
+export function extractMarkdownLinks(raw) {
   const lines = markdownContentLines(raw);
   const definitions = new Map();
   const definitionLines = new Set();
@@ -476,7 +476,7 @@ function extractMarkdownLinks(raw) {
   return links;
 }
 
-function localLinkTarget(target) {
+export function localLinkTarget(target) {
   if (!target || target.startsWith("#") || target.startsWith("//")) return null;
   if (/^[A-Za-z][A-Za-z0-9+.-]*:/.test(target)) return null;
   const withoutFragment = target.replace(/[?#].*$/, "");
@@ -506,12 +506,79 @@ async function lstatOrNull(target) {
   }
 }
 
-async function validateLocalLinks(collectionRoot, sourcePath, raw) {
+function headingSlug(text) {
+  return text
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}\p{M}\s_-]/gu, "")
+    .replace(/\s/g, "-");
+}
+
+// GitHub-style heading anchors of a Markdown document (ATX and setext
+// headings, `-1`/`-2` suffixes for duplicates). Inline code contributes its
+// text without the backtick delimiters, so `## \`README.md\`` anchors
+// `readmemd`. Fenced and indented code contributes no anchors. Tail fragments
+// in local links must resolve against the target file's own anchors, so
+// bundled reference copies stay verbatim while still admitting every anchor
+// contract inside.
+export function headingAnchors(raw) {
+  const anchors = new Set();
+  const seen = new Map();
+  const nonblank = [];
+  const add = (slug) => {
+    if (slug === "") return;
+    const count = seen.get(slug) ?? 0;
+    seen.set(slug, count + 1);
+    anchors.add(count === 0 ? slug : `${slug}-${count}`);
+  };
+  for (const line of markdownContentLines(raw)) {
+    const atx = /^ {0,3}(#{1,6})\s+(.*)$/.exec(line);
+    if (atx) {
+      nonblank.length = 0;
+      add(
+        headingSlug(
+          atx[2]
+            .replace(/\s#+\s*$/, "")
+            .replace(/`+/g, "")
+            .trim(),
+        ),
+      );
+      continue;
+    }
+    const setext = /^ {0,3}(=+|-+)[ \t]*$/.exec(line);
+    if (setext && nonblank.length > 0) {
+      add(headingSlug(nonblank[nonblank.length - 1].replace(/`+/g, "").trim()));
+      nonblank.length = 0;
+      continue;
+    }
+    if (line.trim().length > 0) nonblank.push(line);
+  }
+  return anchors;
+}
+
+async function validateLocalLinks(packageRoot, relativeFile, raw, label) {
   for (const link of extractMarkdownLinks(raw)) {
     const target = localLinkTarget(link);
-    if (target === null) continue;
+    const fragment = /#([^\s#?.]*)$/.exec(link)?.[1];
+    // A fragment-only link anchors the file that contains it.
+    if (target === null) {
+      if (fragment === undefined || !link.startsWith("#")) continue;
+      let expectedSelf;
+      try {
+        expectedSelf = decodeURIComponent(fragment);
+      } catch {
+        expectedSelf = fragment;
+      }
+      if (
+        !headingAnchors(await readFile(path.join(packageRoot, relativeFile), "utf8")).has(
+          expectedSelf,
+        )
+      ) {
+        throw new Error(`${label}: local link anchor missing in package target: ${link}`);
+      }
+      continue;
+    }
     if (target.includes("\0") || target.includes("\\")) {
-      throw new Error(`${sourcePath}: local link target is not a safe POSIX path: ${link}`);
+      throw new Error(`${label}: local link target is not a safe POSIX path: ${link}`);
     }
     const segments = target.split("/");
     if (
@@ -519,21 +586,32 @@ async function validateLocalLinks(collectionRoot, sourcePath, raw) {
       segments.includes("") ||
       path.posix.normalize(target) !== target
     ) {
-      throw new Error(`${sourcePath}: local link target must use a normalized POSIX path: ${link}`);
+      throw new Error(`${label}: local link target must use a normalized POSIX path: ${link}`);
     }
-    const candidate = path.resolve(path.dirname(path.join(collectionRoot, sourcePath)), target);
-    if (!isContained(collectionRoot, candidate)) {
-      throw new Error(`${sourcePath}: local link target escapes the skill collection: ${link}`);
+    const destination = path.resolve(path.dirname(path.join(packageRoot, relativeFile)), target);
+    if (!isContained(packageRoot, destination)) {
+      throw new Error(`${label}: local link target escapes the skill package: ${link}`);
     }
-    const state = await lstatOrNull(candidate);
+    const state = await lstatOrNull(destination);
     if (!state) {
-      throw new Error(`${sourcePath}: local link target does not exist: ${link}`);
+      throw new Error(`${label}: local link target does not exist: ${link}`);
     }
     if (state.isSymbolicLink()) {
-      throw new Error(`${sourcePath}: local link target must not be a symlink: ${link}`);
+      throw new Error(`${label}: local link target must not be a symlink: ${link}`);
     }
     if (!state.isFile()) {
-      throw new Error(`${sourcePath}: local link target must be a regular file: ${link}`);
+      throw new Error(`${label}: local link target must be a regular file: ${link}`);
+    }
+    if (fragment !== undefined) {
+      let expected;
+      try {
+        expected = decodeURIComponent(fragment);
+      } catch {
+        expected = fragment;
+      }
+      if (!headingAnchors(await readFile(destination, "utf8")).has(expected)) {
+        throw new Error(`${label}: local link anchor missing in package target: ${link}`);
+      }
     }
   }
 }
@@ -605,7 +683,7 @@ export async function validateSkillAssets(skillsDir, publicOrder) {
           throw new Error(`${sourcePath}: invalid JSON: ${error.message}`);
         }
       } else if (/\.md$/i.test(file)) {
-        await validateLocalLinks(root, sourcePath, await readFile(absolute, "utf8"));
+        await validateLocalLinks(packageRoot, file, await readFile(absolute, "utf8"), sourcePath);
       }
     }
     skills.push({ name, ...parsed });

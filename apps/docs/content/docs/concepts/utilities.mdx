@@ -35,15 +35,15 @@ instructions. Reports remove secrets and raw remote payloads.
 
 ## Local support maintenance
 
-Doctor diagnoses `.woostack/` configuration and workspace problems. Its checks are read-only:
-they report evidence and may describe a proposed repair. Execute applies a specifically approved
-repair with the user's commit/publication limit; local-only approval authorizes no commit or
-publication. Remote resources, legacy development records, and workspace or worktree cleanup stay
-with their owner and remain report-only.
+Doctor diagnoses `.woostack/` configuration and workspace problems. Its `--check` engine is
+read-only: it reports evidence and may describe a proposed repair. Doctor performs an approved
+repair itself with its bundled procedures, under the user's commit/publication limit; local-only
+approval authorizes no commit or publication. Remote resources, legacy development records, and
+workspace or worktree cleanup stay with their owner and remain report-only.
 
 | Skill | What it does | Writes? | Invoke |
 | --- | --- | --- | --- |
-| [woostack-doctor](/docs/skills/woostack-doctor) | Diagnoses local policy and workspace integrity, then hands approved repairs to Execute. | no direct writes; Execute honors the approved delivery limit | `/woostack-doctor` |
+| [woostack-doctor](/docs/skills/woostack-doctor) | Diagnoses local policy and workspace integrity, and performs an explicitly approved repair itself with its bundled procedures. | no direct writes beyond the approved repair; local-only approval authorizes no commit or publication | `/woostack-doctor` |
 
 ## Where to go next
 

@@ -9,25 +9,29 @@ for standing repository rules, the two-app boundary, and verified checks.
 
 | You want to... | Edit |
 |---|---|
-| Change project adoption / command routing guidance | `skills/using-woostack/SKILL.md` |
-| Change retained run handling or direct GitHub publication | `skills/woostack-init/references/artifact-backends.md` and the GitHub profile |
+| Change shared bundled procedures or supporting assets | Canonical file under `shared/references/`, `shared/scripts/`, or `shared/templates/`, then `node shared/sync.mjs` and all affected generated copies |
+| Change how bundled copies are projected or checked | `shared/sync.mjs` and `shared/mapping.json` |
+| Change project adoption / optional command index | `skills/woostack-init/SKILL.md#document-responsibilities` / `skills/using-woostack/SKILL.md` |
+| Change retained run handling or direct GitHub publication | `shared/references/artifact-backends.md` and the GitHub profile |
 | Refine material technology-selection decisions | `skills/woostack-plan/SKILL.md` |
-| Change placement, boundary, dependency, or least-code guidance | `skills/woostack-execute/references/patterns.md` |
-| Change deployment, migration, secrets, or client-lifecycle guidance | `skills/woostack-execute/references/infrastructure.md` |
-| Refine safe initial project creation | `skills/woostack-execute/SKILL.md#initial-project-scaffold` |
-| Change checkout isolation or base selection | `skills/woostack-init/references/worktrees.md` |
+| Change placement, boundary, dependency, or least-code guidance | `shared/references/patterns.md` |
+| Change deployment, migration, secrets, or client-lifecycle guidance | `shared/references/infrastructure.md` |
+| Refine safe initial project creation | `shared/references/scaffold.md` |
+| Change checkout isolation or base selection | `shared/references/worktrees.md` |
+| Change explicit model/effort selection wording | `shared/references/identity.md` |
+| Change the reusable delivery (commit/PR) procedure | `shared/references/delivery.md` |
 | Plan work and optional GitHub issue publication | `skills/woostack-plan/SKILL.md` and its references |
 | Change requirements exploration (Ideate) | `skills/woostack-ideate/SKILL.md` |
 | Change read-only specification review (Harden) | `skills/woostack-harden/SKILL.md` |
 | Change multi-task coordination and stacked delivery | `skills/woostack-orchestrate/SKILL.md` |
 | Change the execute phase implementation step | `skills/woostack-execute/SKILL.md` |
 | Change behavior-preserving code simplification | `skills/woostack-simplify/SKILL.md` |
-| Change commit and pull-request delivery | `skills/woostack-commit/SKILL.md` and its references |
+| Change commit and pull-request delivery | `skills/woostack-commit/SKILL.md`; the reusable delivery procedure lives in `shared/references/delivery.md` |
 | Change browser-based app checks (`/woostack-qa`) | `skills/woostack-qa/SKILL.md`, `skills/woostack-qa/references/` |
 | Change project-owned design catalog creation, adaptation, or maintenance | `skills/woostack-design-system/SKILL.md`, its references, and versioned `templates/` |
 | Change session reflection (`/woostack-reflect`) | `skills/woostack-reflect/SKILL.md` |
 | Change the systematic-debugging behavior (`/woostack-debug`) | `skills/woostack-debug/SKILL.md` |
-| Change test-writing guidance | `skills/woostack-execute/SKILL.md`, `skills/woostack-execute/references/tdd.md` |
+| Change test-writing guidance | `skills/woostack-execute/SKILL.md`, `shared/references/tdd.md` |
 | Run workflow smoke checks | `skills/using-woostack/references/workflow-smoke.md` |
 | Change how review comments are addressed | `skills/woostack-address-comments/SKILL.md` |
 | Change workspace checks and repairs (`/woostack-doctor`) | `skills/woostack-doctor/SKILL.md` |
@@ -47,9 +51,11 @@ for standing repository rules, the two-app boundary, and verified checks.
    no test CI for its own PRs. Report deterministic helper results, manual instruction
    traces, and real host/model outcomes separately; never report an unrun smoke as passed.
 5. Push the branch and open a draft PR with `gh`, filling out the PR template, through
-   [Commit](skills/woostack-commit/SKILL.md) and its
-   [source-control reference](skills/woostack-commit/references/source-control.md), which also owns
-   requested rebases, stack consolidation, and readiness. Never merge, auto-merge, or queue a PR.
+   [Commit](skills/woostack-commit/SKILL.md). The reusable delivery and source-control
+   safeguards live in [shared delivery](shared/references/delivery.md) and
+   [shared source control](shared/references/source-control.md); requested rebases, stack
+   consolidation, and readiness follow Commit's own maintenance terms. Never merge, auto-merge,
+   or queue a PR.
 
 The approved applications are the documentation site in `apps/docs/` and the standalone
 catalog in `apps/design/`. Their [docs README](apps/docs/README.md) and
@@ -60,7 +66,12 @@ and verify tasks); install from the root with `pnpm install --frozen-lockfile` u
 ## Editing conventions
 
 - Keep workflow changes in skill files and their supporting Markdown, templates, scripts,
-  prompts, or JSON. Design System application/configuration sources ship as non-runnable
+  prompts, or JSON. Every skill works without another Woostack skill installed: it owns its
+  activation, workflow, approval boundaries, completion conditions, and result, and it never
+  enters another skill's workflow to obtain a procedure. Reuse common procedures through
+  [bundled references](#shared-canonical-references) maintained from one canonical source;
+  shared guidance never expands authority or silently changes the active workflow's gates.
+  Design System application/configuration sources ship as non-runnable
   `.template` assets; instantiate them only in target or disposable repositories. Runnable
   application code and app build configuration belong in `apps/docs/` or
   `apps/design/`. App manifests own their dependencies; the root owns pnpm workspace
@@ -70,19 +81,42 @@ and verify tasks); install from the root with `pnpm install --frozen-lockfile` u
 - Resolve selected or changed dependency versions from authoritative current registries.
   Preserve unrelated versions and lockfiles. Name frameworks without versions; document
   necessary incompatibility pins at the consuming owner under
-  `skills/woostack-execute/references/patterns.md#6-dependencies-resolution-ownership-and-integrity`.
+  `shared/references/patterns.md#6-dependencies-resolution-ownership-and-integrity`.
 - Keep retained run data and direct GitHub publication in the
-  [artifact contract](skills/woostack-init/references/artifact-backends.md). Link to the
-  [GitHub profile](skills/woostack-init/references/artifact-providers/github.md) for resource
+  [artifact contract](shared/references/artifact-backends.md). Link to the
+  [GitHub profile](shared/references/artifact-providers/github.md) for resource
   identity and capability details; Plan requires neither Project configuration nor a parent issue.
 - Use tables to compare options and numbered lists for steps.
 - Keep the command names and fixed skill paths listed in the
-  [command index](skills/using-woostack/SKILL.md#command-routing).
+  [command index](skills/using-woostack/SKILL.md#command-routing); the
+  router is an optional index and adoption aid, and every skill stays executable with
+  `using-woostack` absent.
 - GitHub operations do not add commands.
 - Keep each `SKILL.md` consistent with its references. Its `description` should explain when to
   use the skill; put the procedure in the body and linked references.
 - Update affected authored site guides when behavior changes. Do not edit generated skill pages;
   they are rebuilt from `skills/*/SKILL.md`.
+- `shared/mapping.json` identifies generated copies inside each consuming skill.
+  Edit canonical files in `shared/` and run `node shared/sync.mjs` rather than hand-editing copies;
+  a copy update without its canonical edit is a defect, and `--check` reports drifted or missing
+  copies without rewriting them.
+
+## Shared canonical references
+
+Reusable procedures live once in `shared/references/`; supporting scripts and templates live in
+`shared/scripts/` and `shared/templates/`. They are projected into matching skill-local paths so
+every skill installs and runs alone. `shared/mapping.json` owns the explicit source-to-consumer
+mapping: a consuming skill carries only what it needs, including the complete transitive asset set.
+The active skill retains workflow decisions; shared procedures grant no additional authority.
+Regenerate
+copies with `node shared/sync.mjs` and check them with `node shared/sync.mjs --check`
+(exit code 0 clean, 1 inconsistent, 2 invalid invocation). The production asset tests validate each
+skill in isolation; commit a canonical edit and all affected copies in the same change.
+Installed links stay skill-local, and a shared reference never starts another workflow or imposes
+its standalone lifecycle.
+Canonical source and projection behavior is owned by
+[shared/sync.mjs](shared/sync.mjs) and validated under the
+[validation policy](AGENTS.md#validation).
 
 ## Instruction and complexity review
 

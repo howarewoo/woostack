@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -uo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$HERE/../../../woostack-init/scripts/tests/assert.sh"
+source "$HERE/assert.sh"
 set +e
 DOC="$HERE/../doctor.sh"
 

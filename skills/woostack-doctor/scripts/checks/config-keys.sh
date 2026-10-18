@@ -2,7 +2,7 @@
 set -uo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-CONFIG_RESOLVER="$HERE/../../../woostack-init/scripts/config/resolve-config.sh"
+CONFIG_RESOLVER="$HERE/../config/resolve-config.sh"
 emit() { printf '%s\t%s\t%s\t%s\t%s\n' "$1" "$2" "$3" "$4" "$5"; }
 
 WOO_ROOT="${1:-.}"

@@ -3,6 +3,7 @@ import { execFileSync } from "node:child_process";
 import {
   chmod,
   copyFile,
+  cp,
   lstat,
   mkdir,
   mkdtemp,
@@ -378,7 +379,7 @@ test("installed candidate collection resolves without a checkout or docs applica
   await writeFile(entry, `${await readFile(entry, "utf8")}\n[Guide](../../apps/docs/guide.md)\n`);
   await assert.rejects(
     validateSkillAssets(installed, PUBLIC_ORDER),
-    /local link target escapes the skill collection/,
+    /local link target escapes the skill package/,
   );
 });
 
@@ -717,4 +718,118 @@ test("broken skill links are reported for the intended reason", async (t) => {
     "not-a-skill -> ../../skills/not-a-skill: has no SKILL.md",
     "retired-skill -> ../../skills/retired-skill: is a dangling link",
   ]);
+});
+
+test("anchor fragments in local links resolve against the target file", async (t) => {
+  const root = await makeRoot(t);
+  const skillRoot = await writeSkill(
+    root,
+    "sample-skill",
+    "[Guide](references/guide.md#using-the-guide)",
+  );
+  await writeFile(
+    path.join(skillRoot, "references", "guide.md"),
+    "# Guide\n\n## Using the guide\n\nA duplicate and a second use.\n\n## Using the guide\n",
+  );
+  await writeFile(
+    path.join(skillRoot, "SKILL.md"),
+    "---\nname: sample-skill\ndescription: Validate a corpus-free skill.\n---\n# sample-skill\n[Duplicate](references/guide.md#using-the-guide-1)\n",
+  );
+  await assert.doesNotReject(validateSkillAssets(root, ["sample-skill"]));
+
+  await writeFile(
+    path.join(skillRoot, "SKILL.md"),
+    "---\nname: sample-skill\ndescription: Validate a corpus-free skill.\n---\n# sample-skill\n[Gone](references/guide.md#nonexistent-anchor)\n",
+  );
+  await assert.rejects(validateSkillAssets(root, ["sample-skill"]), /nonexistent-anchor/);
+});
+
+test("setext and fenced code regions register anchors like atx headings", async (t) => {
+  const root = await makeRoot(t);
+  const skillRoot = await writeSkill(
+    root,
+    "sample-skill",
+    "[Setext](references/first.md#setext-heading)",
+  );
+  await writeFile(
+    path.join(skillRoot, "references", "first.md"),
+    "Setext heading\n--------------\n",
+  );
+  await writeFile(
+    path.join(skillRoot, "references", "second.md"),
+    "```\n# setext-heading\n[Skipped](gone.md)\n```\n",
+  );
+  await assert.doesNotReject(validateSkillAssets(root, ["sample-skill"]));
+});
+test("per-package closure rejects links to another skill and sibling entry points", async (t) => {
+  const root = await makeRoot(t);
+  const other = await writeSkill(root, "sample-skill-two");
+  await writeFile(path.join(other, "references", "guide.md"), "# Guide\n");
+  const skill = await writeSkill(
+    root,
+    "sample-skill",
+    "[Cross](../sample-skill-two/references/guide.md)",
+  );
+  await assert.rejects(
+    validateSkillAssets(root, ["sample-skill", "sample-skill-two"]),
+    /escapes the skill package/,
+  );
+
+  await writeFile(
+    path.join(skill, "SKILL.md"),
+    "---\nname: sample-skill\ndescription: Validate a corpus-free skill.\n---\n# sample-skill\n[Nav](../sample-skill-two/SKILL.md)\n",
+  );
+  await assert.rejects(
+    validateSkillAssets(root, ["sample-skill", "sample-skill-two"]),
+    /escapes the skill package/,
+  );
+
+  // The linked skill package validates fine on its own: bundles are per skill,
+  // and an installed collection of one package carries everything it needs.
+  const container = await makeRoot(t);
+  const installed = path.join(container, "sample-skill-two");
+  await cp(other, installed, { recursive: true });
+  await assert.doesNotReject(validateSkillAssets(container, ["sample-skill-two"]));
+});
+
+test("headings with inline code, duplicates, fragment-only self links, and fenced code obey anchors", async (t) => {
+  const root = await makeRoot(t);
+  const skillRoot = await writeSkill(
+    root,
+    "sample-skill",
+    "[Plain](references/first.md#readmemd)\n[Duplicated](references/first.md#duplicated-heading-1)\n",
+  );
+  await writeFile(
+    path.join(skillRoot, "references", "first.md"),
+    "## `README.md`\n\n[Away](#no-such-self-anchor)\n\n## Duplicated heading\n\n## Duplicated heading\n\n```\n# Fenced heading\n```\n",
+  );
+  const outcome = await validateSkillAssets(root, ["sample-skill"]).then(
+    () => "clean",
+    (error) => error.message,
+  );
+  assert.match(String(outcome), /#no-such-self-anchor/);
+});
+
+test("a self-contained fragment link resolves against its own file", async (t) => {
+  const root = await makeRoot(t);
+  await writeSkill(
+    root,
+    "sample-skill",
+    "[Here](##-) and [Entry](#entry-point)\n\n## Entry point\n",
+  );
+  const skillRoot = path.join(root, "sample-skill");
+  await writeFile(
+    path.join(skillRoot, "SKILL.md"),
+    "---\nname: sample-skill\ndescription: Validate a corpus-free skill.\n---\n# sample-skill\n[Here](#entry-point)\n\n## Entry point\n",
+  );
+  await assert.doesNotReject(validateSkillAssets(root, ["sample-skill"]));
+
+  await writeFile(
+    path.join(skillRoot, "SKILL.md"),
+    "---\nname: sample-skill\ndescription: Validate a corpus-free skill.\n---\n# sample-skill\n[Missing](#absent)\n",
+  );
+  await assert.rejects(
+    validateSkillAssets(root, ["sample-skill"]),
+    /local link anchor missing in package target/,
+  );
 });

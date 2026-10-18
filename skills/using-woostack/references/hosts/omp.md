@@ -3,8 +3,7 @@
 Verified against [task-agent discovery](https://github.com/can1357/oh-my-pi/blob/main/docs/task-agent-discovery.md)
 and [skills](https://github.com/can1357/oh-my-pi/blob/main/docs/skills.md). Native explicit skill
 invocation is `/skill:woostack-execute`; interactive mode registers one command per discovered skill
-when `skills.enableSkillCommands` is enabled. Every form is listed in the
-[host index](README.md#native-skill-invocation).
+when `skills.enableSkillCommands` is enabled.
 
 ## Delegation
 

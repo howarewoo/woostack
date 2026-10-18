@@ -45,9 +45,9 @@ language:
 3. **Pinned Git source.** Pin selected files/ranges to immutable Git identity before composition.
 4. **Exact PR.** Independently read the exact repository, PR URL/number, head/base, diff, and
    relevant review facts. A PR needs no issue association.
-5. **Exact GitHub Project or issue.** Load the shared
-   [artifact contract](../woostack-init/references/artifact-backends.md#direct-publication-and-recovery)
-   and [GitHub profile](../woostack-init/references/artifact-providers/github.md#configuration-and-scope).
+5. **Exact GitHub Project or issue.** Load the local
+   [artifact contract](references/artifact-backends.md#direct-publication-and-recovery)
+   and [GitHub profile](references/artifact-providers/github.md#configuration-and-scope).
    Use an authorized host GitHub capability (prefer suitable native tools; host-authenticated `gh` is
    supported), resolve only the exact resource in complete scope, and completely read the
    specification/fix/plan fields needed by the render. A local document needs no GitHub context.

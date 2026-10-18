@@ -39,13 +39,7 @@ export function rewriteLinks(body, name) {
   return body.replace(/\]\(([^)]+)\)/g, (whole, target) => {
     if (/^https?:\/\//.test(target) || target.startsWith("#") || target.startsWith("mailto:"))
       return whole;
-    const skill = /^\.\.\/([a-z0-9-]+)\/SKILL\.md(#.+)?$/.exec(target);
-    if (skill) return `](/docs/skills/${skill[1]}${skill[2] || ""})`;
-    const hash = (target.match(/#.*$/) || [""])[0];
-    const clean = target.replace(/#.*$/, "");
-    const rel = clean.replace(/^(\.\.\/)+/, ""); // strip leading ../
-    const ghPath = clean.startsWith("../") ? `skills/${rel}` : `skills/${name}/${rel}`;
-    return `](${GH_BASE}/${ghPath}${hash})`;
+    return `](${GH_BASE}/skills/${name}/${target})`;
   });
 }
 
