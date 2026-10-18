@@ -9,11 +9,13 @@ on top of that foundation; they never impose a layout, an abstraction, or a vers
 not require. That is true for a codebase that already exists and for one you are creating now, so
 there is one set of rules rather than separate contracts for greenfield and existing work.
 
-[Execute](/docs/skills/woostack-execute) owns the executable form of this guidance. Its
-[implementation patterns](https://github.com/howarewoo/woostack/blob/main/skills/woostack-execute/references/patterns.md)
+Woostack's implementation guidance is maintained once in `shared/references/`; implementing
+workflows, [Execute](/docs/skills/woostack-execute) among them, bundle the applicable parts and
+apply them inside their own admitted scope. The
+[implementation patterns](https://github.com/howarewoo/woostack/blob/main/shared/references/patterns.md)
 cover placement, shared extraction, boundaries, API compatibility, type safety, dependencies, and
-the least-code standard, and its
-[infrastructure reference](https://github.com/howarewoo/woostack/blob/main/skills/woostack-execute/references/infrastructure.md)
+the least-code standard, and the
+[infrastructure reference](https://github.com/howarewoo/woostack/blob/main/shared/references/infrastructure.md)
 covers deployment, migrations, environment and secrets, client lifecycle, and observability. This
 page explains why those rules read the way they do and when each one applies.
 
@@ -48,9 +50,9 @@ apply.
 Published compatibility follows the same restraint. Existing identifiers stay stable, inputs gain
 optional fields rather than losing any, outputs gain fields rather than changing meaning, and a
 breaking change uses the repository's documented versioning mechanism. See
-[patterns.md §3](https://github.com/howarewoo/woostack/blob/main/skills/woostack-execute/references/patterns.md#3-application-boundary-adapters)
+[patterns.md §3](https://github.com/howarewoo/woostack/blob/main/shared/references/patterns.md#3-application-boundary-adapters)
 and
-[§4](https://github.com/howarewoo/woostack/blob/main/skills/woostack-execute/references/patterns.md#4-api-compatibility).
+[§4](https://github.com/howarewoo/woostack/blob/main/shared/references/patterns.md#4-api-compatibility).
 
 ## Type safety
 
@@ -77,13 +79,13 @@ preserved.
 Less code means less to read, test, and maintain, but correctness and safety decide how small a
 solution may be. [Least code, still safe](/docs/concepts/least-code) gives the rationale for the
 ladder, and
-[patterns.md §7](https://github.com/howarewoo/woostack/blob/main/skills/woostack-execute/references/patterns.md#7-least-code--comments)
+[patterns.md §7](https://github.com/howarewoo/woostack/blob/main/shared/references/patterns.md#7-least-code--comments)
 the full standard.
 
 ## Testing
 
 The canonical
-[Execute testing guidance](https://github.com/howarewoo/woostack/blob/main/skills/woostack-execute/references/tdd.md)
+[testing guidance](https://github.com/howarewoo/woostack/blob/main/shared/references/tdd.md)
 starts from existing protection: an adequate baseline is a valid stopping point, adding tests only
 for distinct uncovered behavior, regressions, or material risks. It prioritizes meaningful assertions
 over volume, avoids redundant aggregate/component runs, and reuses applicable results. Required
@@ -94,7 +96,7 @@ remote merge readiness.
 
 Deployment shape, migration safety, environment and secret handling, external client lifecycle, and
 observability all depend on the selected stack and delivery model, so the
-[infrastructure reference](https://github.com/howarewoo/woostack/blob/main/skills/woostack-execute/references/infrastructure.md)
+[infrastructure reference](https://github.com/howarewoo/woostack/blob/main/shared/references/infrastructure.md)
 states the outcomes rather than a vendor default. The reasoning behind them is short. Migrations
 run through controlled automation with observable failure and recovery rather than from a
 developer's machine. Production secrets come from the host's secret store or managed runtime
@@ -111,7 +113,9 @@ command, a checkout, a GitHub destination, or an extra approval event.
 Creating the first slice belongs to [Execute](/docs/skills/woostack-execute) as an authorized
 bounded outcome. Repository, HEAD, index, base, and worktree checks apply where those objects
 exist, so their absence is not a blocker. What replaces them is target admission before the first
-write: one unambiguous intended path and physical parent, no symlinks in the target or its
+write, per the canonical
+[scaffold guidance](https://github.com/howarewoo/woostack/blob/main/shared/references/scaffold.md):
+one unambiguous intended path and physical parent, no symlinks in the target or its
 ancestors, nothing unreadable, ambiguous, or unsafe, no competing writer, and a target that is
 absent or empty. A collision blocks writing there; it is never permission to delete, overwrite,
 reset, or scaffold around existing content.
@@ -131,15 +135,17 @@ to block otherwise authorized local work.
 
 ## Delivery and workspaces
 
-Branching, commits, pull requests, and remote writes belong to
-[Commit](/docs/skills/woostack-commit) and its
-[source-control contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-commit/references/source-control.md),
-which owns staging, publication, PR content, read-back of head, base, and state, and the shared
-authorized-tool and stack rules. New PRs are drafts, readiness changes only when the request asks,
-and merging, auto-merge, and merge queues stay human decisions.
+The active implementing workflow performs requested delivery itself with the
+[delivery procedures](https://github.com/howarewoo/woostack/blob/main/shared/references/delivery.md)
+and the
+[source-control safeguards](https://github.com/howarewoo/woostack/blob/main/shared/references/source-control.md):
+staging, publication, PR content, and read-back of head, base, and state. An explicit commit-only
+request, or rebase, restack, and readiness maintenance, is [Commit's](/docs/skills/woostack-commit)
+own operation. New PRs are drafts, readiness changes only when the request asks, and merging,
+auto-merge, and merge queues stay human decisions.
 
 Once Git exists, the
-[workspace guidance](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/worktrees.md)
+[workspace guidance](https://github.com/howarewoo/woostack/blob/main/shared/references/worktrees.md)
 owns isolation, ownership, and base selection for every later bounded feature or fix. A target with
 no Git repository yet cannot use it, which is why scaffold admission is described separately above.
 Retained runs, drafts, and provider records stay as their owner left them.
@@ -153,9 +159,11 @@ an authorized bounded correction belongs directly to [Execute](/docs/skills/woos
 
 ## Canonical sources
 
-This page explains the contract. The executable skill and its references remain authoritative:
+This page explains the contract. The active skill's `SKILL.md` and the shared references it bundles
+remain authoritative:
 
 - [`woostack-execute/SKILL.md`](https://github.com/howarewoo/woostack/blob/main/skills/woostack-execute/SKILL.md)
-- [`patterns.md`](https://github.com/howarewoo/woostack/blob/main/skills/woostack-execute/references/patterns.md)
-- [`infrastructure.md`](https://github.com/howarewoo/woostack/blob/main/skills/woostack-execute/references/infrastructure.md)
-- [`tdd.md`](https://github.com/howarewoo/woostack/blob/main/skills/woostack-execute/references/tdd.md)
+- [`shared/references/patterns.md`](https://github.com/howarewoo/woostack/blob/main/shared/references/patterns.md)
+- [`shared/references/infrastructure.md`](https://github.com/howarewoo/woostack/blob/main/shared/references/infrastructure.md)
+- [`shared/references/tdd.md`](https://github.com/howarewoo/woostack/blob/main/shared/references/tdd.md)
+- [`shared/references/delivery.md`](https://github.com/howarewoo/woostack/blob/main/shared/references/delivery.md)

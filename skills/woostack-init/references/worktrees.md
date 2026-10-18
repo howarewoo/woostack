@@ -5,7 +5,7 @@ select task scope, dependencies, approval, acceptance, publication, or merge aut
 boundaries belong to the active workflow; Git and canonical provider reads own repository state.
 Select native Git plus an authorized GitHub capability (prefer native GitHub tools when suitable;
 host-authenticated `gh` is supported) under the
-[source-control reference](../../woostack-commit/references/source-control.md) for authorized
+[source-control reference](source-control.md) for authorized
 tool selection. Direct Git/GitHub publication owns artifact scope; no provider-specific artifact
 context is selected here.
 
@@ -45,13 +45,17 @@ checked out can justify a bounded checkout, not a mandatory named branch or perm
 
 ## Base and recovery
 
-Select the intended base from repository policy and task dependencies; verify the required changes
-are actually available before working. Git ancestry proves commit-preserving containment, not
-intent: an upstream or merge-base alone does not choose the parent. For a squash or rebase landing,
-verify the native landing and integrated content instead of demanding ancestry from the former PR
-head. Follow [base-change detection](artifact-backends.md#repository-ancestry-and-base-change-detection)
-when a previously inspected base changes. An unresolved dependency or conflicting parent blocks
-that task; do not silently choose an integration strategy.
+### Repository ancestry and base-change detection
+
+Resolve the intended base and current tip from repository policy, task dependencies, and Git/PR
+evidence. An upstream or merge-base alone does not choose the parent. If a previously inspected tip
+moved, inspect relevant changes against the task's scope, acceptance, dependencies, and checks before
+continuing. Do not silently rebase, reset, clean, stash, overwrite, or invent an integration branch.
+A technical prerequisite must actually be available in the chosen base: prove commit-preserving
+containment from Git ancestry, or for a squash/rebase landing verify native landing and integrated
+content rather than asserting that its former source head is an ancestor. Conflicting bases,
+unresolved parent intent, or unavailable prerequisites block affected work; ask only for a material
+parent/integration decision.
 
 Reconcile unknown checkout, handoff, or worker claims against actual workspace/ownership, revisions,
 ancestry/diffs, and matching PR facts before retrying or integrating. Preserve recoverable state and
@@ -65,12 +69,11 @@ prove no writer or dependent operation needs them and that contributions, unique
 checkpoints, and recovery material are accounted for. Preserve unknown edits and user-/host-owned
 state. Integration, publication, or a "temporary" name grants no deletion authority; without safe
 authority retain the allocation with its reason and next safe action. No broad pruning or forced removal.
-[Commit](../../woostack-commit/SKILL.md) owns commit, push, PR, native-stack, and requested history
-maintenance under its [source-control reference](../../woostack-commit/references/source-control.md).
+The active workflow owns commit, push, PR, native-stack, and requested history maintenance authority;
+the [source-control reference](source-control.md) supplies procedures and safeguards.
 
 ## Greenfield boundary
 
-A target without a Git repository uses
-[Execute's initial scaffold admission](../../woostack-execute/SKILL.md#initial-project-scaffold),
+A target without a Git repository uses the active workflow's safe target admission,
 not checkout/HEAD/base checks. Once the relevant Git objects exist, these isolation and evidence
-outcomes apply normally. Reading this reference does not authorize scaffolding or invoke Execute.
+outcomes apply normally. Reading this reference does not authorize scaffolding.

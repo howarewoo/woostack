@@ -19,29 +19,23 @@ GitHub capability that supports that operation and its verification. Prefer the 
 suitable; host-authenticated official `gh` remains supported where appropriate. Discover actual
 capabilities, supported read/query shapes, and schemas from the host rather than assuming tool names
 or request forms. Custom HTTP/REST/GraphQL clients, credential reads, and token forwarding remain
-forbidden. Plan may read relevant issues while planning but makes no GitHub mutation unless the
-request asks for publication. Orchestrate reads the canonical repository and the issue/task context
-needed to resolve the user's work; a Project is included only when explicitly selected, and its
-status lifecycle is used only when that selection requests status mutation.
+forbidden. No mutation is authorized without a request for the relevant write. A Project is
+included only when explicitly selected, and its status lifecycle is used only when that selection
+requests status mutation.
 
-Orchestrate's tracker interpretation is read-only and has different evidence requirements. It may
-use a complete verified readable index to establish membership when native child hierarchy is
-absent, partial, or unavailable. Read every selected issue, keep native/declared/inferred edge
-provenance distinct, and disclose failed relation reads honestly; declared membership never becomes
-an actual parent or a fabricated native receipt. Plan holds the same bar for what it writes, and
-reports a native relationship it could not create as missing rather than waived.
+Read every selected issue and keep native, declared, and inferred edge provenance distinct. Disclose
+failed relation reads honestly; declared membership never becomes an actual parent or fabricated
+native receipt. Report a native relationship that could not be created as missing, not waived.
 
 - Publication targets the one resolved destination: the canonical repository for repository-scoped
-  work, or the exact selected Project for Project-only content. Orchestrate may receive an issue URL as a
-  convenience hint, but admission is resolved from the understood conversation, repository, and
-  tracker context.
-- `--project <exact canonical Project URL>` is the one optional selector. It requires one exact
-  caller-supplied Project and only the capabilities needed for the selected operation. When status
-  mutation is explicitly requested, require its mappings and capabilities; never infer a Project
-  from configuration, create a destination from a goal, or make Project access a condition for
-  other work.
-- Exact issue association is read-only context until the owning Commit path records its verified
-  closing reference. It never selects a publication destination.
+  work, or the exact selected Project for Project-only content. The active workflow owns input
+  selection and admission.
+- A selected Project requires one exact caller-supplied identity and only the capabilities needed
+  for the authorized operation. When status mutation is explicitly requested, require its mappings
+  and capabilities; never infer a Project from configuration, create a destination from a goal, or
+  make Project access a condition for unrelated work.
+- Exact issue association is read-only context until an authorized delivery records its verified
+  reference. It never selects a publication destination or grants publication authority.
 
 Publication is read-only until the request asks for a write, and a planning-only request performs no
 GitHub mutation at all.
@@ -71,14 +65,10 @@ the end of the relevant query, verify repository and scope, then write only the 
 independently read both endpoint identities back. Do not infer a missing edge from prose, adopt a
 foreign issue, or treat display order as a dependency.
 
-Orchestrate resolves each executable task from the conversation, repository, tracker/specification,
-and real issue evidence, keeping native, declared, and inferred edge provenance distinct in its own
-resolution. A complete readable index can declare the executable set without a native child
-hierarchy; every named issue must still be independently readable and context-only references must
-be excluded. Reject foreign prerequisite references, self-dependencies, cycles, and edges whose
-endpoints were not independently read in the exact scope. A blocked external prerequisite remains
-blocked; it never widens the scope or becomes an invented task. An omitted administrative field is
-not a blocker.
+Validate selected edge endpoints independently within the exact authorized scope. Reject foreign
+prerequisite references, self-dependencies, cycles, and unread endpoints. A blocked external
+prerequisite remains blocked; it never widens scope or becomes an invented task. Display order,
+context-only references, and missing administrative metadata do not establish dependencies.
 
 ## Direct issue publication
 
@@ -104,8 +94,8 @@ readable index naming them and their real prerequisites, and state plainly which
 not created. That index is the human-readable record, not a native graph: a publication that was
 required to produce native links and did not is reported incomplete.
 
-Orchestrate still performs its own issue, contract, dependency, and repository validation before it
-resolves a task set, and bounded Execute admits one complete task.
+The active workflow independently validates its issue, contract, dependency, and repository evidence
+before acting. These publication procedures do not select an executable task set.
 
 ## Selected Project content
 
@@ -149,7 +139,6 @@ A caller that needs its own recovery checkpoint keeps it private and owner-only;
 [run-store reader](../artifact-backends.md#owner-only-local-run-store-reader) only reads retained
 records.
 
-Orchestrate owns ordering, concurrency, and in-session observation of its resolved scope; Execute
-owns authorized bounded implementation, and Commit owns Git/PR delivery and explicitly requested
-issue notes. Git, branches, commits, PRs, reviews, and merge evidence remain authoritative; merge
-authority is human-only.
+The active workflow owns ordering, concurrency, implementation, Git/PR delivery, and any explicitly
+requested issue note within its own authority. These procedures start none of them. Git, branches,
+commits, PRs, reviews, and merge evidence remain authoritative; merge authority is human-only.

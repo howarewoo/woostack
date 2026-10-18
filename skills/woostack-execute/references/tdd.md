@@ -1,16 +1,16 @@
-# Testing guidance for bounded Execute tasks
+# Verification and testing procedures
 
-Canonical testing guidance for bounded [`woostack-execute`](../SKILL.md) tasks,
-[`woostack-simplify`](../../woostack-simplify/SKILL.md) checks, and newly authored
-[`woostack-plan`](../../woostack-plan/SKILL.md) verification expectations. Reading it
-invokes no workflow and requires no skill installation or handoff.
+Use these procedures to select checks, design behavioral protection, and assess existing evidence.
+The active workflow owns task admission, sequencing, required evidence at its boundaries, and
+completion. Reading this reference invokes no workflow and grants no implementation or delivery
+authority.
 
-A request to add or strengthen tests is ordinary bounded Execute input under
-[test-only scope](../SKILL.md#test-only-outcomes). Start from existing protection: resolve the
-target, observable behavior, and boundaries from current source and acceptance. An existing
-adequate baseline is a valid stopping point; add or strengthen tests only for distinct uncovered
-behavior, regressions, or material risks. Explicit test-only acceptance still applies, but needs
-no duplicate cases when requested protection already exists.
+For test-only work, keep the admitted scope explicit: report a discovered production discrepancy
+instead of repairing it outside that scope. Start from existing protection: resolve the target,
+observable behavior, and boundaries from current source and acceptance. An existing adequate baseline
+is valid evidence; add or strengthen tests only for distinct uncovered behavior, regressions, or
+material risks. Explicit test-only acceptance still applies, but needs no duplicate cases when
+requested protection already exists.
 
 ## Selection, native capabilities, and caching
 
@@ -78,12 +78,10 @@ Timed-out, cancelled, failed, or unrun required checks remain unverified, not pa
 ## Targets without a test runner
 
 When the target has no test runner, use one concrete verification command with an observable result or
-exit status. Run it during Execute and record the observation. Never invent a runner, fake fallback, or
+exit status. Run it within the authorized workflow and record the observation. Never invent a runner, fake fallback, or
 report an unrun command as passing.
 
 ## Verification and delivery boundary
 
-Local proof does not establish remote merge readiness. Delivery and publication remain owned by
-[`woostack-execute`](../SKILL.md#implement-and-verify) and
-[`woostack-commit`](../../woostack-commit/SKILL.md); failed or unrun required checks leave the task
-incomplete.
+Local proof does not establish remote merge readiness. The active workflow owns delivery and
+publication authority; failed or unrun required checks leave its affected boundary unverified.

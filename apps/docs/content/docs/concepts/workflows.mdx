@@ -4,8 +4,9 @@ description: How the workflows relate, and why a bounded change can skip plannin
 ---
 
 These pages explain how the workflows relate to each other. The [task guides](/docs/guides) carry
-the procedures, and each [skill reference](/docs/skills/using-woostack) owns the exact contract,
-evidence rules, and recovery behavior. Start from the result you need rather than from a required
+the procedures; the [command index](/docs/skills/using-woostack#command-routing) lists the skills,
+and each skill's own reference page owns the exact contract, evidence rules, and recovery behavior.
+Start from the result you need rather than from a required
 sequence. An issue URL supplies context, not permission to implement or publish, and Git and GitHub
 show what was implemented and delivered.
 
@@ -14,7 +15,7 @@ show what was implemented and delivered.
 One authorized outcome is enough to begin. A bounded enhancement, refactor, test task, or
 authorized correction goes to [Execute](/docs/skills/woostack-execute) with no planning stage
 first, and tests for a bounded target are ordinary Execute input under the
-[testing guidance](https://github.com/howarewoo/woostack/blob/main/skills/woostack-execute/references/tdd.md).
+[testing guidance](https://github.com/howarewoo/woostack/blob/main/shared/references/tdd.md).
 
 The other workflows answer different questions. [Plan](/docs/skills/woostack-plan) suits a feature,
 a defect whose cause is already proved, a request to file issues, or a product that does not exist
@@ -90,7 +91,7 @@ read back after publication. Landing order is distinct from implementation order
 complete immutable prerequisite checkpoints can enable dependent work before PR publication or
 landing. Missing capabilities or host capacity can still require sequential dispatch.
 Applicable child results carry forward under the canonical [testing
-guidance](https://github.com/howarewoo/woostack/blob/main/skills/woostack-execute/references/tdd.md#when-evidence-still-applies);
+guidance](https://github.com/howarewoo/woostack/blob/main/shared/references/tdd.md#when-evidence-still-applies);
 the coordinator independently verifies the canonical tree, cumulative diff, and new interactions.
 Only conflicting heavy checks share a concurrency limit; light checks can proceed. There is no
 persisted execution forest, lock service, or cross-harness replay guarantee.
@@ -132,8 +133,9 @@ behavior while reducing the code and concepts that need maintenance. A useful si
 replace a whole internal flow rather than produce the smallest diff.
 
 Simplify applies changes unless the request is analysis-only. Even an explicit Simplify invocation
-stays local unless a commit or PR is requested. It shares the least-code engineering reference
-with Execute without invoking that workflow, and neither Plan nor Execute is a prerequisite.
+stays local unless a commit or PR is requested. It bundles the same least-code engineering
+reference Execute consumes without invoking that workflow, and neither Plan nor Execute is a
+prerequisite.
 An implementation that is already simple enough can remain unchanged.
 
 ## Shared execution boundary
@@ -142,15 +144,20 @@ Implementation workflows report the same way. An existing targeted test can serv
 smoke for a change, and required repository checks and reviews cannot be waived by an agent's
 success sentence. A failed, pending, or unrun required check is a delivery blocker.
 
-Requested delivery goes through [Commit](/docs/skills/woostack-commit), which owns staging, the
-push, the PR body, and the read-back of head, base, state, and preserved human text. Commit
-reuses applicable observed results under the canonical [testing
-guidance](https://github.com/howarewoo/woostack/blob/main/skills/woostack-execute/references/tdd.md#when-evidence-still-applies).
+Every implementing workflow performs requested delivery itself under the
+[delivery procedures](https://github.com/howarewoo/woostack/blob/main/shared/references/delivery.md)
+and the
+[source-control safeguards](https://github.com/howarewoo/woostack/blob/main/shared/references/source-control.md):
+staging, the push, the PR body, and the read-back of head, base, state, and preserved human text.
+Applicable observed results are reused under the canonical [testing
+guidance](https://github.com/howarewoo/woostack/blob/main/shared/references/tdd.md#when-evidence-still-applies).
 Required hooks and configured commands still run. New PRs are drafts, and unavailable requested
 delivery remains incomplete. Native stack registration is conditional on an explicit
 request or a repository requirement, so its absence does not invalidate verified code. An unknown
 commit, push, or PR outcome is rediscovered from current Git and PR facts before anything is
-retried, which is what keeps a duplicate writer or duplicate PR from appearing.
+retried, which is what keeps a duplicate writer or duplicate PR from appearing. An explicit
+commit-only request, or rebase, restack, and readiness maintenance, is
+[Commit's](/docs/skills/woostack-commit) own operation.
 
 Separate concurrent writers need independently owned workspaces, and a possibly active prior writer
 blocks reuse until its exit is proved. An approved existing workspace need not be replaced. Retired

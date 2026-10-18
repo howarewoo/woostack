@@ -1,6 +1,6 @@
 # Verification and evidence
 
-Use canonical [Execute testing guidance](../../woostack-execute/references/tdd.md) to select
+Use the bundled [testing guidance](tdd.md) to select
 focused behavioral checks and broaden for changed integration boundaries. Preserve explicit
 acceptance checks. This reference defines evidence for this skill, not a new universal test runner.
 

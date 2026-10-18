@@ -24,6 +24,7 @@
     "docs#test": {
       "inputs": [
         "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/shared/**",
         "$TURBO_ROOT$/skills/**",
         "$TURBO_ROOT$/.claude/skills/**",
         "$TURBO_ROOT$/skills-lock.json",

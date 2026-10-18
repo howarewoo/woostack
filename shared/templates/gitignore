@@ -1,0 +1,7 @@
+# Transient, per-clone.
+metrics.json
+*.local.*
+visuals/
+qa/evidence/
+worktrees/
+tmp/

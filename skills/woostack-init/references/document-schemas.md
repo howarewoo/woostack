@@ -199,6 +199,6 @@ Woostack-adoption rules remain in [document responsibilities](../SKILL.md#docume
 
 Repository manifests and CI configuration remain authoritative for adopted tooling. Record verified
 command existence, working directories, execution conditions, and evidence status under canonical
-[testing principles](../../woostack-execute/references/tdd.md), distinguishing commands inspected
+[testing principles](tdd.md), distinguishing commands inspected
 from commands executed. Keep current commands, agreed future direction, and unimplemented
 recommendations strictly separate.

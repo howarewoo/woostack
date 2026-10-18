@@ -5,8 +5,7 @@ description: "Use to render one self-contained HTML visualization from a supplie
 
 # woostack-visualize
 
-Render the requested source as one self-contained HTML visualization tailored to its reader. The
-HTML is a disposable reading aid, never the authority for what it describes.
+Render the requested source as one self-contained HTML visualization tailored to its reader.
 
 ## Command
 
@@ -20,9 +19,6 @@ HTML is a disposable reading aid, never the authority for what it describes.
     - `/woostack-visualize docs/billing-proposal.md for an investor`
     - `/woostack-visualize src/billing/invoice.ts for a security auditor`
     - `/woostack-visualize https://github.com/acme/widgets/pull/42 for an engineer`
-
-Render the source that was requested. Never substitute an approximate or "current" stand-in, and
-never discover a source the caller did not select.
 
 ## When to visualize
 
@@ -45,9 +41,9 @@ language:
 3. **Pinned Git source.** Pin selected files/ranges to immutable Git identity before composition.
 4. **Exact PR.** Independently read the exact repository, PR URL/number, head/base, diff, and
    relevant review facts. A PR needs no issue association.
-5. **Exact GitHub Project or issue.** Load the shared
-   [artifact contract](../woostack-init/references/artifact-backends.md#direct-publication-and-recovery)
-   and [GitHub profile](../woostack-init/references/artifact-providers/github.md#configuration-and-scope).
+5. **Exact GitHub Project or issue.** Load the local
+   [artifact contract](references/artifact-backends.md#direct-publication-and-recovery)
+   and [GitHub profile](references/artifact-providers/github.md#configuration-and-scope).
    Use an authorized host GitHub capability (prefer suitable native tools; host-authenticated `gh` is
    supported), resolve only the exact resource in complete scope, and completely read the
    specification/fix/plan fields needed by the render. A local document needs no GitHub context.

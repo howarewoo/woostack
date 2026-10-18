@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -uo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$HERE/../../../woostack-init/scripts/tests/assert.sh"
+source "$HERE/assert.sh"
 set +e
 C="$HERE/../checks"
 
@@ -76,7 +76,7 @@ done
 
 # An unreadable template is an inspection failure, never a clean result.
 tpl="$(mktemp -d)"
-mkdir -p "$tpl/woostack-doctor/scripts/checks" "$tpl/woostack-init/templates"
+mkdir -p "$tpl/woostack-doctor/scripts/checks"
 cp "$C/gitignore-drift.sh" "$tpl/woostack-doctor/scripts/checks/"
 assert_contains "$(bash "$tpl/woostack-doctor/scripts/checks/gitignore-drift.sh" "$r")" $'error\tgitignore-drift\treport\t' "missing template is not healthy evidence"
 
@@ -137,7 +137,7 @@ r4="$(mktemp -d)"
 wt="$r4/task worktree one"
 mkdir -p "$r4/repo/.woostack"
 printf '%s\n' '{"models":{}}' >"$r4/repo/.woostack/config.json"
-cp "$HERE/../../../woostack-init/templates/gitignore" "$r4/repo/.woostack/.gitignore"
+cp "$HERE/../../templates/gitignore" "$r4/repo/.woostack/.gitignore"
 ( cd "$r4/repo" && git -c user.email=t@t -c user.name=t init -q && git -c user.email=t@t -c user.name=t commit -q --allow-empty -m init )
 git -C "$r4/repo" worktree add -q "$wt" -b wt-spaced
 reg_before="$(git -C "$r4/repo" worktree list --porcelain)"

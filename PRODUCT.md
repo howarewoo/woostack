@@ -27,8 +27,10 @@ Current scope:
 - A documentation site with authored guides and references generated from skill sources.
 - A standalone component catalog for inspecting components, tokens, and examples.
 
-The [command router](skills/using-woostack/SKILL.md#command-routing) owns command selection and
-workflow boundaries. Individual skills own their procedures.
+Every skill is independently installable and owns its own activation, workflow, and approval
+boundaries. The [command router](skills/using-woostack/SKILL.md#command-routing) is an optional
+command index and adoption aid; reusable procedures are shared through locally bundled references
+maintained from one canonical source.
 
 Woostack is a skills collection with two supporting applications, not a place to scaffold
 unrelated products. Application source is confined to `apps/docs/` and

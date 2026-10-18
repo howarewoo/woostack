@@ -15,6 +15,11 @@ Supply the bounded plan in the same session, or include it in a new session; cha
 
 With a selected executable issue, `/woostack-execute <canonical GitHub issue URL>` is an alternative. An explicit Execute request delivers a draft PR unless you limit it to local work. Planning is optional; so is a separate Debug session. For a defect, establish the cause from evidence before correcting it. Resolve material scope or safety questions rather than guessing.
 
+Before the first edit, Execute checks the physical repository, branch, HEAD/base where present,
+index, and relevant staged/unstaged changes with read-only Git queries. A task-file read or passing
+test does not replace that admission, even for a one-line change. Unknown workspace ownership or
+an unsafe branch/base blocks editing; understood unrelated work stays preserved.
+
 ## 2. Inspect the implementation
 
 Confirm the complete diff and changed paths match the outcome and leave unrelated work alone. Read the actual command results; required checks or independent review cannot be replaced by an agent's success sentence. A failed or unrun required check remains a delivery blocker. [Execute's reference](/docs/skills/woostack-execute) owns workspace admission and verification.
@@ -26,6 +31,7 @@ you selected an issue, check its exact closing association only when the PR full
 PR is a draft for human review; a request to mark it ready is executed, and merging stays with a
 human. An in-scope failure belongs on the **same** task branch and PR after diagnosis and renewed
 checks, not a duplicate PR. For a missing check or uncertain write, [start with the matching
-symptom](/docs/guides/troubleshooting). [Commit's
-reference](/docs/skills/woostack-commit) owns source-control delivery, including requested rebases,
-restacks, and readiness changes.
+symptom](/docs/guides/troubleshooting). Execute performs this delivery itself under the
+[delivery procedures](https://github.com/howarewoo/woostack/blob/main/shared/references/delivery.md);
+an explicit commit-only, rebase, restack, or readiness request is
+[Commit's](/docs/skills/woostack-commit) own operation.

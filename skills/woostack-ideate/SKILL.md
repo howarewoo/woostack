@@ -46,9 +46,9 @@ headings.
 ## Removal and reuse
 
 Before proposing new work, look for safe deletion, reuse, simplification, and generalization, and
-apply the [least-code doctrine](../woostack-execute/references/patterns.md#7-least-code--comments).
+apply the [least-code doctrine](references/patterns.md#7-least-code--comments).
 Keep required safety, compatibility, accessibility, and data-loss protection while removing.
-Reading that reference does not invoke Execute or authorize implementation.
+Reading that reference invokes no implementation workflow and authorizes no implementation.
 
 ## Elicitation
 
@@ -59,8 +59,7 @@ what is stale, conflicting, or newly exposed.
 
 ## Read-only boundary
 
-Ideate reads only the bounded repository and evidence needed to explore a decision. It makes no
-provider calls, remote writes, issue creation, source edits, implementation-worker dispatch, commit,
+Beyond the standalone read-only phase above, Ideate makes no provider calls and takes no commit,
 branch, worktree, or PR action. An explicit request to save the result writes only that
 user-selected document, which grants no later authority.
 

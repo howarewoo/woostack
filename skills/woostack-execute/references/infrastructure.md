@@ -4,7 +4,7 @@ Load this reference when a change affects deployment, data migrations, environme
 or secrets, external client lifecycle, or observability. These are outcomes for the project's
 selected stack and delivery model, not vendor or hosting defaults; existing repository and host
 policy stay authoritative, and the guidance applies to new or materially changed flows rather
-than untouched code. Repository checks and CI remain owned by the Execute entrypoint and the
+than untouched code. Repository checks and CI remain governed by the active workflow and the
 project's own configuration.
 
 ## Deployment

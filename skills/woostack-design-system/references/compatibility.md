@@ -1,8 +1,8 @@
 # Compatibility and preservation
 
 React, shadcn provenance, similar filenames and screenshots are not compatibility evidence.
-Inspect the public contract and a real consumer before choosing reuse. Follow canonical
-[placement and API guidance](../../woostack-execute/references/patterns.md), not a new framework
+Inspect the public contract and a real consumer before choosing reuse. Follow the bundled
+[placement and API guidance](patterns.md), not a new framework
 migration workflow.
 
 ## Inspection record
@@ -58,6 +58,7 @@ permission to replace owned source. Report incompatible requests with the public
 constraint and the smallest viable scoped options. Do not hide conflicts by copying another control,
 renaming the old one, suppressing type errors, or dropping required specimens.
 
-Use focused behavioral coverage from [Execute testing guidance](../../woostack-execute/references/tdd.md)
+Use focused behavioral coverage from the bundled
+[testing guidance](tdd.md)
 to prove reuse, untouched product behavior and preservation. Tests of instruction wording or a
 mock copy of the adaptation logic do not prove these boundaries.

@@ -1,7 +1,7 @@
 # Adaptation and recreation
 
-Use repository-owned placement and dependencies under canonical Execute
-[patterns](../../woostack-execute/references/patterns.md). No Execute invocation, Git operation,
+Use repository-owned placement and dependencies under the bundled
+[patterns](patterns.md). No other skill invocation, Git operation,
 Woostack configuration, hosted registry or Git Stacks installation is necessary.
 
 ## Versioned installed inputs
@@ -28,11 +28,11 @@ defaults. CLI sourcing requires network access during creation, not at catalog r
    If an existing catalog has no explicit maintenance request, report without writes and do not
    proceed. For creation, choose the actual catalog owner and record public components/tokens to
    reuse before copying anything.
-   Before any directory creation, write or generator invocation, apply canonical
-   [initial-scaffold target admission](../../woostack-execute/SKILL.md#initial-project-scaffold)
+   Before any directory creation, write or generator invocation, apply the bundled
+   [initial-scaffold target admission](scaffold.md)
    to the intended physical target and parent, including symlink, ownership and collision safety;
-   existing-repository destinations use that guidance's workspace-preservation boundary. This
-   matters equally for isolated catalogs. Reading the guidance invokes neither Execute nor publication.
+   its workspace-preservation boundary covers existing-repository destinations. This
+   matters equally for isolated catalogs. Reading the guidance invokes neither another skill nor publication.
 2. Read the installed template tree and destination files. Create only authorized missing files.
    Copy the tree into the selected catalog unit, stripping only each terminal `.template` suffix;
    preserve directory structure and source contents. There are no token-substitution placeholders.
@@ -72,8 +72,8 @@ defaults. CLI sourcing requires network access during creation, not at catalog r
    stylesheets and configuration where compatible. Without project rules, retain the neutral
    shadcn baseline. Remove remaining Git branding/domain assumptions without replacing them with
    a new imposed identity. Include colors/tokens, typography, typeset content and iconography.
-5. Inspect the template manifest and actual source imports; apply canonical
-   [dependency resolution, ownership and integrity](../../woostack-execute/references/patterns.md#6-dependencies-resolution-ownership-and-integrity).
+5. Inspect the template manifest and actual source imports; apply the bundled
+   [dependency resolution, ownership and integrity](patterns.md#6-dependencies-resolution-ownership-and-integrity).
    Materialize exact selections and the target package manager's lockfile; a template range is
    not registry evidence. Do not install app dependencies in the skill distribution. An isolated
    catalog's own manifest owns React and UI runtime dependencies, not the product manifest.

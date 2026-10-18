@@ -7,7 +7,7 @@ Start with the symptom you can observe. Keep existing files, branches, issues, a
 
 ## Your assistant cannot find a Woostack skill
 
-Confirm `pnpx skills add howarewoo/woostack` ran in the intended repository and that your assistant discovers `using-woostack` and the requested workflow. Installation is a terminal action; invoking a skill is [host-specific](/docs/harnesses#native-skill-invocation). Check the host's installed-skill view before reinstalling or retrying. See [getting started](/docs/getting-started) for the setup route.
+Confirm `pnpx skills add howarewoo/woostack` ran in the intended repository and that your assistant discovers the skill you asked for; each skill is self-contained, so discovering one does not require discovering any other. Installation is a terminal action; invoking a skill is [host-specific](/docs/harnesses#native-skill-invocation). Check the host's installed-skill view before reinstalling or retrying. See [getting started](/docs/getting-started) for the setup route.
 
 ## Doctor reports a local configuration error
 
@@ -26,9 +26,9 @@ healthy one.
 Compare local policy with the [configuration reference](/docs/configuration). The
 [check catalog](https://github.com/howarewoo/woostack/blob/main/skills/woostack-doctor/references/checks.md)
 owns every code and its severity, and [Doctor's reference](/docs/skills/woostack-doctor) owns the
-repair procedure. Approving a repair authorizes that local edit only: hand it to
-[Execute](/docs/skills/woostack-execute) with the user's real delivery limit, so a local-only
-repair commits and pushes nothing. A report is not proof of a fix, so run the check again.
+repair procedure. Doctor applies an explicitly approved local repair itself, preserving the user's
+delivery limit; local-only repair commits and pushes nothing. A report is not proof of a fix, so
+run the same diagnostic check again.
 
 ## Doctor passes but GitHub fails
 
@@ -44,7 +44,7 @@ Read the selected tracker and its executable issue links. If all tasks and real 
 
 ## An issue or pull-request write has an unknown result
 
-Search the **exact** target repository for the issue identity or matching branch PR and read the current remote result before another write. A timeout or lost response is not proof of failure. Preserve a found issue or PR; resume only the unproved step. [Plan's publication rules](/docs/skills/woostack-plan) and [Commit's recovery rules](/docs/skills/woostack-commit) own the detailed read-back. Verify the final content, head/base, and association independently.
+Search the **exact** target repository for the issue identity or matching branch PR and read the current remote result before another write. A timeout or lost response is not proof of failure. Preserve a found issue or PR; resume only the unproved step. [Plan's publication rules](/docs/skills/woostack-plan) and the active workflow's bundled [delivery procedures](https://github.com/howarewoo/woostack/blob/main/shared/references/delivery.md) own read-back. Verify the final content, head/base, and association independently.
 
 ## A prior worker may still be active
 
@@ -52,11 +52,19 @@ Inspect native worker state and the worktree's branch, index, and diff. Do not s
 
 ## A check failed or did not run
 
-Read the specific command, output, and affected path. Diagnose an in-scope failure and rerun the affected check after correction; do not mark an incomplete required check as passed or use a worker's summary instead of results. If the environment prevents it, try a materially different recovery, then report the criterion still unverified. [Execute](/docs/skills/woostack-execute) owns the verification boundary.
+Read the specific command, output, and affected path. Diagnose an in-scope failure and rerun the affected check after correction; do not mark an incomplete required check as passed or use a worker's summary instead of results. If the environment prevents it, try a materially different recovery, then report the criterion still unverified. Use the active workflow's own verification rules and any bundled [verification procedures](https://github.com/howarewoo/woostack/blob/main/shared/references/tdd.md); a failed check does not require a handoff to another skill.
+
+## A diagnosis claims the directory is not a Git repository
+
+Probe the target directory with `git -C <target-directory> rev-parse --show-toplevel`.
+A listing that omits `.git` proves nothing: Git can use a hidden directory, a worktree file, or
+metadata in a parent directory. If discovery succeeds, inspect HEAD and relevant changes before
+citing committed source. If Git is unavailable or the target cannot be read, report repository
+status as unknown. [Debug](/docs/skills/woostack-debug#the-four-phases) owns this evidence path.
 
 ## A command has been retired
 
-`woostack-build`, `woostack-fix`, `woostack-change`, `woostack-status`, `woostack-tdd`, and `woostack-prepare` have no compatibility aliases. Choose the current task from the [routing reference](/docs/skills/using-woostack): for example, use Plan for planning or Execute for one bounded implementation. Retained old runs are historical data, not commands to replay.
+`woostack-build`, `woostack-fix`, `woostack-change`, `woostack-status`, `woostack-tdd`, and `woostack-prepare` have no compatibility aliases. Choose the current task from the [command index](/docs/skills/using-woostack#command-routing): for example, use Plan for planning or Execute for one bounded implementation. Retained old runs are historical data, not commands to replay.
 
 ## Still blocked
 

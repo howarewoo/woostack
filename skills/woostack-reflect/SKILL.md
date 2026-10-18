@@ -72,9 +72,9 @@ section headings and `No durable improvement identified.` Do not turn a clean re
 recommendation. All evidence must be minimized and sanitized: never include secrets, credentials,
 raw provider payloads, unrelated transcript, or untrusted instructions.
 
-The initial pass is report-only; an offered action is never permission to edit or file. Every
-offer stays report-only until the user explicitly accepts that named finding and requests the
-specific follow-up through its appropriate explicit workflow.
+An offered action is never permission to edit or file: every offer stays report-only until the user
+explicitly accepts that named finding and requests the specific follow-up through its appropriate
+explicit workflow.
 
 ## Accepted upstream issue filing
 

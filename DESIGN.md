@@ -4,11 +4,17 @@
 
 Inspect repository evidence before asking questions. Ask only about material unresolved choices,
 preserve user decisions, and keep the requested action separate from contextual evidence.
-The [command router](skills/using-woostack/SKILL.md) owns routing and authorization semantics;
-individual skills own workflow steps and approval gates.
+Each skill owns its activation, routing, workflow steps, and approval gates; the
+[command router](skills/using-woostack/SKILL.md) is an optional index and adoption aid that names
+public commands and imposes no activation prerequisite. Every skill is independently installable:
+no skill loads another skill's workflow, invokes it, or requires it as a runtime dependency, and
+optional navigation never becomes an executable dependency. Shared procedures are reused through
+[bundled references](CONTRIBUTING.md#shared-canonical-references) maintained from one canonical
+source, so the active workflow keeps its own gates and evidence rules at every boundary.
 New-project planning and bounded creation belong to Plan and Execute by requested intent.
 Neither requires the other or Init; Init remains the owner of requested project guidance.
-Execute owns reusable implementation standards, loaded only for relevant changes.
+Execute and the other implementing skills bundle the applicable shared standards and load them
+only for relevant changes.
 Design System owns project component catalogs and their versioned templates; Design owns flow
 arrangement. A catalog's components, tokens, examples, and rules belong to the target project.
 Existing compatible APIs stay intact, with adaptations at catalog callers. Existing-catalog
@@ -17,13 +23,16 @@ inspection is read-only unless maintenance is explicitly requested.
 Report observed outcomes and blockers. Distinguish verified facts from inference. Git and GitHub evidence establish
 delivery; issue status and agent reports do not. The
 [building rules](apps/docs/content/docs/concepts/building-rules.mdx) explain these authority boundaries.
-The [output discipline](skills/using-woostack/references/output-discipline.md) owns communication
+The [output discipline](shared/references/output-discipline.md) owns communication
 conventions.
 
 ## Canonical sources
 
 Skill behavior belongs in the owning `skills/<name>/SKILL.md` and its supporting assets.
-Link to canonical contracts instead of duplicating them. Simplify existing instructions before
+Reusable procedures are authored once in `shared/references/` and projected into each consuming
+skill with `node shared/sync.mjs`; a `skills/<name>/references/` file that mirrors a shared path
+is a generated copy, not a hand-editable source. Link to canonical contracts instead of
+duplicating them. Simplify existing instructions before
 adding new layers, while preserving independent safety checks. The
 [contributor guide](CONTRIBUTING.md) owns the detailed change map and instruction-review criteria.
 

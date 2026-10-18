@@ -5,11 +5,15 @@ regression investigation. They are not a corpus, a grader, a mandatory gate afte
 test command: run the smallest recipe that covers the changed behavior, and report honestly what you
 did not run.
 
-The [router](../SKILL.md) and each owner skill — [Plan](../../woostack-plan/SKILL.md),
-[Execute](../../woostack-execute/SKILL.md), [Commit](../../woostack-commit/SKILL.md), and
-[Orchestrate](../../woostack-orchestrate/SKILL.md) — own their contracts. This guide only says how to
-observe them; it never restates one. Retired commands and protocols stay retired: do not
-reintroduce an alias, a replay path, or a compatibility shim to make a smoke pass.
+Each recipe observes a single skill whose own bundle owns the observed contract; this guide only
+says how to observe them and never restates one. Recipes label the skill under test, and that
+skill's `SKILL.md` stays the authority for gates, evidence, and stopping. No recipe requires the
+[command index](../SKILL.md) or any sibling skill: run each installed skill alone, with its
+consumer repository, and the recipe's own fixture. [Isolation recipes](#7-isolation-with-and-without-sibling-skills)
+compare behavior with siblings absent and present; the installed
+[command index](../SKILL.md) stays an optional list, and optional navigation it names never becomes
+an executable dependency or an automatic handoff. Retired commands and protocols stay retired:
+do not reintroduce an alias, a replay path, or a compatibility shim to make a smoke pass.
 
 ## Evidence classes
 
@@ -71,6 +75,10 @@ separate permission.
 
 **Observe:**
 
+- Before the first source write, read-only Git evidence establishes the physical repository,
+  branch, HEAD/base where present, index, dirty state, and relevant staged/unstaged diffs.
+  A task-file read or passing test does not substitute for workspace admission, even for this
+  one-line edit.
 - The focused check observably fails before the change and passes after it; that same command
   exercises the changed path, so no extra smoke is needed.
 - The diff touches only the named file. There is no issue, Project, or provider-graph discovery and
@@ -97,15 +105,15 @@ them; otherwise label that variant **Unrun**.
 **Observe:**
 
 - For published issues, verify their outcomes, constraints, out-of-scope, acceptance,
-  verification, and real prerequisites against [What an issue carries](../../woostack-plan/SKILL.md#what-an-issue-carries),
+  verification, and real prerequisites against the installed Plan skill's issue-content rule,
   without imposing a heading template.
 - Where the host cannot create a native sub-issue or dependency link, Plan keeps the issues it wrote
   plus a readable index and reports the missing relationships in those terms. It never calls a
   readable index a native edge, and it never calls an explicitly required native graph complete
   because it was not created.
 - No source edit, branch, worktree, commit, PR, worker dispatch, or merge happened, and no issue was
-  closed. A printed issue list is not evidence; [read-back](../../woostack-plan/SKILL.md#publishing-and-read-back)
-  is.
+  closed. A printed issue list is not evidence; the installed Plan skill's read-back rule decides
+  what counts.
 - Without an authorized repository, record publication **Unrun** and keep the plan itself as the
   evidence.
 
@@ -252,10 +260,10 @@ trailing newline. The focused check above is the required verification. Nothing 
   hunks in one file are left exactly as found, in whatever staging state they started in, and
   explained instead of guessed.
 - A run started from a nested directory behaves identically, with no working-directory requirement.
-- On unchanged inputs, independent applicability inspection under
-  [When evidence still applies](../../woostack-execute/references/tdd.md#when-evidence-still-applies)
-  leaves the counter unchanged, including with an unrelated prose/metadata sentinel or a new
-  handoff/revision identifier. A relevant correction increments only the affected check's counter.
+- On unchanged inputs, independent applicability inspection against the installed skill's
+  testing guidance leaves the counter unchanged, including with an unrelated prose/metadata
+  sentinel or a new handoff/revision identifier. A relevant correction increments only the
+  affected check's counter.
 - A `commit.command` that rewrites the intended file is reviewed, the affected check runs again on
   the new content, and the commit proceeds with the verified result. A required command or check
   that cannot pass blocks the commit and is reported unresolved. No check is skipped, no assertion
@@ -318,16 +326,19 @@ remote writes, and ordinary delivery/comment correction grants no restack or rea
 No merge, auto-merge, or queue operation occurs. Without an authorized remote or native capability,
 label these variants **Unrun**, not simulated.
 
-**Manual trace:** follow router → caller (Execute, Orchestrate, or Address Comments) → Commit →
-source-control reference → AGENTS.md. Record how request scope, plan approval pause, original-head lease,
+**Manual trace:** follow the installed delivery path the request actually named: a caller that
+performs requested delivery (Execute, Orchestrate, or Address Comments) loads its bundled delivery
+and source-control references and the project's AGENTS.md; a commit-only or maintenance request is
+Commit's own invocation and reads the same bundled references. Record how request scope, plan
+approval pause, original-head lease,
 unselected membership, readiness, and merge prohibition pass through without contradictory instructions.
 Keep this trace separate from local Git observations and actual-host evidence.
 
 ## 6. Independent new-project planning and local creation
 
 Use a disposable physical parent owned by the current user. Leave the chosen child target absent;
-do not initialize Git or configure GitHub. Read the installed candidate's router and selected
-skill, recording its revision/path rather than silently using a released copy.
+do not initialize Git or configure GitHub. Read the installed candidate's `SKILL.md` and its
+bundled references, recording the revision/path rather than silently using a released copy.
 
 **Planning input:**
 
@@ -364,45 +375,151 @@ No Git initialization, remote, commit, push, PR, project-guidance documents, or 
 - Keep helper checks, manual traces, actual-host runs, and unavailable variants separate under the
   evidence classes above. Save safe evidence, then remove only task-owned temporary fixtures.
 
+## 7. Isolation with and without sibling skills
+
+Each recipe above must produce the same gates, evidence, delivery, and stopping whether or not
+another Woostack skill is installed. Run each comparison twice from distinct disposable consumer
+repositories outside this checkout: once with only the skill under test installed (its own
+`SKILL.md`, bundled references, scripts, and templates), once with the previously coupled
+sibling also installed — Execute's and Simplify's pairings include Commit, Orchestrate's includes
+Execute, and Commit's includes Execute. Keep tool, model, permission, host, and fixture constants
+fixed between the two runs, and record the invocation, revision, and installed directory contents
+of both runs. A host lacking a capability blocks only that recipe's affected variant; record the
+unavailable variant **Unrun** and never install a missing sibling to substitute for the capability.
+
+**Input contract for every isolation recipe:** the same explicit command text in both runs, with
+no reminder about planning approval, stopping points, or delivery limits; the fixture built by
+the referenced recipe; and the user's own narrow limits stated once (for example `local only` or
+`commit only`) where the recipe asks for them.
+
+**Observe, in every pairing:**
+
+- The requested outcome, pauses, evidence, and stopping behavior are identical in both runs.
+  Installing the sibling adds no extra stage, no second approval packet, no extra publication
+  authority, no extra verification gate, and no changed completion boundary. Absence of the
+  sibling does not block the requested workflow, trigger an installation prerequisite, or
+  weaken a verification requirement.
+- Any named optional reference the two runs load resolves from the skill's own bundled copies,
+  never from a sibling directory; a link or navigation hint pointing outside the skill's installed
+  directory never gates continuation of the nominal workflow.
+- The absence run's report names the skill's own procedures; the presence run does not attribute
+  its gates or stopping rules to a sibling workflow.
+
+### Execute: local-only and requested delivery, isolated
+
+Run the section 1 local recipe in both isolation conditions. Record identical local operation:
+the admitted outcome, checks, and report must match, and the presence run cannot claim an extra
+stage. For the requested-delivery variant, add the same explicit delivery request
+("Implement ... and submit a draft PR" with the section 1 fixture's intended change) to both
+conditions over one authorized disposable repository. Delivery authorization, publication, and
+read-back belong to the Execute invocation itself: independently read back each run's draft PR
+facts (identity, head, base, body, draft state, issue association), with no sibling attribution in
+either report. Compare the authorization, evidence, and stopping boundaries, not incidental
+identifiers or exact model wording.
+
+### Commit: commit-only isolated
+
+Run the section 4 commit-only workload in both isolation conditions. No
+`--no-pr-update` behavior difference, no push, no PR; the commit's own invocation is the entire
+request. Record: no remote read or write in either run; no local-only commit triggers a staged
+PR registration or delivery-readiness step in either run. Independently verify each resulting
+commit's intended diff, subject, and applicable verification evidence; SHA identity is not expected
+across distinct fixtures. A repeat with no new changes must not duplicate the commit.
+
+### Orchestrate: prerequisite, separate consumer PR, and independent PR
+
+Run the section 3 recipe in both isolation conditions before approving any dispatch, with the
+same fixture (helper plus consumer), task descriptions, and authorized disposable repository.
+
+- **Prerequisite variant:** task B still depends on helper `single_line` being present in a
+  verified base in both runs. Orchestrate must discover the source prerequisite from evidence,
+  not from a sibling skill's graph, and group A/B remains correct in both runs.
+- **Separate consumer PR:** B stays separately reviewable and dependent on A in both runs,
+  covering accepted and rejected input; no sibling's workflow substitutes for Orchestrate's own
+  verification of B against the helper deliverable.
+- **Independent PR:** C's separate `notes.txt` change lands independently of A and B in both
+  runs, and the plan's grouping and landing order for C never depends on sibling presence.
+- **Plan approval pause:** the invocation presents the proposal and stops before execution in
+  both runs; the sibling's presence neither bypasses the pause nor adds a second one, and
+  approval authority stays with the user in both.
+- **After approval:** with `Approved, proceed`, delegation (one worker, one owned task
+  workspace per group), integration verification, delivery, and the delivered-group stopping
+  boundary stay identical in both runs; installing a sibling never extends delivery scope,
+  adds monitoring, or changes the stopping point.
+
+### Read-only and limits, isolated
+
+Run one read-only variant in both isolation conditions on the same disposable source fixture,
+with no delivery authorization: an analysis-only Simplify request, a no-publication plan, or a
+read-only Orchestrate inspection. Record: no source write, no publication, no worker dispatch,
+and no post-delivery monitoring in either run's report. Then run one explicitly limited variant
+in both conditions (for example `local only` or `do not push`); the limited report is the same
+in both runs, and no sibling stage cancels or widens the limit. Finally, make one required
+external capability unavailable in both conditions (for example no GitHub capability): the
+affected operation alone blocks with an accurate report, weaker verification does not appear in
+either run, and neither run installs or invokes a missing sibling to proceed.
+
+For the Debug comparison, use a tracked local target in a Git repository and record its expected
+root, HEAD, and source blob before starting. Observe an actual Git discovery probe and matching
+source provenance in each diagnosis; an omitted `.git` entry in a directory listing is not a
+non-Git result. Include a nested working directory or Git worktree so discovery does not depend
+on a visible `.git/` directory. Dirty/untracked source and unavailable Git must be reported as
+such, without attributing inspected dirty bytes to a committed blob or inventing repository absence.
+
 ## Installed integration
 
 `pnpm --filter docs test` covers the catalog, the production parser, and the installed-collection case: it
-copies the candidate under edit — the working tree's installable skill assets and retained
-`.claude/skills` links, including uncommitted, staged, and untracked changes — into a disposable
+copies the candidate under edit — the working tree's installable skill assets, including
+uncommitted, staged, and untracked changes — into a disposable
 directory, validates that copy with the checkout's production validator and catalog, resolves the
-copied links, and rejects a link target that escapes the collection even when that target exists
-nearby. It never writes to the checkout, and it reports on the candidate, never on a released
+copied links per skill, and rejects a link target that escapes that skill's own directory even
+when the target exists nearby. It never writes to the checkout, and it reports on the candidate,
+never on a released
 installation. `pnpm --filter docs build` checks the documentation application, not the installed runtime.
 
-To validate an immutable committed release instead, run this from the source checkout on a
-supported Unix host with Git, Node, and Bash. The parser is the checkout's production validator; the
-assets it validates come from the export, and the printed revision is the release under test:
+To validate the candidate under edit outside this checkout, on a supported Unix host with Git,
+Node, and Bash, first check distribution consistency in this checkout, then copy the working
+tree's `skills/` assets, including uncommitted, staged, and untracked changes, to a disposable
+directory. The parser is the checkout's production validator; the assets it validates come from
+the candidate copy, and the printed revision is what it was copied from:
 
 ```bash
+node shared/sync.mjs --check
 INSTALL=$(mktemp -d)
-printf 'Installed release: %s\n' "$(git rev-parse HEAD)"
-git archive HEAD skills | tar -x -C "$INSTALL"
-node --input-type=module -e '
-  import { validateSkillAssets } from "./apps/docs/scripts/skill-assets.mjs";
-  import { PUBLIC_ORDER } from "./apps/docs/scripts/gen-skills.mjs";
-  await validateSkillAssets(process.argv[1], PUBLIC_ORDER);
-' "$INSTALL/skills"
+printf 'Candidate revision: %s\n' "$(git rev-parse HEAD)"
+cp -R skills "$INSTALL/"
 (
   cd "$INSTALL"
   bash skills/woostack-init/scripts/tests/test-config-precedence.sh
   bash skills/woostack-init/scripts/tests/test-run-store.sh
   bash skills/woostack-doctor/scripts/tests/test-health-checks.sh
 )
+node --input-type=module -e '
+  import { validateSkillAssets } from "./apps/docs/scripts/skill-assets.mjs";
+  import { PUBLIC_ORDER } from "./apps/docs/scripts/gen-skills.mjs";
+  await validateSkillAssets(process.argv[1], PUBLIC_ORDER);
+' "$INSTALL/skills"
 # After saving the native output, remove only this disposable copy:
 rm -rf "$INSTALL"
+```
+
+For one skill's independence, copy only its directory into a fresh temporary container with no
+sibling directories, then call the production validator on that container with only that skill's
+name as the expected catalog:
+
+```bash
+node --input-type=module -e '
+  import { validateSkillAssets } from "./apps/docs/scripts/skill-assets.mjs";
+  await validateSkillAssets(process.argv[1], [process.argv[2]]);
+' <temporary-container> <skill-name>
 ```
 
 Those three runtime fixtures build their own disposable consumer repositories, so they need neither
 the source checkout nor the docs application. They exist to prove preservation of retained and
 legacy user bytes: point them at scratch directories, never at a real user's store. An unsupported
 capability must fail before it writes, not fall back to another interpreter, lock implementation,
-model, or transport. The [historical reader](../../woostack-init/references/artifact-backends.md)
-owns retained-data capability failures.
+model, or transport. Installed Init's own retained-data reference owns capability failures for
+retained data.
 
 **Checkout-only audits.** These need this repository and are never installed-runtime evidence:
 `pnpm --filter docs build`, the direct `.claude/skills` link-discovery case that reads this checkout rather
