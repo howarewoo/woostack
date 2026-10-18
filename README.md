@@ -159,7 +159,8 @@ Git/GitHub evidence. Agents never merge PRs; merging is a human decision.
 ## Contributing
 
 Open a PR to improve a skill, correct guidance, or document a known problem. Read
-[CONTRIBUTING.md](CONTRIBUTING.md) for the editing workflow and [AGENTS.md](AGENTS.md) for repository rules.
+[CONTRIBUTING.md](CONTRIBUTING.md) for the editing workflow, [ARCHITECTURE.md](ARCHITECTURE.md)
+for component boundaries and source flows, and [AGENTS.md](AGENTS.md) for repository rules.
 
 ## Monorepo development
 

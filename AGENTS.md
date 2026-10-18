@@ -43,9 +43,10 @@ Follow this file first when it conflicts with generic agent defaults.
 
 [CONTRIBUTING.md](CONTRIBUTING.md#what-to-change) has the detailed ownership map.
 Read [PRODUCT.md](PRODUCT.md) when changing product scope and [DESIGN.md](DESIGN.md)
-when changing workflow interaction or documentation structure. When asked to run a
-Woostack command rather than edit its implementation, the selected skill owns its
-workflow, provider calls, and approval gates.
+when changing workflow interaction or documentation structure. Read
+[ARCHITECTURE.md](ARCHITECTURE.md) before changing component boundaries or
+cross-component flows. When asked to run a Woostack command rather than edit its
+implementation, the selected skill owns its workflow, provider calls, and approval gates.
 
 ## Editing rules
 
