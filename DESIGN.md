@@ -4,6 +4,10 @@
 
 Inspect repository evidence before asking questions. Ask only about material unresolved choices,
 preserve user decisions, and keep the requested action separate from contextual evidence.
+Init's guided document authoring additionally consults on repository intention, structure,
+direction, and architecture before drafting, per
+[Init](skills/woostack-init/SKILL.md#guided-authoring); the rule above remains the default for the
+other workflows.
 Each skill owns its activation, routing, workflow steps, and approval gates; the
 [command router](skills/using-woostack/SKILL.md) is an optional index and adoption aid that names
 public commands and imposes no activation prerequisite. Every skill is independently installable:

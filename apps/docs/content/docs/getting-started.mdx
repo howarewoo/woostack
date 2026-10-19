@@ -46,15 +46,20 @@ Send this to your coding assistant:
 
 ```text
 /woostack-init Help me adopt Woostack in this repository. Create or update
-README.md, AGENTS.md, DESIGN.md, PRODUCT.md, and ARCHITECTURE.md where useful. Inspect existing evidence
-and reuse decisions we have already made. Ask only about meaningful gaps,
-show the proposed changes, and apply edits within this document scope.
-Do not initialize local support, change application source, commit, or publish.
+README.md, AGENTS.md, DESIGN.md, PRODUCT.md, and ARCHITECTURE.md where useful.
+Inspect existing evidence, reuse decisions we have already made, and consult
+with me on the project's intention, structure, direction, and architecture
+before writing. Show the proposed changes and apply edits within this document
+scope. Do not initialize local support, change application source, commit, or publish.
 ```
 
-Init first reports what needs creating, updating, or preserving. Answer questions about unresolved
-product behavior, design direction, architecture, or working agreements; you can defer a decision rather than
-inventing an answer. Review meaningful changes to direction, constraints, and agent permissions.
+Init first reports its understanding: what the repository's observed implementation, documented
+intent, and proposed direction suggest, and which documents need creating, updating, or preserving.
+It then asks a manageable set of questions about the repository's intention, structure, direction,
+and architecture, and waits for your answers before writing. Later questions and proposed edits
+respond to your answers, including answers that contradict what the existing code implies; you can
+defer a decision rather than inventing an answer. Review meaningful changes to direction,
+constraints, and agent permissions.
 
 The result should give each document a distinct job: `README.md` introduces the project and its
 shortest verified first-use path, linking deeper docs and policies without duplicating them.
