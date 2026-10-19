@@ -12,21 +12,33 @@ transcripts are not component inputs.
 
 ## Agree the coverage
 
-Apply [compatibility](compatibility.md) before deciding anything. When the requester's
-instruction, repository evidence, and existing design rules do not already determine them,
-settle the material creation choices during creation: the catalog unit and repository-native
-placement, which components, groups and states the catalog covers, and the styling baseline when
-no design rules exist. Derive a focused coverage proposal from the repository's actual UI usage
-and ordinary component needs; ask only focused questions the repository cannot answer. There is
-no mandatory questionnaire, no deferred repository-answerable question, and no requirement to
-mirror full upstream documentation coverage in one pass.
+Apply [compatibility](compatibility.md) before deciding anything. Settle the material creation
+choices: the catalog unit and repository-native placement, which components, groups and states
+the catalog covers, and the styling baseline when no design rules exist. Derive a focused
+coverage proposal from the repository's actual UI usage and ordinary component needs when the
+requester does not already fix the set; repository evidence can supply the proposal but never
+counts as requester agreement to narrowing. Honor an explicit full-coverage request: a focused
+subset needs requester resolution first, never silent substitution.
 
-Record the agreed coverage in a coverage record the target owns — for example the catalog README
+Before any implementation mutation (directory or file creation, source edits, installation, or
+generation), disclose the declared coverage user-visibly: the inventory or an unambiguous
+coverage set, whether it is focused or exhaustive, and material exclusions. Name focused sets as
+focused and never present them as exhaustive upstream coverage; distinguish full current
+upstream from a focused set. Ask one focused scope question only when the request and the
+evidence leave a material choice unresolved. When scope is determined, disclose it and proceed
+within authorization. There is no mandatory questionnaire, no deferred
+repository-answerable question, no approval phase, and no requirement to mirror full upstream
+documentation coverage in one pass.
+
+Record the declared coverage in a coverage record the target owns — for example the catalog README
 or a credentials-free coverage notes file in the catalog unit — with, per entry: identifier,
 import path or owner, specimen location, source provenance (URL and revision/date of the current
 upstream item, or the reused project control), and `coverage: upstream | extension | gap`.
 Extensions are separate from upstream entries and are never counted as missing upstream
-coverage; never present a focused agreed subset as exhaustive upstream coverage. The target may
+coverage. Keep the declared scope, the record, its gaps, and final completion claims aligned:
+do not silently shrink declared scope and do not edit the record so omitted requirements
+disappear. Blocked requirements stay recorded as gaps or incomplete, and material narrowing
+after disclosure goes back to the requester. The target may
 edit this record and the catalog source later without this skill.
 
 ## Inspect, reuse, and choose placement

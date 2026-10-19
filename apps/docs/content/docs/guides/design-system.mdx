@@ -15,13 +15,21 @@ your assistant; they are not terminal commands.
 ## Create a catalog
 
 1. Open the target repository in your coding assistant. Point it to existing design rules and
-   component imports when you know them, and name the components and states you want covered —
-   or let the assistant propose focused coverage from the repository's actual UI usage. For example:
+   component imports when you know them, and name the components and states you want covered.
+   You can also let the assistant propose focused coverage from the repository's actual UI usage.
+   Say explicitly when you want full current upstream coverage. For example:
 
    ```text
    /woostack-design-system Create a catalog using our DESIGN.md, existing UI exports,
    and application tokens. Keep changes local.
    ```
+
+   Review the assistant's coverage statement before it creates, edits, installs, or generates
+   anything. It states the declared coverage: the inventory or coverage set, whether it is
+   focused or exhaustive, and material exclusions. Repository usage can shape that proposal, but
+   it is not your agreement to a narrower set. An explicit full-coverage request stands. The
+   assistant asks one focused scope question only when your request and the evidence leave a real
+   choice open; when scope is settled, it discloses it and proceeds.
 
    Review the assistant's compatibility decision. Compatible UI should appear in the catalog
    chrome and specimens through its existing public imports and APIs. The assistant adapts catalog
@@ -30,14 +38,14 @@ your assistant; they are not terminal commands.
    The skill ships no catalog code and no frozen inventory: it inspects the repository, reuses
    compatible controls and catalogs, and sources newly needed controls from the current shadcn
    CLI and [component documentation](https://ui.shadcn.com/docs/components), adapting them to the
-   project's APIs. The agreed coverage, source provenance, extensions, and gaps are recorded in
+   project's APIs. The declared coverage, source provenance, extensions, and gaps are recorded in
    coverage documentation the target owns. Compatible existing controls remain in place.
 
    For an incompatible or non-React product, the result is an isolated React catalog. Its dependencies
    and configuration must leave the product's framework, runtime dependencies, and behavior unchanged.
 
 3. Use the development, build, and verification commands recorded in the resulting catalog. Check
-   the reported agreed coverage and project extensions, then open the running
+   the reported declared coverage and project extensions, then open the running
    catalog. Try search, empty results, component links, Back/Forward, narrow navigation, keyboard
    actions, focus transfer, themes, and representative overlays.
 

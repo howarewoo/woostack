@@ -8,10 +8,14 @@ acceptance checks. This reference defines evidence for this skill, not a new uni
 
 Discover commands in the actual created or existing target manifest and documentation; a catalog
 need not name its scripts `verify`, `build`, or `dev` — exercise its real check, build, and
-inspection equivalents. The target-owned coverage record (per
-[adaptation](adaptation.md#agree-the-coverage)) determines required coverage: check imports,
-required specimens, provenance and distinct extensions against that record, then compile and
-run the actual catalog. Check preservation boundaries with focused tests or before/after file
+inspection equivalents. The declared coverage disclosed before implementation (per
+[adaptation](adaptation.md#agree-the-coverage)) and the target-owned coverage record together
+determine required coverage: check imports, required specimens, provenance and distinct
+extensions against both, then compile and run the actual catalog. A target-owned record alone
+is not proof no original requirement was lost: compare actual output and the record with the
+original disclosed or requested set, and keep declared scope, gaps, and completion claims
+aligned. Blocked requirements remain recorded as gaps or incomplete; do not accept a shrunk
+record that hides omitted requirements. Check preservation boundaries with focused tests or before/after file
 and dependency-state comparison where appropriate.
 
 Before claiming recreation, observe the actual current-upstream sourcing of missing controls —
@@ -36,7 +40,7 @@ Use a real browser against the generated surface, not an HTML screenshot or a te
 | Appearance | Light/dark switch applies to chrome, tokens and specimens; project theme contract is respected |
 | Representative overlays | Open and close dialog, popover/select/menu examples; confirm portals, focus transfer/return, dismissal and keyboard selection on real shared primitives |
 
-Test additional material states required by the agreed coverage and affected target APIs, such
+Test additional material states required by the declared coverage and affected target APIs, such
 as disabled, invalid, loading, empty and controlled state. Do not infer overlay accessibility
 from a successful build. If browser access or installation is unavailable, state that exact
 missing prerequisite and leave the affected evidence unverified.
@@ -89,6 +93,14 @@ prove distribution or skill execution.
    browser interactions for the changed surface, not unrequested regeneration.
 
 Items 2–6 are the five behavior scenarios; distribution is their installation prerequisite.
+
+Across scenarios 2–4, inspect the transcript ordering: the declared coverage disclosure comes
+before any implementation mutation, with its focused or exhaustive label and material
+exclusions. When the request and repository evidence already determine scope, expect disclosure
+without an unnecessary scope question; when they leave a material choice unresolved, expect one
+focused scope question before a narrower subset, and expect an explicit full-coverage request to
+be honored rather than quietly narrowed. Confirm the final coverage record and completion
+claims still match the disclosed or requested set instead of hiding omitted requirements.
 
 ## Verify changes to this skill distribution
 
