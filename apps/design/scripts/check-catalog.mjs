@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { existsSync, readFileSync, writeFileSync, unlinkSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { execFileSync } from "node:child_process";
@@ -14,7 +14,7 @@ assert.equal(
   "Duplicate stable anchors",
 );
 for (const entry of entries) {
-  for (const field of ["id", "name", "group", "importPath", "importExample", "specimen"])
+  for (const field of ["id", "name", "group", "importPath", "specimen"])
     assert.ok(entry[field]?.trim(), `${entry.id}: missing ${field}`);
   assert.match(entry.id, /^[a-z][a-z0-9-]*$/, "Unsafe anchor");
   assert.match(
@@ -31,32 +31,18 @@ for (const entry of entries) {
   );
   assert.ok(entry.provenance ?? inventory.upstream.provenance, `${entry.id}: missing provenance`);
 }
-// Derive public import checks from the single inventory, never a second component list.
-const temporary = [];
-try {
-  for (const [index, entry] of entries.entries()) {
-    // Keep relative public imports in the same context as their live specimen.
-    const filename = resolve(
-      dirname(resolve(root, entry.specimen)),
-      `catalog-public-import-${index}.ts`,
-    );
-    writeFileSync(filename, `${entry.importExample}\n`, { flag: "wx" });
-    temporary.push(filename);
-  }
-  const require = createRequire(import.meta.url);
-  const compilerManifest = require.resolve("typescript/package.json");
-  const compiler = resolve(
-    dirname(compilerManifest),
-    JSON.parse(readFileSync(compilerManifest, "utf8")).bin.tsc,
-  );
-  execFileSync(
-    process.execPath,
-    [compiler, "--noEmit", "--project", resolve(root, "tsconfig.json")],
-    { cwd: root, stdio: "inherit" },
-  );
-} finally {
-  for (const filename of temporary) unlinkSync(filename);
-}
+// Typecheck the actual catalog and live specimen modules with the project compiler.
+const require = createRequire(import.meta.url);
+const compilerManifest = require.resolve("typescript/package.json");
+const compiler = resolve(
+  dirname(compilerManifest),
+  JSON.parse(readFileSync(compilerManifest, "utf8")).bin.tsc,
+);
+execFileSync(
+  process.execPath,
+  [compiler, "--noEmit", "--project", resolve(root, "tsconfig.json")],
+  { cwd: root, stdio: "inherit" },
+);
 console.log(
-  `Catalog: ${inventory.entries.length} baseline entries and ${inventory.projectExtensions.length} project extensions; specimens and public imports typechecked. Browser behavior still requires real browser verification.`,
+  `Catalog: ${inventory.entries.length} baseline entries and ${inventory.projectExtensions.length} project extensions; specimens typechecked. Browser behavior still requires real browser verification.`,
 );

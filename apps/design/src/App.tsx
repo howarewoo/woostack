@@ -41,18 +41,12 @@ type Entry = {
   group: string;
   specimen: string;
   importPath: string;
-  importExample: string;
   coverage: string;
   source?: string;
   provenance?: string;
 };
 const entries: Entry[] = [...baseline.entries, ...baseline.projectExtensions];
 const modules = import.meta.glob<{ default: ComponentType }>("./examples/**/*.tsx");
-const sources = import.meta.glob("./examples/**/*.tsx", {
-  query: "?raw",
-  import: "default",
-  eager: true,
-}) as Record<string, string>;
 const specimens = Object.fromEntries(
   entries.map((entry) => [entry.id, lazy(modules[`./${entry.specimen.replace(/^src\//, "")}`])]),
 );
@@ -74,7 +68,6 @@ function Catalog() {
   const [search, setSearch] = useState("");
   const [active, setActive] = useState(() => location.hash.slice(1) || "home");
   const [command, setCommand] = useState(false);
-  const [copyStatus, setCopyStatus] = useState("");
   const heading = useRef<HTMLHeadingElement>(null);
   const searchInput = useRef<HTMLInputElement>(null);
   const navigationPending = useRef(Boolean(location.hash));
@@ -83,7 +76,6 @@ function Catalog() {
     `${item.name} ${item.group}`.toLowerCase().includes(search.toLowerCase()),
   );
   const Specimen = entry ? specimens[entry.id] : null;
-  const sourceKey = entry ? `./${entry.specimen.replace(/^src\//, "")}` : "";
 
   useEffect(() => {
     const navigate = () => {
@@ -102,7 +94,6 @@ function Catalog() {
   }, [setOpenMobile]);
 
   useEffect(() => {
-    setCopyStatus("");
     if (!navigationPending.current || command || openMobile) return;
     // Wait for focus-managed overlays to finish closing before destination focus.
     let frame = 0;
@@ -168,15 +159,6 @@ function Catalog() {
           ? links.length - 1
           : (index + (event.key === "ArrowDown" ? 1 : -1) + links.length) % links.length;
     links[next]?.focus();
-  }
-
-  async function copy(text: string) {
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopyStatus("Copied to clipboard");
-    } catch {
-      setCopyStatus("Clipboard unavailable. Select and copy the example below.");
-    }
   }
 
   return (
@@ -273,26 +255,6 @@ function Catalog() {
                   <Specimen />
                 </Suspense>
               </div>
-              <h2 className="text-xl font-semibold">Public import</h2>
-              <pre className="rounded bg-muted p-4 overflow-auto">
-                <code>{entry.importExample}</code>
-              </pre>
-              <Button variant="outline" onClick={() => copy(entry.importExample)}>
-                Copy import
-              </Button>
-              <h2 className="text-xl font-semibold">Live adoption example</h2>
-              <p className="text-sm text-muted-foreground">
-                This exact source renders the specimen above. Local interactions demonstrate
-                controls, not product features. See the canonical component guidance for usage and
-                keyboard contracts.
-              </p>
-              <Button variant="outline" onClick={() => copy(sources[sourceKey])}>
-                Copy example
-              </Button>
-              <p role="status">{copyStatus}</p>
-              <pre className="rounded border bg-muted p-4 max-h-96 overflow-auto text-xs">
-                <code>{sources[sourceKey]}</code>
-              </pre>
             </>
           ) : (
             <>

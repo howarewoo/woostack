@@ -18,7 +18,8 @@ pnpm --filter design preview
 
 The development server prints its local URL. Component URLs use stable hashes, for example `/#dialog`. Search accepts component names and groups. Arrow keys, Home, and End move between navigation links. Slash focuses search on desktop and opens the finder on mobile; it does not intercept text editing. Ctrl/Command-K opens the finder. Appearance supports system, light, and dark themes.
 
-Each specimen is rendered from the same source shown by Copy example. Copy requires browser clipboard permission and a secure context; denied permission produces a manual-copy recovery message.
+Specimens render live from `src/examples/`; their source files are the implementation reference,
+so the catalog shows no code-snippet panels or copy controls.
 
 ## Ownership and provenance
 

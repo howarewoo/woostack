@@ -10,7 +10,7 @@ Discover commands in the actual generated or existing target manifest and docume
 shipped standalone template, run its package-manager equivalents of `verify` and `build`; run
 `dev` for browser inspection. Do not report a template command as executed if the target changed it.
 The canonical [inventory](../templates/src/inventory.json.template) determines required baseline
-coverage. Check imports, required specimens/source examples, provenance and distinct extensions
+coverage. Check imports, required specimens, provenance and distinct extensions
 against that one inventory, then compile the actual adapted catalog. Check preservation boundaries
 with focused tests or before/after file and dependency-state comparison where appropriate.
 
@@ -30,12 +30,11 @@ Use a real browser against the generated surface, not an HTML screenshot or a te
 | Narrow navigation | At a narrow viewport the navigation opens/closes, selecting an item exposes content, and focus does not remain in hidden navigation |
 | Keyboard and focus | Controls have accessible names; keyboard navigation/shortcuts use documented keys, respect text editing and modifiers, and move focus to the intended content; visible focus and Escape behavior work |
 | Appearance | Light/dark switch applies to chrome, tokens and specimens; project theme contract is respected |
-| Copyable adoption | Copy succeeds with feedback; copied text matches the live specimen's source and uses valid public imports |
 | Representative overlays | Open and close dialog, popover/select/menu examples; confirm portals, focus transfer/return, dismissal and keyboard selection on real shared primitives |
 
 Test additional material states required by the inventory and affected target APIs, such as disabled,
 invalid, loading, empty and controlled state. Do not infer overlay accessibility from a successful
-build. If clipboard permissions, browser access or installation is unavailable, state that exact
+build. If browser access or installation is unavailable, state that exact
 missing prerequisite and leave the affected evidence unverified.
 
 ## Distribution and five scenario recipes

@@ -6,7 +6,10 @@ description: Use when asked to create a project-adapted design system and compon
 # woostack-design-system
 
 Create a working, project-owned component catalog from the versioned assets shipped with this
-skill. Use the [shadcn component documentation](https://ui.shadcn.com/docs/components) for canonical
+skill. Build an internal visual catalog showing component variants, states, and interactions;
+treat component and preview source as the implementation reference, and do not generate code
+snippets, copy controls, or separate usage-example documentation. Use the
+[shadcn component documentation](https://ui.shadcn.com/docs/components) for canonical
 upstream guidance; the shipped inventory defines reproducible catalog coverage, not copied upstream
 documentation. This command owns component-system creation;
 arranging multi-step flows is the separate woostack-design layout standard, unchanged here.
@@ -76,8 +79,8 @@ Maintenance is not permission to regenerate the catalog or upgrade unrelated dep
 
 Use [verification](references/verification.md) and the target's native commands. Verify real
 imports, complete declared baseline coverage, live specimens, and actual browser behavior; a
-placeholder catalog, successful source copy, typecheck alone, or site packaging check is not
-recreation. Leave no mock controls, dead specimens or unsupported "complete" claims.
+placeholder catalog, extracted source without live specimens, typecheck alone, or site
+packaging check is not recreation. Leave no mock controls, dead specimens or unsupported "complete" claims.
 
 Report catalog placement and commands, template/baseline provenance, reused versus newly created
 controls, design adaptations, preserved customizations, conflicts, and checks actually observed.
