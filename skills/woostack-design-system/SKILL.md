@@ -5,13 +5,15 @@ description: Use when asked to create a project-adapted design system and compon
 
 # woostack-design-system
 
-Create a working, project-owned component catalog from the versioned assets shipped with this
-skill. Build an internal visual catalog showing component variants, states, and interactions;
-treat component and preview source as the implementation reference, and do not generate code
-snippets, copy controls, or separate usage-example documentation. Use the
-[shadcn component documentation](https://ui.shadcn.com/docs/components) for canonical
-upstream guidance; the shipped inventory defines reproducible catalog coverage, not copied upstream
-documentation. This command owns component-system creation;
+Create a working, project-owned component catalog by inspecting the target repository for
+compatible controls, catalogs, and design rules, and by sourcing newly needed components from the
+current upstream [shadcn component documentation](https://ui.shadcn.com/docs/components). This
+skill ships no templates, component sources, or frozen coverage inventory: the catalog frame,
+specimens, coverage record, and provenance are created in the target, and every newly needed
+control comes from the live docs and registry at creation time, never from embedded assets. Build an
+internal visual catalog showing component variants, states, and interactions; treat component and
+preview source as the implementation reference, and do not generate code snippets, copy controls,
+or separate usage-example documentation. This command owns component-system creation;
 arranging multi-step flows is the separate woostack-design layout standard, unchanged here.
 
 ## Command and authorization
@@ -45,10 +47,10 @@ other workflow and authorizes no implementation.
 
 Apply [compatibility](references/compatibility.md) to actual imports, props, composition, style
 setup and dependencies. Choose repository-native catalog placement, not a copied workspace path.
-Reuse compatible controls in both specimens and navigation/chrome. Adapt catalog callers to their
-public APIs; do not rewrite existing components to fit the starter. For incompatible or non-React
-products, use an isolated React catalog whose dependencies and configuration do not alter the
-product's framework, runtime dependency set or behavior.
+Reuse compatible controls and catalogs in specimens and navigation/chrome. Adapt catalog callers
+to their public APIs; do not rewrite existing components to fit newly created ones. For
+incompatible or non-React products, use an isolated React catalog whose dependencies and
+configuration do not alter the product's framework, runtime dependency set or behavior.
 
 If a catalog exists and maintenance was not requested, stop before installation or generation.
 Report its location, observed coverage, API/style compatibility, provenance, interaction gaps,
@@ -56,34 +58,39 @@ and concrete scoped repair options. Distinguish inspected facts from unverified 
 
 ## Create or maintain locally
 
-Follow [adaptation and recreation](references/adaptation.md) using the assets next to the
-**installed** `SKILL.md`, not a Woostack checkout or a runtime fetch from Git Stacks. Templates
-are minimal catalog-specific inputs, not a bundled UI library or completed implementation. The
-versioned canonical inventory defines full baseline coverage and provenance; retain it and keep
-project extensions separate.
-
-Respect project tokens, typography and design rules. Without rules, use the neutral shadcn
-baseline, not Git Stacks branding or Quiet Workbench styling. Source newly needed, inventory-selected
-controls through the current shadcn CLI using Base UI; never CLI-overwrite existing UI or initialize
-over custom setup. Compatible existing primitives are reused, not migrated. Creation may require
-CLI network access; the resulting catalog has no remote-source requirement at runtime.
-Resolve only newly selected dependencies from authoritative registries under the bundled
+Follow [adaptation and creation](references/adaptation.md). Decide creation from repository
+inspection, not from shipped assets: none are shipped. Reuse compatible catalogs, controls,
+tokens, and examples before creating anything new. Agree focused coverage with the requester when
+the repository cannot already answer it from actual UI usage and design rules; no mandatory
+questionnaire, and record the agreed coverage, source provenance, extensions and gaps in a
+coverage record the target owns. Without design rules, use the neutral shadcn Base UI baseline,
+not Git Stacks branding or Quiet Workbench styling. Source newly needed controls and examples
+from the current upstream docs/registry — via the current Base UI-backed shadcn CLI where it fits
+the target configuration — adapting them to real project APIs; never CLI-overwrite existing UI
+or initialize over custom setup. Compatible existing primitives are reused, not migrated.
+Creation may need registry/CLI network access; the resulting catalog has no remote-source
+requirement at runtime. Resolve only newly selected dependencies from authoritative registries
+under the bundled
 [dependency guidance](references/patterns.md#6-dependencies-resolution-ownership-and-integrity).
 
-Do not overwrite custom components, tokens, examples, rules or unrelated work. Compare before
-changing existing destinations. Report a conflict and leave the conflicting surface unchanged;
-complete independent in-scope work without silently substituting a duplicate implementation.
-Maintenance is not permission to regenerate the catalog or upgrade unrelated dependencies.
+Do not add a substitute scaffold, generator, or embedded source dump in place of inspecting the
+repository and sourcing current upstream. Do not overwrite custom components, tokens, examples,
+rules or unrelated work. Compare before changing existing destinations. Report a conflict and
+leave the conflicting surface unchanged; complete independent in-scope work without silently
+substituting a duplicate implementation. Maintenance is not permission to regenerate the catalog
+or upgrade unrelated dependencies.
 
 ## Verify and report
 
 Use [verification](references/verification.md) and the target's native commands. Verify real
-imports, complete declared baseline coverage, live specimens, and actual browser behavior; a
+imports, the recorded agreed coverage, live specimens, and actual browser behavior; a
 placeholder catalog, extracted source without live specimens, typecheck alone, or site
-packaging check is not recreation. Leave no mock controls, dead specimens or unsupported "complete" claims.
+packaging check is not recreation. Leave no mock controls, dead specimens or unsupported
+"complete" claims.
 
-Report catalog placement and commands, template/baseline provenance, reused versus newly created
-controls, design adaptations, preserved customizations, conflicts, and checks actually observed.
-Separate deterministic checks, installed-skill/host outcomes and browser evidence. Failed or unrun
-required checks remain unverified; name the missing prerequisite and do not claim completion.
-Local verified changes are the endpoint; publication requires a separate user request.
+Report catalog placement and commands, agreed coverage with gaps, source provenance for reused
+and newly created controls, retained upstream notices, design adaptations, preserved
+customizations, conflicts, and checks actually observed. Separate deterministic checks, installed-skill/host outcomes and browser
+evidence. Failed or unrun required checks remain unverified; name the missing prerequisite and
+do not claim completion. Local verified changes are the endpoint; publication requires a
+separate user request.

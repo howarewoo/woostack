@@ -383,63 +383,51 @@ test("installed candidate collection resolves without a checkout or docs applica
   );
 });
 
-test("installed design-system package carries its canonical inventory and every template", async (t) => {
+test("installed design-system package is template-free with resolving references", async (t) => {
   const root = await makeRoot(t);
   await installCandidate(REPO_ROOT, root);
-  const installed = path.join(root, "skills");
-  const relativeTemplates = path.join("woostack-design-system", "templates");
-  const sourceTemplates = path.join(REPO_ROOT, "skills", relativeTemplates);
-  const installedTemplates = path.join(installed, relativeTemplates);
+  // Scoping: validate this package alone to keep the test focused on its own layout.
+  const scope = await mkdir(path.join(root, "scoped-skills"), { recursive: true }).then(() =>
+    path.join(root, "scoped-skills"),
+  );
+  const installedSkill = path.join(scope, "woostack-design-system");
+  await cp(path.join(root, "skills", "woostack-design-system"), installedSkill, {
+    recursive: true,
+  });
 
-  async function templateFiles(directory, prefix = "") {
-    const files = [];
-    for (const entry of await readdir(directory, { withFileTypes: true })) {
-      const relative = path.join(prefix, entry.name);
-      if (entry.isDirectory()) {
-        files.push(...(await templateFiles(path.join(directory, entry.name), relative)));
-      } else {
-        assert.ok(entry.isFile(), `template asset must be a regular file: ${relative}`);
-        files.push(relative);
+  // The template-free cutover ships no starter tree and no frozen coverage inventory.
+  for (const retired of [
+    path.join(installedSkill, "templates"),
+    path.join(installedSkill, "templates", "src", "inventory.json.template"),
+  ]) {
+    await assert.rejects(stat(retired), { code: "ENOENT" });
+  }
+  const packageFiles = [];
+  for (const entry of await readdir(installedSkill, { withFileTypes: true })) {
+    assert.ok(entry.isFile() || entry.isDirectory(), "skill assets must be filesystem objects");
+    if (entry.isFile()) packageFiles.push(entry.name);
+    if (entry.isDirectory()) {
+      assert.equal(entry.name, "references", "only reference assets are bundled");
+      for (const reference of await readdir(path.join(installedSkill, entry.name))) {
+        assert.ok(reference.endsWith(".md"), `only markdown references are bundled: ${reference}`);
+        packageFiles.push(path.join(entry.name, reference));
       }
     }
-    return files.sort();
   }
+  assert.ok(packageFiles.includes("SKILL.md"));
 
-  const sourceFiles = await templateFiles(sourceTemplates);
-  assert.ok(sourceFiles.some((file) => file.endsWith(".tsx.template")));
-  assert.ok(sourceFiles.some((file) => file.endsWith(".css.template")));
-  assert.deepEqual(await templateFiles(installedTemplates), sourceFiles);
-  for (const relative of sourceFiles) {
-    assert.deepEqual(
-      await readFile(path.join(installedTemplates, relative)),
-      await readFile(path.join(sourceTemplates, relative)),
-      `installed template differs: ${relative}`,
-    );
-  }
-
-  const inventoryPath = path.join(installedTemplates, "src", "inventory.json.template");
-  const inventory = JSON.parse(await readFile(inventoryPath, "utf8"));
-  assert.ok(inventory.version);
-  assert.ok(inventory.reference.repository);
-  assert.ok(inventory.reference.revision);
-  assert.ok(inventory.upstream.catalog);
-  assert.ok(inventory.upstream.provenance);
-  assert.equal(new Set(inventory.entries.map(({ id }) => id)).size, inventory.entries.length);
-  for (const entry of inventory.entries) {
-    assert.ok(entry.id && entry.name && entry.group);
-    assert.ok(entry.source ?? inventory.upstream.catalog);
-    assert.ok(entry.provenance ?? inventory.upstream.provenance);
-    assert.ok(entry.importPath && entry.specimen, `missing adoption contract: ${entry.id}`);
-  }
+  // Every instruction link in the installed package stays inside the package and resolves.
   assert.deepEqual(
-    (await validateSkillAssets(installed, PUBLIC_ORDER)).map(({ name }) => name),
-    [...PUBLIC_ORDER].sort(),
+    (await validateSkillAssets(scope, ["woostack-design-system"])).map(({ name }) => name),
+    ["woostack-design-system"],
   );
 
-  // The installed instructions link the inventory, so a partial package must fail validation.
-  await rm(inventoryPath);
+  // Removing a bundled reference breaks the instructions' links, so a partial package must fail
+  // validation rather than silently installing without its procedures.
+  const reference = path.join(installedSkill, "references", "adaptation.md");
+  await rm(reference);
   await assert.rejects(
-    validateSkillAssets(installed, PUBLIC_ORDER),
+    validateSkillAssets(scope, ["woostack-design-system"]),
     /local link target does not exist/,
   );
 });

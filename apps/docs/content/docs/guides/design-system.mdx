@@ -15,27 +15,29 @@ your assistant; they are not terminal commands.
 ## Create a catalog
 
 1. Open the target repository in your coding assistant. Point it to existing design rules and
-   component imports when you know them. For example:
+   component imports when you know them, and name the components and states you want covered —
+   or let the assistant propose focused coverage from the repository's actual UI usage. For example:
 
    ```text
    /woostack-design-system Create a catalog using our DESIGN.md, existing UI exports,
    and application tokens. Keep changes local.
    ```
 
-2. Review the assistant's compatibility decision. Compatible UI should appear in the catalog
+   Review the assistant's compatibility decision. Compatible UI should appear in the catalog
    chrome and specimens through its existing public imports and APIs. The assistant adapts catalog
    callers instead of migrating those components or adding duplicate controls. Where no design
    rules exist, newly created controls use a neutral Base UI-backed shadcn baseline.
-   The skill ships the catalog shell, inventory, specimens, examples, and verification assets.
-   It sources needed new controls through the current shadcn CLI and
-   [component documentation](https://ui.shadcn.com/docs/components), rather than bundling a copied
-   UI library. Compatible existing controls remain in place.
+   The skill ships no catalog code and no frozen inventory: it inspects the repository, reuses
+   compatible controls and catalogs, and sources newly needed controls from the current shadcn
+   CLI and [component documentation](https://ui.shadcn.com/docs/components), adapting them to the
+   project's APIs. The agreed coverage, source provenance, extensions, and gaps are recorded in
+   coverage documentation the target owns. Compatible existing controls remain in place.
 
    For an incompatible or non-React product, the result is an isolated React catalog. Its dependencies
    and configuration must leave the product's framework, runtime dependencies, and behavior unchanged.
 
-3. Use the development, build, and verification commands recorded in the resulting catalog's
-   README. Check the reported baseline coverage and project extensions, then open the running
+3. Use the development, build, and verification commands recorded in the resulting catalog. Check
+   the reported agreed coverage and project extensions, then open the running
    catalog. Try search, empty results, component links, Back/Forward, narrow navigation, keyboard
    actions, focus transfer, themes, and representative overlays.
 
@@ -54,7 +56,8 @@ commit, PR, issue, or Project update, and it does not migrate the product's UI.
    /woostack-design-system
    ```
 
-2. Read the gap and drift report against the versioned baseline and your project's rules. Ordinary
+2. Read the gap and drift report against the target's recorded coverage and the current upstream
+   documentation. Ordinary
    invocation with an existing catalog changes no files or dependency state. A report is evidence
    for deciding what to repair; it is not authorization to apply the repair.
 

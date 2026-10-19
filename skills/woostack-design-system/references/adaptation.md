@@ -1,95 +1,99 @@
-# Adaptation and recreation
+# Adaptation and creation
 
 Use repository-owned placement and dependencies under the bundled
 [patterns](patterns.md). No other skill invocation, Git operation,
 Woostack configuration, hosted registry or Git Stacks installation is necessary.
 
-## Versioned installed inputs
+This skill ships no starter tree, component source, or frozen inventory. A catalog is never
+copied or generated from embedded assets: its source is created in the target repository from
+inspection, compatible reuse, and current upstream shadcn sourcing. Reusing or reproducing the
+catalog of a previous target as a substitute scaffold is prohibited; prior summaries or
+transcripts are not component inputs.
 
-Read the installed [template instructions](../templates/README.md) and canonical
-[baseline inventory](../templates/src/inventory.json.template). Application and configuration
-sources are non-runnable `.template` assets. Resolve this directory relative to the installed
-skill's `SKILL.md`; do not assume a checkout, a host-specific absolute path, or network access to
-Woostack source. Preserve shipped license notices and baseline source revision/provenance.
+## Agree the coverage
 
-Use the [shadcn component documentation](https://ui.shadcn.com/docs/components) as the canonical
-upstream component guidance rather than maintaining a copied documentation inventory. The shipped
-inventory owns versioned baseline IDs, specimen/import requirements and source provenance for
-reproducible coverage; it is not a mirror of the upstream documentation. Do not repeat its coverage
-in a second assertion list or shrink it to easy components. Keep project extensions separately
-identified and never count extensions as missing upstream coverage. The shipped assets are a minimal
-catalog scaffold, not a copied shadcn UI library. Obtain newly needed controls through the current
-shadcn CLI's Base UI approach; reference-owned API adaptations are not advertised as upstream
-defaults. CLI sourcing requires network access during creation, not at catalog runtime.
+Apply [compatibility](compatibility.md) before deciding anything. When the requester's
+instruction, repository evidence, and existing design rules do not already determine them,
+settle the material creation choices during creation: the catalog unit and repository-native
+placement, which components, groups and states the catalog covers, and the styling baseline when
+no design rules exist. Derive a focused coverage proposal from the repository's actual UI usage
+and ordinary component needs; ask only focused questions the repository cannot answer. There is
+no mandatory questionnaire, no deferred repository-answerable question, and no requirement to
+mirror full upstream documentation coverage in one pass.
 
-## Recreate safely
+Record the agreed coverage in a coverage record the target owns — for example the catalog README
+or a credentials-free coverage notes file in the catalog unit — with, per entry: identifier,
+import path or owner, specimen location, source provenance (URL and revision/date of the current
+upstream item, or the reused project control), and `coverage: upstream | extension | gap`.
+Extensions are separate from upstream entries and are never counted as missing upstream
+coverage; never present a focused agreed subset as exhaustive upstream coverage. The target may
+edit this record and the catalog source later without this skill.
 
-1. Inspect target placement, existing catalogs and UI using [compatibility](compatibility.md).
-   If an existing catalog has no explicit maintenance request, report without writes and do not
-   proceed. For creation, choose the actual catalog owner and record public components/tokens to
-   reuse before copying anything.
-   Before any directory creation, write or generator invocation, apply the bundled
+## Inspect, reuse, and choose placement
+
+1. Inspect actual imports, props, composition, style setup and dependencies. Prefer the smallest
+   supported integration: a matching existing catalog application or route is the first choice —
+   extend it in place rather than creating a parallel catalog. Creation by this skill starts
+   only where no reusable live catalog surface exists.
+2. Before any directory creation, write, or generator invocation, apply the bundled
    [initial-scaffold target admission](scaffold.md)
    to the intended physical target and parent, including symlink, ownership and collision safety;
    its workspace-preservation boundary covers existing-repository destinations. This
-   matters equally for isolated catalogs. Reading the guidance invokes neither another skill nor publication.
-2. Read the installed template tree and destination files. Create only authorized missing files.
-   Copy the tree into the selected catalog unit, stripping only each terminal `.template` suffix;
-   preserve directory structure and source contents. There are no token-substitution placeholders.
-   Copy supporting notices/instructions where needed for target ownership. Never overwrite an
-   existing destination. The scaffold supplies catalog-specific source, not bundled component
-   implementations; do not treat copying it as a runnable completed catalog.
-3. Adapt public import locations, alias/build configuration, manifest name, paths and documented
-   commands to native project conventions. The starter imports UI through `@/components/ui/*`;
-   this is a starter location, not a mandated new package or project API. For compatible UI,
-   rewrite specimens and chrome to real exported APIs, including state/composition differences.
-   Determine missing controls from the canonical inventory and actual catalog imports after
-   mapping compatible project components. Follow the installed template instructions: the shipped
-   `components.json.template` already configures neutral Base UI (`base-nova`), so do not run CLI
-   initialization over the instantiated scaffold. After selecting/installing dependencies, use the
-   current shadcn CLI to add only missing inventory-selected components. Derive registry selections
-   from the inventory's `entries[].registryItem`, filtering nulls and deduplicating; null entries are
-   owned catalog helpers/foundations, not missing registry items. For a wholly new catalog, the
-   configured scaffold supports the package-manager equivalent of:
+   matters equally for isolated catalogs. Reading the guidance invokes neither another skill nor
+   publication.
 
-   ```sh
-   npm exec -- shadcn add --yes <inventory-derived missing registry items>
-   ```
+## Source from current upstream
 
-   Resolve the CLI selection from the authoritative registry; this example is a command shape, not
-   a pinned dependency. Do not execute the angle-bracket text literally or duplicate the inventory
-   into a handwritten component list. Inspect CLI help/configuration and planned destinations first;
-   never run initialization over custom configuration or use overwrite flags on existing UI.
-   For a fully compatible UI owner, reuse its existing setup without CLI initialization. For partial
-   reuse, add only genuinely missing controls; if CLI cannot preserve an existing owner, generate in
-   a disposable staging unit and integrate only authorized missing source/dependencies deliberately.
-   Inspect generated public APIs and adapt catalog callers to the selected source rather than
-   assuming the CLI output still matches the versioned specimens. Record CLI/source selections and
-   preserve upstream notices. Do not fetch Git Stacks as a component installation dependency.
-4. Preserve project design rules and tokens. Map semantic colors, theme selection, typography,
-   spacing, radii, focus and motion consistently in chrome and specimens. Reuse real public
-   stylesheets and configuration where compatible. Without project rules, retain the neutral
-   shadcn baseline. Remove remaining Git branding/domain assumptions without replacing them with
-   a new imposed identity. Include colors/tokens, typography, typeset content and iconography.
-5. Inspect the template manifest and actual source imports; apply the bundled
+3. For each newly needed control or example, source from the current upstream at creation time.
+   Where the target (or the newly created catalog unit) has shadcn configuration, prefer the
+   current Base UI-backed shadcn CLI over the live component pages and registry (see below).
+   Elsewhere, fetch the current registry item or adapt the current component documentation
+   example. Never source from a pinned/cached copy, a checked-in mirror, a Woostack checkout, Git
+   Stacks, or source embedded in this skill, nor run CLI initialization over custom setup or use
+   overwrite flags on existing UI.
+4. Adapt sourced examples to the target's real public APIs, including state and composition
+   differences; describe project adaptations as owned catalog callers, not upstream defaults.
+   Record provenance in the coverage record. Sourced upstream items keep their upstream license
+   terms: preserve the applicable copyright/permission notices at ingestion — a catalog-level
+   notice entry or per-file header, whichever the target's convention dictates — and list
+   it in the coverage record; a provenance URL or revision is not a license notice. Maintenance
+   additions travel with the same notice preservation. Sourcing may need registry/CLI network
+   access during creation; the finished catalog must run without that access, Woostack, or Git
+   Stacks.
+
+## Build only the necessary catalog layer
+
+5. Create in the target only what a live internal catalog needs: the catalog unit/app surface,
+   navigation and search chrome, theme handling, and live specimen pages rendering real
+   interaction code. Choose the repository-native structure; do not add shared packages,
+   generators, or adapters the catalog does not use, and no substitute scaffold, generator, or
+   embedded source dump. Catalog chrome is a consumer of compatible project controls per
+   [compatibility](compatibility.md); do not duplicate controls that exist there.
+6. Respect project tokens, typography and design rules. Map semantic colors, theme selection,
+   radii, focus and motion consistently in chrome and specimens, reusing real public stylesheets
+   and configuration where compatible. Without project rules, retain the neutral shadcn Base UI
+   baseline; do not impose Git Stacks, Quiet Workbench or any other imported identity. Specimens
+   render live behavior only: no code snippets, copy controls, or separate usage-example docs.
+7. Materialize selected dependency versions and the target package manager's lockfile under
    [dependency resolution, ownership and integrity](patterns.md#6-dependencies-resolution-ownership-and-integrity).
-   Materialize exact selections and the target package manager's lockfile; a template range is
-   not registry evidence. Do not install app dependencies in the skill distribution. An isolated
-   catalog's own manifest owns React and UI runtime dependencies, not the product manifest.
-6. Retain template/baseline version and upstream URLs/revision in the owned catalog. Record which
-   public UI imports are project adaptations versus newly created upstream-based controls, any
-   genuine compatibility pins, extension provenance, and the target's native development, build
-   and verification commands. Explain ownership: targets can edit catalog source without Woostack
-   or Git Stacks at runtime. The starter supplies `dev`, `build` and `verify` scripts; adjust only
-   where native conventions require it, then exercise the actual resulting commands.
-7. Complete and verify every required live specimen/state and the real navigation/interaction
-   surface under [verification](verification.md). Source extraction is not completion. Do not
-   replace missing imports with mocks, disabled examples, generic placeholders or no-op fallbacks.
+   An isolated catalog unit's own manifest owns React and UI runtime dependencies, not the
+   product manifest. For incompatible or non-React products follow
+   [compatibility](compatibility.md#choose-the-smallest-supported-integration): an isolated
+   React catalog leaves the product's source, manifests and behavior unchanged.
+8. Record the target's native development, build and verification commands (adapt names only
+   where native conventions require it), then exercise the actual resulting commands. Explain
+   ownership: the target edits catalog source without Woostack, Git Stacks, or remote component
+   documentation at runtime. Complete and verify every required live specimen/state and the real
+   navigation/interaction surface under [verification](verification.md). Source extraction is
+   not completion; do not replace missing imports with mocks, disabled examples, generic
+   placeholders or no-op fallbacks.
 
 ## Scoped updates are not regeneration
 
 For an explicit add, repair or update, compare the requested surface, current owned source and
-relevant versioned assets before editing. Use a focused patch at the existing owner, not whole-tree
-replacement. Preserve custom specimen content, stable links and design rules. Report a conflict
-rather than changing an incompatible shared API, silently rebranding tokens or overwriting edited
-components. Updating template provenance does not imply migrating the whole baseline.
+the target's coverage record before editing. Source any newly needed items from the current
+upstream at that time. Use a focused patch at the existing owner, not whole-tree replacement.
+Preserve custom specimen content, stable links and design rules. Report a conflict rather than
+changing an incompatible shared API, silently rebranding tokens or overwriting edited
+components. Refreshing provenance or coverage entries does not imply regenerating the rest of
+the catalog.
