@@ -46,8 +46,7 @@ application, not a documentation route or skill runtime. Its `src/App.tsx` owns
 catalog chrome and navigation; `src/examples/` owns specimens, `src/components/ui/`
 owns UI controls, and `src/styles.css` owns tokens. `src/inventory.json` records the
 baseline and project extensions. The catalog README owns provenance and maintenance
-rules; the Design System skill's templates are published assets, not this app's
-runtime source.
+rules; the app owns its own source and is not generated from skill assets at runtime.
 
 ## Workspace and verification boundaries
 

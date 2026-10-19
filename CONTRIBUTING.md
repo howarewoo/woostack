@@ -28,7 +28,7 @@ for standing repository rules, the two-app boundary, and verified checks.
 | Change behavior-preserving code simplification | `skills/woostack-simplify/SKILL.md` |
 | Change commit and pull-request delivery | `skills/woostack-commit/SKILL.md`; the reusable delivery procedure lives in `shared/references/delivery.md` |
 | Change browser-based app checks (`/woostack-qa`) | `skills/woostack-qa/SKILL.md`, `skills/woostack-qa/references/` |
-| Change project-owned design catalog creation, adaptation, or maintenance | `skills/woostack-design-system/SKILL.md`, its references, and versioned `templates/` |
+| Change project-owned design catalog creation, adaptation, or maintenance | `skills/woostack-design-system/SKILL.md` and its references |
 | Change session reflection (`/woostack-reflect`) | `skills/woostack-reflect/SKILL.md` |
 | Change the systematic-debugging behavior (`/woostack-debug`) | `skills/woostack-debug/SKILL.md` |
 | Change test-writing guidance | `skills/woostack-execute/SKILL.md`, `shared/references/tdd.md` |

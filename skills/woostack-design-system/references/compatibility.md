@@ -7,8 +7,7 @@ migration workflow.
 
 ## Inspection record
 
-For each baseline control needed by a specimen or catalog chrome, record:
-
+For each control needed by a specimen or catalog chrome, record:
 | Evidence | What to inspect |
 | --- | --- |
 | Public import | Exported module/package, aliases, package exports, supported client/server boundary; no private product source imports |
@@ -19,8 +18,8 @@ For each baseline control needed by a specimen or catalog chrome, record:
 | Consumer evidence | At least one real use of the public API and applicable tests; source declarations alone do not prove interaction behavior |
 
 Catalog chrome is a consumer too: inspect buttons, search/input, navigation and theme control
-alongside specimen controls. A specimen using shared UI while chrome retains
-starter copies is not successful compatible reuse.
+alongside specimen controls. A specimen using shared UI while chrome retains local duplicates is
+not successful compatible reuse.
 
 ## Choose the smallest supported integration
 
@@ -42,7 +41,7 @@ starter copies is not successful compatible reuse.
    unrelated entries and verify the product dependency graph is unchanged.
 
 An isolated catalog may represent product tokens and guidance without claiming framework-native
-control integration. It must still run and cover the declared baseline. Do not add a package-manager
+control integration. It must still run and cover the declared coverage. Do not add a package-manager
 workspace or root build system merely to host one catalog if a native independent unit suffices.
 
 ## Conflicts and explicit maintenance
@@ -53,8 +52,8 @@ formatting, code generation, snapshot update or browser action that persists pro
 
 For explicit maintenance, identify exact affected owners and callers before editing. Preserve
 custom labels, variants, state examples, navigation IDs, token values, theme conventions and design
-rules outside the authorized change. A template version difference is evidence of drift, not
-permission to replace owned source. Report incompatible requests with the public API or design
+rules outside the authorized change. A mismatch against the catalog's recorded provenance or agreed coverage is evidence of drift,
+not permission to replace owned source. Report incompatible requests with the public API or design
 constraint and the smallest viable scoped options. Do not hide conflicts by copying another control,
 renaming the old one, suppressing type errors, or dropping required specimens.
 
