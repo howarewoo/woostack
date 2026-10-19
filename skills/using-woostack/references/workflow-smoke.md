@@ -209,6 +209,64 @@ local checks verified PR delivery.
   bookkeeping. Ordinary execution never changes readiness, rewrites unrelated heads, queues, merges,
   or closes anything. Mark unavailable restricted-capability variants **Unrun**.
 
+**Actual-runtime feedback and reassessment variant:** extend this same scenario with a high-risk
+prerequisite A, two independently reviewable consumers B1/B2, and independent notes work C.
+Use only the candidate Orchestrate and its complete bundle installed in an isolated supported
+host; record how sibling skills are absent, the candidate source identity, and actual resolved
+paths. Use the supported host's real native subagents, never a mocked host. Before
+starting, verify worker/isolation capability, an authorized disposable application/runtime fixture,
+and permission for the exact disposable remote for publication/native stacks. Missing capabilities
+leave the affected observations **Unrun**; do not create a remote or use production resources.
+A local-only variant can observe reachable behavior but cannot prove remote delivery.
+
+Choose a small real model, authority, mutation, persistence, or selected-context boundary that can
+safely fail inside the disposable fixture. State its observable behavior and prohibited effects,
+accepted source/runtime identity, focused invariant checks, and required independent review.
+Exercise an actual runtime failure and repeated correction attempts through changed source, using
+synthetic non-private inputs and inspecting actual effects. A canned provider response or a
+controlled helper test is not evidence of real-provider semantics; if the required runtime cannot
+be reached, report that boundary rather than substituting it. Reuse applicable authorized runtimes,
+native caches, and safe harnesses.
+
+Observe the following in the real host, retaining available timestamps and counts in ordinary
+session evidence rather than adding a benchmark or receipt system:
+
+- The proposal distinguishes publication, prerequisite consumer-release, group-completion, and
+  external merge/release gates, and agrees a work-appropriate wall-clock reassessment interval.
+  Approval covers routine in-scope repairs/checks and authorized draft updates without per-attempt
+  handshakes. Failed/unrun required implementation acceptance blocks delivery by default; run an
+  unfinished-draft variant only with explicit separate approval, preserving other binding gates.
+- Actual-runtime feedback, focused invariants, inspection of delegated effects, and required
+  independent review precede release to B1/B2. Failed behavior holds both consumers while C and
+  safe preparation progress; C can publish when its own approved publication gates pass.
+- Distinguish driver interaction failure from application failure before source repair. An
+  unresolved synthetic privacy finding stays HOLD if its evidence becomes unavailable; neither
+  reconstruction nor a replacement run clears it. Do not create or lose actual private evidence.
+- Repeated corrections reuse A's canonical workspace/branch/PR. Count exploratory attempts and
+  downstream reconciliations: B1/B2 are not replayed for each experiment. At a verified checkpoint,
+  release and reconcile dependents, then run affected combined-result checks; applicable earlier
+  evidence carries forward. Later changed contracts can require another verified checkpoint.
+- At the agreed elapsed checkpoint, compare new behavioral evidence with preparation/build/replay/
+  coordination costs using observed timings and counts. Repeated overhead without new evidence
+  produces an actual authorized change of approach, independent progress, or a concrete blocker
+  and material decision. A status message does not reset the checkpoint. Waiting on native
+  completion must not defer it: use available host notifications and bounded waits so a checkpoint
+  lands on schedule even mid-wait, and reaching it neither interrupts the waited worker nor counts
+  its pending state as failed or passed. Do not manufacture slow
+  work, force an actual runtime failure by changing production resources, or repeat an unchanged
+  cycle just to collect measurements.
+- Read back eligible incremental drafts, their intended parents, and required native stack
+  membership. An explicitly approved unfinished draft reports unmet acceptance and proves neither
+  consumer readiness nor completion. Once completion and delivery are verified, observe the existing
+  no-monitoring/no-reopening/no-merge boundary. Keep positive remote observations **Unrun** without
+  the exact authorized remote; local branches cannot stand in for them.
+
+Report actual host/model outcomes, deterministic helper results, manual instruction traces, and
+unrun boundaries separately. Record actual invocation, timings, attempt/reconciliation counts,
+source applicability, review feedback, changed approach, and remaining blockers only as observed.
+No fixed worker/model count, universal timeout, controller, scheduler, historical-record mutation,
+or sibling workflow prerequisite is part of this variant.
+
 **Explicit repair and contribution rounds:** separately request the bounded corrections below,
 reusing the helper deliverable or its local-only equivalent. Record invocations, worker
 completion/release, physical paths/branches, actual contribution/integrated source, and applicable
