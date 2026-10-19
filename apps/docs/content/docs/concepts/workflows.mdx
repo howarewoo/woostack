@@ -69,6 +69,12 @@ context. Readable context is valid input, and a native issue hierarchy is not un
 mandatory. A readable tracker plus independently readable tasks is enough to coordinate work, so a
 missing administrative link is not a blocker while missing task scope is.
 
+Draft visibility, prerequisite readiness, group completion, and external merge/release acceptance
+answer different questions. The approved plan distinguishes their gates and sets a work-appropriate
+wall-clock reassessment interval. Required implementation acceptance still blocks delivery by
+default. An unfinished draft requires explicit separate approval; it neither clears failed behavior
+nor releases dependent consumers. Eligible groups can publish independently of the whole chain.
+
 The change plan comes before any implementation: which tasks group into which pull request, the
 required changes, the intended parent and landing order, and the safe parallel work. Prerequisites
 are discovered from source and PR evidence, not from a missing dependency field. Small related
@@ -90,6 +96,12 @@ predecessor's head branch, and native stack registration is required for those d
 read back after publication. Landing order is distinct from implementation order: sufficiently
 complete immutable prerequisite checkpoints can enable dependent work before PR publication or
 landing. Missing capabilities or host capacity can still require sequential dispatch.
+Routine in-scope diagnosis, repairs, checks, and authorized draft updates use standing authority.
+Exploratory corrections stay in the canonical allocation; dependents reconcile at verified contract
+checkpoints rather than after every hypothesis. Reassessment compares elapsed overhead with new
+behavioral evidence and stays live during native-worker waits instead of surfacing only at
+worker or group completion. An unproductive cycle calls for a changed authorized approach, independent
+work, or a concrete blocker and material decision; sending an update does not restart the interval.
 Applicable child results carry forward under the canonical [testing
 guidance](https://github.com/howarewoo/woostack/blob/main/shared/references/tdd.md#when-evidence-still-applies);
 the coordinator independently verifies the canonical tree, cumulative diff, and new interactions.
@@ -187,10 +199,17 @@ Retained-data authority and recovery belong to the
 
 Review is independent evidence. High-risk new contracts need focused behavioral checks and
 independent review before broad consumer integration to keep foundational defects from spreading.
+For new high-risk model, authority, mutation, persistence, or selected-context contracts, this includes
+the smallest meaningful actual-required-runtime vertical slice exercising changed source and inspecting
+real effects. Controlled outputs cannot establish real-runtime semantics. Applicable authorized
+runtimes, caches, and safe harnesses shorten feedback without weakening evidence. Driver failure
+and application failure need distinct diagnosis before source repairs. Unresolved privacy evidence
+stays HOLD; lost private evidence is not reconstructed or cleared by a replacement run.
 Orchestrate's final review focuses on changed contracts and consumers while retaining applicable
 checkpoint evidence and combined-result verification. Execute needs no pre-commit review receipt
 unless required. Deferred manual acceptance remains unmet. Verified PR publication and required
-stack registration finish delivery. Neither coordinator nor workers inspect new CI/reviews or
+stack registration finish delivery once group-completion requirements are satisfied. An explicitly
+approved unfinished draft remains incomplete. Neither coordinator nor workers inspect new CI/reviews or
 reopen delivered groups on incoming events. Later corrections require a separate explicit request;
 remote checks and merge approval remain distinct from implementation evidence.
 

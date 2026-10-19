@@ -57,7 +57,13 @@ For an explicit one-run model or effort request, apply the shared
    delegation, responsibility boundaries, and safe parallel work; and delivery approach, including
    reuse of existing workspaces, branches, and PRs versus new independent PRs or a stack. Use
    ordinary prose, a table, or the host's existing plan facility; no prescribed schema, ID, or
-   persisted artifact.
+   persisted artifact. Distinguish draft-publication gates, prerequisite consumer-release evidence,
+   group-completion requirements, and external merge/release gates. Failed or unrun required
+   implementation acceptance blocks delivery by default; publishing an unfinished draft needs
+   explicit separate approval, never relabeling failed implementation acceptance as merge-only.
+   Required publication checks/hooks, independent review, privacy/data protections, and user limits
+   remain binding. Agree a work-appropriate wall-clock reassessment interval and standing authority
+   for routine in-scope diagnosis, repairs, checks, and already-authorized draft updates.
    Stop and wait for user approval or revisions before executing. Approval of the goal, silence, or
    fitting approved scope does not approve an unseen plan. Before approval, do not allocate execution
    workspaces or branches, dispatch implementation workers, edit source, commit, or write externally.
@@ -84,7 +90,8 @@ task workspaces for implementation, repairs, and integration, not one allocation
    For an open parent PR, use its verified branch/head and required content; for a squash-merged
    parent, verify the native landing and integrated content instead of demanding former-head ancestry.
    Safe implementation may start from a sufficiently complete immutable prerequisite checkpoint
-   whose identity and required content are verified, without waiting for its PR to land or publish;
+   whose identity, required content, and applicable consumer-release evidence are verified, without
+   waiting for its PR to land or publish;
    reconcile that content with the planned parent before delivery. Deliberate landing order alone
    must not serialize implementation. A task whose required capabilities are missing waits;
    safe independent work may continue. Never persist a global execution forest, infer a dependency
@@ -124,20 +131,29 @@ task workspaces for implementation, repairs, and integration, not one allocation
    The coordinator owns planning, dispatch, integration verification, and delivery
    coordination, not silent implementation in the primary checkout. Inline implementation requires a workflow change from the user;
    unavailable worker/isolation capability is a blocker, not an equivalent local result.
-   Before broad consumer integration of a high-risk new authority, mutation, persistence, or
-   selected-context contract, complete its bounded implementation, run focused invariant checks,
-   and obtain independent review. Inspect actual delegated callees for side effects, not wrapper
-   intent or names. Resolve findings and refresh affected evidence before releasing consumers;
-   work independent of the unsettled contract may continue.
+   Before broad consumer integration of a high-risk new model, authority, mutation, persistence,
+   or selected-context contract, exercise the smallest meaningful vertical slice through the actual
+   required runtime. Verify it exercises the changed source and inspect real behavior and effects,
+   including delegated callees; controlled outputs and wrapper intent do not prove runtime semantics.
+   Reuse applicable authorized runtimes, native caches, and safe harnesses. Run focused invariant
+   checks and obtain required independent review; resolve findings and refresh affected evidence
+   before releasing consumers. Missing runtime evidence blocks affected consumers while independent
+   work and safe preparation continue. Distinguish interaction-driver failure from application
+   failure before source repairs. Unresolved privacy evidence stays HOLD; preserve historical
+   findings without reconstructing lost private evidence or clearing them through a replacement run.
 5. **Integrate and deliver the group's PR and stack.** Use the selected worker runtime's
    completion handling; on interrupted workers, rediscover its state and Git/PR facts before retrying.
    Preserve unknown work, block affected dependents, and never duplicate work or claim unverified delivery.
    Independently reconcile source/destination revisions, ancestry/diffs, ownership, and requested
    PR facts against worker claims. Resolve stale handoffs, identify already-present and missing
    changes, and integrate the intended union once, including overlapping child histories.
+   Keep exploratory diagnosis and corrections in the canonical allocation. Reconcile affected
+   dependents at verified contract checkpoints, not after every hypothesis or experimental edit;
+   a later changed contract can require another checkpoint and reconciliation.
    Verify the canonical tree and cumulative PR diff: they must cover the planned outcome with no
-   unrelated or dropped change, out-of-scope edits block delivery, and failed or unrun required
-   checks block delivery.
+   unrelated or dropped change. Out-of-scope edits block delivery. Failed or unrun required
+   acceptance blocks delivery under the approved publication policy; only the separately approved
+   unfinished-draft exception in step 1 permits incomplete acceptance to remain visible.
    Default to reusing child results from the existing worker result, handoff, or verification summary:
    independently check the command/selection, actual tested source state, observed outcome, and
    relevant environment limits against real source and required acceptance under
@@ -149,7 +165,21 @@ task workspaces for implementation, repairs, and integration, not one allocation
    checks in the same allocation and refresh affected checks and required implementation review after
    changes. Handle slow checks and explicit unmet verification boundaries under
    [Slow checks](references/tdd.md#slow-checks-bounded-diagnosis-no-waiver);
-   deferred manual acceptance remains unmet, not passed evidence.
+   deferred manual acceptance remains unmet, not passed evidence. At the agreed wall-clock
+   checkpoint, compare elapsed preparation, builds, replay, and coordination with new behavioral
+   evidence, using observed timings and counts where available. If repeated attempts mostly
+   reproduce overhead without new evidence, do not repeat that cycle unchanged: change approach
+   within standing authority, continue independent work, or report the affected blocker and the
+   material decision or permission needed. A progress message does not reset the checkpoint.
+   Keep the interval live throughout execution: while waiting on native workers or groups, use
+   available host notifications and bounded waits so the next checkpoint arrives on schedule rather
+   than at worker or group completion. Reaching it mid-wait is an observation to reassess, not a
+   cancellation or verdict on the waited work.
+   Reassessment adds no universal timeout, approval handshake, or artifact system and waives no gate.
+   Publish each eligible group's requested draft once its approved publication gates pass, without
+   waiting for unrelated groups or the whole chain. An explicitly approved unfinished draft reports
+   unmet acceptance and remains incomplete; visibility alone neither releases consumers nor proves
+   group completion.
    Hand the intended parent and ordered chain to the
    [delivery procedure](references/delivery.md), requiring native registration for dependent
    PRs; delivery, membership, lost-write recovery, and read-back follow the
@@ -162,10 +192,11 @@ task workspaces for implementation, repairs, and integration, not one allocation
    Conflicting membership, a non-top append, or a changed parent requires revalidating the
    affected plan; requested reorganization follows the
    [authorized Git tools reference](references/source-control.md).
-6. **Finish delivered groups.** After verified PR publication and required native stack membership/order,
-   the coordinator and delegated workers finish that group. Do not fetch or monitor PR checks or
-   reviews, wait for CI, collect new comments, or initiate post-delivery repairs. Continue only
-   undelivered groups; incoming CI/review events do not reopen completed work. Necessary parent
+6. **Finish delivered groups.** After group-completion requirements, verified PR publication, and
+   required native stack membership/order are satisfied, the coordinator and delegated workers finish
+   that group. An approved unfinished draft continues only its already-authorized in-scope work.
+   Do not fetch or monitor PR checks or reviews, wait for CI, collect new comments, or initiate
+   post-delivery repairs. Continue only unfinished groups; incoming CI/review events do not reopen completed work. Necessary parent
    ref/content reads for remaining delivery remain valid. Later repairs require a separate explicit request.
 7. **Report evidence and disposition.** Report group-to-issue coverage, PRs and stack order,
    contribution/integrated revisions, applicable implementation/integration results, known limits,
