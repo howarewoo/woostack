@@ -60,10 +60,15 @@ and concrete scoped repair options. Distinguish inspected facts from unverified 
 
 Follow [adaptation and creation](references/adaptation.md). Decide creation from repository
 inspection, not from shipped assets: none are shipped. Reuse compatible catalogs, controls,
-tokens, and examples before creating anything new. Agree focused coverage with the requester when
-the repository cannot already answer it from actual UI usage and design rules; no mandatory
-questionnaire, and record the agreed coverage, source provenance, extensions and gaps in a
-coverage record the target owns. Without design rules, use the neutral shadcn Base UI baseline,
+tokens, and examples before creating anything new. Before any implementation mutation, disclose
+the declared coverage user-visibly per [agree the coverage](references/adaptation.md#agree-the-coverage):
+inventory or unambiguous coverage set, focused or exhaustive label, and material exclusions,
+even when repository evidence supplies the proposal. Repository facts can propose a focused set
+but are not requester agreement to narrowing; honor an explicit full-coverage request, and ask
+one focused scope question only when the request and evidence leave a material choice
+unresolved. When scope is determined, disclose it and proceed within authorization without a
+questionnaire or approval gate. Record the declared coverage, source provenance, extensions and
+gaps in a coverage record the target owns. Without design rules, use the neutral shadcn Base UI baseline,
 not Git Stacks branding or Quiet Workbench styling. Source newly needed controls and examples
 from the current upstream docs/registry — via the current Base UI-backed shadcn CLI where it fits
 the target configuration — adapting them to real project APIs; never CLI-overwrite existing UI
@@ -83,12 +88,12 @@ or upgrade unrelated dependencies.
 ## Verify and report
 
 Use [verification](references/verification.md) and the target's native commands. Verify real
-imports, the recorded agreed coverage, live specimens, and actual browser behavior; a
+imports, the declared coverage, live specimens, and actual browser behavior; a
 placeholder catalog, extracted source without live specimens, typecheck alone, or site
 packaging check is not recreation. Leave no mock controls, dead specimens or unsupported
 "complete" claims.
 
-Report catalog placement and commands, agreed coverage with gaps, source provenance for reused
+Report catalog placement and commands, declared coverage with gaps, source provenance for reused
 and newly created controls, retained upstream notices, design adaptations, preserved
 customizations, conflicts, and checks actually observed. Separate deterministic checks, installed-skill/host outcomes and browser
 evidence. Failed or unrun required checks remain unverified; name the missing prerequisite and
