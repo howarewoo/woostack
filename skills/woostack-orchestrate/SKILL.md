@@ -62,8 +62,9 @@ For an explicit one-run model or effort request, apply the shared
    implementation acceptance blocks delivery by default; publishing an unfinished draft needs
    explicit separate approval, never relabeling failed implementation acceptance as merge-only.
    Required publication checks/hooks, independent review, privacy/data protections, and user limits
-   remain binding. Agree a work-appropriate wall-clock reassessment interval and standing authority
-   for routine in-scope diagnosis, repairs, checks, and already-authorized draft updates.
+   remain binding. Propose a ten-minute wall-clock reassessment interval unless the user specifies
+   or agrees to a different interval. Agree standing authority for routine in-scope diagnosis,
+   repairs, checks, and already-authorized draft updates.
    Stop and wait for user approval or revisions before executing. Approval of the goal, silence, or
    fitting approved scope does not approve an unseen plan. Before approval, do not allocate execution
    workspaces or branches, dispatch implementation workers, edit source, commit, or write externally.
@@ -165,17 +166,19 @@ task workspaces for implementation, repairs, and integration, not one allocation
    checks in the same allocation and refresh affected checks and required implementation review after
    changes. Handle slow checks and explicit unmet verification boundaries under
    [Slow checks](references/tdd.md#slow-checks-bounded-diagnosis-no-waiver);
-   deferred manual acceptance remains unmet, not passed evidence. At the agreed wall-clock
+   deferred manual acceptance remains unmet, not passed evidence. At each agreed wall-clock
    checkpoint, compare elapsed preparation, builds, replay, and coordination with new behavioral
    evidence, using observed timings and counts where available. If repeated attempts mostly
    reproduce overhead without new evidence, do not repeat that cycle unchanged: change approach
    within standing authority, continue independent work, or report the affected blocker and the
-   material decision or permission needed. A progress message does not reset the checkpoint.
-   Keep the interval live throughout execution: while waiting on native workers or groups, use
-   available host notifications and bounded waits so the next checkpoint arrives on schedule rather
-   than at worker or group completion. Reaching it mid-wait is an observation to reassess, not a
-   cancellation or verdict on the waited work.
-   Reassessment adds no universal timeout, approval handshake, or artifact system and waives no gate.
+   material decision or permission needed. Reassessment may leave healthy work running unchanged;
+   the checkpoint alone is no reason to fail, cancel, message, or recheck a pending worker, or
+   treat pending work as passed.
+   Keep the cadence live throughout execution, including native-worker and group waits: use
+   available host notifications and bounded waits so reassessment is not deferred to completion.
+   Handle delivered notifications without deliberately waiting for the checkpoint; neither
+   notifications nor progress messages reset its cadence. Reassessment adds no universal timeout,
+   approval handshake, or artifact system and waives no gate.
    Publish each eligible group's requested draft once its approved publication gates pass, without
    waiting for unrelated groups or the whole chain. An explicitly approved unfinished draft reports
    unmet acceptance and remains incomplete; visibility alone neither releases consumers nor proves
