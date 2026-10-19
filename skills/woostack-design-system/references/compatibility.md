@@ -18,8 +18,8 @@ For each baseline control needed by a specimen or catalog chrome, record:
 | Dependencies | Installed versions, peer ranges, supported runtime, workspace resolution and lockfile; dependencies needed by imported shared code |
 | Consumer evidence | At least one real use of the public API and applicable tests; source declarations alone do not prove interaction behavior |
 
-Catalog chrome is a consumer too: inspect buttons, search/input, navigation, theme control and
-copy feedback alongside specimen controls. A specimen using shared UI while chrome retains
+Catalog chrome is a consumer too: inspect buttons, search/input, navigation and theme control
+alongside specimen controls. A specimen using shared UI while chrome retains
 starter copies is not successful compatible reuse.
 
 ## Choose the smallest supported integration

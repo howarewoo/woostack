@@ -43,7 +43,6 @@ defaults. CLI sourcing requires network access during creation, not at catalog r
    commands to native project conventions. The starter imports UI through `@/components/ui/*`;
    this is a starter location, not a mandated new package or project API. For compatible UI,
    rewrite specimens and chrome to real exported APIs, including state/composition differences.
-   Keep the copyable adoption example and live specimen derived from the same source after editing.
    Determine missing controls from the canonical inventory and actual catalog imports after
    mapping compatible project components. Follow the installed template instructions: the shipped
    `components.json.template` already configures neutral Base UI (`base-nova`), so do not run CLI

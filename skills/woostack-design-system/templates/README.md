@@ -41,14 +41,14 @@ It may use public image URLs in illustrative specimens; those images are optiona
 visual content, not a dependency of component interactions. Preserve the generated
 target lockfile, but never copy one back into skill assets.
 
-`npm run verify` checks every inventory specimen and typechecks public imports,
+`npm run verify` checks every inventory specimen and typechecks the catalog,
 including project extensions, using the target's installed TypeScript compiler.
 `npm run build` typechecks and produces static assets.
 `npm run dev` starts the local Vite server; use its printed URL, not an assumed port.
 `npm run preview` serves the production output. Browser verification is separate:
 search/empty results, anchors and Back/Forward, narrow navigation, Tab/arrows,
 Ctrl/Command-K and slash, destination focus after overlay dismissal, appearance,
-copy examples/imports, and representative popover/dialog/menu interactions.
+and representative popover/dialog/menu interactions.
 
 Illustrative `href="#"` links select a local example link and report that selection
 in a live status message; they do not change catalog routing or execute product
@@ -63,11 +63,12 @@ the generated component's native mobile sheet and toggle behavior.
 canonical upstream URL/provenance, shipped baseline and separate project extensions.
 Its `registryItem` is the CLI source name or `null` for owned catalog recipes.
 `specimen` identifies a `.tsx` file under `src/examples/` (including nested
-directories) rendered live and displayed raw for copying; hidden paths are not supported.
-`importPath`/`importExample` describe the real public import checked by verification.
-Imports are checked unchanged in separate temporary modules beside their specimens,
-so relative imports resolve from the specimen directory. Verification never overwrites
-existing import-check files and removes only the temporary files it created.
+directories) rendered live; hidden paths are not supported.
+`importPath` names the real public import each specimen must consume; verification
+typechecks the actual catalog and specimens with the target's installed TypeScript
+compiler. Build an internal visual catalog showing component variants, states and
+interactions; treat component and preview source as the implementation reference and
+do not generate code snippets, copy controls or separate usage-example documentation.
 Adding a project extension means adding its example and an entry under
 `projectExtensions`; do not claim it as upstream coverage.
 
@@ -86,7 +87,7 @@ Iconography are owned foundations. None is advertised as a generated upstream AP
 
 Git Stacks reference `ee6bbcb012965780643856b01bfd1c15502780d8` was revalidated
 against the issue's earlier `3a74ae5f211eed502967f7247a8c27b340ec554d` baseline.
-Its catalog groups, full component coverage, live/raw-example concept and navigation
+Its catalog groups, full component coverage, live-preview concept and navigation
 behavior informed this scaffold. Its owned control APIs, Quiet Workbench tokens,
 Git compositions, desktop integrations, and component library were not copied.
 The typography/iconography foundations remain owned, distinct from upstream entries.
