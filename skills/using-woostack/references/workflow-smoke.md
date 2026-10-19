@@ -232,10 +232,12 @@ Observe the following in the real host, retaining available timestamps and count
 session evidence rather than adding a benchmark or receipt system:
 
 - The proposal distinguishes publication, prerequisite consumer-release, group-completion, and
-  external merge/release gates, and agrees a work-appropriate wall-clock reassessment interval.
-  Approval covers routine in-scope repairs/checks and authorized draft updates without per-attempt
-  handshakes. Failed/unrun required implementation acceptance blocks delivery by default; run an
-  unfinished-draft variant only with explicit separate approval, preserving other binding gates.
+  external merge/release gates, and proposes the owning skill's default reassessment interval
+  unless the user specifies or agrees to another. Observe the default proposal separately from
+  an explicit override used to exercise cadence. Approval covers routine in-scope repairs/checks
+  and authorized draft updates without per-attempt handshakes. Failed/unrun required implementation
+  acceptance blocks delivery by default; run an unfinished-draft variant only with explicit
+  separate approval, preserving other binding gates.
 - Actual-runtime feedback, focused invariants, inspection of delegated effects, and required
   independent review precede release to B1/B2. Failed behavior holds both consumers while C and
   safe preparation progress; C can publish when its own approved publication gates pass.
@@ -246,15 +248,16 @@ session evidence rather than adding a benchmark or receipt system:
   downstream reconciliations: B1/B2 are not replayed for each experiment. At a verified checkpoint,
   release and reconcile dependents, then run affected combined-result checks; applicable earlier
   evidence carries forward. Later changed contracts can require another verified checkpoint.
-- At the agreed elapsed checkpoint, compare new behavioral evidence with preparation/build/replay/
+- At each agreed elapsed checkpoint, compare new behavioral evidence with preparation/build/replay/
   coordination costs using observed timings and counts. Repeated overhead without new evidence
   produces an actual authorized change of approach, independent progress, or a concrete blocker
-  and material decision. A status message does not reset the checkpoint. Waiting on native
-  completion must not defer it: use available host notifications and bounded waits so a checkpoint
-  lands on schedule even mid-wait, and reaching it neither interrupts the waited worker nor counts
-  its pending state as failed or passed. Do not manufacture slow
-  work, force an actual runtime failure by changing production resources, or repeat an unchanged
-  cycle just to collect measurements.
+  and material decision. Neither progress messages nor notifications reset the cadence. Native
+  waits keep it live rather than deferring reassessment to completion; delivered notifications
+  are handled without deliberately waiting for the checkpoint. After reassessment, healthy pending
+  work can continue unchanged, without failure, cancellation, worker messages, or rechecks merely
+  because the checkpoint arrived; pending is not passed. Do not manufacture slow work, force an
+  actual runtime failure by changing production resources, or repeat an unchanged cycle just to
+  collect measurements.
 - Read back eligible incremental drafts, their intended parents, and required native stack
   membership. An explicitly approved unfinished draft reports unmet acceptance and proves neither
   consumer readiness nor completion. Once completion and delivery are verified, observe the existing
