@@ -56,8 +56,9 @@ Open your coding assistant in the project root and enter:
 /woostack-init
 ```
 
-Init inspects your repository and existing decisions, asks only about meaningful gaps, and helps
-create or update `README.md`, `PRODUCT.md`, `DESIGN.md`, `ARCHITECTURE.md`, and `AGENTS.md`. It preserves useful content
+Init inspects your repository and existing decisions, consults with you on the project's
+intention, structure, direction, and architecture before writing, and helps create or update
+`README.md`, `PRODUCT.md`, `DESIGN.md`, `ARCHITECTURE.md`, and `AGENTS.md`. It preserves useful content
 linked to canonical documents rather than copying them. You can limit the request to one document
 or ask for drafts without writes. During Woostack adoption, Init includes the concise
 [adoption paragraph](skills/woostack-init/SKILL.md#document-responsibilities) in the proposed agent
@@ -76,7 +77,7 @@ application, handle credentials, or create issues, branches, commits, or PRs. Se
 
 If you need `.woostack/` configuration or diagnostic support, explicitly ask Init to initialize
 local support only, then use `/woostack-doctor --check` to inspect its health. This path preserves
-existing settings and retained records without a document interview or GitHub call. OMP delegation
+existing settings and retained records without a document consultation or GitHub call. OMP delegation
 uses agents already exposed by the session, not a project agent catalog.
 
 Store selected non-secret defaults in `.woostack/config.json`; keep credentials in your host's

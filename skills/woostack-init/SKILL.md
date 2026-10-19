@@ -6,8 +6,8 @@ description: Create or maintain root README.md, AGENTS.md, DESIGN.md, PRODUCT.md
 # woostack-init
 
 Help the user create or improve the root README and project guidance: accurate, repository-specific,
-useful for decisions, concise, and maintainable. Inspect before asking, preserve what works, and
-apply only changes the request authorizes. A rerun may make no changes.
+useful for decisions, concise, and maintainable. Inspect before asking, consult before writing,
+preserve what works, and apply only changes the request authorizes. A rerun may make no changes.
 
 ## Command and scope
 
@@ -19,7 +19,7 @@ The default intent is guided document authoring, including root `ARCHITECTURE.md
 limited to one document or to review, planning, or drafts; architecture-only requests do not edit
 other root documents. An explicit local-support setup/repair request, including Doctor's
 missing-support referral, goes directly to [Local support](#local-support) without a document
-interview. When both intents are requested, keep their authorization and verification separate.
+consultation. When both intents are requested, keep their authorization and verification separate.
 
 Document work requires no `.woostack/`, GitHub policy validation, Doctor, GitHub access, or
 dependency installation. Missing support or an unrelated malformed setting must not block drafting.
@@ -31,25 +31,50 @@ Load support helpers and contracts only for relevant support work.
    conversation decisions, existing root and scoped agent instructions, README/contributor guidance,
    product/design/architecture documents and their canonical sources, representative source,
    entrypoints, manifests, configuration, scripts, and CI.
-   Summarize what needs creating, updating, or preserving. Distinguish observed implementation,
-   documented intent, and unresolved decisions; surface contradictions rather than silently choosing
+   Prepare a brief opening summary of the current understanding, which in-scope documents need
+   creating, updating, or preserving, and what should stay. Distinguish observed implementation,
+   documented intent, and proposed direction; surface contradictions rather than silently choosing
    one. Preserve the authority and scope of existing instructions.
    When verification guidance is relevant to scope, inspect the repository's actual tools, commands,
    instructions, CI, test suites, and available timing evidence, distinguishing demonstrated bottlenecks
    from unmeasured concerns. An adequate verification setup is a valid no-op.
-2. **Resolve material gaps.** Ask repository-informed questions only where answers change a reader's
-   first-use path, product behavior, design direction, architecture, or working agreements.
-   Offer a recommendation and tradeoff when useful. Do not ask for repository facts or previously
-   answered product and technology decisions.
+2. **Consult before drafting.** Open the discussion with the opening summary, then ask
+   repository-informed questions and wait for the user's response before drafting or writing any
+   document, even when the existing repository appears comprehensive. A general request to
+   initialize or update documents is not permission to skip this consultation, and ordinary edit
+   authorization never silently waives it. For a general run, discuss the areas relevant to the
+   requested documents: intention (why the repository exists, whom it serves, the problem it
+   should solve, desired outcomes, and non-goals), general structure (the intended organization
+   and responsibilities of its major apps, packages, modules, and documents; which existing
+   arrangements are deliberate and worth preserving), direction (near-term priorities, longer-term
+   ambitions, product and design principles, constraints, and tradeoffs), and architecture
+   (intended boundaries, dependencies, important interactions and data flows, and rationale that
+   source code alone cannot establish). These are discussion areas, not a fixed question bank:
+   read factual details from the repository rather than asking the user to inventory it, and ask
+   about the intention and rationale behind those facts. A scoped update consults only its
+   relevant decisions and never becomes an unrelated whole-repository interview.
+   Ask a manageable initial set, then wait. Use each response to revise the understanding and
+   choose follow-ups that respond to earlier answers, including answers that contradict
+   assumptions inferred from existing code; clarify implications, contradictions, and meaningful
+   unresolved choices instead of mechanically advancing through a fixed checklist. Reuse answers
+   already supplied: when prior answers establish the relevant decisions, present the resulting
+   understanding and ask what, if anything, should change rather than re-running the interview.
+   Offer recommendations and tradeoffs when useful, and keep material decisions explicitly
+   deferred rather than inventing certainty. Never create or modify documents in the same turn as
+   unanswered interview questions. Honor an explicit request to proceed without questions; the
+   agent's confidence alone is not an exception. Without answers, draft only from observed
+   evidence and mark remaining decisions unresolved instead of inventing missing facts.
    For verification recommendations, use the [testing principles](references/tdd.md): prefer
    removing redundant work and configuring native capabilities before adding or replacing tools.
    Investigate only warranted options against current authoritative ecosystem sources; preserve
    settled viable choices and compare compatibility, correctness, execution cost, migration effort,
    and maintenance. Keep current setup, agreed direction, and unimplemented recommendations
    distinct, with tradeoffs and verification rather than unmeasured speedup claims.
-   Product → design → agent instructions is a useful default, not a required sequence.
-   Adapt to the project and allow decisions to remain explicitly deferred.
-3. **Draft focused guidance.** Use the [document responsibilities](#document-responsibilities) and
+3. **Draft focused guidance.** Draft from the agreed understanding, keeping current implementation,
+   agreed future direction, and deferred decisions distinct, and never representing proposed or
+   deferred architecture as already implemented. Product → design → agent instructions is a useful
+   draft order, not a required sequence. Use the
+   [document responsibilities](#document-responsibilities) and
    applicable [document schemas](references/document-schemas.md). Create missing guidance, replace
    empty or placeholder content with supported guidance, or make targeted revisions, preserving
    useful project-specific content.
