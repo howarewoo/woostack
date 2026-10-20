@@ -33,6 +33,7 @@ For an explicit one-run model or effort request, apply the bundled
 | --- | --- |
 | Adopt woostack or choose a workflow | `using-woostack` |
 | Create or maintain root `README.md`, `AGENTS.md`, `DESIGN.md`, `PRODUCT.md`, or `ARCHITECTURE.md`; explicitly initialize or repair local support | `woostack-init` |
+| Collaboratively whiteboard a goal or existing design into a visual plan (experimental) | `woostack-whiteboard` |
 | Explore requirements explicitly requested by the user | `woostack-ideate` |
 | Review a supplied specification or candidate plan against repository evidence | `woostack-harden` |
 | Plan a goal or incomplete issue, including a new project without source | `woostack-plan` |
@@ -55,8 +56,14 @@ For an explicit one-run model or effort request, apply the bundled
 `woostack-tdd`, and `woostack-prepare` are retired without aliases. Explain a removed explicit
 command without executing a replacement.
 
-Route by the requested action. Plan, Execute, and Init are independent, including for new projects;
-Simplify requires neither Plan nor Execute and is not an always-on mode.
+For goals needing collaborative refinement, recommend the experimental Whiteboard workflow, then
+an explicit Orchestrate request when the user wants implementation. Saving or agreeing to a
+Whiteboard plan does not dispatch work. Ideate, Harden, and Plan remain available during the trial;
+explicit existing commands keep their own workflows, including Plan's requested issue publication.
+
+Route by the requested action. Whiteboard, Plan, Execute, and Init are independent, including for
+new projects; none is a mandatory precursor to an understood task. Simplify requires neither Plan
+nor Execute and is not an always-on mode.
 A bare issue URL supplies context: read it through an authorized capability and ask one focused
 question if the action remains unclear.
 

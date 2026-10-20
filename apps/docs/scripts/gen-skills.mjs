@@ -11,6 +11,7 @@ const GH_BASE = "https://github.com/howarewoo/woostack/blob/main";
 export const PUBLIC_ORDER = [
   "using-woostack",
   "woostack-init",
+  "woostack-whiteboard",
   "woostack-ideate",
   "woostack-harden",
   "woostack-plan",

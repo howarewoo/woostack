@@ -4,10 +4,12 @@ woostack is a collection of skills that teach AI coding assistants how to plan w
 change code. You make the product decisions. The assistant checks the repository and GitHub
 before reporting what changed or what is ready for review.
 
-Use one PR for a small change or a well-understood fix. For larger work, Plan can inspect
-the repository and return a coherent plan without writing to GitHub, or publish requested
-issues with verified dependencies. Verify changes; delegate or request independent review when
-required, requested, or warranted by risk.
+For a goal that needs refinement, try [Whiteboard](skills/woostack-whiteboard/SKILL.md): develop
+requirements, challenge the design, and refine a visual model and written plan together. Then save
+the plan when useful or explicitly request Orchestrate to coordinate implementation with subagents.
+Whiteboard is experimental; Ideate, Harden, and Plan remain available during the trial, including
+Plan's requested issue publication. A small, understood change can go directly to implementation.
+Verify changes and request independent review when required or warranted by risk.
 
 Start with the [getting-started guide](apps/docs/content/docs/getting-started.mdx), or use the
 [command index](skills/using-woostack/SKILL.md#command-routing) to choose a workflow among the
@@ -37,7 +39,7 @@ A single-skill install changes only which directories arrive, not the workflow's
 
 The public commands are listed in the
 [command index](skills/using-woostack/SKILL.md#command-routing), including standalone
-Ideate, Harden, and Plan.
+Whiteboard, Ideate, Harden, and Plan.
 
 For UI work, [Design](skills/woostack-design/SKILL.md#selected-skills) uses
 [Impeccable](https://github.com/pbakaus/impeccable) as its design lead, with relevant specialists
@@ -109,15 +111,19 @@ in the coding assistant.
 
 ## Choose a development workflow
 
-To plan in a normal ChatGPT chat, start with the
-[ChatGPT-to-Codex guide](apps/docs/content/docs/chatgpt-to-codex.mdx). In a coding host, Plan can
-return a plan without publication, or file issues on request using authorized GitHub access.
-Native links are verified when requested and available; missing relationships are reported,
-not invented. Execution is a separate request to Orchestrate for multiple tasks or Execute
-for one bounded task.
+The recommended trial path for goals needing refinement is
+[whiteboard a goal into a plan](apps/docs/content/docs/guides/whiteboard.mdx), then explicitly
+request Orchestrate when ready to implement. The plan and visual stay in the conversation unless
+you request a document save. Orchestrate accepts that prose directly and presents its execution
+proposal before dispatching workers; no issue export or mandatory plan file is needed.
+
+For requested issue publication, use Plan. For planning in an ordinary ChatGPT chat, see the
+[ChatGPT-to-Codex guide](apps/docs/content/docs/chatgpt-to-codex.mdx). Existing workflows remain
+available, and an understood bounded task can go directly to Execute.
 
 | What you need | Command | What happens |
 | --- | --- | --- |
+| Collaboratively refine a goal or existing design | [/woostack-whiteboard](skills/woostack-whiteboard/SKILL.md) | Experimental requirements and design conversation with an evolving visual and portable implementation plan; document saves are explicit. |
 | Plan a new project | [/woostack-plan](skills/woostack-plan/SKILL.md) | Uses supplied goals, constraints, and research without requiring a checkout or GitHub. |
 | Create a bounded initial application | [/woostack-execute](skills/woostack-execute/SKILL.md) | Checks target safety, creates the requested working slice, and verifies it; local-only needs no GitHub or PR. |
 | Explore requirements | [/woostack-ideate](skills/woostack-ideate/SKILL.md) | Asks about unresolved product decisions and returns a readable specification. |
@@ -130,7 +136,7 @@ for one bounded task.
 | Arrange existing screen flows | [/woostack-flow-layout](skills/woostack-flow-layout/SKILL.md) | Positions screen sequences and branches without redesigning their contents. |
 | Create or inspect a project component catalog | [/woostack-design-system](skills/woostack-design-system/SKILL.md) | Creates locally when no catalog exists; inspects an existing catalog without writes unless you explicitly request maintenance. |
 
-Plan stops before implementation. Execute, Simplify, and Orchestrate start only on an authorized
+Whiteboard and Plan stop before implementation. Execute, Simplify, and Orchestrate start only on an authorized
 change request; planning is not a prerequisite for a bounded task with settled decisions. Simplify
 does not require Execute; commits and PRs remain opt-in, and each skill performs its own requested
 delivery with its bundled procedures. Init separately owns requested project
