@@ -92,6 +92,13 @@ over volume, avoids redundant aggregate/component runs, and reuses applicable re
 checks must pass; slowness or unavailable services do not waive them. Local proof does not establish
 remote merge readiness.
 
+Testing also matches the scale of the work. When volume or concurrency can materially change a
+change's outcome, a representative level taken from repository evidence, such as existing fixtures,
+a documented limit, or the target's own deployment assumptions, shows whether the contract's
+expected results and multiplicity hold, with loss, deduplication, or duplication that the contract
+did not intend failing the check. Required performance measurements and assertions stay when the
+task defines them. An unknown production load stays an uncertainty rather than an invented quota.
+
 ## Production concerns
 
 Deployment shape, migration safety, environment and secret handling, external client lifecycle, and
