@@ -10,9 +10,13 @@ direction, and architecture before drafting, per
 other workflows.
 Each skill owns its activation, routing, workflow steps, and approval gates; the
 [command router](skills/using-woostack/SKILL.md) is an optional index and adoption aid that names
-public commands and imposes no activation prerequisite. No skill loads, invokes, or requires a
-sibling Woostack workflow. [Design's external-skill exception](CONTRIBUTING.md#external-design-skills)
-leaves that boundary intact; optional navigation never becomes an executable dependency.
+public commands and imposes no activation prerequisite. Skills require no sibling installation.
+Orchestrate delegates approved outcomes to task owners, normally using installed Execute, while
+retaining cross-task planning, capacity, integration acceptance, and delivery coordination.
+Task owners choose implementation decomposition and specialist handoffs within inherited limits;
+composition adds no user approval or publication authority. See the
+[composition boundary](CONTRIBUTING.md#editing-conventions). Design's selected external skills
+follow its [separate exception](CONTRIBUTING.md#external-design-skills).
 Shared procedures are reused through
 [bundled references](CONTRIBUTING.md#shared-canonical-references) maintained from one canonical
 source, so the active workflow keeps its own gates and evidence rules at every boundary.

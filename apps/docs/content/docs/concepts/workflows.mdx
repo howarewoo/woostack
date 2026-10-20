@@ -60,8 +60,8 @@ complete. An unknown defect cause stays with [Debug](/docs/skills/woostack-debug
 
 ```text
 approved work context → read outcomes, source, and PR evidence → propose orchestration plan →
-pause for user approval or revisions → delegate each group to a worker in its own task worktree →
-deliver draft PRs, stacked in order → verify delivery from Git and PR evidence
+pause for user approval or revisions → delegate each group to a task owner →
+reconcile verified task results → deliver draft PRs, stacked in order → verify delivery
 ```
 
 Orchestrate works from approved tasks: published issues, a tracker, or other complete readable
@@ -77,20 +77,26 @@ default. An unfinished draft requires explicit separate approval; it neither cle
 nor releases dependent consumers. Eligible groups can publish independently of the whole chain.
 
 The change plan comes before any implementation: which tasks group into which pull request, the
-required changes, the intended parent and landing order, and the safe parallel work. Prerequisites
-are discovered from source and PR evidence, not from a missing dependency field. Small related
-tasks share a PR when their implementation/verification path is inseparable, not just because
-they are adjacent or share a controller. Every task keeps its acceptance, and a user-requested
-issue-to-PR mapping is preserved. Orchestrate presents this proposal and stops for approval or
-revisions; it allocates no workspaces and dispatches no workers before the user approves the plan.
-Substantial groups retain one integrating writer and can use bounded contributions with explicit
-interfaces in separate owned workspaces.
+required changes, the intended parent and landing order, cross-task interfaces, and safe parallel
+groups. Prerequisites are discovered from source and PR evidence, not from a missing dependency
+field. Small related tasks share a PR when their implementation/verification path is inseparable,
+not just because they are adjacent or share a controller. Every task keeps its acceptance, and a
+user-requested issue-to-PR mapping is preserved. Orchestrate presents this proposal and stops for
+approval or revisions; it allocates no workspaces and dispatches no workers before approval.
 
-Each group is implemented by a delegated worker in an independently owned task worktree, including
-a run that groups everything into one PR, and every task starts from a base that actually contains
-the changes it requires. That is a content question answered by current Git and PR facts, not by an
-assumed ancestor or a similar branch name. Two writers never share one physical workspace, and a
-prior writer whose exit is unproved blocks reuse of its workspace while other safe work continues.
+Each group has a native task owner, normally running installed Execute, that chooses its
+implementation decomposition and specialist handoffs. Orchestrate owns coordination between tasks;
+the task owner integrates and verifies contributions within its task. UI, schema, research, testing,
+and validation work does not automatically create separate agents or PRs. Without Execute, the
+owner uses Orchestrate's bundled procedures under the same approved limits, so independent
+installation remains supported. A host may let only the root launch contributors; relaying the
+owner's assignment does not transfer implementation ownership or bypass host limits.
+
+Each group is implemented in an independently owned task worktree, including a run that groups
+everything into one PR, and every task starts from a base that actually contains the changes it
+requires. That is a content question answered by current Git and PR facts, not by an assumed
+ancestor or a similar branch name. Two writers never share one physical workspace, and a prior
+writer whose exit is unproved blocks reuse of its workspace while other safe work continues.
 
 Root pull requests target the approved trunk, each dependent pull request targets its planned
 predecessor's head branch, and native stack registration is required for those dependent PRs and
@@ -98,7 +104,8 @@ read back after publication. Landing order is distinct from implementation order
 complete immutable prerequisite checkpoints can enable dependent work before PR publication or
 landing. Missing capabilities or host capacity can still require sequential dispatch.
 Routine in-scope diagnosis, repairs, checks, and authorized draft updates use standing authority.
-Exploratory corrections stay in the canonical allocation; dependents reconcile at verified contract
+Exploratory corrections stay with their task owner in the canonical allocation; changes affecting
+other tasks or shared contracts return to Orchestrate. Dependents reconcile at verified contract
 checkpoints rather than after every hypothesis. Reassessment compares elapsed preparation, builds,
 replay, and coordination with new behavioral evidence and stays live during native-worker waits.
 An unproductive cycle calls for a changed authorized approach, independent work, or a concrete
@@ -108,8 +115,9 @@ restart the cadence, and delivered notifications need not wait for a checkpoint 
 Applicable child results carry forward under the canonical [testing
 guidance](https://github.com/howarewoo/woostack/blob/main/shared/references/tdd.md#when-evidence-still-applies);
 the coordinator independently verifies the canonical tree, cumulative diff, and new interactions.
-Only conflicting heavy checks share a concurrency limit; light checks can proceed. There is no
-persisted execution forest, lock service, or cross-harness replay guarantee.
+Aggregate capacity includes descendants. Only conflicting heavy checks share a concurrency limit;
+light checks can proceed. There is no persisted execution forest, lock service, or cross-harness
+replay guarantee.
 
 [Coordinate several tasks](/docs/guides/coordinate-work) is the procedure, and
 [Orchestrate's reference](/docs/skills/woostack-orchestrate) owns admission, base selection, and
@@ -118,21 +126,29 @@ recovery.
 ## Execute
 
 ```text
-one authorized outcome → admit the workspace, or a new empty target → implement → run the
-relevant checks → deliver exactly what the request asked for
+one authorized outcome → admit the workspace, or a new empty target → implement and integrate
+useful contributions → verify the task → return or deliver within the assigned limits
 ```
 
-Execute resolves one outcome from the request and any selected issue, implements it, and verifies
-it. An ordinary request to implement authorizes local edits and checks, while an explicit Execute
-request delivers a reviewable draft PR unless it is narrowed; a bare issue URL outside that
-command authorizes no implementation at all. [Deliver one change](/docs/guides/ship-change) shows
-the draft-PR path.
+Execute owns one bounded implementation, whether called directly by the user or run by a native
+worker delegated from Orchestrate. It chooses useful specialist contributions, supplies their
+context and limits, and verifies the integrated result. Small or tightly coupled work stays with
+the task owner; independent review remains independent when required.
+
+An ordinary user request to implement authorizes local edits and checks, while an explicit Execute
+request delivers a reviewable draft PR unless narrowed. A bare issue URL outside that command
+authorizes no implementation. A delegated assignment inherits the coordinator's approved limits;
+it is not a fresh command granting publication authority or restarting planning. By default the
+worker returns verified changes and evidence, while Orchestrate owns commits, PRs, and stacks.
+Explicit delegation can assign a particular Git/PR operation to the worker, with one publication
+owner and coordinator read-back. [Deliver one change](/docs/guides/ship-change) shows the standalone
+draft-PR path.
 
 A correction needs cause evidence from reproduction or adequate source and runtime facts. A
 proposed fix is not proof, and a separate [Debug](/docs/skills/woostack-debug) session is an option
 rather than a required handback. A failure found after publication is a correction of the same
-outcome on the same branch and PR. Multi-task work belongs to Orchestrate, which preserves the
-requested delivery limit.
+outcome on the same branch and PR. Cross-task work belongs to Orchestrate; Execute does not
+reorganize sibling tasks or change their shared contracts unilaterally.
 
 An authorized request to create a project that does not exist yet is ordinary Execute input: it
 reuses the settled product and technology decisions and asks only about unresolved material
@@ -159,7 +175,7 @@ Implementation workflows report the same way. An existing targeted test can serv
 smoke for a change, and required repository checks and reviews cannot be waived by an agent's
 success sentence. A failed, pending, or unrun required check is a delivery blocker.
 
-Every implementing workflow performs requested delivery itself under the
+The assigned delivery owner performs authorized operations under the
 [delivery procedures](https://github.com/howarewoo/woostack/blob/main/shared/references/delivery.md)
 and the
 [source-control safeguards](https://github.com/howarewoo/woostack/blob/main/shared/references/source-control.md):

@@ -16,11 +16,17 @@ optional command index, not a workflow dependency.
 skills. Those installed bundles are dependencies of its selected stages, not repository build
 dependencies; no sibling Woostack workflow is required.
 
+[Orchestrate](skills/woostack-orchestrate/SKILL.md#coordinate) coordinates delivery groups;
+each native task worker normally runs installed [Execute](skills/woostack-execute/SKILL.md),
+which owns implementation and specialist contributions. Without Execute, the worker uses
+Orchestrate's bundled procedures under the same assignment limits. Native capabilities determine
+who can launch contributors; the task owner still owns their handoffs and integrated result.
+
 Reusable assets are authored in `shared/references/`, `shared/scripts/`, and
 `shared/templates/`. [shared/mapping.json](shared/mapping.json) maps each canonical
 file to consuming skills. [shared/sync.mjs](shared/sync.mjs) projects byte-identical
 copies into matching skill-local paths, including transitively needed assets.
-Installed skills therefore carry their own procedures without loading sibling
+Installed skills therefore carry their own procedures without requiring sibling
 workflows. The synchronizer uses the documentation app's
 [asset validator](apps/docs/scripts/skill-assets.mjs) to check bundle integrity;
 that repository maintenance dependency is not an installed-skill dependency.

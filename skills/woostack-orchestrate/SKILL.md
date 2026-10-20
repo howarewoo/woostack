@@ -54,8 +54,9 @@ For an explicit one-run model or effort request, apply the shared
    Present an actionable proposal covering: intended outcome, scope, important exclusions, and
    material assumptions; task-to-PR grouping, issue coverage where applicable, and required changes;
    real prerequisites versus deliberate integration order, intended parents, and landing order;
-   delegation, responsibility boundaries, and safe parallel work; and delivery approach, including
-   reuse of existing workspaces, branches, and PRs versus new independent PRs or a stack. Use
+   task ownership, cross-task interfaces, and safe parallel groups; and delivery approach, including
+   reuse of existing workspaces, branches, and PRs versus new independent PRs or a stack. Leave
+   implementation decomposition and specialist handoffs within each group to its task owner. Use
    ordinary prose, a table, or the host's existing plan facility; no prescribed schema, ID, or
    persisted artifact. Distinguish draft-publication gates, prerequisite consumer-release evidence,
    group-completion requirements, and external merge/release gates. Failed or unrun required
@@ -76,7 +77,7 @@ For an explicit one-run model or effort request, apply the shared
    dependency or landing structure, or execution approach; routine implementation decisions, checks,
    in-scope repairs, and bounded contributions within the approved plan do not require approval.
 2. **Admit the delivery allocation.** Normally each group owns one canonical branch and reusable
-task workspaces for implementation, repairs, and integration, not one allocation per attempt or
+   task workspaces for implementation, repairs, and integration, not one allocation per attempt or
    worker. Follow [workspace ownership and recovery](references/worktrees.md):
    verify physical source, branch, HEAD/base, index, dirty state, and relevant diff; inspect native
    ownership and requested PR facts. A continuing writer can continue; transfer requires proof
@@ -97,41 +98,47 @@ task workspaces for implementation, repairs, and integration, not one allocation
    must not serialize implementation. A task whose required capabilities are missing waits;
    safe independent work may continue. Never persist a global execution forest, infer a dependency
    from branch naming, or manufacture a source/landing receipt.
-4. **Delegate every group.** Use native delegation or a worker launcher permitted by the user or
-   repository. Select a worker suited to the assignment and preserve the harness's configured
-   role/model routing unless the user explicitly requests an override.
-   Give each group an implementation writer with exclusive access to its admitted
-   task workspace and branch, including a single-group run. Reuse that allocation
-   across in-scope corrections, failed checks, revised approaches, and replacement writers.
-   For substantial groups, use safe bounded contributions beneath that integrating writer when
-   capability dependencies and runtime capacity permit. Give each contribution explicit interfaces,
-   non-overlapping responsibility, and delivery limits. Sharing a delivery owner does not require
-   sequential coding; real prerequisites do. Admit and record additional allocations under the
-   [workspace contract](references/worktrees.md#workspace-and-ownership).
-   Contributions create no independent issues, PRs, stack layers, or plan changes; reassess grouping
-   for an actual new deliverable.
-   Hand off the bounded outcome, acceptance and required evidence, limits (including delivery),
-   invariants, prerequisites, verified base, source/workspace evidence, and relevant shared runtime
-   restrictions. Give workers accessible paths to this skill's bundled
-   [implementation patterns](references/patterns.md), [verification procedures](references/tdd.md),
-   and [delivery procedures](references/delivery.md); load
+4. **Delegate task ownership for every group.** Use native delegation or a worker launcher permitted
+   by the user or repository. Preserve the harness's configured role/model routing unless the user
+   explicitly requests an override; Execute is a worker workflow, not a custom agent type.
+   Give each group one integrating task owner with exclusive access to its admitted workspace and
+   branch, including a single-group run. Reuse that allocation across in-scope corrections, failed
+   checks, revised approaches, and replacement writers.
+   Hand off the bounded outcome, settled decisions, acceptance and required evidence, limits,
+   invariants, cross-task interfaces, prerequisites, verified base, source/workspace evidence, and
+   shared runtime capacity. State one publication owner: by default workers return verified task
+   changes and evidence, while the coordinator owns commit/publication and stack coordination.
+   Delegate particular Git/PR operations explicitly within approved authority, never to two owners.
+   Have the task owner use installed `woostack-execute` when accessible through native skill
+   discovery. Pass the approved assignment and delivery limits explicitly; this is not a new user
+   invocation, planning gate, or publication request. If Execute is unavailable, continue with the
+   same native task owner using this skill's bundled [implementation patterns](references/patterns.md),
+   [verification](references/tdd.md), and [delivery](references/delivery.md) procedures; no sibling
+   installation or source checkout is required. Give accessible reference paths and load
    [infrastructure](references/infrastructure.md) or [scaffold admission](references/scaffold.md)
-   only for applicable work. Workers apply the shared least-code guidance in one scoped,
-   behavior-preserving simplification pass before final verification and required review, without
-   starting a standalone workflow.
-   Check aggregate CPU/memory/process load and shared
-   credentials, processes, ports, databases, accounts, and service state before parallel operations;
-   another worktree does not isolate them. For heavy checks (expensive builds, browser suites,
-   live-host runs), reuse active relevant work only with established ownership and source
-   applicability; otherwise use existing host/runner controls to stagger, cap, or serialize
-   conflicting runs. Separate shared resources through authorized means or serialize access,
-   without altering unrelated resources or accessing secrets. Small isolated tests and independent work stay concurrent.
-   Never kill other workers' processes, add a scheduler or semaphore service, or blanket-serialize tests.
-   Each worker owns implementation and checks for its group within the assigned limits and this
-   skill's accessible bundled procedures, never by entering another installed skill's workflow.
-   The coordinator owns planning, dispatch, integration verification, and delivery
-   coordination, not silent implementation in the primary checkout. Inline implementation requires a workflow change from the user;
-   unavailable worker/isolation capability is a blocker, not an equivalent local result.
+   only for applicable work. Each owner makes one scoped, behavior-preserving simplification pass
+   before final verification and required review, not an additional workflow or repeated pass.
+   Task owners decide implementation decomposition, specialist assignments and handoffs, contribution
+   integration, and task verification. Require bounded interfaces, separately owned writer workspaces
+   under the [workspace contract](references/worktrees.md#workspace-and-ownership), and no independent
+   issues, PRs, or stack layers for contributions. Owners escalate changes affecting other tasks,
+   shared contracts, prerequisites, approved scope, or delivery structure; ordinary local decisions
+   stay with them. If only the coordinator can launch permitted contributors, relay the owner's
+   bounded assignment and return results to that owner without taking over its implementation plan.
+   Respect host permissions and capacity; optional specialization can stay inline with the worker,
+   while unavailable required independent review remains unmet.
+   Check aggregate CPU/memory/process load, including descendants, and shared credentials, processes,
+   ports, databases, accounts, and service state before parallel operations; another worktree does
+   not isolate them. For heavy checks (expensive builds, browser suites, live-host runs), reuse active
+   relevant work only with established ownership and source applicability; otherwise use existing
+   host/runner controls to stagger, cap, or serialize conflicting runs. Separate shared resources
+   through authorized means or serialize access, without altering unrelated resources or accessing
+   secrets. Small isolated tests and independent work stay concurrent. Never kill other workers'
+   processes, add a scheduler or semaphore service, or blanket-serialize tests.
+   The coordinator owns cross-task planning, dispatch, capacity, integration acceptance, and delivery
+   coordination, not task-local specialist prompts or silent implementation in the primary checkout.
+   Inline coordinator implementation requires a workflow change from the user; unavailable task-worker
+   or isolation capability is a blocker, not an equivalent local result.
    Before broad consumer integration of a high-risk new model, authority, mutation, persistence,
    or selected-context contract, exercise the smallest meaningful vertical slice through the actual
    required runtime. Verify it exercises the changed source and inspect real behavior and effects,
@@ -148,7 +155,7 @@ task workspaces for implementation, repairs, and integration, not one allocation
    Independently reconcile source/destination revisions, ancestry/diffs, ownership, and requested
    PR facts against worker claims. Resolve stale handoffs, identify already-present and missing
    changes, and integrate the intended union once, including overlapping child histories.
-   Keep exploratory diagnosis and corrections in the canonical allocation. Reconcile affected
+   Return in-scope task corrections to their owner in the canonical allocation. Reconcile affected
    dependents at verified contract checkpoints, not after every hypothesis or experimental edit;
    a later changed contract can require another checkpoint and reconciliation.
    Verify the canonical tree and cumulative PR diff: they must cover the planned outcome with no

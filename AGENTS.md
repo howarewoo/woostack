@@ -17,9 +17,10 @@ Follow this file first when it conflicts with generic agent defaults.
 
 ## Boundaries
 
-- Skills are independent of sibling Woostack workflows. The [contributor guide](CONTRIBUTING.md#shared-canonical-references)
-  owns shared assets and synchronization; its [external Design exception](CONTRIBUTING.md#external-design-skills)
-  governs selected external dependencies.
+- Skills remain independently usable; optional delegated composition follows the
+  [contributor guide](CONTRIBUTING.md#editing-conventions), which also owns
+  [shared assets](CONTRIBUTING.md#shared-canonical-references) and the
+  [external Design exception](CONTRIBUTING.md#external-design-skills).
 - Keep application source and build configuration in the owning `apps/` package.
   Root pnpm and Turborepo configuration owns workspace orchestration and the shared
   lockfile. Published supporting assets stay inside each skill; their shared sources live in `shared/`.
