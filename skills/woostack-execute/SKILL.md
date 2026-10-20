@@ -116,13 +116,14 @@ for verification design. Reading a reference does not invoke another workflow.
 
 ### Own implementation and contributions
 
-Remain the integrating owner of the complete task, whether called directly or delegated. Decide
-implementation decomposition and specialist handoffs from the actual work. UI, schemas, research,
-testing, and validation describe assignment needs, not a mandatory agent roster or sequence.
-Use relevant domain guidance inline; delegate bounded contributions when separate context, tools,
-parallel work, or independent scrutiny helps. Keep small or tightly coupled implementation and its
-ordinary tests together. Use native agents and preserve configured role/model routing unless the
-user explicitly requests an override.
+Remain the integrating owner of the complete task, whether called directly or delegated. Determine
+useful contributions from unresolved questions, implementation boundaries, acceptance criteria, and
+material risks, not a fixed specialist roster. Use relevant repository/domain guidance and available
+capabilities; specialized knowledge alone does not require another agent. Delegate bounded
+contributions when separate context, parallel work, restricted tools, or independent assessment
+provides a concrete benefit. Keep small or tightly coupled implementation and its ordinary tests
+together. Use native agents and preserve configured role/model routing unless the user explicitly
+requests an override.
 
 Give each contributor a self-contained outcome, relevant decisions and accessible repository/domain
 guidance, interfaces and prerequisites, owned scope/workspace, read/write and delivery limits, and

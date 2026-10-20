@@ -86,11 +86,11 @@ approval or revisions; it allocates no workspaces and dispatches no workers befo
 
 Each group has a native task owner, normally running installed Execute, that chooses its
 implementation decomposition and specialist handoffs. Orchestrate owns coordination between tasks;
-the task owner integrates and verifies contributions within its task. UI, schema, research, testing,
-and validation work does not automatically create separate agents or PRs. Without Execute, the
-owner uses Orchestrate's bundled procedures under the same approved limits, so independent
-installation remains supported. A host may let only the root launch contributors; relaying the
-owner's assignment does not transfer implementation ownership or bypass host limits.
+the task owner integrates and verifies contributions within its task. Contribution needs do not
+automatically create separate agents or PRs. Without Execute, the owner uses Orchestrate's bundled
+procedures under the same approved limits, so independent installation remains supported. A host
+may let only the root launch contributors; relaying the owner's assignment does not transfer
+implementation ownership or bypass host limits.
 
 Each group is implemented in an independently owned task worktree, including a run that groups
 everything into one PR, and every task starts from a base that actually contains the changes it
@@ -131,9 +131,12 @@ useful contributions → verify the task → return or deliver within the assign
 ```
 
 Execute owns one bounded implementation, whether called directly by the user or run by a native
-worker delegated from Orchestrate. It chooses useful specialist contributions, supplies their
-context and limits, and verifies the integrated result. Small or tightly coupled work stays with
-the task owner; independent review remains independent when required.
+worker delegated from Orchestrate. Contributions follow unresolved questions, implementation
+boundaries, acceptance criteria, and material risks, not a fixed specialist roster. Domain guidance
+can be used inline; delegation needs a concrete benefit from separate context, parallel work,
+restricted tools, or independent assessment. Execute supplies each contributor's context and limits
+and verifies the integrated result. Small or tightly coupled work stays with the task owner;
+required review remains independent.
 
 An ordinary user request to implement authorizes local edits and checks, while an explicit Execute
 request delivers a reviewable draft PR unless narrowed. A bare issue URL outside that command
