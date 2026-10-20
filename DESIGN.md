@@ -16,8 +16,13 @@ leaves that boundary intact; optional navigation never becomes an executable dep
 Shared procedures are reused through
 [bundled references](CONTRIBUTING.md#shared-canonical-references) maintained from one canonical
 source, so the active workflow keeps its own gates and evidence rules at every boundary.
-New-project planning and bounded creation belong to Plan and Execute by requested intent.
-Neither requires the other or Init; Init remains the owner of requested project guidance.
+Whiteboard is the experimental collaborative planning entry point for goals needing refinement,
+including new projects. It develops shared understanding through requirements, design walkthroughs,
+and a visual model kept consistent with one portable plan. Ideate, Harden, and Plan remain
+available during the trial, with issue publication still owned by Plan. Bounded creation belongs
+to Execute. These workflows require neither one another nor Init; Init owns project guidance.
+Saving a Whiteboard plan does not start implementation; an explicit Orchestrate request selects
+the plan as input to its separately approved execution proposal.
 Execute and the other implementing skills bundle the applicable shared standards and load them
 only for relevant changes.
 Design coordinates UI work using a selected external lead and relevant specialists, with agreement

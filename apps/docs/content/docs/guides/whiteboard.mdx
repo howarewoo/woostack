@@ -1,0 +1,73 @@
+---
+title: Whiteboard a goal into a plan
+description: Collaborate on requirements, review the design visually, and hand off a plan only when you request implementation.
+---
+
+Use experimental [Whiteboard](/docs/skills/woostack-whiteboard) when you want to understand and
+refine a goal before building. You will leave with a written plan and a visual model that explain
+what to build, why, and what remains undecided. Ideate, Harden, and Plan remain available during
+the trial; an already-understood task does not need a Whiteboard session.
+
+## Start the conversation
+
+With Whiteboard installed in your coding assistant, enter a goal or supply an existing plan:
+
+```text
+/woostack-whiteboard Design a local dashboard for inspecting agent runs.
+The first version observes runs but cannot cancel or retry them.
+```
+
+These are assistant requests, not terminal commands. See your host's
+[invocation syntax](/docs/harnesses#native-skill-invocation). For an existing project, identify the
+repository; for greenfield work, say that no code exists yet. A checkout is not required.
+
+## Refine the requirements and picture
+
+Answer the material questions and correct the assistant's model as it develops. State both the
+behavior you need and the conditions it must work under. Keep hard requirements separate from
+preferences; ask for the consequences of a choice before accepting it.
+
+For example, ask:
+
+```text
+Walk me through what happens when a run fails halfway through.
+Show which component records the failure and what the user sees.
+```
+
+The assistant should update the text and diagram together when you correct a boundary or decision.
+It uses a diagram your host can render, or a readable text diagram without installing a renderer.
+Ask about a relationship that seems wrong rather than waiting for a finished specification.
+
+## Review the plan
+
+Check that you can explain the important behavior, constraints, decisions, trade-offs, and delivery
+steps. Review acceptance conditions and actual dependencies, and check that unanswered questions
+remain visible rather than becoming assumed requirements. You do not need to settle every internal
+implementation detail or pass a quiz.
+
+You can ask for the current draft at any time. A useful draft may still contain a blocker; it
+should identify the decision or investigation needed rather than claim the design is ready.
+
+## Keep it or request implementation
+
+The plan stays in the conversation by default. To save it, explicitly name the destination:
+
+```text
+Save the current plan, including its diagram and unresolved questions,
+to docs/plans/run-dashboard.md. Do not commit it or implement anything.
+```
+
+To coordinate implementation instead, explicitly request Orchestrate with the conversational plan
+or the saved document:
+
+```text
+/woostack-orchestrate Implement the Whiteboard plan above.
+```
+
+Orchestrate reads the plan and current repository evidence, proposes task grouping and delegation,
+and waits for approval of its execution proposal before dispatching workers. Inspect that proposal
+for changes to your intended outcome. See [coordinate several tasks](/docs/guides/coordinate-work)
+for execution and delivery details. Saving or agreeing to the Whiteboard plan does not start it.
+
+Whiteboard does not publish issues during the trial. To export a plan as GitHub issues, explicitly
+use the separate [plan work and file issues](/docs/guides/plan-work) workflow.

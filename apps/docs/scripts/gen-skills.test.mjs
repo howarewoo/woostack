@@ -1,7 +1,9 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
-import { parseFrontmatter } from "./skill-assets.mjs";
+import { cp, mkdtemp, readFile, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import path from "node:path";
+import { parseFrontmatter, validateSkillAssets } from "./skill-assets.mjs";
 import {
   stripTitleHeading,
   rewriteLinks,
@@ -152,6 +154,7 @@ test("public skill routing preserves the declared order", () => {
   const expectedPublic = [
     "using-woostack",
     "woostack-init",
+    "woostack-whiteboard",
     "woostack-ideate",
     "woostack-harden",
     "woostack-plan",
@@ -185,4 +188,25 @@ test("design and flow-layout sources render with their own public identities", a
     assert.ok(page.startsWith(`---\ntitle: ${name}\n`));
     assert.ok(page.includes(`/skills/${name}/SKILL.md`));
   }
+});
+
+// Exercise the actual installed bundle and production parser/generator, not instruction wording.
+test("whiteboard validates without sibling skills and renders its public page", async (t) => {
+  const name = "woostack-whiteboard";
+  const root = await mkdtemp(path.join(tmpdir(), "woostack-whiteboard-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  await cp(new URL(`../../../skills/${name}`, import.meta.url), path.join(root, name), {
+    recursive: true,
+  });
+
+  const skills = await validateSkillAssets(root, PUBLIC_ORDER.filter((entry) => entry === name));
+  assert.equal(skills.length, 1);
+  const [{ fm, body }] = skills;
+  assert.equal(fm.name, name);
+  const rendered = rewriteLinks(neutralizeTags(stripTitleHeading(body, fm.name)), name);
+  const page = renderPage(name, fm, rendered);
+  assert.ok(page.startsWith(`---\ntitle: ${name}\n`));
+  assert.ok(page.includes(`description: ${JSON.stringify(fm.description)}`));
+  assert.ok(page.includes(`/skills/${name}/SKILL.md`));
+  assert.ok(page.includes(`/skills/${name}/references/trial.md`));
 });
