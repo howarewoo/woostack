@@ -19,6 +19,13 @@ Then stop at the first option that solves the problem:
 6. Use a direct expression when it is clear and safe.
 7. Write the minimum new implementation.
 
+A small diff is not automatically the small change. When the outcome changes a shared contract,
+the code that relies on it belongs to the same task: callers, fixtures, configuration, and exports
+that used the old shape need the matching update. That reach is the work, not extra scope. A
+targeted search of the repository for references to the changed contract is a reasonable way to
+find those callers. The mistake to avoid is an exhaustive inventory of unrelated code. Trace the
+real flow and stop where the contract actually reaches.
+
 ## Never shrink code by cutting safety
 
 Prefer deletion and straightforward code. Never remove validation, error handling, security,

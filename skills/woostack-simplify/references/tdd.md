@@ -49,6 +49,18 @@ Preserve tests that detect distinct failure modes even when executing the same l
 Consolidation must retain those protections; do not impose arbitrary test counts, one-test-per-function
 rules, or weakened assertions.
 
+## Representative volume and concurrency
+
+When volume or concurrency can materially change the changed behavior's outcome, verify a
+representative level drawn from repository evidence: existing fixtures or data, a documented
+limit, observed usage, or the deployment assumptions the target already states. Assert the target
+contract's expected results and multiplicity at that level, rejecting unintended loss,
+deduplication, or duplication; intentional grouping or deduplication is checked against its own
+expected output. Preserve required performance measurements and assertions when the task or
+repository defines latency, throughput, or resource limits; otherwise elapsed time need not be the
+assertion. An unknown production load stays an open uncertainty rather than becoming an invented
+scale gate or a production probe.
+
 ## Proportional coverage and existing code
 
 Coverage percentages and test counts are signals, not proof. Review changed behavior and affected

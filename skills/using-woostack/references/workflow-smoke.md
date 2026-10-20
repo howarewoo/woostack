@@ -86,6 +86,262 @@ separate permission.
 - No commit or PR is requested, so the verified local diff is completion, not a failed delivery.
   Report the focused check and that no PR was submitted; GitHub access is unnecessary.
 
+**Cross-file contract variant:** a fresh disposable repository with one shared parser, two
+consumers, small and batch inputs, independent expected outputs, and an unrelated sentinel:
+
+```bash
+REPO=$(mktemp -d)
+cd "$REPO"
+git init -q -b main
+git config user.name 'Workflow Smoke'
+git config user.email 'workflow-smoke@example.invalid'
+mkdir data
+printf '__pycache__/\n' > .gitignore
+printf 'keep this line unchanged\n' > sentinel.txt
+printf 'apple:2\npear:3\napple:1\n' > data/small.txt
+printf 'apple x2\npear x3\napple x1\n' > data/small.catalog.expected
+printf '3 records, 6 total\n' > data/small.ledger.expected
+cat > records.py <<'PY'
+from pathlib import Path
+
+
+def parse_records(text):
+    """Parse name:amount lines into (name, amount) pairs."""
+    records = []
+    for line in text.splitlines():
+        if not line.strip():
+            continue
+        name, _, amount = line.partition(":")
+        records.append((name.strip(), int(amount)))
+    return records
+
+
+def load_records(path):
+    return parse_records(Path(path).read_text())
+PY
+cat > catalog.py <<'PY'
+"""Print every record as "name xamount"."""
+
+import sys
+
+from records import load_records
+
+
+def main(path):
+    for record in load_records(path):
+        name, amount = record
+        print(f"{name} x{amount}")
+
+
+if __name__ == "__main__":
+    main(sys.argv[1])
+PY
+cat > ledger.py <<'PY'
+"""Print the record count and total amount."""
+
+import sys
+
+from records import load_records
+
+
+def main(path):
+    count = 0
+    total = 0
+    for record in load_records(path):
+        name, amount = record
+        count += 1
+        total += amount
+    print(f"{count} records, {total} total")
+
+
+if __name__ == "__main__":
+    main(sys.argv[1])
+PY
+cat > check.py <<'PY'
+"""Behavioral checks for the parser contract and both consumers."""
+
+import subprocess
+import sys
+from pathlib import Path
+
+import records
+
+
+def supports_positional_use(record):
+    """True when a record can still be indexed or unpacked as a pair."""
+    try:
+        record[0]
+        return True
+    except (TypeError, KeyError, IndexError, AttributeError):
+        pass
+    try:
+        _name, _amount = record
+    except (TypeError, ValueError):
+        return False
+    return True
+
+
+def check_parser():
+    parsed = records.parse_records("apple:2\npear:3\n")
+    fields = [(record.name, record.amount) for record in parsed]
+    assert fields == [("apple", 2), ("pear", 3)], fields
+    for record in parsed:
+        assert not supports_positional_use(record), record
+
+
+def check_consumer(script, name):
+    for data in sorted(Path("data").glob("*.txt")):
+        expected = data.with_name(f"{data.stem}.{name}.expected").read_text()
+        result = subprocess.run(
+            [sys.executable, script, str(data)],
+            capture_output=True,
+            text=True,
+        )
+        assert result.returncode == 0, (script, data.name, result.stderr)
+        assert result.stdout == expected, (script, data.name, result.stdout, expected)
+
+
+def main(which):
+    if which in ("all", "parser"):
+        check_parser()
+        print("parser checks passed")
+    if which in ("all", "catalog"):
+        check_consumer("catalog.py", "catalog")
+        print("catalog checks passed")
+    if which in ("all", "ledger"):
+        check_consumer("ledger.py", "ledger")
+        print("ledger checks passed")
+
+
+if __name__ == "__main__":
+    main(sys.argv[1] if len(sys.argv) > 1 else "all")
+PY
+python3 - <<'PY'
+from pathlib import Path
+
+names = ["apple", "pear", "plum", "fig", "kiwi", "lime", "mango", "date"]
+lines, catalog, total = [], [], 0
+for index in range(240):
+    name = names[index % len(names)]
+    amount = index % 7 + 1
+    lines.append(f"{name}:{amount}")
+    catalog.append(f"{name} x{amount}")
+    total += amount
+Path("data/batch.txt").write_text("\n".join(lines) + "\n")
+Path("data/batch.catalog.expected").write_text("\n".join(catalog) + "\n")
+Path("data/batch.ledger.expected").write_text(f"240 records, {total} total\n")
+PY
+git add -A
+git commit -qm 'Seed record fixture'
+```
+
+`data/batch.txt` is the documented batch volume: 240 records over eight repeated names, small
+enough to seed in one command yet large enough to expose slicing, early exits, and keying records
+by name. `python3 check.py` runs the parser contract and both consumers over `data/small.txt` and
+`data/batch.txt`, comparing exact output with the stored expectations. The parser check accepts any
+record object with `name` and `amount` fields and rejects one that can still be indexed or unpacked
+as a pair; it does not require a particular class. The checks assert nothing about elapsed time and
+never inspect source text or instruction wording. Against this seed `python3 check.py parser` is
+red, because the checks already describe the requested record shape, while both consumer checks are
+green.
+
+**Invocation:**
+
+```text
+/woostack-execute
+In this repository, `records.py` returns each record as a positional `(name, amount)` pair.
+Replace that pair with a record object that exposes `name` and `amount` as fields and no longer
+works as a positional pair, while preserving the programs' observable output. The repository
+checks must pass. Make local edits and run checks only; do not commit, push, or publish.
+```
+
+**Reference states:** witness what the checks accept and reject before judging a run. From the
+seeded commit, apply the parser half of the migration, two positionally compatible parser-only
+variants (namedtuple and iterator), the full migration, then the full migration with truncation:
+
+```bash
+apply_variant() {
+  python3 - "$1" <<'PY'
+import sys
+from pathlib import Path
+
+variant = sys.argv[1]
+source = Path("records.py")
+text = source.read_text()
+if variant == "namedtuple-only":
+    setup = (
+        'from collections import namedtuple\nfrom pathlib import Path\n\n\n'
+        'Record = namedtuple("Record", "name amount")'
+    )
+elif variant == "iterator-only":
+    setup = (
+        "from pathlib import Path\n\n\n"
+        "class Record:\n"
+        "    def __init__(self, name, amount):\n"
+        "        self.name = name\n"
+        "        self.amount = amount\n\n"
+        "    def __iter__(self):\n"
+        "        return iter((self.name, self.amount))"
+    )
+else:
+    setup = (
+        "from dataclasses import dataclass\nfrom pathlib import Path\n\n\n"
+        "@dataclass(frozen=True)\nclass Record:\n    name: str\n    amount: int"
+    )
+text = text.replace("from pathlib import Path", setup)
+text = text.replace(
+    "records.append((name.strip(), int(amount)))",
+    "records.append(Record(name.strip(), int(amount)))",
+)
+if variant == "truncating":
+    text = text.replace("    return records", "    return records[:100]")
+source.write_text(text)
+if variant in ("full", "truncating"):
+    for path in (Path("catalog.py"), Path("ledger.py")):
+        path.write_text(
+            path.read_text().replace(
+                "name, amount = record", "name, amount = record.name, record.amount"
+            )
+        )
+PY
+}
+
+apply_variant helper-only
+python3 check.py parser    # passes
+python3 check.py catalog   # fails: a record cannot be unpacked positionally
+git checkout -- .
+apply_variant namedtuple-only
+python3 check.py parser    # fails: the record still indexes and unpacks as a pair
+git checkout -- .
+apply_variant iterator-only
+python3 check.py parser    # fails: the record still unpacks as a pair
+git checkout -- .
+apply_variant full
+python3 check.py           # passes
+git checkout -- .
+apply_variant truncating
+python3 check.py           # fails on the batch input only
+git checkout -- .
+```
+
+**Observe (cross-file variant):**
+
+- Before the first source write, read-only Git evidence establishes the physical repository,
+  branch, HEAD, index, dirty state, and relevant diffs, as in the single-file recipe.
+- The completed change updates `records.py` and both consumers. A migration limited to
+  `records.py` keeps `python3 check.py parser` green while `catalog.py` and `ledger.py` fail on
+  positional unpacking, so the helper passing alone never counts as completion. A parser-only
+  namedtuple keeps the old positional contract and fails the parser check, and an iterator-only
+  record passes field access and keeps the unchanged consumers working yet still fails the parser
+  check because it unpacks as a pair. A combined green result exists only after both consumers
+  migrate.
+- This fixture's contract keeps every record, so both consumers must emit exact output at the batch
+  volume: all 240 records appear once, and repeated names stay separate records. Output that drops,
+  duplicates, truncates, or collapses repeated names fails the batch checks even when the small
+  input still passes.
+- `sentinel.txt` keeps its seeded bytes, and the run leaves HEAD, the index, the remote, issues, and
+  Projects untouched; the verified local diff is completion, not a failed delivery.
+
 ## 2. Plan ordinary content with unavailable relationship metadata
 
 **Invocation:** run the actual Plan skill on a small goal covering two independent tasks and a third
