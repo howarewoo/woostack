@@ -24,7 +24,7 @@ for standing repository rules, the two-app boundary, and verified checks.
 | Change requirements exploration (Ideate) | `skills/woostack-ideate/SKILL.md` |
 | Change read-only specification review (Harden) | `skills/woostack-harden/SKILL.md` |
 | Change multi-task coordination and stacked delivery | `skills/woostack-orchestrate/SKILL.md` |
-| Change the execute phase implementation step | `skills/woostack-execute/SKILL.md` |
+| Change task implementation and specialist handoffs | `skills/woostack-execute/SKILL.md` |
 | Change behavior-preserving code simplification | `skills/woostack-simplify/SKILL.md` |
 | Change commit and pull-request delivery | `skills/woostack-commit/SKILL.md`; the reusable delivery procedure lives in `shared/references/delivery.md` |
 | Change browser-based app checks (`/woostack-qa`) | `skills/woostack-qa/SKILL.md`, `skills/woostack-qa/references/` |
@@ -68,10 +68,13 @@ and verify tasks); install from the root with `pnpm install --frozen-lockfile` u
 ## Editing conventions
 
 - Keep workflow changes in skill files and their supporting Markdown, templates, scripts,
-  prompts, or JSON. Every skill works without another Woostack skill installed: it owns its
-  activation, workflow, approval boundaries, completion conditions, and result, and it never
-  enters a sibling Woostack workflow to obtain a procedure. External workflows are not dependencies
-  except for [Design's explicit exception](#external-design-skills). Reuse common procedures through
+  prompts, or JSON. Every skill works without another Woostack skill installed and owns its
+  activation, workflow, approval boundaries, completion conditions, and result. Orchestrate may
+  delegate an approved task to installed Execute; the handoff narrows authority and leaves
+  orchestration gates with the coordinator. Execute's absence uses Orchestrate's bundled
+  procedures, not an installation prerequisite. Other sibling workflows remain optional
+  navigation, not procedure dependencies. External workflows are not dependencies except for
+  [Design's explicit exception](#external-design-skills). Reuse common procedures through
   [bundled references](#shared-canonical-references) maintained from one canonical source;
   shared guidance never expands authority or silently changes the active workflow's gates.
   Design System application/configuration sources ship as non-runnable
