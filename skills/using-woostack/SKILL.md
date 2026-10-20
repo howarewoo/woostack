@@ -43,7 +43,8 @@ For an explicit one-run model or effort request, apply the bundled
 | Review a pull request | Use [Pullfrog](https://pullfrog.com/). |
 | Address every unresolved thread on one exact existing PR | `woostack-address-comments` |
 | Render a supplied document or verified source as audience-tailored HTML | `woostack-visualize` |
-| Organize multi-step UI design flows | `woostack-design` |
+| Coordinate UI design, prototyping, refinement, or critique using selected external skills | `woostack-design` |
+| Arrange existing multi-step screen flows without restyling their contents | `woostack-flow-layout` |
 | Create, adapt, inspect, or explicitly maintain a project-owned component catalog | `woostack-design-system` |
 | Investigate a root cause without implementing a fix | `woostack-debug` |
 | Diagnose or explicitly repair workspace health | `woostack-doctor` |
@@ -76,7 +77,9 @@ overrides it, and no skill treats it as a prerequisite.
 
 ## Missing skills
 
-Missing skills must not block ordinary repository work or trigger an installation prerequisite.
+Missing Woostack skills must not block ordinary repository work or trigger an installation prerequisite.
 For an explicit Woostack command whose skill is unavailable, name the missing skill and ask
 whether to install it or proceed without it. Do not approximate a gated workflow unless the user
 explicitly asks to proceed without that skill.
+
+Selected external dependencies follow the active skill's own dependency and permission boundaries.

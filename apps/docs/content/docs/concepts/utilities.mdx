@@ -16,12 +16,19 @@ read-only context; utility skills never mutate them.
 | Skill | What it does | Writes? | Invoke |
 | --- | --- | --- | --- |
 | [woostack-visualize](/docs/skills/woostack-visualize) | Renders a supplied document, a current working-copy file, or an exact GitHub/Git source as one self-contained HTML view, labeled with the provenance actually read. | disposable HTML view | `/woostack-visualize <source>` |
-| [woostack-design](/docs/skills/woostack-design) | Arranges multi-step UI flows and screen sequences into a standardized horizontal layout with aligned branches. | design layout updates | `/woostack-design [target]` |
+| [woostack-design](/docs/skills/woostack-design) | Coordinates UI design, prototypes, refinement, or critique using selected external skills. | review is read-only; prototypes or local implementation only within the request | `/woostack-design [request]` |
+| [woostack-flow-layout](/docs/skills/woostack-flow-layout) | Arranges existing screen sequences and branches without redesigning their contents. | design layout updates | `/woostack-flow-layout [target]` |
 | [woostack-design-system](/docs/skills/woostack-design-system) | Creates or adapts a project-owned component catalog; inspects existing catalogs and reports gaps or drift. | local creation when absent; existing catalogs read-only unless maintenance is explicit | `/woostack-design-system [request]` |
 | [woostack-debug](/docs/skills/woostack-debug) | Runs root-cause analysis and returns a proposed correction. | no | `/woostack-debug <target>` |
 | [woostack-qa](/docs/skills/woostack-qa) | Explores a running app and writes a sanitized report. | non-authoritative report | `/woostack-qa <url> [focus…]` |
 | Production errors, Sentry issues, and monitoring defects | [woostack-debug](/docs/skills/woostack-debug) then [woostack-plan](/docs/skills/woostack-plan) for the plan and any requested issues. | report and plan | `/woostack-debug <target>` or `/woostack-plan <goal-or-defect>` |
 | [woostack-reflect](/docs/skills/woostack-reflect) | Reviews one fixed active-conversation snapshot for concrete durable instruction suggestions. | report-only initially; accepted follow-ups are explicit | `/woostack-reflect` |
+
+Design uses Impeccable by default, Taste as a selected alternative lead, and relevant Emil
+specialists only. Its [selected skills](/docs/skills/woostack-design#selected-skills) are external
+stage dependencies, not part of the Woostack installation. Missing dependencies require an
+installation decision; permission to install does not expand the design task's scope.
+The former `woostack-design` screen-arrangement command is now `woostack-flow-layout`.
 
 <Callout type="info">
   Views and reports provide evidence, not repair authority. An independently authorized bounded
