@@ -16,7 +16,6 @@ craft manual.
 ```text
 /woostack-design Explore directions for our settings screen; do not edit production UI.
 /woostack-design Implement the approved dashboard with Impeccable; keep changes local.
-/woostack-design Use Taste for this landing page; preserve our approved copy and branding.
 /woostack-design Review this dialog without edits.
 /woostack-design Use Emil's animation guidance for this drawer only.
 ```
@@ -38,13 +37,12 @@ separate task, not a reason to redesign their contents.
 
 | Stage | Selection |
 | --- | --- |
-| General UI design, implementation, or review | [Impeccable](https://github.com/pbakaus/impeccable) is the default lead. |
-| Deliberately selected alternative art direction | [Taste](https://github.com/Leonxlnx/taste-skill) replaces the lead for that surface; it is not a second redesign pass. |
+| General UI design, implementation, or review | [Impeccable](https://github.com/pbakaus/impeccable) is the design lead. |
 | A specific interaction, motion, prototype, or edge-case need | Select only the relevant skill from [Emil Kowalski's collection](https://github.com/emilkowalski/skills). |
 
-State the selection and its purpose. Use one lead per surface and keep its approved direction
-through specialist work. A specialist-only request needs no general lead first. Do not load all
-collections, impose a sequence of audits, or choose another lead merely because it is installed.
+State the selected skills and their purpose. Preserve the approved direction through specialist
+work. A specialist-only request needs no general lead first. Do not load entire collections or
+impose a sequence of audits.
 
 ### Dependency boundary
 
@@ -56,8 +54,8 @@ skill from another source, or metadata alone is not the required bundle.
 
 If the selected dependency is missing, incomplete, incompatible, or disallowed, name the affected
 stage and stop it. Ask for the specific installation or remediation using the host's supported
-mechanism and current upstream installation instructions, or let the user select an available
-alternative or explicitly proceed without that stage. Reuse authorization already given; do not
+mechanism and current upstream installation instructions, or let the user explicitly proceed
+without that stage. Reuse authorization already given; do not
 repeat an installation offer after a decline. Install only the needed skills and assets, preserve
 customizations, and verify availability afterward. Never silently install, upgrade, change hooks,
 switch transport after a rejection, or claim a generic fallback used the missing skill.

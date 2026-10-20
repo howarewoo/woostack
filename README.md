@@ -40,13 +40,12 @@ The public commands are listed in the
 Ideate, Harden, and Plan.
 
 For UI work, [Design](skills/woostack-design/SKILL.md#selected-skills) uses
-[Impeccable](https://github.com/pbakaus/impeccable) as its default lead,
-[Taste](https://github.com/Leonxlnx/taste-skill) as a deliberately selected alternative, and only
-relevant specialists from [Emil Kowalski's collection](https://github.com/emilkowalski/skills).
+[Impeccable](https://github.com/pbakaus/impeccable) as its design lead, with relevant specialists
+from [Emil Kowalski's collection](https://github.com/emilkowalski/skills).
 Install the selected skills using your assistant's supported mechanism and their current upstream
 instructions. The Woostack install does not install these dependencies. Design checks availability
 and asks before a missing dependency is installed; it does not silently substitute generic advice.
-You do not need every collection for every task. See the
+Only the skills needed for the task are required. See the
 [dependency boundary](skills/woostack-design/SKILL.md#dependency-boundary) for permissions and recovery.
 
 ### 2. Create useful project guidance
