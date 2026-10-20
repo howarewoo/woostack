@@ -28,6 +28,8 @@ for standing repository rules, the two-app boundary, and verified checks.
 | Change behavior-preserving code simplification | `skills/woostack-simplify/SKILL.md` |
 | Change commit and pull-request delivery | `skills/woostack-commit/SKILL.md`; the reusable delivery procedure lives in `shared/references/delivery.md` |
 | Change browser-based app checks (`/woostack-qa`) | `skills/woostack-qa/SKILL.md`, `skills/woostack-qa/references/` |
+| Change UI design coordination and selected external-skill boundaries | `skills/woostack-design/SKILL.md` |
+| Change placement of existing screen-flow frames | `skills/woostack-flow-layout/SKILL.md` |
 | Change project-owned design catalog creation, adaptation, or maintenance | `skills/woostack-design-system/SKILL.md` and its references |
 | Change session reflection (`/woostack-reflect`) | `skills/woostack-reflect/SKILL.md` |
 | Change the systematic-debugging behavior (`/woostack-debug`) | `skills/woostack-debug/SKILL.md` |
@@ -68,7 +70,8 @@ and verify tasks); install from the root with `pnpm install --frozen-lockfile` u
 - Keep workflow changes in skill files and their supporting Markdown, templates, scripts,
   prompts, or JSON. Every skill works without another Woostack skill installed: it owns its
   activation, workflow, approval boundaries, completion conditions, and result, and it never
-  enters another skill's workflow to obtain a procedure. Reuse common procedures through
+  enters a sibling Woostack workflow to obtain a procedure. External workflows are not dependencies
+  except for [Design's explicit exception](#external-design-skills). Reuse common procedures through
   [bundled references](#shared-canonical-references) maintained from one canonical source;
   shared guidance never expands authority or silently changes the active workflow's gates.
   Design System application/configuration sources ship as non-runnable
@@ -101,11 +104,18 @@ and verify tasks); install from the root with `pnpm install --frozen-lockfile` u
   a copy update without its canonical edit is a defect, and `--check` reports drifted or missing
   copies without rewriting them.
 
+## External design skills
+
+`woostack-design` is the sole exception to the no-external-workflow rule. It may require and invoke
+selected installed external design skills under its [dependency boundary](skills/woostack-design/SKILL.md#dependency-boundary).
+It still must not load or invoke sibling Woostack workflows. Installation, execution, and publication
+permissions remain distinct. Other skills keep their existing independence.
+
 ## Shared canonical references
 
 Reusable procedures live once in `shared/references/`; supporting scripts and templates live in
 `shared/scripts/` and `shared/templates/`. They are projected into matching skill-local paths so
-every skill installs and runs alone. `shared/mapping.json` owns the explicit source-to-consumer
+skills need no sibling installation or source checkout. `shared/mapping.json` owns the explicit source-to-consumer
 mapping: a consuming skill carries only what it needs, including the complete transitive asset set.
 The active skill retains workflow decisions; shared procedures grant no additional authority.
 Regenerate

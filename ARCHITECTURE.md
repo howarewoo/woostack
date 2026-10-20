@@ -12,6 +12,9 @@ scripts, and templates inside the same skill directory. The host assistant follo
 these instructions; the documentation site and source checkout are not runtime
 prerequisites. [using-woostack](skills/using-woostack/SKILL.md#command-routing) is an
 optional command index, not a workflow dependency.
+[Design](skills/woostack-design/SKILL.md#selected-skills) coordinates selected external design
+skills. Those installed bundles are dependencies of its selected stages, not repository build
+dependencies; no sibling Woostack workflow is required.
 
 Reusable assets are authored in `shared/references/`, `shared/scripts/`, and
 `shared/templates/`. [shared/mapping.json](shared/mapping.json) maps each canonical

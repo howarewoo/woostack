@@ -14,7 +14,7 @@ control comes from the live docs and registry at creation time, never from embed
 internal visual catalog showing component variants, states, and interactions; treat component and
 preview source as the implementation reference, and do not generate code snippets, copy controls,
 or separate usage-example documentation. This command owns component-system creation;
-arranging multi-step flows is the separate woostack-design layout standard, unchanged here.
+arranging multi-step flows is the separate woostack-flow-layout layout standard, unchanged here.
 
 ## Command and authorization
 

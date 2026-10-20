@@ -7,8 +7,8 @@ Woostack publishes coding-agent skills and supporting assets. Applications live 
 
 Use Woostack skills when available and their advertised workflow fits the work.
 `using-woostack` is an optional navigation aid, not a prerequisite. Each skill owns its
-activation, authority, approval, and completion behavior; neither another skill nor the
-source checkout is required. If skills are unavailable, follow this file and continue
+activation, authority, approval, and completion behavior; neither a sibling Woostack skill nor the
+source checkout is required. If Woostack skills are unavailable, follow this file and continue
 ordinary work with the host's available capabilities; installation is not required.
 For an explicit `/woostack-*` command whose skill is unavailable, name the missing skill
 and ask whether to install it or proceed without it before continuing.
@@ -17,8 +17,9 @@ Follow this file first when it conflicts with generic agent defaults.
 
 ## Boundaries
 
-- Every skill works independently. The [contributor guide](CONTRIBUTING.md#shared-canonical-references)
-  owns the independence rule, canonical shared assets, and bundle synchronization commands.
+- Skills are independent of sibling Woostack workflows. The [contributor guide](CONTRIBUTING.md#shared-canonical-references)
+  owns shared assets and synchronization; its [external Design exception](CONTRIBUTING.md#external-design-skills)
+  governs selected external dependencies.
 - Keep application source and build configuration in the owning `apps/` package.
   Root pnpm and Turborepo configuration owns workspace orchestration and the shared
   lockfile. Published supporting assets stay inside each skill; their shared sources live in `shared/`.

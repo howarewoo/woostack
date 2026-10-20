@@ -1,80 +1,107 @@
 ---
 name: woostack-design
-description: "Organize user flows, screen sequences, and multi-step UI designs into a standardized horizontal layout with aligned branch rows and vertical flow separation."
+description: Use when asked to design, prototype, redesign, visually refine, or review the visual and interaction quality of a UI, page, screen, or component.
 ---
 
 # woostack-design
 
-Organize multi-step user flows, screen sequences, and UI journeys into a clear, standardized
-spatial layout. Spatial arrangement and consistent relative rhythm communicate progression and
-branching without altering frame content or visual styling. Caller-supplied tool context owns
-execution; this skill contributes only the layout standard.
+Coordinate UI design with the actual installed external skills. Own the brief, user decisions,
+scope, and completion evidence; leave detailed design craft to the selected upstream procedure.
+This skill requires no sibling Woostack workflow or source checkout. Its selected external stages
+do require their installed skills; use the dependency boundary below rather than a substitute
+craft manual.
 
-## Command
+## Request and authority
 
-- `/woostack-design [target]`
-  - Applies the layout standard below to the target flow.
+```text
+/woostack-design Explore directions for our settings screen; do not edit production UI.
+/woostack-design Implement the approved dashboard with Impeccable; keep changes local.
+/woostack-design Review this dialog without edits.
+/woostack-design Use Emil's animation guidance for this drawer only.
+```
 
-## Layout standard
+Review requests are read-only. Exploration produces proposals or explicitly authorized isolated
+prototypes, not production rollout. Implementation or refinement authorizes bounded local edits
+and relevant verification. Direction approval alone does not expand a proposal-only request.
+Preserve unrelated work and existing components, tokens, architecture, and factual content unless
+the requested change explicitly covers them. Prefer simplifying existing code over adding code
+or dependencies.
 
-Apply this spatial standard to all arranged flows:
+Ordinary invocation does not authorize installation, upgrades, hooks, unrelated configuration or
+document writes, branches, commits, pushes, issues, PRs, deployment, or Project changes. Keep
+installation and publication permission separate from design permission. Missing documents or a
+component catalog do not start Init or Design System. Arranging existing screen frames is a
+separate task, not a reason to redesign their contents.
 
-### 1. Flow grouping and title hierarchy
+## Selected skills
 
-- **One group per flow.** Enclose each distinct flow—including its title, description, main step
-  sequence, and all associated forks—in a single dedicated parent group.
-- **Title and description.** Place the flow title above the step sequence, with the flow
-  description directly below the title.
+| Stage | Selection |
+| --- | --- |
+| General UI design, implementation, or review | [Impeccable](https://github.com/pbakaus/impeccable) is the design lead. |
+| A specific interaction, motion, prototype, or edge-case need | Select only the relevant skill from [Emil Kowalski's collection](https://github.com/emilkowalski/skills). |
 
-### 2. Primary sequence
+State the selected skills and their purpose. Preserve the approved direction through specialist
+work. A specialist-only request needs no general lead first. Do not load entire collections or
+impose a sequence of audits.
 
-- **Left-to-right progression.** Arrange primary sequence step frames horizontally from left to
-  right in sequential order.
-- **Consistent horizontal rhythm.** Maintain a uniform relative horizontal gap between adjacent
-  step frames across the sequence.
-- **Preserve frame design.** Preserve supplied frame dimensions, aspect ratios, and visual styling.
-  Do not resize, restyle, or alter the internal content of any frame.
-- **Screen-frame backgrounds.** Give each actual screen frame a background that makes its outer
-  edge unambiguous; keep an existing frame background unchanged when it already defines the
-  screen edge, and otherwise add only the frame-level background that clears it. Do not add
-  backgrounds to flow groups, sequence or fork rows, titles, descriptions, labels, or surrounding
-  canvas regions.
+### Dependency boundary
 
-### 3. Branches and forks
+Before each selected external stage, use the host's skill discovery to identify the installed
+skill and upstream source. Read its actual entrypoint and applicable procedure; verify required
+references, scripts/assets, runtime, browser, and tool capabilities. Resolve paths from that
+installation, not the Woostack checkout or remembered directory names. A raw prompt, a same-named
+skill from another source, or metadata alone is not the required bundle.
 
-- **Dedicated rows beneath source.** Place alternative paths, error branches, and forks in their own
-  horizontal rows positioned beneath the exact source sequence from which they branch.
-- **Fork row order.** Order fork rows from top to bottom by their source steps' order in the flow:
-  earlier forks sit above later forks. Keep forks from the same source step together in their
-  existing relative order, and keep nested forks beneath their own source sequence.
-- **Equivalent-step alignment.** Place steps representing the same stage or outcome in the same
-  column across the primary sequence and fork rows, so equivalent steps align vertically.
-  Match by meaning, not ordinal position within each row.
-- **Fork start.** When a fork's first frame has an equivalent step, use that step's column;
-  otherwise align it directly beneath the source step from which it branches.
-- **Matching rhythm.** Subsequent frames continue left-to-right at the primary sequence's rhythm.
-  Leave empty column space for skipped steps and reserve columns for branch-only steps across
-  affected rows; equivalent-step alignment takes precedence over uniform gaps between occupied
-  frames. Preserve each path's step order.
-- **Clear vertical separation.** Maintain a distinct relative vertical gap between the source
-  sequence and each fork row.
-- **Branch explanation.** Precede every fork's first screen with a concise explanation of the branch
-  condition or trigger, placed immediately to the left of that screen. Keep the explanation outside
-  screen frames and reserve space for it without shifting screens out of their aligned columns.
-- **Contained in flow group.** All fork rows and explanations remain inside the parent flow group.
+If the selected dependency is missing, incomplete, incompatible, or disallowed, name the affected
+stage and stop it. Ask for the specific installation or remediation using the host's supported
+mechanism and current upstream installation instructions, or let the user explicitly proceed
+without that stage. Reuse authorization already given; do not
+repeat an installation offer after a decline. Install only the needed skills and assets, preserve
+customizations, and verify availability afterward. Never silently install, upgrade, change hooks,
+switch transport after a rejection, or claim a generic fallback used the missing skill.
+Unselected specialists are not prerequisites; independent context gathering can continue.
 
-### 4. Multi-flow arrangement
+Before invoking scripts or procedures, inspect their effects against the authorized scope.
+Installation approval covers only the disclosed installation effects, not subsequent document,
+configuration, network, binary-download, application-dependency, or publication changes. Existing
+task and host permissions still govern ordinary execution. If upstream requires an out-of-scope
+write, a conflicting design rule, or a nested skill, resolve that boundary before the action.
+Use an upstream-supported scoped procedure, seek the necessary user decision, or report the stage
+blocked. Do not skip required steps and claim full execution. Apply the same checks to nested
+external calls; they never authorize sibling Woostack workflows or bypass host restrictions.
 
-- **Vertical stacking.** When organizing multiple distinct flows on the same canvas, stack flow
-  groups vertically with separation for every fork row so that flows never overlap.
+## Workflow
 
-## Hard constraints
-
-- **Relative layout only.** Define spatial placement through relative positioning, uniform spacing,
-  and column alignment. Do not rely on fixed numeric dimensions or pixel coordinates.
-- **Preserve visual design.** Except for a screen-frame background required above when the screen
-  edge is unclear, do not alter colors, typography, frame sizing, or existing visual appearance.
-- **No connectors.** Do not create arrows, connecting lines, or link vectors between frames.
-  Spatial alignment and horizontal reading order establish sequence and relationships.
-- **Tool agnostic.** Do not include tool-specific APIs, MCP bindings, platform plugins, scripts,
-  templates, or external assets.
+1. **Understand the experience.** Inspect the request, prior decisions, applicable repository
+   instructions, relevant product/design documents when present, existing UI and component APIs,
+   and preview capabilities. Establish the audience, primary task, surface type, desired character,
+   scope, and preserved constraints in a short conversational brief. Ask only about material
+   unanswered choices; do not repeat answers or impose a fixed questionnaire on a small refinement.
+2. **Establish the direction.** Use the selected installed skill's appropriate planning or
+   exploration procedure within the dependency boundary. Present the intended direction and scope
+   before substantial implementation. For a genuinely unresolved choice, explore a small set of
+   structurally different alternatives on one representative surface, using proposals or authorized
+   isolated prototypes. Pause for user agreement before production integration or broad rollout.
+   Reuse an already-approved direction; a narrow specified refinement needs no new exploration gate.
+3. **Execute the bounded stage.** Invoke the actual selected skill through the host's supported
+   mechanism with the concrete target, brief and prior answers, approved direction, allowed writes,
+   verification needs, and stopping point. Follow its applicable procedure and necessary resources,
+   not a copied summary or a bare skill name. Upstream instructions cannot expand authority. Keep
+   specialist edits scoped and preserve the lead's direction. Do not repeat a questionnaire or
+   audit when applicable answers/evidence already satisfy it. Remove only task-owned exploration
+   scaffolding after authorized promotion unless retention is requested. Add no coordinator-specific
+   subagent sequence or concurrent competing design writers.
+4. **Inspect and refine.** Inspect the rendered result and exercise changed interactions at relevant
+   viewport sizes with realistic content and necessary states. Check applicable keyboard/focus,
+   accessibility, touch/mobile, reduced-motion, and content-extreme behavior. Reuse relevant upstream
+   and project-native checks rather than duplicating full audits. Critique against the approved
+   brief, keep findings separate from fixes, apply only authorized corrections, and recheck affected
+   behavior. Fix substantive defects without an indefinite subjective-redesign loop. A read-only
+   finding authorizes no edit. Automated accessibility checks are partial evidence; screenshots
+   cannot prove interaction or motion correctness. When runtime/browser evidence is unavailable,
+   report the gap and complete only useful authorized work without claiming verified completion.
+5. **Report.** Name the lead and specialists actually used, the agreed direction, the produced or
+   changed scope, checks and interactions actually observed, and missing, skipped, or blocked stages.
+   Distinguish proposals, prototypes, implementations, and verified implementations. Do not attribute
+   work to a skill that did not run or claim better visual outcomes without evidence. The endpoint
+   is the requested result or local changes; publication needs a separate explicit request.

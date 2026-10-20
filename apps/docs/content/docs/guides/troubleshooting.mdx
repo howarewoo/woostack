@@ -7,7 +7,17 @@ Start with the symptom you can observe. Keep existing files, branches, issues, a
 
 ## Your assistant cannot find a Woostack skill
 
-Confirm `pnpx skills add howarewoo/woostack` ran in the intended repository and that your assistant discovers the skill you asked for; each skill is self-contained, so discovering one does not require discovering any other. Installation is a terminal action; invoking a skill is [host-specific](/docs/harnesses#native-skill-invocation). Check the host's installed-skill view before reinstalling or retrying. See [getting started](/docs/getting-started) for the setup route.
+Confirm `pnpx skills add howarewoo/woostack` ran in the intended repository and that your assistant discovers the skill you asked for; discovering one Woostack skill does not require discovering its siblings. Installation is a terminal action; invoking a skill is [host-specific](/docs/harnesses#native-skill-invocation). Check the host's installed-skill view before reinstalling or retrying. See [getting started](/docs/getting-started) for the setup route.
+
+## Design cannot start a selected external stage
+
+Check the named dependency in your host's installed-skill view, including its upstream source and
+required assets or runtime. Installing Woostack does not install Design's external skills. Approve
+only the specific missing installation or repair, or explicitly omit that stage. After an authorized
+installation, confirm the actual bundle is available before resuming.
+A declined installation must not be retried or described as successful. See
+[Design's dependency boundary](/docs/skills/woostack-design#dependency-boundary) when upstream setup
+would write documents, configuration, or other files outside your request.
 
 ## Doctor reports a local configuration error
 

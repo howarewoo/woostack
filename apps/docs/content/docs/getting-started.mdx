@@ -34,9 +34,10 @@ pnpx skills add howarewoo/woostack
 ```
 
 Then confirm your assistant can find the skills you plan to use, for example `woostack-init` and
-`woostack-plan`. Each installed skill is self-contained and works on its own; the
-[command index](/docs/skills/using-woostack#command-routing) is an optional directory, and no
-skill needs another one installed. They are
+`woostack-plan`. Neither needs a sibling skill; the
+[command index](/docs/skills/using-woostack#command-routing) is an optional directory.
+[Design's selected external skills](/docs/skills/woostack-design#selected-skills) are additional
+prerequisites only for its selected stages, not for this tutorial. Woostack skills are
 instructions for the agent, not shell programs. If a skill cannot be found,
 [fix the installation before continuing](/docs/guides/troubleshooting#your-assistant-cannot-find-a-woostack-skill).
 
@@ -72,7 +73,7 @@ guidance with actual commands, boundaries, and conditional links to the other do
 formats. Existing canonical documents and scoped instructions stay authoritative. Init includes the
 availability-aware
 [adoption paragraph](/docs/skills/woostack-init#document-responsibilities) in new or updated agent
-instructions, so no skill becomes a prerequisite of another.
+instructions, so no Woostack skill becomes a prerequisite of another.
 
 When verification guidance is relevant, Init inspects existing check commands, CI, and available
 timing evidence. It can recommend repository-specific improvements, such as removing redundant commands

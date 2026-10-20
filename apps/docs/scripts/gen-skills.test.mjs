@@ -1,5 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import { parseFrontmatter } from "./skill-assets.mjs";
 import {
   stripTitleHeading,
@@ -161,6 +162,7 @@ test("public skill routing preserves the declared order", () => {
     "woostack-address-comments",
     "woostack-visualize",
     "woostack-design",
+    "woostack-flow-layout",
     "woostack-design-system",
     "woostack-debug",
     "woostack-doctor",
@@ -170,4 +172,17 @@ test("public skill routing preserves the declared order", () => {
 
   assert.deepEqual(PUBLIC_ORDER, expectedPublic);
   assert.deepEqual(navOrder([...expectedPublic].reverse()), expectedPublic);
+});
+
+test("design and flow-layout sources render with their own public identities", async () => {
+  for (const name of ["woostack-design", "woostack-flow-layout"]) {
+    const raw = await readFile(new URL(`../../../skills/${name}/SKILL.md`, import.meta.url), "utf8");
+    const { fm, body } = parseFrontmatter(raw, name);
+    assert.equal(fm.name, name);
+    assert.ok(PUBLIC_ORDER.includes(name));
+    const rendered = rewriteLinks(neutralizeTags(stripTitleHeading(body, fm.name)), name);
+    const page = renderPage(name, fm, rendered);
+    assert.ok(page.startsWith(`---\ntitle: ${name}\n`));
+    assert.ok(page.includes(`/skills/${name}/SKILL.md`));
+  }
 });

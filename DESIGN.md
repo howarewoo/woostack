@@ -10,18 +10,20 @@ direction, and architecture before drafting, per
 other workflows.
 Each skill owns its activation, routing, workflow steps, and approval gates; the
 [command router](skills/using-woostack/SKILL.md) is an optional index and adoption aid that names
-public commands and imposes no activation prerequisite. Every skill is independently installable:
-no skill loads another skill's workflow, invokes it, or requires it as a runtime dependency, and
-optional navigation never becomes an executable dependency. Shared procedures are reused through
+public commands and imposes no activation prerequisite. No skill loads, invokes, or requires a
+sibling Woostack workflow. [Design's external-skill exception](CONTRIBUTING.md#external-design-skills)
+leaves that boundary intact; optional navigation never becomes an executable dependency.
+Shared procedures are reused through
 [bundled references](CONTRIBUTING.md#shared-canonical-references) maintained from one canonical
 source, so the active workflow keeps its own gates and evidence rules at every boundary.
 New-project planning and bounded creation belong to Plan and Execute by requested intent.
 Neither requires the other or Init; Init remains the owner of requested project guidance.
 Execute and the other implementing skills bundle the applicable shared standards and load them
 only for relevant changes.
-Design System owns project component catalogs; Design owns flow
-arrangement. A catalog's components, tokens, examples, coverage record, and rules belong to the
-target project.
+Design coordinates UI work using a selected external lead and relevant specialists, with agreement
+before consequential design changes. Flow Layout arranges existing screen frames without redesigning
+them. Design System owns project component catalogs; a catalog's components, tokens, examples,
+coverage record, and rules belong to the target project.
 Existing compatible APIs stay intact, with adaptations at catalog callers. Existing-catalog
 inspection is read-only unless maintenance is explicitly requested.
 

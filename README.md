@@ -11,7 +11,7 @@ required, requested, or warranted by risk.
 
 Start with the [getting-started guide](apps/docs/content/docs/getting-started.mdx), or use the
 [command index](skills/using-woostack/SKILL.md#command-routing) to choose a workflow among the
-installed, self-contained commands.
+installed commands.
 
 
 ## Getting started
@@ -25,9 +25,9 @@ to install the collection for your coding assistant:
 pnpx skills add howarewoo/woostack
 ```
 
-Each skill is a self-contained installable directory: reusable procedures are bundled into the
-skill from one canonical source, so a skill runs without other Woostack skills present and
-installing or updating one skill does not mutate the others. To install only Execute:
+Each skill installs separately and bundles its reusable Woostack procedures, so it needs no sibling
+Woostack skill or source checkout. Installing or updating one does not mutate the others.
+Design additionally uses selected external skills, described below. To install only Execute:
 
 ```bash
 pnpx skills add howarewoo/woostack --skill woostack-execute
@@ -39,14 +39,14 @@ The public commands are listed in the
 [command index](skills/using-woostack/SKILL.md#command-routing), including standalone
 Ideate, Harden, and Plan.
 
-For frontend work, you can also install [impeccable](https://github.com/pbakaus/impeccable).
-woostack recommends it for design reviews:
-
-```bash
-pnpx skills add pbakaus/impeccable
-```
-
-Claude Code users can alternatively run `/plugin marketplace add pbakaus/impeccable`.
+For UI work, [Design](skills/woostack-design/SKILL.md#selected-skills) uses
+[Impeccable](https://github.com/pbakaus/impeccable) as its design lead, with relevant specialists
+from [Emil Kowalski's collection](https://github.com/emilkowalski/skills).
+Install the selected skills using your assistant's supported mechanism and their current upstream
+instructions. The Woostack install does not install these dependencies. Design checks availability
+and asks before a missing dependency is installed; it does not silently substitute generic advice.
+Only the skills needed for the task are required. See the
+[dependency boundary](skills/woostack-design/SKILL.md#dependency-boundary) for permissions and recovery.
 
 ### 2. Create useful project guidance
 
@@ -62,7 +62,7 @@ intention, structure, direction, and architecture before writing, and helps crea
 linked to canonical documents rather than copying them. You can limit the request to one document
 or ask for drafts without writes. During Woostack adoption, Init includes the concise
 [adoption paragraph](skills/woostack-init/SKILL.md#document-responsibilities) in the proposed agent
-instructions, so no skill becomes a prerequisite of another.
+instructions, so no Woostack skill becomes a prerequisite of another.
 
 Init uses the current applicable [document formats](skills/woostack-init/references/document-schemas.md):
 an evidence-backed README landing page, Impeccable's product record, the visual DESIGN.md
@@ -126,6 +126,8 @@ for one bounded task.
 | A bounded implementation task | [/woostack-execute](skills/woostack-execute/SKILL.md) | Implements and verifies an enhancement, refactor, test-only task, or understood correction; delivers a draft PR when requested. |
 | Simplify an existing implementation | [/woostack-simplify](skills/woostack-simplify/SKILL.md) | Reworks selected code and removes unnecessary machinery while preserving required behavior; local edits by default, analysis-only when requested. |
 | Coordinate multiple approved tasks | [/woostack-orchestrate](skills/woostack-orchestrate/SKILL.md) | Resolves tasks and dependencies from prose, issues, or an explicitly selected Project; coordinates inline or native-host workers in isolated workspaces and verifies draft PRs without merging. |
+| Design, prototype, refine, or critique UI | [/woostack-design](skills/woostack-design/SKILL.md) | Coordinates selected external design skills, agrees consequential directions before implementation, and checks the rendered result within the request's scope. |
+| Arrange existing screen flows | [/woostack-flow-layout](skills/woostack-flow-layout/SKILL.md) | Positions screen sequences and branches without redesigning their contents. |
 | Create or inspect a project component catalog | [/woostack-design-system](skills/woostack-design-system/SKILL.md) | Creates locally when no catalog exists; inspects an existing catalog without writes unless you explicitly request maintenance. |
 
 Plan stops before implementation. Execute, Simplify, and Orchestrate start only on an authorized
@@ -139,7 +141,10 @@ See the [workflow maps](apps/docs/content/docs/concepts/workflows.mdx) for the f
 For component-system work, follow [Create and maintain a design catalog](apps/docs/content/docs/guides/design-system.mdx).
 Design System adapts to project components and design rules; incompatible products get an isolated
 React catalog. The target owns the result without a Woostack or Git Stacks runtime dependency.
-Use `/woostack-design` separately to arrange multi-step UI flows.
+Use `/woostack-flow-layout` separately to arrange multi-step UI flows.
+
+`woostack-design` now coordinates UI design using selected external skills. The previous
+screen-flow arrangement workflow is available as `woostack-flow-layout`.
 
 ## Review and check your work
 
