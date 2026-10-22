@@ -15,7 +15,7 @@ read-only context; utility skills never mutate them.
 
 | Skill | What it does | Writes? | Invoke |
 | --- | --- | --- | --- |
-| [woostack-visualize](/docs/skills/woostack-visualize) | Renders a supplied document, a current working-copy file, or an exact GitHub/Git source as one self-contained HTML view, labeled with the provenance actually read. | disposable HTML view | `/woostack-visualize <source>` |
+| [woostack-visualize](/docs/skills/woostack-visualize) | Explains a supplied document, working-copy file, or exact GitHub/Git source as one offline HTML view tailored to the reader, with source labels and visible uncertainty. | disposable HTML view | `/woostack-visualize <source> [for <audience>]` |
 | [woostack-design](/docs/skills/woostack-design) | Coordinates UI design, prototypes, refinement, or critique using selected external skills. | review is read-only; prototypes or local implementation only within the request | `/woostack-design [request]` |
 | [woostack-flow-layout](/docs/skills/woostack-flow-layout) | Arranges existing screen sequences and branches without redesigning their contents. | design layout updates | `/woostack-flow-layout [target]` |
 | [woostack-design-system](/docs/skills/woostack-design-system) | Creates or adapts a project-owned component catalog; inspects existing catalogs and reports gaps or drift. | local creation when absent; existing catalogs read-only unless maintenance is explicit | `/woostack-design-system [request]` |
@@ -23,6 +23,10 @@ read-only context; utility skills never mutate them.
 | [woostack-qa](/docs/skills/woostack-qa) | Explores a running app and writes a sanitized report. | non-authoritative report | `/woostack-qa <url> [focus…]` |
 | Production errors, Sentry issues, and monitoring defects | [woostack-debug](/docs/skills/woostack-debug) then [woostack-plan](/docs/skills/woostack-plan) for the plan and any requested issues. | report and plan | `/woostack-debug <target>` or `/woostack-plan <goal-or-defect>` |
 | [woostack-reflect](/docs/skills/woostack-reflect) | Reviews one fixed active-conversation snapshot for concrete durable instruction suggestions. | report-only initially; accepted follow-ups are explicit | `/woostack-reflect` |
+
+Visualize adjusts detail to the reader's question. Every render receives source and static checks;
+browser inspection requires explicit consent and an available browser. Unperformed visual/runtime
+checks are reported, not treated as passed. The HTML is disposable and does not authorize work.
 
 Design uses Impeccable for general UI work and relevant Emil specialists for scoped needs.
 Its [selected skills](/docs/skills/woostack-design#selected-skills) are external
