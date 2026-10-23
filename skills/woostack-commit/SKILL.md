@@ -46,8 +46,10 @@ just because the task names a child.
    checks, missing capability, timeouts, and other unverified requirements under
    [Slow checks](references/tdd.md#slow-checks-bounded-diagnosis-no-waiver). Required hooks and the
    configured `commit.command` run when nonempty regardless of reused test results. An unresolved
-   required failure or an out-of-scope correction stops the commit and is reported; never skip
-   required verification or weaken assertions to finish. For metadata-only maintenance or
+   required commit-check failure or an out-of-scope correction stops the commit; never skip required
+   checks or weaken assertions. Missing implementation acceptance remains unmet but does not block
+   an authorized draft unless it is an explicit commit or publication gate. Disclose unmet criteria.
+   For metadata-only maintenance or
    readiness, reuse the existing commits and skip preparation, staging, commit, and push when no
    ref change is needed.
 

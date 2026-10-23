@@ -62,7 +62,9 @@ Inspect native worker state and the worktree's branch, index, and diff. Do not s
 
 ## A check failed or did not run
 
-Read the specific command, output, and affected path. Diagnose an in-scope failure and rerun the affected check after correction; do not mark an incomplete required check as passed or use a worker's summary instead of results. If the environment prevents it, try a materially different recovery, then report the criterion still unverified. Use the active workflow's own verification rules and any bundled [verification procedures](https://github.com/howarewoo/woostack/blob/main/shared/references/tdd.md); a failed check does not require a handoff to another skill.
+Read the specific command, output, and affected path. Correct in-scope failures and refresh affected checks; do not treat a worker summary or an incomplete required check as passing evidence. Follow the active workflow's verification rules and bundled [verification procedures](https://github.com/howarewoo/woostack/blob/main/shared/references/tdd.md). When authorized evidence is insufficient, report the unverified criterion and resumption condition instead of cycling methods without new evidence.
+
+[Debug](/docs/skills/woostack-debug#the-four-phases) can return a blocked or inconclusive diagnosis with observed facts, unproved hypotheses, and the next evidence or permission needed. It does not invent a fix or keep investigating without new evidence.
 
 ## A diagnosis claims the directory is not a Git repository
 

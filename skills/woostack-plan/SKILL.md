@@ -66,8 +66,10 @@ implementation workflow and authorizes no implementation:
 - an increment that crosses an application boundary follows the
   [application-boundary adapters rule](references/patterns.md#3-application-boundary-adapters);
 - newly authored verification expectations follow the bundled
-  [testing guidance](references/tdd.md), stating the observable contract and
-  focusing on distinct gaps rather than blanket suites or quotas; do not rewrite acceptance on
+  [testing guidance](references/tdd.md): observable contracts and distinct gaps, not blanket suites or
+  quotas. Prefer existing adequate checks; propose extra evidence for stated requirements or named
+  material risks. Distinguish completion criteria from draft-publication and consumer-release gates,
+  and identify new verification infrastructure as proposed scope. Do not rewrite acceptance on
   existing unrelated issues.
 Verify any command or path you name before putting it in an issue — it must exist in the repository
 or be created by that increment or one of its prerequisites. Planning records expectations; it does
