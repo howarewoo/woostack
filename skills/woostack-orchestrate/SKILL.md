@@ -59,13 +59,15 @@ For an explicit one-run model or effort request, apply the shared
    implementation decomposition and specialist handoffs within each group to its task owner. Use
    ordinary prose, a table, or the host's existing plan facility; no prescribed schema, ID, or
    persisted artifact. Distinguish draft-publication gates, prerequisite consumer-release evidence,
-   group-completion requirements, and external merge/release gates. Failed or unrun required
-   implementation acceptance blocks delivery by default; publishing an unfinished draft needs
-   explicit separate approval, never relabeling failed implementation acceptance as merge-only.
-   Required publication checks/hooks, independent review, privacy/data protections, and user limits
-   remain binding. Propose a ten-minute wall-clock reassessment interval unless the user specifies
+   group-completion requirements, and external merge/release gates. Authorized draft publication may
+   disclose failed or unavailable implementation acceptance without separate unfinished-draft approval.
+   Draft visibility establishes neither completion nor consumer release. Explicit publication gates,
+   required hooks, privacy, security and data-loss protections, clean scoped content, and user restrictions
+   remain binding; do not silently reinterpret approved task-specific gates.
+   Propose a ten-minute wall-clock reassessment interval unless the user specifies
    or agrees to a different interval. Agree standing authority for routine in-scope diagnosis,
-   repairs, checks, and already-authorized draft updates.
+   repairs, checks, and already-authorized draft updates, including repairs to existing checks and
+   focused probes answering selected product-behavior or acceptance-blocker questions.
    Stop and wait for user approval or revisions before executing. Approval of the goal, silence, or
    fitting approved scope does not approve an unseen plan. Before approval, do not allocate execution
    workspaces or branches, dispatch implementation workers, edit source, commit, or write externally.
@@ -76,6 +78,10 @@ For an explicit one-run model or effort request, apply the shared
    work for renewed approval before materially departing from agreed scope, deliverables, grouping,
    dependency or landing structure, or execution approach; routine implementation decisions, checks,
    in-scope repairs, and bounded contributions within the approved plan do not require approval.
+   When developing verification machinery becomes a separate outcome with its own implementation
+   and validation cycle, it is a material execution-approach change unless already expressly approved.
+   Pause affected expansion and obtain renewed approval before implementation. Temporary files,
+   small individual edits, or eventual usefulness do not exempt that expansion.
 2. **Admit the delivery allocation.** Normally each group owns one canonical branch and reusable
    task workspaces for implementation, repairs, and integration, not one allocation per attempt or
    worker. Follow [workspace ownership and recovery](references/worktrees.md):
@@ -106,8 +112,8 @@ For an explicit one-run model or effort request, apply the shared
    checks, revised approaches, and replacement writers.
    Hand off the bounded outcome, settled decisions, acceptance and required evidence, limits,
    invariants, cross-task interfaces, prerequisites, verified base, source/workspace evidence, and
-   shared runtime capacity. State one publication owner: by default workers return verified task
-   changes and evidence, while the coordinator owns commit/publication and stack coordination.
+   shared runtime capacity. State one publication owner: by default workers return task changes,
+   observed evidence, and unmet criteria, while the coordinator owns commit/publication and stacks.
    Delegate particular Git/PR operations explicitly within approved authority, never to two owners.
    Have the task owner use installed `woostack-execute` when accessible through native skill
    discovery. Pass the approved assignment and delivery limits explicitly; this is not a new user
@@ -139,16 +145,19 @@ For an explicit one-run model or effort request, apply the shared
    coordination, not task-local specialist prompts or silent implementation in the primary checkout.
    Inline coordinator implementation requires a workflow change from the user; unavailable task-worker
    or isolation capability is a blocker, not an equivalent local result.
-   Before broad consumer integration of a high-risk new model, authority, mutation, persistence,
-   or selected-context contract, exercise the smallest meaningful vertical slice through the actual
-   required runtime. Verify it exercises the changed source and inspect real behavior and effects,
-   including delegated callees; controlled outputs and wrapper intent do not prove runtime semantics.
-   Reuse applicable authorized runtimes, native caches, and safe harnesses. Run focused invariant
-   checks and obtain required independent review; resolve findings and refresh affected evidence
-   before releasing consumers. Missing runtime evidence blocks affected consumers while independent
-   work and safe preparation continue. Distinguish interaction-driver failure from application
-   failure before source repairs. Unresolved privacy evidence stays HOLD; preserve historical
-   findings without reconstructing lost private evidence or clearing them through a replacement run.
+   For ordinary reversible work, default to existing relevant checks and the smallest practical
+   observation. Extra integration/runtime work, baseline/candidate comparisons, and independent
+   review require an explicit user, repository, or task requirement, or a named material risk stating
+   the failure, consequence, and evidence needed. Broad categories such as persistence alone do not
+   establish high risk. Use the bundled testing procedures for the selected evidence, not extra gates.
+   For consequential use or release involving authorization, privacy, destructive effects, migration,
+   recovery, or financial operations, obtain stronger targeted evidence. Where runtime semantics matter,
+   verify the changed source and actual effects, including delegated callees; controlled outputs alone
+   do not prove those semantics. Reuse applicable evidence and authorized runtimes.
+   Missing required evidence blocks affected use or release while safe independent work continues.
+   Distinguish interaction-driver failure from application failure before source repairs.
+   Unresolved privacy evidence stays HOLD; preserve historical findings without reconstructing lost
+   private evidence or clearing findings through a replacement run.
 5. **Integrate and deliver the group's PR and stack.** Use the selected worker runtime's
    completion handling; on interrupted workers, rediscover its state and Git/PR facts before retrying.
    Preserve unknown work, block affected dependents, and never duplicate work or claim unverified delivery.
@@ -158,38 +167,40 @@ For an explicit one-run model or effort request, apply the shared
    Return in-scope task corrections to their owner in the canonical allocation. Reconcile affected
    dependents at verified contract checkpoints, not after every hypothesis or experimental edit;
    a later changed contract can require another checkpoint and reconciliation.
-   Verify the canonical tree and cumulative PR diff: they must cover the planned outcome with no
-   unrelated or dropped change. Out-of-scope edits block delivery. Failed or unrun required
-   acceptance blocks delivery under the approved publication policy; only the separately approved
-   unfinished-draft exception in step 1 permits incomplete acceptance to remain visible.
-   Default to reusing child results from the existing worker result, handoff, or verification summary:
-   independently check the command/selection, actual tested source state, observed outcome, and
-   relevant environment limits against real source and required acceptance under
+   Inspect the canonical tree and cumulative PR diff against the planned outcome, identifying missing
+   coverage and unintended dropped changes. Out-of-scope edits block publication. Completion requires
+   selected acceptance; report failed or unavailable criteria by name. Preserve agreed consumer-release
+   and publication gates without making implementation acceptance an extra draft-publication gate.
+   Reuse applicable child results from the existing worker result, handoff, or verification summary:
+   check the command/selection, tested source state, observed outcome, and environment limits under
    [When evidence still applies](references/tdd.md#when-evidence-still-applies).
-   Run affected integration/consumer checks on new combinations, conflict resolutions, corrections,
-   or relevant environment/dependency changes; child passes alone never verify an untested combination.
-   Keep final implementation review incremental on changed contracts and consumers using applicable
-   checkpoint evidence, without waiving combined-result verification. Correct failed preparation
-   checks in the same allocation and refresh affected checks and required implementation review after
-   changes. Handle slow checks and explicit unmet verification boundaries under
-   [Slow checks](references/tdd.md#slow-checks-bounded-diagnosis-no-waiver);
-   deferred manual acceptance remains unmet, not passed evidence. At each agreed wall-clock
-   checkpoint, compare elapsed preparation, builds, replay, and coordination with new behavioral
-   evidence, using observed timings and counts where available. If repeated attempts mostly
-   reproduce overhead without new evidence, do not repeat that cycle unchanged: change approach
-   within standing authority, continue independent work, or report the affected blocker and the
-   material decision or permission needed. Reassessment may leave healthy work running unchanged;
-   the checkpoint alone is no reason to fail, cancel, message, or recheck a pending worker, or
-   treat pending work as passed.
-   Keep the cadence live throughout execution, including native-worker and group waits: use
-   available host notifications and bounded waits so reassessment is not deferred to completion.
-   Handle delivered notifications without deliberately waiting for the checkpoint; neither
-   notifications nor progress messages reset its cadence. Reassessment adds no universal timeout,
-   approval handshake, or artifact system and waives no gate.
-   Publish each eligible group's requested draft once its approved publication gates pass, without
-   waiting for unrelated groups or the whole chain. An explicitly approved unfinished draft reports
-   unmet acceptance and remains incomplete; visibility alone neither releases consumers nor proves
-   group completion.
+   For new combinations or corrections, reassess applicability and step 4's requirements or named risks
+   before adding checks; child passes do not prove an untested interaction. Refresh affected selected
+   evidence and any required review in the same allocation.
+   Handle slow checks under [Slow checks](references/tdd.md#slow-checks-bounded-diagnosis-no-waiver);
+   deferred or unavailable acceptance remains unmet. At each agreed wall-clock checkpoint, compare
+   preparation, builds, replay and coordination with new product-relevant or required-safety evidence.
+   Meaningful negative results narrowing a product failure count; acceptance need not pass each time.
+   Park affected verification and dependents if external capability is missing or prohibited, or a
+   diagnostic cycle adds no such evidence. Do not automatically poll or re-probe parked work.
+   New diagnostic methods, workers, artifacts, handoffs or timer resets alone do not reopen it. Resume
+   only for relevant changed product inputs or evidence, an actual prerequisite, capability or permission
+   change, or explicit renewed user direction within its scope.
+   During approved execution, report unresolved task-local decisions in progress output and park
+   affected work. Do not invoke a host-blocking question while safe independent authorized work,
+   required independent review or eligible requested delivery can advance; keep servicing that work.
+   Leave user-owned scope and permissions undecided; safety, privacy and publication gates still bind.
+   Let demonstrably healthy long product checks continue using existing runner progress and native
+   timeout and cancellation controls. Duration alone neither cancels checks nor fails acceptance.
+   Process liveness or diagnostic artifacts do not establish health. Checkpoints alone do not require
+   contacting or rechecking healthy workers; pending is not passed.
+   Keep the agreed cadence live during runnable work and healthy native-worker/group waits through
+   available host notifications and bounded waits. Handle delivered notifications without deliberately
+   waiting for the checkpoint; neither notifications nor progress messages reset its cadence.
+   Reassessment adds no universal timeout, retry budget, approval handshake, or artifact system.
+   Publish each eligible group's requested draft once its explicit publication gates pass, without
+   waiting for unrelated groups or the whole chain. Disclose failed or unavailable acceptance;
+   draft visibility neither releases consumers nor proves group completion.
    Hand the intended parent and ordered chain to the
    [delivery procedure](references/delivery.md), requiring native registration for dependent
    PRs; delivery, membership, lost-write recovery, and read-back follow the
@@ -204,16 +215,18 @@ For an explicit one-run model or effort request, apply the shared
    [authorized Git tools reference](references/source-control.md).
 6. **Finish delivered groups.** After group-completion requirements, verified PR publication, and
    required native stack membership/order are satisfied, the coordinator and delegated workers finish
-   that group. An approved unfinished draft continues only its already-authorized in-scope work.
+   that group.
    Do not fetch or monitor PR checks or reviews, wait for CI, collect new comments, or initiate
-   post-delivery repairs. Continue only unfinished groups; incoming CI/review events do not reopen completed work. Necessary parent
-   ref/content reads for remaining delivery remain valid. Later repairs require a separate explicit request.
+   post-completion repairs. Continue only unfinished groups; incoming CI/review events do not reopen
+   completed work. Necessary parent ref/content reads for remaining delivery remain valid.
+   Repairs after completion require a separate explicit request.
 7. **Report evidence and disposition.** Report group-to-issue coverage, PRs and stack order,
-   contribution/integrated revisions, applicable implementation/integration results, known limits,
-   and blocked delivery. No fresh CI/review reads are needed, including for the report. Identify
-   incidentally returned status accurately without follow-up; uninspected CI is not a pass.
-   Remote CI/merge review is distinct from implementation verification and draft delivery; report
-   unmet acceptance requiring an external gate without waiving it or starting a maintenance loop.
+   contribution/integrated revisions, applicable verification, unmet criteria, and separate publication,
+   consumer-release, and completion dispositions. No fresh CI/review reads are needed for the report.
+   Identify incidentally returned status accurately without follow-up; uninspected CI is not a pass.
+   For parked work, name the unmet criterion and exact pending decision or other resumption condition.
+   With no runnable authorized work and no demonstrably healthy pending work, return a final blocked
+   disposition instead of a blocking interview, idle reassessment or further diagnostics.
    Account for temporary allocations beneath their delivery owner as active, retained for a named
    dependency, or safely retired under the
    [authorized lifecycle](references/worktrees.md#base-and-recovery).

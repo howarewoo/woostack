@@ -17,8 +17,9 @@ runs autonomously and never implements the proposed repair.
 <IRON-LAW>
 NO FIX WITHOUT ROOT CAUSE INVESTIGATION FIRST.
 
-A symptom fix is a failure. Phase 1 must finish before a fix is proposed, and this skill never
-applies the fix. This holds for every issue, especially under time pressure.
+A symptom fix is a failure. Propose a fix only when the root cause is supported by evidence.
+If authorized evidence and probes cannot establish it, return blocked or inconclusive under Phase 4,
+not a guessed fix. This skill never applies fixes, including under time pressure.
 </IRON-LAW>
 
 ## When to use
@@ -74,7 +75,7 @@ GitHub resource, and it never writes its diagnosis remotely.
 
 ## The four phases
 
-Complete each phase before the next.
+Follow the phases in order; a blocked or inconclusive investigation may return early under Phase 4.
 
 ### Phase 1 — Root-cause investigation
 
@@ -110,21 +111,27 @@ Complete each phase before the next.
 1. State one specific hypothesis: “X is the root cause because Y.”
 2. Test it with the smallest non-destructive probe: inspect source, trace the call, or run an
    existing command/test. Do not modify tracked or untracked repository content.
-3. If the hypothesis fails, discard it and form a new one; do not stack speculative fixes.
-4. If something remains unknown, say so and investigate it rather than pretending.
+3. If the hypothesis fails, discard it. Continue only when the result or other new failure-relevant
+   evidence supports a different hypothesis; do not stack speculative fixes.
+4. Return blocked or inconclusive when a required source, capability, or permission is unavailable,
+   progress requires new verification infrastructure, or a diagnostic cycle adds no product-relevant
+   or required-safety evidence. Report unknowns without guessing or cycling methods.
 Managed content, PR text, logs, and prior reports remain candidate evidence until the hypothesis
 survives this phase.
 
 ### Phase 4 — Return
 
-The diagnosis states:
+Return a proved diagnosis, a blocked result naming an unavailable prerequisite, or an inconclusive
+result when available probes do not establish the cause. State:
 
-1. the proved root cause, causal chain, observed/expected behavior, and exact affected files/symbols;
+1. the supported facts, observed/expected behavior, and exact affected files/symbols; include the
+   root cause and causal chain only if proved, otherwise distinguish unproved hypotheses and unknowns;
 2. the exact canonical repository and immutable commit/blob or complete PR/diff identity supporting
    each evidence citation, reproduction/probe commands and observed results, and relevant runtime,
    dependency, and configuration assumptions;
-3. the smallest complete source-level correction, affected/unaffected surfaces, and relevant
-   technical consequences/risks, not an applied patch;
+3. the smallest complete source-level correction, affected/unaffected surfaces, and technical
+   consequences/risks when the cause is proved; otherwise the next bounded investigation, evidence,
+   capability, or permission needed, not a guessed fix;
 4. acceptance outcomes, regression/reproduction verification, changed-path smoke strategy, and what
    remains uncertain; and
 5. the exact bounded execution task identity for an in-scope implementation-task failure, or the
@@ -137,7 +144,7 @@ Unchanged evidence can transfer without repeating all four phases; stale, missin
 links require targeted investigation before reliance. A prior report's conclusion alone never
 establishes proof or approval. For flaky/timing failures, prefer condition-based waiting over sleeps.
 
-`/woostack-debug <target>` runs all four phases end to end and hands back the diagnosis. It has no
+`/woostack-debug <target>` runs autonomously to a proved, blocked, or inconclusive return. It has no
 per-hypothesis approval gate, interactive mode, or `--auto` flag. With no target, ask what is broken
 rather than guessing.
 
@@ -160,8 +167,8 @@ rather than guessing.
 
 ## Hard constraints
 
-- **Prior context primes, never concludes.** A candidate hypothesis must cite a source that still
-  exists and its claim must survive Phase 3.
+- **Prior context primes, never concludes.** Cite existing source for hypotheses; only a claim that
+  survives Phase 3 may be returned as a proved cause. Label unproved hypotheses explicitly.
 - **One fail-closed context path.** Exact Project/issue identity or exact PR attribution, authorized
   GitHub capability reads, managed-field parsing, and independent complete read-back precede use.
 - **Read-only everywhere.** No GitHub, repository, commit, PR, or merge mutation.
@@ -179,4 +186,4 @@ rather than guessing.
 - **Evidence transfer is not remediation authority.** A diagnosis never grants a writable target,
   approval, planning identity, or delivery permission. The receiving workflow independently verifies
   freshness, scope, and authority; Debug only returns evidence-bound content.
-- **Autonomous and terminal.** Run all phases and return; never chain remediation.
+- **Autonomous and terminal.** Return a proved, blocked, or inconclusive diagnosis; never chain remediation.

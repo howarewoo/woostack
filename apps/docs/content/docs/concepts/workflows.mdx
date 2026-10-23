@@ -72,9 +72,10 @@ missing administrative link is not a blocker while missing task scope is.
 Draft visibility, prerequisite readiness, group completion, and external merge/release acceptance
 answer different questions. The approved plan distinguishes their gates and sets a wall-clock
 reassessment interval under [Orchestrate's proposal rule](/docs/skills/woostack-orchestrate#coordinate),
-preserving the user's chosen interval. Required implementation acceptance still blocks delivery by
-default. An unfinished draft requires explicit separate approval; it neither clears failed behavior
-nor releases dependent consumers. Eligible groups can publish independently of the whole chain.
+preserving the user's chosen interval. Authorized drafts can disclose unmet implementation acceptance
+without separate unfinished-draft approval. Explicit publication gates and safety protections still
+bind; draft visibility proves neither completion nor consumer readiness. Eligible groups can publish
+independently of the whole chain.
 
 The change plan comes before any implementation: which tasks group into which pull request, the
 required changes, the intended parent and landing order, cross-task interfaces, and safe parallel
@@ -108,10 +109,13 @@ Exploratory corrections stay with their task owner in the canonical allocation; 
 other tasks or shared contracts return to Orchestrate. Dependents reconcile at verified contract
 checkpoints rather than after every hypothesis. Reassessment compares elapsed preparation, builds,
 replay, and coordination with new behavioral evidence and stays live during native-worker waits.
-An unproductive cycle calls for a changed authorized approach, independent work, or a concrete
-blocker and material decision. Healthy work can continue unchanged: elapsed time alone justifies
-neither intervention nor a verdict on pending work. Progress messages and notifications do not
-restart the cadence, and delivered notifications need not wait for a checkpoint to be handled.
+Diagnosis without new product-relevant or required-safety evidence parks affected verification and
+dependents. Reopening requires relevant changed product inputs or evidence, an actual prerequisite,
+capability or permission change, or explicit scoped user direction, not just a new diagnostic method.
+[Orchestrate's coordination policy](/docs/skills/woostack-orchestrate#coordinate) owns those boundaries.
+Independent authorized work continues, as do demonstrably healthy long checks. With neither runnable
+work nor healthy pending work, the result is a final blocked disposition. Progress messages and
+notifications do not restart the cadence, and delivered notifications need not wait for a checkpoint.
 Applicable child results carry forward under the canonical [testing
 guidance](https://github.com/howarewoo/woostack/blob/main/shared/references/tdd.md#when-evidence-still-applies);
 the coordinator independently verifies the canonical tree, cumulative diff, and new interactions.
@@ -176,7 +180,9 @@ An implementation that is already simple enough can remain unchanged.
 
 Implementation workflows report the same way. An existing targeted test can serve as the
 smoke for a change, and required repository checks and reviews cannot be waived by an agent's
-success sentence. A failed, pending, or unrun required check is a delivery blocker.
+success sentence. Unmet acceptance prevents completion; unmet publication gates block publication.
+[Execute's publication policy](/docs/skills/woostack-execute#requested-commit-and-publication)
+distinguishes authorized draft visibility from completion and consumer release.
 
 The assigned delivery owner performs authorized operations under the
 [delivery procedures](https://github.com/howarewoo/woostack/blob/main/shared/references/delivery.md)
@@ -219,21 +225,20 @@ Retained-data authority and recovery belong to the
 
 ## Review and corrections
 
-Review is independent evidence. High-risk new contracts need focused behavioral checks and
-independent review before broad consumer integration to keep foundational defects from spreading.
-For new high-risk model, authority, mutation, persistence, or selected-context contracts, this includes
-the smallest meaningful actual-required-runtime vertical slice exercising changed source and inspecting
-real effects. Controlled outputs cannot establish real-runtime semantics. Applicable authorized
-runtimes, caches, and safe harnesses shorten feedback without weakening evidence. Driver failure
-and application failure need distinct diagnosis before source repairs. Unresolved privacy evidence
-stays HOLD; lost private evidence is not reconstructed or cleared by a replacement run.
-Orchestrate's final review focuses on changed contracts and consumers while retaining applicable
-checkpoint evidence and combined-result verification. Execute needs no pre-commit review receipt
-unless required. Deferred manual acceptance remains unmet. Verified PR publication and required
-stack registration finish delivery once group-completion requirements are satisfied. An explicitly
-approved unfinished draft remains incomplete. Neither coordinator nor workers inspect new CI/reviews or
-reopen delivered groups on incoming events. Later corrections require a separate explicit request;
-remote checks and merge approval remain distinct from implementation evidence.
+Review is independent evidence, not an automatic extra gate for ordinary reversible work. Existing
+relevant checks and the smallest practical observation are the default. Additional runtime work,
+comparisons, or independent review need an explicit requirement or a named material risk.
+[Execute's verification policy](/docs/skills/woostack-execute#implement-and-verify) and
+[Orchestrate's coordination policy](/docs/skills/woostack-orchestrate#coordinate) own evidence selection
+and stronger targeted evidence for consequential use or release. Where runtime semantics matter,
+controlled outputs alone cannot prove them. Unresolved privacy evidence stays HOLD; lost private
+evidence is not reconstructed or cleared by a replacement run.
+
+Deferred acceptance remains unmet even when an authorized draft is published. A group finishes only
+after its completion requirements, verified publication, and required stack membership are satisfied.
+Neither coordinator nor workers monitor new CI/reviews or reopen completed groups on incoming events.
+Later corrections require a separate explicit request; remote checks and merge approval remain
+distinct from implementation evidence.
 
 Depending on the request, the result is a verified local change, a scaffold, a plan with requested
 issues, a reviewable PR, or a blocker reported at the first safe resume boundary. Existing retained
