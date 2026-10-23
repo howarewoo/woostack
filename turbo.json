@@ -16,7 +16,15 @@
     "docs#build": {
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/skills/**"],
-      "outputs": [".next/**", "!.next/cache/**", ".source/**", "content/docs/skills/**"]
+      "outputs": [
+        ".next/**",
+        "!.next/cache/**",
+        ".open-next/**",
+        ".wrangler/deploy/config.json",
+        ".source/**",
+        "content/docs/skills/**",
+        "$TURBO_ROOT$/.wrangler/deploy/config.json"
+      ]
     },
     "test": {
       "outputs": []

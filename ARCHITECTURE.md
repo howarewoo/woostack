@@ -43,7 +43,11 @@ Authored guides live in `apps/docs/content/docs/`. Its
 skill frontmatter and bodies, transforms agent markup and links, and writes MDX
 pages and navigation under `apps/docs/content/docs/skills/`.
 
-The app's development and build entrypoints run generation before Next.js.
+The app's development and build entrypoints run generation before Next.js. The
+default build also packages the Cloudflare Worker, stages its read-only prerendered
+cache, and generates Wrangler discovery files at the repository root and in the app.
+Both discovery files point to the app-owned configuration and are cached with the
+Worker bundle by Turborepo.
 Generated skill pages are ignored by Git: edit the owning skill, not its rendered
 page. Builds need access to the repository-level `skills/` directory. App-specific
 commands and deployment requirements stay in the docs README.

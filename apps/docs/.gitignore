@@ -11,6 +11,8 @@
 /.next/
 /out/
 /build
+/.open-next/
+/.wrangler/
 *.tsbuildinfo
 
 # misc
@@ -24,5 +26,6 @@ yarn-error.log*
 
 # others
 .env*.local
+.dev.vars*
 .vercel
 next-env.d.ts

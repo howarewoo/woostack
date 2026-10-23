@@ -177,10 +177,11 @@ for component boundaries and source flows, and [AGENTS.md](AGENTS.md) for reposi
 ## Monorepo development
 
 The pnpm workspace uses Turborepo to run the documentation app in `apps/docs/` and
-the standalone catalog in `apps/design/`. Dependencies stay in each app's
-manifest; installation uses the shared root `pnpm-lock.yaml`.
+the standalone catalog in `apps/design/`. Each app owns its dependencies; root
+tooling includes Wrangler so default deployment commands resolve locally.
+Installation uses the shared root `pnpm-lock.yaml`.
 
-Run from the repository root with Node `^20.19.0 || >=22.12.0` and pnpm 12.10.1:
+Run from the repository root with Node `>=22.12.0` and pnpm 12.10.1:
 
 ```sh
 pnpm install --frozen-lockfile
@@ -203,6 +204,11 @@ To select one app while retaining Turborepo, use `pnpm dev --filter=docs` or
 Docs defaults to port 3000; the catalog defaults to port 5173. See the
 [docs README](apps/docs/README.md) and
 [catalog README](apps/design/README.md) for app-specific development guidance.
+
+The docs build produces a deployable Cloudflare Worker and root Wrangler discovery
+metadata. After building, `npx wrangler deploy` publishes the docs Worker and
+`npx wrangler preview` deploys a branch Preview without promoting it to production.
+Use `pnpm --filter docs run build:next` when only the Next.js output is needed.
 
 `pnpm verify` runs the repository verification graph: docs tests, typechecking, Oxlint
 and Oxfmt checks, plus catalog specimen and lint/format checks in `apps/design`, alongside
