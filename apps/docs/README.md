@@ -13,7 +13,7 @@ pnpm install --frozen-lockfile
 pnpm dev --filter=docs      # generates skill pages, then starts Next on port 3000
 ```
 
-Run `pnpm build --filter=docs` to generate skill pages and build the site through Turborepo.
+Run `pnpm build --filter=docs` to generate skill pages and build the Cloudflare Worker through Turborepo.
 `pnpm --filter docs test` checks generator rendering, frontmatter, local asset links (including
 angle-bracket destinations), and installation discovery with Node's built-in test runner (`node --test`).
 It does not invoke a planner, model, or GitHub. `pnpm lint --filter=docs` and `pnpm format:check --filter=docs`
@@ -30,59 +30,63 @@ settings are scoped locally. Configure custom rules or overrides under `.oxlintr
 
 ## Deploy to Cloudflare Workers
 
-The app uses the OpenNext Cloudflare adapter. `wrangler.jsonc` owns the Worker name,
-entrypoint, static assets, and bindings. Keep the dashboard Worker name set to `woostack`;
-if renaming it, update both `name` and the `WORKER_SELF_REFERENCE` service in that file.
+The app uses the OpenNext Cloudflare adapter. `wrangler.jsonc` owns the `woostack-docs`
+Worker, entrypoint, static assets, and Preview configuration.
 
-1. From the repository root, install dependencies and build the Worker:
+1. From the repository root, install dependencies and run the default build:
 
    ```bash
    pnpm install --frozen-lockfile
-   pnpm --filter docs run build:worker
+   pnpm run build
    ```
 
-   This runs skill generation and the Next.js build, then creates `.open-next/worker.js`
-   and `.open-next/assets/` inside `apps/docs/`. Keep the root `pnpm-lock.yaml` as the only
-   dependency lockfile. Do not run the OpenNext migration or install packages with npm during CI.
+   The docs build generates skill pages, builds Next.js once, and creates
+   `apps/docs/.open-next/worker.js` and its assets. It also stages the prerendered
+   cache and writes Wrangler discovery files under `.wrangler/deploy/` at the root
+   and in the app. Both point to the app-owned configuration; Turborepo caches them
+   with the Worker bundle. Use `pnpm build --filter=docs` to skip the design app.
 
 2. Check the built Worker locally:
 
    ```bash
-   pnpm --filter docs run preview
+   npx wrangler dev
    ```
 
    Open the URL printed by Wrangler. Check `/docs/getting-started`, search,
-   `/docs/getting-started.md`, and `/llms.txt`. The preview uses the Workers runtime,
-   while `pnpm dev --filter=docs` continues to use the Next.js development server.
-   To check deployment packaging without publishing, run
-   `pnpm --filter docs run deploy --dry-run`.
+   `/docs/getting-started.md`, and `/llms.txt`. Wrangler runs the Worker locally;
+   `pnpm dev --filter=docs` continues to use the Next.js development server.
+   To check deployment packaging without publishing, run `npx wrangler deploy --dry-run`.
 
-3. Connect the repository to the `woostack` Worker in Cloudflare Workers Builds and set:
+3. Connect the repository to the `woostack-docs` Worker in Cloudflare Workers Builds.
+   Configure both **Production** and **Previews Base** under **Settings > Builds**:
 
    | Setting | Value |
    | --- | --- |
-   | Root directory | `apps/docs` |
-   | Build command | `pnpm run build:worker` |
-   | Deploy command | `pnpm run deploy` |
-   | Preview command, if non-production builds are enabled | `pnpm exec opennextjs-cloudflare upload` |
+   | Root directory | `/` (repository root) |
+   | Build command | `pnpm run build` |
+   | Production deploy command | `npx wrangler deploy` |
+   | Previews Base preview command | `npx wrangler preview` |
    | Build variable | `NODE_VERSION=24.22.1` |
 
-   Dependency installation must use `pnpm install --frozen-lockfile` against the root
-   workspace lockfile, including development dependencies. The checkout must include
-   `../../skills/` and the rest of the repository. Leave build watch paths unrestricted
-   unless they also cover skills, shared assets, and root workspace configuration.
-   The build command creates the Worker bundle once; the deploy command publishes that bundle.
-   The preview command uploads a version without promoting it to production.
+   These are the default build and deployment commands. The root installs the pinned
+   Wrangler CLI so `npx` does not download an untracked version. Build commands also
+   work from `apps/docs`; the generated redirect there resolves the same configuration.
+   Dependency installation must use the root workspace lockfile, including development
+   dependencies. The checkout must include `skills/` and the rest of the repository.
+   Leave build watch paths unrestricted unless they also cover skills, shared assets,
+   and root workspace configuration.
 
-For a manual release, authenticate with `pnpm --filter docs exec wrangler login`, then
-run `pnpm --filter docs run deploy` after building. In external CI, store
+For a manual release, authenticate with `npx wrangler login`, then run
+`npx wrangler deploy` after building. `npx wrangler preview` creates a branch Preview
+without promoting it to production. `pnpm --filter docs run preview` is a local server,
+not a remote Preview deployment. In external CI, store
 `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` in the CI secret store. Workers Builds
 provides deployment authentication through its configured API token.
 Custom domains and TLS are managed in the Cloudflare dashboard. Use Cloudflare's
 deployment rollback controls to restore a previous version.
 
 Prerendered pages use OpenNext's read-only Workers Static Assets cache. No R2 bucket,
-D1 database, Durable Objects, or runtime application secrets are needed for the current
+D1 database, Durable Objects, service bindings, or runtime application secrets are needed for the current
 site. Rebuild and deploy when content changes. Before adding ISR or on-demand revalidation,
 replace this cache with a writable backend following the
 [OpenNext caching guide](https://opennext.js.org/cloudflare/caching).
@@ -96,7 +100,7 @@ Use these project settings:
   `../../skills/*/SKILL.md`; the build needs access to the repository outside `apps/docs/`.
 - Framework preset: Next.js.
 - Install command: `cd ../.. && pnpm install --frozen-lockfile`, using the root workspace and lockfile.
-- Build command: `cd ../.. && pnpm build --filter=docs`, which generates skill pages before building.
+- Build command: `cd ../.. && pnpm --filter docs run build:next`, which generates skill pages and builds Next.js without Worker packaging.
 
 Use the standard Next.js deployment. The configuration does not enable a static export.
 Check Vercel's current plan limits before choosing a hosting plan.

@@ -5,8 +5,8 @@
   "scripts": {
     "generate": "node scripts/gen-skills.mjs",
     "dev": "pnpm generate && next dev",
-    "build": "pnpm generate && next build",
-    "build:worker": "opennextjs-cloudflare build",
+    "build": "opennextjs-cloudflare build && node scripts/prepare-worker.mjs",
+    "build:next": "pnpm generate && next build",
     "preview": "opennextjs-cloudflare preview",
     "deploy": "opennextjs-cloudflare deploy",
     "start": "next start",

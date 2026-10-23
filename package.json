@@ -19,10 +19,11 @@
   "devDependencies": {
     "oxfmt": "0.73.0",
     "oxlint": "1.88.0",
-    "turbo": "2.11.8"
+    "turbo": "2.11.8",
+    "wrangler": "4.152.0"
   },
   "engines": {
-    "node": "^20.19.0 || >=22.12.0"
+    "node": ">=22.12.0"
   },
   "packageManager": "pnpm@12.10.1"
 }
