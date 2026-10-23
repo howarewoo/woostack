@@ -11,7 +11,19 @@ minimumReleaseAgeExclude:
   # Existing design-app selections, already exercised before workspace migration.
   - lucide-react@1.56.0
   - react-resizable-panels@4.14.5
+  # Next release required by the Cloudflare adapter's supported peer range.
+  - '@next/env@16.4.3'
+  - '@next/swc-darwin-arm64@16.4.3'
+  - '@next/swc-darwin-x64@16.4.3'
+  - '@next/swc-linux-arm64-gnu@16.4.3'
+  - '@next/swc-linux-arm64-musl@16.4.3'
+  - '@next/swc-linux-x64-gnu@16.4.3'
+  - '@next/swc-linux-x64-musl@16.4.3'
+  - '@next/swc-win32-arm64-msvc@16.4.3'
+  - '@next/swc-win32-x64-msvc@16.4.3'
+  - next@16.4.3
 allowBuilds:
-  # Native binary verification for the CLI toolchain and Next image processing.
+  # Native binary verification for the CLI toolchain and Workers runtime.
   esbuild@0.28.1: true
-  sharp@0.34.5: true
+  esbuild@0.28.2: true
+  workerd@1.20261019.1: true

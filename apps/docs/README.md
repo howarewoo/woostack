@@ -28,6 +28,65 @@ Oxlint configuration in `.oxlintrc.json` registers `@shadcn/lint` via `jsPlugins
 SETUP.md conservative registration-only policy: no new rules or presets are enabled, and discovery
 settings are scoped locally. Configure custom rules or overrides under `.oxlintrc.json` as needed.
 
+## Deploy to Cloudflare Workers
+
+The app uses the OpenNext Cloudflare adapter. `wrangler.jsonc` owns the Worker name,
+entrypoint, static assets, and bindings. Keep the dashboard Worker name set to `woostack`;
+if renaming it, update both `name` and the `WORKER_SELF_REFERENCE` service in that file.
+
+1. From the repository root, install dependencies and build the Worker:
+
+   ```bash
+   pnpm install --frozen-lockfile
+   pnpm --filter docs run build:worker
+   ```
+
+   This runs skill generation and the Next.js build, then creates `.open-next/worker.js`
+   and `.open-next/assets/` inside `apps/docs/`. Keep the root `pnpm-lock.yaml` as the only
+   dependency lockfile. Do not run the OpenNext migration or install packages with npm during CI.
+
+2. Check the built Worker locally:
+
+   ```bash
+   pnpm --filter docs run preview
+   ```
+
+   Open the URL printed by Wrangler. Check `/docs/getting-started`, search,
+   `/docs/getting-started.md`, and `/llms.txt`. The preview uses the Workers runtime,
+   while `pnpm dev --filter=docs` continues to use the Next.js development server.
+   To check deployment packaging without publishing, run
+   `pnpm --filter docs run deploy --dry-run`.
+
+3. Connect the repository to the `woostack` Worker in Cloudflare Workers Builds and set:
+
+   | Setting | Value |
+   | --- | --- |
+   | Root directory | `apps/docs` |
+   | Build command | `pnpm run build:worker` |
+   | Deploy command | `pnpm run deploy` |
+   | Preview command, if non-production builds are enabled | `pnpm exec opennextjs-cloudflare upload` |
+   | Build variable | `NODE_VERSION=24.22.1` |
+
+   Dependency installation must use `pnpm install --frozen-lockfile` against the root
+   workspace lockfile, including development dependencies. The checkout must include
+   `../../skills/` and the rest of the repository. Leave build watch paths unrestricted
+   unless they also cover skills, shared assets, and root workspace configuration.
+   The build command creates the Worker bundle once; the deploy command publishes that bundle.
+   The preview command uploads a version without promoting it to production.
+
+For a manual release, authenticate with `pnpm --filter docs exec wrangler login`, then
+run `pnpm --filter docs run deploy` after building. In external CI, store
+`CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` in the CI secret store. Workers Builds
+provides deployment authentication through its configured API token.
+Custom domains and TLS are managed in the Cloudflare dashboard. Use Cloudflare's
+deployment rollback controls to restore a previous version.
+
+Prerendered pages use OpenNext's read-only Workers Static Assets cache. No R2 bucket,
+D1 database, Durable Objects, or runtime application secrets are needed for the current
+site. Rebuild and deploy when content changes. Before adding ISR or on-demand revalidation,
+replace this cache with a writable backend following the
+[OpenNext caching guide](https://opennext.js.org/cloudflare/caching).
+
 ## Deploy to Vercel
 
 Use these project settings:
