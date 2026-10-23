@@ -215,24 +215,21 @@ repairs are routine in-scope work. Developing verification machinery as a separa
 own implementation and validation cycle requires renewed approval before implementation unless
 already expressly approved. Temporary files, small edits, or eventual usefulness do not exempt it.
 
-Completion requires selected acceptance. Missing or prohibited external capability parks affected
-verification and dependent work, not safe independent work. Follow inherited coordinator checkpoints
-when delegated. A diagnostic cycle without new product-relevant or required-safety evidence parks
-affected work and returns its blocker rather than starting another method, worker, or retry cycle.
-Meaningful negative results narrowing a product failure count; completed acceptance is not needed
-for every cycle. Changed methods, timers, tooling artifacts, or refreshed handoffs do not reset a stall.
-Before another recovery, require relevant changed product inputs/evidence, an actually changed
-prerequisite/capability/permission, or explicit renewed user direction within its scope. Do not
-automatically poll or re-probe parked work, or reopen it for diagnostic artifacts.
-Continue runnable independent work and demonstrably healthy long product checks using existing
-runner progress and native timeout/cancellation controls. Elapsed time alone neither cancels checks
-nor fails acceptance; process liveness or diagnostic artifacts alone does not establish health.
-When delegated, report unresolved task-local decisions to the coordinator and park affected work
-without a host-blocking question; return control so independent authorized work, required review,
-or delivery can advance. Leave user-owned scope and permissions undecided.
-When no runnable authorized work and no demonstrably healthy pending work remains, return a final
-blocked disposition naming unmet acceptance and the exact pending decision or other actual resumption
-condition, without a blocking interview, idle loop, or further diagnosis.
+Completion requires selected acceptance. Follow inherited coordinator checkpoints when delegated.
+Park affected verification and dependents if an external capability is missing or prohibited, or a
+diagnostic cycle adds no new product-relevant or required-safety evidence. Meaningful negative results
+narrowing a product failure count; acceptance need not pass every cycle.
+Do not automatically poll or re-probe parked work. New diagnostic methods, workers, artifacts,
+handoffs or timer resets alone do not reopen it. Resume only for relevant changed product inputs or
+evidence, an actual prerequisite, capability or permission change, or explicit scoped user direction.
+Continue runnable independent work and demonstrably healthy long product checks using existing runner
+progress and native timeout/cancellation controls. Elapsed time alone neither cancels nor fails checks;
+process liveness or diagnostic artifacts do not establish health.
+When delegated, report unresolved task-local decisions to the coordinator and return control
+without a host-blocking question; leave user-owned scope and permissions undecided.
+With no runnable authorized work and no demonstrably healthy pending work, return a final blocked
+disposition naming unmet acceptance and the exact pending decision or resumption condition, not
+a blocking interview or diagnostic loop.
 Track temporary resources and stop task-owned resources when their scenario ends. Never publish
 secrets or personal data, or commit secrets or generated app files.
 
