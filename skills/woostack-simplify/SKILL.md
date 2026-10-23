@@ -75,6 +75,8 @@ result is valid when no worthwhile simplification is supported; do not invent cl
 Local verification is the default endpoint, including for explicit invocations. Commit or publish
 only when the user requests it, through the requested-delivery
 [delivery procedure](references/delivery.md); the woostack-commit skill remains optional
-navigation when the user asks for its capabilities. Do not publish around
-a failed or unrun required check or a local-only limit. New PRs are drafts; never merge, auto-merge,
-or queue them. Stop after requested delivery rather than monitoring PR checks or starting repair loops.
+navigation when the user asks for its capabilities. Failed or unrun required commit/publication checks
+and local-only limits still block the affected operation. Disclose unmet completion criteria in
+authorized drafts; draft visibility proves neither completion nor consumer release. New PRs are
+drafts; never merge, auto-merge, or queue them. Stop after requested delivery rather than monitoring
+PR checks or starting repair loops.
