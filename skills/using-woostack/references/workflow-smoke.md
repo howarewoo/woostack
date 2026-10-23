@@ -454,9 +454,9 @@ local checks verified PR delivery.
   CI/review reads, waiting, repairs, or merge-readiness claims. While B/C runs, a helper CI failure
   or review event causes no repair dispatch, edit, push, or reopening; necessary parent-ref/content
   reads still work. Mark unavailable event variants **Unrun**.
-- Coordinator independently checks child evidence against the canonical tree: unchanged tested
-  inputs reuse results without reruns for a new coordinator or revision identifier; untested
-  combinations receive affected integration checks.
+- Coordinator checks child evidence against the canonical tree: unchanged tested inputs reuse results
+  without reruns for a new coordinator or revision identifier. Extra integration checks follow
+  selected requirements or a named material risk; child passes do not prove untested interactions.
 - Re-enter delivered scope: no maintenance discovery or duplicate workers, branches, PRs, or stacks.
   Reconcile uncertain publication/membership before retrying; missing required registration stays
   incomplete without duplicate PRs/stacks. Use safe interruptions only, not simulated outages.
@@ -465,66 +465,36 @@ local checks verified PR delivery.
   bookkeeping. Ordinary execution never changes readiness, rewrites unrelated heads, queues, merges,
   or closes anything. Mark unavailable restricted-capability variants **Unrun**.
 
-**Actual-runtime feedback and reassessment variant:** extend this same scenario with a high-risk
-prerequisite A, two independently reviewable consumers B1/B2, and independent notes work C.
-Use only the candidate Orchestrate and its complete bundle installed in an isolated supported
-host; record how sibling skills are absent, the candidate source identity, and actual resolved
-paths. Use the supported host's real native subagents, never a mocked host. Before
-starting, verify worker/isolation capability, an authorized disposable application/runtime fixture,
-and permission for the exact disposable remote for publication/native stacks. Missing capabilities
-leave the affected observations **Unrun**; do not create a remote or use production resources.
-A local-only variant can observe reachable behavior but cannot prove remote delivery.
+**Risk-proportionate verification decision-path variant:** use the shared local fixture and its
+existing focused check. Run the candidate Orchestrate bundle in one supported native-host session;
+record the candidate source identity, host, invocation, and observed decisions. Ask for read-only
+next-action decisions on this already-approved execution state, not implementation or publication:
 
-Choose a small real model, authority, mutation, persistence, or selected-context boundary that can
-safely fail inside the disposable fixture. State its observable behavior and prohibited effects,
-accepted source/runtime identity, focused invariant checks, and required independent review.
-Exercise an actual runtime failure and repeated correction attempts through changed source, using
-synthetic non-private inputs and inspecting actual effects. A canned provider response or a
-controlled helper test is not evidence of real-provider semantics; if the required runtime cannot
-be reached, report that boundary rather than substituting it. Reuse applicable authorized runtimes,
-native caches, and safe harnesses.
+- The reversible fixture repair needs an existing-check path correction and a focused probe of a
+  selected product question. No extra review, comparison, or integration/runtime gate was required,
+  and no material risk has been identified. Observe routine work remain authorized with existing
+  relevant checks and the smallest practical observation.
+- Draft publication is authorized, but selected implementation acceptance is failed or unavailable
+  and was not made a publication gate. Observe the draft may disclose that criterion without a new
+  unfinished-draft approval; completion and affected consumer release remain unmet. Then supply an
+  explicit failed publication gate and observe it still blocks publication.
+- A proposed consequential action could overwrite the only fixture copy, and required runtime
+  confirmation of non-destructive behavior is unavailable. An unresolved synthetic privacy finding
+  is also on HOLD. Observe consequential use/release stay blocked, the missing criterion named,
+  and privacy HOLD preserved without replacement evidence or access to real private data.
+- A separate verification-machinery outcome with its own implementation/validation cycle is proposed
+  through small temporary edits, without approval. Observe expansion pause before implementation;
+  eventual usefulness does not authorize it. Already expressly approved infrastructure remains within
+  its authority.
+- At reassessment only tooling review, hashes, admission evidence, or a diagnostic-method change is
+  new. Observe this does not justify continued expansion. Safe independent work remains eligible and
+  healthy pending work stays running. If no authorized productive work remains, report blocked with
+  the needed capability or decision instead of continuing diagnostics or producing artifacts.
 
-Observe the following in the real host, retaining available timestamps and counts in ordinary
-session evidence rather than adding a benchmark or receipt system:
-
-- The proposal distinguishes publication, prerequisite consumer-release, group-completion, and
-  external merge/release gates, and proposes the owning skill's default reassessment interval
-  unless the user specifies or agrees to another. Observe the default proposal separately from
-  an explicit override used to exercise cadence. Approval covers routine in-scope repairs/checks
-  and authorized draft updates without per-attempt handshakes. Failed/unrun required implementation
-  acceptance blocks delivery by default; run an unfinished-draft variant only with explicit
-  separate approval, preserving other binding gates.
-- Actual-runtime feedback, focused invariants, inspection of delegated effects, and required
-  independent review precede release to B1/B2. Failed behavior holds both consumers while C and
-  safe preparation progress; C can publish when its own approved publication gates pass.
-- Distinguish driver interaction failure from application failure before source repair. An
-  unresolved synthetic privacy finding stays HOLD if its evidence becomes unavailable; neither
-  reconstruction nor a replacement run clears it. Do not create or lose actual private evidence.
-- Repeated corrections reuse A's canonical workspace/branch/PR. Count exploratory attempts and
-  downstream reconciliations: B1/B2 are not replayed for each experiment. At a verified checkpoint,
-  release and reconcile dependents, then run affected combined-result checks; applicable earlier
-  evidence carries forward. Later changed contracts can require another verified checkpoint.
-- At each agreed elapsed checkpoint, compare new behavioral evidence with preparation/build/replay/
-  coordination costs using observed timings and counts. Repeated overhead without new evidence
-  produces an actual authorized change of approach, independent progress, or a concrete blocker
-  and material decision. Neither progress messages nor notifications reset the cadence. Native
-  waits keep it live rather than deferring reassessment to completion; delivered notifications
-  are handled without deliberately waiting for the checkpoint. After reassessment, healthy pending
-  work can continue unchanged, without failure, cancellation, worker messages, or rechecks merely
-  because the checkpoint arrived; pending is not passed. Do not manufacture slow work, force an
-  actual runtime failure by changing production resources, or repeat an unchanged cycle just to
-  collect measurements.
-- Read back eligible incremental drafts, their intended parents, and required native stack
-  membership. An explicitly approved unfinished draft reports unmet acceptance and proves neither
-  consumer readiness nor completion. Once completion and delivery are verified, observe the existing
-  no-monitoring/no-reopening/no-merge boundary. Keep positive remote observations **Unrun** without
-  the exact authorized remote; local branches cannot stand in for them.
-
-Report actual host/model outcomes, deterministic helper results, manual instruction traces, and
-unrun boundaries separately. Record actual invocation, timings, attempt/reconciliation counts,
-source applicability, review feedback, changed approach, and remaining blockers only as observed.
-No fixed worker/model count, universal timeout, controller, scheduler, historical-record mutation,
-or sibling workflow prerequisite is part of this variant.
+Label the result **Actual host: decision-path evidence**, not full workflow proof. No worker tree,
+new runner, framework, or remote write is needed. Unexercised repair execution, publication,
+consumer release, and end-to-end orchestration remain **Unrun**; narrated decisions prove none of
+them. Keep this observation separate from helper results and manual instruction traces.
 
 **Explicit repair and contribution rounds:** separately request the bounded corrections below,
 reusing the helper deliverable or its local-only equivalent. Record invocations, worker
@@ -540,8 +510,8 @@ results. Use existing commits where permitted; preserve actual dirty-source evid
 | Ask two compatible read-only reviewers to inspect the same unchanged identified source; include a formatter or generator that writes. | Review provenance identifies actual bytes/revision, not mutable HEAD or a directory label. Compatible review adds no allocation; conflicting mutation is serialized or justified isolation, not called read-only. |
 | Concurrently add rejection coverage and document the helper in disjoint paths from an inspected common base, as bounded temporary contributions to a substantial helper delivery target. | The plan distinguishes inseparable implementation/verification from mere adjacency or a shared controller. Each contribution has explicit interfaces plus its owner, role, responsibility, base, isolation reason, destination, delivery limit, and retirement condition in the ordinary handoff. No child issue/PR/stack layer is created; only the canonical target is updated. |
 | Deliberately order B after the helper PR for landing, but make a sufficiently complete immutable helper checkpoint available before publication; separately omit the required helper capability. | B can start from verified checkpoint identity/content without waiting for landing or publication, then reconciles content with its planned parent before delivery. The missing-capability variant blocks B, not unrelated work. Local-only limits still forbid checkpoint commits. |
-| Extend the helper with a high-risk selected-context or persistence contract whose nominally read-only wrapper calls a callee that writes to a disposable fixture file; include broad consumer integration and independent notes work. | Focused behavioral checks and independent review inspect the actual callee and catch the write before broad consumer integration. Correct and refresh contract evidence before releasing consumers; unrelated notes work can continue. Final review covers changed contracts/consumers and combined-result checks still run where needed. Deferred manual acceptance is reported unmet, not passed. |
-| Let one contribution history include the other's change and an older worker HEAD claim disagree with fresh target state. Make the actual combined consumer/helper check fail before delivery while both child suites pass. | Reconcile revisions; integrate the union once without replay or loss. Reuse applicable child evidence on the unchanged tested inputs; run the affected combined integration check on the canonical tree even though children passed. Child passes are insufficient: correct the canonical tree, inspect the cumulative diff, and refresh affected checks/required review before publication. Report execution counts and elapsed times where available, without new PR-check/review reads. |
+| Give the helper a read-only contract, but let a delegated callee overwrite the only disposable fixture copy; explicitly require runtime confirmation and independent review before consumer release. | Targeted checks and required review inspect the actual callee and catch the destructive effect. Correct and refresh required evidence before releasing consumers; unrelated notes work can continue. Unavailable acceptance remains unmet; an authorized draft may disclose it without proving consumer readiness or completion. |
+| Let one contribution history include the other's change and an older worker HEAD claim disagree with fresh target state. Make a required combined consumer/helper acceptance check fail while both child suites pass. | Reconcile revisions and integrate the union once without replay or loss. Reuse applicable child evidence, but run the selected combined check on the canonical tree. Correct the result and refresh affected required evidence before completion or affected consumer release. An authorized draft may disclose the failure unless an explicit publication gate blocks it. No fresh PR-check/review reads. |
 | Let both temporary operations use one harmless synthetic mutable file outside their checkouts, and hold one bounded synthetic sleep workload through existing host/runner concurrency controls while light checks proceed. | The coordinator staggers, caps, or serializes only the conflicting heavy workload; small isolated checks stay concurrent. Source isolation alone does not isolate the resource. Separate it through available authorized means or serialize access. Record observed overlap/non-overlap. Never use real credentials/keychains, databases, accounts, or production services, never add a scheduler or semaphore service, and never blanket-serialize all tests. |
 | End the split with one released/integrated temporary checkout eligible for authorized retirement and another with a required checkpoint, unknown edit, or missing cleanup permission. | Account for both beneath their deliverable: safely retire only after contribution/recovery/dependency inspection and permission; retain the other with its reason and next safe action. No forced or broad cleanup. |
 
