@@ -39,9 +39,9 @@ GitHub evidence rather than a run controller.
 
 ### Test-only outcomes
 
-Requests to add or strengthen tests for one bounded target are ordinary Execute input: apply the
-canonical [testing guidance](references/tdd.md) directly, with no test-work router, project,
-provider requirement, or handoff. Keep test-only scope explicit — report a discovered
+Requests to add or strengthen tests for one bounded target are ordinary Execute input: use the
+evidence-selection policy below and [testing procedures](references/tdd.md), with no test-work router,
+project, provider requirement, or handoff. Keep test-only scope explicit: report a discovered
 production-behavior discrepancy for a scope decision instead of fixing it outside the admitted
 outcome. Old `/woostack-tdd` requests are retired; use `/woostack-execute <bounded test task>`.
 
@@ -66,9 +66,9 @@ shared contracts, prerequisites, approved scope, or delivery structure to the co
 proceeding with affected work. Do not create new deliverables or silently reorganize the plan.
 
 Naming Execute in a handoff is not a new user invocation or publication request. By default return
-verified task changes and evidence to the coordinator; commit or publish only when that operation
-is explicitly delegated within the user's authority. Keep one publication owner and preserve
-narrower limits and required checks. Task completion is not proof of the coordinator's delivery.
+task changes, observed evidence, and unmet criteria to the coordinator; commit or publish only when
+explicitly delegated within the user's authority. Keep one publication owner and preserve narrower
+limits and required checks. Task completion is not proof of the coordinator's delivery.
 
 ### Select the workspace and base
 
@@ -141,10 +141,11 @@ send it the bounded handoff and integrate the returned result yourself. Do not b
 permissions or capacity limits. Otherwise keep optional work inline; unavailable required
 independent review remains unmet, not self-review or a weaker substitute.
 
-Integrate contributions into the canonical task result and verify affected interactions, not just
-individual worker passes. Reuse applicable evidence under the testing guidance. Required independent
-review precedes completion; resolve in-scope findings and refresh affected evidence. Return the
-integrated source state, changed paths, checks/review actually performed, and unresolved concerns.
+Integrate contributions into the canonical task result and assess changed interactions under the
+evidence-selection policy below. Reuse applicable results; child passes alone do not prove an
+untested interaction. Complete any required independent review, resolve in-scope findings, and
+refresh affected selected evidence before completion. Return changed paths, observed checks/review,
+and unmet criteria.
 
 ### Optional exact GitHub issue
 
@@ -171,7 +172,7 @@ is a prerequisite. Before the first mkdir, write, or generator invocation, follo
 [initial scaffold admission](references/scaffold.md): it verifies one unambiguous intended target
 and its physical parent with fresh no-follow metadata and a complete directory listing, blocks
 collisions and unsafe targets without deleting or redirecting, creates the smallest requested
-working slice, runs applicable real checks and smoke paths, and records accurate setup facts
+working slice, verifies it under the evidence-selection policy below, and records accurate setup facts
 without inventing commands. The scaffold procedure grants no lifecycle authority of its own.
 Requested AGENTS.md, DESIGN.md, PRODUCT.md, ARCHITECTURE.md, or local support remain
 woostack-init's responsibility, not automatic scaffold output.
@@ -193,23 +194,43 @@ Before final verification and any required review, make one behavior-preserving 
 over only the admitted task's changes, applying the shared
 [least-code guidance](references/patterns.md#7-least-code--comments) inline.
 Reuse the established scope, workspace, and still-applicable verification evidence; an unchanged
-result is valid. Rerun checks affected by edits, then continue Execute's existing review and
-requested delivery. Do not expand scope, restart a standalone workflow, or repeat simplification
-after review or delivery.
+result is valid. Refresh affected selected evidence, then continue any required review and requested
+delivery. Do not expand scope, restart a standalone workflow, or repeat simplification after review
+or delivery.
 
-Select and run checks under the canonical [testing guidance](references/tdd.md).
-A failed or incomplete required check blocks delivery. If the environment prevents a check, try one
-materially different recovery; absent new evidence, report the unverified criterion instead of
-claiming success or waiving it. Track temporary servers, helpers, and recorders, and stop
-task-owned resources when their scenario ends. Never publish screenshots or logs containing
-secrets or personal data, and never commit secrets or generated app files.
+For ordinary reversible work, default to existing relevant checks and the smallest practical
+observation. Extra integration/runtime work, baseline/candidate comparisons, and independent review
+require an explicit user, repository, or task requirement, or a named material risk stating the
+failure, consequence, and evidence needed. Broad categories such as persistence alone do not
+establish high risk. Use the [testing procedures](references/tdd.md) for selected evidence, not extra
+gates. Preserve approved task-specific acceptance and publication gates without reinterpreting them.
+For consequential use or release involving authorization, privacy, destructive effects, migration,
+recovery, or financial operations, obtain stronger targeted evidence. Where runtime semantics matter,
+verify the changed source and actual effects; controlled outputs alone do not prove those semantics.
+Unresolved privacy evidence stays HOLD; neither reconstruct lost private evidence nor clear findings
+through replacement runs.
+
+Focused probes answering selected product-behavior or acceptance-blocker questions and existing-check
+repairs are routine in-scope work. Developing verification machinery as a separate outcome with its
+own implementation and validation cycle requires renewed approval before implementation unless
+already expressly approved. Temporary files, small edits, or eventual usefulness do not exempt it.
+
+Completion requires selected acceptance. If an environment is unavailable, name the unmet criterion;
+do not claim success or waive it. Continue safe independent work and leave healthy pending work
+running. When no authorized productive work remains, report a blocked disposition and the needed
+capability or decision instead of open-ended diagnostics or artifact production.
+Track temporary resources and stop task-owned resources when their scenario ends. Never publish
+secrets or personal data, or commit secrets or generated app files.
 
 ## Requested commit and publication
 
-Before delivery, correct in-scope failures and rerun affected checks. After verified delivery,
-later failures or feedback require a separate explicit repair request; reuse the verified workspace,
-branch, and PR for that correction. Local-only work ends after verification; report any conflicting
-repository-required PR rather than publishing around the limit.
+Authorized draft publication may disclose failed or unavailable implementation acceptance without
+separate unfinished-draft approval. Explicit publication gates, required hooks, privacy, security and
+data-loss protections, clean scoped content, and user restrictions remain binding. Draft visibility
+establishes neither completion nor consumer-release evidence.
+After task completion and requested delivery, later failures or feedback require a separate explicit
+repair request; reuse the workspace, branch, and PR. Local-only work ends with completion or an
+accurate blocked disposition; report a conflicting repository-required PR rather than publishing.
 
 Perform requested delivery only through the [delivery procedure](references/delivery.md), passing
 verified issue references; a local commit without PR update stops after the local commit. The
@@ -223,6 +244,6 @@ or advance another person's PR toward merge.
 
 On unknown commit, push, PR, or stack outcomes, rediscover exact Git and PR facts before retrying;
 never duplicate a commit or PR. Preserve the selected workspace and unrelated work. Report the
-outcome, changed paths, checks and review, and remaining risks. For local completion, state that no
-PR was submitted; for requested delivery, report the commit, PR URL/head/base/state, issue
-association, and first blocked or unproved boundary. Claim no unobserved evidence.
+outcome, changed paths, observed checks/review, unmet criteria, and remaining risks. For local-only
+work, state that no PR was submitted; for requested delivery, report the commit, PR URL/head/base/state,
+issue association, and separate publication and completion dispositions. Claim no unobserved evidence.
