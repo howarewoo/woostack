@@ -179,22 +179,30 @@ For an explicit one-run model or effort request, apply the shared
    before adding checks; child passes do not prove an untested interaction. Refresh affected selected
    evidence and any required review in the same allocation.
    Handle slow checks under [Slow checks](references/tdd.md#slow-checks-bounded-diagnosis-no-waiver);
-   deferred or unavailable acceptance remains unmet. At each agreed wall-clock
-   checkpoint, compare elapsed preparation, builds, replay, and coordination with progress toward
-   product acceptance and required safety evidence, using observed timings and counts where available.
-   Distinguish that progress from diagnostic artifacts: tooling reviews, hashes, admission packets,
-   or merely changing diagnostic methods do not by themselves justify continued expansion.
-   If repeated attempts mostly reproduce overhead without new evidence, do not repeat that cycle
-   unchanged: change approach within standing authority and step 1's material-departure boundary,
-   continue independent work, or report the affected blocker and material decision or permission
-   needed. Reassessment may leave healthy work running unchanged;
-   the checkpoint alone is no reason to fail, cancel, message, or recheck a pending worker, or
-   treat pending work as passed.
-   Keep the cadence live throughout execution, including native-worker and group waits: use
-   available host notifications and bounded waits so reassessment is not deferred to completion.
-   Handle delivered notifications without deliberately waiting for the checkpoint; neither
-   notifications nor progress messages reset its cadence. Reassessment adds no universal timeout,
-   approval handshake, or artifact system and waives no gate.
+   deferred or unavailable acceptance remains unmet. Missing or prohibited external capability parks
+   affected verification and dependent work, not the entire plan.
+   At each agreed wall-clock checkpoint, compare preparation, builds, replay, and coordination with
+   new product-relevant or required-safety evidence. Meaningful negative results narrowing a product
+   failure count as progress; completed acceptance is not required at every checkpoint.
+   A diagnostic cycle with no such evidence must park affected verification and dependent work,
+   rather than start another method, worker, or retry cycle. Changed methods, reset timers, tooling
+   edits/reviews/hashes, admission packets, or refreshed handoffs do not reset the stall.
+   Before another recovery, require relevant changed product inputs/evidence, an actually changed
+   prerequisite/capability/permission, or explicit renewed user direction within its scope.
+   Do not automatically poll or re-probe parked work at checkpoints or reopen it for diagnostic
+   artifacts. During approved execution, surface unresolved task-local decisions in ordinary progress
+   output and park affected work without invoking a host-blocking question while safe independent
+   authorized work, required independent review, or eligible requested delivery can advance.
+   Continue coordinator service rather than waiting for that answer. Leave user-owned scope and
+   permissions undecided; safety, privacy, and publication gates remain binding.
+   Let demonstrably healthy long product checks continue using existing runner progress and native
+   timeout/cancellation controls. Elapsed time alone neither cancels them nor fails acceptance;
+   process liveness or changing diagnostic artifacts alone does not establish health. A checkpoint
+   alone does not require messages or rechecks of a healthy pending worker; pending is not passed.
+   Keep the agreed cadence live during runnable work and healthy native-worker/group waits through
+   available host notifications and bounded waits. Handle delivered notifications without deliberately
+   waiting for the checkpoint; neither notifications nor progress messages reset its cadence.
+   Reassessment adds no universal timeout, retry budget, approval handshake, or artifact system.
    Publish each eligible group's requested draft once its explicit publication gates pass, without
    waiting for unrelated groups or the whole chain. Disclose failed or unavailable acceptance;
    draft visibility neither releases consumers nor proves group completion.
@@ -212,7 +220,8 @@ For an explicit one-run model or effort request, apply the shared
    [authorized Git tools reference](references/source-control.md).
 6. **Finish delivered groups.** After group-completion requirements, verified PR publication, and
    required native stack membership/order are satisfied, the coordinator and delegated workers finish
-   that group. Incomplete groups continue only authorized productive work; otherwise report blocked.
+   that group. Incomplete groups continue runnable authorized work or demonstrably healthy pending
+   work; parked work alone does not keep execution open.
    Do not fetch or monitor PR checks or reviews, wait for CI, collect new comments, or initiate
    post-completion repairs. Continue only unfinished groups; incoming CI/review events do not reopen
    completed work. Necessary parent ref/content reads for remaining delivery remain valid.
@@ -221,9 +230,10 @@ For an explicit one-run model or effort request, apply the shared
    contribution/integrated revisions, applicable verification, unmet criteria, and separate publication,
    consumer-release, and completion dispositions. No fresh CI/review reads are needed for the report.
    Identify incidentally returned status accurately without follow-up; uninspected CI is not a pass.
-   If an environment is unavailable, name the unmet criterion. When no authorized productive work
-   remains, report a blocked disposition and the needed capability or decision instead of continuing
-   open-ended diagnostics or artifact production. Unmet external acceptance remains unmet.
+   Name unmet acceptance and the exact pending decision or other actual resumption condition for
+   parked work. When no runnable authorized work and no demonstrably healthy pending work remains,
+   return a final blocked disposition instead of a blocking interview, idle/reassessment loop, further
+   diagnostics, or artifact production. Unmet external acceptance remains unmet.
    Account for temporary allocations beneath their delivery owner as active, retained for a named
    dependency, or safely retired under the
    [authorized lifecycle](references/worktrees.md#base-and-recovery).
