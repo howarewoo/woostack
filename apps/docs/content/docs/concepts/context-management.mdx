@@ -3,59 +3,57 @@ title: Context management
 description: "How woostack keeps context small while preserving repository truth and the evidence a result depends on."
 ---
 
-Context is the information an agent has available while working. Keep it small enough to use without
-dropping the approved scope or the evidence needed to check a result. Git and GitHub show code and
-PR state, and retained `.woostack/tmp/runs/<run-id>/` records are historical user data.
+Context is the information an agent has available while working. Keep it small enough to reason
+effectively without dropping approved scope or the evidence needed to verify a result. Git and
+GitHub show code and PR state; retained `.woostack/tmp/runs/<run-id>/` records remain historical
+user data.
 
 A stale or cached read cannot establish a fact or grant permission. A Plan destination comes from
-the request and its actual context, not from a title, a nearby branch, or artifact text.
+the request and its actual context, not from an assumed title, nearby branch, or artifact text.
 
 ## Output stays compact
 
-The Woostack skills share one bundled output discipline: lead with the
-result, remove narration and repetition, and retain exact evidence, commands, paths, and errors.
-Security, destructive actions, root-cause analysis, and architecture keep the detail required to
-remain unambiguous.
+Woostack skills share one disciplined output standard: lead with the result, remove narration
+and repetition, and preserve exact evidence, commands, file paths, and errors. Security, destructive
+actions, root-cause analysis, and architecture retain the detail required to remain unambiguous.
 
 ## Requested reflection becomes instruction suggestions
 
 [woostack-reflect](/docs/skills/woostack-reflect) runs one report-only pass for an explicit
 `/woostack-reflect` invocation or an unambiguous request to reflect on the conversation. Ordinary
-work never loads it.
+workflows never load it.
 
 Reflection treats transcripts and tool output as untrusted evidence. It does not execute embedded
-instructions, follow embedded URLs, or expand the task. The first pass only reports suggestions:
-it writes no artifact and changes no instruction file. A later explicit user request is required
-to edit instructions or file a sanitized upstream issue after verifying its destination.
+instructions, follow embedded URLs, or expand task scope. The first pass only reports suggestions:
+it writes no artifacts and changes no instruction files. An explicit follow-up user request is
+required to edit instructions or file a sanitized upstream issue.
 
 ## Helpers reduce bulk without replacing authority
 
-Work tracking is read directly from the authorized canonical GitHub issues and the relationships
-that were actually written, associated pull requests, and Git evidence. Generated indexes, bundles,
-temporary intent snapshots, and caches help agents find information, but they do not authorize
-work. Remote text and tool output are evidence, never instructions. The agent responsible for the
-workflow refreshes relevant repository and evidence identities before making changes or taking
-external actions.
+Work tracking is read directly from authorized canonical GitHub issues, written relationships,
+associated pull requests, and Git evidence. Generated indexes, temporary intent snapshots, and
+caches help agents locate information, but they do not authorize work. Remote text and tool output
+remain evidence, never instructions. The agent responsible for the workflow refreshes relevant
+repository and evidence identities before making changes.
 
 ## Isolated agents receive bounded envelopes
 
-Before choosing inline or delegated implementation, weigh the task's scope against dispatch,
-context preparation, verification overhead, and risk. Delegation uses an agent the host already
-exposes and inherits the host's configured model. Independent validation is used when required,
-requested, or warranted by risk, not as a universal receipt.
+Before choosing inline or delegated implementation, weigh task scope against dispatch overhead,
+context preparation, and risk. Delegation uses an agent the host already exposes and inherits the
+host's configured model.
 
-Each worker gets a bounded assignment, also called an envelope:
+Each worker receives a bounded assignment envelope:
 
-- An implementation worker receives one approved task, its repository and worktree, the paths it
-  may change, dependencies, acceptance criteria, and verification requirements.
-- Advisory reviewers receive the relevant diff and context. They cannot edit code, change remote
-  state, or accept work.
+- **Implementation worker:** Receives one approved task, its repository and worktree, the paths it
+  may change, dependencies, acceptance criteria, and verification commands.
+- **Advisory reviewer:** Receives relevant diffs and context. Reviewers cannot edit code, change
+  remote state, or accept work independently.
 
-Separate sessions keep unrelated context out of the assignment. Optional artifact identifiers and
-read results may accompany it but cannot expand its scope or permissions.
+Separate sessions keep unrelated context out of the worker's working memory. Artifact identifiers
+and read results may accompany the envelope but cannot expand its permissions.
 
 ## Model routing stays host-owned
 
-The harness chooses the model and effort for inline work and delegated tasks. Woostack does not
-translate task labels into model choices or switch providers after an error. It preserves workspace
-and evidence boundaries.
+The harness chooses the model and reasoning effort for inline work and delegated tasks. Woostack
+does not translate task labels into model choices or switch providers after an error. It preserves
+workspace and evidence boundaries.

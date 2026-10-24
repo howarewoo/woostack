@@ -6,23 +6,16 @@ description: Direct issue publication, verified read-back, and lifecycle boundar
 The canonical implementation rules live in the
 [artifact contract](https://github.com/howarewoo/woostack/blob/main/shared/references/artifact-backends.md#direct-publication-and-recovery)
 and the [GitHub profile](https://github.com/howarewoo/woostack/blob/main/shared/references/artifact-providers/github.md#configuration-and-scope).
-Plan owns direct issue publication and reads every write back before it claims success. Orchestrate
+
+Plan owns direct issue publication and reads every write back before claiming success. Orchestrate
 is read-only when interpreting a tracker: a complete readable implementation index can establish
 declared membership when native child links are absent, partial, or unavailable, provided every
-selected issue and contract is independently readable. Missing native metadata is not a reason to
-reject a complete declared scope, but it is never reported as a verified relationship.
+selected issue is independently readable.
 
-The `github` object is optional policy, and the resolver validates it once when it is present. Only
-`owner`, `ownerType`, `statusField`, and `projectStatuses` are allowed, and a supplied
-`projectStatuses` mapping must name all five supported keys with nonempty, distinct option values.
-Replace the example values with verified ones from your GitHub account or organization, and check
-that the five options exist on the selected single-select field. Optional does not mean loose:
-malformed values still fail the resolver.
+## Configuration policy
 
-Each requested operation then needs only its own requirements. Reading a Project, adding requested
-membership, and reconciling an approved README span need no Status configuration. A Status change
-needs its own request and the verified mappings for it. Issue publication without a Project needs
-none of these fields, so the `github` object, `owner`, and `projectStatuses` may all be absent.
+The `github` object is optional policy. When present, only `owner`, `ownerType`, `statusField`,
+and `projectStatuses` are allowed.
 
 ```json
 {
@@ -43,116 +36,87 @@ none of these fields, so the `github` object, `owner`, and `projectStatuses` may
 
 | Field | Type | Constraint |
 | --- | --- | --- |
-| `github.owner` | string | Optional nonempty GitHub organization or user login. A requested Project operation resolves its exact Project under the selected owner; when present it must match the canonical repository owner. |
-| `github.ownerType` | string | Optional `"organization"` or `"user"`. The selected Project's actual owner type is read from GitHub when the field is omitted. |
-| `github.statusField` | string | Optional exact case-sensitive single-select field name. Defaults to `"Status"`. Only a requested Status change uses it. |
-| `github.projectStatuses` | object | Optional. When supplied, a mapping of exactly five keys (`planned`, `executing`, `inReview`, `done`, `blocked`) to nonempty, distinct option names on the configured status field. A requested Status change requires the mapping it needs; other Project operations do not. |
+| `github.owner` | string | Optional nonempty GitHub organization or user login. When present, must match canonical repository owner. |
+| `github.ownerType` | string | Optional `"organization"` or `"user"`. Read from GitHub when omitted. |
+| `github.statusField` | string | Optional exact case-sensitive single-select field name. Defaults to `"Status"`. |
+| `github.projectStatuses` | object | Optional. When supplied, maps all five keys (`planned`, `executing`, `inReview`, `done`, `blocked`) to nonempty, distinct option names. |
 
-Credentials belong in the host's secret store, never in repository configuration. Use an available,
-authorized GitHub capability exposed by the host (prefer native GitHub tools when suitable;
-host-authenticated `gh` remains supported). Discover actual operation capabilities and supported
-read/write shapes rather than assuming tool names or schemas. Custom HTTP/GraphQL clients, credential
-reads, and token forwarding are forbidden.
+Credentials belong in the host secret store, never in repository configuration. Custom HTTP clients,
+credential reads, and token forwarding are forbidden. Host-native GitHub tools are preferred;
+host-authenticated official `gh` is supported.
 
 ### Transport capabilities and boundaries
 
 Preflight only the capabilities needed by the selected operation through the authorized GitHub
-interface. Requested issue publication needs issue reads/writes and independent read-back; native
-sub-issue and dependency writes are used only when they are available and requested. Issue-write
-access does not prove native relationship-write access. A selected Project is resolved by its exact
-identity, and each Project operation carries its own requirements: reading it needs Project read,
-requested membership needs Project membership write, and reconciling an approved README span needs
-`readme` read and update. Status capabilities and the matching mapping are required only when a
-Status change is explicitly requested. Unavailable Project access does not block an issue
-publication that did not request one. Orchestrate's read-only tracker interpretation can proceed
-from a complete readable implementation index and independently read selected issues when
-native relationship reads are unavailable; it never mutates relationships or issues. Unsupported
-capabilities, unauthorized scopes, another operation's markers, unexpected changes, or partial
-responses stop the relevant GitHub operation. No test mutation is used to prove publication
-permissions.
+interface. Each requested operation requires only its own capabilities:
 
+| Operation | Required capability | Configuration required | Read-back verification |
+| --- | --- | --- | --- |
+| Issue publication | Issue create and update | None (`github` object may be absent) | Independent read-back of issue body and relationships |
+| Native relationship links | Sub-issue or blocked-by links | None | Confirmed read-back of relationship graph |
+| Project membership | Project item create | None (resolves caller-supplied Project URL) | Verified project item presence |
+| Spec README update | `ProjectV2.readme` update | Canonical Project URL | Verification of content within spec markers |
+| Project Status update | Project field update | `statusField` and verified `projectStatuses` mapping | Read-back of updated field value |
+
+Native relationship writes are requested separately. If unavailable, retain verified issue URLs
+and readable prerequisites, and report missing relations; an explicitly required native graph
+remains incomplete. Writes preserve human and unrelated content. Unknown writes are rediscovered
+using the same exact identity or Project-bound marker before retrying, never creating blind duplicates.
+README mutation updates only `readme`, preserves outside bytes, and retains its bound recovery marker.
+
+Unsupported capabilities, unauthorized scopes, or partial responses stop the relevant GitHub
+operation. No test mutation is used to probe publication permissions.
 
 ## Identities, hierarchy, and graph
 
-Accepted canonical URL forms are:
-- Projects: `https://github.com/orgs/<owner>/projects/<N>` (organizations) or `https://github.com/users/<owner>/projects/<N>` (users).
+Accepted canonical URL forms:
+
+- Projects: `https://github.com/orgs/<owner>/projects/<N>` or `https://github.com/users/<owner>/projects/<N>`.
 - Issues: `https://github.com/<owner>/<repo>/issues/<N>`.
 
-Use these URLs to select resources and associate them with a PR. GitHub's internal GraphQL node
-IDs and Project item IDs are kept separately for API changes.
-
-Explicit Project operations resolve one exact caller-supplied Project URL, which is never inferred
-from configuration. The complete specification may be represented in `ProjectV2.readme` between
-markers `<!-- woostack-spec-start -->` and `<!-- woostack-spec-end -->`, preserving unrelated README
-bytes. Writing that span updates only `readme`; no other Project field, such as title, visibility,
-or lifecycle, is changed.
-
-An explicitly selected Project may already contain parentless repository issues; Plan preserves
-their actual relationships and membership. Project README spans retain their own recovery marker.
-After an uncertain issue create, discover the exact issue identity before deciding what remains.
+GitHub's internal GraphQL node IDs and Project item IDs are kept separately for API calls.
+Explicit Project operations resolve one exact caller-supplied Project URL, never inferred from
+configuration. The specification may be stored in `ProjectV2.readme` between markers
+`<!-- woostack-spec-start -->` and `<!-- woostack-spec-end -->`, preserving unrelated README bytes.
 
 ### Issue publication
 
-`--project` is the one explicit destination selector:
+`--project` is the explicit destination selector:
 
 ```text
 /woostack-plan <goal-or-partial-issue> --project <exact canonical GitHub Project URL>
 ```
 
-Without it, the destination comes from the request and the actual context, and Plan asks instead of
-choosing when more than one destination is plausible. A planning-only request writes nothing.
+Without `--project`, the destination comes from the request and repository context. Plan asks
+instead of choosing when multiple destinations are plausible.
 
-Publication reuses the existing issue for an increment when there is one, creates the missing
-issues, and adds only the relationships the request asked for. After every write, Plan reads the
-affected issues back independently and confirms their actual content and their actual
-relationships; a mutation response alone proves nothing. A create whose response was lost is
-rediscovered by exact identity in the exact repository, never by creating a second copy blind.
-Unrelated and human-owned issue content is preserved.
+Publication reuses an existing issue when one covers an increment, creates missing issues, and
+writes only requested relationships. After every write, Plan reads affected issues back independently;
+a mutation response alone proves nothing.
 
-Native sub-issue and dependency links are used when the host offers them and the request asked for
-them. Native hierarchy, `blocked-by` edges, and Git branch ancestry are separate facts: hierarchy
-groups issues, `blocked-by` records a real prerequisite, and neither orders delivery or selects a
-branch parent. When the host cannot create those links, the written issues and a readable index of
-them with their declared prerequisites are kept, the missing relationships are reported, and an
-explicitly required native graph is called incomplete rather than published.
-
-Issue content is flexible: the outcome, the important constraints, acceptance and verification, and
-the real prerequisites are the floor, not a fixed section order. Independent increments may run in
-parallel. Orchestrate states the grouping, execution order, concurrency, and each task's intended
-parent in its plan before implementation, then verifies the actual base content when the task
-starts; a prerequisite already landed in the approved integration base is satisfied evidence rather
-than another task's work. When divergence or repository constraints leave no safe stack, that task
-pauses for a human merge decision and unrelated work continues. Planning never creates an
-integration branch or combines branches.
-
-Orchestrate accepts `--issue`, `--issues`, and `--project` as convenience hints rather than an
-exhaustive admission taxonomy. It uses conversation, repository, and GitHub evidence to resolve
-canonical identities, separate executable tasks from context, and keep the provenance of each
-dependency. Tracker content without native links can still be interpreted, and inferred
-relationships are never published back to GitHub. Independently validated PR delivery releases
-dependents; no issue closure or merge is required, and all work leaves the scope open for human
-review and merge.
+Native hierarchy, `blocked-by` relationships, and Git branch ancestry are separate facts:
+hierarchy groups issues, `blocked-by` records a prerequisite, and neither orders delivery or
+selects a branch parent.
 
 ## Lifecycle and closure (retired Execute reference)
 
 > **Retired.** Execute no longer performs GitHub Project/issue lifecycle transitions, project/run
 > controller reads, closure, or `--project`/`--run`/`--recheck` scope. It accepts an authorized
-> bounded task and may read a selected exact issue for context; a bare issue URL does not authorize
-> implementation or publication. See [Execute retired inputs](/docs/skills/woostack-execute#retired-inputs).
+> bounded task and may read a selected exact issue for context. See
+> [Execute retired inputs](/docs/skills/woostack-execute#retired-inputs).
 
 Explicit Project lifecycle operations use only the retained exact Project and its configured fields.
-Plan without a Project selection has no Project lifecycle to close. Historical handoff, abandonment,
-blockers, and completion leave any retained Project artifact unchanged.
+Plan without a Project selection has no Project lifecycle to close.
 
 ## Workflow matrix
 
 | Skill | GitHub behavior |
 | --- | --- |
-| [woostack-plan](/docs/skills/woostack-plan) | Plans a goal or partial issue and writes nothing unless the request asks for issues. Publication reuses an existing issue, creates the missing ones, writes only the requested relationships, and reads every write back. `--project` adds membership in one exact existing Project; it never creates a Project. |
-| [woostack-orchestrate](/docs/skills/woostack-orchestrate) | Coordinates selected multi-task work and verifies requested delivery without closing issues or merging. Local-only work requires no GitHub publication; issue, issue-list, and Project arguments supply context, not extra authority. |
-| [woostack-execute](/docs/skills/woostack-execute) | A selected exact issue can provide bounded context, not blanket authority; retired `--project`, `--run`, and `--recheck` are rejected. Local-only work needs no GitHub access; explicit Execute requests a draft PR unless narrowed, and the invocation delivers it itself with its bundled delivery procedures. An explicit commit/PR maintenance request is Commit's own operation. |
-| [woostack-init](/docs/skills/woostack-init) | Authors project guidance without GitHub access or configuration validation. Its explicit local-support path creates/repairs `.woostack/` and validates optional `github` policy. Neither path contacts a provider, discovers a destination, selects remote persistence, or probes a remote write. |
-| [woostack-doctor](/docs/skills/woostack-doctor) | Runs static local checks through the same resolver; no check reads a credential or makes a network call. An approved local repair is performed by Doctor itself under the requested delivery limit. Doctor never opens a provider session or grants publication capability. |
+| [woostack-plan](/docs/skills/woostack-plan) | Plans work; writes issues only when requested. Reuses existing issues, writes requested relationships, and reads every write back. `--project` adds membership in one exact existing Project. |
+| [woostack-orchestrate](/docs/skills/woostack-orchestrate) | Coordinates multi-task work and verifies requested delivery without closing issues or merging. Local-only work requires no GitHub publication; explicitly selected remote issue or Project reads still need access. |
+| [woostack-execute](/docs/skills/woostack-execute) | Accepts bounded tasks; retired `--project`, `--run`, and `--recheck` are rejected. Explicit Execute requests deliver draft PRs unless narrowed to local edits. |
+| [woostack-init](/docs/skills/woostack-init) | Authors project guidance without GitHub access. Explicit local-support path validates optional `github` policy without contacting providers. |
+| [woostack-doctor](/docs/skills/woostack-doctor) | Runs static local checks; never contacts providers or reads credentials. Performs explicitly approved local repairs itself under user delivery limits. |
 
 See the [GitHub profile contract](https://github.com/howarewoo/woostack/blob/main/shared/references/artifact-providers/github.md)
-for exact capability, resource identity, and recovery requirements.
+for exact capability, identity, and recovery requirements.

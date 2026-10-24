@@ -1,123 +1,78 @@
 /**
- * Context-economy hero for the Context management page.
+ * Context-economy diagram for the Core concepts and Context management pages.
  *
  * Three mechanisms feed one scarce resource: the agent's working context.
  * Scoped instructions, shell scripts, and subagents each keep heavy work out
- * of the main context window. Pure inline SVG — no dependencies. Colors come from the
- * Fumadocs theme tokens (`--color-fd-*`) so it adapts to light and dark with no
- * JavaScript.
+ * of the main context window.
+ * Responsive semantic HTML with Fumadocs theme utilities.
  */
 export function ContextEconomy() {
-  const sources = [
-    { y: 24, title: "Scoped instructions", sub: "load only applicable rules" },
-    { y: 116, title: "Scripts compute", sub: "read the small output" },
-    { y: 208, title: "Subagents isolate", sub: "return a compact result" },
+  const mechanisms = [
+    {
+      title: "Scoped instructions",
+      sub: "Load only applicable rules for the active workflow.",
+      tag: "Rules",
+    },
+    {
+      title: "Scripts compute",
+      sub: "Run heavy calculation in shell; return small text output.",
+      tag: "Execution",
+    },
+    {
+      title: "Subagents isolate",
+      sub: "Perform bounded task in separate context; return summary.",
+      tag: "Isolation",
+    },
   ];
 
   return (
-    <figure className="my-6">
-      <svg
-        viewBox="0 0 760 300"
-        role="img"
-        aria-label="Three mechanisms — scoped instructions, shell scripts, and subagents — keeping the agent's working context small."
-        style={{
-          width: "100%",
-          height: "auto",
-          fontFamily: "ui-sans-serif, system-ui, sans-serif",
-        }}
-      >
-        <defs>
-          <marker
-            id="ce-arrow"
-            viewBox="0 0 10 10"
-            refX="9"
-            refY="5"
-            markerWidth="7"
-            markerHeight="7"
-            orient="auto-start-reverse"
-          >
-            <path d="M0,0 L10,5 L0,10 z" fill="var(--color-fd-muted-foreground)" />
-          </marker>
-        </defs>
+    <figure className="not-prose my-6 rounded-xl border border-fd-border bg-fd-card p-4 sm:p-6">
+      <div className="flex flex-col gap-4">
+        <div>
+          <h3 className="text-sm font-semibold text-fd-foreground">
+            Context economy: three mechanisms, one scarce resource
+          </h3>
+          <p className="text-xs text-fd-muted-foreground mt-0.5">
+            Keep working memory focused by isolating heavy operations outside the main context
+            window.
+          </p>
+        </div>
 
-        {/* source nodes */}
-        {sources.map((s) => (
-          <g key={s.title}>
-            <rect
-              x="20"
-              y={s.y}
-              width="250"
-              height="68"
-              rx="10"
-              fill="var(--color-fd-card)"
-              stroke="var(--color-fd-border)"
-              strokeWidth="1.5"
-            />
-            <text
-              x="40"
-              y={s.y + 30}
-              fontSize="17"
-              fontWeight="600"
-              fill="var(--color-fd-foreground)"
+        {/* Three mechanism cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          {mechanisms.map((m) => (
+            <div
+              key={m.title}
+              className="flex flex-col justify-between rounded-lg border border-fd-border bg-fd-card/60 p-3.5"
             >
-              {s.title}
-            </text>
-            <text x="40" y={s.y + 50} fontSize="13" fill="var(--color-fd-muted-foreground)">
-              {s.sub}
-            </text>
-            {/* connector into the core */}
-            <path
-              d={`M270,${s.y + 34} C370,${s.y + 34} 410,150 490,150`}
-              fill="none"
-              stroke="var(--color-fd-muted-foreground)"
-              strokeWidth="1.5"
-              markerEnd="url(#ce-arrow)"
-            />
-          </g>
-        ))}
+              <div>
+                <span className="rounded bg-fd-muted px-2 py-0.5 text-xs font-semibold text-fd-muted-foreground">
+                  {m.tag}
+                </span>
+                <h4 className="mt-2 text-sm font-semibold text-fd-foreground">{m.title}</h4>
+              </div>
+              <p className="mt-2 text-xs text-fd-muted-foreground">{m.sub}</p>
+            </div>
+          ))}
+        </div>
 
-        {/* the scarce resource */}
-        <rect
-          x="492"
-          y="104"
-          width="248"
-          height="92"
-          rx="12"
-          fill="var(--color-fd-primary)"
-          stroke="var(--color-fd-primary)"
-          strokeWidth="1.5"
-        />
-        <text
-          x="616"
-          y="142"
-          fontSize="18"
-          fontWeight="700"
-          textAnchor="middle"
-          fill="var(--color-fd-primary-foreground)"
-        >
-          Small working
-        </text>
-        <text
-          x="616"
-          y="166"
-          fontSize="18"
-          fontWeight="700"
-          textAnchor="middle"
-          fill="var(--color-fd-primary-foreground)"
-        >
-          context
-        </text>
-      </svg>
-      <figcaption
-        style={{
-          textAlign: "center",
-          fontSize: "0.85rem",
-          color: "var(--color-fd-muted-foreground)",
-          marginTop: "0.5rem",
-        }}
-      >
-        Context economy: three mechanisms, one scarce resource.
-      </figcaption>
+        {/* Downward connector */}
+        <div className="flex items-center justify-center gap-2 text-xs font-medium text-fd-muted-foreground">
+          <span className="hidden sm:inline">Protects</span>
+          <span aria-hidden="true">↓</span>
+        </div>
+
+        {/* The scarce resource */}
+        <div className="rounded-lg border border-fd-primary/30 bg-fd-primary/5 p-4 text-center">
+          <div className="text-xs font-semibold uppercase tracking-wider text-fd-primary">
+            Scarce Resource
+          </div>
+          <div className="mt-1 text-sm font-bold text-fd-foreground">Agent working context</div>
+          <p className="mt-1 text-xs text-fd-muted-foreground">
+            Kept focused on user goals, active decisions, and verified evidence.
+          </p>
+        </div>
+      </div>
     </figure>
   );
 }
