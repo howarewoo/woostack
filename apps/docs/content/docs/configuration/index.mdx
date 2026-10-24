@@ -3,7 +3,7 @@ title: Configuration
 description: Reference for woostack repository policy, configuration precedence, supported keys, types, and defaults.
 ---
 
-This page lists the non-secret repository settings read by woostack. Retained local records and direct
+This page lists the non-secret repository settings read by Woostack. Retained local records and direct
 GitHub publication have their own [reference section](/docs/configuration/artifacts) because they
 have different fields and recovery guarantees.
 
@@ -74,7 +74,6 @@ respective workflows. Other non-secret keys are preserved by configuration layer
   <Card title="GitHub" href="/docs/configuration/artifacts/github" description="Direct issue graphs, Projects, and capability/read-back requirements." />
 </Cards>
 
-
 ## A complete example
 
 This example combines optional settings; it is not the init template. Replace `commit.command`
@@ -133,10 +132,10 @@ worktrees are cut from.
 
 <Callout type="info">
   Init and [woostack-doctor](/docs/skills/woostack-doctor) inspect local configuration only: they
-  contact no provider, read no credentials, and make no network call, and an approved local repair
-  is handed to Execute with the requested delivery limit. Keep credentials in the host secret store.
-  A clean local check is not proof of remote authorization, and an incomplete check is not a healthy
-  one. The [artifacts reference](/docs/configuration/artifacts) owns each workflow's GitHub
+  contact no provider, read no credentials, and make no network call. Doctor applies explicitly
+  approved local repairs itself, under the user's delivery limit. Keep credentials in the host secret
+  store. A clean local check is not proof of remote authorization, and an incomplete check is not a
+  healthy one. The [artifacts reference](/docs/configuration/artifacts) owns each workflow's GitHub
   requirements.
 </Callout>
 

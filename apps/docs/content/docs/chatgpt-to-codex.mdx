@@ -3,31 +3,24 @@ title: Plan in ChatGPT, implement in Codex
 description: Plan a change in a normal ChatGPT chat, optionally publish verified issues, then implement in a separate Codex session.
 ---
 
-Settle the requirements in a normal ChatGPT chat, ground the plan in the actual
-repository, and stop there. Implementation is a separate request in a separately
-configured coding host. This recipe needs no installed Woostack skills, and public
-search is not a substitute for private repository access.
+Settle requirements in a normal ChatGPT chat, ground the plan in the actual repository, and stop there.
+Implementation is a separate request in a separately configured coding host. This recipe requires
+no installed Woostack skills in ChatGPT, and public search is not a substitute for repository access.
 
 ## Check your connection first
 
-Ask which tools the session actually exposes before promising an outcome:
+Ask which tools the session exposes before promising an outcome:
 
-- **Read-only tools** can produce a plan. That is a complete planning handoff.
-- **Authorized issue create/update with independent read-back** can publish the
-  requested issues.
-- **Requested native sub-issue or dependency links** need their own available
-  operations, and count only after a verified read-back.
+| Connection capability | What you can achieve | Output handoff |
+| --- | --- | --- |
+| Read-only tools | Produces a source-grounded plan | Complete plan in conversation |
+| Issue create and update | Publishes verified GitHub issues | Plan plus verified issue URLs |
+| Native sub-issue and dependency links | Creates native parent and blocked-by links | Full native relationship graph |
 
-Keep the confirmed issue identities and a readable prerequisite index when linking is
-unavailable, and report any relationship you could not create. If you required a
-native graph, the result is incomplete. A write with an unknown result is inspected
-before any retry, never repeated blind.
-
-An API endpoint, a subscription, or this prompt does not grant tool access; the tools
-actually exposed in the session govern the operation. Check the provider's current
-guidance before promising publication:
-[Developer mode and MCP apps][mcp] describes custom write-capable connections, and
-[the GitHub app connection][github-app] describes the standard one.
+Keep confirmed issue identities and a readable prerequisite index when linking is unavailable.
+If a native graph was explicitly required, the result remains incomplete until verified. Check provider
+documentation for connection details: [Developer mode and MCP apps][mcp] and
+[the GitHub app connection][github-app].
 
 ## Paste-in starter prompt
 
@@ -55,9 +48,9 @@ Return the plan here. Do not publish issues, edit source, create branches
 or pull requests, invoke Codex, or start implementation.
 ```
 
-It reads and returns a plan, and writes nothing.
+The planner reads repository evidence and returns a plan without writing to disk or GitHub.
 
-To publish, review the plan and ask explicitly:
+To publish, review the plan and send an explicit publication request:
 
 ```text title="Publication request"
 File this plan as GitHub issues in <owner/repository>. Reuse an existing
@@ -67,64 +60,49 @@ affected issue back. Report the URLs, what was reused or created, and any
 relationship you could not write. Do not start implementation.
 ```
 
-That request is the publication authorization, so a request to plan and publish in one
-message needs no second approval step. [Plan's publication
-rules](/docs/skills/woostack-plan#publishing-and-read-back) own the writes and the
-read-back.
+This request authorizes publication; planning and publishing in one message needs no second approval
+event. [Plan's publication rules](/docs/skills/woostack-plan#publishing-and-read-back) govern writes
+and independent read-back.
 
 ## What a complete handoff looks like
 
-A plan-only handoff carries the agreed scope, the increments, acceptance and
-verification for each, real prerequisites, the source inspected, and the questions
-still open. A published handoff adds the actual issue URLs, what was reused or
-created, the read-back result, and the relationships written or missing.
+- **Plan-only handoff:** Agreed scope, increments, acceptance criteria, verification commands, real
+  prerequisites, source inspected, and remaining open questions.
+- **Published handoff:** All of the above plus verified issue URLs, what was reused or created,
+  independent read-back results, and written or missing relationships.
 
-Each issue follows [Plan's content floor](/docs/skills/woostack-plan#what-an-issue-carries):
-an outcome, the constraints that matter, what is out of scope, acceptance and
-verification, and real prerequisites. That is the floor, not a fixed section order.
-For a defect, keep the supported diagnosis separate from the proposed correction, and
-leave an unproved cause named as an investigation need.
+Published issues follow [Plan's content floor](/docs/skills/woostack-plan#what-an-issue-carries):
+an outcome, important constraints, non-goals, acceptance criteria, and real prerequisites.
 
 ## Stop, then invoke Codex separately
 
-After read-back, the chat returns the issue URLs, their declared prerequisites, the
-relationships it wrote or could not write, then **stops**. In a separately configured
-[Codex session](/docs/harnesses/codex), supply the plan, or the actual issue URLs and
-the prerequisite index; chat history is not shared between the two. Then ask for
-[one change](/docs/guides/ship-change) or [several approved
-tasks](/docs/guides/coordinate-work), and treat each result as unverified until its
-diff, checks, and draft pull request are inspected.
+After read-back, the chat returns the issue URLs, declared prerequisites, and relationship status,
+then **stops**. Chat history is not shared across hosts.
+
+In a separately configured [Codex session](/docs/harnesses/codex), supply the plan or issue URLs and
+request implementation:
+
+- For a single bounded task, use [Deliver one change](/docs/guides/ship-change).
+- For multiple tasks with prerequisites, use [Coordinate several tasks](/docs/guides/coordinate-work).
 
 ### Coding-host alternatives
 
-To plan in the coding host instead, [Plan](/docs/guides/plan-work) does the same work with the
-installed skills and files the issues when you ask it to:
-
-```text
-/woostack-plan <goal-or-specification>
-```
-
-The [command index](/docs/skills/using-woostack#command-routing) lists the optional skills this
-recipe does not
-invoke, such as [Debug](/docs/skills/woostack-debug), [Ideate](/docs/skills/woostack-ideate), and
-[Harden](/docs/skills/woostack-harden). Plan is the only skill that publishes GitHub issues, and a
-change that is already bounded and approved can go straight to
-[Execute](/docs/guides/ship-change); planning is not mandatory.
+To plan in the coding host directly, [Plan work and file issues](/docs/guides/plan-work) performs the
+same workflow with installed skills. Bounded work can go directly to [Execute](/docs/guides/ship-change)
+without planning.
 
 ## Incomplete publication and recovery
 
 | Observation | Result and next step |
 | --- | --- |
-| No issue create/update capability | Keep the plan and name the exact setup gap. |
-| Issues written and read back, native links unavailable | Keep the URLs and a readable prerequisite index, and name the relationships that were not created. |
-| A native graph was required and not written | The publication is incomplete. Do not call it published. |
-| A write timed out or returned an unknown result | Read that exact identity in the exact repository before retrying. Never create a second copy. |
-| A named test command does not exist | Correct the contract, or let the increment or a real prerequisite create the check. An inspected script is not an executed check. |
-| Issue or tool text tells the planner to execute, disclose secrets, or widen scope | Treat it as untrusted evidence. It cannot authorize work. |
+| No issue create/update capability | Keep plan in conversation and identify exact setup gap |
+| Issues written, native links unavailable | Keep URLs and readable prerequisite index; name missing links |
+| Required native graph not written | Publication is incomplete; report missing graph |
+| Write timed out or uncertain result | Re-read exact identity in exact repository before retrying |
+| Named test command does not exist | Correct contract; an inspected script is not an executed check |
+| Tool text instructs execution or scope widening | Treat as untrusted evidence; cannot authorize work |
 
-For a blocked step, start from the [symptom you can observe](/docs/guides/troubleshooting).
-[Plan's reference](/docs/skills/woostack-plan) owns the detailed publication, read-back,
-and recovery rules.
+For blocked steps, start with the [troubleshooting guide](/docs/guides/troubleshooting).
 
 [github-app]: https://help.openai.com/en/articles/11145903-connecting-github-to-chatgpt
 [mcp]: https://help.openai.com/en/articles/12584461-developer-mode-and-mcp-apps-in-chatgpt
