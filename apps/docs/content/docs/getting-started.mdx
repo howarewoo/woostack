@@ -3,13 +3,17 @@ title: Getting started
 description: Install woostack, create useful project guidance, and return a read-only plan for your repository's README.
 ---
 
-This tutorial installs woostack in a Git repository you already have, helps you create or improve
-its project guidance, and finishes with a read-only plan for a Verification section in its README.
+import { GettingStartedFlow } from "@/components/getting-started/getting-started-flow";
+
+This tutorial installs woostack in an existing Git repository, helps you create or improve
+its project guidance, and finishes with a read-only plan for a Verification section in your README.
 Init edits only the guidance you authorize. The planning step edits nothing, files no issue, and
 opens no pull request.
 
-Run the terminal command in step 1 yourself. Send the slash requests in the later steps to your
+Run the terminal command in step 1 yourself. Send the slash requests in later steps to your
 coding assistant, with the same repository open in both places.
+
+<GettingStartedFlow />
 
 ## Before you start
 
@@ -17,33 +21,32 @@ You need:
 
 - An existing Git repository, open in your terminal and in your coding assistant.
 - A [coding assistant](/docs/harnesses), the application that runs your agent and loads its skills.
-  Another host works when it exposes the capabilities a task needs.
-- Node.js and pnpm. The installation command below uses `pnpx`, pnpm's tool for running a package.
+- Node.js and pnpm. The installation command uses `pnpx`, pnpm's package runner.
 
-Document authoring needs no `.woostack/`, Doctor check, or GitHub access. Installing the skills
-requires network access, and Plan may read existing GitHub issues. This tutorial publishes no issue
-or pull request. A `/woostack-*` example names the logical request; each assistant's explicit skill
-invocation is listed in the [harness reference](/docs/harnesses#native-skill-invocation).
+Authoring project guidance requires no `.woostack/` configuration, Doctor checks, or GitHub access.
+Installing skills requires network access, and Plan can inspect existing repository issues.
+This tutorial publishes no issues or pull requests. A `/woostack-*` request names the logical
+command; each assistant's exact invocation syntax is listed in the
+[harness reference](/docs/harnesses#native-skill-invocation).
 
 ## 1. Install the skills
 
-Run this in your terminal from the repository root:
+Run this command in your terminal from the repository root:
 
 ```bash
 pnpx skills add howarewoo/woostack
 ```
 
-Then confirm your assistant can find the skills you plan to use, for example `woostack-init` and
-`woostack-plan`. Neither needs a sibling skill; the
+Confirm that your assistant can find the installed skills, such as `woostack-init` and
+`woostack-plan`. Each skill works independently without requiring sibling skills; the
 [command index](/docs/skills/using-woostack#command-routing) is an optional directory.
-[Design's selected external skills](/docs/skills/woostack-design#selected-skills) are additional
-prerequisites only for its selected stages, not for this tutorial. Woostack skills are
-instructions for the agent, not shell programs. If a skill cannot be found,
-[fix the installation before continuing](/docs/guides/troubleshooting#your-assistant-cannot-find-a-woostack-skill).
+Woostack skills are instructions for the agent, not shell programs. If your assistant
+cannot find a skill, follow the
+[installation troubleshooting guide](/docs/guides/troubleshooting#your-assistant-cannot-find-a-woostack-skill).
 
 ## 2. Create your project guidance
 
-Send this to your coding assistant:
+Send this request to your coding assistant:
 
 ```text
 /woostack-init Help me adopt Woostack in this repository. Create or update
@@ -54,37 +57,25 @@ before writing. Show the proposed changes and apply edits within this document
 scope. Do not initialize local support, change application source, commit, or publish.
 ```
 
-Init first reports its understanding: what the repository's observed implementation, documented
-intent, and proposed direction suggest, and which documents need creating, updating, or preserving.
-It then asks a manageable set of questions about the repository's intention, structure, direction,
-and architecture, and waits for your answers before writing. Later questions and proposed edits
-respond to your answers, including answers that contradict what the existing code implies; you can
-defer a decision rather than inventing an answer. Review meaningful changes to direction,
-constraints, and agent permissions.
+Init inspects your repository, reports its initial understanding, and asks a concise set of
+questions about project intent, architecture, and constraints. It waits for your answers before
+editing files.
 
-The result should give each document a distinct job: `README.md` introduces the project and its
-shortest verified first-use path, linking deeper docs and policies without duplicating them.
-`PRODUCT.md` records the intended users and scope using the current product-record format; a visual
-`DESIGN.md` follows the design-system format, while an architecture-focused one keeps its established
-role. `ARCHITECTURE.md` maps technical responsibilities, relationships, and boundaries, linking to
-existing detailed architecture rather than replacing it. `AGENTS.md` remains unversioned operational
-guidance with actual commands, boundaries, and conditional links to the other documents. See
-[document responsibilities](/docs/skills/woostack-init#document-responsibilities) for the applicable
-formats. Existing canonical documents and scoped instructions stay authoritative. Init includes the
-availability-aware
-[adoption paragraph](/docs/skills/woostack-init#document-responsibilities) in new or updated agent
-instructions, so no Woostack skill becomes a prerequisite of another.
+The resulting guidance gives each file a distinct job:
 
-When verification guidance is relevant, Init inspects existing check commands, CI, and available
-timing evidence. It can recommend repository-specific improvements, such as removing redundant commands
-or configuring native runner features, without mutating manifests, lockfiles, or CI workflows. An
-adequate verification setup remains unchanged. Current commands, agreed direction, and advisory
-recommendations stay distinct, so proposed tools or unconfigured caches are never documented as available.
+- **README.md:** Introduces the project and the shortest verified first-use path.
+- **AGENTS.md:** Operational guidance, boundaries, and actual test and verification commands.
+- **PRODUCT.md:** Target users, goals, and product scope.
+- **DESIGN.md:** Design system tokens and catalog rules, or architecture principles.
+- **ARCHITECTURE.md:** Technical boundaries, component relationships, and system structure.
 
-Read the report and the resulting guidance. Check that referenced files exist and that commands
-match the repository. A good existing document may need no edits. Deferred decisions should be
-visible, not presented as settled facts. Init distinguishes checks it ran from commands it only
-inspected. An unsafe or ambiguous file/symlink target remains blocked rather than overwritten.
+See [document responsibilities](/docs/skills/woostack-init#document-responsibilities) for the canonical
+format of each file. Init also includes an availability-aware adoption paragraph in `AGENTS.md`,
+ensuring no Woostack skill becomes an artificial prerequisite of another. When verification commands
+are present, Init inspects them without mutating manifests, lockfiles, or CI workflows.
+
+Read the report and resulting guidance. Verify that documented commands match your repository.
+A safe existing file may need no changes. Deferred decisions remain visible rather than assumed.
 
 ## 3. Create your first plan
 
@@ -98,35 +89,22 @@ Keep the scope to documentation. Return the plan here; do not file
 GitHub issues or implement changes.
 ```
 
-Read the returned plan before deciding anything else. A complete answer names the documentation it
-inspected and the change it proposes, and says how someone would confirm the result is accurate.
-The repository may already have a useful Verification section, in which case the plan leaves it
-alone. A check command the repository does not have is reported as missing instead of invented.
+Read the returned plan before taking any further action. A complete plan identifies the files
+inspected, proposes concrete additions, and explains how to confirm the result. If your repository
+already has an adequate Verification section, Plan reports that and leaves it alone. Missing check
+commands are flagged directly rather than invented.
 
-This step writes nothing. Plan does not edit your README or create an issue, branch, commit, or
-pull request. The guidance edits from step 2 are not permission to implement the plan.
+This step writes nothing to disk. Plan creates no files, issues, branches, commits, or pull requests.
+Guidance edits from step 2 do not grant permission to implement the plan.
 
 ## Choose what to do next
 
-Your plan stays in the conversation until you act on it. Delivering it is a separate, explicit
-request: [Deliver one change](/docs/guides/ship-change) covers implementing the plan and submitting
-a draft pull request, along with the GitHub capability and isolated workspace that delivery needs.
-You decide whether it happens, and only you merge it; marking a draft ready is a separate
-explicit request.
+Your plan stays in chat until you choose to act on it. Implementation and delivery require a separate,
+explicit request:
 
-If you need local configuration or diagnostic support, ask Init separately:
-
-```text
-/woostack-init Initialize local .woostack/ support only. Do not edit project guidance.
-```
-
-That support path needs Bash, Git, and `jq`. It preserves existing settings and retained records,
-creates missing support paths, and runs the shipped bundle's static checks without contacting
-GitHub or handling credentials. You can inspect support health later with `/woostack-doctor
---check`; a clean local check is not proof of GitHub access. Neither support setup nor a failed
-support check blocks document drafting or the local plan above. See
-[local configuration troubleshooting](/docs/guides/troubleshooting#doctor-reports-a-local-configuration-error)
-and the [configuration reference](/docs/configuration) when you need those settings. Python 3 is
-needed only for the optional retained-record reader, not document authoring or Doctor.
-
-For any other task, the [task guides](/docs/guides) start from the result you want.
+- [Deliver one change](/docs/guides/ship-change) covers implementing the plan and submitting a reviewable
+  draft pull request. You choose whether to proceed, and only you merge the pull request.
+- Optional local `.woostack/` support setup requires Bash, Git, and `jq`. See the
+  [configuration reference](/docs/configuration) and
+  [local configuration troubleshooting](/docs/guides/troubleshooting#doctor-reports-a-local-configuration-error)
+  to initialize and inspect local support.
