@@ -30,7 +30,7 @@ export function WorkflowMap() {
               </div>
               <h4 className="mt-2 text-base font-semibold text-fd-foreground">Execute</h4>
               <p className="mt-1 text-xs text-fd-muted-foreground">
-                Enhancement, refactor, test, or proved bug fix.
+                Enhancement, refactor, test, or authorized bug fix.
               </p>
               <div className="mt-3 rounded border border-fd-border bg-fd-accent/50 px-2.5 py-1.5 text-xs font-medium text-fd-foreground">
                 Skips planning stage
@@ -92,8 +92,8 @@ export function WorkflowMap() {
           <div className="rounded-lg border border-fd-border bg-fd-card/40 p-3">
             <h5 className="text-xs font-semibold text-fd-foreground">Debug</h5>
             <p className="mt-1 text-xs text-fd-muted-foreground">
-              Investigates defect root cause without editing files. Gathers evidence before handoff
-              to Execute.
+              Optional separate read-only investigation. Execute can diagnose inline; root-cause
+              evidence is required before repair.
             </p>
           </div>
           <div className="rounded-lg border border-fd-border bg-fd-card/40 p-3">
