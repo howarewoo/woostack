@@ -46,9 +46,9 @@ boundaries so transport, client, and vendor formats never leak into application 
   application-local adapter location. Extract to shared code only when multiple applications
   consume the exact same contract or implementation, then remove application-local duplicates;
   see [Native placement and shared code](#2-native-placement-and-shared-code).
-- **Compatibility and safety:** Preserve existing wire and API contracts unless an approved change
-  explicitly versions or breaks them. Preserve input validation, error handling, security,
-  accessibility, and data-loss protections.
+- **Compatibility and safety:** Follow the repository's [compatibility policy](#4-api-compatibility)
+  for wire and API contracts. Preserve input validation, error handling, security, accessibility,
+  and data-loss protections.
 - **Touched-flow policy:** Apply to new boundary flows and existing flows materially changed by
   the task. Do not migrate untouched legacy boundary flows.
 - **Identity-shape exception:** When a deliberately shared contract is already the
@@ -61,13 +61,26 @@ boundaries so transport, client, and vendor formats never leak into application 
 
 ## 4. API compatibility
 
-Preserve published API compatibility within the repository's supported compatibility window.
+Follow the repository's explicit compatibility policy and supported window, not every previous
+implementation. Existing code alone does not establish a support commitment; an unreleased label,
+`0.x` version, or missing policy does not waive one. If obligations are unclear, resolve them before
+breaking a contract or adding compatibility machinery; do not silently discard existing commitments.
+
+Where compatibility is explicitly not required, update affected callers, tests, and documentation
+together and remove superseded paths. Do not retain compatibility aliases, legacy schema readers,
+dual implementations, or replaced technologies solely for hypothetical consumers. Keep the change
+within the requested scope and preserve current requirements and safety protections. Data preservation
+is separate: retained data may still require migration; reset only explicitly disposable data under
+authorized scope. None of this authorizes unrelated rewrites or destructive operations.
+
+For contracts that remain supported:
 
 - Existing route or operation identifiers remain stable.
 - Inputs may gain optional fields; do not remove or rename existing fields.
 - Outputs may gain fields; do not remove existing fields or change their meaning or type.
 - Existing error codes retain their meaning; add distinct codes for new conditions.
-- An approved breaking change uses the repository's documented versioning mechanism.
+- An approved break to a supported contract follows the repository's documented versioning or
+  migration policy; do not invent versioning for an explicitly unsupported prior contract.
 
 ## 5. Type safety
 
