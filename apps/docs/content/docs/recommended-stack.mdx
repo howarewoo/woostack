@@ -27,43 +27,191 @@ My preferred stack for TypeScript web applications, not a requirement for using 
 
 ## Runtime architecture
 
-<figure className="my-6">
-  <svg viewBox="0 0 360 420" role="img" aria-labelledby="stack-title stack-description" style={{ width: '100%', maxWidth: '440px', height: 'auto', margin: '0 auto', display: 'block' }}>
-    <title id="stack-title">Recommended Workers deployment</title>
-    <desc id="stack-description">The React application authenticates with managed Neon Auth and calls the Hono and oRPC API on Cloudflare Workers. The API uses Drizzle and pg through Hyperdrive to reach Neon PostgreSQL.</desc>
-    <defs>
-      <marker id="stack-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-        <path d="M0,0 L10,5 L0,10 z" fill="currentColor" />
-      </marker>
-    </defs>
-    <g fill="none" stroke="currentColor" strokeWidth="1.5">
-      <rect x="10" y="10" width="150" height="60" rx="8" />
-      <rect x="210" y="10" width="140" height="60" rx="8" />
-      <rect x="10" y="130" width="150" height="70" rx="8" />
-      <rect x="10" y="260" width="150" height="50" rx="8" />
-      <rect x="10" y="360" width="150" height="50" rx="8" />
-      <path d="M160,40 H208" markerEnd="url(#stack-arrow)" />
-      <path d="M85,70 V128" markerEnd="url(#stack-arrow)" />
-      <path d="M85,200 V258" markerEnd="url(#stack-arrow)" />
-      <path d="M85,310 V358" markerEnd="url(#stack-arrow)" />
-    </g>
-    <g fill="currentColor" fontSize="16" textAnchor="middle">
-      <text x="85" y="45">React app</text>
-      <text x="280" y="35">Managed</text>
-      <text x="280" y="55">Neon Auth</text>
-      <text x="85" y="158">Workers</text>
-      <text x="85" y="182">Hono + oRPC</text>
-      <text x="85" y="291">Hyperdrive</text>
-      <text x="85" y="391">Neon PostgreSQL</text>
-    </g>
-    <g fill="currentColor" fontSize="14">
-      <text x="100" y="105">Typed API calls</text>
-      <text x="100" y="235">Drizzle + pg</text>
-      <text x="100" y="340">Pooled connections</text>
-    </g>
-  </svg>
+<figure className="not-prose my-8 overflow-hidden rounded-xl border border-fd-border" aria-labelledby="stack-title" aria-describedby="stack-description">
+  <div className="border-b border-fd-border px-5 py-5 sm:px-6">
+    <p className="mb-2 text-xs font-medium uppercase tracking-widest text-fd-muted-foreground">Request path</p>
+    <h3 id="stack-title" className="text-lg font-semibold tracking-tight text-fd-foreground">Browser to database</h3>
+    <p className="mt-2 text-sm leading-relaxed text-fd-muted-foreground">Recommended Workers deployment, with authentication handled by a separate managed service.</p>
+  </div>
+
+  <div className="px-5 py-6 sm:px-6">
+    <section aria-labelledby="stack-browser">
+      <div className="flex items-baseline gap-3">
+        <span className="font-mono text-xs text-fd-muted-foreground" aria-hidden="true">01</span>
+        <h4 id="stack-browser" className="text-base font-semibold text-fd-foreground">Browser</h4>
+        <span className="ml-auto text-xs text-fd-muted-foreground">React · Vite</span>
+      </div>
+      <div className="mt-4 grid gap-5 sm:grid-cols-[minmax(0,1fr)_minmax(0,0.8fr)]">
+        <dl className="space-y-4 text-sm">
+          <div>
+            <dt className="font-medium text-fd-foreground">React + React Router</dt>
+            <dd className="mt-1 leading-relaxed text-fd-muted-foreground">Screens, navigation, and UI composition.</dd>
+          </div>
+          <div>
+            <dt className="font-medium text-fd-foreground">TanStack Query + oRPC client</dt>
+            <dd className="mt-1 leading-relaxed text-fd-muted-foreground">Remote-data caching and typed calls to backend procedures.</dd>
+          </div>
+        </dl>
+        <aside className="border-t border-dashed border-fd-border pt-4 text-sm sm:border-t-0 sm:border-l sm:pt-0 sm:pl-5" aria-label="Authentication branch">
+          <p className="text-xs font-medium uppercase tracking-wide text-fd-muted-foreground">Authentication branch</p>
+          <p className="mt-2 font-medium text-fd-foreground">Browser <span aria-hidden="true">↔</span> Managed Neon Auth</p>
+          <p className="mt-1 leading-relaxed text-fd-muted-foreground">Sign-in and sessions through an external authentication service.</p>
+        </aside>
+      </div>
+      <p className="mt-4 text-xs leading-relaxed text-fd-muted-foreground">UI: Tailwind CSS, shared shadcn/ui components, Base UI primitives, and Lucide icons.</p>
+    </section>
+
+    <div className="flex items-center gap-3 py-5 text-xs text-fd-muted-foreground">
+      <span className="h-8 w-px shrink-0 bg-fd-border" aria-hidden="true" />
+      <span><span className="mr-2" aria-hidden="true">↓ ↑</span>HTTPS · Typed requests and responses</span>
+    </div>
+
+    <section className="rounded-lg border border-fd-primary/20 bg-fd-primary/5 p-4 sm:p-5" aria-labelledby="stack-api">
+      <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+        <span className="font-mono text-xs text-fd-muted-foreground" aria-hidden="true">02</span>
+        <h4 id="stack-api" className="text-base font-semibold text-fd-foreground">Cloudflare Workers</h4>
+        <span className="ml-auto text-xs text-fd-muted-foreground">API runtime</span>
+      </div>
+      <ol className="mt-5 space-y-4 border-l border-fd-primary/25 pl-4 text-sm">
+        <li>
+          <p className="font-medium text-fd-foreground">Hono</p>
+          <p className="mt-1 leading-relaxed text-fd-muted-foreground">HTTP routing and middleware dispatch requests to procedures.</p>
+        </li>
+        <li>
+          <p className="font-medium text-fd-foreground">oRPC procedures + Zod</p>
+          <p className="mt-1 leading-relaxed text-fd-muted-foreground">Typed contracts, runtime input validation, and application logic.</p>
+        </li>
+        <li>
+          <p className="font-medium text-fd-foreground">Drizzle ORM + pg</p>
+          <p className="mt-1 leading-relaxed text-fd-muted-foreground">SQL queries through the PostgreSQL driver.</p>
+        </li>
+      </ol>
+    </section>
+
+    <div className="flex items-center gap-3 py-5 text-xs text-fd-muted-foreground">
+      <span className="h-8 w-px shrink-0 bg-fd-border" aria-hidden="true" />
+      <span><span className="mr-2" aria-hidden="true">↓ ↑</span>PostgreSQL queries and results</span>
+    </div>
+
+    <section aria-labelledby="stack-connections">
+      <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+        <span className="font-mono text-xs text-fd-muted-foreground" aria-hidden="true">03</span>
+        <h4 id="stack-connections" className="text-base font-semibold text-fd-foreground">Cloudflare Hyperdrive</h4>
+        <span className="ml-auto text-xs text-fd-muted-foreground">Connection layer</span>
+      </div>
+      <p className="mt-2 text-sm leading-relaxed text-fd-muted-foreground">Pools connections between the Workers API and Neon PostgreSQL.</p>
+    </section>
+
+    <div className="flex items-center gap-3 py-5 text-xs text-fd-muted-foreground">
+      <span className="h-8 w-px shrink-0 bg-fd-border" aria-hidden="true" />
+      <span><span className="mr-2" aria-hidden="true">↓ ↑</span>Pooled PostgreSQL connections</span>
+    </div>
+
+    <section aria-labelledby="stack-database">
+      <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+        <span className="font-mono text-xs text-fd-muted-foreground" aria-hidden="true">04</span>
+        <h4 id="stack-database" className="text-base font-semibold text-fd-foreground">Neon PostgreSQL</h4>
+        <span className="ml-auto text-xs text-fd-muted-foreground">Persistent data</span>
+      </div>
+      <p className="mt-2 text-sm leading-relaxed text-fd-muted-foreground">Application tables and relational data.</p>
+      <p className="mt-3 border-l border-dashed border-fd-border pl-3 text-xs leading-relaxed text-fd-muted-foreground">Outside the request path: Drizzle Kit manages schema migrations.</p>
+    </section>
+  </div>
+
+  <figcaption id="stack-description" className="border-t border-fd-border px-5 py-4 text-xs leading-relaxed text-fd-muted-foreground sm:px-6">
+    The browser calls the API, not the database. The API must enforce session verification and authorization; the exact integration is application-specific.
+  </figcaption>
 </figure>
 
 - Workers runs its own runtime, not Node.js. Verify Workers-specific behavior with Wrangler.
 - Turborepo and optional UI utilities are added only when needed. The local auth fixture does not establish production parity.
 - Versions describe the recommendation, not a compatibility certification. Check the selected oRPC/Zod and Vitest/Vite combinations before adoption.
+
+## CI/CD with GitHub Actions
+
+Use GitHub Actions for pull-request checks and production delivery. Keep verification separate
+from deployment so untrusted pull requests never receive production credentials.
+
+| Stage | Recommended checks and behavior |
+| --- | --- |
+| Pull request | Install with `pnpm install --frozen-lockfile`; run type checking, Oxlint, Oxfmt checks, and the relevant Vitest suites. Build the frontend and Worker together. |
+| Runtime verification | Exercise the built application in the Workers runtime, including a browser deep link, a successful API call, and an unknown API route. Use Playwright for critical user journeys. |
+| Preview | Deploy only trusted changes to an isolated preview Worker with non-production bindings and data. Check managed Neon Auth there; the local fixture does not prove production-auth integration. |
+| Production | After required checks pass on `main`, deploy through a protected GitHub environment. Serialize production deployments and deploy the verified build, not a fresh unverified rebuild. |
+| Post-deploy | Smoke-check the frontend and API. Retain the commit and deployment identity so an operator can identify and roll back a bad release. |
+
+Declare the pnpm version in `packageManager`, use Node for tooling, and cache pnpm's package store
+rather than treating cached dependencies as authoritative. Give the workflow read-only repository
+permissions unless a specific job needs more. Pin third-party actions to reviewed commit SHAs.
+
+Cloudflare's [GitHub Actions integration](https://developers.cloudflare.com/workers/ci-cd/external-cicd/github-actions/)
+supports `cloudflare/wrangler-action` or a direct `pnpm exec wrangler deploy` command.
+Keep `CLOUDFLARE_API_TOKEN` in GitHub environment secrets, scope it to the deployment account and
+required permissions, and supply `CLOUDFLARE_ACCOUNT_ID` through the environment. Do not expose
+deployment credentials to forked PRs or run untrusted PR code with `pull_request_target` secrets.
+
+With the Cloudflare Vite plugin, build with `pnpm exec vite build` before deploying. If build and
+deployment are separate jobs, transfer the complete generated build and deploy with Wrangler's
+`--config` option pointing to the generated output configuration, not the source `wrangler.jsonc`.
+Select a [Cloudflare environment at build time](https://developers.cloudflare.com/workers/vite-plugin/reference/migrating-from-wrangler-dev/#cloudflare-environments)
+with `CLOUDFLARE_ENV`; do not switch a built artifact to another environment with `wrangler deploy --env`.
+Apply Drizzle Kit migrations as an explicit release step, not inside API requests. Keep schema
+changes compatible with the currently deployed application and any intended rollback.
+
+## One full-stack Cloudflare Worker
+
+Host the Vite frontend and Hono backend as one Worker deployment on one origin. Workers Static
+Assets serves the built HTML, JavaScript, CSS, and images; the Worker executes Hono for API
+requests. This does not run a Vite development server or a Node HTTP server in production.
+
+| Request | Handler |
+| --- | --- |
+| `/assets/*` and other existing static files | Workers Static Assets |
+| `/api` and `/api/*` | Hono in the Worker, including API-specific errors and 404 responses |
+| Frontend navigation such as `/settings` | SPA fallback to `index.html`, then React Router in the browser |
+
+Use [`@cloudflare/vite-plugin`](https://developers.cloudflare.com/workers/vite-plugin/tutorial/)
+alongside `@vitejs/plugin-react` in the application's `vite.config.ts`:
+
+```ts
+import { cloudflare } from "@cloudflare/vite-plugin";
+import react from "@vitejs/plugin-react";
+import { defineConfig } from "vite";
+
+export default defineConfig({
+  plugins: [react(), cloudflare()],
+});
+```
+
+The corresponding `wrangler.jsonc` selects the Hono entrypoint and makes API routes
+Worker-first, including direct browser navigation to an API URL:
+
+```jsonc
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "fullstack-app",
+  "main": "./worker/index.ts",
+  "compatibility_date": "2026-10-25",
+  "assets": {
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api", "/api/*"]
+  }
+}
+```
+
+The Vite plugin supplies the built asset directory in its generated deployment configuration.
+Do not point `assets.directory` at the source tree or add an Express-style static-file server.
+The [Hono Worker entrypoint](https://hono.dev/docs/getting-started/cloudflare-workers)
+exports the Hono application as its default export; mount backend routes and oRPC under `/api`.
+Keep unknown API routes as API 404 responses instead of returning the SPA shell.
+
+The frontend calls relative URLs such as `/api/health`, so frontend-to-API requests are same-origin
+without a separate CORS setup. Authentication still needs correct session, authorization, and CSRF
+controls; sharing an origin does not replace them. Keep database credentials and auth secrets in
+Worker secrets or bindings, never in client-exposed `VITE_*` variables. Add Hyperdrive and any
+required Workers compatibility flags for the selected database driver separately.
+
+Use `vite dev` with the plugin for local development and `vite preview` to exercise the built
+frontend and backend in the Workers runtime. Vite builds both sides, and Wrangler deploys their
+generated output together. This keeps frontend and API releases coupled; separate Workers are an
+alternative when they need independent release schedules or isolation.
