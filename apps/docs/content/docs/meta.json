@@ -1,11 +1,10 @@
 {
   "title": "Docs",
   "pages": [
-    "index",
     "getting-started",
+    "recommended-stack",
     "guides",
     "concepts",
-    "recommended-stack",
     "configuration",
     "harnesses",
     "skills"
