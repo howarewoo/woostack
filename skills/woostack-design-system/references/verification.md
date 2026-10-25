@@ -16,7 +16,11 @@ is not proof no original requirement was lost: compare actual output and the rec
 original disclosed or requested set, and keep declared scope, gaps, and completion claims
 aligned. Blocked requirements remain recorded as gaps or incomplete; do not accept a shrunk
 record that hides omitted requirements. Check preservation boundaries with focused tests or before/after file
-and dependency-state comparison where appropriate.
+and dependency-state comparison where appropriate. For Storybook, compare its actual indexed
+stories with the declared coverage, then build and exercise those stories with project styles
+and providers. An index entry alone is not evidence that a specimen renders or works. Reuse story
+fixtures for focused interaction/accessibility checks where supported; avoid duplicate assertions
+across test layers or an exhaustive screenshot matrix as a default requirement.
 
 Before claiming recreation, observe the actual current-upstream sourcing of missing controls —
 the Base UI-backed shadcn CLI, live registry item, or adapted current component documentation
@@ -37,7 +41,7 @@ Use a real browser against the generated surface, not an HTML screenshot or a te
 | Stable links | Direct component URL opens the correct specimen; selection updates the link; reload and Back/Forward restore selection |
 | Narrow navigation | At a narrow viewport the navigation opens/closes, selecting an item exposes content, and focus does not remain in hidden navigation |
 | Keyboard and focus | Controls have accessible names; keyboard navigation/shortcuts use documented keys, respect text editing and modifiers, and move focus to the intended content; visible focus and Escape behavior work |
-| Appearance | Light/dark switch applies to chrome, tokens and specimens; project theme contract is respected |
+| Appearance | Theme controls apply project tokens to specimens and their portals; necessary custom chrome follows the project contract, while Storybook's manager may keep its native theme |
 | Representative overlays | Open and close dialog, popover/select/menu examples; confirm portals, focus transfer/return, dismissal and keyboard selection on real shared primitives |
 
 Test additional material states required by the declared coverage and affected target APIs, such
@@ -61,36 +65,39 @@ prove distribution or skill execution.
    are deterministic evidence; model execution is separate evidence.
 2. **New repository:** invoke the installed skill in a fresh disposable target with no catalog or
    design rules. Agreeing focused coverage with the requester is acceptable. Observe neutral
-   styling, a runnable catalog covering the recorded agreement, project-owned source and
-   recorded provenance. Run generated native verification/build commands, validate actual
-   imports and specimens, and run the browser table above. Confirm no Woostack/Git Stacks
+   styling and a runnable Storybook with project-owned stories and recorded provenance when
+   supported; otherwise record why the smaller native surface was chosen. Run the target's
+   verification/build commands, validate actual imports and specimens, and run the browser table
+   above. Confirm no Woostack/Git Stacks
    runtime dependencies or automatic Git/GitHub mutations. A manually instantiated or authored
    copy can diagnose a failure but cannot count as the required installed-skill recreation
    outcome.
 3. **Compatible existing UI:** supply real public components with meaningful API differences from
    upstream defaults (for example different button variants or overlay composition) and project
-   tokens. Invoke creation through the installed skill. Observe actual project imports in both
-   chrome and specimens, examples adapted to those APIs, no duplicate controls and no component
-   API migration. Check original component source and dependency versions remain unchanged
+   tokens. Invoke creation through the installed skill. Observe actual project imports in
+   specimens and any necessary custom chrome, examples adapted to those APIs, no duplicate controls
+   and no component API migration. Check original component source and dependency versions remain unchanged
    unless a specifically necessary authorized configuration edit was identified. Exercise the
    adapted interactions in the browser; provenance alone is not proof of compatibility.
-4. **Incompatible/non-React product:** establish the existing product framework, manifest/runtime
-   dependencies and representative behavior before invocation. Observe an independently runnable
-   React catalog, separate dependency ownership and accurate catalog-only labels. Verify the
-   product source, framework and runtime dependency graph remain unchanged and exercise the
-   existing product's relevant native smoke, alongside the catalog commands/browser. Do not call
-   a product rewrite isolation or treat an existing catalog as absent just because it uses
-   another framework.
+4. **Framework boundary:** establish the product framework, runtime dependencies and behavior.
+   For a supported non-React integration, verify stories import native public controls without
+   React replicas. For incompatible required controls, verify an independently runnable React
+   catalog with separate dependency ownership and accurate catalog-only labels. In either case,
+   verify unchanged product source, framework and runtime dependency graph with the relevant
+   product smoke alongside catalog checks. Another framework does not make an existing catalog absent.
 5. **Existing catalog:** start with customized examples/tokens and snapshot source, manifests,
    lockfiles and generated state. Ordinary installed-skill invocation must produce a useful
    coverage/drift/compatibility report against the target's recorded coverage and current
-   upstream, and leave all that state unchanged. Do not install dependencies to improve the
-   report. Identify runtime behavior as unverified when inspection cannot establish it.
+   upstream, and leave all that state unchanged, whether the catalog uses Storybook or custom
+   tooling. Do not install dependencies or migrate it to improve the report. Identify runtime
+   behavior as unverified when inspection cannot establish it.
 6. **Explicit maintenance:** request one bounded addition or repair in a customized catalog. Prove
    the requested behavior changes while unrelated examples/tokens/dependency versions stay intact.
    Include an incompatible requested change; observe a specific conflict report with the owned
    surface unchanged, not silent replacement or hidden duplicate controls. Run focused checks and
-   browser interactions for the changed surface, not unrequested regeneration.
+   browser interactions for the changed surface, not unrequested regeneration. When testing an
+   explicit tooling migration, verify preserved specimens, states, provenance and links before
+   removal of the old shell; an ordinary addition or repair must not trigger that migration.
 
 Items 2–6 are the five behavior scenarios; distribution is their installation prerequisite.
 
