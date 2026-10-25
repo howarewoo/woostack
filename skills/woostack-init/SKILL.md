@@ -53,6 +53,13 @@ Load support helpers and contracts only for relevant support work.
    read factual details from the repository rather than asking the user to inventory it, and ask
    about the intention and rationale behind those facts. A scoped update consults only its
    relevant decisions and never becomes an unrelated whole-repository interview.
+   When `AGENTS.md` is in scope, establish project stage and actual consumers, compatibility
+   commitments (including an explicit "none" when confirmed), and which data/environments must
+   survive changes or are explicitly disposable. These are separate decisions: an unreleased
+   label or `0.x` version alone establishes neither an absence of consumers nor disposable data.
+   Preserve existing commitments unless the user explicitly changes them; unresolved answers
+   stay unresolved. Use the [AGENTS.md guidance](references/document-schemas.md#agentsmd) to
+   translate confirmed decisions into operational instructions.
    Ask a manageable initial set, then wait. Use each response to revise the understanding and
    choose follow-ups that respond to earlier answers, including answers that contradict
    assumptions inferred from existing code; clarify implications, contradictions, and meaningful

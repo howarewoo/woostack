@@ -59,12 +59,15 @@ scope. Do not initialize local support, change application source, commit, or pu
 
 Init inspects your repository, reports its initial understanding, and asks a concise set of
 questions about project intent, architecture, and constraints. It waits for your answers before
-editing files.
+editing files. Confirm the project's stage, which consumers or contracts need compatibility, and
+which data must survive changes. State explicitly when no backwards-compatibility requirement
+exists. An unreleased project may still have users or valuable data.
 
 The resulting guidance gives each file a distinct job:
 
 - **README.md:** Introduces the project and the shortest verified first-use path.
-- **AGENTS.md:** Operational guidance, boundaries, and actual test and verification commands.
+- **AGENTS.md:** Operational guidance, compatibility and data-preservation policy, boundaries, and
+  actual test and verification commands.
 - **PRODUCT.md:** Target users, goals, and product scope.
 - **DESIGN.md:** Design system tokens and catalog rules, or architecture principles.
 - **ARCHITECTURE.md:** Technical boundaries, component relationships, and system structure.
@@ -74,7 +77,10 @@ format of each file. Init also includes an availability-aware adoption paragraph
 ensuring no Woostack skill becomes an artificial prerequisite of another. When verification commands
 are present, Init inspects them without mutating manifests, lockfiles, or CI workflows.
 
-Read the report and resulting guidance. Verify that documented commands match your repository.
+Read the report and resulting guidance. Verify that documented commands match your repository and
+that `AGENTS.md` names your actual compatibility commitments. When compatibility is not required,
+agents should update affected callers and remove superseded code rather than retain legacy support.
+Check data-preservation rules separately; permission to break an API does not authorize a data reset.
 A safe existing file may need no changes. Deferred decisions remain visible rather than assumed.
 
 ## 3. Create your first plan

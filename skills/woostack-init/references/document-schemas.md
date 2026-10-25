@@ -197,6 +197,22 @@ verification conditions, boundaries, pitfalls, and contextual links. Preserve th
 host's instruction precedence and the scope of existing nested instructions. The operational and
 Woostack-adoption rules remain in [document responsibilities](../SKILL.md#document-responsibilities).
 
+When `AGENTS.md` is in scope, record confirmed project stage, compatibility commitments, and data
+preservation in a short existing or repository-appropriate section. Name the supported consumers,
+contracts, versions, or exceptions where relevant; record "no backwards-compatibility requirement"
+only when confirmed, never from a stage label, version number, or missing policy. Keep unresolved
+obligations explicit. Preserve useful existing policy and link to any deeper canonical contract;
+unchanged decisions on a rerun need no rewrite. Revisit the policy when actual commitments change.
+
+Where compatibility is not required, instruct agents to update affected callers, tests, and docs
+with the change and remove superseded implementations. Do not retain aliases, legacy schema
+readers, dual paths, or replaced technologies solely for hypothetical consumers. This permits
+breaking changes only within the requested scope, not unrelated rewrites or regressions in current
+requirements. Keep data preservation separate: retained data may still need a migration; resets
+require explicitly disposable data and authorization for the affected operation. Security,
+validation, error handling, accessibility, and data-loss protections still apply. Use ordinary
+prose, not new lifecycle fields, configuration, automatic release detection, or skill dependencies.
+
 Repository manifests and CI configuration remain authoritative for adopted tooling. Record verified
 command existence, working directories, execution conditions, and evidence status under canonical
 [testing principles](tdd.md), distinguishing commands inspected
