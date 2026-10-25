@@ -1,0 +1,103 @@
+---
+title: Deploy a full-stack Cloudflare Worker
+description: Configure a Vite frontend and Hono API on one origin, then verify and release them with GitHub Actions.
+---
+
+Use this guide for an existing Vite frontend and Hono backend that will share one Cloudflare
+Worker deployment. You need a Cloudflare account and a GitHub repository for delivery.
+See the [recommended tech stack](/docs/recommended-stack) for the wider stack and runtime architecture.
+
+## 1. Configure the application
+
+Host the Vite frontend and Hono backend as one Worker deployment on one origin. Workers Static
+Assets serves the built HTML, JavaScript, CSS, and images; the Worker executes Hono for API
+requests. This does not run a Vite development server or a Node HTTP server in production.
+
+| Request | Handler |
+| --- | --- |
+| `/assets/*` and other existing static files | Workers Static Assets |
+| `/api` and `/api/*` | Hono in the Worker, including API-specific errors and 404 responses |
+| Frontend navigation such as `/settings` | SPA fallback to `index.html`, then React Router in the browser |
+
+Use [`@cloudflare/vite-plugin`](https://developers.cloudflare.com/workers/vite-plugin/tutorial/)
+alongside `@vitejs/plugin-react` in the application's `vite.config.ts`:
+
+```ts
+import { cloudflare } from "@cloudflare/vite-plugin";
+import react from "@vitejs/plugin-react";
+import { defineConfig } from "vite";
+
+export default defineConfig({
+  plugins: [react(), cloudflare()],
+});
+```
+
+The corresponding `wrangler.jsonc` selects the Hono entrypoint and makes API routes
+Worker-first, including direct browser navigation to an API URL:
+
+```jsonc
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "fullstack-app",
+  "main": "./worker/index.ts",
+  "compatibility_date": "2026-10-25",
+  "assets": {
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api", "/api/*"]
+  }
+}
+```
+
+The Vite plugin supplies the built asset directory in its generated deployment configuration.
+Do not point `assets.directory` at the source tree or add an Express-style static-file server.
+The [Hono Worker entrypoint](https://hono.dev/docs/getting-started/cloudflare-workers)
+exports the Hono application as its default export; mount backend routes and oRPC under `/api`.
+Keep unknown API routes as API 404 responses instead of returning the SPA shell.
+
+The frontend calls relative URLs such as `/api/health`, so frontend-to-API requests are same-origin
+without a separate CORS setup. Authentication still needs correct session, authorization, and CSRF
+controls; sharing an origin does not replace them. Keep database credentials and auth secrets in
+Worker secrets or bindings, never in client-exposed `VITE_*` variables. Add Hyperdrive and any
+required Workers compatibility flags for the selected database driver separately.
+
+## 2. Verify the built application
+
+Use `vite dev` with the plugin for local development. Build with `pnpm exec vite build`,
+then use `vite preview` to exercise the built frontend and backend in the Workers runtime.
+Check a frontend deep link, a successful API call, and an unknown API route. The deep link
+should load the frontend; the unknown API route should return an API 404, not the SPA shell.
+
+Vite builds both sides, and Wrangler deploys their generated output together. This keeps
+frontend and API releases coupled; separate Workers are an alternative when they need
+independent release schedules or isolation.
+
+## 3. Configure delivery with GitHub Actions
+
+Use GitHub Actions for pull-request checks and production delivery. Keep verification separate
+from deployment so untrusted pull requests never receive production credentials.
+
+| Stage | Recommended checks and behavior |
+| --- | --- |
+| Pull request | Install with `pnpm install --frozen-lockfile`; run type checking, Oxlint, Oxfmt checks, and the relevant Vitest suites. Build the frontend and Worker together. |
+| Runtime verification | Exercise the built application in the Workers runtime, including a browser deep link, a successful API call, and an unknown API route. Use Playwright for critical user journeys. |
+| Preview | Deploy only trusted changes to an isolated preview Worker with non-production bindings and data. Check managed Neon Auth there; the local fixture does not prove production-auth integration. |
+| Production | After required checks pass on `main`, deploy through a protected GitHub environment. Serialize production deployments and deploy the verified build, not a fresh unverified rebuild. |
+| Post-deploy | Smoke-check the frontend and API. Retain the commit and deployment identity so an operator can identify and roll back a bad release. |
+
+Declare the pnpm version in `packageManager`, use Node for tooling, and cache pnpm's package store
+rather than treating cached dependencies as authoritative. Give the workflow read-only repository
+permissions unless a specific job needs more. Pin third-party actions to reviewed commit SHAs.
+
+Cloudflare's [GitHub Actions integration](https://developers.cloudflare.com/workers/ci-cd/external-cicd/github-actions/)
+supports `cloudflare/wrangler-action` or a direct `pnpm exec wrangler deploy` command.
+Keep `CLOUDFLARE_API_TOKEN` in GitHub environment secrets, scope it to the deployment account and
+required permissions, and supply `CLOUDFLARE_ACCOUNT_ID` through the environment. Do not expose
+deployment credentials to forked PRs or run untrusted PR code with `pull_request_target` secrets.
+
+With the Cloudflare Vite plugin, build with `pnpm exec vite build` before deploying. If build and
+deployment are separate jobs, transfer the complete generated build and deploy with Wrangler's
+`--config` option pointing to the generated output configuration, not the source `wrangler.jsonc`.
+Select a [Cloudflare environment at build time](https://developers.cloudflare.com/workers/vite-plugin/reference/migrating-from-wrangler-dev/#cloudflare-environments)
+with `CLOUDFLARE_ENV`; do not switch a built artifact to another environment with `wrangler deploy --env`.
+Apply Drizzle Kit migrations as an explicit release step, not inside API requests. Keep schema
+changes compatible with the currently deployed application and any intended rollback.
