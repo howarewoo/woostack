@@ -1,0 +1,40 @@
+---
+title: Codex
+description: Local prompt and configuration-based routing and Codex Action's single-session mode.
+---
+
+Codex supports running Woostack in local environments and GitHub Actions:
+
+| Mode | Execution behavior | Subagent support |
+| --- | --- | --- |
+| Local clients (CLI, IDE, desktop) | Interactive runs with configured model and effort | Subagents enabled by default; inherits configured agent or parent model and effort. Stating an override in prompt alone does not prove the override ran. |
+| Codex GitHub Action | Non-interactive single-session `codex exec` step | One model and effort per job; verify fan-out capabilities before assuming delegation. |
+
+No per-worker working directory is documented. Pass the selected workspace in a delegated task
+and have the worker verify it before writing. Provider recovery belongs to Codex.
+
+## Native invocation
+
+Invoke a Woostack skill in Codex using its documented mention syntax, for example `$woostack-execute`.
+Type `$` to mention a skill, or run `/skills` ([build skills](https://learn.chatgpt.com/docs/build-skills)).
+It is the same skill and permissions as the `/woostack-*` form used elsewhere.
+
+## Receive a ChatGPT planning handoff
+
+To plan in ChatGPT before implementing in Codex, follow the
+[ChatGPT-to-Codex guide](/docs/chatgpt-to-codex).
+
+After planning stops in ChatGPT, send the verified plan or canonical tracker URL to Codex:
+
+```text
+$woostack-orchestrate --issue <verified canonical tracker URL>
+```
+
+Orchestrate reads the selected scope and dependencies, presents its execution proposal, and pauses
+for your approval before dispatching workers. When subagent tools are unavailable, it reports that
+boundary rather than running the full scope in the primary checkout. If the planning chat did not
+file issues, Orchestrate accepts the complete prose plan directly; Plan remains available in Codex
+when you want further refinement or requested issue publication.
+
+The optional [Codex host notes](https://github.com/howarewoo/woostack/blob/main/shared/references/hosts/codex.md)
+record these mechanics against their sources.

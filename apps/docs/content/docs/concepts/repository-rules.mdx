@@ -1,0 +1,109 @@
+---
+title: Repository structure and rules
+description: Why placement, boundary, dependency, testing, and delivery rules follow the repository's own conventions, and where each rule is owned.
+---
+
+A repository's own instructions, architecture, native conventions, selected dependencies, and
+lockfiles are authoritative. Woostack implementation rules describe outcomes worth preserving on top
+of that foundation; they never impose an arbitrary layout, abstraction, or version.
+
+Implementation guidance is maintained once in `shared/references/`; implementing workflows bundle
+the applicable parts and apply them inside their admitted scope:
+
+- [Implementation patterns](https://github.com/howarewoo/woostack/blob/main/shared/references/patterns.md)
+  cover placement, shared extraction, boundaries, API compatibility, type safety, dependencies, and least code.
+- [Infrastructure reference](https://github.com/howarewoo/woostack/blob/main/shared/references/infrastructure.md)
+  covers deployment, migrations, environment secrets, client lifecycles, and observability.
+- [Testing guidance](https://github.com/howarewoo/woostack/blob/main/shared/references/tdd.md)
+  governs evidence selection and verification standards.
+
+## Repository-owned structure
+
+Applications own their code. Business logic, data access, authentication, UI, and utilities belong
+to the unit that needs them, organized by that unit's module conventions. Shared code is a consequence
+of real reuse across units, not a speculative starting layout. When several applications need the
+same contract, extract the smallest coherent surface to the repository's shared location and remove
+local duplicates.
+
+## APIs and application boundaries
+
+Boundary adapters translate data and errors between external APIs and internal application models.
+Keeping transport and vendor formats out of business logic keeps domain logic testable and portable.
+New and changed interfaces preserve backward compatibility: existing identifiers stay stable,
+inputs gain optional fields rather than losing fields, and breaking changes use documented versioning.
+
+## Type safety
+
+Strong compile-time and runtime checks validate untrusted values at entry points before internal
+consumption. Type helpers stay with the unit that owns them.
+
+## Dependencies
+
+Dependency versions come from authoritative current sources, not model memory, and only when a
+dependency is being selected or updated. Unrelated dependencies and lockfiles remain untouched.
+Each application declares runtime dependencies in its own manifest; shared tooling belongs at the
+root only when genuinely repository-wide.
+
+## Least code, still safe
+
+Less code leaves less to read, test, and maintain, but correctness and safety decide how small a
+solution can be. See [Least code, still safe](/docs/concepts/least-code) for the engineering ladder.
+
+## Testing
+
+Verification starts from existing protection: an adequate baseline is a valid stopping point, adding
+tests only for uncovered behavior, regressions, or material risks. Required checks must pass; service
+slowness does not waive them. Testing matches the scale of the work, prioritizing meaningful assertions
+over redundant volume.
+
+## Production concerns
+
+Production migrations run through controlled automation with observable recovery. Production secrets
+remain in host secret stores, while repositories maintain non-secret inventories of required keys.
+Telemetry is structured and queryable, redacting credentials and personal data before transmission.
+
+## Creating a project that does not exist yet
+
+New-project creation uses the same workflows as ordinary work without requiring separate commands,
+checkouts, or extra approval events.
+
+Creating the first slice belongs to [Execute](/docs/skills/woostack-execute) as an authorized bounded
+outcome. When Git repository objects do not exist yet, target admission replaces repository checks
+per the canonical
+[scaffold guidance](https://github.com/howarewoo/woostack/blob/main/shared/references/scaffold.md):
+
+- **Target admission:** One unambiguous target path and physical parent, no symlinks in the target
+  or its ancestors, no competing writers, and an absent or empty target. A collision blocks writing
+  and never authorizes overwriting existing content.
+- **Smallest working slice:** Generates the smallest requested slice in native ecosystem structure,
+  removes demo filler, executes applicable checks, and records setup facts and real commands in the README.
+- **Guidance authoring:** Project guidance (`AGENTS.md`, `DESIGN.md`, `PRODUCT.md`, `ARCHITECTURE.md`)
+  remains [Init's](/docs/skills/woostack-init) responsibility rather than automatic scaffold output.
+- **Delivery limits:** Local scaffolds require no GitHub account, Project, remote, commit, or PR.
+  Git initialization occurs only when requested or needed for delivery.
+
+## Delivery and workspaces
+
+Implementing workflows perform requested delivery through canonical
+[delivery procedures](https://github.com/howarewoo/woostack/blob/main/shared/references/delivery.md) and
+[source-control safeguards](https://github.com/howarewoo/woostack/blob/main/shared/references/source-control.md).
+New pull requests are drafts, and merging remains exclusively a human decision. Once Git exists,
+[workspace guidance](https://github.com/howarewoo/woostack/blob/main/shared/references/worktrees.md)
+governs isolation, ownership, and base selection.
+
+## Existing repositories
+
+The same guidance preserves an existing repository's conventions and limits changes to the requested
+scope. A read-only root-cause investigation belongs to [Debug](/docs/skills/woostack-debug);
+an authorized bounded correction belongs directly to [Execute](/docs/skills/woostack-execute).
+[Plan](/docs/skills/woostack-plan) produces a plan when requested.
+
+## Canonical sources
+
+The active skill's `SKILL.md` and the shared references it bundles remain authoritative:
+
+- [`woostack-execute/SKILL.md`](https://github.com/howarewoo/woostack/blob/main/skills/woostack-execute/SKILL.md)
+- [`shared/references/patterns.md`](https://github.com/howarewoo/woostack/blob/main/shared/references/patterns.md)
+- [`shared/references/infrastructure.md`](https://github.com/howarewoo/woostack/blob/main/shared/references/infrastructure.md)
+- [`shared/references/tdd.md`](https://github.com/howarewoo/woostack/blob/main/shared/references/tdd.md)
+- [`shared/references/delivery.md`](https://github.com/howarewoo/woostack/blob/main/shared/references/delivery.md)

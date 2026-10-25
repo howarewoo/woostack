@@ -1,0 +1,139 @@
+---
+title: Workflow maps
+description: How the workflows relate, and why a bounded change can skip planning.
+---
+
+import { WorkflowMap } from "@/components/concepts/workflow-map";
+
+These pages explain how Woostack workflows connect. The [task guides](/docs/guides) provide
+step-by-step procedures, the [command index](/docs/skills/using-woostack#command-routing) lists
+available skills, and each skill's reference page defines its exact contracts, evidence rules,
+and recovery behavior.
+
+Start from the result you need rather than an arbitrary sequence. An issue URL supplies context,
+not permission to edit files or publish PRs. Git and GitHub evidence confirm what was implemented
+and delivered.
+
+<WorkflowMap />
+
+## Routing by work shape
+
+One authorized outcome is enough to start. A bounded enhancement, refactor, test task, or
+authorized correction goes directly to [Execute](/docs/skills/woostack-execute) with no planning
+stage first. Bounded test tasks are ordinary Execute input under the
+[testing guidance](https://github.com/howarewoo/woostack/blob/main/shared/references/tdd.md).
+
+When the outcome requires broader exploration, [Plan](/docs/skills/woostack-plan) shapes goals into
+reviewable increments, with optional requirement exploration in [Ideate](/docs/skills/woostack-ideate)
+and specification evidence checks in [Harden](/docs/skills/woostack-harden). Multiple approved tasks
+with dependencies go to [Orchestrate](/docs/skills/woostack-orchestrate).
+[Debug](/docs/skills/woostack-debug) offers separate read-only root-cause investigation; Execute can
+also diagnose an authorized bounded correction inline, establishing the cause before repair.
+Existing working code with high maintenance burden goes to [Simplify](/docs/skills/woostack-simplify).
+
+If the scope remains uncertain, [Plan work and file issues](/docs/guides/plan-work) starts from
+a broad goal, and [Troubleshoot a blocked workflow](/docs/guides/troubleshooting) starts from an
+observed symptom.
+
+## Execute
+
+Execute implements one bounded outcome, whether called directly by the user or run by a native
+worker delegated from Orchestrate. It checks repository state before the first edit, makes targeted
+changes, runs relevant checks, and stops within its assigned limits.
+
+- **Authority:** An ordinary natural-language request authorizes local edits and checks. An explicit
+  `/woostack-execute ...` request delivers a reviewable draft pull request unless narrowed to local work.
+- **Boundaries:** A bare issue URL outside the command grants no implementation authority. A delegated
+  assignment inherits the coordinator's limits; it is not a new command granting independent publication.
+- **Defects and scaffolds:** Bug fixes require reproduction or diagnostic evidence before editing.
+  Creating a project that does not exist yet uses settled decisions without requiring a preliminary
+  planning or documentation pass.
+
+See the [Deliver one change guide](/docs/guides/ship-change) for the standalone procedure, and
+[Execute reference](/docs/skills/woostack-execute) for admission and verification policies.
+
+## Plan
+
+Plan settles material decisions, inspects relevant source code, and returns a few reviewable
+increments. It drafts plans without writing code or editing existing files.
+
+- **Output:** By default, Plan returns its proposal in conversation. It publishes GitHub issues only
+  when explicitly requested. Publication does not authorize implementation.
+- **New products:** Planning a new product without an existing codebase works the same way: Plan works
+  from supplied goals, constraints, and authoritative research, asks only about unresolved choices,
+  and writes nothing unless requested.
+- **Issue structure:** Published issues include outcomes, non-goals, constraints, acceptance criteria,
+  and real prerequisites. Missing relationships are reported clearly rather than assumed complete.
+
+See the [Plan work and file issues guide](/docs/guides/plan-work) for the procedure, and
+[Plan reference](/docs/skills/woostack-plan) for destination resolution and read-back rules.
+
+## Orchestrate
+
+Orchestrate coordinates approved tasks across pull requests, supporting single-group one-PR runs
+as well as stacked pull requests. It reads outcomes, source evidence, and PR state to propose a grouping
+and landing order, stopping for user approval before dispatching workers.
+
+- **Coordination:** Orchestrate plans task grouping, cross-task interfaces, and landing order. Small
+  tightly coupled tasks share a PR when their verification path is inseparable.
+- **Delegation:** Each task group is implemented by a task owner in an independently owned task
+  worktree. Task owners run installed Execute or bundled fallback procedures. Two writers never share
+  one physical workspace.
+- **Delivery:** Root PRs target the approved trunk branch, while dependent PRs target their predecessor's
+  branch using native stack registration. Landing order remains distinct from implementation order:
+  immutable prerequisite checkpoints can unblock dependent work before PR publication.
+
+See the [Coordinate several tasks guide](/docs/guides/coordinate-work) for the procedure, and
+[Orchestrate reference](/docs/skills/woostack-orchestrate) for coordination and recovery policies.
+
+## Simplify
+
+Simplify focuses specifically on maintenance burden. While Execute can perform refactors as part
+of feature work, Simplify starts from working code whose complexity is the problem. It applies
+least-code principles to reduce concepts, files, and maintenance cost while preserving required behavior.
+
+Simplify applies changes locally unless a commit or draft PR is requested. Neither Plan nor Execute
+is a prerequisite. If the code is already simple enough, it remains unchanged.
+See [Simplify reference](/docs/skills/woostack-simplify).
+
+## Shared execution boundary
+
+Implementing workflows follow consistent verification and delivery rules:
+
+- **Verification:** Targeted smoke tests and relevant checks provide evidence. An agent's success
+  message cannot waive required checks. Unmet acceptance criteria block completion.
+- **Draft pull requests:** Authorized draft publication discloses progress and allows review. Draft
+  visibility does not prove completion or readiness for downstream consumers.
+- **Merge authority:** No Woostack workflow merges, auto-merges, or queues a pull request for merge.
+  Merge authority remains exclusively with the human.
+- **Delivery procedures:** Publication follows canonical
+  [delivery procedures](https://github.com/howarewoo/woostack/blob/main/shared/references/delivery.md) and
+  [source-control safeguards](https://github.com/howarewoo/woostack/blob/main/shared/references/source-control.md),
+  including read-back of head, base, open state, and preserved comments.
+
+## Upgrading from a pre-cutover release
+
+Prepare and the legacy custom execution controller are retired. Nothing installs, invokes, or
+emulates them, and no compatibility layer stands in for them.
+
+- **Fresh context:** New work never resumes from a retained run record. It starts from fresh task,
+  source, and host context. Recovery is proved from current Git and GitHub evidence.
+- **Retained records:** Existing `.woostack/tmp/runs/<run-id>/` records, older installations, and
+  existing worktrees remain intact as their owner left them. Migrating or deleting them is optional,
+  manual, and initiated by the user.
+- **Run replay:** A recorded run that requires the legacy controller replays from the pre-cutover
+  installation saved with it. Retained checkpoints are not converted automatically.
+
+Retained-data rules and recovery belong to the
+[local artifacts reference](/docs/configuration/artifacts/local) and
+[Orchestrate coordination contract](/docs/skills/woostack-orchestrate#coordinate).
+
+## Review and corrections
+
+Review provides independent verification evidence, not an automatic extra gate for ordinary
+reversible work. Existing relevant checks and the smallest practical observation remain the default.
+Additional runtime checks or independent review require an explicit instruction or a named material risk.
+
+Before completion, in-scope repairs stay on the same branch and pull request; after completion,
+repairs require a separate explicit request. Standalone Git operations such as rebasing, restacking,
+and marking pull requests ready belong to [woostack-commit](/docs/skills/woostack-commit).

@@ -1,49 +1,34 @@
 # Audience profiles
 
-Each visualization targets one reader. A preset below is a shortcut; any free-form audience
-("a designer", "a security auditor") is valid and is interpreted against the **dimension
-rubric** at the end. Default audience is `engineer`.
+Start with the reader's question, not their job title. Presets are shortcuts, not an allow-list or
+fixed page template; the requested focus overrides their defaults. Default audience: `engineer`.
 
 ## Dimensions
 
-Every profile answers these five questions. Free-form audiences answer them by inference.
-
-- **Surface** — what to show and what to hide.
-- **Depth** — how far down to go (mechanism vs. outcome).
-- **Vocabulary** — technical, plain, or business language.
-- **Visual density** — dense reference vs. spacious headline-driven.
-- **Cares about** — what this reader is actually trying to learn.
+Infer what to show, required depth, vocabulary, and visual density from what the reader needs to
+understand or decide. Use enough detail to answer that question, not every detail the source offers.
+Disclose uncertainty at every level; simplifying language must not hide consequential caveats.
 
 ## engineer
 
-- **Surface:** data flow, interfaces, components, key decisions, tradeoffs, edge cases,
-  failure modes. Hide marketing framing.
-- **Depth:** full technical depth, down to mechanism and contracts.
-- **Vocabulary:** precise technical terms; name the real types, files, and functions.
-- **Visual density:** dense — diagrams, tables, code/identifier callouts welcome.
-- **Cares about:** how it works, how to build it, how to maintain and extend it safely.
+Explain mechanisms, boundaries, contracts, and relevant failure paths using actual source
+identifiers. Start with the system or change overview, then expose code or schema detail where
+needed. Technical readers do not automatically need a dense page or exhaustive implementation tour.
 
 ## non-technical
 
-- **Surface:** what it does and why it matters; the user-facing shape. Hide implementation.
-- **Depth:** shallow on mechanism; concrete on outcomes and examples.
-- **Vocabulary:** plain language and analogies; expand or avoid jargon.
-- **Visual density:** moderate, with generous whitespace and clear signposting.
-- **Cares about:** what changes for people, the benefit, the "so what".
+Explain what happens, what changes for people, and why it matters, using concrete examples and
+plain language. Include implementation detail only when needed to understand a consequence.
+Explain necessary terms rather than hiding meaningful constraints behind an analogy.
 
 ## investor
 
-- **Surface:** the problem, the opportunity, scope, milestones, and risk. No code.
-- **Depth:** outcome-level; tie everything to value and feasibility.
-- **Vocabulary:** business language; crisp and confident, never hand-wavy.
-- **Visual density:** low — high-signal, headline-driven, a few strong visuals.
-- **Cares about:** what this is worth, what it costs, what could go wrong.
-- **Guard:** never fabricate numbers, timelines, or traction. Absent data is omitted or
-  labelled unknown — not invented.
+Explain the source-supported problem, opportunity, feasibility, scope, and risks. Show costs,
+milestones, or traction only when supplied; unknown is not zero. Prefer a few clear comparisons
+to code or promotional claims. Do not turn uncertainty into confidence for this audience.
 
 ## Free-form audiences
 
-When the audience is not a preset, infer the five dimensions from who they are. A "security
-auditor" wants threat surface, trust boundaries, and failure modes at high depth in technical
-vocabulary; a "designer" wants flows, states, and UI surface at moderate depth. State the
-inferred framing briefly at the top of the visual so the reader knows the lens.
+Infer the framing from the request: a security auditor may need trust boundaries and failure paths;
+a designer may need user flows and states. Briefly state that lens at the top of the visual.
+Do not require a questionnaire when the request and source already establish the reader's need.

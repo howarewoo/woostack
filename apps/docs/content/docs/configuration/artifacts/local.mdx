@@ -1,0 +1,64 @@
+---
+title: Local
+description: Reference for retained local planning records, preservation, and recovery boundaries.
+---
+
+Local files are retained historical records, not an active publication selector. Plan publishes
+issues directly and creates no new run or duplicate remote record. Ideate and Harden are read-only
+public phases.
+
+## Retained storage layout
+
+Existing records from retired planning wrappers may contain:
+
+```text
+.woostack/tmp/runs/<run-id>/
+├── .lock
+├── manifest.json
+├── project-spec.md
+└── execution-plan.md
+```
+
+The [artifact contract](https://github.com/howarewoo/woostack/blob/main/shared/references/artifact-backends.md#owner-only-local-run-store-reader)
+defines historical naming, owner-only permissions, locking, and the read-only interface. Do
+not create, rewrite, migrate, or delete a retained record as part of Plan, Ideate, or Harden.
+
+| Entry | Historical purpose |
+| --- | --- |
+| `.lock` | Guards concurrent access to one retained record |
+| `manifest.json` | Retained resume state, stable task mappings, and revisions |
+| `project-spec.md` | Retained approved specification and proved diagnosis |
+| `execution-plan.md` | Retained increments, contracts, and dependencies |
+
+Historical records keep their owner-only permissions; the retired mutating helper no longer exists,
+so they stay exactly as written. Their presence is evidence, not permission or authority.
+
+## Authority and recovery
+
+Git and GitHub own source, branches, commits, pull requests, reviews, and merge state. A retained
+record preserves decisions and evidence; it does not authorize publication, implementation,
+assignment, ownership, acceptance, or merge.
+
+Retained local files do not select a GitHub destination. Plan publishes only to the repository and
+destination the request resolves; an explicit Project selection follows the
+[GitHub configuration contract](/docs/configuration/artifacts/github) and never needs a retained run.
+
+An exact selected issue may be read through an authorized GitHub capability without Project settings
+or a retained plan. Its contents provide bounded context only: the requested action authorizes
+implementation and publication. A retained run identity alone is not an implementation input.
+Initialization is local-only and contacts no provider; a workflow that uses GitHub proves the access
+its own selected operation needs.
+
+## Retention and recovery
+
+Completed and explicitly abandoned records remain unchanged. To continue from a retained record,
+supply its exact identity and complete content to the responsible phase after fresh repository and
+evidence validation. A retained run ID alone is insufficient; no automatic conversion, import,
+or publication is performed.
+
+The retired `/woostack-execute --run <exact-run-id> [--recheck]` input is rejected. Select one
+complete bounded task and supply it as `/woostack-execute <bounded input>` (see
+[Execute retired inputs](/docs/skills/woostack-execute#retired-inputs)). Titles, recent history,
+branch names, and search ranking are not selectors. Legacy tracked records remain unchanged unless
+the user explicitly requests retirement guidance under the
+[artifact contract](https://github.com/howarewoo/woostack/blob/main/shared/references/artifact-backends.md#retained-data-and-retirement).

@@ -1,0 +1,76 @@
+---
+title: Core concepts
+description: Who authorizes work, which evidence proves it, and how planning, implementation, and context stay separate.
+---
+
+import { ContextEconomy } from "@/components/concepts/context-economy";
+
+Woostack separates three concerns: user decisions, agent planning, and implementation evidence.
+The user decides what may change and when to merge. Git and GitHub prove what code changed, which
+branches and commits it came from, and whether pull requests were reviewed and merged. Issues,
+Project status boards, retained records, and an agent's own summary are context for decisions,
+not proof of delivery.
+
+A bounded change fits one pull request, and new products start from settled decisions about what
+to build. Choosing a workflow never approves its design or authorizes extra work.
+
+## Planning before implementation
+
+Planning and implementation remain distinct decisions:
+
+- **Planning is read-only:** [Plan](/docs/skills/woostack-plan) inspects relevant source code,
+  settles material choices, and drafts reviewable increments. It files GitHub issues only when
+  explicitly requested, and filing issues never starts implementation.
+- **Bounded execution:** [Execute](/docs/skills/woostack-execute) takes one authorized outcome and
+  delivers verified local edits or a draft pull request. It requires no preliminary planning step.
+- **Multi-task coordination:** [Orchestrate](/docs/skills/woostack-orchestrate) coordinates multiple
+  approved tasks, proposing grouping and landing order before execution begins.
+- **Evidence-based delivery:** Closed issues or finished status fields never prove that code landed.
+  Git and GitHub evidence alone prove delivery.
+
+See [Workflow maps](/docs/concepts/workflows) for detailed workflow routing by work shape, and
+[Building rules](/docs/concepts/building-rules) for who authorizes work.
+
+## Optional exploration and review
+
+[Ideate](/docs/skills/woostack-ideate) explores requirements on request, while
+[Harden](/docs/skills/woostack-harden) checks specifications against repository evidence.
+Both are optional, read-only passes that require neither a writable checkout nor a Project.
+
+## Retained records and direct GitHub publication
+
+Plan publishes issues directly through authorized GitHub capabilities, reading back every write
+independently. Existing `.woostack/tmp/runs/<run-id>/` files remain historical user records that
+authorize nothing. See [local artifacts reference](/docs/configuration/artifacts/local).
+
+## Context economy
+
+<ContextEconomy />
+
+Keep only what the current decision requires. Scoped rules, scripts that compute, and subagents
+that return compact summaries protect the agent's scarce working memory. Follow
+[delegation guidance](/docs/concepts/context-management#isolated-agents-receive-bounded-envelopes)
+to balance speed, cost, isolation, and risk.
+
+### Related mechanisms
+
+- [Reflection](/docs/concepts/context-management#requested-reflection-becomes-instruction-suggestions)
+  runs only on request and turns observed gaps into suggestions for existing owners.
+- [Helpers](/docs/concepts/context-management#helpers-reduce-bulk-without-replacing-authority)
+  compute evidence without replacing authority.
+- [Hermes](/docs/hermes) acts as an external engineer, driving persistent sessions and relaying
+  live user decisions verbatim without gaining implementation authority.
+
+## Where to go next
+
+<Cards>
+  <Card title="Getting started" href="/docs/getting-started" description="Install the skills, create project guidance, and return a read-only plan." />
+  <Card title="Building rules" href="/docs/concepts/building-rules" description="Understand who authorizes work and which evidence proves delivery." />
+  <Card title="Repository structure and rules" href="/docs/concepts/repository-rules" description="Read how repository conventions, placement, dependencies, testing, and delivery rules fit together." />
+  <Card title="Workflow maps" href="/docs/concepts/workflows" description="Compare Plan, Orchestrate, and Execute under one authority model." />
+  <Card title="Least code, still safe" href="/docs/concepts/least-code" description="Write as little code as necessary without cutting edge cases or risks." />
+  <Card title="Context management" href="/docs/concepts/context-management" description="Keep reasoning focused with compact reads, isolated sessions, and explicit handoffs." />
+  <Card title="Parallelism with worktrees" href="/docs/concepts/worktrees" description="Isolate each delegated implementation task and concurrent disjoint work in separate Git worktrees." />
+  <Card title="Utility skill reference" href="/docs/concepts/utilities" description="Look up investigation, diagnostic, and maintenance skill behavior." />
+  <Card title="All skills" href="/docs/skills/using-woostack" description="Per-skill reference, generated from each SKILL.md." />
+</Cards>

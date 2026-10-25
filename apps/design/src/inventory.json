@@ -1,0 +1,685 @@
+{
+  "version": 1,
+  "reference": {
+    "repository": "https://github.com/howarewoo/git-stacks",
+    "revision": "ee6bbcb012965780643856b01bfd1c15502780d8",
+    "previousIssueBaseline": "3a74ae5f211eed502967f7247a8c27b340ec554d"
+  },
+  "upstream": {
+    "catalog": "https://ui.shadcn.com/docs/components",
+    "variant": "Base UI / base-nova",
+    "revision": "30a58d4498f270af1c1e981a7d78a15cf5740841",
+    "retrieved": "2026-10-13",
+    "registry": "https://ui.shadcn.com/r/styles/base-nova/",
+    "provenance": "shadcn Base UI base-nova source generated into target by shadcn CLI; catalog examples adapt local imports and named Lucide icons."
+  },
+  "entries": [
+    {
+      "id": "button",
+      "name": "Button",
+      "group": "Actions",
+      "importPath": "@/components/ui/button",
+      "specimen": "src/examples/button.tsx",
+      "coverage": "upstream",
+      "api": "upstream-base-ui",
+      "registryItem": "button"
+    },
+    {
+      "id": "button-group",
+      "name": "Button Group",
+      "group": "Actions",
+      "importPath": "@/components/ui/button-group",
+      "specimen": "src/examples/button-group.tsx",
+      "coverage": "upstream",
+      "api": "upstream-base-ui",
+      "registryItem": "button-group"
+    },
+    {
+      "id": "toggle",
+      "name": "Toggle",
+      "group": "Actions",
+      "importPath": "@/components/ui/toggle",
+      "specimen": "src/examples/toggle.tsx",
+      "coverage": "upstream",
+      "api": "upstream-base-ui",
+      "registryItem": "toggle"
+    },
+    {
+      "id": "toggle-group",
+      "name": "Toggle Group",
+      "group": "Actions",
+      "importPath": "@/components/ui/toggle-group",
+      "specimen": "src/examples/toggle-group.tsx",
+      "coverage": "upstream",
+      "api": "upstream-base-ui",
+      "registryItem": "toggle-group"
+    },
+    {
+      "id": "kbd",
+      "name": "Kbd",
+      "group": "Actions",
+      "importPath": "@/components/ui/kbd",
+      "specimen": "src/examples/kbd.tsx",
+      "coverage": "upstream",
+      "api": "upstream-base-ui",
+      "registryItem": "kbd"
+    },
+    {
+      "id": "breadcrumb",
+      "name": "Breadcrumb",
+      "group": "Navigation",
+      "importPath": "@/components/ui/breadcrumb",
+      "specimen": "src/examples/breadcrumb.tsx",
+      "coverage": "upstream",
+      "api": "upstream-base-ui",
+      "registryItem": "breadcrumb"
+    },
+    {
+      "id": "sidebar",
+      "name": "Sidebar",
+      "group": "Navigation",
+      "importPath": "@/components/ui/sidebar",
+      "specimen": "src/examples/sidebar.tsx",
+      "coverage": "upstream",
+      "api": "upstream-base-ui",
+      "registryItem": "sidebar"
+    },
+    {
+      "id": "navigation-menu",
+      "name": "Navigation Menu",
+      "group": "Navigation",
+      "importPath": "@/components/ui/navigation-menu",
+      "specimen": "src/examples/navigation-menu.tsx",
+      "coverage": "upstream",
+      "api": "upstream-base-ui",
+      "registryItem": "navigation-menu"
+    },
+    {
+      "id": "menubar",
+      "name": "Menubar",
+      "group": "Navigation",
+      "importPath": "@/components/ui/menubar",
+      "specimen": "src/examples/menubar.tsx",
+      "coverage": "upstream",
+      "api": "upstream-base-ui",
+      "registryItem": "menubar"
+    },
+    {
+      "id": "dropdown-menu",
+      "name": "Dropdown Menu",
+      "group": "Navigation",
+      "importPath": "@/components/ui/dropdown-menu",
+      "specimen": "src/examples/dropdown-menu.tsx",
+      "coverage": "upstream",
+      "api": "upstream-base-ui",
+      "registryItem": "dropdown-menu"
+    },
+    {
+      "id": "context-menu",
+      "name": "Context Menu",
+      "group": "Navigation",
+      "importPath": "@/components/ui/context-menu",
+      "specimen": "src/examples/context-menu.tsx",
+      "coverage": "upstream",
+      "api": "upstream-base-ui",
+      "registryItem": "context-menu"
+    },
+    {
+      "id": "command",
+      "name": "Command",
+      "group": "Navigation",
+      "importPath": "@/components/ui/command",
+      "specimen": "src/examples/command.tsx",
+      "coverage": "upstream",
+      "api": "upstream-base-ui",
+      "registryItem": "command"
+    },
+    {
+      "id": "tabs",
+      "name": "Tabs",
+      "group": "Navigation",
+      "importPath": "@/components/ui/tabs",
+      "specimen": "src/examples/tabs.tsx",
+      "coverage": "upstream",
+      "api": "upstream-base-ui",
+      "registryItem": "tabs"
+    },
+    {
+      "id": "pagination",
+      "name": "Pagination",
+      "group": "Navigation",
+      "importPath": "@/components/ui/pagination",
+      "specimen": "src/examples/pagination.tsx",
+      "coverage": "upstream",
+      "api": "upstream-base-ui",
+      "registryItem": "pagination"
+    },
+    {
+      "id": "field",
+      "name": "Field",
+      "group": "Forms",
+      "importPath": "@/components/ui/field",
+      "specimen": "src/examples/field.tsx",
+      "coverage": "upstream",
+      "api": "upstream-base-ui",
+      "registryItem": "field"
+    },
+    {
+      "id": "label",
+      "name": "Label",
+      "group": "Forms",
+      "importPath": "@/components/ui/label",
+      "specimen": "src/examples/label.tsx",
+      "coverage": "upstream",
+      "api": "upstream-base-ui",
+      "registryItem": "label"
+    },
+    {
+      "id": "input",
+      "name": "Input",
+      "group": "Forms",
+      "importPath": "@/components/ui/input",
+      "specimen": "src/examples/input.tsx",
+      "coverage": "upstream",
+      "api": "upstream-base-ui",
+      "registryItem": "input"
+    },
+    {
+      "id": "input-group",
+      "name": "Input Group",
+      "group": "Forms",
+      "importPath": "@/components/ui/input-group",
+      "specimen": "src/examples/input-group.tsx",
+      "coverage": "upstream",
+      "api": "upstream-base-ui",
+      "registryItem": "input-group"
+    },
+    {
+      "id": "textarea",
+      "name": "Textarea",
+      "group": "Forms",
+      "importPath": "@/components/ui/textarea",
+      "specimen": "src/examples/textarea.tsx",
+      "coverage": "upstream",
+      "api": "upstream-base-ui",
+      "registryItem": "textarea"
+    },
+    {
+      "id": "checkbox",
+      "name": "Checkbox",
+      "group": "Forms",
+      "importPath": "@/components/ui/checkbox",
+      "specimen": "src/examples/checkbox.tsx",
+      "coverage": "upstream",
+      "api": "upstream-base-ui",
+      "registryItem": "checkbox"
+    },
+    {
+      "id": "radio-group",
+      "name": "Radio Group",
+      "group": "Forms",
+      "importPath": "@/components/ui/radio-group",
+      "specimen": "src/examples/radio-group.tsx",
+      "coverage": "upstream",
+      "api": "upstream-base-ui",
+      "registryItem": "radio-group"
+    },
+    {
+      "id": "switch",
+      "name": "Switch",
+      "group": "Forms",
+      "importPath": "@/components/ui/switch",
+      "specimen": "src/examples/switch.tsx",
+      "coverage": "upstream",
+      "api": "upstream-base-ui",
+      "registryItem": "switch"
+    },
+    {
+      "id": "select",
+      "name": "Select",
+      "group": "Forms",
+      "importPath": "@/components/ui/select",
+      "specimen": "src/examples/select.tsx",
+      "coverage": "upstream",
+      "api": "upstream-base-ui",
+      "registryItem": "select"
+    },
+    {
+      "id": "native-select",
+      "name": "Native Select",
+      "group": "Forms",
+      "importPath": "@/components/ui/native-select",
+      "specimen": "src/examples/native-select.tsx",
+      "coverage": "upstream",
+      "api": "upstream-base-ui",
+      "registryItem": "native-select"
+    },
+    {
+      "id": "combobox",
+      "name": "Combobox",
+      "group": "Forms",
+      "importPath": "@/components/ui/combobox",
+      "specimen": "src/examples/combobox.tsx",
+      "coverage": "upstream",
+      "api": "upstream-base-ui",
+      "registryItem": "combobox"
+    },
+    {
+      "id": "slider",
+      "name": "Slider",
+      "group": "Forms",
+      "importPath": "@/components/ui/slider",
+      "specimen": "src/examples/slider.tsx",
+      "coverage": "upstream",
+      "api": "upstream-base-ui",
+      "registryItem": "slider"
+    },
+    {
+      "id": "calendar",
+      "name": "Calendar",
+      "group": "Forms",
+      "importPath": "@/components/ui/calendar",
+      "specimen": "src/examples/calendar.tsx",
+      "coverage": "upstream",
+      "api": "upstream-base-ui",
+      "registryItem": "calendar"
+    },
+    {
+      "id": "date-picker",
+      "name": "Date Picker",
+      "group": "Forms",
+      "provenance": "Project-owned composition; not an upstream component API.",
+      "importPath": "@/catalog/date-picker",
+      "specimen": "src/examples/date-picker.tsx",
+      "coverage": "upstream",
+      "api": "owned",
+      "registryItem": null
+    },
+    {
+      "id": "input-otp",
+      "name": "Input OTP",
+      "group": "Forms",
+      "importPath": "@/components/ui/input-otp",
+      "specimen": "src/examples/input-otp.tsx",
+      "coverage": "upstream",
+      "api": "upstream-base-ui",
+      "registryItem": "input-otp"
+    },
+    {
+      "id": "card",
+      "name": "Card",
+      "group": "Data display",
+      "importPath": "@/components/ui/card",
+      "specimen": "src/examples/card.tsx",
+      "coverage": "upstream",
+      "api": "upstream-base-ui",
+      "registryItem": "card"
+    },
+    {
+      "id": "badge",
+      "name": "Badge",
+      "group": "Data display",
+      "importPath": "@/components/ui/badge",
+      "specimen": "src/examples/badge.tsx",
+      "coverage": "upstream",
+      "api": "upstream-base-ui",
+      "registryItem": "badge"
+    },
+    {
+      "id": "avatar",
+      "name": "Avatar",
+      "group": "Data display",
+      "importPath": "@/components/ui/avatar",
+      "specimen": "src/examples/avatar.tsx",
+      "coverage": "upstream",
+      "api": "upstream-base-ui",
+      "registryItem": "avatar"
+    },
+    {
+      "id": "table",
+      "name": "Table",
+      "group": "Data display",
+      "importPath": "@/components/ui/table",
+      "specimen": "src/examples/table.tsx",
+      "coverage": "upstream",
+      "api": "upstream-base-ui",
+      "registryItem": "table"
+    },
+    {
+      "id": "data-table",
+      "name": "Data Table",
+      "group": "Data display",
+      "provenance": "Project-owned composition; not an upstream component API.",
+      "importPath": "@/catalog/data-table",
+      "specimen": "src/examples/data-table.tsx",
+      "coverage": "upstream",
+      "api": "owned",
+      "registryItem": null
+    },
+    {
+      "id": "item",
+      "name": "Item",
+      "group": "Data display",
+      "importPath": "@/components/ui/item",
+      "specimen": "src/examples/item.tsx",
+      "coverage": "upstream",
+      "api": "upstream-base-ui",
+      "registryItem": "item"
+    },
+    {
+      "id": "accordion",
+      "name": "Accordion",
+      "group": "Data display",
+      "importPath": "@/components/ui/accordion",
+      "specimen": "src/examples/accordion.tsx",
+      "coverage": "upstream",
+      "api": "upstream-base-ui",
+      "registryItem": "accordion"
+    },
+    {
+      "id": "collapsible",
+      "name": "Collapsible",
+      "group": "Data display",
+      "importPath": "@/components/ui/collapsible",
+      "specimen": "src/examples/collapsible.tsx",
+      "coverage": "upstream",
+      "api": "upstream-base-ui",
+      "registryItem": "collapsible"
+    },
+    {
+      "id": "chart",
+      "name": "Chart",
+      "group": "Data display",
+      "importPath": "@/components/ui/chart",
+      "specimen": "src/examples/chart.tsx",
+      "coverage": "upstream",
+      "api": "upstream-base-ui",
+      "registryItem": "chart"
+    },
+    {
+      "id": "aspect-ratio",
+      "name": "Aspect Ratio",
+      "group": "Layout",
+      "importPath": "@/components/ui/aspect-ratio",
+      "specimen": "src/examples/aspect-ratio.tsx",
+      "coverage": "upstream",
+      "api": "upstream-base-ui",
+      "registryItem": "aspect-ratio"
+    },
+    {
+      "id": "carousel",
+      "name": "Carousel",
+      "group": "Layout",
+      "importPath": "@/components/ui/carousel",
+      "specimen": "src/examples/carousel.tsx",
+      "coverage": "upstream",
+      "api": "upstream-base-ui",
+      "registryItem": "carousel"
+    },
+    {
+      "id": "resizable",
+      "name": "Resizable",
+      "group": "Layout",
+      "importPath": "@/components/ui/resizable",
+      "specimen": "src/examples/resizable.tsx",
+      "coverage": "upstream",
+      "api": "upstream-base-ui",
+      "registryItem": "resizable"
+    },
+    {
+      "id": "scroll-area",
+      "name": "Scroll Area",
+      "group": "Layout",
+      "importPath": "@/components/ui/scroll-area",
+      "specimen": "src/examples/scroll-area.tsx",
+      "coverage": "upstream",
+      "api": "upstream-base-ui",
+      "registryItem": "scroll-area"
+    },
+    {
+      "id": "separator",
+      "name": "Separator",
+      "group": "Layout",
+      "importPath": "@/components/ui/separator",
+      "specimen": "src/examples/separator.tsx",
+      "coverage": "upstream",
+      "api": "upstream-base-ui",
+      "registryItem": "separator"
+    },
+    {
+      "id": "direction",
+      "name": "Direction",
+      "group": "Layout",
+      "importPath": "@/components/ui/direction",
+      "specimen": "src/examples/direction.tsx",
+      "coverage": "upstream",
+      "api": "upstream-base-ui",
+      "registryItem": "direction"
+    },
+    {
+      "id": "alert",
+      "name": "Alert",
+      "group": "Feedback",
+      "importPath": "@/components/ui/alert",
+      "specimen": "src/examples/alert.tsx",
+      "coverage": "upstream",
+      "api": "upstream-base-ui",
+      "registryItem": "alert"
+    },
+    {
+      "id": "empty",
+      "name": "Empty",
+      "group": "Feedback",
+      "importPath": "@/components/ui/empty",
+      "specimen": "src/examples/empty.tsx",
+      "coverage": "upstream",
+      "api": "upstream-base-ui",
+      "registryItem": "empty"
+    },
+    {
+      "id": "progress",
+      "name": "Progress",
+      "group": "Feedback",
+      "importPath": "@/components/ui/progress",
+      "specimen": "src/examples/progress.tsx",
+      "coverage": "upstream",
+      "api": "upstream-base-ui",
+      "registryItem": "progress"
+    },
+    {
+      "id": "spinner",
+      "name": "Spinner",
+      "group": "Feedback",
+      "importPath": "@/components/ui/spinner",
+      "specimen": "src/examples/spinner.tsx",
+      "coverage": "upstream",
+      "api": "upstream-base-ui",
+      "registryItem": "spinner"
+    },
+    {
+      "id": "skeleton",
+      "name": "Skeleton",
+      "group": "Feedback",
+      "importPath": "@/components/ui/skeleton",
+      "specimen": "src/examples/skeleton.tsx",
+      "coverage": "upstream",
+      "api": "upstream-base-ui",
+      "registryItem": "skeleton"
+    },
+    {
+      "id": "toast",
+      "name": "Toast",
+      "group": "Feedback",
+      "importPath": "sonner",
+      "specimen": "src/examples/toast.tsx",
+      "coverage": "upstream",
+      "api": "upstream-base-ui",
+      "registryItem": "sonner"
+    },
+    {
+      "id": "dialog",
+      "name": "Dialog",
+      "group": "Overlays",
+      "importPath": "@/components/ui/dialog",
+      "specimen": "src/examples/dialog.tsx",
+      "coverage": "upstream",
+      "api": "upstream-base-ui",
+      "registryItem": "dialog"
+    },
+    {
+      "id": "alert-dialog",
+      "name": "Alert Dialog",
+      "group": "Overlays",
+      "importPath": "@/components/ui/alert-dialog",
+      "specimen": "src/examples/alert-dialog.tsx",
+      "coverage": "upstream",
+      "api": "upstream-base-ui",
+      "registryItem": "alert-dialog"
+    },
+    {
+      "id": "sheet",
+      "name": "Sheet",
+      "group": "Overlays",
+      "importPath": "@/components/ui/sheet",
+      "specimen": "src/examples/sheet.tsx",
+      "coverage": "upstream",
+      "api": "upstream-base-ui",
+      "registryItem": "sheet"
+    },
+    {
+      "id": "drawer",
+      "name": "Drawer",
+      "group": "Overlays",
+      "importPath": "@/components/ui/drawer",
+      "specimen": "src/examples/drawer.tsx",
+      "coverage": "upstream",
+      "api": "upstream-base-ui",
+      "registryItem": "drawer"
+    },
+    {
+      "id": "popover",
+      "name": "Popover",
+      "group": "Overlays",
+      "importPath": "@/components/ui/popover",
+      "specimen": "src/examples/popover.tsx",
+      "coverage": "upstream",
+      "api": "upstream-base-ui",
+      "registryItem": "popover"
+    },
+    {
+      "id": "hover-card",
+      "name": "Hover Card",
+      "group": "Overlays",
+      "importPath": "@/components/ui/hover-card",
+      "specimen": "src/examples/hover-card.tsx",
+      "coverage": "upstream",
+      "api": "upstream-base-ui",
+      "registryItem": "hover-card"
+    },
+    {
+      "id": "tooltip",
+      "name": "Tooltip",
+      "group": "Overlays",
+      "importPath": "@/components/ui/tooltip",
+      "specimen": "src/examples/tooltip.tsx",
+      "coverage": "upstream",
+      "api": "upstream-base-ui",
+      "registryItem": "tooltip"
+    },
+    {
+      "id": "attachment",
+      "name": "Attachment",
+      "group": "Conversation",
+      "importPath": "@/components/ui/attachment",
+      "specimen": "src/examples/attachment.tsx",
+      "coverage": "upstream",
+      "api": "upstream-base-ui",
+      "registryItem": "attachment"
+    },
+    {
+      "id": "bubble",
+      "name": "Bubble",
+      "group": "Conversation",
+      "importPath": "@/components/ui/bubble",
+      "specimen": "src/examples/bubble.tsx",
+      "coverage": "upstream",
+      "api": "upstream-base-ui",
+      "registryItem": "bubble"
+    },
+    {
+      "id": "message",
+      "name": "Message",
+      "group": "Conversation",
+      "importPath": "@/components/ui/message",
+      "specimen": "src/examples/message.tsx",
+      "coverage": "upstream",
+      "api": "upstream-base-ui",
+      "registryItem": "message"
+    },
+    {
+      "id": "message-scroller",
+      "name": "Message Scroller",
+      "group": "Conversation",
+      "importPath": "@/components/ui/message-scroller",
+      "specimen": "src/examples/message-scroller.tsx",
+      "coverage": "upstream",
+      "api": "upstream-base-ui",
+      "registryItem": "message-scroller"
+    },
+    {
+      "id": "marker",
+      "name": "Marker",
+      "group": "Conversation",
+      "importPath": "@/components/ui/marker",
+      "specimen": "src/examples/marker.tsx",
+      "coverage": "upstream",
+      "api": "upstream-base-ui",
+      "registryItem": "marker"
+    },
+    {
+      "id": "questionnaire",
+      "name": "Questionnaire",
+      "group": "Conversation",
+      "importPath": "@/components/ui/questionnaire",
+      "specimen": "src/examples/questionnaire.tsx",
+      "coverage": "upstream",
+      "api": "upstream-base-ui",
+      "registryItem": "questionnaire"
+    },
+    {
+      "id": "typography",
+      "name": "Typography",
+      "group": "Foundations",
+      "provenance": "Project-owned composition; not an upstream component API.",
+      "importPath": "@/catalog/typography",
+      "specimen": "src/examples/typography.tsx",
+      "coverage": "upstream",
+      "api": "owned",
+      "registryItem": null
+    },
+    {
+      "id": "typeset",
+      "name": "Typeset",
+      "group": "Foundations",
+      "provenance": "Project-owned composition; not an upstream component API.",
+      "importPath": "@/catalog/typography",
+      "specimen": "src/examples/typeset.tsx",
+      "coverage": "owned-foundation",
+      "api": "owned",
+      "registryItem": null
+    },
+    {
+      "id": "iconography",
+      "name": "Iconography",
+      "group": "Foundations",
+      "source": "https://lucide.dev/guide/packages/lucide-react",
+      "provenance": "Project-owned composition; not an upstream component API.",
+      "importPath": "lucide-react",
+      "specimen": "src/examples/iconography.tsx",
+      "coverage": "owned-foundation",
+      "api": "owned",
+      "registryItem": null
+    }
+  ],
+  "projectExtensions": []
+}

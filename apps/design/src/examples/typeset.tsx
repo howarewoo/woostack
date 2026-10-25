@@ -1,0 +1,38 @@
+import { Typography } from "@/catalog/typography";
+export default function TypesetExample() {
+  return (
+    <Typography>
+      <h2>Project handbook</h2>
+      <p>
+        This owned content foundation styles long-form documents with the same neutral tokens used
+        by controls.
+      </p>
+      <h3>Getting started</h3>
+      <ol>
+        <li>Choose an example.</li>
+        <li>Adapt imports to public project components.</li>
+      </ol>
+      <blockquote>Keep project-specific decisions at their owner.</blockquote>
+      <pre>
+        <code>{`export const settings = { appearance: "system" }`}</code>
+      </pre>
+      <table>
+        <thead>
+          <tr>
+            <th>Setting</th>
+            <th>Default</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Appearance</td>
+            <td>System</td>
+          </tr>
+        </tbody>
+      </table>
+      <p>
+        <a href="https://ui.shadcn.com/docs/components/typography">Typography reference</a>
+      </p>
+    </Typography>
+  );
+}

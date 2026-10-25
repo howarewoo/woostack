@@ -12,6 +12,7 @@ Keep Woostack Init's evidence-first authoring workflow and requested write scope
 | Visual `DESIGN.md` | [DESIGN.md specification](https://github.com/google-labs-code/design.md/blob/main/docs/spec.md) | `alpha` |
 | `AGENTS.md` | [AGENTS.md convention](https://agents.md/) | Unversioned Markdown; no required fields |
 | Root `README.md` | [GitHub README guidance](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-readmes) | Unversioned Markdown; no required headings |
+| Root `ARCHITECTURE.md` | [Technical orientation contract](#architecturemd) | Unversioned Markdown; no required headings |
 
 The product baseline was checked against Impeccable revision
 `6b9d0ffa3a9a884fc95928d2d2d896b0befa5d3e`; the design baseline against the linked specification.
@@ -69,11 +70,47 @@ output, URLs, badges, supported platforms, license, or project claims. Preserve 
 do not invent screenshots or diagrams. Omit empty headings, generic marketing, decorative badge
 collections, and unnecessary manual tables of contents.
 
+Development and testing sections record only commands with verified existence, their prerequisites,
+and working directories, maintaining the distinction between inspected and executed evidence. Keep
+proposed tooling changes and unconfigured caches or CI workflows out of the primary usage path.
+
 Check referenced local files, images, and anchors and confirm commands/examples against scripts,
 source, or canonical docs. Execute commands only when safe, authorized, and feasible under Init's
 [verification step](../SKILL.md#guided-authoring); distinguish inspected from executed commands and
 report verification limits. The [guided workflow](../SKILL.md#guided-authoring) retains write scope,
 support-only separation, ownership, dirty-edit, and symlink/path protections.
+
+## ARCHITECTURE.md
+
+Author root `ARCHITECTURE.md` to help contributors and coding agents locate a change, understand how
+the relevant parts interact, and preserve architectural boundaries. Use ordinary Markdown with
+repository-appropriate sections, not mandatory headings, frontmatter, a schema marker, word count,
+or diagram. Optimize for useful orientation and maintainability, not exhaustive coverage.
+
+Include only useful, supported material:
+
+- Major components, their responsibilities and entrypoints, and a coarse code map with useful
+  repository-relative paths.
+- Important dependency relationships and runtime or data flows.
+- Non-obvious boundaries, invariants, and applicable cross-cutting concerns.
+- Documented decision rationale and links to canonical architecture documents or architecture
+  decision records. Never infer historical rationale from code alone.
+
+Ground claims in representative source, entrypoints, manifests, configuration, existing documents,
+and confirmed user decisions. Distinguish implemented architecture, agreed future direction, and
+unresolved decisions. In greenfield repositories, label confirmed plans as planned, not implemented.
+Omit unsupported material or explicitly defer it; never invent infrastructure, components,
+constraints, or settled decisions to fill a template.
+
+When detailed architecture already lives in `DESIGN.md` or elsewhere, provide a concise but useful
+root overview with links, not a competing specification. Preserve established authority; do not
+silently move or repurpose documents. Consolidation requires separate authorization. Keep product
+scope, visual/interaction guidance, first-use instructions, and agent operations with their owners
+under [document responsibilities](../SKILL.md#document-responsibilities).
+
+Use the [guided workflow](../SKILL.md#guided-authoring) for creation and targeted updates.
+Leave adequate guidance unchanged; unchanged scope, evidence, and decisions on a repeat invocation
+must not produce stylistic rewrites or duplicate sections.
 
 ## PRODUCT.md
 
@@ -159,3 +196,9 @@ required frontmatter, or mandatory heading inventory. Use actual commands and wo
 verification conditions, boundaries, pitfalls, and contextual links. Preserve the repository and
 host's instruction precedence and the scope of existing nested instructions. The operational and
 Woostack-adoption rules remain in [document responsibilities](../SKILL.md#document-responsibilities).
+
+Repository manifests and CI configuration remain authoritative for adopted tooling. Record verified
+command existence, working directories, execution conditions, and evidence status under canonical
+[testing principles](tdd.md), distinguishing commands inspected
+from commands executed. Keep current commands, agreed future direction, and unimplemented
+recommendations strictly separate.

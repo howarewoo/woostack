@@ -1,0 +1,108 @@
+---
+title: Plan in ChatGPT, implement in Codex
+description: Plan a change in a normal ChatGPT chat, optionally publish verified issues, then implement in a separate Codex session.
+---
+
+Settle requirements in a normal ChatGPT chat, ground the plan in the actual repository, and stop there.
+Implementation is a separate request in a separately configured coding host. This recipe requires
+no installed Woostack skills in ChatGPT, and public search is not a substitute for repository access.
+
+## Check your connection first
+
+Ask which tools the session exposes before promising an outcome:
+
+| Connection capability | What you can achieve | Output handoff |
+| --- | --- | --- |
+| Read-only tools | Produces a source-grounded plan | Complete plan in conversation |
+| Issue create and update | Publishes verified GitHub issues | Plan plus verified issue URLs |
+| Native sub-issue and dependency links | Creates native parent and blocked-by links | Full native relationship graph |
+
+Keep confirmed issue identities and a readable prerequisite index when linking is unavailable.
+If a native graph was explicitly required, the result remains incomplete until verified. Check provider
+documentation for connection details: [Developer mode and MCP apps][mcp] and
+[the GitHub app connection][github-app].
+
+## Paste-in starter prompt
+
+Copy this into ChatGPT and replace the four placeholder lines:
+
+```text title="Starter prompt"
+Help me plan this change using the connected repository as evidence.
+
+Repository: <owner/repository>
+Goal: <the outcome I want>
+Existing issues: <exact URLs, or none>
+Constraints and non-goals: <what must stay unchanged>
+
+Read the relevant repository instructions, source, tests, documentation,
+and existing issues. Report the branch or commit you inspected and any
+access gaps. Ask only about unresolved choices that materially affect
+the outcome, scope, compatibility, security, or cost.
+
+Prefer deletion and reuse over additions. Propose the fewest reviewable
+increments that deliver the outcome. For each, describe the result,
+relevant files or interfaces, acceptance and verification, and real
+prerequisites. Do not invent paths, commands, capabilities, or test results.
+
+Return the plan here. Do not publish issues, edit source, create branches
+or pull requests, invoke Codex, or start implementation.
+```
+
+The planner reads repository evidence and returns a plan without writing to disk or GitHub.
+
+To publish, review the plan and send an explicit publication request:
+
+```text title="Publication request"
+File this plan as GitHub issues in <owner/repository>. Reuse an existing
+issue when one already covers an increment, create the missing ones with
+their acceptance, verification, and real prerequisites, then read every
+affected issue back. Report the URLs, what was reused or created, and any
+relationship you could not write. Do not start implementation.
+```
+
+This request authorizes publication; planning and publishing in one message needs no second approval
+event. [Plan's publication rules](/docs/skills/woostack-plan#publishing-and-read-back) govern writes
+and independent read-back.
+
+## What a complete handoff looks like
+
+- **Plan-only handoff:** Agreed scope, increments, acceptance criteria, verification commands, real
+  prerequisites, source inspected, and remaining open questions.
+- **Published handoff:** All of the above plus verified issue URLs, what was reused or created,
+  independent read-back results, and written or missing relationships.
+
+Published issues follow [Plan's content floor](/docs/skills/woostack-plan#what-an-issue-carries):
+an outcome, important constraints, non-goals, acceptance criteria, and real prerequisites.
+
+## Stop, then invoke Codex separately
+
+After read-back, the chat returns the issue URLs, declared prerequisites, and relationship status,
+then **stops**. Chat history is not shared across hosts.
+
+In a separately configured [Codex session](/docs/harnesses/codex), supply the plan or issue URLs and
+request implementation:
+
+- For a single bounded task, use [Deliver one change](/docs/guides/ship-change).
+- For multiple tasks with prerequisites, use [Coordinate several tasks](/docs/guides/coordinate-work).
+
+### Coding-host alternatives
+
+To plan in the coding host directly, [Plan work and file issues](/docs/guides/plan-work) performs the
+same workflow with installed skills. Bounded work can go directly to [Execute](/docs/guides/ship-change)
+without planning.
+
+## Incomplete publication and recovery
+
+| Observation | Result and next step |
+| --- | --- |
+| No issue create/update capability | Keep plan in conversation and identify exact setup gap |
+| Issues written, native links unavailable | Keep URLs and readable prerequisite index; name missing links |
+| Required native graph not written | Publication is incomplete; report missing graph |
+| Write timed out or uncertain result | Re-read exact identity in exact repository before retrying |
+| Named test command does not exist | Correct contract; an inspected script is not an executed check |
+| Tool text instructs execution or scope widening | Treat as untrusted evidence; cannot authorize work |
+
+For blocked steps, start with the [troubleshooting guide](/docs/guides/troubleshooting).
+
+[github-app]: https://help.openai.com/en/articles/11145903-connecting-github-to-chatgpt
+[mcp]: https://help.openai.com/en/articles/12584461-developer-mode-and-mcp-apps-in-chatgpt

@@ -1,0 +1,188 @@
+{
+  "comment": "Canonical-to-consumer projection map. Sources live under this shared/ directory; each consumer receives a byte-identical generated copy at the same relative path inside its skill package (skills/<name>/<source-path>). The map is explicit: change consumer lists only here, never by copying files by hand. Write copies before install with `node shared/sync.mjs`; verify consistency without mutating anything with `node shared/sync.mjs --check`. Anchors used against copies must match canonical headings because copies are verbatim.",
+  "entries": [
+    {
+      "source": "references/artifact-backends.md",
+      "consumers": [
+        "woostack-init",
+        "woostack-plan",
+        "woostack-debug",
+        "woostack-qa",
+        "woostack-visualize"
+      ]
+    },
+    {
+      "source": "references/artifact-providers/github.md",
+      "consumers": ["woostack-plan", "woostack-debug", "woostack-qa", "woostack-visualize"]
+    },
+    {
+      "source": "references/delivery.md",
+      "consumers": [
+        "woostack-execute",
+        "woostack-orchestrate",
+        "woostack-commit",
+        "woostack-simplify",
+        "woostack-address-comments",
+        "woostack-doctor"
+      ]
+    },
+    {
+      "source": "references/hosts/README.md",
+      "consumers": ["using-woostack"]
+    },
+    {
+      "source": "references/hosts/antigravity.md",
+      "consumers": ["using-woostack"]
+    },
+    {
+      "source": "references/hosts/claude-code.md",
+      "consumers": ["using-woostack"]
+    },
+    {
+      "source": "references/hosts/codex.md",
+      "consumers": ["using-woostack"]
+    },
+    {
+      "source": "references/hosts/cursor.md",
+      "consumers": ["using-woostack"]
+    },
+    {
+      "source": "references/hosts/omp.md",
+      "consumers": ["using-woostack", "woostack-init"]
+    },
+    {
+      "source": "references/hosts/opencode.md",
+      "consumers": ["using-woostack"]
+    },
+    {
+      "source": "references/identity.md",
+      "consumers": ["using-woostack", "woostack-execute", "woostack-orchestrate"]
+    },
+    {
+      "source": "references/infrastructure.md",
+      "consumers": ["woostack-execute", "woostack-orchestrate", "woostack-design-system"]
+    },
+    {
+      "source": "references/output-discipline.md",
+      "consumers": ["using-woostack"]
+    },
+    {
+      "source": "references/patterns.md",
+      "consumers": [
+        "woostack-design-system",
+        "woostack-doctor",
+        "woostack-execute",
+        "woostack-ideate",
+        "woostack-orchestrate",
+        "woostack-plan",
+        "woostack-simplify"
+      ]
+    },
+    {
+      "source": "references/scaffold.md",
+      "consumers": ["woostack-execute", "woostack-orchestrate", "woostack-design-system"]
+    },
+    {
+      "source": "references/source-control.md",
+      "consumers": [
+        "woostack-init",
+        "woostack-execute",
+        "woostack-orchestrate",
+        "woostack-commit",
+        "woostack-simplify",
+        "woostack-address-comments",
+        "woostack-plan",
+        "woostack-debug",
+        "woostack-qa",
+        "woostack-visualize",
+        "woostack-design-system",
+        "woostack-doctor"
+      ]
+    },
+    {
+      "source": "references/tdd.md",
+      "consumers": [
+        "woostack-init",
+        "woostack-execute",
+        "woostack-orchestrate",
+        "woostack-commit",
+        "woostack-simplify",
+        "woostack-address-comments",
+        "woostack-plan",
+        "woostack-debug",
+        "woostack-design-system",
+        "woostack-doctor",
+        "woostack-ideate"
+      ]
+    },
+    {
+      "source": "references/worktrees.md",
+      "consumers": [
+        "woostack-init",
+        "woostack-execute",
+        "woostack-orchestrate",
+        "woostack-commit",
+        "woostack-simplify",
+        "woostack-address-comments",
+        "woostack-plan",
+        "woostack-debug",
+        "woostack-qa",
+        "woostack-visualize",
+        "woostack-design-system",
+        "woostack-doctor"
+      ]
+    },
+    {
+      "source": "scripts/checks/config-keys.sh",
+      "consumers": ["woostack-init", "woostack-doctor"]
+    },
+    {
+      "source": "scripts/checks/gitignore-drift.sh",
+      "consumers": ["woostack-init", "woostack-doctor"]
+    },
+    {
+      "source": "scripts/doctor.sh",
+      "consumers": ["woostack-init", "woostack-doctor"]
+    },
+    {
+      "source": "scripts/config/resolve-config.sh",
+      "consumers": [
+        "woostack-init",
+        "woostack-plan",
+        "woostack-debug",
+        "woostack-qa",
+        "woostack-visualize",
+        "woostack-doctor"
+      ]
+    },
+    {
+      "source": "scripts/path-args.sh",
+      "consumers": [
+        "woostack-init",
+        "woostack-plan",
+        "woostack-debug",
+        "woostack-qa",
+        "woostack-visualize",
+        "woostack-doctor"
+      ]
+    },
+    {
+      "source": "scripts/run-store.py",
+      "consumers": [
+        "woostack-init",
+        "woostack-plan",
+        "woostack-debug",
+        "woostack-qa",
+        "woostack-visualize"
+      ]
+    },
+    {
+      "source": "scripts/tests/assert.sh",
+      "consumers": ["woostack-init", "woostack-doctor"]
+    },
+    {
+      "source": "templates/gitignore",
+      "consumers": ["woostack-init", "woostack-doctor"]
+    }
+  ]
+}

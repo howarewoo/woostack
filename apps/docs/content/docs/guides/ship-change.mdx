@@ -1,0 +1,74 @@
+---
+title: Deliver one change
+description: Implement and verify a bounded task, then inspect its requested draft pull request.
+---
+
+import { ShipChangeFlow } from "@/components/guides/ship-change-flow";
+
+Use this guide when your task and non-goals fit into one reviewable pull request. You need
+a clear plan or exact issue URL, repository access, and a GitHub capability for creating
+pull requests.
+
+Because this guide explicitly requests pull request delivery, your assistant will edit source
+code, run relevant checks, and commit and publish the result as a draft. A natural-language
+request for local implementation alone authorizes local edits, not a push or pull request.
+These examples are [logical skill requests, not terminal commands](/docs/harnesses#native-skill-invocation).
+
+<ShipChangeFlow />
+
+## 1. Request the task and delivery
+
+Send this request to your coding assistant, supplying your plan or task description:
+
+```text
+/woostack-execute Implement the reviewed README documentation plan. Use the repository's actual verification commands, run relevant checks, and submit a draft pull request. Do not merge.
+```
+
+If you have an existing issue, `/woostack-execute <canonical GitHub issue URL>` is an alternative.
+
+Keep these boundaries in mind:
+
+- **Explicit delivery:** An explicit `/woostack-execute ...` request delivers a reviewable draft
+  pull request unless you specifically limit it to local edits.
+- **Planning is optional:** A bounded task can go directly to Execute without running Plan first.
+- **Defect evidence:** If repairing a bug, establish the root cause from reproduction or diagnostic
+  evidence before editing code. A separate Debug session is optional.
+- **Workspace admission:** Before touching any file, Execute inspects the Git repository, branch,
+  HEAD, index, and unstaged changes. Unknown ownership or an unsafe base blocks edits.
+
+## 2. Inspect the implementation and checks
+
+Once the assistant finishes editing and running tests, review the resulting work against this checklist:
+
+- **Diff scope:** Confirm that the complete diff matches the authorized outcome and leaves unrelated
+  code untouched.
+- **Relevant checks:** Ensure tests and commands covering the modified behavior actually ran.
+  For ordinary reversible work, the smallest practical observation is the default.
+- **Acceptance criteria:** Verify that all stated acceptance criteria passed. Publishing a draft
+  pull request does not replace or satisfy implementation acceptance.
+- **Privacy and safety:** Keep unresolved privacy findings on HOLD and verify that safety protections
+  remain intact.
+
+For consequential changes or material risks, see
+[Execute's verification policy](/docs/skills/woostack-execute#implement-and-verify). If a check stalls
+or needs missing capabilities, follow the
+[troubleshooting guide](/docs/guides/troubleshooting#a-test-or-verification-step-fails) rather than
+guessing.
+
+## 3. Verify the draft pull request
+
+After delivery, inspect the draft pull request on GitHub:
+
+- **Draft PR state:** Verify the pull request URL, current head commit, approved base (the trunk branch
+  or an explicitly approved predecessor), body description, and open draft state against Git and GitHub.
+- **Issue linking:** If you selected an issue, verify that closing keywords appear only when the
+  pull request fully resolves that issue.
+- **Merge control:** Only a human merges the pull request. Woostack workflows never merge, auto-merge,
+  or queue pull requests for merge.
+
+Before completion, in-scope repairs stay on the same task branch and pull request. After completion,
+repairs require a separate explicit request; later review does not automatically extend standing
+implementation authority. For standalone Git maintenance such as rebasing, restacking, or marking
+a draft ready, use [woostack-commit](/docs/skills/woostack-commit). Delivery follows canonical
+[delivery procedures](https://github.com/howarewoo/woostack/blob/main/shared/references/delivery.md) and
+[source-control safeguards](https://github.com/howarewoo/woostack/blob/main/shared/references/source-control.md).

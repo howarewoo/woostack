@@ -4,37 +4,74 @@
 
 Inspect repository evidence before asking questions. Ask only about material unresolved choices,
 preserve user decisions, and keep the requested action separate from contextual evidence.
-The [command router](skills/using-woostack/SKILL.md) owns routing and authorization semantics;
-individual skills own workflow steps and approval gates.
-New-project planning and bounded creation belong to Plan and Execute by requested intent.
-Neither requires the other or Init; Init remains the owner of requested project guidance.
-Execute owns reusable implementation standards, loaded only for relevant changes.
+Init's guided document authoring additionally consults on repository intention, structure,
+direction, and architecture before drafting, per
+[Init](skills/woostack-init/SKILL.md#guided-authoring); the rule above remains the default for the
+other workflows.
+Each skill owns its activation, routing, workflow steps, and approval gates; the
+[command router](skills/using-woostack/SKILL.md) is an optional index and adoption aid that names
+public commands and imposes no activation prerequisite. Skills require no sibling installation.
+Orchestrate delegates approved outcomes to task owners, normally using installed Execute, while
+retaining cross-task planning, capacity, integration acceptance, and delivery coordination.
+Task owners choose implementation decomposition and specialist handoffs within inherited limits;
+composition adds no user approval or publication authority. See the
+[composition boundary](CONTRIBUTING.md#editing-conventions). Design's selected external skills
+follow its [separate exception](CONTRIBUTING.md#external-design-skills).
+Shared procedures are reused through
+[bundled references](CONTRIBUTING.md#shared-canonical-references) maintained from one canonical
+source, so the active workflow keeps its own gates and evidence rules at every boundary.
+Whiteboard is the experimental collaborative planning entry point for goals needing refinement,
+including new projects. It develops shared understanding through requirements, design walkthroughs,
+and a visual model kept consistent with one portable plan. Ideate, Harden, and Plan remain
+available during the trial, with issue publication still owned by Plan. Bounded creation belongs
+to Execute. These workflows require neither one another nor Init; Init owns project guidance.
+Saving a Whiteboard plan does not start implementation; an explicit Orchestrate request selects
+the plan as input to its separately approved execution proposal.
+Execute and the other implementing skills bundle the applicable shared standards and load them
+only for relevant changes.
+Design coordinates UI work using a selected external lead and relevant specialists, with agreement
+before consequential design changes. Flow Layout arranges existing screen frames without redesigning
+them. Design System owns project component catalogs; a catalog's components, tokens, examples,
+coverage record, and rules belong to the target project.
+Existing compatible APIs stay intact, with adaptations at catalog callers. Existing-catalog
+inspection is read-only unless maintenance is explicitly requested.
 
 Report observed outcomes and blockers. Distinguish verified facts from inference. Git and GitHub evidence establish
 delivery; issue status and agent reports do not. The
-[building rules](site/content/docs/concepts/building-rules.mdx) explain these authority boundaries.
-The [output discipline](skills/using-woostack/references/output-discipline.md) owns communication
+[building rules](apps/docs/content/docs/concepts/building-rules.mdx) explain these authority boundaries.
+The [output discipline](shared/references/output-discipline.md) owns communication
 conventions.
 
 ## Canonical sources
 
 Skill behavior belongs in the owning `skills/<name>/SKILL.md` and its supporting assets.
-Link to canonical contracts instead of duplicating them. Simplify existing instructions before
+Reusable procedures are authored once in `shared/references/` and projected into each consuming
+skill with `node shared/sync.mjs`; a `skills/<name>/references/` file that mirrors a shared path
+is a generated copy, not a hand-editable source. Link to canonical contracts instead of
+duplicating them. Simplify existing instructions before
 adding new layers, while preserving independent safety checks. The
 [contributor guide](CONTRIBUTING.md) owns the detailed change map and instruction-review criteria.
 
 Public skill names and paths are installed interfaces. Changes to them require explicit approval
 under [AGENTS.md](AGENTS.md). Preserve retained records as historical user data; they cannot authorize work.
 
+## Application boundaries
+
+The pnpm workspace contains the documentation app in `apps/docs/` and the standalone
+component catalog in `apps/design/`. Each app owns its source, build configuration,
+and dependency manifest. Root pnpm and Turborepo configuration orchestrate app tasks;
+the root `pnpm-lock.yaml` is the shared dependency-resolution record.
+The catalog remains a separate application rather than a documentation route.
+
 ## Documentation surface
 
 The documentation application uses Next.js and Fumadocs. Authored guides live in
-`site/content/docs/`; skill references are generated from `skills/*/SKILL.md` during development
-and builds. Edit the source, not generated pages. The [site README](site/README.md) owns development,
-generation, and deployment instructions.
+`apps/docs/content/docs/`; skill references are generated from `skills/*/SKILL.md` during development
+and builds. Edit the source, not generated pages. The [docs README](apps/docs/README.md) owns app-specific
+development, generation, and deployment instructions.
 
 Keep tutorials, how-to guides, reference, and explanation separate. Preserve the existing
 information architecture and use plain, direct prose, as defined in
-[site/AGENTS.md](site/AGENTS.md). Site changes follow those scoped instructions.
+[apps/docs/AGENTS.md](apps/docs/AGENTS.md). Documentation app changes follow those scoped instructions.
 
 Read [PRODUCT.md](PRODUCT.md) for current product scope.

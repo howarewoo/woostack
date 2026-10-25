@@ -1,0 +1,148 @@
+---
+title: Configuration
+description: Reference for woostack repository policy, configuration precedence, supported keys, types, and defaults.
+---
+
+This page lists the non-secret repository settings read by Woostack. Retained local records and direct
+GitHub publication have their own [reference section](/docs/configuration/artifacts) because they
+have different fields and recovery guarantees.
+
+Configuration never contains credentials, grants permission to perform repository work, or approves
+remote content.
+
+## Configuration files
+
+| File | Tracking | Scope |
+| --- | --- | --- |
+| `.woostack/config.json` | Tracked | Shared repository policy. Init's explicit local-support path creates this file. |
+| `.woostack/config.local.json` | Gitignored by `*.local.*` | Optional primary-checkout overrides. Linked worktrees inherit it through the Git common directory. |
+
+If both files are absent, each consumer keeps its built-in defaults. A local override without
+the tracked base file stops configuration loading with an error.
+
+## Merge and validation rules
+
+| Rule | Behavior |
+| --- | --- |
+| Object merge | Objects merge recursively. |
+| Scalar, array, or `null` override | The local value replaces the base value. Arrays do not concatenate. `null` does not delete a key. |
+| Invalid input | Empty, malformed, non-object, unreadable, symlinked, non-regular, orphaned, or credential-like configuration fails closed with the offending path. |
+| Secrets | GitHub authentication stays in the host secret store. Both configuration files contain non-secret policy only. |
+| Host models | Host configuration owns model selection, effort, and recovery; Woostack preserves existing `models` values but does not route with them. |
+
+This partial example shows how the two files merge. It is not a complete GitHub Project
+configuration; the [GitHub page](/docs/configuration/artifacts/github) lists the supported fields.
+
+Given this base configuration:
+
+```json
+{
+  "github": {
+    "owner": "acme",
+    "statusField": "Status"
+  }
+}
+```
+
+and this local override:
+
+```json
+{
+  "github": {
+    "statusField": "Workflow Status"
+  }
+}
+```
+
+keeps the owner while replacing only `statusField`.
+
+## Top-level settings
+
+Init validates the optional `github` object; `commit` and `base_branch` are consumed by their
+respective workflows. Other non-secret keys are preserved by configuration layering.
+
+| Setting | Read by | Purpose |
+| --- | --- | --- |
+| `github` | Init and explicit GitHub Project workflows | Optional owner, owner type, Status field, and Project Status option mapping. |
+| `commit` | [woostack-commit](/docs/skills/woostack-commit) | Command to run before the commit. |
+| `base_branch` | Init and worktree workflows | Trunk branch used for worktrees and pull requests. |
+
+## Artifact references
+
+<Cards>
+  <Card title="Retained local records" href="/docs/configuration/artifacts/local" description="Historical files, preservation, and recovery boundaries." />
+  <Card title="GitHub" href="/docs/configuration/artifacts/github" description="Direct issue graphs, Projects, and capability/read-back requirements." />
+</Cards>
+
+## A complete example
+
+This example combines optional settings; it is not the init template. Replace `commit.command`
+with a command your repository actually provides.
+
+```json
+{
+  "github": {
+    "owner": "acme",
+    "ownerType": "organization",
+    "statusField": "Status",
+    "projectStatuses": {
+      "planned": "Todo",
+      "executing": "In Progress",
+      "inReview": "In Review",
+      "done": "Done",
+      "blocked": "Blocked"
+    }
+  },
+  "commit": { "command": "pnpm format && pnpm test" },
+  "base_branch": "main"
+}
+```
+
+## Model selection compatibility
+
+Woostack uses the harness's configured agent, model, and effort; the host owns recovery. An
+explicit one-run model or effort choice uses only fields the active tool schema supports and
+permissions allow. Report an unsupported optional choice; a required exact identity blocks
+without matching host evidence.
+
+Existing `.woostack/config.json` and primary-checkout `config.local.json` values, including
+`models` in any old shape, are preserved as user data. Woostack no longer interprets `models`
+as runtime provider defaults, overrides, or fallback lists. Configure model selection in the
+native harness instead; do not migrate or delete existing configuration just to use Woostack.
+
+## Commit preparation command
+
+[woostack-commit](/docs/skills/woostack-commit) can run a command before it stages anything: a
+formatter, linter, or test runner.
+
+| Key | Type | Default | Meaning |
+| --- | --- | --- | --- |
+| `commit.command` | string | absent (no command) | Nonempty command run before Commit stages and commits. A failure blocks the commit. An expected edit to the intended files is reviewed, the affected verification is refreshed, and the commit continues once the intended result is proven. |
+
+## Base branch
+
+`base_branch` is a top-level string (not nested) naming the trunk branch that PRs target and that
+worktrees are cut from.
+
+| Key | Type | Default | Meaning |
+| --- | --- | --- | --- |
+| `base_branch` | string | auto-detected | Trunk branch name. `WOOSTACK_BASE_BRANCH` takes priority, followed by this setting, the remote's default branch, then `main`. |
+
+## Defaults and doctor
+
+<Callout type="info">
+  Init and [woostack-doctor](/docs/skills/woostack-doctor) inspect local configuration only: they
+  contact no provider, read no credentials, and make no network call. Doctor applies explicitly
+  approved local repairs itself, under the user's delivery limit. Keep credentials in the host secret
+  store. A clean local check is not proof of remote authorization, and an incomplete check is not a
+  healthy one. The [artifacts reference](/docs/configuration/artifacts) owns each workflow's GitHub
+  requirements.
+</Callout>
+
+## Migration notes
+
+- Remove obsolete `review`, `audit`, and `review_sweep` keys from existing configuration; Pullfrog
+  handles pull-request review.
+- The former top-level `status.staleDays` setting is retired. Existing configurations are left
+  intact; remove that key when convenient. It never described GitHub Project Status fields, issue
+  lifecycle, or delivery evidence.

@@ -3,8 +3,7 @@
 Verified against [task-agent discovery](https://github.com/can1357/oh-my-pi/blob/main/docs/task-agent-discovery.md)
 and [skills](https://github.com/can1357/oh-my-pi/blob/main/docs/skills.md). Native explicit skill
 invocation is `/skill:woostack-execute`; interactive mode registers one command per discovered skill
-when `skills.enableSkillCommands` is enabled. Every form is listed in the
-[host index](README.md#native-skill-invocation).
+when `skills.enableSkillCommands` is enabled.
 
 ## Delegation
 
@@ -63,4 +62,4 @@ discovers project agents from `.omp/agents/*.md`, so existing files are live use
 A repository may still hold `.omp/agents/woostack-{fast,standard,deep}.md` from the retired
 provisioner. Cleanup is optional, manual, and user-initiated; woostack never runs it and there is no
 migration subsystem. The exact-byte plus provenance recipe that guards removal is in the
-[OMP harness guide](https://github.com/howarewoo/woostack/blob/main/site/content/docs/harnesses/omp.mdx#previously-generated-agent-definitions).
+[OMP harness guide](https://github.com/howarewoo/woostack/blob/main/apps/docs/content/docs/harnesses/omp.mdx#previously-generated-agent-definitions).

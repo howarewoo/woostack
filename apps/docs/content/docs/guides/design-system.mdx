@@ -1,0 +1,83 @@
+---
+title: Create and maintain a design catalog
+description: Build a project-owned component catalog, inspect drift, or request scoped maintenance.
+---
+
+Use this guide when you need a working visual catalog of components, foundations, and interactions.
+Component and preview source files stay the implementation reference; the catalog does not generate
+code snippets or copy controls. For arranging screens in a multi-step flow, use
+[Flow Layout](/docs/skills/woostack-flow-layout).
+
+You need a coding assistant with [Woostack installed](/docs/getting-started), access to the target
+repository, and permission to install necessary catalog dependencies. These are assistant requests,
+not terminal commands.
+
+## Create a catalog
+
+1. **Request creation:** Open your target repository and specify the components and design tokens
+   to cover:
+
+   ```text
+   /woostack-design-system Create a catalog using our DESIGN.md, existing UI exports,
+   and application tokens. Keep changes local.
+   ```
+
+2. **Review declared coverage and compatibility:** The assistant discloses its declared coverage
+   before installing packages or creating files. An explicit full-coverage request stands; the assistant
+   asks focused scope questions only when the request leaves a real choice open.
+
+   New catalogs prefer Storybook when its framework and build integration fit. The assistant explains
+   when a smaller repository-native surface is more appropriate. Existing catalogs stay in place.
+   Storybook supplies the catalog tools; stories render real components with project tokens and
+   providers, without separate Autodocs, MDX manuals, or code panels. Chromatic and MCP are optional.
+
+   The assistant adapts specimens to public project APIs, not product components to the catalog.
+   A supported native integration reuses non-React controls too. When required React/shadcn controls
+   cannot run in the product framework, an isolated catalog leaves the product unchanged.
+
+3. **Verify the running catalog:** Run the development and verification commands recorded in the catalog.
+   Try search, component links, narrow navigation, keyboard navigation, themes, and representative overlays.
+
+4. **Inspect the final report:** The final report separates command results from browser evidence and
+   identifies any blocked checks. Creation authorizes bounded local changes; it creates no branches,
+   commits, pull requests, issues, or Project updates.
+
+## Inspect an existing catalog
+
+Invoke the skill without a maintenance request to inspect drift:
+
+```text
+/woostack-design-system
+```
+
+The assistant inspects the catalog against the target's recorded coverage and upstream component
+documentation. Invoking the skill with an existing catalog changes no files or dependency state.
+A drift report provides evidence for deciding what to repair; it does not authorize edits.
+
+## Request scoped maintenance
+
+1. **Name the change:** Request a specific addition, repair, update, or tooling migration, including
+   customizations that must remain:
+
+   ```text
+   /woostack-design-system Repair the dialog specimen to use our existing public
+   Dialog API. Preserve our tokens, other specimens, and product components. Keep changes local.
+   ```
+
+   Changing catalog tooling requires an explicit request:
+
+   ```text
+   /woostack-design-system Migrate our existing catalog to Storybook. Reuse our components,
+   tokens and specimens; preserve coverage and links. Remove the old shell only after verifying
+   the replacement. Keep changes local.
+   ```
+
+2. **Review changes and checks:** The assistant preserves unrelated customizations. If a requested
+   change conflicts with an existing API or design rule, it reports the conflict instead of silently
+   replacing your implementation.
+
+3. **Delivery:** Use [Commit](/docs/skills/woostack-commit) separately when you want delivery through
+   Git or a pull request.
+
+See [Design System skill reference](/docs/skills/woostack-design-system) for the canonical
+compatibility, adaptation, and verification procedure.

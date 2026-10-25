@@ -1,0 +1,91 @@
+{
+  "$schema": "https://turborepo.com/schema.json",
+  "ui": "tui",
+  "cacheDir": ".turbo/cache",
+  "globalEnv": ["TURBO_RUNTIME_HASH", "npm_config_user_agent"],
+  "globalPassThroughEnv": ["TURBO_FORCE"],
+  "tasks": {
+    "dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**"]
+    },
+    "docs#build": {
+      "dependsOn": ["^build"],
+      "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/skills/**"],
+      "outputs": [
+        ".next/**",
+        "!.next/cache/**",
+        ".open-next/**",
+        ".wrangler/deploy/config.json",
+        ".source/**",
+        "content/docs/skills/**",
+        "$TURBO_ROOT$/.wrangler/deploy/config.json"
+      ]
+    },
+    "test": {
+      "outputs": []
+    },
+    "docs#test": {
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/shared/**",
+        "$TURBO_ROOT$/skills/**",
+        "$TURBO_ROOT$/.claude/skills/**",
+        "$TURBO_ROOT$/skills-lock.json",
+        "$TURBO_ROOT$/*.md",
+        "$TURBO_ROOT$/LICENSE"
+      ],
+      "outputs": []
+    },
+    "verify": {
+      "outputs": []
+    },
+    "docs#verify": {
+      "cache": false
+    },
+    "design#verify": {
+      "cache": false
+    },
+    "check-catalog": {
+      "outputs": []
+    },
+    "lint": {
+      "outputs": []
+    },
+    "lint:fix": {
+      "cache": false
+    },
+    "format": {
+      "cache": false
+    },
+    "format:check": {
+      "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/.oxfmtrc.json"],
+      "outputs": []
+    },
+    "types:check": {
+      "outputs": []
+    },
+    "docs#types:check": {
+      "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/skills/**"],
+      "outputs": [".source/**", ".next/types/**", "content/docs/skills/**"]
+    },
+    "//#lint:root": {
+      "inputs": ["scripts/**", ".oxlintrc.json"],
+      "outputs": []
+    },
+    "//#lint:fix:root": {
+      "cache": false
+    },
+    "//#format:root": {
+      "cache": false
+    },
+    "//#format:check:root": {
+      "inputs": ["scripts/**", "package.json", "turbo.json", ".oxfmtrc.json", ".oxlintrc.json"],
+      "outputs": []
+    }
+  }
+}

@@ -4,7 +4,7 @@ set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DOCTOR="$HERE/../doctor.sh"
 # shellcheck disable=SC1091
-source "$HERE/../../../woostack-init/scripts/tests/assert.sh"
+source "$HERE/assert.sh"
 
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT

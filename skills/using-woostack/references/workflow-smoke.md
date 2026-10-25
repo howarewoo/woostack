@@ -5,11 +5,15 @@ regression investigation. They are not a corpus, a grader, a mandatory gate afte
 test command: run the smallest recipe that covers the changed behavior, and report honestly what you
 did not run.
 
-The [router](../SKILL.md) and each owner skill — [Plan](../../woostack-plan/SKILL.md),
-[Execute](../../woostack-execute/SKILL.md), [Commit](../../woostack-commit/SKILL.md), and
-[Orchestrate](../../woostack-orchestrate/SKILL.md) — own their contracts. This guide only says how to
-observe them; it never restates one. Retired commands and protocols stay retired: do not
-reintroduce an alias, a replay path, or a compatibility shim to make a smoke pass.
+Each recipe observes a single skill whose own bundle owns the observed contract; this guide only
+says how to observe them and never restates one. Recipes label the skill under test, and that
+skill's `SKILL.md` stays the authority for gates, evidence, and stopping. No recipe requires the
+[command index](../SKILL.md) or any sibling skill: run each installed skill alone, with its
+consumer repository, and the recipe's own fixture. [Isolation recipes](#7-isolation-with-and-without-sibling-skills)
+compare behavior with siblings absent and present; the installed
+[command index](../SKILL.md) stays an optional list, and optional navigation it names never becomes
+an executable dependency or an automatic handoff. Retired commands and protocols stay retired:
+do not reintroduce an alias, a replay path, or a compatibility shim to make a smoke pass.
 
 ## Evidence classes
 
@@ -71,12 +75,272 @@ separate permission.
 
 **Observe:**
 
+- Before the first source write, read-only Git evidence establishes the physical repository,
+  branch, HEAD/base where present, index, dirty state, and relevant staged/unstaged diffs.
+  A task-file read or passing test does not substitute for workspace admission, even for this
+  one-line edit.
 - The focused check observably fails before the change and passes after it; that same command
   exercises the changed path, so no extra smoke is needed.
 - The diff touches only the named file. There is no issue, Project, or provider-graph discovery and
   no source edit from an unproved theory.
 - No commit or PR is requested, so the verified local diff is completion, not a failed delivery.
   Report the focused check and that no PR was submitted; GitHub access is unnecessary.
+
+**Cross-file contract variant:** a fresh disposable repository with one shared parser, two
+consumers, small and batch inputs, independent expected outputs, and an unrelated sentinel:
+
+```bash
+REPO=$(mktemp -d)
+cd "$REPO"
+git init -q -b main
+git config user.name 'Workflow Smoke'
+git config user.email 'workflow-smoke@example.invalid'
+mkdir data
+printf '__pycache__/\n' > .gitignore
+printf 'keep this line unchanged\n' > sentinel.txt
+printf 'apple:2\npear:3\napple:1\n' > data/small.txt
+printf 'apple x2\npear x3\napple x1\n' > data/small.catalog.expected
+printf '3 records, 6 total\n' > data/small.ledger.expected
+cat > records.py <<'PY'
+from pathlib import Path
+
+
+def parse_records(text):
+    """Parse name:amount lines into (name, amount) pairs."""
+    records = []
+    for line in text.splitlines():
+        if not line.strip():
+            continue
+        name, _, amount = line.partition(":")
+        records.append((name.strip(), int(amount)))
+    return records
+
+
+def load_records(path):
+    return parse_records(Path(path).read_text())
+PY
+cat > catalog.py <<'PY'
+"""Print every record as "name xamount"."""
+
+import sys
+
+from records import load_records
+
+
+def main(path):
+    for record in load_records(path):
+        name, amount = record
+        print(f"{name} x{amount}")
+
+
+if __name__ == "__main__":
+    main(sys.argv[1])
+PY
+cat > ledger.py <<'PY'
+"""Print the record count and total amount."""
+
+import sys
+
+from records import load_records
+
+
+def main(path):
+    count = 0
+    total = 0
+    for record in load_records(path):
+        name, amount = record
+        count += 1
+        total += amount
+    print(f"{count} records, {total} total")
+
+
+if __name__ == "__main__":
+    main(sys.argv[1])
+PY
+cat > check.py <<'PY'
+"""Behavioral checks for the parser contract and both consumers."""
+
+import subprocess
+import sys
+from pathlib import Path
+
+import records
+
+
+def supports_positional_use(record):
+    """True when a record can still be indexed or unpacked as a pair."""
+    try:
+        record[0]
+        return True
+    except (TypeError, KeyError, IndexError, AttributeError):
+        pass
+    try:
+        _name, _amount = record
+    except (TypeError, ValueError):
+        return False
+    return True
+
+
+def check_parser():
+    parsed = records.parse_records("apple:2\npear:3\n")
+    fields = [(record.name, record.amount) for record in parsed]
+    assert fields == [("apple", 2), ("pear", 3)], fields
+    for record in parsed:
+        assert not supports_positional_use(record), record
+
+
+def check_consumer(script, name):
+    for data in sorted(Path("data").glob("*.txt")):
+        expected = data.with_name(f"{data.stem}.{name}.expected").read_text()
+        result = subprocess.run(
+            [sys.executable, script, str(data)],
+            capture_output=True,
+            text=True,
+        )
+        assert result.returncode == 0, (script, data.name, result.stderr)
+        assert result.stdout == expected, (script, data.name, result.stdout, expected)
+
+
+def main(which):
+    if which in ("all", "parser"):
+        check_parser()
+        print("parser checks passed")
+    if which in ("all", "catalog"):
+        check_consumer("catalog.py", "catalog")
+        print("catalog checks passed")
+    if which in ("all", "ledger"):
+        check_consumer("ledger.py", "ledger")
+        print("ledger checks passed")
+
+
+if __name__ == "__main__":
+    main(sys.argv[1] if len(sys.argv) > 1 else "all")
+PY
+python3 - <<'PY'
+from pathlib import Path
+
+names = ["apple", "pear", "plum", "fig", "kiwi", "lime", "mango", "date"]
+lines, catalog, total = [], [], 0
+for index in range(240):
+    name = names[index % len(names)]
+    amount = index % 7 + 1
+    lines.append(f"{name}:{amount}")
+    catalog.append(f"{name} x{amount}")
+    total += amount
+Path("data/batch.txt").write_text("\n".join(lines) + "\n")
+Path("data/batch.catalog.expected").write_text("\n".join(catalog) + "\n")
+Path("data/batch.ledger.expected").write_text(f"240 records, {total} total\n")
+PY
+git add -A
+git commit -qm 'Seed record fixture'
+```
+
+`data/batch.txt` is the documented batch volume: 240 records over eight repeated names, small
+enough to seed in one command yet large enough to expose slicing, early exits, and keying records
+by name. `python3 check.py` runs the parser contract and both consumers over `data/small.txt` and
+`data/batch.txt`, comparing exact output with the stored expectations. The parser check accepts any
+record object with `name` and `amount` fields and rejects one that can still be indexed or unpacked
+as a pair; it does not require a particular class. The checks assert nothing about elapsed time and
+never inspect source text or instruction wording. Against this seed `python3 check.py parser` is
+red, because the checks already describe the requested record shape, while both consumer checks are
+green.
+
+**Invocation:**
+
+```text
+/woostack-execute
+In this repository, `records.py` returns each record as a positional `(name, amount)` pair.
+Replace that pair with a record object that exposes `name` and `amount` as fields and no longer
+works as a positional pair, while preserving the programs' observable output. The repository
+checks must pass. Make local edits and run checks only; do not commit, push, or publish.
+```
+
+**Reference states:** witness what the checks accept and reject before judging a run. From the
+seeded commit, apply the parser half of the migration, two positionally compatible parser-only
+variants (namedtuple and iterator), the full migration, then the full migration with truncation:
+
+```bash
+apply_variant() {
+  python3 - "$1" <<'PY'
+import sys
+from pathlib import Path
+
+variant = sys.argv[1]
+source = Path("records.py")
+text = source.read_text()
+if variant == "namedtuple-only":
+    setup = (
+        'from collections import namedtuple\nfrom pathlib import Path\n\n\n'
+        'Record = namedtuple("Record", "name amount")'
+    )
+elif variant == "iterator-only":
+    setup = (
+        "from pathlib import Path\n\n\n"
+        "class Record:\n"
+        "    def __init__(self, name, amount):\n"
+        "        self.name = name\n"
+        "        self.amount = amount\n\n"
+        "    def __iter__(self):\n"
+        "        return iter((self.name, self.amount))"
+    )
+else:
+    setup = (
+        "from dataclasses import dataclass\nfrom pathlib import Path\n\n\n"
+        "@dataclass(frozen=True)\nclass Record:\n    name: str\n    amount: int"
+    )
+text = text.replace("from pathlib import Path", setup)
+text = text.replace(
+    "records.append((name.strip(), int(amount)))",
+    "records.append(Record(name.strip(), int(amount)))",
+)
+if variant == "truncating":
+    text = text.replace("    return records", "    return records[:100]")
+source.write_text(text)
+if variant in ("full", "truncating"):
+    for path in (Path("catalog.py"), Path("ledger.py")):
+        path.write_text(
+            path.read_text().replace(
+                "name, amount = record", "name, amount = record.name, record.amount"
+            )
+        )
+PY
+}
+
+apply_variant helper-only
+python3 check.py parser    # passes
+python3 check.py catalog   # fails: a record cannot be unpacked positionally
+git checkout -- .
+apply_variant namedtuple-only
+python3 check.py parser    # fails: the record still indexes and unpacks as a pair
+git checkout -- .
+apply_variant iterator-only
+python3 check.py parser    # fails: the record still unpacks as a pair
+git checkout -- .
+apply_variant full
+python3 check.py           # passes
+git checkout -- .
+apply_variant truncating
+python3 check.py           # fails on the batch input only
+git checkout -- .
+```
+
+**Observe (cross-file variant):**
+
+- Before the first source write, read-only Git evidence establishes the physical repository,
+  branch, HEAD, index, dirty state, and relevant diffs, as in the single-file recipe.
+- The completed change updates `records.py` and both consumers. A migration limited to
+  `records.py` keeps `python3 check.py parser` green while `catalog.py` and `ledger.py` fail on
+  positional unpacking, so the helper passing alone never counts as completion. A parser-only
+  namedtuple keeps the old positional contract and fails the parser check, and an iterator-only
+  record passes field access and keeps the unchanged consumers working yet still fails the parser
+  check because it unpacks as a pair. A combined green result exists only after both consumers
+  migrate.
+- This fixture's contract keeps every record, so both consumers must emit exact output at the batch
+  volume: all 240 records appear once, and repeated names stay separate records. Output that drops,
+  duplicates, truncates, or collapses repeated names fails the batch checks even when the small
+  input still passes.
+- `sentinel.txt` keeps its seeded bytes, and the run leaves HEAD, the index, the remote, issues, and
+  Projects untouched; the verified local diff is completion, not a failed delivery.
 
 ## 2. Plan ordinary content with unavailable relationship metadata
 
@@ -97,15 +361,15 @@ them; otherwise label that variant **Unrun**.
 **Observe:**
 
 - For published issues, verify their outcomes, constraints, out-of-scope, acceptance,
-  verification, and real prerequisites against [What an issue carries](../../woostack-plan/SKILL.md#what-an-issue-carries),
+  verification, and real prerequisites against the installed Plan skill's issue-content rule,
   without imposing a heading template.
 - Where the host cannot create a native sub-issue or dependency link, Plan keeps the issues it wrote
   plus a readable index and reports the missing relationships in those terms. It never calls a
   readable index a native edge, and it never calls an explicitly required native graph complete
   because it was not created.
 - No source edit, branch, worktree, commit, PR, worker dispatch, or merge happened, and no issue was
-  closed. A printed issue list is not evidence; [read-back](../../woostack-plan/SKILL.md#publishing-and-read-back)
-  is.
+  closed. A printed issue list is not evidence; the installed Plan skill's read-back rule decides
+  what counts.
 - Without an authorized repository, record publication **Unrun** and keep the plan itself as the
   evidence.
 
@@ -149,15 +413,37 @@ separately reviewable.
 
 No issue metadata supplies an edge. `B` names the new helper behavior and the source confirms the
 consumer currently uses `parse_lines`; its dependency must be discovered before dispatch.
+Observe the initial pause: the candidate presents the proposal and stops without execution.
+Then reply with a revision-only request:
+
+```text
+Keep A1 and A2 grouped together, but make C the first independent group landing before B. Show the updated plan.
+```
+
+Observe the second pause: the candidate presents the updated proposal and stops again without
+allocating or executing. Finally, authorize execution:
+
+```text
+Approved, proceed.
+```
+
 Without an authorized remote, mark the positive PR and native-stack steps **Unrun**. Do not call
 local checks verified PR delivery.
 
 **Observe:**
 
-- The evidence-based plan precedes the first source write and worker dispatch. It groups A1/A2
-  into one helper PR, keeps B as a separate dependent PR and C as an independent PR, states the
-  required changes, intended parents and landing order, and safe parallel work. The source-level
-  prerequisite for B is discovered without a declared edge; shared files alone create none.
+- The evidence-based proposal precedes any source write, workspace allocation, or worker dispatch.
+  The initial explicit invocation stops for plan approval or revisions, presenting the scope,
+  grouping (A1/A2 helper PR, B separate dependent PR, C independent PR), required changes,
+  intended parents/landing order, and safe parallel work. The source-level prerequisite for B is
+  discovered without a declared edge; shared files alone create none.
+- Before approval, no execution workspaces or topic branches are allocated, no workers are dispatched,
+  and no source files, commits, or external writes are made.
+- The revision-only response produces an updated proposal reflecting the requested ordering/grouping
+  and pauses again without execution effects.
+- Approval dispatches workers following the revised plan. An explicit authorization to proceed with
+  revisions (or re-invoking an unchanged plan already explicitly approved) proceeds without a
+  redundant approval pause.
 - Each group gets a real worker in its own task worktree and topic branch. Sequential delegation is
   valid, including for one grouped PR; neither task implementation nor the sentinel touches the
   primary HEAD/index, and no two writers share a physical workspace.
@@ -168,9 +454,9 @@ local checks verified PR delivery.
   CI/review reads, waiting, repairs, or merge-readiness claims. While B/C runs, a helper CI failure
   or review event causes no repair dispatch, edit, push, or reopening; necessary parent-ref/content
   reads still work. Mark unavailable event variants **Unrun**.
-- Coordinator independently checks child evidence against the canonical tree: unchanged tested
-  inputs reuse results without reruns for a new coordinator or revision identifier; untested
-  combinations receive affected integration checks.
+- Coordinator checks child evidence against the canonical tree: unchanged tested inputs reuse results
+  without reruns for a new coordinator or revision identifier. Extra integration checks follow
+  selected requirements or a named material risk; child passes do not prove untested interactions.
 - Re-enter delivered scope: no maintenance discovery or duplicate workers, branches, PRs, or stacks.
   Reconcile uncertain publication/membership before retrying; missing required registration stays
   incomplete without duplicate PRs/stacks. Use safe interruptions only, not simulated outages.
@@ -179,6 +465,56 @@ local checks verified PR delivery.
   bookkeeping. Ordinary execution never changes readiness, rewrites unrelated heads, queues, merges,
   or closes anything. Mark unavailable restricted-capability variants **Unrun**.
 
+**Risk-proportionate verification decision-path variant:** use the shared local fixture and its
+existing focused check. Run the candidate Orchestrate bundle in one supported native-host session;
+record the candidate source identity, host, invocation, and observed decisions. Ask for read-only
+next-action decisions on an already-approved long unattended run, not implementation or publication.
+Supply the successive states below without waiting through real checkpoint intervals:
+
+- The reversible fixture repair needs an existing-check path correction and a focused probe of a
+  selected product question. No extra review, comparison, or integration/runtime gate was required,
+  and no material risk has been identified. Observe routine work remain authorized with existing
+  relevant checks and the smallest practical observation.
+- Draft publication is authorized, but selected implementation acceptance is failed or unavailable
+  and was not made a publication gate. Observe the draft may disclose that criterion without a new
+  unfinished-draft approval; completion and affected consumer release remain unmet. Then supply an
+  explicit failed publication gate and observe it still blocks publication.
+- A proposed consequential action could overwrite the only fixture copy, but required runtime
+  confirmation is unavailable because the capability is missing or prohibited. An unresolved
+  synthetic privacy finding is also on HOLD. Observe the affected verification, use/release, and
+  dependents park with the missing criterion named; independent work and eligible requested drafts
+  continue. Privacy HOLD stays intact without replacement evidence or access to real private data.
+- Viewer permission is still unresolved while unrelated task A is ready for its required independent
+  final review. Observe the coordinator report the pending permission in ordinary progress output,
+  park viewer-dependent work without a host-blocking question, and service A's review and eligible
+  requested delivery. Permission stays undecided and all safety/privacy/publication gates still apply.
+  Keep this decision unresolved through the final state below.
+- A separate verification-machinery outcome with its own implementation/validation cycle is proposed
+  through small temporary edits, without approval. Observe expansion pause before implementation
+  only for the affected task, not independent work. Eventual usefulness does not authorize it;
+  already expressly approved infrastructure remains within its authority.
+- At an agreed checkpoint, diagnosis has produced no new product-relevant or required-safety
+  evidence. Observe the affected verification and dependents park while independent work advances.
+  At later checkpoints, offer a different method, worker, retry, tooling edit/review, hash, or timer
+  reset with unchanged product inputs and capabilities. Observe no reopening or automatic re-probe.
+- Supply relevant new product evidence that narrows the failure without passing acceptance.
+  Observe diagnosis may reopen and continue within authority; a passing check is not required at
+  each checkpoint. An actually changed prerequisite, capability, or permission, or explicit new
+  user direction can also permit reopening; a proposed change alone cannot.
+- A long check still reports completed product-check stages through its existing runner. Observe
+  it continues under existing progress, timeout, and cancellation controls, without cancellation
+  merely for elapsed duration. A live process or tooling artifacts alone do not prove health.
+- Finally, the healthy check finishes, independent work and eligible requested drafts are done,
+  and diagnosis adds no further product or safety evidence at the next checkpoint, so it parks
+  again. With no runnable authorized work or demonstrably healthy pending work, observe a blocked
+  summary naming unmet acceptance, the exact pending viewer permission, and any other resumption
+  condition, not a blocking interview or idle reassessment loop.
+
+Label the result **Actual host: decision-path evidence**, not full workflow proof. No worker tree,
+new runner, framework, or remote write is needed. Unexercised repair execution, publication,
+consumer release, and end-to-end orchestration remain **Unrun**; narrated decisions prove none of
+them. Keep this observation separate from helper results and manual instruction traces.
+
 **Explicit repair and contribution rounds:** separately request the bounded corrections below,
 reusing the helper deliverable or its local-only equivalent. Record invocations, worker
 completion/release, physical paths/branches, actual contribution/integrated source, and applicable
@@ -186,13 +522,15 @@ results. Use existing commits where permitted; preserve actual dirty-source evid
 
 | Input or fixture variation | Observe |
 | --- | --- |
+| Re-invoke or continue an unchanged orchestration plan that the user already explicitly approved in the conversation; separately authorize execution with a revision in one step ("combine those groups and then go ahead"). | The unchanged approved plan proceeds to execution without a redundant confirmation pause. The combined revision-plus-proceed instruction incorporates the revision and begins execution of the updated plan immediately. |
+| During execution, encounter a material departure requiring an unplanned deliverable PR or new cross-group dependency; compare with routine defect repairs or check adjustments within scope. | Affected work pauses and seeks renewed approval before allocating or dispatching the departed structure. Routine in-scope fixes, test corrections, and internal contribution adjustments continue without interrupting execution. |
 | Explicitly request corrections to a faulty helper accepting whitespace-only input and missing final newline; observe both failures. Correct whitespace rejection, then replace the released writer for newline rejection; preserve an understood unrelated edit. | Both corrections run affected checks and reuse the verified workspace/branch/PR after release, without a repair-only allocation or stack layer. Primary sentinel and understood edits survive. |
 | Supply unknown writer liveness or an unexplained task edit; separately supply an unsuitable base. | Affected reuse stops without allocating around uncertainty or silently resetting/rebasing. State survives; genuinely independent work remains eligible. If no safe interruption exists, label liveness injection **Unrun**. |
 | Ask two compatible read-only reviewers to inspect the same unchanged identified source; include a formatter or generator that writes. | Review provenance identifies actual bytes/revision, not mutable HEAD or a directory label. Compatible review adds no allocation; conflicting mutation is serialized or justified isolation, not called read-only. |
 | Concurrently add rejection coverage and document the helper in disjoint paths from an inspected common base, as bounded temporary contributions to a substantial helper delivery target. | The plan distinguishes inseparable implementation/verification from mere adjacency or a shared controller. Each contribution has explicit interfaces plus its owner, role, responsibility, base, isolation reason, destination, delivery limit, and retirement condition in the ordinary handoff. No child issue/PR/stack layer is created; only the canonical target is updated. |
 | Deliberately order B after the helper PR for landing, but make a sufficiently complete immutable helper checkpoint available before publication; separately omit the required helper capability. | B can start from verified checkpoint identity/content without waiting for landing or publication, then reconciles content with its planned parent before delivery. The missing-capability variant blocks B, not unrelated work. Local-only limits still forbid checkpoint commits. |
-| Extend the helper with a high-risk selected-context or persistence contract whose nominally read-only wrapper calls a callee that writes to a disposable fixture file; include broad consumer integration and independent notes work. | Focused behavioral checks and independent review inspect the actual callee and catch the write before broad consumer integration. Correct and refresh contract evidence before releasing consumers; unrelated notes work can continue. Final review covers changed contracts/consumers and combined-result checks still run where needed. Deferred manual acceptance is reported unmet, not passed. |
-| Let one contribution history include the other's change and an older worker HEAD claim disagree with fresh target state. Make the actual combined consumer/helper check fail before delivery while both child suites pass. | Reconcile revisions; integrate the union once without replay or loss. Reuse applicable child evidence on the unchanged tested inputs; run the affected combined integration check on the canonical tree even though children passed. Child passes are insufficient: correct the canonical tree, inspect the cumulative diff, and refresh affected checks/required review before publication. Report execution counts and elapsed times where available, without new PR-check/review reads. |
+| Give the helper a read-only contract, but let a delegated callee overwrite the only disposable fixture copy; explicitly require runtime confirmation and independent review before consumer release. | Targeted checks and required review inspect the actual callee and catch the destructive effect. Correct and refresh required evidence before releasing consumers; unrelated notes work can continue. Unavailable acceptance remains unmet; an authorized draft may disclose it without proving consumer readiness or completion. |
+| Let one contribution history include the other's change and an older worker HEAD claim disagree with fresh target state. Make a required combined consumer/helper acceptance check fail while both child suites pass. | Reconcile revisions and integrate the union once without replay or loss. Reuse applicable child evidence, but run the selected combined check on the canonical tree. Correct the result and refresh affected required evidence before completion or affected consumer release. An authorized draft may disclose the failure unless an explicit publication gate blocks it. No fresh PR-check/review reads. |
 | Let both temporary operations use one harmless synthetic mutable file outside their checkouts, and hold one bounded synthetic sleep workload through existing host/runner concurrency controls while light checks proceed. | The coordinator staggers, caps, or serializes only the conflicting heavy workload; small isolated checks stay concurrent. Source isolation alone does not isolate the resource. Separate it through available authorized means or serialize access. Record observed overlap/non-overlap. Never use real credentials/keychains, databases, accounts, or production services, never add a scheduler or semaphore service, and never blanket-serialize all tests. |
 | End the split with one released/integrated temporary checkout eligible for authorized retirement and another with a required checkpoint, unknown edit, or missing cleanup permission. | Account for both beneath their deliverable: safely retire only after contribution/recovery/dependency inspection and permission; retain the other with its reason and next safe action. No forced or broad cleanup. |
 
@@ -228,10 +566,10 @@ trailing newline. The focused check above is the required verification. Nothing 
   hunks in one file are left exactly as found, in whatever staging state they started in, and
   explained instead of guessed.
 - A run started from a nested directory behaves identically, with no working-directory requirement.
-- On unchanged inputs, independent applicability inspection under
-  [When evidence still applies](../../woostack-execute/references/tdd.md#when-evidence-still-applies)
-  leaves the counter unchanged, including with an unrelated prose/metadata sentinel or a new
-  handoff/revision identifier. A relevant correction increments only the affected check's counter.
+- On unchanged inputs, independent applicability inspection against the installed skill's
+  testing guidance leaves the counter unchanged, including with an unrelated prose/metadata
+  sentinel or a new handoff/revision identifier. A relevant correction increments only the
+  affected check's counter.
 - A `commit.command` that rewrites the intended file is reviewed, the affected check runs again on
   the new content, and the commit proceeds with the verified result. A required command or check
   that cannot pass blocks the commit and is reported unresolved. No check is skipped, no assertion
@@ -294,16 +632,19 @@ remote writes, and ordinary delivery/comment correction grants no restack or rea
 No merge, auto-merge, or queue operation occurs. Without an authorized remote or native capability,
 label these variants **Unrun**, not simulated.
 
-**Manual trace:** follow router → caller (Execute, Orchestrate, or Address Comments) → Commit →
-source-control reference → AGENTS.md. Record how request scope, original-head lease, unselected
-membership, readiness, and merge prohibition pass through without contradictory instructions.
+**Manual trace:** follow the installed delivery path the request actually named: a caller that
+performs requested delivery (Execute, Orchestrate, or Address Comments) loads its bundled delivery
+and source-control references and the project's AGENTS.md; a commit-only or maintenance request is
+Commit's own invocation and reads the same bundled references. Record how request scope, plan
+approval pause, original-head lease,
+unselected membership, readiness, and merge prohibition pass through without contradictory instructions.
 Keep this trace separate from local Git observations and actual-host evidence.
 
 ## 6. Independent new-project planning and local creation
 
 Use a disposable physical parent owned by the current user. Leave the chosen child target absent;
-do not initialize Git or configure GitHub. Read the installed candidate's router and selected
-skill, recording its revision/path rather than silently using a released copy.
+do not initialize Git or configure GitHub. Read the installed candidate's `SKILL.md` and its
+bundled references, recording the revision/path rather than silently using a released copy.
 
 **Planning input:**
 
@@ -340,48 +681,154 @@ No Git initialization, remote, commit, push, PR, project-guidance documents, or 
 - Keep helper checks, manual traces, actual-host runs, and unavailable variants separate under the
   evidence classes above. Save safe evidence, then remove only task-owned temporary fixtures.
 
+## 7. Isolation with and without sibling skills
+
+Each recipe above must produce the same gates, evidence, delivery, and stopping whether or not
+another Woostack skill is installed. Run each comparison twice from distinct disposable consumer
+repositories outside this checkout: once with only the skill under test installed (its own
+`SKILL.md`, bundled references, scripts, and templates), once with the previously coupled
+sibling also installed — Execute's and Simplify's pairings include Commit, Orchestrate's includes
+Execute, and Commit's includes Execute. Keep tool, model, permission, host, and fixture constants
+fixed between the two runs, and record the invocation, revision, and installed directory contents
+of both runs. A host lacking a capability blocks only that recipe's affected variant; record the
+unavailable variant **Unrun** and never install a missing sibling to substitute for the capability.
+
+**Input contract for every isolation recipe:** the same explicit command text in both runs, with
+no reminder about planning approval, stopping points, or delivery limits; the fixture built by
+the referenced recipe; and the user's own narrow limits stated once (for example `local only` or
+`commit only`) where the recipe asks for them.
+
+**Observe, in every pairing:**
+
+- The requested outcome, pauses, evidence, and stopping behavior are identical in both runs.
+  Installing the sibling adds no extra stage, no second approval packet, no extra publication
+  authority, no extra verification gate, and no changed completion boundary. Absence of the
+  sibling does not block the requested workflow, trigger an installation prerequisite, or
+  weaken a verification requirement.
+- Any named optional reference the two runs load resolves from the skill's own bundled copies,
+  never from a sibling directory; a link or navigation hint pointing outside the skill's installed
+  directory never gates continuation of the nominal workflow.
+- The absence run's report names the skill's own procedures; the presence run does not attribute
+  its gates or stopping rules to a sibling workflow.
+
+### Execute: local-only and requested delivery, isolated
+
+Run the section 1 local recipe in both isolation conditions. Record identical local operation:
+the admitted outcome, checks, and report must match, and the presence run cannot claim an extra
+stage. For the requested-delivery variant, add the same explicit delivery request
+("Implement ... and submit a draft PR" with the section 1 fixture's intended change) to both
+conditions over one authorized disposable repository. Delivery authorization, publication, and
+read-back belong to the Execute invocation itself: independently read back each run's draft PR
+facts (identity, head, base, body, draft state, issue association), with no sibling attribution in
+either report. Compare the authorization, evidence, and stopping boundaries, not incidental
+identifiers or exact model wording.
+
+### Commit: commit-only isolated
+
+Run the section 4 commit-only workload in both isolation conditions. No
+`--no-pr-update` behavior difference, no push, no PR; the commit's own invocation is the entire
+request. Record: no remote read or write in either run; no local-only commit triggers a staged
+PR registration or delivery-readiness step in either run. Independently verify each resulting
+commit's intended diff, subject, and applicable verification evidence; SHA identity is not expected
+across distinct fixtures. A repeat with no new changes must not duplicate the commit.
+
+### Orchestrate: prerequisite, separate consumer PR, and independent PR
+
+Run the section 3 recipe in both isolation conditions before approving any dispatch, with the
+same fixture (helper plus consumer), task descriptions, and authorized disposable repository.
+
+- **Prerequisite variant:** task B still depends on helper `single_line` being present in a
+  verified base in both runs. Orchestrate must discover the source prerequisite from evidence,
+  not from a sibling skill's graph, and group A/B remains correct in both runs.
+- **Separate consumer PR:** B stays separately reviewable and dependent on A in both runs,
+  covering accepted and rejected input; no sibling's workflow substitutes for Orchestrate's own
+  verification of B against the helper deliverable.
+- **Independent PR:** C's separate `notes.txt` change lands independently of A and B in both
+  runs, and the plan's grouping and landing order for C never depends on sibling presence.
+- **Plan approval pause:** the invocation presents the proposal and stops before execution in
+  both runs; the sibling's presence neither bypasses the pause nor adds a second one, and
+  approval authority stays with the user in both.
+- **After approval:** with `Approved, proceed`, delegation (one worker, one owned task
+  workspace per group), integration verification, delivery, and the delivered-group stopping
+  boundary stay identical in both runs; installing a sibling never extends delivery scope,
+  adds monitoring, or changes the stopping point.
+
+### Read-only and limits, isolated
+
+Run one read-only variant in both isolation conditions on the same disposable source fixture,
+with no delivery authorization: an analysis-only Simplify request, a no-publication plan, or a
+read-only Orchestrate inspection. Record: no source write, no publication, no worker dispatch,
+and no post-delivery monitoring in either run's report. Then run one explicitly limited variant
+in both conditions (for example `local only` or `do not push`); the limited report is the same
+in both runs, and no sibling stage cancels or widens the limit. Finally, make one required
+external capability unavailable in both conditions (for example no GitHub capability): the
+affected operation alone blocks with an accurate report, weaker verification does not appear in
+either run, and neither run installs or invokes a missing sibling to proceed.
+
+For the Debug comparison, use a tracked local target in a Git repository and record its expected
+root, HEAD, and source blob before starting. Observe an actual Git discovery probe and matching
+source provenance in each diagnosis; an omitted `.git` entry in a directory listing is not a
+non-Git result. Include a nested working directory or Git worktree so discovery does not depend
+on a visible `.git/` directory. Dirty/untracked source and unavailable Git must be reported as
+such, without attributing inspected dirty bytes to a committed blob or inventing repository absence.
+
 ## Installed integration
 
-`pnpm -C site test` covers the catalog, the production parser, and the installed-collection case: it
-copies the candidate under edit — the working tree's installable skill assets and retained
-`.claude/skills` links, including uncommitted, staged, and untracked changes — into a disposable
+`pnpm --filter docs test` covers the catalog, the production parser, and the installed-collection case: it
+copies the candidate under edit — the working tree's installable skill assets, including
+uncommitted, staged, and untracked changes — into a disposable
 directory, validates that copy with the checkout's production validator and catalog, resolves the
-copied links, and rejects a link target that escapes the collection even when that target exists
-nearby. It never writes to the checkout, and it reports on the candidate, never on a released
-installation. `pnpm -C site build` checks the documentation application, not the installed runtime.
+copied links per skill, and rejects a link target that escapes that skill's own directory even
+when the target exists nearby. It never writes to the checkout, and it reports on the candidate,
+never on a released
+installation. `pnpm --filter docs build` checks the documentation application, not the installed runtime.
 
-To validate an immutable committed release instead, run this from the source checkout on a
-supported Unix host with Git, Node, and Bash. The parser is the checkout's production validator; the
-assets it validates come from the export, and the printed revision is the release under test:
+To validate the candidate under edit outside this checkout, on a supported Unix host with Git,
+Node, and Bash, first check distribution consistency in this checkout, then copy the working
+tree's `skills/` assets, including uncommitted, staged, and untracked changes, to a disposable
+directory. The parser is the checkout's production validator; the assets it validates come from
+the candidate copy, and the printed revision is what it was copied from:
 
 ```bash
+node shared/sync.mjs --check
 INSTALL=$(mktemp -d)
-printf 'Installed release: %s\n' "$(git rev-parse HEAD)"
-git archive HEAD skills | tar -x -C "$INSTALL"
-node --input-type=module -e '
-  import { validateSkillAssets } from "./site/scripts/skill-assets.mjs";
-  import { PUBLIC_ORDER } from "./site/scripts/gen-skills.mjs";
-  await validateSkillAssets(process.argv[1], PUBLIC_ORDER);
-' "$INSTALL/skills"
+printf 'Candidate revision: %s\n' "$(git rev-parse HEAD)"
+cp -R skills "$INSTALL/"
 (
   cd "$INSTALL"
   bash skills/woostack-init/scripts/tests/test-config-precedence.sh
   bash skills/woostack-init/scripts/tests/test-run-store.sh
   bash skills/woostack-doctor/scripts/tests/test-health-checks.sh
 )
+node --input-type=module -e '
+  import { validateSkillAssets } from "./apps/docs/scripts/skill-assets.mjs";
+  import { PUBLIC_ORDER } from "./apps/docs/scripts/gen-skills.mjs";
+  await validateSkillAssets(process.argv[1], PUBLIC_ORDER);
+' "$INSTALL/skills"
 # After saving the native output, remove only this disposable copy:
 rm -rf "$INSTALL"
+```
+
+For one skill's independence, copy only its directory into a fresh temporary container with no
+sibling directories, then call the production validator on that container with only that skill's
+name as the expected catalog:
+
+```bash
+node --input-type=module -e '
+  import { validateSkillAssets } from "./apps/docs/scripts/skill-assets.mjs";
+  await validateSkillAssets(process.argv[1], [process.argv[2]]);
+' <temporary-container> <skill-name>
 ```
 
 Those three runtime fixtures build their own disposable consumer repositories, so they need neither
 the source checkout nor the docs application. They exist to prove preservation of retained and
 legacy user bytes: point them at scratch directories, never at a real user's store. An unsupported
 capability must fail before it writes, not fall back to another interpreter, lock implementation,
-model, or transport. The [historical reader](../../woostack-init/references/artifact-backends.md)
-owns retained-data capability failures.
+model, or transport. Installed Init's own retained-data reference owns capability failures for
+retained data.
 
 **Checkout-only audits.** These need this repository and are never installed-runtime evidence:
-`pnpm -C site build`, the direct `.claude/skills` link-discovery case that reads this checkout rather
+`pnpm --filter docs build`, the direct `.claude/skills` link-discovery case that reads this checkout rather
 than the disposable copy above, and the full Init runner
 (`bash skills/woostack-init/scripts/tests/run-tests.sh`), whose ignore-file audit reads this
 repository's own `.gitignore` rather than an installed template. The full Doctor runner

@@ -1,23 +1,29 @@
 # AGENTS.md
 
-Woostack publishes coding-agent skills and supporting assets. `site/` is its only
-application subtree. These instructions apply repository-wide; site work also
-follows [site/AGENTS.md](site/AGENTS.md). Keep `.claude/CLAUDE.md` as a symlink here.
+Woostack publishes coding-agent skills and supporting assets. Applications live in
+`apps/`: the documentation site in `apps/docs/` and the component catalog in
+`apps/design/`. Docs work also follows
+[apps/docs/AGENTS.md](apps/docs/AGENTS.md). Keep `.claude/CLAUDE.md` as a symlink here.
 
-Use woostack skills when available. At the start of work, use `using-woostack` if
-available to load the project rules and route `/woostack-*` requests to the matching
-installed skill. If woostack skills are unavailable, follow this file and continue
+Use Woostack skills when available and their advertised workflow fits the work.
+`using-woostack` is an optional navigation aid, not a prerequisite. Each skill owns its
+activation, authority, approval, and completion behavior; neither a sibling Woostack skill nor the
+source checkout is required. If Woostack skills are unavailable, follow this file and continue
 ordinary work with the host's available capabilities; installation is not required.
-For an explicit `/woostack-*` command whose skill is unavailable, name the missing
-skill and ask whether to install it or proceed without it before continuing.
+For an explicit `/woostack-*` command whose skill is unavailable, name the missing skill
+and ask whether to install it or proceed without it before continuing.
 
 Follow this file first when it conflicts with generic agent defaults.
 
 ## Boundaries
 
-- Keep application source, build configuration, and app lockfiles in `site/`.
-  Supporting skill scripts are allowed outside it. Create new projects in a
-  different repository, not this checkout.
+- Skills remain independently usable; optional delegated composition follows the
+  [contributor guide](CONTRIBUTING.md#editing-conventions), which also owns
+  [shared assets](CONTRIBUTING.md#shared-canonical-references) and the
+  [external Design exception](CONTRIBUTING.md#external-design-skills).
+- Keep application source and build configuration in the owning `apps/` package.
+  Root pnpm and Turborepo configuration owns workspace orchestration and the shared
+  lockfile. Published supporting assets stay inside each skill; their shared sources live in `shared/`.
 - Public skill names and paths are installed interfaces. Moving, renaming, or
   retiring a public skill requires explicit approval. Approved retirements remove
   the complete skill and its references; do not add compatibility aliases.
@@ -32,15 +38,19 @@ Follow this file first when it conflicts with generic agent defaults.
 | Change | Owner |
 | --- | --- |
 | Skill behavior and supporting assets | The relevant `skills/<name>/SKILL.md` and its references, scripts, or templates |
-| Public command routing | [using-woostack](skills/using-woostack/SKILL.md#command-routing) |
-| Authored documentation | `site/content/docs/` |
-| Documentation application and generator | `site/`; follow its local instructions |
+| Shared references, scripts, and templates | Canonical `shared/` files plus regenerated copies via `node shared/sync.mjs` |
+| Public command routing (optional index) | [using-woostack](skills/using-woostack/SKILL.md#command-routing) |
+| Authored documentation | `apps/docs/content/docs/` |
+| Documentation application and generator | `apps/docs/`; follow its local instructions |
+| Component catalog | `apps/design/` |
+| Workspace orchestration and lockfile | Root pnpm and Turborepo configuration |
 
 [CONTRIBUTING.md](CONTRIBUTING.md#what-to-change) has the detailed ownership map.
 Read [PRODUCT.md](PRODUCT.md) when changing product scope and [DESIGN.md](DESIGN.md)
-when changing workflow interaction or documentation structure. When asked to run a
-Woostack command rather than edit its implementation, the selected skill owns its
-workflow, provider calls, and approval gates.
+when changing workflow interaction or documentation structure. Read
+[ARCHITECTURE.md](ARCHITECTURE.md) before changing component boundaries or
+cross-component flows. When asked to run a Woostack command rather than edit its
+implementation, the selected skill owns its workflow, provider calls, and approval gates.
 
 ## Editing rules
 
@@ -54,19 +64,24 @@ workflow, provider calls, and approval gates.
 - Name frameworks without versions. Resolve a needed dependency change from its
   authoritative registry; preserve unrelated versions and lockfiles. Document
   required incompatibility pins at the dependency owner under
-  [patterns.md](skills/woostack-execute/references/patterns.md#6-dependencies-resolution-ownership-and-integrity).
+  [patterns.md](shared/references/patterns.md#6-dependencies-resolution-ownership-and-integrity).
 - Update affected authored guides when behavior changes. Never edit generated
-  `site/content/docs/skills/` pages; change `skills/*/SKILL.md` instead. The site
+  `apps/docs/content/docs/skills/` pages; change `skills/*/SKILL.md` instead. The site
   build regenerates these pages, which remain gitignored.
 - For configuration, retained-data, or publication changes, read the
-  [artifact contract](skills/woostack-init/references/artifact-backends.md).
+  [artifact contract](shared/references/artifact-backends.md).
   Non-secret defaults belong in `.woostack/config.json` only after configuration
   is selected; credentials stay in the host secret store.
 
 ## Validation
 
-There is no root application install or universal test command. Run commands from
-the repository root, selecting only checks that cover what the edit can break.
+Install workspace dependencies from the repository root with
+`pnpm install --frozen-lockfile`. Root `pnpm dev`, `pnpm build`, `pnpm test`,
+`pnpm lint`, `pnpm lint:fix`, `pnpm format`, `pnpm format:check`, `pnpm verify`,
+and `pnpm types:check` run Turborepo tasks. Select only checks that
+cover what the edit can break; filter an app with `--filter=docs` or
+`--filter=design`. Oxlint and Oxfmt tool the workspace, with `@shadcn/lint`
+registered in app configs without persistent rule enforcement.
 A plain wording or link correction never triggers the full site test command or a
 production build solely because it touches `skills/*/SKILL.md` or site content.
 
@@ -74,26 +89,33 @@ production build solely because it touches `skills/*/SKILL.md` or site content.
   (`[label](path.md#anchor)`). When workflow semantics change, trace the relevant
   instruction path as evidence.
 - Skill frontmatter, catalog, parser, generator, link-rewriting, or installation
-  layout changes: run the relevant existing parser/generator/asset tests, for
-  example `node --test site/scripts/gen-skills.test.mjs` and
-  `node --test site/scripts/skill-assets.test.mjs`. Prefer the small complete
-  relevant suite (`pnpm -C site test`, which runs `node --test scripts/*.test.mjs`)
+  layout changes (including bundled reference copies): run the relevant existing
+  parser/generator/asset tests, for
+  example `node --test apps/docs/scripts/gen-skills.test.mjs`,
+  `node --test apps/docs/scripts/skill-assets.test.mjs`, and
+  `node --test apps/docs/scripts/shared-sync.test.mjs`. Prefer the small complete
+  relevant suite (`pnpm --filter docs test`, which runs `node --test scripts/*.test.mjs`)
   when that is simpler and cheaper than elaborate selection.
 - MDX syntax, embedded components, generated rendering, routing, site application,
   dependency, or build-configuration changes: run the applicable rendering or build
-  check. A production build (`pnpm -C site build`) remains required when the change
+  check. A production build (`pnpm build --filter=docs`) remains required when the change
   can affect the production build and narrower established checks do not adequately
   cover that risk. When impact is uncertain, choose broader verification rather than
   an unsupported exemption.
 - Init or Doctor helper changes: run the focused behavioral and syntax checks for the
   affected helpers, including consumers of shared helpers. Do not run those suites
   merely because a nearby instruction file changed.
+- Shared-asset or projection changes: after editing a canonical `shared/` asset,
+  a consuming skill's bundled copy, `shared/mapping.json`, or `shared/sync.mjs`,
+  regenerate with
+  `node shared/sync.mjs` and verify with `node shared/sync.mjs --check`, then run the
+  relevant existing parser/generator/asset tests for the link and installation layout.
 - Material Plan, Execute, Commit, or Orchestrate behavior changes: run the relevant
   [workflow smoke recipe](skills/using-woostack/references/workflow-smoke.md).
 
-When a selected site test or build needs dependencies in a checkout without its own,
-run `pnpm -C site install --frozen-lockfile` first. Do not symlink `node_modules`
-from another checkout; see the site instructions for the Turbopack restriction.
+When selected checks need dependencies, install from the root shared lockfile with
+`pnpm install --frozen-lockfile`. Never symlink `node_modules` from another checkout;
+workspace-managed links remain within this repository's root.
 
 For changed scripts, run the actual entrypoint or focused behavioral test and relevant
 syntax checks. Test behavior, not exact instruction wording or a test-only copy. Site
@@ -107,9 +129,11 @@ Use an approved topic branch: `main` is the base for independent work; an approv
 predecessor is the base for a stack layer. Submit changes through a draft PR using
 [the PR template](.github/pull_request_template.md).
 
-[Commit](skills/woostack-commit/SKILL.md) owns delivery, requested branch rewrites, stack
-consolidation, and readiness, using native Git and an available authorized GitHub integration
-under its [source-control reference](skills/woostack-commit/references/source-control.md).
+Each active workflow performs its requested delivery using the canonical
+[delivery](shared/references/delivery.md) and
+[source-control](shared/references/source-control.md) procedures. The standalone
+[Commit](skills/woostack-commit/SKILL.md) workflow owns explicitly requested Git/PR operations,
+including branch rewrites, stack consolidation, and readiness; it is not a sibling prerequisite.
 New PRs are drafts; existing readiness stays unchanged absent a request. Backend failures stop
 the operation instead of switching transport. Merging, auto-merge, and merge queues are
 human-only; issue or project status is not proof of delivery.

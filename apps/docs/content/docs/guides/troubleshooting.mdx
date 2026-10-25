@@ -1,0 +1,109 @@
+---
+title: Troubleshoot a blocked workflow
+description: Diagnose common Woostack blockers without overwriting work or repeating uncertain writes.
+---
+
+Start with the symptom you can observe. Keep existing files, branches, issues, and PRs intact while
+you inspect. A local check is not proof of remote access.
+
+## Your assistant cannot find a Woostack skill
+
+Confirm that `pnpx skills add howarewoo/woostack` ran in the intended repository and that your assistant
+discovers the skill you requested. Discovering one Woostack skill does not require discovering its
+siblings. Installation is a terminal command; invoking a skill is
+[host-specific](/docs/harnesses#native-skill-invocation). Check your host's installed-skill view before
+reinstalling. See [getting started](/docs/getting-started) for the setup route.
+
+## Design cannot start a selected external stage
+
+Check the named dependency in your host's installed-skill view, including its upstream source and
+required assets. Installing Woostack does not install Design's external skills. Approve only the
+specific missing installation, or explicitly omit that stage. After an authorized installation,
+confirm the bundle is available before resuming. A declined installation must not be retried or
+described as successful. See
+[Design's dependency boundary](/docs/skills/woostack-design#dependency-boundary).
+
+## Doctor reports a local configuration error
+
+Run `/woostack-doctor --check` through your assistant and look up the reported code. The check is
+static, makes no network calls, and changes nothing. A failed or incomplete inspection is not a
+healthy one.
+
+| Code | Meaning | Action | Verification |
+| --- | --- | --- | --- |
+| `config-policy` | Missing `jq`, malformed policy, or resolver failure | Install `jq` if missing; otherwise correct only approved policy | Rerun check; finding is gone |
+| `check-failed` | A check could not complete; finding names the check and exit status | Fix root cause of the check failure, then rerun | Rerun check; finding is gone |
+| `gitignore-drift` | A managed ignore line from the shipped template is missing | Request scoped correction from template; preserve unrelated rules | Rerun check; drift is resolved |
+| `retired-provider` | A legacy provider setting is present as inactive data | Keep data as historical record; no migration or contact needed | Ordinary local work still runs |
+| `retained-data` | A historical local draft or manifest directory is present | Keep data and follow the [retained local records](/docs/configuration/artifacts/local) contract | Ordinary local work still runs |
+
+Doctor applies an explicitly approved local repair itself, preserving the user's delivery limit;
+local-only repair commits and pushes nothing. A report is not proof of a fix, so run the diagnostic
+check again. See [Doctor's reference](/docs/skills/woostack-doctor) and the
+[check catalog](https://github.com/howarewoo/woostack/blob/main/skills/woostack-doctor/references/checks.md).
+
+## Doctor passes but GitHub fails
+
+Doctor diagnoses local support, not credentials or remote authorization. Inspect the host's GitHub
+capability and the exact repository or issue access needed for the operation. Re-read the target
+with the authorized integration before retrying a failed publication. See
+[configuration](/docs/configuration) and [Plan publication](/docs/skills/woostack-plan).
+
+## Issues exist but native links are missing
+
+Check issue URLs, descriptions, and the written prerequisite index. Native sub-issue or dependency
+links count only when a supported mutation was read back. Missing administrative links do not erase
+executable scope or automatically block [coordination](/docs/guides/coordinate-work). If a native
+graph was explicitly required, report it incomplete.
+
+## Orchestrate is blocked by missing sub-issues
+
+Read the selected tracker and its executable issue links. If all tasks and real prerequisites are
+available in readable form, a missing native hierarchy alone is not a blocker. If task scope or a
+required change is absent from the selected base, stop that dependent task and request the missing
+scope or delivery evidence. [Orchestrate](/docs/skills/woostack-orchestrate) owns the base check.
+
+## An issue or pull-request write has an unknown result
+
+Search the exact target repository for the issue identity or matching branch pull request and read
+the current remote result before writing again. A timeout or lost response is not proof of failure.
+Preserve a found issue or pull request; resume only the unproved step. Follow
+[canonical delivery procedures](https://github.com/howarewoo/woostack/blob/main/shared/references/delivery.md).
+
+## A prior worker may still be active
+
+Inspect native worker state and the worktree's branch, index, and diff. Do not start a second writer
+in the same physical workspace until the first worker has exited or relinquished it. Safe independent
+work can continue in a separate owned workspace.
+
+<span id="a-test-or-verification-step-fails" className="scroll-mt-28 block" />
+
+## A check failed or did not run
+
+Read the specific command, output, and affected path. Correct in-scope failures and refresh affected
+checks; do not treat a worker summary or an incomplete check as passing evidence. Follow bundled
+[verification procedures](https://github.com/howarewoo/woostack/blob/main/shared/references/tdd.md).
+When authorized evidence is insufficient, report the unverified criterion and resumption condition
+instead of cycling methods without new evidence. [Debug](/docs/skills/woostack-debug) can provide
+a root-cause analysis without editing code.
+
+## A diagnosis claims the directory is not a Git repository
+
+Probe the target directory with `git -C <target-directory> rev-parse --show-toplevel`. A listing
+that omits `.git` proves nothing: Git can use a hidden directory, a worktree file, or parent metadata.
+If discovery succeeds, inspect HEAD and relevant changes before citing committed source. If Git is
+unavailable or the target cannot be read, report repository status as unknown.
+
+## A command has been retired
+
+`woostack-build`, `woostack-fix`, `woostack-change`, `woostack-status`, `woostack-tdd`, and
+`woostack-prepare` have no compatibility aliases. Choose the current task from the
+[command index](/docs/skills/using-woostack#command-routing): use Plan for planning or Execute for
+one bounded implementation. Retained old runs are historical data, not commands to replay.
+
+## Still blocked
+
+Share a sanitized report with the responsible person: the intended outcome, exact repository,
+relevant skill and host, observed error, last verified commit or PR URL, checks run and outcomes,
+and which step remains unproved. Remove credentials, tokens, private source, and personal paths.
+Do not reset, clean, delete, or duplicate work to get past the blocker.

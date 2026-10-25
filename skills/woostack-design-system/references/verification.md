@@ -1,0 +1,138 @@
+# Verification and evidence
+
+Use the bundled [testing guidance](tdd.md) to select
+focused behavioral checks and broaden for changed integration boundaries. Preserve explicit
+acceptance checks. This reference defines evidence for this skill, not a new universal test runner.
+
+## Verify the target
+
+Discover commands in the actual created or existing target manifest and documentation; a catalog
+need not name its scripts `verify`, `build`, or `dev` — exercise its real check, build, and
+inspection equivalents. The declared coverage disclosed before implementation (per
+[adaptation](adaptation.md#agree-the-coverage)) and the target-owned coverage record together
+determine required coverage: check imports, required specimens, provenance and distinct
+extensions against both, then compile and run the actual catalog. A target-owned record alone
+is not proof no original requirement was lost: compare actual output and the record with the
+original disclosed or requested set, and keep declared scope, gaps, and completion claims
+aligned. Blocked requirements remain recorded as gaps or incomplete; do not accept a shrunk
+record that hides omitted requirements. Check preservation boundaries with focused tests or before/after file
+and dependency-state comparison where appropriate. For Storybook, compare its actual indexed
+stories with the declared coverage, then build and exercise those stories with project styles
+and providers. An index entry alone is not evidence that a specimen renders or works. Reuse story
+fixtures for focused interaction/accessibility checks where supported; avoid duplicate assertions
+across test layers or an exhaustive screenshot matrix as a default requirement.
+
+Before claiming recreation, observe the actual current-upstream sourcing of missing controls —
+the Base UI-backed shadcn CLI, live registry item, or adapted current component documentation
+example — or real compatible project imports for reused controls. Check that sourced items
+retain their applicable upstream license/copyright notices (catalog notice entry or file
+headers, per the coverage record); a missing notice is a failed source-ingestion check.
+Embedded, mirrored, or test-only source is not recreation. Confirm no CLI overwrite or product
+API migration. Creation
+needs registry/CLI network access when controls are missing; report its absence as an
+unverified prerequisite rather than filling missing imports with mocks. Runtime must remain
+independent of that access, Woostack, Git Stacks and remote component documentation.
+
+Use a real browser against the generated surface, not an HTML screenshot or a template-only fixture:
+
+| Behavior | Observable evidence |
+| --- | --- |
+| Search | Matching component/group results; unmatched query yields a clear empty state; clearing restores navigation |
+| Stable links | Direct component URL opens the correct specimen; selection updates the link; reload and Back/Forward restore selection |
+| Narrow navigation | At a narrow viewport the navigation opens/closes, selecting an item exposes content, and focus does not remain in hidden navigation |
+| Keyboard and focus | Controls have accessible names; keyboard navigation/shortcuts use documented keys, respect text editing and modifiers, and move focus to the intended content; visible focus and Escape behavior work |
+| Appearance | Theme controls apply project tokens to specimens and their portals; necessary custom chrome follows the project contract, while Storybook's manager may keep its native theme |
+| Representative overlays | Open and close dialog, popover/select/menu examples; confirm portals, focus transfer/return, dismissal and keyboard selection on real shared primitives |
+
+Test additional material states required by the declared coverage and affected target APIs, such
+as disabled, invalid, loading, empty and controlled state. Do not infer overlay accessibility
+from a successful build. If browser access or installation is unavailable, state that exact
+missing prerequisite and leave the affected evidence unverified.
+
+## Distribution and five scenario recipes
+
+Exercise the candidate through a supported coding host in disposable repositories, never personal
+repositories. Record the installed skill location, candidate revision, host/invocation, target fixture,
+commands and observed outputs. Keep the installed assets outside the source checkout and make the
+checkout unavailable to the recreation invocation; a manually authored catalog alone does not
+prove distribution or skill execution.
+
+1. **Distribution prerequisite:** install the candidate using supported skill tooling. Confirm
+   that the installed `SKILL.md` and its reference set are available together and that every
+   local link resolves. Resolve references relative to that installation, not the checkout. This
+   skill ships no templates, component sources, or frozen inventory: an installed package
+   carrying such assets is not this candidate. Asset availability and a correct package layout
+   are deterministic evidence; model execution is separate evidence.
+2. **New repository:** invoke the installed skill in a fresh disposable target with no catalog or
+   design rules. Agreeing focused coverage with the requester is acceptable. Observe neutral
+   styling and a runnable Storybook with project-owned stories and recorded provenance when
+   supported; otherwise record why the smaller native surface was chosen. Run the target's
+   verification/build commands, validate actual imports and specimens, and run the browser table
+   above. Confirm no Woostack/Git Stacks
+   runtime dependencies or automatic Git/GitHub mutations. A manually instantiated or authored
+   copy can diagnose a failure but cannot count as the required installed-skill recreation
+   outcome.
+3. **Compatible existing UI:** supply real public components with meaningful API differences from
+   upstream defaults (for example different button variants or overlay composition) and project
+   tokens. Invoke creation through the installed skill. Observe actual project imports in
+   specimens and any necessary custom chrome, examples adapted to those APIs, no duplicate controls
+   and no component API migration. Check original component source and dependency versions remain unchanged
+   unless a specifically necessary authorized configuration edit was identified. Exercise the
+   adapted interactions in the browser; provenance alone is not proof of compatibility.
+4. **Framework boundary:** establish the product framework, runtime dependencies and behavior.
+   For a supported non-React integration, verify stories import native public controls without
+   React replicas. For incompatible required controls, verify an independently runnable React
+   catalog with separate dependency ownership and accurate catalog-only labels. In either case,
+   verify unchanged product source, framework and runtime dependency graph with the relevant
+   product smoke alongside catalog checks. Another framework does not make an existing catalog absent.
+5. **Existing catalog:** start with customized examples/tokens and snapshot source, manifests,
+   lockfiles and generated state. Ordinary installed-skill invocation must produce a useful
+   coverage/drift/compatibility report against the target's recorded coverage and current
+   upstream, and leave all that state unchanged, whether the catalog uses Storybook or custom
+   tooling. Do not install dependencies or migrate it to improve the report. Identify runtime
+   behavior as unverified when inspection cannot establish it.
+6. **Explicit maintenance:** request one bounded addition or repair in a customized catalog. Prove
+   the requested behavior changes while unrelated examples/tokens/dependency versions stay intact.
+   Include an incompatible requested change; observe a specific conflict report with the owned
+   surface unchanged, not silent replacement or hidden duplicate controls. Run focused checks and
+   browser interactions for the changed surface, not unrequested regeneration. When testing an
+   explicit tooling migration, verify preserved specimens, states, provenance and links before
+   removal of the old shell; an ordinary addition or repair must not trigger that migration.
+
+Items 2–6 are the five behavior scenarios; distribution is their installation prerequisite.
+
+Across scenarios 2–4, inspect the transcript ordering: the declared coverage disclosure comes
+before any implementation mutation, with its focused or exhaustive label and material
+exclusions. When the request and repository evidence already determine scope, expect disclosure
+without an unnecessary scope question; when they leave a material choice unresolved, expect one
+focused scope question before a narrower subset, and expect an explicit full-coverage request to
+be honored rather than quietly narrowed. Confirm the final coverage record and completion
+claims still match the disclosed or requested set instead of hiding omitted requirements.
+
+## Verify changes to this skill distribution
+
+From the Woostack repository root, run the required existing packaging suites:
+
+```sh
+node --test apps/docs/scripts/gen-skills.test.mjs
+node --test apps/docs/scripts/skill-assets.test.mjs
+```
+
+`skill-assets.test.mjs` covers the installed design-system package's template-free layout and
+resolving reference links. Select authored-site rendering/build checks under repository
+validation policy when their boundaries are affected. Packaging/parser tests establish discovery
+and asset inclusion, not that a model followed this skill. Focused deterministic tests should
+exercise real integration contracts and preservation/compatibility helpers if present, rather
+than exact instruction wording or test-only copies. Never run applications or install their
+dependencies inside `skills/`.
+
+## Report three evidence classes separately
+
+- **Deterministic:** packaging/parser/helper checks and actual target commands, with observed result.
+- **Installed skill/host:** real invocation outcomes for distribution and each behavior scenario;
+  identify manual authoring separately, and leave unrun scenarios unverified.
+- **Browser:** actual target URL/surface, tested interactions and observations, not inferred behavior.
+
+Include preserved customizations, conflicts and unavailable prerequisites. Failed, blocked or unrun
+checks are not passes. Site tests alone do not prove recreation; a build alone does not prove
+reuse or read-only behavior. Stop after the authorized local outcome, without publication.

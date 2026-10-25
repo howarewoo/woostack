@@ -12,9 +12,9 @@ When used within an existing implementation task, inherit its scope, workspace, 
 verification evidence, then return control without restarting a standalone workflow or publishing
 independently.
 
-Use the shared [least-code standard](../woostack-execute/references/patterns.md#7-least-code--comments)
-for replacement choices. Reading that reference does not invoke Execute; neither Execute nor Plan
-is a prerequisite. The deletion-first approach is inspired by [Ponytail](https://github.com/DietrichGebert/ponytail).
+Use the shared [least-code standard](references/patterns.md#7-least-code--comments)
+for replacement choices. Reading that reference invokes no workflow, and no other skill is a
+prerequisite. The deletion-first approach is inspired by [Ponytail](https://github.com/DietrichGebert/ponytail).
 
 ## Command
 
@@ -32,7 +32,7 @@ silently expand a local cleanup into a repository-wide rewrite. Repository conte
 not permission to widen the request.
 
 Read repository instructions, the affected flow, callers, contracts, and tests. Select baseline and
-final checks under the canonical [testing guidance](../woostack-execute/references/tdd.md).
+final checks under the bundled [testing guidance](references/tdd.md).
 Establish the behavioral baseline where feasible, recording pre-existing failures or missing
 evidence. Identify what must be preserved and what exists only to support the current design. Ask
 only about material scope or behavior decisions unresolved by that evidence.
@@ -73,6 +73,10 @@ and remaining risks or unverified criteria. Stop when the selected scope is addr
 result is valid when no worthwhile simplification is supported; do not invent cleanup to show activity.
 
 Local verification is the default endpoint, including for explicit invocations. Commit or publish
-only when the user requests it, through [Commit](../woostack-commit/SKILL.md). Do not publish around
-a failed or unrun required check or a local-only limit. New PRs are drafts; never merge, auto-merge,
-or queue them. Stop after requested delivery rather than monitoring PR checks or starting repair loops.
+only when the user requests it, through the requested-delivery
+[delivery procedure](references/delivery.md); the woostack-commit skill remains optional
+navigation when the user asks for its capabilities. Failed or unrun required commit/publication checks
+and local-only limits still block the affected operation. Disclose unmet completion criteria in
+authorized drafts; draft visibility proves neither completion nor consumer release. New PRs are
+drafts; never merge, auto-merge, or queue them. Stop after requested delivery rather than monitoring
+PR checks or starting repair loops.

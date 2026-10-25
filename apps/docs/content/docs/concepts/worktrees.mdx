@@ -1,0 +1,50 @@
+---
+title: Parallelism with worktrees
+description: How woostack isolates bounded implementation work independently from artifact storage.
+---
+
+import { WorktreeIsolation } from "@/components/concepts/worktree-isolation";
+
+A Git worktree is a separate checkout of the same repository. It allows an implementation task
+to edit its own branch without touching files in the primary checkout. A worktree isolates files,
+not permissions: it grants no scope, status, or acceptance on its own. The
+[workspace guidance](https://github.com/howarewoo/woostack/blob/main/shared/references/worktrees.md)
+defines identity, collision handling, writer ownership, base evidence, and recovery.
+
+<WorktreeIsolation />
+
+## Ownership and writer access
+
+The deliverable owns its workspace and branch; a writer temporarily holds exclusive write access:
+
+- **Sequential reuse:** Sequential writers can reuse an allocation after native host evidence proves
+  the previous writer exited or relinquished access, and current Git facts confirm the workspace remains suitable.
+- **Concurrent isolation:** Concurrent writers require separate workspaces and non-overlapping responsibilities.
+  Unknown writer liveness blocks affected work; waiting alone does not prove release.
+- **Orchestrate protection:** Missing task-worker or isolation capability blocks Orchestrate, never
+  replaced by coordinator edits in the primary checkout. Standalone Execute can implement inline in
+  an approved workspace under the same ownership and concurrent-writer safeguards.
+
+See the [ownership rule](https://github.com/howarewoo/woostack/blob/main/shared/references/worktrees.md#workspace-and-ownership)
+for allocation and handoff safeguards.
+
+## Base selection and dependencies
+
+Required predecessor changes must be available in the chosen base branch:
+
+- **Commit-preserving ancestry:** Git ancestry proves commit-preserving containment.
+- **Squash landings:** When predecessor PRs land via squash, verify the native landing and integrated
+  content rather than assuming the former PR head remains an ancestor.
+- **Conflicting bases:** Conflicting bases or unknown outcomes preserve existing work and block the
+  affected task while unrelated work continues.
+
+## Recovery and lifecycle
+
+After a lost response or interruption, rediscover the selected workspace, writer, branch diff,
+and matching pull request before repeating a mutation. Never adopt, reset, clean, stash, overwrite,
+or remove another owner's checkout.
+
+Verified code delivery remains valid even if optional metadata writes fail. Publication does not
+authorize workspace teardown; explicitly required registration remains unmet until verified.
+Follow the [workspace guidance](https://github.com/howarewoo/woostack/blob/main/shared/references/worktrees.md)
+for the full recovery and lifecycle algorithms.

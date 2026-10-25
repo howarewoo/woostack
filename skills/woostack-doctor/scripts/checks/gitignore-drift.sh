@@ -3,7 +3,7 @@
 # shipped template. Doctor never writes this file.
 set -uo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-TEMPLATE="$HERE/../../../woostack-init/templates/gitignore"
+TEMPLATE="$HERE/../../templates/gitignore"
 emit() { printf '%s\t%s\t%s\t%s\t%s\n' "$1" "$2" "$3" "$4" "$5"; }
 
 case "${1:-}" in

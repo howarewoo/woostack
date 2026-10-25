@@ -1,0 +1,19 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  "ignorePatterns": [
+    "**/*.md",
+    "**/*.mdx",
+    "**/*.yaml",
+    "**/*.yml",
+    "**/skills-lock.json",
+    "**/pnpm-lock.yaml",
+    "**/.woostack/**",
+    "**/.turbo/**",
+    "**/.source/**",
+    "**/content/docs/skills/**",
+    "**/.next/**",
+    "**/dist/**",
+    "**/.claude/**",
+    "**/catalog-public-import-*"
+  ]
+}

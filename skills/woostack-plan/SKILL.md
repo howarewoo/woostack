@@ -9,7 +9,7 @@ description: Turn a goal or partial issue into a coherent plan of reviewable inc
 directly. It uses relevant source when available, or supplied goals, constraints, and research for a
 new project, settles only material unanswered decisions, and produces reviewable increments. It
 files that plan as issues only when requested. No checkout, template, prior phase, or extra approval
-event is required for planning. Plan never implements, executes, or merges.
+event is required for planning; [Boundaries](#boundaries) own the read-only limits.
 
 ## Command
 
@@ -35,7 +35,7 @@ existing Project. Without it, the destination comes from the request and the act
    and authoritative research for material technology choices; do not create a checkout to plan.
    Distinguish observed schemas, interfaces, commands, and conventions from proposed ones.
    Check whether reuse or safe deletion already covers the request under the
-   [least-code doctrine](../woostack-execute/references/patterns.md#7-least-code--comments).
+   [least-code doctrine](references/patterns.md#7-least-code--comments).
 3. **Identify meaningful unresolved decisions.** Ask only about decisions that change the outcome:
    product behavior, breaking compatibility, security or data boundaries, irreversible effects,
    cost, and scope. Fill in routine technical details consistent with the requested outcome, and say
@@ -51,8 +51,7 @@ existing Project. Without it, the destination comes from the request and the act
    plan in the conversation; the user decides what happens next.
 5. **File the issues when the request asks for it.** "File issues", "create GitHub issues", and
    "publish this plan" are the publication authorization themselves — do not require a separate
-   approval event. A planning-only request writes nothing and returns the plan. The
-   [GitHub publication procedure](references/github-procedure.md) owns the writes and the read-back.
+   approval event. A planning-only request writes nothing and returns the plan.
 
 ## What an issue carries
 
@@ -61,14 +60,17 @@ acceptance and verification expectations that define done, and its real prerequi
 floor, not a fixed template: no task keys, ordinals, marker blocks, parent-selection policy, or
 required section order. Name existing files, symbols, and interfaces where available, or proposed
 surfaces the increment will create, so a fresh reader can find the work. Link constraints that
-already have an owner instead of copying them; reading those references does not invoke Execute
-or authorize implementation:
+already have an owner instead of copying them; reading those references does not invoke any
+implementation workflow and authorizes no implementation:
 
 - an increment that crosses an application boundary follows the
-  [application-boundary adapters rule](../woostack-execute/references/patterns.md#3-application-boundary-adapters);
-- an increment that adds or strengthens tests states the observable contract and points at the
-  [Execute testing guidance](../woostack-execute/references/tdd.md).
-
+  [application-boundary adapters rule](references/patterns.md#3-application-boundary-adapters);
+- newly authored verification expectations follow the bundled
+  [testing guidance](references/tdd.md): observable contracts and distinct gaps, not blanket suites or
+  quotas. Prefer existing adequate checks; propose extra evidence for stated requirements or named
+  material risks. Distinguish completion criteria from draft-publication and consumer-release gates,
+  and identify new verification infrastructure as proposed scope. Do not rewrite acceptance on
+  existing unrelated issues.
 Verify any command or path you name before putting it in an issue — it must exist in the repository
 or be created by that increment or one of its prerequisites. Planning records expectations; it does
 not run them or claim they pass.
@@ -77,7 +79,7 @@ not run them or claim they pass.
 
 Publication writes one issue per increment and only the relationships the request asked for,
 through the host's authorized GitHub capability under the
-[GitHub profile](../woostack-init/references/artifact-providers/github.md#configuration-and-scope);
+[GitHub profile](references/artifact-providers/github.md#configuration-and-scope);
 never read credentials, forward tokens, or add a custom transport. Independently read every
 affected issue and relationship back; a mutation response alone proves nothing.
 
@@ -92,8 +94,8 @@ request.
 ## Boundaries
 
 Planning stays read-only except for the issue publication the request authorized. Plan edits no
-implementation source, creates no branch, worktree, commit, or PR, dispatches no Execute or
-Orchestrate work, and merges nothing. It preserves human content, existing issue identity, and
+implementation source, creates no branch, worktree, commit, or PR, dispatches no implementation or
+orchestration work, and merges nothing. It preserves human content, existing issue identity, and
 unrelated issues, labels, and history: it edits the parts of an issue that carry the plan and leaves
 the rest alone. It never closes, reopens, or reassigns anything, and it never claims implementation,
 delivery, passing checks, product acceptance, or merge.

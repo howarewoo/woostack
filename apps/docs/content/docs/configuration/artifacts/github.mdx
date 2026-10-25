@@ -1,0 +1,122 @@
+---
+title: GitHub artifacts
+description: Direct issue publication, verified read-back, and lifecycle boundaries.
+---
+
+The canonical implementation rules live in the
+[artifact contract](https://github.com/howarewoo/woostack/blob/main/shared/references/artifact-backends.md#direct-publication-and-recovery)
+and the [GitHub profile](https://github.com/howarewoo/woostack/blob/main/shared/references/artifact-providers/github.md#configuration-and-scope).
+
+Plan owns direct issue publication and reads every write back before claiming success. Orchestrate
+is read-only when interpreting a tracker: a complete readable implementation index can establish
+declared membership when native child links are absent, partial, or unavailable, provided every
+selected issue is independently readable.
+
+## Configuration policy
+
+The `github` object is optional policy. When present, only `owner`, `ownerType`, `statusField`,
+and `projectStatuses` are allowed.
+
+```json
+{
+  "github": {
+    "owner": "acme",
+    "ownerType": "organization",
+    "statusField": "Status",
+    "projectStatuses": {
+      "planned": "Todo",
+      "executing": "In Progress",
+      "inReview": "In Review",
+      "done": "Done",
+      "blocked": "Blocked"
+    }
+  }
+}
+```
+
+| Field | Type | Constraint |
+| --- | --- | --- |
+| `github.owner` | string | Optional nonempty GitHub organization or user login. When present, must match canonical repository owner. |
+| `github.ownerType` | string | Optional `"organization"` or `"user"`. Read from GitHub when omitted. |
+| `github.statusField` | string | Optional exact case-sensitive single-select field name. Defaults to `"Status"`. |
+| `github.projectStatuses` | object | Optional. When supplied, maps all five keys (`planned`, `executing`, `inReview`, `done`, `blocked`) to nonempty, distinct option names. |
+
+Credentials belong in the host secret store, never in repository configuration. Custom HTTP clients,
+credential reads, and token forwarding are forbidden. Host-native GitHub tools are preferred;
+host-authenticated official `gh` is supported.
+
+### Transport capabilities and boundaries
+
+Preflight only the capabilities needed by the selected operation through the authorized GitHub
+interface. Each requested operation requires only its own capabilities:
+
+| Operation | Required capability | Configuration required | Read-back verification |
+| --- | --- | --- | --- |
+| Issue publication | Issue create and update | None (`github` object may be absent) | Independent read-back of issue body and relationships |
+| Native relationship links | Sub-issue or blocked-by links | None | Confirmed read-back of relationship graph |
+| Project membership | Project item create | None (resolves caller-supplied Project URL) | Verified project item presence |
+| Spec README update | `ProjectV2.readme` update | Canonical Project URL | Verification of content within spec markers |
+| Project Status update | Project field update | `statusField` and verified `projectStatuses` mapping | Read-back of updated field value |
+
+Native relationship writes are requested separately. If unavailable, retain verified issue URLs
+and readable prerequisites, and report missing relations; an explicitly required native graph
+remains incomplete. Writes preserve human and unrelated content. Unknown writes are rediscovered
+using the same exact identity or Project-bound marker before retrying, never creating blind duplicates.
+README mutation updates only `readme`, preserves outside bytes, and retains its bound recovery marker.
+
+Unsupported capabilities, unauthorized scopes, or partial responses stop the relevant GitHub
+operation. No test mutation is used to probe publication permissions.
+
+## Identities, hierarchy, and graph
+
+Accepted canonical URL forms:
+
+- Projects: `https://github.com/orgs/<owner>/projects/<N>` or `https://github.com/users/<owner>/projects/<N>`.
+- Issues: `https://github.com/<owner>/<repo>/issues/<N>`.
+
+GitHub's internal GraphQL node IDs and Project item IDs are kept separately for API calls.
+Explicit Project operations resolve one exact caller-supplied Project URL, never inferred from
+configuration. The specification may be stored in `ProjectV2.readme` between markers
+`<!-- woostack-spec-start -->` and `<!-- woostack-spec-end -->`, preserving unrelated README bytes.
+
+### Issue publication
+
+`--project` is the explicit destination selector:
+
+```text
+/woostack-plan <goal-or-partial-issue> --project <exact canonical GitHub Project URL>
+```
+
+Without `--project`, the destination comes from the request and repository context. Plan asks
+instead of choosing when multiple destinations are plausible.
+
+Publication reuses an existing issue when one covers an increment, creates missing issues, and
+writes only requested relationships. After every write, Plan reads affected issues back independently;
+a mutation response alone proves nothing.
+
+Native hierarchy, `blocked-by` relationships, and Git branch ancestry are separate facts:
+hierarchy groups issues, `blocked-by` records a prerequisite, and neither orders delivery or
+selects a branch parent.
+
+## Lifecycle and closure (retired Execute reference)
+
+> **Retired.** Execute no longer performs GitHub Project/issue lifecycle transitions, project/run
+> controller reads, closure, or `--project`/`--run`/`--recheck` scope. It accepts an authorized
+> bounded task and may read a selected exact issue for context. See
+> [Execute retired inputs](/docs/skills/woostack-execute#retired-inputs).
+
+Explicit Project lifecycle operations use only the retained exact Project and its configured fields.
+Plan without a Project selection has no Project lifecycle to close.
+
+## Workflow matrix
+
+| Skill | GitHub behavior |
+| --- | --- |
+| [woostack-plan](/docs/skills/woostack-plan) | Plans work; writes issues only when requested. Reuses existing issues, writes requested relationships, and reads every write back. `--project` adds membership in one exact existing Project. |
+| [woostack-orchestrate](/docs/skills/woostack-orchestrate) | Coordinates multi-task work and verifies requested delivery without closing issues or merging. Local-only work requires no GitHub publication; explicitly selected remote issue or Project reads still need access. |
+| [woostack-execute](/docs/skills/woostack-execute) | Accepts bounded tasks; retired `--project`, `--run`, and `--recheck` are rejected. Explicit Execute requests deliver draft PRs unless narrowed to local edits. |
+| [woostack-init](/docs/skills/woostack-init) | Authors project guidance without GitHub access. Explicit local-support path validates optional `github` policy without contacting providers. |
+| [woostack-doctor](/docs/skills/woostack-doctor) | Runs static local checks; never contacts providers or reads credentials. Performs explicitly approved local repairs itself under user delivery limits. |
+
+See the [GitHub profile contract](https://github.com/howarewoo/woostack/blob/main/shared/references/artifact-providers/github.md)
+for exact capability, identity, and recovery requirements.

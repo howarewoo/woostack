@@ -1,0 +1,46 @@
+{
+  "name": "docs",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "generate": "node scripts/gen-skills.mjs",
+    "dev": "pnpm generate && next dev",
+    "build": "opennextjs-cloudflare build && node scripts/prepare-worker.mjs",
+    "build:next": "pnpm generate && next build",
+    "preview": "opennextjs-cloudflare preview",
+    "deploy": "opennextjs-cloudflare deploy",
+    "start": "next start",
+    "test": "node --test scripts/*.test.mjs",
+    "lint": "oxlint",
+    "lint:fix": "oxlint --fix",
+    "format": "oxfmt --write",
+    "format:check": "oxfmt --check",
+    "verify": "node ../../scripts/turbo.mjs run test types:check lint format:check --filter=docs",
+    "types:check": "pnpm generate && fumadocs-mdx && next typegen && tsc --noEmit",
+    "postinstall": "fumadocs-mdx"
+  },
+  "dependencies": {
+    "fumadocs-core": "16.10.2",
+    "fumadocs-mdx": "15.0.12",
+    "fumadocs-ui": "16.10.2",
+    "lucide-react": "^1.17.0",
+    "next": "16.4.3",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7"
+  },
+  "devDependencies": {
+    "@opennextjs/cloudflare": "1.20.13",
+    "@shadcn/lint": "0.2.1",
+    "@tailwindcss/postcss": "^4.3.0",
+    "@types/mdx": "^2.0.14",
+    "@types/node": "^25.9.2",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "oxfmt": "0.73.0",
+    "oxlint": "1.88.0",
+    "postcss": "^8.5.15",
+    "tailwindcss": "^4.3.0",
+    "typescript": "^6.0.3",
+    "wrangler": "4.152.0"
+  }
+}

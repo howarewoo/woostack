@@ -1,0 +1,29 @@
+{
+  "name": "woostack",
+  "private": true,
+  "scripts": {
+    "dev": "node scripts/turbo.mjs run dev",
+    "build": "node scripts/turbo.mjs run build",
+    "test": "node scripts/turbo.mjs run test",
+    "verify": "node scripts/turbo.mjs run verify //#lint:root //#format:check:root",
+    "types:check": "node scripts/turbo.mjs run types:check",
+    "lint": "node scripts/turbo.mjs run lint //#lint:root",
+    "lint:fix": "node scripts/turbo.mjs run lint:fix //#lint:fix:root",
+    "format": "node scripts/turbo.mjs run format //#format:root",
+    "format:check": "node scripts/turbo.mjs run format:check //#format:check:root",
+    "lint:root": "oxlint scripts",
+    "lint:fix:root": "oxlint --fix scripts",
+    "format:root": "oxfmt --write scripts package.json turbo.json .oxfmtrc.json .oxlintrc.json",
+    "format:check:root": "oxfmt --check scripts package.json turbo.json .oxfmtrc.json .oxlintrc.json"
+  },
+  "devDependencies": {
+    "oxfmt": "0.73.0",
+    "oxlint": "1.88.0",
+    "turbo": "2.11.8",
+    "wrangler": "4.152.0"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "packageManager": "pnpm@12.10.1"
+}
