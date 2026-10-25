@@ -43,10 +43,12 @@ edit this record and the catalog source later without this skill.
 
 ## Inspect, reuse, and choose placement
 
-1. Inspect actual imports, props, composition, style setup and dependencies. Prefer the smallest
-   supported integration: a matching existing catalog application or route is the first choice —
-   extend it in place rather than creating a parallel catalog. Creation by this skill starts
-   only where no reusable live catalog surface exists.
+1. Inspect actual imports, props, composition, style setup and dependencies. Reuse an existing
+   catalog within the authorized maintenance scope; ordinary invocation remains read-only. For a
+   new catalog, prefer Storybook when its framework/build integration supports the required UI.
+   Use a simpler repository-native surface when Storybook is unsupported or requires more
+   integration than the declared coverage needs, and explain that choice. A tooling preference
+   never authorizes replacing an existing catalog.
 2. Before any directory creation, write, or generator invocation, apply the bundled
    [initial-scaffold target admission](scaffold.md)
    to the intended physical target and parent, including symlink, ownership and collision safety;
@@ -75,23 +77,26 @@ edit this record and the catalog source later without this skill.
 
 ## Build only the necessary catalog layer
 
-5. Create in the target only what a live internal catalog needs: the catalog unit/app surface,
-   navigation and search chrome, theme handling, and live specimen pages rendering real
-   interaction code. Choose the repository-native structure; do not add shared packages,
-   generators, or adapters the catalog does not use, and no substitute scaffold, generator, or
-   embedded source dump. Catalog chrome is a consumer of compatible project controls per
-   [compatibility](compatibility.md); do not duplicate controls that exist there.
-6. Respect project tokens, typography and design rules. Map semantic colors, theme selection,
-   radii, focus and motion consistently in chrome and specimens, reusing real public stylesheets
-   and configuration where compatible. Without project rules, retain the neutral shadcn Base UI
-   baseline; do not impose Git Stacks, Quiet Workbench or any other imported identity. Specimens
-   render live behavior only: no code snippets, copy controls, or separate usage-example docs.
+5. Use the selected tool's navigation, search, links and preview controls instead of building
+   a custom catalog shell. For Storybook, use its supported
+   [configuration](https://storybook.js.org/docs/configure), repository-owned stories, and only
+   the required providers and addons. Import real public components; reuse existing specimens as
+   story fixtures rather than copying their implementation. Remove unrelated starter demos.
+   Do not add a custom generator, wrapper framework, or redundant component registry.
+6. Apply project tokens, typography, themes, focus and motion to specimens through real stylesheets
+   and providers. Keep Storybook's manager UI native; it need not imitate the product. Necessary
+   custom chrome follows [compatibility](compatibility.md). Without project rules, retain the
+   neutral shadcn Base UI baseline. Stories are executable specimens, not a separate documentation
+   project: do not add Autodocs, MDX usage manuals, source/code panels, or copy controls. Cover
+   meaningful variants and states, not every possible prop combination; preserve declared coverage.
 7. Materialize selected dependency versions and the target package manager's lockfile under
    [dependency resolution, ownership and integrity](patterns.md#6-dependencies-resolution-ownership-and-integrity).
    An isolated catalog unit's own manifest owns React and UI runtime dependencies, not the
-   product manifest. For incompatible or non-React products follow
-   [compatibility](compatibility.md#choose-the-smallest-supported-integration): an isolated
-   React catalog leaves the product's source, manifests and behavior unchanged.
+   product manifest. Follow the
+   [framework boundary](compatibility.md#choose-the-smallest-supported-integration); tooling
+   support is not permission to change the product's framework or component APIs. Chromatic,
+   hosted visual testing and MCP are optional, not prerequisites for a local or static catalog;
+   do not configure external services without a request.
 8. Record the target's native development, build and verification commands (adapt names only
    where native conventions require it), then exercise the actual resulting commands. Explain
    ownership: the target edits catalog source without Woostack, Git Stacks, or remote component
@@ -109,3 +114,8 @@ Preserve custom specimen content, stable links and design rules. Report a confli
 changing an incompatible shared API, silently rebranding tokens or overwriting edited
 components. Refreshing provenance or coverage entries does not imply regenerating the rest of
 the catalog.
+
+For an explicitly requested tooling migration, port existing specimens and preserve their states,
+coverage, provenance, notices and stable links (or redirects). Verify the replacement before
+removing the superseded shell and shell-only checks; do not leave two catalogs as the completed
+outcome. Component implementations, tokens and product UI are not migration targets.

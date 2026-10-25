@@ -24,13 +24,14 @@ arranging multi-step flows is the separate woostack-flow-layout layout standard,
 /woostack-design-system add a date-range specimen
 /woostack-design-system repair catalog keyboard navigation
 /woostack-design-system update the catalog's typography examples
+/woostack-design-system migrate the existing catalog to Storybook
 ```
 
 | Repository state and request | Authorized operation |
 | --- | --- |
 | No catalog; ordinary invocation | Bounded local creation, necessary catalog dependency/configuration changes, and verification |
 | Existing catalog; ordinary invocation or inspection | Read-only gap/drift report; no source, configuration, dependency, lockfile, or generated-file writes |
-| Explicit add, repair, or update | Only the named maintenance scope and its necessary verification |
+| Explicit add, repair, update, or tooling migration | Only the named maintenance scope and its necessary verification |
 
 Inspect first; an undocumented catalog still counts as existing. A component library without a
 catalog does not prevent creation, but its compatible controls must be reused. Explicit read-only
@@ -46,11 +47,16 @@ and [testing guidance](references/tdd.md); reading these invokes no
 other workflow and authorizes no implementation.
 
 Apply [compatibility](references/compatibility.md) to actual imports, props, composition, style
-setup and dependencies. Choose repository-native catalog placement, not a copied workspace path.
-Reuse compatible controls and catalogs in specimens and navigation/chrome. Adapt catalog callers
-to their public APIs; do not rewrite existing components to fit newly created ones. For
-incompatible or non-React products, use an isolated React catalog whose dependencies and
-configuration do not alter the product's framework, runtime dependency set or behavior.
+setup and dependencies. Reuse an existing catalog. For a new catalog, prefer
+[Storybook](https://storybook.js.org/docs) when its supported framework and build integration fit;
+otherwise choose the smallest repository-native surface and explain the constraint. Do not migrate
+existing catalog tooling without an explicit request. Choose repository-native placement, not a
+copied workspace path.
+
+Stories or other live specimens import real project components, tokens and providers. Adapt
+catalog callers to public APIs, not components to the catalog. Use a supported native framework
+integration where it can render the required controls; isolate an incompatible React/shadcn
+catalog rather than changing the product's framework, runtime dependencies or behavior.
 
 If a catalog exists and maintenance was not requested, stop before installation or generation.
 Report its location, observed coverage, API/style compatibility, provenance, interaction gaps,
@@ -82,8 +88,8 @@ Do not add a substitute scaffold, generator, or embedded source dump in place of
 repository and sourcing current upstream. Do not overwrite custom components, tokens, examples,
 rules or unrelated work. Compare before changing existing destinations. Report a conflict and
 leave the conflicting surface unchanged; complete independent in-scope work without silently
-substituting a duplicate implementation. Maintenance is not permission to regenerate the catalog
-or upgrade unrelated dependencies.
+substituting a duplicate implementation. Adding or repairing content is not permission to migrate
+catalog tooling, regenerate the catalog, or upgrade unrelated dependencies.
 
 ## Verify and report
 

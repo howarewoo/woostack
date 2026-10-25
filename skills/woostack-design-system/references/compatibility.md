@@ -17,15 +17,16 @@ For each control needed by a specimen or catalog chrome, record:
 | Dependencies | Installed versions, peer ranges, supported runtime, workspace resolution and lockfile; dependencies needed by imported shared code |
 | Consumer evidence | At least one real use of the public API and applicable tests; source declarations alone do not prove interaction behavior |
 
-Catalog chrome is a consumer too: inspect buttons, search/input, navigation and theme control
-alongside specimen controls. A specimen using shared UI while chrome retains local duplicates is
-not successful compatible reuse.
+Necessary custom catalog chrome is a consumer too: inspect its controls alongside specimens and
+reuse compatible public UI. Storybook's manager is tooling UI, not a duplicate product component;
+do not rebuild its navigation or search with project controls merely to satisfy reuse.
 
 ## Choose the smallest supported integration
 
-1. **Compatible shared UI:** import actual public components and tokens. Change specimen and
-   chrome callers to the project's props and composition. Remove obsolete task-owned generated
-   controls and imports; do not leave a second Button, Input or overlay merely because its API is familiar.
+1. **Compatible shared UI:** import actual public components and tokens into stories/specimens and
+   any necessary custom chrome. Adapt callers to the project's props and composition. Remove
+   obsolete task-owned generated controls and imports; do not leave a second Button, Input or
+   overlay merely because its API is familiar.
    Describe project API adaptations as owned examples, not upstream shadcn defaults.
 2. **Partially compatible UI:** reuse supported controls and create only genuinely missing controls
    within the repository's UI owner using the current Base UI-backed shadcn CLI. Assess each component,
@@ -33,12 +34,14 @@ not successful compatible reuse.
    on existing components. If a required composition cannot be implemented without changing a
    published component contract, report that boundary rather than silently changing the API or
    duplicating the control.
-3. **Incompatible/non-React product:** put the React catalog in its own deployable unit and manifest.
-   Keep product manifests, runtime dependency declarations, source and behavior unchanged. Do not
-   import framework-specific private components into React or pretend rendered replicas are native
-   product controls. Clearly label catalog-only examples and the compatibility boundary. A workspace
-   lockfile may record catalog dependencies only where native workspace policy requires it; preserve
-   unrelated entries and verify the product dependency graph is unchanged.
+3. **Framework boundary:** prefer a supported native Storybook integration when it can render the
+   project's real public controls; a non-React product alone does not require a React replica.
+   Tooling support does not make React/shadcn controls compatible with another framework. When
+   the required controls cannot run natively, put the React catalog in its own unit and manifest.
+   Keep product source, framework and runtime dependencies unchanged; label catalog-only examples
+   accurately. Do not import framework-specific private components into React or claim replicas
+   are native controls. A workspace lockfile may record catalog dependencies where native policy
+   requires it; preserve unrelated entries and verify the product dependency graph is unchanged.
 
 An isolated catalog may represent product tokens and guidance without claiming framework-native
 control integration. It must still run and cover the declared coverage. Do not add a package-manager

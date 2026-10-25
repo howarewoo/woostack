@@ -26,10 +26,14 @@ not terminal commands.
    before installing packages or creating files. An explicit full-coverage request stands; the assistant
    asks focused scope questions only when the request leaves a real choice open.
 
-   Compatible UI appears in catalog specimens through existing public imports and APIs. The assistant
-   adapts catalog specimens to project APIs rather than migrating product components or adding duplicate
-   controls. For an incompatible or non-React product, it creates an isolated React catalog that leaves
-   the product's runtime dependencies and framework untouched.
+   New catalogs prefer Storybook when its framework and build integration fit. The assistant explains
+   when a smaller repository-native surface is more appropriate. Existing catalogs stay in place.
+   Storybook supplies the catalog tools; stories render real components with project tokens and
+   providers, without separate Autodocs, MDX manuals, or code panels. Chromatic and MCP are optional.
+
+   The assistant adapts specimens to public project APIs, not product components to the catalog.
+   A supported native integration reuses non-React controls too. When required React/shadcn controls
+   cannot run in the product framework, an isolated catalog leaves the product unchanged.
 
 3. **Verify the running catalog:** Run the development and verification commands recorded in the catalog.
    Try search, component links, narrow navigation, keyboard navigation, themes, and representative overlays.
@@ -52,12 +56,20 @@ A drift report provides evidence for deciding what to repair; it does not author
 
 ## Request scoped maintenance
 
-1. **Request a specific repair:** Name the specific addition, repair, or update you want, including
+1. **Name the change:** Request a specific addition, repair, update, or tooling migration, including
    customizations that must remain:
 
    ```text
    /woostack-design-system Repair the dialog specimen to use our existing public
    Dialog API. Preserve our tokens, other specimens, and product components. Keep changes local.
+   ```
+
+   Changing catalog tooling requires an explicit request:
+
+   ```text
+   /woostack-design-system Migrate our existing catalog to Storybook. Reuse our components,
+   tokens and specimens; preserve coverage and links. Remove the old shell only after verifying
+   the replacement. Keep changes local.
    ```
 
 2. **Review changes and checks:** The assistant preserves unrelated customizations. If a requested
