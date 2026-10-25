@@ -1,0 +1,69 @@
+---
+title: Recommended tech stack
+description: My preferred stack for TypeScript web applications, with optional tools added as needed.
+---
+
+My preferred stack for TypeScript web applications, not a requirement for using Woostack.
+
+## Stack
+
+| Layer | Technologies |
+| --- | --- |
+| Language & runtime | TypeScript 5.9, ES modules; Node.js 24 for tooling and Node deployments |
+| Monorepo & packages | pnpm 10 workspaces; Turborepo 2 when task orchestration and caching are useful |
+| Frontend | React 19, Vite 8, React Router 7 |
+| UI & styling | Tailwind CSS 4, shared shadcn/ui components using Base UI primitives, Lucide icons |
+| Optional UI utilities | Recharts, date-fns, Embla Carousel, React Day Picker |
+| Server state & API client | TanStack Query 5 for remote-data caching, oRPC 1.16 for typed API calls |
+| Backend & validation | Hono 4, oRPC procedures, Zod 4 |
+| Database | Neon PostgreSQL, Drizzle ORM, Drizzle Kit migrations, pg; Hyperdrive for Workers connections |
+| Authentication | Managed Neon Auth; local Better Auth fixture; managed preview checks for production-auth integration |
+| Component catalog | Storybook 10 with React/Vite |
+| Testing | Vitest, React Testing Library with a DOM environment, Playwright for critical browser journeys; production/development/Workers smoke scripts |
+| Standalone Node checks | Native Node.js test runner, tsx; no duplication of Vitest suites |
+| Linting & formatting | Oxlint, @shadcn/lint, Oxfmt |
+| Deployment & CI | Cloudflare Workers, Wrangler, GitHub Actions; Node/Docker self-hosting as an alternative |
+| Local infrastructure | Docker Compose, PostgreSQL 17, local HTTPS Auth fixture, Wrangler local execution |
+
+## Runtime architecture
+
+<figure className="my-6">
+  <svg viewBox="0 0 360 420" role="img" aria-labelledby="stack-title stack-description" style={{ width: '100%', maxWidth: '440px', height: 'auto', margin: '0 auto', display: 'block' }}>
+    <title id="stack-title">Recommended Workers deployment</title>
+    <desc id="stack-description">The React application authenticates with managed Neon Auth and calls the Hono and oRPC API on Cloudflare Workers. The API uses Drizzle and pg through Hyperdrive to reach Neon PostgreSQL.</desc>
+    <defs>
+      <marker id="stack-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="currentColor" />
+      </marker>
+    </defs>
+    <g fill="none" stroke="currentColor" strokeWidth="1.5">
+      <rect x="10" y="10" width="150" height="60" rx="8" />
+      <rect x="210" y="10" width="140" height="60" rx="8" />
+      <rect x="10" y="130" width="150" height="70" rx="8" />
+      <rect x="10" y="260" width="150" height="50" rx="8" />
+      <rect x="10" y="360" width="150" height="50" rx="8" />
+      <path d="M160,40 H208" markerEnd="url(#stack-arrow)" />
+      <path d="M85,70 V128" markerEnd="url(#stack-arrow)" />
+      <path d="M85,200 V258" markerEnd="url(#stack-arrow)" />
+      <path d="M85,310 V358" markerEnd="url(#stack-arrow)" />
+    </g>
+    <g fill="currentColor" fontSize="16" textAnchor="middle">
+      <text x="85" y="45">React app</text>
+      <text x="280" y="35">Managed</text>
+      <text x="280" y="55">Neon Auth</text>
+      <text x="85" y="158">Workers</text>
+      <text x="85" y="182">Hono + oRPC</text>
+      <text x="85" y="291">Hyperdrive</text>
+      <text x="85" y="391">Neon PostgreSQL</text>
+    </g>
+    <g fill="currentColor" fontSize="14">
+      <text x="100" y="105">Typed API calls</text>
+      <text x="100" y="235">Drizzle + pg</text>
+      <text x="100" y="340">Pooled connections</text>
+    </g>
+  </svg>
+</figure>
+
+- Workers runs its own runtime, not Node.js. Verify Workers-specific behavior with Wrangler.
+- Turborepo and optional UI utilities are added only when needed. The local auth fixture does not establish production parity.
+- Versions describe the recommendation, not a compatibility certification. Check the selected oRPC/Zod and Vitest/Vite combinations before adoption.
