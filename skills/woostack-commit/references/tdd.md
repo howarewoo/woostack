@@ -29,11 +29,16 @@ New dependencies, migrations, or CI changes require authorized scope.
 When repository policy, admitted scope, or the user requires test-first, write the failing test
 first and observe the expected Red result, add minimum implementation to achieve Green, then
 refactor while green — all with focused selection. Never mutate production code to manufacture
-a Red result. Do not restart the full suite after every edit. Before completion, cover affected
-consumers and integration boundaries; expand for shared infrastructure, changed dependencies or
-configuration, cross-cutting changes, uncertain impact, or explicit requirements.
+a Red result. Do not restart the full suite after every edit.
 
-Otherwise, establish behavior from source and acceptance, use effective existing checks, and add a
+Before completion, analyze impact on affected consumers and integration boundaries, including shared
+infrastructure, changed dependencies or configuration, cross-cutting changes, and uncertain impact.
+These call for impact analysis, not unlimited new acceptance. Additional evidence follows explicit
+user, repository, or task requirements, or a named material risk: state the concrete failure,
+consequence, affected boundary, and smallest adequate observation under the active workflow.
+Reuse still-applicable results and preserve mandatory repository checks and targeted safety proof.
+
+Without test-first, establish behavior from source and acceptance, use effective existing checks, and add a
 regression test when it detects a genuine uncovered defect or risk. Demonstrating detection is
 preferable when feasible without distorting the change. Do not invent a new test contract when
 existing evidence suffices.

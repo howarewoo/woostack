@@ -19,18 +19,20 @@ Prefer removing or reusing code over adding new abstractions.
 Return a plan only; do not file issues or implement changes.
 ```
 
-The result identifies the source inspected, reviewable increments, acceptance criteria for each,
-and real prerequisites. A plan is not an implementation or passing check. Settle any material
-choices before publication. Neither a template nor an earlier Ideate or Harden session is required.
-See [Plan's verification guidance](/docs/skills/woostack-plan) for evidence rules.
+The result identifies the source inspected, small observable feedback increments with bounded scope,
+selected evidence, and real prerequisites. Checkpoints can stay within one plan or issue; they need
+not each become an issue, worker, PR, or release. Keep necessary atomic changes together without
+adding temporary bridges just to split delivery. A plan is not an implementation or passing check.
+Settle material choices before publication. Neither a template nor an earlier Ideate or Harden
+session is required. See [Plan's verification guidance](/docs/skills/woostack-plan) for evidence rules.
 
 ## 2. Review and optionally publish
 
-Check that proposed increments do not repeat existing issues and that dependencies reflect actual
+Check that planned issue outcomes do not repeat existing issues and that dependencies reflect actual
 prerequisites, not their order in a list. If you want issues filed, ask explicitly:
 
 ```text
-File this plan as GitHub issues in OWNER/REPOSITORY. Reuse existing issues that already cover the increments. Include acceptance criteria and the real prerequisites, then read back the affected issues. Do not start implementation.
+File this plan as GitHub issues in OWNER/REPOSITORY. Group implementation checkpoints into coherent issue outcomes and reuse existing issues that already cover them. Include acceptance criteria and real prerequisites, then read back the affected issues. Do not start implementation.
 ```
 
 Replace `OWNER/REPOSITORY` with the actual destination. A request to plan and file issues in one

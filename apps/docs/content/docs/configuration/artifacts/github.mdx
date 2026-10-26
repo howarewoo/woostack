@@ -90,9 +90,9 @@ configuration. The specification may be stored in `ProjectV2.readme` between mar
 Without `--project`, the destination comes from the request and repository context. Plan asks
 instead of choosing when multiple destinations are plausible.
 
-Publication reuses an existing issue when one covers an increment, creates missing issues, and
-writes only requested relationships. After every write, Plan reads affected issues back independently;
-a mutation response alone proves nothing.
+Publication groups implementation checkpoints into coherent issue outcomes, reuses existing issues,
+and creates only missing ones. It writes only requested relationships. After every write, Plan reads
+affected issues back independently; a mutation response alone proves nothing.
 
 Native hierarchy, `blocked-by` relationships, and Git branch ancestry are separate facts:
 hierarchy groups issues, `blocked-by` records a prerequisite, and neither orders delivery or

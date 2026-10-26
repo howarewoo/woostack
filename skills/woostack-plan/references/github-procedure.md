@@ -13,7 +13,7 @@ worktree, commit, PR, review, merge, or issue lifecycle here.
    selected Project. Trusted Git and GitHub evidence only. Never choose by title, recent activity,
    search ranking, or an unrelated configured owner.
 2. The destination follows the request. A goal in the current repository publishes there. An exact
-   issue URL the user gave is either the destination or an existing increment, whichever the
+   issue URL the user gave is either the destination or an existing issue outcome, whichever the
    request says. An explicit `--project` URL is that Project, used as given.
 3. Two plausible destinations, a foreign repository, an inaccessible one, or a Project the user
    did not name is a question for the user, not a guess. Ask before the first write; a
@@ -30,8 +30,8 @@ parent issue a request continues, and a bounded search of the repository's own i
 topic. Paginate each query to its terminal page — a partial page is not an answer, and a read
 error is not an empty result.
 
-- Map increments to existing issues by exact identity — canonical URL, issue number, native ID —
-  never by a similar title. One increment maps to one issue.
+- Map planned issue outcomes to existing issues by exact identity (canonical URL, issue number,
+  native ID), never by a similar title. Implementation checkpoints may share an issue.
 - Reuse keeps the issue's number, history, comments, labels, assignees, and links. Change only the
   parts that carry plan content; preserve the human writing around them. Material disagreement
   between the existing content and the plan is surfaced to the user, not overwritten.
@@ -43,8 +43,8 @@ error is not an empty result.
 1. Confirm that the request authorized publication, that the destination is the one resolved from
    context, and that the content is appropriate for its actual visibility; ask if visibility or a
    material decision conflicts with what the user requested.
-2. Confirm each increment's content and that every command or path it names exists at the current
-   tip or is created by that increment or one of its prerequisites. A named command that does not
+2. Confirm each issue's content and that every command or path it names exists at the current
+   tip or is created by that issue or one of its prerequisites. A named command that does not
    exist blocks the write.
 3. Re-read the issues being reused or edited immediately before writing, and preserve everything
    the plan does not own: human paragraphs, comments, labels, assignees, history, and unrelated
@@ -56,9 +56,9 @@ error is not an empty result.
 
 ## Order of operations
 
-1. **Issues.** One issue per increment — reuse the exact existing issue where the context found
-   one, create only what is missing, and write the increment's outcome, constraints, acceptance,
-   and prerequisites into it.
+1. **Issues.** Reuse the exact existing issue covering a planned issue outcome; create only what
+   is missing, and write its outcome, constraints, acceptance, and prerequisites. Keep implementation
+   checkpoints within those issues rather than creating an issue per checkpoint.
 2. **Relationships.** Add only the relationships the request asked for: a native sub-issue link
    into a parent or tracker issue, and `blocked-by` edges for declared prerequisites. Normalize a
    prerequisite as `[prerequisite, dependent]`, with both endpoints inside the exact repository.

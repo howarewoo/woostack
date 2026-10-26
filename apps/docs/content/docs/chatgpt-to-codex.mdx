@@ -39,10 +39,13 @@ and existing issues. Report the branch or commit you inspected and any
 access gaps. Ask only about unresolved choices that materially affect
 the outcome, scope, compatibility, security, or cost.
 
-Prefer deletion and reuse over additions. Propose the fewest reviewable
-increments that deliver the outcome. For each, describe the result,
-relevant files or interfaces, acceptance and verification, and real
-prerequisites. Do not invent paths, commands, capabilities, or test results.
+Prefer deletion and reuse over additions. Propose small coherent, verifiable
+increments that deliver the complete outcome. Give each an observable result
+or consequential uncertainty to resolve, bounded scope and non-goals,
+relevant files or interfaces, selected evidence, and real prerequisites.
+Keep implementation checkpoints distinct from issues, PRs, and releases;
+necessary atomic changes can retain one delivery boundary.
+Do not invent paths, commands, capabilities, or test results.
 
 Return the plan here. Do not publish issues, edit source, create branches
 or pull requests, invoke Codex, or start implementation.
@@ -53,11 +56,11 @@ The planner reads repository evidence and returns a plan without writing to disk
 To publish, review the plan and send an explicit publication request:
 
 ```text title="Publication request"
-File this plan as GitHub issues in <owner/repository>. Reuse an existing
-issue when one already covers an increment, create the missing ones with
-their acceptance, verification, and real prerequisites, then read every
-affected issue back. Report the URLs, what was reused or created, and any
-relationship you could not write. Do not start implementation.
+File this plan as GitHub issues in <owner/repository>. Group implementation
+checkpoints into coherent issue outcomes; reuse existing issues and create
+only missing ones with acceptance, verification, and real prerequisites.
+Read every affected issue back. Report URLs, what was reused or created,
+and any relationship you could not write. Do not start implementation.
 ```
 
 This request authorizes publication; planning and publishing in one message needs no second approval

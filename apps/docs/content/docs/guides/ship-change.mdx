@@ -38,10 +38,11 @@ Keep these boundaries in mind:
 
 ## 2. Inspect the implementation and checks
 
-Once the assistant finishes editing and running tests, review the resulting work against this checklist:
+Inspect small integrated results during implementation, then review the complete outcome:
 
-- **Diff scope:** Confirm that the complete diff matches the authorized outcome and leaves unrelated
-  code untouched.
+- **Diff scope and necessity:** Confirm that the combined change serves current acceptance and
+  consumers, reuses existing facilities, and leaves unrelated code untouched. Challenge new
+  long-lived mechanisms at the first meaningful integrated result and material design expansions.
 - **Relevant checks:** Ensure tests and commands covering the modified behavior actually ran.
   For ordinary reversible work, the smallest practical observation is the default.
 - **Acceptance criteria:** Verify that all stated acceptance criteria passed. Publishing a draft
