@@ -76,14 +76,19 @@ Orchestrate coordinates approved tasks across pull requests, supporting single-g
 as well as stacked pull requests. It reads outcomes, source evidence, and PR state to propose a grouping
 and landing order, stopping for user approval before dispatching workers.
 
-- **Coordination:** Orchestrate plans task grouping, cross-task interfaces, and landing order. Small
-  tightly coupled tasks share a PR when their verification path is inseparable.
+- **Coordination:** Orchestrate evaluates PR reviewability separately from checkpoint size and
+  deployment atomicity. It separates behavior-preserving preparation and independent outcomes before
+  proposing a larger coupled cutover, while preserving explicit user mappings, deploy-on-merge safety,
+  and inseparable verification paths without inventing compatibility bridges. One issue can span
+  several PRs, and small inseparable issues can share one.
 - **Delegation:** Each task group is implemented by a task owner in an independently owned task
   worktree. Task owners run installed Execute or bundled fallback procedures. Two writers never share
   one physical workspace.
 - **Delivery:** Root PRs target the approved trunk branch, while dependent PRs target their predecessor's
-  branch using native stack registration. Landing order remains distinct from implementation order:
-  immutable prerequisite checkpoints can unblock dependent work before PR publication.
+  branch using native stack registration when actual dependencies warrant a stack. A component stack may
+  aid review without isolating verification if behavioral proof arrives only at the tip. Landing order
+  remains distinct from implementation order: immutable prerequisite checkpoints can unblock dependent
+  work before PR publication.
 
 See the [Coordinate several tasks guide](/docs/guides/coordinate-work) for the procedure, and
 [Orchestrate reference](/docs/skills/woostack-orchestrate) for coordination and recovery policies.
