@@ -128,3 +128,73 @@ My preferred stack for TypeScript web applications, not a requirement for using 
 
 For configuration and release steps, follow [Deploy a full-stack Cloudflare Worker](/docs/guides/deploy-cloudflare).
 
+## Scaling the stack
+
+Workers can scale the stateless API across Cloudflare's network, but that does not
+give PostgreSQL unlimited throughput or make writes local to every user. Capacity
+depends on query cost, transaction duration, contention, and cache hit rate, not
+registered-user counts. Slow queries, database CPU and I/O, lock waits, connection
+pool wait time, and API tail latency distinguish the bottlenecks.
+
+### Database capacity comes first
+
+Indexes, bounded result sets, fewer database round trips, and short transactions
+usually offer more value than another service. External API calls inside a database
+transaction hold connections while doing no database work. Larger pools can make
+an overloaded database slower rather than increase throughput.
+
+[Hyperdrive connection pooling](https://developers.cloudflare.com/hyperdrive/configuration/tune-connection-pool/)
+reuses origin connections across Workers. Its connection budget needs room for
+other database clients and every Hyperdrive configuration targeting that database.
+[Neon autoscaling](https://neon.com/docs/introduction/autoscaling) adds compute
+within configured bounds when efficient queries still saturate the database.
+Neither removes contention on frequently updated rows.
+
+### Match the scaling option to the workload
+
+Cloudflare-native services are the default additions for the Workers deployment,
+not mandatory dependencies. Each solves a different problem.
+
+| Workload | Preferred option | Boundary or tradeoff |
+| --- | --- | --- |
+| Repeated public HTTP responses | [Cloudflare cache](https://developers.cloudflare.com/workers/reference/how-the-cache-works/) | Avoids SQL on a hit. The Workers Cache API is data-center-local; a local delete is not global invalidation. Shared caches must not expose personalized responses. |
+| Read-heavy configuration or derived values that change infrequently | [Workers KV](https://developers.cloudflare.com/kv/concepts/how-kv-works/) | Globally cached reads, with eventual consistency. Updates can take 60 seconds or more to become visible elsewhere. Unsuitable for strict counters or immediate permission revocation. |
+| Repeated SQL reads that tolerate stale results | [Hyperdrive query caching](https://developers.cloudflare.com/hyperdrive/concepts/query-caching/) | Avoids origin queries for eligible cache hits. Writes do not invalidate cached results; pooling alone does not add read replicas. |
+| Strict per-user or per-credential quotas, collaborative rooms, or per-resource coordination | [Durable Objects](https://developers.cloudflare.com/durable-objects/best-practices/rules-of-durable-objects/) | Strongly consistent storage and coordination within each object. One object per coordination key distributes load; one global object becomes a bottleneck. |
+| Best-effort API abuse protection | [Workers Rate Limiting binding](https://developers.cloudflare.com/workers/runtime-apis/bindings/rate-limit/) | Fast, approximate limits maintained separately per Cloudflare location. Not a strict worldwide quota. |
+| Write bursts or deferrable work such as notifications and imports | [Cloudflare Queues](https://developers.cloudflare.com/queues/reference/delivery-guarantees/) | Buffers bursts, not sustained database overload. At-least-once delivery requires idempotent side effects; bounded consumer concurrency protects PostgreSQL. |
+| Read traffic or reporting that exhausts primary compute despite query tuning | [Neon read replicas](https://neon.com/docs/introduction/read-replicas) | Additional read-only compute, with explicit application routing. Replicas are eventually consistent and do not increase write capacity. |
+| Expensive recurring reports | Precomputed summaries or a separate analytical workload | Trades freshness and pipeline complexity for less transactional database work. A replica can isolate reporting compute before a separate analytics system is justified. |
+| Hot-row writes or tenants that dominate traffic | Data-model changes, tenant isolation, then sharding when justified | Cache does not resolve authoritative write contention. Sharding adds routing, migration, and cross-shard query costs. |
+
+### Freshness and state ownership
+
+Hyperdrive query caching is enabled by default. A cache-disabled Hyperdrive
+binding retains connection pooling and is the appropriate path for reads that
+must be fresh, including authorization, billing state, and read-after-write flows.
+Separate cached and uncached Drizzle clients make that distinction explicit.
+Replica reads are also unsuitable when a flow requires the latest committed
+state; those reads belong on the uncached primary path.
+
+KV suits values whose stale window is acceptable. It is not a drop-in Redis
+replacement for atomic updates. Durable Objects suit strongly coordinated state
+owned by one user, credential, room, or resource, but their consistency does not
+extend into a PostgreSQL transaction. Keeping the same authoritative state in
+both systems introduces a synchronization problem.
+
+For application-managed caches, tenant-scoped keys and authorization checks
+protect private data. Expiry, invalidation, and bounded cache-miss concurrency
+determine what happens after a write or when many entries expire together.
+Redis remains an option when a workload needs its specific data structures,
+atomic operations, or an existing integration. It is not the default shared cache
+for this deployment; a remote Redis service adds another network dependency.
+
+### Geographic limits
+
+Edge execution does not remove the distance to the database writer. Fewer
+sequential SQL round trips and cached reads help global users, while writes still
+reach the primary. Neon read replicas are in the same region as their primary;
+cross-region replicas require a separate project and logical replication.
+Regional tenant placement or a different write architecture is a larger design
+decision, justified by measured latency and consistency requirements.
+
