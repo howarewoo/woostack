@@ -34,16 +34,22 @@ For an explicit one-run model or effort request, apply the shared
    a technical dependency. A tracker or specification is context, never an executable task, worker,
    PR, or dependency endpoint, and a Project status never proves delivered code. Keep real
    prerequisites separate from deliberate
-   integration order and say why the order is deliberate. Group small related issues around an
-   inseparable implementation/verification path, not merely adjacent issues or a shared controller;
-   issue count does not set PR count. Preserve each issue's acceptance, non-goals, and any
-   user-requested issue-to-PR mapping. Reassess dependencies between the resulting groups — an
-   intra-group prerequisite becomes implementation order, not another PR. Do not force a dependency
-   graph into a tree or invent an edge to suit a stack shape.
+   integration order and say why the order is deliberate. Prefer small, coherent, independently
+   reviewable and verifiable PRs, evaluating PR reviewability separately from feedback-checkpoint
+   size and deployment atomicity. Before proposing a large cross-cutting PR, separate
+   behavior-preserving preparation and independently landable outcomes, identify the minimum
+   coupled core, and explain why smaller supported division would introduce unsupported compatibility
+   work or prevent meaningful verification; atomic deployment alone is not that explanation. One
+   selected issue may span several justified PRs, and small inseparable issues may share one PR
+   when their implementation and verification path is inseparable; issue count does not set PR
+   count. Preserve each issue's acceptance, non-goals, and any explicit user-requested issue-to-PR
+   mapping. Reassess dependencies between the resulting groups, where an intra-group prerequisite
+   becomes implementation order rather than another PR. Do not turn a dependency graph into an
+   artificial chain or invent an edge to suit a stack shape.
    Validate each selected task against its exact scope: include only outcome-bearing references and
    exclude context-only ones; reject foreign prerequisites, self-dependencies, cycles, and unread
    endpoints outside the selected scope. A prerequisite blocked by an external capability stays
-   blocked — do not invent a task, expand scope, or substitute a weaker step, and a missing
+   blocked: do not invent a task, expand scope, or substitute a weaker step, and a missing
    tracking-admin field is not a blocker. Distinguish native, declared, and inferred dependency
    provenance and say which applies; they remain distinct evidence. A complete implementation
    index in an exact tracker may establish declared membership when native hierarchy is absent,
@@ -52,15 +58,20 @@ For an explicit one-run model or effort request, apply the shared
    Project, include a Project only when explicitly selected, and mutate its status lifecycle only
    when that selection requests it.
    Present an actionable proposal covering: intended outcome, scope, important exclusions, and
-   material assumptions; task-to-PR grouping, issue coverage where applicable, and required changes;
-   real prerequisites versus deliberate integration order, intended parents, and landing order;
-   task ownership, cross-task interfaces, and safe parallel groups; and delivery approach, including
-   reuse of existing workspaces, branches, and PRs versus new independent PRs or a stack. Schedule
-   small integrated, verified feedback increments within those groups; checkpoints need no new issue,
-   worker, PR, or release. Preserve supported compatibility obligations and atomic cutovers;
-   do not add temporary bridges solely to split delivery. Leave implementation decomposition and
-   specialist handoffs within each group to its task owner. Use ordinary prose, a table, or the
-   host's existing plan facility; no prescribed schema, ID, or persisted artifact.
+   material assumptions; for each PR group, its bounded result, clear exclusions, issue coverage
+   where applicable, required changes, real prerequisites/parent, landing order, and relevant
+   consumer/contract evidence; task ownership, cross-task interfaces, and safe parallel groups; and
+   delivery approach, including reuse of existing workspaces, branches, and PRs versus new
+   independent PRs or a native stack where the actual dependency structure warrants it. Distinguish
+   a component stack's review visibility from verification isolation when meaningful behavioral
+   proof arrives only at the tip. Schedule small integrated, verified feedback increments within
+   those groups; checkpoints need no new issue, worker, PR, or release. Preserve deploy-on-merge
+   safety, supported compatibility obligations, and atomic cutovers: do not land incompatible
+   intermediate states, imply every review layer is independently deployable, or invent dual writes,
+   feature flags, fallback readers, or temporary compatibility bridges solely to shrink a diff.
+   Leave implementation decomposition and specialist handoffs within each group to its task owner.
+   Use ordinary prose, a table, or the host's existing plan facility; no prescribed schema, ID, or
+   persisted artifact.
    Distinguish draft-publication gates, prerequisite consumer-release evidence,
    group-completion requirements, and external merge/release gates. Authorized draft publication may
    disclose failed or unavailable implementation acceptance without separate unfinished-draft approval.

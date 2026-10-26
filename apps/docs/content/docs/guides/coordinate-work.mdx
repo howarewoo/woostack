@@ -34,9 +34,14 @@ Add `local only` or `do not push` to narrow the run to local verification.
 ## 2. Review the plan, then authorize execution
 
 Orchestrate presents an execution proposal before allocating any worktree, editing any file, or
-dispatching any worker. The proposal specifies task-to-PR grouping, landing order, cross-task
-interfaces, and safe parallel groups. Review the small integrated feedback increments within those
-groups separately from issue, worker, PR, and release boundaries. An atomic cutover can stay in one PR.
+dispatching any worker. The proposal specifies task-to-PR grouping, each group's bounded result,
+exclusions, real prerequisites or parent, landing order, relevant verification evidence, cross-task
+interfaces, and safe parallel groups. It prefers small, independently reviewable and verifiable PRs,
+separating behavior-preserving preparation and independent outcomes before keeping a minimum coupled
+core together. One issue can span multiple PRs, small inseparable issues can share one PR, and
+explicit user PR mappings stay binding. Review the small integrated feedback increments within those
+groups separately from issue, worker, PR, and release boundaries, and distinguish a stack's review
+visibility from verification isolation if behavioral proof arrives only at the tip.
 
 Review the proposed boundaries. Orchestrate stops and waits for your response:
 
