@@ -35,7 +35,8 @@ Add `local only` or `do not push` to narrow the run to local verification.
 
 Orchestrate presents an execution proposal before allocating any worktree, editing any file, or
 dispatching any worker. The proposal specifies task-to-PR grouping, landing order, cross-task
-interfaces, and safe parallel groups.
+interfaces, and safe parallel groups. Review the small integrated feedback increments within those
+groups separately from issue, worker, PR, and release boundaries. An atomic cutover can stay in one PR.
 
 Review the proposed boundaries. Orchestrate stops and waits for your response:
 
@@ -45,7 +46,9 @@ Review the proposed boundaries. Orchestrate stops and waits for your response:
 
 Once approved, each task group runs in an independently owned task worktree with a native worker,
 typically running installed Execute. If Execute is not installed, the worker uses bundled fallback
-procedures. Two writers never share a physical workspace.
+procedures. Two writers never share a physical workspace. For an unsettled contract, expect a
+representative integrated result or consequential uncertainty to be resolved before dependent
+implementation expands. Independent work with available prerequisites can continue.
 
 Execution follows three distinct gates:
 
@@ -60,9 +63,13 @@ reassessment intervals, parking policies, and capability boundaries.
 
 ## 3. Verify and finish each delivery
 
-Inspect the integrated results as groups complete:
+Inspect small integrated results as they return, including when the host centralizes verification.
+At the first meaningful integrated result and material design expansions, check necessity as well
+as coverage with the existing task owner and coordinator:
 
-- **Cumulative diff:** Confirm that code changes match the approved scope and leave unrelated files untouched.
+- **Cumulative diff:** Confirm that changes serve current acceptance and consumers, reuse existing
+  facilities, and leave unrelated files untouched. Challenge new long-lived mechanisms and supporting
+  tooling; remove redundant layers and replaced paths.
 - **Pull request identity:** Check the draft PR URL, current head commit, approved base branch,
   and native stack order. Root PRs target trunk; dependent PRs target their predecessor's branch.
 - **Draft status:** Confirm that pull requests remain open as drafts for human review.

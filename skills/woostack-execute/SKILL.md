@@ -121,28 +121,38 @@ useful contributions from unresolved questions, implementation boundaries, accep
 material risks, not a fixed specialist roster. Use relevant repository/domain guidance and available
 capabilities; specialized knowledge alone does not require another agent. Delegate bounded
 contributions when separate context, parallel work, restricted tools, or independent assessment
-provides a concrete benefit. Keep small or tightly coupled implementation and its ordinary tests
-together. Use native agents and preserve configured role/model routing unless the user explicitly
-requests an override.
+provides a concrete benefit. Schedule small integrated increments producing one observable behavior
+or resolving one consequential uncertainty, with selected evidence before expanding dependent work.
+For an unsettled pattern or shared contract, establish the smallest useful representative integrated
+behavior or named uncertainty result before multiplying its assumptions across dependent consumers.
+Parallel work requires genuinely available prerequisites and stable-enough contracts, not just
+different files or available agents. Keep small or tightly coupled implementation and its ordinary
+tests together. Use native agents and preserve configured role/model routing unless the user
+explicitly requests an override.
 
-Give each contributor a self-contained outcome, relevant decisions and accessible repository/domain
-guidance, interfaces and prerequisites, owned scope/workspace, read/write and delivery limits, and
-required evidence. Do not assume inherited context or loaded skills. Settle shared interfaces before
-dependent implementation. Contributions create no independent issues, PRs, or stack layers. Apply
+Give each contributor a compact, self-contained assignment: outcome and next slice, relevant
+decisions, reuse points, adjacent exclusions, accessible repository/domain guidance, interfaces and
+prerequisites, owned scope/workspace, read/write and delivery limits, selected evidence, and escalation
+conditions. Do not assume inherited context or loaded skills. Contributions create no independent
+issues, PRs, or stack layers. Apply
 [workspace ownership](references/worktrees.md) to additional writers; reuse allocations for repairs
 and reconcile stopped writers before transfer. Keep research and review read-only unless a separate
 implementation assignment is authorized within the admitted task.
 
 Keep descendants within native capabilities and assigned aggregate capacity; report changed
-resource needs to the coordinator. Separate worktrees do not isolate shared ports, databases,
+resource needs to the coordinator. Count unresolved integration work and handoff attention alongside
+machine capacity; additional management layers or maximum concurrency are not goals. Separate
+worktrees do not isolate shared ports, databases,
 accounts, or processes. Avoid conflicting heavy checks and duplicate launches under the
 [testing guidance](references/tdd.md). If only the coordinator can launch permitted contributors,
 send it the bounded handoff and integrate the returned result yourself. Do not bypass host
 permissions or capacity limits. Otherwise keep optional work inline; unavailable required
 independent review remains unmet, not self-review or a weaker substitute.
 
-Integrate contributions into the canonical task result and assess changed interactions under the
-evidence-selection policy below. Reuse applicable results; child passes alone do not prove an
+Integrate and check small contributions in the canonical task result as they return, assessing
+changed interactions under the evidence-selection policy below. If the host centralizes verification,
+return small increments for that feedback rather than waiting for the whole feature; report any
+incompatible host policy instead of bypassing it. Reuse applicable results; child passes alone do not prove an
 untested interaction. Complete any required independent review, resolve in-scope findings, and
 refresh affected selected evidence before completion. Return changed paths, observed checks/review,
 and unmet criteria.
@@ -185,14 +195,20 @@ block otherwise authorized local work; requested delivery follows the
 
 ## Implement and verify
 
-Implement the complete admitted outcome and no other change, using existing patterns. Inspect the
-complete diff and classify every changed path against the outcome; out-of-scope edits block
-delivery. Mixed changes are safe only when all in-scope hunks can be staged without touching or
-hiding unrelated work; ambiguous mixed hunks block and remain preserved.
+Implement the complete admitted outcome and no other change, using existing patterns. At the first
+meaningful integrated result, material design expansions, and completion, inspect the complete diff
+for necessity as well as coverage and scope, including supporting tooling, under the shared
+[least-code guidance](references/patterns.md#7-least-code--comments).
+Challenge new long-lived mechanisms against current acceptance/consumers and simpler supported
+restrictions or existing facilities; remove redundant layers and replaced paths. Classify every
+changed path against the outcome; out-of-scope edits block delivery. Mixed changes are safe only
+when all in-scope hunks can be staged without touching or hiding unrelated work; ambiguous mixed
+hunks block and remain preserved. Routine in-scope decisions stay autonomous, but their aggregate
+effect can require a renewed scope decision for material changes to architecture, operational
+obligations, permissions, or execution approach. Review recommendations do not approve added scope.
 
 Before final verification and any required review, make one behavior-preserving simplification pass
-over only the admitted task's changes, applying the shared
-[least-code guidance](references/patterns.md#7-least-code--comments) inline.
+over only the admitted task's changes, applying the same least-code guidance inline.
 Reuse the established scope, workspace, and still-applicable verification evidence; an unchanged
 result is valid. Refresh affected selected evidence, then continue any required review and requested
 delivery. Do not expand scope, restart a standalone workflow, or repeat simplification after review
@@ -201,24 +217,29 @@ or delivery.
 For ordinary reversible work, default to existing relevant checks and the smallest practical
 observation. Extra integration/runtime work, baseline/candidate comparisons, and independent review
 require an explicit user, repository, or task requirement, or a named material risk stating the
-failure, consequence, and evidence needed. Broad categories such as persistence alone do not
-establish high risk. Use the [testing procedures](references/tdd.md) for selected evidence, not extra
-gates. Preserve approved task-specific acceptance and publication gates without reinterpreting them.
+failure, consequence, affected boundary, and smallest adequate observation. Broad categories such as
+persistence alone do not establish high risk. Use the [testing procedures](references/tdd.md) for
+impact analysis and selected evidence, not extra gates. Preserve approved task-specific acceptance
+and publication gates without reinterpreting them.
 For consequential use or release involving authorization, privacy, destructive effects, migration,
 recovery, or financial operations, obtain stronger targeted evidence. Where runtime semantics matter,
 verify the changed source and actual effects; controlled outputs alone do not prove those semantics.
 Unresolved privacy evidence stays HOLD; neither reconstruct lost private evidence nor clear findings
 through replacement runs.
 
-Focused probes answering selected product-behavior or acceptance-blocker questions and existing-check
-repairs are routine in-scope work. Developing verification machinery as a separate outcome with its
-own implementation and validation cycle requires renewed approval before implementation unless
-already expressly approved. Temporary files, small edits, or eventual usefulness do not exempt it.
+Focused probes answering selected product-behavior or acceptance-blocker questions, adding a
+representative case to an existing check, and repairing its bounded setup are routine in-scope work.
+Building a runner or validator with its own implementation and validation cycle is a separate
+verification outcome requiring renewed approval before implementation unless already expressly
+approved. Judge fixtures and comparisons by the current failure they detect and supporting apparatus
+needed; temporary files, small edits, or eventual usefulness do not exempt that expansion.
 
 Completion requires selected acceptance. Follow inherited coordinator checkpoints when delegated.
-Park affected verification and dependents if an external capability is missing or prohibited, or a
-diagnostic cycle adds no new product-relevant or required-safety evidence. Meaningful negative results
-narrowing a product failure count; acceptance need not pass every cycle.
+At reassessment, distinguish approved product construction, healthy check progress, useful negative
+findings, and preparation of verifier machinery. Park affected verification and dependents if an
+external capability is missing or prohibited, or a diagnostic cycle adds no new product-relevant or
+required-safety evidence. Meaningful negative results narrowing a product failure count; acceptance
+need not pass every cycle.
 Do not automatically poll or re-probe parked work. New diagnostic methods, workers, artifacts,
 handoffs or timer resets alone do not reopen it. Resume only for relevant changed product inputs or
 evidence, an actual prerequisite, capability or permission change, or explicit scoped user direction.

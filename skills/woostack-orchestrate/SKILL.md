@@ -55,10 +55,13 @@ For an explicit one-run model or effort request, apply the shared
    material assumptions; task-to-PR grouping, issue coverage where applicable, and required changes;
    real prerequisites versus deliberate integration order, intended parents, and landing order;
    task ownership, cross-task interfaces, and safe parallel groups; and delivery approach, including
-   reuse of existing workspaces, branches, and PRs versus new independent PRs or a stack. Leave
-   implementation decomposition and specialist handoffs within each group to its task owner. Use
-   ordinary prose, a table, or the host's existing plan facility; no prescribed schema, ID, or
-   persisted artifact. Distinguish draft-publication gates, prerequisite consumer-release evidence,
+   reuse of existing workspaces, branches, and PRs versus new independent PRs or a stack. Schedule
+   small integrated, verified feedback increments within those groups; checkpoints need no new issue,
+   worker, PR, or release. Preserve supported compatibility obligations and atomic cutovers;
+   do not add temporary bridges solely to split delivery. Leave implementation decomposition and
+   specialist handoffs within each group to its task owner. Use ordinary prose, a table, or the
+   host's existing plan facility; no prescribed schema, ID, or persisted artifact.
+   Distinguish draft-publication gates, prerequisite consumer-release evidence,
    group-completion requirements, and external merge/release gates. Authorized draft publication may
    disclose failed or unavailable implementation acceptance without separate unfinished-draft approval.
    Draft visibility establishes neither completion nor consumer release. Explicit publication gates,
@@ -76,11 +79,15 @@ For an explicit one-run model or effort request, apply the shared
    "combine those groups and then go ahead") applies them and executes the revised plan; an
    unchanged plan already explicitly approved is not gated again. During execution, pause affected
    work for renewed approval before materially departing from agreed scope, deliverables, grouping,
-   dependency or landing structure, or execution approach; routine implementation decisions, checks,
-   in-scope repairs, and bounded contributions within the approved plan do not require approval.
-   When developing verification machinery becomes a separate outcome with its own implementation
-   and validation cycle, it is a material execution-approach change unless already expressly approved.
-   Pause affected expansion and obtain renewed approval before implementation. Temporary files,
+   dependency or landing structure, or execution approach. Apply this rule to the aggregate effect
+   of routine defaults, including material architecture, operational obligations, or permissions
+   changes; review recommendations do not approve added scope. Routine implementation decisions,
+   checks, in-scope repairs, and bounded contributions within the approved plan need no approval.
+   Adding a representative case to an existing check or repairing its bounded setup is ordinary.
+   Building a runner or validator with its own implementation and validation cycle is a separate
+   verification outcome and material execution-approach change unless already expressly approved.
+   Pause affected expansion for renewed approval before implementation. Judge fixtures and
+   comparisons by the current failure they detect and supporting apparatus needed; temporary files,
    small individual edits, or eventual usefulness do not exempt that expansion.
 2. **Admit the delivery allocation.** Normally each group owns one canonical branch and reusable
    task workspaces for implementation, repairs, and integration, not one allocation per attempt or
@@ -110,9 +117,10 @@ For an explicit one-run model or effort request, apply the shared
    Give each group one integrating task owner with exclusive access to its admitted workspace and
    branch, including a single-group run. Reuse that allocation across in-scope corrections, failed
    checks, revised approaches, and replacement writers.
-   Hand off the bounded outcome, settled decisions, acceptance and required evidence, limits,
-   invariants, cross-task interfaces, prerequisites, verified base, source/workspace evidence, and
-   shared runtime capacity. State one publication owner: by default workers return task changes,
+   Give a compact handoff: bounded outcome and next slice, settled decisions, reuse points, adjacent
+   exclusions, acceptance and selected evidence, escalation conditions, limits and invariants,
+   cross-task interfaces and prerequisites, verified base/source/workspace evidence, and shared
+   runtime capacity. State one publication owner: by default workers return task changes,
    observed evidence, and unmet criteria, while the coordinator owns commit/publication and stacks.
    Delegate particular Git/PR operations explicitly within approved authority, never to two owners.
    Have the task owner use installed `woostack-execute` when accessible through native skill
@@ -125,7 +133,13 @@ For an explicit one-run model or effort request, apply the shared
    only for applicable work. Each owner makes one scoped, behavior-preserving simplification pass
    before final verification and required review, not an additional workflow or repeated pass.
    Task owners decide implementation decomposition, specialist assignments and handoffs, contribution
-   integration, and task verification. Require bounded interfaces, separately owned writer workspaces
+   integration, and task verification. When a pattern or shared contract is unsettled, establish the
+   smallest useful representative integrated behavior or named uncertainty result before spreading
+   its assumptions across dependent consumers. Parallel work requires genuinely available
+   prerequisites and stable-enough contracts, not just different files or available agents.
+   Count unresolved integration work and handoff attention alongside machine capacity when assigning
+   contributions; additional management layers or maximum concurrency are not goals.
+   Require bounded interfaces, separately owned writer workspaces
    under the [workspace contract](references/worktrees.md#workspace-and-ownership), and no independent
    issues, PRs, or stack layers for contributions. Owners escalate changes affecting other tasks,
    shared contracts, prerequisites, approved scope, or delivery structure; ordinary local decisions
@@ -148,8 +162,9 @@ For an explicit one-run model or effort request, apply the shared
    For ordinary reversible work, default to existing relevant checks and the smallest practical
    observation. Extra integration/runtime work, baseline/candidate comparisons, and independent
    review require an explicit user, repository, or task requirement, or a named material risk stating
-   the failure, consequence, and evidence needed. Broad categories such as persistence alone do not
-   establish high risk. Use the bundled testing procedures for the selected evidence, not extra gates.
+   the failure, consequence, affected boundary, and smallest adequate observation. Broad categories
+   such as persistence alone do not establish high risk. Use the bundled testing procedures for
+   impact analysis and selected evidence, not extra gates.
    For consequential use or release involving authorization, privacy, destructive effects, migration,
    recovery, or financial operations, obtain stronger targeted evidence. Where runtime semantics matter,
    verify the changed source and actual effects, including delegated callees; controlled outputs alone
@@ -161,15 +176,26 @@ For an explicit one-run model or effort request, apply the shared
 5. **Integrate and deliver the group's PR and stack.** Use the selected worker runtime's
    completion handling; on interrupted workers, rediscover its state and Git/PR facts before retrying.
    Preserve unknown work, block affected dependents, and never duplicate work or claim unverified delivery.
+   Integrate and check small returned increments without waiting for the whole feature solely
+   because verification is centralized. Respect host restrictions; report a policy that prevents
+   the required feedback instead of claiming this skill overrides it.
    Independently reconcile source/destination revisions, ancestry/diffs, ownership, and requested
    PR facts against worker claims. Resolve stale handoffs, identify already-present and missing
    changes, and integrate the intended union once, including overlapping child histories.
    Return in-scope task corrections to their owner in the canonical allocation. Reconcile affected
    dependents at verified contract checkpoints, not after every hypothesis or experimental edit;
    a later changed contract can require another checkpoint and reconciliation.
-   Inspect the canonical tree and cumulative PR diff against the planned outcome, identifying missing
-   coverage and unintended dropped changes. Out-of-scope edits block publication. Completion requires
-   selected acceptance; report failed or unavailable criteria by name. Preserve agreed consumer-release
+   At the first meaningful integrated result, material design expansions, and completion, inspect the
+   canonical tree and cumulative PR diff for necessity as well as missing coverage, dropped changes,
+   and scope. The task owner evaluates the combined task, including supporting tooling; the
+   coordinator checks integration-level necessity under the
+   [least-code standard](references/patterns.md#7-least-code--comments).
+   Challenge new long-lived mechanisms against current acceptance/consumers and simpler supported
+   restrictions or existing facilities; remove redundant layers and replaced paths. When explaining
+   growth, distinguish generated metadata, useful tests, application code, and tooling where helpful,
+   as review signals rather than quotas or mandatory measurements. This uses existing integration
+   review, not another reviewer or simplification pass. Out-of-scope edits block publication.
+   Completion requires selected acceptance; report failed or unavailable criteria by name. Preserve agreed consumer-release
    and publication gates without making implementation acceptance an extra draft-publication gate.
    Reuse applicable child results from the existing worker result, handoff, or verification summary:
    check the command/selection, tested source state, observed outcome, and environment limits under
@@ -178,9 +204,11 @@ For an explicit one-run model or effort request, apply the shared
    before adding checks; child passes do not prove an untested interaction. Refresh affected selected
    evidence and any required review in the same allocation.
    Handle slow checks under [Slow checks](references/tdd.md#slow-checks-bounded-diagnosis-no-waiver);
-   deferred or unavailable acceptance remains unmet. At each agreed wall-clock checkpoint, compare
-   preparation, builds, replay and coordination with new product-relevant or required-safety evidence.
-   Meaningful negative results narrowing a product failure count; acceptance need not pass each time.
+   deferred or unavailable acceptance remains unmet. At each agreed wall-clock checkpoint,
+   distinguish approved product construction, healthy check progress, useful negative findings,
+   and preparation of verifier machinery. Compare preparation, builds, replay and coordination with
+   new product-relevant or required-safety evidence. Meaningful negative results narrowing a product
+   failure count; acceptance need not pass each time.
    Park affected verification and dependents if external capability is missing or prohibited, or a
    diagnostic cycle adds no such evidence. Do not automatically poll or re-probe parked work.
    New diagnostic methods, workers, artifacts, handoffs or timer resets alone do not reopen it. Resume

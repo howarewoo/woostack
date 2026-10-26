@@ -38,8 +38,9 @@ observed symptom.
 ## Execute
 
 Execute implements one bounded outcome, whether called directly by the user or run by a native
-worker delegated from Orchestrate. It checks repository state before the first edit, makes targeted
-changes, runs relevant checks, and stops within its assigned limits.
+worker delegated from Orchestrate. It checks repository state before the first edit and integrates
+small verified increments toward the complete outcome. Cumulative review checks necessity as well
+as coverage at the first meaningful integrated result and material design expansions.
 
 - **Authority:** An ordinary natural-language request authorizes local edits and checks. An explicit
   `/woostack-execute ...` request delivers a reviewable draft pull request unless narrowed to local work.
@@ -54,8 +55,9 @@ See the [Deliver one change guide](/docs/guides/ship-change) for the standalone 
 
 ## Plan
 
-Plan settles material decisions, inspects relevant source code, and returns a few reviewable
-increments. It drafts plans without writing code or editing existing files.
+Plan settles material decisions, inspects relevant source code, and returns small coherent,
+verifiable increments. Checkpoints can share an issue or delivery boundary, including an atomic
+cutover. It drafts plans without writing code or editing existing files.
 
 - **Output:** By default, Plan returns its proposal in conversation. It publishes GitHub issues only
   when explicitly requested. Publication does not authorize implementation.
