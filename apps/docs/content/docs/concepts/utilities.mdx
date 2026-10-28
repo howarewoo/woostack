@@ -24,9 +24,12 @@ read-only context; utility skills never mutate them.
 | Production errors, Sentry issues, and monitoring defects | [woostack-debug](/docs/skills/woostack-debug) then [woostack-plan](/docs/skills/woostack-plan) for the plan and any requested issues. | report and plan | `/woostack-debug <target>` or `/woostack-plan <goal-or-defect>` |
 | [woostack-reflect](/docs/skills/woostack-reflect) | Reviews one fixed active-conversation snapshot for concrete durable instruction suggestions. | report-only initially; accepted follow-ups are explicit | `/woostack-reflect` |
 
-Visualize adjusts detail to the reader's question. Every render receives source and static checks;
-browser inspection requires explicit consent and an available browser. Unperformed visual/runtime
-checks are reported, not treated as passed. The HTML is disposable and does not authorize work.
+Visualize runs in a native subagent or isolated task context and returns a compact report to the
+parent, not the HTML or rendering logs. Without isolated execution, visualization stops with a
+reported limitation. Detail follows the reader's question. Every render receives source and static
+checks; browser inspection requires explicit consent and an available browser. Unperformed
+visual/runtime checks are reported, not treated as passed. The HTML is disposable and does not
+authorize work.
 
 Design uses Impeccable for general UI work and relevant Emil specialists for scoped needs.
 Its [selected skills](/docs/skills/woostack-design#selected-skills) are external

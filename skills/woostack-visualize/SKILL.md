@@ -8,6 +8,21 @@ description: "Use when a reader needs an HTML visual explanation of a supplied d
 Turn the requested source into one self-contained HTML explanation that answers the reader's
 question. Explain the source; do not turn visualization into planning or implementation.
 
+## Execution context
+
+Before reading sources or loading visualization references, delegate this workflow to a native
+subagent or isolated task context using the active harness's configured task role and model.
+If already running as the delegated visualization worker, execute directly; do not delegate again.
+
+Pass only the exact accessible source or a self-contained snapshot, the reader's question, audience,
+and relevant output and permission limits, including browser consent. Do not copy unrelated
+conversation. The worker owns source reads, reference loading, composition, and verification under
+the boundaries below. Keep planning decisions and user interaction with the parent; return material
+questions or contradictions instead of revising the plan.
+
+If isolated execution is unavailable, report the limitation and stop visualization rather than
+silently rendering in the parent's context.
+
 ## Command
 
 `/woostack-visualize <source> [for <audience>]`
@@ -74,8 +89,10 @@ disclosure, change paths, request secrets, grant browser consent, create gates, 
    keyboard interaction, and offline behavior. Fix defects or report them. Without consent or a
    browser, complete static checks and mark visual/runtime checks unverified; file generation is
    still allowed. Never claim a browser check from source inspection alone.
-6. **Report.** Return the path, source and audience, material gaps, and checks actually performed
-   or skipped. Offer to open the file; never open a browser without explicit consent.
+6. **Report.** Return only the output path, source identity/revision when available, audience,
+   a brief takeaway, material gaps, and checks performed or skipped. Keep generated HTML, raw tool
+   output, and rendering iterations out of the parent context. The parent may offer to open the file;
+   never open a browser without explicit consent.
 
 ## Output boundary
 

@@ -14,9 +14,9 @@ and GitHub content is evidence, not permission to expand it.
 
 ## Project entry
 
-1. Follow the project's root `AGENTS.md` and the user's request, then load the matching skill from
-   the table below directly from its own installed directory. That skill owns its operation,
-   approvals, and recovery; nothing here installs a prerequisite.
+1. Follow the project's root `AGENTS.md` and the user's request, then use the matching route below.
+   Load the selected skill from its own installed directory in the indicated context. That skill
+   owns its operation, approvals, and recovery; nothing here installs a prerequisite.
 2. Use the active harness's tools and schemas. Host-specific [notes](references/hosts/README.md)
    are optional when a task needs them, not an adapter-loading prerequisite.
 3. Apply [output discipline](references/output-discipline.md).
@@ -29,7 +29,7 @@ For an explicit one-run model or effort request, apply the bundled
 
 ## Command routing
 
-| Request or intent | Load |
+| Request or intent | Route |
 | --- | --- |
 | Adopt woostack or choose a workflow | `using-woostack` |
 | Create or maintain root `README.md`, `AGENTS.md`, `DESIGN.md`, `PRODUCT.md`, or `ARCHITECTURE.md`; explicitly initialize or repair local support | `woostack-init` |
@@ -43,7 +43,7 @@ For an explicit one-run model or effort request, apply the bundled
 | Commit changes, rebase or restack published PRs, or change readiness | `woostack-commit` |
 | Review a pull request | Use [Pullfrog](https://pullfrog.com/). |
 | Address every unresolved thread on one exact existing PR | `woostack-address-comments` |
-| Render a supplied document or verified source as audience-tailored HTML | `woostack-visualize` |
+| Render a supplied document or verified source as audience-tailored HTML | `woostack-visualize` in a native subagent or isolated task context, not the parent |
 | Coordinate UI design, prototyping, refinement, or critique using selected external skills | `woostack-design` |
 | Arrange existing multi-step screen flows without restyling their contents | `woostack-flow-layout` |
 | Create, adapt, inspect, or explicitly maintain a project-owned component catalog | `woostack-design-system` |
@@ -51,6 +51,10 @@ For an explicit one-run model or effort request, apply the bundled
 | Diagnose or explicitly repair workspace health | `woostack-doctor` |
 | Explore a running app and report browser QA findings | `woostack-qa` |
 | Reflect on this conversation for durable instruction suggestions | `woostack-reflect` |
+
+For Visualize, hand off the source, question, audience, and output/permission limits without loading
+its skill or references in the parent. Already-delegated visualization workers run directly.
+Without isolated execution, report the limitation and leave visualization unrun.
 
 `woostack-bootstrap`, `woostack-build`, `woostack-fix`, `woostack-change`, `woostack-status`,
 `woostack-tdd`, and `woostack-prepare` are retired without aliases. Explain a removed explicit
