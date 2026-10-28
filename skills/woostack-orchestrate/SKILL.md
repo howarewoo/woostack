@@ -100,6 +100,14 @@ For an explicit one-run model or effort request, apply the shared
    Pause affected expansion for renewed approval before implementation. Judge fixtures and
    comparisons by the current failure they detect and supporting apparatus needed; temporary files,
    small individual edits, or eventual usefulness do not exempt that expansion.
+   Keep the existing plan synchronized with execution adaptations, noting why and what work is
+   affected; distinguish approved changes from proposals awaiting approval. Before affected work
+   continues, check relevant prior planning decisions and completed, active, and pending phases
+   against current evidence for conflicts in assumptions, interfaces, prerequisites, ownership,
+   acceptance, and delivery order, tracing downstream impacts. Update affected task-owner handoffs
+   and resolve conflicts within approved authority or park affected work pending resolution while
+   safe independent work continues. Do not silently supersede approved decisions or reopen completed
+   deliverables; reuse the existing plan and planning sources rather than a parallel tracker.
 2. **Admit the delivery allocation.** Normally each group owns one canonical branch and reusable
    task workspaces for implementation, repairs, and integration, not one allocation per attempt or
    worker. Follow [workspace ownership and recovery](references/worktrees.md):
