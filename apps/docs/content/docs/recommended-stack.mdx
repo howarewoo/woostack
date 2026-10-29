@@ -3,6 +3,8 @@ title: Recommended tech stack
 description: My preferred stack for TypeScript web applications, with optional tools added as needed.
 ---
 
+import { StackRuntimeDiagram, StackDeliveryDiagram } from "../../components/stack-diagrams";
+
 My preferred stack for TypeScript web applications, not a requirement for using Woostack.
 
 ## Stack
@@ -56,48 +58,7 @@ These are two browser origins, even though they share a Worker. The SPA calls `/
 on its own origin. Public-site links open the app subdomain; browser API calls from the
 public site would be cross-origin and need an explicit CORS policy.
 
-<figure className="not-prose my-8 overflow-hidden rounded-xl border border-fd-border" aria-labelledby="stack-title" aria-describedby="stack-description">
-  <div className="border-b border-fd-border px-5 py-5 sm:px-6">
-    <h3 id="stack-title" className="text-lg font-semibold tracking-tight text-fd-foreground">Two hostnames, one Worker</h3>
-    <p className="mt-2 text-sm leading-relaxed text-fd-foreground/80">The hostname selects the application before any asset lookup.</p>
-  </div>
-  <div className="px-5 py-6 text-sm sm:px-6">
-    <div className="grid gap-4 sm:grid-cols-2">
-      <div className="rounded-lg border border-fd-border p-4">
-        <p className="font-mono font-semibold">example.com</p>
-        <p className="mt-2 text-fd-foreground/80">Visitors and crawlers: landing pages, pricing, blog.</p>
-      </div>
-      <div className="rounded-lg border border-fd-border p-4">
-        <p className="font-mono font-semibold">app.example.com</p>
-        <p className="mt-2 text-fd-foreground/80">SaaS users: application screens and same-origin API calls.</p>
-      </div>
-    </div>
-    <p className="py-4 text-center text-fd-foreground/80"><span aria-hidden="true">↓ </span>Both Custom Domains reach the same deployment</p>
-    <section className="rounded-lg border border-fd-primary/20 bg-fd-primary/5 p-4 sm:p-5" aria-labelledby="stack-worker">
-      <h4 id="stack-worker" className="text-base font-semibold">Cloudflare Worker: hostname dispatch</h4>
-      <div className="mt-4 grid gap-5 sm:grid-cols-2">
-        <div>
-          <p className="font-medium">Root-domain branch</p>
-          <p className="mt-2 leading-relaxed text-fd-foreground/80">Astro HTML and static files from the site asset directory. Missing pages return 404.</p>
-          <p className="mt-3 font-mono text-xs">ASSETS → /site/\*</p>
-        </div>
-        <div className="border-t border-dashed border-fd-border pt-4 sm:border-t-0 sm:border-l sm:pt-0 sm:pl-5">
-          <p className="font-medium">App-subdomain branch</p>
-          <p className="mt-2 leading-relaxed text-fd-foreground/80">React + Vite + TanStack Router. Existing files first; SPA shell for HTML navigation only.</p>
-          <p className="mt-3 font-mono text-xs">ASSETS → /app/\*</p>
-          <p className="mt-3 border-t border-fd-border pt-3 leading-relaxed"><code>/api</code> and <code>/api/\*</code> → Hono + oRPC + Zod, before assets or fallback.</p>
-        </div>
-      </div>
-    </section>
-    <p className="py-4 text-center text-fd-foreground/80"><span aria-hidden="true">↓ </span>API data path: Drizzle ORM + pg → Hyperdrive → Neon PostgreSQL</p>
-    <aside className="rounded-lg border border-dashed border-fd-border p-4 leading-relaxed" aria-label="External authentication service">
-      App browser <span aria-hidden="true">↔</span> managed Neon Auth for sign-in and sessions. The API verifies sessions and enforces authorization before accessing data.
-    </aside>
-  </div>
-  <figcaption id="stack-description" className="border-t border-fd-border px-5 py-4 text-xs leading-relaxed text-fd-foreground/80 sm:px-6">
-    The site and app asset directories belong to one deployment; their prefixes are internal lookup paths, not public URLs. PostgreSQL and managed authentication remain external services. The browser never connects directly to the database.
-  </figcaption>
-</figure>
+<StackRuntimeDiagram id="stack-runtime" />
 
 Cloudflare's [asset binding matches pathnames, not hostnames](https://developers.cloudflare.com/workers/static-assets/binding/#runtime-api-reference).
 Separate asset directories and Worker-first dispatch prevent both hosts from resolving to
@@ -109,45 +70,7 @@ release unit, but the two apps share deployment timing and Worker configuration.
 Separate workspace apps feed one GitHub Actions pipeline and one Wrangler deployment.
 The paths below are a downstream project example, not this repository's app layout.
 
-<figure className="not-prose my-8 overflow-hidden rounded-xl border border-fd-border" aria-labelledby="project-title" aria-describedby="project-description">
-  <div className="border-b border-fd-border px-5 py-5 sm:px-6">
-    <h3 id="project-title" className="text-lg font-semibold tracking-tight text-fd-foreground">Source apps to one release</h3>
-    <p className="mt-2 text-sm leading-relaxed text-fd-foreground/80">pnpm workspaces; shared UI packages only where useful.</p>
-  </div>
-  <div className="px-5 py-6 text-sm sm:px-6">
-    <div className="grid gap-4 sm:grid-cols-3">
-      <div className="rounded-lg border border-fd-border p-4">
-        <p className="font-mono font-semibold">apps/site</p>
-        <p className="mt-2 text-fd-foreground/80">Astro pages, layouts, and blog content.</p>
-      </div>
-      <div className="rounded-lg border border-fd-border p-4">
-        <p className="font-mono font-semibold">apps/app</p>
-        <p className="mt-2 text-fd-foreground/80">React, Vite, TanStack Router, Query, and oRPC client.</p>
-      </div>
-      <div className="rounded-lg border border-fd-border p-4">
-        <p className="font-mono font-semibold">apps/api</p>
-        <p className="mt-2 text-fd-foreground/80">Hostname dispatch, Hono API, and Wrangler configuration.</p>
-      </div>
-    </div>
-    <p className="py-4 text-center text-fd-foreground/80"><span aria-hidden="true">↓ </span>GitHub Actions: check, build, assemble, verify</p>
-    <section className="rounded-lg border border-fd-primary/20 bg-fd-primary/5 p-4 sm:p-5" aria-labelledby="project-artifact">
-      <h4 id="project-artifact" className="text-base font-semibold">One verified release artifact</h4>
-      <dl className="mt-4 space-y-3">
-        <div><dt className="font-mono">dist/assets/site/</dt><dd className="mt-1 text-fd-foreground/80">Astro output, including public HTML, sitemap, and static files.</dd></div>
-        <div><dt className="font-mono">dist/assets/app/</dt><dd className="mt-1 text-fd-foreground/80">SPA shell and assets, built for the app host's root path.</dd></div>
-        <div><dt className="font-medium">Worker bundle + deployment configuration</dt><dd className="mt-1 text-fd-foreground/80">One ASSETS binding, both Custom Domains, and backend bindings.</dd></div>
-      </dl>
-    </section>
-    <p className="py-4 text-center text-fd-foreground/80"><span aria-hidden="true">↓ </span>Wrangler deploys the verified output together</p>
-    <div className="rounded-lg border border-fd-border p-4 text-center">
-      <p className="font-semibold">One Cloudflare Worker per environment</p>
-      <p className="mt-2 font-mono">example.com + app.example.com</p>
-    </div>
-  </div>
-  <figcaption id="project-description" className="border-t border-fd-border px-5 py-4 text-xs leading-relaxed text-fd-foreground/80 sm:px-6">
-    GitHub Actions releases and rolls back the site, app, and API as one unit. Preview environments use their own hostname pair, bindings, and data; they never claim production domains. Drizzle Kit migrations are a separate release step.
-  </figcaption>
-</figure>
+<StackDeliveryDiagram id="stack-delivery" />
 
 - Workers runs its own runtime, not Node.js. Verify Workers-specific behavior with Wrangler.
 - Turborepo and optional UI utilities are added only when needed. The local auth fixture does not establish production parity.
@@ -271,4 +194,3 @@ reach the primary. Neon read replicas are in the same region as their primary;
 cross-region replicas require a separate project and logical replication.
 Regional tenant placement or a different write architecture is a larger design
 decision, justified by measured latency and consistency requirements.
-
