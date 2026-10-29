@@ -11,7 +11,8 @@ My preferred stack for TypeScript web applications, not a requirement for using 
 | --- | --- |
 | Language & runtime | TypeScript 5.9, ES modules; Node.js 24 for tooling and Node deployments |
 | Monorepo & packages | pnpm 10 workspaces; Turborepo 2 when task orchestration and caching are useful |
-| Frontend | React 19, Vite 8, React Router 7 |
+| SaaS & SPA frontend | React, Vite, TanStack Router (`@tanstack/react-router`); client-rendered by default |
+| Public-facing sites | Astro for landing pages, marketing sites, and blogs; static generation by default |
 | UI & styling | Tailwind CSS 4, shared shadcn/ui components using Base UI primitives, Lucide icons |
 | Optional UI utilities | Recharts, date-fns, Embla Carousel, React Day Picker |
 | Server state & API client | TanStack Query 5 for remote-data caching, oRPC 1.16 for typed API calls |
@@ -22,14 +23,45 @@ My preferred stack for TypeScript web applications, not a requirement for using 
 | Testing | Vitest, React Testing Library with a DOM environment, Playwright for critical browser journeys; production/development/Workers smoke scripts |
 | Standalone Node checks | Native Node.js test runner, tsx; no duplication of Vitest suites |
 | Linting & formatting | Oxlint, @shadcn/lint, Oxfmt |
-| Deployment & CI | Cloudflare Workers, Wrangler, GitHub Actions; Node/Docker self-hosting as an alternative |
+| Deployment & CI | One Cloudflare Worker for public-site assets, SPA assets, and the Hono API; Wrangler and GitHub Actions for CI/CD |
 | Local infrastructure | Docker Compose, PostgreSQL 17, local HTTPS Auth fixture, Wrangler local execution |
+
+## Application boundaries and rendering
+
+Keep the public site and SaaS application in separate workspace apps, with shared UI
+packages where useful. They have different rendering needs but share one deployment.
+
+[Standalone TanStack Router](https://tanstack.com/router/latest/docs/framework/react/installation/with-vite)
+is the routing recommendation for React/Vite SaaS applications and single-page applications
+(SPAs). It handles typed navigation and URL state; TanStack Query owns remote-data caching,
+and oRPC provides typed API calls. TanStack Start is not part of this stack.
+
+Astro owns public-facing content such as `/`, `/pricing`, and `/blog/*`.
+[Static generation](https://docs.astro.build/en/guides/on-demand-rendering/) produces HTML
+at build time, so ordinary marketing pages need no request-time rendering service.
+[React components](https://docs.astro.build/en/guides/framework-components/) can provide
+interactive islands, such as a pricing calculator, without turning the whole site into a SPA.
+Request-time server-side rendering (SSR) is reserved for pages whose initial HTML needs
+fresh or request-specific data. It requires an adapter and server-handler integration,
+not just a different client router.
 
 ## Runtime architecture
 
+Deploy both apps and the Hono API as **one Cloudflare Worker per environment**, normally
+on one origin. Astro's generated pages live at the root, the SaaS application lives under
+`/app/`, and backend routes live under `/api`. Workers Static Assets serves a combined build
+of the public site and SPA; the Worker handles the API and the scoped SPA fallback.
+Missing public pages and API endpoints remain real 404 responses instead of receiving
+the application shell.
+
+GitHub Actions checks and builds both apps and the API, then releases them together through
+Wrangler. Separate source apps do not require separate Workers or deployment pipelines.
+Neon PostgreSQL and managed authentication remain external services. The diagram below
+shows the SaaS data path within that deployment.
+
 <figure className="not-prose my-8 overflow-hidden rounded-xl border border-fd-border" aria-labelledby="stack-title" aria-describedby="stack-description">
   <div className="border-b border-fd-border px-5 py-5 sm:px-6">
-    <h3 id="stack-title" className="text-lg font-semibold tracking-tight text-fd-foreground">Browser to database</h3>
+    <h3 id="stack-title" className="text-lg font-semibold tracking-tight text-fd-foreground">SaaS browser to database</h3>
     <p className="mt-2 text-sm leading-relaxed text-fd-foreground/80">Recommended Workers deployment, with authentication handled by a separate managed service.</p>
   </div>
 
@@ -43,7 +75,7 @@ My preferred stack for TypeScript web applications, not a requirement for using 
       <div className="mt-4 grid gap-5 sm:grid-cols-[minmax(0,1fr)_minmax(0,0.8fr)]">
         <dl className="space-y-4 text-sm">
           <div>
-            <dt className="font-medium text-fd-foreground">React + React Router</dt>
+            <dt className="font-medium text-fd-foreground">React + TanStack Router</dt>
             <dd className="mt-1 leading-relaxed text-fd-foreground/80">Screens, navigation, and UI composition.</dd>
           </div>
           <div>
@@ -68,7 +100,7 @@ My preferred stack for TypeScript web applications, not a requirement for using 
     <section className="rounded-lg border border-fd-primary/20 bg-fd-primary/5 p-4 sm:p-5" aria-labelledby="stack-api">
       <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
         <span className="font-mono text-xs text-fd-foreground/80" aria-hidden="true">02</span>
-        <h4 id="stack-api" className="text-base font-semibold text-fd-foreground">Cloudflare Workers</h4>
+        <h4 id="stack-api" className="text-base font-semibold text-fd-foreground">Cloudflare Worker</h4>
         <span className="ml-auto text-xs text-fd-foreground/80">API runtime</span>
       </div>
       <ol className="mt-5 space-y-4 border-l border-fd-primary/25 pl-4 text-sm">
@@ -127,6 +159,48 @@ My preferred stack for TypeScript web applications, not a requirement for using 
 - Versions describe the recommendation, not a compatibility certification. Check the selected oRPC/Zod and Vitest/Vite combinations before adoption.
 
 For configuration and release steps, follow [Deploy a full-stack Cloudflare Worker](/docs/guides/deploy-cloudflare).
+
+## SEO
+
+Public pages should return their main content and metadata in the initial HTML. Google can
+render JavaScript, but [server rendering or prerendering](https://developers.google.com/search/docs/crawling-indexing/javascript/javascript-seo-basics)
+also serves crawlers that do not run it. Static Astro output meets this requirement; SSR
+is not an SEO requirement for every request. Private SaaS screens do not need SSR for search.
+
+### Content and metadata
+
+Each indexable page needs a descriptive title, meta description, canonical production URL,
+semantic headings, and crawlable links. A shared Astro layout can keep these consistent.
+[Open Graph metadata](https://ogp.me/) supplies shared-link previews.
+Relevant [structured data](https://developers.google.com/search/docs/appearance/structured-data/intro-structured-data),
+such as `Article` for a blog post, must match visible content; it does not guarantee rich results.
+
+### Discovery and indexing
+
+Astro's `site` setting supplies the production origin for
+[`@astrojs/sitemap`](https://docs.astro.build/en/guides/integrations-guide/sitemap/).
+The sitemap should contain canonical, indexable public URLs, with its location in `robots.txt`.
+Private application routes, previews, and noncanonical duplicates do not belong in it.
+Moved pages need HTTP redirects; missing public pages need HTTP 404 responses, not a
+successful SPA shell.
+
+Authentication protects private data. For publicly reachable app shells and preview pages,
+[`noindex`](https://developers.google.com/search/docs/crawling-indexing/block-indexing) belongs
+in the initial HTML or `X-Robots-Tag` response header. Crawlers must be able to fetch it;
+blocking the same URL in `robots.txt` prevents them from seeing the directive. Neither
+`robots.txt` nor `noindex` is access control. Production public pages must not inherit preview
+indexing restrictions.
+
+### Performance and verification
+
+Limited client JavaScript, appropriately sized images, and stable layouts help the public
+site load and respond well. [Core Web Vitals](https://developers.google.com/search/docs/appearance/core-web-vitals)
+measure loading, responsiveness, and visual stability; rendering choice alone does not
+establish good performance or search ranking.
+
+The [deployment checks](/docs/guides/deploy-cloudflare#2-verify-the-built-application) cover
+raw HTML, metadata, sitemap URLs, and response status before release. Search Console URL
+Inspection and PageSpeed Insights provide production indexing and performance evidence.
 
 ## Scaling the stack
 
