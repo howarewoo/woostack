@@ -79,13 +79,13 @@ public site would be cross-origin and need an explicit CORS policy.
         <div>
           <p className="font-medium">Root-domain branch</p>
           <p className="mt-2 leading-relaxed text-fd-foreground/80">Astro HTML and static files from the site asset directory. Missing pages return 404.</p>
-          <p className="mt-3 font-mono text-xs">ASSETS → /site/*</p>
+          <p className="mt-3 font-mono text-xs">ASSETS → /site/\*</p>
         </div>
         <div className="border-t border-dashed border-fd-border pt-4 sm:border-t-0 sm:border-l sm:pt-0 sm:pl-5">
           <p className="font-medium">App-subdomain branch</p>
           <p className="mt-2 leading-relaxed text-fd-foreground/80">React + Vite + TanStack Router. Existing files first; SPA shell for HTML navigation only.</p>
-          <p className="mt-3 font-mono text-xs">ASSETS → /app/*</p>
-          <p className="mt-3 border-t border-fd-border pt-3 leading-relaxed"><code>/api</code> and <code>/api/*</code> → Hono + oRPC + Zod, before assets or fallback.</p>
+          <p className="mt-3 font-mono text-xs">ASSETS → /app/\*</p>
+          <p className="mt-3 border-t border-fd-border pt-3 leading-relaxed"><code>/api</code> and <code>/api/\*</code> → Hono + oRPC + Zod, before assets or fallback.</p>
         </div>
       </div>
     </section>
