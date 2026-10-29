@@ -1,103 +1,162 @@
 ---
 title: Deploy a full-stack Cloudflare Worker
-description: Configure a Vite frontend and Hono API on one origin, then verify and release them with GitHub Actions.
+description: Deploy an Astro public site, React SPA, and Hono API on one Worker with GitHub Actions.
 ---
 
-Use this guide for an existing Vite frontend and Hono backend that will share one Cloudflare
-Worker deployment. You need a Cloudflare account and a GitHub repository for delivery.
-See the [recommended tech stack](/docs/recommended-stack) for the wider stack and runtime architecture.
+Use this guide for separate Astro and React/Vite workspace apps plus a Hono API that will
+share one Cloudflare Worker deployment. The SPA uses standalone TanStack Router, not
+TanStack Start. You need existing app build scripts, Wrangler, a Cloudflare account, and
+a GitHub repository for delivery. The paths below are examples for your application,
+not commands for deploying the Woostack documentation site.
+
+See the [recommended tech stack](/docs/recommended-stack) for the architecture and
+[SEO guidance](/docs/recommended-stack#seo).
 
 ## 1. Configure the application
 
-Host the Vite frontend and Hono backend as one Worker deployment on one origin. Workers Static
-Assets serves the built HTML, JavaScript, CSS, and images; the Worker executes Hono for API
-requests. This does not run a Vite development server or a Node HTTP server in production.
+Keep the source apps separate, but deploy their output and the API together on one origin.
+Use Astro's default static output for the public site. This path needs no Astro server
+adapter and runs neither a Vite development server nor a Node HTTP server in production.
 
 | Request | Handler |
 | --- | --- |
-| `/assets/*` and other existing static files | Workers Static Assets |
+| `/`, `/pricing/`, and existing `/blog/*` pages | Astro-generated HTML in Workers Static Assets |
+| `/_astro/*`, `/app/assets/*`, and other existing static files | Workers Static Assets |
+| `/app/` and HTML navigation such as `/app/settings` | SPA shell, then TanStack Router in the browser |
 | `/api` and `/api/*` | Hono in the Worker, including API-specific errors and 404 responses |
-| Frontend navigation such as `/settings` | SPA fallback to `index.html`, then React Router in the browser |
+| Missing public pages or static files | HTTP 404, never the SPA shell |
 
-Use [`@cloudflare/vite-plugin`](https://developers.cloudflare.com/workers/vite-plugin/tutorial/)
-alongside `@vitejs/plugin-react` in the application's `vite.config.ts`:
+### Build a combined asset directory
 
-```ts
-import { cloudflare } from "@cloudflare/vite-plugin";
-import react from "@vitejs/plugin-react";
-import { defineConfig } from "vite";
+Build the public site and SPA with their workspace scripts. Set Vite's
+[`base`](https://vite.dev/guide/build#public-base-path) to `/app/` and TanStack Router's
+[`basepath`](https://tanstack.com/router/latest/docs/framework/react/api/router/RouterOptionsType#basepath-property)
+to `/app`. Keep the public site's canonical origin in Astro's `site` setting.
 
-export default defineConfig({
-  plugins: [react(), cloudflare()],
-});
-```
+Assemble the outputs into one clean, generated directory before deploying. A Worker has
+[one static asset collection](https://developers.cloudflare.com/workers/static-assets/binding/):
 
-The corresponding `wrangler.jsonc` selects the Hono entrypoint and makes API routes
-Worker-first, including direct browser navigation to an API URL:
+| Build output | Deployment location |
+| --- | --- |
+| Contents of `apps/site/dist/` from Astro | `dist/assets/` |
+| Contents of `apps/app/dist/` from Vite | `dist/assets/app/` |
+
+Copy the contents, not the enclosing `dist` directories. The result includes
+`dist/assets/index.html`, `dist/assets/_astro/`, `dist/assets/app/index.html`, and
+`dist/assets/app/assets/`. Reserve `/app` and `/api` for the SPA and API; fail the assembly
+on conflicting paths instead of silently overwriting files. If the apps emit `_headers`
+or `_redirects`, consolidate their rules into the asset root. Keep build outputs gitignored.
+Own this assembly in the repository's build scripts so local verification and CI use the
+same process.
+
+### Configure Worker routing
+
+For a Hono entrypoint at `apps/api/src/index.ts`, use this `apps/api/wrangler.jsonc`:
 
 ```jsonc
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "fullstack-app",
-  "main": "./worker/index.ts",
+  "main": "./src/index.ts",
   "compatibility_date": "2026-10-25",
   "assets": {
-    "not_found_handling": "single-page-application",
+    "directory": "../../dist/assets",
+    "binding": "ASSETS",
+    "not_found_handling": "none",
     "run_worker_first": ["/api", "/api/*"]
   }
 }
 ```
 
-The Vite plugin supplies the built asset directory in its generated deployment configuration.
-Do not point `assets.directory` at the source tree or add an Express-style static-file server.
-The [Hono Worker entrypoint](https://hono.dev/docs/getting-started/cloudflare-workers)
-exports the Hono application as its default export; mount backend routes and oRPC under `/api`.
-Keep unknown API routes as API 404 responses instead of returning the SPA shell.
+This uses Wrangler directly for the combined asset directory, rather than assuming a
+single Vite build owns every app. With
+[Worker-first API routes](https://developers.cloudflare.com/workers/static-assets/routing/worker-script/),
+API requests reach Hono even when a static file matches. Other requests use asset-first
+routing. Mount oRPC and backend routes under `/api`, and handle unknown API routes there
+before any asset or SPA fallback.
 
-The frontend calls relative URLs such as `/api/health`, so frontend-to-API requests are same-origin
-without a separate CORS setup. Authentication still needs correct session, authorization, and CSRF
-controls; sharing an origin does not replace them. Keep database credentials and auth secrets in
-Worker secrets or bindings, never in client-exposed `VITE_*` variables. Add Hyperdrive and any
-required Workers compatibility flags for the selected database driver separately.
+In the Worker's non-API handler, look up the requested asset through `env.ASSETS.fetch`
+and return existing assets unchanged. Only on an asset miss, return the SPA shell for
+`GET` or `HEAD` HTML navigation at `/app` or within `/app/`. Exclude static-file URLs,
+including missing scripts, styles, and images. Non-HTML requests and other HTTP methods
+must not receive the shell. Fetch the shell at
+the canonical asset URL `/app/`, which serves `app/index.html`, rather than forwarding an
+`index.html` normalization redirect to the browser. Return a real 404 for other misses.
+Keep asset paths and navigation routes distinguishable, and verify direct navigation to
+missing asset URLs as well as normal script requests.
+
+Do not enable site-wide `single-page-application` fallback or a catch-all rewrite to
+`index.html`: either can hide missing public pages behind a successful HTML response.
+See [Cloudflare's HTML handling](https://developers.cloudflare.com/workers/static-assets/routing/advanced/html-handling/)
+for canonical path and trailing-slash behavior.
+
+The SPA calls absolute-path URLs such as `/api/health`, not paths relative to `/app/`.
+Authentication still needs session verification, authorization, and CSRF controls; sharing
+an origin does not replace them. Keep database credentials and auth secrets in Worker
+secrets or bindings, never in client-exposed `VITE_*` variables or generated public HTML.
+Add Hyperdrive and the required Workers compatibility flags for the selected database driver.
+
+If a public page genuinely needs request-time SSR, use the
+[Astro Cloudflare adapter](https://docs.astro.build/en/guides/integrations-guide/cloudflare/)
+and its supported custom Worker entrypoint to dispatch Astro and Hono in the same Worker.
+Reconcile the adapter's generated assets and configuration with the SPA build and test the
+combined output. The static configuration above alone does not execute Astro server routes.
 
 ## 2. Verify the built application
 
-Use `vite dev` with the plugin for local development. Build with `pnpm exec vite build`,
-then use `vite preview` to exercise the built frontend and backend in the Workers runtime.
-Check a frontend deep link, a successful API call, and an unknown API route. The deep link
-should load the frontend; the unknown API route should return an API 404, not the SPA shell.
+After building both apps and assembling the assets, run
+`pnpm --dir apps/api exec wrangler dev` against the configuration above. Use the app dev
+servers for UI iteration, but verify the combined deployment in the Workers runtime.
 
-Vite builds both sides, and Wrangler deploys their generated output together. This keeps
-frontend and API releases coupled; separate Workers are an alternative when they need
-independent release schedules or isolation.
+| Check | Expected result |
+| --- | --- |
+| Fetch `/` and a blog page without executing JavaScript | Main content, title, description, and canonical URL are present in the HTML |
+| Fetch `/robots.txt` and the generated sitemap index and child sitemaps | Correct production origin and only intended indexable public URLs |
+| Open `/app/settings` directly, then reload | SPA loads with working assets and TanStack Router navigation |
+| Call a known API route and an unknown `/api/*` route | Expected API result and API 404; neither returns a frontend shell |
+| Request a missing public page, `/_astro/missing.js`, and `/app/assets/missing.js` | HTTP 404, including direct browser navigation to those asset URLs |
+| Request a non-HTML resource or send a non-navigation method under `/app/` | No successful SPA fallback |
+| Inspect app-shell and preview responses | Initial `noindex` metadata or response header where intended; private data still requires authentication |
+
+Use Playwright for critical browser journeys, including the public-site-to-app transition.
+Check public pages with JavaScript disabled and inspect the raw response, not just the
+hydrated DOM. Validate any structured data with Google's Rich Results Test. After release,
+use Search Console URL Inspection and PageSpeed Insights for indexing and performance checks.
 
 ## 3. Configure delivery with GitHub Actions
 
 Use GitHub Actions for pull-request checks and production delivery. Keep verification separate
-from deployment so untrusted pull requests never receive production credentials.
+from deployment so untrusted pull requests never receive production credentials. Use one
+release pipeline for the public site, SPA, and API, not separate app deploy jobs targeting
+the same Worker and overwriting each other's assets.
 
 | Stage | Recommended checks and behavior |
 | --- | --- |
-| Pull request | Install with `pnpm install --frozen-lockfile`; run type checking, Oxlint, Oxfmt checks, and the relevant Vitest suites. Build the frontend and Worker together. |
-| Runtime verification | Exercise the built application in the Workers runtime, including a browser deep link, a successful API call, and an unknown API route. Use Playwright for critical user journeys. |
-| Preview | Deploy only trusted changes to an isolated preview Worker with non-production bindings and data. Check managed Neon Auth there; the local fixture does not prove production-auth integration. |
-| Production | After required checks pass on `main`, deploy through a protected GitHub environment. Serialize production deployments and deploy the verified build, not a fresh unverified rebuild. |
-| Post-deploy | Smoke-check the frontend and API. Retain the commit and deployment identity so an operator can identify and roll back a bad release. |
+| Pull request | Install with `pnpm install --frozen-lockfile`; run type checking, Oxlint, Oxfmt checks, and relevant tests. Build Astro, the SPA, and the Worker, then assemble the combined assets. |
+| Runtime verification | Run the checks above against the assembled deployment in the Workers runtime. Use Playwright for critical user journeys. |
+| Preview | Deploy only trusted changes as one isolated preview Worker with non-production bindings and data. Protect previews or serve `noindex`. Check managed Neon Auth there; the local fixture does not prove production-auth integration. |
+| Production | After required checks pass on `main`, deploy through a protected GitHub environment. Serialize production deployments and release the verified Worker and both apps' assets together. |
+| Post-deploy | Smoke-check the public site, an SPA deep link, and the API. Retain the commit and deployment identity so an operator can identify and roll back the complete release. |
 
 Declare the pnpm version in `packageManager`, use Node for tooling, and cache pnpm's package store
 rather than treating cached dependencies as authoritative. Give the workflow read-only repository
 permissions unless a specific job needs more. Pin third-party actions to reviewed commit SHAs.
 
 Cloudflare's [GitHub Actions integration](https://developers.cloudflare.com/workers/ci-cd/external-cicd/github-actions/)
-supports `cloudflare/wrangler-action` or a direct `pnpm exec wrangler deploy` command.
+supports `cloudflare/wrangler-action` or Wrangler CLI deployment.
 Keep `CLOUDFLARE_API_TOKEN` in GitHub environment secrets, scope it to the deployment account and
 required permissions, and supply `CLOUDFLARE_ACCOUNT_ID` through the environment. Do not expose
 deployment credentials to forked PRs or run untrusted PR code with `pull_request_target` secrets.
+Disable any second automatic deployment path for the same Worker so GitHub Actions owns releases.
 
-With the Cloudflare Vite plugin, build with `pnpm exec vite build` before deploying. If build and
-deployment are separate jobs, transfer the complete generated build and deploy with Wrangler's
-`--config` option pointing to the generated output configuration, not the source `wrangler.jsonc`.
-Select a [Cloudflare environment at build time](https://developers.cloudflare.com/workers/vite-plugin/reference/migrating-from-wrangler-dev/#cloudflare-environments)
-with `CLOUDFLARE_ENV`; do not switch a built artifact to another environment with `wrangler deploy --env`.
+Build once for the target environment. When build and deployment are separate jobs, transfer the
+verified Worker bundle, combined static assets, and deployment configuration together. Point
+Wrangler's `--config` at that configuration, with `main` and `assets.directory` resolving to the
+transferred files; deploy a [prebundled Worker](https://developers.cloudflare.com/workers/wrangler/bundling/)
+with `--no-bundle`. Do not deploy only one app's output or rebuild an unverified artifact in
+the deployment job. For framework-generated Worker
+builds, use the generated deployment configuration rather than assuming the source config is
+still correct.
+
 Apply Drizzle Kit migrations as an explicit release step, not inside API requests. Keep schema
 changes compatible with the currently deployed application and any intended rollback.
