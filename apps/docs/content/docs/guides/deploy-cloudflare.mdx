@@ -5,53 +5,59 @@ description: Deploy an Astro public site, React SPA, and Hono API on one Worker 
 
 Use this guide for separate Astro and React/Vite workspace apps plus a Hono API that will
 share one Cloudflare Worker deployment. The SPA uses standalone TanStack Router, not
-TanStack Start. You need existing app build scripts, Wrangler, a Cloudflare account, and
-a GitHub repository for delivery. The paths below are examples for your application,
-not commands for deploying the Woostack documentation site.
+TanStack Start. You need existing app build scripts, Wrangler, a GitHub repository, and
+a Cloudflare account with an active zone for your root domain. The paths below are examples
+for your application, not commands for deploying the Woostack documentation site.
 
-See the [recommended tech stack](/docs/recommended-stack) for the architecture and
+See the [architecture diagrams](/docs/recommended-stack#runtime-architecture) and
 [SEO guidance](/docs/recommended-stack#seo).
 
 ## 1. Configure the application
 
-Keep the source apps separate, but deploy their output and the API together on one origin.
-Use Astro's default static output for the public site. This path needs no Astro server
-adapter and runs neither a Vite development server nor a Node HTTP server in production.
+Keep the source apps separate and deploy their output and API as one Worker. Serve the
+Astro public site at `example.com`, and the React SPA and Hono API at `app.example.com`.
+Use Astro's static output for the public site; it needs no server adapter. Replace these
+example hostnames with your own in the build, Worker dispatch, and deployment configuration.
 
-| Request | Handler |
-| --- | --- |
-| `/`, `/pricing/`, and existing `/blog/*` pages | Astro-generated HTML in Workers Static Assets |
-| `/_astro/*`, `/app/assets/*`, and other existing static files | Workers Static Assets |
-| `/app/` and HTML navigation such as `/app/settings` | SPA shell, then TanStack Router in the browser |
-| `/api` and `/api/*` | Hono in the Worker, including API-specific errors and 404 responses |
-| Missing public pages or static files | HTTP 404, never the SPA shell |
+| Host | Request | Handler |
+| --- | --- | --- |
+| `example.com` | `/`, `/pricing/`, existing `/blog/*`, and public assets | Astro-generated files selected by the Worker |
+| `app.example.com` | `/` and HTML navigation such as `/settings` | SPA shell, then TanStack Router in the browser |
+| `app.example.com` | `/assets/*` and other existing app files | SPA assets selected by the Worker |
+| `app.example.com` | `/api` and `/api/*` | Hono, including API errors and 404 responses |
+| Either host | Missing static files or direct internal-prefix URLs | HTTP 404, never the SPA shell |
+| `example.com` | Missing public pages or `/api/*` | HTTP 404, never the app or its API |
 
 ### Build a combined asset directory
 
-Build the public site and SPA with their workspace scripts. Set Vite's
-[`base`](https://vite.dev/guide/build#public-base-path) to `/app/` and TanStack Router's
+Build both frontends for the root of their respective hosts. Keep Vite's
+[`base`](https://vite.dev/guide/build#public-base-path) and TanStack Router's
 [`basepath`](https://tanstack.com/router/latest/docs/framework/react/api/router/RouterOptionsType#basepath-property)
-to `/app`. Keep the public site's canonical origin in Astro's `site` setting.
+at `/`; do not use `/app/` as a public base. Set Astro's `site` to `https://example.com`.
+For the mapping below, use Astro's
+[`build.format: "directory"` and `trailingSlash: "always"`](https://docs.astro.build/en/reference/configuration-reference/#buildformat).
 
-Assemble the outputs into one clean, generated directory before deploying. A Worker has
-[one static asset collection](https://developers.cloudflare.com/workers/static-assets/binding/):
+Assemble the outputs into one clean, generated directory, preserving separate namespaces:
 
-| Build output | Deployment location |
-| --- | --- |
-| Contents of `apps/site/dist/` from Astro | `dist/assets/` |
-| Contents of `apps/app/dist/` from Vite | `dist/assets/app/` |
+| Build output | Deployment location | Served on |
+| --- | --- | --- |
+| Contents of `apps/site/dist/` from Astro | `dist/assets/site/` | `example.com` |
+| Contents of `apps/app/dist/` from Vite | `dist/assets/app/` | `app.example.com` |
 
-Copy the contents, not the enclosing `dist` directories. The result includes
-`dist/assets/index.html`, `dist/assets/_astro/`, `dist/assets/app/index.html`, and
-`dist/assets/app/assets/`. Reserve `/app` and `/api` for the SPA and API; fail the assembly
-on conflicting paths instead of silently overwriting files. If the apps emit `_headers`
-or `_redirects`, consolidate their rules into the asset root. Keep build outputs gitignored.
-Own this assembly in the repository's build scripts so local verification and CI use the
-same process.
+The result includes `site/index.html`, `site/_astro/`, `app/index.html`, and `app/assets/`
+inside `dist/assets/`. These prefixes prevent collisions between both apps' `index.html`,
+icons, and `robots.txt`; they are not browser URL prefixes. Keep the Worker bundle outside
+the asset directory and keep generated output gitignored. Own assembly in the repository's
+build scripts so local verification and CI use the same process.
 
-### Configure Worker routing
+If a build emits `_headers` or `_redirects`, translate the needed rules into hostname-aware
+Worker handling and exclude those metadata files from the uploaded assets. Do not drop
+required security headers or combine catch-all redirects across both hosts.
 
-For a Hono entrypoint at `apps/api/src/index.ts`, use this `apps/api/wrangler.jsonc`:
+### Attach both domains and configure dispatch
+
+For an entrypoint at `apps/api/src/index.ts` that dispatches hosts and invokes Hono, use
+this `apps/api/wrangler.jsonc`:
 
 ```jsonc
 {
@@ -59,66 +65,109 @@ For a Hono entrypoint at `apps/api/src/index.ts`, use this `apps/api/wrangler.js
   "name": "fullstack-app",
   "main": "./src/index.ts",
   "compatibility_date": "2026-10-25",
+  "workers_dev": false,
+  "preview_urls": false,
+  "routes": [
+    { "pattern": "example.com", "custom_domain": true },
+    { "pattern": "app.example.com", "custom_domain": true }
+  ],
   "assets": {
     "directory": "../../dist/assets",
     "binding": "ASSETS",
+    "html_handling": "none",
     "not_found_handling": "none",
-    "run_worker_first": ["/api", "/api/*"]
+    "run_worker_first": true
   }
 }
 ```
 
-This uses Wrangler directly for the combined asset directory, rather than assuming a
-single Vite build owns every app. With
-[Worker-first API routes](https://developers.cloudflare.com/workers/static-assets/routing/worker-script/),
-API requests reach Hono even when a static file matches. Other requests use asset-first
-routing. Mount oRPC and backend routes under `/api`, and handle unknown API routes there
-before any asset or SPA fallback.
+Both [Custom Domains](https://developers.cloudflare.com/workers/configuration/routing/custom-domains/)
+attach to the same Worker; they are exact hostnames, not wildcard path routes. Resolve
+conflicting DNS records before deployment. The production configuration disables alternate
+`workers.dev` and preview URLs. Give preview environments their own Worker and hostname pair,
+with matching dispatch configuration, rather than reusing production domains.
 
-In the Worker's non-API handler, look up the requested asset through `env.ASSETS.fetch`
-and return existing assets unchanged. Only on an asset miss, return the SPA shell for
-`GET` or `HEAD` HTML navigation at `/app` or within `/app/`. Exclude static-file URLs,
-including missing scripts, styles, and images. Non-HTML requests and other HTTP methods
-must not receive the shell. Fetch the shell at
-the canonical asset URL `/app/`, which serves `app/index.html`, rather than forwarding an
-`index.html` normalization redirect to the browser. Return a real 404 for other misses.
-Keep asset paths and navigation routes distinguishable, and verify direct navigation to
-missing asset URLs as well as normal script requests.
+Implement hostname dispatch in the entrypoint; the configuration alone does not select
+between apps. Cloudflare's [ASSETS binding uses only the pathname](https://developers.cloudflare.com/workers/static-assets/binding/#runtime-api-reference)
+to match files. [Worker-first routing](https://developers.cloudflare.com/workers/static-assets/routing/worker-script/#run-your-worker-script-first)
+ensures host selection happens before even an existing file is served. All asset requests
+therefore invoke the Worker too.
 
-Do not enable site-wide `single-page-application` fallback or a catch-all rewrite to
-`index.html`: either can hide missing public pages behind a successful HTML response.
-See [Cloudflare's HTML handling](https://developers.cloudflare.com/workers/static-assets/routing/advanced/html-handling/)
-for canonical path and trailing-slash behavior.
+1. Match `new URL(request.url).hostname` against the configured root and app hostnames.
+   Reject unknown hosts and direct requests to the reserved `/site` and `/app` prefixes.
+   Keep all asset lookups inside the selected namespace; never accept a client-selected
+   namespace or a path that escapes it.
+2. On the app host only, dispatch `/api` and `/api/*` to Hono before asset lookup.
+   Keep the original request URL, method, headers, and body. Unknown API routes return
+   API 404 responses, not static files or the SPA shell.
+3. For other `GET` and `HEAD` requests, fetch the selected file through `env.ASSETS.fetch`
+   using an internally rewritten pathname. Preserve the request method and relevant headers;
+   a `HEAD` response has no body. Do not use global `fetch()` to call either public hostname
+   for assets, which would re-enter the Worker.
+4. Only on an app-host asset miss, serve `/app/index.html` for HTML navigation. Exclude
+   `/assets/*`, file URLs, `robots.txt`, sitemaps, and all API paths, even when opened directly
+   in a browser. Non-HTML requests and other methods never receive the shell. Return 404
+   for every remaining miss; a custom public 404 page must keep status 404.
 
-The SPA calls absolute-path URLs such as `/api/health`, not paths relative to `/app/`.
-Authentication still needs session verification, authorization, and CSRF controls; sharing
-an origin does not replace them. Keep database credentials and auth secrets in Worker
-secrets or bindings, never in client-exposed `VITE_*` variables or generated public HTML.
-Add Hyperdrive and the required Workers compatibility flags for the selected database driver.
+Use these internal lookup paths with `html_handling: "none"`:
+
+| Public URL | ASSETS lookup path |
+| --- | --- |
+| `https://example.com/` | `/site/index.html` |
+| `https://example.com/pricing/` | `/site/pricing/index.html` |
+| `https://example.com/_astro/main.css` | `/site/_astro/main.css` |
+| `https://app.example.com/assets/main.js` | `/app/assets/main.js` |
+| `https://app.example.com/settings` (HTML navigation, no asset) | `/app/index.html` |
+
+With [automatic HTML handling disabled](https://developers.cloudflare.com/workers/static-assets/routing/advanced/html-handling/#disable-html-handling),
+the dispatcher owns clean-URL mapping and canonical redirects. For an existing Astro page,
+redirect `/pricing` or `/pricing/index.html` to `/pricing/` on the root host, preserving the
+query string. Check that the page exists before redirecting. Never expose `/site/` or `/app/`
+in a redirect, canonical URL, or generated asset link. Do not enable global SPA fallback.
+
+### Keep browser origins and authentication separate
+
+The SPA calls `/api/health` on `app.example.com`, so app-to-API traffic is same-origin.
+The root domain and app subdomain are [different origins](https://developer.mozilla.org/en-US/docs/Web/Security/Defenses/Same-origin_policy).
+Use normal links to move visitors into the app. Browser API calls from the public site
+require an explicit CORS policy; one Worker does not bypass browser origin checks.
+Configure authentication callback URLs and allowed origins for the app hostname. Prefer
+host-scoped application session cookies rather than sharing them across every subdomain;
+retain session verification, authorization, and CSRF controls.
+
+Keep database credentials and auth secrets in Worker secrets or bindings, never in
+client-exposed `VITE_*` variables or generated HTML. Add Hyperdrive and the required Workers
+compatibility flags for the selected database driver.
 
 If a public page genuinely needs request-time SSR, use the
 [Astro Cloudflare adapter](https://docs.astro.build/en/guides/integrations-guide/cloudflare/)
-and its supported custom Worker entrypoint to dispatch Astro and Hono in the same Worker.
+and its supported custom Worker entrypoint to dispatch Astro on the root host and Hono
+on the app host in the same Worker.
 Reconcile the adapter's generated assets and configuration with the SPA build and test the
 combined output. The static configuration above alone does not execute Astro server routes.
 
 ## 2. Verify the built application
 
 After building both apps and assembling the assets, run
-`pnpm --dir apps/api exec wrangler dev` against the configuration above. Use the app dev
-servers for UI iteration, but verify the combined deployment in the Workers runtime.
+`pnpm --dir apps/api exec wrangler dev`. Use the app dev servers for UI iteration, but
+verify the combined deployment in the Workers runtime. For local checks, map two test
+hostnames to the local Worker and configure the dispatcher to accept them only locally.
+A request to `localhost` alone does not verify host dispatch. Test both HTTPS hostnames
+again in a trusted preview, including managed-auth callbacks and cookie scope.
 
 | Check | Expected result |
 | --- | --- |
-| Fetch `/` and a blog page without executing JavaScript | Main content, title, description, and canonical URL are present in the HTML |
-| Fetch `/robots.txt` and the generated sitemap index and child sitemaps | Correct production origin and only intended indexable public URLs |
-| Open `/app/settings` directly, then reload | SPA loads with working assets and TanStack Router navigation |
-| Call a known API route and an unknown `/api/*` route | Expected API result and API 404; neither returns a frontend shell |
-| Request a missing public page, `/_astro/missing.js`, and `/app/assets/missing.js` | HTTP 404, including direct browser navigation to those asset URLs |
-| Request a non-HTML resource or send a non-navigation method under `/app/` | No successful SPA fallback |
-| Inspect app-shell and preview responses | Initial `noindex` metadata or response header where intended; private data still requires authentication |
+| Fetch `/` on both hosts without executing JavaScript | Root host returns Astro content and metadata; app host returns the SPA shell, never the public homepage |
+| Fetch a blog page, `robots.txt`, and sitemaps on the root host | Canonicals and indexable URLs use `https://example.com`, without internal prefixes or app/API URLs |
+| Open `app.example.com/settings` directly, then reload | SPA loads with assets from the app host and working TanStack Router navigation |
+| Call known and unknown `/api/*` routes on the app host; repeat on the root host | App host returns API results or API 404; root host never exposes Hono |
+| Request a missing public page, `/_astro/missing.js`, and app-host `/assets/missing.js` | HTTP 404, including direct browser navigation to missing files |
+| Request `/site/index.html`, `/app/index.html`, or the other app's assets on either host | No cross-host asset exposure or successful SPA fallback for internal prefixes |
+| Request a valid public page without its canonical slash or through `index.html` | Redirect stays on the public host, preserves the query, and never reveals an internal prefix |
+| Send a non-HTML request or non-navigation method to an app route; request an unknown host | No successful SPA fallback; unknown host rejected |
+| Inspect root-host, app-host, and preview responses | Public production pages remain indexable; app shells and previews carry intended `noindex`; private data still requires authentication |
 
-Use Playwright for critical browser journeys, including the public-site-to-app transition.
+Use Playwright for critical browser journeys, including the root-domain-to-app-subdomain transition.
 Check public pages with JavaScript disabled and inspect the raw response, not just the
 hydrated DOM. Validate any structured data with Google's Rich Results Test. After release,
 use Search Console URL Inspection and PageSpeed Insights for indexing and performance checks.
@@ -134,9 +183,9 @@ the same Worker and overwriting each other's assets.
 | --- | --- |
 | Pull request | Install with `pnpm install --frozen-lockfile`; run type checking, Oxlint, Oxfmt checks, and relevant tests. Build Astro, the SPA, and the Worker, then assemble the combined assets. |
 | Runtime verification | Run the checks above against the assembled deployment in the Workers runtime. Use Playwright for critical user journeys. |
-| Preview | Deploy only trusted changes as one isolated preview Worker with non-production bindings and data. Protect previews or serve `noindex`. Check managed Neon Auth there; the local fixture does not prove production-auth integration. |
+| Preview | Deploy only trusted changes as one isolated preview Worker with its own two hostnames, non-production bindings, and data. Protect previews or serve `noindex`. Check managed Neon Auth there; the local fixture does not prove production-auth integration. |
 | Production | After required checks pass on `main`, deploy through a protected GitHub environment. Serialize production deployments and release the verified Worker and both apps' assets together. |
-| Post-deploy | Smoke-check the public site, an SPA deep link, and the API. Retain the commit and deployment identity so an operator can identify and roll back the complete release. |
+| Post-deploy | Smoke-check both hostnames, an SPA deep link, and the app-host API. Retain the commit and deployment identity so an operator can identify and roll back the complete release. |
 
 Declare the pnpm version in `packageManager`, use Node for tooling, and cache pnpm's package store
 rather than treating cached dependencies as authoritative. Give the workflow read-only repository

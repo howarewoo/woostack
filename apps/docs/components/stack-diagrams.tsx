@@ -1,0 +1,189 @@
+import type { ReactNode } from "react";
+
+type DiagramProps = {
+  id: string;
+  title: string;
+  description: string;
+  caption: string;
+  height: number;
+  children: ReactNode;
+};
+
+// Static SVG keeps the flow visible without hydration or a diagram runtime.
+function Diagram({ id, title, description, caption, height, children }: DiagramProps) {
+  return (
+    <figure className="not-prose my-8 min-w-0 rounded-xl border border-fd-border bg-fd-card">
+      <div className="px-5 pt-5 sm:px-6">
+        <h3 id={`${id}-heading`} className="text-lg font-semibold text-fd-foreground">
+          {title}
+        </h3>
+        <p className="mt-1 text-xs text-fd-muted-foreground">
+          Follow the arrows. On narrow screens, scroll horizontally to see the full diagram.
+        </p>
+      </div>
+      <div
+        role="region"
+        aria-labelledby={`${id}-heading`}
+        tabIndex={0}
+        className="overflow-x-auto rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fd-primary"
+      >
+        <svg
+          viewBox={`0 0 760 ${height}`}
+          className="block h-auto w-full min-w-[640px] text-fd-muted-foreground"
+          role="img"
+          aria-labelledby={`${id}-title`}
+          aria-describedby={`${id}-description`}
+        >
+          <title id={`${id}-title`}>{title}</title>
+          <desc id={`${id}-description`}>{description}</desc>
+          <defs>
+            <marker
+              id={`${id}-arrow`}
+              viewBox="0 0 10 10"
+              refX="9"
+              refY="5"
+              markerWidth="7"
+              markerHeight="7"
+              orient="auto-start-reverse"
+            >
+              <path d="M 0 0 L 10 5 L 0 10 Z" fill="currentColor" />
+            </marker>
+          </defs>
+          {children}
+        </svg>
+      </div>
+      <figcaption className="border-t border-fd-border px-5 py-4 text-sm leading-relaxed text-fd-muted-foreground sm:px-6">
+        {caption}
+        <details className="mt-3">
+          <summary className="cursor-pointer text-fd-foreground">Read text description</summary>
+          <p className="mt-2">{description}</p>
+        </details>
+      </figcaption>
+    </figure>
+  );
+}
+
+function Node({
+  x, y, width = 200, height = 66, title, lines = [], accent = false,
+}: {
+  x: number;
+  y: number;
+  width?: number;
+  height?: number;
+  title: string;
+  lines?: string[];
+  accent?: boolean;
+}) {
+  return (
+    <g transform={`translate(${x} ${y})`}>
+      <rect
+        width={width}
+        height={height}
+        rx="6"
+        strokeWidth="1.5"
+        className={accent ? "fill-fd-accent stroke-fd-primary" : "fill-fd-card stroke-fd-muted-foreground/60"}
+      />
+      <text x={width / 2} y="26" textAnchor="middle" fontSize="15" fontWeight="600" className="fill-fd-foreground">
+        {title}
+      </text>
+      {lines.map((line, index) => (
+        <text key={line} x={width / 2} y={47 + index * 18} textAnchor="middle" fontSize="13" className="fill-fd-muted-foreground">
+          {line}
+        </text>
+      ))}
+    </g>
+  );
+}
+
+function Group({ y, height, title }: { y: number; height: number; title: string }) {
+  return (
+    <g>
+      <rect x="24" y={y} width="712" height={height} rx="10" strokeDasharray="6 5" className="fill-fd-muted/30 stroke-fd-muted-foreground/50" />
+      <text x="42" y={y + 27} fontSize="13" fontWeight="600" className="fill-fd-muted-foreground">{title}</text>
+    </g>
+  );
+}
+
+function Label({ x, y, children }: { x: number; y: number; children: ReactNode }) {
+  return <text x={x} y={y} textAnchor="middle" fontSize="13" stroke="var(--color-fd-card)" strokeWidth="5" paintOrder="stroke" className="fill-fd-muted-foreground">{children}</text>;
+}
+
+// Callers supply a page-unique id so SVG markers and accessible names never collide.
+export function StackRuntimeDiagram({ id }: { id: string }) {
+  return (
+    <Diagram
+      id={id}
+      title="Two hostnames, one Worker"
+      height={670}
+      description="The browser visits example.com for the public site or app.example.com for the SaaS application. Both Custom Domains enter the same Cloudflare Worker, which dispatches by hostname before looking up assets. The root host serves Astro HTML and files from the internal /site/ asset directory. The app host serves React and TanStack Router from the internal /app/ directory, with a shell fallback only for HTML navigation. Its /api endpoints reach Hono, oRPC, and Zod before asset lookup. The API uses Drizzle and pg through Hyperdrive to reach external Neon PostgreSQL. The app browser uses managed Neon Auth for sign-in and sessions."
+      caption="Solid arrows show request and data flow; the dashed arrow shows sign-in. Asset prefixes are internal, not public URLs. Missing public pages, API routes, and static files return 404. The API verifies sessions and authorization; the browser never connects directly to the database."
+    >
+      <Group y={246} height={284} title="One Worker + its static assets" />
+      <g fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" markerEnd={`url(#${id}-arrow)`}>
+        <path d="M 260 92 V 114 H 166 V 150" />
+        <path d="M 300 92 V 114 H 562 V 150" />
+        <path d="M 662 150 V 92" strokeDasharray="5 4" markerStart={`url(#${id}-arrow)`} />
+        <path d="M 166 216 V 234 H 330 V 290" />
+        <path d="M 590 216 V 234 H 430 V 290" />
+        <path d="M 330 356 V 382 H 148 V 424" />
+        <path d="M 380 356 V 424" />
+        <path d="M 430 356 V 382 H 612 V 424" />
+        <path d="M 612 506 V 584" />
+        <path d="M 512 617 H 360" />
+      </g>
+      <Label x={701} y={126}>sign-in</Label>
+      <Label x={380} y={230}>Custom Domains</Label>
+      <Label x={148} y={408}>root host</Label>
+      <Label x={380} y={408}>app pages</Label>
+      <Label x={612} y={408}>app /api/*</Label>
+      <Label x={636} y={563}>SQL</Label>
+      <Label x={435} y={603}>pooled SQL</Label>
+      <Node x={150} y={26} width={220} title="Browser" lines={["Visitors and SaaS users"]} />
+      <Node x={500} y={26} width={212} title="Managed Neon Auth" lines={["External authentication"]} />
+      <Node x={54} y={150} width={226} title="example.com" lines={["Landing pages + blog"]} />
+      <Node x={480} y={150} width={232} title="app.example.com" lines={["SaaS screens + API calls"]} />
+      <Node x={270} y={290} width={220} title="Hostname dispatcher" lines={["Worker-first routing"]} accent />
+      <Node x={48} y={424} height={82} title="Astro public site" lines={["Static HTML + files", "ASSETS: /site/*"]} />
+      <Node x={280} y={424} height={82} title="React SPA" lines={["Vite + TanStack Router", "ASSETS: /app/*"]} />
+      <Node x={512} y={424} height={82} title="Hono API" lines={["oRPC + Zod", "Drizzle ORM + pg"]} />
+      <Node x={512} y={584} title="Hyperdrive" lines={["Connection pooling"]} />
+      <Node x={120} y={584} width={240} title="Neon PostgreSQL" lines={["External database"]} />
+    </Diagram>
+  );
+}
+
+export function StackDeliveryDiagram({ id }: { id: string }) {
+  return (
+    <Diagram
+      id={id}
+      title="Source apps to one release"
+      height={760}
+      description="Three separate pnpm workspace apps feed one GitHub Actions pipeline: apps/site contains Astro pages and blog content; apps/app contains React, Vite, TanStack Router, Query, and the oRPC client; apps/api contains hostname dispatch, Hono, and Wrangler configuration. GitHub Actions checks, builds, assembles, and verifies one release containing dist/assets/site/, dist/assets/app/, and the Worker bundle with deployment configuration and bindings. Wrangler deploys that verified output together to one Cloudflare Worker serving example.com and app.example.com. Both frontends are built for their hostname's root path."
+      caption="GitHub Actions releases and rolls back the site, app, and API as one unit. Shared UI packages are optional. Preview environments use their own hostname pair, bindings, and data. Drizzle Kit migrations are a separate release step."
+    >
+      <Group y={20} height={144} title="pnpm workspace sources" />
+      <Group y={350} height={146} title="Release artifact" />
+      <g fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" markerEnd={`url(#${id}-arrow)`}>
+        <path d="M 148 142 V 190 H 296 V 228" />
+        <path d="M 380 142 V 228" />
+        <path d="M 612 142 V 190 H 464 V 228" />
+        <path d="M 296 296 V 326 H 148 V 404" />
+        <path d="M 380 296 V 404" />
+        <path d="M 464 296 V 326 H 612 V 404" />
+        <path d="M 148 470 V 526 H 320 V 558" />
+        <path d="M 380 470 V 558" />
+        <path d="M 612 470 V 526 H 440 V 558" />
+        <path d="M 380 624 V 678" />
+      </g>
+      <Node x={48} y={76} title="apps/site" lines={["Astro public site"]} />
+      <Node x={280} y={76} title="apps/app" lines={["React + TanStack Router"]} />
+      <Node x={512} y={76} title="apps/api" lines={["Hono + dispatch + config"]} />
+      <Node x={238} y={228} width={284} height={68} title="GitHub Actions" lines={["Check · build · assemble · verify"]} accent />
+      <Node x={48} y={404} title="Site assets" lines={["dist/assets/site/"]} />
+      <Node x={280} y={404} title="App assets" lines={["dist/assets/app/"]} />
+      <Node x={512} y={404} title="Worker bundle" lines={["Configuration + bindings"]} />
+      <Node x={260} y={558} width={240} title="Wrangler" lines={["Deploy verified output together"]} />
+      <Node x={220} y={678} width={320} title="One Cloudflare Worker" lines={["example.com + app.example.com"]} accent />
+    </Diagram>
+  );
+}
