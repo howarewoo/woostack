@@ -1,84 +1,39 @@
-/**
- * CoordinateWorkFlow diagram for the Coordinate several tasks guide.
- *
- * Visualizes the 3-stage orchestration process: select & propose, authorize execution,
- * and verify deliveries.
- * Responsive semantic HTML with Fumadocs theme utilities.
- */
-export function CoordinateWorkFlow() {
+import { Connectors, Diagram, Group, Label, Node } from "../diagram";
+
+export function CoordinateWorkFlow({ id = "coordinate-work-flow" }: { id?: string } = {}) {
   return (
-    <figure className="not-prose my-6 rounded-xl border border-fd-border bg-fd-card p-4 sm:p-6">
-      <div className="flex flex-col gap-4">
-        <div>
-          <h3 className="text-sm font-semibold text-fd-foreground">Orchestration workflow</h3>
-          <p className="text-xs text-fd-muted-foreground mt-0.5">
-            Three ordered stages: plan proposal, user authorization, and delivery verification.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* Stage 1 */}
-          <div className="flex flex-col justify-between rounded-lg border border-fd-border bg-fd-card/60 p-4">
-            <div>
-              <span className="text-xs font-semibold text-fd-muted-foreground">Stage 1</span>
-              <h4 className="mt-1 text-sm font-semibold text-fd-foreground">
-                Select &amp; propose
-              </h4>
-              <p className="mt-1 text-xs text-fd-muted-foreground">
-                Supply tasks or tracker URL; Orchestrate reads evidence.
-              </p>
-              <pre className="mt-2 overflow-x-auto rounded border border-fd-border bg-fd-accent/50 p-2 font-mono text-xs text-fd-foreground">
-                <code>/woostack-orchestrate ...</code>
-              </pre>
-            </div>
-            <p className="mt-3 text-xs text-fd-muted-foreground">
-              Proposes task-to-PR grouping, dependencies, and landing order.
-            </p>
-          </div>
-
-          {/* Stage 2 */}
-          <div className="flex flex-col justify-between rounded-lg border border-fd-border bg-fd-card/60 p-4">
-            <div>
-              <span className="text-xs font-semibold text-fd-muted-foreground">Stage 2</span>
-              <h4 className="mt-1 text-sm font-semibold text-fd-foreground">Authorize execution</h4>
-              <p className="mt-1 text-xs text-fd-muted-foreground">
-                Review proposed groups, boundaries, and parallel paths.
-              </p>
-              <div className="mt-2 rounded border border-fd-border bg-fd-accent/50 px-2.5 py-1.5 text-xs font-medium text-fd-foreground">
-                User approves proposal first
-              </div>
-            </div>
-            <p className="mt-3 text-xs text-fd-muted-foreground">
-              No branches, edits, or worker dispatches occur before approval.
-            </p>
-          </div>
-
-          {/* Stage 3 */}
-          <div className="flex flex-col justify-between rounded-lg border border-fd-border bg-fd-card/60 p-4">
-            <div>
-              <span className="text-xs font-semibold text-fd-muted-foreground">Stage 3</span>
-              <h4 className="mt-1 text-sm font-semibold text-fd-foreground">
-                Deliver &amp; verify
-              </h4>
-              <p className="mt-1 text-xs text-fd-muted-foreground">
-                Task owners implement in isolated worktrees.
-              </p>
-              <div className="mt-2 rounded border border-fd-border bg-fd-accent/50 px-2.5 py-1.5 text-xs font-medium text-fd-foreground">
-                Draft PRs (stacked for dependents)
-              </div>
-            </div>
-            <p className="mt-3 text-xs text-fd-muted-foreground">
-              Delivers draft PRs for human review and merge.
-            </p>
-          </div>
-        </div>
-
-        <div className="rounded-lg border border-fd-border/70 bg-fd-muted/40 px-3 py-2 text-center text-xs text-fd-muted-foreground">
-          Gates: Draft PR discloses progress • Consumer release needs verified prerequisite content
-          • Merging stays with human
-        </div>
-      </div>
-    </figure>
+    <Diagram
+      id={id}
+      title="Orchestration workflow"
+      height={724}
+      description="Supply approved executable tasks or a tracker to Orchestrate. It reads evidence and proposes task-to-PR groups, dependencies, boundaries, and landing order. The user reviews the proposal. Revision-only feedback returns to the proposal and pauses again; approval authorizes execution. No worktrees, source edits, or worker dispatches occur before approval. Ready independent groups can run in parallel, each with one owner and an isolated worktree. Dependent work waits for verified applicable prerequisite content and contract evidence, not merely a published PR. Requested delivery produces draft PRs, stacked for dependent work as applicable. Verify delivery identity and acceptance separately. Only humans merge."
+      caption="Approval gates execution. Verified prerequisite content gates dependent work. Draft publication is not completion: acceptance and delivery identity are checked separately, and only humans merge."
+    >
+      <Group y={326} height={174} title="Independent groups" />
+      <Connectors id={id}>
+        <path d="M 380 108 V 190" />
+        <path d="M 220 231 H 100 V 67 H 220" />
+        <path d="M 320 272 V 310 H 190 V 380" />
+        <path d="M 440 272 V 310 H 570 V 380" />
+        <path d="M 190 478 V 528 H 320 V 568" />
+        <path d="M 570 478 V 528 H 440 V 568" />
+        <path d="M 380 650 V 680" />
+      </Connectors>
+      <Label x={380} y={157}>review proposal</Label>
+      <Label x={100} y={157}>revise</Label>
+      <Label x={380} y={304}>approved</Label>
+      <Node x={220} y={26} width={320} height={82} title="Select + propose"
+        lines={["/woostack-orchestrate", "PR groups + dependencies + landing order"]} />
+      <Node x={220} y={190} width={320} height={82} title="User approval"
+        lines={["Review scope and parallel paths", "Revision-only feedback pauses again"]} accent />
+      <Node x={50} y={380} width={280} height={98} title="Task owner A"
+        lines={["Own worktree", "Implement + verify", "One active writer"]} />
+      <Node x={430} y={380} width={280} height={98} title="Task owner B"
+        lines={["Own worktree", "Implement + verify", "One active writer"]} />
+      <Node x={220} y={568} width={320} height={82} title="Deliver + verify"
+        lines={["Draft PRs; stack dependents as applicable", "Verify acceptance and delivery identity"]} />
+      <Label x={380} y={708}>Human review and merge</Label>
+    </Diagram>
   );
 }
 
