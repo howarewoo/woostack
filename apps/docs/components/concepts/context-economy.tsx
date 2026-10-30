@@ -1,79 +1,32 @@
-/**
- * Context-economy diagram for the Core concepts and Context management pages.
- *
- * Three mechanisms feed one scarce resource: the agent's working context.
- * Scoped instructions, shell scripts, and subagents each keep heavy work out
- * of the main context window.
- * Responsive semantic HTML with Fumadocs theme utilities.
- */
-export function ContextEconomy() {
-  const mechanisms = [
-    {
-      title: "Scoped instructions",
-      sub: "Load only applicable rules for the active workflow.",
-      tag: "Rules",
-    },
-    {
-      title: "Scripts compute",
-      sub: "Run heavy calculation in shell; return small text output.",
-      tag: "Execution",
-    },
-    {
-      title: "Subagents isolate",
-      sub: "Perform bounded task in separate context; return summary.",
-      tag: "Isolation",
-    },
-  ];
+import { Connectors, Diagram, Group, Label, Node } from "../diagram";
 
+export function ContextEconomy({ id = "context-economy" }: { id?: string } = {}) {
   return (
-    <figure className="not-prose my-6 rounded-xl border border-fd-border bg-fd-card p-4 sm:p-6">
-      <div className="flex flex-col gap-4">
-        <div>
-          <h3 className="text-sm font-semibold text-fd-foreground">
-            Context economy: three mechanisms, one scarce resource
-          </h3>
-          <p className="text-xs text-fd-muted-foreground mt-0.5">
-            Keep working memory focused by isolating heavy operations outside the main context
-            window.
-          </p>
-        </div>
-
-        {/* Three mechanism cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          {mechanisms.map((m) => (
-            <div
-              key={m.title}
-              className="flex flex-col justify-between rounded-lg border border-fd-border bg-fd-card/60 p-3.5"
-            >
-              <div>
-                <span className="rounded bg-fd-muted px-2 py-0.5 text-xs font-semibold text-fd-muted-foreground">
-                  {m.tag}
-                </span>
-                <h4 className="mt-2 text-sm font-semibold text-fd-foreground">{m.title}</h4>
-              </div>
-              <p className="mt-2 text-xs text-fd-muted-foreground">{m.sub}</p>
-            </div>
-          ))}
-        </div>
-
-        {/* Downward connector */}
-        <div className="flex items-center justify-center gap-2 text-xs font-medium text-fd-muted-foreground">
-          <span className="hidden sm:inline">Protects</span>
-          <span aria-hidden="true">↓</span>
-        </div>
-
-        {/* The scarce resource */}
-        <div className="rounded-lg border border-fd-primary/30 bg-fd-primary/5 p-4 text-center">
-          <div className="text-xs font-semibold uppercase tracking-wider text-fd-primary">
-            Scarce Resource
-          </div>
-          <div className="mt-1 text-sm font-bold text-fd-foreground">Agent working context</div>
-          <p className="mt-1 text-xs text-fd-muted-foreground">
-            Kept focused on user goals, active decisions, and verified evidence.
-          </p>
-        </div>
-      </div>
-    </figure>
+    <Diagram
+      id={id}
+      title="Keep the working context focused"
+      height={452}
+      description="Three mechanisms limit what enters the agent's working context. Scoped instructions supply only applicable rules. Scripts do heavy computation in the shell and return compact text output. Subagents perform bounded tasks in separate contexts and return summaries. These inputs keep the main context focused on user goals, active decisions, and verified evidence rather than unrelated instructions or heavy intermediate work."
+      caption="Arrows show what enters the main context. Heavy computation and delegated work stay outside it; the agent receives applicable rules, compact results, and summaries."
+    >
+      <Group y={20} height={156} title="Keep heavy or unrelated material outside the main context" />
+      <Connectors id={id}>
+        <path d="M 148 154 V 238 H 300 V 336" />
+        <path d="M 380 154 V 336" />
+        <path d="M 612 154 V 238 H 460 V 336" />
+      </Connectors>
+      <Label x={148} y={211}>applicable rules</Label>
+      <Label x={380} y={211}>compact output</Label>
+      <Label x={612} y={211}>task summary</Label>
+      <Node x={48} y={72} height={82} title="Scoped instructions"
+        lines={["Load relevant rules", "for the active workflow"]} />
+      <Node x={280} y={72} height={82} title="Scripts compute"
+        lines={["Heavy calculation", "runs in the shell"]} />
+      <Node x={512} y={72} height={82} title="Subagents isolate"
+        lines={["Bounded tasks", "in separate contexts"]} />
+      <Node x={210} y={336} width={340} height={82} title="Agent working context"
+        lines={["User goals + active decisions", "Verified evidence"]} accent />
+    </Diagram>
   );
 }
 

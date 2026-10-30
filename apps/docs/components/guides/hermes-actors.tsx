@@ -1,85 +1,35 @@
-/**
- * HermesActors component for the Use Hermes with OMP guide.
- *
- * Details the three actor boundaries: Hermes, Responsible User, and OMP Coding Session.
- * Responsive semantic HTML with Fumadocs theme utilities.
- */
-export function HermesActors() {
-  const actors = [
-    {
-      role: "Hermes",
-      subtitle: "External engineer",
-      can: [
-        "Coordinates process and reviews diffs",
-        "Checks contract compliance and blockers",
-        "Requests in-scope corrections",
-      ],
-      cannot: "Cannot edit source, run builds, commit, push, or merge",
-      badge: "Review & Coordinate",
-    },
-    {
-      role: "Responsible user",
-      subtitle: "Decision authority",
-      can: [
-        "Approves scope changes and new tasks",
-        "Answers pending questions (Asks)",
-        "Retains exclusive merge authority",
-      ],
-      cannot: "Answers relayed live and verbatim through the process",
-      badge: "Authority",
-    },
-    {
-      role: "OMP session",
-      subtitle: "Coding harness",
-      can: [
-        "Executes agent skills and tools",
-        "Edits source code and runs tests",
-        "Maintains persistent process state",
-      ],
-      cannot: "Controlled by OMP profile and active tool schema",
-      badge: "Execution",
-    },
-  ];
+import { Connectors, Diagram, Label, Node } from "../diagram";
 
+export function HermesActors({ id = "hermes-actors" }: { id?: string } = {}) {
   return (
-    <figure className="not-prose my-6 rounded-xl border border-fd-border bg-fd-card p-4 sm:p-6">
-      <div className="flex flex-col gap-4">
-        <div>
-          <h3 className="text-sm font-semibold text-fd-foreground">
-            Hermes and OMP actor boundaries
-          </h3>
-          <p className="text-xs text-fd-muted-foreground mt-0.5">
-            Strict separation between external coordination, user decisions, and harness
-            implementation.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {actors.map((a) => (
-            <div
-              key={a.role}
-              className="flex flex-col justify-between rounded-lg border border-fd-border bg-fd-card/60 p-4"
-            >
-              <div>
-                <span className="rounded bg-fd-muted px-2 py-0.5 text-xs font-semibold text-fd-muted-foreground">
-                  {a.badge}
-                </span>
-                <h4 className="mt-2 text-sm font-semibold text-fd-foreground">{a.role}</h4>
-                <p className="text-xs text-fd-muted-foreground">{a.subtitle}</p>
-                <ul className="mt-3 space-y-1 text-xs text-fd-foreground">
-                  {a.can.map((item) => (
-                    <li key={item}>• {item}</li>
-                  ))}
-                </ul>
-              </div>
-              <p className="mt-3 border-t border-fd-border/60 pt-2 text-xs font-medium text-fd-muted-foreground">
-                {a.cannot}
-              </p>
-            </div>
-          ))}
-        </div>
-      </div>
-    </figure>
+    <Diagram
+      id={id}
+      title="Hermes and OMP actor boundaries"
+      height={628}
+      description="The responsible user approves scope changes and new tasks, answers pending questions, and retains exclusive merge authority. Hermes coordinates the process, reviews diffs, checks contract compliance and blockers, and requests in-scope corrections. It relays questions to the user and returns the user's live answers verbatim to the persistent OMP coding session. OMP executes skills and tools, edits source, and runs tests under its active profile and tool schema, then returns progress, evidence, and questions. Hermes cannot edit source, run builds, commit, push, or merge."
+      caption="Arrows show messages and evidence, not shared tool permissions. Hermes coordinates; OMP implements; the responsible user authorizes changes and alone may merge."
+    >
+      <Connectors id={id}>
+        <path d="M 220 304 H 112 V 76 H 220" />
+        <path d="M 540 76 H 648 V 304 H 540" />
+        <path d="M 220 548 H 112 V 336 H 220" />
+        <path d="M 540 336 H 648 V 548 H 540" />
+      </Connectors>
+      <Label x={112} y={178}>asks / scope</Label>
+      <Label x={112} y={198}>decisions</Label>
+      <Label x={648} y={178}>live answers</Label>
+      <Label x={648} y={198}>and approvals</Label>
+      <Label x={112} y={422}>progress / diffs</Label>
+      <Label x={112} y={442}>evidence / asks</Label>
+      <Label x={648} y={414}>verbatim answers</Label>
+      <Label x={648} y={434}>in-scope corrections</Label>
+      <Node x={220} y={26} width={320} height={100} title="Responsible user"
+        lines={["Scope changes + new tasks", "Answers pending questions", "Exclusive merge authority"]} accent />
+      <Node x={220} y={270} width={320} height={100} title="Hermes"
+        lines={["Coordinate + review diffs", "Check contracts + blockers", "No source edits, builds, or Git writes"]} />
+      <Node x={220} y={498} width={320} height={100} title="Persistent OMP session"
+        lines={["Execute skills + tools", "Edit source + run tests", "Active profile and tool schema"]} />
+    </Diagram>
   );
 }
 
