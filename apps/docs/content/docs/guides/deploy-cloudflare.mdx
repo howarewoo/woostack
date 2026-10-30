@@ -21,7 +21,7 @@ example hostnames with your own in the build, Worker dispatch, and deployment co
 
 | Host | Request | Handler |
 | --- | --- | --- |
-| `example.com` | `/`, `/pricing/`, existing `/blog/*`, and public assets | Astro-generated files selected by the Worker |
+| `example.com` | `/`, `/pricing/`, existing `/blog/*` and `/docs/*`, and public assets | Astro-generated files selected by the Worker |
 | `app.example.com` | `/` and HTML navigation such as `/settings` | SPA shell, then TanStack Router in the browser |
 | `app.example.com` | `/assets/*` and other existing app files | SPA assets selected by the Worker |
 | `app.example.com` | `/api` and `/api/*` | Hono, including API errors and 404 responses |
@@ -36,6 +36,13 @@ Build both frontends for the root of their respective hosts. Keep Vite's
 at `/`; do not use `/app/` as a public base. Set Astro's `site` to `https://example.com`.
 For the mapping below, use Astro's
 [`build.format: "directory"` and `trailingSlash: "always"`](https://docs.astro.build/en/reference/configuration-reference/#buildformat).
+
+For documentation, integrate [Fumadocs with Astro](https://www.fumadocs.dev/docs/manual-installation/astro)
+in `apps/site` and prerender pages under `/docs/`. Generate the
+[static search index](https://www.fumadocs.dev/docs/deploying/static) in that public build
+and configure the search client to load it from a root-host path such as
+`/docs/search-index.json`, not the integration example's `/api/search`. This topology reserves
+`/api` for the app host. Include the index, docs HTML, and client assets in `apps/site/dist/`.
 
 Assemble the outputs into one clean, generated directory, preserving separate namespaces:
 
@@ -115,6 +122,8 @@ Use these internal lookup paths with `html_handling: "none"`:
 | --- | --- |
 | `https://example.com/` | `/site/index.html` |
 | `https://example.com/pricing/` | `/site/pricing/index.html` |
+| `https://example.com/docs/getting-started/` | `/site/docs/getting-started/index.html` |
+| `https://example.com/docs/search-index.json` | `/site/docs/search-index.json` |
 | `https://example.com/_astro/main.css` | `/site/_astro/main.css` |
 | `https://app.example.com/assets/main.js` | `/app/assets/main.js` |
 | `https://app.example.com/settings` (HTML navigation, no asset) | `/app/index.html` |
@@ -158,7 +167,8 @@ again in a trusted preview, including managed-auth callbacks and cookie scope.
 | Check | Expected result |
 | --- | --- |
 | Fetch `/` on both hosts without executing JavaScript | Root host returns Astro content and metadata; app host returns the SPA shell, never the public homepage |
-| Fetch a blog page, `robots.txt`, and sitemaps on the root host | Canonicals and indexable URLs use `https://example.com`, without internal prefixes or app/API URLs |
+| Fetch a blog page, a documentation page, `robots.txt`, and sitemaps on the root host | Canonicals and indexable URLs use `https://example.com`, without internal prefixes or app/API URLs |
+| Open a docs deep link without JavaScript, then enable JavaScript and use search | Article content and metadata are in the initial HTML; search loads its static index from the root host and returns working docs links |
 | Open `app.example.com/settings` directly, then reload | SPA loads with assets from the app host and working TanStack Router navigation |
 | Call known and unknown `/api/*` routes on the app host; repeat on the root host | App host returns API results or API 404; root host never exposes Hono |
 | Request a missing public page, `/_astro/missing.js`, and app-host `/assets/missing.js` | HTTP 404, including direct browser navigation to missing files |

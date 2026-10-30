@@ -15,6 +15,7 @@ My preferred stack for TypeScript web applications, not a requirement for using 
 | Monorepo & packages | pnpm 10 workspaces; Turborepo 2 when task orchestration and caching are useful |
 | SaaS & SPA frontend | React, Vite, TanStack Router (`@tanstack/react-router`); client-rendered by default |
 | Public-facing sites | Astro for landing pages, marketing sites, and blogs; static generation by default |
+| Documentation | Fumadocs + Astro for customizable React/MDX documentation; prerendered HTML and static search |
 | UI & styling | Tailwind CSS 4, shared shadcn/ui components using Base UI primitives, Lucide icons |
 | Optional UI utilities | Recharts, date-fns, Embla Carousel, React Day Picker |
 | Server state & API client | TanStack Query 5 for remote-data caching, oRPC 1.16 for typed API calls |
@@ -46,6 +47,16 @@ interactive islands, such as a pricing calculator, without turning the whole sit
 Request-time server-side rendering (SSR) is reserved for pages whose initial HTML needs
 fresh or request-specific data. It requires an adapter and server-handler integration,
 not just a different client router.
+
+For public documentation, [Fumadocs + Astro](https://www.fumadocs.dev/docs/manual-installation/astro)
+combines customizable React layouts and MDX components with Astro's page routing and static
+generation. Fumadocs supplies the documentation UI; Astro owns the site build. The recommended
+integration is Astro, not Next.js.
+
+Documentation normally lives at `example.com/docs/` in the same public-site build as marketing
+and blog pages. Articles are prerendered and the search index is generated at build time;
+interactive Fumadocs UI still uses React islands. Documentation shares the public site's
+assets and GitHub Actions release, without a separate Worker or deployment pipeline.
 
 ## Runtime architecture
 
@@ -98,7 +109,7 @@ such as `Article` for a blog post, must match visible content; it does not guara
 Astro's `site` setting is `https://example.com` for
 [`@astrojs/sitemap`](https://docs.astro.build/en/guides/integrations-guide/sitemap/).
 Public canonical URLs and sitemap entries use that root domain, never the internal asset
-prefixes. Only indexable marketing and blog URLs belong in the public sitemap, not
+prefixes. Only indexable marketing, blog, and documentation URLs belong in the public sitemap, not
 `app.example.com` screens, API routes, previews, or noncanonical duplicates.
 Each hostname has its own [`robots.txt`](https://developers.google.com/search/docs/crawling-indexing/robots/robots_txt);
 the root domain's file advertises the public sitemap and does not control the app subdomain.
