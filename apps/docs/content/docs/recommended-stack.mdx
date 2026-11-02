@@ -1,11 +1,12 @@
 ---
 title: Recommended tech stack
-description: My preferred stack for TypeScript web applications, with optional tools added as needed.
+description: My preferred stack for TypeScript web applications, with Expo for progressive native mobile adoption.
 ---
 
 import { StackRuntimeDiagram, StackDeliveryDiagram } from "../../components/stack-diagrams";
 
-My preferred stack for TypeScript web applications, not a requirement for using Woostack.
+My preferred stack starts with TypeScript web applications and adds native mobile apps
+when needed. It is not a requirement for using Woostack.
 
 ## Stack
 
@@ -14,9 +15,10 @@ My preferred stack for TypeScript web applications, not a requirement for using 
 | Language & runtime | TypeScript 5.9, ES modules; Node.js 24 for tooling and Node deployments |
 | Monorepo & packages | pnpm 10 workspaces; Turborepo 2 when task orchestration and caching are useful |
 | SaaS & SPA frontend | React, Vite, TanStack Router (`@tanstack/react-router`); client-rendered by default |
+| Mobile apps (optional) | React Native, Expo, Expo Router; DOM components for incremental web-to-native migration |
 | Public-facing sites | Astro for landing pages, marketing sites, and blogs; static generation by default |
 | Documentation | Fumadocs + Astro for customizable React/MDX documentation; prerendered HTML and static search |
-| UI & styling | Tailwind CSS 4, shared shadcn/ui components using Base UI primitives, Lucide icons |
+| Web UI & styling | Tailwind CSS 4, shared shadcn/ui components using Base UI primitives, Lucide icons |
 | Optional UI utilities | Recharts, date-fns, Embla Carousel, React Day Picker |
 | Internationalization (optional) | i18next + react-i18next for React web and React Native; Astro native i18n routing for public sites |
 | Server state & API client | TanStack Query 5 for remote-data caching, oRPC 1.16 for typed API calls |
@@ -27,7 +29,7 @@ My preferred stack for TypeScript web applications, not a requirement for using 
 | Testing | Vitest, React Testing Library with a DOM environment, Playwright for critical browser journeys; production/development/Workers smoke scripts |
 | Standalone Node checks | Native Node.js test runner, tsx; no duplication of Vitest suites |
 | Linting & formatting | Oxlint, @shadcn/lint, Oxfmt |
-| Deployment & CI | One Cloudflare Worker for public-site assets, SPA assets, and the Hono API; Wrangler and GitHub Actions for CI/CD |
+| Web deployment & CI | One Cloudflare Worker for public-site assets, SPA assets, and the Hono API; Wrangler and GitHub Actions for CI/CD |
 | Local infrastructure | Docker Compose, PostgreSQL 17, local HTTPS Auth fixture, Wrangler local execution |
 
 ## Application boundaries and rendering
@@ -59,6 +61,53 @@ and blog pages. Articles are prerendered and the search index is generated at bu
 interactive Fumadocs UI still uses React islands. Documentation shares the public site's
 assets and GitHub Actions release, without a separate Worker or deployment pipeline.
 
+## Mobile apps
+
+The default starting point is a React/Vite web app and progressive web app (PWA).
+When app-store distribution is warranted and a native experience is the long-term goal,
+use React Native with Expo as the first mobile platform. Skip Capacitor as an intermediate
+step before a planned React Native migration. There is no need to build a mobile app
+before the product warrants one.
+
+The mobile app lives in a separate workspace app, with
+[Expo Router](https://docs.expo.dev/router/introduction/) owning native stacks, tabs, and
+modals from the first mobile release. TanStack Router remains the browser router.
+[Expo DOM components](https://docs.expo.dev/guides/dom-components/) use `'use dom'` to reuse
+existing web screens or self-contained sections inside that native shell. They run in
+WebViews, not native controls; the benefit is incremental replacement without changing
+mobile platforms, not an immediate native performance improvement.
+
+Native UI replaces web screens where it improves the experience most, such as frequent
+workflows, keyboard-heavy forms, lists, and gestures. Rich-text rendering or infrequently
+used screens can remain DOM components when replacement adds little value. A complete
+native rewrite is not a prerequisite for the first mobile release.
+
+### Code sharing and integration boundaries
+
+Share platform-independent business logic, types, validation, API contracts, and translation
+catalogs where useful. Web UI, including shadcn/ui and browser CSS, does not become native UI.
+DOM components use separate runtimes; React context, global state, and query caches are not
+automatically shared with native screens. Small serializable props and asynchronous native
+actions keep that boundary explicit. Native views cannot be nested inside DOM components.
+Device integrations belong on the native side so they survive screen replacement.
+
+Expo CLI and Metro bundle reused web source; an unchanged Vite build is not the input.
+The existing Cloudflare-hosted backend stays in place, with the mobile app calling its
+configured HTTPS API rather than assuming same-origin `/api` requests. Authentication,
+redirects, and persistence need platform-specific integration. A representative flow on a
+real iPhone should verify login, session restoration, logout, and authenticated requests
+before substantial UI migration.
+
+### Mobile delivery
+
+Mobile binaries have a separate release lifecycle from the web deployment. Prefer
+[EAS Build](https://docs.expo.dev/deploy/build-project/) and
+[EAS Submit](https://docs.expo.dev/deploy/submit-to-app-stores/) for native builds and store
+uploads; the public site, PWA, and API keep their existing Cloudflare deployment.
+Apple's [minimum-functionality guideline](https://developer.apple.com/app-store/review/guidelines/#minimum-functionality)
+still applies: Expo or a native navigation bar does not guarantee approval for a repackaged
+website.
+
 ## Internationalization
 
 When multilingual support is required, use [i18next](https://www.i18next.com/) with
@@ -78,7 +127,7 @@ stay in the content layer.
 
 ## Runtime architecture
 
-Deploy both apps and the Hono API as **one Cloudflare Worker per environment**, with
+Deploy the public site, web app, and Hono API as **one Cloudflare Worker per environment**, with
 [two Custom Domains](https://developers.cloudflare.com/workers/configuration/routing/custom-domains/):
 `example.com` for the Astro public site and `app.example.com` for the SaaS application
 and its `/api` endpoints. The app uses `/` as its route base, not `/app/`.
@@ -96,7 +145,7 @@ release unit, but the two apps share deployment timing and Worker configuration.
 
 ### Project configuration and delivery
 
-Separate workspace apps feed one GitHub Actions pipeline and one Wrangler deployment.
+The web workspace apps feed one GitHub Actions pipeline and one Wrangler deployment.
 The paths below are a downstream project example, not this repository's app layout.
 
 <StackDeliveryDiagram id="stack-delivery" />
