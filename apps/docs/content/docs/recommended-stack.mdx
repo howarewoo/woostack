@@ -18,6 +18,7 @@ My preferred stack for TypeScript web applications, not a requirement for using 
 | Documentation | Fumadocs + Astro for customizable React/MDX documentation; prerendered HTML and static search |
 | UI & styling | Tailwind CSS 4, shared shadcn/ui components using Base UI primitives, Lucide icons |
 | Optional UI utilities | Recharts, date-fns, Embla Carousel, React Day Picker |
+| Internationalization (optional) | i18next + react-i18next for React web and React Native; Astro native i18n routing for public sites |
 | Server state & API client | TanStack Query 5 for remote-data caching, oRPC 1.16 for typed API calls |
 | Backend & validation | Hono 4, oRPC procedures, Zod 4 |
 | Database | Neon PostgreSQL, Drizzle ORM, Drizzle Kit migrations, pg; Hyperdrive for Workers connections |
@@ -57,6 +58,23 @@ Documentation normally lives at `example.com/docs/` in the same public-site buil
 and blog pages. Articles are prerendered and the search index is generated at build time;
 interactive Fumadocs UI still uses React islands. Documentation shares the public site's
 assets and GitHub Actions release, without a separate Worker or deployment pipeline.
+
+## Internationalization
+
+When multilingual support is required, use [i18next](https://www.i18next.com/) with
+[react-i18next](https://react.i18next.com/) for React/Vite and React Native applications.
+Share translation catalogs, supported locales, and fallback configuration where useful;
+keep initialization, locale detection, and persistence in each application. Private SaaS
+routes do not need locale prefixes just to translate their interface.
+
+Mobile apps should [bundle the translations](https://www.i18next.com/how-to/add-or-load-translations)
+needed at startup so they remain available offline. A hosted translation service is optional.
+
+For public sites, [Astro's native i18n routing](https://docs.astro.build/en/guides/internationalization/)
+owns localized URLs. Keep static generation as the default, using i18next core for interface
+strings with an [explicit page locale](https://www.i18next.com/overview/api#getfixedt) rather
+than changing a shared global language during rendering. Translated articles and documentation
+stay in the content layer.
 
 ## Runtime architecture
 
