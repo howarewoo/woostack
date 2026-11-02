@@ -17,6 +17,7 @@ when needed. It is not a requirement for using Woostack.
 | SaaS & SPA frontend | React, Vite, TanStack Router (`@tanstack/react-router`); client-rendered by default |
 | Mobile apps (optional) | React Native, Expo, Expo Router; DOM components for incremental web-to-native migration |
 | Public-facing sites | Astro for landing pages, marketing sites, and blogs; static generation by default |
+| Blogs | Git-backed Markdown with Astro Content Collections; MDX only for embedded components |
 | Documentation | Fumadocs + Astro for customizable React/MDX documentation; prerendered HTML and static search |
 | Web UI & styling | Tailwind CSS 4, shared shadcn/ui components using Base UI primitives, Lucide icons |
 | Optional UI utilities | Recharts, date-fns, Embla Carousel, React Day Picker |
@@ -60,6 +61,43 @@ Documentation normally lives at `example.com/docs/` in the same public-site buil
 and blog pages. Articles are prerendered and the search index is generated at build time;
 interactive Fumadocs UI still uses React islands. Documentation shares the public site's
 assets and GitHub Actions release, without a separate Worker or deployment pipeline.
+
+## Blogs
+
+Use Git-backed Markdown with [Astro Content Collections](https://docs.astro.build/en/guides/content-collections/)
+for blogs. Posts belong in the existing Astro public-site app at `example.com/blog/`,
+alongside marketing pages. Astro renders complete article HTML at build time, keeping
+ordinary posts independent of the SaaS API and database. A static blog needs no SSR adapter
+or separate deployment.
+
+Prefer plain `.md` files; use [MDX](https://docs.astro.build/en/guides/markdown-content/)
+only when a post needs embedded components. A shared Astro layout owns article styling,
+publication dates, and the [SEO metadata](#seo), keeping ordinary writing independent
+of component imports.
+
+A `blog` collection can load posts from `src/content/blog/` with Astro's built-in `glob()`
+loader. Its schema validates frontmatter and provides typed content queries. Keep the
+recommended schema small: require `title`, `description`, and `pubDate`; default `draft`
+to `false`; make `updatedDate`, tags, and a cover image optional. Filename-derived content
+IDs provide stable article URLs. Renaming a published URL requires a redirect.
+
+A shared route template uses `getStaticPaths()` and `render()` to generate article pages.
+Exclude drafts consistently from production article routes, the blog index, RSS, sitemap
+entries, and any search index. Hiding a draft from the index alone does not
+prevent its page from being published. Generate feeds with
+[`@astrojs/rss`](https://docs.astro.build/en/recipes/rss/) and include published article
+URLs in the existing [`@astrojs/sitemap`](https://docs.astro.build/en/guides/integrations-guide/sitemap/)
+setup.
+
+Publishing follows the existing pull-request and GitHub Actions workflow: merge the
+content change, rebuild the public site, and deploy its assets with the same Cloudflare
+Worker. When scheduling by `pubDate`, exclude future-dated posts everywhere the published
+filter is used. Reaching the date alone does not update static output; automatic publication
+also needs a scheduled build and deployment.
+
+A CMS becomes useful when contributors need browser-based editing, media management,
+or an editorial workflow independent of repository releases. Git-backed Markdown remains
+the default; changing the authoring workflow does not require abandoning static rendering.
 
 ## Mobile apps
 
