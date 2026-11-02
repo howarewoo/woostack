@@ -219,7 +219,7 @@ transaction hold connections while doing no database work. Larger pools can make
 an overloaded database slower rather than increase throughput.
 
 [Hyperdrive connection pooling](https://developers.cloudflare.com/hyperdrive/configuration/tune-connection-pool/)
-reuses origin connections across Cloudflare's edge network. Its connection budget needs room for
+reuses origin connections across Workers. Its connection budget needs room for
 other database clients and every Hyperdrive configuration targeting that database.
 [Neon autoscaling](https://neon.com/docs/introduction/autoscaling) adds compute
 within configured bounds when efficient queries still saturate the database.
