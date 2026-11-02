@@ -251,6 +251,17 @@ without a host-blocking question; leave user-owned scope and permissions undecid
 With no runnable authorized work and no demonstrably healthy pending work, return a final blocked
 disposition naming unmet acceptance and the exact pending decision or resumption condition, not
 a blocking interview or diagnostic loop.
+
+For requested PR creation or updates with meaningful user-visible changes, capture the running
+implementation with available browser/headless-browser or native tools before stopping task-owned
+runtime resources. Use screenshots for static changes and short recordings for interactions; reuse
+applicable verification captures and refresh them when depicted behavior changes. Keep media outside
+the checkout or in a verified gitignored directory, inspect it for sensitive content, and pass the
+files plus a brief scenario description to the publication owner for
+[PR visual evidence](references/delivery.md#pr-visual-evidence). Changes with no meaningful visual
+result need no media. Report unavailable capture as unmet evidence, not a reason to invent output,
+add capture tooling, or claim verification.
+
 Track temporary resources and stop task-owned resources when their scenario ends. Never publish
 secrets or personal data, or commit secrets or generated app files.
 

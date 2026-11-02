@@ -7,7 +7,10 @@ import { ShipChangeFlow } from "@/components/guides/ship-change-flow";
 
 Use this guide when your task and non-goals fit into one reviewable pull request. You need
 a clear plan or exact issue URL, repository access, and a GitHub capability for creating
-pull requests.
+pull requests. For visible changes, also provide a way to capture the running application and an
+authorized GitHub attachment uploader. Supported, authenticated GitHub CLI uploads are preferred;
+an existing authorized equivalent or already-authenticated browser session can be used when CLI
+upload support is unavailable. The assistant does not install tools or acquire credentials as a fallback.
 
 Because this guide explicitly requests pull request delivery, your assistant will edit source
 code, run relevant checks, and commit and publish the result as a draft. A natural-language
@@ -62,6 +65,10 @@ After delivery, inspect the draft pull request on GitHub:
 
 - **Draft PR state:** Verify the pull request URL, current head commit, approved base (the trunk branch
   or an explicitly approved predecessor), body description, and open draft state against Git and GitHub.
+- **Visual evidence:** For meaningful visible changes, check that screenshots or a short recording
+  of the running result render in the verification section and still match the changed behavior.
+  Media stays outside Git. Missing capture or upload must be disclosed; backend-only work needs no
+  artificial screenshots. On PR updates, refresh stale evidence rather than duplicating it.
 - **Issue linking:** If you selected an issue, verify that closing keywords appear only when the
   pull request fully resolves that issue.
 - **Merge control:** Only a human merges the pull request. Woostack workflows never merge, auto-merge,
