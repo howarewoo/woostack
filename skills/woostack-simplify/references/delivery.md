@@ -51,6 +51,8 @@ addressed exact verified issues; partial work uses a non-closing reference. Pres
 human text and existing equivalent lines. A closing reference acts after merge, not at draft
 publication. Issue context grants no publication authority and never implies Project writes.
 
+Include supplied [visual evidence](#pr-visual-evidence) when creating or updating a PR.
+
 Register [native stack membership](source-control.md#native-stack-membership) only when authorized
 and requested or required. Required unverified membership remains incomplete. Rewrites, restacks,
 and readiness changes need their own authorized maintenance scope, including recoverable heads
@@ -66,6 +68,31 @@ response. Backend failures stop the operation instead of switching credentials o
 For an explicitly requested issue note, reuse an equivalent existing note or write and read back
 the exact delivery facts, preserving other content. Report note failure separately from a proven
 commit or PR. No issue status, assignment, labels, or Project membership changes are implicit.
+
+## PR visual evidence
+
+Attach supplied screenshots or recordings to the PR's verification section as GitHub-hosted media,
+with descriptive image alt text or a brief video description. Inspect media for secrets and personal
+data before uploading. Never commit delivery media or browser authentication state. On updates,
+reuse applicable attachments and replace stale agent-authored references without duplicating uploads
+or overwriting human content.
+
+Prefer [GitHub CLI native attachments](https://docs.github.com/en/github-cli/github-cli/attaching-files-with-github-cli)
+with `gh pr create --attach` or `gh pr edit --attach`, after checking installed command support and
+existing authorized authentication. This preference applies only to uploads, not ordinary GitHub
+operations. If that capability is unavailable before an upload attempt, use an existing authorized
+equivalent uploader or already-authenticated GitHub browser/headless-browser session. Do not provision
+tooling, acquire credentials, or introduce another hosting service solely as a fallback.
+
+On failed, denied, partial, or unknown uploads, stop the operation and follow the existing failure
+and uncertain-write safeguards; do not switch transport or credentials. Read back the exact PR and
+successful attachments before any retry; a nonzero CLI exit can still mean a PR was created or
+updated. Never blindly repeat a create or re-upload verified media. Verify that hosted references
+resolve and the media renders before reporting attachment delivery.
+
+Report missing or unverified capture/upload and the reason separately from a proven PR write.
+Missing evidence remains unmet; an otherwise-authorized draft may disclose it only when the active
+workflow's publication gates permit.
 
 ## Result evidence and limits
 
