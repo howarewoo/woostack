@@ -1,8 +1,12 @@
 {
   "title": "Docs",
   "pages": [
-    "getting-started",
+    "index",
     "recommended-stack",
+    "agent-skills",
+    "autonomous-agents",
+    "---Agent skills documentation---",
+    "getting-started",
     "guides",
     "concepts",
     "configuration",

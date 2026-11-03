@@ -9,9 +9,10 @@ Users make product decisions and authorize work.
 
 ## Product Purpose
 
-Woostack publishes skills that guide assistants to inspect repository evidence
-and verify outcomes. The [README](README.md) owns the project overview and
-installation instructions.
+WooStack brings together a recommended tech stack, skills for coding agents, and an autonomous
+agent setup in development. The skills guide assistants to inspect repository evidence and verify
+outcomes. The stack and skills can be adopted independently; neither requires the autonomous setup.
+The [README](README.md) owns the project overview and skill installation instructions.
 
 ## Capabilities and Constraints
 
@@ -35,8 +36,10 @@ maintained from one canonical source. No sibling Woostack workflow is required.
 [Design](skills/woostack-design/SKILL.md#selected-skills) requires its selected external skills;
 installation and execution remain subject to its dependency and permission boundaries.
 
-Woostack is a skills collection with two supporting applications, not a place to scaffold
-unrelated products. Application source is confined to `apps/docs/` and
+The implemented repository contains the skills collection, stack documentation, and two supporting
+applications. The autonomous setup remains in development, with installation and configuration
+not yet documented. This repository is not a place to scaffold unrelated products.
+Application source is confined to `apps/docs/` and
 `apps/design/`; supporting skill assets live with their owning skills.
 A pnpm workspace and Turborepo coordinate the apps with a shared root lockfile,
 while each app owns its dependencies.
