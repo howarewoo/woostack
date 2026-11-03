@@ -1,0 +1,66 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-03T21:23:00Z",
+  "title": "Design System: WooStack website",
+  "extensions": {
+    "typographyMeta": {
+      "display": {
+        "displayName": "Archivo Black",
+        "purpose": "Wordmark and home headline"
+      },
+      "body": {
+        "displayName": "DM Sans",
+        "purpose": "Prose, actions and docs navigation"
+      },
+      "code": {
+        "displayName": "IBM Plex Mono",
+        "purpose": "Commands and code"
+      }
+    },
+    "motion": [
+      {
+        "name": "action-feedback",
+        "value": "background-color 140ms ease-out, border-color 140ms ease-out",
+        "purpose": "Home action feedback, removed for reduced motion"
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "home-stacked",
+        "value": "700px"
+      },
+      {
+        "name": "home-intermediate",
+        "value": "1000px"
+      },
+      {
+        "name": "home-wide",
+        "value": "1440px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary action",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Navigate to the getting-started tutorial",
+      "html": "<a class=\"primary\" href=\"/docs/getting-started\">Get started</a>",
+      "css": ".primary { display:inline-flex; align-items:center; min-height:48px; padding:12px 20px; background:#365BE8; color:white; border-radius:0; font-weight:600; } .primary:hover { background:#2646D0; } .primary:focus-visible { outline:3px solid #8AA4FF; outline-offset:4px; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "Geometric identity, deliberate work",
+    "overview": "A recognizable W and display headline lead into readable, ruled content. Docs retain familiar reading and navigation controls.",
+    "keyCharacteristics": ["Geometric W", "Ruled composition", "Local licensed typography"],
+    "rules": [
+      {
+        "name": "Separate fill and text roles",
+        "body": "Cobalt fills actions; mist carries dark-theme links and focus.",
+        "section": "colors"
+      }
+    ],
+    "dos": ["Preserve semantic docs states and keyboard controls"],
+    "donts": ["Add design specimens or simulated agent activity"]
+  }
+}
