@@ -23,6 +23,7 @@ when needed. It is not a requirement for using Woostack.
 | Internationalization (optional) | i18next + react-i18next for React web and React Native; Astro native i18n routing for public sites |
 | Server state & API client | TanStack Query 5 for remote-data caching, oRPC 1.16 for typed API calls |
 | Backend & validation | Hono 4, oRPC procedures, Zod 4 |
+| AI provider library | TanStack AI (`@tanstack/ai`) with direct provider adapters |
 | Database | Neon PostgreSQL, Drizzle ORM, Drizzle Kit migrations, pg; Hyperdrive for Workers connections |
 | Authentication | Managed Neon Auth; local Better Auth fixture; managed preview checks for production-auth integration |
 | Component catalog | Storybook 10 with React/Vite |
@@ -124,6 +125,23 @@ owns localized URLs. Keep static generation as the default, using i18next core f
 strings with an [explicit page locale](https://www.i18next.com/overview/api#getfixedt) rather
 than changing a shared global language during rendering. Translated articles and documentation
 stay in the content layer.
+
+## AI provider library
+
+[TanStack AI](https://tanstack.com/ai/latest/docs/getting-started/overview) is the recommended
+multi-provider TypeScript SDK for AI features. It provides streaming and typed tool calling
+through provider adapters such as `@tanstack/ai-openai` and `@tanstack/ai-anthropic`.
+
+React/Vite and optional Expo clients call an authenticated Hono endpoint on the existing
+Cloudflare backend. That endpoint uses TanStack AI's provider adapters to call the selected
+provider directly; no AI gateway is required. Provider adapters and API keys stay on the
+backend. Store keys as Worker secrets, never in `VITE_*` or `EXPO_PUBLIC_*` variables.
+
+React clients use `@tanstack/ai-react`. The
+[React Native guide](https://tanstack.com/ai/latest/docs/getting-started/quick-start-react-native)
+covers Expo's absolute backend URL and XHR streaming transport. Model capabilities depend
+on the chosen provider and model. Verify the selected adapter in Wrangler and the Expo
+transport on target devices before adoption.
 
 ## Runtime architecture
 
