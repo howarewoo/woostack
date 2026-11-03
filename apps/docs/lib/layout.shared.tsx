@@ -1,11 +1,13 @@
 import type { BaseLayoutProps } from "fumadocs-ui/layouts/shared";
-import { appName, gitConfig } from "./shared";
+import { Brand } from "@/components/brand";
+import { gitConfig } from "./shared";
 
 export function baseOptions(): BaseLayoutProps {
   return {
     nav: {
-      title: appName,
+      title: <Brand />,
     },
+    themeSwitch: { mode: "light-dark-system" },
     githubUrl: `https://github.com/${gitConfig.user}/${gitConfig.repo}`,
   };
 }
