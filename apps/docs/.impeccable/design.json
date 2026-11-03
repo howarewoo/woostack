@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-11-03T21:23:00Z",
+  "generatedAt": "2026-11-03T21:56:45Z",
   "title": "Design System: WooStack website",
   "extensions": {
     "typographyMeta": {
@@ -46,7 +46,7 @@
       "refersTo": "button-primary",
       "description": "Navigate to the getting-started tutorial",
       "html": "<a class=\"primary\" href=\"/docs/getting-started\">Get started</a>",
-      "css": ".primary { display:inline-flex; align-items:center; min-height:48px; padding:12px 20px; background:#365BE8; color:white; border-radius:0; font-weight:600; } .primary:hover { background:#2646D0; } .primary:focus-visible { outline:3px solid #8AA4FF; outline-offset:4px; }"
+      "css": ".primary { display:inline-flex; align-items:center; min-height:48px; padding:12px 20px; background:#365BE8; color:white; border-radius:0; font-weight:600; } .primary:hover { background:#2646D0; } .primary:focus-visible { outline:3px solid var(--color-fd-ring); outline-offset:4px; }"
     }
   ],
   "narrative": {
