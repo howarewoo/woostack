@@ -5,12 +5,17 @@
     "recommended-stack",
     "agent-skills",
     "autonomous-agents",
+    "---Tech stack documentation---",
+    "guides/deploy-cloudflare",
+    "concepts/repository-rules",
+    "concepts/least-code",
     "---Agent skills documentation---",
     "getting-started",
     "guides",
     "concepts",
     "configuration",
     "harnesses",
+    "concepts/utilities",
     "skills"
   ]
 }

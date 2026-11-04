@@ -8,6 +8,8 @@
     "coordinate-work",
     "design-system",
     "troubleshooting",
-    "deploy-cloudflare"
+    "---Work across assistants---",
+    "../chatgpt-to-codex",
+    "../hermes"
   ]
 }
