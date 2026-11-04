@@ -1,8 +1,17 @@
 # woostack
 
-woostack is a collection of skills that teach AI coding assistants how to plan work and
-change code. You make the product decisions. The assistant checks the repository and GitHub
-before reporting what changed or what is ready for review.
+WooStack has three parts: a recommended tech stack, agent skills for coding harnesses,
+and an autonomous agent setup in development. Start with the part you need:
+
+- [Tech stack](apps/docs/content/docs/recommended-stack.mdx): recommended technologies and how they fit together.
+- [Agent skills](apps/docs/content/docs/agent-skills.mdx): workflows for planning, building, and checking products inside a coding harness.
+- [Autonomous agents](apps/docs/content/docs/autonomous-agents.mdx): the coordinated agent setup being developed. Installation and configuration instructions are not available yet.
+
+You can adopt the tech stack or the skills independently. Using the skills does not require
+the recommended stack or the autonomous setup. You make the product decisions and authorize work.
+
+The rest of this overview covers the agent skills. They guide an AI coding assistant to inspect
+the repository and GitHub and verify outcomes before reporting what changed or is ready for review.
 
 For a goal that needs refinement, try [Whiteboard](skills/woostack-whiteboard/SKILL.md): develop
 requirements, challenge the design, and refine a visual model and written plan together. Then save
@@ -17,6 +26,8 @@ installed commands.
 
 
 ## Getting started
+
+This section installs and introduces the agent skills.
 
 ### 1. Install the skills
 
