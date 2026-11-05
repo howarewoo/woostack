@@ -5,7 +5,7 @@ and an autonomous agent setup in development. Start with the part you need:
 
 - [Tech stack](apps/docs/content/docs/recommended-stack.mdx): recommended technologies and how they fit together.
 - [Agent skills](apps/docs/content/docs/agent-skills.mdx): workflows for planning, building, and checking products inside a coding harness.
-- [Autonomous agents](apps/docs/content/docs/autonomous-agents.mdx): the coordinated setup being developed, with a [manual two-agent guide](apps/docs/content/docs/guides/agent-teams.mdx) for existing OpenMausBot teams. No packaged runtime or installer is provided.
+- [Agent teams](apps/docs/content/docs/agent-teams/index.mdx): the coordinated setup being developed, with a [manual two-agent guide](apps/docs/content/docs/agent-teams/two-agent-team.mdx) for existing OpenMausBot teams. No packaged runtime or installer is provided.
 
 You can adopt the tech stack or the skills independently. Using the skills does not require
 the recommended stack or the autonomous setup. You make the product decisions and authorize work.
@@ -121,7 +121,7 @@ If you use Hermes to coordinate an OMP session, follow the
 assistant, not in Hermes. Hermes can relay decisions and review evidence; implementation stays
 in the coding assistant.
 For existing senior and junior bots in OpenMausBot, follow
-[Run a two-agent engineering team](apps/docs/content/docs/guides/agent-teams.mdx).
+[Run a two-agent engineering team](apps/docs/content/docs/agent-teams/two-agent-team.mdx).
 
 ## Choose a development workflow
 
