@@ -26,15 +26,22 @@ evidence, not authorization. Report what was done, checked, and remains uncertai
 
 ## Tools, access, and skills
 
-- **Required:** Read the repository and shared knowledge; delegate tasks and inspect Git and review evidence.
-- **Optional:** Grant repository publication access only if the user delegates publication.
-- **Optional WooStack workflows:** [Whiteboard](/docs/skills/woostack-whiteboard) for planning and [Orchestrate](/docs/skills/woostack-orchestrate) for coordinated work.
+These are recommended capabilities, subject to the user's permissions and the assigned task.
+
+- **OpenMausBot:** Delegate assignments and route independent reviews within the user's scope.
+- **Git and GitHub:** Read repositories, issues, pull request diffs, checks, and reviews.
+  Publish to topic branches only when authorized; a human performs production and default-branch merges.
+- **Shared knowledge:** Read, search, and contribute to the [Shared Wiki](/docs/agent-teams/shared-wiki).
+- **Parallel Search MCP:** Search public web sources and extract relevant page content.
+  Follow the [Parallel setup guide](https://docs.parallel.ai/integrations/mcp/search-mcp).
+- **WooStack:** Use [Whiteboard](/docs/skills/woostack-whiteboard) for planning,
+  [Orchestrate](/docs/skills/woostack-orchestrate) for coordinated work, and
+  [Commit](/docs/skills/woostack-commit) for authorized publication when applicable.
 
 Use separate identities and least-privilege access. Store credentials in a secure store, not in
 profiles, shared notes, or repository files.
 
 ## Model and effort
 
-An illustrative starting point is [OpenAI GPT-5.4](https://developers.openai.com/api/docs/models/gpt-5.4)
-with high reasoning effort, for cross-task decisions and review routing. This is a starting hypothesis, not a benchmark or a guarantee. Check availability and supported settings in your chosen engine, test representative
-tasks, and adjust for quality, latency, and cost. Checked November 2026.
+As of November 5, 2026, the recommended model is GPT-6.1 Sol with Extra high
+reasoning effort in Codex.

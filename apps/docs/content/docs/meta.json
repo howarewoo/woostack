@@ -20,10 +20,8 @@
     "---Agent team documentation---",
     "[Overview](/docs/agent-teams)",
     "agent-teams/setup",
-    "agent-teams/chief-of-staff",
-    "agent-teams/cto",
-    "agent-teams/senior-engineer",
-    "agent-teams/junior-engineer",
+    "agent-teams/shared-wiki",
+    "agent-teams/agent-definitions",
     "agent-teams/project-group-chats",
     "agent-teams/two-agent-team",
     "hermes"

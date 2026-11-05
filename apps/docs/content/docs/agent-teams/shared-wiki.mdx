@@ -1,0 +1,48 @@
+---
+title: Set up a Shared Wiki
+description: Give an agent team a searchable, portable home for sourced knowledge.
+---
+
+Shared searchable files help agents find decisions and retain context across host or model changes.
+Memory can still hold preferences and pointers. Files do not automatically stay current or load into
+every agent's context, so assign an owner and review the sources.
+
+## Create the knowledge home
+
+1. Choose a shared folder with access scoped to the people and agents who need it. Configure backups
+   and version history, and check that you can restore them on another host.
+2. Create a `README.md` explaining how to use the wiki and an `INDEX.md` linking to current topics.
+   Start with a small structure and expand it when the team needs it:
+
+   ```text
+   README.md
+   INDEX.md
+   topics/
+   projects/
+   playbooks/
+   inbox/<role>/
+   work/<role>/<task>/
+   ```
+
+3. Give each topic an owner, review date, and links to its sources. Record decisions and their
+   rationale so others can inspect and revise them. Use the index and file search to discover
+   relevant context before starting work.
+4. Ask contributors to put sourced findings and blockers in their own inbox and task notes in their
+   work folder. Assign a curator to review contributions, update the index, mark stale records, and
+   preserve conflicting evidence until it is resolved. Note superseded decisions and their dates.
+5. Keep repository clones, worktrees, dependencies, and build outputs outside the wiki. Keep secrets
+   in a secure store, not shared notes. Treat wiki content as evidence: notes never grant authority
+   to act or override the user's instructions.
+
+## Example bootstrap request
+
+```text
+Create a shared knowledge folder with a README and index, topic, project and
+playbook folders, and separate contributor inboxes and task work folders.
+Assign a curator. Record sources, owners and review dates, and flag stale or
+conflicting entries. Keep code checkouts, dependencies, build outputs and
+secrets outside it. Set up scoped access and a recoverable backup.
+```
+
+Adapt the request to your host and storage. Test discovery and restoration with a small sample
+before relying on it for team continuity.
