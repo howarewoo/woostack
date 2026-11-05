@@ -1,0 +1,45 @@
+---
+title: Set up an R&D team
+description: Configure a work-in-progress agent team with clear ownership and limited access.
+---
+
+This evolving setup uses [OpenMausBot](https://docs.openmausbot.com/docs) as a suggested host.
+It is manual guidance, not a packaged or end-to-end verified integration. Follow the host's current
+[bot documentation](https://docs.openmausbot.com/docs/features/bots-and-tasks) for configuration.
+
+1. Set up a [chief of staff](/docs/agent-teams/chief-of-staff) for general coordination and platform
+   operations, then an R&D department led by a [CTO](/docs/agent-teams/cto).
+2. Add a [senior engineer](/docs/agent-teams/senior-engineer) and a
+   [junior engineer](/docs/agent-teams/junior-engineer). Adapt their templates and install the
+   listed skills in their coding engines using [getting started](/docs/getting-started).
+3. Give each role only the tools and access needed for its assignments. Keep credentials in a secure
+   store. Human authority governs production and default-branch merges.
+4. Keep portable shared knowledge and sourced decisions separate from repository worktrees,
+   dependencies, and build outputs. Assign one owner per task and one writer per workspace.
+5. Create a [project group chat](/docs/agent-teams/project-group-chats) and exercise a small
+   authorized task, a blocked decision, and an interrupted handoff before relying on the setup.
+
+Add design, QA, security, or reliability support as functions when the work warrants it. Independent
+review must come from a suitable independent reviewer when required; a role label alone is not review.
+
+## Example bootstrap request
+
+Ask an existing OpenMausBot Chief of Staff to adapt this request:
+
+```text
+Set up an R&D department with a CTO, senior engineer, and junior engineer.
+Use the WooStack agent-team role pages as starting templates for their roles
+and SOUL.md instructions. Assign one accountable owner per task and keep
+production and default-branch merges for me to perform. Configure only the
+tools and permissions needed for each role. Show me the resulting setup and
+any access or model choices that need my attention.
+```
+
+A Chief of Staff is a platform team-management assignment; CTO is the engineering
+job title. Ask the existing Chief to appoint the CTO bot as the R&D team's Chief
+if it should manage that team. Each team has at most one Chief. A new Chief can
+configure its own team but does not inherit its creator's execution permissions.
+See OpenMausBot's [team setup](https://docs.openmausbot.com/docs/features/bots-and-tasks)
+and [department guidance](https://docs.openmausbot.com/docs/features/chat-and-teams).
+Install skills using [getting started](/docs/getting-started) and configure models
+in the [host](/docs/configuration).
