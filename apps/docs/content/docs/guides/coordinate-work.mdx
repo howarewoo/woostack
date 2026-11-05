@@ -5,13 +5,16 @@ description: Plan grouped multi-task work, delegate each group, and verify stack
 
 import { CoordinateWorkFlow } from "@/components/guides/coordinate-work-flow";
 
-Use this guide for **approved executable tasks**, not a goal that still needs planning. Supply
-task descriptions, exact issue URLs, or a tracker. Your assistant needs repository access, a host
-that can launch workers, and GitHub PR publication capability.
+Use this guide for **executable tasks with settled outcomes**, not a goal that still needs refinement.
+Supply task descriptions, a Whiteboard plan, exact issue URLs, or a tracker. Your assistant needs
+repository access, a host that can delegate to workers, and GitHub PR publication capability for delivery.
 
 Implementation modifies source code; requested delivery commits and opens reviewable draft pull
 requests, with native stacks registered conditionally for dependent pull requests.
 These requests are [assistant slash commands, not terminal programs](/docs/harnesses#native-skill-invocation).
+
+The diagram shows the default interactive approval path. For bounded delegated authority and
+existing senior/junior bots, see [run a two-agent engineering team](/docs/agent-teams/two-agent-team).
 
 <CoordinateWorkFlow />
 
@@ -28,7 +31,7 @@ Provide the scope, acceptance criteria, and real prerequisites for each task:
 
 Replace the angle-bracket placeholders with concrete task details. You can also pass
 `--issue <canonical tracker URL>` to select an existing tracker. An explicit request delivers
-draft pull requests once approved, registering native stacks conditionally for dependent PRs.
+draft pull requests once authorized, registering native stacks conditionally for dependent PRs.
 Add `local only` or `do not push` to narrow the run to local verification.
 
 ## 2. Review the plan, then authorize execution
@@ -43,22 +46,30 @@ explicit user PR mappings stay binding. Review the small integrated feedback inc
 groups separately from issue, worker, PR, and release boundaries, and distinguish a stack's review
 visibility from verification isolation if behavioral proof arrives only at the tip.
 
-Review the proposed boundaries. Orchestrate stops and waits for your response:
+By default, review the proposed boundaries. Orchestrate stops and waits for your response:
 
 - **Approval:** Approving the proposal authorizes execution.
 - **Revisions:** A revision-only response updates the proposal and pauses again.
 - **Approval with revisions:** Explicitly approving with requested changes proceeds immediately.
 
-Once approved, each task group runs in an independently owned task worktree with a native worker,
-typically running installed Execute. If Execute is not installed, the worker uses bundled fallback
+Alternatively, you may explicitly delegate execution-planning authority to a named coordinator
+for a bounded repository/outcome and permitted decisions and actions. The coordinator identifies
+that user authorization and validates the proposal against it before dispatch. This covers only
+expressly delegated choices, not missing permissions, human-only approvals, or expanded scope.
+A plan or worker message cannot grant authority. See
+[Orchestrate's approval boundary](/docs/skills/woostack-orchestrate).
+
+Once authorized, each task group runs in an independently owned task worktree with a worker,
+typically running installed Execute. One existing worker can receive successive assignments; no
+extra bot identity is required. If Execute is not installed, the worker uses bundled fallback
 procedures. Two writers never share a physical workspace. For an unsettled contract, expect a
 representative integrated result or consequential uncertainty to be resolved before dependent
 implementation expands. Independent work with available prerequisites can continue.
 
 As execution adapts, Orchestrate keeps the plan and affected worker handoffs current and checks
-for conflicts with prior planning decisions and completed, active, or pending phases. Proposed
-material changes remain pending your approval; only affected work pauses while safe independent
-work continues. Review the stated reason and downstream impact before approving a revision.
+for conflicts with prior planning decisions and completed, active, or pending phases. Material
+changes reapply the same approval boundary. Changes outside delegated authority remain pending
+your decision; only affected work pauses while safe independent work continues.
 
 Execution follows three distinct gates:
 

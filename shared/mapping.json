@@ -5,7 +5,7 @@
       "source": "references/artifact-backends.md",
       "consumers": [
         "woostack-init",
-        "woostack-plan",
+        "woostack-whiteboard",
         "woostack-debug",
         "woostack-qa",
         "woostack-visualize"
@@ -13,7 +13,7 @@
     },
     {
       "source": "references/artifact-providers/github.md",
-      "consumers": ["woostack-plan", "woostack-debug", "woostack-qa", "woostack-visualize"]
+      "consumers": ["woostack-whiteboard", "woostack-debug", "woostack-qa", "woostack-visualize"]
     },
     {
       "source": "references/delivery.md",
@@ -74,7 +74,7 @@
         "woostack-execute",
         "woostack-ideate",
         "woostack-orchestrate",
-        "woostack-plan",
+        "woostack-whiteboard",
         "woostack-simplify"
       ]
     },
@@ -91,7 +91,7 @@
         "woostack-commit",
         "woostack-simplify",
         "woostack-address-comments",
-        "woostack-plan",
+        "woostack-whiteboard",
         "woostack-debug",
         "woostack-qa",
         "woostack-visualize",
@@ -108,7 +108,7 @@
         "woostack-commit",
         "woostack-simplify",
         "woostack-address-comments",
-        "woostack-plan",
+        "woostack-whiteboard",
         "woostack-debug",
         "woostack-design-system",
         "woostack-doctor",
@@ -124,7 +124,7 @@
         "woostack-commit",
         "woostack-simplify",
         "woostack-address-comments",
-        "woostack-plan",
+        "woostack-whiteboard",
         "woostack-debug",
         "woostack-qa",
         "woostack-visualize",
@@ -148,7 +148,7 @@
       "source": "scripts/config/resolve-config.sh",
       "consumers": [
         "woostack-init",
-        "woostack-plan",
+        "woostack-whiteboard",
         "woostack-debug",
         "woostack-qa",
         "woostack-visualize",
@@ -159,7 +159,7 @@
       "source": "scripts/path-args.sh",
       "consumers": [
         "woostack-init",
-        "woostack-plan",
+        "woostack-whiteboard",
         "woostack-debug",
         "woostack-qa",
         "woostack-visualize",
@@ -170,7 +170,7 @@
       "source": "scripts/run-store.py",
       "consumers": [
         "woostack-init",
-        "woostack-plan",
+        "woostack-whiteboard",
         "woostack-debug",
         "woostack-qa",
         "woostack-visualize"

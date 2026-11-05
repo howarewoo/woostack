@@ -15,6 +15,16 @@ const config = {
   async redirects() {
     return [
       {
+        source: "/docs/autonomous-agents",
+        destination: "/docs/agent-teams",
+        permanent: true,
+      },
+      {
+        source: "/docs/guides/agent-teams",
+        destination: "/docs/agent-teams/two-agent-team",
+        permanent: true,
+      },
+      {
         source: "/docs/concepts/memory",
         destination: "/docs/concepts/context-management",
         permanent: true,

@@ -1,4 +1,4 @@
-# Whiteboard trial
+# Whiteboard evaluation
 
 Evaluate the installed Whiteboard skill on a selected goal. This recipe is not part of normal
 planning and grants no implementation or publication authority. Its SKILL.md owns the workflow.
@@ -20,22 +20,30 @@ During each conversation:
    being required to pass a quiz. A deliberately deferred choice should have a reason.
 4. Ask for the current draft with a material question still open. It should name what is blocked,
    retain useful settled work, and avoid inventing a decision or claiming readiness.
-5. Verify no source edits, experiments, external writes, or implementation workers appeared. In a
-   disposable fixture, explicitly request a save to a named file; inspect that only the selected
-   document changed. Approval of the design or saving must not start execution.
+5. Verify no source edits, experiments, unrequested external writes, or implementation workers
+   appeared. In a disposable fixture, explicitly request a save to a named file; inspect that only
+   the selected document changed. Approval of the design or saving must not start execution.
 
 Exercise the no-renderer case in a host without diagram rendering: the plan should include a
 readable text diagram and explain its relationships without installing tools. Give only the final
 plan to a fresh read-only session and ask it to explain the requirements, decisions, acceptance,
 and dependencies. Record missing context; do not implement the plan to test this handoff.
 
+Also exercise these boundaries:
+
+- Supply enough context to plan without questions. Repeat as an agent assignment with explicit
+  decision limits; covered decisions need no interview, while an uncovered consequential choice
+  returns a recommendation and affected-work blocker without inventing agreement.
+- Request review only of a supplied plan containing a repository discrepancy. Expect evidence,
+  consequences, and recommended corrections, with the supplied plan unchanged.
+- In an explicitly authorized disposable GitHub scope, request issue publication. Verify destination
+  resolution, existing-issue reuse, read-back, and no writes on an unchanged repeat. An unavailable
+  relationship capability must remain incomplete rather than be reported as native publication.
+
 Record the source revision, host/model, invocation, meaningful corrections, repeated questions,
 visual/text discrepancies, unresolved decisions, and observed writes. Label evidence separately:
 
-- **Actual host:** the installed skill ran with a user in the named host.
+- **Actual host:** the installed skill ran with a user or delegated agent in the named host.
 - **Manual trace:** an instruction-path review only; it does not prove model behavior.
 - **Deterministic helper:** parser, asset, or generator checks only; they do not prove collaboration.
 - **Unrun:** name the missing capability or permission instead of claiming a pass.
-
-Retirement of Ideate, Harden, or Plan is a separate change after reviewing trial evidence. In
-particular, account for Plan's issue-publication capability before retiring it.

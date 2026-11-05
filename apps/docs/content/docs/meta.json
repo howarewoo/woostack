@@ -4,7 +4,7 @@
     "index",
     "recommended-stack",
     "agent-skills",
-    "autonomous-agents",
+    "agent-teams/index",
     "---Tech stack documentation---",
     "guides/deploy-cloudflare",
     "concepts/repository-rules",
@@ -16,6 +16,9 @@
     "configuration",
     "harnesses",
     "concepts/utilities",
-    "skills"
+    "skills",
+    "---Agent team documentation---",
+    "agent-teams/two-agent-team",
+    "hermes"
   ]
 }

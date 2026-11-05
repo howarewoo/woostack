@@ -1,19 +1,20 @@
 ---
 title: Plan work and file issues
-description: Turn a repository goal into reviewable increments, with optional verified GitHub publication.
+description: Use Whiteboard to turn a goal into reviewable increments, with optional verified GitHub publication.
 ---
 
-Use this guide when you know the goal but need a source-grounded plan before anyone implements it.
-You need a repository your assistant can read. To file issues, it also needs authorized GitHub
-issue-write access and an unambiguous destination. These are **requests to your assistant**, not
-terminal commands; use your [host's invocation form](/docs/harnesses#native-skill-invocation).
+Use this guide when you need a plan and optionally want to track its outcomes as GitHub issues.
+For existing code, identify a repository your assistant can read; greenfield planning needs no
+checkout. To file issues, it also needs authorized GitHub issue-write access and an unambiguous
+destination. These are **requests to your assistant**, not terminal commands; use your
+[host's invocation form](/docs/harnesses#native-skill-invocation).
 
 ## 1. Describe the outcome
 
 Start with a read-only request you can edit:
 
 ```text
-/woostack-plan Reduce duplication in configuration parsing.
+/woostack-whiteboard Reduce duplication in configuration parsing.
 Keep public behavior and accepted configuration formats unchanged.
 Prefer removing or reusing code over adding new abstractions.
 Return a plan only; do not file issues or implement changes.
@@ -23,13 +24,14 @@ The result identifies the source inspected, small observable feedback increments
 selected evidence, and real prerequisites. Checkpoints can stay within one plan or issue; they need
 not each become an issue, worker, PR, or release. Keep necessary atomic changes together without
 adding temporary bridges just to split delivery. A plan is not an implementation or passing check.
-Settle material choices before publication. Neither a template nor an earlier Ideate or Harden
-session is required. See [Plan's verification guidance](/docs/skills/woostack-plan) for evidence rules.
+Settle material choices before publication. Whiteboard needs no prior planning or review phase and
+asks no questions when the available context suffices. See
+[Whiteboard's reference](/docs/skills/woostack-whiteboard) for the planning and evidence rules.
 
 ## 2. Review and optionally publish
 
 Check that planned issue outcomes do not repeat existing issues and that dependencies reflect actual
-prerequisites, not their order in a list. If you want issues filed, ask explicitly:
+prerequisites, not their order in a list. To publish, ask explicitly:
 
 ```text
 File this plan as GitHub issues in OWNER/REPOSITORY. Group implementation checkpoints into coherent issue outcomes and reuse existing issues that already cover them. Include acceptance criteria and real prerequisites, then read back the affected issues. Do not start implementation.
@@ -49,4 +51,4 @@ sentence. If a write has an unknown result,
 [inspect it before trying again](/docs/guides/troubleshooting#an-issue-or-pull-request-write-has-an-unknown-result).
 Choose implementation separately: [deliver one change](/docs/guides/ship-change) or
 [coordinate several approved tasks](/docs/guides/coordinate-work).
-[Plan's reference](/docs/skills/woostack-plan) owns the exact publication rules.
+[Whiteboard's publication rules](/docs/skills/woostack-whiteboard#saving-and-publishing) own the exact boundaries.

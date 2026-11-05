@@ -110,7 +110,7 @@ production build solely because it touches `skills/*/SKILL.md` or site content.
   regenerate with
   `node shared/sync.mjs` and verify with `node shared/sync.mjs --check`, then run the
   relevant existing parser/generator/asset tests for the link and installation layout.
-- Material Plan, Execute, Commit, or Orchestrate behavior changes: run the relevant
+- Material Whiteboard, Execute, Commit, or Orchestrate behavior changes: run the relevant
   [workflow smoke recipe](skills/using-woostack/references/workflow-smoke.md).
 
 When selected checks need dependencies, install from the root shared lockfile with

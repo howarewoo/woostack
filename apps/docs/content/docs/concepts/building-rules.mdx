@@ -13,10 +13,10 @@ proof of them.
 
 The workflows are documented where they run, not summarized here.
 
-- [Plan](/docs/skills/woostack-plan) plans a change and publishes GitHub issues only when the
-  request asks for it.
+- [Whiteboard](/docs/skills/woostack-whiteboard) plans or reviews a change and publishes GitHub
+  issues only when the request asks for it.
 - [Coordinate several tasks](/docs/guides/coordinate-work) covers plan-first grouping, one
-  delegated worker per group in its own task worktree, the draft pull requests a requested
+  delegated owner per group in its own task worktree, the draft pull requests a requested
   delivery produces, and the native stacks that dependent pull requests require.
 - [Deliver one change](/docs/guides/ship-change) covers one bounded task, its checks, and its
   draft pull request.
@@ -41,6 +41,12 @@ carries none of it. [Commit's reference](/docs/skills/woostack-commit) owns the 
 A closed issue or a finished status never proves that code landed, was reviewed, or was merged. An
 issue URL supplies context, not implementation permission, and a partial publication keeps the
 confirmed part while reporting the unproved part.
+
+A user can explicitly delegate bounded decisions and actions to a named agent. That authority
+comes from the user's instruction, not the plan or the bot's role. Orchestrate validates covered
+proposals against the delegation and escalates uncovered choices; ordinary use still requires
+interactive approval. Host permissions and human-only boundaries continue to apply. The
+[agent team guide](/docs/agent-teams/two-agent-team) shows this distinction in a two-bot workflow.
 
 ## Retained records
 

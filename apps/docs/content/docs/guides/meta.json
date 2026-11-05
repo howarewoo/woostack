@@ -9,7 +9,6 @@
     "design-system",
     "troubleshooting",
     "---Work across assistants---",
-    "../chatgpt-to-codex",
-    "../hermes"
+    "../chatgpt-to-codex"
   ]
 }

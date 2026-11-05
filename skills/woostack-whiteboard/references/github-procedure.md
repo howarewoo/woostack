@@ -1,9 +1,9 @@
 # GitHub publication procedure
 
-This is Plan's only write path, and it runs only when the request authorized filing issues.
+This is Whiteboard's issue-publication path, used only when the request authorized filing issues.
 Planning without relevant GitHub context needs no GitHub preflight. The
 [GitHub profile](artifact-providers/github.md#configuration-and-scope)
-owns identities, native relationship operations, and API semantics. Plan changes no source, branch,
+owns identities, native relationship operations, and API semantics. Whiteboard changes no source, branch,
 worktree, commit, PR, review, merge, or issue lifecycle here.
 
 ## Resolving the destination

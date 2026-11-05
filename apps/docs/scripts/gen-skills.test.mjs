@@ -15,11 +15,11 @@ import {
 
 test("parseFrontmatter extracts name + description and returns the body", () => {
   const raw =
-    "---\nname: woostack-plan\ndescription: Plan a feature.\nplugin: preserved-for-site\n---\n\n# woostack-plan\n\nbody";
-  const { fm, body } = parseFrontmatter(raw, "woostack-plan");
-  assert.equal(fm.name, "woostack-plan");
+    "---\nname: woostack-whiteboard\ndescription: Plan a feature.\nplugin: preserved-for-site\n---\n\n# woostack-whiteboard\n\nbody";
+  const { fm, body } = parseFrontmatter(raw, "woostack-whiteboard");
+  assert.equal(fm.name, "woostack-whiteboard");
   assert.equal(fm.description, "Plan a feature.");
-  assert.match(body, /# woostack-plan/);
+  assert.match(body, /# woostack-whiteboard/);
   assert.equal(fm.plugin, "preserved-for-site");
 });
 
@@ -67,22 +67,22 @@ test("parseFrontmatter strips surrounding YAML quotes (some descriptions are quo
 
 test("parseFrontmatter accepts safe placeholders in plain descriptions", () => {
   const raw =
-    "---\nname: woostack-plan\ndescription: Plan the approved project at <project-url>.\n---\nbody";
-  const { fm } = parseFrontmatter(raw, "woostack-plan");
+    "---\nname: woostack-whiteboard\ndescription: Plan the approved project at <project-url>.\n---\nbody";
+  const { fm } = parseFrontmatter(raw, "woostack-whiteboard");
   assert.equal(fm.description, "Plan the approved project at <project-url>.");
 });
 
 test("parseFrontmatter accepts quoted colon-space descriptions with safe placeholders", () => {
   const raw =
-    '---\nname: woostack-plan\ndescription: "Plan source: use <project-url> safely."\n---\nbody';
-  const { fm } = parseFrontmatter(raw, "woostack-plan");
+    '---\nname: woostack-whiteboard\ndescription: "Plan source: use <project-url> safely."\n---\nbody';
+  const { fm } = parseFrontmatter(raw, "woostack-whiteboard");
   assert.equal(fm.description, "Plan source: use <project-url> safely.");
 });
 
 test("parseFrontmatter rejects colon-space in a plain description deterministically", () => {
-  const raw = "---\nname: woostack-plan\ndescription: Plan source: use safely.\n---\nbody";
+  const raw = "---\nname: woostack-whiteboard\ndescription: Plan source: use safely.\n---\nbody";
   assert.throws(
-    () => parseFrontmatter(raw, "woostack-plan"),
+    () => parseFrontmatter(raw, "woostack-whiteboard"),
     (error) =>
       error.code === "frontmatter-plain-colon-space" &&
       /description.*colon-space.*plain scalar/i.test(error.message),
@@ -90,21 +90,21 @@ test("parseFrontmatter rejects colon-space in a plain description deterministica
 });
 
 test('stripTitleHeading removes only the first exact "# <name>" H1', () => {
-  const body = "\n# woostack-plan\n\n## Overview\n\n# woostack-plan\n";
-  const out = stripTitleHeading(body, "woostack-plan");
-  assert.equal((out.match(/^# woostack-plan$/gm) || []).length, 1); // one removed, one stays
+  const body = "\n# woostack-whiteboard\n\n## Overview\n\n# woostack-whiteboard\n";
+  const out = stripTitleHeading(body, "woostack-whiteboard");
+  assert.equal((out.match(/^# woostack-whiteboard$/gm) || []).length, 1); // one removed, one stays
   assert.match(out, /## Overview/);
 });
 
 test("rewriteLinks maps relative targets to GitHub, leaves absolute and anchors", () => {
-  const r = (s) => rewriteLinks(s, "woostack-plan");
+  const r = (s) => rewriteLinks(s, "woostack-whiteboard");
   assert.equal(
     r("[wt](references/worktrees.md#base-and-recovery)"),
-    "[wt](https://github.com/howarewoo/woostack/blob/main/skills/woostack-plan/references/worktrees.md#base-and-recovery)",
+    "[wt](https://github.com/howarewoo/woostack/blob/main/skills/woostack-whiteboard/references/worktrees.md#base-and-recovery)",
   );
   assert.equal(
     r("[self](references/github-procedure.md)"),
-    "[self](https://github.com/howarewoo/woostack/blob/main/skills/woostack-plan/references/github-procedure.md)",
+    "[self](https://github.com/howarewoo/woostack/blob/main/skills/woostack-whiteboard/references/github-procedure.md)",
   );
   assert.equal(r("[ext](https://example.com)"), "[ext](https://example.com)");
   assert.equal(r("[here](#section)"), "[here](#section)");
@@ -140,13 +140,13 @@ test("neutralizeTags: block tag -> Callout, prose tag escaped, code-span/fence p
 });
 
 test("renderPage emits title/description and source links for public phases", () => {
-  const fm = { name: "woostack-plan", description: "Plan a feature: end to end." };
-  const page = renderPage("woostack-plan", fm, "## Overview\n\nbody");
-  assert.match(page, /^---\ntitle: woostack-plan\n/);
+  const fm = { name: "woostack-whiteboard", description: "Plan a feature: end to end." };
+  const page = renderPage("woostack-whiteboard", fm, "## Overview\n\nbody");
+  assert.match(page, /^---\ntitle: woostack-whiteboard\n/);
   assert.match(page, /description: "Plan a feature: end to end\."/); // JSON-quoted, colon-safe
   assert.match(
     page,
-    /\[View source on GitHub\]\(https:\/\/github\.com\/howarewoo\/woostack\/blob\/main\/skills\/woostack-plan\/SKILL\.md\)/,
+    /\[View source on GitHub\]\(https:\/\/github\.com\/howarewoo\/woostack\/blob\/main\/skills\/woostack-whiteboard\/SKILL\.md\)/,
   );
 });
 
@@ -156,8 +156,6 @@ test("public skill routing preserves the declared order", () => {
     "woostack-init",
     "woostack-whiteboard",
     "woostack-ideate",
-    "woostack-harden",
-    "woostack-plan",
     "woostack-orchestrate",
     "woostack-execute",
     "woostack-simplify",
@@ -209,4 +207,5 @@ test("whiteboard validates without sibling skills and renders its public page", 
   assert.ok(page.includes(`description: ${JSON.stringify(fm.description)}`));
   assert.ok(page.includes(`/skills/${name}/SKILL.md`));
   assert.ok(page.includes(`/skills/${name}/references/trial.md`));
+  assert.ok(page.includes(`/skills/${name}/references/github-procedure.md`));
 });

@@ -7,10 +7,10 @@ The canonical implementation rules live in the
 [artifact contract](https://github.com/howarewoo/woostack/blob/main/shared/references/artifact-backends.md#direct-publication-and-recovery)
 and the [GitHub profile](https://github.com/howarewoo/woostack/blob/main/shared/references/artifact-providers/github.md#configuration-and-scope).
 
-Plan owns direct issue publication and reads every write back before claiming success. Orchestrate
-is read-only when interpreting a tracker: a complete readable implementation index can establish
-declared membership when native child links are absent, partial, or unavailable, provided every
-selected issue is independently readable.
+Whiteboard owns direct issue publication and reads every write back before claiming success.
+Orchestrate is read-only when interpreting a tracker: a complete readable implementation index can
+establish declared membership when native child links are absent, partial, or unavailable, provided
+every selected issue is independently readable.
 
 ## Configuration policy
 
@@ -81,18 +81,19 @@ configuration. The specification may be stored in `ProjectV2.readme` between mar
 
 ### Issue publication
 
-`--project` is the explicit destination selector:
+`--project` is the explicit destination selector for requested publication:
 
 ```text
-/woostack-plan <goal-or-partial-issue> --project <exact canonical GitHub Project URL>
+/woostack-whiteboard <goal-or-existing-plan> --project <exact canonical GitHub Project URL>
+File the resulting plan as issues. Do not implement it.
 ```
 
-Without `--project`, the destination comes from the request and repository context. Plan asks
+Without `--project`, the destination comes from the request and repository context. Whiteboard asks
 instead of choosing when multiple destinations are plausible.
 
 Publication groups implementation checkpoints into coherent issue outcomes, reuses existing issues,
-and creates only missing ones. It writes only requested relationships. After every write, Plan reads
-affected issues back independently; a mutation response alone proves nothing.
+and creates only missing ones. It writes only requested relationships. After every write, Whiteboard
+reads affected issues back independently; a mutation response alone proves nothing.
 
 Native hierarchy, `blocked-by` relationships, and Git branch ancestry are separate facts:
 hierarchy groups issues, `blocked-by` records a prerequisite, and neither orders delivery or
@@ -106,13 +107,13 @@ selects a branch parent.
 > [Execute retired inputs](/docs/skills/woostack-execute#retired-inputs).
 
 Explicit Project lifecycle operations use only the retained exact Project and its configured fields.
-Plan without a Project selection has no Project lifecycle to close.
+Whiteboard does not change issue or Project lifecycle state, with or without a Project selection.
 
 ## Workflow matrix
 
 | Skill | GitHub behavior |
 | --- | --- |
-| [woostack-plan](/docs/skills/woostack-plan) | Plans work; writes issues only when requested. Reuses existing issues, writes requested relationships, and reads every write back. `--project` adds membership in one exact existing Project. |
+| [woostack-whiteboard](/docs/skills/woostack-whiteboard) | Plans work; writes issues only when requested. Reuses existing issues, writes requested relationships, and reads every write back. `--project` adds membership in one exact existing Project for requested publication. |
 | [woostack-orchestrate](/docs/skills/woostack-orchestrate) | Coordinates multi-task work and verifies requested delivery without closing issues or merging. Local-only work requires no GitHub publication; explicitly selected remote issue or Project reads still need access. |
 | [woostack-execute](/docs/skills/woostack-execute) | Accepts bounded tasks; retired `--project`, `--run`, and `--recheck` are rejected. Explicit Execute requests deliver draft PRs unless narrowed to local edits. |
 | [woostack-init](/docs/skills/woostack-init) | Authors project guidance without GitHub access. Explicit local-support path validates optional `github` policy without contacting providers. |

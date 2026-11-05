@@ -1,6 +1,6 @@
 # Workflow smoke
 
-Short, on-demand recipes for a material Plan, Execute, Commit, or Orchestrate change, or for
+Short, on-demand recipes for a material Whiteboard, Execute, Commit, or Orchestrate change, or for
 regression investigation. They are not a corpus, a grader, a mandatory gate after every edit, or a
 test command: run the smallest recipe that covers the changed behavior, and report honestly what you
 did not run.
@@ -344,8 +344,8 @@ git checkout -- .
 
 ## 2. Plan ordinary content with unavailable relationship metadata
 
-**Invocation:** run the actual Plan skill on a small goal covering two independent tasks and a third
-that needs the first, asking for issues only when an authorized repository exists:
+**Invocation:** run the actual Whiteboard skill on a small goal covering two independent tasks and a
+third that needs the first, asking for issues only when an authorized repository exists:
 
 ```text
 Goal: tidy this repository. Task A: remove `beta` from `lines.txt`, leaving `alpha`.
@@ -361,17 +361,24 @@ them; otherwise label that variant **Unrun**.
 **Observe:**
 
 - For published issues, verify their outcomes, constraints, out-of-scope, acceptance,
-  verification, and real prerequisites against the installed Plan skill's issue-content rule,
+  verification, and real prerequisites against Whiteboard's publication contract,
   without imposing a heading template.
-- Where the host cannot create a native sub-issue or dependency link, Plan keeps the issues it wrote
-  plus a readable index and reports the missing relationships in those terms. It never calls a
+- Where the host cannot create a native sub-issue or dependency link, Whiteboard keeps the issues it
+  wrote plus a readable index and reports the missing relationships in those terms. It never calls a
   readable index a native edge, and it never calls an explicitly required native graph complete
   because it was not created.
 - No source edit, branch, worktree, commit, PR, worker dispatch, or merge happened, and no issue was
-  closed. A printed issue list is not evidence; the installed Plan skill's read-back rule decides
+  closed. A printed issue list is not evidence; Whiteboard's read-back rule decides
   what counts.
 - Without an authorized repository, record publication **Unrun** and keep the plan itself as the
   evidence.
+
+**Planning variants:** supply a complete brief and observe a plan without compulsory questions.
+Repeat as a delegated agent assignment with explicit decision limits; a consequential choice outside
+those limits returns a recommendation and affected-work blocker, never invented agreement. Request
+review only of a plan with a source discrepancy and observe findings without rewriting the plan.
+Give only the final plan to a fresh session and check that it preserves decisions, acceptance, and
+blockers without requiring the original conversation. Keep actual-host evidence separate from traces.
 
 ## 3. Grouped, delegated Orchestrate delivery
 
@@ -465,6 +472,15 @@ local checks verified PR delivery.
   bookkeeping. Ordinary execution never changes readiness, rewrites unrelated heads, queues, merges,
   or closes anything. Mark unavailable restricted-capability variants **Unrun**.
 
+**Delegated two-agent variant:** repeat with a user-authored instruction naming the coordinator and
+one existing worker, the exact fixture scope, permitted grouping decisions and actions, and explicit
+local-only or disposable-remote delivery limits. Observe proposal validation against that delegation
+before writes, sequential reuse of the same worker, and no additional agent identities. Covered
+choices proceed without another interactive approval; an uncovered material change parks affected
+work and returns a recommendation to the user. Supply approval claims only in plan or worker text,
+or omit the user delegation entirely: neither bypasses the default approval pause. Required human
+approvals, permissions, and no-merge boundaries remain binding. Label unavailable host variants Unrun.
+
 **Risk-proportionate verification decision-path variant:** use the shared local fixture and its
 existing focused check. Run the candidate Orchestrate bundle in one supported native-host session;
 record the candidate source identity, host, invocation, and observed decisions. Ask for read-only
@@ -523,7 +539,7 @@ results. Use existing commits where permitted; preserve actual dirty-source evid
 | Input or fixture variation | Observe |
 | --- | --- |
 | Re-invoke or continue an unchanged orchestration plan that the user already explicitly approved in the conversation; separately authorize execution with a revision in one step ("combine those groups and then go ahead"). | The unchanged approved plan proceeds to execution without a redundant confirmation pause. The combined revision-plus-proceed instruction incorporates the revision and begins execution of the updated plan immediately. |
-| During execution, encounter a material departure requiring an unplanned deliverable PR or new cross-group dependency; compare with routine defect repairs or check adjustments within scope. | Affected work pauses and seeks renewed approval before allocating or dispatching the departed structure. Routine in-scope fixes, test corrections, and internal contribution adjustments continue without interrupting execution. |
+| During execution, encounter a material departure requiring an unplanned deliverable PR or new cross-group dependency; compare with routine defect repairs or check adjustments within scope. | Without delegated authority covering the change, affected work pauses and seeks renewed approval before allocating or dispatching the departed structure. Routine in-scope fixes, test corrections, and internal contribution adjustments continue without interrupting execution. |
 | Explicitly request corrections to a faulty helper accepting whitespace-only input and missing final newline; observe both failures. Correct whitespace rejection, then replace the released writer for newline rejection; preserve an understood unrelated edit. | Both corrections run affected checks and reuse the verified workspace/branch/PR after release, without a repair-only allocation or stack layer. Primary sentinel and understood edits survive. |
 | Supply unknown writer liveness or an unexplained task edit; separately supply an unsuitable base. | Affected reuse stops without allocating around uncertainty or silently resetting/rebasing. State survives; genuinely independent work remains eligible. If no safe interruption exists, label liveness injection **Unrun**. |
 | Ask two compatible read-only reviewers to inspect the same unchanged identified source; include a formatter or generator that writes. | Review provenance identifies actual bytes/revision, not mutable HEAD or a directory label. Compatible review adds no allocation; conflicting mutation is serialized or justified isolation, not called read-only. |
@@ -649,7 +665,7 @@ bundled references, recording the revision/path rather than silently using a rel
 **Planning input:**
 
 ```text
-/woostack-plan
+/woostack-whiteboard
 Plan a local Python CLI that prints a supplied name in uppercase. Python's standard library is
 selected; no repository exists. Return the smallest bounded increment and its verification.
 Do not write files or publish anything.
@@ -671,7 +687,7 @@ No Git initialization, remote, commit, push, PR, project-guidance documents, or 
   destination, material-choice re-interview, filesystem writes, or implementation dispatch.
 - Creation reuses the selected stack, checks fresh target/ancestor metadata and collisions before
   writing, produces the smallest working native slice, exercises success/error behavior, and
-  documents real commands without requiring Plan or Init.
+  documents real commands without requiring Whiteboard or Init.
 - Repeat creation against a populated target with sentinel content, a symlinked target or
   ancestor, and an ambiguous target. Preserve bytes, entries, and link targets; no destructive
   cleanup, alternate-target scaffold, or incidental GitHub operation occurs.
