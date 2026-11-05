@@ -5,7 +5,7 @@ and an autonomous agent setup in development. Start with the part you need:
 
 - [Tech stack](apps/docs/content/docs/recommended-stack.mdx): recommended technologies and how they fit together.
 - [Agent skills](apps/docs/content/docs/agent-skills.mdx): workflows for planning, building, and checking products inside a coding harness.
-- [Autonomous agents](apps/docs/content/docs/autonomous-agents.mdx): the coordinated agent setup being developed. Installation and configuration instructions are not available yet.
+- [Autonomous agents](apps/docs/content/docs/autonomous-agents.mdx): the coordinated setup being developed, with a [manual two-agent guide](apps/docs/content/docs/guides/agent-teams.mdx) for existing OpenMausBot teams. No packaged runtime or installer is provided.
 
 You can adopt the tech stack or the skills independently. Using the skills does not require
 the recommended stack or the autonomous setup. You make the product decisions and authorize work.
@@ -13,12 +13,12 @@ the recommended stack or the autonomous setup. You make the product decisions an
 The rest of this overview covers the agent skills. They guide an AI coding assistant to inspect
 the repository and GitHub and verify outcomes before reporting what changed or is ready for review.
 
-For a goal that needs refinement, try [Whiteboard](skills/woostack-whiteboard/SKILL.md): develop
-requirements, challenge the design, and refine a visual model and written plan together. Then save
-the plan when useful or explicitly request Orchestrate to coordinate implementation with subagents.
-Whiteboard is experimental; Ideate, Harden, and Plan remain available during the trial, including
-Plan's requested issue publication. A small, understood change can go directly to implementation.
-Verify changes and request independent review when required or warranted by risk.
+For a goal that needs refinement, use [Whiteboard](skills/woostack-whiteboard/SKILL.md): develop
+requirements, challenge the design, and refine a visual model and written plan. It works for a
+person or delegated agent without requiring questions when the context is sufficient. Review-only
+requests preserve the supplied plan; document saves and issue publication remain explicit.
+A small, understood change can go directly to implementation. Verify changes and request independent
+review when required or warranted by risk.
 
 Start with the [getting-started guide](apps/docs/content/docs/getting-started.mdx), or use the
 [command index](skills/using-woostack/SKILL.md#command-routing) to choose a workflow among the
@@ -50,7 +50,8 @@ A single-skill install changes only which directories arrive, not the workflow's
 
 The public commands are listed in the
 [command index](skills/using-woostack/SKILL.md#command-routing), including standalone
-Whiteboard, Ideate, Harden, and Plan.
+Whiteboard and Ideate. Plan and Harden are retired without aliases; use Whiteboard for planning,
+specification review, and requested issue publication.
 
 For UI work, [Design](skills/woostack-design/SKILL.md#selected-skills) uses
 [Impeccable](https://github.com/pbakaus/impeccable) as its design lead, with relevant specialists
@@ -104,10 +105,10 @@ For the full policy surface, see the authored
 [configuration reference](apps/docs/content/docs/configuration/index.mdx).
 
 
-Plan handles a goal or incomplete issue directly. It inspects relevant source, asks about
-material unresolved choices, and publishes issues only when requested. Ideate remains available
-for requirements exploration, Harden for read-only review, and Debug for diagnosis; none is a
-mandatory Plan handoff. An explicit GitHub Project is optional. Existing
+Whiteboard handles a goal or incomplete issue directly. It inspects relevant source, resolves
+material choices within supplied authority, and escalates uncovered consequential decisions.
+Ideate remains available for requirements exploration and Debug for diagnosis; neither is a
+mandatory handoff. An explicit GitHub Project is optional for requested issue publication. Existing
 `.woostack/tmp/runs/<run-id>/` records remain historical user data and are never migrated or
 mutated; retained drafts are evidence, not publication or implementation authority.
 
@@ -119,35 +120,36 @@ If you use Hermes to coordinate an OMP session, follow the
 [Hermes guide](apps/docs/content/docs/hermes.mdx). Install woostack in a compatible coding
 assistant, not in Hermes. Hermes can relay decisions and review evidence; implementation stays
 in the coding assistant.
+For existing senior and junior bots in OpenMausBot, follow
+[Run a two-agent engineering team](apps/docs/content/docs/guides/agent-teams.mdx).
 
 ## Choose a development workflow
 
-The recommended trial path for goals needing refinement is
-[whiteboard a goal into a plan](apps/docs/content/docs/guides/whiteboard.mdx), then explicitly
-request Orchestrate when ready to implement. The plan and visual stay in the conversation unless
-you request a document save. Orchestrate accepts that prose directly and presents its execution
-proposal before dispatching workers; no issue export or mandatory plan file is needed.
+For goals needing refinement, [whiteboard a goal into a plan](apps/docs/content/docs/guides/whiteboard.mdx),
+then separately authorize implementation. The plan and visual stay in the conversation unless you
+request a document save or publication. Orchestrate accepts that prose directly and presents its
+execution proposal before dispatching workers; no issue export or mandatory plan file is needed.
+Its default is user approval, with bounded user-delegated authority available for a named coordinator.
 
-For requested issue publication, use Plan. For planning in an ordinary ChatGPT chat, see the
-[ChatGPT-to-Codex guide](apps/docs/content/docs/chatgpt-to-codex.mdx). Existing workflows remain
-available, and an understood bounded task can go directly to Execute.
+For requested issue publication, use Whiteboard. For planning in an ordinary ChatGPT chat, see the
+[ChatGPT-to-Codex guide](apps/docs/content/docs/chatgpt-to-codex.mdx). An understood bounded task
+can go directly to Execute.
 
 | What you need | Command | What happens |
 | --- | --- | --- |
-| Collaboratively refine a goal or existing design | [/woostack-whiteboard](skills/woostack-whiteboard/SKILL.md) | Experimental requirements and design conversation with an evolving visual and portable implementation plan; document saves are explicit. |
-| Plan a new project | [/woostack-plan](skills/woostack-plan/SKILL.md) | Uses supplied goals, constraints, and research without requiring a checkout or GitHub. |
+| Plan a goal or existing design, including a new project | [/woostack-whiteboard](skills/woostack-whiteboard/SKILL.md) | Develops requirements and a portable visual plan, using supplied context without a mandatory interview or checkout. |
 | Create a bounded initial application | [/woostack-execute](skills/woostack-execute/SKILL.md) | Checks target safety, creates the requested working slice, and verifies it; local-only needs no GitHub or PR. |
 | Explore requirements | [/woostack-ideate](skills/woostack-ideate/SKILL.md) | Asks about unresolved product decisions and returns a readable specification. |
-| Review a specification or plan | [/woostack-harden](skills/woostack-harden/SKILL.md) | Checks selected content against relevant repository evidence without writes. |
-| Plan work or file issues | [/woostack-plan](skills/woostack-plan/SKILL.md) | Plans directly from a goal or issue; publishes and reads back issues only when requested. |
+| Review a specification or plan | [/woostack-whiteboard](skills/woostack-whiteboard/SKILL.md) | A review-only request returns evidence-backed discrepancies without rewriting the supplied content. |
+| File a plan as issues | [/woostack-whiteboard](skills/woostack-whiteboard/SKILL.md) | Publishes and reads back issues only when explicitly requested. |
 | A bounded implementation task | [/woostack-execute](skills/woostack-execute/SKILL.md) | Implements and verifies an enhancement, refactor, test-only task, or understood correction; delivers a draft PR when requested. |
 | Simplify an existing implementation | [/woostack-simplify](skills/woostack-simplify/SKILL.md) | Reworks selected code and removes unnecessary machinery while preserving required behavior; local edits by default, analysis-only when requested. |
-| Coordinate multiple approved tasks | [/woostack-orchestrate](skills/woostack-orchestrate/SKILL.md) | Resolves tasks and dependencies from prose, issues, or an explicitly selected Project; coordinates inline or native-host workers in isolated workspaces and verifies draft PRs without merging. |
+| Coordinate multiple authorized tasks | [/woostack-orchestrate](skills/woostack-orchestrate/SKILL.md) | Resolves tasks and dependencies from prose, issues, or an explicitly selected Project; delegates to native-host workers in owned workspaces and verifies draft PRs without merging. |
 | Design, prototype, refine, or critique UI | [/woostack-design](skills/woostack-design/SKILL.md) | Coordinates selected external design skills, agrees consequential directions before implementation, and checks the rendered result within the request's scope. |
 | Arrange existing screen flows | [/woostack-flow-layout](skills/woostack-flow-layout/SKILL.md) | Positions screen sequences and branches without redesigning their contents. |
 | Create or inspect a project component catalog | [/woostack-design-system](skills/woostack-design-system/SKILL.md) | Creates locally when no catalog exists; inspects an existing catalog without writes unless you explicitly request maintenance. |
 
-Whiteboard and Plan stop before implementation. Execute, Simplify, and Orchestrate start only on an authorized
+Whiteboard stops before implementation. Execute, Simplify, and Orchestrate start only on an authorized
 change request; planning is not a prerequisite for a bounded task with settled decisions. Simplify
 does not require Execute; commits and PRs remain opt-in, and each skill performs its own requested
 delivery with its bundled procedures. Init separately owns requested project
@@ -170,7 +172,7 @@ screen-flow arrangement workflow is available as `woostack-flow-layout`.
 | Investigate and address every unresolved review thread | [/woostack-address-comments](skills/woostack-address-comments/SKILL.md) |
 | Explore a running web app and reproduce browser bugs | [/woostack-qa](skills/woostack-qa/SKILL.md) |
 | Prove a root cause without implementing a correction | [/woostack-debug](skills/woostack-debug/SKILL.md) |
-| Plan a proved defect as issues | [/woostack-plan](skills/woostack-plan/SKILL.md) |
+| Plan a proved defect as issues | [/woostack-whiteboard](skills/woostack-whiteboard/SKILL.md) |
 | Find concrete improvements to instructions from this conversation | [/woostack-reflect](skills/woostack-reflect/SKILL.md) |
 
 Pullfrog handles pull-request review. Address-comments can resolve the resulting GitHub threads;

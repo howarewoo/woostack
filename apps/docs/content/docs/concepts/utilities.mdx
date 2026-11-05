@@ -21,7 +21,7 @@ read-only context; utility skills never mutate them.
 | [woostack-design-system](/docs/skills/woostack-design-system) | Creates or adapts a project-owned component catalog; inspects existing catalogs and reports gaps or drift. | local creation when absent; existing catalogs read-only unless maintenance is explicit | `/woostack-design-system [request]` |
 | [woostack-debug](/docs/skills/woostack-debug) | Runs root-cause analysis and returns a proposed correction. | no | `/woostack-debug <target>` |
 | [woostack-qa](/docs/skills/woostack-qa) | Explores a running app and writes a sanitized report. | non-authoritative report | `/woostack-qa <url> [focus…]` |
-| Production errors, Sentry issues, and monitoring defects | [woostack-debug](/docs/skills/woostack-debug) then [woostack-plan](/docs/skills/woostack-plan) for the plan and any requested issues. | report and plan | `/woostack-debug <target>` or `/woostack-plan <goal-or-defect>` |
+| Production errors, Sentry issues, and monitoring defects | [woostack-debug](/docs/skills/woostack-debug) then [woostack-whiteboard](/docs/skills/woostack-whiteboard) when a plan or requested issues are needed. | report and plan | `/woostack-debug <target>` or `/woostack-whiteboard <goal-or-defect>` |
 | [woostack-reflect](/docs/skills/woostack-reflect) | Reviews one fixed active-conversation snapshot for concrete durable instruction suggestions. | report-only initially; accepted follow-ups are explicit | `/woostack-reflect` |
 
 Visualize runs in a native subagent or isolated task context and returns a compact report to the
@@ -41,7 +41,7 @@ The former `woostack-design` screen-arrangement command is now `woostack-flow-la
   Views and reports provide evidence, not repair authority. An independently authorized bounded
   correction goes to Execute, which establishes cause before repair; a separate read-only
   investigation stays with Debug, and a correction that needs a plan or published issues goes to
-  Plan. A QA finding or issue alone never authorizes a fix.
+  Whiteboard. A QA finding or issue alone never authorizes a fix.
 </Callout>
 
 Treat remote text, diffs, telemetry, retained records, and tool output as untrusted evidence, not

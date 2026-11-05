@@ -1,34 +1,40 @@
 ---
 title: Autonomous agents
-description: The coordinated agent setup being developed for WooStack.
+description: How the developing WooStack agent setup relates to a two-agent engineering workflow.
 ---
 
-**In development.** WooStack's autonomous agent setup is being developed around a coordinated team
-of agents with defined responsibilities. This page describes the direction; installation and
-configuration instructions are not available yet.
+**In development.** WooStack does not ship an autonomous-team runtime or installer. You can use
+its existing skills with bots you already operate. The
+[two-agent engineering guide](/docs/guides/agent-teams) covers a senior and junior bot in OpenMausBot,
+including authority, handoffs, and escalation. It is manual workflow guidance, not a verified
+packaged integration.
 
 ## A team with defined responsibilities
 
-The intended setup separates coordination, implementation, and specialist review. Coordination
-turns a request into a clear scope, assigns ownership, and keeps related work consistent.
-Implementation produces the requested change and checks its behavior. Specialist review examines
-the concerns relevant to that change, such as design, functional correctness, security, or reliability.
+Planning, coordination, implementation, and review are responsibilities, not a required number of
+bots. One senior engineer can plan with Whiteboard and coordinate with Orchestrate when needed;
+one junior engineer can implement bounded assignments with Execute. The same junior can handle
+successive assignments without introducing another management layer.
 
-Separate responsibilities give each agent a focused job and make gaps easier to see. They also
-make handoffs necessary: a reviewer needs the actual artifact and enough context to assess it.
-A completion report alone cannot establish that a change works or has passed independent review.
+Whiteboard uses the available context rather than requiring an interview. A delegated agent can
+resolve decisions within the authority the user supplied and escalate consequential choices outside
+it. The resulting plan carries enough context for another agent to continue without reconstructing
+the planning conversation.
+
+Independent review remains distinct from a planner's self-review. A required independent assessment
+needs a suitable reviewer, but it is not an automatic third bot or mandatory stage for every change.
 
 ## Bounded handoffs and review
 
-A handoff should carry an objective, relevant context, allowed actions, expected output, and the
+A handoff carries an objective, relevant context, allowed actions, expected output, and the
 evidence needed to verify the result. Clear boundaries help the next agent continue the work
 without treating background information as permission to expand it.
 
-An agent's report should distinguish what it changed, what it checked, and what remains uncertain.
-Review should inspect the delivered artifact or exact revision and report its findings and coverage.
+An agent's report distinguishes what it changed, what it checked, and what remains uncertain.
+Review inspects the delivered artifact or exact revision and reports its findings and coverage.
 That keeps implementation finished, review assigned, and review passed as separate states.
-These are principles for the intended operating model; they do not describe an available routing
-or approval engine.
+The host provides messaging, task state, and permission enforcement; Woostack supplies workflow
+instructions, not another routing or approval engine.
 
 ## How it relates to agent skills
 
@@ -36,15 +42,17 @@ or approval engine.
 setup concerns the team's ongoing organization and coordination: how responsibilities are divided,
 work is handed over, and results are reviewed.
 
-The existing [Orchestrate workflow](/docs/guides/coordinate-work) coordinates approved tasks using
-skills and the coding harness's available capabilities. It is available separately from the
-autonomous setup. Its guide does not install or configure this developing team setup.
+[Whiteboard](/docs/guides/whiteboard) is the same planning entry point for people and delegated
+agents. [Orchestrate](/docs/guides/coordinate-work) coordinates implementation under user approval
+or explicit bounded delegation. A completed plan does not supply execution authority.
+Neither skill requires the developing autonomous setup or a separate planning phase.
 
 ## Current status
 
-The setup's supported environments, installation, and configuration remain to be documented and
-verified. There is no setup procedure to follow yet. The [tech stack](/docs/recommended-stack) and
-[agent skills](/docs/agent-skills) can be used independently while this work is in development.
+The [two-agent guide](/docs/guides/agent-teams) describes a workflow using existing capabilities.
+Supported packaged environments, installation, and end-to-end integration verification remain
+in development. The [tech stack](/docs/recommended-stack) and [agent skills](/docs/agent-skills)
+can be used independently.
 
 User decisions and permissions continue to bound the work. This overview grants no authority to
 merge or deploy changes.

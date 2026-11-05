@@ -24,7 +24,7 @@ You need:
 - Node.js and pnpm. The installation command uses `pnpx`, pnpm's package runner.
 
 Authoring project guidance requires no `.woostack/` configuration, Doctor checks, or GitHub access.
-Installing skills requires network access, and Plan can inspect existing repository issues.
+Installing skills requires network access, and Whiteboard can inspect existing repository issues.
 This tutorial publishes no issues or pull requests. A `/woostack-*` request names the logical
 command; each assistant's exact invocation syntax is listed in the
 [harness reference](/docs/harnesses#native-skill-invocation).
@@ -38,7 +38,7 @@ pnpx skills add howarewoo/woostack
 ```
 
 Confirm that your assistant can find the installed skills, such as `woostack-init` and
-`woostack-plan`. Each skill works independently without requiring sibling skills; the
+`woostack-whiteboard`. Each skill works independently without requiring sibling skills; the
 [command index](/docs/skills/using-woostack#command-routing) is an optional directory.
 Woostack skills are instructions for the agent, not shell programs. If your assistant
 cannot find a skill, follow the
@@ -88,7 +88,7 @@ A safe existing file may need no changes. Deferred decisions remain visible rath
 Send this request to your coding assistant:
 
 ```text
-/woostack-plan Plan a Verification section for this repository's README.
+/woostack-whiteboard Plan a Verification section for this repository's README.
 Use the repository's existing instructions and actual check commands.
 Reuse an existing section if it already serves this purpose.
 Keep the scope to documentation. Return the plan here; do not file
@@ -97,11 +97,11 @@ GitHub issues or implement changes.
 
 Read the returned plan before taking any further action. A complete plan identifies the files
 inspected, proposes concrete additions, and explains how to confirm the result. If your repository
-already has an adequate Verification section, Plan reports that and leaves it alone. Missing check
-commands are flagged directly rather than invented.
+already has an adequate Verification section, Whiteboard reports that and leaves it alone. Missing
+check commands are flagged directly rather than invented. Sufficient context needs no interview.
 
-This step writes nothing to disk. Plan creates no files, issues, branches, commits, or pull requests.
-Guidance edits from step 2 do not grant permission to implement the plan.
+This request writes nothing to disk. Whiteboard creates no files, issues, branches, commits, or pull
+requests for this planning-only step. Guidance edits from step 2 do not grant implementation authority.
 
 ## Choose what to do next
 

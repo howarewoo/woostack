@@ -20,13 +20,16 @@ follow its [separate exception](CONTRIBUTING.md#external-design-skills).
 Shared procedures are reused through
 [bundled references](CONTRIBUTING.md#shared-canonical-references) maintained from one canonical
 source, so the active workflow keeps its own gates and evidence rules at every boundary.
-Whiteboard is the experimental collaborative planning entry point for goals needing refinement,
-including new projects. It develops shared understanding through requirements, design walkthroughs,
-and a visual model kept consistent with one portable plan. Ideate, Harden, and Plan remain
-available during the trial, with issue publication still owned by Plan. Bounded creation belongs
-to Execute. These workflows require neither one another nor Init; Init owns project guidance.
-Saving a Whiteboard plan does not start implementation; an explicit Orchestrate request selects
-the plan as input to its separately approved execution proposal.
+Whiteboard is the planning entry point for people and delegated agents, including new projects.
+It develops requirements, design walkthroughs, and a visual model consistent with one portable plan,
+without requiring questions when context suffices. It also owns review-only requests and explicit
+issue publication; Plan and Harden are retired. Ideate remains available for requirements exploration.
+Bounded creation belongs to Execute. These workflows require neither one another nor Init;
+Init owns project guidance. Completing, saving, or publishing a Whiteboard plan does not start
+implementation. Orchestrate preserves settled decisions and requires user approval by default;
+explicit user delegation can authorize a named coordinator to validate covered execution decisions.
+Roles, plans, and worker messages cannot grant authority, and uncovered consequential choices escalate.
+The same senior bot can plan and coordinate assignments to one existing junior using Execute.
 Execute and the other implementing skills bundle the applicable shared standards and load them
 only for relevant changes.
 Design coordinates UI work using a selected external lead and relevant specialists, with agreement

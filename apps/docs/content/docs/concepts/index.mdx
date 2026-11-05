@@ -18,13 +18,13 @@ to build. Choosing a workflow never approves its design or authorizes extra work
 
 Planning and implementation remain distinct decisions:
 
-- **Planning is read-only:** [Plan](/docs/skills/woostack-plan) inspects relevant source code,
-  settles material choices, and drafts reviewable increments. It files GitHub issues only when
-  explicitly requested, and filing issues never starts implementation.
+- **Planning:** [Whiteboard](/docs/skills/woostack-whiteboard) inspects relevant source code,
+  settles material choices, and drafts a portable visual plan. Document saves and GitHub issue
+  publication require an explicit request and never start implementation.
 - **Bounded execution:** [Execute](/docs/skills/woostack-execute) takes one authorized outcome and
   delivers verified local edits or a draft pull request. It requires no preliminary planning step.
 - **Multi-task coordination:** [Orchestrate](/docs/skills/woostack-orchestrate) coordinates multiple
-  approved tasks, proposing grouping and landing order before execution begins.
+  authorized tasks, proposing grouping and landing order before execution begins.
 - **Evidence-based delivery:** Closed issues or finished status fields never prove that code landed.
   Git and GitHub evidence alone prove delivery.
 
@@ -33,13 +33,14 @@ See [Workflow maps](/docs/concepts/workflows) for detailed workflow routing by w
 
 ## Optional exploration and review
 
-[Ideate](/docs/skills/woostack-ideate) explores requirements on request, while
-[Harden](/docs/skills/woostack-harden) checks specifications against repository evidence.
-Both are optional, read-only passes that require neither a writable checkout nor a Project.
+[Ideate](/docs/skills/woostack-ideate) explores requirements on request.
+[Whiteboard](/docs/skills/woostack-whiteboard) also accepts review-only requests, returning
+specification discrepancies against repository evidence without rewriting the supplied content.
+Neither is a prerequisite for an understood implementation task.
 
 ## Retained records and direct GitHub publication
 
-Plan publishes issues directly through authorized GitHub capabilities, reading back every write
+Whiteboard publishes issues directly through authorized GitHub capabilities, reading back every write
 independently. Existing `.woostack/tmp/runs/<run-id>/` files remain historical user records that
 authorize nothing. See [local artifacts reference](/docs/configuration/artifacts/local).
 
@@ -60,13 +61,15 @@ to balance speed, cost, isolation, and risk.
   compute evidence without replacing authority.
 - [Hermes](/docs/hermes) acts as an external engineer, driving persistent sessions and relaying
   live user decisions verbatim without gaining implementation authority.
+- [Agent teams](/docs/guides/agent-teams) use the same workflows with an existing senior and junior
+  bot, bounded delegated authority, and escalation to the user.
 
 ## Where to go next
 
 <Cards>
   <Card title="Getting started" href="/docs/getting-started" description="Install the skills, create project guidance, and return a read-only plan." />
   <Card title="Building rules" href="/docs/concepts/building-rules" description="Understand who authorizes work and which evidence proves delivery." />
-  <Card title="Workflow maps" href="/docs/concepts/workflows" description="Compare Plan, Orchestrate, and Execute under one authority model." />
+  <Card title="Workflow maps" href="/docs/concepts/workflows" description="Compare Whiteboard, Orchestrate, and Execute under one authority model." />
   <Card title="Context management" href="/docs/concepts/context-management" description="Keep reasoning focused with compact reads, isolated sessions, and explicit handoffs." />
   <Card title="Parallelism with worktrees" href="/docs/concepts/worktrees" description="Isolate each delegated implementation task and concurrent disjoint work in separate Git worktrees." />
   <Card title="Utility skill reference" href="/docs/concepts/utilities" description="Look up investigation, diagnostic, and maintenance skill behavior." />

@@ -165,7 +165,7 @@ Any named GitHub issue stays evidence only and must be re-read for drift before 
 An independently authorized bounded correction may enter a separately requested implementation
 workflow (for example `/woostack-execute`, which independently establishes cause from reproduction
 or adequate source/runtime evidence before repair); a separately requested read-only diagnosis may
-use `/woostack-debug`, and planning work `/woostack-plan`. Naming these public commands is optional
+use `/woostack-debug`, and planning work `/woostack-whiteboard`. Naming these public commands is optional
 navigation, not a dependency: no QA finding authorizes either path by itself, and no installed
 sibling skill changes what QA itself runs.
 

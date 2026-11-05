@@ -1,8 +1,8 @@
 # Contributing
 
 This repo publishes skills for AI coding assistants, their supporting files, a documentation
-site, and a standalone component catalog. The [command index](skills/using-woostack/SKILL.md#command-routing) lists Plan,
-standalone Ideate and Harden, and the other public commands. Read [AGENTS.md](AGENTS.md)
+site, and a standalone component catalog. The [command index](skills/using-woostack/SKILL.md#command-routing)
+lists Whiteboard, standalone Ideate, and the other public commands. Read [AGENTS.md](AGENTS.md)
 for standing repository rules, the two-app boundary, and verified checks.
 
 ## What to change
@@ -13,16 +13,15 @@ for standing repository rules, the two-app boundary, and verified checks.
 | Change how bundled copies are projected or checked | `shared/sync.mjs` and `shared/mapping.json` |
 | Change project adoption / optional command index | `skills/woostack-init/SKILL.md#document-responsibilities` / `skills/using-woostack/SKILL.md` |
 | Change retained run handling or direct GitHub publication | `shared/references/artifact-backends.md` and the GitHub profile |
-| Refine material technology-selection decisions | `skills/woostack-plan/SKILL.md` |
+| Refine material technology-selection decisions | `skills/woostack-whiteboard/SKILL.md` |
 | Change placement, boundary, dependency, or least-code guidance | `shared/references/patterns.md` |
 | Change deployment, migration, secrets, or client-lifecycle guidance | `shared/references/infrastructure.md` |
 | Refine safe initial project creation | `shared/references/scaffold.md` |
 | Change checkout isolation or base selection | `shared/references/worktrees.md` |
 | Change explicit model/effort selection wording | `shared/references/identity.md` |
 | Change the reusable delivery (commit/PR) procedure | `shared/references/delivery.md` |
-| Plan work and optional GitHub issue publication | `skills/woostack-plan/SKILL.md` and its references |
+| Plan work, review specifications, and optionally publish GitHub issues | `skills/woostack-whiteboard/SKILL.md` and its references |
 | Change requirements exploration (Ideate) | `skills/woostack-ideate/SKILL.md` |
-| Change read-only specification review (Harden) | `skills/woostack-harden/SKILL.md` |
 | Change multi-task coordination and stacked delivery | `skills/woostack-orchestrate/SKILL.md` |
 | Change task implementation and specialist handoffs | `skills/woostack-execute/SKILL.md` |
 | Change behavior-preserving code simplification | `skills/woostack-simplify/SKILL.md` |
@@ -91,7 +90,7 @@ and verify tasks); install from the root with `pnpm install --frozen-lockfile` u
 - Keep retained run data and direct GitHub publication in the
   [artifact contract](shared/references/artifact-backends.md). Link to the
   [GitHub profile](shared/references/artifact-providers/github.md) for resource
-  identity and capability details; Plan requires neither Project configuration nor a parent issue.
+  identity and capability details; Whiteboard requires neither Project configuration nor a parent issue.
 - Use tables to compare options and numbered lists for steps.
 - Keep the command names and fixed skill paths listed in the
   [command index](skills/using-woostack/SKILL.md#command-routing); the

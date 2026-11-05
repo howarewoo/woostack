@@ -13,8 +13,6 @@ export const PUBLIC_ORDER = [
   "woostack-init",
   "woostack-whiteboard",
   "woostack-ideate",
-  "woostack-harden",
-  "woostack-plan",
   "woostack-orchestrate",
   "woostack-execute",
   "woostack-simplify",
