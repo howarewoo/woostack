@@ -1,12 +1,13 @@
 ---
 title: Whiteboard a goal into a plan
-description: Refine requirements, review the design visually, and hand off a plan when implementation is authorized.
+description: Explore requirements, review the design visually, and hand off a plan when implementation is authorized.
 ---
 
 Use [Whiteboard](/docs/skills/woostack-whiteboard) when you want to explore and
-refine a goal before building. You leave with a written plan and a visual model that explain
-what to build, why, and what remains undecided. An already-understood task does not need a
-Whiteboard session. The same skill works for you or a delegated planning agent.
+refine a goal before building. For implementation planning, you leave with a written plan and a
+visual model that explain what to build, why, and what remains undecided. Requirements-only
+exploration can stop earlier. An already-understood task does not need a Whiteboard session.
+The same skill works for you or a delegated planning agent.
 
 ## Start the conversation
 
@@ -20,6 +21,18 @@ The first version observes runs but cannot cancel or retry them.
 These are assistant requests, not terminal commands. See your host's
 [invocation syntax](/docs/harnesses#native-skill-invocation). For an existing project, identify the
 repository; for greenfield work, state that no code exists yet. A checkout is not required.
+
+To explore requirements without choosing an implementation, narrow the request:
+
+```text
+/woostack-whiteboard Explore whether we should add team workspaces.
+Clarify the requirements and compare approaches.
+Do not choose an architecture or create implementation tasks yet.
+```
+
+Expect a focused specification or answer with alternatives, trade-offs, evidence, and open decisions.
+A solution, delivery plan, and diagram are not required to finish this exploration. Choose whether
+to develop an implementation plan later; completing exploration does not make implementation ready.
 
 ## Refine the requirements and picture
 

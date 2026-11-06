@@ -2,7 +2,7 @@
 
 This repo publishes skills for AI coding assistants, their supporting files, a documentation
 site, and a standalone component catalog. The [command index](skills/using-woostack/SKILL.md#command-routing)
-lists Whiteboard, standalone Ideate, and the other public commands. Read [AGENTS.md](AGENTS.md)
+lists Whiteboard and the other public commands. Read [AGENTS.md](AGENTS.md)
 for standing repository rules, the two-app boundary, and verified checks.
 
 ## What to change
@@ -20,8 +20,7 @@ for standing repository rules, the two-app boundary, and verified checks.
 | Change checkout isolation or base selection | `shared/references/worktrees.md` |
 | Change explicit model/effort selection wording | `shared/references/identity.md` |
 | Change the reusable delivery (commit/PR) procedure | `shared/references/delivery.md` |
-| Plan work, review specifications, and optionally publish GitHub issues | `skills/woostack-whiteboard/SKILL.md` and its references |
-| Change requirements exploration (Ideate) | `skills/woostack-ideate/SKILL.md` |
+| Explore requirements, plan work, review specifications, and optionally publish GitHub issues | `skills/woostack-whiteboard/SKILL.md` and its references |
 | Change multi-task coordination and stacked delivery | `skills/woostack-orchestrate/SKILL.md` |
 | Change task implementation and specialist handoffs | `skills/woostack-execute/SKILL.md` |
 | Change behavior-preserving code simplification | `skills/woostack-simplify/SKILL.md` |

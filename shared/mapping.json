@@ -72,7 +72,6 @@
         "woostack-design-system",
         "woostack-doctor",
         "woostack-execute",
-        "woostack-ideate",
         "woostack-orchestrate",
         "woostack-whiteboard",
         "woostack-simplify"
@@ -111,8 +110,7 @@
         "woostack-whiteboard",
         "woostack-debug",
         "woostack-design-system",
-        "woostack-doctor",
-        "woostack-ideate"
+        "woostack-doctor"
       ]
     },
     {

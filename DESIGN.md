@@ -22,8 +22,9 @@ Shared procedures are reused through
 source, so the active workflow keeps its own gates and evidence rules at every boundary.
 Whiteboard is the planning entry point for people and delegated agents, including new projects.
 It develops requirements, design walkthroughs, and a visual model consistent with one portable plan,
-without requiring questions when context suffices. It also owns review-only requests and explicit
-issue publication; Plan and Harden are retired. Ideate remains available for requirements exploration.
+without requiring questions when context suffices. Requirements-only exploration stops at the
+requested depth without forcing a solution or delivery plan. Whiteboard also owns review-only
+requests and explicit issue publication; Ideate, Plan, and Harden are retired.
 Bounded creation belongs to Execute. These workflows require neither one another nor Init;
 Init owns project guidance. Completing, saving, or publishing a Whiteboard plan does not start
 implementation. Orchestrate preserves settled decisions and requires user approval by default;
