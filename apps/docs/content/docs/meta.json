@@ -19,11 +19,9 @@
     "skills",
     "---Agent team documentation---",
     "[Overview](/docs/agent-teams)",
-    "agent-teams/setup",
+    "agent-teams/departments",
     "agent-teams/shared-wiki",
     "agent-teams/agent-definitions",
-    "agent-teams/project-group-chats",
-    "agent-teams/two-agent-team",
-    "hermes"
+    "agent-teams/project-group-chats"
   ]
 }

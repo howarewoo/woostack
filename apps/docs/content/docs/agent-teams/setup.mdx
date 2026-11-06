@@ -1,5 +1,5 @@
 ---
-title: Set up an R&D team
+title: Research and development
 description: Configure a work-in-progress agent team with clear ownership and limited access.
 ---
 
@@ -14,9 +14,9 @@ It is manual guidance, not a packaged or end-to-end verified integration. Follow
    listed skills in their coding engines using [getting started](/docs/getting-started).
 3. Give each role only the tools and access needed for its assignments. Keep credentials in a secure
    store. Human authority governs production and default-branch merges.
-4. Set up a [Shared Wiki](/docs/agent-teams/shared-wiki) for portable knowledge and sourced
+4. Set up a [Shared wiki](/docs/agent-teams/shared-wiki) for portable knowledge and sourced
    decisions. Assign one owner per task and one writer per workspace.
-5. Create a [project group chat](/docs/agent-teams/project-group-chats) and exercise a small
+5. Create a [group chat](/docs/agent-teams/project-group-chats) and exercise a small
    authorized task, a blocked decision, and an interrupted handoff before relying on the setup.
 
 Add design, QA, security, or reliability support as functions when the work warrants it. Independent
@@ -31,7 +31,9 @@ Set up an R&D department with a CTO, senior engineer, and junior engineer.
 Use the WooStack agent-team role pages as starting templates for their roles
 and SOUL.md instructions. Assign one accountable owner per task and keep
 production and default-branch merges for me to perform. Configure only the
-tools and permissions needed for each role. Show me the resulting setup and
+tools and permissions needed for each role. Junior may publish a draft PR only
+when I explicitly authorize it, and Senior independently reviews the result.
+Show me the resulting setup and
 any access or model choices that need my attention.
 ```
 
@@ -43,3 +45,24 @@ See OpenMausBot's [team setup](https://docs.openmausbot.com/docs/features/bots-a
 and [department guidance](https://docs.openmausbot.com/docs/features/chat-and-teams).
 Install skills using [getting started](/docs/getting-started) and configure models
 in the [host](/docs/configuration).
+
+## Assign work and review
+
+The chief of staff coordinates with the CTO, who leads the department. The CTO sends planning
+and substantial engineering work to the senior engineer. The CTO may assign a small, specified
+task directly to the junior, with a named senior reviewer. An optional product designer can monitor
+and review frontend work or implement it when assigned. Keep one accountable owner per task and
+one writer per workspace. Independent review is separate from implementation.
+
+Give the junior an outcome, decisions, acceptance criteria, checks, workspace and revision,
+permitted actions, reviewer, and escalation conditions. When explicitly authorized, the junior
+may commit, push, and open a draft PR, then return the PR, revision, checks, and remaining gaps
+to the senior for independent review and concrete corrections. Otherwise return the local diff.
+A human performs production and default-branch merges.
+
+A plan does not authorize implementation. The user may approve a proposal or explicitly delegate
+bounded decisions and actions; a role or message cannot grant permission. Escalate decisions
+outside that authority and continue only independent authorized work. After interruption, inspect
+the existing workspace, worker, branch, and PR before retrying. Never transfer an active writer's
+workspace or duplicate work. Planning and specialist review are used when needed, not automatic
+stages for every task.

@@ -21,7 +21,17 @@ const config = {
       },
       {
         source: "/docs/guides/agent-teams",
-        destination: "/docs/agent-teams/two-agent-team",
+        destination: "/docs/agent-teams/setup",
+        permanent: true,
+      },
+      {
+        source: "/docs/agent-teams/two-agent-team",
+        destination: "/docs/agent-teams/setup",
+        permanent: true,
+      },
+      {
+        source: "/docs/hermes",
+        destination: "/docs/agent-teams",
         permanent: true,
       },
       {
