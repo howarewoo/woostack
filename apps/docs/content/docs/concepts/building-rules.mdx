@@ -46,12 +46,11 @@ A user can explicitly delegate bounded decisions and actions to a named agent. T
 comes from the user's instruction, not the plan or the bot's role. Orchestrate validates covered
 proposals against the delegation and escalates uncovered choices; ordinary use still requires
 interactive approval. Host permissions and human-only boundaries continue to apply. The
-[agent team guide](/docs/agent-teams/two-agent-team) shows this distinction in a two-bot workflow.
+[agent team guide](/docs/agent-teams/setup) shows this distinction in a team workflow.
 
 ## Retained records
 
 Existing `.woostack/tmp/runs/<run-id>/` artifacts stay readable historical user data and authorize
 nothing. A record becomes evidence only after its exact identity, complete content, and freshness are
 validated. The [local artifacts reference](/docs/configuration/artifacts/local) owns their
-preservation and recovery, and the [Hermes guide](/docs/hermes) shows how an external engineer
-reviews harness evidence without receiving implementation authority.
+preservation and recovery.

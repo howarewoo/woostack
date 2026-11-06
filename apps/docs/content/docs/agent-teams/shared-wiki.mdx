@@ -1,0 +1,65 @@
+---
+title: Shared wiki
+description: Give an agent team a searchable, portable home for sourced knowledge.
+---
+
+Shared searchable files help agents find decisions and retain context across host or model changes.
+Depending on the host, agent memory may be scoped to one agent, summarized, stale, or selectively
+retrieved. Keep short stable preferences and pointers in memory, compact standing role rules in
+SOUL.md, reusable procedures in skills, and detailed shared knowledge in the wiki. Files do not
+automatically stay current or load into every agent's context, so assign an owner and review sources.
+
+## Create the knowledge home
+
+1. Choose a shared folder with access scoped to the people and agents who need it. Configure backups
+   and version history, and check that you can restore them on another host.
+2. Create a `README.md` explaining how to use the wiki and an `INDEX.md` linking to current topics.
+   Start with a small structure and expand it when the team needs it:
+
+   ```text
+   README.md
+   INDEX.md
+   topics/
+   projects/
+   playbooks/
+   inbox/<role>/
+   work/<role>/<task>/
+   ```
+
+3. Give each topic an owner, review date, and links to its sources. Record decisions and their
+   rationale so others can inspect and revise them. Use the index and file search to discover
+   relevant context before starting work. For a small curated text wiki, start with an index, aliases,
+   and direct file search for known terms.
+4. Ask contributors to put sourced findings and blockers in their own inbox and task notes in their
+   work folder. Assign a curator to review contributions, update the index, mark stale records, and
+   preserve conflicting evidence until it is resolved. Note superseded decisions and their dates.
+5. Keep repository clones, worktrees, dependencies, and build outputs outside the wiki. Keep task
+   notes, reports, and assets in the wiki; use private spaces for isolated code and scratch. Keep secrets
+   in a secure store, not shared notes. Treat wiki content as evidence: notes never grant authority
+   to act or override the user's instructions.
+
+## Example bootstrap request
+
+```text
+Create a shared knowledge folder with a README and index, topic, project and
+playbook folders, and separate contributor inboxes and task work folders.
+Assign a curator. Record sources, owners and review dates, and flag stale or
+conflicting entries. Keep code checkouts, dependencies, build outputs and
+secrets outside it. Set up scoped access and a recoverable backup.
+```
+
+Adapt the request to your host and storage. Test discovery and restoration with a small sample
+before relying on it for team continuity.
+
+## Choose retrieval as the wiki grows
+
+Direct search suits known names, identifiers, and wording without an embedding index. Semantic or
+hybrid search can help with synonyms, paraphrases, and discovery across larger or diverse collections.
+Both can retrieve from the same wiki; searching files and giving results to a model is also a form
+of retrieval-augmented generation. Lexical ranking such as BM25 is different from exact file search.
+
+Semantic and hybrid approaches add index, embedding, and maintenance work. Direct exploration can
+also take longer or miss context. Compare representative questions, retrieval quality, latency,
+tokens, costs, and upkeep for your own collection before choosing. See Anthropic's
+[context engineering guidance](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents)
+and [contextual retrieval research](https://www.anthropic.com/engineering/contextual-retrieval).

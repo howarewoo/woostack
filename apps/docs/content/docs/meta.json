@@ -2,14 +2,13 @@
   "title": "Docs",
   "pages": [
     "index",
-    "recommended-stack",
-    "agent-skills",
-    "agent-teams/index",
     "---Tech stack documentation---",
+    "recommended-stack",
     "guides/deploy-cloudflare",
     "concepts/repository-rules",
     "concepts/least-code",
     "---Agent skills documentation---",
+    "agent-skills",
     "getting-started",
     "guides",
     "concepts",
@@ -18,7 +17,10 @@
     "concepts/utilities",
     "skills",
     "---Agent team documentation---",
-    "agent-teams/two-agent-team",
-    "hermes"
+    "[Overview](/docs/agent-teams)",
+    "agent-teams/departments",
+    "agent-teams/shared-wiki",
+    "agent-teams/agent-definitions",
+    "agent-teams/project-group-chats"
   ]
 }

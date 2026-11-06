@@ -1,13 +1,13 @@
 ---
-title: Agent teams
+title: Agent team overview
 description: Guidance for working with autonomous agent teams using WooStack workflows.
 ---
 
+import { TeamOrganization } from "@/components/guides/team-organization";
+
 **In development.** WooStack does not ship an autonomous-team runtime or installer. You can use
-its existing skills with bots you already operate. The
-[two-agent engineering guide](/docs/agent-teams/two-agent-team) covers a senior and junior bot in OpenMausBot,
-including authority, handoffs, and escalation. It is manual workflow guidance, not a verified
-packaged integration.
+its existing skills with bots you already operate. The [R&D setup](/docs/agent-teams/setup)
+describes a manual workflow, not a verified packaged integration.
 
 ## A team with defined responsibilities
 
@@ -23,6 +23,21 @@ the planning conversation.
 
 Independent review remains distinct from a planner's self-review. A required independent assessment
 needs a suitable reviewer, but it is not an automatic third bot or mandatory stage for every change.
+
+The proposed roles are:
+
+- [Chief of staff](/docs/agent-teams/chief-of-staff): general coordination and platform operations.
+- [CTO](/docs/agent-teams/cto): R&D priorities, assignments, and review routing.
+- [Senior engineer](/docs/agent-teams/senior-engineer): assigned engineering work and junior review.
+- [Junior engineer](/docs/agent-teams/junior-engineer): bounded implementation and evidence.
+
+<TeamOrganization />
+
+The chief of staff coordinates with department chiefs. The R&D CTO can assign work to the senior,
+the junior, or an optional product designer. Other department chiefs are illustrative; only the
+R&D setup is documented here. The senior is not a required dispatch route to the junior. When
+authorized, the junior publishes a draft PR and sends the revision and evidence to the senior
+for independent review and corrections. A human performs production and default-branch merges.
 
 ## Bounded handoffs and review
 
@@ -50,10 +65,11 @@ Neither skill requires the developing autonomous setup or a separate planning ph
 
 ## Agent team documentation
 
-<Cards>
-  <Card title="Run a two-agent engineering team" href="/docs/agent-teams/two-agent-team" description="Use an existing senior and junior bot for planning, execution, and escalation in OpenMausBot." />
-  <Card title="Use Hermes with OMP" href="/docs/hermes" description="Coordinate decisions and review evidence through one persistent coding session." />
-</Cards>
+Start with [setting up an R&D team](/docs/agent-teams/setup), then set up a [Shared wiki](/docs/agent-teams/shared-wiki) and adapt the role profiles and
+[group chats](/docs/agent-teams/project-group-chats) to your work. The setup is a work in
+progress, and does not guarantee autonomous operation.
+
+
 
 ## Current status
 

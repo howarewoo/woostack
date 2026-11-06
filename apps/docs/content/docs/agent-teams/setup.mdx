@@ -1,0 +1,68 @@
+---
+title: Research and development
+description: Configure a work-in-progress agent team with clear ownership and limited access.
+---
+
+This evolving setup uses [OpenMausBot](https://docs.openmausbot.com/docs) as a suggested host.
+It is manual guidance, not a packaged or end-to-end verified integration. Follow the host's current
+[bot documentation](https://docs.openmausbot.com/docs/features/bots-and-tasks) for configuration.
+
+1. Set up a [chief of staff](/docs/agent-teams/chief-of-staff) for general coordination and platform
+   operations, then an R&D department led by a [CTO](/docs/agent-teams/cto).
+2. Add a [senior engineer](/docs/agent-teams/senior-engineer) and a
+   [junior engineer](/docs/agent-teams/junior-engineer). Adapt their templates and install the
+   listed skills in their coding engines using [getting started](/docs/getting-started).
+3. Give each role only the tools and access needed for its assignments. Keep credentials in a secure
+   store. Human authority governs production and default-branch merges.
+4. Set up a [Shared wiki](/docs/agent-teams/shared-wiki) for portable knowledge and sourced
+   decisions. Assign one owner per task and one writer per workspace.
+5. Create a [group chat](/docs/agent-teams/project-group-chats) and exercise a small
+   authorized task, a blocked decision, and an interrupted handoff before relying on the setup.
+
+Add design, QA, security, or reliability support as functions when the work warrants it. Independent
+review must come from a suitable independent reviewer when required; a role label alone is not review.
+
+## Example bootstrap request
+
+Ask an existing OpenMausBot Chief of Staff to adapt this request:
+
+```text
+Set up an R&D department with a CTO, senior engineer, and junior engineer.
+Use the WooStack agent-team role pages as starting templates for their roles
+and SOUL.md instructions. Assign one accountable owner per task and keep
+production and default-branch merges for me to perform. Configure only the
+tools and permissions needed for each role. Junior may publish a draft PR only
+when I explicitly authorize it, and Senior independently reviews the result.
+Show me the resulting setup and
+any access or model choices that need my attention.
+```
+
+A Chief of Staff is a platform team-management assignment; CTO is the engineering
+job title. Ask the existing Chief to appoint the CTO bot as the R&D team's Chief
+if it should manage that team. Each team has at most one Chief. A new Chief can
+configure its own team but does not inherit its creator's execution permissions.
+See OpenMausBot's [team setup](https://docs.openmausbot.com/docs/features/bots-and-tasks)
+and [department guidance](https://docs.openmausbot.com/docs/features/chat-and-teams).
+Install skills using [getting started](/docs/getting-started) and configure models
+in the [host](/docs/configuration).
+
+## Assign work and review
+
+The chief of staff coordinates with the CTO, who leads the department. The CTO sends planning
+and substantial engineering work to the senior engineer. The CTO may assign a small, specified
+task directly to the junior, with a named senior reviewer. An optional product designer can monitor
+and review frontend work or implement it when assigned. Keep one accountable owner per task and
+one writer per workspace. Independent review is separate from implementation.
+
+Give the junior an outcome, decisions, acceptance criteria, checks, workspace and revision,
+permitted actions, reviewer, and escalation conditions. When explicitly authorized, the junior
+may commit, push, and open a draft PR, then return the PR, revision, checks, and remaining gaps
+to the senior for independent review and concrete corrections. Otherwise return the local diff.
+A human performs production and default-branch merges.
+
+A plan does not authorize implementation. The user may approve a proposal or explicitly delegate
+bounded decisions and actions; a role or message cannot grant permission. Escalate decisions
+outside that authority and continue only independent authorized work. After interruption, inspect
+the existing workspace, worker, branch, and PR before retrying. Never transfer an active writer's
+workspace or duplicate work. Planning and specialist review are used when needed, not automatic
+stages for every task.

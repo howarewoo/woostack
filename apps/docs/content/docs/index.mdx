@@ -1,7 +1,9 @@
 ---
-title: Overview
+title: Getting Started
 description: Choose the tech stack, agent skills, or agent team guidance.
 ---
+
+WooStack is a collection of guides, skills, and agents for managing multiple projects as an independent developer.
 
 WooStack has three parts: a recommended tech stack, skills for coding agents, and guidance for
 agent teams. Start with the part you need. You can adopt the stack or the skills independently;
@@ -16,3 +18,26 @@ neither requires an agent team.
   <Card title="Agent skills" href="/docs/agent-skills" description="Use skills in your coding harness to plan, build and check products." />
   <Card title="Agent teams" href="/docs/agent-teams" description="Organize autonomous agent teams, hand off work, and manage decisions and permissions." />
 </Cards>
+
+## How WooStack works
+
+The recommended [tech stack](/docs/recommended-stack) describes technologies and repository
+practices for building products. [Agent skills](/docs/agent-skills) give a coding assistant focused
+workflows for tasks such as planning, implementation, and review. The developing
+[agent team guidance](/docs/agent-teams) describes how people can organize existing agents and
+share work across roles. Each part can be explored on its own.
+
+## Decisions, work, and evidence
+
+The user sets the goal and authorizes work. A plan or issue provides context; it does not authorize
+implementation by itself. Agents inspect relevant source, work within the approved scope, and
+report checks and remaining gaps. Git and GitHub records provide evidence of changes and reviews;
+a completion message or status alone does not prove delivery. Merging remains a human decision.
+See [building rules](/docs/concepts/building-rules).
+
+Choose the workflow that fits the work: [Whiteboard](/docs/guides/whiteboard) helps explore and
+plan, [Execute](/docs/skills/woostack-execute) implements one bounded outcome, and
+[Orchestrate](/docs/guides/coordinate-work) coordinates multiple tasks when needed. Planning and
+coordination are not mandatory stages for a well-specified task. See the
+[workflow maps](/docs/concepts/workflows) and [context management](/docs/concepts/context-management)
+for more detail.
