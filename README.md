@@ -49,9 +49,9 @@ pnpx skills add howarewoo/woostack --skill woostack-execute
 A single-skill install changes only which directories arrive, not the workflow's semantics.
 
 The public commands are listed in the
-[command index](skills/using-woostack/SKILL.md#command-routing), including standalone
-Whiteboard and Ideate. Plan and Harden are retired without aliases; use Whiteboard for planning,
-specification review, and requested issue publication.
+[command index](skills/using-woostack/SKILL.md#command-routing). Ideate, Plan, and Harden are retired
+without aliases; use Whiteboard for requirements exploration, planning, specification review,
+and requested issue publication.
 
 For UI work, [Design](skills/woostack-design/SKILL.md#selected-skills) uses
 [Impeccable](https://github.com/pbakaus/impeccable) as its design lead, with relevant specialists
@@ -107,8 +107,9 @@ For the full policy surface, see the authored
 
 Whiteboard handles a goal or incomplete issue directly. It inspects relevant source, resolves
 material choices within supplied authority, and escalates uncovered consequential decisions.
-Ideate remains available for requirements exploration and Debug for diagnosis; neither is a
-mandatory handoff. An explicit GitHub Project is optional for requested issue publication. Existing
+Requirements-only requests can stop at exploration without a solution or implementation plan.
+Debug remains available for diagnosis, not a mandatory handoff. An explicit GitHub Project is
+optional for requested issue publication. Existing
 `.woostack/tmp/runs/<run-id>/` records remain historical user data and are never migrated or
 mutated; retained drafts are evidence, not publication or implementation authority.
 
@@ -139,7 +140,7 @@ can go directly to Execute.
 | --- | --- | --- |
 | Plan a goal or existing design, including a new project | [/woostack-whiteboard](skills/woostack-whiteboard/SKILL.md) | Develops requirements and a portable visual plan, using supplied context without a mandatory interview or checkout. |
 | Create a bounded initial application | [/woostack-execute](skills/woostack-execute/SKILL.md) | Checks target safety, creates the requested working slice, and verifies it; local-only needs no GitHub or PR. |
-| Explore requirements | [/woostack-ideate](skills/woostack-ideate/SKILL.md) | Asks about unresolved product decisions and returns a readable specification. |
+| Explore requirements | [/woostack-whiteboard](skills/woostack-whiteboard/SKILL.md) | Returns a focused specification or answer, alternatives, and open decisions without forcing an implementation plan. |
 | Review a specification or plan | [/woostack-whiteboard](skills/woostack-whiteboard/SKILL.md) | A review-only request returns evidence-backed discrepancies without rewriting the supplied content. |
 | File a plan as issues | [/woostack-whiteboard](skills/woostack-whiteboard/SKILL.md) | Publishes and reads back issues only when explicitly requested. |
 | A bounded implementation task | [/woostack-execute](skills/woostack-execute/SKILL.md) | Implements and verifies an enhancement, refactor, test-only task, or understood correction; delivers a draft PR when requested. |

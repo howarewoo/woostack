@@ -12,7 +12,6 @@ export const PUBLIC_ORDER = [
   "using-woostack",
   "woostack-init",
   "woostack-whiteboard",
-  "woostack-ideate",
   "woostack-orchestrate",
   "woostack-execute",
   "woostack-simplify",

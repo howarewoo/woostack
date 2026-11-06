@@ -33,8 +33,7 @@ For an explicit one-run model or effort request, apply the bundled
 | --- | --- |
 | Adopt woostack or choose a workflow | `using-woostack` |
 | Create or maintain root `README.md`, `AGENTS.md`, `DESIGN.md`, `PRODUCT.md`, or `ARCHITECTURE.md`; explicitly initialize or repair local support | `woostack-init` |
-| Plan a goal or existing design, review a supplied specification, or explicitly publish a plan as issues | `woostack-whiteboard` |
-| Explore requirements explicitly requested by the user | `woostack-ideate` |
+| Explore requirements, plan a goal or existing design, review a supplied specification, or explicitly publish a plan as issues | `woostack-whiteboard` |
 | Coordinate approved multi-task work | `woostack-orchestrate` |
 | Implement an authorized bounded outcome, including initial project creation | `woostack-execute` |
 | Simplify selected existing code while preserving required behavior | `woostack-simplify` |
@@ -55,14 +54,13 @@ its skill or references in the parent. Already-delegated visualization workers r
 Without isolated execution, report the limitation and leave visualization unrun.
 
 `woostack-bootstrap`, `woostack-build`, `woostack-fix`, `woostack-change`, `woostack-status`,
-`woostack-tdd`, `woostack-prepare`, `woostack-plan`, and `woostack-harden` are retired without aliases.
-Explain a removed explicit command without executing a replacement. For former Plan or Harden
-requests, recommend Whiteboard and preserve the requested planning, review-only, or publication scope.
+`woostack-tdd`, `woostack-prepare`, `woostack-plan`, `woostack-harden`, and `woostack-ideate` are retired without aliases.
+Explain a removed explicit command without executing a replacement. For former Ideate, Plan, or Harden
+requests, recommend Whiteboard and preserve the requested exploration, planning, review-only, or publication scope.
 
 For goals needing refinement, recommend Whiteboard, whether the caller is a person or a delegated
-agent. Sufficient context needs no interview. Saving, agreeing to, or publishing its plan does not
+agent. Sufficient context needs no interview. Saving, agreeing to, or publishing its result does not
 dispatch work; an implementation workflow needs separate authority under its own rules.
-Ideate remains available for explicitly requested requirements exploration.
 
 Route by the requested action. Whiteboard, Execute, and Init are independent, including for
 new projects; none is a mandatory precursor to an understood task. Simplify requires neither

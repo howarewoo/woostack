@@ -23,9 +23,9 @@ authorized correction goes directly to [Execute](/docs/skills/woostack-execute) 
 stage first. Bounded test tasks are ordinary Execute input under the
 [testing guidance](https://github.com/howarewoo/woostack/blob/main/shared/references/tdd.md).
 
-When the outcome requires broader exploration, [Whiteboard](/docs/skills/woostack-whiteboard) shapes
-goals into reviewable increments and checks existing plans against repository evidence.
-[Ideate](/docs/skills/woostack-ideate) remains available for explicit requirements exploration.
+When the outcome requires broader exploration, [Whiteboard](/docs/skills/woostack-whiteboard) explores
+requirements, shapes goals into reviewable increments, or checks existing plans against repository
+evidence, according to the requested depth.
 Multiple authorized tasks with dependencies go to [Orchestrate](/docs/skills/woostack-orchestrate).
 [Debug](/docs/skills/woostack-debug) offers separate read-only root-cause investigation; Execute can
 also diagnose an authorized bounded correction inline, establishing the cause before repair.
@@ -55,12 +55,16 @@ See the [Deliver one change guide](/docs/guides/ship-change) for the standalone 
 
 ## Whiteboard
 
-Whiteboard develops requirements, challenges the design against evidence, and returns one portable
-plan with a consistent visual model, acceptance criteria, and real dependencies. It works with a
-person or delegated agent and requires no questions when the available context suffices.
+Whiteboard develops requirements, challenges the design against evidence, and returns a result at
+the requested depth. Implementation plans include a consistent visual model, acceptance criteria,
+and real dependencies. It works with a person or delegated agent and requires no questions when
+the available context suffices.
 
-- **Output:** The default is a plan in conversation. Saving a document or publishing GitHub issues
+- **Output:** The default is conversation output. Saving a document or publishing GitHub issues
   requires an explicit request. Neither action authorizes implementation.
+- **Exploration only:** A focused specification or answer can complete a requirements-only request
+  without choosing an architecture or producing implementation steps or a diagram. This does not
+  establish implementation readiness.
 - **Decisions:** Discoverable facts come from evidence. An agent can decide within explicit delegated
   authority; uncovered consequential choices are escalated with a recommendation and affected-work blocker.
 - **Review only:** A supplied specification can be reviewed without rewriting it or restarting discovery.
@@ -124,10 +128,11 @@ Implementing workflows follow consistent verification and delivery rules:
 
 ## Retired planning commands
 
-`woostack-plan` and `woostack-harden` are removed without aliases. Use Whiteboard for planning,
-review-only requests, and explicitly requested issue publication. Update installed command lists and
-bot instructions that name the retired skills. Existing plans and issues remain useful context;
-they need no conversion or additional planning pass.
+`woostack-ideate`, `woostack-plan`, and `woostack-harden` are removed without aliases. Use Whiteboard
+for requirements exploration, planning, review-only requests, and explicitly requested issue
+publication. Update installed command lists and bot instructions that name the retired skills.
+Existing specifications, plans, and issues remain useful context; they need no conversion or
+additional planning pass.
 
 ## Upgrading from a pre-cutover release
 

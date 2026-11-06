@@ -31,6 +31,11 @@ and dependencies. Record missing context; do not implement the plan to test this
 
 Also exercise these boundaries:
 
+- Request requirements-only exploration of team workspaces, explicitly deferring architecture and
+  implementation tasks. Expect a focused specification or answer with alternatives, trade-offs,
+  evidence, and open decisions, without a forced solution, delivery plan, or diagram. Unchosen
+  architecture alone must not make the exploration incomplete or imply implementation readiness.
+  Verify no writes or implementation handoff occur without separate authorization.
 - Supply enough context to plan without questions. Repeat as an agent assignment with explicit
   decision limits; covered decisions need no interview, while an uncovered consequential choice
   returns a recommendation and affected-work blocker without inventing agreement.
