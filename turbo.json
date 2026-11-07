@@ -15,6 +15,7 @@
     },
     "docs#build": {
       "dependsOn": ["^build"],
+      "env": ["DOCS_SITE_ORIGIN"],
       "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/skills/**"],
       "outputs": [
         ".next/**",

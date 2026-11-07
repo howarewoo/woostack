@@ -17,7 +17,7 @@
 //
 // Exit codes: 0 clean, 1 problems found, 2 invalid invocation.
 
-import { lstat, mkdir, readdir, readFile, writeFile } from "node:fs/promises";
+import { lstat, mkdir, readdir, readFile, realpath, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { validateSkillAssets } from "../apps/docs/scripts/skill-assets.mjs";
@@ -287,7 +287,11 @@ async function main(argv) {
   return report(result, { cliCommand: "node shared/sync.mjs" });
 }
 
-if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+if (
+  process.argv[1] &&
+  (await realpath(process.argv[1]).catch(() => null)) ===
+    (await realpath(fileURLToPath(import.meta.url)))
+) {
   process.exit(await main(process.argv.slice(2)));
 }
 

@@ -7,10 +7,13 @@ when `skills.enableSkillCommands` is enabled.
 
 ## Delegation
 
-`task` takes an existing worker selector and exposes no model or working-directory argument. Model
-precedence is `task.agentModelOverrides` for that agent, then the agent frontmatter `model` list,
-then the parent's active model. A selector proves the host accepted that agent, not which model,
-provider, or effort ran; keep those as separate evidence when a workflow needs them.
+`task` takes an existing worker selector. Per-call model selection is controlled by the operator's
+`task.perCallModel` setting (`off` by default) and exact-model constraints; inspect the active schema
+and host settings before using it. Without an accepted per-call selection, model precedence is
+`task.agentModelOverrides` for that agent, then the agent frontmatter `model` list, then the parent's
+active model. Operator overrides and effort-tagged mentions can conflict with a per-call selection.
+A selector proves the host accepted that agent, not which model, provider, or effort ran; keep those
+as separate evidence when a workflow needs them.
 
 Effort is conditional on a host setting: with `task.enableEffort` enabled (default `false`) the task
 schema adds an optional `effort` of exactly `lo`, `med`, or `hi`, and it is absent otherwise. Woostack

@@ -6,8 +6,8 @@ description: Implement and verify a bounded task, then inspect its requested dra
 import { ShipChangeFlow } from "@/components/guides/ship-change-flow";
 
 Use this guide when your task and non-goals fit into one reviewable pull request. You need
-a clear plan or exact issue URL, repository access, and a GitHub capability for creating
-pull requests. For visible changes, also provide a way to capture the running application and an
+a bounded task description, repository access, and a GitHub capability for creating
+pull requests. A plan or exact issue URL is optional context. For visible changes, also provide a way to capture the running application and an
 authorized GitHub attachment uploader. Supported, authenticated GitHub CLI uploads are preferred;
 an existing authorized equivalent or already-authenticated browser session can be used when CLI
 upload support is unavailable. The assistant does not install tools or acquire credentials as a fallback.
@@ -33,13 +33,16 @@ Keep these boundaries in mind:
 
 - **Explicit delivery:** An explicit `/woostack-execute ...` request delivers a reviewable draft
   pull request unless you specifically limit it to local edits.
-- **Planning is optional:** A bounded task can go directly to Execute without running Plan first.
+- **Planning is optional:** A bounded task can go directly to Execute without a separate planning step.
 - **Defect evidence:** If repairing a bug, establish the root cause from reproduction or diagnostic
   evidence before editing code. A separate Debug session is optional.
 - **Workspace admission:** Before touching any file, Execute inspects the Git repository, branch,
   HEAD, index, and unstaged changes. Unknown ownership or an unsafe base blocks edits.
 
 ## 2. Inspect the implementation and checks
+
+[Set verification requirements](/docs/guides/verification) in the task scope before implementation
+so applicable checks and the boundaries they protect are visible early.
 
 Inspect small integrated results during implementation, then review the complete outcome:
 

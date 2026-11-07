@@ -1,6 +1,12 @@
-import { RootProvider } from "fumadocs-ui/provider/next";
+import { DocsProvider } from "@/components/docs-provider";
+import { getSiteOrigin } from "@/lib/site-origin.mjs";
+import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./global.css";
+
+export const metadata: Metadata = {
+  metadataBase: getSiteOrigin(),
+};
 
 const display = localFont({
   src: "./fonts/Archivo.woff2",
@@ -40,7 +46,7 @@ export default function Layout({ children }: LayoutProps<"/">) {
         <a className="skip-link" href="#main-content">
           Skip to content
         </a>
-        <RootProvider>{children}</RootProvider>
+        <DocsProvider>{children}</DocsProvider>
       </body>
     </html>
   );

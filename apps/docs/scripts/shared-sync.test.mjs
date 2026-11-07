@@ -255,6 +255,15 @@ test("the repository entrypoint --check is a clean, non-mutating production run"
   });
 });
 
+test("importing the synchronizer from stdin does not execute the CLI", () => {
+  const moduleUrl = new URL("../../../shared/sync.mjs", import.meta.url).href;
+  const output = execFileSync(process.execPath, ["--input-type=module", "-"], {
+    input: `import { runSync } from ${JSON.stringify(moduleUrl)}; console.log(typeof runSync);`,
+    encoding: "utf8",
+  });
+  assert.equal(output, "function\n");
+});
+
 test("the CLI reports projection drift in a disposable fixture without mutating it", async (t) => {
   // A disposable clone of the repo's tool directories: shared/ (including
   // sync.mjs, mapping.json and canonical assets) plus the parser module it
@@ -281,17 +290,24 @@ test("the CLI reports projection drift in a disposable fixture without mutating 
     path.join(root, "shared", "mapping.json"),
     JSON.stringify({ entries: [{ source: "references/tdd.md", consumers: ["woostack-loom"] }] }),
   );
-  let reported;
-  try {
-    execFileSync(process.execPath, [path.join(root, "shared", "sync.mjs"), "--check"], {
-      cwd: root,
-      stdio: ["ignore", "pipe", "pipe"],
-    });
-  } catch (error) {
-    reported = error.stderr.toString();
+  const entrypoint = path.join(root, "shared", "sync.mjs");
+  const linkedEntrypoint = path.join(root, "sync-cli.mjs");
+  await symlink(entrypoint, linkedEntrypoint);
+  for (const executable of [entrypoint, linkedEntrypoint]) {
+    assert.throws(
+      () =>
+        execFileSync(process.execPath, [executable, "--check"], {
+          cwd: root,
+          stdio: ["ignore", "pipe", "pipe"],
+        }),
+      (error) => {
+        assert.equal(error.status, 1);
+        assert.match(error.stderr.toString(), /drifted generated copy/);
+        assert.match(error.stderr.toString(), /references\/tdd\.md/);
+        return true;
+      },
+    );
   }
-  assert.match(String(reported), /drifted generated copy/);
-  assert.match(String(reported), /references\/tdd\.md/);
   assert.deepEqual(
     await readFile(path.join(root, "skills", "woostack-loom", "references", "tdd.md"), "utf8"),
     "# Drifted consumer copy\n",
