@@ -21,6 +21,7 @@
     "agent-teams/departments",
     "agent-teams/shared-wiki",
     "agent-teams/agent-definitions",
-    "agent-teams/project-group-chats"
+    "agent-teams/project-group-chats",
+    "agent-teams/deliver-large-tasks"
   ]
 }
