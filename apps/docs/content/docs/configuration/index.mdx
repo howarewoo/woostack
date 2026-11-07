@@ -1,9 +1,9 @@
 ---
 title: Configuration
-description: Reference for woostack repository policy, configuration precedence, supported keys, types, and defaults.
+description: Reference for WooStack repository policy, configuration precedence, supported keys, types, and defaults.
 ---
 
-This page lists the non-secret repository settings read by Woostack. Retained local records and direct
+This page lists the non-secret repository settings read by WooStack. Retained local records and direct
 GitHub publication have their own [reference section](/docs/configuration/artifacts) because they
 have different fields and recovery guarantees.
 
@@ -28,12 +28,12 @@ the tracked base file stops configuration loading with an error.
 | Scalar, array, or `null` override | The local value replaces the base value. Arrays do not concatenate. `null` does not delete a key. |
 | Invalid input | Empty, malformed, non-object, unreadable, symlinked, non-regular, orphaned, or credential-like configuration fails closed with the offending path. |
 | Secrets | GitHub authentication stays in the host secret store. Both configuration files contain non-secret policy only. |
-| Host models | Host configuration owns model selection, effort, and recovery; Woostack preserves existing `models` values but does not route with them. |
+| Host models | Host configuration owns model selection, effort, and recovery; WooStack preserves existing `models` values but does not route with them. |
 
 This partial example shows how the two files merge. It is not a complete GitHub Project
 configuration; the [GitHub page](/docs/configuration/artifacts/github) lists the supported fields.
 
-Given this base configuration:
+Tracked policy (`.woostack/config.json`):
 
 ```json
 {
@@ -44,7 +44,7 @@ Given this base configuration:
 }
 ```
 
-and this local override:
+Local override (`.woostack/config.local.json`):
 
 ```json
 {
@@ -54,7 +54,16 @@ and this local override:
 }
 ```
 
-keeps the owner while replacing only `statusField`.
+Effective policy retains `owner` and replaces only `statusField`:
+
+```json
+{
+  "github": {
+    "owner": "acme",
+    "statusField": "Workflow Status"
+  }
+}
+```
 
 ## Top-level settings
 
@@ -100,15 +109,15 @@ with a command your repository actually provides.
 
 ## Model selection compatibility
 
-Woostack uses the harness's configured agent, model, and effort; the host owns recovery. An
+WooStack uses the harness's configured agent, model, and effort; the host owns recovery. An
 explicit one-run model or effort choice uses only fields the active tool schema supports and
 permissions allow. Report an unsupported optional choice; a required exact identity blocks
 without matching host evidence.
 
 Existing `.woostack/config.json` and primary-checkout `config.local.json` values, including
-`models` in any old shape, are preserved as user data. Woostack no longer interprets `models`
+`models` in any old shape, are preserved as user data. WooStack no longer interprets `models`
 as runtime provider defaults, overrides, or fallback lists. Configure model selection in the
-native harness instead; do not migrate or delete existing configuration just to use Woostack.
+native harness instead; do not migrate or delete existing configuration just to use WooStack.
 
 ## Commit preparation command
 

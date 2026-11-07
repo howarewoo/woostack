@@ -1,7 +1,9 @@
 # opencode
 
-Verified against [agents](https://opencode.ai/docs/agents/) and
-[Agent Skills](https://opencode.ai/docs/skills/). A primary agent delegates through the `task` tool;
+The mechanics below describe OpenCode V1, verified against [agents](https://docs.opencode.ai/docs/agents/)
+and [Agent Skills](https://opencode.ai/docs/skills/). For V2, consult its
+[permissions reference](https://v2.opencode.ai/docs/permissions) and the active host schema; V1
+configuration keys do not transfer unchanged. A primary agent delegates through the `task` tool;
 `@mention` is how a *user* invokes a subagent in chat, not a transport an agent can call. Native
 explicit skill invocation asks for the named skill, which the native `skill` tool loads as
 `skill({ name: "woostack-execute" })`; every form is listed in the

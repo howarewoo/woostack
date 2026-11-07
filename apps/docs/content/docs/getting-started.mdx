@@ -1,11 +1,11 @@
 ---
-title: Getting started
-description: Install woostack, create useful project guidance, and return a read-only plan for your repository's README.
+title: Install skills and make a first plan
+description: Install WooStack, create useful project guidance, and return a read-only plan for your repository's README.
 ---
 
 import { GettingStartedFlow } from "@/components/getting-started/getting-started-flow";
 
-This tutorial installs woostack in an existing Git repository, helps you create or improve
+This tutorial installs WooStack in an existing Git repository, helps you create or improve
 its project guidance, and finishes with a read-only plan for a Verification section in your README.
 Init edits only the guidance you authorize. The planning step edits nothing, files no issue, and
 opens no pull request.
@@ -40,7 +40,7 @@ pnpx skills add howarewoo/woostack
 Confirm that your assistant can find the installed skills, such as `woostack-init` and
 `woostack-whiteboard`. Each skill works independently without requiring sibling skills; the
 [command index](/docs/skills/using-woostack#command-routing) is an optional directory.
-Woostack skills are instructions for the agent, not shell programs. If your assistant
+WooStack skills are instructions for the agent, not shell programs. If your assistant
 cannot find a skill, follow the
 [installation troubleshooting guide](/docs/guides/troubleshooting#your-assistant-cannot-find-a-woostack-skill).
 
@@ -74,7 +74,7 @@ The resulting guidance gives each file a distinct job:
 
 See [document responsibilities](/docs/skills/woostack-init#document-responsibilities) for the canonical
 format of each file. Init also includes an availability-aware adoption paragraph in `AGENTS.md`,
-ensuring no Woostack skill becomes an artificial prerequisite of another. When verification commands
+so no WooStack skill becomes an artificial prerequisite of another. When verification commands
 are present, Init inspects them without mutating manifests, lockfiles, or CI workflows.
 
 Read the report and resulting guidance. Verify that documented commands match your repository and
@@ -110,7 +110,14 @@ explicit request:
 
 - [Deliver one change](/docs/guides/ship-change) covers implementing the plan and submitting a reviewable
   draft pull request. You choose whether to proceed, and only you merge the pull request.
-- Optional local `.woostack/` support setup requires Bash, Git, and `jq`. See the
-  [configuration reference](/docs/configuration) and
-  [local configuration troubleshooting](/docs/guides/troubleshooting#doctor-reports-a-local-configuration-error)
-  to initialize and inspect local support.
+- Optional local `.woostack/` support setup requires Bash, Git, and `jq`. To request only this setup,
+  use the example below. See [Init's local-support procedure](/docs/skills/woostack-init#local-support)
+  and the [configuration reference](/docs/configuration). For diagnosis afterward, use
+  [local configuration troubleshooting](/docs/guides/troubleshooting#doctor-reports-a-local-configuration-error).
+
+  ```text
+  /woostack-init Initialize local .woostack support only.
+  Do not edit project guidance, commit, or publish.
+  ```
+
+  This setup stays local and contacts no provider. It is not required for the tutorial above.

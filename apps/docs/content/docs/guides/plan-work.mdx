@@ -1,45 +1,46 @@
 ---
-title: Plan work and file issues
-description: Use Whiteboard to turn a goal into reviewable increments, with optional verified GitHub publication.
+title: Publish a plan as GitHub issues
+description: File a settled plan as coherent issue outcomes and verify the publication.
 ---
 
-Use this guide when you need a plan and optionally want to track its outcomes as GitHub issues.
-For existing code, identify a repository your assistant can read; greenfield planning needs no
-checkout. To file issues, it also needs authorized GitHub issue-write access and an unambiguous
-destination. These are **requests to your assistant**, not terminal commands; use your
+Start with a settled plan and an unambiguous GitHub destination. Your assistant needs authorized
+issue-write access and, for existing code, access to the selected repository. Greenfield publication
+needs no checkout. If the goal or material choices still need refinement, use
+[Whiteboard a goal into a plan](/docs/guides/whiteboard) first. These are **requests to your
+assistant**, not terminal commands; use your
 [host's invocation form](/docs/harnesses#native-skill-invocation).
 
-## 1. Describe the outcome
+<span id="1-describe-the-outcome" />
 
-Start with a read-only request you can edit:
+## 1. Select the plan and destination
 
-```text
-/woostack-whiteboard Reduce duplication in configuration parsing.
-Keep public behavior and accepted configuration formats unchanged.
-Prefer removing or reusing code over adding new abstractions.
-Return a plan only; do not file issues or implement changes.
-```
+Supply the existing plan and name the destination repository or exact GitHub Project URL.
+Check that the plan identifies the source inspected, bounded outcomes, acceptance and selected
+evidence, and real prerequisites. Settle material choices before publication; a plan is not an
+implementation or passing check. Whiteboard asks no questions when the available context suffices.
 
-The result identifies the source inspected, small observable feedback increments with bounded scope,
-selected evidence, and real prerequisites. Checkpoints can stay within one plan or issue; they need
-not each become an issue, worker, PR, or release. Keep necessary atomic changes together without
-adding temporary bridges just to split delivery. A plan is not an implementation or passing check.
-Settle material choices before publication. Whiteboard needs no prior planning or review phase and
-asks no questions when the available context suffices. See
-[Whiteboard's reference](/docs/skills/woostack-whiteboard) for the planning and evidence rules.
+Group implementation checkpoints into coherent issue outcomes. A checkpoint need not become a
+separate issue, worker, PR, or release. Keep necessary atomic changes together without temporary
+bridges just to split delivery. See [Whiteboard's reference](/docs/skills/woostack-whiteboard)
+for the planning and evidence rules.
 
-## 2. Review and optionally publish
+<span id="2-review-and-optionally-publish" />
 
-Check that planned issue outcomes do not repeat existing issues and that dependencies reflect actual
-prerequisites, not their order in a list. To publish, ask explicitly:
+## 2. Publish the plan
+
+Check that issue outcomes do not repeat existing issues and that dependencies reflect actual
+prerequisites, not their order in a list. Ask explicitly:
 
 ```text
-File this plan as GitHub issues in OWNER/REPOSITORY. Group implementation checkpoints into coherent issue outcomes and reuse existing issues that already cover them. Include acceptance criteria and real prerequisites, then read back the affected issues. Do not start implementation.
+/woostack-whiteboard File the settled plan above as GitHub issues in OWNER/REPOSITORY.
+Group implementation checkpoints into coherent issue outcomes and reuse existing
+issues that already cover them. Include acceptance criteria and real prerequisites,
+then read back the affected issues. Do not start implementation.
 ```
 
 Replace `OWNER/REPOSITORY` with the actual destination. A request to plan and file issues in one
-message already authorizes publication; this read-only-first sequence is a choice, not a required
-approval ceremony. A Project or fixed issue hierarchy is not required. Ask for native relationships
+message already authorizes publication; a separate read-only planning pass or second approval is
+not required. A Project or fixed issue hierarchy is not required. Ask for native relationships
 only when you need them: they count only after their writes and read-back succeed. If relationship
 operations are unavailable, keep the verified issue URLs and readable prerequisites. An explicitly
 required native graph remains incomplete until verified.

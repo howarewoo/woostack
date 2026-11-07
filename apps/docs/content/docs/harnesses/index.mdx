@@ -24,7 +24,7 @@ reported; a required exact identity blocks without matching host evidence.
 | [omp (Oh My Pi)](/docs/harnesses/omp) | Host-owned model selection; effort only when active schema exposes it | Pass workspace in task; worker verifies it |
 | [Claude Code](/docs/harnesses/claude-code) | Per-invocation model documented; effort is worker or session setting | Worktree isolation is a definition choice |
 | [Codex](/docs/harnesses/codex) | Configured model and reasoning effort; one model per Codex Action job | Subagents inherit sandbox and permission mode |
-| [opencode](/docs/harnesses/opencode) | Agent configuration selects the model | `task` permission controls delegation |
+| [opencode](/docs/harnesses/opencode) | Agent configuration selects the model | V1 uses `task` permission; check the active version's schema |
 | [Cursor / Composer](/docs/harnesses/cursor) | Custom subagent definitions select model and options | Subagents share checkout by default; isolation available |
 | [Antigravity CLI](/docs/harnesses/antigravity) | Custom subagent definitions select a model tier | Per-subagent workspace modes include worktrees |
 
@@ -37,7 +37,8 @@ provider credentials, and fallback policy.
 
 Woostack skill names are identical across harnesses. A `/woostack-*` example names the logical
 command; each harness has its own documented syntax to invoke a skill explicitly. Use the form
-your harness documents. It is the same skill, with the same permissions and results.
+your harness documents. Each form invokes the same skill instructions and authorization rules.
+Available capabilities and permissions depend on the host and session.
 
 | Harness | Documented explicit invocation |
 | --- | --- |
@@ -46,6 +47,10 @@ your harness documents. It is the same skill, with the same permissions and resu
 | [Codex](/docs/harnesses/codex) | `$woostack-execute` |
 | [opencode](/docs/harnesses/opencode) | Ask for the named skill; native `skill` tool loads it |
 | [Cursor / Composer](/docs/harnesses/cursor) | `/woostack-execute` |
+
+**Evidence:** These examples are source-checked against host documentation. That is not evidence of
+an actual host run; runtime behavior is unverified unless a run is reported separately. The active
+schema and session permissions remain authoritative.
 
 Each harness page links the official documentation its example was verified against, and the
 [host reference](https://github.com/howarewoo/woostack/blob/main/shared/references/hosts/README.md#native-skill-invocation)

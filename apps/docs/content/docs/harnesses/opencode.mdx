@@ -3,9 +3,10 @@ title: opencode
 description: Delegation to discovered subagents through opencode's task tool.
 ---
 
-opencode can delegate through its `task` tool when that permission is available. Select an agent
-exposed by the session whose permissions suit the work; inline implementation remains available
-without an optional subagent.
+In OpenCode V1, delegation uses the `task` tool when that permission is available. V2 uses a
+different [permission schema](https://v2.opencode.ai/docs/permissions); check the active host schema
+rather than applying V1 configuration unchanged. Select an agent exposed by the session whose
+permissions suit the work; inline implementation remains available without an optional subagent.
 
 opencode resolves its model and reasoning options from agent or session configuration. An
 explicit one-run native override is passed only when the active `task` schema exposes its exact
