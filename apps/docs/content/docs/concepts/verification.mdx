@@ -1,0 +1,51 @@
+---
+title: Verification
+description: How evidence supports claims about a change and its delivery.
+---
+
+Verification connects a claim about a change to an observation that can support it. A passing test
+may show that a particular behavior worked under its tested conditions. An agent's summary or a
+status field can describe work, but neither proves that behavior or shows that a change was merged.
+
+## Evidence fits the claim
+
+Different claims need different observations. Source inspection can establish what code says, while
+rendered behavior needs an observation of the running result. A local check does not establish remote
+merge readiness. Each result has a scope: the source, inputs, environment, and behavior it actually
+covered.
+
+The appropriate evidence depends on the task and its consequences. Applicable user, project, and
+workflow requirements still apply. For ordinary reversible changes, existing relevant checks and the
+smallest practical observation can be enough. Additional checks need an applicable requirement or a
+specific material risk. Consequential work involving privacy, authorization, destructive effects,
+migration, recovery, or finances calls for stronger targeted evidence.
+
+For example, a wording correction may need its claims and links inspected. A new documentation route
+can also affect rendering and navigation, so source inspection alone may not cover the change. A
+200% zoom check is not a default WooStack requirement or blocker; an explicit project or task
+requirement can make it necessary. Other applicable accessibility and safety requirements still apply.
+
+## Reuse and limits
+
+Earlier evidence can remain useful when the relevant source, tests, fixtures, dependencies,
+configuration, and environment still apply. An unrelated edit or a new revision identifier alone
+does not invalidate it. Changed inputs or uncertain equivalence call for affected checks again.
+Evidence for separate contributions also does not establish an untested interaction between them.
+
+A failed, timed-out, cancelled, unavailable, or unrun required check leaves its affected boundary
+unverified. A pre-existing failure remains a failure. Reporting the result and its limits helps the
+next person distinguish an observed pass from missing proof.
+
+## Delivery boundaries
+
+A draft pull request makes a change visible for review. When its publication conditions permit it,
+it may disclose incomplete implementation acceptance, but its existence does not establish that
+acceptance. Implementation acceptance depends on the selected evidence.
+
+Dependent work has its own prerequisite and contract evidence. Publishing a draft alone does not
+release that work. Merge and release have separate requirements, and WooStack leaves merging,
+auto-merge, and merge queues to humans. These boundaries are not a universal sequence: their actual
+conditions depend on the task and workflow.
+
+For the practical selection and reporting of checks, see
+[Set verification requirements](/docs/guides/verification).
