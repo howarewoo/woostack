@@ -226,6 +226,11 @@ failure, consequence, affected boundary, and smallest adequate observation. Broa
 persistence alone do not establish high risk. Use the [testing procedures](references/tdd.md) for
 impact analysis and selected evidence, not extra gates. Preserve approved task-specific acceptance
 and publication gates without reinterpreting them.
+For applicable UI changes, require a supported 200% text enlargement check starting at a
+desktop-sized browser window at 100%, without loss of content or functionality. Check offered
+intermediate sizes; record the baseline, mechanism, actual enlargement and result. Mobile checks
+are separate. If the required check is unavailable or unrun, it remains unmet, not passed or
+waived. Follow the [verification guide](https://github.com/howarewoo/woostack/blob/main/apps/docs/content/docs/guides/verification.mdx#is-200-zoom-required).
 For consequential use or release involving authorization, privacy, destructive effects, migration,
 recovery, or financial operations, obtain stronger targeted evidence. Where runtime semantics matter,
 verify the changed source and actual effects; controlled outputs alone do not prove those semantics.

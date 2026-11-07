@@ -30,14 +30,24 @@ A broad label such as "persistence" does not establish that risk. Follow
 
 ### Is 200% zoom required?
 
-200% zoom verification is not a default WooStack requirement or blocker. It is optional or out of
-scope unless an explicit project or task accessibility requirement calls for it. When that
-requirement applies, its evidence is required like any other acceptance criterion.
+For applicable UI changes, verify text enlargement to 200% starting with a desktop-sized browser
+window at 100%. Use supported browser zoom, text resizing, or another supported enlargement
+mechanism. Record the baseline window or viewport dimensions, browser, mechanism, actual 200%
+readback, visible text enlargement relative to baseline, content and functionality, evidence, and
+result. Check offered intermediate sizes too: content and functionality must remain available.
+A breakpoint may change, but the text must still reach 200% of its baseline size without loss of
+content or functionality.
 
-Other applicable accessibility and safety requirements still apply. When zoom is not required,
-listing it as untested coverage does not create a delivery blocker. An untested check is never a
-passing result. Selected checks do not establish full WCAG conformance. See the
-[QA evidence rules](/docs/skills/woostack-qa#evidence-floor-per-step-by-risk) for reporting unobserved signals.
+Do not substitute CSS zoom, transforms, injected font sizes, resized screenshots, a narrower viewport,
+or device scale for the actual enlargement. If the selected surface cannot perform or verify it,
+report the required check as unmet, not passed or waived. Mobile responsive and device checks are
+separate: neither replaces this desktop check nor requires combining a mobile viewport with 200%.
+This is WooStack's verification scope, not a WCAG exemption for mobile.
+
+[WCAG 2.1 Resize Text](https://www.w3.org/TR/WCAG21/#resize-text) is Level AA and excludes captions
+and images of text; its [Understanding guidance](https://www.w3.org/WAI/WCAG21/Understanding/resize-text.html)
+explains supported mechanisms. This check is distinct from reflow and does not establish full WCAG
+conformance.
 
 ## 2. Explain the selected checks before work
 
