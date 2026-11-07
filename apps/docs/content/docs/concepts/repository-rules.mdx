@@ -32,8 +32,10 @@ local duplicates.
 
 Boundary adapters translate data and errors between external APIs and internal application models.
 Keeping transport and vendor formats out of business logic keeps domain logic testable and portable.
-New and changed interfaces preserve backward compatibility: existing identifiers stay stable,
-inputs gain optional fields rather than losing fields, and breaking changes use documented versioning.
+Follow the repository's explicit compatibility policy and support window. Preserve supported contracts;
+where compatibility is explicitly not required, update affected callers, tests, and documentation together
+and remove superseded paths. Resolve unclear commitments before breaking a contract or adding compatibility
+machinery. Data preservation is a separate requirement.
 
 ## Type safety
 

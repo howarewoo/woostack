@@ -28,6 +28,23 @@ Oxlint configuration in `.oxlintrc.json` registers `@shadcn/lint` via `jsPlugins
 SETUP.md conservative registration-only policy: no new rules or presets are enabled, and discovery
 settings are scoped locally. Configure custom rules or overrides under `.oxlintrc.json` as needed.
 
+## Social metadata origin
+
+Social image URLs are prerendered at build time. By default they use the production documentation
+site at `https://woostack-docs.adam-nathaniel-woo.workers.dev`. For another deployment, set the
+non-secret `DOCS_SITE_ORIGIN` build variable to its trusted HTTPS origin before building:
+
+```bash
+DOCS_SITE_ORIGIN=https://docs.example.com pnpm build --filter=docs
+```
+
+The value must contain only an origin, without credentials, a path, a query, or a fragment.
+Localhost values are rejected. Turborepo includes this variable in the docs build cache key.
+An unset variable deliberately keeps production image URLs, including in local builds and previews.
+Set the override and rebuild if a preview must serve its own social images. Runtime `Host` and
+`X-Forwarded-Host` headers never select the origin; this preserves static prerendering and the
+read-only Worker cache. This variable changes metadata, not deployment routing or account settings.
+
 ## Deploy to Cloudflare Workers
 
 The app uses the OpenNext Cloudflare adapter. `wrangler.jsonc` owns the `woostack-docs`
