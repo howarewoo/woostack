@@ -57,7 +57,12 @@ Ask about a relationship that seems wrong rather than waiting for a finished spe
 Check that you can explain the core behavior, constraints, decisions, trade-offs, and small
 observable feedback increments. Look for candidate behavior-preserving preparation, the minimum
 coupled outcome, and consequential uncertainties to resolve before expanding dependent work.
-Verify dependencies and keep unanswered questions visible. Checkpoints can stay inside one plan
+Check platform dependencies against the intended account, entitlement, repository visibility, and
+runtime where relevant. General platform documentation does not prove your setup or access. Keep
+missing setup, access, and owner decisions distinct, with an owner and return condition for each
+unresolved prerequisite. Whiteboard can propose a small feasibility test without running it. Park
+only dependent work while independent work can proceed, and distinguish planned setup from configured
+resources and end-to-end acceptance. Checkpoints can stay inside one plan
 or delivery boundary, including an atomic cutover, while branch and PR allocation stays with the
 implementing workflow. A useful draft may still contain a blocker; it identifies the decision or
 investigation needed.

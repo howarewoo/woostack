@@ -63,8 +63,15 @@ rewrite it, restart discovery, or require a new diagram unless requested.
    Explain unfamiliar concepts where they affect a decision, at the user's level of detail.
 5. **Challenge the proposal.** Check requirements, diagram, and delivery steps against each other
    and the evidence. Surface conflicts, omitted behavior, unsupported assumptions, and material risks
-   with their consequences and recommended corrections. This self-review is not independent review
-   or proof of feasibility. Identify a bounded investigation when discussion cannot resolve a risk.
+   with their consequences and recommended corrections. Before recommending a platform-dependent
+   design, verify its required capability against current authoritative evidence and, where relevant,
+   the intended account, plan or entitlement, repository visibility, and runtime environment. Check
+   accessible setup and access facts; general documentation alone does not prove the intended account
+   is configured. Distinguish supported capability from missing setup, missing access, and unresolved
+   owner decisions. Resolve consequential unknowns before relying on them. If read-only evidence is
+   insufficient, propose the smallest feasibility test; do not run it or provision resources, spend,
+   change secrets or permissions, or deploy during planning. This self-review is not independent
+   review or end-to-end proof.
 6. **Shape delivery for implementation plans.** Outline the complete outcome and real dependencies
    as small coherent, verifiable implementation increments. Each produces one observable behavior or resolves one
    consequential uncertainty before dependent expansion, with bounded scope/non-goals and relevant
@@ -80,6 +87,9 @@ rewrite it, restart discovery, or require a new diagram unless requested.
    Select verification proportionate to stated requirements and material risks, reusing adequate
    checks. Distinguish completion criteria from draft-publication and consumer-release gates.
    Identify new verification infrastructure as proposed scope rather than an assumed prerequisite.
+   Carry each unresolved setup prerequisite in the plan with its owner and exact return condition.
+   Park only affected dependents while independent ready work continues. Distinguish planned setup
+   from installed or configured resources and from end-to-end acceptance.
 
 These responsibilities apply at the requested depth, not as a questionnaire, fixed sequence of
 headings, or separate approval gates. Proceed without questions or a live conversation when the

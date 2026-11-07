@@ -102,6 +102,11 @@ when requested, not a mandatory handback before Execute repairs. Stop for a scop
 decision when findings exceed the admitted outcome. An explicitly requested read-only diagnosis
 or QA/review stays read-only, and a QA finding alone never authorizes remediation.
 
+Before relying on critical prerequisites, confirm they still apply to the intended account,
+entitlement, visibility, and environment where relevant. Reuse valid planning evidence and refresh
+only changed or unknown affected facts. Park affected work when a prerequisite remains unresolved;
+continue independent ready work within the authorized scope.
+
 Follow repository instructions, existing architecture, native conventions, selected dependencies,
 and lockfiles. Prefer safe deletion and reuse to new code; keep code with its owning application
 and extract only genuinely shared surfaces. Preserve compatibility, validation, security,
