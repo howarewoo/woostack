@@ -1,12 +1,18 @@
 ---
-title: Overview
+title: Recommended tech stack
 description: My preferred stack for TypeScript web applications, with Expo for progressive native mobile adoption.
 ---
 
 import { StackRuntimeDiagram, StackDeliveryDiagram } from "../../components/stack-diagrams";
 
 My preferred stack starts with TypeScript web applications and adds native mobile apps
-when needed. It is not a requirement for using Woostack.
+when needed. It is not a requirement for using WooStack.
+
+Jump to the topic you need:
+[stack choices](#stack), [rendering](#application-boundaries-and-rendering), [blogs](#blogs),
+[mobile apps](#mobile-apps), [internationalization](#internationalization),
+[AI providers](#ai-provider-library), [runtime and delivery](#runtime-architecture),
+[SEO](#seo), or [scaling](#scaling-the-stack).
 
 ## Stack
 
@@ -123,16 +129,16 @@ native rewrite is not a prerequisite for the first mobile release.
 
 ### Code sharing and integration boundaries
 
-Share platform-independent business logic, types, validation, API contracts, and translation
-catalogs where useful. Web UI, including shadcn/ui and browser CSS, does not become native UI.
-DOM components use separate runtimes; React context, global state, and query caches are not
-automatically shared with native screens. Small serializable props and asynchronous native
-actions keep that boundary explicit. Native views cannot be nested inside DOM components.
-Device integrations belong on the native side so they survive screen replacement.
+| Part | Responsibility and boundary |
+| --- | --- |
+| Native shell / Expo Router | Owns native navigation and device integrations, which survive replacement of a web screen. |
+| DOM component / WebView | Runs web UI, including shadcn/ui and browser CSS, in a separate runtime. React context, global state, and query caches are not automatically shared with native screens; native views cannot be nested here. |
+| Native / WebView connection | Uses small serializable props and asynchronous native actions across the runtime boundary. |
+| Shared source | Platform-independent business logic, types, validation, API contracts, and translation catalogs can be reused. Source reuse does not share runtime memory or turn web controls into native UI. |
 
 Expo CLI and Metro bundle reused web source; an unchanged Vite build is not the input.
 The existing Cloudflare-hosted backend stays in place, with the mobile app calling its
-configured HTTPS API rather than assuming same-origin `/api` requests. Authentication,
+configured absolute HTTPS API URL rather than assuming same-origin `/api` requests. Authentication,
 redirects, and persistence need platform-specific integration. A representative flow on a
 real iPhone should verify login, session restoration, logout, and authenticated requests
 before substantial UI migration.

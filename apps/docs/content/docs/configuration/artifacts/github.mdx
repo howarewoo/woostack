@@ -95,9 +95,18 @@ Publication groups implementation checkpoints into coherent issue outcomes, reus
 and creates only missing ones. It writes only requested relationships. After every write, Whiteboard
 reads affected issues back independently; a mutation response alone proves nothing.
 
-Native hierarchy, `blocked-by` relationships, and Git branch ancestry are separate facts:
-hierarchy groups issues, `blocked-by` records a prerequisite, and neither orders delivery or
-selects a branch parent.
+Native hierarchy, `blocked-by` relationships, and Git branch ancestry are separate facts.
+These labels are illustrative, not a real project's graph:
+
+| Graph | Example relationship | What it records |
+| --- | --- | --- |
+| Issue hierarchy | Issue A contains Issue B | Group membership. |
+| Prerequisite | Issue B is blocked by Issue A | Issue A is a prerequisite for Issue B. |
+| Git branch ancestry | Branch Y is based on Branch X | A branch-parent relationship to verify against Git and the approved plan. |
+
+Do not infer any of these relationships from another. Hierarchy alone does not establish a
+prerequisite, implementation order, authorization, or branch parent. Native stack registration
+still follows [Orchestrate's conditional delivery rules](/docs/skills/woostack-orchestrate#coordinate).
 
 ## Lifecycle and closure (retired Execute reference)
 
