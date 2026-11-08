@@ -4,7 +4,7 @@ WooStack has three parts: a recommended tech stack, agent skills for coding harn
 and an autonomous agent setup in development. Start with the part you need:
 
 - [Tech stack](apps/docs/content/docs/recommended-stack.mdx): recommended technologies and how they fit together.
-- [Agent skills](apps/docs/content/docs/agent-skills.mdx): workflows for planning, building, and checking products inside a coding harness.
+- [Agent skills](apps/docs/content/docs/getting-started.mdx): workflows for planning, building, and checking products inside a coding harness.
 - [Agent teams](apps/docs/content/docs/agent-teams/index.mdx): the coordinated setup being developed, with a [manual R&D setup guide](apps/docs/content/docs/agent-teams/setup.mdx) for OpenMausBot teams. No packaged runtime or installer is provided.
 
 You can adopt the tech stack or the skills independently. Using the skills does not require
