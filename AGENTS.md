@@ -5,14 +5,6 @@ Woostack publishes coding-agent skills and supporting assets. Applications live 
 `apps/design/`. Docs work also follows
 [apps/docs/AGENTS.md](apps/docs/AGENTS.md). Keep `.claude/CLAUDE.md` as a symlink here.
 
-Use Woostack skills when available and their advertised workflow fits the work.
-`using-woostack` is an optional navigation aid, not a prerequisite. Each skill owns its
-activation, authority, approval, and completion behavior; neither a sibling Woostack skill nor the
-source checkout is required. If Woostack skills are unavailable, follow this file and continue
-ordinary work with the host's available capabilities; installation is not required.
-For an explicit `/woostack-*` command whose skill is unavailable, name the missing skill
-and ask whether to install it or proceed without it before continuing.
-
 Follow this file first when it conflicts with generic agent defaults.
 
 ## Boundaries
