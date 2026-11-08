@@ -57,6 +57,13 @@ pnpm-debug.log*
 .vercel
 
 # Retained private artifacts from retired Woostack runtime
+.woostack/.obsidian/workspace*
+.woostack/.obsidian/cache
+.woostack/**/metrics.json
+.woostack/**/*.local.*
+.woostack/**/visuals/
+.woostack/qa/evidence/
+.woostack/**/worktrees/
 .woostack/tmp/
 .woostack/memory/.telemetry.tsv
 .woostack/memory/.dream-watermark
