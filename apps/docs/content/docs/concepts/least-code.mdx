@@ -3,49 +3,37 @@ title: Least code, still safe
 description: "woostack's core engineering tenet: write as little code as necessary without cutting edge cases or risks."
 ---
 
-Write as little code as the problem needs. Less code leaves less to read, test, and maintain, but
-correctness and safety determine how small a solution can be.
+Least code means an agent plans and implements only what the problem needs. Less code leaves less to
+read, test, and maintain, but correctness and safety determine how small a solution can be.
 
-## Understand first, then take the first rung that holds
+## Reuse or remove before adding
 
-Read the affected code and trace the actual flow from start to finish before choosing a solution.
-Then stop at the first option that solves the problem:
+The starting point is understanding the affected code and how the real flow works. A smaller
+implementation in the wrong place can create another bug.
 
-1. Decide whether the code is needed at all. This is YAGNI: "you aren't going to need it."
-2. Reuse a helper, utility, or pattern already in the repository.
-3. Use what the language's standard library provides.
-4. Use a native platform feature before adding another layer.
-5. Reuse a dependency the project already has.
-6. Use a direct expression when it is clear and safe.
-7. Write the minimum new implementation.
+The simplest solution may be removing code or deciding that no new code is needed. Otherwise, an
+existing helper or pattern in the repository comes before standard language facilities, native
+platform features, and dependencies the project already has, in that order. A clear, safe expression
+may be enough; a new implementation is the last option. The aim is straightforward code, not clever
+compression.
 
-A small diff is not automatically the small change. When the outcome changes a shared contract,
-the code that relies on it belongs to the same task: callers, fixtures, configuration, and exports
-that used the old shape need the matching update. That reach is the work, not extra scope. A
-targeted search of the repository for references to the changed contract is a reasonable way to
-find those callers. The mistake to avoid is an exhaustive inventory of unrelated code. Trace the
-real flow and stop where the contract actually reaches.
+## Small means complete
 
-## Never shrink code by cutting safety
+A small diff can leave an incomplete change. When a contract changes, necessary updates to its
+callers, tests, and documentation are part of the same outcome. Supported compatibility commitments
+still apply; least code does not justify breaking them or rewriting unrelated flows.
 
-Prefer deletion and straightforward code. Never remove validation, error handling, security,
-accessibility, or data-loss protection just to shrink a diff. Keep deliberate layers of protection,
-even when they repeat a check. The DRY principle ("don't repeat yourself") does not justify removing
-that protection.
+## Safety sets the limit
 
-When two solutions are the same size, choose the one that handles edge cases correctly. Keep the
-regression test for a simplification that changes behavior. A deliberate limitation needs a `why`
-comment that explains its limit and when to replace it.
+Validation, error handling, security, accessibility, and data-loss protection are part of the
+solution, not extra weight. Deliberate independent checks can protect against different failures,
+even when they look repetitive. Removing them for the sake of avoiding duplication can make the
+solution less safe.
 
-## Comments explain why, not what
+When two solutions are the same size, the one that handles edge cases correctly is the better
+choice. A simplification that changes behavior keeps its regression coverage. Comments explain
+non-obvious constraints and reasons the code cannot express. A deliberate limitation needs a comment
+naming its ceiling and upgrade path, rather than leaving the next reader to guess.
 
-Use comments for reasons the code cannot explain: a hidden constraint, a workaround, or a condition
-that must always hold. Avoid repeating what the code already says.
-
-## Where it lives
-
-The full standard is
+The full rules live in
 [`patterns.md §7`](https://github.com/howarewoo/woostack/blob/main/shared/references/patterns.md#7-least-code--comments).
-[woostack-whiteboard](/docs/skills/woostack-whiteboard) applies it when exploring requirements or
-developing or reviewing a plan, and [woostack-execute](/docs/skills/woostack-execute) loads it before
-implementation. Each skill's reference owns its own scope.
