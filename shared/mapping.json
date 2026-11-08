@@ -31,7 +31,8 @@
       "consumers": [
         "woostack-execute",
         "woostack-orchestrate",
-        "woostack-init"
+        "woostack-init",
+        "woostack-whiteboard"
       ]
     },
     {
