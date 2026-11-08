@@ -45,6 +45,36 @@ conditions; a broad label such as persistence alone does not establish high risk
 [Execute's verification policy](/docs/skills/woostack-execute#implement-and-verify) and the
 [shared testing guidance](https://github.com/howarewoo/woostack/blob/main/shared/references/tdd.md).
 
+## What WooStack recommends
+
+For ordinary reversible work, WooStack recommends existing relevant checks and the smallest
+practical observation of the changed behavior. The useful kinds of evidence depend on the change:
+
+| Verification | When it is useful |
+| --- | --- |
+| Source and diff inspection | Establishing the current contract, checking scope, and confirming that the change preserves required safeguards. For documentation, this includes checking claims, links, and anchors against their sources. |
+| Existing behavioral tests | Exercising the affected contract with fast, deterministic assertions at the lowest practical level. Focused checks support the edit loop; a small, cheap relevant suite may be simpler than selecting individual tests. |
+| Regression or characterization tests | Protecting a genuine uncovered defect, behavior, or material risk. Existing adequate protection does not need duplicate cases. |
+| Integration checks | Establishing behavior across affected consumers or newly combined components when requirements or a named material risk call for it. Passing component tests alone does not prove their interaction. |
+| Runtime or browser observations | Checking actual effects or rendered interactions when those semantics matter to the required evidence. Static inspection and controlled outputs cannot establish every runtime property. |
+| Representative volume or concurrency checks | Detecting loss, duplication, or other contract failures when volume or concurrency can materially change the outcome. Representative levels come from repository evidence or stated deployment assumptions, not invented production workloads. |
+
+Linting, formatting, type checking, and builds serve the repository's applicable validation policy.
+They can establish specific properties such as type consistency or buildability, but do not replace
+behavioral evidence. WooStack does not impose all of these commands on every project or every edit.
+For this repository's concrete check selection, see the
+[verification guide](/docs/guides/verification#2-explain-the-selected-checks-before-work).
+
+Test-first is conditional on the user, task, or repository requiring it. Coverage collection,
+property-based testing, and mutation testing are targeted options for real gaps, not mandatory
+stages. Extra independent review likewise needs an applicable requirement or named material risk;
+available specialists alone do not make it required.
+
+The [shared testing guidance](https://github.com/howarewoo/woostack/blob/main/shared/references/tdd.md)
+owns these recommendations. The active skill and repository retain their requirements, including
+stronger safety evidence where applicable. This is guidance for selecting evidence, not a checklist
+whose every row must pass before delivery.
+
 ## Evidence can remain valid
 
 An observed result remains useful while the relevant source, tests, fixtures, dependencies,
