@@ -12,8 +12,8 @@ authorized GitHub attachment uploader. Supported, authenticated GitHub CLI uploa
 an existing authorized equivalent or already-authenticated browser session can be used when CLI
 upload support is unavailable. The assistant does not install tools or acquire credentials as a fallback.
 
-Because this guide explicitly requests pull request delivery, your assistant will edit source
-code, run relevant checks, and commit and publish the result as a draft. A natural-language
+Because this guide explicitly requests pull request delivery, your assistant will edit the requested
+files, run relevant checks, and commit and publish the result as a draft. A natural-language
 request for local implementation alone authorizes local edits, not a push or pull request.
 These examples are [logical skill requests, not terminal commands](/docs/harnesses#native-skill-invocation).
 
@@ -24,10 +24,17 @@ These examples are [logical skill requests, not terminal commands](/docs/harness
 Send this request to your coding assistant, supplying your plan or task description:
 
 ```text
-/woostack-execute Implement the reviewed README documentation plan. Use the repository's actual verification commands, run relevant checks, and submit a draft pull request. Do not merge.
+/woostack-execute Implement the reviewed documentation plan. Use the repository's actual verification commands, run relevant checks, and submit a draft pull request. Do not merge.
 ```
 
 If you have an existing issue, `/woostack-execute <canonical GitHub issue URL>` is an alternative.
+
+For documentation work, include the audience and what readers should be able to do, find, or
+understand. Execute loads its [documentation guidance](https://github.com/howarewoo/woostack/blob/main/shared/references/documentation.md)
+before planning, then writes and verifies the content within the same task. Use
+[Init](/docs/skills/woostack-init) for guided root project-document authoring. An explicitly requested
+bounded edit to an existing root document can stay in Execute when its plan and decisions are settled,
+including the reviewed README plan from [Get your first result](/docs/getting-started).
 
 Keep these boundaries in mind:
 
@@ -53,6 +60,9 @@ Inspect small integrated results during implementation, then review the complete
   long-lived mechanisms at the first meaningful integrated result and material design expansions.
 - **Relevant checks:** Ensure tests and commands covering the modified behavior actually ran.
   For ordinary reversible work, the smallest practical observation is the default.
+- **Documentation:** Check claims, examples, prerequisites, and links against the source. Walk
+  through changed instructions when safe and useful, and distinguish inspected commands from
+  executed ones. Select rendering checks only when the change can affect rendering.
 - **Acceptance criteria:** Verify that all stated acceptance criteria passed. Publishing a draft
   pull request does not replace or satisfy implementation acceptance.
 - **Privacy and safety:** Keep unresolved privacy findings on HOLD and verify that safety protections

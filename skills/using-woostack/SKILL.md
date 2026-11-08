@@ -35,7 +35,7 @@ For an explicit one-run model or effort request, apply the bundled
 | Create or maintain root `README.md`, `AGENTS.md`, `DESIGN.md`, `PRODUCT.md`, or `ARCHITECTURE.md`; explicitly initialize or repair local support | `woostack-init` |
 | Explore requirements, plan a goal or existing design, review a supplied specification, or explicitly publish a plan as issues | `woostack-whiteboard` |
 | Coordinate approved multi-task work | `woostack-orchestrate` |
-| Implement an authorized bounded outcome, including initial project creation | `woostack-execute` |
+| Implement an authorized bounded outcome, including initial project creation or user-facing documentation changes | `woostack-execute` |
 | Simplify selected existing code while preserving required behavior | `woostack-simplify` |
 | Commit changes, rebase or restack published PRs, or change readiness | `woostack-commit` |
 | Review a pull request | Use [Pullfrog](https://pullfrog.com/). |

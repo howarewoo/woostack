@@ -27,6 +27,11 @@ Load support helpers and contracts only for relevant support work.
 
 ## Guided authoring
 
+For requested human-facing technical documents, load
+[documentation guidance](references/documentation.md) before planning or drafting. Apply it within
+the authoring steps and document schemas below, retaining this workflow's consultation and write
+boundaries. Keep `AGENTS.md` operational; local-support-only work does not load this reference.
+
 1. **Inspect the evidence.** Resolve the target and requested scope without changing it. Read relevant
    conversation decisions, existing root and scoped agent instructions, README/contributor guidance,
    product/design/architecture documents and their canonical sources, representative source,

@@ -160,7 +160,10 @@ For an explicit one-run model or effort request, apply the shared
    [verification](references/tdd.md), and [delivery](references/delivery.md) procedures; no sibling
    installation or source checkout is required. Give accessible reference paths and load
    [infrastructure](references/infrastructure.md) or [scaffold admission](references/scaffold.md)
-   only for applicable work. Each owner makes one scoped, behavior-preserving simplification pass
+   only for applicable work. For user-facing technical documentation, pass the bundled
+   [documentation guidance](references/documentation.md) and have the owner read it before planning
+   the documentation changes, including when Execute is unavailable. Each owner makes one scoped,
+   behavior-preserving simplification pass
    before final verification and required review, not an additional workflow or repeated pass.
    Task owners decide implementation decomposition, specialist assignments and handoffs, contribution
    integration, and task verification. When a pattern or shared contract is unsettled, establish the

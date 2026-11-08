@@ -1,6 +1,6 @@
 ---
 name: woostack-execute
-description: Implement one authorized bounded enhancement, refactor, test task, correction, or initial project scaffold from instructions or selected GitHub issues; verify locally and deliver a draft PR when requested. Never merges.
+description: Implement one authorized bounded enhancement, refactor, test task, user-facing documentation change, correction, or initial project scaffold from instructions or selected GitHub issues; verify locally and deliver a draft PR when requested. Never merges.
 ---
 
 # woostack-execute
@@ -49,6 +49,14 @@ outcome. Old `/woostack-tdd` requests are retired; use `/woostack-execute <bound
 
 For an explicit one-run model or effort request, apply the shared
 [identity check](references/identity.md) before implementation or delegation.
+
+When the authorized outcome includes user-facing technical documentation, load
+[documentation guidance](references/documentation.md) before planning the changes. Apply its
+planning, implementation, and verification guidance to documentation-only tasks and documentation
+changed alongside code, within this workflow's scope and delivery rules. Init owns guided root
+project-document authoring. An explicitly requested bounded edit to an existing root document can
+stay in Execute when its plan and decisions are settled; it does not restart Init's consultation.
+Reading this reference invokes no sibling workflow.
 
 Resolve the authorized goal, scope, non-goals, and acceptance from the request and any selected
 issue plus repository evidence. Selecting an issue within an implementation request needs no second
