@@ -11,7 +11,6 @@
     "recommended-stack",
     "guides/deploy-cloudflare",
     "concepts/repository-rules",
-    "concepts/least-code",
     "---Agent teams---",
     "[Overview](/docs/agent-teams)",
     "agent-teams/departments",
