@@ -3,6 +3,8 @@ title: Context management
 description: "How woostack keeps context small while preserving repository truth and the evidence a result depends on."
 ---
 
+import { ContextEconomy } from "@/components/concepts/context-economy";
+
 Context is the information an agent has available while working. Keep it small enough to reason
 effectively without dropping approved scope or the evidence needed to verify a result. Git and
 GitHub show code and PR state; retained `.woostack/tmp/runs/<run-id>/` records remain historical
@@ -10,6 +12,16 @@ user data.
 
 A stale or cached read cannot establish a fact or grant permission. A publication destination comes from
 the request and its actual context, not from an assumed title, nearby branch, or artifact text.
+
+## Context economy
+
+<ContextEconomy />
+
+Keep only what the current decision requires. Scoped rules, scripts that compute, and subagents
+that return compact summaries protect the agent's working memory. The
+[delegation guidance](#isolated-agents-receive-bounded-envelopes) explains how to balance speed,
+cost, isolation, and risk. [Agent teams](/docs/agent-teams/setup) apply the same boundaries to
+existing senior and junior bots, with bounded delegated authority and escalation to the user.
 
 ## Output stays compact
 
