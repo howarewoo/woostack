@@ -3,13 +3,7 @@
   "entries": [
     {
       "source": "references/artifact-backends.md",
-      "consumers": [
-        "woostack-init",
-        "woostack-whiteboard",
-        "woostack-debug",
-        "woostack-qa",
-        "woostack-visualize"
-      ]
+      "consumers": ["woostack-whiteboard", "woostack-debug", "woostack-qa", "woostack-visualize"]
     },
     {
       "source": "references/artifact-providers/github.md",
@@ -22,8 +16,7 @@
         "woostack-orchestrate",
         "woostack-commit",
         "woostack-simplify",
-        "woostack-address-comments",
-        "woostack-doctor"
+        "woostack-address-comments"
       ]
     },
     {
@@ -34,34 +27,6 @@
         "woostack-init",
         "woostack-whiteboard"
       ]
-    },
-    {
-      "source": "references/hosts/README.md",
-      "consumers": ["using-woostack"]
-    },
-    {
-      "source": "references/hosts/antigravity.md",
-      "consumers": ["using-woostack"]
-    },
-    {
-      "source": "references/hosts/claude-code.md",
-      "consumers": ["using-woostack"]
-    },
-    {
-      "source": "references/hosts/codex.md",
-      "consumers": ["using-woostack"]
-    },
-    {
-      "source": "references/hosts/cursor.md",
-      "consumers": ["using-woostack"]
-    },
-    {
-      "source": "references/hosts/omp.md",
-      "consumers": ["using-woostack", "woostack-init"]
-    },
-    {
-      "source": "references/hosts/opencode.md",
-      "consumers": ["using-woostack"]
     },
     {
       "source": "references/identity.md",
@@ -79,7 +44,6 @@
       "source": "references/patterns.md",
       "consumers": [
         "woostack-design-system",
-        "woostack-doctor",
         "woostack-execute",
         "woostack-orchestrate",
         "woostack-whiteboard",
@@ -103,8 +67,7 @@
         "woostack-debug",
         "woostack-qa",
         "woostack-visualize",
-        "woostack-design-system",
-        "woostack-doctor"
+        "woostack-design-system"
       ]
     },
     {
@@ -118,8 +81,7 @@
         "woostack-address-comments",
         "woostack-whiteboard",
         "woostack-debug",
-        "woostack-design-system",
-        "woostack-doctor"
+        "woostack-design-system"
       ]
     },
     {
@@ -135,61 +97,8 @@
         "woostack-debug",
         "woostack-qa",
         "woostack-visualize",
-        "woostack-design-system",
-        "woostack-doctor"
+        "woostack-design-system"
       ]
-    },
-    {
-      "source": "scripts/checks/config-keys.sh",
-      "consumers": ["woostack-init", "woostack-doctor"]
-    },
-    {
-      "source": "scripts/checks/gitignore-drift.sh",
-      "consumers": ["woostack-init", "woostack-doctor"]
-    },
-    {
-      "source": "scripts/doctor.sh",
-      "consumers": ["woostack-init", "woostack-doctor"]
-    },
-    {
-      "source": "scripts/config/resolve-config.sh",
-      "consumers": [
-        "woostack-init",
-        "woostack-whiteboard",
-        "woostack-debug",
-        "woostack-qa",
-        "woostack-visualize",
-        "woostack-doctor"
-      ]
-    },
-    {
-      "source": "scripts/path-args.sh",
-      "consumers": [
-        "woostack-init",
-        "woostack-whiteboard",
-        "woostack-debug",
-        "woostack-qa",
-        "woostack-visualize",
-        "woostack-doctor"
-      ]
-    },
-    {
-      "source": "scripts/run-store.py",
-      "consumers": [
-        "woostack-init",
-        "woostack-whiteboard",
-        "woostack-debug",
-        "woostack-qa",
-        "woostack-visualize"
-      ]
-    },
-    {
-      "source": "scripts/tests/assert.sh",
-      "consumers": ["woostack-init", "woostack-doctor"]
-    },
-    {
-      "source": "templates/gitignore",
-      "consumers": ["woostack-init", "woostack-doctor"]
     }
   ]
 }

@@ -1,58 +1,54 @@
 ---
-title: Harness reference
-description: Documented coding harnesses, native capability differences, and host-specific behavior.
+title: Assistant capabilities
+description: Required capabilities, skill invocation, and behavior when an operation is unavailable.
 ---
 
-A harness is the application that runs your coding agent and gives it tools to read files, edit
-code, and run commands. Woostack provides skills for that agent to follow. The harnesses below
-have documented host notes covering host-specific mechanics. Another host that loads the skills
-works too when it exposes the capabilities a task needs.
-
-Capabilities differ, and only the active session's tool schema and discovered agents prove what a
-harness accepts. A worker (also called a subagent) handles an assigned task and returns its results
-to the main agent. Giving it a separate conversation context does not by itself restrict which files
-it can edit, so concurrent writers need independently owned workspaces and scoped tasks.
-
-An absent optional subagent does not block inline work. Missing permission for a required
-publication or other side effect blocks that operation. An unsupported optional model override is
-reported; a required exact identity blocks without matching host evidence.
-
-## Capability comparison
-
-| Harness | Model and effort choices | Workspace behavior |
-| --- | --- | --- |
-| [omp (Oh My Pi)](/docs/harnesses/omp) | Host-owned model selection; effort only when active schema exposes it | Pass workspace in task; worker verifies it |
-| [Claude Code](/docs/harnesses/claude-code) | Per-invocation model documented; effort is worker or session setting | Worktree isolation is a definition choice |
-| [Codex](/docs/harnesses/codex) | Configured model and reasoning effort; one model per Codex Action job | Subagents inherit sandbox and permission mode |
-| [opencode](/docs/harnesses/opencode) | Agent configuration selects the model | V1 uses `task` permission; check the active version's schema |
-| [Cursor / Composer](/docs/harnesses/cursor) | Custom subagent definitions select model and options | Subagents share checkout by default; isolation available |
-| [Antigravity CLI](/docs/harnesses/antigravity) | Custom subagent definitions select a model tier | Per-subagent workspace modes include worktrees |
-
-For OMP,
-[host-owned agent routing](https://github.com/howarewoo/woostack/blob/main/shared/references/hosts/omp.md)
-selects a suitable agent exposed in the active session. OMP controls the models behind those agents,
-provider credentials, and fallback policy.
+Woostack skills are instructions for a coding assistant. They do not depend on a named harness,
+agent catalog, or tool API. The active session's tools, schemas, and permissions determine which
+operations are available. Installing a skill does not grant access or enable missing tools.
 
 ## Native skill invocation
 
-Woostack skill names are identical across harnesses. A `/woostack-*` example names the logical
-command; each harness has its own documented syntax to invoke a skill explicitly. Use the form
-your harness documents. Each form invokes the same skill instructions and authorization rules.
-Available capabilities and permissions depend on the host and session.
+A `/woostack-*` example in this documentation names a skill request, not a terminal command or a
+universal invocation syntax. Request the skill by its public name using your assistant's supported
+skill-loading mechanism. For example, request `woostack-whiteboard` with a goal to plan, or
+`woostack-execute` with a bounded change to implement. Confirm that the named skill is available
+before relying on its workflow.
 
-| Harness | Documented explicit invocation |
-| --- | --- |
-| [omp (Oh My Pi)](/docs/harnesses/omp) | `/skill:woostack-execute` |
-| [Claude Code](/docs/harnesses/claude-code) | `/woostack-execute` |
-| [Codex](/docs/harnesses/codex) | `$woostack-execute` |
-| [opencode](/docs/harnesses/opencode) | Ask for the named skill; native `skill` tool loads it |
-| [Cursor / Composer](/docs/harnesses/cursor) | `/woostack-execute` |
+Invocation syntax does not change a skill's authorization rules. An explicit Execute request
+requests draft-PR delivery unless narrowed, for example with `local only; do not commit or push`.
+An ordinary implementation request authorizes local edits and checks, not automatic publication.
 
-**Evidence:** These examples are source-checked against host documentation. That is not evidence of
-an actual host run; runtime behavior is unverified unless a run is reported separately. The active
-schema and session permissions remain authoritative.
+## Required capabilities
 
-Each harness page links the official documentation its example was verified against, and the
-[host reference](https://github.com/howarewoo/woostack/blob/main/shared/references/hosts/README.md#native-skill-invocation)
-lists them together. Antigravity CLI has no source-verified invocation form recorded here; use
-the host's own documented form.
+Each skill owns its requirements and stopping rules. Only capabilities needed for the requested
+operation matter; planning does not require implementation tools or publication access.
+
+| Operation | Required capability | When unavailable |
+| --- | --- | --- |
+| Load a skill | Access to its instructions and bundled assets | For an explicit missing skill, name it and ask whether to install it or proceed without it. |
+| Inspect existing code | Authorized reads of the selected source | Report the evidence gap; do not invent current behavior. |
+| Implement a change | Authorized file edits and applicable verification tools | Leave affected implementation or acceptance unmet. |
+| Delegate work | A permitted worker launcher and a suitable task context | Keep optional work inline; required delegation remains blocked. |
+| Run isolated visualization | A native subagent or isolated task context | Leave Visualize unrun rather than loading it in the parent. |
+| Publish to GitHub | Authorized access to the exact target and required operations | Stop affected publication, not unrelated local work. |
+| Apply a model or effort override | A supported field and permission to use it | Disclose an unsupported optional override; required exact identity blocks without matching evidence. |
+
+## Workers and workspaces
+
+A worker handles an assigned task and returns its results. A separate conversation context does
+not by itself restrict which files it can edit. Concurrent writers need independently owned
+workspaces and scoped tasks. Workers verify the selected checkout, branch, base, and affected paths
+before writing, even when the launcher accepts a workspace argument.
+
+Use only available, permitted agents suited to the assignment. Keep configured role and model
+routing unless the user requests an override. Woostack does not provision replacement agent
+definitions, change assistant settings, or manage session titles and provider recovery.
+Existing assistant configuration, extensions, and retained records remain user-owned; portability
+changes do not authorize their cleanup or migration.
+
+## Evidence limits
+
+Tool availability and successful dispatch do not prove which model ran or that a workflow completed.
+Report actual outputs and verification separately from configuration, documentation claims, and
+unrun checks. A successful run in one assistant is not proof of compatibility with another.

@@ -22,8 +22,7 @@ which owns implementation and specialist contributions. Without Execute, the wor
 Orchestrate's bundled procedures under the same assignment limits. Native capabilities determine
 who can launch contributors; the task owner still owns their handoffs and integrated result.
 
-Reusable assets are authored in `shared/references/`, `shared/scripts/`, and
-`shared/templates/`. [shared/mapping.json](shared/mapping.json) maps each canonical
+Reusable procedures are authored in `shared/references/`. [shared/mapping.json](shared/mapping.json) maps each canonical
 file to consuming skills. [shared/sync.mjs](shared/sync.mjs) projects byte-identical
 copies into matching skill-local paths, including transitively needed assets.
 Installed skills therefore carry their own procedures without requiring sibling
@@ -76,7 +75,7 @@ verification, including separate workflow smoke recipes. The shipped
 [Pullfrog workflow](.github/workflows/pullfrog.yml) runs review agents, not a repository
 test pipeline.
 
-Configuration, publication, and retained-data changes follow the canonical
+Publication and retained-data changes follow the canonical
 [artifact contract](shared/references/artifact-backends.md). Product scope belongs
 in [PRODUCT.md](PRODUCT.md); permissions and delivery rules remain in
 [AGENTS.md](AGENTS.md), not this orientation.

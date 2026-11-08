@@ -564,9 +564,9 @@ issue-free and local-only. Wrap the focused check in a disposable counter (for e
 wrapper appending one line to `check-count.log` per invocation) and hand the recipient the
 command/selection, tested source state, observed outcome, and environment limits with the change.
 Repeat the handoff with an unrelated unstaged `notes.txt`/metadata-only sentinel, then with an
-unrelated pre-existing staged sentinel. Add one run started from a nested directory. Finally, set
-`commit.command` to a script that normalizes the intended file, and separately to one that exits
-nonzero.
+unrelated pre-existing staged sentinel. Add one run started from a nested directory. Finally,
+explicitly request a preparation command that normalizes the intended file, and separately one
+that exits nonzero.
 
 ```text
 /woostack-commit --no-pr-update
@@ -586,7 +586,7 @@ trailing newline. The focused check above is the required verification. Nothing 
   testing guidance leaves the counter unchanged, including with an unrelated prose/metadata
   sentinel or a new handoff/revision identifier. A relevant correction increments only the
   affected check's counter.
-- A `commit.command` that rewrites the intended file is reviewed, the affected check runs again on
+- An explicitly requested preparation command that rewrites the intended file is reviewed, the affected check runs again on
   the new content, and the commit proceeds with the verified result. A required command or check
   that cannot pass blocks the commit and is reported unresolved. No check is skipped, no assertion
   weakened, and no side-effectful command rerun blindly.
@@ -810,12 +810,6 @@ node shared/sync.mjs --check
 INSTALL=$(mktemp -d)
 printf 'Candidate revision: %s\n' "$(git rev-parse HEAD)"
 cp -R skills "$INSTALL/"
-(
-  cd "$INSTALL"
-  bash skills/woostack-init/scripts/tests/test-config-precedence.sh
-  bash skills/woostack-init/scripts/tests/test-run-store.sh
-  bash skills/woostack-doctor/scripts/tests/test-health-checks.sh
-)
 node --input-type=module -e '
   import { validateSkillAssets } from "./apps/docs/scripts/skill-assets.mjs";
   import { PUBLIC_ORDER } from "./apps/docs/scripts/gen-skills.mjs";
@@ -836,19 +830,14 @@ node --input-type=module -e '
 ' <temporary-container> <skill-name>
 ```
 
-Those three runtime fixtures build their own disposable consumer repositories, so they need neither
-the source checkout nor the docs application. They exist to prove preservation of retained and
-legacy user bytes: point them at scratch directories, never at a real user's store. An unsupported
-capability must fail before it writes, not fall back to another interpreter, lock implementation,
-model, or transport. Installed Init's own retained-data reference owns capability failures for
-retained data.
+The production validator proves installed asset closure, not model behavior. Skills require no
+Woostack setup or configuration. Keep historical user files untouched during any host smoke run;
+never point a fixture or cleanup command at real user records.
 
 **Checkout-only audits.** These need this repository and are never installed-runtime evidence:
-`pnpm --filter docs build`, the direct `.claude/skills` link-discovery case that reads this checkout rather
-than the disposable copy above, and the full Init runner
-(`bash skills/woostack-init/scripts/tests/run-tests.sh`), whose ignore-file audit reads this
-repository's own `.gitignore` rather than an installed template. The full Doctor runner
-(`bash skills/woostack-doctor/scripts/tests/run-tests.sh`) is static and needs no checkout.
+`pnpm --filter docs build` and the direct checkout-local skill-link audit in
+`apps/docs/scripts/skill-assets.test.mjs`, which reads this checkout rather than the disposable
+copy above.
 
 ## Optional controlled comparison
 

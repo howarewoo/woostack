@@ -56,16 +56,18 @@ pnpm-debug.log*
 *.tsbuildinfo
 .vercel
 
-# woostack: local-only metrics and memory sidecars (config.json and memory notes stay tracked)
-.woostack/metrics.json
+# Retained private artifacts from retired Woostack runtime
+.woostack/.obsidian/workspace*
+.woostack/.obsidian/cache
+.woostack/**/metrics.json
+.woostack/**/*.local.*
+.woostack/**/visuals/
+.woostack/qa/evidence/
+.woostack/**/worktrees/
+.woostack/tmp/
 .woostack/memory/.telemetry.tsv
 .woostack/memory/.dream-watermark
-# woostack: disposable HTML renders (regenerated from source)
-.woostack/visuals/
-# woostack: temporary review artifacts
-.woostack/tmp/
-# woostack: transient per-clone worktrees (managed by worktree lifecycle)
-.woostack/worktrees/
+
 # Claude Code scheduling runtime lock (generated, not source)
 .claude/scheduled_tasks.lock
 

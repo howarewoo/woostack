@@ -1,55 +1,51 @@
 ---
-title: Publish a plan as GitHub issues
-description: File a settled plan as coherent issue outcomes and verify the publication.
+title: Publish a plan as issues
+description: File a settled plan in GitHub and check that the issues and requested relationships exist.
 ---
 
-Start with a settled plan and an unambiguous GitHub destination. Your assistant needs authorized
-issue-write access and, for existing code, access to the selected repository. Greenfield publication
-needs no checkout. If the goal or material choices still need refinement, use
-[Whiteboard a goal into a plan](/docs/guides/whiteboard) first. These are **requests to your
-assistant**, not terminal commands; use your
-[host's invocation form](/docs/harnesses#native-skill-invocation).
+Start with a settled plan, an exact GitHub repository or Project destination, and an assistant
+with authorized issue-write access. Existing code needs repository access; a new product needs
+no checkout. If material choices remain open, [refine the plan](/docs/guides/whiteboard) first.
 
 <span id="1-describe-the-outcome" />
 
 ## 1. Select the plan and destination
 
-Supply the existing plan and name the destination repository or exact GitHub Project URL.
-Check that the plan identifies the source inspected, bounded outcomes, acceptance and selected
-evidence, and real prerequisites. Settle material choices before publication; a plan is not an
-implementation or passing check. Whiteboard asks no questions when the available context suffices.
+Check that the plan includes bounded outcomes, non-goals, acceptance checks, and real prerequisites.
+Group checkpoints into coherent issues. An implementation checkpoint does not need its own issue,
+and necessary atomic changes should stay together.
 
-Group implementation checkpoints into coherent issue outcomes. A checkpoint need not become a
-separate issue, worker, PR, or release. Keep necessary atomic changes together without temporary
-bridges just to split delivery. See [Whiteboard's reference](/docs/skills/woostack-whiteboard)
-for the planning and evidence rules.
+Use the repository's actual owner and name in place of `OWNER/REPOSITORY` below. A Project is optional;
+if you select one, supply its exact canonical URL.
 
 <span id="2-review-and-optionally-publish" />
 
-## 2. Publish the plan
+## 2. Request publication
 
-Check that issue outcomes do not repeat existing issues and that dependencies reflect actual
-prerequisites, not their order in a list. Ask explicitly:
+Send this [request to your assistant](/docs/harnesses#native-skill-invocation):
 
 ```text
 /woostack-whiteboard File the settled plan above as GitHub issues in OWNER/REPOSITORY.
-Group implementation checkpoints into coherent issue outcomes and reuse existing
-issues that already cover them. Include acceptance criteria and real prerequisites,
-then read back the affected issues. Do not start implementation.
+Reuse existing issues that cover the outcomes. Include scope, non-goals,
+acceptance checks, and real prerequisites, then read back the affected issues.
+Do not start implementation.
 ```
 
-Replace `OWNER/REPOSITORY` with the actual destination. A request to plan and file issues in one
-message already authorizes publication; a separate read-only planning pass or second approval is
-not required. A Project or fixed issue hierarchy is not required. Ask for native relationships
-only when you need them: they count only after their writes and read-back succeed. If relationship
-operations are unavailable, keep the verified issue URLs and readable prerequisites. An explicitly
-required native graph remains incomplete until verified.
+This explicitly authorizes issue publication. A request to plan and publish in one message also
+needs no separate publication approval. The assistant should return the actual issue URLs and
+say which issues it created or reused.
 
-## 3. Check the handoff
+If you require native sub-issue or dependency relationships, request them explicitly. They count
+only after successful writes and independent read-back. Missing links do not erase verified issues,
+but an explicitly required native graph remains incomplete until verified.
 
-Compare the returned issues and their content with the plan; do not infer publication from a success
-sentence. If a write has an unknown result,
-[inspect it before trying again](/docs/guides/troubleshooting#an-issue-or-pull-request-write-has-an-unknown-result).
+## 3. Check the result
+
+Compare the returned issue content and prerequisites with the plan. If a write has an unknown
+result, [inspect the target before retrying](/docs/guides/troubleshooting#an-issue-or-pull-request-write-has-an-unknown-result).
+A success sentence alone is insufficient.
+
 Choose implementation separately: [deliver one change](/docs/guides/ship-change) or
-[coordinate several approved tasks](/docs/guides/coordinate-work).
-[Whiteboard's publication rules](/docs/skills/woostack-whiteboard#saving-and-publishing) own the exact boundaries.
+[coordinate several tasks](/docs/guides/coordinate-work). The
+[Whiteboard publication reference](/docs/skills/woostack-whiteboard#saving-and-publishing)
+defines the exact boundaries.

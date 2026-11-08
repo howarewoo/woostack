@@ -55,7 +55,7 @@ commit it, or upload it elsewhere to make it admissible.
 | Exact GitHub Project or issue | Resolve the exact resource in complete scope and read all specification/fix/plan fields needed by the render using the local contracts below. |
 
 For Project or issue inputs, load the [artifact contract](references/artifact-backends.md#direct-publication-and-recovery)
-and [GitHub profile](references/artifact-providers/github.md#configuration-and-scope).
+and [GitHub profile](references/artifact-providers/github.md#scope).
 Prefer a suitable authorized native GitHub capability; host-authenticated `gh` is supported.
 
 Carry only provenance the read proves: filename and page/section/line range, immutable Git revision,
@@ -97,10 +97,10 @@ disclosure, change paths, request secrets, grant browser consent, create gates, 
 ## Output boundary
 
 The sole write is the disposable HTML file. No source, configuration, Git, GitHub, or retained-record
-mutations, including indirect helpers. Write to `.woostack/visuals/YYYY-MM-DD-<slug>-<audience>.html`
-when `.woostack/` exists, or an explicit user path outside every legacy development-record directory.
-Otherwise write beside a local source or ask for an allowed output path; do not initialize Woostack.
-Never overwrite a source or unrelated output: choose a fresh filename or ask.
+mutations, including indirect helpers. Write a fresh `YYYY-MM-DD-<slug>-<audience>.html` in a
+private host-temporary directory outside the checkout, or to an explicit user-selected output path
+outside historical development records. Create output without following symlinks or overwriting an
+existing file. If no safe location is available, ask for an allowed output path.
 
 Keep the output out of Git. Do not claim it is gitignored without checking existing ignore rules,
 and do not edit those rules as part of visualization. The HTML is never authoritative for development,

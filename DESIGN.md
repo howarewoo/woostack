@@ -42,7 +42,7 @@ inspection is read-only unless maintenance is explicitly requested.
 
 Report observed outcomes and blockers. Distinguish verified facts from inference. Git and GitHub evidence establish
 delivery; issue status and agent reports do not. The
-[building rules](apps/docs/content/docs/concepts/building-rules.mdx) explain these authority boundaries.
+[workflow explanation](apps/docs/content/docs/concepts/workflows.mdx#authority-boundaries) explains these authority boundaries.
 The [output discipline](shared/references/output-discipline.md) owns communication
 conventions.
 

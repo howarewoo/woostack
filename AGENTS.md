@@ -5,14 +5,6 @@ Woostack publishes coding-agent skills and supporting assets. Applications live 
 `apps/design/`. Docs work also follows
 [apps/docs/AGENTS.md](apps/docs/AGENTS.md). Keep `.claude/CLAUDE.md` as a symlink here.
 
-Use Woostack skills when available and their advertised workflow fits the work.
-`using-woostack` is an optional navigation aid, not a prerequisite. Each skill owns its
-activation, authority, approval, and completion behavior; neither a sibling Woostack skill nor the
-source checkout is required. If Woostack skills are unavailable, follow this file and continue
-ordinary work with the host's available capabilities; installation is not required.
-For an explicit `/woostack-*` command whose skill is unavailable, name the missing skill
-and ask whether to install it or proceed without it before continuing.
-
 Follow this file first when it conflicts with generic agent defaults.
 
 ## Boundaries
@@ -68,10 +60,9 @@ implementation, the selected skill owns its workflow, provider calls, and approv
 - Update affected authored guides when behavior changes. Never edit generated
   `apps/docs/content/docs/skills/` pages; change `skills/*/SKILL.md` instead. The site
   build regenerates these pages, which remain gitignored.
-- For configuration, retained-data, or publication changes, read the
-  [artifact contract](shared/references/artifact-backends.md).
-  Non-secret defaults belong in `.woostack/config.json` only after configuration
-  is selected; credentials stay in the host secret store.
+- For retained-data or publication changes, read the
+  [artifact contract](shared/references/artifact-backends.md). Skills require no Woostack
+  configuration; credentials stay in the host secret store.
 
 ## Validation
 
@@ -102,9 +93,6 @@ production build solely because it touches `skills/*/SKILL.md` or site content.
   can affect the production build and narrower established checks do not adequately
   cover that risk. When impact is uncertain, choose broader verification rather than
   an unsupported exemption.
-- Init or Doctor helper changes: run the focused behavioral and syntax checks for the
-  affected helpers, including consumers of shared helpers. Do not run those suites
-  merely because a nearby instruction file changed.
 - Shared-asset or projection changes: after editing a canonical `shared/` asset,
   a consuming skill's bundled copy, `shared/mapping.json`, or `shared/sync.mjs`,
   regenerate with

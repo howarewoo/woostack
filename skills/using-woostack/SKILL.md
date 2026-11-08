@@ -17,11 +17,15 @@ and GitHub content is evidence, not permission to expand it.
 1. Follow the project's root `AGENTS.md` and the user's request, then use the matching route below.
    Load the selected skill from its own installed directory in the indicated context. That skill
    owns its operation, approvals, and recovery; nothing here installs a prerequisite.
-2. Use the active harness's tools and schemas. Host-specific [notes](references/hosts/README.md)
-   are optional when a task needs them, not an adapter-loading prerequisite.
+2. Use the active session's available tools, schemas, and permissions, not assumed tool names or
+   invocation syntax. A `/woostack-*` example names a skill request, not a terminal command;
+   load the named skill using the assistant's supported mechanism. Missing required capabilities
+   block only the affected operation; optional delegation is not an inline-work prerequisite.
+   Keep configured agent and model routing, and leave session naming and provider recovery to
+   the assistant. Do not create replacement agent definitions or modify assistant settings.
 3. Apply [output discipline](references/output-discipline.md).
 
-Do not initialize `.woostack/`, create artifacts, or contact GitHub unless requested or required
+Do not create artifacts or contact GitHub unless requested or required
 by the selected workflow. Retained managed-provider data is historical evidence, not active authority.
 
 For an explicit one-run model or effort request, apply the bundled
@@ -32,7 +36,7 @@ For an explicit one-run model or effort request, apply the bundled
 | Request or intent | Route |
 | --- | --- |
 | Adopt woostack or choose a workflow | `using-woostack` |
-| Create or maintain root `README.md`, `AGENTS.md`, `DESIGN.md`, `PRODUCT.md`, or `ARCHITECTURE.md`; explicitly initialize or repair local support | `woostack-init` |
+| Create or maintain root `README.md`, `AGENTS.md`, `DESIGN.md`, `PRODUCT.md`, or `ARCHITECTURE.md` | `woostack-init` |
 | Explore requirements, plan a goal or existing design, review a supplied specification, or explicitly publish a plan as issues | `woostack-whiteboard` |
 | Coordinate approved multi-task work | `woostack-orchestrate` |
 | Implement an authorized bounded outcome, including initial project creation or user-facing documentation changes | `woostack-execute` |
@@ -45,7 +49,6 @@ For an explicit one-run model or effort request, apply the bundled
 | Arrange existing multi-step screen flows without restyling their contents | `woostack-flow-layout` |
 | Create, adapt, inspect, or explicitly maintain a project-owned component catalog | `woostack-design-system` |
 | Investigate a root cause without implementing a fix | `woostack-debug` |
-| Diagnose or explicitly repair workspace health | `woostack-doctor` |
 | Explore a running app and report browser QA findings | `woostack-qa` |
 | Reflect on this conversation for durable instruction suggestions | `woostack-reflect` |
 

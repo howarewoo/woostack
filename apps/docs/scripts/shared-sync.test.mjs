@@ -339,21 +339,8 @@ test("an installed single-skill collection validates in isolation", async (t) =>
   );
 });
 
-test("every production skill resolves and runs its bundled support helpers in isolation", async (t) => {
+test("every production skill validates in isolation without consumer setup", async (t) => {
   const root = await makeRoot(t);
-  const consumer = path.join(root, "consumer");
-  await mkdir(path.join(consumer, ".woostack"), { recursive: true });
-  await writeFile(path.join(consumer, ".woostack", "config.json"), "{}\n");
-  await cp(
-    path.join(REPO_ROOT, "shared", "templates", "gitignore"),
-    path.join(consumer, ".woostack", ".gitignore"),
-  );
-  const mapping = JSON.parse(
-    await readFile(path.join(REPO_ROOT, "shared", "mapping.json"), "utf8"),
-  );
-  const resolverConsumers = mapping.entries.find(
-    ({ source }) => source === "scripts/config/resolve-config.sh",
-  ).consumers;
 
   for (const name of PUBLIC_ORDER) {
     const container = path.join(root, name);
@@ -364,20 +351,6 @@ test("every production skill resolves and runs its bundled support helpers in is
       parsed.map(({ name: found }) => found),
       [name],
     );
-    if (resolverConsumers.includes(name)) {
-      const effective = execFileSync(
-        "bash",
-        [path.join(installed, "scripts", "config", "resolve-config.sh"), consumer],
-        { cwd: consumer, encoding: "utf8" },
-      );
-      assert.deepEqual(JSON.parse(effective), {}, `${name}: isolated resolver`);
-    }
-    if (name === "woostack-init" || name === "woostack-doctor") {
-      execFileSync("bash", [path.join(installed, "scripts", "doctor.sh"), "--check", consumer], {
-        cwd: consumer,
-        stdio: ["ignore", "pipe", "pipe"],
-      });
-    }
   }
 });
 

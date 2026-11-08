@@ -1,4 +1,4 @@
 {
   "title": "Core concepts",
-  "pages": ["building-rules", "workflows", "context-management", "worktrees"]
+  "pages": ["workflows", "verification", "context-management", "worktrees"]
 }

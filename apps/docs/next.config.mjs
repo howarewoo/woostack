@@ -40,8 +40,18 @@ const config = {
         permanent: true,
       },
       {
+        source: "/docs/concepts/building-rules",
+        destination: "/docs/concepts/workflows#authority-boundaries",
+        permanent: true,
+      },
+      {
+        source: "/docs/concepts/utilities",
+        destination: "/docs/skills/using-woostack#command-routing",
+        permanent: true,
+      },
+      {
         source: "/docs/skills/woostack-ask",
-        destination: "/docs/concepts/utilities",
+        destination: "/docs/skills/using-woostack#command-routing",
         permanent: true,
       },
       {

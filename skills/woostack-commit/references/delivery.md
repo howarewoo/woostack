@@ -15,8 +15,8 @@ operations, reuse existing commits and skip staging, commit, and push when no re
 
 Reuse observed checks only after independently assessing applicability against actual source and
 required acceptance under [verification guidance](tdd.md#when-evidence-still-applies). Unsupported
-worker claims are not proof. Execute required hooks and nonempty configured `commit.command`
-regardless of reused tests. Review expected formatter/hook edits, refresh affected evidence, and
+worker claims are not proof. Execute required repository hooks and explicitly requested preparation
+commands regardless of reused tests. Review expected formatter/hook edits, refresh affected evidence, and
 continue only once the intended result is proven. Never blindly repeat side-effectful commands,
 weaken assertions, waive required verification, or silently repair outside authorized scope. An
 unresolved required failure blocks the affected delivery boundary. Handle slow or unavailable

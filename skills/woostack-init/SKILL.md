@@ -1,6 +1,6 @@
 ---
 name: woostack-init
-description: Create or maintain root README.md, AGENTS.md, DESIGN.md, PRODUCT.md, and ARCHITECTURE.md; also initialize or repair local .woostack/ support when explicitly requested.
+description: Create or maintain root README.md, AGENTS.md, DESIGN.md, PRODUCT.md, and ARCHITECTURE.md.
 ---
 
 # woostack-init
@@ -17,20 +17,15 @@ preserve what works, and apply only changes the request authorizes. A rerun may 
 
 The default intent is guided document authoring, including root `ARCHITECTURE.md`. Honor a request
 limited to one document or to review, planning, or drafts; architecture-only requests do not edit
-other root documents. An explicit local-support setup/repair request, including Doctor's
-missing-support referral, goes directly to [Local support](#local-support) without a document
-consultation. When both intents are requested, keep their authorization and verification separate.
-
-Document work requires no `.woostack/`, GitHub policy validation, Doctor, GitHub access, or
-dependency installation. Missing support or an unrelated malformed setting must not block drafting.
-Load support helpers and contracts only for relevant support work.
+other root documents. Document work requires no Woostack configuration, GitHub access, or
+dependency installation.
 
 ## Guided authoring
 
 For requested human-facing technical documents, load
 [documentation guidance](references/documentation.md) before planning or drafting. Apply it within
 the authoring steps and document schemas below, retaining this workflow's consultation and write
-boundaries. Keep `AGENTS.md` operational; local-support-only work does not load this reference.
+boundaries. Keep `AGENTS.md` operational.
 
 1. **Inspect the evidence.** Resolve the target and requested scope without changing it. Read relevant
    conversation decisions, existing root and scoped agent instructions, README/contributor guidance,
@@ -136,17 +131,15 @@ coding advice, or duplicated Woostack workflows. When `AGENTS.md` is also in the
 include or refine short conditional pointers to `PRODUCT.md`, `DESIGN.md`, and `ARCHITECTURE.md`
 where applicable. Explain when to read architecture guidance, such as before changing component
 boundaries or cross-component flows; link rather than copying content or assuming automatic loading.
-When creating or updating `AGENTS.md` during Woostack adoption, write a concise,
-availability-aware routing paragraph locally from this wording, replacing unconditional Woostack
-usage or installation requirements:
+When creating or updating `AGENTS.md` during Woostack adoption, write concise,
+availability-aware skill guidance from this wording, replacing unconditional Woostack usage or
+installation requirements and any existing router guidance. Do not add router references:
 
 ```markdown
-Use woostack skills when available. At the start of work, `using-woostack` may load
-project rules and route `/woostack-*` requests to the matching installed skill when it
-is installed; it is an optional navigation aid, not a conduit. Each installed skill
-carries its own activation, authority, approval, and completion behavior, so a missing
-router or sibling skill must not block ordinary repository work. If woostack skills
-are unavailable, follow this file and continue ordinary work with the host's available
+Use woostack skills when available. Each installed skill carries its own activation,
+authority, approval, and completion behavior and works independently. Missing skills
+must not block ordinary repository work. If woostack skills are unavailable, follow
+this file and continue ordinary work with the host's available
 capabilities; installation is not required. For an explicit `/woostack-*` command whose
 skill is unavailable, name the missing skill and ask whether to install it or proceed
 without it before continuing.
@@ -157,50 +150,12 @@ Follow this file first when it conflicts with generic agent defaults.
 Adoption output must not require another skill, the source checkout, or a shared runtime.
 Do not copy the workflow catalog or flatten scoped instructions.
 
-## Local support
-
-Use this secondary path only for explicit support initialization/repair. It stays local-only and
-provider-free and does not require product/design decisions or document edits.
-
-1. Resolve the canonical target repository without changing it. Verify repository root, branch,
-   working state, existing `.woostack/` files, and collision/symlink/path safety.
-2. Resolve effective local policy with
-   [`scripts/config/resolve-config.sh`](scripts/config/resolve-config.sh). It merges tracked
-   `.woostack/config.json` with the optional primary-checkout `.woostack/config.local.json`,
-   validates the optional canonical `github` object, and preserves unrelated user-owned settings.
-   The [artifact contract](references/artifact-backends.md#canonical-github-configuration) owns
-   configuration fields, precedence, validation, and retained legacy-setting protections.
-3. Create only missing support paths within the selected support scope:
-   - `.woostack/config.json` from [`templates/config.json`](templates/config.json);
-   - local diagnostic report roots for Doctor, audit, and QA; and
-   - worktree/recovery support declared by the [worktree contract](references/worktrees.md).
-
-   Propose repairs to existing support only within the authorized changeset; do not overwrite
-   user-owned settings. Delegation uses agents the host exposes; Init never creates, validates, or
-   repairs project agent definitions. The bundled [OMP host notes](references/hosts/omp.md)
-   own optional cleanup guidance for unchanged definitions generated by older releases.
-4. Run the bundled non-mutating [support checker](scripts/doctor.sh) with `--check <target>`
-   after support creation or repair. This is a local procedure, not the Doctor workflow. Also
-   validate permissions, report roots, and cross-links for paths this run created or repaired.
-   Fail closed on unsafe paths, permissions, collisions, malformed canonical configuration,
-   incomplete checks, or incomplete recovery evidence for the affected support operation, not
-   unrelated document drafting.
-5. Report created, repaired, preserved, skipped, and blocked support paths with exact validation
-   results. Never infer a GitHub owner, Project, Status field, issue, or publication destination,
-   contact a provider, or select remote persistence.
-
-Existing `.woostack/tmp/runs/`, legacy drafts, manifests, locks, reports, and remote records are
-historical user data. Do not import, rewrite, delete, or recreate wrappers from them. The
-[artifact contract](references/artifact-backends.md#retained-data-and-retirement) owns these
-protections and the optional read-only historical reader; unknown or partial outcomes stop at the
-last independently read boundary.
-
 ## Boundaries
 
-Init authors authorized project guidance and explicit local support, not application source or a
+Init authors authorized project guidance, not application source or a
 scaffold. Tooling recommendations are advisory: Init installs no packages, writes or updates no
 package manifests, lockfiles, or CI workflows, and schedules no implementation handoff; implementing
 them remains separately authorized. It creates no issue, Project, branch, commit, pull request, or
 lifecycle state; it never pushes, merges, reads/writes credentials, migrates retained data, or performs
-destructive cleanup. It never creates host extensions or `.omp/` for session naming. User-owned files,
+destructive cleanup. It never creates assistant extensions or session-naming assets. User-owned files,
 legacy settings, retained records, dirty worktrees, and reports remain preserved.

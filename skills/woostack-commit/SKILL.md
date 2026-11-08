@@ -44,8 +44,8 @@ just because the task names a child.
    assessing applicability under
    [When evidence still applies](references/tdd.md#when-evidence-still-applies), and handle slow
    checks, missing capability, timeouts, and other unverified requirements under
-   [Slow checks](references/tdd.md#slow-checks-bounded-diagnosis-no-waiver). Required hooks and the
-   configured `commit.command` run when nonempty regardless of reused test results. An unresolved
+   [Slow checks](references/tdd.md#slow-checks-bounded-diagnosis-no-waiver). Required repository hooks
+   and explicitly requested preparation commands run regardless of reused test results. An unresolved
    required commit-check failure or an out-of-scope correction stops the commit; never skip required
    checks or weaken assertions. Missing implementation acceptance remains unmet but does not block
    an authorized draft unless it is an explicit commit or publication gate. Disclose unmet criteria.

@@ -1,123 +1,68 @@
 ---
-title: Install skills and make a first plan
-description: Install WooStack, create useful project guidance, and return a read-only plan for your repository's README.
+title: Getting started
+description: Install Woostack, review your project guidance, and plan a README update without changing application code.
 ---
 
-import { GettingStartedFlow } from "@/components/getting-started/getting-started-flow";
-
-This tutorial installs WooStack in an existing Git repository, helps you create or improve
-its project guidance, and finishes with a read-only plan for a Verification section in your README.
-Init edits only the guidance you authorize. The planning step edits nothing, files no issue, and
-opens no pull request.
-
-Run the terminal command in step 1 yourself. Send the slash requests in later steps to your
-coding assistant, with the same repository open in both places.
-
-<GettingStartedFlow />
+Install Woostack in an existing Git repository, then ask your assistant to plan a Verification
+section for its README. Along the way, you will review the guidance agents use in that repository.
 
 ## Before you start
 
-You need:
+You need an existing Git repository, Node.js and pnpm, and a [coding assistant](/docs/harnesses)
+that can load skills. Open the same repository in your terminal and assistant.
 
-- An existing Git repository, open in your terminal and in your coding assistant.
-- A [coding assistant](/docs/harnesses), the application that runs your agent and loads its skills.
-- Node.js and pnpm. The installation command uses `pnpx`, pnpm's package runner.
-
-Authoring project guidance requires no `.woostack/` configuration, Doctor checks, or GitHub access.
-Installing skills requires network access, and Whiteboard can inspect existing repository issues.
-This tutorial publishes no issues or pull requests. A `/woostack-*` request names the logical
-command; each assistant's exact invocation syntax is listed in the
-[harness reference](/docs/harnesses#native-skill-invocation).
+Run the installation command in your terminal. Send the later requests to your assistant using
+its [skill-loading mechanism](/docs/harnesses#native-skill-invocation). This tutorial needs network
+access for installation, but no Woostack configuration or GitHub publication access.
 
 ## 1. Install the skills
 
-Run this command in your terminal from the repository root:
+From the repository root, run:
 
 ```bash
 pnpx skills add howarewoo/woostack
 ```
 
-Confirm that your assistant can find the installed skills, such as `woostack-init` and
-`woostack-whiteboard`. Each skill works independently without requiring sibling skills; the
-[command index](/docs/skills/using-woostack#command-routing) is an optional directory.
-WooStack skills are instructions for the agent, not shell programs. If your assistant
-cannot find a skill, follow the
-[installation troubleshooting guide](/docs/guides/troubleshooting#your-assistant-cannot-find-a-woostack-skill).
+Check your assistant's installed-skill view for `woostack-init` and `woostack-whiteboard`.
+If either is missing, use [installation troubleshooting](/docs/guides/troubleshooting#your-assistant-cannot-find-a-woostack-skill).
+Each skill works independently; this tutorial uses two of them for different tasks.
 
-## 2. Create your project guidance
+## 2. Review your project guidance
 
-Send this request to your coding assistant:
+Send this request to your assistant:
 
 ```text
-/woostack-init Help me adopt Woostack in this repository. Create or update
-README.md, AGENTS.md, DESIGN.md, PRODUCT.md, and ARCHITECTURE.md where useful.
-Inspect existing evidence, reuse decisions we have already made, and consult
-with me on the project's intention, structure, direction, and architecture
-before writing. Show the proposed changes and apply edits within this document
-scope. Do not initialize local support, change application source, commit, or publish.
+/woostack-init Help me adopt Woostack in this repository. Review README.md,
+AGENTS.md, PRODUCT.md, DESIGN.md, and ARCHITECTURE.md. Reuse our settled decisions
+and discuss any missing project intent, architecture, compatibility commitments,
+and data-preservation rules with me before writing. Show the proposed changes
+and apply only the agreed guidance edits. Do not change application source,
+commit, or publish.
 ```
 
-Init inspects your repository, reports its initial understanding, and asks a concise set of
-questions about project intent, architecture, and constraints. It waits for your answers before
-editing files. Confirm the project's stage, which consumers or contracts need compatibility, and
-which data must survive changes. State explicitly when no backwards-compatibility requirement
-exists. An unreleased project may still have users or valuable data.
+Init inspects the repository and consults with you before editing. Confirm who uses the project,
+which interfaces must stay compatible, and which data must survive changes. An unreleased project
+can still have users and important data.
 
-The resulting guidance gives each file a distinct job:
+Read the resulting guidance and report. Commands should match the repository's actual scripts,
+and unresolved decisions should stay visible. An adequate file may remain unchanged.
+The [document responsibilities reference](/docs/skills/woostack-init#document-responsibilities)
+explains what belongs in each file.
 
-- **README.md:** Introduces the project and the shortest verified first-use path.
-- **AGENTS.md:** Operational guidance, compatibility and data-preservation policy, boundaries, and
-  actual test and verification commands.
-- **PRODUCT.md:** Target users, goals, and product scope.
-- **DESIGN.md:** Design system tokens and catalog rules, or architecture principles.
-- **ARCHITECTURE.md:** Technical boundaries, component relationships, and system structure.
+## 3. Plan a README update
 
-See [document responsibilities](/docs/skills/woostack-init#document-responsibilities) for the canonical
-format of each file. Init also includes an availability-aware adoption paragraph in `AGENTS.md`,
-so no WooStack skill becomes an artificial prerequisite of another. When verification commands
-are present, Init inspects them without mutating manifests, lockfiles, or CI workflows.
-
-Read the report and resulting guidance. Verify that documented commands match your repository and
-that `AGENTS.md` names your actual compatibility commitments. When compatibility is not required,
-agents should update affected callers and remove superseded code rather than retain legacy support.
-Check data-preservation rules separately; permission to break an API does not authorize a data reset.
-A safe existing file may need no changes. Deferred decisions remain visible rather than assumed.
-
-## 3. Create your first plan
-
-Send this request to your coding assistant:
+Ask for a documentation-only plan:
 
 ```text
 /woostack-whiteboard Plan a Verification section for this repository's README.
-Use the repository's existing instructions and actual check commands.
-Reuse an existing section if it already serves this purpose.
-Keep the scope to documentation. Return the plan here; do not file
-GitHub issues or implement changes.
+Use its existing instructions and actual check commands. Reuse an existing
+section if it already serves this purpose. Return the plan here; do not edit
+files, file GitHub issues, or implement changes.
 ```
 
-Read the returned plan before taking any further action. A complete plan identifies the files
-inspected, proposes concrete additions, and explains how to confirm the result. If your repository
-already has an adequate Verification section, Whiteboard reports that and leaves it alone. Missing
-check commands are flagged directly rather than invented. Sufficient context needs no interview.
+The result should name the sources inspected, propose the README content, and explain how to
+check its accuracy. If the existing section is sufficient, the assistant should say so. Missing
+check commands should be flagged rather than invented.
 
-This request writes nothing to disk. Whiteboard creates no files, issues, branches, commits, or pull
-requests for this planning-only step. Guidance edits from step 2 do not grant implementation authority.
-
-## Choose what to do next
-
-Your plan stays in chat until you choose to act on it. Implementation and delivery require a separate,
-explicit request:
-
-- [Deliver one change](/docs/guides/ship-change) covers implementing the plan and submitting a reviewable
-  draft pull request. You choose whether to proceed, and only you merge the pull request.
-- Optional local `.woostack/` support setup requires Bash, Git, and `jq`. To request only this setup,
-  use the example below. See [Init's local-support procedure](/docs/skills/woostack-init#local-support)
-  and the [configuration reference](/docs/configuration). For diagnosis afterward, use
-  [local configuration troubleshooting](/docs/guides/troubleshooting#doctor-reports-a-local-configuration-error).
-
-  ```text
-  /woostack-init Initialize local .woostack support only.
-  Do not edit project guidance, commit, or publish.
-  ```
-
-  This setup stays local and contacts no provider. It is not required for the tutorial above.
+This step writes nothing. The plan stays in chat until you choose to [deliver the change](/docs/guides/ship-change).
+You can also [refine the plan](/docs/guides/whiteboard) or browse the [task guides](/docs/guides).

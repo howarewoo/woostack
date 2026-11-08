@@ -40,7 +40,7 @@ that no development context was used, even when the caller supplies local logs o
 
 When the caller explicitly selects a GitHub Project, issue, or PR identity, first load the local
 [artifact contract](references/artifact-backends.md#direct-publication-and-recovery)
-and [GitHub profile](references/artifact-providers/github.md#configuration-and-scope).
+and [GitHub profile](references/artifact-providers/github.md#scope).
 Those references own transport, identity, scope, trust, and read-back; do not duplicate them. Git and
 GitHub remain the source of truth for repository, PR, review, check, and merge evidence. Issue
 lifecycle and Project Status metadata never prove implementation or delivery. Then follow exactly

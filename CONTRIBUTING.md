@@ -35,8 +35,7 @@ for standing repository rules, the two-app boundary, and verified checks.
 | Change user-facing technical documentation guidance | `shared/references/documentation.md` and its consuming skills |
 | Run workflow smoke checks | `skills/using-woostack/references/workflow-smoke.md` |
 | Change how review comments are addressed | `skills/woostack-address-comments/SKILL.md` |
-| Change workspace checks and repairs (`/woostack-doctor`) | `skills/woostack-doctor/SKILL.md` |
-| Update agent instructions (Claude or any) | `AGENTS.md` (`.claude/CLAUDE.md` is a symlink to it) |
+| Update agent instructions | `AGENTS.md`; preserve repository-local instruction links under its rules |
 | Update reader-facing guides | `apps/docs/content/docs/` |
 | Change the documentation site or skill-page generator | `apps/docs/` |
 | Change the standalone component catalog | `apps/design/` |
@@ -99,6 +98,10 @@ and verify tasks); install from the root with `pnpm install --frozen-lockfile` u
 - GitHub operations do not add commands.
 - Keep each `SKILL.md` consistent with its references. Its `description` should explain when to
   use the skill; put the procedure in the body and linked references.
+- Keep published skills and documentation harness-agnostic. Describe required capabilities and
+  inspect active tools, schemas, and permissions instead of naming coding assistants, their
+  configuration paths, or their tool APIs. Preserve required isolation and approval boundaries;
+  portability does not imply that every assistant can run every workflow.
 - Update affected authored site guides when behavior changes. Do not edit generated skill pages;
   they are rebuilt from `skills/*/SKILL.md`.
 - `shared/mapping.json` identifies generated copies inside each consuming skill.

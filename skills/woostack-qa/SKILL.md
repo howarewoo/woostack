@@ -9,8 +9,8 @@ install: pnpx skills add howarewoo/woostack
 Exploratory-QA a **running application** the way a user would. `woostack-qa` drives the live
 app in a real browser: it walks the core journeys, attacks edge cases, gathers the evidence each
 step warrants, reproduces every suspected bug once before logging it, and emits a
-severity-ranked, sanitized, **non-authoritative report-only** findings document under
-`.woostack/qa/`.
+severity-ranked, sanitized, **non-authoritative report-only** findings document in private
+host-temporary storage, or at an explicitly requested output path.
 
 It is **report-only**—it never writes application code or tests, mutates GitHub, commits, posts to a code
 host, or merges. Its sanitized local report is diagnostic evidence, not a spec, fix contract,
@@ -63,7 +63,7 @@ from, in order:
    changed paths, and relevant intended-behavior text. A PR needs no issue association.
 3. **Exact optional GitHub Project or issue.** When explicitly supplied, load the
    [artifact contract](references/artifact-backends.md#direct-publication-and-recovery)
-   and [GitHub profile](references/artifact-providers/github.md#configuration-and-scope),
+   and [GitHub profile](references/artifact-providers/github.md#scope),
    use an authorized host GitHub capability (prefer suitable native tools; host-authenticated `gh` is
    supported), fully paginate relevant fields, and extract only requested specification/fix/plan
    criteria. Missing GitHub access blocks those criteria only. A retired managed-provider reference is
@@ -134,9 +134,11 @@ halting.
 
 ## Report and remediation boundary
 
-Write one severity-ranked, sanitized markdown doc per run to `.woostack/qa/<date>-<slug>.md` from
-[references/report-template.md](references/report-template.md). Before the file can remain in a
-tracked path, redact credentials, tokens, keys, passwords, cookies, personal data, local home paths,
+Write one severity-ranked, sanitized `<date>-<slug>.md` report per run from
+[references/report-template.md](references/report-template.md) in a fresh private host-temporary
+directory outside the checkout, or at an explicitly requested output path. Create outputs without
+following symlinks or overwriting existing files; ask if no safe location is available. Before saving
+any report, redact credentials, tokens, keys, passwords, cookies, personal data, local home paths,
 sensitive source or telemetry, and unneeded remote text with stable placeholders such as
 `[REDACTED_TOKEN]`; a residual sanitization failure leaves no report.
 Severity uses the shared vocabulary: `HIGH` / `MEDIUM` / `LOW` plus a `blocking` flag for crash,
@@ -154,8 +156,9 @@ itself report only. It records:
 - **Optional artifact context:** an exact caller-supplied issue may be linked only after independent
   read verification. The proposal and artifact are evidence, not approval, scope, assignment,
   lifecycle, or acceptance authority.
-- **Evidence:** screenshots under `.woostack/qa/evidence/<date>-<slug>/` remain gitignored,
-  per-clone, and transient. Inline only the minimum sanitized text needed to support a finding.
+- **Evidence:** screenshots remain private and transient in the run's host-temporary directory,
+  outside the checkout. Never persist credentials or personal data in captures. Inline only the
+  minimum sanitized text needed to support a finding.
 - **Zero findings:** state the exact journey count and coverage; never emit a silent empty.
   **Aborted run:** label it partial/aborted and name findings-so-far, the exact stop point, and the
   journeys left completed, skipped, or unconfirmed.

@@ -5,12 +5,10 @@ membership/Status operations, and direct-publication recovery. The shared [artif
 owns local authority, retained data, filesystem safety, and the read-back and recovery invariants.
 There is no provider selector and no remote mirror of a local plan.
 
-## Configuration and scope
+## Scope
 
-The optional canonical policy is the top-level `github` object described by
-[canonical GitHub configuration](../artifact-backends.md#canonical-github-configuration). It contains
-only `owner`, `ownerType`, `statusField`, and `projectStatuses`; `visibility` is not a setting. The
-resolver validates this object once. Existing Projects retain and report their actual visibility.
+Resolve repository and owner identity from the request and verified Git/GitHub evidence. Read the
+actual visibility of an explicitly selected Project. No Woostack configuration or setup is required.
 
 Select the exact GitHub operation scope before any GitHub read or write. Resolve the destination
 under the shared [publication boundary](../artifact-backends.md#direct-publication-and-recovery);
@@ -31,9 +29,10 @@ native receipt. Report a native relationship that could not be created as missin
   work, or the exact selected Project for Project-only content. The active workflow owns input
   selection and admission.
 - A selected Project requires one exact caller-supplied identity and only the capabilities needed
-  for the authorized operation. When status mutation is explicitly requested, require its mappings
-  and capabilities; never infer a Project from configuration, create a destination from a goal, or
-  make Project access a condition for unrelated work.
+  for the authorized operation. For an explicitly requested Status change, read the actual field
+  and options, resolve the requested target value, and ask if ambiguous. Verify the update capability
+  and read back the resulting value. Never create a destination from a goal or make Project access
+  a condition for unrelated work.
 - Exact issue association is read-only context until an authorized delivery records its verified
   reference. It never selects a publication destination or grants publication authority.
 
@@ -135,9 +134,8 @@ repository/content before the write, prove that identity absent beforehand, and 
 created body. Recovery requires the same identity and matching content in the exact repository;
 matching title and body without the retained identity is not ownership evidence.
 
-A caller that needs its own recovery checkpoint keeps it private and owner-only; the shared
-[run-store reader](../artifact-backends.md#owner-only-local-run-store-reader) only reads retained
-records.
+A caller that needs its own recovery checkpoint keeps it private and owner-only, separate from
+historical user data.
 
 The active workflow owns ordering, concurrency, implementation, Git/PR delivery, and any explicitly
 requested issue note within its own authority. These procedures start none of them. Git, branches,
