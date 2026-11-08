@@ -32,6 +32,7 @@ for standing repository rules, the two-app boundary, and verified checks.
 | Change session reflection (`/woostack-reflect`) | `skills/woostack-reflect/SKILL.md` |
 | Change the systematic-debugging behavior (`/woostack-debug`) | `skills/woostack-debug/SKILL.md` |
 | Change test-writing guidance | `skills/woostack-execute/SKILL.md`, `shared/references/tdd.md` |
+| Change user-facing technical documentation guidance | `shared/references/documentation.md` and its consuming skills |
 | Run workflow smoke checks | `skills/using-woostack/references/workflow-smoke.md` |
 | Change how review comments are addressed | `skills/woostack-address-comments/SKILL.md` |
 | Change workspace checks and repairs (`/woostack-doctor`) | `skills/woostack-doctor/SKILL.md` |

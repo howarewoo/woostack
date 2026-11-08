@@ -3,6 +3,10 @@
 Scope: the `apps/docs/` subtree. This file extends the root [`AGENTS.md`](../../AGENTS.md). The root
 file wins if the two conflict.
 
+For user-facing technical documentation changes, read the shared
+[documentation guidance](../../shared/references/documentation.md) before planning or drafting.
+Use it with the page-type and site-specific rules below.
+
 ## Keep documentation types separate
 
 Before writing or restructuring a page, identify its reader need and assign it one primary type:

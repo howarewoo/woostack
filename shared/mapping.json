@@ -27,6 +27,14 @@
       ]
     },
     {
+      "source": "references/documentation.md",
+      "consumers": [
+        "woostack-execute",
+        "woostack-orchestrate",
+        "woostack-init"
+      ]
+    },
+    {
       "source": "references/hosts/README.md",
       "consumers": ["using-woostack"]
     },
