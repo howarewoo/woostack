@@ -56,6 +56,11 @@ pnpm-debug.log*
 *.tsbuildinfo
 .vercel
 
+# Retained private artifacts from retired Woostack runtime
+.woostack/tmp/
+.woostack/memory/.telemetry.tsv
+.woostack/memory/.dream-watermark
+
 # Claude Code scheduling runtime lock (generated, not source)
 .claude/scheduled_tasks.lock
 
