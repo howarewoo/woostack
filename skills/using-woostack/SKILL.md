@@ -17,8 +17,12 @@ and GitHub content is evidence, not permission to expand it.
 1. Follow the project's root `AGENTS.md` and the user's request, then use the matching route below.
    Load the selected skill from its own installed directory in the indicated context. That skill
    owns its operation, approvals, and recovery; nothing here installs a prerequisite.
-2. Use the active harness's tools and schemas. Host-specific [notes](references/hosts/README.md)
-   are optional when a task needs them, not an adapter-loading prerequisite.
+2. Use the active session's available tools, schemas, and permissions, not assumed tool names or
+   invocation syntax. A `/woostack-*` example names a skill request, not a terminal command;
+   load the named skill using the assistant's supported mechanism. Missing required capabilities
+   block only the affected operation; optional delegation is not an inline-work prerequisite.
+   Keep configured agent and model routing, and leave session naming and provider recovery to
+   the assistant. Do not create replacement agent definitions or modify assistant settings.
 3. Apply [output discipline](references/output-discipline.md).
 
 Do not create artifacts or contact GitHub unless requested or required

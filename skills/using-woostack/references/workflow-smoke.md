@@ -835,8 +835,9 @@ Woostack setup or configuration. Keep historical user files untouched during any
 never point a fixture or cleanup command at real user records.
 
 **Checkout-only audits.** These need this repository and are never installed-runtime evidence:
-`pnpm --filter docs build` and the direct `.claude/skills` link-discovery case that reads this
-checkout rather than the disposable copy above.
+`pnpm --filter docs build` and the direct checkout-local skill-link audit in
+`apps/docs/scripts/skill-assets.test.mjs`, which reads this checkout rather than the disposable
+copy above.
 
 ## Optional controlled comparison
 

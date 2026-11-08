@@ -29,34 +29,6 @@
       ]
     },
     {
-      "source": "references/hosts/README.md",
-      "consumers": ["using-woostack"]
-    },
-    {
-      "source": "references/hosts/antigravity.md",
-      "consumers": ["using-woostack"]
-    },
-    {
-      "source": "references/hosts/claude-code.md",
-      "consumers": ["using-woostack"]
-    },
-    {
-      "source": "references/hosts/codex.md",
-      "consumers": ["using-woostack"]
-    },
-    {
-      "source": "references/hosts/cursor.md",
-      "consumers": ["using-woostack"]
-    },
-    {
-      "source": "references/hosts/omp.md",
-      "consumers": ["using-woostack"]
-    },
-    {
-      "source": "references/hosts/opencode.md",
-      "consumers": ["using-woostack"]
-    },
-    {
       "source": "references/identity.md",
       "consumers": ["using-woostack", "woostack-execute", "woostack-orchestrate"]
     },

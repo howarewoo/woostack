@@ -157,5 +157,5 @@ scaffold. Tooling recommendations are advisory: Init installs no packages, write
 package manifests, lockfiles, or CI workflows, and schedules no implementation handoff; implementing
 them remains separately authorized. It creates no issue, Project, branch, commit, pull request, or
 lifecycle state; it never pushes, merges, reads/writes credentials, migrates retained data, or performs
-destructive cleanup. It never creates host extensions or `.omp/` for session naming. User-owned files,
+destructive cleanup. It never creates assistant extensions or session-naming assets. User-owned files,
 legacy settings, retained records, dirty worktrees, and reports remain preserved.
