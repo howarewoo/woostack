@@ -165,7 +165,6 @@ test("public skill routing preserves the declared order", () => {
     "woostack-flow-layout",
     "woostack-design-system",
     "woostack-debug",
-    "woostack-doctor",
     "woostack-qa",
     "woostack-reflect",
   ];
@@ -176,7 +175,10 @@ test("public skill routing preserves the declared order", () => {
 
 test("design and flow-layout sources render with their own public identities", async () => {
   for (const name of ["woostack-design", "woostack-flow-layout"]) {
-    const raw = await readFile(new URL(`../../../skills/${name}/SKILL.md`, import.meta.url), "utf8");
+    const raw = await readFile(
+      new URL(`../../../skills/${name}/SKILL.md`, import.meta.url),
+      "utf8",
+    );
     const { fm, body } = parseFrontmatter(raw, name);
     assert.equal(fm.name, name);
     assert.ok(PUBLIC_ORDER.includes(name));
@@ -196,7 +198,10 @@ test("whiteboard validates without sibling skills and renders its public page", 
     recursive: true,
   });
 
-  const skills = await validateSkillAssets(root, PUBLIC_ORDER.filter((entry) => entry === name));
+  const skills = await validateSkillAssets(
+    root,
+    PUBLIC_ORDER.filter((entry) => entry === name),
+  );
   assert.equal(skills.length, 1);
   const [{ fm, body }] = skills;
   assert.equal(fm.name, name);

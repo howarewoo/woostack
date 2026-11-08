@@ -22,7 +22,7 @@ Current scope:
 - Requirements exploration, specification review, planning, and requested issue publication.
 - Bounded implementation including initial project creation, multi-task coordination, and
   pull-request delivery without merging. Local-only creation needs no GitHub destination.
-- Diagnosis, browser QA, workspace checks, review-comment handling, and conversation reflection.
+- Diagnosis, browser QA, review-comment handling, and conversation reflection.
 - UI design coordinated through selected external skills, plus layout of existing screen flows.
 - Project-owned design catalogs adapted to existing UI and design rules, with bounded local
   creation, read-only inspection, and explicitly scoped maintenance.

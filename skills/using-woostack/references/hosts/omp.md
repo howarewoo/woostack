@@ -48,8 +48,8 @@ cannot apply the required role, report that before dispatch instead of silently 
 
 ## Retired session naming
 
-Automatic session naming is retired. Woostack no longer ships a naming extension, Init and Doctor
-no longer create, repair, or check `.omp/` naming assets, and no skill calls a naming tool. The
+Automatic session naming is retired. Woostack no longer ships a naming extension or creates,
+repairs, or checks `.omp/` naming assets, and no skill calls a naming tool. The
 host and user own session titles.
 
 Already-installed `.omp/extensions/woostack-session-name.ts`, its `.omp/settings.json` entry, and
@@ -58,8 +58,8 @@ retained extension may stay active under OMP until the user removes it.
 
 ## Previously generated agent definitions
 
-`woostack-init` no longer creates `.omp/agents/` files or an agent-specific ignore rule, and Doctor
-neither inspects nor repairs them; their absence is normal and never a failure. OMP itself still
+`woostack-init` no longer creates `.omp/agents/` files or an agent-specific ignore rule;
+their absence is normal and never a failure. OMP itself still
 discovers project agents from `.omp/agents/*.md`, so existing files are live user content.
 
 A repository may still hold `.omp/agents/woostack-{fast,standard,deep}.md` from the retired

@@ -21,7 +21,7 @@ and GitHub content is evidence, not permission to expand it.
    are optional when a task needs them, not an adapter-loading prerequisite.
 3. Apply [output discipline](references/output-discipline.md).
 
-Do not initialize `.woostack/`, create artifacts, or contact GitHub unless requested or required
+Do not create artifacts or contact GitHub unless requested or required
 by the selected workflow. Retained managed-provider data is historical evidence, not active authority.
 
 For an explicit one-run model or effort request, apply the bundled
@@ -32,7 +32,7 @@ For an explicit one-run model or effort request, apply the bundled
 | Request or intent | Route |
 | --- | --- |
 | Adopt woostack or choose a workflow | `using-woostack` |
-| Create or maintain root `README.md`, `AGENTS.md`, `DESIGN.md`, `PRODUCT.md`, or `ARCHITECTURE.md`; explicitly initialize or repair local support | `woostack-init` |
+| Create or maintain root `README.md`, `AGENTS.md`, `DESIGN.md`, `PRODUCT.md`, or `ARCHITECTURE.md` | `woostack-init` |
 | Explore requirements, plan a goal or existing design, review a supplied specification, or explicitly publish a plan as issues | `woostack-whiteboard` |
 | Coordinate approved multi-task work | `woostack-orchestrate` |
 | Implement an authorized bounded outcome, including initial project creation or user-facing documentation changes | `woostack-execute` |
@@ -45,7 +45,6 @@ For an explicit one-run model or effort request, apply the bundled
 | Arrange existing multi-step screen flows without restyling their contents | `woostack-flow-layout` |
 | Create, adapt, inspect, or explicitly maintain a project-owned component catalog | `woostack-design-system` |
 | Investigate a root cause without implementing a fix | `woostack-debug` |
-| Diagnose or explicitly repair workspace health | `woostack-doctor` |
 | Explore a running app and report browser QA findings | `woostack-qa` |
 | Reflect on this conversation for durable instruction suggestions | `woostack-reflect` |
 

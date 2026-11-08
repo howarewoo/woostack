@@ -2,7 +2,7 @@
 
 This is Whiteboard's issue-publication path, used only when the request authorized filing issues.
 Planning without relevant GitHub context needs no GitHub preflight. The
-[GitHub profile](artifact-providers/github.md#configuration-and-scope)
+[GitHub profile](artifact-providers/github.md#scope)
 owns identities, native relationship operations, and API semantics. Whiteboard changes no source, branch,
 worktree, commit, PR, review, merge, or issue lifecycle here.
 

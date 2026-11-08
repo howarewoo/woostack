@@ -7,7 +7,6 @@
     "**/*.yml",
     "**/skills-lock.json",
     "**/pnpm-lock.yaml",
-    "**/.woostack/**",
     "**/.turbo/**",
     "**/.source/**",
     "**/content/docs/skills/**",

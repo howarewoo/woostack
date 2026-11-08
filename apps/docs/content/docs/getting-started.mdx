@@ -23,7 +23,7 @@ You need:
 - A [coding assistant](/docs/harnesses), the application that runs your agent and loads its skills.
 - Node.js and pnpm. The installation command uses `pnpx`, pnpm's package runner.
 
-Authoring project guidance requires no `.woostack/` configuration, Doctor checks, or GitHub access.
+Authoring project guidance requires no Woostack configuration or GitHub access.
 Installing skills requires network access, and Whiteboard can inspect existing repository issues.
 This tutorial publishes no issues or pull requests. A `/woostack-*` request names the logical
 command; each assistant's exact invocation syntax is listed in the
@@ -54,7 +54,7 @@ README.md, AGENTS.md, DESIGN.md, PRODUCT.md, and ARCHITECTURE.md where useful.
 Inspect existing evidence, reuse decisions we have already made, and consult
 with me on the project's intention, structure, direction, and architecture
 before writing. Show the proposed changes and apply edits within this document
-scope. Do not initialize local support, change application source, commit, or publish.
+scope. Do not change application source, commit, or publish.
 ```
 
 Init inspects your repository, reports its initial understanding, and asks a concise set of
@@ -108,16 +108,5 @@ requests for this planning-only step. Guidance edits from step 2 do not grant im
 Your plan stays in chat until you choose to act on it. Implementation and delivery require a separate,
 explicit request:
 
-- [Deliver one change](/docs/guides/ship-change) covers implementing the plan and submitting a reviewable
-  draft pull request. You choose whether to proceed, and only you merge the pull request.
-- Optional local `.woostack/` support setup requires Bash, Git, and `jq`. To request only this setup,
-  use the example below. See [Init's local-support procedure](/docs/skills/woostack-init#local-support)
-  and the [configuration reference](/docs/configuration). For diagnosis afterward, use
-  [local configuration troubleshooting](/docs/guides/troubleshooting#doctor-reports-a-local-configuration-error).
-
-  ```text
-  /woostack-init Initialize local .woostack support only.
-  Do not edit project guidance, commit, or publish.
-  ```
-
-  This setup stays local and contacts no provider. It is not required for the tutorial above.
+[Deliver one change](/docs/guides/ship-change) covers implementing the plan and submitting a reviewable
+draft pull request. You choose whether to proceed, and only you merge the pull request.

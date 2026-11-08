@@ -83,35 +83,26 @@ an evidence-backed README landing page, Impeccable's product record, the visual 
 specification, technical orientation in ARCHITECTURE.md, and unversioned AGENTS.md guidance.
 Existing architecture documents keep their established authority; the root overview links to them.
 
-Document authoring needs no `.woostack/`, Doctor check, or GitHub access. Init does not scaffold an
+Document authoring needs no Woostack configuration or GitHub access. Init does not scaffold an
 application, handle credentials, or create issues, branches, commits, or PRs. See
 [Init](skills/woostack-init/SKILL.md) for the workflow.
 
-### 3. Set up local support only when needed
-
-If you need `.woostack/` configuration or diagnostic support, explicitly ask Init to initialize
-local support only, then use `/woostack-doctor --check` to inspect its health. This path preserves
-existing settings and retained records without a document consultation or GitHub call. OMP delegation
-uses agents already exposed by the session, not a project agent catalog.
-
-Store selected non-secret defaults in `.woostack/config.json`; keep credentials in your host's
-secret store. Configuration supplies defaults, not permission to change remote records or override
-your decisions. Support setup and Doctor are not prerequisites for project guidance or local plans.
+Skills require no Woostack setup or configuration files. They use your request, repository guidance,
+and available host capabilities. Keep credentials in your host's secret store.
 
 For pull-request review, use [Pullfrog](https://pullfrog.com/). This repository includes the
 Pullfrog workflow at [`.github/workflows/pullfrog.yml`](.github/workflows/pullfrog.yml).
 
-For the full policy surface, see the authored
-[configuration reference](apps/docs/content/docs/configuration/index.mdx).
+See the [workflow inputs reference](apps/docs/content/docs/configuration/index.mdx) for task scope,
+verification, branch selection, authentication, and output locations.
 
 
 Whiteboard handles a goal or incomplete issue directly. It inspects relevant source, resolves
 material choices within supplied authority, and escalates uncovered consequential decisions.
 Requirements-only requests can stop at exploration without a solution or implementation plan.
 Debug remains available for diagnosis, not a mandatory handoff. An explicit GitHub Project is
-optional for requested issue publication. Existing
-`.woostack/tmp/runs/<run-id>/` records remain historical user data and are never migrated or
-mutated; retained drafts are evidence, not publication or implementation authority.
+optional for requested issue publication. Existing records remain historical user data and are never
+migrated or mutated; retained drafts are evidence, not publication or implementation authority.
 
 The [artifact contract](shared/references/artifact-backends.md) explains direct
 GitHub publication, recovery, and retained historical record handling. Saved plans and remote
@@ -129,9 +120,8 @@ request a document save or publication. Orchestrate accepts that prose directly 
 execution proposal before dispatching workers; no issue export or mandatory plan file is needed.
 Its default is user approval, with bounded user-delegated authority available for a named coordinator.
 
-For requested issue publication, use Whiteboard. For planning in an ordinary ChatGPT chat, see the
-[ChatGPT-to-Codex guide](apps/docs/content/docs/chatgpt-to-codex.mdx). An understood bounded task
-can go directly to Execute.
+For requested issue publication, use Whiteboard. An understood bounded task can go directly to
+Execute.
 
 | What you need | Command | What happens |
 | --- | --- | --- |
@@ -151,7 +141,7 @@ Whiteboard stops before implementation. Execute, Simplify, and Orchestrate start
 change request; planning is not a prerequisite for a bounded task with settled decisions. Simplify
 does not require Execute; commits and PRs remain opt-in, and each skill performs its own requested
 delivery with its bundled procedures. Init separately owns requested project
-guidance and local support, not application scaffolding.
+guidance, not application scaffolding.
 
 See the [workflow maps](apps/docs/content/docs/concepts/workflows.mdx) for the full sequences.
 

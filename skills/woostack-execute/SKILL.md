@@ -197,7 +197,7 @@ and its physical parent with fresh no-follow metadata and a complete directory l
 collisions and unsafe targets without deleting or redirecting, creates the smallest requested
 working slice, verifies it under the evidence-selection policy below, and records accurate setup facts
 without inventing commands. The scaffold procedure grants no lifecycle authority of its own.
-Requested AGENTS.md, DESIGN.md, PRODUCT.md, ARCHITECTURE.md, or local support remain
+Requested AGENTS.md, DESIGN.md, PRODUCT.md, or ARCHITECTURE.md remain
 woostack-init's responsibility, not automatic scaffold output.
 
 A local-only scaffold needs no GitHub account, Project, remote, Git initialization, commit, push,

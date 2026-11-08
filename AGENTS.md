@@ -60,10 +60,9 @@ implementation, the selected skill owns its workflow, provider calls, and approv
 - Update affected authored guides when behavior changes. Never edit generated
   `apps/docs/content/docs/skills/` pages; change `skills/*/SKILL.md` instead. The site
   build regenerates these pages, which remain gitignored.
-- For configuration, retained-data, or publication changes, read the
-  [artifact contract](shared/references/artifact-backends.md).
-  Non-secret defaults belong in `.woostack/config.json` only after configuration
-  is selected; credentials stay in the host secret store.
+- For retained-data or publication changes, read the
+  [artifact contract](shared/references/artifact-backends.md). Skills require no Woostack
+  configuration; credentials stay in the host secret store.
 
 ## Validation
 
@@ -94,9 +93,6 @@ production build solely because it touches `skills/*/SKILL.md` or site content.
   can affect the production build and narrower established checks do not adequately
   cover that risk. When impact is uncertain, choose broader verification rather than
   an unsupported exemption.
-- Init or Doctor helper changes: run the focused behavioral and syntax checks for the
-  affected helpers, including consumers of shared helpers. Do not run those suites
-  merely because a nearby instruction file changed.
 - Shared-asset or projection changes: after editing a canonical `shared/` asset,
   a consuming skill's bundled copy, `shared/mapping.json`, or `shared/sync.mjs`,
   regenerate with

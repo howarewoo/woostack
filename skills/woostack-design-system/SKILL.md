@@ -36,7 +36,7 @@ arranging multi-step flows is the separate woostack-flow-layout layout standard,
 Inspect first; an undocumented catalog still counts as existing. A component library without a
 catalog does not prevent creation, but its compatible controls must be reused. Explicit read-only
 or local-only limits take precedence. Never create branches, commit, push, publish PRs/issues,
-mutate Projects, initialize Woostack configuration, or migrate product UI automatically.
+mutate Projects or migrate product UI automatically.
 
 ## Inspect and choose placement
 

@@ -23,31 +23,13 @@ confirm the bundle is available before resuming. A declined installation must no
 described as successful. See
 [Design's dependency boundary](/docs/skills/woostack-design#dependency-boundary).
 
-## Doctor reports a local configuration error
+## GitHub access fails
 
-Run `/woostack-doctor --check` through your assistant and look up the reported code. The check is
-static, makes no network calls, and changes nothing. A failed or incomplete inspection is not a
-healthy one.
-
-| Code | Meaning | Action | Verification |
-| --- | --- | --- | --- |
-| `config-policy` | Missing `jq`, malformed policy, or resolver failure | Install `jq` if missing; otherwise correct only approved policy | Rerun check; finding is gone |
-| `check-failed` | A check could not complete; finding names the check and exit status | Fix root cause of the check failure, then rerun | Rerun check; finding is gone |
-| `gitignore-drift` | A managed ignore line from the shipped template is missing | Request scoped correction from template; preserve unrelated rules | Rerun check; drift is resolved |
-| `retired-provider` | A legacy provider setting is present as inactive data | Keep data as historical record; no migration or contact needed | Ordinary local work still runs |
-| `retained-data` | A historical local draft or manifest directory is present | Keep data and follow the [retained local records](/docs/configuration/artifacts/local) contract | Ordinary local work still runs |
-
-Doctor applies an explicitly approved local repair itself, preserving the user's delivery limit;
-local-only repair commits and pushes nothing. A report is not proof of a fix, so run the diagnostic
-check again. See [Doctor's reference](/docs/skills/woostack-doctor) and the
-[check catalog](https://github.com/howarewoo/woostack/blob/main/skills/woostack-doctor/references/checks.md).
-
-## Doctor passes but GitHub fails
-
-Doctor diagnoses local support, not credentials or remote authorization. Inspect the host's GitHub
-capability and the exact repository or issue access needed for the operation. Re-read the target
-with the authorized integration before retrying a failed publication. See
-[configuration](/docs/configuration) and [Whiteboard publication](/docs/skills/woostack-whiteboard#saving-and-publishing).
+Inspect the host's GitHub capability and the exact repository or issue access needed for the
+operation. Re-read the target with the authorized integration before retrying a failed publication.
+Woostack configuration is not required, and old settings do not block unrelated local work. Keep
+credentials in the host secret store. See [GitHub publication](/docs/configuration/artifacts/github)
+and [Whiteboard publication](/docs/skills/woostack-whiteboard#saving-and-publishing).
 
 ## Issues exist but native links are missing
 
