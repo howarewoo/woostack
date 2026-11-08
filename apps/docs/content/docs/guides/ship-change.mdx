@@ -1,98 +1,65 @@
 ---
 title: Deliver one change
-description: Implement and verify a bounded task, then inspect its requested draft pull request.
+description: Request a bounded implementation, check its results, and inspect the draft pull request.
 ---
 
-import { ShipChangeFlow } from "@/components/guides/ship-change-flow";
+Use Execute for one bounded outcome, such as a README update, feature, bug fix, or test task.
+You need repository access and the relevant skill [installed in your assistant](/docs/getting-started).
+Draft PR delivery also needs an authorized GitHub publication capability.
 
-Use this guide when your task and non-goals fit into one reviewable pull request. You need
-a bounded task description, repository access, and a GitHub capability for creating
-pull requests. A plan or exact issue URL is optional context. For visible changes, also provide a way to capture the running application and an
-authorized GitHub attachment uploader. Supported, authenticated GitHub CLI uploads are preferred;
-an existing authorized equivalent or already-authenticated browser session can be used when CLI
-upload support is unavailable. The assistant does not install tools or acquire credentials as a fallback.
+## 1. Request the change
 
-Because this guide explicitly requests pull request delivery, your assistant will edit the requested
-files, run relevant checks, and commit and publish the result as a draft. A natural-language
-request for local implementation alone authorizes local edits, not a push or pull request.
-These examples name [skill requests, not terminal commands](/docs/harnesses#native-skill-invocation).
-Load the named skill using your assistant's supported mechanism.
-
-<ShipChangeFlow />
-
-## 1. Request the task and delivery
-
-Send this request to your coding assistant, supplying your plan or task description:
+Send this [request to your assistant](/docs/harnesses#native-skill-invocation), replacing the
+README task with your own outcome if needed:
 
 ```text
-/woostack-execute Implement the reviewed documentation plan. Use the repository's actual verification commands, run relevant checks, and submit a draft pull request. Do not merge.
+/woostack-execute Add or update the README's Verification section using the
+repository's actual check commands. Keep it focused on contributors choosing
+checks for a change. Verify the claims and links, run relevant checks, and
+submit a draft pull request. Do not merge.
 ```
 
-If you have an existing issue, `/woostack-execute <canonical GitHub issue URL>` is an alternative.
+An explicit `/woostack-execute` request includes draft PR delivery unless you narrow it.
+Add `Keep changes local; do not commit or push` for local work only. An ordinary natural-language
+implementation request authorizes local edits and checks, not automatic publication.
 
-For documentation work, include the audience and what readers should be able to do, find, or
-understand. Execute loads its [documentation guidance](https://github.com/howarewoo/woostack/blob/main/shared/references/documentation.md)
-before planning, then writes and verifies the content within the same task. Use
-[Init](/docs/skills/woostack-init) for guided root project-document authoring. An explicitly requested
-bounded edit to an existing root document can stay in Execute when its plan and decisions are settled,
-including the reviewed README plan from [Get your first result](/docs/getting-started).
+A plan or exact issue URL can supply context, but neither is required. For a bug fix, Execute
+establishes the cause before editing; a separate Debug session is optional. Before any edit,
+it checks the branch, base, index, and existing changes. Unknown ownership or an unsafe workspace
+blocks editing.
 
-Keep these boundaries in mind:
+For documentation, state the audience and intended result. Guided root-document authoring belongs
+to [Init](/docs/skills/woostack-init); a bounded edit with settled decisions, like the README
+example, can stay in Execute.
 
-- **Explicit delivery:** An explicit `/woostack-execute ...` request delivers a reviewable draft
-  pull request unless you specifically limit it to local edits.
-- **Planning is optional:** A bounded task can go directly to Execute without a separate planning step.
-- **Defect evidence:** If repairing a bug, establish the root cause from reproduction or diagnostic
-  evidence before editing code. A separate Debug session is optional.
-- **Workspace admission:** Before touching any file, Execute inspects the Git repository, branch,
-  HEAD, index, and unstaged changes. Unknown ownership or an unsafe base blocks edits.
-- **Prerequisites:** Confirm critical dependencies before relying on them. Reuse valid planning
-  evidence and refresh affected facts that changed or remain unknown.
+## 2. Review the implementation evidence
 
-## 2. Inspect the implementation and checks
+[Select verification requirements](/docs/guides/verification) before implementation. Then inspect
+the combined result:
 
-[Set verification requirements](/docs/guides/verification) in the task scope before implementation
-so applicable checks and the boundaries they protect are visible early.
+- The diff serves the requested outcome and preserves unrelated work.
+- Relevant checks actually ran, and the report explains failures or missing evidence.
+- Documentation claims, examples, and links match their sources. Commands only inspected are
+  distinguished from commands executed.
+- Acceptance criteria are satisfied before the assistant claims completion. A draft PR can
+  disclose unfinished acceptance when publication safeguards permit it.
 
-Inspect small integrated results during implementation, then review the complete outcome:
+For meaningful visible changes with PR delivery, provide a way to capture the running result and
+upload it as GitHub-hosted media. The assistant uses available authorized tools; it does not
+install an uploader or acquire credentials as a fallback. Missing capture or upload stays disclosed.
+See [visual evidence requirements](https://github.com/howarewoo/woostack/blob/main/shared/references/delivery.md#pr-visual-evidence).
 
-- **Diff scope and necessity:** Confirm that the combined change serves current acceptance and
-  consumers, reuses existing facilities, and leaves unrelated code untouched. Challenge new
-  long-lived mechanisms at the first meaningful integrated result and material design expansions.
-- **Relevant checks:** Ensure tests and commands covering the modified behavior actually ran.
-  For ordinary reversible work, the smallest practical observation is the default.
-- **Documentation:** Check claims, examples, prerequisites, and links against the source. Walk
-  through changed instructions when safe and useful, and distinguish inspected commands from
-  executed ones. Select rendering checks only when the change can affect rendering.
-- **Acceptance criteria:** Verify that all stated acceptance criteria passed. Publishing a draft
-  pull request does not replace or satisfy implementation acceptance.
-- **Privacy and safety:** Keep unresolved privacy findings on HOLD and verify that safety protections
-  remain intact.
+If a check fails or cannot run, use [troubleshooting](/docs/guides/troubleshooting#a-test-or-verification-step-fails).
+Unresolved privacy findings remain on HOLD under the
+[Execute verification policy](/docs/skills/woostack-execute#implement-and-verify).
 
-For consequential changes or material risks, see
-[Execute's verification policy](/docs/skills/woostack-execute#implement-and-verify). If a check stalls
-or needs missing capabilities, follow the
-[troubleshooting guide](/docs/guides/troubleshooting#a-test-or-verification-step-fails) rather than
-guessing.
+## 3. Inspect the draft PR
 
-## 3. Verify the draft pull request
+Check the returned URL on GitHub. Confirm the intended head commit, approved base, description,
+and open draft state. New PRs are drafts; an update preserves existing readiness unless requested
+otherwise. If an issue was selected, closing keywords should appear only when the PR fully resolves it.
+Screenshots or recordings should render and match the current visible result.
 
-After delivery, inspect the draft pull request on GitHub:
-
-- **Draft PR state:** Verify the pull request URL, current head commit, approved base (the trunk branch
-  or an explicitly approved predecessor), body description, and open draft state against Git and GitHub.
-- **Visual evidence:** For meaningful visible changes, check that screenshots or a short recording
-  of the running result render in the verification section and still match the changed behavior.
-  Media stays outside Git. Missing capture or upload must be disclosed; backend-only work needs no
-  artificial screenshots. On PR updates, refresh stale evidence rather than duplicating it.
-- **Issue linking:** If you selected an issue, verify that closing keywords appear only when the
-  pull request fully resolves that issue.
-- **Merge control:** Only a human merges the pull request. Woostack workflows never merge, auto-merge,
-  or queue pull requests for merge.
-
-Before completion, in-scope repairs stay on the same task branch and pull request. After completion,
-repairs require a separate explicit request; later review does not automatically extend standing
-implementation authority. For standalone Git maintenance such as rebasing, restacking, or marking
-a draft ready, use [woostack-commit](/docs/skills/woostack-commit). Delivery follows canonical
-[delivery procedures](https://github.com/howarewoo/woostack/blob/main/shared/references/delivery.md) and
-[source-control safeguards](https://github.com/howarewoo/woostack/blob/main/shared/references/source-control.md).
+In-scope repairs before completion stay on the same task branch and PR. Later repairs need a new
+request. Standalone rebases, restacks, and readiness changes belong to [Commit](/docs/skills/woostack-commit).
+Only humans merge, enable auto-merge, or queue PRs for merge.

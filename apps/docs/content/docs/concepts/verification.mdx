@@ -1,115 +1,67 @@
 ---
 title: Verification
-description: How evidence supports completion claims, when checks apply, and what remains unverified.
+description: What different checks establish, when their results remain valid, and how missing evidence affects completion.
 ---
 
-Verification connects a claim about a change to evidence that supports it. A passing test can show
-that a particular behavior works under the tested conditions. It cannot establish that every
-interaction works, a pull request was published, or a change is ready to merge.
+A check supports a particular claim under the conditions it tested. A passing build establishes
+buildability. It does not establish that instructions are accurate, an interaction works in a
+browser, or a PR was published.
 
-WooStack skills select evidence for the authorized task and report its limits. The practical
-[Set verification requirements](/docs/guides/verification) guide explains how to choose checks and
-report results.
+## Match the evidence to the claim
 
-## Evidence supports a specific claim
+| Evidence | What it can establish | What it does not establish |
+| --- | --- | --- |
+| Source and diff inspection | Current behavior or instructions, changed scope, and preserved safeguards. | What actually happened at runtime. |
+| Behavioral tests | The tested contract under the supplied inputs and environment. | Every interaction or untested combination. |
+| Browser observation | The rendered behavior observed in that session. | Full accessibility conformance or every user's environment. |
+| Skill parser and asset tests | Files load and bundled links resolve. | An agent followed the workflow. |
+| An actual host/model run | What the agent did in that run. | How every future run will behave. |
+| GitHub read-back | The remote PR identity, content, and state read back. | Implementation acceptance. |
 
-Different observations answer different questions. Source inspection can establish what an
-instruction requires. A behavioral test can exercise an implementation's contract. A browser
-observation can show what happened during a rendered interaction. Review can identify problems
-those checks missed, but does not replace required tests or runtime evidence.
+Review can find problems these checks missed. It cannot replace a required test or observation.
+Test counts and coverage percentages help locate gaps, but their value depends on what failures
+the assertions detect.
 
-The distinction matters for skills themselves. Parser and asset tests can verify that a skill's
-files load and its bundled links resolve. They do not prove that an agent followed its workflow.
-An actual host and model run supplies evidence about that run, not a guarantee about every future
-execution.
+## Requirements and risk determine the checks
 
-Test counts and coverage percentages help identify gaps. Their value depends on the failures the
-tests can detect; a large suite with weak assertions does not prove the changed behavior is correct.
+User requirements, task acceptance, repository policy, and the active workflow determine required
+checks. For ordinary reversible work, Woostack favors existing relevant checks and the smallest
+practical observation of the changed behavior. Extra checks need an applicable requirement or a
+concrete failure risk with a stated consequence.
 
-## Checks follow requirements and risk
+For example, a wording correction needs its claims and links inspected. A changed interaction
+may need a browser observation. Running a build cannot settle either question on its own.
+Consequential changes involving authorization, privacy, destructive effects, migration, recovery,
+or financial operations need stronger targeted evidence.
 
-Applicable user requirements, repository rules, task acceptance, and workflow conditions determine
-which checks are required. Additional checks address a named material risk: a concrete failure,
-its consequence, and the boundary it affects. Existing adequate checks remain useful evidence;
-verification does not require a new test for every edit.
-
-For example, in this repository a wording correction calls for inspection of the changed claims,
-links, and anchors. A changed interaction may need observation in the running application under
-its applicable requirements. Running a production build for the wording correction would not
-establish that the wording is accurate. Reading the interaction's source would not establish how
-it behaves in the browser.
-
-Consequential behavior involving authorization, privacy, destructive effects, migration, recovery,
-or financial operations needs stronger targeted evidence. The owning workflow defines the
-conditions; a broad label such as persistence alone does not establish high risk. See
-[Execute's verification policy](/docs/skills/woostack-execute#implement-and-verify) and the
-[shared testing guidance](https://github.com/howarewoo/woostack/blob/main/shared/references/tdd.md).
-
-## What WooStack recommends
-
-For ordinary reversible work, WooStack recommends existing relevant checks and the smallest
-practical observation of the changed behavior. The useful kinds of evidence depend on the change:
-
-| Verification | When it is useful |
-| --- | --- |
-| Source and diff inspection | Establishing the current contract, checking scope, and confirming that the change preserves required safeguards. For documentation, this includes checking claims, links, and anchors against their sources. |
-| Existing behavioral tests | Exercising the affected contract with fast, deterministic assertions at the lowest practical level. Focused checks support the edit loop; a small, cheap relevant suite may be simpler than selecting individual tests. |
-| Regression or characterization tests | Protecting a genuine uncovered defect, behavior, or material risk. Existing adequate protection does not need duplicate cases. |
-| Integration checks | Establishing behavior across affected consumers or newly combined components when requirements or a named material risk call for it. Passing component tests alone does not prove their interaction. |
-| Runtime or browser observations | Checking actual effects or rendered interactions when those semantics matter to the required evidence. Static inspection and controlled outputs cannot establish every runtime property. |
-| Representative volume or concurrency checks | Detecting loss, duplication, or other contract failures when volume or concurrency can materially change the outcome. Representative levels come from repository evidence or stated deployment assumptions, not invented production workloads. |
-
-Linting, formatting, type checking, and builds serve the repository's applicable validation policy.
-They can establish specific properties such as type consistency or buildability, but do not replace
-behavioral evidence. WooStack does not impose all of these commands on every project or every edit.
-For this repository's concrete check selection, see the
-[verification guide](/docs/guides/verification#2-explain-the-selected-checks-before-work).
-
-Test-first is conditional on the user, task, or repository requiring it. Coverage collection,
-property-based testing, and mutation testing are targeted options for real gaps, not mandatory
-stages. Extra independent review likewise needs an applicable requirement or named material risk;
-available specialists alone do not make it required.
-
-The [shared testing guidance](https://github.com/howarewoo/woostack/blob/main/shared/references/tdd.md)
-owns these recommendations. The active skill and repository retain their requirements, including
-stronger safety evidence where applicable. This is guidance for selecting evidence, not a checklist
-whose every row must pass before delivery.
+Test-first work, coverage collection, and independent review apply when requirements or relevant
+risks call for them. They are not universal stages. The [shared testing guidance](https://github.com/howarewoo/woostack/blob/main/shared/references/tdd.md)
+and [Execute verification policy](/docs/skills/woostack-execute#implement-and-verify) define the rules.
+The [verification how-to](/docs/guides/verification) shows how to apply them to a task.
 
 ## Evidence can remain valid
 
-An observed result remains useful while the relevant source, tests, fixtures, dependencies,
-configuration, and environment remain equivalent. A handoff, a new commit identifier, or an
-unrelated prose edit alone does not invalidate it.
+Results remain useful while the relevant source, tests, fixtures, dependencies, configuration,
+and environment remain equivalent. A handoff, new commit identifier, or unrelated prose edit
+alone does not invalidate them.
 
-Changed relevant inputs or uncertain equivalence require affected checks to run again. Integration
-can also create a new question: two components that pass their own checks may fail when used
-together. Their individual results do not establish that the combined behavior works.
+Changed inputs or uncertain equivalence require affected checks to run again. Integration can
+also create a new question: components that pass separately may fail together.
 
-## Verification has boundaries
+## Completion and publication need different proof
 
-Different outcomes need different evidence:
-
-| Boundary | What evidence establishes it |
+| Outcome | Required evidence |
 | --- | --- |
-| Implementation acceptance | The selected acceptance checks support the authorized outcome. |
-| Draft publication | Git and GitHub read-back confirm the intended commit and PR, with the applicable publication safeguards satisfied. |
-| Dependent work | The prerequisite content and applicable contract evidence support beginning the affected work. |
-| Merge or release | The requirements for that merge or release are satisfied; local checks alone do not establish remote readiness. |
+| Implementation accepted | The selected acceptance checks support the authorized outcome. |
+| Draft PR published | Git and GitHub confirm the intended commit and PR, with publication safeguards satisfied. |
+| Dependent work can begin | Its required prerequisite content and contract evidence are verified. |
+| Merge or release ready | The applicable merge or release requirements are satisfied. Local checks alone cannot prove remote readiness. |
 
-An authorized draft PR may disclose incomplete implementation acceptance when its publication
-conditions permit it. Its existence does not make the implementation complete or release dependent
-work. These boundaries are not a universal sequence, and WooStack leaves merging, auto-merge, and
-merge queues to humans. [Building rules](/docs/concepts/building-rules) explains the related
-authority boundaries.
+These outcomes need not happen in this order. A draft PR can disclose unfinished acceptance when
+its publication rules permit it. Dependent work may begin before PR publication if its prerequisites
+are verified. Only humans merge; see [authority boundaries](/docs/concepts/workflows#authority-boundaries).
 
-## Missing evidence stays visible
-
-A failed, unavailable, timed-out, cancelled, or unrun required check leaves its affected boundary
-unverified. A pre-existing failure remains a failure. Neither an agent's success statement nor a
-finished issue status supplies the missing proof.
-
-A useful result distinguishes what was observed, what the evidence covers, and what remains
-unknown. When required evidence is missing, it identifies the unmet criterion and the actor or
-changed condition needed to resume. Optional coverage limits remain visible without becoming new
-acceptance requirements. The [verification guide](/docs/guides/verification#4-report-results-at-the-affected-boundary)
-shows how those distinctions appear in a delivery report.
+A failed, unavailable, timed-out, cancelled, or unrun required check leaves the affected outcome
+unverified. A pre-existing failure remains a failure. A useful report names the missing evidence
+and what must change to obtain it. Optional coverage gaps stay visible without becoming new
+acceptance requirements. See [reporting results](/docs/guides/verification#4-report-results-at-the-affected-boundary).

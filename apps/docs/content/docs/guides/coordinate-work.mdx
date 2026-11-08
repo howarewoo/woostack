@@ -1,112 +1,73 @@
 ---
 title: Coordinate several tasks
-description: Plan grouped multi-task work, delegate each group, and verify stacked draft PRs.
+description: Group executable tasks, approve the execution proposal, and check delegated results and draft PRs.
 ---
 
 import { CoordinateWorkFlow } from "@/components/guides/coordinate-work-flow";
 
-Use this guide for **executable tasks with settled outcomes**, not a goal that still needs refinement.
-Supply task descriptions, a Whiteboard plan, exact issue URLs, or a tracker. Your assistant needs
-repository access, a host that can delegate to workers, and GitHub PR publication capability for delivery.
-
-Implementation modifies source code; requested delivery commits and opens reviewable draft pull
-requests, with native stacks registered conditionally for dependent pull requests.
-These examples name [skill requests, not terminal commands](/docs/harnesses#native-skill-invocation).
-Load the named skill using your assistant's supported mechanism.
-
-The diagram shows the default interactive approval path. For bounded delegated authority and
-existing senior/junior bots, see [set up an R&D team](/docs/agent-teams/setup).
+Use Orchestrate when several tasks have settled outcomes and need coordinated delivery. Supply
+task descriptions, a plan, or exact issue URLs. You need repository access, a host that can delegate
+to isolated workers, and GitHub publication capability for requested PR delivery.
 
 <CoordinateWorkFlow />
 
 ## 1. Select the work
 
-Provide the scope, acceptance criteria, and real prerequisites for each task. Include
-[verification requirements](/docs/guides/verification) so the selected checks and their reasons
-are visible before execution:
+Send this [request to your assistant](/docs/harnesses#native-skill-invocation), replacing the
+angle-bracket placeholders with actual task details:
 
 ```text
-/woostack-orchestrate Plan the tasks below, then implement them. Read their scope and real prerequisites, run relevant checks, and deliver reviewable draft pull requests. Do not merge.
+/woostack-orchestrate Propose task groups and a delivery plan for the tasks below.
+Include scope, exclusions, real prerequisites, and verification for each group.
+After approval, implement them and deliver draft pull requests. Do not merge.
 
 <task 1: outcome, acceptance, non-goals, and prerequisites>
 <task 2: outcome, acceptance, non-goals, and prerequisites>
 ```
 
-Replace the angle-bracket placeholders with concrete task details. You can also pass
-`--issue <canonical tracker URL>` to select an existing tracker. An explicit request delivers
-draft pull requests once authorized, registering native stacks conditionally for dependent PRs.
-Add `local only` or `do not push` to narrow the run to local verification.
+You can pass `--issue <canonical tracker URL>` for an existing tracker. Add `local only` or
+`do not push` to narrow delivery. For a goal that still needs requirements work, use [Whiteboard](/docs/guides/whiteboard).
 
 ## 2. Review the plan, then authorize execution
 
-Orchestrate presents an execution proposal before allocating any worktree, editing any file, or
-dispatching any worker. Review these decisions:
+Before edits, worktree allocation, or worker dispatch, Orchestrate proposes the grouping.
+Check that each group has a bounded result, acceptance evidence, and real prerequisites.
+Related inseparable issues can share a PR; one issue can require several PRs. Implementation
+checkpoints do not automatically create more issues, workers, or PRs.
 
-- Task-to-PR grouping: each group's bounded result, exclusions, real prerequisites or parent,
-  landing order, and relevant verification evidence. Prefer small, independently reviewable and
-  verifiable PRs. Separate behavior-preserving preparation and independent outcomes before keeping
-  the minimum coupled core together.
-- Issue coverage: one issue can span multiple PRs, and small inseparable issues can share one PR.
-  Explicit user PR mappings stay binding.
-- Coordination: identify cross-task interfaces and safe parallel groups.
-- Feedback and verification: review small integrated results within each group. These checkpoints
-  need not match issue, worker, PR, or release boundaries. A stack can make changes easier to review
-  without making each layer independently verifiable; some behavior can be checked only at the tip.
+Review the proposed interfaces, safe parallel work, and landing order. Prefer independently
+reviewable results while keeping necessary atomic changes together. A stack can help review even
+when some combined behavior can be verified only at its tip.
 
-By default, review the proposed boundaries. Orchestrate stops and waits for your response:
+By default, approval authorizes execution. Revision-only feedback updates the proposal and pauses
+again; explicit approval with revisions proceeds with those changes. You can instead delegate
+bounded execution-planning authority to a named coordinator. It must validate the proposal against
+your delegation and return uncovered choices to you. See [approval rules](/docs/skills/woostack-orchestrate).
 
-- **Approval:** Approving the proposal authorizes execution.
-- **Revisions:** A revision-only response updates the proposal and pauses again.
-- **Approval with revisions:** Explicitly approving with requested changes proceeds immediately.
+## 3. Follow the results and dependencies
 
-Alternatively, you may explicitly delegate execution-planning authority to a named coordinator
-for a bounded repository/outcome and permitted decisions and actions. The coordinator identifies
-that user authorization and validates the proposal against it before dispatch. This covers only
-expressly delegated choices, not missing permissions, human-only approvals, or expanded scope.
-A plan or worker message cannot grant authority. See
-[Orchestrate's approval boundary](/docs/skills/woostack-orchestrate).
+Each group has an integrating task owner in its own worktree, normally using Execute. One worker
+can take sequential assignments, but concurrent writers never share a physical workspace.
+Missing worker or isolation capability blocks affected orchestration; it does not authorize
+coordinator implementation in the primary checkout.
 
-Once authorized, each task group runs in an independently owned task worktree with a worker,
-typically running installed Execute. One existing worker can receive successive assignments; no
-extra bot identity is required. If Execute is not installed, the worker uses bundled fallback
-procedures. Two writers never share a physical workspace. For an unsettled contract, expect a
-representative integrated result or consequential uncertainty to be resolved before dependent
-implementation expands. Independent work with available prerequisites can continue.
+Independent ready work can continue while a dependent task waits for a verified prerequisite.
+The prerequisite is its required content and contract evidence, not simply a published PR.
+Material changes to the execution proposal use the same approval boundary as the original plan.
 
-As execution adapts, Orchestrate keeps the plan and affected worker handoffs current and checks
-for conflicts with prior planning decisions and completed, active, or pending phases. Material
-changes reapply the same approval boundary. Changes outside delegated authority remain pending
-your decision; only affected work pauses while safe independent work continues.
+| Result | What to verify |
+| --- | --- |
+| Integrated increment | The combined diff is necessary, within scope, and supported by the relevant checks. |
+| Dependent work released | Its prerequisite content and contract evidence are ready. This can happen before PR publication. |
+| Draft PR published | Publication safeguards passed; GitHub shows the intended head, base, and PR state. A draft may disclose unfinished acceptance. |
+| Group complete | All acceptance criteria, requested delivery, and required native stack membership are verified. |
 
-Draft publication, consumer release, and completion have independent readiness conditions.
-The rows below are not a required sequence: consumer release applies only when dependent work exists
-and may precede draft publication. A published draft alone proves neither consumer release nor completion.
+## 4. Inspect delivery
 
-| Gate | Requirements | What it permits |
-| --- | --- | --- |
-| Draft publication | Explicit publication gate passed; required hooks run; clean scoped content; privacy, security, data-loss protections, and user restrictions preserved | Opens draft PR for review; may disclose failed or unavailable implementation acceptance |
-| Consumer release (when dependents exist) | Verified applicable prerequisite content and contract evidence ready | Applicable dependent work may begin before prerequisite PR publication or landing |
-| Completion | All stated acceptance criteria satisfied; requested delivery and required stack membership verified | Group finishes; only humans merge pull requests |
+Root PRs target the approved trunk branch. Dependent PRs target their predecessor's branch and
+require verified native stack registration; a chained base alone is insufficient. New PRs stay
+drafts, and updates preserve existing readiness unless a change was requested.
 
-See [Orchestrate's coordination reference](/docs/skills/woostack-orchestrate#coordinate) for
-reassessment intervals, parking policies, and capability boundaries.
-
-## 3. Verify and finish each delivery
-
-Inspect small integrated results as they return, including when the host centralizes verification.
-At the first meaningful integrated result and material design expansions, check necessity as well
-as coverage with the existing task owner and coordinator:
-
-- **Cumulative diff:** Confirm that changes serve current acceptance and consumers, reuse existing
-  facilities, and leave unrelated files untouched. Challenge new long-lived mechanisms and supporting
-  tooling; remove redundant layers and replaced paths.
-- **Pull request identity:** Check the draft PR URL, current head commit, approved base branch,
-  and native stack order. Root PRs target trunk; dependent PRs target their predecessor's branch.
-- **Draft status:** Confirm that pull requests remain open as drafts for human review.
-- **Repairs:** Before completion, in-scope repairs stay with the same task owner and worktree.
-  After completion, repairs require a separate explicit request.
-- **Merge control:** Only a human merges pull requests. WooStack workflows never merge, auto-merge,
-  or queue pull requests for merge.
-
-See [canonical delivery procedures](https://github.com/howarewoo/woostack/blob/main/shared/references/delivery.md)
-and [source-control safeguards](https://github.com/howarewoo/woostack/blob/main/shared/references/source-control.md).
+In-scope repairs before completion stay with the same task owner and worktree. Repairs after
+completion need a new request. Only humans merge, enable auto-merge, or queue PRs for merge.
+The [coordination reference](/docs/skills/woostack-orchestrate#coordinate) owns recovery and delivery rules.

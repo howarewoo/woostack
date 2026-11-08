@@ -1,166 +1,60 @@
 ---
-title: Workflow maps
-description: How the workflows relate, and why a bounded change can skip planning.
+title: Choosing a workflow
+description: How planning, implementation, and coordination differ, and who authorizes each action.
 ---
 
 import { WorkflowMap } from "@/components/concepts/workflow-map";
 
-These pages explain how Woostack workflows connect. The [task guides](/docs/guides) provide
-step-by-step procedures, the [command index](/docs/skills/using-woostack#command-routing) lists
-available skills, and each skill's reference page defines its exact contracts, evidence rules,
-and recovery behavior.
-
-Start from the result you need rather than an arbitrary sequence. An issue URL supplies context,
-not permission to edit files or publish PRs. Choosing a workflow does not approve its design or
-authorize extra work. Git and GitHub evidence confirm what was implemented and delivered.
+The right entry point depends on what you want done. A clear, bounded task can go straight to
+implementation. A goal with unresolved choices benefits from planning. Several executable tasks
+may need coordination.
 
 <WorkflowMap />
 
-## Routing by work shape
+## Planning and implementation are separate choices
 
-One authorized outcome is enough to start. A bounded enhancement, refactor, test task, user-facing
-documentation change, or authorized correction goes directly to [Execute](/docs/skills/woostack-execute)
-without a separate planning workflow. Bounded test tasks are ordinary Execute input under the
-[testing guidance](https://github.com/howarewoo/woostack/blob/main/shared/references/tdd.md).
-Documentation work uses [documentation guidance](https://github.com/howarewoo/woostack/blob/main/shared/references/documentation.md)
-to plan for the reader, write the content, and verify it within the same task.
+[Whiteboard](/docs/guides/whiteboard) explores requirements, develops plans, or reviews an existing
+specification. Requirements-only work can stop before choosing an architecture. A plan stays in
+the conversation unless you ask to save it or [publish issues](/docs/guides/plan-work); neither
+action starts implementation.
 
-When the outcome requires broader exploration, [Whiteboard](/docs/skills/woostack-whiteboard) explores
-requirements, shapes goals into reviewable increments, or checks existing plans against repository
-evidence, according to the requested depth.
-Multiple authorized tasks with dependencies go to [Orchestrate](/docs/skills/woostack-orchestrate).
-[Debug](/docs/skills/woostack-debug) offers separate read-only root-cause investigation; Execute can
-also diagnose an authorized bounded correction inline, establishing the cause before repair.
-Existing working code with high maintenance burden goes to [Simplify](/docs/skills/woostack-simplify).
+[Execute](/docs/guides/ship-change) implements one authorized outcome. It can diagnose a bounded
+bug fix inline, so a separate Debug session is optional. A natural-language implementation
+request permits local edits and checks. An explicit `/woostack-execute` request also requests a
+draft PR unless you narrow it to local work.
 
-If the scope remains uncertain, [Plan work and file issues](/docs/guides/plan-work) starts from
-a broad goal, and [Troubleshoot a blocked workflow](/docs/guides/troubleshooting) starts from an
-observed symptom.
+[Orchestrate](/docs/guides/coordinate-work) groups executable tasks and delegates implementation
+to isolated workers. It proposes the grouping before execution and normally waits for your
+approval. You can explicitly delegate bounded planning decisions to a named coordinator; choices
+outside that delegation still come back to you.
 
-## Execute
+The [command index](/docs/skills/using-woostack#command-routing) covers other tasks, including
+read-only investigation with Debug and behavior-preserving code reduction with Simplify.
 
-Execute implements one bounded outcome, whether called directly by the user or run by a native
-worker delegated from Orchestrate. It checks repository state before the first edit and integrates
-small verified increments toward the complete outcome. Cumulative review checks necessity as well
-as coverage at the first meaningful integrated result and material design expansions.
+## Authority boundaries
 
-- **Authority:** An ordinary natural-language request authorizes local edits and checks. An explicit
-  `/woostack-execute ...` request delivers a reviewable draft pull request unless narrowed to local work.
-- **Boundaries:** A bare issue URL outside the command grants no implementation authority. A delegated
-  assignment inherits the coordinator's limits; it is not a new command granting independent publication.
-- **Defects and scaffolds:** Bug fixes require reproduction or diagnostic evidence before editing.
-  Creating a project that does not exist yet uses settled decisions without requiring a preliminary
-  planning or documentation pass.
+The user sets the scope and grants permission. A plan, issue, agent role, or worker message cannot
+expand it. An issue URL alone supplies context, not permission to implement or publish.
 
-See the [Deliver one change guide](/docs/guides/ship-change) for the standalone procedure, and
-[Execute reference](/docs/skills/woostack-execute) for admission and verification policies.
+| Source | What it establishes |
+| --- | --- |
+| User instructions | Authorized actions, decisions, and limits. |
+| A plan | Intended behavior, constraints, and open decisions. |
+| A published issue | The issue content and relationships actually read back. |
+| Git and GitHub | Source, commits, PR state, checks, reviews, and merge evidence. |
+| QA and review reports | Observations to assess within their stated limits. |
 
-## Whiteboard
+A closed issue or an agent's success message cannot prove that code landed. Likewise, a draft PR
+can expose unfinished work for review without proving acceptance passed. [Verification](/docs/concepts/verification)
+explains which evidence supports each claim.
 
-Whiteboard develops requirements, challenges the design against evidence, and returns a result at
-the requested depth. Implementation plans include a consistent visual model, acceptance criteria,
-and real dependencies. It works with a person or delegated agent and requires no questions when
-the available context suffices.
+Only humans merge, enable auto-merge, or queue PRs for merge. Standalone Git maintenance, including
+rebasing, restacking, and readiness changes, belongs to [Commit](/docs/skills/woostack-commit)
+when explicitly requested.
 
-- **Output:** The default is conversation output. Saving a document or publishing GitHub issues
-  requires an explicit request. Neither action authorizes implementation.
-- **Exploration only:** A focused specification or answer can complete a requirements-only request
-  without choosing an architecture or producing implementation steps or a diagram. This does not
-  establish implementation readiness.
-- **Decisions:** Discoverable facts come from evidence. An agent can decide within explicit delegated
-  authority; uncovered consequential choices are escalated with a recommendation and affected-work blocker.
-- **Review only:** A supplied specification can be reviewed without rewriting it or restarting discovery.
-- **New products:** Supplied goals, constraints, and authoritative research suffice without a checkout.
-- **Issue structure:** Published issues include outcomes, non-goals, constraints, acceptance criteria,
-  and real prerequisites. Whiteboard publishes directly through authorized GitHub capabilities and
-  independently reads back every write. Missing relationships are reported clearly rather than
-  assumed complete.
+## Older installations and retained records
 
-See [Whiteboard a goal into a plan](/docs/guides/whiteboard),
-[Plan work and file issues](/docs/guides/plan-work), and the
-[Whiteboard reference](/docs/skills/woostack-whiteboard).
-
-## Orchestrate
-
-Orchestrate coordinates authorized tasks across pull requests, supporting single-group one-PR runs
-as well as stacked pull requests. It reads outcomes, source evidence, and PR state to propose a grouping
-and landing order. User approval is the default; explicit bounded delegation permits a named
-coordinator to validate covered decisions before dispatch without another interactive approval.
-
-- **Coordination:** Orchestrate evaluates PR reviewability separately from checkpoint size and
-  deployment atomicity. It separates behavior-preserving preparation and independent outcomes before
-  proposing a larger coupled cutover, while preserving explicit user mappings, deploy-on-merge safety,
-  and inseparable verification paths without inventing compatibility bridges. One issue can span
-  several PRs, and small inseparable issues can share one.
-- **Delegation:** Each task group is implemented by a task owner in an independently owned task
-  worktree. Task owners run installed Execute or bundled fallback procedures. Two writers never share
-  one physical workspace. One existing worker can receive sequential assignments.
-- **Delivery:** Root PRs target the approved trunk branch, while dependent PRs target their predecessor's
-  branch using native stack registration when actual dependencies warrant a stack. A component stack may
-  aid review without isolating verification if behavioral proof arrives only at the tip. Landing order
-  remains distinct from implementation order: immutable prerequisite checkpoints can unblock dependent
-  work before PR publication.
-
-See the [Coordinate several tasks guide](/docs/guides/coordinate-work) for the procedure, the
-[R&D team guide](/docs/agent-teams/setup) for an existing senior/junior setup, and
-[Orchestrate reference](/docs/skills/woostack-orchestrate) for coordination and recovery policies.
-
-## Simplify
-
-Simplify focuses specifically on maintenance burden. While Execute can perform refactors as part
-of feature work, Simplify starts from working code whose complexity is the problem. It applies
-least-code principles to reduce concepts, files, and maintenance cost while preserving required behavior.
-
-Simplify applies changes locally unless a commit or draft PR is requested. Neither Whiteboard nor
-Execute is a prerequisite. If the code is already simple enough, it remains unchanged.
-See [Simplify reference](/docs/skills/woostack-simplify).
-
-## Shared execution boundary
-
-Implementing workflows follow consistent verification and delivery rules:
-
-- **Verification:** Targeted smoke tests and relevant checks provide evidence. An agent's success
-  message cannot waive required checks. Unmet acceptance criteria block completion.
-- **Draft pull requests:** Authorized draft publication discloses progress and allows review. Draft
-  visibility does not prove completion or readiness for downstream consumers.
-- **Merge authority:** No Woostack workflow merges, auto-merges, or queues a pull request for merge.
-  Merge authority remains exclusively with the human.
-- **Delivery procedures:** Publication follows canonical
-  [delivery procedures](https://github.com/howarewoo/woostack/blob/main/shared/references/delivery.md) and
-  [source-control safeguards](https://github.com/howarewoo/woostack/blob/main/shared/references/source-control.md),
-  including read-back of head, base, open state, and preserved comments.
-
-## Retired planning commands
-
-`woostack-ideate`, `woostack-plan`, and `woostack-harden` are removed without aliases. Use Whiteboard
-for requirements exploration, planning, review-only requests, and explicitly requested issue
-publication. Update installed command lists and bot instructions that name the retired skills.
-Existing specifications, plans, and issues remain useful context; they need no conversion or
-additional planning pass.
-
-## Upgrading from a pre-cutover release
-
-Prepare and the legacy custom execution controller are retired. Nothing installs, invokes, or
-emulates them, and no compatibility layer stands in for them.
-
-- **Fresh context:** New work never resumes from a retained run record. It starts from fresh task,
-  source, and host context. Recovery is proved from current Git and GitHub evidence.
-- **Retained records:** Historical records, older installations, and
-  existing worktrees remain intact as their owner left them. Migrating or deleting them is optional,
-  manual, and initiated by the user.
-- **Run replay:** A recorded run that requires the legacy controller replays from the pre-cutover
-  installation saved with it. Retained checkpoints are not converted automatically.
-
-Retained-data rules and recovery belong to the
-[local artifacts reference](/docs/configuration/artifacts/local) and
-[Orchestrate coordination contract](/docs/skills/woostack-orchestrate#coordinate).
-
-## Review and corrections
-
-Review provides independent verification evidence, not an automatic extra gate for ordinary
-reversible work. Existing relevant checks and the smallest practical observation remain the default.
-Additional runtime checks or independent review require an explicit instruction or a named material risk.
-
-Before completion, in-scope repairs stay on the same branch and pull request; after completion,
-repairs require a separate explicit request. Standalone Git operations such as rebasing, restacking,
-and marking pull requests ready belong to [woostack-commit](/docs/skills/woostack-commit).
+Retired commands have no compatibility aliases. The [troubleshooting guide](/docs/guides/troubleshooting#a-command-has-been-retired)
+points to current commands. New work uses current repository and host evidence; old run records
+remain historical user data. Nothing automatically migrates or deletes them. The
+[local artifacts reference](/docs/configuration/artifacts/local) covers preservation and recovery.

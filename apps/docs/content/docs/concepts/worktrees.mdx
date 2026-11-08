@@ -1,50 +1,41 @@
 ---
-title: Parallelism with worktrees
-description: How woostack isolates bounded implementation work independently from artifact storage.
+title: Worktrees
+description: What separate checkouts isolate, what they share, and why each workspace needs one active writer.
 ---
 
 import { WorktreeIsolation } from "@/components/concepts/worktree-isolation";
 
-A Git worktree is a separate checkout of the same repository. It allows an implementation task
-to edit its own branch without touching files in the primary checkout. A worktree isolates files,
-not permissions: it grants no scope, status, or acceptance on its own. The
-[workspace guidance](https://github.com/howarewoo/woostack/blob/main/shared/references/worktrees.md)
-defines identity, collision handling, writer ownership, base evidence, and recovery.
+A Git worktree is a separate checkout of the same repository. Each task can edit its own files
+and branch while sharing the repository's Git objects.
 
 <WorktreeIsolation />
 
 ## Ownership and writer access
 
-The deliverable owns its workspace and branch; a writer temporarily holds exclusive write access:
+Each physical workspace has one active writer. Concurrent writers need separate workspaces and
+non-overlapping responsibilities. Sequential writers can reuse a workspace after host evidence
+confirms the previous writer exited or relinquished access, and current Git facts confirm it is
+safe to continue. Waiting alone does not prove release.
 
-- **Sequential reuse:** Sequential writers can reuse an allocation after native host evidence proves
-  the previous writer exited or relinquished access, and current Git facts confirm the workspace remains suitable.
-- **Concurrent isolation:** Concurrent writers require separate workspaces and non-overlapping responsibilities.
-  Unknown writer liveness blocks affected work; waiting alone does not prove release.
-- **Orchestrate protection:** Missing task-worker or isolation capability blocks Orchestrate, never
-  replaced by coordinator edits in the primary checkout. Standalone Execute can implement inline in
-  an approved workspace under the same ownership and concurrent-writer safeguards.
-
-See the [ownership rule](https://github.com/howarewoo/woostack/blob/main/shared/references/worktrees.md#workspace-and-ownership)
-for allocation and handoff safeguards.
+Orchestrate requires isolated task workers; it cannot replace a missing worker capability with
+coordinator edits in the primary checkout. Standalone Execute can work inline in an approved
+workspace with the same ownership safeguards.
 
 ## Base selection and dependencies
 
-Required predecessor changes must be available in the chosen base branch:
+The selected base must contain the task's prerequisites. Git ancestry can prove commit-preserving
+containment. A squash landing needs evidence of the landing and integrated content because the
+old PR head may no longer be an ancestor.
 
-- **Commit-preserving ancestry:** Git ancestry proves commit-preserving containment.
-- **Squash landings:** When predecessor PRs land via squash, verify the native landing and integrated
-  content rather than assuming the former PR head remains an ancestor.
-- **Conflicting bases:** Conflicting bases or unknown outcomes preserve existing work and block the
-  affected task while unrelated work continues.
+An uncertain base or active writer blocks the affected task. Independent work can continue where
+its own prerequisites and workspace ownership are established.
 
 ## Recovery and lifecycle
 
-After a lost response or interruption, rediscover the selected workspace, writer, branch diff,
-and matching pull request before repeating a mutation. Never adopt, reset, clean, stash, overwrite,
-or remove another owner's checkout.
+After an interruption, current worker state, branch diffs, and matching PRs establish what remains
+to do. A lost response does not justify repeating a write or resetting another owner's checkout.
+Publication also grants no permission to remove a workspace.
 
-Verified code delivery remains valid even if optional metadata writes fail. Publication does not
-authorize workspace teardown; explicitly required registration remains unmet until verified.
-Follow the [workspace guidance](https://github.com/howarewoo/woostack/blob/main/shared/references/worktrees.md)
-for the full recovery and lifecycle algorithms.
+The [workspace reference](https://github.com/howarewoo/woostack/blob/main/shared/references/worktrees.md)
+owns allocation and recovery safeguards. [Coordinate several tasks](/docs/guides/coordinate-work)
+shows how to request delegated work.

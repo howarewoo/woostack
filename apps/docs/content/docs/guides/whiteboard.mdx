@@ -1,120 +1,68 @@
 ---
-title: Whiteboard a goal into a plan
-description: Explore requirements, review the design visually, and hand off a plan when implementation is authorized.
+title: Plan a change
+description: Turn a goal into requirements and a plan, or review an existing specification without implementing it.
 ---
 
-Use [Whiteboard](/docs/skills/woostack-whiteboard) when you want to explore and
-refine a goal before building. For implementation planning, you leave with a written plan and a
-visual model that explain what to build, why, and what remains undecided. Requirements-only
-exploration can stop earlier. An already-understood task does not need a Whiteboard session.
-The same skill works for you or a delegated planning agent.
+Use Whiteboard when the goal or important choices still need work. It returns its result in the
+conversation by default. A task you already understand can go straight to [Execute](/docs/guides/ship-change).
 
-## Start the conversation
+You need [Whiteboard installed](/docs/getting-started) in your assistant. For existing code, give
+it access to the repository; a new product needs no checkout. Examples here are
+[assistant requests](/docs/harnesses#native-skill-invocation), not terminal commands.
 
-With Whiteboard installed in your coding assistant, enter a goal or supply an existing plan:
-
-```text
-/woostack-whiteboard Design a local dashboard for inspecting agent runs.
-The first version observes runs but cannot cancel or retry them.
-```
-
-These are assistant requests, not terminal commands. Load the named skill using your assistant's
-supported mechanism; see [skill invocation](/docs/harnesses#native-skill-invocation). For an existing
-project, identify the repository; for greenfield work, state that no code exists yet. A checkout
-is not required.
-
-For documentation work, state the audience and what readers should be able to do, find, or understand.
-Whiteboard uses the shared [documentation guidance](https://github.com/howarewoo/woostack/blob/main/shared/references/documentation.md)
-to plan the content, examples, and verification criteria. Writing the documentation and running its
-examples belong to the implementation request.
-
-To explore requirements without choosing an implementation, narrow the request:
+## 1. State the goal and limits
 
 ```text
-/woostack-whiteboard Explore whether we should add team workspaces.
-Clarify the requirements and compare approaches.
-Do not choose an architecture or create implementation tasks yet.
+/woostack-whiteboard Plan a Verification section for our README. The readers are
+contributors who need to know which checks to run before submitting a change.
+Use the repository's existing commands and reuse useful content. Return a plan
+and a visual where it helps; do not edit files or publish issues.
 ```
 
-Expect a focused specification or answer with alternatives, trade-offs, evidence, and open decisions.
-A solution, delivery plan, and diagram are not required to finish this exploration. Choose whether
-to develop an implementation plan later; completing exploration does not make implementation ready.
+Include the behavior you need, hard constraints, and non-goals. For documentation, name the reader
+and what they should be able to do. Whiteboard inspects available evidence and asks only about
+material unresolved choices.
 
-## Refine the requirements and picture
+For requirements exploration alone, say `Compare approaches without choosing an architecture or
+creating implementation tasks`. For a review, supply the plan and ask for discrepancies and
+recommended corrections only. Neither request requires a new implementation plan.
 
-Answer material questions and correct the assistant's model as it develops. When the context
-already settles the necessary decisions, Whiteboard can return a plan without asking questions.
-State both the behavior you need and the conditions it must work under. Keep hard requirements
-separate from preferences, and ask for the consequences of a choice before accepting it.
+## 2. Refine the behavior
 
-For example, ask:
+Ask the assistant to walk through a concrete case. For the README example:
 
 ```text
-Walk me through what happens when a run fails halfway through.
-Show which component records the failure and what the user sees.
+Walk through how a contributor chooses checks for a wording-only change.
+What should the README say if a documented command is missing?
 ```
 
-The assistant updates the text and diagram together when you correct a boundary or decision.
-It uses a diagram your host can render, or a readable text diagram without installing a renderer.
-Ask about a relationship that seems wrong rather than waiting for a finished specification.
+Correct the scope or assumptions as needed. During implementation planning, the assistant keeps
+its visual model and text consistent. Your host can use a readable text diagram when it cannot
+render the preferred format.
 
-## Review the plan
+## 3. Check the plan
 
-Check that you can explain the core behavior, constraints, decisions, trade-offs, and small
-observable feedback increments. Look for candidate behavior-preserving preparation, the minimum
-coupled outcome, and consequential uncertainties to resolve before expanding dependent work.
-Check platform dependencies against the intended account, entitlement, repository visibility, and
-runtime where relevant. General platform documentation does not prove your setup or access. Keep
-missing setup, access, and owner decisions distinct, with an owner and return condition for each
-unresolved prerequisite. Whiteboard can propose a small feasibility test without running it. Park
-only dependent work while independent work can proceed, and distinguish planned setup from configured
-resources and end-to-end acceptance. Checkpoints can stay inside one plan
-or delivery boundary, including an atomic cutover, while branch and PR allocation stays with the
-implementing workflow. A useful draft may still contain a blocker; it identifies the decision or
-investigation needed.
-See [Whiteboard's return contract](/docs/skills/woostack-whiteboard) for details.
+Before handing it off, check that:
 
-For an existing specification, request a review without rewriting it:
+- Required behavior and constraints are distinct from preferences and proposed defaults.
+- Consequential choices have reasons, and open decisions name the affected work.
+- Steps produce observable results with acceptance checks and real prerequisites.
+- Platform-dependent claims match the intended account, access, and runtime. Proposed setup is
+  not described as already configured.
+- Missing prerequisites have an owner and a clear condition for resuming dependent work.
 
-```text
-/woostack-whiteboard Review this plan against the selected repository.
-Return discrepancies, evidence, and recommended corrections only. Do not rewrite or publish it.
-```
+A feasibility test may be proposed as an implementation step; Whiteboard does not run it.
+Implementation checkpoints need not become separate issues, workers, or PRs.
 
-## Keep it or request implementation
+## 4. Choose what happens next
 
-The plan stays in conversation by default. Choose the action you need:
+| Next action | What to request |
+| --- | --- |
+| Keep the result in chat | Nothing else is needed. |
+| Save a local document | Name the destination, for example: `Save this plan to docs/plans/readme-verification.md. Do not commit or implement it.` |
+| File GitHub issues | Follow [Publish a plan as issues](/docs/guides/plan-work). |
+| Implement one bounded outcome | Follow [Deliver one change](/docs/guides/ship-change). |
+| Coordinate several executable outcomes | Follow [Coordinate several tasks](/docs/guides/coordinate-work). |
 
-### Save the plan to a file
-
-To keep the plan for later without implementing it, name the destination file explicitly:
-
-```text
-Save the current plan, including its diagram and unresolved questions,
-to docs/plans/run-dashboard.md. Do not commit it or implement anything.
-```
-
-Saving a plan writes the file locally and writes nothing else. It files no GitHub issues and
-starts no implementation.
-
-### Publish the plan as issues
-
-Ask Whiteboard to file the plan in an exact repository. Follow
-[Publish a plan as GitHub issues](/docs/guides/plan-work) for publication and read-back. Publication is
-optional; another agent can consume the Markdown plan directly.
-
-### Request implementation
-
-For one bounded outcome, request [Execute](/docs/guides/ship-change). To coordinate several outcomes,
-explicitly invoke Orchestrate with the plan:
-
-```text
-/woostack-orchestrate Implement the Whiteboard plan above.
-```
-
-Orchestrate reads the plan and repository evidence and proposes task grouping and delegation.
-By default it pauses for your approval before dispatching workers. A named coordinator can instead
-validate covered decisions against authority you explicitly delegated, under
-[Orchestrate's approval rules](/docs/skills/woostack-orchestrate). See
-[coordinate several tasks](/docs/guides/coordinate-work) or
-[set up an R&D team](/docs/agent-teams/setup).
+Saving or publishing a plan does not authorize implementation. See the
+[Whiteboard reference](/docs/skills/woostack-whiteboard) for exact planning and publication rules.

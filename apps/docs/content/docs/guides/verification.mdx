@@ -1,111 +1,76 @@
 ---
 title: Set verification requirements
-description: Identify applicable checks before work starts, reuse valid evidence, and report what remains unverified.
+description: Choose checks for a task, reuse applicable evidence, and report what remains unverified.
 ---
 
-Start with the bounded task, the repository's rules, and the active workflow. Make the selected
-checks visible before implementation in the ordinary task scope or existing plan; no separate
-verification document or approval stage is required. For the reasoning behind evidence selection
-and its limits, see [Verification](/docs/concepts/verification).
+Start with the task, repository rules, and active workflow. Record the checks in the ordinary task
+scope or existing plan; no separate verification document or approval stage is needed.
+[Verification](/docs/concepts/verification) explains why different claims need different evidence.
 
 ## 1. Identify what requires a check
 
-For each check, identify its source and the boundary it protects: implementation acceptance,
-publication, dependent work, or release. Preserve explicit user and task requirements, repository
-policy, and the active workflow's conditions.
+For each check, name the requirement it satisfies and the outcome it protects: implementation
+acceptance, publication, dependent work, or release.
 
-| Status | How to apply it |
+| Status | What to do |
 | --- | --- |
-| Required | An applicable user, task, repository, or workflow requirement calls for the check. Obtain its evidence before claiming the affected boundary is verified. |
-| Conditional | Name the trigger. When it applies, the check is required for that boundary; otherwise it adds no obligation. |
-| Optional or out of scope | No applicable requirement or named material risk calls for it. State relevant coverage limits without treating them as failed acceptance. |
+| Required | Obtain the evidence before claiming the affected outcome is verified. |
+| Conditional | Name the trigger. The check becomes required when that condition applies. |
+| Optional or out of scope | Disclose relevant coverage limits without treating them as failed acceptance. |
 
-For ordinary reversible work, use existing relevant checks and the smallest practical observation.
-An extra check needs an applicable requirement or a named material risk. Describe the concrete
-failure, its consequence, the affected boundary, and the smallest observation that can address it.
-A broad label such as "persistence" does not establish that risk. Follow
-[Execute's verification policy](/docs/skills/woostack-execute#implement-and-verify) and the
-[shared evidence-selection guidance](https://github.com/howarewoo/woostack/blob/main/shared/references/tdd.md#keep-the-inner-loop-focused-broaden-before-completion).
+Use existing relevant checks for ordinary reversible work. Add a check when an applicable requirement
+or concrete risk calls for it. Describe the possible failure, its consequence, and the smallest
+observation that addresses it. A broad label such as "persistence" alone does not identify a risk.
 
-### Is 200% zoom required?
-
-200% zoom verification is not a default WooStack requirement or blocker. It is optional or out of
-scope unless an explicit project or task accessibility requirement calls for it. When that
-requirement applies, its evidence is required like any other acceptance criterion.
-
-Other applicable accessibility and safety requirements still apply. When zoom is not required,
-listing it as untested coverage does not create a delivery blocker. An untested check is never a
-passing result. Selected checks do not establish full WCAG conformance. See the
-[QA evidence rules](/docs/skills/woostack-qa#evidence-floor-per-step-by-risk) for reporting unobserved signals.
+For consequential authorization, privacy, destructive effects, migration, recovery, or financial
+operations, follow [Execute's stronger evidence requirements](/docs/skills/woostack-execute#implement-and-verify).
+Unresolved privacy evidence stays on HOLD.
 
 ## 2. Explain the selected checks before work
 
-In the ordinary scope summary, say what each planned check covers, why it applies, and what unmet
-proof would block. When a new material risk appears, explain the added check in the same terms.
-Keep it within the authorized outcome; do not turn impact analysis into unlimited new acceptance.
+Say what each planned check covers, why it applies, and what missing proof would block. For a README
+wording change, that might be:
 
-For changes to WooStack itself, the
+```text
+I will compare each documented command with the repository's scripts and inspect
+changed links and anchors. I will not execute deployment commands to verify prose.
+A missing command or broken link will leave that instruction unverified.
+```
+
+Use the target repository's policy. In Woostack itself, the
 [root validation policy](https://github.com/howarewoo/woostack/blob/main/AGENTS.md#validation)
-provides these examples. In another repository, use that project's policy and acceptance criteria.
+distinguishes prose inspection, parser and asset tests, and rendering or build checks. A wording
+edit alone does not require a production build; a changed MDX component or route may.
 
-- Wording or link corrections: inspect changed claims, destinations, and anchors before accepting
-  the correction. A wording edit alone does not trigger a full site test or production build.
-- Parser, generator, catalog, or installation-layout changes: run the relevant existing tests for
-  those contracts before accepting the affected behavior. For shared-asset changes, regenerate and
-  check the declared copies, then run the relevant parser or asset tests before accepting sync and
-  installation parity.
-- MDX, routing, application, dependency, or build-configuration changes: use the applicable rendering
-  or build check. A production build is required when the change can affect it and narrower
-  established checks do not adequately cover the risk. Uncertain impact calls for broader proof,
-  not an unsupported exemption.
-- Changed browser behavior: select an observation of the affected interaction when the task,
-  repository, or a named material risk requires it. Source inspection alone does not prove rendered
-  behavior. For requested PR delivery with meaningful visible changes, Execute requires capture of
-  the running result; [missing media stays disclosed](/docs/skills/woostack-execute#implement-and-verify).
-- Independent review: complete the review required by the project or active workflow before claiming
-  its acceptance. Specialist availability alone does not require every specialist to review the
-  change. Unavailable required review remains unmet under
-  [Execute's contribution rules](/docs/skills/woostack-execute#own-implementation-and-contributions).
-
-For consequential use or release involving authorization, privacy, destructive effects, migration,
-recovery, or financial operations, obtain stronger targeted evidence under
-[Execute's verification policy](/docs/skills/woostack-execute#implement-and-verify). Keep unresolved
-privacy evidence on HOLD.
+Explain newly discovered risks in the same task scope. Accessibility checks follow applicable
+project and task requirements. For example, 200% zoom is not a default Woostack blocker, but becomes
+required when an explicit accessibility requirement calls for it. Unchecked coverage is never a pass,
+and selected checks do not establish full WCAG conformance.
 
 ## 3. Reuse evidence where it still applies
 
-Check the earlier command or observation, tested source, outcome, and limits. Reuse it while the
-relevant source, tests, fixtures, dependencies, configuration, and environment remain equivalent.
-A revision identifier, handoff, or unrelated prose edit alone does not invalidate it.
+Compare the earlier result with the relevant source, tests, fixtures, dependencies, configuration,
+and environment. Reuse it when those inputs remain equivalent; a new commit identifier or handoff
+alone is not a reason to rerun it.
 
-Rerun affected checks when relevant inputs change or equivalence is uncertain. Newly integrated
-combinations need evidence for their interactions; passing contributor checks do not prove an
-untested combination. Use the [evidence-reuse guidance](https://github.com/howarewoo/woostack/blob/main/shared/references/tdd.md#when-evidence-still-applies).
+Rerun affected checks when inputs change or equivalence is uncertain. New combinations need evidence
+for their interactions even if each component passed separately. See
+[evidence reuse](https://github.com/howarewoo/woostack/blob/main/shared/references/tdd.md#when-evidence-still-applies).
 
 ## 4. Report results at the affected boundary
 
-Report what ran, what it showed, and what remains unverified. A pre-existing baseline failure
-remains a failure. Failed, timed-out, cancelled, unavailable, or unrun required checks leave the
-affected boundary unverified; do not relabel them optional or passing. Name the unmet criterion
-and the next actor or condition needed to resume. Follow the
-[bounded-diagnosis guidance](https://github.com/howarewoo/woostack/blob/main/shared/references/tdd.md#slow-checks-bounded-diagnosis-no-waiver)
-without blind retries or duplicate launches.
+State what ran, what it showed, and what remains unverified. Failed, timed-out, cancelled,
+unavailable, or unrun required checks leave the affected outcome unverified. This includes
+pre-existing failures. Name the unmet criterion and the actor or changed condition needed to resume.
+For stalled checks, follow [bounded diagnosis](https://github.com/howarewoo/woostack/blob/main/shared/references/tdd.md#slow-checks-bounded-diagnosis-no-waiver)
+instead of launching duplicate checks or retrying without new evidence.
 
-Keep these delivery outcomes separate:
+Keep implementation acceptance, draft publication, dependent-work readiness, and merge or release
+readiness separate in the report. An authorized draft may disclose missing implementation evidence
+only when its publication conditions permit it. Required hooks, privacy, security, data-loss
+protections, and user limits still apply. Draft visibility alone permits neither dependent work
+nor a completion claim.
 
-- An authorized draft PR may disclose pending or failed implementation acceptance only when its
-  actual publication conditions permit it. Required hooks, clean scoped content, privacy, security,
-  data-loss protections, and user restrictions still bind. Follow the
-  [publication rules](/docs/skills/woostack-execute#requested-commit-and-publication) and
-  [delivery safeguards](https://github.com/howarewoo/woostack/blob/main/shared/references/delivery.md#prepare-and-verify).
-- Implementation acceptance requires the selected acceptance evidence. Draft visibility does not
-  satisfy it; requested delivery can also remain incomplete after local checks pass.
-- Consumer release applies when dependent work exists. Verify the applicable prerequisite content
-  and contract evidence before that work begins; draft publication alone does not release it. See
-  [coordination boundaries](/docs/guides/coordinate-work#2-review-the-plan-then-authorize-execution).
-- Merge and release retain their own requirements. WooStack workflows leave merging, auto-merge,
-  and merge queues to humans. Local proof does not establish remote merge readiness.
-
-Publication, consumer release, and completion are not a universal sequence. Keep their actual
-conditions visible in the result, following the
-[owning coordination workflow](/docs/skills/woostack-orchestrate#coordinate).
+Use the [Execute publication rules](/docs/skills/woostack-execute#requested-commit-and-publication)
+or [Orchestrate coordination rules](/docs/skills/woostack-orchestrate#coordinate) for the active task.
+Only humans merge, enable auto-merge, or queue PRs for merge.
