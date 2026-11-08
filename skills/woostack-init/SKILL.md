@@ -136,17 +136,15 @@ coding advice, or duplicated Woostack workflows. When `AGENTS.md` is also in the
 include or refine short conditional pointers to `PRODUCT.md`, `DESIGN.md`, and `ARCHITECTURE.md`
 where applicable. Explain when to read architecture guidance, such as before changing component
 boundaries or cross-component flows; link rather than copying content or assuming automatic loading.
-When creating or updating `AGENTS.md` during Woostack adoption, write a concise,
-availability-aware routing paragraph locally from this wording, replacing unconditional Woostack
-usage or installation requirements:
+When creating or updating `AGENTS.md` during Woostack adoption, write concise,
+availability-aware skill guidance from this wording, replacing unconditional Woostack usage or
+installation requirements and any existing router guidance. Do not add router references:
 
 ```markdown
-Use woostack skills when available. At the start of work, `using-woostack` may load
-project rules and route `/woostack-*` requests to the matching installed skill when it
-is installed; it is an optional navigation aid, not a conduit. Each installed skill
-carries its own activation, authority, approval, and completion behavior, so a missing
-router or sibling skill must not block ordinary repository work. If woostack skills
-are unavailable, follow this file and continue ordinary work with the host's available
+Use woostack skills when available. Each installed skill carries its own activation,
+authority, approval, and completion behavior and works independently. Missing skills
+must not block ordinary repository work. If woostack skills are unavailable, follow
+this file and continue ordinary work with the host's available
 capabilities; installation is not required. For an explicit `/woostack-*` command whose
 skill is unavailable, name the missing skill and ask whether to install it or proceed
 without it before continuing.
