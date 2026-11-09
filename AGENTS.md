@@ -11,8 +11,8 @@ Follow this file first when it conflicts with generic agent defaults.
 
 - Skills remain independently usable; optional delegated composition follows the
   [contributor guide](CONTRIBUTING.md#editing-conventions), which also owns
-  [shared assets](CONTRIBUTING.md#shared-canonical-references) and the
-  [external Design exception](CONTRIBUTING.md#external-design-skills).
+  [shared assets](CONTRIBUTING.md#shared-canonical-references) and
+  [optional design guidance](CONTRIBUTING.md#optional-design-guidance).
 - Keep application source and build configuration in the owning `apps/` package.
   Root pnpm and Turborepo configuration owns workspace orchestration and the shared
   lockfile. Published supporting assets stay inside each skill; their shared sources live in `shared/`.

@@ -26,8 +26,8 @@ Orchestrate delegates approved outcomes to task owners, normally using installed
 retaining cross-task planning, capacity, integration acceptance, and delivery coordination.
 Task owners choose implementation decomposition and specialist handoffs within inherited limits;
 composition adds no user approval or publication authority. See the
-[composition boundary](CONTRIBUTING.md#editing-conventions). Design's selected external skills
-follow its [separate exception](CONTRIBUTING.md#external-design-skills).
+[composition boundary](CONTRIBUTING.md#editing-conventions). Prototype may use
+[optional design guidance](CONTRIBUTING.md#optional-design-guidance) without depending on it.
 Shared procedures are reused through
 [bundled references](CONTRIBUTING.md#shared-canonical-references) maintained from one canonical
 source, so the active workflow keeps its own gates and evidence rules at every boundary.
@@ -54,9 +54,10 @@ An accurate blocked disposition is valid; unmet acceptance is never completion.
 The same senior bot can plan and coordinate assignments to one existing junior using Execute.
 Execute and the other implementing skills bundle the applicable shared standards and load them
 only for relevant changes.
-Design coordinates UI work using a selected external lead and relevant specialists, with agreement
-before consequential design changes. Flow Layout arranges existing screen frames without redesigning
-them. Design System owns project component catalogs; a catalog's components, tokens, examples,
+Prototype explores and refines interactive UI references outside the target project, which stays
+read-only. Its portable handoff preserves approved decisions, important behavior, and evidence limits
+for separately requested planning or implementation. Approval starts neither workflow. External
+design guidance is optional. Flow Layout arranges existing screen frames without redesigning them. Design System owns project component catalogs; a catalog's components, tokens, examples,
 coverage record, and rules belong to the target project.
 Existing compatible APIs stay intact, with adaptations at catalog callers. Existing-catalog
 inspection is read-only unless maintenance is explicitly requested.

@@ -12,9 +12,9 @@ scripts, and templates inside the same skill directory. The host assistant follo
 these instructions; the documentation site and source checkout are not runtime
 prerequisites. [using-woostack](skills/using-woostack/SKILL.md#command-routing) is an
 optional command index, not a workflow dependency.
-[Design](skills/woostack-design/SKILL.md#selected-skills) coordinates selected external design
-skills. Those installed bundles are dependencies of its selected stages, not repository build
-dependencies; no sibling Woostack workflow is required.
+[Prototype](skills/woostack-prototype/SKILL.md) bundles its prototype-quality and brand-foundation
+references. It writes artifacts outside the target project and hands off a portable reference;
+external design guidance is optional, not a runtime or build dependency.
 
 [Orchestrate](skills/woostack-orchestrate/SKILL.md#coordinate) coordinates delivery groups;
 each native task worker normally runs installed [Execute](skills/woostack-execute/SKILL.md),

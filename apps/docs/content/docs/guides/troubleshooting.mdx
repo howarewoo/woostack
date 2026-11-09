@@ -12,12 +12,16 @@ If needed, follow [Getting started](/docs/getting-started). Skill requests use t
 [loading mechanism](/docs/harnesses#native-skill-invocation); they are not terminal commands.
 Resume when the requested skill is discoverable. Its sibling skills need not be installed.
 
-## Design cannot start a selected external stage
+## Prototype cannot preview or save its output
 
-Check the named dependency and required assets in the installed-skill view. Woostack does not
-install Design's external skills. Approve the specific missing installation or omit that stage;
-a declined installation must not be retried. Resume after confirming the selected bundle is available.
-See [Design dependencies](/docs/skills/woostack-design#dependency-boundary).
+Check that the host provides writable artifact storage outside the target project and a permitted
+browser/runtime for the isolated preview. Do not put the prototype in an ignored project directory
+or run project setup as a workaround. Missing storage blocks artifact creation; missing preview
+capabilities leave the affected visual and interaction checks unverified, not passed.
+
+Continue useful draft work within the available capabilities and report what is missing. Optional
+external design skills are not prerequisites and need no installation to unblock the normal workflow.
+See [Prototype isolation](/docs/skills/woostack-prototype#isolate-the-work).
 
 ## GitHub access fails
 
@@ -74,10 +78,24 @@ If Git or the target is inaccessible, report repository status as unknown.
 ## A command has been retired
 
 `woostack-build`, `woostack-fix`, `woostack-change`, `woostack-status`, `woostack-tdd`,
-`woostack-prepare`, `woostack-plan`, `woostack-ideate`, and `woostack-harden` have no aliases.
+`woostack-prepare`, `woostack-plan`, `woostack-ideate`, `woostack-harden`, and `woostack-design` have no aliases.
 Update old bot instructions using the [current command index](/docs/skills/using-woostack#command-routing).
 Whiteboard handles planning and review; Execute handles bounded implementation. Old run records
 remain historical data and must not be migrated or deleted automatically.
+
+For former Design use, choose [Prototype](/docs/skills/woostack-prototype) for isolated interactive
+mockups or Execute for authorized production UI changes. In an older installation, inspect the
+host's installed-skill list, preserve any customizations, and remove only the retired
+`woostack-design` through its supported management mechanism. Do not remove `woostack-design-system`.
+Install Prototype in the intended host/scope using the supported installer, for example:
+
+```bash
+pnpx skills add howarewoo/woostack --skill woostack-prototype
+```
+
+Confirm that Prototype is discoverable and the retired Design copy is no longer active. Installing
+the new name does not establish that the old local copy was removed; no automatic cleanup or alias
+is provided.
 
 ## Still blocked
 

@@ -45,7 +45,7 @@ For an explicit one-run model or effort request, apply the bundled
 | Review a pull request | Use [Pullfrog](https://pullfrog.com/). |
 | Address every unresolved thread on one exact existing PR | `woostack-address-comments` |
 | Render a supplied document or verified source as audience-tailored HTML | `woostack-visualize` in a native subagent or isolated task context, not the parent |
-| Coordinate UI design, prototyping, refinement, or critique using selected external skills | `woostack-design` |
+| Explore UI directions or create and refine isolated interactive mockups | `woostack-prototype` |
 | Arrange existing multi-step screen flows without restyling their contents | `woostack-flow-layout` |
 | Create, adapt, inspect, or explicitly maintain a project-owned component catalog | `woostack-design-system` |
 | Investigate a root cause without implementing a fix | `woostack-debug` |
@@ -57,9 +57,12 @@ its skill or references in the parent. Already-delegated visualization workers r
 Without isolated execution, report the limitation and leave visualization unrun.
 
 `woostack-bootstrap`, `woostack-build`, `woostack-fix`, `woostack-change`, `woostack-status`,
-`woostack-tdd`, `woostack-prepare`, `woostack-plan`, `woostack-harden`, and `woostack-ideate` are retired without aliases.
+`woostack-tdd`, `woostack-prepare`, `woostack-plan`, `woostack-harden`, `woostack-ideate`, and
+`woostack-design` are retired without aliases.
 Explain a removed explicit command without executing a replacement. For former Ideate, Plan, or Harden
 requests, recommend Whiteboard and preserve the requested exploration, planning, review-only, or publication scope.
+For former Design requests, recommend Prototype for isolated mockups or Execute for authorized
+production UI changes. Do not silently run either replacement.
 
 For goals needing refinement, recommend Whiteboard, whether the caller is a person or a delegated
 agent. Sufficient context needs no interview. Saving, agreeing to, or publishing its result does not
@@ -93,4 +96,5 @@ For an explicit Woostack command whose skill is unavailable, name the missing sk
 whether to install it or proceed without it. Do not approximate a gated workflow unless the user
 explicitly asks to proceed without that skill.
 
-Selected external dependencies follow the active skill's own dependency and permission boundaries.
+Optional external guidance follows the active skill's scope and permissions; its absence is not
+a workflow prerequisite or a reason to request installation.
