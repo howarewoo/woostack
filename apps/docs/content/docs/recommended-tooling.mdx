@@ -1,0 +1,38 @@
+---
+title: Recommended tooling
+description: Personal recommendations for an agent development environment, remote access, and a coding harness with Pi extensions.
+---
+
+These are my personal recommendations for working with coding agents, not requirements for
+using Woostack. They cover the development environment and agent harness. For application
+technologies, see [Recommended tech stack](/docs/recommended-stack).
+
+## Development environment and remote access
+
+[Orca](https://orca.dev) is my recommendation for an IDE, or agent development environment
+(ADE). It brings coding agents, worktrees, terminals, and code review into one application.
+
+[Tailscale](https://tailscale.com/) provides remote access to your development machine over a
+private network.
+
+## Coding harness
+
+[Pi](https://pi.dev/) is my recommended coding harness. Its core is deliberately small, with
+extensions that add tools and change the terminal interface. The packages below are installed
+in my Pi setup; they are optional additions, not a required Woostack bundle.
+
+Extensions execute code, so review their source before installing them.
+
+- [pi-zentui](https://github.com/lmilojevicc/pi-zentui) customizes the terminal UI, including
+  the editor, messages, progress display, and footer.
+- [pi-subagents](https://github.com/nicobailon/pi-subagents) delegates research, implementation,
+  review, and parallel work to focused child agents.
+- [pi-btw](https://github.com/dbachelder/pi-btw) opens side conversations while the main agent
+  continues working.
+- [@juicesharp/rpiv-todo](https://github.com/juicesharp/rpiv-mono/tree/main/packages/rpiv-todo)
+  keeps a visible task list above the editor so you can follow the agent's progress.
+- [@juicesharp/rpiv-ask-user-question](https://github.com/juicesharp/rpiv-mono/tree/main/packages/rpiv-ask-user-question)
+  adds structured clarification dialogs with selectable options, custom answers, and previews.
+
+Side conversations and subagents are not automatically isolated workspaces. Avoid concurrent
+edits to the same files; separate conversations alone do not prevent editing conflicts.

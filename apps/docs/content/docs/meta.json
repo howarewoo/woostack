@@ -2,6 +2,7 @@
   "title": "Docs",
   "pages": [
     "index",
+    "recommended-tooling",
     "---Agent skills---",
     "getting-started",
     "concepts",
