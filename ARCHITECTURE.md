@@ -1,7 +1,7 @@
 # Architecture
 
 Woostack publishes independently installable coding-agent skills, with two supporting
-applications. This overview maps the implemented repository; [DESIGN.md](DESIGN.md)
+applications and an optional Pi UI extension. This overview maps the implemented repository; [DESIGN.md](DESIGN.md)
 remains the owner of workflow interaction and source-ownership principles.
 [CONTRIBUTING.md](CONTRIBUTING.md#what-to-change) provides the detailed change map.
 
@@ -60,16 +60,31 @@ owns UI controls, and `src/styles.css` owns tokens. `src/inventory.json` records
 baseline and project extensions. The catalog README owns provenance and maintenance
 rules; the app owns its own source and is not generated from skill assets at runtime.
 
+## Pi subagent UI
+
+[packages/pi-subagents-ui/](packages/pi-subagents-ui/README.md) is an optional Pi extension,
+not a skill or delegation runtime. It renders an editor-adjacent fleet widget and an interactive
+inspector using Pi's host TUI. Its RPC client speaks the public pi-subagents event-bus protocol;
+the controller consumes versioned async snapshots and current-session foreground tool events.
+Runtime notifications trigger coalesced reads. Session shutdown cancels requests and removes
+listeners; no child files or runtime lifecycle records are read or written directly.
+
+The separately installed pi-subagents owns execution, session ownership checks, steering, stops,
+and recovery. The UI owns selection, transcript scrolling, confirmation, and display-only state.
+Workflow rows expose a whole-run overview and stop, not inferred child routing. The extension
+neither configures the runtime's existing renderer nor adds Orchestrate policy.
+
 ## Workspace and verification boundaries
 
 The root [package.json](package.json), [pnpm workspace](pnpm-workspace.yaml), and
-[turbo.json](turbo.json) coordinate app tasks with one root lockfile. Each app owns
-its dependencies, source, and build configuration. [scripts/turbo.mjs](scripts/turbo.mjs)
+[turbo.json](turbo.json) coordinate app and package tasks with one root lockfile. Each app or
+package owns its dependencies, source, and build configuration. [scripts/turbo.mjs](scripts/turbo.mjs)
 adds the active Node/platform/architecture identity to task cache keys; Turborepo
 keeps cache files within the checkout.
 
 Deterministic generator, asset, and projection tests live in `apps/docs/scripts/`;
-workspace-runner tests live in `scripts/`. These checks do not establish that a
+workspace-runner tests live in `scripts/`. Pi UI protocol, controller, rendering, and extension
+wiring tests live in `packages/pi-subagents-ui/test/`. These checks do not establish that a
 host assistant followed a workflow. [AGENTS.md](AGENTS.md#validation) owns conditional
 verification, including separate workflow smoke recipes. The shipped
 [Pullfrog workflow](.github/workflows/pullfrog.yml) runs review agents, not a repository

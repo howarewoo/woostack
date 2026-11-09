@@ -28,6 +28,8 @@ Current scope:
   creation, read-only inspection, and explicitly scoped maintenance.
 - A documentation site with authored guides and references generated from skill sources.
 - A standalone component catalog for inspecting components, tokens, and examples.
+- An optional Pi subagent UI for fleet inspection, transcripts, steering, and confirmed stops,
+  backed by the separately installed pi-subagents runtime.
 
 Every skill is independently installable and owns its own activation, workflow, and approval
 boundaries. The [command router](skills/using-woostack/SKILL.md#command-routing) is an optional
@@ -36,13 +38,15 @@ maintained from one canonical source. No sibling Woostack workflow is required.
 [Design](skills/woostack-design/SKILL.md#selected-skills) requires its selected external skills;
 installation and execution remain subject to its dependency and permission boundaries.
 
-The implemented repository contains the skills collection, stack documentation, and two supporting
-applications. The autonomous setup remains in development, with installation and configuration
+The implemented repository contains the skills collection, stack documentation, two supporting
+applications, and an optional host-specific UI extension. The autonomous setup remains in development, with installation and configuration
 not yet documented. This repository is not a place to scaffold unrelated products.
 Application source is confined to `apps/docs/` and
-`apps/design/`; supporting skill assets live with their owning skills.
-A pnpm workspace and Turborepo coordinate the apps with a shared root lockfile,
-while each app owns its dependencies.
+`apps/design/`; host extensions live in `packages/`, and supporting skill assets live with their
+owning skills. The [Pi UI](packages/pi-subagents-ui/README.md) does not implement delegation,
+worktree management, or Orchestrate policy and is not a prerequisite of any skill.
+A pnpm workspace and Turborepo coordinate the apps and extension with a shared root lockfile,
+while each package owns its dependencies.
 Plans, issues, status boards, and reports do not authorize additional work or prove delivery.
 Merging remains a human decision.
 

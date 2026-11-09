@@ -1,9 +1,9 @@
 # Contributing
 
 This repo publishes skills for AI coding assistants, their supporting files, a documentation
-site, and a standalone component catalog. The [command index](skills/using-woostack/SKILL.md#command-routing)
+site, a standalone component catalog, and an optional Pi subagent UI extension. The [command index](skills/using-woostack/SKILL.md#command-routing)
 lists Whiteboard and the other public commands. Read [AGENTS.md](AGENTS.md)
-for standing repository rules, the two-app boundary, and verified checks.
+for standing repository rules, source ownership, and verified checks.
 
 ## What to change
 
@@ -39,6 +39,7 @@ for standing repository rules, the two-app boundary, and verified checks.
 | Update reader-facing guides | `apps/docs/content/docs/` |
 | Change the documentation site or skill-page generator | `apps/docs/` |
 | Change the standalone component catalog | `apps/design/` |
+| Change the Pi subagent UI extension | `packages/pi-subagents-ui/` |
 | Change workspace orchestration or shared dependency resolution | Root pnpm/Turborepo configuration and `pnpm-lock.yaml` |
 
 ## Workflow
@@ -60,8 +61,10 @@ for standing repository rules, the two-app boundary, and verified checks.
 The approved applications are the documentation site in `apps/docs/` and the standalone
 catalog in `apps/design/`. Their [docs README](apps/docs/README.md) and
 [catalog README](apps/design/README.md) cover app-specific development.
-Root pnpm commands use Turborepo to coordinate both apps (including lint, format, test,
-and verify tasks); install from the root with `pnpm install --frozen-lockfile` using the shared root lockfile.
+The optional [Pi UI package](packages/pi-subagents-ui/README.md) owns its host-specific extension
+source and tests. Root pnpm commands use Turborepo to coordinate apps and packages (including
+lint, format, test, and verify tasks); install from the root with
+`pnpm install --frozen-lockfile` using the shared root lockfile.
 
 ## Editing conventions
 
@@ -78,7 +81,8 @@ and verify tasks); install from the root with `pnpm install --frozen-lockfile` u
   Design System application/configuration sources ship as non-runnable
   `.template` assets; instantiate them only in target or disposable repositories. Runnable
   application code and app build configuration belong in `apps/docs/` or
-  `apps/design/`. App manifests own their dependencies; the root owns pnpm workspace
+  `apps/design/`; host extension source belongs in its owning `packages/` directory.
+  Package manifests own their dependencies; the root owns pnpm workspace
   and Turborepo orchestration configuration and the shared `pnpm-lock.yaml`.
 - Pull-request review uses [Pullfrog](https://pullfrog.com/); the shipped workflow is
   `.github/workflows/pullfrog.yml`.
@@ -98,7 +102,7 @@ and verify tasks); install from the root with `pnpm install --frozen-lockfile` u
 - GitHub operations do not add commands.
 - Keep each `SKILL.md` consistent with its references. Its `description` should explain when to
   use the skill; put the procedure in the body and linked references.
-- Keep published skills and documentation harness-agnostic. Describe required capabilities and
+- Keep published skills and their documentation harness-agnostic. Describe required capabilities and
   inspect active tools, schemas, and permissions instead of naming coding assistants, their
   configuration paths, or their tool APIs. Preserve required isolation and approval boundaries;
   portability does not imply that every assistant can run every workflow.

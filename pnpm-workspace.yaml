@@ -1,5 +1,6 @@
 packages:
   - apps/*
+  - packages/*
 minimumReleaseAgeExclude:
   # Next release required by the Cloudflare adapter's supported peer range.
   - '@next/env@16.4.3'
@@ -16,3 +17,6 @@ allowBuilds:
   # Native binary verification for the CLI toolchain and Workers runtime.
   esbuild@0.28.2: true
   workerd@1.20261019.1: true
+  # Pi's SDK ships built artifacts; these transitive lifecycle scripts are not needed.
+  '@google/genai@2.21.0': false
+  protobufjs@7.6.6: false

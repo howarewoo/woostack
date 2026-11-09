@@ -66,6 +66,12 @@ component catalog in `apps/design/`. Each app owns its source, build configurati
 and dependency manifest. Root pnpm and Turborepo configuration orchestrate app tasks;
 the root `pnpm-lock.yaml` is the shared dependency-resolution record.
 The catalog remains a separate application rather than a documentation route.
+Optional host extensions live in `packages/` with their own source, manifest, and tests.
+The [Pi subagent UI](packages/pi-subagents-ui/README.md) uses a compact panel beneath the editor
+and a keyboard-driven transcript inspector. Text labels accompany state symbols; selection stays
+attached to a run ID through refreshes. Steering is explicit and stops require confirmation, with
+whole-workflow actions labelled as such. The runtime owns execution and recovery; the UI does not
+add worktree, delivery, or orchestration policy.
 
 ## Documentation surface
 

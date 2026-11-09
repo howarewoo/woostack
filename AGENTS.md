@@ -2,7 +2,7 @@
 
 Woostack publishes coding-agent skills and supporting assets. Applications live in
 `apps/`: the documentation site in `apps/docs/` and the component catalog in
-`apps/design/`. Docs work also follows
+`apps/design/`. Optional host extensions live in `packages/`. Docs work also follows
 [apps/docs/AGENTS.md](apps/docs/AGENTS.md). Keep `.claude/CLAUDE.md` as a symlink here.
 
 Follow this file first when it conflicts with generic agent defaults.
@@ -35,6 +35,7 @@ Follow this file first when it conflicts with generic agent defaults.
 | Authored documentation | `apps/docs/content/docs/` |
 | Documentation application and generator | `apps/docs/`; follow its local instructions |
 | Component catalog | `apps/design/` |
+| Pi subagent UI extension | `packages/pi-subagents-ui/` |
 | Workspace orchestration and lockfile | Root pnpm and Turborepo configuration |
 
 [CONTRIBUTING.md](CONTRIBUTING.md#what-to-change) has the detailed ownership map.
@@ -69,7 +70,9 @@ implementation, the selected skill owns its workflow, provider calls, and approv
 Install workspace dependencies from the repository root with
 `pnpm install --frozen-lockfile`. Root `pnpm dev`, `pnpm build`, `pnpm test`,
 `pnpm lint`, `pnpm lint:fix`, `pnpm format`, `pnpm format:check`, `pnpm verify`,
-and `pnpm types:check` run Turborepo tasks. Select only checks that
+and `pnpm types:check` run Turborepo tasks. The Pi UI package has focused tests,
+type, lint, and format checks: `pnpm --filter @woostack/pi-subagents-ui verify`.
+Select only checks that
 cover what the edit can break; filter an app with `--filter=docs` or
 `--filter=design`. Oxlint and Oxfmt tool the workspace, with `@shadcn/lint`
 registered in app configs without persistent rule enforcement.

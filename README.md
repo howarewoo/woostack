@@ -10,6 +10,10 @@ and an autonomous agent setup in development. Start with the part you need:
 You can adopt the tech stack or the skills independently. Using the skills does not require
 the recommended stack or the autonomous setup. You make the product decisions and authorize work.
 
+For Pi users, the optional [subagent UI extension](packages/pi-subagents-ui/README.md) adds a
+compact fleet panel and transcript inspector over a separately installed pi-subagents runtime.
+It is independent of skill installation and does not change Orchestrate's workflow.
+
 The rest of this overview covers the agent skills. They guide an AI coding assistant to inspect
 the repository and GitHub and verify outcomes before reporting what changed or is ready for review.
 

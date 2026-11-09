@@ -1,0 +1,51 @@
+{
+  "name": "@woostack/pi-subagents-ui",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A Claude-like fleet and transcript UI for the installed pi-subagents runtime",
+  "keywords": [
+    "pi-package"
+  ],
+  "license": "MIT",
+  "files": [
+    "src",
+    "assets",
+    "README.md"
+  ],
+  "type": "module",
+  "scripts": {
+    "test": "node --test test/*.test.ts",
+    "types:check": "tsc --noEmit",
+    "lint": "oxlint src test",
+    "lint:fix": "oxlint --fix src test",
+    "format": "oxfmt --write .",
+    "format:check": "oxfmt --check .",
+    "verify": "pnpm test && pnpm types:check && pnpm lint && pnpm format:check"
+  },
+  "devDependencies": {
+    "@earendil-works/pi-coding-agent": "1.5.0",
+    "@earendil-works/pi-tui": "1.5.0",
+    "@types/node": "26.6.6",
+    "typescript": "7.0.2"
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "*",
+    "@earendil-works/pi-tui": "*"
+  },
+  "peerDependenciesMeta": {
+    "@earendil-works/pi-coding-agent": {
+      "optional": true
+    },
+    "@earendil-works/pi-tui": {
+      "optional": true
+    }
+  },
+  "engines": {
+    "node": ">=22.19.0"
+  },
+  "pi": {
+    "extensions": [
+      "./src/index.ts"
+    ]
+  }
+}
