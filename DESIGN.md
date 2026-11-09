@@ -4,8 +4,13 @@
 
 Inspect repository evidence before asking questions. Resolve discoverable facts and routine technical
 implementation details within authority; preserve user decisions and keep requested actions separate
-from contextual evidence. Whiteboard resolves material ambiguity upfront, including observable
-behavior, acceptance, permissions, data handling, compatibility, cost, and recovery. Reversibility
+from contextual evidence. Whiteboard tests solution-first requests against users, their current
+workaround, and the desired improvement, considering removal, reuse, or a smaller alternative.
+It leads with an evidence-backed direction and trade-offs, distinguishing product value assumptions
+from technical feasibility without requiring a business case or experiment for every task.
+Whiteboard resolves material ambiguity upfront, including consequential product behavior, acceptance,
+permissions, data handling, compatibility, cost, and recovery. Minor observable details within agreed
+behavior remain agent-owned; that distinction cannot bypass safety constraints. Reversibility
 does not authorize a consequential choice. Its concrete walkthrough inspects material transitions
 and relevant failure and recovery paths rather than requiring an exhaustive questionnaire.
 Authorized host-supported read-only scouts may gather evidence; Whiteboard reconciles their findings
@@ -28,7 +33,11 @@ Shared procedures are reused through
 source, so the active workflow keeps its own gates and evidence rules at every boundary.
 Whiteboard is the planning entry point for people and delegated agents, including new projects.
 It develops requirements, design walkthroughs, and a visual model consistent with one portable plan,
-without requiring questions when context suffices. Requirements-only exploration stops at the
+without requiring questions when context suffices. The plan carries requirements, acceptance,
+settled decisions and rationale, material behavior, real dependencies, and precise unresolved
+questions with owners and resolution conditions. A fresh Orchestrate session can propose execution
+from that plan alone without inventing behavior or allocating blocked dependents; execution
+grouping, allocation, and delivery stay with Orchestrate. Requirements-only exploration stops at the
 requested depth without forcing a solution or delivery plan. Whiteboard also owns review-only
 requests and explicit issue publication; Ideate, Plan, and Harden are retired.
 Bounded creation belongs to Execute. These workflows require neither one another nor Init;

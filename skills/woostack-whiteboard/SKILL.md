@@ -5,7 +5,8 @@ description: Use when exploring requirements, planning a goal, refining an idea 
 
 # woostack-whiteboard
 
-Develop requirements or a plan a fresh reader can explain, not just approve. Refine the goal,
+Guide project design with evidence-backed recommendations, not just a requirements inventory.
+Develop requirements or a plan a fresh reader can explain, not just approve. Refine the problem,
 requirements, solution, trade-offs, and delivery steps to the requested depth. For implementation
 plans, maintain a visual model alongside the text. Make consequential choices and remaining
 uncertainty understandable, including why some details are deferred. This is planning, not an
@@ -50,10 +51,14 @@ rewrite it, restart discovery, or require a new diagram unless requested.
 
 ## Collaborate
 
-1. **Frame the goal.** Establish the problem, users, desired outcome, first useful scope, and
-   non-goals. Reflect the current understanding before choosing a solution. For broad or uncertain
-   goals, survey consequential questions across the outcome before developing one area deeply;
-   investigate first the unknowns whose answers could invalidate downstream work.
+1. **Frame the goal.** Establish who faces the problem, their current workaround, the desired
+   improvement, first useful scope, and non-goals. Treat a solution-first request as a starting
+   hypothesis: constructively check whether removal, existing capabilities, or a smaller change
+   could improve the user's situation before accepting a new feature. Keep this proportional to
+   the task, not a mandatory business case. Reflect an evidence-backed working hypothesis and
+   recommended direction, naming what is observed versus assumed. For broad or uncertain goals,
+   survey consequential questions before deep design; investigate first the unknowns whose
+   answers could invalidate downstream work.
 2. **Make requirements explicit.** Separate functional requirements (observable actions, results,
    permissions, state transitions, and consequential failure behavior) from nonfunctional
    requirements (relevant performance, reliability, security, accessibility, and compatibility
@@ -62,7 +67,8 @@ rewrite it, restart discovery, or require a new diagram unless requested.
    the design. Propose targets as proposals; never invent agreed workload, budget, or quality targets.
 3. **Develop the smallest viable direction.** Investigate removal, reuse, and simplification before
    adding work, while preserving necessary safety and compatibility. Explain consequential
-   alternatives and recommend one with its costs and trade-offs. Use existing viable technology;
+   alternatives and recommend one with its costs and trade-offs, using concrete journeys to help
+   the user decide rather than handing back an unranked menu. Use existing viable technology;
    research material unsettled choices from current authoritative sources rather than imposing a
    default stack. Fill routine technical implementation details yourself within settled requirements;
    label proposed defaults without treating reversibility as authority to choose material behavior.
@@ -75,8 +81,13 @@ rewrite it, restart discovery, or require a new diagram unless requested.
    unfamiliar concepts where they affect a decision, at the user's level of detail.
 5. **Challenge the proposal.** Check requirements, diagram, and delivery steps against each other
    and the evidence. Surface conflicts, omitted behavior, unsupported assumptions, and material risks
-   with their consequences and recommended corrections. Before recommending a platform-dependent
-   design, verify its required capability against current authoritative evidence and, where relevant,
+   with their consequences and recommended corrections. Separate product assumptions (will this
+   improve the user's situation?) from technical feasibility (can it work within the constraints?).
+   When a product assumption materially affects the direction, propose proportionate learning or
+   success evidence, such as observing the existing workaround or trying the proposed journey.
+   Do not invent agreed metrics or require analytics, experiments, or new infrastructure by default.
+   Before recommending a platform-dependent design, verify its required capability against current
+   authoritative evidence and, where relevant,
    the intended account, plan or entitlement, repository visibility, and runtime environment. Check
    accessible setup and access facts; general documentation alone does not prove the intended account
    is configured. Distinguish supported capability from missing setup, missing access, and unresolved
@@ -110,9 +121,13 @@ These responsibilities apply at the requested depth, not as a questionnaire, fix
 headings, or separate approval gates. Proceed without questions or a live conversation when the
 supplied context suffices.
 Resolve discoverable repository facts yourself; do not re-ask established decisions or ask routine
-technical implementation questions. Ask during Whiteboard whenever unresolved ambiguity could change
-observable behavior, acceptance, permissions, data handling, compatibility, cost, or recovery. Do not
-shift those questions to execution or treat a reversible choice as permission to decide it. Use
+implementation or design questions within agreed behavior. A minor observable detail such as wording
+or spacing can be agent-owned when it does not alter the agreed meaning, outcome, or constraints.
+Ask during Whiteboard when unresolved ambiguity could consequentially change product behavior or
+acceptance, permissions, data handling, compatibility, cost, or recovery. Do not use the minor-detail
+distinction to bypass those safety boundaries, shift material questions to execution, or treat
+reversibility as permission to decide them. Bring evidence, a recommended answer, and trade-offs so
+the user can decide, rather than asking them to design the solution unaided. Use
 small batches of independent questions, resolving upstream choices first with the host's question
 capability when available. Revisit settled decisions only when relevant evidence changes them.
 
@@ -159,12 +174,18 @@ or sibling visualization skill is required; absent rendering support changes the
 For implementation-planning requests, return one portable, readable Markdown plan containing the goal
 and non-goals, explicit functional and nonfunctional requirements and constraints, solution and visual,
 consequential decisions and rationale, implementation steps with acceptance and dependencies, and
-remaining uncertainty and relevant evidence. Distinguish agreed requirements, delegated decisions,
-proposed defaults, and unresolved decisions. Carry critical context into the result so a fresh reader
+remaining uncertainty and relevant evidence. Preserve material journeys, state transitions, failure
+and recovery behavior in the text as well as the visual. Carry relevant checks and the distinction
+between completion, draft-publication, and consumer-release gates into the plan itself. Distinguish
+agreed requirements, delegated decisions, proposed defaults, and unresolved decisions. Carry critical context into the result so a fresh reader
 need not recover it from the conversation. For multi-session plans, summarize the goal, scope,
 decisions and rationale, next questions, blockers, and deferred uncertainty in that same plan;
-link supporting detail without replacing critical context. No mandatory template, identifiers,
-separate ledger, or machine-readable manifest is required.
+link supporting detail without replacing critical context. A fresh Orchestrate session should be
+able to form a faithful read-only execution proposal from the plan alone: preserve settled decisions
+and acceptance, identify ready increments and blocked dependents, and avoid inventing behavior.
+Whiteboard supplies the outcome and real prerequisites, not preallocated workers, branches, or PRs;
+Orchestrate retains grouping, allocation, and delivery under its own authority. No mandatory template,
+identifiers, separate ledger, or machine-readable manifest is required.
 
 Stop when the requested question is answered at its intended depth. For implementation plans,
 converge when consequential choices are settled and walkthroughs have addressed material
