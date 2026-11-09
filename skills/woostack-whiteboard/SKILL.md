@@ -51,7 +51,9 @@ rewrite it, restart discovery, or require a new diagram unless requested.
 ## Collaborate
 
 1. **Frame the goal.** Establish the problem, users, desired outcome, first useful scope, and
-   non-goals. Reflect the current understanding before choosing a solution.
+   non-goals. Reflect the current understanding before choosing a solution. For broad or uncertain
+   goals, survey consequential questions across the outcome before developing one area deeply;
+   investigate first the unknowns whose answers could invalidate downstream work.
 2. **Make requirements explicit.** Separate functional requirements (observable actions, results,
    permissions, state transitions, and consequential failure behavior) from nonfunctional
    requirements (relevant performance, reliability, security, accessibility, and compatibility
@@ -81,8 +83,11 @@ rewrite it, restart discovery, or require a new diagram unless requested.
 6. **Shape delivery for implementation plans.** Outline the complete outcome and real dependencies
    as small coherent, verifiable implementation increments. Each produces one observable behavior or resolves one
    consequential uncertainty before dependent expansion, with bounded scope/non-goals and relevant
-   existing or specifically justified evidence. Identify candidate behavior-preserving preparation
-   separately from the minimum genuinely coupled outcome, and retain only consequential reasons a
+   existing or specifically justified evidence. Specify only what current evidence supports:
+   a precise unanswered question can be planned even when blocked; an in-scope area whose question
+   cannot yet be stated stays deferred uncertainty, with the upstream answer needed to clarify it.
+   Keep both distinct from non-goals; do not invent downstream tasks to fill the unknowns.
+   Identify candidate behavior-preserving preparation separately from the minimum genuinely coupled outcome, and retain only consequential reasons a
    materially smaller supported step is insufficient. Name observed or proposed implementation
    surfaces when useful. Implementation checkpoints, contributor assignments, issues, PRs, and
    releases are distinct boundaries; a checkpoint may stay inside the plan without creating another
@@ -131,8 +136,10 @@ and non-goals, explicit functional and nonfunctional requirements and constraint
 consequential decisions and rationale, implementation steps with acceptance and dependencies, and
 remaining uncertainty and relevant evidence. Distinguish agreed requirements, delegated decisions,
 proposed defaults, and unresolved decisions. Carry critical context into the result so a fresh reader
-need not recover it from the conversation. No mandatory template, identifiers, separate ledger, or
-machine-readable manifest is required.
+need not recover it from the conversation. For multi-session plans, summarize the goal, scope,
+decisions and rationale, next questions, blockers, and deferred uncertainty in that same plan;
+link supporting detail without replacing critical context. No mandatory template, identifiers,
+separate ledger, or machine-readable manifest is required.
 
 Stop when the requested question is answered at its intended depth. For implementation plans,
 converge when consequential choices are settled and walkthroughs have addressed material
@@ -153,7 +160,11 @@ File GitHub issues only when explicitly requested within the user's authority, f
 no extra approval ceremony is required. Resolve the exact destination, reuse existing issues, preserve
 human content, and independently read back affected issues and requested relationships. Each issue
 carries a coherent outcome, scope/non-goals, acceptance and verification, and real prerequisites,
-not one issue per implementation checkpoint. Verify named paths and commands against source or mark
+not one issue per implementation checkpoint. For a decision or investigation issue, the outcome is
+an answer: state the precise question, evidence needed, who has authority to decide, resolution
+condition, and affected dependents. Keep uncertainty that cannot yet be framed as a precise
+question in the plan rather than speculative issues. No special labels or hierarchy are required.
+Verify named paths and commands against source or mark
 them as proposed work. Use the bundled [patterns](references/patterns.md) and
 [testing guidance](references/tdd.md) for relevant design and verification expectations.
 Return actual issue URLs, reused versus created outcomes, read-back evidence, and missing relationships;

@@ -380,6 +380,23 @@ review only of a plan with a source discrepancy and observe findings without rew
 Give only the final plan to a fresh session and check that it preserves decisions, acceptance, and
 blockers without requiring the original conversation. Keep actual-host evidence separate from traces.
 
+**Uncertainty and decision-issue variant:** request a read-only plan for a synthetic audit export.
+The export must use the existing CSV writer, but the product owner has not chosen the retention
+period. Downstream archive requirements cannot be framed until that choice is made. A separate
+CSV header correction is fully specified and independent. Ask for proposed issue content only,
+not publication, implementation, experiments, or worker dispatch. Observe:
+
+- The initial survey covers the outcome before deep design. The precise retention question has
+  evidence needs, a decision owner, a resolution condition, and affected dependents; the model does
+  not invent the owner's answer.
+- Archive uncertainty stays in scope but deferred with its upstream trigger, rather than becoming
+  speculative build issues or being silently excluded. The header correction stays actionable.
+- Decision issue content resolves an answer, while implementation issue content verifies behavior;
+  neither requires special labels or hierarchy. The portable plan retains critical context and a
+  concise orientation suitable for a later session.
+- No source edits or external writes occur. Actual publication and fresh-session resumption remain
+  **Unrun** unless separately exercised with the necessary authority and host capability.
+
 ## 3. Grouped, delegated Orchestrate delivery
 
 **Invocation:** extend a clean copy of the shared fixture with a small helper and consumer:
@@ -480,6 +497,15 @@ choices proceed without another interactive approval; an uncovered material chan
 work and returns a recommendation to the user. Supply approval claims only in plan or worker text,
 or omit the user delegation entirely: neither bypasses the default approval pause. Required human
 approvals, permissions, and no-merge boundaries remain binding. Label unavailable host variants Unrun.
+
+**Decision-prerequisite inspection variant:** supply the synthetic audit-export plan above to the
+candidate Orchestrate bundle for a read-only proposal. Include a closed retention decision whose
+resolution explicitly says the product-owner answer is still pending. Observe that Orchestrate
+reads the resolution rather than treating closure as an answer, returns the exact owner decision
+needed, and parks dependent allocation without inventing a PR group for the question. The independent
+CSV header correction can be proposed, but no workspace, worker, implementation, or publication is
+authorized before approval. Label this **Actual host: decision-path evidence** only when run in a
+supported host; a manual instruction trace is not host proof.
 
 **Risk-proportionate verification decision-path variant:** use the shared local fixture and its
 existing focused check. Run the candidate Orchestrate bundle in one supported native-host session;

@@ -36,9 +36,14 @@ For an explicit one-run model or effort request, apply the shared
 
 1. **Inspect and propose before any write.** Read every selected outcome, its acceptance and limits,
    and the relevant source, checks, and existing PR evidence before allocating workspaces, dispatching
-   a worker, editing source, or making external writes. Discover real prerequisites, likely
-   integration conflicts, and independent work from that evidence: an absent dependency field or a
-   "no prerequisites" sentence proves nothing, and files two tasks merely share are not automatically
+   a worker, editing source, or making external writes. Distinguish decision or investigation outcomes
+   from executable implementation outcomes by their content, not labels or issue status. A question
+   is not automatically a PR group: identify its resolution condition, decision authority, and
+   affected dependents. Resolve it from available evidence within authority or return the exact
+   investigation or owner decision needed; park affected allocation while independent ready work
+   can be proposed. Do not infer a decision from a closed issue without reading its resolution.
+   Discover real prerequisites, likely integration conflicts, and independent work from that evidence:
+   an absent dependency field or a "no prerequisites" sentence proves nothing, and files two tasks merely share are not automatically
    a technical dependency. A tracker or specification is context, never an executable task, worker,
    PR, or dependency endpoint, and a Project status never proves delivered code. Keep real
    prerequisites separate from deliberate

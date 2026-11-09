@@ -33,7 +33,10 @@ You can pass `--issue <canonical tracker URL>` for an existing tracker. Add `loc
 Before edits, worktree allocation, or worker dispatch, Orchestrate proposes the grouping.
 Check that each group has a bounded result, acceptance evidence, and real prerequisites.
 Related inseparable issues can share a PR; one issue can require several PRs. Implementation
-checkpoints do not automatically create more issues, workers, or PRs.
+checkpoints do not automatically create more issues, workers, or PRs. A decision or investigation
+issue is not automatically an implementation group. Check its answer, evidence, and decision authority
+before allocating dependent work; a closed issue alone does not establish the decision. Unresolved
+questions block only affected allocation, so independent ready work can still be proposed.
 
 Review the proposed interfaces, safe parallel work, and landing order. Prefer independently
 reviewable results while keeping necessary atomic changes together. A stack can help review even
