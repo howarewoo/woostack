@@ -242,3 +242,129 @@ Run production Drizzle Kit migrations through controlled release automation, not
 or from a developer machine. Keep changes compatible with the deployed app and intended rollback.
 A failed migration stops the dependent release; rolling back a Worker does not restore the schema
 or data. Record the migration's recovery procedure separately.
+
+### Build and deploy on a self-hosted runner
+
+To avoid Cloudflare build minutes and GitHub-hosted runner compute, run the build, checks, and
+Wrangler deployment on your own machine. GitHub Actions still coordinates the job; Cloudflare
+receives the built Worker and assets. This is self-hosted execution, not a self-hosted GitHub
+control plane.
+
+GitHub currently lists [self-hosted runner usage as free](https://docs.github.com/en/billing/concepts/product-billing/github-actions).
+You still pay for your machine, storage, networking, and Cloudflare runtime services. GitHub artifact
+and cache storage have separate billing rules. This example uses neither artifact uploads nor the
+Actions cache service; all build output stays on the runner until deployment. Standard GitHub-hosted
+runners are also free for public repositories, so self-hosting is not always a cost saving.
+
+Use this example for a **trusted private repository**. GitHub
+[recommends against self-hosted runners for public repositories](https://docs.github.com/en/actions/security-for-github-actions/security-guides/security-hardening-for-github-actions#hardening-for-self-hosted-runners)
+because untrusted workflows can compromise the machine. Do not run PR code on the production runner,
+even without deployment secrets: a persistent compromise can steal credentials from a later job.
+Labels select runners; they are not an access-control boundary. Restrict runner access to trusted
+repositories and workflows, and prefer a clean, single-job ephemeral runner. Use isolated runners
+without production access for any untrusted verification.
+
+Before enabling the workflow:
+
+1. [Register a self-hosted runner](https://docs.github.com/en/actions/how-tos/manage-runners/self-hosted-runners/add-runners)
+   on a dedicated Linux x64 machine with the custom label `cloudflare-deploy`. Keep its runner software
+   current and compatible with the pinned checkout action. Preinstall Git, the project's Node and pnpm
+   versions, and any browser or system dependencies needed by its checks. Do not use a personal
+   workstation or retain unrelated credentials on the machine.
+2. Protect `main` and restrict edits to workflows and release scripts. Configure a `production`
+   GitHub environment restricted to `main`, with approval where supported by your repository and
+   plan. Put `CLOUDFLARE_API_TOKEN` in its secrets and `CLOUDFLARE_ACCOUNT_ID` in its variables. Environment
+   approval is not runner isolation; trusted build scripts run on the same machine as deployment.
+3. [Disconnect the Worker's repository integration](https://developers.cloudflare.com/workers/ci-cd/builds/#disconnecting-builds)
+   so Workers Builds does not also run on pushes. Disabling production deployment alone can still
+   leave builds running. Disable any other pipeline targeting this Worker.
+4. Implement and locally verify the release-script contract below in your application. The names and
+   output paths are proposed examples, not commands shipped by Woostack.
+
+| Root package script | Required behavior |
+| --- | --- |
+| `ci:verify` | Runs the project's required type, lint, format, and test checks; exits nonzero on failure. |
+| `build:release` | Builds both frontends, assembles `dist/assets/site/` and `dist/assets/app/`, and emits a prebundled Worker plus `dist/worker/wrangler.jsonc`. The generated config points `main` at that bundle and `assets.directory` at `../assets`, and includes the production routes and bindings. |
+| `test:release` | Checks the assembled output in the Workers runtime against the both-host acceptance checks above, using non-production resources; stops its local servers when done. |
+| `smoke:production` | Checks both live HTTPS hosts, an app deep link, and the API; fails if the deployed release is unhealthy. It does not automatically roll back or mutate application data. |
+
+Place the adapted workflow at `.github/workflows/deploy-production.yml` **in your application
+repository**. Once enabled, a push to `main` deploys production; a manual run is accepted only from
+`main`. There is deliberately no `pull_request`, `pull_request_target`, or `workflow_run` trigger.
+
+```yaml
+name: Deploy production
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cloudflare-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    runs-on: [self-hosted, linux, x64, cloudflare-deploy]
+    environment: production
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Check out the release commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Verify source
+        run: pnpm run ci:verify
+
+      - name: Build the complete release
+        run: pnpm run build:release
+
+      - name: Verify the built deployment
+        run: pnpm run test:release
+
+      - name: Deploy the verified release
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+        run: pnpm --dir apps/api exec wrangler deploy --config ../../dist/worker/wrangler.jsonc --no-bundle
+
+      - name: Check production
+        run: pnpm run smoke:production
+
+      - name: Record the release commit
+        run: |
+          printf 'Release commit: %s\n' "$GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
+```
+
+The checkout action is pinned to a release commit; review and update that pin through your normal
+dependency process. The example assumes Wrangler is a locked dependency of `apps/api`. Adapt the
+30-minute timeout to measured build duration. Build and verification scripts must receive any
+required non-production configuration explicitly; production credentials are supplied only to the
+deployment step, not to the whole job. On a persistent machine, step-scoped secrets alone cannot
+protect against code that has already compromised the runner.
+
+Keep the build and deploy in the same job so Wrangler uploads exactly the output that passed
+verification, without transferring artifacts through GitHub storage. Do not add a `wrangler-action`
+step that rebuilds the application. A repository with schema changes also needs its controlled
+migration and recovery step before the dependent deployment; this example does not implement one.
+
+A successful run shows the job on your labeled runner, successful both-host smoke checks, the
+commit in the job summary, and Wrangler's deployment identity in the logs. Confirm that no matching
+Workers Builds run occurred. If deployment succeeds but smoke checks fail, the new release is already
+live: inspect the recorded deployment identity and use the established recovery procedure.
+
+If the job remains queued, check that the runner is online, has every requested label, and is allowed
+to run this repository's workflow. If it waits for environment approval, inspect the `production`
+environment's rules. Neither symptom requires switching to a GitHub-hosted runner.
