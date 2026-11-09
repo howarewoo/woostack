@@ -188,11 +188,15 @@ Orchestrate retains grouping, allocation, and delivery under its own authority. 
 identifiers, separate ledger, or machine-readable manifest is required.
 
 Stop when the requested question is answered at its intended depth. For implementation plans,
-converge when consequential choices are settled and walkthroughs have addressed material
-misunderstandings. Do not demand a quiz or claim to have proved the user's understanding. Defer
-routine implementation details within settled behavior. If a material question remains, apply the
-clarification and deferral rules above and return a useful draft, not false readiness.
-The user may stop or request the current draft at any point; do not prolong the interview to fill headings.
+when consequential questions are answered, material walkthroughs are complete, and the plan is
+self-contained, explicitly state: **“This plan is ready for handoff.”** Name the appropriate next
+workflow without invoking it. Routine implementation details within settled behavior need not be
+resolved. If unresolved decisions or prerequisites block part of the work, identify the ready scope
+and blocked dependents instead of declaring the whole plan ready; apply the clarification and
+deferral rules above and return a useful draft. Handoff readiness does not authorize implementation
+or prove feasibility, setup, or end-to-end acceptance. Do not demand a quiz or claim to have proved
+the user's understanding. The user may stop or request the current draft at any point; do not
+prolong the interview to fill headings.
 
 ## Saving and publishing
 
