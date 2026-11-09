@@ -3,11 +3,11 @@ title: Deploy a full-stack Cloudflare Worker
 description: Release an Astro public site, React SPA, and Hono API together on two hostnames with one Worker.
 ---
 
-Use this guide to deploy separate Astro and React/Vite apps with a Hono API as one Cloudflare
-Worker. The public site runs at `example.com`; the app and its `/api` endpoints run at
-`app.example.com`. Both frontends use `/` as their public base.
+Deploy separate Astro and React/Vite apps with a Hono API as one Cloudflare Worker. The public site
+runs at `example.com`; the app and its `/api` endpoints run at `app.example.com`. Both frontends use
+`/` as their public base.
 
-This guide assumes you already have:
+You need:
 
 - A pnpm workspace with working builds for an Astro static site, a React/Vite SPA using standalone
   TanStack Router, and a Hono API compatible with Workers.
@@ -15,7 +15,7 @@ This guide assumes you already have:
 - A Cloudflare account with an active zone for your domain and permission to attach both hostnames.
 - Non-production database and auth resources for preview checks, plus the intended production bindings.
 
-The example paths below describe **your application**, not the Woostack documentation site.
+The example paths describe **your application**, not the Woostack documentation site.
 Replace the hostnames and adapt paths to your repository. This is a deployment guide, not a
 complete app scaffold: the asset assembly script and hostname dispatcher are project-owned code
 that must exist before verification.
@@ -168,7 +168,7 @@ Map two local test hostnames to the Worker address and port Wrangler prints, and
 dispatcher to accept them only in local development. A `localhost` request alone cannot verify host
 selection. Keep app dev servers for UI iteration; use this combined build to check deployment behavior.
 
-Check the following before publishing. Routes such as `/pricing/` and `/settings` assume your app
+Before publishing, run these checks. Routes such as `/pricing/` and `/settings` assume your app
 implements them; substitute real routes with the same role.
 
 | Check | Expected result |

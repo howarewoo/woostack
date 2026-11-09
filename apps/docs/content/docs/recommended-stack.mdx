@@ -99,8 +99,8 @@ and MDX components into the same public-site build under `/docs/`. Prerendered a
 [static search index](https://www.fumadocs.dev/docs/deploying/static) avoid a separate documentation
 server. The search index belongs on the public host, outside the app-only `/api` namespace.
 
-A CMS becomes useful when authors need browser editing, media management, or editorial releases
-independent of repository changes. That changes the authoring workflow without necessarily changing
+A CMS helps authors who need browser editing, media management, or editorial releases
+independent of repository changes. It changes the authoring workflow without necessarily changing
 static rendering.
 
 ## Runtime architecture
@@ -128,9 +128,8 @@ The Worker therefore selects the host before looking up a file in the internal `
 asset namespace. Only app-host HTML navigation can fall back to the SPA shell. Missing public pages,
 API routes, and static files remain 404 responses.
 
-Worker-first dispatch also invokes code for asset requests. The benefit is one release unit; the
-cost is shared deployment timing and Worker configuration for both apps. It is a deliberate topology,
-not a Cloudflare requirement for every product.
+Worker-first dispatch also invokes code for asset requests. A single release unit means both apps
+share deployment timing and Worker configuration. Cloudflare does not require this topology.
 
 ### Source apps and releases
 

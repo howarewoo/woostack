@@ -11,14 +11,14 @@ describes a manual workflow, not a verified packaged integration.
 
 ## A team with defined responsibilities
 
-Planning, coordination, implementation, and review are responsibilities, not a required number of
-bots. One senior engineer can plan with Whiteboard and coordinate with Orchestrate when needed;
+Planning, coordination, implementation, and review are responsibilities, not a required bot count.
+One senior engineer can plan with Whiteboard and coordinate with Orchestrate when needed;
 one junior engineer can implement bounded assignments with Execute. The same junior can handle
-successive assignments without introducing another management layer.
+successive assignments without another management layer.
 
 Whiteboard uses the available context rather than requiring an interview. A delegated agent can
 resolve decisions within the authority the user supplied and escalate consequential choices outside
-it. The resulting plan carries enough context for another agent to continue without reconstructing
+it. The plan includes enough context for another agent to continue without reconstructing
 the planning conversation.
 
 Independent review remains distinct from a planner's self-review. A required independent assessment
@@ -41,13 +41,13 @@ for independent review and corrections. A human performs all merges.
 
 ## Bounded handoffs and review
 
-A handoff carries an objective, relevant context, allowed actions, expected output, and the
-evidence needed to verify the result. Clear boundaries help the next agent continue the work
-without treating background information as permission to expand it.
+A handoff carries an objective, relevant context, allowed actions, expected output, and
+verification evidence. Clear boundaries help the next agent continue the work without treating
+background information as permission to expand it.
 
 An agent's report distinguishes what it changed, what it checked, and what remains uncertain.
 Review inspects the delivered artifact or exact revision and reports its findings and coverage.
-That keeps implementation finished, review assigned, and review passed as separate states.
+Implementation finished, review assigned, and review passed remain separate states.
 The host provides messaging, task state, and permission enforcement; WooStack supplies workflow
 instructions, not another routing or approval engine.
 

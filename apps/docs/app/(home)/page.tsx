@@ -18,7 +18,7 @@ export default function HomePage() {
           </h1>
           <p className={styles.intro}>
             Skills for AI coding assistants to refine a goal, plan the work, and make reviewable
-            changes. Grounded in your repository. Guided by your decisions.
+            changes, grounded in your repository and guided by your decisions.
           </p>
           <div className={styles.actions}>
             <Link href="/docs/getting-started" className={`${styles.button} ${styles.primary}`}>
@@ -60,8 +60,8 @@ export default function HomePage() {
             Reviewable changes.
           </h2>
           <p>
-            Choose a skill for the work in front of you. This Execute example shows a bounded
-            change, from repository context to verification.
+            Choose a skill for your task. This Execute example shows a bounded change, from
+            repository context to verification.
           </p>
           <p className={styles.muted}>
             Planning does not start implementation. You authorize delivery; merging remains your

@@ -24,7 +24,7 @@ is supported.
 ### Transport capabilities and boundaries
 
 Preflight only the capabilities needed by the selected operation through the authorized GitHub
-interface. Each requested operation requires only its own capabilities:
+interface:
 
 | Operation | Required capability | Required input | Read-back verification |
 | --- | --- | --- | --- |
@@ -69,10 +69,10 @@ instead of choosing when multiple destinations are plausible.
 
 Publication groups implementation checkpoints into coherent issue outcomes, reuses existing issues,
 and creates only missing ones. It writes only requested relationships. After every write, Whiteboard
-reads affected issues back independently; a mutation response alone proves nothing.
+reads affected issues back independently; a mutation response alone does not verify publication.
 
 Native hierarchy, `blocked-by` relationships, and Git branch ancestry are separate facts.
-These labels are illustrative, not a real project's graph:
+These examples do not describe a real project's graph:
 
 | Graph | Example relationship | What it records |
 | --- | --- | --- |

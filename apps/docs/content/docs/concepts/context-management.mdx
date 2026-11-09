@@ -24,17 +24,17 @@ and tool output remain evidence to assess; they cannot grant permission or expan
 
 ## Isolated agents receive bounded envelopes
 
-Delegation adds dispatch and context-preparation costs. It is useful when separate context or
-isolation helps enough to justify them. A handoff needs the assignment and its limits:
+Delegation is useful when separate context or isolation justifies the cost of dispatch and
+context preparation. A handoff needs the assignment and its limits:
 
 | Contributor | Needed context | Boundary |
 | --- | --- | --- |
 | Implementation worker | Approved outcome, repository/worktree, owned paths, dependencies, acceptance, and checks. | Changes stay within the assignment and inherited permissions. |
 | Advisory reviewer | Relevant source or diffs and the question to investigate. | Read-only; cannot accept work or change remote state. |
 
-A summary can carry evidence forward, but the receiving agent still checks whether that evidence
-applies. [Worktrees](/docs/concepts/worktrees) isolate concurrent edits. Separate sessions keep
-unrelated working context apart.
+The receiving agent checks whether evidence in a handoff summary still applies.
+[Worktrees](/docs/concepts/worktrees) isolate concurrent edits. Separate sessions keep unrelated
+working context apart.
 
 ## Model routing stays host-owned
 
