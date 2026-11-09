@@ -41,7 +41,7 @@ For an explicit one-run model or effort request, apply the bundled
 | Coordinate approved multi-task work | `woostack-orchestrate` |
 | Implement an authorized bounded outcome, including initial project creation or user-facing documentation changes | `woostack-execute` |
 | Simplify selected existing code while preserving required behavior | `woostack-simplify` |
-| Commit changes, rebase or restack published PRs, or change readiness | `woostack-commit` |
+| Commit existing changes, create or update a PR, rebase or restack published PRs, or change readiness | `woostack-deliver` |
 | Review a pull request | Use [Pullfrog](https://pullfrog.com/). |
 | Address every unresolved thread on one exact existing PR | `woostack-address-comments` |
 | Render a supplied document or verified source as audience-tailored HTML | `woostack-visualize` in a native subagent or isolated task context, not the parent |

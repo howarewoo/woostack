@@ -1,6 +1,6 @@
 # Workflow smoke
 
-Short, on-demand recipes for a material Whiteboard, Execute, Commit, or Orchestrate change, or for
+Short, on-demand recipes for a material Whiteboard, Execute, Deliver, or Orchestrate change, or for
 regression investigation. They are not a corpus, a grader, a mandatory gate after every edit, or a
 test command: run the smallest recipe that covers the changed behavior, and report honestly what you
 did not run.
@@ -556,10 +556,10 @@ Without an authorized disposable remote, PR reuse/update and native-stack observ
 **Unrun**, not inferred from local branches. A lost write/result variant needs a safe interruption:
 rediscover native state and Git/PR facts before retrying, preserving unknown work.
 
-## 4. Commit preparation, delivery, and content
+## 4. Deliver preparation, delivery, and content
 
 **Invocation:** on a fresh copy of the shared fixture, prepare the intended removal yourself (drop
-`beta` and run the focused check), then run the actual Commit skill on the already-prepared change,
+`beta` and run the focused check), then run the actual Deliver skill on the already-prepared change,
 issue-free and local-only. Wrap the focused check in a disposable counter (for example a shell
 wrapper appending one line to `check-count.log` per invocation) and hand the recipient the
 command/selection, tested source state, observed outcome, and environment limits with the change.
@@ -569,7 +569,7 @@ explicitly request a preparation command that normalizes the intended file, and 
 that exits nonzero.
 
 ```text
-/woostack-commit --no-pr-update
+/woostack-deliver --no-pr-update
 Commit the already-prepared removal of `beta` from `lines.txt`, leaving `alpha` and its
 trailing newline. The focused check above is the required verification. Nothing else is in scope.
 ```
@@ -628,7 +628,7 @@ or readiness behavior.
 
 **Actual host, only with an already-authorized disposable remote and native-stack/readiness
 capabilities:** start with at least three published PRs across two native stacks. Include an
-unselected member in one source stack. Run the installed Commit workflow with this request:
+unselected member in one source stack. Run the installed Deliver workflow with this request:
 
 ```text
 Rebase the selected published PRs into one ordered native stack, preserving their PR numbers and
@@ -651,7 +651,7 @@ label these variants **Unrun**, not simulated.
 **Manual trace:** follow the installed delivery path the request actually named: a caller that
 performs requested delivery (Execute, Orchestrate, or Address Comments) loads its bundled delivery
 and source-control references and the project's AGENTS.md; a commit-only or maintenance request is
-Commit's own invocation and reads the same bundled references. Record how request scope, plan
+Deliver's own invocation and reads the same bundled references. Record how request scope, plan
 approval pause, original-head lease,
 unselected membership, readiness, and merge prohibition pass through without contradictory instructions.
 Keep this trace separate from local Git observations and actual-host evidence.
@@ -703,8 +703,8 @@ Each recipe above must produce the same gates, evidence, delivery, and stopping 
 another Woostack skill is installed. Run each comparison twice from distinct disposable consumer
 repositories outside this checkout: once with only the skill under test installed (its own
 `SKILL.md`, bundled references, scripts, and templates), once with the previously coupled
-sibling also installed — Execute's and Simplify's pairings include Commit, Orchestrate's includes
-Execute, and Commit's includes Execute. Keep tool, model, permission, host, and fixture constants
+sibling also installed — Execute's and Simplify's pairings include Deliver, Orchestrate's includes
+Execute, and Deliver's includes Execute. Keep tool, model, permission, host, and fixture constants
 fixed between the two runs, and record the invocation, revision, and installed directory contents
 of both runs. A host lacking a capability blocks only that recipe's affected variant; record the
 unavailable variant **Unrun** and never install a missing sibling to substitute for the capability.
@@ -739,7 +739,7 @@ facts (identity, head, base, body, draft state, issue association), with no sibl
 either report. Compare the authorization, evidence, and stopping boundaries, not incidental
 identifiers or exact model wording.
 
-### Commit: commit-only isolated
+### Deliver: commit-only isolated
 
 Run the section 4 commit-only workload in both isolation conditions. No
 `--no-pr-update` behavior difference, no push, no PR; the commit's own invocation is the entire

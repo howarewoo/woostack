@@ -98,7 +98,7 @@ production build solely because it touches `skills/*/SKILL.md` or site content.
   regenerate with
   `node shared/sync.mjs` and verify with `node shared/sync.mjs --check`, then run the
   relevant existing parser/generator/asset tests for the link and installation layout.
-- Material Whiteboard, Execute, Commit, or Orchestrate behavior changes: run the relevant
+- Material Whiteboard, Execute, Deliver, or Orchestrate behavior changes: run the relevant
   [workflow smoke recipe](skills/using-woostack/references/workflow-smoke.md).
 
 When selected checks need dependencies, install from the root shared lockfile with
@@ -120,7 +120,7 @@ predecessor is the base for a stack layer. Submit changes through a draft PR usi
 Each active workflow performs its requested delivery using the canonical
 [delivery](shared/references/delivery.md) and
 [source-control](shared/references/source-control.md) procedures. The standalone
-[Commit](skills/woostack-commit/SKILL.md) workflow owns explicitly requested Git/PR operations,
+[Deliver](skills/woostack-deliver/SKILL.md) workflow owns explicitly requested Git/PR operations,
 including branch rewrites, stack consolidation, and readiness; it is not a sibling prerequisite.
 New PRs are drafts; existing readiness stays unchanged absent a request. Backend failures stop
 the operation instead of switching transport. Merging, auto-merge, and merge queues are

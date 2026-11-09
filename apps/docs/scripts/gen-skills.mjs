@@ -15,7 +15,7 @@ export const PUBLIC_ORDER = [
   "woostack-orchestrate",
   "woostack-execute",
   "woostack-simplify",
-  "woostack-commit",
+  "woostack-deliver",
   "woostack-address-comments",
   "woostack-visualize",
   "woostack-design",

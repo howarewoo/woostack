@@ -1,25 +1,27 @@
 ---
-name: woostack-commit
-description: Commit the current authorized outcome and, when requested, publish or update its pull request. Use for a local-only commit, a requested draft PR, or a commit from an established task that already names its issue.
+name: woostack-deliver
+description: Use when committing existing changes locally, creating or updating a pull request, or performing explicitly requested PR rebasing, restacking, or readiness changes.
 ---
 
-# woostack-commit
+# woostack-deliver
 
-Commit the changes belonging to the current authorized outcome and deliver them as far as the
-caller requested. An explicit `/woostack-commit` publishes; a natural-language commit-only request
-or `--no-pr-update` stops after the local commit. Issues are optional: no issue, Project,
-assignment, lifecycle record, or attribution trailer is required to commit or update a PR.
+Deliver the current authorized outcome as a local commit or a created or updated pull request,
+as far as the caller requested. An explicit `/woostack-deliver` publishes; a natural-language
+commit-only request or `--no-pr-update` stops after the local commit. Perform PR rebasing,
+restacking, or readiness changes only when explicitly requested. Issues are optional: no issue,
+Project, assignment, lifecycle record, or attribution trailer is required to commit or update a PR.
 
 This skill mutates Git state and, for requested PR delivery or maintenance, GitHub PR metadata.
-It never merges, enables auto-merge, queues a PR, amends unrelated commits, or stages unrelated
-work. It never discovers work from recent activity or creates an issue or Project implicitly.
+It never implements additional work, merges, deploys, enables auto-merge, queues a PR, amends
+unrelated commits, or stages unrelated work. It never discovers work from recent activity or
+creates an issue or Project implicitly.
 
 ## Invocation
 
 ```text
-/woostack-commit [message]
-/woostack-commit --no-pr-update [message]
-/woostack-commit --issue <issue> [--issue <issue> ...] [message]
+/woostack-deliver [message]
+/woostack-deliver --no-pr-update [message]
+/woostack-deliver --issue <issue> [--issue <issue> ...] [message]
 ```
 
 `message` is optional. An inaccurate supplied message is corrected, not obeyed.
