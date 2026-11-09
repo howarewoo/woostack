@@ -24,7 +24,7 @@ for standing repository rules, the two-app boundary, and verified checks.
 | Change multi-task coordination and stacked delivery | `skills/woostack-orchestrate/SKILL.md` |
 | Change task implementation and specialist handoffs | `skills/woostack-execute/SKILL.md` |
 | Change behavior-preserving code simplification | `skills/woostack-simplify/SKILL.md` |
-| Change commit and pull-request delivery | `skills/woostack-commit/SKILL.md`; the reusable delivery procedure lives in `shared/references/delivery.md` |
+| Change commit and pull-request delivery | `skills/woostack-deliver/SKILL.md`; the reusable delivery procedure lives in `shared/references/delivery.md` |
 | Change browser-based app checks (`/woostack-qa`) | `skills/woostack-qa/SKILL.md`, `skills/woostack-qa/references/` |
 | Change UI design coordination and selected external-skill boundaries | `skills/woostack-design/SKILL.md` |
 | Change placement of existing screen-flow frames | `skills/woostack-flow-layout/SKILL.md` |
@@ -51,10 +51,10 @@ for standing repository rules, the two-app boundary, and verified checks.
    no test CI for its own PRs. Report deterministic helper results, manual instruction
    traces, and real host/model outcomes separately; never report an unrun smoke as passed.
 5. Push the branch and open a draft PR with `gh`, filling out the PR template, through
-   [Commit](skills/woostack-commit/SKILL.md). The reusable delivery and source-control
+   [Deliver](skills/woostack-deliver/SKILL.md). The reusable delivery and source-control
    safeguards live in [shared delivery](shared/references/delivery.md) and
    [shared source control](shared/references/source-control.md); requested rebases, stack
-   consolidation, and readiness follow Commit's own maintenance terms. Never merge, auto-merge,
+   consolidation, and readiness follow Deliver's own maintenance terms. Never merge, auto-merge,
    or queue a PR.
 
 The approved applications are the documentation site in `apps/docs/` and the standalone
