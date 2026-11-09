@@ -60,8 +60,11 @@ Reading this reference invokes no sibling workflow.
 
 Resolve the authorized goal, scope, non-goals, and acceptance from the request and any selected
 issue plus repository evidence. Selecting an issue within an implementation request needs no second
-approval. Resolve routine paths, details, checks, and workspace facts from current source, and ask
-only for material decisions or conflicting scope after relevant reads. A specification parent with
+approval. Resolve routine paths, implementation details, checks, and workspace facts from current
+source autonomously within authority. Missing consequential behavior remains undecided: do not
+invent defaults or fallbacks affecting observable behavior, acceptance, permissions, data handling,
+compatibility, cost, or recovery. After relevant reads, park affected work for a material decision
+or conflicting scope under the question and handoff rules below. A specification parent with
 several independent outcomes needs a selected child or coordinating invocation.
 
 ### Delegated assignment
@@ -259,11 +262,16 @@ evidence, an actual prerequisite, capability or permission change, or explicit s
 Continue runnable independent work and demonstrably healthy long product checks using existing runner
 progress and native timeout/cancellation controls. Elapsed time alone neither cancels nor fails checks;
 process liveness or diagnostic artifacts do not establish health.
-When delegated, report unresolved task-local decisions to the coordinator and return control
-without a host-blocking question; leave user-owned scope and permissions undecided.
-With no runnable authorized work and no demonstrably healthy pending work, return a final blocked
-disposition naming unmet acceptance and the exact pending decision or resumption condition, not
-a blocking interview or diagnostic loop.
+For unresolved material questions, park only affected work and continue safe independent authorized
+implementation, required review, healthy checks, and eligible requested delivery. Defer nonblocking
+questions to the final handoff with the precise question, affected acceptance, recommendation, and
+resume condition; never claim completion for unmet acceptance. Safety, privacy, permission,
+publication, and release gates remain intact. A standalone owner may use a host-blocking question
+only when its answer blocks all remaining useful authorized work, not merely the current slice.
+When delegated, escalate to the coordinator without a host-blocking question; leave uncovered
+consequential choices undecided. With no runnable authorized work and no demonstrably healthy
+pending work, an accurate blocked handoff naming unmet acceptance and resumption conditions is valid;
+do not enter a blocking interview or diagnostic loop.
 
 For requested PR creation or updates with meaningful user-visible changes, capture the running
 implementation with available browser/headless-browser or native tools before stopping task-owned

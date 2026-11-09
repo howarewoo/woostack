@@ -21,7 +21,10 @@ and a visual where it helps; do not edit files or publish issues.
 
 Include the behavior you need, hard constraints, and non-goals. For documentation, name the reader
 and what they should be able to do. Whiteboard inspects available evidence and asks only about
-material unresolved choices.
+material unresolved choices during planning, rather than leaving consequential behavior for execution.
+Choices that could change observable behavior, acceptance, permissions, data handling, compatibility,
+cost, or recovery need an answer within your authority or explicit delegation. Routine technical
+details do not need an interview, and complete context needs no compulsory questions.
 
 For requirements exploration alone, say `Compare approaches without choosing an architecture or
 creating implementation tasks`. For a review, supply the plan and ask for discrepancies and
@@ -36,16 +39,32 @@ Walk through how a contributor chooses checks for a wording-only change.
 What should the README say if a documented command is missing?
 ```
 
-Correct the scope or assumptions as needed. During implementation planning, the assistant keeps
-its visual model and text consistent. Your host can use a readable text diagram when it cannot
-render the preferred format.
+The assistant checks material transitions: the trigger, who may act, the result, and side effects.
+It probes partial success, retry, cancellation, or interruption where those could change the outcome.
+Correct the scope or assumptions as needed. This is a concrete walkthrough, not an exhaustive
+checklist. During implementation planning, the assistant keeps its visual model and text consistent.
+Your host can use a readable text diagram when it cannot render the preferred format.
+
+If your host supports delegation, you can authorize read-only scouts for independent questions:
+
+```text
+Use read-only scouts to inspect the existing check commands and contributor guidance.
+Return source evidence, uncertainty, and recommendations. Do not edit, experiment, or publish.
+```
+
+Whiteboard chooses useful capacity, reconciles findings and conflicts, and brings material questions
+to you. If optional scouting is unavailable, it inspects inline. Scouts cannot authorize behavior;
+they are not workers running proposed feasibility tests.
 
 ## 3. Check the plan
 
 Before handing it off, check that:
 
 - Required behavior and constraints are distinct from preferences and proposed defaults.
-- Consequential choices have reasons, and precise open questions name the affected work.
+- Consequential choices have reasons. Material questions are answered, explicitly deferred by you,
+  or left for necessary bounded investigation. If you stop or are unavailable, the result is a draft.
+- Open questions name needed evidence, the decision owner, resolution condition, and affected
+  dependents. Dependent implementation stays unready; independent ready portions remain usable.
 - In-scope areas that cannot yet be framed as questions stay deferred, with the upstream answer
   needed to clarify them. They are separate from non-goals and speculative implementation tasks.
 - Steps produce observable results with acceptance checks and real prerequisites.

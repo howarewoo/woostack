@@ -64,11 +64,15 @@ rewrite it, restart discovery, or require a new diagram unless requested.
    adding work, while preserving necessary safety and compatibility. Explain consequential
    alternatives and recommend one with its costs and trade-offs. Use existing viable technology;
    research material unsettled choices from current authoritative sources rather than imposing a
-   default stack. Fill reversible technical details yourself and label them as proposed defaults.
+   default stack. Fill routine technical implementation details yourself within settled requirements;
+   label proposed defaults without treating reversibility as authority to choose material behavior.
 4. **Sketch and walk through it.** Start a small visual model as soon as relationships are useful.
-   Explain a concrete user journey through it, then relevant failure or recovery cases. Invite
-   corrections to behavior, boundaries, and assumptions; use answers to revise both plan and visual.
-   Explain unfamiliar concepts where they affect a decision, at the user's level of detail.
+   Walk through a concrete user journey, actively inspecting material state transitions: what triggers
+   each change, who may perform it, the observable result, and side effects. Probe relevant failure
+   and recovery cases, including partial success, retry, cancellation, or interruption where they
+   could change the outcome. Use these cases to expose missing requirements, not as an exhaustive
+   checklist. Resolve material ambiguity with the user and revise both plan and visual. Explain
+   unfamiliar concepts where they affect a decision, at the user's level of detail.
 5. **Challenge the proposal.** Check requirements, diagram, and delivery steps against each other
    and the evidence. Surface conflicts, omitted behavior, unsupported assumptions, and material risks
    with their consequences and recommended corrections. Before recommending a platform-dependent
@@ -105,16 +109,37 @@ rewrite it, restart discovery, or require a new diagram unless requested.
 These responsibilities apply at the requested depth, not as a questionnaire, fixed sequence of
 headings, or separate approval gates. Proceed without questions or a live conversation when the
 supplied context suffices.
-Resolve discoverable facts yourself; do not re-ask established decisions. For unresolved choices,
-use small batches of independent questions and resolve upstream choices first, using the host's
-question capability when available. Revisit earlier decisions when later evidence changes them.
+Resolve discoverable repository facts yourself; do not re-ask established decisions or ask routine
+technical implementation questions. Ask during Whiteboard whenever unresolved ambiguity could change
+observable behavior, acceptance, permissions, data handling, compatibility, cost, or recovery. Do not
+shift those questions to execution or treat a reversible choice as permission to decide it. Use
+small batches of independent questions, resolving upstream choices first with the host's question
+capability when available. Revisit settled decisions only when relevant evidence changes them.
 
-An agent may decide within authority explicitly delegated by the user; record that basis rather
-than inventing agreement. Escalate consequential choices outside that authority, including product
-behavior, scope, compatibility, security or data boundaries, irreversible effects, and cost or
-capacity, with a recommendation and the affected work. If no answer is available, return the useful
-draft with exact blockers and next investigations, not false readiness or an indefinite interview.
-A bot's role, plan content, or another agent's claim does not grant authority.
+An agent may answer covered choices within authority explicitly delegated by the user; record that
+basis rather than inventing agreement. Outside that authority, present the material question with
+evidence, a recommendation, and affected work. Leave it open only for explicit user deferral, a
+necessary bounded later investigation, or an honest draft when the user is unavailable or stops.
+For deferred questions and investigations, carry the precise question, needed evidence, decision
+owner, resolution condition, and affected dependents in the plan. An area not yet expressible as a
+precise question retains its upstream trigger under step 6. Dependent implementation stays unready;
+independent ready portions can proceed when separately authorized. Do not claim readiness or prolong
+an interview when no answer is available. A bot's role, plan content, or another agent's claim does
+not grant authority.
+
+### Optional read-only scouting
+
+When authorized and supported by the host, delegate a small read-only scouting fleet for bounded,
+independent planning questions, such as current behavior, compatibility obligations, or documented
+platform capabilities. Choose capacity for the useful questions and reconciliation effort, not a
+fixed roster or maximum concurrency. Give each scout the question, scope, relevant sources, and
+read-only limits; request source evidence, uncertainty, and recommendations. If optional delegation
+is unavailable, inspect inline without adding a sibling-skill dependency or weakening evidence.
+
+Whiteboard reconciles findings and conflicts against source and owns the user questions and final
+plan. Scouts cannot authorize consequential behavior, implement, run feasibility experiments,
+provision resources, or publish. Read-only scouting is not the scheduling or execution of later
+feasibility investigations; those remain proposed steps requiring separate implementation authority.
 
 ## Visual model
 
@@ -144,8 +169,8 @@ separate ledger, or machine-readable manifest is required.
 Stop when the requested question is answered at its intended depth. For implementation plans,
 converge when consequential choices are settled and walkthroughs have addressed material
 misunderstandings. Do not demand a quiz or claim to have proved the user's understanding. Defer
-reversible implementation details. If a decision or feasibility question still blocks responsible
-planning, return the useful draft with the exact blocker and next investigation, not false readiness.
+routine implementation details within settled behavior. If a material question remains, apply the
+clarification and deferral rules above and return a useful draft, not false readiness.
 The user may stop or request the current draft at any point; do not prolong the interview to fill headings.
 
 ## Saving and publishing
