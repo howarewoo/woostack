@@ -8,8 +8,8 @@ work fits into that project. The [recommended stack](/docs/recommended-stack) is
 choice; the principles here apply to other stacks too. They do not require agent skills or impose a
 new directory layout.
 
-These principles help answer three recurring questions: where a change belongs, which behavior it
-must preserve, and what evidence is enough to trust it. The canonical rules live in
+These principles help determine where a change belongs, which behavior it must preserve, and what
+evidence is enough to trust it. The canonical rules live in
 [implementation patterns](https://github.com/howarewoo/woostack/blob/main/shared/references/patterns.md),
 [deployment and operations](https://github.com/howarewoo/woostack/blob/main/shared/references/infrastructure.md),
 and [verification guidance](https://github.com/howarewoo/woostack/blob/main/shared/references/tdd.md).
@@ -77,8 +77,8 @@ keep these decisions distinct.
 ## Dependency ownership makes builds reproducible
 
 Each application declares its runtime dependencies. Shared packages declare their own dependencies;
-root tooling belongs there only when it is repository-wide. This makes the package boundary reflect
-what actually runs and avoids relying on another app's accidental installation.
+root tooling belongs there only when it is repository-wide. Package boundaries then reflect
+what actually runs, without relying on another app's accidental installation.
 
 Selected or changed versions come from authoritative current sources, with runtime and peer
 compatibility checked at the consumer. Existing versions and lockfiles stay unchanged when no
