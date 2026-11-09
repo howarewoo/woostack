@@ -14,9 +14,15 @@ may need coordination.
 ## Planning and implementation are separate choices
 
 [Whiteboard](/docs/guides/whiteboard) explores requirements, develops plans, or reviews an existing
-specification. Requirements-only work can stop before choosing an architecture. A plan stays in
-the conversation unless you ask to save it or [publish issues](/docs/guides/plan-work); neither
-action starts implementation.
+specification. It tests a requested solution against the users' problem and current workaround,
+recommending a direction with evidence and trade-offs rather than just collecting requirements.
+Removal, reuse, or a smaller change may serve the goal better than a new feature. Product value
+and technical feasibility are separate assumptions; useful learning depends on the uncertainty,
+not a compulsory experiment. Requirements-only work can stop before choosing an architecture.
+A plan stays in the conversation unless you ask to save it or [publish issues](/docs/guides/plan-work); neither
+action starts implementation. The portable plan preserves requirements, acceptance, decisions
+and rationale, material behavior, real dependencies, and unresolved decision owners and resolution
+conditions for a fresh execution session. Whiteboard does not allocate workers or PRs.
 
 [Execute](/docs/guides/ship-change) implements one authorized outcome. It can diagnose a bounded
 bug fix inline, so a separate Debug session is optional. A natural-language implementation
@@ -38,7 +44,10 @@ expand it. An issue URL alone supplies context, not permission to implement or p
 Reversibility is not permission to invent consequential behavior.
 
 Whiteboard resolves material ambiguity during planning, using repository facts before user
-questions. Authorized read-only scouts can supply evidence and recommendations, not decisions or
+questions. It recommends answers with reasons; routine implementation and design details within
+agreed behavior stay with the agent. Minor visible details do not automatically become product
+decisions, but cannot bypass permissions, data handling, compatibility, cost, or recovery constraints.
+Authorized read-only scouts can supply evidence and recommendations, not decisions or
 implementation authority. A material question stays open only for explicit user deferral, necessary
 bounded investigation, or an honest draft when the user stops or is unavailable. Dependent work
 remains unready, while independent ready work can be authorized separately.

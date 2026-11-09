@@ -380,6 +380,76 @@ review only of a plan with a source discrepancy and observe findings without rew
 Give only the final plan to a fresh session and check that it preserves decisions, acceptance, and
 blockers without requiring the original conversation. Keep actual-host evidence separate from traces.
 
+**Solution-first and plan-only handoff variant:** run the candidate Whiteboard in an actual host
+with this ambiguous brief, using only synthetic information:
+
+```text
+/woostack-whiteboard
+Plan an automatic nightly audit-export dashboard for our support team. We already have a manual
+CSV export. Return a plan in chat only; do not implement, run experiments, or publish anything.
+```
+
+Observe whether it inspects available evidence, challenges the proposed dashboard and automation
+against the actual users, problem, workaround, and desired outcome, and offers a working hypothesis
+and recommendation rather than an unranked menu or questionnaire. It should consider reuse or a
+smaller change, not require a business case. When asked material questions, supply these facts:
+
+```text
+Support staff export CSV once a week to find unresolved cases before handover. The existing
+writer works; a permission-checked manual download already exists. The pain is reopening the
+export page and selecting the same filters. Reuse that download with saved filters; no dashboard,
+nightly job, or new analytics. Only the saving user may read or apply their saved filters. Save
+only case status and team, not CSV contents. Changing a saved filter must not change the current
+selection until Apply is chosen. Failed saves keep the previous saved filters and current selection
+intact; show an error and allow retry. Existing export behavior and permissions must remain intact.
+The product owner has not decided whether saved filters expire. Defer that decision explicitly;
+any persistence or expiry-dependent behavior stays blocked. A correction to the export page's
+misleading heading, without changing its meaning or behavior, is independent and ready to plan.
+```
+
+Do not supply these as facts before the candidate has had the opportunity to frame the problem.
+If it misses the material questions, record that result before supplying the facts to exercise the
+handoff. Ask for the final portable implementation plan, including the unresolved expiry question,
+without additional publication or implementation authority. Observe:
+
+- The recommendation adapts to the evidence and explains the smaller journey and trade-offs.
+  It distinguishes the product hypothesis (saved filters help handover preparation) from storage
+  feasibility. Any proposed learning is proportionate, labeled proposed, and does not invent
+  agreed metrics, mandatory instrumentation, or authorization to experiment.
+- Consequential behavior, permissions, data handling, compatibility, cost, and recovery are not
+  silently defaulted on grounds of reversibility. The candidate recommends answers with reasons,
+  asks for uncovered material choices before dependent implementation, and owns minor wording,
+  spacing, and routine design details within agreed behavior rather than asking everything.
+- The plan itself retains functional/nonfunctional requirements, constraints, non-goals, settled
+  decisions and rationale, material journeys and transitions (including Apply and failed-save
+  recovery), a consistent visual, acceptance and relevant checks. It separates proposed learning
+  from agreed requirements and completion from any draft-publication and consumer-release gates.
+- The precise expiry question has needed evidence, the product-owner decision, a resolution
+  condition, and affected dependents. The heading correction remains independently actionable.
+  Whiteboard neither invents expiry nor preallocates workers, branches, or PRs.
+
+In a **fresh session**, load the candidate Orchestrate and provide **only the returned plan** as
+context, with this request:
+
+```text
+/woostack-orchestrate
+Use this plan to form a read-only execution proposal. Do not implement, allocate workspaces,
+dispatch workers, commit, or publish. Do not assume an answer to unresolved decisions.
+```
+
+Compare the proposal against the plan, not the original conversation: it should preserve settled
+behavior and all acceptance, propose the ready heading correction, and park expiry-dependent
+allocation with the exact decision owner and resolution condition. It must not reopen settled
+choices, invent behavior, or treat plan publication as execution authority. Orchestrate owns the
+proposed grouping and delivery structure; the plan does not preassign it. Record missing critical
+context as a Whiteboard handoff gap rather than silently supplying the conversation.
+
+Label a source walkthrough **Manual instruction trace**, not host behavior. Label real runs
+**Actual host: Whiteboard planning evidence** and **Actual host: fresh-context plan-only proposal
+evidence**, recording candidate identity/path, invocation, questions/answers, final plan, and
+proposal. Unsupported or unexercised variants are **Unrun**. A proposal proves neither execution,
+publication, consumer release, nor end-to-end orchestration; all remain **Unrun** here.
+
 **Uncertainty and decision-issue variant:** request a read-only plan for a synthetic audit export.
 The export must use the existing CSV writer, but the product owner has not chosen the retention
 period. Downstream archive requirements cannot be framed until that choice is made. A separate
