@@ -161,7 +161,7 @@ test("public skill routing preserves the declared order", () => {
     "woostack-deliver",
     "woostack-address-comments",
     "woostack-visualize",
-    "woostack-design",
+    "woostack-prototype",
     "woostack-flow-layout",
     "woostack-design-system",
     "woostack-debug",
@@ -173,8 +173,8 @@ test("public skill routing preserves the declared order", () => {
   assert.deepEqual(navOrder([...expectedPublic].reverse()), expectedPublic);
 });
 
-test("design and flow-layout sources render with their own public identities", async () => {
-  for (const name of ["woostack-design", "woostack-flow-layout"]) {
+test("prototype and flow-layout sources render with their own public identities", async () => {
+  for (const name of ["woostack-prototype", "woostack-flow-layout"]) {
     const raw = await readFile(
       new URL(`../../../skills/${name}/SKILL.md`, import.meta.url),
       "utf8",
@@ -212,4 +212,24 @@ test("whiteboard validates without sibling skills and renders its public page", 
   assert.ok(page.includes(`/skills/${name}/SKILL.md`));
   assert.ok(page.includes(`/skills/${name}/references/trial.md`));
   assert.ok(page.includes(`/skills/${name}/references/github-procedure.md`));
+});
+
+test("prototype validates without sibling skills and renders its bundled references", async (t) => {
+  const name = "woostack-prototype";
+  const root = await mkdtemp(path.join(tmpdir(), "woostack-prototype-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  await cp(new URL(`../../../skills/${name}`, import.meta.url), path.join(root, name), {
+    recursive: true,
+  });
+
+  const skills = await validateSkillAssets(root, [name]);
+  assert.equal(skills.length, 1);
+  const [{ fm, body }] = skills;
+  assert.equal(fm.name, name);
+  const rendered = rewriteLinks(neutralizeTags(stripTitleHeading(body, fm.name)), name);
+  const page = renderPage(name, fm, rendered);
+  assert.ok(page.startsWith(`---\ntitle: ${name}\n`));
+  for (const reference of ["prototype-quality.md", "brand-foundations.md"]) {
+    assert.ok(page.includes(`/skills/${name}/references/${reference}`));
+  }
 });

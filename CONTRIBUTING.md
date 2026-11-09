@@ -26,7 +26,7 @@ for standing repository rules, the two-app boundary, and verified checks.
 | Change behavior-preserving code simplification | `skills/woostack-simplify/SKILL.md` |
 | Change commit and pull-request delivery | `skills/woostack-deliver/SKILL.md`; the reusable delivery procedure lives in `shared/references/delivery.md` |
 | Change browser-based app checks (`/woostack-qa`) | `skills/woostack-qa/SKILL.md`, `skills/woostack-qa/references/` |
-| Change UI design coordination and selected external-skill boundaries | `skills/woostack-design/SKILL.md` |
+| Change isolated UI prototyping and design handoffs | `skills/woostack-prototype/SKILL.md` and its references |
 | Change placement of existing screen-flow frames | `skills/woostack-flow-layout/SKILL.md` |
 | Change project-owned design catalog creation, adaptation, or maintenance | `skills/woostack-design-system/SKILL.md` and its references |
 | Change session reflection (`/woostack-reflect`) | `skills/woostack-reflect/SKILL.md` |
@@ -71,8 +71,8 @@ and verify tasks); install from the root with `pnpm install --frozen-lockfile` u
   delegate an approved task to installed Execute; the handoff narrows authority and leaves
   orchestration gates with the coordinator. Execute's absence uses Orchestrate's bundled
   procedures, not an installation prerequisite. Other sibling workflows remain optional
-  navigation, not procedure dependencies. External workflows are not dependencies except for
-  [Design's explicit exception](#external-design-skills). Reuse common procedures through
+  navigation, not procedure dependencies. External workflows are not dependencies. Prototype may
+  use [optional design guidance](#optional-design-guidance) without requiring it. Reuse common procedures through
   [bundled references](#shared-canonical-references) maintained from one canonical source;
   shared guidance never expands authority or silently changes the active workflow's gates.
   Design System application/configuration sources ship as non-runnable
@@ -109,12 +109,13 @@ and verify tasks); install from the root with `pnpm install --frozen-lockfile` u
   a copy update without its canonical edit is a defect, and `--check` reports drifted or missing
   copies without rewriting them.
 
-## External design skills
+## Optional design guidance
 
-`woostack-design` is the sole exception to the no-external-workflow rule. It may require and invoke
-selected installed external design skills under its [dependency boundary](skills/woostack-design/SKILL.md#dependency-boundary).
-It still must not load or invoke sibling Woostack workflows. Installation, execution, and publication
-permissions remain distinct. Other skills keep their existing independence.
+[Prototype](skills/woostack-prototype/SKILL.md) may use relevant installed external design guidance,
+but its workflow is complete without it. Missing or incompatible optional guidance must not trigger
+an installation requirement or block prototyping. Any selected procedure inherits the read-only
+project boundary and isolated artifact scope; it cannot authorize setup or publication. Prototype
+does not load or invoke sibling Woostack workflows. Other skills keep their existing independence.
 
 ## Shared canonical references
 

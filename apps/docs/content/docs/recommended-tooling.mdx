@@ -1,10 +1,10 @@
 ---
 title: Recommended tooling
-description: Personal recommendations for an agent development environment, remote access, and a coding harness with Pi extensions.
+description: Optional recommendations for an agent development environment, remote access, a coding harness, and design guidance.
 ---
 
 These are my recommendations for working with coding agents, not requirements for
-using Woostack. They cover the development environment and agent harness. For application
+using Woostack. They cover the development environment, agent harness, and design guidance. For application
 technologies, see [Recommended tech stack](/docs/recommended-stack).
 
 ## Development environment and remote access
@@ -38,3 +38,19 @@ Extensions execute code, so review their source before installing them.
 
 Side conversations and subagents are not automatically isolated workspaces. Avoid concurrent
 edits to the same files; separate conversations alone do not prevent editing conflicts.
+
+## Optional design skills
+
+[Impeccable](https://github.com/pbakaus/impeccable) and
+[Emil Kowalski's design skills](https://github.com/emilkowalski/skills) are recommended optional
+companions for UI work. Impeccable offers design direction, critique, and visual refinement;
+Emil's collection supplies focused design-engineering and interaction guidance. Use the relevant
+parts when they help the task rather than loading both collections or running every procedure.
+
+Neither collection is required by [Prototype](/docs/skills/woostack-prototype) or installed with
+WooStack. Prototype's normal workflow is complete without them. Install only tools you choose,
+using your assistant's supported mechanism and current upstream instructions.
+
+External guidance cannot expand the active workflow's permissions. In Prototype, keep the target
+project read-only and any writes inside the isolated artifact workspace. Skip incompatible optional
+procedures rather than changing project documents, installing tooling, or publishing a preview.

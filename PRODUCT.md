@@ -23,7 +23,7 @@ Current scope:
 - Bounded implementation including initial project creation, multi-task coordination, and
   pull-request delivery without merging. Local-only creation needs no GitHub destination.
 - Diagnosis, browser QA, review-comment handling, and conversation reflection.
-- UI design coordinated through selected external skills, plus layout of existing screen flows.
+- Isolated interactive UI prototypes with portable design handoffs, plus layout of existing screen flows.
 - Project-owned design catalogs adapted to existing UI and design rules, with bounded local
   creation, read-only inspection, and explicitly scoped maintenance.
 - A documentation site with authored guides and references generated from skill sources.
@@ -33,8 +33,8 @@ Every skill is independently installable and owns its own activation, workflow, 
 boundaries. The [command router](skills/using-woostack/SKILL.md#command-routing) is an optional
 command index and adoption aid; reusable procedures are shared through locally bundled references
 maintained from one canonical source. No sibling Woostack workflow is required.
-[Design](skills/woostack-design/SKILL.md#selected-skills) requires its selected external skills;
-installation and execution remain subject to its dependency and permission boundaries.
+[Prototype](skills/woostack-prototype/SKILL.md) keeps the target project read-only and works
+without external design skills. Optional guidance cannot expand its scope or permissions.
 
 The implemented repository contains the skills collection, stack documentation, and two supporting
 applications. The autonomous setup remains in development, with installation and configuration

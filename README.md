@@ -40,7 +40,7 @@ pnpx skills add howarewoo/woostack
 
 Each skill installs separately and bundles its reusable Woostack procedures, so it needs no sibling
 Woostack skill or source checkout. Installing or updating one does not mutate the others.
-Design additionally uses selected external skills, described below. To install only Execute:
+To install only Execute:
 
 ```bash
 pnpx skills add howarewoo/woostack --skill woostack-execute
@@ -53,14 +53,9 @@ The public commands are listed in the
 without aliases; use Whiteboard for requirements exploration, planning, specification review,
 and requested issue publication.
 
-For UI work, [Design](skills/woostack-design/SKILL.md#selected-skills) uses
-[Impeccable](https://github.com/pbakaus/impeccable) as its design lead, with relevant specialists
-from [Emil Kowalski's collection](https://github.com/emilkowalski/skills).
-Install the selected skills using your assistant's supported mechanism and their current upstream
-instructions. The Woostack install does not install these dependencies. Design checks availability
-and asks before a missing dependency is installed; it does not silently substitute generic advice.
-Only the skills needed for the task are required. See the
-[dependency boundary](skills/woostack-design/SKILL.md#dependency-boundary) for permissions and recovery.
+For interactive UI mockups, use [Prototype](skills/woostack-prototype/SKILL.md). It works without
+external design collections. See [optional design skills](apps/docs/content/docs/recommended-tooling.mdx#optional-design-skills)
+for recommended companions; they are not installed with WooStack.
 
 ### 2. Create useful project guidance
 
@@ -133,7 +128,7 @@ Execute.
 | A bounded implementation task | [/woostack-execute](skills/woostack-execute/SKILL.md) | Implements and verifies an enhancement, refactor, test-only task, or understood correction; delivers a draft PR when requested. |
 | Simplify an existing implementation | [/woostack-simplify](skills/woostack-simplify/SKILL.md) | Reworks selected code and removes unnecessary machinery while preserving required behavior; local edits by default, analysis-only when requested. |
 | Coordinate multiple authorized tasks | [/woostack-orchestrate](skills/woostack-orchestrate/SKILL.md) | Resolves tasks and dependencies from prose, issues, or an explicitly selected Project; delegates to native-host workers in owned workspaces and verifies draft PRs without merging. |
-| Design, prototype, refine, or critique UI | [/woostack-design](skills/woostack-design/SKILL.md) | Coordinates selected external design skills, agrees consequential directions before implementation, and checks the rendered result within the request's scope. |
+| Explore UI directions and interactive mockups | [/woostack-prototype](skills/woostack-prototype/SKILL.md) | Builds and refines isolated prototypes outside the target project, then returns a portable design reference and evidence limits. |
 | Arrange existing screen flows | [/woostack-flow-layout](skills/woostack-flow-layout/SKILL.md) | Positions screen sequences and branches without redesigning their contents. |
 | Create or inspect a project component catalog | [/woostack-design-system](skills/woostack-design-system/SKILL.md) | Creates locally when no catalog exists; inspects an existing catalog without writes unless you explicitly request maintenance. |
 
@@ -150,8 +145,10 @@ Design System adapts to project components and design rules; incompatible produc
 React catalog. The target owns the result without a Woostack or Git Stacks runtime dependency.
 Use `/woostack-flow-layout` separately to arrange multi-step UI flows.
 
-`woostack-design` now coordinates UI design using selected external skills. The previous
-screen-flow arrangement workflow is available as `woostack-flow-layout`.
+`woostack-design` is retired without an alias. Use Prototype for isolated mockups and Execute for
+authorized production UI changes. See [updating an older installation](apps/docs/content/docs/guides/troubleshooting.mdx#a-command-has-been-retired).
+A prototype can inform a separately requested Whiteboard plan and Execute implementation;
+none of these workflows automatically starts another.
 
 ## Review and check your work
 
