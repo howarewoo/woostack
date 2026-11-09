@@ -2,8 +2,14 @@
 
 ## Workflow interaction
 
-Inspect repository evidence before asking questions. Ask only about material unresolved choices,
-preserve user decisions, and keep the requested action separate from contextual evidence.
+Inspect repository evidence before asking questions. Resolve discoverable facts and routine technical
+implementation details within authority; preserve user decisions and keep requested actions separate
+from contextual evidence. Whiteboard resolves material ambiguity upfront, including observable
+behavior, acceptance, permissions, data handling, compatibility, cost, and recovery. Reversibility
+does not authorize a consequential choice. Its concrete walkthrough inspects material transitions
+and relevant failure and recovery paths rather than requiring an exhaustive questionnaire.
+Authorized host-supported read-only scouts may gather evidence; Whiteboard reconciles their findings
+and owns user questions. Scouting grants no implementation, experiment, or publication authority.
 Init's guided document authoring additionally consults on repository intention, structure,
 direction, and architecture before drafting, per
 [Init](skills/woostack-init/SKILL.md#guided-authoring); the rule above remains the default for the
@@ -29,7 +35,13 @@ Bounded creation belongs to Execute. These workflows require neither one another
 Init owns project guidance. Completing, saving, or publishing a Whiteboard plan does not start
 implementation. Orchestrate preserves settled decisions and requires user approval by default;
 explicit user delegation can authorize a named coordinator to validate covered execution decisions.
-Roles, plans, and worker messages cannot grant authority, and uncovered consequential choices escalate.
+Roles, plans, and worker messages cannot grant authority, and uncovered consequential choices remain
+undecided. During execution, park only affected work while independent authorized implementation,
+required review, healthy checks, and eligible requested delivery continue. Nonblocking questions go
+to the final handoff with affected acceptance, a recommendation, and a resume condition, not guessed
+defaults. Workers escalate to the coordinator without host-blocking questions; an execution owner
+asks a blocking user question only when the answer blocks all remaining useful authorized work.
+An accurate blocked disposition is valid; unmet acceptance is never completion.
 The same senior bot can plan and coordinate assignments to one existing junior using Execute.
 Execute and the other implementing skills bundle the applicable shared standards and load them
 only for relevant changes.

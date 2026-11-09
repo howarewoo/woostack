@@ -252,10 +252,17 @@ For an explicit one-run model or effort request, apply the shared
    New diagnostic methods, workers, artifacts, handoffs or timer resets alone do not reopen it. Resume
    only for relevant changed product inputs or evidence, an actual prerequisite, capability or permission
    change, or explicit renewed user direction within its scope.
-   During approved execution, report unresolved task-local decisions in progress output and park
-   affected work. Do not invoke a host-blocking question while safe independent authorized work,
-   required independent review or eligible requested delivery can advance; keep servicing that work.
-   Leave user-owned scope and permissions undecided; safety, privacy and publication gates still bind.
+   During approved execution, inspect evidence first and resolve routine in-authority implementation
+   choices autonomously. Missing consequential behavior stays undecided; do not invent defaults or
+   fallbacks affecting observable behavior, acceptance, permissions, data handling, compatibility,
+   cost, or recovery. Report unresolved questions in progress output and park only affected work.
+   Continue safe independent authorized implementation, required review, healthy checks, and eligible
+   requested delivery. Defer nonblocking questions to the final handoff with the precise question,
+   affected acceptance, recommendation, and resume condition. Do not claim completion for unmet
+   acceptance. A coordinator may use a host-blocking question only when its answer blocks all
+   remaining useful authorized work; workers escalate to the coordinator without such questions.
+   Leave uncovered consequential choices undecided; safety, privacy, permission, publication, and
+   release gates still bind.
    Let demonstrably healthy long product checks continue using existing runner progress and native
    timeout and cancellation controls. Duration alone neither cancels checks nor fails acceptance.
    Process liveness or diagnostic artifacts do not establish health. Checkpoints alone do not require
@@ -290,7 +297,8 @@ For an explicit one-run model or effort request, apply the shared
    contribution/integrated revisions, applicable verification, unmet criteria, and separate publication,
    consumer-release, and completion dispositions. No fresh CI/review reads are needed for the report.
    Identify incidentally returned status accurately without follow-up; uninspected CI is not a pass.
-   For parked work, name the unmet criterion and exact pending decision or other resumption condition.
+   For parked work, name the unmet criterion, precise pending question, recommendation, and exact
+   decision or other resumption condition.
    With no runnable authorized work and no demonstrably healthy pending work, return a final blocked
    disposition instead of a blocking interview, idle reassessment or further diagnostics.
    Account for temporary allocations beneath their delivery owner as active, retained for a named
