@@ -1,342 +1,287 @@
 ---
 title: Recommended tech stack
-description: My preferred stack for TypeScript web applications, with Expo for progressive native mobile adoption.
+description: Understand the recommended architecture for TypeScript web applications and when to add native mobile apps.
 ---
 
 import { StackRuntimeDiagram, StackDeliveryDiagram } from "../../components/stack-diagrams";
 
-My preferred stack starts with TypeScript web applications and adds native mobile apps
-when needed. It is not a requirement for using WooStack.
+This stack is a starting point for a TypeScript product with a public website, a signed-in
+web application, and an API. It favors static public content and a client-rendered app,
+released together on Cloudflare Workers. Native mobile is an optional later addition.
 
-Jump to the topic you need:
-[stack choices](#stack), [rendering](#application-boundaries-and-rendering), [blogs](#blogs),
-[mobile apps](#mobile-apps), [internationalization](#internationalization),
-[AI providers](#ai-provider-library), [runtime and delivery](#runtime-architecture),
-[SEO](#seo), or [scaling](#scaling-the-stack).
+These are recommendations, not requirements for using Woostack. Existing repositories keep
+their selected technologies and conventions. This documentation site itself uses Next.js
+and Fumadocs; its implementation and deployment are described in the
+[docs app README](https://github.com/howarewoo/woostack/blob/main/apps/docs/README.md).
+
+For deployment steps, see [Deploy a full-stack Cloudflare Worker](/docs/guides/deploy-cloudflare).
+For the engineering principles behind application boundaries, see
+[Repository structure and rules](/docs/concepts/repository-rules).
 
 ## Stack
 
-| Layer | Technologies |
+The core web stack separates public content, interactive application screens, and server-side
+work. Optional tools address specific needs rather than becoming dependencies of every project.
+Package versions belong in the consuming project's manifests and lockfile; this list is not a
+certified compatibility matrix.
+
+| Responsibility | Recommendation | Role |
+| --- | --- | --- |
+| Language and tooling | TypeScript, ES modules, Node.js | Node runs local tooling and Node deployments; Workers has its own runtime. |
+| Workspace | pnpm workspaces | Keeps app dependencies separate. Turborepo is optional when cross-app task orchestration and caching help. |
+| Public site | Astro | Prerenders marketing pages, blog posts, and other public content. |
+| Web application | React, Vite, standalone TanStack Router | Provides client-rendered screens, typed navigation, and URL state. TanStack Start is not part of this recommendation. |
+| Remote data | TanStack Query, oRPC | Query manages remote-data caching; oRPC supplies typed API calls. |
+| API | Hono, oRPC, Zod | Handles HTTP requests, procedures, and runtime input validation. |
+| Database | Neon PostgreSQL, Drizzle ORM, Drizzle Kit, pg | Stores application data; Drizzle Kit owns migrations. Hyperdrive pools Workers connections. |
+| Authentication | Managed Neon Auth | Provides managed authentication; the API still verifies sessions and enforces authorization. |
+| Web UI | Tailwind CSS, shadcn/ui with Base UI primitives | Supplies styles and reusable web controls. |
+| Documentation | Fumadocs with Astro | Adds documentation layouts, MDX content, and static search to the public site. |
+| Deployment | Cloudflare Workers, Wrangler, GitHub Actions | Releases public assets, app assets, and the API as one unit per environment. |
+
+Supporting tools depend on what the product needs:
+
+| Need | Recommendation |
 | --- | --- |
-| Language & runtime | TypeScript 5.9, ES modules; Node.js 24 for tooling and Node deployments |
-| Monorepo & packages | pnpm 10 workspaces; Turborepo 2 when task orchestration and caching are useful |
-| SaaS & SPA frontend | React, Vite, TanStack Router (`@tanstack/react-router`); client-rendered by default |
-| Mobile apps (optional) | React Native, Expo, Expo Router; DOM components for incremental web-to-native migration |
-| Public-facing sites | Astro for landing pages, marketing sites, and blogs; static generation by default |
-| Blogs | Git-backed Markdown with Astro Content Collections; MDX only for embedded components |
-| Documentation | Fumadocs + Astro for customizable React/MDX documentation; prerendered HTML and static search |
-| Web UI & styling | Tailwind CSS 4, shared shadcn/ui components using Base UI primitives |
-| Optional UI utilities | Recharts, date-fns, Embla Carousel, React Day Picker |
-| Internationalization (optional) | i18next + react-i18next for React web and React Native; Astro native i18n routing for public sites |
-| Server state & API client | TanStack Query 5 for remote-data caching, oRPC 1.16 for typed API calls |
-| Backend & validation | Hono 4, oRPC procedures, Zod 4 |
-| AI provider library | TanStack AI (`@tanstack/ai`) with direct provider adapters |
-| Database | Neon PostgreSQL, Drizzle ORM, Drizzle Kit migrations, pg; Hyperdrive for Workers connections |
-| Authentication | Managed Neon Auth; local Better Auth fixture; managed preview checks for production-auth integration |
-| Component catalog | Storybook 10 with React/Vite |
-| Testing | Vitest, React Testing Library with a DOM environment, Playwright for critical browser journeys; production/development/Workers smoke scripts |
-| Standalone Node checks | Native Node.js test runner, tsx; no duplication of Vitest suites |
-| Linting & formatting | Oxlint, @shadcn/lint, Oxfmt |
-| Web deployment & CI | One Cloudflare Worker for public-site assets, SPA assets, and the Hono API; Wrangler and GitHub Actions for CI/CD |
-| Local infrastructure | Docker Compose, PostgreSQL 17, local HTTPS Auth fixture, Wrangler local execution |
+| Native mobile | React Native, Expo, Expo Router; DOM components for selected web screens |
+| Component catalog | Storybook with React/Vite |
+| UI utilities | Recharts, date-fns, Embla Carousel, or React Day Picker where needed |
+| Translated application UI | i18next and react-i18next |
+| AI features | TanStack AI with direct provider adapters |
+| App and component tests | Vitest, React Testing Library with a DOM environment |
+| Critical browser journeys | Playwright |
+| Standalone Node script tests | Native Node.js test runner and tsx, without duplicating Vitest suites |
+| Linting and formatting | Oxlint, @shadcn/lint, Oxfmt |
+| Local infrastructure | Docker Compose, PostgreSQL, a local HTTPS Better Auth fixture, Wrangler |
+
+A local auth fixture supports development without proving managed-auth integration. Trusted
+preview checks cover the production provider, callbacks, and cookie behavior.
 
 ## Application boundaries and rendering
 
-Keep the public site and SaaS application in separate workspace apps, with shared UI
-packages where useful. They have different rendering needs but share one deployment.
+The public site and signed-in app have different readers and rendering needs. Separate workspace
+apps let each use an appropriate renderer while sharing UI or contracts where there is real reuse.
 
-[Standalone TanStack Router](https://tanstack.com/router/latest/docs/framework/react/installation/with-vite)
-is the routing recommendation for React/Vite SaaS applications and single-page applications
-(SPAs). It handles typed navigation and URL state; TanStack Query owns remote-data caching,
-and oRPC provides typed API calls. TanStack Start is not part of this stack.
+Astro owns public routes such as `/`, `/pricing/`, `/blog/`, and `/docs/`.
+[Static generation](https://docs.astro.build/en/guides/on-demand-rendering/) produces their HTML
+at build time. Readers and crawlers receive the main content without waiting for client JavaScript.
+[React islands](https://docs.astro.build/en/guides/framework-components/) add interactive sections,
+such as a pricing calculator, without making every page a single-page application (SPA).
 
-Astro owns public-facing content such as `/`, `/pricing`, and `/blog/*`.
-[Static generation](https://docs.astro.build/en/guides/on-demand-rendering/) produces HTML
-at build time, so ordinary marketing pages need no request-time rendering service.
-[React components](https://docs.astro.build/en/guides/framework-components/) can provide
-interactive islands, such as a pricing calculator, without turning the whole site into a SPA.
-Request-time server-side rendering (SSR) is reserved for pages whose initial HTML needs
-fresh or request-specific data. It requires an adapter and server-handler integration,
-not just a different client router.
+The React/Vite app uses
+[standalone TanStack Router](https://tanstack.com/router/latest/docs/framework/react/installation/with-vite)
+for navigation. After loading the app shell, the browser renders screens and requests data from the
+API. This suits signed-in workflows that do not need search indexing. TanStack Query caches server
+data in the client; it does not replace server-side authorization or database consistency.
 
-For public documentation, [Fumadocs + Astro](https://www.fumadocs.dev/docs/manual-installation/astro)
-combines customizable React layouts and MDX components with Astro's page routing and static
-generation. Fumadocs supplies the documentation UI; Astro owns the site build. The recommended
-integration is Astro, not Next.js.
+Request-time server-side rendering (SSR) is a separate choice for public pages whose initial HTML
+needs fresh or request-specific data. It adds an adapter and server-handler integration. A different
+client router alone does not supply SSR, and static public content does not need SSR on every request.
 
-Documentation normally lives at `example.com/docs/` in the same public-site build as marketing
-and blog pages. Articles are prerendered and the search index is generated at build time;
-interactive Fumadocs UI still uses React islands. Documentation shares the public site's
-assets and GitHub Actions release, without a separate Worker or deployment pipeline.
+### Blogs and documentation
 
-## Blogs
+Git-backed Markdown in [Astro Content Collections](https://docs.astro.build/en/guides/content-collections/)
+is the blog default. Posts live with the public site and produce complete article HTML under
+`/blog/`. MDX is useful when a post needs embedded components; plain Markdown keeps ordinary writing
+independent of component imports.
 
-Use Git-backed Markdown with [Astro Content Collections](https://docs.astro.build/en/guides/content-collections/)
-for blogs. Posts belong in the existing Astro public-site app at `example.com/blog/`,
-alongside marketing pages. Astro renders complete article HTML at build time, keeping
-ordinary posts independent of the SaaS API and database. A static blog needs no SSR adapter
-or separate deployment.
+A small content schema can require `title`, `description`, and `pubDate`, default `draft` to `false`,
+and leave update dates, tags, and cover images optional. Shared layouts own article styling and
+metadata. Filename-derived content IDs can supply URLs, but a renamed published URL needs a redirect.
 
-Prefer plain `.md` files; use [MDX](https://docs.astro.build/en/guides/markdown-content/)
-only when a post needs embedded components. A shared Astro layout owns article styling,
-publication dates, and the [SEO metadata](#seo), keeping ordinary writing independent
-of component imports.
+Publication filters matter at every output boundary. A draft excluded only from the index can still
+have a published page. Routes, indexes, RSS, sitemaps, and search must agree on which posts are public.
+Future-dated posts need the same treatment when scheduling is supported. Static output changes only
+after a build and deployment; a publication date alone cannot trigger a release.
 
-A `blog` collection can load posts from `src/content/blog/` with Astro's built-in `glob()`
-loader. Its schema validates frontmatter and provides typed content queries. Keep the
-recommended schema small: require `title`, `description`, and `pubDate`; default `draft`
-to `false`; make `updatedDate`, tags, and a cover image optional. Filename-derived content
-IDs provide stable article URLs. Renaming a published URL requires a redirect.
+[Fumadocs with Astro](https://www.fumadocs.dev/docs/manual-installation/astro) brings documentation UI
+and MDX components into the same public-site build under `/docs/`. Prerendered articles and a
+[static search index](https://www.fumadocs.dev/docs/deploying/static) avoid a separate documentation
+server. The search index belongs on the public host, outside the app-only `/api` namespace.
 
-A shared route template uses `getStaticPaths()` and `render()` to generate article pages.
-Exclude drafts consistently from production article routes, the blog index, RSS, sitemap
-entries, and any search index. Hiding a draft from the index alone does not
-prevent its page from being published. Generate feeds with
-[`@astrojs/rss`](https://docs.astro.build/en/recipes/rss/) and include published article
-URLs in the existing [`@astrojs/sitemap`](https://docs.astro.build/en/guides/integrations-guide/sitemap/)
-setup.
+A CMS becomes useful when authors need browser editing, media management, or editorial releases
+independent of repository changes. That changes the authoring workflow without necessarily changing
+static rendering.
 
-Publishing follows the existing pull-request and GitHub Actions workflow: merge the
-content change, rebuild the public site, and deploy its assets with the same Cloudflare
-Worker. When scheduling by `pubDate`, exclude future-dated posts everywhere the published
-filter is used. Reaching the date alone does not update static output; automatic publication
-also needs a scheduled build and deployment.
+## Runtime architecture
 
-A CMS becomes useful when contributors need browser-based editing, media management,
-or an editorial workflow independent of repository releases. Git-backed Markdown remains
-the default; changing the authoring workflow does not require abandoning static rendering.
+The proposed deployment uses **one Cloudflare Worker per environment** with
+[two Custom Domains](https://developers.cloudflare.com/workers/configuration/routing/custom-domains/):
+
+| Host | Responsibility |
+| --- | --- |
+| `example.com` | Astro public site, including blog and documentation |
+| `app.example.com` | React app at `/` and Hono API at `/api` and `/api/*` |
+
+<StackRuntimeDiagram id="stack-runtime" />
+
+A visitor opens a public page on the root host, then follows a link to the app subdomain.
+The app loads its shell and calls `/api/*` on its own origin. Hono verifies the session and
+authorization before accessing protected data. Database credentials stay on the server.
+
+Sharing a Worker does not make the hostnames the same browser origin. Public-site browser calls
+to the app API require an explicit CORS policy. Host-scoped application cookies avoid sharing
+sessions with every subdomain; authentication callbacks must match the intended app origin.
+
+The [ASSETS binding matches pathnames, not hostnames](https://developers.cloudflare.com/workers/static-assets/binding/#runtime-api-reference).
+The Worker therefore selects the host before looking up a file in the internal `/site/` or `/app/`
+asset namespace. Only app-host HTML navigation can fall back to the SPA shell. Missing public pages,
+API routes, and static files remain 404 responses.
+
+Worker-first dispatch also invokes code for asset requests. The benefit is one release unit; the
+cost is shared deployment timing and Worker configuration for both apps. It is a deliberate topology,
+not a Cloudflare requirement for every product.
+
+### Source apps and releases
+
+The diagram uses example paths for a downstream application, not this repository's layout.
+
+<StackDeliveryDiagram id="stack-delivery" />
+
+GitHub Actions builds the separate sources, assembles both asset namespaces, and verifies the Worker
+before release. The Worker and both frontends deploy together. Database migrations remain an explicit
+release step with their own compatibility and recovery requirements. A Worker rollback does not
+undo a database migration.
 
 ## Mobile apps
 
-The default starting point is a React/Vite web app and progressive web app (PWA).
-When app-store distribution is warranted and a native experience is the long-term goal,
-use React Native with Expo as the first mobile platform. Skip Capacitor as an intermediate
-step before a planned React Native migration. There is no need to build a mobile app
-before the product warrants one.
+A React/Vite web app, with PWA capabilities where needed, is the starting point. App-store distribution
+and native interaction can justify a separate React Native app with Expo. When React Native is the
+long-term target, using Capacitor as an intermediate platform adds another migration.
 
-The mobile app lives in a separate workspace app, with
-[Expo Router](https://docs.expo.dev/router/introduction/) owning native stacks, tabs, and
-modals from the first mobile release. TanStack Router remains the browser router.
-[Expo DOM components](https://docs.expo.dev/guides/dom-components/) use `'use dom'` to reuse
-existing web screens or self-contained sections inside that native shell. They run in
-WebViews, not native controls; the benefit is incremental replacement without changing
-mobile platforms, not an immediate native performance improvement.
+[Expo Router](https://docs.expo.dev/router/introduction/) owns native stacks, tabs, and modals.
+TanStack Router stays in the browser app.
+[Expo DOM components](https://docs.expo.dev/guides/dom-components/) can reuse selected web screens
+inside the native shell while high-value workflows move to native controls.
 
-Native UI replaces web screens where it improves the experience most, such as frequent
-workflows, keyboard-heavy forms, lists, and gestures. Rich-text rendering or infrequently
-used screens can remain DOM components when replacement adds little value. A complete
-native rewrite is not a prerequisite for the first mobile release.
+| Boundary | What can be reused | What remains separate |
+| --- | --- | --- |
+| Shared source | Business logic, types, validation, API contracts, translation catalogs | Platform initialization and device integrations |
+| DOM component | Browser UI, CSS, and shadcn/ui controls, marked with `'use dom'` | Runs in a WebView, not as native controls; native views cannot nest inside it |
+| Native-to-DOM connection | Serializable props and asynchronous native actions | React context, global state, and query caches are not automatically shared across runtimes |
 
-### Code sharing and integration boundaries
+Expo CLI and Metro bundle reused source; an unchanged Vite build is not the input. DOM components
+make incremental replacement possible, but do not themselves improve native performance. Frequent
+workflows, keyboard-heavy forms, lists, and gestures are stronger candidates for native UI than
+infrequently used content screens.
 
-| Part | Responsibility and boundary |
-| --- | --- |
-| Native shell / Expo Router | Owns native navigation and device integrations, which survive replacement of a web screen. |
-| DOM component / WebView | Runs web UI, including shadcn/ui and browser CSS, in a separate runtime. React context, global state, and query caches are not automatically shared with native screens; native views cannot be nested here. |
-| Native / WebView connection | Uses small serializable props and asynchronous native actions across the runtime boundary. |
-| Shared source | Platform-independent business logic, types, validation, API contracts, and translation catalogs can be reused. Source reuse does not share runtime memory or turn web controls into native UI. |
+Mobile calls the existing backend through an absolute HTTPS URL rather than same-origin `/api`.
+Authentication, redirects, and session persistence need platform-specific integration. Login,
+session restoration, authenticated requests, and logout on a real target device are the early
+feasibility checks before a broad screen migration.
 
-Expo CLI and Metro bundle reused web source; an unchanged Vite build is not the input.
-The existing Cloudflare-hosted backend stays in place, with the mobile app calling its
-configured absolute HTTPS API URL rather than assuming same-origin `/api` requests. Authentication,
-redirects, and persistence need platform-specific integration. A representative flow on a
-real iPhone should verify login, session restoration, logout, and authenticated requests
-before substantial UI migration.
-
-### Mobile delivery
-
-Mobile binaries have a separate release lifecycle from the web deployment. Prefer
-[EAS Build](https://docs.expo.dev/deploy/build-project/) and
-[EAS Submit](https://docs.expo.dev/deploy/submit-to-app-stores/) for native builds and store
-uploads; the public site, PWA, and API keep their existing Cloudflare deployment.
-Apple's [minimum-functionality guideline](https://developer.apple.com/app-store/review/guidelines/#minimum-functionality)
-still applies: Expo or a native navigation bar does not guarantee approval for a repackaged
-website.
+Native binaries have a separate release lifecycle. [EAS Build](https://docs.expo.dev/deploy/build-project/)
+and [EAS Submit](https://docs.expo.dev/deploy/submit-to-app-stores/) are the preferred build and upload
+tools; web and API releases remain on Cloudflare. Apple's
+[minimum-functionality guideline](https://developer.apple.com/app-store/review/guidelines/#minimum-functionality)
+still applies. A native navigation bar around a website does not guarantee store approval.
 
 ## Internationalization
 
-When multilingual support is required, use [i18next](https://www.i18next.com/) with
-[react-i18next](https://react.i18next.com/) for React/Vite and React Native applications.
-Share translation catalogs, supported locales, and fallback configuration where useful;
-keep initialization, locale detection, and persistence in each application. Private SaaS
-routes do not need locale prefixes just to translate their interface.
+For multilingual React web and native UI, i18next with react-i18next allows translation catalogs,
+supported locales, and fallback rules to be shared. Initialization, language detection, and
+persistence stay in each app. Private app routes do not need locale prefixes simply to translate
+interface text. Bundled startup translations keep mobile UI available offline; a hosted translation
+service is optional.
 
-Mobile apps should [bundle the translations](https://www.i18next.com/how-to/add-or-load-translations)
-needed at startup so they remain available offline. A hosted translation service is optional.
-
-For public sites, [Astro's native i18n routing](https://docs.astro.build/en/guides/internationalization/)
-owns localized URLs. Keep static generation as the default, using i18next core for interface
-strings with an [explicit page locale](https://www.i18next.com/overview/api#getfixedt) rather
-than changing a shared global language during rendering. Translated articles and documentation
-stay in the content layer.
+Public content has a different concern: stable localized URLs.
+[Astro's i18n routing](https://docs.astro.build/en/guides/internationalization/) owns those paths,
+while translated articles and documentation belong in the content layer. i18next core can supply
+interface strings through an [explicit page locale](https://www.i18next.com/overview/api#getfixedt).
+Changing a shared global language during rendering risks mixing concurrent pages' locales.
 
 ## AI provider library
 
 [TanStack AI](https://tanstack.com/ai/latest/docs/getting-started/overview) is the recommended
-multi-provider TypeScript SDK for AI features. It provides streaming and typed tool calling
-through provider adapters such as `@tanstack/ai-openai` and `@tanstack/ai-anthropic`.
+TypeScript library for streaming and typed tool calling through direct provider adapters, such as
+`@tanstack/ai-openai` and `@tanstack/ai-anthropic`. No AI gateway is required for this design.
 
-React/Vite and optional Expo clients call an authenticated Hono endpoint on the existing
-Cloudflare backend. That endpoint uses TanStack AI's provider adapters to call the selected
-provider directly; no AI gateway is required. Provider adapters and API keys stay on the
-backend. Store keys as Worker secrets, never in `VITE_*` or `EXPO_PUBLIC_*` variables.
-
-React clients use `@tanstack/ai-react`. The
+Clients call an authenticated Hono endpoint, which invokes the selected adapter. Provider code and
+API keys stay on the backend in Worker secrets, never in `VITE_*` or `EXPO_PUBLIC_*` variables.
+React clients use `@tanstack/ai-react`; the
 [React Native guide](https://tanstack.com/ai/latest/docs/getting-started/quick-start-react-native)
-covers Expo's absolute backend URL and XHR streaming transport. Model capabilities depend
-on the chosen provider and model. Verify the selected adapter in Wrangler and the Expo
-transport on target devices before adoption.
+covers an absolute backend URL and XHR streaming transport.
 
-## Runtime architecture
-
-Deploy the public site, web app, and Hono API as **one Cloudflare Worker per environment**, with
-[two Custom Domains](https://developers.cloudflare.com/workers/configuration/routing/custom-domains/):
-`example.com` for the Astro public site and `app.example.com` for the SaaS application
-and its `/api` endpoints. The app uses `/` as its route base, not `/app/`.
-
-These are two browser origins, even though they share a Worker. The SPA calls `/api/*`
-on its own origin. Public-site links open the app subdomain; browser API calls from the
-public site would be cross-origin and need an explicit CORS policy.
-
-<StackRuntimeDiagram id="stack-runtime" />
-
-Cloudflare's [asset binding matches pathnames, not hostnames](https://developers.cloudflare.com/workers/static-assets/binding/#runtime-api-reference).
-Separate asset directories and Worker-first dispatch prevent both hosts from resolving to
-the same index file. This topology runs Worker code for asset requests too. It keeps one
-release unit, but the two apps share deployment timing and Worker configuration.
-
-### Project configuration and delivery
-
-The web workspace apps feed one GitHub Actions pipeline and one Wrangler deployment.
-The paths below are a downstream project example, not this repository's app layout.
-
-<StackDeliveryDiagram id="stack-delivery" />
-
-- Workers runs its own runtime, not Node.js. Verify Workers-specific behavior with Wrangler.
-- Turborepo and optional UI utilities are added only when needed. The local auth fixture does not establish production parity.
-- Versions describe the recommendation, not a compatibility certification. Check the selected oRPC/Zod and Vitest/Vite combinations before adoption.
-
-For configuration and release steps, follow [Deploy a full-stack Cloudflare Worker](/docs/guides/deploy-cloudflare).
+Provider and model capabilities vary. Adoption depends on verifying the chosen adapter in Wrangler
+and the mobile transport on target devices, not just on the library exposing a common API.
 
 ## SEO
 
-Public pages should return their main content and metadata in the initial HTML. Google can
-render JavaScript, but [server rendering or prerendering](https://developers.google.com/search/docs/crawling-indexing/javascript/javascript-seo-basics)
-also serves crawlers that do not run it. Static Astro output meets this requirement; SSR
-is not an SEO requirement for every request. Private SaaS screens do not need SSR for search.
+Public content benefits from meaningful HTML before JavaScript runs.
+[Prerendering or server rendering](https://developers.google.com/search/docs/crawling-indexing/javascript/javascript-seo-basics)
+also serves crawlers that do not execute JavaScript. Static Astro output meets that need without
+request-time SSR. Private application screens have no equivalent search requirement.
 
-### Content and metadata
+| Concern | Public-site expectation |
+| --- | --- |
+| Page identity | Descriptive title, meta description, canonical production URL, semantic headings, and crawlable links |
+| Link previews | Open Graph metadata in the page HTML |
+| Structured data | Relevant types, such as `Article`, matching visible content; rich results are not guaranteed |
+| Discovery | Sitemap entries for indexable public pages only, using the root domain without internal asset prefixes |
+| URL changes and misses | HTTP redirects for moved pages; HTTP 404 for missing pages rather than a successful app shell |
 
-Each indexable page needs a descriptive title, meta description, canonical production URL,
-semantic headings, and crawlable links. A shared Astro layout can keep these consistent.
-[Open Graph metadata](https://ogp.me/) supplies shared-link previews.
-Relevant [structured data](https://developers.google.com/search/docs/appearance/structured-data/intro-structured-data),
-such as `Article` for a blog post, must match visible content; it does not guarantee rich results.
+Each hostname has its own `robots.txt`; the root domain's file does not control the app subdomain.
+The app shell and previews are non-indexable by default, using `noindex` in initial HTML or an
+`X-Robots-Tag` header. A deliberately public app page needs a separate indexing decision. Crawlers
+must be able to fetch a URL to see its `noindex` directive, so blocking that URL in `robots.txt`
+prevents the directive from being read. Neither mechanism protects private data; authentication does.
+Production public pages must not inherit preview indexing restrictions.
 
-### Discovery and indexing
-
-Astro's `site` setting is `https://example.com` for
-[`@astrojs/sitemap`](https://docs.astro.build/en/guides/integrations-guide/sitemap/).
-Public canonical URLs and sitemap entries use that root domain, never the internal asset
-prefixes. Only indexable marketing, blog, and documentation URLs belong in the public sitemap, not
-`app.example.com` screens, API routes, previews, or noncanonical duplicates.
-Each hostname has its own [`robots.txt`](https://developers.google.com/search/docs/crawling-indexing/robots/robots_txt);
-the root domain's file advertises the public sitemap and does not control the app subdomain.
-Moved pages need HTTP redirects; missing public pages need HTTP 404 responses, not a
-successful SPA shell.
-
-Authentication protects private data. The app subdomain is non-indexable by default;
-any deliberately public app page needs an explicit indexing decision. For reachable app
-shells and preview pages,
-[`noindex`](https://developers.google.com/search/docs/crawling-indexing/block-indexing) belongs
-in the initial HTML or `X-Robots-Tag` response header. Crawlers must be able to fetch it;
-blocking the same URL in `robots.txt` prevents them from seeing the directive. Neither
-`robots.txt` nor `noindex` is access control. Production public pages must not inherit preview
-indexing restrictions.
-
-### Performance and verification
-
-Limited client JavaScript, appropriately sized images, and stable layouts help the public
-site load and respond well. [Core Web Vitals](https://developers.google.com/search/docs/appearance/core-web-vitals)
-measure loading, responsiveness, and visual stability; rendering choice alone does not
-establish good performance or search ranking.
-
-The [deployment checks](/docs/guides/deploy-cloudflare#2-verify-the-built-application) cover
-raw HTML, metadata, sitemap URLs, and response status before release. Search Console URL
-Inspection and PageSpeed Insights provide production indexing and performance evidence.
+Limited client JavaScript, sized images, and stable layouts support loading and interaction quality.
+[Core Web Vitals](https://developers.google.com/search/docs/appearance/core-web-vitals) measure those
+outcomes; a rendering choice alone does not establish performance or ranking. The
+[deployment checks](/docs/guides/deploy-cloudflare#2-verify-the-built-application) cover raw HTML,
+metadata, search, and status codes. Search Console and PageSpeed Insights supply production evidence.
 
 ## Scaling the stack
 
-Workers can scale the stateless API across Cloudflare's network, but that does not
-give PostgreSQL unlimited throughput or make writes local to every user. Capacity
-depends on query cost, transaction duration, contention, and cache hit rate, not
-registered-user counts. Slow queries, database CPU and I/O, lock waits, connection
-pool wait time, and API tail latency distinguish the bottlenecks.
+A distributed stateless API does not give PostgreSQL unlimited throughput or make writes local to
+every user. Useful evidence includes slow queries, CPU and I/O, lock waits, connection-pool waits,
+and API tail latency. Registered-user counts alone do not identify the bottleneck.
 
-### Database capacity comes first
+Indexes, bounded results, fewer SQL round trips, and short transactions are the first improvements.
+External calls inside a transaction occupy connections while doing no database work. Increasing a
+pool can worsen overload. [Hyperdrive pooling](https://developers.cloudflare.com/hyperdrive/configuration/tune-connection-pool/)
+reuses origin connections, but its budget must leave room for other clients and configurations.
+[Neon autoscaling](https://neon.com/docs/introduction/autoscaling) adds compute within configured
+bounds; it cannot remove contention on a frequently updated row.
 
-Indexes, bounded result sets, fewer database round trips, and short transactions
-usually offer more value than another service. External API calls inside a database
-transaction hold connections while doing no database work. Larger pools can make
-an overloaded database slower rather than increase throughput.
+### Different workloads need different additions
 
-[Hyperdrive connection pooling](https://developers.cloudflare.com/hyperdrive/configuration/tune-connection-pool/)
-reuses origin connections across Workers. Its connection budget needs room for
-other database clients and every Hyperdrive configuration targeting that database.
-[Neon autoscaling](https://neon.com/docs/introduction/autoscaling) adds compute
-within configured bounds when efficient queries still saturate the database.
-Neither removes contention on frequently updated rows.
+These services are options for a measured bottleneck, not baseline dependencies.
 
-### Match the scaling option to the workload
-
-Cloudflare-native services are the default additions for the Workers deployment,
-not mandatory dependencies. Each solves a different problem.
-
-| Workload | Preferred option | Boundary or tradeoff |
+| Workload | Option | Consequence |
 | --- | --- | --- |
-| Repeated public HTTP responses | [Cloudflare cache](https://developers.cloudflare.com/workers/reference/how-the-cache-works/) | Avoids SQL on a hit. The Workers Cache API is data-center-local; a local delete is not global invalidation. Shared caches must not expose personalized responses. |
-| Read-heavy configuration or derived values that change infrequently | [Workers KV](https://developers.cloudflare.com/kv/concepts/how-kv-works/) | Globally cached reads, with eventual consistency. Updates can take 60 seconds or more to become visible elsewhere. Unsuitable for strict counters or immediate permission revocation. |
-| Repeated SQL reads that tolerate stale results | [Hyperdrive query caching](https://developers.cloudflare.com/hyperdrive/concepts/query-caching/) | Avoids origin queries for eligible cache hits. Writes do not invalidate cached results; pooling alone does not add read replicas. |
-| Strict per-user or per-credential quotas, collaborative rooms, or per-resource coordination | [Durable Objects](https://developers.cloudflare.com/durable-objects/best-practices/rules-of-durable-objects/) | Strongly consistent storage and coordination within each object. One object per coordination key distributes load; one global object becomes a bottleneck. |
-| Best-effort API abuse protection | [Workers Rate Limiting binding](https://developers.cloudflare.com/workers/runtime-apis/bindings/rate-limit/) | Fast, approximate limits maintained separately per Cloudflare location. Not a strict worldwide quota. |
-| Write bursts or deferrable work such as notifications and imports | [Cloudflare Queues](https://developers.cloudflare.com/queues/reference/delivery-guarantees/) | Buffers bursts, not sustained database overload. At-least-once delivery requires idempotent side effects; bounded consumer concurrency protects PostgreSQL. |
-| Read traffic or reporting that exhausts primary compute despite query tuning | [Neon read replicas](https://neon.com/docs/introduction/read-replicas) | Additional read-only compute, with explicit application routing. Replicas are eventually consistent and do not increase write capacity. |
-| Expensive recurring reports | Precomputed summaries or a separate analytical workload | Trades freshness and pipeline complexity for less transactional database work. A replica can isolate reporting compute before a separate analytics system is justified. |
-| Hot-row writes or tenants that dominate traffic | Data-model changes, tenant isolation, then sharding when justified | Cache does not resolve authoritative write contention. Sharding adds routing, migration, and cross-shard query costs. |
+| Repeated public HTTP responses | [Cloudflare cache](https://developers.cloudflare.com/workers/reference/how-the-cache-works/) | Avoids SQL on a hit. Cache API entries and deletion are data-center-local; shared responses must not leak personalized data. |
+| Infrequently changed configuration or derived values | [Workers KV](https://developers.cloudflare.com/kv/concepts/how-kv-works/) | Eventually consistent; changes can take 60 seconds or more to appear elsewhere. Unsuitable for immediate permission revocation or strict counters. |
+| Repeated SQL reads that tolerate stale data | [Hyperdrive query caching](https://developers.cloudflare.com/hyperdrive/concepts/query-caching/) | Caches eligible reads. Writes do not invalidate results. |
+| Strict quotas, rooms, or per-resource coordination | [Durable Objects](https://developers.cloudflare.com/durable-objects/best-practices/rules-of-durable-objects/) | Strong coordination within each object; one global object can become a bottleneck. |
+| Best-effort abuse limits | [Workers Rate Limiting binding](https://developers.cloudflare.com/workers/runtime-apis/bindings/rate-limit/) | Approximate, location-local limits rather than a strict worldwide quota. |
+| Write bursts, notifications, or imports | [Cloudflare Queues](https://developers.cloudflare.com/queues/reference/delivery-guarantees/) | At-least-once delivery needs idempotent effects. Bounded consumer concurrency protects the database; a queue cannot fix sustained overload. |
+| Reads or reporting exhausting primary compute after tuning | [Neon read replicas](https://neon.com/docs/introduction/read-replicas) | Adds read-only compute with explicit routing and eventual consistency, not more write capacity. |
+| Expensive recurring reports | Precomputed summaries or separate analytics | Reduces transactional work at the cost of freshness and pipeline complexity. |
+| Hot-row writes or a dominant tenant | Data-model changes, tenant isolation, then sharding if justified | Addresses write contention; sharding adds routing, migration, and cross-shard query costs. |
 
-### Freshness and state ownership
+### Freshness determines the read path
 
-Hyperdrive query caching is enabled by default. A cache-disabled Hyperdrive
-binding retains connection pooling and is the appropriate path for reads that
-must be fresh, including authorization, billing state, and read-after-write flows.
-Separate cached and uncached Drizzle clients make that distinction explicit.
-Replica reads are also unsuitable when a flow requires the latest committed
-state; those reads belong on the uncached primary path.
+Hyperdrive query caching is enabled by default. A cache-disabled binding retains pooling while
+providing the fresh-read path for authorization, billing, and read-after-write behavior. Separate
+cached and uncached database clients make that boundary explicit. Replica reads also cannot serve
+flows that require the latest committed primary state.
 
-KV suits values whose stale window is acceptable. It is not a drop-in Redis
-replacement for atomic updates. Durable Objects suit strongly coordinated state
-owned by one user, credential, room, or resource, but their consistency does not
-extend into a PostgreSQL transaction. Keeping the same authoritative state in
-both systems introduces a synchronization problem.
+For example, a public catalog may tolerate cached results. A permission check after access has been
+revoked cannot use the same stale read path. Tenant-scoped cache keys, authorization checks, expiry,
+invalidation, and bounded cache-miss concurrency protect private data and recovery under load.
 
-For application-managed caches, tenant-scoped keys and authorization checks
-protect private data. Expiry, invalidation, and bounded cache-miss concurrency
-determine what happens after a write or when many entries expire together.
-Redis remains an option when a workload needs its specific data structures,
-atomic operations, or an existing integration. It is not the default shared cache
-for this deployment; a remote Redis service adds another network dependency.
+KV is not an atomic Redis substitute. Durable Objects can own coordinated state, but their consistency
+does not extend into a PostgreSQL transaction. Making both systems authoritative for the same value
+creates a synchronization problem. Redis remains useful for its specific structures, atomic operations,
+or existing integrations, at the cost of another network dependency.
 
-### Geographic limits
+### Geography still matters
 
-Edge execution does not remove the distance to the database writer. Fewer
-sequential SQL round trips and cached reads help global users, while writes still
-reach the primary. Neon read replicas are in the same region as their primary;
-cross-region replicas require a separate project and logical replication.
-Regional tenant placement or a different write architecture is a larger design
-decision, justified by measured latency and consistency requirements.
-
-## Related documentation
-
-- [Deploy a full-stack Cloudflare Worker](/docs/guides/deploy-cloudflare): deploy the application stack.
-- [Repository structure and rules](/docs/concepts/repository-rules): follow application boundaries and repository conventions.
-- [Least code, still safe](/docs/concepts/least-code): keep implementations small while preserving correctness and safety.
+Edge execution does not eliminate distance to the database writer. Fewer sequential SQL calls and
+cached reads help global users; writes still reach the primary. Neon read replicas are in the primary's
+region. Cross-region replicas require a separate project and logical replication. Regional tenant
+placement or a different write architecture is a larger decision driven by measured latency and
+consistency requirements.

@@ -1,74 +1,72 @@
 ---
 title: Deploy a full-stack Cloudflare Worker
-description: Deploy an Astro public site, React SPA, and Hono API on one Worker with GitHub Actions.
+description: Release an Astro public site, React SPA, and Hono API together on two hostnames with one Worker.
 ---
 
-Use this guide for separate Astro and React/Vite workspace apps plus a Hono API that will
-share one Cloudflare Worker deployment. The SPA uses standalone TanStack Router, not
-TanStack Start. You need existing app build scripts, Wrangler, a GitHub repository, and
-a Cloudflare account with an active zone for your root domain. The paths below are examples
-for your application, not commands for deploying the Woostack documentation site.
+Use this guide to deploy separate Astro and React/Vite apps with a Hono API as one Cloudflare
+Worker. The public site runs at `example.com`; the app and its `/api` endpoints run at
+`app.example.com`. Both frontends use `/` as their public base.
 
-See the [architecture diagrams](/docs/recommended-stack#runtime-architecture) and
-[SEO guidance](/docs/recommended-stack#seo).
+This guide assumes you already have:
+
+- A pnpm workspace with working builds for an Astro static site, a React/Vite SPA using standalone
+  TanStack Router, and a Hono API compatible with Workers.
+- Wrangler installed in the API app, a GitHub repository, and permission to configure Actions.
+- A Cloudflare account with an active zone for your domain and permission to attach both hostnames.
+- Non-production database and auth resources for preview checks, plus the intended production bindings.
+
+The example paths below describe **your application**, not the Woostack documentation site.
+Replace the hostnames and adapt paths to your repository. This is a deployment guide, not a
+complete app scaffold: the asset assembly script and hostname dispatcher are project-owned code
+that must exist before verification.
+
+For the design and its tradeoffs, see [Runtime architecture](/docs/recommended-stack#runtime-architecture).
+To deploy this documentation site instead, use the
+[docs app README](https://github.com/howarewoo/woostack/blob/main/apps/docs/README.md).
 
 ## 1. Configure the application
 
-Keep the source apps separate and deploy their output and API as one Worker. Serve the
-Astro public site at `example.com`, and the React SPA and Hono API at `app.example.com`.
-Use Astro's static output for the public site; it needs no server adapter. Replace these
-example hostnames with your own in the build, Worker dispatch, and deployment configuration.
+### Build both frontends into separate asset namespaces
 
-| Host | Request | Handler |
-| --- | --- | --- |
-| `example.com` | `/`, `/pricing/`, existing `/blog/*` and `/docs/*`, and public assets | Astro-generated files selected by the Worker |
-| `app.example.com` | `/` and HTML navigation such as `/settings` | SPA shell, then TanStack Router in the browser |
-| `app.example.com` | `/assets/*` and other existing app files | SPA assets selected by the Worker |
-| `app.example.com` | `/api` and `/api/*` | Hono, including API errors and 404 responses |
-| Either host | Missing static files or direct internal-prefix URLs | HTTP 404, never the SPA shell |
-| `example.com` | Missing public pages or `/api/*` | HTTP 404, never the app or its API |
+Keep the source apps separate. For the example layout, `apps/site` builds the public site,
+`apps/app` builds the SPA, and `apps/api` owns the Worker entrypoint and Wrangler configuration.
 
-### Build a combined asset directory
+1. Build the SPA with Vite's [base](https://vite.dev/guide/build#public-base-path) and TanStack
+   Router's [basepath](https://tanstack.com/router/latest/docs/framework/react/api/router/RouterOptionsType#basepath-property)
+   set to `/`, not `/app/`.
+2. Set Astro's `site` to your public origin, such as `https://example.com`. Use static output,
+   [`build.format: "directory"`](https://docs.astro.build/en/reference/configuration-reference/#buildformat),
+   and `trailingSlash: "always"` for the URL mapping below. Static output needs no server adapter.
+3. Have your build script assemble both outputs into one clean generated directory:
 
-Build both frontends for the root of their respective hosts. Keep Vite's
-[`base`](https://vite.dev/guide/build#public-base-path) and TanStack Router's
-[`basepath`](https://tanstack.com/router/latest/docs/framework/react/api/router/RouterOptionsType#basepath-property)
-at `/`; do not use `/app/` as a public base. Set Astro's `site` to `https://example.com`.
-For the mapping below, use Astro's
-[`build.format: "directory"` and `trailingSlash: "always"`](https://docs.astro.build/en/reference/configuration-reference/#buildformat).
+   | Copy the contents of | Into | Public host |
+   | --- | --- | --- |
+   | `apps/site/dist/` | `dist/assets/site/` | `example.com` |
+   | `apps/app/dist/` | `dist/assets/app/` | `app.example.com` |
 
-For documentation, integrate [Fumadocs with Astro](https://www.fumadocs.dev/docs/manual-installation/astro)
-in `apps/site` and prerender pages under `/docs/`. Generate the
-[static search index](https://www.fumadocs.dev/docs/deploying/static) in that public build
-and configure the search client to load it from a root-host path such as
-`/docs/search-index.json`, not the integration example's `/api/search`. This topology reserves
-`/api` for the app host. Include the index, docs HTML, and client assets in `apps/site/dist/`.
+Keep the Worker bundle outside `dist/assets/` and ignore generated output in Git. Use the same
+assembly script locally and in CI. The result should include `site/index.html`, `site/_astro/`,
+`app/index.html`, and `app/assets/` beneath `dist/assets/`. The `site` and `app` prefixes are internal
+storage namespaces, never public URL prefixes.
 
-Assemble the outputs into one clean, generated directory, preserving separate namespaces:
+If either build emits `_headers` or `_redirects`, move the required rules into hostname-aware
+Worker handling and exclude those metadata files from uploaded assets. Preserve security headers;
+do not combine both apps' catch-all redirects.
 
-| Build output | Deployment location | Served on |
-| --- | --- | --- |
-| Contents of `apps/site/dist/` from Astro | `dist/assets/site/` | `example.com` |
-| Contents of `apps/app/dist/` from Vite | `dist/assets/app/` | `app.example.com` |
+If your public site includes documentation, integrate
+[Fumadocs with Astro](https://www.fumadocs.dev/docs/manual-installation/astro) there and prerender
+`/docs/` pages. Generate its [static search index](https://www.fumadocs.dev/docs/deploying/static)
+in the same build, with the client loading a root-host path such as `/docs/search-index.json`.
+Do not copy the integration example's `/api/search` path: this topology reserves `/api` for the
+app host. Include article HTML, search data, and client assets in the site output.
 
-The result includes `site/index.html`, `site/_astro/`, `app/index.html`, and `app/assets/`
-inside `dist/assets/`. These prefixes prevent collisions between both apps' `index.html`,
-icons, and `robots.txt`; they are not browser URL prefixes. Keep the Worker bundle outside
-the asset directory and keep generated output gitignored. Own assembly in the repository's
-build scripts so local verification and CI use the same process.
+### Configure one Worker and two Custom Domains
 
-If a build emits `_headers` or `_redirects`, translate the needed rules into hostname-aware
-Worker handling and exclude those metadata files from the uploaded assets. Do not drop
-required security headers or combine catch-all redirects across both hosts.
-
-### Attach both domains and configure dispatch
-
-For an entrypoint at `apps/api/src/index.ts` that dispatches hosts and invokes Hono, use
-this `apps/api/wrangler.jsonc`:
+For `apps/api/src/index.ts` as the Worker entrypoint, adapt this `apps/api/wrangler.jsonc`.
+The compatibility date is illustrative; use the date your project has tested.
 
 ```jsonc
 {
-  "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "fullstack-app",
   "main": "./src/index.ts",
   "compatibility_date": "2026-10-25",
@@ -89,36 +87,38 @@ this `apps/api/wrangler.jsonc`:
 ```
 
 Both [Custom Domains](https://developers.cloudflare.com/workers/configuration/routing/custom-domains/)
-attach to the same Worker; they are exact hostnames, not wildcard path routes. Resolve
-conflicting DNS records before deployment. The production configuration disables alternate
-`workers.dev` and preview URLs. Give preview environments their own Worker and hostname pair,
-with matching dispatch configuration, rather than reusing production domains.
+attach to this Worker. They are exact hostnames, not wildcard path routes. Resolve conflicting DNS
+records before attaching them. This production configuration disables alternate `workers.dev` and
+preview URLs. Give each preview its own Worker, hostname pair, dispatch configuration, and data;
+do not attach production domains to a preview.
 
-Implement hostname dispatch in the entrypoint; the configuration alone does not select
-between apps. Cloudflare's [ASSETS binding uses only the pathname](https://developers.cloudflare.com/workers/static-assets/binding/#runtime-api-reference)
-to match files. [Worker-first routing](https://developers.cloudflare.com/workers/static-assets/routing/worker-script/#run-your-worker-script-first)
-ensures host selection happens before even an existing file is served. All asset requests
-therefore invoke the Worker too.
+### Implement hostname dispatch before asset lookup
 
-1. Match `new URL(request.url).hostname` against the configured root and app hostnames.
-   Reject unknown hosts and direct requests to the reserved `/site` and `/app` prefixes.
-   Keep all asset lookups inside the selected namespace; never accept a client-selected
-   namespace or a path that escapes it.
-2. On the app host only, dispatch `/api` and `/api/*` to Hono before asset lookup.
-   Keep the original request URL, method, headers, and body. Unknown API routes return
-   API 404 responses, not static files or the SPA shell.
-3. For other `GET` and `HEAD` requests, fetch the selected file through `env.ASSETS.fetch`
-   using an internally rewritten pathname. Preserve the request method and relevant headers;
-   a `HEAD` response has no body. Do not use global `fetch()` to call either public hostname
-   for assets, which would re-enter the Worker.
-4. Only on an app-host asset miss, serve `/app/index.html` for HTML navigation. Exclude
-   `/assets/*`, file URLs, `robots.txt`, sitemaps, and all API paths, even when opened directly
-   in a browser. Non-HTML requests and other methods never receive the shell. Return 404
-   for every remaining miss; a custom public 404 page must keep status 404.
+The Wrangler configuration does not select between apps. The
+[ASSETS binding matches only the pathname](https://developers.cloudflare.com/workers/static-assets/binding/#runtime-api-reference),
+so forwarding `/` unchanged would give both hosts the same file.
+[Worker-first routing](https://developers.cloudflare.com/workers/static-assets/routing/worker-script/#run-your-worker-script-first)
+ensures the dispatcher runs even when an asset exists. All asset requests invoke Worker code.
 
-Use these internal lookup paths with `html_handling: "none"`:
+Implement the dispatcher in the entrypoint in this order:
 
-| Public URL | ASSETS lookup path |
+1. Match `new URL(request.url).hostname` against your two configured hosts. Reject unknown hosts
+   and direct requests to `/site`, `/app`, and their descendants. Keep rewritten paths inside the
+   selected namespace, including after decoding or normalization; clients must not select or escape it.
+2. On the app host, pass `/api` and `/api/*` to Hono before looking for assets. Preserve the original
+   URL, method, headers, and body. Unknown API routes return API 404 responses. On the root host,
+   return 404 for those paths.
+3. For other `GET` and `HEAD` requests, look up the selected file through `env.ASSETS.fetch()` with
+   an internally rewritten pathname. Preserve the method and relevant headers; `HEAD` has no response
+   body. Do not use global `fetch()` to call your public hosts, which would re-enter the Worker.
+4. On an app-host asset miss only, return `/app/index.html` for HTML navigation. Exclude API paths,
+   `/assets/*`, file URLs, `robots.txt`, and sitemaps even when opened in a browser. Other methods
+   and non-HTML requests never receive the shell. Return 404 for remaining misses. A custom public
+   404 page must retain status 404.
+
+With automatic HTML handling disabled, use these explicit mappings:
+
+| Public request | Internal asset lookup |
 | --- | --- |
 | `https://example.com/` | `/site/index.html` |
 | `https://example.com/pricing/` | `/site/pricing/index.html` |
@@ -126,96 +126,245 @@ Use these internal lookup paths with `html_handling: "none"`:
 | `https://example.com/docs/search-index.json` | `/site/docs/search-index.json` |
 | `https://example.com/_astro/main.css` | `/site/_astro/main.css` |
 | `https://app.example.com/assets/main.js` | `/app/assets/main.js` |
-| `https://app.example.com/settings` (HTML navigation, no asset) | `/app/index.html` |
+| `https://app.example.com/settings`, HTML navigation with no matching asset | `/app/index.html` |
 
-With [automatic HTML handling disabled](https://developers.cloudflare.com/workers/static-assets/routing/advanced/html-handling/#disable-html-handling),
-the dispatcher owns clean-URL mapping and canonical redirects. For an existing Astro page,
-redirect `/pricing` or `/pricing/index.html` to `/pricing/` on the root host, preserving the
-query string. Check that the page exists before redirecting. Never expose `/site/` or `/app/`
-in a redirect, canonical URL, or generated asset link. Do not enable global SPA fallback.
+The dispatcher also owns canonical redirects because
+[`html_handling: "none"`](https://developers.cloudflare.com/workers/static-assets/routing/advanced/html-handling/#disable-html-handling)
+disables automatic ones. For an existing public page, redirect `/pricing` and `/pricing/index.html`
+to `/pricing/`, preserving the query string. Check existence first. Redirects, canonicals, and generated
+asset links must never expose internal prefixes. Leave global SPA fallback disabled.
 
-### Keep browser origins and authentication separate
+### Connect authentication and the database
 
-The SPA calls `/api/health` on `app.example.com`, so app-to-API traffic is same-origin.
-The root domain and app subdomain are [different origins](https://developer.mozilla.org/en-US/docs/Web/Security/Defenses/Same-origin_policy).
-Use normal links to move visitors into the app. Browser API calls from the public site
-require an explicit CORS policy; one Worker does not bypass browser origin checks.
-Configure authentication callback URLs and allowed origins for the app hostname. Prefer
-host-scoped application session cookies rather than sharing them across every subdomain;
-retain session verification, authorization, and CSRF controls.
+Keep application-to-API calls same-origin, such as `/api/health` from `app.example.com`.
+The [root and app hosts are different origins](https://developer.mozilla.org/en-US/docs/Web/Security/Defenses/Same-origin_policy).
+Use ordinary links to enter the app; public-site browser calls to its API need an explicit CORS policy.
 
-Keep database credentials and auth secrets in Worker secrets or bindings, never in
-client-exposed `VITE_*` variables or generated HTML. Add Hyperdrive and the required Workers
-compatibility flags for the selected database driver.
+Configure authentication callbacks and allowed origins for the app hostname. Prefer host-scoped
+application session cookies. Preserve server-side session verification, authorization, and CSRF
+controls; sharing one Worker does not replace them.
 
-If a public page genuinely needs request-time SSR, use the
-[Astro Cloudflare adapter](https://docs.astro.build/en/guides/integrations-guide/cloudflare/)
-and its supported custom Worker entrypoint to dispatch Astro on the root host and Hono
-on the app host in the same Worker.
-Reconcile the adapter's generated assets and configuration with the SPA build and test the
-combined output. The static configuration above alone does not execute Astro server routes.
+Keep database credentials and auth secrets in Worker secrets or bindings, never in generated HTML
+or `VITE_*` variables. Add Hyperdrive and the compatibility flags required by your chosen driver.
+For permission checks, billing, and read-after-write flows, use a
+[cache-disabled Hyperdrive configuration](https://developers.cloudflare.com/hyperdrive/concepts/query-caching/#disable-caching).
+Query caching is enabled by default; disabling it retains connection pooling.
+
+If a public page requires request-time SSR, the static configuration above is insufficient. Use the
+[Astro Cloudflare adapter](https://docs.astro.build/en/guides/integrations-guide/cloudflare/) and its
+supported custom entrypoint to dispatch Astro on the root host and Hono on the app host. Reconcile
+the generated Worker configuration and assets with the SPA output before continuing.
 
 ## 2. Verify the built application
 
-After building both apps and assembling the assets, run
-`pnpm --dir apps/api exec wrangler dev`. Use the app dev servers for UI iteration, but
-verify the combined deployment in the Workers runtime. For local checks, map two test
-hostnames to the local Worker and configure the dispatcher to accept them only locally.
-A request to `localhost` alone does not verify host dispatch. Test both HTTPS hostnames
-again in a trusted preview, including managed-auth callbacks and cookie scope.
+Run your repository's frontend builds and asset assembly script first. From the repository root,
+start the combined Worker:
+
+```bash
+pnpm --dir apps/api exec wrangler dev
+```
+
+Map two local test hostnames to the Worker address and port Wrangler prints, and configure the
+dispatcher to accept them only in local development. A `localhost` request alone cannot verify host
+selection. Keep app dev servers for UI iteration; use this combined build to check deployment behavior.
+
+Check the following before publishing. Routes such as `/pricing/` and `/settings` assume your app
+implements them; substitute real routes with the same role.
 
 | Check | Expected result |
 | --- | --- |
-| Fetch `/` on both hosts without executing JavaScript | Root host returns Astro content and metadata; app host returns the SPA shell, never the public homepage |
-| Fetch a blog page, a documentation page, `robots.txt`, and sitemaps on the root host | Canonicals and indexable URLs use `https://example.com`, without internal prefixes or app/API URLs |
-| Open a docs deep link without JavaScript, then enable JavaScript and use search | Article content and metadata are in the initial HTML; search loads its static index from the root host and returns working docs links |
-| Open `app.example.com/settings` directly, then reload | SPA loads with assets from the app host and working TanStack Router navigation |
-| Call known and unknown `/api/*` routes on the app host; repeat on the root host | App host returns API results or API 404; root host never exposes Hono |
-| Request a missing public page, `/_astro/missing.js`, and app-host `/assets/missing.js` | HTTP 404, including direct browser navigation to missing files |
-| Request `/site/index.html`, `/app/index.html`, or the other app's assets on either host | No cross-host asset exposure or successful SPA fallback for internal prefixes |
-| Request a valid public page without its canonical slash or through `index.html` | Redirect stays on the public host, preserves the query, and never reveals an internal prefix |
-| Send a non-HTML request or non-navigation method to an app route; request an unknown host | No successful SPA fallback; unknown host rejected |
-| Inspect root-host, app-host, and preview responses | Public production pages remain indexable; app shells and previews carry intended `noindex`; private data still requires authentication |
+| Fetch `/` on both hosts without executing JavaScript | Root returns public HTML and metadata; app returns its shell, never the public homepage. |
+| Fetch a public article, `robots.txt`, and sitemap | Canonicals and sitemap URLs use the production root origin, without internal prefixes, private app routes, or API URLs. Each host serves its own robots policy. |
+| Open a docs deep link without JavaScript, then enable it and search | Initial HTML contains the article; search loads the static root-host index and returns working links. Skip if the site has no docs. |
+| Open and reload an app deep link such as `/settings` | App shell, app-host assets, and TanStack Router load correctly. |
+| Call known and unknown `/api/*` routes on both hosts | App returns API results or API 404; root never exposes Hono. |
+| Request a missing public page and missing files under `/_astro/` and `/assets/` | HTTP 404, including direct browser navigation to the files. |
+| Request internal prefixes or files belonging to the other host | No cross-host asset exposure or successful shell fallback, including encoded or normalized path variants. |
+| Request an existing public page without its canonical slash or through `index.html` | Redirect stays on the public host, preserves the query, and hides internal prefixes. |
+| Send a non-HTML request, a non-navigation method, or an unknown host | No successful shell fallback; unknown host is rejected. |
+| Inspect public, app, and preview responses | Production public pages are indexable; app shells and previews have the intended `noindex`. Private data requires authentication. |
 
-Use Playwright for critical browser journeys, including the root-domain-to-app-subdomain transition.
-Check public pages with JavaScript disabled and inspect the raw response, not just the
-hydrated DOM. Validate any structured data with Google's Rich Results Test. After release,
-use Search Console URL Inspection and PageSpeed Insights for indexing and performance checks.
+Use Playwright for critical journeys, including the public-site-to-app transition. Inspect raw
+responses rather than only the hydrated DOM. Check metadata against the
+[SEO expectations](/docs/recommended-stack#seo) and validate structured data, if present, with Google's
+Rich Results Test.
+
+Repeat both-host checks over HTTPS in a trusted preview. Verify managed Neon Auth login, session
+restoration, authenticated requests, and logout there, including callback URLs and cookie scope.
+A local Better Auth fixture cannot prove managed-provider integration.
+
+### Common failures
+
+| Symptom | Check and recovery | Confirmation |
+| --- | --- | --- |
+| Both hosts show the same homepage | Confirm Worker-first routing and hostname selection before namespaced ASSETS lookup. | Fetching `/` on each host returns the correct app. |
+| Missing JavaScript receives HTML | Exclude file and asset paths from shell fallback; keep global fallback off. | Missing assets return 404, not `text/html` with status 200. |
+| Docs search fails while articles load | Check the client index URL and that assembly copied the generated index. | Search fetches root-host static JSON and opens a result. |
+| Login loops or sessions disappear in preview | Check preview callback URLs, trusted origins, HTTPS, and cookie scope against the managed provider. | Login and session restoration succeed on the preview app hostname. |
+| Permission changes appear late | Check whether the auth module reads through a cached database client. | Permission reads use the uncached primary path and reflect committed changes. |
 
 ## 3. Configure delivery with GitHub Actions
 
-Use GitHub Actions for pull-request checks and production delivery. Keep verification separate
-from deployment so untrusted pull requests never receive production credentials. Use one
-release pipeline for the public site, SPA, and API, not separate app deploy jobs targeting
-the same Worker and overwriting each other's assets.
+Use one release pipeline for the Worker and both frontends. Separate app jobs deploying to the same
+Worker can overwrite each other's assets. Keep untrusted PR verification separate from jobs with
+production credentials.
 
-| Stage | Recommended checks and behavior |
-| --- | --- |
-| Pull request | Install with `pnpm install --frozen-lockfile`; run type checking, Oxlint, Oxfmt checks, and relevant tests. Build Astro, the SPA, and the Worker, then assemble the combined assets. |
-| Runtime verification | Run the checks above against the assembled deployment in the Workers runtime. Use Playwright for critical user journeys. |
-| Preview | Deploy only trusted changes as one isolated preview Worker with its own two hostnames, non-production bindings, and data. Protect previews or serve `noindex`. Check managed Neon Auth there; the local fixture does not prove production-auth integration. |
-| Production | After required checks pass on `main`, deploy through a protected GitHub environment. Serialize production deployments and release the verified Worker and both apps' assets together. |
-| Post-deploy | Smoke-check both hostnames, an SPA deep link, and the app-host API. Retain the commit and deployment identity so an operator can identify and roll back the complete release. |
-
-Declare the pnpm version in `packageManager`, use Node for tooling, and cache pnpm's package store
-rather than treating cached dependencies as authoritative. Give the workflow read-only repository
-permissions unless a specific job needs more. Pin third-party actions to reviewed commit SHAs.
+1. **Verify pull requests.** Install with `pnpm install --frozen-lockfile`, then run the repository's
+   type, lint, format, and relevant test commands. Build and assemble the complete deployment, then
+   run the Workers checks above. Declare the pnpm version in `packageManager` and Node for tooling;
+   cache the pnpm store without treating cached dependencies as authoritative.
+2. **Deploy trusted previews.** Use an isolated preview Worker, hostname pair, non-production bindings,
+   and data. Protect access where needed and apply `noindex` to reachable preview pages. Run the HTTPS
+   and managed-auth checks before production.
+3. **Release production.** After required checks pass on `main`, use a protected GitHub environment
+   and serialize deployments. Release the verified Worker and both asset namespaces together.
+4. **Check and record the release.** Smoke-check both hostnames, an app deep link, and the API. Record
+   the commit and deployment identity so an operator can identify or roll back the complete release.
+   After release, Search Console and PageSpeed Insights can check indexing and performance.
 
 Cloudflare's [GitHub Actions integration](https://developers.cloudflare.com/workers/ci-cd/external-cicd/github-actions/)
-supports `cloudflare/wrangler-action` or Wrangler CLI deployment.
-Keep `CLOUDFLARE_API_TOKEN` in GitHub environment secrets, scope it to the deployment account and
-required permissions, and supply `CLOUDFLARE_ACCOUNT_ID` through the environment. Do not expose
-deployment credentials to forked PRs or run untrusted PR code with `pull_request_target` secrets.
-Disable any second automatic deployment path for the same Worker so GitHub Actions owns releases.
+supports Wrangler CLI or `cloudflare/wrangler-action`. Store `CLOUDFLARE_API_TOKEN` in GitHub environment
+secrets, limit it to the deployment account and required permissions, and supply
+`CLOUDFLARE_ACCOUNT_ID` through the environment. Use read-only repository permissions unless a job
+needs more, and pin third-party actions to reviewed commit SHAs.
 
-Build once for the target environment. When build and deployment are separate jobs, transfer the
-verified Worker bundle, combined static assets, and deployment configuration together. Point
-Wrangler's `--config` at that configuration, with `main` and `assets.directory` resolving to the
-transferred files; deploy a [prebundled Worker](https://developers.cloudflare.com/workers/wrangler/bundling/)
-with `--no-bundle`. Do not deploy only one app's output or rebuild an unverified artifact in
-the deployment job. For framework-generated Worker
-builds, use the generated deployment configuration rather than assuming the source config is
-still correct.
+Never pass deployment credentials to forked PRs or run untrusted code with `pull_request_target`
+secrets. Disable any second automatic deployment path targeting the same Worker.
 
-Apply Drizzle Kit migrations as an explicit release step, not inside API requests. Keep schema
-changes compatible with the currently deployed application and any intended rollback.
+Build once for the target environment. If build and deploy are separate jobs, transfer the verified
+Worker bundle, both asset namespaces, and deployment configuration together. Use Wrangler's
+`--config` to select that configuration, ensuring `main` and `assets.directory` resolve to the
+transferred files. For a [prebundled Worker](https://developers.cloudflare.com/workers/wrangler/bundling/),
+deploy with `--no-bundle`; framework-generated builds must use their generated deployment config.
+Do not deploy only one app's output or rebuild unverified artifacts in the release job.
+
+Run production Drizzle Kit migrations through controlled release automation, not inside API requests
+or from a developer machine. Keep changes compatible with the deployed app and intended rollback.
+A failed migration stops the dependent release; rolling back a Worker does not restore the schema
+or data. Record the migration's recovery procedure separately.
+
+### Build and deploy on a self-hosted runner
+
+To avoid Cloudflare build minutes and GitHub-hosted runner compute, run the build, checks, and
+Wrangler deployment on your own machine. GitHub Actions still coordinates the job; Cloudflare
+receives the built Worker and assets. This is self-hosted execution, not a self-hosted GitHub
+control plane.
+
+GitHub currently lists [self-hosted runner usage as free](https://docs.github.com/en/billing/concepts/product-billing/github-actions).
+You still pay for your machine, storage, networking, and Cloudflare runtime services. GitHub artifact
+and cache storage have separate billing rules. This example uses neither artifact uploads nor the
+Actions cache service; all build output stays on the runner until deployment. Standard GitHub-hosted
+runners are also free for public repositories, so self-hosting is not always a cost saving.
+
+Use this example for a **trusted private repository**. GitHub
+[recommends against self-hosted runners for public repositories](https://docs.github.com/en/actions/security-for-github-actions/security-guides/security-hardening-for-github-actions#hardening-for-self-hosted-runners)
+because untrusted workflows can compromise the machine. Do not run PR code on the production runner,
+even without deployment secrets: a persistent compromise can steal credentials from a later job.
+Labels select runners; they are not an access-control boundary. Restrict runner access to trusted
+repositories and workflows, and prefer a clean, single-job ephemeral runner. Use isolated runners
+without production access for any untrusted verification.
+
+Before enabling the workflow:
+
+1. [Register a self-hosted runner](https://docs.github.com/en/actions/how-tos/manage-runners/self-hosted-runners/add-runners)
+   on a dedicated Linux x64 machine with the custom label `cloudflare-deploy`. Keep its runner software
+   current and compatible with the pinned checkout action. Preinstall Git, the project's Node and pnpm
+   versions, and any browser or system dependencies needed by its checks. Do not use a personal
+   workstation or retain unrelated credentials on the machine.
+2. Protect `main` and restrict edits to workflows and release scripts. Configure a `production`
+   GitHub environment restricted to `main`, with approval where supported by your repository and
+   plan. Put `CLOUDFLARE_API_TOKEN` in its secrets and `CLOUDFLARE_ACCOUNT_ID` in its variables. Environment
+   approval is not runner isolation; trusted build scripts run on the same machine as deployment.
+3. [Disconnect the Worker's repository integration](https://developers.cloudflare.com/workers/ci-cd/builds/#disconnecting-builds)
+   so Workers Builds does not also run on pushes. Disabling production deployment alone can still
+   leave builds running. Disable any other pipeline targeting this Worker.
+4. Implement and locally verify the release-script contract below in your application. The names and
+   output paths are proposed examples, not commands shipped by Woostack.
+
+| Root package script | Required behavior |
+| --- | --- |
+| `ci:verify` | Runs the project's required type, lint, format, and test checks; exits nonzero on failure. |
+| `build:release` | Builds both frontends, assembles `dist/assets/site/` and `dist/assets/app/`, and emits a prebundled Worker plus `dist/worker/wrangler.jsonc`. The generated config points `main` at that bundle and `assets.directory` at `../assets`, and includes the production routes and bindings. |
+| `test:release` | Checks the assembled output in the Workers runtime against the both-host acceptance checks above, using non-production resources; stops its local servers when done. |
+| `smoke:production` | Checks both live HTTPS hosts, an app deep link, and the API; fails if the deployed release is unhealthy. It does not automatically roll back or mutate application data. |
+
+Place the adapted workflow at `.github/workflows/deploy-production.yml` **in your application
+repository**. Once enabled, a push to `main` deploys production; a manual run is accepted only from
+`main`. There is deliberately no `pull_request`, `pull_request_target`, or `workflow_run` trigger.
+
+```yaml
+name: Deploy production
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cloudflare-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    runs-on: [self-hosted, linux, x64, cloudflare-deploy]
+    environment: production
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Check out the release commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Verify source
+        run: pnpm run ci:verify
+
+      - name: Build the complete release
+        run: pnpm run build:release
+
+      - name: Verify the built deployment
+        run: pnpm run test:release
+
+      - name: Deploy the verified release
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+        run: pnpm --dir apps/api exec wrangler deploy --config ../../dist/worker/wrangler.jsonc --no-bundle
+
+      - name: Check production
+        run: pnpm run smoke:production
+
+      - name: Record the release commit
+        run: |
+          printf 'Release commit: %s\n' "$GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
+```
+
+The checkout action is pinned to a release commit; review and update that pin through your normal
+dependency process. The example assumes Wrangler is a locked dependency of `apps/api`. Adapt the
+30-minute timeout to measured build duration. Build and verification scripts must receive any
+required non-production configuration explicitly; production credentials are supplied only to the
+deployment step, not to the whole job. On a persistent machine, step-scoped secrets alone cannot
+protect against code that has already compromised the runner.
+
+Keep the build and deploy in the same job so Wrangler uploads exactly the output that passed
+verification, without transferring artifacts through GitHub storage. Do not add a `wrangler-action`
+step that rebuilds the application. A repository with schema changes also needs its controlled
+migration and recovery step before the dependent deployment; this example does not implement one.
+
+A successful run shows the job on your labeled runner, successful both-host smoke checks, the
+commit in the job summary, and Wrangler's deployment identity in the logs. Confirm that no matching
+Workers Builds run occurred. If deployment succeeds but smoke checks fail, the new release is already
+live: inspect the recorded deployment identity and use the established recovery procedure.
+
+If the job remains queued, check that the runner is online, has every requested label, and is allowed
+to run this repository's workflow. If it waits for environment approval, inspect the `production`
+environment's rules. Neither symptom requires switching to a GitHub-hosted runner.

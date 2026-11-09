@@ -1,114 +1,140 @@
 ---
 title: Repository structure and rules
-description: Why placement, boundary, dependency, testing, and delivery rules follow the repository's own conventions, and where each rule is owned.
+description: Understand how application ownership, explicit boundaries, and proportionate verification keep changes small and safe.
 ---
 
-These principles apply to application repositories independently of agent skills. The project
-creation and delivery sections explain how [Agent skills](/docs/getting-started) apply them.
+A repository's instructions, architecture, conventions, dependencies, and lockfiles determine how
+work fits into that project. The [recommended stack](/docs/recommended-stack) is an optional technology
+choice; the principles here apply to other stacks too. They do not require agent skills or impose a
+new directory layout.
 
-A repository's own instructions, architecture, native conventions, selected dependencies, and
-lockfiles are authoritative. Woostack implementation rules describe outcomes worth preserving on top
-of that foundation; they never impose an arbitrary layout, abstraction, or version.
+These principles help answer three recurring questions: where a change belongs, which behavior it
+must preserve, and what evidence is enough to trust it. The canonical rules live in
+[implementation patterns](https://github.com/howarewoo/woostack/blob/main/shared/references/patterns.md),
+[deployment and operations](https://github.com/howarewoo/woostack/blob/main/shared/references/infrastructure.md),
+and [verification guidance](https://github.com/howarewoo/woostack/blob/main/shared/references/tdd.md).
+Implementing skills bundle the applicable references; readers do not need to install another
+workflow to use them.
 
-Implementation guidance is maintained once in `shared/references/`; implementing workflows bundle
-the applicable parts and apply them inside their admitted scope:
+## Code belongs to the application that owns it
 
-- [Implementation patterns](https://github.com/howarewoo/woostack/blob/main/shared/references/patterns.md)
-  cover placement, shared extraction, boundaries, API compatibility, type safety, dependencies, and least code.
-- [Infrastructure reference](https://github.com/howarewoo/woostack/blob/main/shared/references/infrastructure.md)
-  covers deployment, migrations, environment secrets, client lifecycles, and observability.
-- [Testing guidance](https://github.com/howarewoo/woostack/blob/main/shared/references/tdd.md)
-  governs evidence selection and verification standards.
+Application code starts in its deployable unit. Business logic, data access, authentication, UI,
+and vendor integrations stay with the application that needs them, using its native module and
+manifest conventions. A root workspace coordinates genuinely shared tasks; it does not own every
+app's implementation.
 
-## Repository-owned structure
+Shared packages become useful when multiple applications need the same implementation or contract.
+For example, a web app and a mobile app may share validation and API types while retaining different
+routers and controls. Extracting the shared contract removes a real duplicate. Creating empty
+packages for hypothetical reuse adds a boundary without removing work.
 
-Applications own their code. Business logic, data access, authentication, UI, and utilities belong
-to the unit that needs them, organized by that unit's module conventions. Shared code is a consequence
-of real reuse across units, not a speculative starting layout. When several applications need the
-same contract, extract the smallest coherent surface to the repository's shared location and remove
-local duplicates.
+Different technologies do not need matching folder structures. Each application can keep its native
+layout while sharing a technology-neutral contract where a boundary requires one.
 
-## APIs and application boundaries
+## Boundaries isolate outside formats
 
-Boundary adapters translate data and errors between external APIs and internal application models.
-Keeping transport and vendor formats out of business logic keeps domain logic testable and portable.
-Follow the repository's explicit compatibility policy and support window. Preserve supported contracts;
-where compatibility is explicitly not required, update affected callers, tests, and documentation together
-and remove superseded paths. Resolve unclear commitments before breaking a contract or adding compatibility
-machinery. Data preservation is a separate requirement.
+HTTP requests, RPC calls, webhooks, and vendor APIs carry data in formats that may differ from the
+application's own models. Boundary adapters validate input, translate representations, and map errors
+so domain logic does not depend on transport or vendor details. An adapter can be a function or module;
+a class is not required.
 
-## Type safety
+For example, a vendor response may need to become an application-owned billing result before business
+logic uses it. If a deliberately shared API contract already is the application's model, validation
+and error handling still matter, but a pass-through mapping layer adds no useful isolation.
 
-Strong compile-time and runtime checks validate untrusted values at entry points before internal
-consumption. Type helpers stay with the unit that owns them.
+This rule applies to new or materially changed boundary flows. It is not a reason to migrate untouched
+integrations during an unrelated task. The
+[boundary contract](https://github.com/howarewoo/woostack/blob/main/shared/references/patterns.md#3-application-boundary-adapters)
+defines the scope, including its exclusion of ordinary in-process calls and database persistence mapping.
 
-## Dependencies
+## Types and validation protect different boundaries
 
-Dependency versions come from authoritative current sources, not model memory, and only when a
-dependency is being selected or updated. Unrelated dependencies and lockfiles remain untouched.
-Each application declares runtime dependencies in its own manifest; shared tooling belongs at the
-root only when genuinely repository-wide.
+Static types help catch mistakes within code that participates in type checking. Runtime validation
+checks untrusted values before internal code consumes them. A typed API client does not make a request
+trustworthy at the server.
 
-## Least code, still safe
+Related contract types should derive from one source where the selected technology supports it.
+Type helpers remain with their owner until several applications need the same definition. Narrow,
+documented exceptions are different from bypassing checks to make a build pass.
 
-Less code leaves less to read, test, and maintain, but correctness and safety decide how small a
-solution can be. See [Least code, still safe](/docs/concepts/least-code) for the engineering ladder.
+## Compatibility is a commitment, not an assumption
 
-## Testing
+The repository's compatibility policy and support window determine which contracts must remain
+stable. Existing code alone does not prove a support commitment, but a `0.x` version or unreleased
+label does not waive one either. Unclear obligations need a decision before a breaking change or
+new compatibility machinery.
 
-Verification starts from existing protection: an adequate baseline is a valid stopping point, adding
-tests only for uncovered behavior, regressions, or material risks. Required checks must pass; service
-slowness does not waive them. Testing matches the scale of the work, prioritizing meaningful assertions
-over redundant volume.
+For supported contracts, route identifiers, existing fields, and error meanings remain stable;
+optional inputs, additional output fields, and distinct error codes allow compatible extension.
+An approved break follows the project's migration or versioning policy.
 
-## Production concerns
+Where compatibility is explicitly unnecessary, callers, tests, and documentation can change together,
+and replaced paths can be removed without aliases for hypothetical consumers. Data preservation is
+separate: permission to break an API does not authorize discarding stored data. The
+[compatibility rules](https://github.com/howarewoo/woostack/blob/main/shared/references/patterns.md#4-api-compatibility)
+keep these decisions distinct.
 
-Production migrations run through controlled automation with observable recovery. Production secrets
-remain in host secret stores, while repositories maintain non-secret inventories of required keys.
-Telemetry is structured and queryable, redacting credentials and personal data before transmission.
+## Dependency ownership makes builds reproducible
 
-## Creating a project that does not exist yet
+Each application declares its runtime dependencies. Shared packages declare their own dependencies;
+root tooling belongs there only when it is repository-wide. This makes the package boundary reflect
+what actually runs and avoids relying on another app's accidental installation.
 
-New-project creation uses the same workflows as ordinary work without requiring separate commands,
-checkouts, or extra approval events.
+Selected or changed versions come from authoritative current sources, with runtime and peer
+compatibility checked at the consumer. Existing versions and lockfiles stay unchanged when no
+dependency change is needed. A recommendation page or a model's memory is not a dependency-resolution
+record. Lockfiles and integrity metadata preserve the package manager's actual resolution.
 
-Creating the first slice belongs to [Execute](/docs/skills/woostack-execute) as an authorized bounded
-outcome. When Git repository objects do not exist yet, target admission replaces repository checks
-per the canonical
-[scaffold guidance](https://github.com/howarewoo/woostack/blob/main/shared/references/scaffold.md):
+## Small changes still preserve safety
 
-- **Target admission:** One unambiguous target path and physical parent, no symlinks in the target
-  or its ancestors, no competing writers, and an absent or empty target. A collision blocks writing
-  and never authorizes overwriting existing content.
-- **Smallest working slice:** Generates the smallest requested slice in native ecosystem structure,
-  removes demo filler, executes applicable checks, and records setup facts and real commands in the README.
-- **Guidance authoring:** Project guidance (`AGENTS.md`, `DESIGN.md`, `PRODUCT.md`, `ARCHITECTURE.md`)
-  remains [Init's](/docs/skills/woostack-init) responsibility rather than automatic scaffold output.
-- **Delivery limits:** Local scaffolds require no GitHub account, Project, remote, commit, or PR.
-  Git initialization occurs only when requested or needed for delivery.
+Less code is easier to inspect and maintain when it still meets the requirement. Removal, in-tree
+reuse, standard facilities, platform features, and installed dependencies are preferable to another
+helper when they already solve the problem.
 
-## Delivery and workspaces
+Validation, error handling, security, accessibility, and data-loss protections set the lower bound.
+Two checks at different trust boundaries may look repetitive while protecting against different
+failures. Removing one merely to reduce duplication can weaken the system. See
+[Least code, still safe](/docs/concepts/least-code) for the reasoning behind this tradeoff.
 
-Implementing workflows perform requested delivery through canonical
-[delivery procedures](https://github.com/howarewoo/woostack/blob/main/shared/references/delivery.md) and
-[source-control safeguards](https://github.com/howarewoo/woostack/blob/main/shared/references/source-control.md).
-New pull requests are drafts, and merging remains exclusively a human decision. Once Git exists,
-[workspace guidance](https://github.com/howarewoo/woostack/blob/main/shared/references/worktrees.md)
-governs isolation, ownership, and base selection.
+## Verification follows the changed behavior
 
-## Existing repositories
+Existing adequate protection is a valid starting point. Additional tests are useful when they cover
+a new behavior, a regression, or a material risk, rather than repeat equivalent assertions.
+Required repository checks remain required; service slowness is not evidence that they passed.
 
-The same guidance preserves an existing repository's conventions and limits changes to the requested
-scope. A read-only root-cause investigation belongs to [Debug](/docs/skills/woostack-debug);
-an authorized bounded correction belongs directly to [Execute](/docs/skills/woostack-execute).
-[Whiteboard](/docs/skills/woostack-whiteboard) produces a plan when requested.
+A focused test can prove a function's behavior without proving the deployed application's integration.
+Likewise, a successful build cannot prove that a model followed an instruction. Evidence is strongest
+when the claim matches what the check actually observed. The
+[verification explanation](/docs/concepts/verification) covers these boundaries; the
+[verification guide](/docs/guides/verification) helps select practical checks.
 
-## Canonical sources
+## Production state needs explicit ownership
 
-The active skill's `SKILL.md` and the shared references it bundles remain authoritative:
+Schema migrations change persistent state independently of application releases. Ordered,
+version-controlled migrations run through controlled automation with observable failure and recovery.
+Compatibility with the currently deployed app matters because a code rollback does not undo schema
+or data changes.
 
-- [`woostack-execute/SKILL.md`](https://github.com/howarewoo/woostack/blob/main/skills/woostack-execute/SKILL.md)
-- [`shared/references/patterns.md`](https://github.com/howarewoo/woostack/blob/main/shared/references/patterns.md)
-- [`shared/references/infrastructure.md`](https://github.com/howarewoo/woostack/blob/main/shared/references/infrastructure.md)
-- [`shared/references/tdd.md`](https://github.com/howarewoo/woostack/blob/main/shared/references/tdd.md)
-- [`shared/references/delivery.md`](https://github.com/howarewoo/woostack/blob/main/shared/references/delivery.md)
+Production secrets belong in the host secret store. A repository can describe required key names
+without containing their values. Server-side session checks and explicit authorization protect
+private data; client-side routing and indexing controls do not.
+
+Structured telemetry helps explain failures only when credentials and personal data are redacted
+before transmission. Connection limits, retries, backups, and restoration also belong to the
+project's operating design, not implicit framework defaults. See the
+[operations reference](https://github.com/howarewoo/woostack/blob/main/shared/references/infrastructure.md)
+for the full requirements.
+
+## Applying these principles with Woostack
+
+[Execute](/docs/skills/woostack-execute) handles an authorized bounded implementation, including the
+first slice of a new project. Initial creation checks the target before writing; it does not authorize
+overwriting existing content. [Init](/docs/skills/woostack-init) separately owns project guidance.
+[Whiteboard](/docs/skills/woostack-whiteboard) develops a plan when one is requested.
+
+Once Git exists, [workspace guidance](/docs/concepts/worktrees) governs isolation and ownership.
+Implementing workflows perform requested Git and PR delivery through the shared
+[delivery procedure](https://github.com/howarewoo/woostack/blob/main/shared/references/delivery.md).
+An ordinary implementation request authorizes local edits and checks, not an automatic push or PR.
+New PRs are drafts; merging remains a human decision. The
+[workflow explanation](/docs/concepts/workflows#authority-boundaries) describes these authority limits.
