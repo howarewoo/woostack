@@ -1,11 +1,12 @@
 ---
 title: Publish a plan as issues
-description: File a settled plan in GitHub and check that the issues and requested relationships exist.
+description: File implementation outcomes or precise decision questions in GitHub and verify the published issues.
 ---
 
-Start with a settled plan, an exact GitHub repository or Project destination, and an assistant
-with authorized issue-write access. Existing code needs repository access; a new product needs
-no checkout. If material choices remain open, [refine the plan](/docs/guides/whiteboard) first.
+Start with bounded implementation outcomes or precise decision questions, an exact GitHub repository
+or Project destination, and an assistant with authorized issue-write access. Existing code needs
+repository access; a new product needs no checkout. If you cannot yet state the question,
+[refine the plan](/docs/guides/whiteboard) before creating an issue for it.
 
 <span id="1-describe-the-outcome" />
 
@@ -13,7 +14,10 @@ no checkout. If material choices remain open, [refine the plan](/docs/guides/whi
 
 Check that the plan includes bounded outcomes, non-goals, acceptance checks, and real prerequisites.
 Group checkpoints into coherent issues. An implementation checkpoint does not need its own issue,
-and necessary atomic changes should stay together.
+and necessary atomic changes should stay together. For a decision or investigation issue, include
+the question, evidence needed, who can decide, resolution condition, and affected dependents.
+For example, an issue to choose a retention period resolves with an authorized decision and its
+rationale; it does not promise implementation of that policy.
 
 Use the repository's actual owner and name in place of `OWNER/REPOSITORY` below. A Project is optional;
 if you select one, supply its exact canonical URL.
@@ -25,9 +29,11 @@ if you select one, supply its exact canonical URL.
 Send this [request to your assistant](/docs/harnesses#native-skill-invocation):
 
 ```text
-/woostack-whiteboard File the settled plan above as GitHub issues in OWNER/REPOSITORY.
+/woostack-whiteboard File the plan above as GitHub issues in OWNER/REPOSITORY.
 Reuse existing issues that cover the outcomes. Include scope, non-goals,
-acceptance checks, and real prerequisites, then read back the affected issues.
+acceptance checks, and real prerequisites. For decision issues, include the
+question, evidence needed, decision authority, resolution condition, and affected
+dependents. Read back the affected issues.
 Do not start implementation.
 ```
 

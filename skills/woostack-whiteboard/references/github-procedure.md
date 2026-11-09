@@ -57,8 +57,10 @@ error is not an empty result.
 ## Order of operations
 
 1. **Issues.** Reuse the exact existing issue covering a planned issue outcome; create only what
-   is missing, and write its outcome, constraints, acceptance, and prerequisites. Keep implementation
-   checkpoints within those issues rather than creating an issue per checkpoint.
+   is missing, and write its outcome, constraints, acceptance, and prerequisites. For decision or
+   investigation outcomes, use the question and resolution requirements in
+   [Whiteboard's publication contract](../SKILL.md#saving-and-publishing), not build acceptance.
+   Keep implementation checkpoints within those issues rather than creating an issue per checkpoint.
 2. **Relationships.** Add only the relationships the request asked for: a native sub-issue link
    into a parent or tracker issue, and `blocked-by` edges for declared prerequisites. Normalize a
    prerequisite as `[prerequisite, dependent]`, with both endpoints inside the exact repository.
