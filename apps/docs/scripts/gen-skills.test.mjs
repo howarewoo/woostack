@@ -167,6 +167,7 @@ test("public skill routing preserves the declared order", () => {
     "woostack-debug",
     "woostack-qa",
     "woostack-reflect",
+    "woostack-learn",
   ];
 
   assert.deepEqual(PUBLIC_ORDER, expectedPublic);
@@ -232,4 +233,25 @@ test("prototype validates without sibling skills and renders its bundled referen
   for (const reference of ["prototype-quality.md", "brand-foundations.md"]) {
     assert.ok(page.includes(`/skills/${name}/references/${reference}`));
   }
+});
+
+test("learn validates without sibling skills and renders its public page", async (t) => {
+  const name = "woostack-learn";
+  assert.ok(PUBLIC_ORDER.includes(name));
+  const root = await mkdtemp(path.join(tmpdir(), "woostack-learn-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  await cp(new URL(`../../../skills/${name}`, import.meta.url), path.join(root, name), {
+    recursive: true,
+  });
+
+  const skills = await validateSkillAssets(root, [name]);
+  assert.equal(skills.length, 1);
+  const [{ fm, body }] = skills;
+  assert.equal(fm.name, name);
+  const rendered = rewriteLinks(neutralizeTags(stripTitleHeading(body, fm.name)), name);
+  const page = renderPage(name, fm, rendered);
+  assert.ok(page.startsWith(`---\ntitle: ${name}\n`));
+  assert.ok(page.includes(`description: ${JSON.stringify(fm.description)}`));
+  assert.ok(page.includes(`/skills/${name}/SKILL.md`));
+  assert.doesNotMatch(page, /^# woostack-learn$/m);
 });

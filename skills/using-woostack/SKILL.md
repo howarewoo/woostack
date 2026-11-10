@@ -51,6 +51,7 @@ For an explicit one-run model or effort request, apply the bundled
 | Investigate a root cause without implementing a fix | `woostack-debug` |
 | Explore a running app and report browser QA findings | `woostack-qa` |
 | Reflect on this conversation for durable instruction suggestions | `woostack-reflect` |
+| Create or improve a reusable skill from a prompt, this conversation, or both | `woostack-learn` |
 
 For Visualize, hand off the source, question, audience, and output/permission limits without loading
 its skill or references in the parent. Already-delegated visualization workers run directly.
