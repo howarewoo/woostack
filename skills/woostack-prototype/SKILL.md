@@ -72,17 +72,29 @@ or cancelled, preserving returned artifacts and describing any transient preview
 1. **Understand the task.** Inspect prior decisions, applicable project instructions, existing UI,
    component APIs, tokens, assets, and relevant product/design documents when available. Establish
    the audience, entry point, primary task, friction, target platform, observable outcome, scope,
-   and constraints in a short brief. Distinguish current behavior from proposals and assumptions.
-   Missing branding or project documents do not trigger another workflow.
+   and constraints in a short brief. For an existing product, establish a bounded read-only baseline
+   of affected owning surfaces, consequential behavior, tests, and reuse points using
+   [baseline comparison](references/prototype-quality.md#compare-against-the-baseline). Record source
+   revision/local modifications where available; distinguish source facts, runtime observations, and
+   assumptions. Missing runtime evidence limits claims, not the target's read-only boundary. Greenfield
+   work needs no existing-product baseline. Missing branding or documents do not trigger another workflow.
 2. **Resolve flow and direction.** Work out information priority, navigation versus actions,
    completion, cancellation, and recovery before polishing. Research only consequential unknowns,
    using current primary sources for platform-dependent decisions. Use the smallest sketch or
    representative surface that resolves uncertainty; explore distinct alternatives only for a real
-   unresolved choice. Preserve approved decisions and seek agreement before broadening them.
+   unresolved choice. Distinguish consequential behavior to preserve, intentionally change, simulate,
+   or leave unresolved; omission is not permission to remove it. Existing defects may be corrected
+   within authority, not treated as immutable. Preserve approved decisions and seek agreement before
+   broadening them.
    Read [brand foundations](references/brand-foundations.md) when establishing identity, translating
    branding into UI, or resolving a material foundation mismatch, not for every small refinement.
 3. **Build the reference.** Prefer HTML, CSS, and JavaScript rendered in a browser. Use more tooling
    only for a concrete need within existing authority, not to scaffold a second production app.
+   Keep one working prototype and default to targeted in-place edits, not complete HTML regeneration
+   for each revision. Before changing an approved direction, exploring a distinct alternative, or making
+   a risky revision, keep a recoverable source checkpoint in the artifact workspace. A task-owned
+   filesystem copy suffices; no Git, new tooling, or per-edit version is required. Approval belongs to
+   the exact snapshot, not its later variants.
    Reuse existing components safely in isolation where practical; otherwise identify approximations
    and their production mappings. Use realistic synthetic content and demonstrate relevant populated,
    empty, loading, validation, failure, and success states. Keep simulated behavior explicit. Static
@@ -91,10 +103,13 @@ or cancelled, preserving returned artifacts and describing any transient preview
    scrolling, and relevant sizes. Exercise affected interactions, keyboard/focus behavior, labels,
    contrast, text enlargement/reflow, and reduced motion as applicable. Read the relevant sections of
    [prototype quality](references/prototype-quality.md) for interaction, platform, accessibility,
-   and inspection decisions. Reuse valid observations rather than repeating an audit. Turn feedback
-   into artifact changes and revisit structure when needed. Fix substantive in-scope defects without
-   an indefinite aesthetic loop. Distinguish source inspection, rendered observation, exercised
-   interactions, and user research; neither a screenshot nor an automated check proves accessibility.
+   and inspection decisions, including existing-product versus proposal comparisons throughout
+   iteration, separately from previous versus current prototype comparisons. Use selective screenshots
+   and concise behavior notes with affected checks; reuse only still-valid observations, not routine
+   screenshot-history loads. Turn feedback into targeted changes and revisit structure when needed.
+   Fix substantive in-scope defects without an indefinite aesthetic loop. Distinguish source inspection,
+   rendered observation, exercised interactions, and user research; neither a screenshot nor an automated
+   check proves accessibility.
 5. **Hand off and stop.** Return the reference and the context below. Identify unmet criteria and
    decisions instead of labeling an untested or unapproved result complete. The user may stop at a
    useful draft; no mandatory questionnaire, wireframe phase, document set, or live conversation is
@@ -111,20 +126,24 @@ When transfer is unavailable, report that limit without publishing to a new serv
 Carry the important context into the result rather than requiring recovery from conversation:
 
 - **Reference and status:** the exact snapshot, proposed/approved/incomplete status, and the basis
-  for any approval or delegated decision. Preserve an approved snapshot before exploring a variant;
-  changed work does not silently inherit approval.
+  for any approval or delegated decision; baseline provenance for existing products, including source
+  revision/local modifications where available, inspected owning surfaces, and observation limits.
 - **Experience and reuse:** goal, scope/non-goals, preserved constraints, consequential decisions,
+  preserved behavior and intentional differences from an existing product, unresolved behavior,
   important flows/states, responsive and scrolling rules, component/token mappings, asset provenance
   and access requirements, and observable acceptance. Use permitted assets or retrieval references,
   not unauthorized redistribution. Describe important behavior in text as well as in the prototype.
 - **Evidence and limits:** checks actually performed and their environment/sizes, simulated behavior,
   approximations, untested requirements, and precise open questions with affected scope and the
   decision or evidence needed. A browser mockup does not establish native-device behavior or backend
-  feasibility. Separate visual judgment from usability evidence and conformance claims.
+  feasibility. Separate visual judgment from usability evidence and conformance claims. Keep actual
+  prototype evidence separate from required production acceptance, connected to discovered owning
+  surfaces and existing tests/fixtures. Describe needed missing coverage without inventing paths,
+  commands, or frameworks.
 
-For example, a local demo save may be demonstrated while persistence is simulated; the handoff can
-still require production failures to preserve entered values and offer retry. Do not turn that
-experience requirement into an invented storage architecture or allocation of tasks and PRs.
+For example, a local demo save with simulated persistence is not production persistence proof;
+the handoff can still require production failures to preserve entered values and offer retry. Do not turn
+that experience requirement into an invented storage architecture or allocation of tasks and PRs.
 
 A separately requested Whiteboard session can turn the reference into an implementation plan;
 separately authorized Execute work can build it. These are optional next steps, not automatic
