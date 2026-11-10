@@ -41,7 +41,9 @@ recommended corrections only. Neither request requires a new implementation plan
 ## 2. Refine the behavior
 
 Whiteboard starts with a working hypothesis and recommended direction based on available evidence.
-It explains alternatives and trade-offs. Ask it to walk through a concrete case if the recommendation
+It explains alternatives and trade-offs, asks focused questions, and updates the plan from your
+answers until it is ready for handoff or you direct otherwise. A blocker prompts the next question
+or a request for missing evidence. Ask it to walk through a concrete case if the recommendation
 is unclear. For the README example:
 
 ```text
@@ -77,8 +79,8 @@ Before handing it off, check that:
 
 - Functional and nonfunctional requirements, constraints, and non-goals are distinct from
   preferences and proposed defaults.
-- Consequential choices have reasons. Material questions are answered, explicitly deferred by you,
-  or left for necessary bounded investigation. If you stop or are unavailable, the result is a draft.
+- Consequential choices have reasons. Material questions are answered or explicitly deferred by you,
+  including any necessary later investigation. If you stop early, the result is a draft.
 - Open questions name needed evidence, the decision owner, resolution condition, and affected
   dependents. Dependent implementation stays unready; independent ready portions remain usable.
 - In-scope areas that cannot yet be framed as questions stay deferred, with the upstream answer
@@ -102,9 +104,10 @@ Orchestrate owns execution grouping, allocation, and delivery.
 When consequential questions are answered, material walkthroughs are complete, and the plan is
 self-contained, Whiteboard says **“This plan is ready for handoff.”** It names the appropriate next
 workflow without starting it. Routine implementation details can remain for execution. If decisions
-or prerequisites still block part of the plan, it identifies the ready scope and blocked dependents
-instead of declaring the whole plan ready. This signal does not prove feasibility, setup, or
-end-to-end acceptance.
+or prerequisites still block part of the plan, it identifies the affected work and keeps asking
+focused questions. You can stop, narrow the scope, defer a decision, or request the current draft
+at any point; unresolved work remains marked as unready. Handoff readiness does not prove
+feasibility, setup, or end-to-end acceptance.
 
 | Next action | What to request |
 | --- | --- |
