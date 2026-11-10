@@ -24,6 +24,7 @@ export const PUBLIC_ORDER = [
   "woostack-debug",
   "woostack-qa",
   "woostack-reflect",
+  "woostack-learn",
 ];
 
 export function stripTitleHeading(body, name) {

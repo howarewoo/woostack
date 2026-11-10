@@ -1,0 +1,133 @@
+---
+title: Create a reusable skill
+description: Turn a prompt, session workflow, or both into a focused agent skill with WooStack Learn.
+---
+
+Use Learn to capture a workflow you expect to repeat. Start with a description, work from
+the current conversation, or combine them. You get skill files or a proposed diff, the
+behavior captured, unresolved decisions, and a report of the checks actually performed.
+
+For instruction-improvement suggestions rather than skill authoring, use
+[Reflect](/docs/skills/woostack-reflect). Neither skill requires the other.
+
+## Before you begin
+
+[Install the skills](/docs/getting-started) or add Learn alone from your project root:
+
+```bash
+pnpx skills add howarewoo/woostack --skill woostack-learn
+```
+
+Enter the requests below in your coding assistant using its supported skill-loading
+mechanism. `/woostack-learn` is a skill request, not a terminal command.
+
+Keep relevant session evidence visible or supply the examples and sources Learn should
+use. To prevent file writes while you review the result, add `Return a draft without
+writing files.` Otherwise, Learn can write within the requested or established project
+skill destination; without one, it returns a draft.
+
+## 1. Choose the source workflow
+
+### Capture the current session
+
+After completing a useful workflow, enter:
+
+```text
+/woostack-learn
+```
+
+Learn looks for one coherent procedure in the visible conversation. It retains the
+important decisions, corrections, prerequisites, and verification rather than every tool
+call. When several unrelated workflows are equally plausible, choose among the candidates
+it presents.
+
+### Develop a workflow from a prompt
+
+Describe the outcome and important limits. For example:
+
+```text
+/woostack-learn Create a read-only skill for reviewing database migrations
+before release. It should report findings without applying migrations.
+Return a draft without writing files.
+```
+
+Learn develops the minimum procedure from the supplied goal and relevant evidence.
+Proposed steps remain distinguishable from steps demonstrated in a session.
+
+### Narrow a session with a prompt
+
+Name the work to retain and exclude unrelated tasks:
+
+```text
+/woostack-learn Turn only the migration-review work from this session into
+a reusable skill. Preserve the important corrections and verification.
+Leave out the deployment work. Return a draft without writing files.
+```
+
+The prompt sets the scope; the session supplies evidence. Missing conversation context
+stays missing unless you supply it.
+
+## 2. Resolve consequential gaps
+
+Answer questions that affect behavior, permissions, data handling, compatibility, or
+acceptance. Learn resolves discoverable facts itself and continues independent drafting
+while marking affected branches unresolved.
+
+Check the proposed scope before accepting the result. A matching existing skill should be
+improved at its canonical source rather than duplicated, within the edits you authorize.
+No new skill is needed when the evidence contains only one-off details or advice already
+covered by existing guidance.
+
+## 3. Review the procedure
+
+Read the result as though you had not seen the original conversation. Check that it has a
+recognizable trigger, the necessary inputs and decisions, and an observable completion
+condition.
+
+A useful correction belongs at the decision it changes. For example, an unnecessary
+compatibility layer can motivate checking release commitments before choosing a migration
+strategy. It does not justify a universal ban on compatibility work.
+
+Remove session narration, incidental names and paths, and generic advice that does not
+change an outcome. Preserve essential constraints and safeguards. Supporting files should
+hold necessary conditional detail or justified deterministic tooling, not hide excess prose.
+The result must not carry secrets, private payloads, or one-time approvals from the session.
+
+## 4. Check the evidence
+
+Review Learn's validation report. File structure and parser checks do not establish that an
+agent can use the workflow successfully.
+
+For the migration-review example, define observable expectations for a few cases:
+
+| Case | Expected behavior |
+| --- | --- |
+| A request to review a synthetic migration fixture | Inspect the supplied evidence and report findings without applying the migration. |
+| A review with a consequential compatibility decision missing | Identify the missing decision rather than inventing a compatibility requirement. |
+| A request to format an unrelated document | Do not activate the migration-review skill. |
+
+When the host supports fresh-context execution and you authorize it, test with the skill,
+its bundled resources, and realistic inputs without the source conversation. Use fixtures,
+a disposable workspace, or dry runs. Authoring the skill does not authorize live database,
+publication, or deployment effects.
+
+If execution is unavailable, keep the cases marked unrun. Do not treat a manual walkthrough
+as a behavioral test. Revise from observed failures without appending duplicate warnings.
+
+## 5. Save and use the skill
+
+For a draft-only result, request a project-local destination that follows your repository's
+conventions. For example, in a repository that stores skill sources under `skills/`:
+
+```text
+Save the reviewed skill as skills/review-migrations/SKILL.md.
+Do not install it globally, commit it, or publish it.
+```
+
+Otherwise, review the files or diff at the destination Learn reports. The directory and
+frontmatter name should agree; the generated name need not use a `woostack-` prefix.
+
+Load the saved skill through your assistant's supported mechanism for a separately
+requested task. Saving it does not execute its workflow or authorize its future effects.
+
+See the [Learn reference](/docs/skills/woostack-learn) for the full authoring contract.
