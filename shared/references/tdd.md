@@ -92,6 +92,20 @@ concurrency capabilities. Avoid duplicate launches, unchanged blind retries, and
 without new evidence. Do not introduce universal time limits or terminate unrelated processes.
 Timed-out, cancelled, failed, or unrun required checks remain unverified, not passes.
 
+
+## Efficient CI/CD verification
+
+When designing or tuning CI/CD, optimize **feedback time and regression confidence together**. Inspect the existing pipeline, test ownership, runner capacity, and actual job timings before changing execution policy. Separate queue time, setup/build work, test collection, execution, and artifact upload; address the measured bottleneck with existing platform and test-runner capabilities before adding scripts, dependencies, or infrastructure.
+
+- **Select proportionately.** Use native changed-file, dependency-aware, or affected-project test selection for routine changes when its dependency model is trustworthy. Include affected consumers, fixtures, configuration, generated code, schema changes, and integration boundaries. A small suite that is already cheap needs no selection machinery.
+- **Keep a broad backstop.** Targeted PR checks are not proof that other tests cannot regress. Preserve full or appropriately comprehensive verification on protected branches, release gates, or scheduled runs, and ensure required deployment checks cannot be bypassed. Unknown or failed impact analysis expands the test scope rather than silently skipping checks.
+- **Tier expensive checks.** Keep quick deterministic checks and critical end-to-end smoke paths in the fast feedback loop; route broader integration, browser, compatibility, and long-running scenarios according to risk and release policy. Do not delete or weaken tests merely to meet a CI time budget.
+- **Respect finite capacity.** Bound test workers by measured CPU, memory, and I/O pressure. Shard across genuinely independent runners only when available capacity and shard runtime outweigh queue and repeated setup costs. More workers on an overloaded VM can increase timeouts.
+- **Eliminate redundant setup.** Cancel superseded change runs where safe, avoid duplicate jobs and builds, reuse package-manager caches and correctly keyed deterministic outputs, and provision expensive runtime dependencies only when needed. Treat caches as optional and untrusted; prefer native features over bespoke change routers.
+- **Preserve diagnosability.** Keep tests isolated, failures blocking where required, retries bounded and visible, timeouts specific to the slow operation, and failure artifacts useful but proportionate. Do not turn flaky, timed-out, or skipped tests into passes.
+
+Compare before/after queue time, median and tail duration, resource saturation, retries, timeouts, and failure detection. Record what verification ran, what was intentionally deferred, and where selective execution could miss a regression. Consult the repository's chosen CI and test-runner documentation for concrete commands and configuration rather than embedding framework-specific recipes here.
+
 ## Targets without a test runner
 
 When the target has no test runner, use one concrete verification command with an observable result or
