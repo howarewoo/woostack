@@ -1,13 +1,13 @@
 ---
 name: woostack-init
-description: Create or maintain root README.md, AGENTS.md, DESIGN.md, PRODUCT.md, and ARCHITECTURE.md.
+description: Choose, create, or maintain root Markdown project guidance through repository-informed discovery.
 ---
 
 # woostack-init
 
-Help the user create or improve the root README and project guidance: accurate, repository-specific,
-useful for decisions, concise, and maintainable. Inspect before asking, consult before writing,
-preserve what works, and apply only changes the request authorizes. A rerun may make no changes.
+Help the user choose and maintain useful root Markdown files. Inspect before asking, consult before
+writing, preserve what works, and apply only changes the request authorizes. Keep guidance accurate,
+repository-specific, concise, and maintainable. A rerun may make no changes.
 
 ## Command and scope
 
@@ -15,10 +15,10 @@ preserve what works, and apply only changes the request authorizes. A rerun may 
 /woostack-init [path]
 ```
 
-The default intent is guided document authoring, including root `ARCHITECTURE.md`. Honor a request
-limited to one document or to review, planning, or drafts; architecture-only requests do not edit
-other root documents. Document work requires no Woostack configuration, GitHub access, or
-dependency installation.
+A general run selects documents for the project's needs rather than assuming a fixed bundle.
+Honor a request limited to one document or to review, planning, or drafts; architecture-only
+requests do not edit other root documents. Document work requires no Woostack configuration,
+GitHub access, or dependency installation.
 
 ## Guided authoring
 
@@ -31,46 +31,45 @@ boundaries. Keep `AGENTS.md` operational.
    conversation decisions, existing root and scoped agent instructions, README/contributor guidance,
    product/design/architecture documents and their canonical sources, representative source,
    entrypoints, manifests, configuration, scripts, and CI.
-   Prepare a brief opening summary of the current understanding, which in-scope documents need
-   creating, updating, or preserving, and what should stay. Distinguish observed implementation,
+   Prepare a brief opening summary of the current understanding, existing document owners, and
+   gaps that need the user's input. Distinguish observed implementation,
    documented intent, and proposed direction; surface contradictions rather than silently choosing
    one. Preserve the authority and scope of existing instructions.
    When verification guidance is relevant to scope, inspect the repository's actual tools, commands,
    instructions, CI, test suites, and available timing evidence, distinguishing demonstrated bottlenecks
    from unmeasured concerns. An adequate verification setup is a valid no-op.
-2. **Consult before drafting.** Open the discussion with the opening summary, then ask
-   repository-informed questions and wait for the user's response before drafting or writing any
-   document, even when the existing repository appears comprehensive. A general request to
-   initialize or update documents is not permission to skip this consultation, and ordinary edit
-   authorization never silently waives it. For a general run, discuss the areas relevant to the
-   requested documents: intention (why the repository exists, whom it serves, the problem it
-   should solve, desired outcomes, and non-goals), general structure (the intended organization
-   and responsibilities of its major apps, packages, modules, and documents; which existing
-   arrangements are deliberate and worth preserving), direction (near-term priorities, longer-term
-   ambitions, product and design principles, constraints, and tradeoffs), and architecture
-   (intended boundaries, dependencies, important interactions and data flows, and rationale that
-   source code alone cannot establish). These are discussion areas, not a fixed question bank:
-   read factual details from the repository rather than asking the user to inventory it, and ask
-   about the intention and rationale behind those facts. A scoped update consults only its
-   relevant decisions and never becomes an unrelated whole-repository interview.
-   When `AGENTS.md` is in scope, establish project stage and actual consumers, compatibility
-   commitments (including an explicit "none" when confirmed), and which data/environments must
-   survive changes or are explicitly disposable. These are separate decisions: an unreleased
-   label or `0.x` version alone establishes neither an absence of consumers nor disposable data.
-   Preserve existing commitments unless the user explicitly changes them; unresolved answers
-   stay unresolved. Use the [AGENTS.md guidance](references/document-schemas.md#agentsmd) to
-   translate confirmed decisions into operational instructions.
-   Ask a manageable initial set, then wait. Use each response to revise the understanding and
-   choose follow-ups that respond to earlier answers, including answers that contradict
-   assumptions inferred from existing code; clarify implications, contradictions, and meaningful
-   unresolved choices instead of mechanically advancing through a fixed checklist. Reuse answers
-   already supplied: when prior answers establish the relevant decisions, present the resulting
-   understanding and ask what, if anything, should change rather than re-running the interview.
-   Offer recommendations and tradeoffs when useful, and keep material decisions explicitly
-   deferred rather than inventing certainty. Never create or modify documents in the same turn as
-   unanswered interview questions. Honor an explicit request to proceed without questions; the
-   agent's confidence alone is not an exception. Without answers, draft only from observed
-   evidence and mark remaining decisions unresolved instead of inventing missing facts.
+2. **Consult and choose documents.** Present the summary, ask a small set of repository-informed
+   questions, and wait for the user's response before drafting or writing. Ask about intent that
+   affects document selection or content; read discoverable facts from the repository. Reuse
+   supplied answers, presenting the resulting understanding and asking what should change instead
+   of repeating the interview. Keep scoped updates focused on their relevant decisions.
+
+   Use these topics where relevant, adapting follow-ups to the answers:
+
+   | Topic | What to establish |
+   | --- | --- |
+   | Purpose and audience | What is being built, why, and for whom? Distinguish product users, documentation readers, contributors, and operators. |
+   | Visibility and participation | Is the repository public now, expected to become public later, staying private, or undecided? Are external use, contributions, support, or community processes intended? |
+   | Stack and structure | What technologies, platforms, deployment targets, and component boundaries are intended? Which existing choices should stay, and which are planned or undecided? |
+   | Direction and experience | What outcomes, non-goals, constraints, and tradeoffs guide the work? Does a UI or shared design system need its own guidance? |
+   | Stage and commitments | Who already depends on the project? What compatibility promises and data-preservation needs apply, separately from its release stage? |
+
+   When `AGENTS.md` is in scope, confirm compatibility commitments, including "none" when applicable,
+   and which data/environments must survive or are explicitly disposable. An unreleased label or
+   `0.x` version establishes neither an absence of consumers nor disposable data. Preserve existing
+   commitments unless explicitly changed; translate confirmed decisions using the
+   [AGENTS.md guidance](references/document-schemas.md#agentsmd).
+
+   Recommend the smallest useful set using [document responsibilities](#document-responsibilities).
+   Briefly name what to create, update, preserve, or defer and why. Reuse equivalent documents and
+   keep small topics in existing sections when sufficient. Future public availability can inform
+   today's guidance without requiring every community or policy file now. Public visibility alone
+   establishes no license, contribution policy, support promise, or compatibility commitment.
+
+   Accept "undecided" and defer guidance that depends on it. Offer recommendations with reasons;
+   distinguish them from confirmed choices. Follow up on material gaps or contradictions, not a
+   fixed checklist. Never write in the same turn as unanswered interview questions. Honor an
+   explicit request to proceed without questions; use supported facts and mark unresolved choices.
    For verification recommendations, use the [testing principles](references/tdd.md): prefer
    removing redundant work and configuring native capabilities before adding or replacing tools.
    Investigate only warranted options against current authoritative ecosystem sources; preserve
@@ -82,13 +81,14 @@ boundaries. Keep `AGENTS.md` operational.
    deferred architecture as already implemented. Product → design → agent instructions is a useful
    draft order, not a required sequence. Use the
    [document responsibilities](#document-responsibilities) and
-   applicable [document schemas](references/document-schemas.md). Create missing guidance, replace
+   applicable [document schemas](references/document-schemas.md). Create selected missing guidance, replace
    empty or placeholder content with supported guidance, or make targeted revisions, preserving
    useful project-specific content.
    Identify stale, contradictory, and duplicated material for removal rather than appending another
    generated layer. Link to canonical specifications, architecture decisions, design systems, and
    contributor guidance instead of copying them; propose consolidation before replacing established
-   documents. Never invent commands, metrics, architectural rationale, or settled decisions.
+   documents. Favor terse guidance and flexible defaults; reserve restrictions for confirmed
+   requirements and real invariants. Never invent commands, policies, metrics, rationale, or decisions.
    Repository manifests and CI configuration remain authoritative for adopted tooling. Record verified
    command existence, working directory, and conditions; keep current commands distinct from proposals
    under the [document schemas](references/document-schemas.md). Preserve scoped instructions.
@@ -114,17 +114,25 @@ boundaries. Keep `AGENTS.md` operational.
 
 ## Document responsibilities
 
-Use the current applicable [document formats](references/document-schemas.md), not an exhaustive
-template or the same questionnaire for every project. Omit irrelevant sections. Preserve an
-established architecture-focused meaning of `DESIGN.md`; the visual schema does not replace it.
+These are candidates, not a required file set. Use the applicable
+[document formats](references/document-schemas.md) for selected files and omit irrelevant sections.
+Preserve established names and an architecture-focused meaning of `DESIGN.md`.
 
-| Document | Purpose | Useful content |
+| Document | Useful when | Content |
 | --- | --- | --- |
-| `README.md` | What is this project, and how do I start using it? | The [README contract](references/document-schemas.md#readmemd): evidence-backed identity, shortest verified first-use path, representative usage, and navigation to canonical docs and policies. |
-| `PRODUCT.md` | What are we building, for whom, and why? | The [product record](references/document-schemas.md#productmd): users, purpose, operating context, capabilities, constraints, and confirmed principles. Separate current scope from future direction. |
-| `DESIGN.md` | How should the product work and feel? | The [visual format](references/document-schemas.md#designmd) where applicable: observed or agreed identity, tokens, components, and usage. Preserve canonical system-design decisions where the document already owns them. |
-| `ARCHITECTURE.md` | Where should a change live, how do the parts interact, and what boundaries must it preserve? | [Technical orientation](references/document-schemas.md#architecturemd): major responsibilities and paths, important relationships and flows, constraints, and supported decision links. |
-| `AGENTS.md` | How should an agent work effectively in this repository? | [Unversioned operational Markdown](references/document-schemas.md#agentsmd): actual commands and working directories, conditional verification, boundaries, pitfalls, and links to deeper documentation. |
+| `README.md` | Readers need a project entry point. | [Identity, first use, representative usage, and navigation](references/document-schemas.md#readmemd), tailored to the intended reader. |
+| `AGENTS.md` | Agents need repository-specific working guidance. | [Actual commands, conditional verification, boundaries, pitfalls, and contextual links](references/document-schemas.md#agentsmd). |
+| `PRODUCT.md` | Purpose, audience, and scope need a durable home beyond a short README section. | The [product record](references/document-schemas.md#productmd), separating current scope from future direction. |
+| `ARCHITECTURE.md` | Component relationships, data ownership, or boundaries need orientation. | [Responsibilities, paths, flows, constraints, and decision links](references/document-schemas.md#architecturemd). |
+| `DESIGN.md` | A UI needs shared visual or interaction guidance. | The applicable [visual format](references/document-schemas.md#designmd), grounded in canonical tokens and components. Preserve existing system-design ownership. |
+| `CONTRIBUTING.md` | Contributors need a shared development and review workflow. | Confirmed setup, contribution expectations, and verification, linking existing guidance. |
+| `SECURITY.md` or `SUPPORT.md` | Users need a supported reporting or help route. | Actual channels, supported scope, and agreed expectations. |
+| `CODE_OF_CONDUCT.md` | A community needs agreed participation and reporting rules. | The maintainer's chosen policy and reporting process. |
+| `CHANGELOG.md` | Users need a maintained change history not already owned by release notes. | Relevant release changes and migration links. |
+
+For other root Markdown, follow [additional-document guidance](references/document-schemas.md#other-root-markdown).
+Defer files with no present use unless preparation is requested. Omit empty templates and leave
+unsupported policies or license choices for the user to decide.
 
 Keep `AGENTS.md` operational: no copied product specification, exhaustive file inventory, generic
 coding advice, or duplicated Woostack workflows. When `AGENTS.md` is also in the authorized scope,

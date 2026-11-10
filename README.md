@@ -65,18 +65,18 @@ Open your coding assistant in the project root and enter:
 /woostack-init
 ```
 
-Init inspects your repository and existing decisions, consults with you on the project's
-intention, structure, direction, and architecture before writing, and helps create or update
-`README.md`, `PRODUCT.md`, `DESIGN.md`, `ARCHITECTURE.md`, and `AGENTS.md`. It preserves useful content
-linked to canonical documents rather than copying them. You can limit the request to one document
-or ask for drafts without writes. During Woostack adoption, Init includes the concise
+Init inspects existing guidance, then asks about the project's audience, current or future public
+availability, intended stack, direction, and commitments. It recommends a small set of root Markdown
+files with a reason for each addition. Small topics can stay in existing documents, and future
+choices can remain undecided. You can limit the request to one document or ask for drafts without
+writes. When agent instructions are selected during Woostack adoption, Init includes the concise
 [adoption paragraph](skills/woostack-init/SKILL.md#document-responsibilities) in the proposed agent
 instructions, so no Woostack skill becomes a prerequisite of another.
 
-Init uses the current applicable [document formats](skills/woostack-init/references/document-schemas.md):
-an evidence-backed README landing page, Impeccable's product record, the visual DESIGN.md
-specification, technical orientation in ARCHITECTURE.md, and unversioned AGENTS.md guidance.
-Existing architecture documents keep their established authority; the root overview links to them.
+Selected files follow the applicable [document formats](skills/woostack-init/references/document-schemas.md),
+including the product record, visual design specification, and operational agent guidance.
+Existing documents keep their authority; an additional root overview is useful only when it helps
+readers find and understand that guidance.
 
 Document authoring needs no Woostack configuration or GitHub access. Init does not scaffold an
 application, handle credentials, or create issues, branches, commits, or PRs. See

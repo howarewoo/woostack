@@ -3,6 +3,8 @@
 Use the applicable formats below when authoring project guidance. These are document contracts,
 not dependencies on another skill's interview, approval process, configuration, or sidecars.
 Keep Woostack Init's evidence-first authoring workflow and requested write scope.
+Apply a contract after selecting a useful document; this reference does not require every file.
+Reuse existing equivalents and keep short topics in an existing document where sufficient.
 
 ## Sources and versions
 
@@ -102,10 +104,10 @@ unresolved decisions. In greenfield repositories, label confirmed plans as plann
 Omit unsupported material or explicitly defer it; never invent infrastructure, components,
 constraints, or settled decisions to fill a template.
 
-When detailed architecture already lives in `DESIGN.md` or elsewhere, provide a concise but useful
-root overview with links, not a competing specification. Preserve established authority; do not
-silently move or repurpose documents. Consolidation requires separate authorization. Keep product
-scope, visual/interaction guidance, first-use instructions, and agent operations with their owners
+When selected, a root overview links to detailed architecture in `DESIGN.md` or elsewhere.
+Preserve established authority; do not silently move or repurpose documents. Consolidation requires
+separate authorization. Keep product scope, visual/interaction guidance, first-use instructions,
+and agent operations with their owners
 under [document responsibilities](../SKILL.md#document-responsibilities).
 
 Use the [guided workflow](../SKILL.md#guided-authoring) for creation and targeted updates.
@@ -218,3 +220,11 @@ command existence, working directories, execution conditions, and evidence statu
 [testing principles](tdd.md), distinguishing commands inspected
 from commands executed. Keep current commands, agreed future direction, and unimplemented
 recommendations strictly separate.
+
+## Other root Markdown
+
+Use ordinary Markdown and the [documentation guidance](documentation.md) for selected contribution,
+security, support, community, release, or other root documents. Adapt existing formats to the reader
+and purpose; add no schema markers or mandatory sections. Record only established processes,
+channels, and commitments. Link canonical policies and release notes instead of duplicating them.
+Keep unresolved policy or licensing choices in the discussion or report until decided.
