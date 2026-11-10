@@ -375,8 +375,9 @@ them; otherwise label that variant **Unrun**.
 
 **Planning variants:** supply a complete brief and observe a plan without compulsory questions.
 Repeat as a delegated agent assignment with explicit decision limits; a consequential choice outside
-those limits returns a recommendation and affected-work blocker, never invented agreement. Request
-review only of a plan with a source discrepancy and observe findings without rewriting the plan.
+those limits prompts a concrete question with a recommendation and affected work, never invented
+agreement. Request review only of a plan with a source discrepancy and observe findings without
+rewriting the plan.
 Give only the final plan to a fresh session and check that it preserves decisions, acceptance, and
 blockers without requiring the original conversation. Keep actual-host evidence separate from traces.
 
@@ -460,9 +461,12 @@ not publication, implementation, experiments, or implementation worker dispatch.
   itself and asks the owner the material retention question during Whiteboard, not during later
   execution. It does not select a reversible default or merely list the question as future work.
   Answer with an explicit deferral for this variant; the precise question then carries evidence
-  needs, a decision owner, a resolution condition, and affected dependents. Repeat with an answer,
-  a necessary bounded later investigation, and a user stopping early: only the answered variant
-  treats dependent behavior as settled, and the stopped variant returns an honest draft.
+  needs, a decision owner, a resolution condition, and affected dependents. Repeat with a partial
+  answer that exposes another material choice: observe the plan incorporate the answer and ask a
+  focused follow-up rather than finish with a blocker list. Supply the remaining answers and observe
+  a handoff-ready plan without further compulsory questions. Also exercise missing evidence requiring
+  later investigation and a user stopping early: the former prompts a question about resolving or
+  deferring it, and the latter returns an honest draft.
 - Archive uncertainty stays in scope but deferred with its upstream trigger, rather than becoming
   speculative build issues or being silently excluded. The header correction stays actionable.
 - Decision issue content resolves an answer, while implementation issue content verifies behavior;

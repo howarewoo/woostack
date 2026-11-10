@@ -38,7 +38,7 @@ Also exercise these boundaries:
   Verify no writes or implementation handoff occur without separate authorization.
 - Supply enough context to plan without questions. Repeat as an agent assignment with explicit
   decision limits; covered decisions need no interview, while an uncovered consequential choice
-  returns a recommendation and affected-work blocker without inventing agreement.
+  prompts a concrete question with a recommendation and affected work without inventing agreement.
 - Request review only of a supplied plan containing a repository discrepancy. Expect evidence,
   consequences, and recommended corrections, with the supplied plan unchanged.
 - In an explicitly authorized disposable GitHub scope, request issue publication. Verify destination
