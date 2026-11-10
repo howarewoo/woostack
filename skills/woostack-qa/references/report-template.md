@@ -1,61 +1,84 @@
 Authority: non-authoritative diagnostic evidence
 
-Report only. This file is not issue scope, approval, assignment, lifecycle state, acceptance, or
-permission to mutate the repository.
+Report only. This file does not authorize scope, assignment, acceptance, lifecycle changes,
+repository edits, remediation, or publication. Fill only supported fields; use `unknown`,
+`unavailable`, or `not applicable` explicitly. Evidence examples are alternatives, not required calls.
 
-# QA run — {{APP_OR_FOCUS}} — {{DATE}}
+# QA run: {{APP_OR_FOCUS}}: {{DATE}}
 
-## Report metadata
+## Review identity
 
-- **Target:** {{URL}}
-- **Canonical repository:** {{REPOSITORY}}
-- **Browser capability:** {{native host browser tool | installed CLI actually used}}
-- **Outcome:** {{complete|partial|aborted}}
-- **Findings:** {{N}}
-- **Sanitization:** passed residual check {{RECEIPT_OR_TIMESTAMP}}
-- **GitHub context:** {{none | exact verified canonical PR, issue, or Project URL and read receipt}}
+- **Assignment and target:** {{scope; URL; environment}}
+- **Candidate requested:** {{repository; PR/commit; comparison base; build identity | not supplied}}
+- **Candidate observed:** {{verified revision/build and evidence | unknown or mismatch; local changes}}
+- **Test context:** {{authorized account role and disposable fixture; no personal identifiers}}
+- **Browser and coverage:** {{capability; engine/version; viewport; actual browser zoom; emulated or physical device}}
+- **Requirements:** {{acceptance criteria, product documentation, or stated rationale; assumptions}}
+- **Optional GitHub context:** {{none | exact independently read canonical PR/issue/Project and read time}}
+- **Run bound:** {{journey queue; requested budget or --stop-first; actual ending condition}}
+- **Sanitization:** {{passed residual check and time | no retained artifact if sanitization failed}}
 
-## Coverage receipt
+## Preflight and summary
 
-- **Journey source:** {{focus args | verified GitHub context (canonical PR, issue, or Project URL) | blind exploration}}
-- **Queue:** {{numbered journey list — the run bound}}
-- **Bound:** one pass, no re-crawl{{; ended early by --stop-first, scope end, cancellation, or budget}}
-- **Session released:** {{task-owned browser resources released; unrelated sessions left open}}
-- **Uncovered:** {{auth walls; destructive surfaces skipped; cross-origin boundaries | none}}
-- **Aborted:** {{n/a | journey N, target/browser failure and reconnect result if attempted}}
+| Prerequisite | Observed evidence | Limitation or resume condition |
+| --- | --- | --- |
+| Reachability | {{result}} | {{gap or none}} |
+| Candidate identity | {{result}} | {{gap or none}} |
+| Required browser capabilities | {{result}} | {{gap or none}} |
 
-## Findings ({{N}}, ranked)
+- **Coverage outcome:** {{complete | partial | blocked | aborted}}; {{reason}}
+- **Execution:** {{N of M scoped journeys executed; name partially executed journeys}}
+- **Confirmed findings:** {{N, with severity/blocking breakdown | not assessed if no journeys ran}}
+- **Unconfirmed observations:** {{N}}
+- **Remaining risk:** {{missing required coverage, auth/origin boundaries, skipped effects, untested conditions}}
+- **Stop point and next step:** {{queue position; condition or actor needed to resume | completed scope}}
 
-### 1. [{{HIGH|MEDIUM|LOW}}{{, blocking}}] {{one-line title}}
+A blocked preflight records zero executed journeys and no product verdict. A complete run means
+its declared coverage was completed, not that the application is defect-free. No confirmed defects
+with missing required coverage is partial or blocked, never blanket acceptance.
 
-- **Repro (executed twice):**
-  1. {{step}}
-  2. {{step}}
-- **Expected:** {{behavior}}
-- **Actual:** {{behavior}}
-- **Evidence:**
-  - console: `{{minimum sanitized excerpt}}`
-  - network: `{{METHOD /path → status}}`
-  - screenshot: `evidence/{{DATE}}-{{SLUG}}/{{file}}.png` (transient, per-clone)
-- **Suspected source:** `{{path/to/file.ext}}` — {{why}}
-- **Root-cause confidence:** {{verified|high|medium|low}} — {{basis}}
-- **Bounded remediation direction:** {{one or two sentences; not authority to edit}}
+## Coverage
 
-#### Proposed bounded remediation contract
+Use PASS (expectation observed), FAIL (confirmed contradiction), BLOCKED (prerequisite missing),
+NOT RUN (including deferred), UNCONFIRMED (unreproduced anomaly), or SOURCE-ONLY (code inspection,
+no UI execution). Split a journey into checks when its results differ. Preserve the original date
+and revision for reused evidence; describe what an existing test asserts rather than equating green
+with product acceptance.
 
-- Canonical repository: {{REPOSITORY}}
-- Proved problem: {{problem and root-cause confidence}}
-- Bounded scope: {{source paths and excluded surface}}
-- Evidence pointers: {{finding and sanitized evidence references}}
-- Observable acceptance criteria: {{behavior that must be observed}}
-- Optional GitHub reference: {{none | exact canonical GitHub URL}}
-- GitHub read-back: {{n/a | receipt ID and timestamp}}
+| Journey/check and risk | Expected behavior and basis | Status | Observation and evidence | Gap or next step |
+| --- | --- | --- | --- | --- |
+| {{bounded queue item}} | {{expectation; requirement/rationale}} | {{status}} | {{what was actually observed; reference}} | {{limitation or none}} |
+
+## Confirmed findings
+
+Use HIGH / MEDIUM / LOW and a blocking flag, or explain the explicitly required project scale.
+Severity describes user impact; scheduling priority is a separate decision. Deduplicate related
+symptoms while retaining their distinct impacts. Omit this section if preflight prevented execution.
+
+### {{ID}}. {{SEVERITY}}{{, blocking}}: {{title}}
+
+- **Impact:** {{what a user loses or cannot accomplish}}
+- **Context:** {{page; revision/environment/browser/account-role differences from run metadata | same as above}}
+- **Preconditions:** {{starting state and synthetic data}}
+- **Reproduction:**
+  1. {{minimal step}}
+  2. {{minimal step}}
+- **Reproduction evidence:** {{initial observation and second clean execution; reproduced N of M attempts}}
+- **Expected and basis:** {{behavior; acceptance criterion, documentation, or explicit rationale}}
+- **Actual:** {{observed behavior; distinguish inaccessible state from missing data}}
+- **Evidence:** {{minimum sanitized screenshot/DOM/console/request/state comparison and transient reference}}
+- **Cause:** {{verified mechanism with source evidence | hypothesis and confidence | unknown}}
+- **Retest criteria:** {{observable repaired behavior; relevant persistence/recovery and nearby boundaries}}
+- **Suggested direction (optional):** {{supported bounded suggestion; no authority to edit}}
+- **Related issue (optional):** {{exact independently verified canonical URL; read time}}
 
 ## Unconfirmed observations
 
-- {{anomaly seen once, reproduction failed — exact signal and where}} — or `none`
+- {{anomaly, user impact, observed frequency, attempted reproduction, and what prevents confirmation | none}}
 
-## Zero-finding or abort receipt
+## Retest and cleanup
 
-- {{When N=0: exact completed journey count and coverage. When interrupted: findings-so-far, the
-  exact stop point, and the journeys left completed, skipped, or unconfirmed. Otherwise: n/a.}}
+- **Fix retest:** {{corrected candidate identity; original repro result; nearby checks | not a fix retest}}
+- **Evidence reused:** {{original revision/date; why it still applies | none}}
+- **Resources released:** {{task-owned resources released; cleanup limits; unrelated sessions/fixtures preserved}}
+- **Evidence limits:** {{unavailable diagnostics, source-only conclusions, emulation, untested conditions}}

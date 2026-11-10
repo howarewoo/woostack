@@ -6,6 +6,7 @@ description: Choose checks for a task, reuse applicable evidence, and report wha
 Start with the task, repository rules, and active workflow. Record the checks in the ordinary task
 scope or existing plan; no separate verification document or approval stage is needed.
 [Verification](/docs/concepts/verification) explains why different claims need different evidence.
+For a report-only browser review, follow [QA a running app](/docs/guides/qa).
 
 ## 1. Identify what requires a check
 
@@ -46,6 +47,8 @@ Explain newly discovered risks in the same task scope. Accessibility checks foll
 project and task requirements. For example, 200% zoom is not a default Woostack blocker, but becomes
 required when an explicit accessibility requirement calls for it. Unchecked coverage is never a pass,
 and selected checks do not establish full WCAG conformance.
+For browser QA that includes 200% zoom, use genuine browser zoom on a desktop-sized viewport;
+CSS scaling and device-pixel-ratio changes do not establish that result.
 
 ## 3. Reuse evidence where it still applies
 
