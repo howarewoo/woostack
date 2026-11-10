@@ -1,11 +1,12 @@
 ---
-title: Create a reusable skill
-description: Turn a prompt, session workflow, or both into a focused agent skill with WooStack Learn.
+title: Create or improve a reusable skill
+description: Create a new skill or iterate on an existing one using prompts, session evidence, and feedback with WooStack Learn.
 ---
 
-Use Learn to capture a workflow you expect to repeat. Start with a description, work from
-the current conversation, or combine them. You get skill files or a proposed diff, the
-behavior captured, unresolved decisions, and a report of the checks actually performed.
+Use Learn to create a new skill or improve one you already use. Supply a goal, feedback,
+the current conversation, or a combination. For an existing skill, the result is a targeted
+change to its current source, not another skill with overlapping instructions. Learn reports
+what changed, what stayed intact, unresolved decisions, and checks actually performed.
 
 For instruction-improvement suggestions rather than skill authoring, use
 [Reflect](/docs/skills/woostack-reflect). Neither skill requires the other.
@@ -26,7 +27,30 @@ use. To prevent file writes while you review the result, add `Return a draft wit
 writing files.` Otherwise, Learn can write within the requested or established project
 skill destination; without one, it returns a draft.
 
-## 1. Choose the source workflow
+## 1. Choose the target and evidence
+
+### Improve an existing skill
+
+Name the skill or its canonical source and describe the improvement. A source path makes
+the target explicit. For a project that already has `skills/review-migrations/SKILL.md`:
+
+```text
+/woostack-learn Improve skills/review-migrations/SKILL.md. Clarify when
+missing compatibility requirements should block a review. Preserve its
+read-only boundary. Return a proposed diff without writing files.
+```
+
+A session is not required. To learn from how an existing skill performed, use:
+
+```text
+/woostack-learn Improve review-migrations using the corrections from
+this session. Simplify the existing instructions instead of adding
+another checklist. Return a proposed diff without writing files.
+```
+
+Learn reads the current source and relevant resources and tests before proposing changes.
+It keeps unaffected behavior and permissions intact. If the canonical source is unavailable,
+supply it before expecting an applicable diff; an installed copy may not be the owner.
 
 ### Capture the current session
 
@@ -36,10 +60,10 @@ After completing a useful workflow, enter:
 /woostack-learn
 ```
 
-Learn looks for one coherent procedure in the visible conversation. It retains the
+Learn looks for one coherent procedure in the visible conversation. When one existing
+skill clearly owns it, Learn improves that skill; otherwise it can create one. It retains
 important decisions, corrections, prerequisites, and verification rather than every tool
-call. When several unrelated workflows are equally plausible, choose among the candidates
-it presents.
+call. Choose among the candidates when the target is ambiguous.
 
 ### Develop a workflow from a prompt
 
@@ -73,16 +97,17 @@ Answer questions that affect behavior, permissions, data handling, compatibility
 acceptance. Learn resolves discoverable facts itself and continues independent drafting
 while marking affected branches unresolved.
 
-Check the proposed scope before accepting the result. A matching existing skill should be
-improved at its canonical source rather than duplicated, within the edits you authorize.
-No new skill is needed when the evidence contains only one-off details or advice already
-covered by existing guidance.
+Check the proposed scope before accepting the result. Learn changes the existing owner
+within your authorization instead of duplicating it. It may return no change when the
+feedback is already covered or contains only one-off details. A clear rule being ignored
+calls for testing that behavior, not automatically adding a stronger warning.
 
 ## 3. Review the procedure
 
-Read the result as though you had not seen the original conversation. Check that it has a
-recognizable trigger, the necessary inputs and decisions, and an observable completion
-condition.
+Read the result as though you had not seen the original conversation. Check its trigger,
+inputs, decisions, and completion evidence. For an existing skill, review the diff against
+the current version: the requested behavior should change without unrelated rewrites,
+renaming, or permission changes. Check affected references and examples too.
 
 A useful correction belongs at the decision it changes. For example, an unnecessary
 compatibility layer can motivate checking release commitments before choosing a migration
@@ -98,7 +123,9 @@ The result must not carry secrets, private payloads, or one-time approvals from 
 Review Learn's validation report. File structure and parser checks do not establish that an
 agent can use the workflow successfully.
 
-For the migration-review example, define observable expectations for a few cases:
+For iteration, reuse relevant cases and compare the previous and revised versions on the
+same affected examples. Check the improvement and behavior that should remain unchanged.
+For the migration-review example:
 
 | Case | Expected behavior |
 | --- | --- |
@@ -114,10 +141,11 @@ publication, or deployment effects.
 If execution is unavailable, keep the cases marked unrun. Do not treat a manual walkthrough
 as a behavioral test. Revise from observed failures without appending duplicate warnings.
 
-## 5. Save and use the skill
+## 5. Apply or save the result
 
-For a draft-only result, request a project-local destination that follows your repository's
-conventions. For example, in a repository that stores skill sources under `skills/`:
+For an existing skill, request application of the reviewed diff to its canonical source.
+Keep its name and location unless you explicitly intend to change them. For a new draft,
+choose a project-local destination that follows your repository's conventions. For example:
 
 ```text
 Save the reviewed skill as skills/review-migrations/SKILL.md.
@@ -129,5 +157,7 @@ frontmatter name should agree; the generated name need not use a `woostack-` pre
 
 Load the saved skill through your assistant's supported mechanism for a separately
 requested task. Saving it does not execute its workflow or authorize its future effects.
+After using it, invoke Learn again with specific feedback and the current source. Each pass
+starts from that version rather than recreating the skill or accumulating session notes.
 
 See the [Learn reference](/docs/skills/woostack-learn) for the full authoring contract.

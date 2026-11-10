@@ -1,12 +1,12 @@
 ---
 name: woostack-learn
-description: Use when explicitly asked to create or improve a reusable agent skill from a workflow description, the active conversation, or both; invoke as /woostack-learn.
+description: Use when explicitly asked to create a reusable agent skill or iterate on an existing one using a prompt, session evidence, or feedback; invoke as /woostack-learn.
 ---
 
 # woostack-learn
 
-Turn a prompt, session evidence, or both into the smallest useful repeatable skill.
-Author the procedure; do not carry out its live workflow.
+Create or improve a reusable skill from a prompt, session evidence, or both.
+Keep the smallest procedure that works; author it without carrying out its live workflow.
 
 ## Scope and authority
 
@@ -24,18 +24,21 @@ required.
 
 ## Workflow
 
-### 1. Choose the reusable unit
+### 1. Select the skill and intended change
 
-Identify the intended outcome, future trigger, and narrowest useful scope. Use the prompt
-to select relevant session work; with no prompt, infer one coherent workflow from the
-available evidence. If several unrelated workflows are equally plausible, present the
-candidates rather than bundling them.
+Identify the intended outcome or improvement and narrowest useful scope. A named skill or
+path selects the existing target. Otherwise use the prompt and relevant session evidence;
+when one existing skill clearly owns the workflow, revise it. Present candidates when the
+target is ambiguous rather than creating or changing several skills.
 
-Inspect relevant existing skills and project guidance. Prefer improving the canonical
-owner of the same workflow over creating a duplicate; edit it only within authorized
-scope. Repository-wide facts belong in standing guidance, reference material in references,
-and one-off task details in neither. Do not manufacture a skill when no useful procedural
-knowledge survives.
+Inspect relevant skills and project guidance. For an existing target, read its current
+canonical `SKILL.md` and relevant resources and tests. Use that version as the baseline:
+identify what should change and what must stay intact. Do not silently edit a generated
+or installed copy in place of its canonical source. If the source is unavailable, request
+it or return a clearly labeled proposal, not an invented diff. Create a new skill only when
+no existing owner fits. Repository-wide facts belong in standing guidance, reference
+material in references, and one-off details in neither. Return no change when no useful
+improvement survives.
 
 ### 2. Distill or develop the workflow
 
@@ -57,10 +60,15 @@ about missing decisions that materially affect behavior, permissions, data, comp
 or acceptance. Continue independent drafting; mark affected branches unresolved rather
 than inventing answers. Never describe a proposed step as observed or tested.
 
-### 3. Write the smallest complete skill
+### 3. Revise or create the skill
 
-Start with one `SKILL.md` using `name` and a specific, trigger-focused `description` in YAML
-frontmatter. Match the name to its directory and follow the destination's conventions;
+For an existing skill, make the smallest coherent diff at its canonical owner. Prefer
+removing, replacing, or consolidating instructions over appending warnings. Preserve its
+name, public triggers, supported behavior, and permission boundaries unless the requested
+change explicitly covers them. Keep affected references and examples consistent.
+
+For a new skill, start with one `SKILL.md` using `name` and a trigger-focused `description`
+in YAML frontmatter. Match its name to its directory and the destination's conventions;
 generated skills need not carry the WooStack prefix.
 
 Make the necessary inputs, ordered actions, decision points, permission boundaries,
@@ -90,18 +98,21 @@ to meet a length target.
 
 ### 5. Validate and hand off
 
-Check frontmatter, naming, bundled paths, and applicable repository checks. Define a few
-behavioral cases with observable expectations: a representative task, a meaningful variant
-or observed failure, and a nearby request that should not activate the skill.
+Check frontmatter, naming, bundled paths, and applicable repository checks. Reuse relevant
+behavioral cases and add only what the change needs. Cover the intended improvement, an
+established behavior that must remain, and a nearby request that should not activate the
+skill. For a new skill, use a representative task and meaningful variant.
 
 When supported and authorized, exercise the draft in fresh context using only the skill,
 its bundled resources, and realistic task inputs, not the source conversation. Use fixtures,
 a disposable workspace, or dry runs; authoring never authorizes live external effects.
-Otherwise report the cases as unrun. Static checks and manual walkthroughs are not behavioral
-test results. Compare against an unassisted baseline when the skill's added value is unclear.
-Revise from observed failures without expanding scope or duplicating existing rules.
+For iteration, compare previous and revised versions on the same affected cases, recording
+regressions as well as gains. Report any cases or comparisons not run as unrun. Static checks
+and manual walkthroughs are not behavioral test results. Compare against an unassisted
+baseline when a new skill's added value is unclear. Revise from observed failures without
+expanding scope or duplicating existing rules.
 
-Return the skill files or proposed diff, the reusable behavior captured, material assumptions
-or unresolved decisions, and validation actually performed. Keep this authoring report and
-source-session history out of the installed skill. Do not claim repeatability or portability
-beyond the environments and behaviors actually exercised.
+Return the skill files or proposed diff, intended behavior changes and preserved contracts,
+material unknowns, and validation actually performed; explain a no-change result. Keep the
+authoring report and source-session history out of the installed skill. Do not claim
+improvement, repeatability, or portability beyond the behaviors actually exercised.
