@@ -1,0 +1,164 @@
+---
+title: QA a running app
+description: Plan a focused QA review, choose checks by user risk, assess findings and coverage limits, and retest fixes.
+---
+
+Use [QA](/docs/skills/woostack-qa) to review what a user can accomplish in a running app. This guide
+helps you choose useful checks, request evidence for the important risks, and decide what needs
+attention after the review. It uses a draft editor as an example; substitute your own journey and
+requirements.
+
+## Before you begin
+
+Provide an authorized running URL and an available browser capability. For authenticated or
+state-changing journeys, identify the authorized test session and synthetic or disposable data.
+QA uses the host's existing browser tools or installed browser CLI. It does not install tooling,
+start or rebuild the app, edit product code or tests, or publish to GitHub. Arrange any required
+setup through a separately authorized task before requesting QA.
+
+Load [the QA skill](/docs/getting-started) through your assistant's supported mechanism. The examples
+below are [assistant requests](/docs/harnesses#native-skill-invocation), not terminal commands.
+Replace the example URL and revision placeholders with the intended candidate.
+
+## 1. Specify the journey and expected behavior
+
+Choose the user outcome you want reviewed, such as creating a draft, correcting a saved value,
+or recovering an interrupted edit. Include the relevant shared behavior when a change could affect
+another journey. Then state what someone should be able to observe:
+
+```text
+/woostack-qa https://staging.example.test
+Review the draft editor on commit <commit-sha>, build <build-id>.
+Use the authorized disposable editor account and synthetic drafts.
+Check create, edit, save, cancel, reload, and recovery of incomplete retained edits.
+Expected: saved changes survive reload; cancel preserves the last saved values;
+an incomplete retained edit stays reopenable and does not block a new draft.
+```
+
+Supply the relevant requirements or acceptance criteria. If you want a PR-specific review, include
+its exact URL. Source inspection helps identify risks, but expected behavior needs a requirement
+or an explicit rationale beyond what the implementation currently does.
+
+Name any existing holds, account restrictions, or actions with consequences beyond the test data.
+Deletes, payments, and external communications need explicit authorization. Ordinary save and edit
+checks operate within the permitted test journey.
+
+For a bounded investigation that ends at the first confirmed defect, use
+`/woostack-qa <url> --stop-first` with the same context. A suspected defect must reproduce from
+a clean starting state before it triggers that stop.
+
+## 2. Choose checks by user risk
+
+For each selected journey, name a plausible failure and its consequence. Spend the available time
+on failures that are likely or costly for the user. Select only checks relevant to the journey:
+
+| Possible user failure | Useful check for the draft editor |
+| --- | --- |
+| Saved work disappears or changes | Save, leave, reload, reopen, and compare the values with what was entered. |
+| Retrying an uncertain save creates duplicates | Repeat or retry the action and inspect the resulting drafts. |
+| An incomplete edit becomes impossible to resume | Leave a temporarily invalid value, reload, and try to resume or discard the edit. |
+| Cancel changes previously saved work | Edit a saved value, cancel, reopen, and compare with the last saved version. |
+| A control prevents completion | Reach and operate the relevant controls with the required keyboard, viewport, and zoom conditions. |
+
+Choose representative valid and invalid inputs and values at a known boundary. For a field that
+accepts 1 through 100, try the accepted boundaries 1 and 100 and the rejected values 0 and 101.
+Blank and explicit zero may also have different meanings. Use the product's actual rules to choose
+the cases and expected results.
+
+Keep the selected journeys and risks as the run's coverage list. If you set a time or tool-call
+budget, prioritize that list so unfinished lower-priority work can be reported precisely. A narrow
+review with clear coverage is useful; a broad request does not establish broad execution.
+
+## 3. Verify the target and exercise recovery
+
+Look for three separate answers: whether the app is reachable, whether it serves the intended
+candidate, and whether the available browser can perform the requested checks. A page loading is
+only reachability evidence. Missing candidate identity leaves revision-specific conclusions
+unverified; missing browser capabilities limit the affected checks.
+
+If preflight fails, use the reported prerequisite to unblock the review. A blocked attempt with
+zero executed journeys is not a clean result. QA does not repair the environment on its own.
+
+Once the relevant prerequisites are satisfied, ask for the selected journey in this order:
+
+1. Complete the ordinary path: create a synthetic draft, save it, and verify the displayed values.
+2. Check the durable result: edit, navigate away and back, reload, and reopen the draft. Compare
+   the values at the points where the product promises to preserve them.
+3. Probe the selected failure or recovery path: for example, leave a field temporarily invalid,
+   then check whether the edit can still be resumed or discarded. Verify the outcome after reload.
+
+Failed-request, delay, and concurrency probes require a supported, authorized capability. If that
+capability is unavailable, keep the affected check visible as a gap. A visually successful Save
+does not establish correct persistence, and missing controls do not establish that stored data
+was deleted. Use available authorized state evidence to distinguish those outcomes.
+
+Include relevant accessibility and layout requirements in the scope. When 200% zoom is required,
+use genuine browser zoom on a desktop-sized viewport. CSS scaling or a device-pixel-ratio change
+does not establish that result. Phone-sized emulation and physical-device testing remain distinct.
+
+## 4. Assess findings alongside coverage limits
+
+Inspect the sanitized report at its reported output location. For each finding, check the user
+impact, starting state, minimal reproduction, expected and observed behavior, evidence, and retest
+criteria. Confirmed findings require a second clean reproduction. Intermittent behavior retains
+its observed frequency; unconfirmed observations remain separate.
+
+Use the following **illustrative finding excerpt** to judge whether a report gives enough
+information to act. It is an example, not a recorded review result:
+
+> **Impact:** An incomplete draft cannot be reopened and prevents creating another draft.
+>
+> **Expected:** The example's requirement is that retained edits remain available for correction
+> after reload and that creating another draft remains possible.
+>
+> **Reproduction:** Open a retained edit, clear its required numeric field, then reload. The edit
+> controls disappear and New draft remains blocked. This sequence reproduced twice, with the
+> synthetic starting state restored before the second attempt.
+>
+> **Evidence and limits:** The retained draft data is still present and published records are
+> unchanged. The observed defect is inaccessible recovery. The implementation cause is unverified.
+>
+> **Retest criteria:** With the incomplete edit still retained, create another draft successfully.
+> Separately reopen and correct the retained edit after reload, then verify that the corrected
+> values persist when reopened.
+
+Assess severity using the user's lost work or blocked outcome. Decide scheduling priority
+separately. A suspected cause can guide further diagnosis, but the repair still needs evidence.
+
+Read each journey's result separately from the overall run outcome. `PASS` and `FAIL` describe
+observed behavior. `BLOCKED`, `NOT RUN`, `UNCONFIRMED`, and `SOURCE-ONLY` identify different limits
+on the evidence. A completed run can contain defects, and a partial run can have no confirmed
+findings while important journeys remain untested.
+
+For example, no network inspection means network diagnostics remain unverified. Keyboard checks
+do not establish full accessibility conformance. A local candidate does not prove that its hosted
+deployment behaves identically. Use the report's limits when deciding what further evidence is
+needed.
+
+If an existing automated test is green, inspect what it asserted before using it as supporting
+evidence. A test that asserts retained data and absent edit controls can pass while the recovery
+requirement fails. The [verification explanation](/docs/concepts/verification) covers what each
+kind of evidence can establish.
+
+## 5. Retest a corrected candidate
+
+Request implementation separately if you want a defect repaired. Once the corrected app is running,
+supply the original report and the new candidate identity:
+
+```text
+/woostack-qa https://staging.example.test
+Retest the inaccessible retained-draft finding in the report I supplied against
+commit <corrected-commit-sha>, build <corrected-build-id>.
+Repeat its original reproduction using the disposable test account.
+Verify a new draft can be created while the incomplete edit is still retained.
+Separately reopen and correct the retained edit after reload; verify the corrected
+values persist. Check nearby save and cancel behavior.
+```
+
+Check that the retest identifies the corrected revision and reports the original reproduction's
+new outcome. Reuse earlier evidence only where the relevant behavior, requirements, and environment
+still support it. Changed inputs and unresolved risks determine what needs fresh checks.
+
+The report provides diagnostic evidence. Publishing it, changing code, or approving a release
+remains a separate action. See the [QA reference](/docs/skills/woostack-qa) for the complete workflow
+and [verification guidance](/docs/guides/verification) for deciding which evidence an outcome needs.
