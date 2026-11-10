@@ -2,6 +2,7 @@
   "title": "Task guides",
   "pages": [
     "index",
+    "prototype",
     "whiteboard",
     "plan-work",
     "ship-change",

@@ -1,0 +1,108 @@
+---
+title: Prototype a UI change
+description: Refine an existing experience with your assistant before planning its production implementation.
+---
+
+Use Prototype to work with your assistant as you would with a designer: inspect the existing
+experience, try a change, and review how it looks and behaves before choosing an engineering plan.
+This guide uses a settings-page redesign. The result is an interactive reference, not production code.
+
+You need [Prototype installed](/docs/getting-started) in your assistant, read access to the existing
+project, and a writable artifact workspace outside it. Browser checks need available preview and
+browser tools. Missing tools limit evidence; the request does not authorize installing tools or
+starting the target application. Examples below are
+[assistant requests](/docs/harnesses#native-skill-invocation), not terminal commands.
+
+## 1. Request the experience change
+
+Describe the user task, the friction, and what must stay intact:
+
+```text
+/woostack-prototype Redesign our account settings page so people can find and
+edit notification preferences more easily. Inspect the affected source read-only,
+including existing behavior, components, tokens, and relevant tests. Preserve
+current permissions, validation, save, cancel, and recovery behavior unless we
+explicitly agree to a change. Use synthetic data and simulated saves in an
+isolated artifact outside the project. Do not edit or start the application.
+```
+
+Share relevant source and any existing preview you can safely access. Keep investigation focused
+on settings and its dependencies. For a new product, describe the intended experience instead;
+there is no existing baseline to recover.
+
+## 2. Review the baseline and scope
+
+Before polishing the proposal, check the assistant's account of the current experience. It should
+identify the affected routes and owning components, relevant state and tests, reusable UI, and source
+revision or local modifications where available. Source facts, runtime observations, and assumptions
+should be distinct. Without access to a running product, appearance and interaction claims about it
+remain unverified.
+
+For settings, confirm what happens to unsaved edits on cancel, which fields each role may edit,
+and how validation and failed saves behave. Separate behavior to preserve, intentionally change,
+simulate, or leave unresolved. An omitted control is not permission to remove its behavior.
+An existing defect can be corrected within agreed authority; it need not become a design constraint.
+Keep material unanswered choices explicit rather than letting demo defaults decide them.
+
+## 3. Refine the same prototype
+
+Review a working prototype and give focused feedback. For example:
+
+```text
+Keep this direction. Group notification preferences by channel and make the
+save status clearer. Edit the same prototype rather than regenerating it.
+Compare the proposal with the existing settings behavior, and explain what
+changed since the previous prototype. Show screenshots only where they help
+compare the layout. Exercise cancel, validation, failed save, and retry with
+synthetic data, including whether entered values survive a failure.
+```
+
+Compare the proposal against the product baseline throughout iteration, separately from comparing
+successive prototype revisions. Screenshots help with visual choices; they do not prove that cancel,
+keyboard focus, or recovery works. Review affected interactions and relevant sizes, and ask which
+checks actually ran. A simulated successful save is not production persistence evidence.
+
+Before changing an approved direction, exploring a distinct alternative, or attempting a risky
+revision, keep a recoverable source checkpoint. A copy in the task-owned artifact workspace is enough;
+you do not need Git or a version for every edit. Reuse still-valid observations rather than reviewing
+the full screenshot history each time.
+
+## 4. Approve a snapshot and collect the handoff
+
+When the reference answers the experience question, identify the exact snapshot you approve and any
+remaining limits. Later variants do not inherit that approval. You can also stop with an honest draft.
+Approval does not authorize production implementation, publication, or deployment.
+
+Ask for an inspectable handoff that includes:
+
+- The artifact, its source, approval status, and instructions to reopen it without the original
+  preview process. For another session or agent, provide an authorized attachment or shared artifact;
+  a machine-local path alone is not transferable access.
+- Baseline provenance, reusable components and tokens, preserved behavior, intentional differences,
+  simulations, and unresolved choices with their affected scope.
+- Checks actually performed, their conditions and limits, and remaining production acceptance tied
+  to the owning surfaces and tests discovered during investigation. Missing coverage should describe
+  the needed behavior check, not invent test paths or commands.
+
+For settings, the handoff might show that a simulated failed save preserves entered values while
+still requiring production verification of persistence, permissions, and retry behavior.
+See the [Prototype reference](/docs/skills/woostack-prototype#portable-handoff) for the full contract.
+
+## 5. Choose whether to plan or implement
+
+A useful next step is [Whiteboard](/docs/guides/whiteboard) for an implementation plan based on the
+approved experience. Provide actual access to the reference and handoff, then request:
+
+```text
+/woostack-whiteboard Plan production implementation of the approved settings
+prototype and handoff I have supplied. Preserve the settled design decisions;
+do not reopen them without a material conflict. Connect the intended changes
+and remaining production acceptance to the existing owning surfaces and tests.
+Keep unresolved consequential choices explicit. Return a plan only; do not
+implement, edit files, or publish issues.
+```
+
+This is a suggested sequence, not a mandatory pipeline. Early requirements exploration can precede
+prototyping. If the approved change is already bounded and understood, you can instead explicitly
+request [Execute to deliver it](/docs/guides/ship-change), supplying the same reference and limits.
+Neither approval nor the handoff starts the next workflow automatically.

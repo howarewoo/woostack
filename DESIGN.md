@@ -55,9 +55,15 @@ The same senior bot can plan and coordinate assignments to one existing junior u
 Execute and the other implementing skills bundle the applicable shared standards and load them
 only for relevant changes.
 Prototype explores and refines interactive UI references outside the target project, which stays
-read-only. Its portable handoff preserves approved decisions, important behavior, and evidence limits
-for separately requested planning or implementation. Approval starts neither workflow. External
-design guidance is optional. Flow Layout arranges existing screen frames without redesigning them. Design System owns project component catalogs; a catalog's components, tokens, examples,
+read-only. For an existing product, bounded investigation anchors the proposal to affected owning
+surfaces and behavior, not a whole-repository audit. Iteration keeps that baseline distinct from
+prototype revisions; recoverable source checkpoints protect approved directions and risky changes.
+Its portable handoff carries baseline provenance, preserved behavior, intentional differences, and
+prototype evidence separately from required production acceptance tied to discovered surfaces and
+tests. Greenfield work needs no existing-product baseline. Approval belongs to a snapshot and starts
+neither planning nor implementation. External design guidance is optional. Flow Layout arranges
+existing screen frames without redesigning them. Design System owns project component catalogs;
+a catalog's components, tokens, examples,
 coverage record, and rules belong to the target project.
 Existing compatible APIs stay intact, with adaptations at catalog callers. Existing-catalog
 inspection is read-only unless maintenance is explicitly requested.

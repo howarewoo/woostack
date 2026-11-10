@@ -4,6 +4,38 @@ Use the relevant sections for interaction, platform, accessibility, and inspecti
 This reference supplies design checks, not another workflow, production-review requirement, or
 permission to edit the target project. Scale checks to the question and reuse valid evidence.
 
+## Compare against the baseline
+
+For an existing product, investigate only the affected experience and its immediate dependencies,
+not the whole repository. Read the relevant routes/entrypoints and owning components, state,
+validation, permissions, side effects, cancellation and recovery behavior, existing tests/fixtures,
+and reusable components/tokens. Record source revision and relevant local modifications where
+available so the baseline does not imply a clean or different version. Use an existing preview if
+accessible; never start or write to the target to fill an evidence gap. Label source facts, runtime
+observations, and assumptions separately. Without runtime access, rendered and interaction claims
+about the existing product remain unverified.
+
+Keep a concise account of consequential behavior: what must be preserved, what intentionally changes,
+what the prototype simulates, and what remains unresolved. Omitted behavior is not approved removal;
+existing defects can be corrected when authorized. Trace only enough context to establish the change's
+boundary, and carry unresolved consequential choices into the draft rather than deciding them through
+mockup defaults. Greenfield work has no existing-product baseline to reconstruct.
+
+Compare the existing product with the proposal throughout iteration so visual polish does not hide
+lost behavior. Separately compare the previous and current prototype to assess each revision without
+replacing the product baseline. Use matched states and sizes for meaningful visual comparisons when
+available; capture screenshots selectively, not after every edit. Keep concise notes on consequential
+behavior changes and exercise their affected paths, including relevant validation, permissions,
+cancel, failure, and recovery. Screenshots do not prove those paths work. Reuse observations only
+while their snapshot, state, environment, and affected behavior remain applicable; retrieve historical
+captures only when they answer the current comparison question.
+
+Carry baseline provenance and preserved/intentional differences into the handoff. Connect required
+production acceptance to the owning surfaces and tests/fixtures actually discovered, separately from
+checks exercised in the prototype. Where coverage is missing, describe the needed behavior check
+without guessing a test path, command, or framework. This is acceptance context, not an implementation
+plan or permission to run production checks.
+
 ## Follow the experience
 
 Walk from entry through the primary task to an understandable result. Keep location, the next action,
