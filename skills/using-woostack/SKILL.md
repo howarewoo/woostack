@@ -36,7 +36,7 @@ For an explicit one-run model or effort request, apply the bundled
 | Request or intent | Route |
 | --- | --- |
 | Adopt woostack or choose a workflow | `using-woostack` |
-| Create or maintain root `README.md`, `AGENTS.md`, `DESIGN.md`, `PRODUCT.md`, or `ARCHITECTURE.md` | `woostack-init` |
+| Choose, create, or maintain root Markdown project guidance | `woostack-init` |
 | Explore requirements, plan a goal or existing design, review a supplied specification, or explicitly publish a plan as issues | `woostack-whiteboard` |
 | Coordinate approved multi-task work | `woostack-orchestrate` |
 | Implement an authorized bounded outcome, including initial project creation or user-facing documentation changes | `woostack-execute` |

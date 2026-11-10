@@ -32,20 +32,22 @@ Each skill works independently; this tutorial uses two of them for different tas
 Send this request to your assistant:
 
 ```text
-/woostack-init Help me adopt Woostack in this repository. Review README.md,
-AGENTS.md, PRODUCT.md, DESIGN.md, and ARCHITECTURE.md. Reuse our settled decisions
-and discuss any missing project intent, architecture, compatibility commitments,
-and data-preservation rules with me before writing. Show the proposed changes
-and apply only the agreed guidance edits. Do not change application source,
-commit, or publish.
+/woostack-init Help me choose and update the root Markdown guidance this
+repository needs. Reuse our settled decisions and ask about missing project
+intent, audience, future public availability, stack, and compatibility or data
+commitments before writing. Recommend a small set of files and explain why
+each is useful. Show the proposed changes and apply the agreed guidance edits.
+Do not change application source, commit, or publish.
 ```
 
-Init inspects the repository and consults with you before editing. Confirm who uses the project,
-which interfaces must stay compatible, and which data must survive changes. An unreleased project
-can still have users and important data.
+Init inspects the repository and asks about decisions that affect its guidance. Explain who will
+use or contribute to the project, whether the source might become public, and which stack choices
+are settled. Confirm existing compatibility and data commitments; an unreleased project can still
+have users and important data. You can leave future choices undecided.
 
-Read the resulting guidance and report. Commands should match the repository's actual scripts,
-and unresolved decisions should stay visible. An adequate file may remain unchanged.
+Review the proposed files and reasons before the edits. Small topics can stay in existing documents;
+future needs can wait. Read the resulting guidance and report. Commands should match the repository's
+actual scripts, and unresolved decisions should stay visible. An adequate file may remain unchanged.
 The [document responsibilities reference](/docs/skills/woostack-init#document-responsibilities)
 explains what belongs in each file.
 
