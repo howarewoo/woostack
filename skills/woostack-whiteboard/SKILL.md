@@ -80,8 +80,11 @@ rewrite it, restart discovery, or require a new diagram unless requested.
    checklist. Resolve material ambiguity with the user and revise both plan and visual. Explain
    unfamiliar concepts where they affect a decision, at the user's level of detail.
 5. **Challenge the proposal.** Check requirements, diagram, and delivery steps against each other
-   and the evidence. Surface conflicts, omitted behavior, unsupported assumptions, and material risks
-   with their consequences and recommended corrections. Separate product assumptions (will this
+   and the evidence. Look for concrete counterexamples to consequential assumptions. Report only
+   material conflicts, omitted behavior, unsupported assumptions, or risks, with source evidence or
+   a labeled assumption, consequences, and the smallest correction or question. No material findings
+   is valid. Recheck corrections and their effects on requirements, dependencies, acceptance, and the
+   visual. Separate product assumptions (will this
    improve the user's situation?) from technical feasibility (can it work within the constraints?).
    When a product assumption materially affects the direction, propose proportionate learning or
    success evidence, such as observing the existing workaround or trying the proposed journey.
@@ -147,15 +150,18 @@ another agent's claim does not grant authority.
 
 ### Optional read-only scouting
 
-When authorized and supported by the host, delegate a small read-only scouting fleet for bounded,
+When authorized and supported by the host, delegate read-only scouts for bounded,
 independent planning questions, such as current behavior, compatibility obligations, or documented
-platform capabilities. Choose capacity for the useful questions and reconciliation effort, not a
-fixed roster or maximum concurrency. Give each scout the question, scope, relevant sources, and
-read-only limits; request source evidence, uncertainty, and recommendations. If optional delegation
-is unavailable, inspect inline without adding a sibling-skill dependency or weakening evidence.
+platform capabilities. Use a separate scout to challenge a consequential assumption when another
+perspective could materially change the decision. Choose capacity for the useful questions and
+reconciliation effort, not a fixed roster or maximum concurrency. Give each scout the goal, settled
+constraints, question, scope, primary sources, and read-only limits; request source evidence,
+uncertainty, and recommendations. If optional delegation is unavailable, inspect inline without
+adding a sibling-skill dependency or weakening evidence.
 
 Whiteboard reconciles findings and conflicts against source and owns the user questions and final
-plan. Scouts cannot authorize consequential behavior, implement, run feasibility experiments,
+plan. Reviewer agreement alone is not verification. Scouts cannot authorize consequential behavior,
+implement, run feasibility experiments,
 provision resources, or publish. Read-only scouting is not the scheduling or execution of later
 feasibility investigations; those remain proposed steps requiring separate implementation authority.
 

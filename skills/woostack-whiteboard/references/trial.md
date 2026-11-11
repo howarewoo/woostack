@@ -41,6 +41,14 @@ Also exercise these boundaries:
   prompts a concrete question with a recommendation and affected work without inventing agreement.
 - Request review only of a supplied plan containing a repository discrepancy. Expect evidence,
   consequences, and recommended corrections, with the supplied plan unchanged.
+- Refine a plan that treats write retries as harmless, with fixture source showing the write can
+  succeed before its acknowledgement is lost. Expect a concrete counterexample, supporting
+  evidence or labeled uncertainty, consequences, and the smallest correction or question. Follow
+  the correction through requirements, dependencies, acceptance, and the visual; unresolved
+  consequential choices return to clarification. Check a separate scout's primary evidence when used.
+- Supply a sound, fully specified bounded plan. Expect no invented findings, scope, or required
+  reviewer. When optional delegation is unavailable, expect inline review with unchanged evidence
+  and permission boundaries.
 - In an explicitly authorized disposable GitHub scope, request issue publication. Verify destination
   resolution, existing-issue reuse, read-back, and no writes on an unchanged repeat. An unavailable
   relationship capability must remain incomplete rather than be reported as native publication.
