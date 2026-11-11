@@ -18,9 +18,21 @@ private network.
 ## Coding harness
 
 [Pi](https://pi.dev/) is my recommended coding harness. Its core is deliberately small, with
-extensions that add tools and change the terminal interface. I use the following optional
-packages in my Pi setup. Woostack does not require them.
+extensions that add tools and change the terminal interface.
 
+Enable Pi's built-in `grep`, `find`, and `ls` tools by default so agents can search and
+explore the repository without writing shell commands for each lookup. Enable
+[`codemode`](https://github.com/earendil-works/pi/blob/main/packages/coding-agent/docs/codemode.md)
+to batch and chain tool calls in JavaScript, keeping intermediate results out of the
+conversation. In `~/.pi/agent/settings.json`:
+
+```json
+{
+  "defaultTools": ["+codemode", "+grep", "+find", "+ls"]
+}
+```
+
+I use the following optional packages in my Pi setup. Woostack does not require them.
 Extensions execute code, so review their source before installing them.
 
 - [pi-zentui](https://github.com/lmilojevicc/pi-zentui) customizes the terminal UI, including
