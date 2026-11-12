@@ -138,8 +138,8 @@ instead of moving them into new files or mandatory reading lists.
 
 Do not inject Woostack boilerplate during adoption. If the user wants a skill-use preference
 documented, one sentence is enough: "Use relevant Woostack skills when available."
-Keep activation, missing-skill handling, permissions, and workflow details in their owning skills;
-do not require installation or a router.
+Keep each skill's activation, permissions, workflow, and required assets in its own package.
+Do not require another skill or router.
 
 ## Boundaries
 
