@@ -69,9 +69,9 @@ Init inspects existing guidance, then asks about the project's audience, current
 availability, intended stack, direction, and commitments. It recommends a small set of root Markdown
 files with a reason for each addition. Small topics can stay in existing documents, and future
 choices can remain undecided. You can limit the request to one document or ask for drafts without
-writes. When agent instructions are selected during Woostack adoption, Init includes the concise
-[adoption paragraph](skills/woostack-init/SKILL.md#document-responsibilities) in the proposed agent
-instructions, so no Woostack skill becomes a prerequisite of another.
+writes. Init keeps `AGENTS.md` to [non-obvious repository instructions](skills/woostack-init/references/document-schemas.md#agentsmd)
+and removes generic advice, duplicated documentation, and stale rules. It adds no Woostack
+boilerplate by default; a short skill-use preference is optional.
 
 Selected files follow the applicable [document formats](skills/woostack-init/references/document-schemas.md),
 including the product record, visual design specification, and operational agent guidance.
