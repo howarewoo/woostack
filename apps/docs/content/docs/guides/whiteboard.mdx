@@ -3,8 +3,9 @@ title: Plan a change
 description: Turn a goal into requirements and a plan, or review an existing specification without implementing it.
 ---
 
-Use Whiteboard when the goal or important choices still need work. It returns its result in the
-conversation by default. To settle an interactive experience before its implementation plan,
+Use Whiteboard when the goal or important choices still need work. Implementation plans default to
+a temporary Markdown file, with a short summary and its absolute path in chat. Exploration and
+review-only answers stay conversational. To settle an interactive experience before its implementation plan,
 [prototype the UI change](/docs/guides/prototype) and bring the approved reference and handoff.
 Requirements exploration can still come first. A task you already understand can go straight to
 [Execute](/docs/guides/ship-change).
@@ -19,7 +20,7 @@ it access to the repository; a new product needs no checkout. Examples here are
 /woostack-whiteboard Plan a Verification section for our README. The readers are
 contributors who need to know which checks to run before submitting a change.
 Use the repository's existing commands and reuse useful content. Return a plan
-and a visual where it helps; do not edit files or publish issues.
+and a visual where it helps; do not edit repository files or publish issues.
 ```
 
 Describe who has the problem, how they handle it now, what should improve, and the hard constraints
@@ -39,6 +40,11 @@ creating implementation tasks`. For a review, supply the plan and ask for discre
 recommended corrections only. Neither request requires a new implementation plan.
 
 ## 2. Refine the behavior
+
+Open the returned path in your Markdown reader. The file contains the complete plan, including
+its visual, decisions, acceptance, and unresolved questions. Whiteboard updates that same file
+as decisions change and reads back each saved revision; chat gives you the status rather than
+repeating the plan. Ask for the full plan in chat if you prefer.
 
 Whiteboard starts with a working hypothesis and recommended direction based on available evidence.
 It explains alternatives and trade-offs, asks focused questions, and updates the plan from your
@@ -78,9 +84,13 @@ they are not workers running proposed feasibility tests.
 Ask Whiteboard to challenge consequential assumptions with concrete counterexamples. For the README
 example, a recommended check might exist but omit the files being changed. Expect material findings
 with evidence or a labeled assumption, consequences, and the smallest correction or question.
-A review may find no material issues. An optional read-only scout can challenge an assumption when
-another perspective could change the decision. Check each correction's effects on requirements,
-dependencies, acceptance, and the visual. Reviewer agreement alone is not verification.
+A review may find no material issues. When another perspective could change a consequential
+decision, you can authorize a separate read-only reviewer of the saved plan. Whiteboard gives it
+the complete artifact and primary sources, without planning history, previous reviewer verdicts,
+or leading approval framing. It leaves that revision unchanged until review finishes. If the
+reviewer cannot access the file, it receives the exact full plan inline. Limited context separation
+or a failed review must be reported, not treated as independent proof. Check each correction's effects on
+requirements, dependencies, acceptance, and the visual. Reviewer agreement alone is not verification.
 
 Before handing it off, check that:
 
@@ -118,11 +128,18 @@ feasibility, setup, or end-to-end acceptance.
 
 | Next action | What to request |
 | --- | --- |
-| Keep the result in chat | Nothing else is needed. |
-| Save a local document | Name the destination, for example: `Save this plan to docs/plans/readme-verification.md. Do not commit or implement it.` |
+| Keep the result in chat | Ask for the full plan inline instead of the file default. |
+| Choose a durable document | Name the destination, for example: `Save this plan to docs/plans/readme-verification.md. Do not commit or implement it.` |
 | File GitHub issues | Follow [Publish a plan as issues](/docs/guides/plan-work). |
 | Implement one bounded outcome | Follow [Deliver one change](/docs/guides/ship-change). |
 | Coordinate several executable outcomes | Follow [Coordinate several tasks](/docs/guides/coordinate-work). |
+
+Temporary files can be cleared; they are not archival storage. Choose a durable destination when
+you need one. Whiteboard reads existing content and preserves unrelated work before updating an
+explicit destination. Keep the path in continuation context where your host supports it, and have
+a resumed session read the file before relying on the plan. A lost path or file prevents guaranteed
+recovery. If file creation, reading, or sharing fails, expect a disclosed limitation and a supported
+alternative; if no usable path exists, expect the complete plan inline.
 
 Saving or publishing a plan does not authorize implementation. See the
 [Whiteboard reference](/docs/skills/woostack-whiteboard) for exact planning and publication rules.

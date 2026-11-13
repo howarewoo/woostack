@@ -13,8 +13,11 @@ permissions, data handling, compatibility, cost, and recovery. Minor observable 
 behavior remain agent-owned; that distinction cannot bypass safety constraints. Reversibility
 does not authorize a consequential choice. Its concrete walkthrough inspects material transitions
 and relevant failure and recovery paths rather than requiring an exhaustive questionnaire.
-Authorized host-supported read-only scouts may gather evidence; Whiteboard reconciles their findings
-and owns user questions. Scouting grants no implementation, experiment, or publication authority.
+Authorized host-supported read-only scouts may gather evidence or challenge the exact saved plan
+without planning history, prior reviewer verdicts, or leading approval framing. Separate review is
+optional and proportional; context-separation claims require host evidence, not assumptions of
+unbiased review. Whiteboard reconciles findings and owns user questions. Scouting grants no
+implementation, experiment, or publication authority.
 Init's guided document authoring additionally consults on repository intention, structure,
 direction, and architecture before drafting, per
 [Init](skills/woostack-init/SKILL.md#guided-authoring); the rule above remains the default for the
@@ -33,7 +36,13 @@ Shared procedures are reused through
 source, so the active workflow keeps its own gates and evidence rules at every boundary.
 Whiteboard is the planning entry point for people and delegated agents, including new projects.
 It develops requirements, design walkthroughs, and a visual model consistent with one portable plan,
-without requiring questions when context suffices. The plan carries requirements, acceptance,
+without requiring questions when context suffices. Implementation plans default to a temporary
+Markdown artifact outside the target repository, with a concise summary and absolute path in chat;
+explicit preferences override this. Exploration and review-only answers stay conversational.
+Whiteboard updates and reads back the same artifact, freezing its revision during review. The path
+belongs in supported continuation context, and resumed sessions read the file before relying on it.
+Temporary storage is not archival storage or guaranteed compaction recovery; unavailable file access
+falls back to the complete inline plan. The plan carries requirements, acceptance,
 settled decisions and rationale, material behavior, real dependencies, and precise unresolved
 questions with owners and resolution conditions. A fresh Orchestrate session can propose execution
 from that plan alone without inventing behavior or allocating blocked dependents; execution

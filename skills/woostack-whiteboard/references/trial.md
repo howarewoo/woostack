@@ -20,14 +20,22 @@ During each conversation:
    being required to pass a quiz. A deliberately deferred choice should have a reason.
 4. Ask for the current draft with a material question still open. It should name what is blocked,
    retain useful settled work, and avoid inventing a decision or claiming readiness.
-5. Verify no source edits, experiments, unrequested external writes, or implementation workers
-   appeared. In a disposable fixture, explicitly request a save to a named file; inspect that only
-   the selected document changed. Approval of the design or saving must not start execution.
+5. Inspect the complete and incomplete implementation-plan artifacts and chat responses. Expect a
+   unique temporary Markdown path outside the target repository, a self-contained plan, and concise
+   accurate readiness. Follow a user decision through the same file and visual; observe read-back
+   after each save. Verify only the plan and necessary containing directory were written, with no
+   source edits, experiments, unrequested external writes, or implementation workers. In a disposable
+   fixture, select an existing destination with unrelated content and verify its preservation.
+   Approval of the design or saving must not start execution.
 
 Exercise the no-renderer case in a host without diagram rendering: the plan should include a
-readable text diagram and explain its relationships without installing tools. Give only the final
-plan to a fresh read-only session and ask it to explain the requirements, decisions, acceptance,
-and dependencies. Record missing context; do not implement the plan to test this handoff.
+readable text diagram and explain its relationships without installing tools. Give only the artifact's
+absolute path and permitted source context to a fresh read-only session.
+Observe it reading the file and recovering requirements, authority, decisions, acceptance, blockers,
+and next action. Record missing context; do not implement the plan to test this handoff. Label this
+a handoff/continuation test, not proof of actual host compaction survival. In a separate disposable
+case, remove the temporary plan before resumption: expect reported loss, not silent reconstruction
+of an agreed plan from uncertain memory.
 
 Also exercise these boundaries:
 
@@ -49,6 +57,23 @@ Also exercise these boundaries:
 - Supply a sound, fully specified bounded plan. Expect no invented findings, scope, or required
   reviewer. When optional delegation is unavailable, expect inline review with unchanged evidence
   and permission boundaries.
+- Explicitly request inline-only planning or another destination. Expect the preference to override
+  the file default within safety limits. Make file creation, reading, or sharing unavailable or fail
+  safely in a disposable case. Expect the failed operation distinguished from missing capability,
+  a supported alternative attempted, and complete inline output if no usable path exists. Do not
+  accept claims of saving or review without observable evidence.
+- Authorize a bounded separate review. Inspect the actual delegation message and complete frozen
+  artifact: neither includes planning history, prior reviewer verdicts, or leading approval framing.
+  Substantive rationale, user decisions distinct from proposals, and source evidence remain. Observe
+  the reviewer reading the exact saved revision and visual, requesting material counterexamples and
+  source-backed corrections; no findings is valid. Reconcile findings against primary evidence.
+- Deny reviewer artifact access: expect the exact full plan inline, not a summary. Without established
+  context-separation support, expect disclosed limits or inline review, not invented isolation.
+  Fail or interrupt a reviewer or withhold needed evidence: expect incomplete review, not a pass.
+- Change direction while review is active. Expect review stopped or finished before the artifact
+  changes, the reviewed revision identified, and stale findings checked against the current plan.
+- Check that temporary lifetime limits are disclosed, a durable destination is offered when needed
+  without being silently selected, and the artifact is not automatically deleted after review.
 - In an explicitly authorized disposable GitHub scope, request issue publication. Verify destination
   resolution, existing-issue reuse, read-back, and no writes on an unchanged repeat. An unavailable
   relationship capability must remain incomplete rather than be reported as native publication.
