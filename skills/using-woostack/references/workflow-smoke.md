@@ -783,7 +783,7 @@ No merge, auto-merge, or queue operation occurs. Without an authorized remote or
 label these variants **Unrun**, not simulated.
 
 **Manual trace:** follow the installed delivery path the request actually named: a caller that
-performs requested delivery (Execute, Orchestrate, or Address Comments) loads its bundled delivery
+performs requested delivery (Execute or Orchestrate) loads its bundled delivery
 and source-control references and the project's AGENTS.md; a commit-only or maintenance request is
 Deliver's own invocation and reads the same bundled references. Record how request scope, plan
 approval pause, original-head lease,

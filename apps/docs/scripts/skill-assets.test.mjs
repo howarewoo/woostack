@@ -367,10 +367,7 @@ test("installed candidate collection resolves without a checkout or docs applica
     [],
   );
   assert.deepEqual(await findBrokenSkillLinks(links, installed), []);
-  assert.deepEqual(linkEntries.map((entry) => entry.name).sort(), [
-    "woostack-address-comments",
-    "woostack-deliver",
-  ]);
+  assert.deepEqual(linkEntries.map((entry) => entry.name).sort(), ["woostack-deliver"]);
 
   // A checkout-only target must fail even when a neighboring docs tree exists.
   const entry = path.join(installed, "using-woostack", "SKILL.md");

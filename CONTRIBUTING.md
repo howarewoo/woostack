@@ -34,7 +34,6 @@ for standing repository rules, the two-app boundary, and verified checks.
 | Change test-writing guidance | `skills/woostack-execute/SKILL.md`, `shared/references/tdd.md` |
 | Change user-facing technical documentation guidance | `shared/references/documentation.md` and its consuming skills |
 | Run workflow smoke checks | `skills/using-woostack/references/workflow-smoke.md` |
-| Change how review comments are addressed | `skills/woostack-address-comments/SKILL.md` |
 | Update agent instructions | `AGENTS.md`; preserve repository-local instruction links under its rules |
 | Update reader-facing guides | `apps/docs/content/docs/` |
 | Change the documentation site or skill-page generator | `apps/docs/` |

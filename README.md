@@ -154,14 +154,12 @@ none of these workflows automatically starts another.
 
 | What you need | Tool |
 | --- | --- |
-| Investigate and address every unresolved review thread | [/woostack-address-comments](skills/woostack-address-comments/SKILL.md) |
 | Explore a running web app and reproduce browser bugs | [/woostack-qa](skills/woostack-qa/SKILL.md) |
 | Prove a root cause without implementing a correction | [/woostack-debug](skills/woostack-debug/SKILL.md) |
 | Plan a proved defect as issues | [/woostack-whiteboard](skills/woostack-whiteboard/SKILL.md) |
 | Find concrete improvements to instructions from this conversation | [/woostack-reflect](skills/woostack-reflect/SKILL.md) |
 
-Pullfrog handles pull-request review. Address-comments can resolve the resulting GitHub threads;
-QA remains report-only and does not fix source or post findings.
+Pullfrog handles pull-request review. QA remains report-only and does not fix source or post findings.
 
 Reports help you decide what to do next. They do not expand the agreed scope or replace
 Git/GitHub evidence. Agents never merge PRs; merging is a human decision.
