@@ -159,7 +159,6 @@ test("public skill routing preserves the declared order", () => {
     "woostack-execute",
     "woostack-simplify",
     "woostack-deliver",
-    "woostack-address-comments",
     "woostack-visualize",
     "woostack-prototype",
     "woostack-flow-layout",

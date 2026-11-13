@@ -15,8 +15,7 @@
         "woostack-execute",
         "woostack-orchestrate",
         "woostack-deliver",
-        "woostack-simplify",
-        "woostack-address-comments"
+        "woostack-simplify"
       ]
     },
     {
@@ -62,7 +61,6 @@
         "woostack-orchestrate",
         "woostack-deliver",
         "woostack-simplify",
-        "woostack-address-comments",
         "woostack-whiteboard",
         "woostack-debug",
         "woostack-qa",
@@ -78,7 +76,6 @@
         "woostack-orchestrate",
         "woostack-deliver",
         "woostack-simplify",
-        "woostack-address-comments",
         "woostack-whiteboard",
         "woostack-debug",
         "woostack-design-system"
@@ -92,7 +89,6 @@
         "woostack-orchestrate",
         "woostack-deliver",
         "woostack-simplify",
-        "woostack-address-comments",
         "woostack-whiteboard",
         "woostack-debug",
         "woostack-qa",
