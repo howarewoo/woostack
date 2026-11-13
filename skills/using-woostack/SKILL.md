@@ -85,9 +85,8 @@ establish implementation and delivery.
 ## AGENTS.md usage
 
 Keep project policy in `AGENTS.md` and reusable workflow details in their owning skills. During
-adoption, `woostack-init` owns the concise, availability-aware adoption paragraph that a project's
-root `AGENTS.md` carries, including the missing-skill behavior; this index neither duplicates nor
-overrides it, and no skill treats it as a prerequisite.
+adoption, `woostack-init` keeps agent guidance minimal; it adds no Woostack boilerplate by default.
+A project may state a short skill-use preference, but no skill requires that text or this index.
 
 ## Missing skills
 

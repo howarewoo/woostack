@@ -21,12 +21,13 @@ An ordinary implementation request authorizes local edits and checks, not automa
 
 ## Required capabilities
 
-Each skill owns its requirements and stopping rules. Only capabilities needed for the requested
-operation matter; planning does not require implementation tools or publication access.
+Each skill works independently with its bundled assets and owns its requirements and stopping rules.
+Only capabilities needed for the requested operation matter; planning does not require implementation
+tools or publication access.
 
 | Operation | Required capability | When unavailable |
 | --- | --- | --- |
-| Load a skill | Access to its instructions and bundled assets | For an explicit missing skill, name it and ask whether to install it or proceed without it. |
+| Load a skill | Access to its instructions and bundled assets | Use the assistant's native recovery; for explicit requests, the optional command index offers an install-or-proceed choice. |
 | Inspect existing code | Authorized reads of the selected source | Report the evidence gap; do not invent current behavior. |
 | Implement a change | Authorized file edits and applicable verification tools | Leave affected implementation or acceptance unmet. |
 | Delegate work | A permitted worker launcher and a suitable task context | Keep optional work inline; required delegation remains blocked. |

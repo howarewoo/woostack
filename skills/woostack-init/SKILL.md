@@ -54,10 +54,8 @@ boundaries. Keep `AGENTS.md` operational.
    | Direction and experience | What outcomes, non-goals, constraints, and tradeoffs guide the work? Does a UI or shared design system need its own guidance? |
    | Stage and commitments | Who already depends on the project? What compatibility promises and data-preservation needs apply, separately from its release stage? |
 
-   When `AGENTS.md` is in scope, confirm compatibility commitments, including "none" when applicable,
-   and which data/environments must survive or are explicitly disposable. An unreleased label or
-   `0.x` version establishes neither an absence of consumers nor disposable data. Preserve existing
-   commitments unless explicitly changed; translate confirmed decisions using the
+   For `AGENTS.md`, resolve unknown compatibility or data commitments only when the edit depends
+   on them. Reuse confirmed policy and follow the
    [AGENTS.md guidance](references/document-schemas.md#agentsmd).
 
    Recommend the smallest useful set using [document responsibilities](#document-responsibilities).
@@ -89,9 +87,9 @@ boundaries. Keep `AGENTS.md` operational.
    contributor guidance instead of copying them; propose consolidation before replacing established
    documents. Favor terse guidance and flexible defaults; reserve restrictions for confirmed
    requirements and real invariants. Never invent commands, policies, metrics, rationale, or decisions.
-   Repository manifests and CI configuration remain authoritative for adopted tooling. Record verified
-   command existence, working directory, and conditions; keep current commands distinct from proposals
-   under the [document schemas](references/document-schemas.md). Preserve scoped instructions.
+   Repository manifests and CI configuration remain authoritative for tooling. Include commands only
+   when they help the selected document's reader; verify their existence and relevant working-directory
+   or execution conditions. Keep proposals separate from existing tooling. Preserve scoped instructions.
 4. **Review meaningful changes and apply authorized edits.** Present the proposed result, calling out
    changes to product direction, design or architectural constraints, and agent permissions.
    Reuse authorization already given; do not add approval ceremonies for individual headings or
@@ -121,7 +119,7 @@ Preserve established names and an architecture-focused meaning of `DESIGN.md`.
 | Document | Useful when | Content |
 | --- | --- | --- |
 | `README.md` | Readers need a project entry point. | [Identity, first use, representative usage, and navigation](references/document-schemas.md#readmemd), tailored to the intended reader. |
-| `AGENTS.md` | Agents need repository-specific working guidance. | [Actual commands, conditional verification, boundaries, pitfalls, and contextual links](references/document-schemas.md#agentsmd). |
+| `AGENTS.md` | Non-obvious repository instructions would change an agent's work. | [A few actionable constraints or pitfalls](references/document-schemas.md#agentsmd). |
 | `PRODUCT.md` | Purpose, audience, and scope need a durable home beyond a short README section. | The [product record](references/document-schemas.md#productmd), separating current scope from future direction. |
 | `ARCHITECTURE.md` | Component relationships, data ownership, or boundaries need orientation. | [Responsibilities, paths, flows, constraints, and decision links](references/document-schemas.md#architecturemd). |
 | `DESIGN.md` | A UI needs shared visual or interaction guidance. | The applicable [visual format](references/document-schemas.md#designmd), grounded in canonical tokens and components. Preserve existing system-design ownership. |
@@ -134,29 +132,14 @@ For other root Markdown, follow [additional-document guidance](references/docume
 Defer files with no present use unless preparation is requested. Omit empty templates and leave
 unsupported policies or license choices for the user to decide.
 
-Keep `AGENTS.md` operational: no copied product specification, exhaustive file inventory, generic
-coding advice, or duplicated Woostack workflows. When `AGENTS.md` is also in the authorized scope,
-include or refine short conditional pointers to `PRODUCT.md`, `DESIGN.md`, and `ARCHITECTURE.md`
-where applicable. Explain when to read architecture guidance, such as before changing component
-boundaries or cross-component flows; link rather than copying content or assuming automatic loading.
-When creating or updating `AGENTS.md` during Woostack adoption, write concise,
-availability-aware skill guidance from this wording, replacing unconditional Woostack usage or
-installation requirements and any existing router guidance. Do not add router references:
+Keep `AGENTS.md` to a handful of repo-specific instructions under the
+[minimal guidance](references/document-schemas.md#agentsmd). Remove unnecessary instructions
+instead of moving them into new files or mandatory reading lists.
 
-```markdown
-Use woostack skills when available. Each installed skill carries its own activation,
-authority, approval, and completion behavior and works independently. Missing skills
-must not block ordinary repository work. If woostack skills are unavailable, follow
-this file and continue ordinary work with the host's available
-capabilities; installation is not required. For an explicit `/woostack-*` command whose
-skill is unavailable, name the missing skill and ask whether to install it or proceed
-without it before continuing.
-
-Follow this file first when it conflicts with generic agent defaults.
-```
-
-Adoption output must not require another skill, the source checkout, or a shared runtime.
-Do not copy the workflow catalog or flatten scoped instructions.
+Do not inject Woostack boilerplate during adoption. If the user wants a skill-use preference
+documented, one sentence is enough: "Use relevant Woostack skills when available."
+Keep each skill's activation, permissions, workflow, and required assets in its own package.
+Do not require another skill or router.
 
 ## Boundaries
 

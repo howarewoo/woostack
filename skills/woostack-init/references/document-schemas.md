@@ -193,33 +193,22 @@ Do not add frontmatter merely to claim schema adoption when a prose-only record 
 
 ## AGENTS.md
 
-Keep ordinary Markdown with headings suited to the repository. There is no schema version marker,
-required frontmatter, or mandatory heading inventory. Use actual commands and working directories,
-verification conditions, boundaries, pitfalls, and contextual links. Preserve the repository and
-host's instruction precedence and the scope of existing nested instructions. The operational and
-Woostack-adoption rules remain in [document responsibilities](../SKILL.md#document-responsibilities).
+Default to a handful of short, actionable lines. Keep an instruction only if it changes how an
+agent should work here and is not cheaply discoverable from code, configuration, or existing docs.
+Use ordinary Markdown with no required sections, metadata, or length quota.
 
-When `AGENTS.md` is in scope, record confirmed project stage, compatibility commitments, and data
-preservation in a short existing or repository-appropriate section. Name the supported consumers,
-contracts, versions, or exceptions where relevant; record "no backwards-compatibility requirement"
-only when confirmed, never from a stage label, version number, or missing policy. Keep unresolved
-obligations explicit. Preserve useful existing policy and link to any deeper canonical contract;
-unchanged decisions on a rerun need no rewrite. Revisit the policy when actual commitments change.
+Keep applicable non-obvious commands, constraints, and recurring pitfalls. Delete generic coding,
+testing, and tool advice; directory or script inventories; duplicated workflows; and stale rules.
+Link to an existing authoritative document only when the agent needs its detail for a specific task.
+Do not replace deleted boilerplate with new reference files or mandatory reading lists. Add nested
+guidance only for a real local exception; preserve host precedence and existing scoped requirements.
 
-Where compatibility is not required, instruct agents to update affected callers, tests, and docs
-with the change and remove superseded implementations. Do not retain aliases, legacy schema
-readers, dual paths, or replaced technologies solely for hypothetical consumers. This permits
-breaking changes only within the requested scope, not unrelated rewrites or regressions in current
-requirements. Keep data preservation separate: retained data may still need a migration; resets
-require explicitly disposable data and authorization for the affected operation. Security,
-validation, error handling, accessibility, and data-loss protections still apply. Use ordinary
-prose, not new lifecycle fields, configuration, automatic release detection, or skill dependencies.
-
-Repository manifests and CI configuration remain authoritative for adopted tooling. Record verified
-command existence, working directories, execution conditions, and evidence status under canonical
-[testing principles](tdd.md), distinguishing commands inspected
-from commands executed. Keep current commands, agreed future direction, and unimplemented
-recommendations strictly separate.
+Keep confirmed compatibility and data commitments when they affect implementation. Neither
+"unreleased" nor `0.x` proves there are no consumers or that data is disposable. When no backwards
+compatibility is required, say so briefly: update affected callers and remove superseded paths
+instead of adding speculative shims. This does not authorize unrelated rewrites or data resets;
+preserve retained data and existing commitments unless explicitly changed. Resolve material unknowns
+with the user instead of inventing policy.
 
 ## Other root Markdown
 
