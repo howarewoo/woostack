@@ -7,8 +7,10 @@ Historical manifests, drafts, locks, plans, reports, and retired provider record
 Workflows do not allocate, resume, rewrite, migrate, or delete those records. No bundled reader or
 setup helper is required. Existing records keep their contents and permissions.
 
-An explicitly requested save can retain a plan or review in a named document. It does not rewrite
-a historical run or authorize implementation.
+Whiteboard implementation plans default to temporary Markdown files outside the target repository.
+An explicit destination can retain a plan or review in a named document. Temporary files can be
+cleared; they do not guarantee recovery or rewrite historical runs. Saving authorizes no
+implementation. See [Plan a change](/docs/guides/whiteboard).
 
 ## Authority and recovery
 

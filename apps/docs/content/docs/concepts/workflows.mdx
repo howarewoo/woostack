@@ -44,9 +44,13 @@ and recommends a direction with evidence and trade-offs.
 Removal, reuse, or a smaller change may serve the goal better than a new feature. Product value
 and technical feasibility are separate assumptions; useful learning depends on the uncertainty,
 not a compulsory experiment. Requirements-only work can stop before choosing an architecture.
-A plan stays in the conversation unless you ask to save it or [publish issues](/docs/guides/plan-work); neither
-action starts implementation. The portable plan preserves requirements, acceptance, decisions
-and rationale, material behavior, real dependencies, and unresolved decision owners and resolution
+Implementation plans default to a temporary Markdown artifact with a concise status and path in chat;
+exploration and review-only answers remain conversational. Explicit preferences override the default.
+The artifact supports exact review handoff and continuity, but temporary storage can be cleared and
+does not guarantee recovery after compaction. Optional separate read-only review can challenge the
+saved plan without planning history or prior verdicts; fresh context does not guarantee unbiased
+review. Saving a plan or [publishing issues](/docs/guides/plan-work) starts no implementation.
+The portable plan preserves requirements, acceptance, decisions and rationale, material behavior, real dependencies, and unresolved decision owners and resolution
 conditions for a fresh execution session. Whiteboard does not allocate workers or PRs.
 
 [Execute](/docs/guides/ship-change) implements one authorized outcome. It can diagnose a bounded

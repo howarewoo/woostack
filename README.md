@@ -110,9 +110,11 @@ roles, scoped access, shared knowledge, and handoffs.
 ## Choose a development workflow
 
 For goals needing refinement, [whiteboard a goal into a plan](apps/docs/content/docs/guides/whiteboard.mdx),
-then separately authorize implementation. The plan and visual stay in the conversation unless you
-request a document save or publication. Orchestrate accepts that prose directly and presents its
-execution proposal before dispatching workers; no issue export or mandatory plan file is needed.
+then separately authorize implementation. Implementation plans and their visuals default to a
+temporary Markdown file outside the target repository, with its absolute path and concise status in
+chat. Explicit inline or destination preferences override that default. Orchestrate accepts the plan
+as prose and presents its execution proposal before dispatching workers; no issue export or mandatory
+plan file is needed for handoff.
 Its default is user approval, with bounded user-delegated authority available for a named coordinator.
 
 For requested issue publication, use Whiteboard. An understood bounded task can go directly to

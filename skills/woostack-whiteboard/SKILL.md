@@ -150,27 +150,42 @@ another agent's claim does not grant authority.
 
 ### Optional read-only scouting
 
-When authorized and supported by the host, delegate read-only scouts for bounded,
-independent planning questions, such as current behavior, compatibility obligations, or documented
-platform capabilities. Use a separate scout to challenge a consequential assumption when another
-perspective could materially change the decision. Choose capacity for the useful questions and
-reconciliation effort, not a fixed roster or maximum concurrency. Give each scout the goal, settled
-constraints, question, scope, primary sources, and read-only limits; request source evidence,
-uncertainty, and recommendations. If optional delegation is unavailable, inspect inline without
-adding a sibling-skill dependency or weakening evidence.
+When authorized and supported by the host, delegate read-only scouts for bounded independent
+questions about behavior, compatibility, or platform capabilities. Prefer a separate reviewer when
+an independent challenge could materially change a consequential decision; small sound plans need
+no compulsory reviewer. Choose capacity for useful questions and reconciliation, not a fixed roster.
+Give scouts the question, scope, primary sources/revision, read-only limits, and desired evidence,
+uncertainty, and recommendations. For independent factual investigation, omit the proposed answer
+where useful; a plan reviewer must see the complete plan and visual.
 
-Whiteboard reconciles findings and conflicts against source and owns the user questions and final
-plan. Reviewer agreement alone is not verification. Scouts cannot authorize consequential behavior,
-implement, run feasibility experiments,
-provision resources, or publish. Read-only scouting is not the scheduling or execution of later
-feasibility investigations; those remain proposed steps requiring separate implementation authority.
+For file-backed plan review, save and read back a complete revision first. Give the reviewer its
+absolute path and bounded challenge question; confirm artifact access. For inline-only plans or
+unavailable file access, supply the exact full plan inline, not a summary. Check both artifact and
+delegation message before dispatch: omit planning history,
+previous reviewer verdicts, and leading approval framing. Keep substantive rationale, explicit user
+decisions distinct from proposals, source evidence, and unresolved evidence limits, including facts
+discovered by earlier reviewers. Report verdicts in conversation, not in the reviewable artifact.
+Leave the referenced revision unchanged until review finishes. If direction changes meanwhile,
+stop or finish that review before updating; identify the reviewed revision and check stale findings
+against the current plan before applying them.
+
+Establish context-separation capability from available host/tool documentation and behavior before
+claiming fresh isolation. Otherwise disclose limited separation or inspect inline. Fresh context
+is not a promise of unbiased review. Unavailable optional delegation adds no sibling dependency
+and weakens no evidence requirement; failed or incomplete review is not a successful review.
+
+Whiteboard reconciles findings against primary evidence, updates the plan and visual, and owns
+user questions. Use the challenge criteria under Collaborate; no material findings is valid.
+Reviewer agreement alone is not verification. Scouts cannot authorize consequential behavior,
+implement, run feasibility experiments, provision resources, or publish. Later feasibility
+investigations remain proposed steps requiring separate implementation authority.
 
 ## Visual model
 
 For plan development, keep the picture focused on the proposed product or system, not merely the
 workshop stages. Use a user flow, component/data-flow view, sequence, or state diagram according to
-the question. Prefer an inline Mermaid diagram when the host renders it; otherwise provide a readable
-text diagram. Include a text explanation of important relationships in either case. Label scope,
+the question. Prefer a Mermaid diagram in the plan when the host renders it; otherwise provide a
+readable text diagram. Include a text explanation of important relationships in either case. Label scope,
 actors, boundaries, and meaningful arrows; distinguish observed, proposed, and unknown elements.
 
 Update the affected visual whenever decisions change and include it with the final plan. Check that
@@ -180,9 +195,10 @@ or sibling visualization skill is required; absent rendering support changes the
 
 ## Return and stopping
 
-For implementation-planning requests, return one portable, readable Markdown plan containing the goal
-and non-goals, explicit functional and nonfunctional requirements and constraints, solution and visual,
-consequential decisions and rationale, implementation steps with acceptance and dependencies, and
+For implementation-planning requests, maintain one self-contained, readable Markdown plan containing the
+goal and non-goals, authority and its limits, explicit functional and nonfunctional requirements
+and constraints, solution and visual, consequential decisions and rationale, implementation steps
+with acceptance and dependencies, and
 remaining uncertainty and relevant evidence. Preserve material journeys, state transitions, failure
 and recovery behavior in the text as well as the visual. Carry relevant checks and the distinction
 between completion, draft-publication, and consumer-release gates into the plan itself. Distinguish
@@ -210,10 +226,31 @@ prolong the interview to fill headings.
 
 ## Saving and publishing
 
-Default to conversation output only. An explicit save request authorizes writing only the selected
-result document; resolve its destination, read existing content before updating it, preserve
-unrelated content, and read back what was saved. Do not invent a storage location, initialize support
-files, commit, or publish merely to retain the plan.
+Default implementation plans, including drafts, to a unique temporary Markdown file outside the
+target repository. Honor explicit storage and presentation preferences instead. Exploration and
+review-only answers remain conversational unless saving is requested. Write only the selected
+result document and its necessary containing directory. At an explicit destination, read existing
+content first and preserve unrelated work. Do not create support files, initialize a repository,
+commit, publish, install a viewer, or start implementation merely to retain a plan. Temporary
+storage does not bypass data-handling restrictions: carry needed plan content, not credentials,
+raw private transcripts, or unrelated host data.
+
+Update the same working artifact as decisions change, keeping the text, visual, acceptance, and
+readiness aligned; observe the frozen-review boundary above. Read back the saved result after
+each update. Return its exact absolute path with a short summary of decisions, readiness, and open
+questions, rather than repeating the full plan unless asked or file access is unavailable. The
+artifact must be usable in a Markdown reader without installing a renderer.
+
+Explain that temporary storage may be cleared and is not durable archival storage. Do not delete
+the working plan after review: it also serves the user and session continuity. Offer a durable
+destination when needed without silently choosing one. Include the path in continuation context
+where the host supports it; on resumption, read the file before relying on remembered details.
+Neither persistence nor a continuation summary guarantees recovery if the file or path is lost.
+Report loss; any reconstruction must be labeled as such, not presented as the agreed saved plan.
+
+If creating, reading, or sharing the file fails, distinguish the failed operation from capability
+absence, try an appropriate supported alternative, and disclose the limitation. If no usable file
+path exists, return the complete plan inline. Never claim a failed save or review succeeded.
 
 File GitHub issues only when explicitly requested within the user's authority, following the
 [publication procedure](references/github-procedure.md). The request itself authorizes publication;
@@ -232,6 +269,7 @@ an explicitly required native graph remains incomplete until verified.
 
 ## Implementation boundary
 
+Only the plan-artifact writes described above are permitted by default; target source stays read-only.
 Do not edit implementation source, run implementation or feasibility experiments, create branches,
 worktrees, commits, or PRs, dispatch implementation workers, or merge. Recommend an experiment
 as a plan step, not an action to execute during planning. Completing, approving, saving, or publishing
