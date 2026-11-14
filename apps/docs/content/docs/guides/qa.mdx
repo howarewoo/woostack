@@ -39,6 +39,10 @@ Supply the relevant requirements or acceptance criteria. If you want a PR-specif
 its exact URL. Source inspection helps identify risks, but expected behavior needs a requirement
 or an explicit rationale beyond what the implementation currently does.
 
+For prototype fidelity review, supply the exact approved snapshot and authorized access to its
+in-scope states, including any approved deviations. It establishes presentation and interaction
+expectations; the current implementation does not override them.
+
 Name any existing holds, account restrictions, or actions with consequences beyond the test data.
 Deletes, payments, and external communications need explicit authorization. Ordinary save and edit
 checks operate within the permitted test journey.
@@ -95,6 +99,11 @@ was deleted. Use available authorized state evidence to distinguish those outcom
 Include relevant accessibility and layout requirements in the scope. When 200% zoom is required,
 use genuine browser zoom on a desktop-sized viewport. CSS scaling or a device-pixel-ratio change
 does not establish that result. Phone-sized emulation and physical-device testing remain distinct.
+
+For an approved prototype, [compare corresponding states](/docs/guides/ship-change#compare-an-approved-prototype)
+under matching viewport, theme, and equivalent data. Include the scoped panels, alternate control
+states, responsive layouts, and motion. Report functional outcomes separately from fidelity; inaccessible
+or unobserved comparisons remain coverage gaps. QA stays report-only and does not start either app.
 
 ## 4. Assess findings alongside coverage limits
 

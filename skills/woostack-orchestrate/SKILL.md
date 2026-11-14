@@ -77,8 +77,18 @@ For an explicit one-run model or effort request, apply the shared
    delivery approach, including reuse of existing workspaces, branches, and PRs versus new
    independent PRs or a native stack where the actual dependency structure warrants it. Distinguish
    a component stack's review visibility from verification isolation when meaningful behavioral
-   proof arrives only at the tip. Schedule small integrated, verified feedback increments within
-   those groups; checkpoints need no new issue, worker, PR, or release. Preserve deploy-on-merge
+   proof arrives only at the tip. For an approved prototype implementation, retain the exact accessible
+   snapshot and approval basis, with a compact checklist of every in-scope surface and material state,
+   responsive behavior, and motion. Preserve it from the supplied plan or derive it from the reference.
+   Assign coverage across groups and name an owner for the final combined-flow comparison; the
+   coordinator retains integration acceptance. Keep groups whose acceptance depends on a later integrated
+   comparison incomplete until their assigned coverage passes; eligible draft publication and unrelated
+   group completion remain independent. Keep functional and fidelity completion requirements
+   separate, with authorized deviations and their decision basis explicit. Schedule an early rendered
+   checkpoint at target sizes, including desktop and phone where supported, and resolve material
+   mismatches before dependent UI expansion. Identify its reference, runtime, and fixture prerequisites.
+   Schedule small integrated, verified feedback increments within those groups; checkpoints need no
+   new issue, worker, PR, or release. Preserve deploy-on-merge
    safety, supported compatibility obligations, and atomic cutovers: do not land incompatible
    intermediate states, imply every review layer is independently deployable, or invent dual writes,
    feature flags, fallback readers, or temporary compatibility bridges solely to shrink a diff.
@@ -157,6 +167,9 @@ For an explicit one-run model or effort request, apply the shared
    cross-task interfaces and prerequisites, verified base/source/workspace evidence, and shared
    runtime capacity. State one publication owner: by default workers return task changes,
    observed evidence, and unmet criteria, while the coordinator owns commit/publication and stacks.
+   For prototype work, pass the accessible approved reference, assigned checklist coverage, comparison
+   conditions, and authorized deviations to each affected owner. Preserve required production behavior without
+   preserving conflicting incumbent presentation; component reuse must fit the approved experience.
    Delegate particular Git/PR operations explicitly within approved authority, never to two owners.
    Have the task owner use installed `woostack-execute` when accessible through native skill
    discovery. Pass the approved assignment and delivery limits explicitly; this is not a new user
@@ -241,6 +254,14 @@ For an explicit one-run model or effort request, apply the shared
    For new combinations or corrections, reassess applicability and step 4's requirements or named risks
    before adding checks; child passes do not prove an untested interaction. Refresh affected selected
    evidence and any required review in the same allocation.
+   For prototype integration, require the assigned owner's rendered comparison of the full scoped flow
+   on the combined candidate against the approved snapshot, using matching viewport, theme, and
+   equivalent data/state. Exercise transitions and use recordings where motion matters. Reconcile each
+   checklist item with its production location, observed result, and applicable evidence after fixes;
+   isolated worker captures or functional passes cannot establish combined fidelity. Record authorized
+   deviations with their decision basis; unobserved comparisons and unresolved mismatches remain unmet.
+   Missing comparison prerequisites block affected acceptance, not independent work or otherwise
+   eligible draft publication. This requirement also applies when Execute is unavailable.
    Handle slow checks under [Slow checks](references/tdd.md#slow-checks-bounded-diagnosis-no-waiver);
    deferred or unavailable acceptance remains unmet. At each agreed wall-clock checkpoint,
    distinguish approved product construction, healthy check progress, useful negative findings,
