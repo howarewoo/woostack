@@ -7,7 +7,8 @@ Use Execute for one bounded outcome, such as a README update, feature, bug fix, 
 You need repository access and the relevant skill [installed in your assistant](/docs/getting-started).
 Draft PR delivery also needs an authorized GitHub publication capability.
 If the UI experience is still unsettled, [prototype the change first](/docs/guides/prototype).
-For an approved prototype, supply the accessible reference and handoff as implementation context.
+For an approved prototype, supply the accessible snapshot and handoff as the visual and interaction
+acceptance reference.
 
 ## 1. Request the change
 
@@ -63,6 +64,29 @@ See [visual evidence requirements](https://github.com/howarewoo/woostack/blob/ma
 If a check fails or cannot run, use [troubleshooting](/docs/guides/troubleshooting#a-test-or-verification-step-fails).
 Unresolved privacy findings remain on HOLD under the
 [Execute verification policy](/docs/skills/woostack-execute#implement-and-verify).
+
+### Compare an approved prototype
+
+Preserve the approved presentation and interactions while retaining required production behavior.
+Reuse existing components where they fit that experience; adapt or replace presentation that conflicts.
+
+Compare an early representative rendered state at target sizes, including desktop and phone where
+supported. Resolve material mismatches before extending the approach. At completion, reconcile every
+in-scope surface and material state on the integrated candidate using matching viewport, theme, and
+equivalent data/state. Record the production location,
+observed comparison, and evidence in the existing acceptance checklist or verification summary.
+Exercise transitions and use short recordings where motion matters. Refresh affected comparisons
+after fixes, reusing evidence that still applies.
+
+For example, a rest timer can preserve adjustment, expiry, cancellation, and persistence while adopting
+the approved floating panel. Fidelity also covers its anchoring, countdown typography, controls, and
+expanded, collapsed, and Ready states. Passing timing tests alone cannot establish those results;
+implementation-only screenshots also need comparison with the reference.
+
+Record each result as matched, an authorized deviation with its decision basis, or unmet. An explanation
+for a different design is not approval to change it. Missing reference access, fixtures, or rendered
+evidence leaves affected acceptance open. An eligible draft PR can disclose that limit; prototype
+integration remains incomplete. Use existing checks for focused geometry or state regressions where useful.
 
 ## 3. Inspect the draft PR
 

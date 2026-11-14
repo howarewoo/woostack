@@ -81,8 +81,10 @@ Ask for an inspectable handoff that includes:
 - Baseline provenance, reusable components and tokens, preserved behavior, intentional differences,
   simulations, and unresolved choices with their affected scope.
 - Checks actually performed, their conditions and limits, and remaining production acceptance tied
-  to the owning surfaces and tests discovered during investigation. Missing coverage should describe
-  the needed behavior check, not invent test paths or commands.
+  to the owning surfaces and tests discovered during investigation. Separate preserved production
+  behavior from fidelity to the approved presentation and interactions, including material states,
+  responsive behavior, and motion. Missing coverage should describe the needed check, not invent
+  test paths or commands.
 
 For settings, the handoff might show that a simulated failed save preserves entered values while
 still requiring production verification of persistence, permissions, and retry behavior.
@@ -96,8 +98,9 @@ approved experience. Provide actual access to the reference and handoff, then re
 ```text
 /woostack-whiteboard Plan production implementation of the approved settings
 prototype and handoff I have supplied. Preserve the settled design decisions;
-do not reopen them without a material conflict. Connect the intended changes
-and remaining production acceptance to the existing owning surfaces and tests.
+use this snapshot as the visual and interaction acceptance reference. Preserve
+required production behavior without assuming existing markup or styling must stay.
+Connect acceptance to the existing owning surfaces and tests.
 Keep unresolved consequential choices explicit. Return a plan only; do not
 implement, edit files, or publish issues.
 ```
@@ -105,4 +108,6 @@ implement, edit files, or publish issues.
 This is a suggested sequence, not a mandatory pipeline. Early requirements exploration can precede
 prototyping. If the approved change is already bounded and understood, you can instead explicitly
 request [Execute to deliver it](/docs/guides/ship-change), supplying the same reference and limits.
+See [Compare an approved prototype](/docs/guides/ship-change#compare-an-approved-prototype) for
+the implementation evidence that closes fidelity acceptance.
 Neither approval nor the handoff starts the next workflow automatically.

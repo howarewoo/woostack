@@ -33,7 +33,8 @@ compatibility, cost, or recovery need an answer from you or an explicitly author
 before dependent implementation is ready. Reversibility does not authorize a default. Routine
 implementation and design details within agreed behavior do not need an interview. This includes
 minor wording or spacing changes that preserve meaning and constraints. No questions are required
-when the context is complete.
+when the context is complete. Presentation and interactions already settled by an approved prototype
+remain requirements, not open implementation preferences.
 
 For requirements exploration alone, say `Compare approaches without choosing an architecture or
 creating implementation tasks`. For a review, supply the plan and ask for discrepancies and
@@ -107,6 +108,10 @@ Before handing it off, check that:
   criteria are distinct from any draft-publication and consumer-release gates.
 - Platform-dependent claims match the intended account, access, and runtime. Proposed setup is
   not described as already configured.
+- For an approved prototype, the plan retains the exact accessible reference, a compact checklist
+  of in-scope surfaces and material states, production behavior to preserve, and authorized deviations.
+  It plans an early rendered checkpoint and final scoped comparison, with any access or fixture
+  prerequisites explicit. Functional checks and fidelity comparison remain separate completion criteria.
 
 A feasibility test may be proposed as an implementation step; Whiteboard does not run it.
 Implementation checkpoints need not become separate issues, workers, or PRs. For a plan spanning

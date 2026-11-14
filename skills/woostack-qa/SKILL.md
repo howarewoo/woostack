@@ -35,6 +35,12 @@ to identify risks. Requirements, acceptance criteria, product documentation, and
 conventions establish expected behavior; implementation alone does not establish correctness.
 Name assumptions or missing criteria instead of inventing acceptance.
 
+When an approved prototype is supplied as an acceptance reference, identify its exact snapshot,
+scope, and authorized deviations. Carry its surfaces and material states into the journey queue,
+including responsive behavior and motion. Treat fidelity separately from functional correctness;
+inspiration alone is not a binding design. Missing reference access blocks affected comparisons,
+not independent authorized QA.
+
 Ordinary URL exploration needs no repository or GitHub access. Independently read exact caller-supplied
 PR context, including head/base and changed paths; do not infer it from a title, branch, trailer,
 report, or recent activity. For an explicitly supplied issue or Project, load the
@@ -104,6 +110,12 @@ controls. When checking 200% zoom, use genuine browser zoom on a **desktop-sized
 mobile-sized zoom, CSS scaling, and device-pixel-ratio changes do not substitute. Record missing
 zoom capability. Limited keyboard/contrast/automated checks do not establish WCAG conformance;
 untested screen readers, devices, forced colors, and other relevant conditions remain gaps.
+
+For prototype fidelity, compare rendered reference and candidate under matching viewport, theme,
+and equivalent data/state. Inspect layout, typography, controls, and transitions; use recordings
+where motion matters. Keep each comparison and its evidence in the coverage record alongside the
+production surface. Implementation-only captures and functional passes do not establish a match.
+Report unobserved comparisons and unauthorized differences separately from functional outcomes.
 
 ## 5. Investigate and reproduce
 

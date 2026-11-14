@@ -133,6 +133,9 @@ Carry the important context into the result rather than requiring recovery from 
   important flows/states, responsive and scrolling rules, component/token mappings, asset provenance
   and access requirements, and observable acceptance. Use permitted assets or retrieval references,
   not unauthorized redistribution. Describe important behavior in text as well as in the prototype.
+  For an approved implementation reference, carry its presentation and interactions, including
+  material states, responsive behavior, and motion, as production acceptance. Distinguish required production
+  behavior to preserve from incumbent presentation to replace; demo code does not prescribe architecture.
 - **Evidence and limits:** checks actually performed and their environment/sizes, simulated behavior,
   approximations, untested requirements, and precise open questions with affected scope and the
   decision or evidence needed. A browser mockup does not establish native-device behavior or backend

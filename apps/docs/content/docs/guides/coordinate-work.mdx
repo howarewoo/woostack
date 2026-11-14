@@ -42,6 +42,11 @@ Review the proposed interfaces, safe parallel work, and landing order. Prefer in
 reviewable results while keeping necessary atomic changes together. A stack can help review even
 when some combined behavior can be verified only at its tip.
 
+For prototype integration, check that each affected assignment receives the approved reference and
+its surface/state coverage. The proposal should resolve material mismatches at an early rendered
+checkpoint before dependent UI expansion and name who will compare the combined flow. The coordinator
+retains responsibility for integrated acceptance, including when Execute is unavailable.
+
 By default, approval authorizes execution. Revision-only feedback updates the proposal and pauses
 again; explicit approval with revisions proceeds with those changes. You can instead delegate
 bounded execution-planning authority to a named coordinator. It must validate the proposal against
@@ -72,6 +77,12 @@ Safety, privacy, permission, publication, and release gates remain binding.
 | Dependent work released | Its prerequisite content and contract evidence are ready. This can happen before PR publication. |
 | Draft PR published | Publication safeguards passed; GitHub shows the intended head, base, and PR state. A draft may disclose unfinished acceptance. |
 | Group complete | All acceptance criteria, requested delivery, and required native stack membership are verified. |
+
+For an approved prototype, completion includes the
+[full scoped fidelity comparison](/docs/guides/ship-change#compare-an-approved-prototype) on the
+integrated candidate. Separate worker passes or captures do not prove the combined experience matches;
+groups awaiting required integrated comparisons stay incomplete even when their draft PRs are published.
+Unrelated groups can finish independently.
 
 ## 4. Inspect delivery
 

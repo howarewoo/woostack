@@ -243,6 +243,24 @@ verify the changed source and actual effects; controlled outputs alone do not pr
 Unresolved privacy evidence stays HOLD; neither reconstruct lost private evidence nor clear findings
 through replacement runs.
 
+For implementation against an approved prototype, retain the exact accessible snapshot and approval
+basis. Carry its surface/state checklist from the plan, or derive one from the reference when no
+plan exists. Cover every in-scope surface and material state, responsive behavior, and motion. Preserve
+required production domain, persistence, and recovery contracts while adapting or replacing conflicting
+presentation at its existing owner; component reuse must satisfy the approved experience.
+
+Compare an early representative rendered implementation at target sizes, including desktop and phone
+where supported; resolve material mismatches before dependent expansion. Use matching viewport,
+theme, and equivalent data/state; inspect layout,
+typography, controls, and exercised transitions, with short recordings where motion matters. At
+completion, reconcile the full scoped flow on the integrated candidate. In the existing verification
+summary, record each item's production location, observed comparison and evidence, and matched,
+authorized-deviation, or unmet result. Deviations need a decision basis within authority, not merely
+an implementation rationale. Refresh affected comparisons after corrections; reuse still-applicable
+evidence. Passing functional tests or implementation-only screenshots cannot close fidelity acceptance.
+Missing reference, runtime, fixtures, or capture capability leaves affected acceptance unmet. Add focused
+regressions for discovered geometry or state defects using existing checks where practical.
+
 Focused probes answering selected product-behavior or acceptance-blocker questions, adding a
 representative case to an existing check, and repairing its bounded setup are routine in-scope work.
 Building a runner or validator with its own implementation and validation cycle is a separate
