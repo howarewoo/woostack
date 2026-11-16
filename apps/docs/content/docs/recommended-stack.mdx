@@ -48,6 +48,10 @@ Supporting tools depend on what the product needs:
 | UI utilities | Recharts, date-fns, Embla Carousel, or React Day Picker where needed |
 | Translated application UI | i18next and react-i18next |
 | AI features | TanStack AI with direct provider adapters |
+| Transactional email | [Resend](#transactional-email) |
+| Web payments and subscriptions | [Stripe](#web-payments-and-subscriptions) |
+| Product analytics | [PostHog](#product-analytics) |
+| Revenue, costs, and profit | [OpenProfit](#product-profitability) |
 | App and component tests | Vitest, React Testing Library with a DOM environment |
 | Critical browser journeys | Playwright |
 | Standalone Node script tests | Native Node.js test runner and tsx, without duplicating Vitest suites |
@@ -203,6 +207,44 @@ covers an absolute backend URL and XHR streaming transport.
 
 Provider and model capabilities vary. Adoption depends on verifying the chosen adapter in Wrangler
 and the mobile transport on target devices, not just on the library exposing a common API.
+
+## Product services
+
+### Transactional email
+
+[Resend](https://resend.com/docs/introduction) is the transactional email recommendation for
+invitations, notifications, and other application messages. Send from the Hono backend with the API
+key in Worker secrets. Verify a [sending domain](https://resend.com/docs/dashboard/domains/introduction)
+before production; a dedicated subdomain keeps application mail separate from marketing mail.
+
+### Web payments and subscriptions
+
+Use hosted [Stripe Checkout](https://docs.stripe.com/payments/checkout) for one-time web payments and
+subscriptions, with the [customer portal](https://docs.stripe.com/customer-management) for billing
+details, payment methods, invoices, and subscription management. These managed interfaces reduce
+custom billing UI.
+
+Create Checkout and portal sessions on the backend and keep Stripe secret keys in Worker secrets.
+Update local billing state through [verified webhooks](https://docs.stripe.com/webhooks): check
+signatures against the raw request body, make handlers idempotent, and handle out-of-order events.
+Grant paid access from verified billing state.
+
+### Product analytics
+
+[PostHog](https://posthog.com/docs/product-analytics) is the product analytics recommendation for
+events, funnels, and retention. Start with events tied to product questions, such as onboarding
+completion or a successful purchase. Add feature flags, experiments, and session replay as needed.
+Choose capture rules before sending production events, and configure
+[replay privacy controls](https://posthog.com/docs/session-replay/privacy) to mask sensitive content,
+including text outside form inputs.
+
+### Product profitability
+
+[OpenProfit](https://openprofit.dev/) tracks revenue, costs, and profit by product. Connect Stripe
+and supported AI and infrastructure providers through its
+[connectors](https://openprofit.dev/docs/connectors). It complements PostHog by showing which
+products earn enough to cover their costs. Some provider costs are calculated from usage and
+published rates; add unsupported bills manually and reconcile estimates with actual invoices.
 
 ## SEO
 
