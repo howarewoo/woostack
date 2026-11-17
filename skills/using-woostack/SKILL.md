@@ -47,6 +47,7 @@ For an explicit one-run model or effort request, apply the bundled
 | Explore UI directions or create and refine isolated interactive mockups | `woostack-prototype` |
 | Arrange existing multi-step screen flows without restyling their contents | `woostack-flow-layout` |
 | Create, adapt, inspect, or explicitly maintain a project-owned component catalog | `woostack-design-system` |
+| Design, review, or improve a terminal interface's layout, labels, and keyboard navigation | `tui-design` (optional utility) |
 | Investigate a root cause without implementing a fix | `woostack-debug` |
 | Explore a running app and report browser QA findings | `woostack-qa` |
 | Reflect on this conversation for durable instruction suggestions | `woostack-reflect` |

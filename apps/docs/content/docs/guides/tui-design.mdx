@@ -1,0 +1,74 @@
+---
+title: Design a clear terminal interface
+description: Review or improve a TUI's layout, labels, and keyboard navigation with an optional utility skill.
+---
+
+Use TUI Design when people cannot tell which rows are controls, which text is informational,
+or what a keypress will do. It works with your existing terminal toolkit and can return a review,
+a design proposal, or requested implementation changes.
+
+This is an optional utility. It needs no other WooStack skill or Impeccable installation.
+Review and design requests keep the project read-only; implementation requires a change request.
+
+## 1. Install the utility
+
+From your project root, with Node.js and pnpm available:
+
+```bash
+pnpx skills add howarewoo/woostack --skill tui-design
+```
+
+The following examples are [assistant requests](/docs/harnesses#native-skill-invocation),
+not terminal commands. Supply the relevant source, terminal capture, or an authorized running
+interface. A capture helps assess layout; keyboard checks require an executable interface.
+
+## 2. Name the task and confusing behavior
+
+Start with one menu or journey:
+
+```text
+/tui-design Review our connection settings menu. Users confuse the
+selectable labels with the status lines immediately below them. Inspect the
+source and available terminal capture. Check grouping, wording, focus, and
+keyboard hints at 80x24 and 60x16. Return prioritized findings without edits.
+```
+
+The review should identify the affected control, the user consequence, the supporting evidence,
+and a specific correction. It should distinguish observed behavior from source inspection and
+untested assumptions.
+
+## 3. Request a design or a scoped change
+
+For a proposal, request terminal frames and the keyboard behavior without implementation.
+For a change, state what must remain:
+
+```text
+/tui-design Improve the connection settings menu. Group each action
+with its description, separate global status, and clarify the Enter-key hints.
+Preserve connection behavior, saved settings, and existing keyboard conventions.
+Simplify redundant text and borders. Implement and verify locally; do not commit
+or publish.
+```
+
+The skill establishes the main task, reading order, density, and compact behavior before editing.
+It uses Impeccable's approach to layout, wording, simplification, and refinement, adapted to terminal
+cells and keyboard interaction. Its [research notes](https://github.com/howarewoo/woostack/blob/main/skills/tui-design/references/sources.md)
+identify the sources and terminal-specific choices.
+
+For multiline menus, expect descriptions to stay attached to their labels and separate item blocks
+to have more space between them. A dense one-line table can keep adjacent rows. Both layouts should
+make unfocused controls recognizable and distinguish focus from checked items and saved values.
+
+## 4. Check the result
+
+Verify that you can identify the actions and information in monochrome, then follow the changed
+journey using only the keyboard. Check what happens after activation, cancel, errors, resizing,
+and relevant background updates. Compare keyboard hints with actual behavior.
+
+The assistant should report the sizes and interactions actually checked. A static mockup or render
+snapshot does not establish that key handling works, and monochrome support does not establish
+screen-reader accessibility. Missing runtime tools leave those checks unverified.
+
+See the [TUI Design reference](/docs/skills/tui-design) for the workflow and
+[worked patterns](https://github.com/howarewoo/woostack/blob/main/skills/tui-design/references/patterns.md)
+for action groups, choice states, and compact lists.

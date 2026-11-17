@@ -20,6 +20,7 @@ export const PUBLIC_ORDER = [
   "woostack-prototype",
   "woostack-flow-layout",
   "woostack-design-system",
+  "tui-design",
   "woostack-debug",
   "woostack-qa",
   "woostack-reflect",
