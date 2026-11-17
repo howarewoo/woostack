@@ -38,7 +38,7 @@ path from arrival through activation, result, and recovery, not just a pleasing 
 ## 2. Diagnose and improve
 
 Read the applicable sections of [design rules](references/design-rules.md). Use
-[patterns](references/patterns.md) when menu grouping, choice states, or compact layouts need a
+[patterns](references/tui-patterns.md) when menu grouping, choice states, or compact layouts need a
 concrete example. Consult [sources](references/sources.md) for research or toolkit details only.
 
 Assess usability and terminal behavior separately: a clear-looking screen can have broken keys,
