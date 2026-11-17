@@ -1,13 +1,13 @@
 ---
 title: Overview
-description: Understand the recommended architecture for TypeScript web applications and when to add native mobile apps.
+description: Understand the recommended architecture for TypeScript web applications and when to add mobile or desktop apps.
 ---
 
 import { StackRuntimeDiagram, StackDeliveryDiagram } from "../../components/stack-diagrams";
 
 This stack is a starting point for a TypeScript product with a public website, a signed-in
 web application, and an API. It favors static public content and a client-rendered app,
-released together on Cloudflare Workers. Native mobile is an optional later addition.
+released together on Cloudflare Workers. Mobile and desktop apps are optional additions.
 
 These are recommendations, not requirements for using Woostack. Existing repositories keep
 their selected technologies and conventions. This documentation site itself uses Next.js
@@ -44,6 +44,7 @@ Supporting tools depend on what the product needs:
 | Need | Recommendation |
 | --- | --- |
 | Native mobile | React Native, Expo, Expo Router; DOM components for selected web screens |
+| Desktop apps | [Tauri](#desktop-apps) with React/Vite |
 | Component catalog | Storybook with React/Vite |
 | UI utilities | Recharts, date-fns, Embla Carousel, or React Day Picker where needed |
 | Translated application UI | i18next and react-i18next |
@@ -178,6 +179,27 @@ and [EAS Submit](https://docs.expo.dev/deploy/submit-to-app-stores/) are the pre
 tools; web and API releases remain on Cloudflare. Apple's
 [minimum-functionality guideline](https://developer.apple.com/app-store/review/guidelines/#minimum-functionality)
 still applies. A native navigation bar around a website does not guarantee store approval.
+
+## Desktop apps
+
+[Tauri](https://v2.tauri.app/) is the recommendation for installable macOS, Windows, and Linux
+applications. Reuse the [React/Vite frontend](https://v2.tauri.app/start/frontend/), including web
+controls, styles, and shared TypeScript logic. Tauri renders that UI in the operating system's
+WebView, with a Rust core for desktop integrations.
+
+Bundle the client-built frontend assets with the app and keep the hosted Hono API and server
+secrets on Cloudflare. Tauri expects a static frontend; server-side rendering needs a separate
+server. Use an absolute HTTPS API URL and verify desktop authentication callbacks, session
+restoration, and logout rather than assuming the browser app's same-origin setup carries over.
+
+Add Tauri plugins or focused Rust commands for operating-system features. Scope plugin permissions
+to the windows and resources that need them through
+[capabilities](https://v2.tauri.app/security/capabilities/).
+
+Desktop binaries have their own release lifecycle. Follow Tauri's
+[distribution guidance](https://v2.tauri.app/distribute/) for installers and platform signing,
+and verify the packaged app on each supported operating system. Web and API releases stay on
+Cloudflare.
 
 ## Internationalization
 
