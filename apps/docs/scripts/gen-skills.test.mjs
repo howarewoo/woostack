@@ -163,6 +163,7 @@ test("public skill routing preserves the declared order", () => {
     "woostack-prototype",
     "woostack-flow-layout",
     "woostack-design-system",
+    "tui-design",
     "woostack-debug",
     "woostack-qa",
     "woostack-reflect",

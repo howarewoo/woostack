@@ -57,6 +57,17 @@ For interactive UI mockups, use [Prototype](skills/woostack-prototype/SKILL.md).
 external design collections. See [optional design skills](apps/docs/content/docs/recommended-tooling.mdx#optional-design-skills)
 for recommended companions; they are not installed with WooStack.
 
+For terminal interfaces, [TUI Design](skills/tui-design/SKILL.md) is an optional utility
+for clear layouts, labels, and keyboard navigation. It works independently with your existing
+toolkit. To install only this utility:
+
+```bash
+pnpx skills add howarewoo/woostack --skill tui-design
+```
+
+See [Design a clear terminal interface](apps/docs/content/docs/guides/tui-design.mdx) for review,
+design, and scoped implementation examples.
+
 ### 2. Create useful project guidance
 
 Open your coding assistant in the project root and enter:
