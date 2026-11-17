@@ -1,19 +1,6 @@
 # Research basis
 
-Terminal and interaction sources checked 2026-11-16; Impeccable inspected 2026-11-17. Read the relevant source when implementing toolkit behavior and verify APIs against the project's installed version. The workflow and its guidance are bundled for offline use.
-
-## Design approach
-
-The design method is informed by [Impeccable](https://github.com/pbakaus/impeccable), created by Paul Bakaus. The terminal guidance and examples here are independently written; Impeccable is a research source, not an installation or runtime dependency. The inspected revision is pinned below.
-
-| Source | Adaptation for terminals |
-| --- | --- |
-| [Layout](https://github.com/pbakaus/impeccable/blob/d41d9860b0094dcb68030657da63461212835aaa/skill/reference/layout.md) | Establish task order, grouping, density, and compact behavior before styling. Express hierarchy through terminal cells, alignment, indentation, and relative gaps. |
-| [Clarify](https://github.com/pbakaus/impeccable/blob/d41d9860b0094dcb68030657da63461212835aaa/skill/reference/clarify.md) | Read labels and feedback across the interaction path; remove redundant helper text while preserving meaning, consequences, and recovery. |
-| [Distill](https://github.com/pbakaus/impeccable/blob/d41d9860b0094dcb68030657da63461212835aaa/skill/reference/distill.md) | Remove unnecessary containers, repeated information, and extra steps before adding UI. Keep required choices and functionality accessible. |
-| [Polish](https://github.com/pbakaus/impeccable/blob/d41d9860b0094dcb68030657da63461212835aaa/skill/reference/polish.md) | Preserve the established design during refinement; prioritize broken tasks and misleading state; verify the rendered journey as well as mechanical checks. |
-
-These are conceptual adaptations. Web font scales, pixel spacing, DOM semantics, browser detectors, hooks, generated imagery, and external command chaining are not terminal requirements. A single utility handles the requested review, design, or implementation scope.
+Terminal and interaction sources checked 2026-11-16. Read the relevant source when implementing toolkit behavior and verify APIs against the project's installed version. The workflow and its guidance are bundled for offline use.
 
 ## Terminal-specific guidance
 
