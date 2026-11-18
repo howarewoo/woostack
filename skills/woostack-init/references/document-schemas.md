@@ -17,7 +17,8 @@ Reuse existing equivalents and keep short topics in an existing document where s
 | Root `ARCHITECTURE.md` | [Technical orientation contract](#architecturemd) | Unversioned Markdown; no required headings |
 
 The product baseline was checked against Impeccable revision
-`6b9d0ffa3a9a884fc95928d2d2d896b0befa5d3e`; the design baseline against the linked specification.
+`6b9d0ffa3a9a884fc95928d2d2d896b0befa5d3e`; the design baseline against
+[revision `db977b3`](https://github.com/google-labs-code/design.md/blob/db977b3c1d1f309269f43d5d17ae828d54bd6ae3/docs/spec.md).
 Use an available installed canonical reference when it is newer. When asked for the latest format,
 resolve the current upstream source before changing a schema marker or structure. If that source is
 unreachable, disclose that latest compatibility is unverified and use the verified baseline only
@@ -154,7 +155,11 @@ happens to share its name. Preserve an established system-design meaning and its
 If a separate scoped visual record is needed, propose its owner rather than silently repurposing the
 root document or creating another authority.
 
-For a visual record, use these `##` sections in order, omitting inapplicable ones:
+Use [design systems and tokens](design-tokens.md) to establish ownership, useful coverage, and
+maintenance before serializing values. Preserve adequate existing conventions; the linked Google
+format is an evolving `alpha`, not a prerequisite for a useful design system.
+
+For a visual record adopting that format, use these `##` sections in order, omitting inapplicable ones:
 
 1. Overview (also accepted: Brand & Style)
 2. Colors
@@ -162,15 +167,19 @@ For a visual record, use these `##` sections in order, omitting inapplicable one
 4. Layout (also accepted: Layout & Spacing)
 5. Elevation & Depth (also accepted: Elevation)
 6. Shapes
-7. Components
-8. Do's and Don'ts
+7. Motion & Micro-interaction (also accepted: Motion & Micro-interactions, Motion)
+8. Voice & Content Strategy
+9. Components
+10. Do's and Don'ts
 
 An optional document title is allowed. Avoid duplicate section headings; preserve useful unknown
 sections. Record only observed or explicitly agreed tokens, components, and rationale.
 
-YAML frontmatter is optional. When present, it starts the file between `---` delimiters and requires
-`name`. Its optional `version` is currently `alpha`, not a numeric package version. Optional groups
-are `colors`, `typography`, `rounded`, `spacing`, and `components`; metadata also allows
+Structured tokens are optional. They can use YAML frontmatter, interleaved `yaml` fences, or both;
+frontmatter starts the file between `---` delimiters. Include `name` once in the combined document.
+Optional `version` is currently `alpha`, not a numeric package version. Define each top-level key
+only once across all blocks. Optional groups are `colors`, `typography`, `rounded`, `spacing`,
+`motion`, and `components`; metadata also allows
 `description` and `omitted` (section names or objects with `section` and optional `reason`).
 
 Use existing token names and values rather than inventing a default palette or scale:
@@ -180,16 +189,23 @@ Use existing token names and values rather than inventing a default palette or s
 - Dimensions use `px`, `em`, or `rem`. Spacing also accepts numbers.
 - Typography supports `fontFamily`, `fontSize`, numeric `fontWeight`, `lineHeight` (dimension or
   number), `letterSpacing`, `fontFeature`, and `fontVariation`.
+- Motion tokens use `duration` and `delay` in `ms`, plus a CSS `timingFunction`. Document reduced-motion
+  behavior in prose or the canonical implementation; a timing token does not implement it.
+- Colors, typography, rounded, and spacing accept nested groups. Group names are organizational,
+  not theme/breakpoint behavior. Check duplicate paths and collisions when names are flattened.
 - Component color properties accept colors, `typography` accepts a typography value, and `rounded`,
   `padding`, `size`, `height`, and `width` each accept one dimension. Token references use a single
   `{path.to.token}` value, never concatenated references. Composite references such as
   `{typography.body}` are allowed within components; other references target primitive values.
   Keep multi-value padding in source/prose instead of inventing a single schema dimension.
 
-Tokens are normative; prose explains application rather than duplicating competing values.
+The chosen authored tokens own values; prose explains application. If code owns the tokens, link
+its definitions instead of maintaining competing YAML values. If this document owns them, record
+the consumption/generation path and whether it is implemented. Google DESIGN.md YAML is not DTCG JSON.
 Preserve extensions. Keep values not representable by the current token schema, such as responsive
 expressions, in their canonical source and linked prose rather than coercing them into false tokens.
-Do not add frontmatter merely to claim schema adoption when a prose-only record is sufficient.
+Do not add structured blocks merely to claim schema adoption when a prose-only record is sufficient;
+do not claim that prose-only records pass tools requiring YAML.
 
 ## AGENTS.md
 
