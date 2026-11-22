@@ -62,10 +62,12 @@ are guarantees:
   app. The app installation also limits where bots are asked and which events reach them. A `gh`
   account without write access limits `gh` operations only. To keep stage 0 close to read-only,
   withhold write access from both the `gh` and git credentials on the bot's computer (for example a
-  paired Orca server). While the GitHub connector is on, stage 0 is not strictly read-only: the Orca
-  app can still post replies where someone asked the bot, or where an automation uses
-  `--results-to thread`. Keep **Who can ask** limited to you and send automation results to chat
-  until stage 1.
+  paired Orca server). That makes the bot's own commands read-only, not GitHub as a whole. While the
+  connector is on, the Orca app can still reply or review where someone asked the bot, post a
+  public note when it turns away someone not on **Who can ask**, and post results where an
+  automation uses `--results-to thread`. For a rehearsal with no GitHub writes at all, keep the
+  connector off, ask from the bot's Orca chat, and turn the connector on before you exercise
+  GitHub event rules.
 - **Branch protection gates merges.** Protect the default branch: require pull requests, the CI
   checks, and an approving review, and do not allow bypassing the rules. Then no bot can merge red
   or unreviewed work, whatever its instructions say. It cannot tell the bots apart, though, because
@@ -125,8 +127,8 @@ turns green before such a review arrives, Engineer needs a bounded wait or a man
 
 ## 5. Rehearse before you rely on it
 
-First, at stage 0, ask each bot what it would do with one of your existing issues or pull requests.
-Check that it reports without changing anything.
+First, at stage 0, ask each bot in its Orca chat what it would do with one of your existing issues
+or pull requests. Check that it reports without running any write command.
 
 Then rehearse writes in a disposable repository, for example `acme/sandbox`:
 
