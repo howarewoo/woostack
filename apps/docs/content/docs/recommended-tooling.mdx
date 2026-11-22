@@ -36,9 +36,12 @@ conversation. In `~/.pi/agent/settings.json`:
 I use the following optional packages in my Pi setup. Woostack does not require them.
 Extensions execute code, so review their source before installing them.
 
-- [@howarewoo/pi-subagents](https://github.com/howarewoo/pi-extended-subagents) delegates work
-  to focused subagents with explicit tool grants. Subagent Hub lets you follow progress and
-  steer or stop their work.
+- [@howarewoo/pi-subagents](https://github.com/howarewoo/pi-subagents) delegates work to focused
+  subagents with explicit tool grants. Subagent Hub lets you follow progress and steer or stop
+  their work.
+- [@howarewoo/pi-schedule](https://github.com/howarewoo/pi-schedule) schedules recurring cron and
+  one-shot prompts that wake the session later, with no daemon or OS crontab. Pair it with
+  `@howarewoo/pi-subagents` for periodic orchestrator check-ins.
 - [@juicesharp/rpiv-ask-user-question](https://github.com/juicesharp/rpiv-mono/tree/main/packages/rpiv-ask-user-question)
   adds structured clarification dialogs with selectable options, custom answers, and previews.
 - [@juicesharp/rpiv-todo](https://github.com/juicesharp/rpiv-mono/tree/main/packages/rpiv-todo)
