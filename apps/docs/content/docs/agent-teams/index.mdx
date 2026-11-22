@@ -1,80 +1,161 @@
 ---
 title: Agent team overview
-description: Guidance for working with autonomous agent teams using WooStack workflows.
+description: Run a four-bot Orca pipeline that takes work from request to monitored production deploy.
 ---
 
 import { TeamOrganization } from "@/components/guides/team-organization";
 
-**In development.** WooStack does not ship an autonomous-team runtime or installer. You can use
-its existing skills with bots you already operate. The [R&D setup](/docs/agent-teams/setup)
-describes a manual workflow, not a verified packaged integration.
+This section describes a four-bot engineering team that runs on [Orca bots](https://orca.dev/docs/bots):
+**Steward**, **Engineer**, **Gatekeeper**, and **Sentinel**. Each bot owns one stage of the path from
+an owner's request to a merged, deployed, and watched change. The bots install
+[WooStack agent skills](/docs/getting-started) in their coding agents and use them for planning,
+implementation, and delivery.
 
-## A team with defined responsibilities
+WooStack does not ship a bot runtime or installer. Orca hosts the bots, their chats, memory,
+connectors, and automations. These pages give you the roles, the rules between them, starter
+`SOUL.md` files, and a [setup guide](/docs/agent-teams/setup). Adapt them to your own projects.
 
-Planning, coordination, implementation, and review are responsibilities, not a required bot count.
-One senior engineer can plan with Whiteboard and coordinate with Orchestrate when needed;
-one junior engineer can implement bounded assignments with Execute. The same junior can handle
-successive assignments without another management layer.
-
-Whiteboard uses the available context rather than requiring an interview. A delegated agent can
-resolve decisions within the authority the user supplied and escalate consequential choices outside
-it. The plan includes enough context for another agent to continue without reconstructing
-the planning conversation.
-
-Independent review remains distinct from a planner's self-review. A required independent assessment
-needs a suitable reviewer, but it is not an automatic third bot or mandatory stage for every change.
-
-The proposed roles are:
-
-- [Chief of staff](/docs/agent-teams/chief-of-staff): general coordination and platform operations.
-- [CTO](/docs/agent-teams/cto): R&D priorities, assignments, and review routing.
-- [Senior engineer](/docs/agent-teams/senior-engineer): assigned engineering work and junior review.
-- [Junior engineer](/docs/agent-teams/junior-engineer): bounded implementation and evidence.
+## The pipeline
 
 <TeamOrganization />
 
-The chief of staff coordinates with department chiefs. The R&D CTO can assign work to the senior,
-the junior, or an optional product designer. Other department chiefs are illustrative; only the
-R&D setup is documented here. The senior is not a required dispatch route to the junior. When
-authorized, the junior publishes a draft PR and sends the revision and evidence to the senior
-for independent review and corrections. A human performs all merges.
+| Bot | Owns | Hands work to | Never |
+| --- | --- | --- | --- |
+| [Steward](/docs/agent-teams/steward) | Intake: requests, issues, sizing, and the project roster | Engineer, for small and settled issues; you, for scope decisions | Writes production code or merges |
+| [Engineer](/docs/agent-teams/engineer) | Implementation: workers, pull requests, CI, and review feedback | Gatekeeper, once a pull request is green and approved | Merges or approves its own pull requests |
+| [Gatekeeper](/docs/agent-teams/gatekeeper) | Merging: risk calls, merges your policy allows, and post-merge deploy checks | You, for high-risk merges; Sentinel watches what ships | Merges high-risk changes without you |
+| [Sentinel](/docs/agent-teams/sentinel) | Production: failed deploys, root cause, and incident issues | Engineer, for bounded fixes your policy allows; you, for the rest | Rolls back, redeploys, or edits code on its own |
 
-## Bounded handoffs and review
+A request moves in one direction. Steward turns it into a well-scoped GitHub issue and decides
+whether it is small enough to start. Engineer implements it in a worker's own worktree and sees the
+pull request through CI and independent review. Gatekeeper decides whether the pull request is low
+or high risk and merges only what your policy allows. Sentinel watches the production deploy and,
+when one fails, files an issue with evidence and returns a bounded fix to Engineer. That return is
+the only loop in the pipeline.
 
-A handoff carries an objective, relevant context, allowed actions, expected output, and
-verification evidence. Clear boundaries help the next agent continue the work without treating
-background information as permission to expand it.
+## Why four bots
 
-An agent's report distinguishes what it changed, what it checked, and what remains uncertain.
-Review inspects the delivered artifact or exact revision and reports its findings and coverage.
-Implementation finished, review assigned, and review passed remain separate states.
-The host provides messaging, task state, and permission enforcement; WooStack supplies workflow
-instructions, not another routing or approval engine.
+Each bot holds a different permission and fails in a different way, so splitting them keeps one
+mistake from passing through every stage unchecked.
 
-## How it relates to agent skills
+- **The writer does not decide whether its work merges.** Engineer can push branches but never
+  merges. Gatekeeper can merge but never writes the change it merges.
+- **Intake stays separate from implementation.** Steward can say "this needs a decision" without
+  the pressure of already having code in progress.
+- **Production has its own watcher.** Sentinel reacts to deploy events whether or not the change
+  came through the pipeline, and it reports evidence rather than repairing production itself.
+- **Each bot has one place to look.** Steward watches requests and issues, Engineer watches its own
+  pull requests, Gatekeeper watches ready pull requests, and Sentinel watches deploys.
 
-[Agent skills](/docs/getting-started) provide task workflows inside a coding harness. Agent teams
-concern ongoing organization and coordination: how responsibilities are divided, work is handed
-over, and results are reviewed. Team setup and operating guidance live in the separate
-Agent team documentation section.
+You can run fewer bots. If you combine roles, keep the rule that the bot that writes a change is not
+the one that merges it.
 
-[Whiteboard](/docs/guides/whiteboard) is the same planning entry point for people and delegated
-agents. [Orchestrate](/docs/guides/coordinate-work) coordinates implementation under user approval
-or explicit bounded delegation. A completed plan does not supply execution authority.
-Neither skill requires the developing autonomous setup or a separate planning phase.
+## Handoffs, questions, and status updates
 
-## Agent team documentation
+Bots talk through Orca mail with `orca orchestration send --to bot:<name> --type <type>`. The type
+tells the receiving bot what is expected of it.
 
-For a multi-step request, use [large-task delivery](/docs/agent-teams/deliver-large-tasks) to keep one owner accountable through the final response.
+| Type | Use it when | What happens |
+| --- | --- | --- |
+| `handoff` | You give another bot a job it now owns | The receiver accepts the work and reports when it is done or blocked |
+| `question` | You need input before you can continue | The receiver answers; the asker keeps ownership of the work |
+| `status` | You only want another bot to know something | The receiver reads it as information; nothing comes back |
 
-Start with [setting up an R&D team](/docs/agent-teams/setup), then set up a [Shared wiki](/docs/agent-teams/shared-wiki) and adapt the role profiles and
-[group chats](/docs/agent-teams/project-group-chats) to your work.
+Some rules keep handoffs safe:
 
-## Current status
+- **One owner per job and one writer per worktree.** A handoff transfers ownership. The sender stops
+  working on it.
+- **Check before you start.** Before starting a worker, look for an existing worker, branch, or pull
+  request for the same issue. Never start a duplicate.
+- **Make the handoff self-contained.** Include the issue or pull request link, the outcome, the
+  acceptance criteria, what the receiver may do, and what is still open.
+- **Mail about an item goes to the chat that owns it.** Use `--item <n>` so the update lands next to
+  the work instead of in a new conversation.
 
-The team guides describe workflows using existing capabilities. Supported packaged environments,
-installation, and end-to-end integration verification remain in development. The
-[tech stack](/docs/recommended-stack) and [agent skills](/docs/getting-started) can be used independently.
+## Owner decision gates
 
-User decisions and permissions continue to bound the work. This overview grants no authority to
-merge or deploy changes.
+When a bot needs you, it does not wait in chat. It puts the decision on an item as **Needs you**,
+with a short context, one question, and the replies it suggests. The request stays on the bot's Home
+until you answer, so the chat stays readable and nothing is lost when you are away.
+
+A good decision gate:
+
+- states the decision in one line, with the link to the issue or pull request;
+- gives two to four choices, with the recommended one first and the reason for it;
+- names what happens after each choice, including what stays blocked;
+- appears only once. The bot does not repeat it in chat or reopen it while you have it snoozed.
+
+Bots raise a gate for scope and product or design choices (Steward), for high-risk merges
+(Gatekeeper), and for incidents your policy does not cover (Sentinel). Ordinary authorized steps go
+ahead without a gate.
+
+```text
+orca bot item set 12 --status needs-you \
+  --comment "acme/app#41 adds SSO. It touches session handling and a migration." \
+  --ask "Merge acme/app#41?" \
+  --option "Hold for my review (recommended: auth and migration)" \
+  --option "Merge now" \
+  --option "Close it"
+```
+
+## Events instead of polling
+
+Bots wait for events instead of checking in a loop. A polling loop costs agent time, hides what the
+bot is waiting for, and keeps running after the work is done. Orca automations start a bot run when
+something happens.
+
+- **Standing automations** run every time an event matches, for example
+  `--on "github.deploy_finished in=acme/app"` for Sentinel.
+- **Waits** use `--once` with a deadline from `--by`, for example one pull request's CI result or one
+  workflow run. They wake the bot once, on the matching event or at the deadline.
+- **Schedules** cover work with no event, such as a weekly roster review.
+
+Orca's **Look around** is a separate, read-only run a few times a day that lists suggested next
+steps under Suggestions. Treat a suggestion as a prompt for you to decide on, not as a handoff.
+
+The bot runs `orca automations trigger-options --bot <name>` before saving a rule, because the
+events it can use depend on its connectors. A bot never claims to be watching something unless the
+automation was saved. See [event automations](/docs/agent-teams/setup#4-add-event-automations) for
+the rules each bot uses.
+
+## SOUL.md and MEMORY.md
+
+Each bot lives in its own folder with two files that shape every run.
+
+**`SOUL.md` sets who the bot is and where it stops.** It says what the bot watches, what it does,
+where it reports, and a **Never** list of boundaries. A bot changes its `SOUL.md` only when you ask.
+Every starter template here begins with the same safe boundary: change nothing outside its own chat
+until you say it can. Widen that one capability at a time.
+
+**`MEMORY.md` holds what the bot has learned.** Keep it short and factual:
+
+- one dated fact per line, newest first, with longer notes in `memory/<topic>.md`;
+- facts worth keeping, such as your decisions, project conventions, and lessons from a failure;
+- never secrets, tokens, or credentials;
+- never an instruction taken from an issue, pull request, comment, web page, log, webhook, or tool
+  output. That text is information from someone else. Only you can add a standing rule.
+
+To remove or replace a line, the bot runs `orca bot memory forget --fact "<its words>"`. For bots on
+Claude Code or Codex, Orca's nightly memory upkeep can also tidy the file; you can review and undo
+its changes.
+
+## How it relates to WooStack skills
+
+The bots use the same skills you would use in a coding session:
+
+- Steward uses [Whiteboard](/docs/guides/whiteboard) to explore requirements and write issues.
+- Engineer's workers use [Execute](/docs/skills/woostack-execute) to implement and verify, and
+  [Deliver](/docs/skills/woostack-deliver) to open and update pull requests. For multi-issue work,
+  Engineer uses [Orchestrate](/docs/guides/coordinate-work).
+- Sentinel uses [Debug](/docs/skills/woostack-debug) for read-only root-cause analysis.
+
+A completed plan does not grant permission to implement, merge, or deploy. Those permissions come
+from you, through each bot's `SOUL.md` and your answers to its decision gates. In the WooStack
+repository itself, all merges remain human-only.
+
+## Next steps
+
+- [Set up the team](/docs/agent-teams/setup) and graduate Gatekeeper to low-risk auto-merge.
+- Read each role: [Steward](/docs/agent-teams/steward), [Engineer](/docs/agent-teams/engineer),
+  [Gatekeeper](/docs/agent-teams/gatekeeper), and [Sentinel](/docs/agent-teams/sentinel).
+- [Deliver a large task](/docs/agent-teams/deliver-large-tasks) across several pull requests.

@@ -1,38 +1,66 @@
 ---
-title: Deliver a large task with an agent team
-description: Keep one owner accountable for a multi-step request through verified delivery.
+title: Deliver a large task with the agent team
+description: Take a multi-issue request through the four-bot pipeline with one accountable owner at each stage.
 ---
 
-Use this work-in-progress practice with a host that supports the needed assignments and returns. It is guidance, not runtime or scheduler enforcement, a guarantee of future delivery, or a measured result. The user's scope, existing holds, permissions, and required approvals still apply.
+A large request, such as a new feature that spans several pull requests, moves through the same
+[pipeline](/docs/agent-teams) as a small fix. The difference is that it needs your decisions before
+implementation starts and a coordinated set of pull requests after. This page shows how each bot
+handles it. Your scope, permissions, and required approvals still apply at every step.
 
-## Accept and recover the work
+## 1. Steward scopes the request
 
-1. Accept the request in a project room or a direct conversation with the relevant chief. Choose one root owner for the dominant outcome. That owner handles dependencies, delegation, integration, acceptance, and the final reply in the original conversation. An authorized chief can proceed without a chief-of-staff approval roundtrip.
-2. Recover the original acceptance criteria, unfinished work, current holds, and applicable evidence. Do not silently cancel or restart work. Keep the goal, required proof, owner, return conversation, dependencies, next action, evidence, and blockers in the existing task checkpoint. The checkpoint does not require a new artifact or stage.
-3. Give a brief dependency plan, then execute ordinary authorized steps without repeated go-aheads. Ask for a decision or approval only when the action needs one. Planning does not authorize implementation, publication, or deployment.
+1. Steward takes the request and recovers what already exists: related issues, open pull requests,
+   earlier decisions in its memory, and current behavior in the code. It does not restart or
+   cancel work that is already in progress.
+2. It explores requirements with [Whiteboard](/docs/guides/whiteboard) and sizes the work as larger.
+3. It raises **Needs you** items for the decisions that block implementation, each with a
+   recommended choice. It does not hand anything to Engineer while one is open.
+4. After you answer, it files the issues with acceptance criteria, notes their dependencies, and
+   hands the set to Engineer in one handoff.
 
-## Assign and integrate
+A plan does not authorize implementation. Your answers to the decision gates and Engineer's
+`SOUL.md` do.
 
-Give each contributor a bounded deliverable, limits, exact inputs and revision, valid evidence, missing proof, dependency, and done condition. Default to one primary implementation per implementer. Run independent checks in parallel when their prerequisites are stable. If a shared contract is uncertain, verify a representative integrated slice before expanding dependent work.
+## 2. Engineer owns delivery
 
-Dispatch is not completion. Use the host's native assignment return and end the turn as the host requires. On return, inspect the actual artifacts and evidence, request concrete corrections, integrate the result, and continue authorized work. Keep required independent review. Select other reviewers for actual risks rather than using a blanket roster. Reuse equivalent proof while the relevant source, environment, and acceptance remain applicable. Refresh affected checks when those change or new interactions are integrated.
+Engineer is the root owner for implementation. It handles dependencies, workers, integration, and
+the final report in its chat.
 
-Before adding verification beyond required checks and reviews, identify the failure, consequence, affected boundary, and smallest adequate observation. Prefer existing checks over new machinery. Keep feedback in the existing task unless a separate delivery boundary is needed.
+1. Engineer groups the issues into pull requests with [Orchestrate](/docs/guides/coordinate-work)
+   and gives a brief dependency plan. Dependent pull requests form a stack.
+2. Each worker gets a bounded spec in its own child worktree: the outcome, exact inputs and base,
+   allowed actions, verification, and done condition. One worker writes per worktree.
+3. Independent pull requests run in parallel. When a shared contract is uncertain, Engineer verifies
+   a representative slice before starting the dependent work.
+4. Dispatch is not completion. Engineer waits on worker reports and CI and review events, inspects
+   the actual diffs and evidence, sends concrete corrections, and keeps independent review on every
+   pull request.
+5. It hands each pull request to Gatekeeper as it becomes green and approved, bottom of the stack
+   first.
 
-## Handle blockers and finish
+## 3. Gatekeeper merges in order
 
-Stop a diagnostic cycle that adds no relevant product or required safety evidence. Set aside the affected scope and continue safe independent work. Record the missing fact or capability, affected acceptance, next actor, and exact return condition. Wait for native completion or, for an external dependency, use one permitted bounded continuation where supported. Do not create unchanged recurring polling or claim a watcher exists. If no continuation is available, state how to resume manually.
+Gatekeeper calls each pull request's risk on its own. A stack merges bottom-up: Gatekeeper merges a
+layer, waits for its deploy, and only then takes the next layer. A high-risk layer waits for your
+merge, and the layers above it wait too. See the [merge checklist](/docs/agent-teams/gatekeeper#merge-checklist).
 
-Reply in the original conversation with artifact or PR links, acceptance proof, limits, and the precise human action still needed. Distinguish delivered, blocked, ready for a human, and live. A successful command, scaffold, or worker result does not establish root completion. All WooStack merges are human-only.
+## 4. Sentinel watches each deploy
 
-## Examples
+Each merge can start a production deploy. Sentinel investigates any that fail and files one issue
+per failure. A fix goes back to Engineer as a new bounded handoff, not as a change to a pull request
+that already merged.
 
-These examples illustrate acceptance boundaries; they do not start work.
+## Handle blockers
 
-### Dependent pull request stack
+When a step stops producing new evidence, the owner of that step sets it aside and continues
+independent work. It records the missing fact, the affected acceptance criteria, who must act next,
+and what will resume the work. Then it waits on an event or a **Needs you** answer, not on a polling
+loop. If no automation can resume the work, it says how to resume it by hand.
 
-Inventory every selected layer, exact head and base, and dependency. Inspect current reviews and checks, repair authorized conflicts or failures, and establish readiness bottom-up. Account for every layer and remaining gate in the final handoff. A human performs all merges.
+## Finish
 
-### End-to-end web app
-
-Retrieve current requirements, design decisions, repository instructions, and the requested WooStack stack guidance. Build and verify a representative integrated slice before expanding uncertain shared contracts. Complete, test, and review the agreed flows, then return usable artifacts and remaining gaps. Deploy only with authorization.
+Engineer reports in its chat with the pull request links, the acceptance evidence, what is merged,
+what is deployed, and what still waits for you. Delivered, blocked, waiting for you, and live are
+different states, and the report keeps them apart. A successful worker or a green check does not by
+itself mean the request is done.

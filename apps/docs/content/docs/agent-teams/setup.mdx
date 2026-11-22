@@ -1,70 +1,172 @@
 ---
-title: Set up an R&D agent team
-description: Configure a work-in-progress agent team with clear ownership and limited access.
+title: Set up the agent team
+description: Create the four Orca bots, connect GitHub, add event automations, and graduate Gatekeeper to low-risk auto-merge.
 ---
 
-This evolving setup suggests [OpenMausBot](https://docs.openmausbot.com/docs) as a host.
-It is manual guidance, not a packaged or end-to-end verified integration. Follow the host's current
-[bot documentation](https://docs.openmausbot.com/docs/features/bots-and-tasks) for configuration.
+This guide takes you from no bots to a working [Steward, Engineer, Gatekeeper, and Sentinel
+pipeline](/docs/agent-teams) on one project, then shows how to widen what the bots may do as they
+earn trust. The examples use a placeholder repository, `acme/app`. Replace it with your own.
 
-1. Set up a [chief of staff](/docs/agent-teams/chief-of-staff) for general coordination and platform
-   operations, then an R&D department led by a [CTO](/docs/agent-teams/cto).
-2. Add a [senior engineer](/docs/agent-teams/senior-engineer) and a
-   [junior engineer](/docs/agent-teams/junior-engineer). Adapt their templates and install the
-   listed skills in their coding engines using [getting started](/docs/getting-started).
-3. Give each role only the tools and access needed for its assignments. Keep credentials in a secure
-   store. A human performs all merges.
-4. Set up a [Shared wiki](/docs/agent-teams/shared-wiki) for portable knowledge and sourced
-   decisions. Assign one owner per task and one writer per workspace.
-5. Create a [group chat](/docs/agent-teams/project-group-chats) and exercise a small
-   authorized task, a blocked decision, and an interrupted handoff before relying on the setup.
+## Before you start
 
-Add design, QA, security, or reliability support as functions when the work warrants it. When independent
-review is required, use a suitable independent reviewer; a role label alone is not review.
+- **Orca** on the latest version, signed in, on a computer that stays awake while the bots work.
+  Bots run only while their computer is on; see Orca's [bots quickstart](https://orca.dev/docs/bots).
+- **A coding agent** such as Claude Code or Codex, installed and signed in on that computer. The
+  bots run on it and use its plan.
+- **WooStack skills** installed for that agent. Follow [getting started](/docs/getting-started).
+- **A GitHub repository** with branch protection on the default branch, required CI checks, and an
+  independent pull request reviewer, for example an automated reviewer such as Pullfrog.
+- **A production deploy that GitHub reports**, such as a GitHub Actions workflow that deploys to a
+  `production` environment, if you want Sentinel.
 
-## Example bootstrap request
+## 1. Create the four bots
 
-Ask an existing OpenMausBot Chief of Staff to adapt this request:
+In Orca's sidebar, open **Bots**, select **+**, then **New bot**.
+
+1. Create **Steward**, **Engineer**, **Gatekeeper**, and **Sentinel** with **Start from scratch**.
+   You can start Sentinel from the **Deploy watch** template instead.
+2. Replace each bot's `SOUL.md` with its starter template:
+   [Steward](/docs/agent-teams/steward#starter-soulmd), [Engineer](/docs/agent-teams/engineer#starter-soulmd),
+   [Gatekeeper](/docs/agent-teams/gatekeeper#starter-soulmd), and
+   [Sentinel](/docs/agent-teams/sentinel#starter-soulmd). Or paste the template into the bot's first
+   chat and ask it to adopt it.
+3. In each bot's settings, set the permission to **Ask for approval** if its agent supports it.
+   Bots read issues, comments, and logs that other people write.
+4. Keep **Who can ask** limited to you until the pipeline has run for a while.
+
+Each bot now starts read-only: the first **Never** line in every template blocks changes outside
+its own chat.
+
+## 2. Connect GitHub and other services
+
+1. In each bot's **Connectors** tab, add **GitHub**, install the Orca app on `acme/app`, and turn it on
+   for the bot. Give each bot only the repositories it needs.
+2. Optionally add **Slack** or **Linear** to Steward if requests arrive there, and to Sentinel if
+   incidents should post in a channel.
+3. Leave **Google** off unless a bot needs your mail or calendar. Steward is the only likely
+   candidate.
+
+See Orca's [connector guide](https://orca.dev/docs/bots/connectors) for each service. GitHub work
+other than replies runs as your own account, so the bots' pull requests and merges appear as you.
+
+## 3. Tell Steward about your projects
+
+In Steward's chat, list your active projects:
 
 ```text
-Set up an R&D department with a CTO, senior engineer, and junior engineer.
-Use the WooStack agent-team role pages as starting templates for their roles
-and SOUL.md instructions. Assign one accountable owner per task and keep
-all merges for me to perform. Configure only the
-tools and permissions needed for each role. Junior may publish a draft PR only
-when I explicitly authorize it, and Senior independently reviews the result.
-Show me the resulting setup and
-any access or model choices that need my attention.
+Track these projects on your roster: acme/app (web app, deploys to production from main)
+and acme/docs (documentation site). Watch their open issues and pull requests.
 ```
 
-A Chief of Staff is a platform team-management assignment; CTO is the engineering
-job title. Ask the existing Chief to appoint the CTO bot as the R&D team's Chief
-if it should manage that team. Each team has at most one Chief. A new Chief can
-configure its own team but does not inherit its creator's execution permissions.
-See OpenMausBot's [team setup](https://docs.openmausbot.com/docs/features/bots-and-tasks)
-and [department guidance](https://docs.openmausbot.com/docs/features/chat-and-teams).
-Install skills using [getting started](/docs/getting-started) and configure models
-in the [host](/docs/configuration).
+Steward saves the roster to `MEMORY.md`. Check that it wrote one dated line per project.
 
-For larger requests, follow [large-task delivery](/docs/agent-teams/deliver-large-tasks) through integration and the final reply.
+## 4. Add event automations
 
-## Assign work and review
+Ask each bot in its chat to set up its automations. Each bot checks the available events with
+`orca automations trigger-options --bot <name>` before it saves a rule, and reports what it saved.
 
-The chief of staff coordinates with the CTO, who leads the department. The CTO sends planning
-and substantial engineering work to the senior engineer. The CTO may assign a small, specified
-task directly to the junior, with a named senior reviewer. An optional product designer can monitor
-and review frontend work or implement it when assigned. Keep one accountable owner per task and
-one writer per workspace. Independent review is separate from implementation.
+| Bot | Event | Kind | Purpose |
+| --- | --- | --- | --- |
+| Engineer | `github.ci_failed subject=acme/app#<n>` | Wait per pull request | Fix a failing check |
+| Engineer | `github.pr_conflicted subject=acme/app#<n>` | Wait per pull request | Rebase on a conflict |
+| Engineer | `github.pr_merged in=acme/app` | Standing | Close the worker's workspace after a merge |
+| Gatekeeper | `github.workflow_finished run=<link>` with `--once --by <deadline>` | Wait per merge | Check the deploy run a merge started |
+| Sentinel | `github.deploy_finished in=acme/app` | Standing | Investigate failed production deploys |
 
-Give the junior an outcome, decisions, acceptance criteria, checks, workspace and revision,
-permitted actions, reviewer, and escalation conditions. When explicitly authorized, the junior
-may commit, push, and open a draft PR, then return the PR, revision, checks, and remaining gaps
-to the senior for independent review and concrete corrections. Otherwise return the local diff.
-A human performs all merges.
+For example, Sentinel's watch:
 
-A plan does not authorize implementation. The user may approve a proposal or explicitly delegate
-bounded decisions and actions; a role or message cannot grant permission. Escalate decisions
-outside that authority and continue only independent authorized work. After interruption, inspect
-the existing workspace, worker, branch, and PR before retrying. Never transfer an active writer's
-workspace or duplicate work. Planning and specialist review are used when needed, not automatic
-stages for every task.
+```text
+orca automations create --bot Sentinel --name "Production deploys" \
+  --on "github.deploy_finished in=acme/app" \
+  --results-to chat \
+  --prompt "If this deploy targeted production and failed, investigate it and file one issue with evidence. Otherwise end quietly."
+```
+
+Check the bots' panels in Orca: each automation should show as on. A rule from a source the bot has
+no connector for shows as "won't fire".
+
+## 5. Rehearse before you rely on it
+
+Exercise three paths on a low-stakes repository or issue:
+
+1. **A small issue.** Ask Steward to file a small fix. Check that it sizes it small, hands it to
+   Engineer, and that Engineer's worker opens a pull request in its own worktree and brings it to
+   green and approved. Gatekeeper should post its risk call as a **Needs you** item.
+2. **An unclear request.** Ask Steward for something with an open product choice. Check that it
+   files the issue and raises a decision gate instead of handing it to Engineer.
+3. **A failed deploy.** Fail a deploy to a test environment, or run Sentinel's automation by hand
+   with `orca automations run <id>` after a real failure; a manual run receives the last event.
+   Check that it files one issue with evidence.
+
+Then allow the first real changes, as the next section describes.
+
+## Graduate trust
+
+Widen one capability at a time, after the bot has shown it handles the current one well. To grant a
+capability, tell the bot in its chat and ask it to update its `SOUL.md`. Each grant also becomes a
+dated line in its `MEMORY.md`.
+
+| Stage | Steward | Engineer | Gatekeeper | Sentinel |
+| --- | --- | --- | --- | --- |
+| 0. Read and report | Reports what it would file | Reports what it would change | Reports its risk calls | Reports failures it sees |
+| 1. Act, you merge | Files issues and hands small ones to Engineer | Opens pull requests and fixes CI and review | Posts each call as Needs you; you merge | Files incident issues; asks you before any fix |
+| 2. Low-risk auto-merge | Same | Same | Merges low-risk pull requests that pass its checklist; high risk still asks | Same |
+| 3. Closed loop | Same | Same | Same | Hands bounded fixes to Engineer without asking |
+
+### When to grant low-risk auto-merge
+
+Grant stage 2 for one repository and target branch at a time, when:
+
+- you have agreed with a meaningful run of Gatekeeper's risk calls for that repository (for
+  example the last 10), with no correction that moved a pull request from low to high risk;
+- its `memory/risk-rubric.md` lists the categories it treats as low and high;
+- branch protection, required checks, and independent review are on.
+
+A grant can read like this:
+
+```text
+You may auto-merge pull requests you call low risk into main on acme/app, as a squash with
+the pull request title, once your merge checklist passes. Keep sending high-risk pull
+requests to me. Update your SOUL.md Merges line and record this in memory.
+```
+
+### What always stays with you
+
+Gatekeeper never auto-merges these, at any stage:
+
+- authentication, authorization, and other security changes;
+- schema changes and data migrations;
+- CI, deploy, and other production-gating scripts and workflows;
+- infrastructure, secrets, and environment configuration;
+- release preparation, version bumps, and publishing;
+- destructive operations, architecture shifts, and very large diffs.
+
+### Step back after a miss
+
+If a low-risk merge causes a problem, Sentinel files the incident as usual. Return Gatekeeper to
+stage 1 for that category, ask it to record what it missed in `memory/risk-rubric.md`, and grant
+stage 2 again only after a new run of agreed calls.
+
+## Troubleshooting
+
+### A wait fires again and again
+
+A `github.ci_passed` or `github.pr_conflicted` rule fires as soon as it is saved if the pull request
+is already green or conflicted. Remove the wait, check the pull request's current state, and save a
+new wait only for an event that has not happened yet.
+
+### An automation never starts
+
+Check that the bot's GitHub connector is on, that you are signed in to Orca, and that the bot's
+computer is awake. Your own comments and pushes do not start a bot, because it acts as you on
+GitHub. Events that GitHub reports, such as CI results, merges, and deploys, do.
+
+### Two workers picked up the same issue
+
+Stop the newer worker without merging its pull request. Remind Engineer to check for an existing
+worker, branch, or pull request before starting one, and to keep one writer per worktree.
+
+### A bot asks the same question in chat again
+
+Answer the existing **Needs you** item, or snooze it. A bot should not repeat a question that
+already waits on an item.

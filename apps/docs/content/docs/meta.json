@@ -15,10 +15,8 @@
     "concepts/repository-rules",
     "---Agent teams---",
     "[Overview](/docs/agent-teams)",
-    "agent-teams/departments",
-    "agent-teams/shared-wiki",
-    "agent-teams/agent-definitions",
-    "agent-teams/project-group-chats",
+    "agent-teams/setup",
+    "agent-teams/roles",
     "agent-teams/deliver-large-tasks"
   ]
 }

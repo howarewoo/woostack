@@ -1,14 +1,14 @@
 # woostack
 
 WooStack has three parts: a recommended tech stack, agent skills for coding harnesses,
-and an autonomous agent setup in development. Start with the part you need:
+and an agent team setup that runs on Orca bots. Start with the part you need:
 
 - [Tech stack](apps/docs/content/docs/recommended-stack.mdx): recommended technologies and how they fit together.
 - [Agent skills](apps/docs/content/docs/getting-started.mdx): workflows for planning, building, and checking products inside a coding harness.
-- [Agent teams](apps/docs/content/docs/agent-teams/index.mdx): the coordinated setup being developed, with a [manual R&D setup guide](apps/docs/content/docs/agent-teams/setup.mdx) for OpenMausBot teams. No packaged runtime or installer is provided.
+- [Agent teams](apps/docs/content/docs/agent-teams/index.mdx): a four-bot pipeline on [Orca bots](https://orca.dev/docs/bots) (Steward, Engineer, Gatekeeper, and Sentinel) that takes work from request to monitored deploy, with a [setup guide](apps/docs/content/docs/agent-teams/setup.mdx). WooStack provides the roles and starter templates, not a bot runtime or installer.
 
 You can adopt the tech stack or the skills independently. Using the skills does not require
-the recommended stack or the autonomous setup. You make the product decisions and authorize work.
+the recommended stack or the agent team. You make the product decisions and authorize work.
 
 The rest of this overview covers the agent skills. They guide an AI coding assistant to inspect
 the repository and GitHub and verify outcomes before reporting what changed or is ready for review.
@@ -114,9 +114,9 @@ The [artifact contract](shared/references/artifact-backends.md) explains direct
 GitHub publication, recovery, and retained historical record handling. Saved plans and remote
 records record decisions; they do not authorize new work or prove that code was delivered.
 
-For OpenMausBot teams, follow the
-[R&D setup guide](apps/docs/content/docs/agent-teams/setup.mdx) for work-in-progress guidance on
-roles, scoped access, shared knowledge, and handoffs.
+To run these skills from Orca bots, follow the
+[agent team setup guide](apps/docs/content/docs/agent-teams/setup.mdx) for roles, starter `SOUL.md`
+templates, event automations, owner decision gates, and graduated merge trust.
 
 ## Choose a development workflow
 

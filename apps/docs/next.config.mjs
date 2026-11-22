@@ -30,6 +30,36 @@ const config = {
         permanent: true,
       },
       {
+        source: "/docs/agent-teams/chief-of-staff",
+        destination: "/docs/agent-teams/steward",
+        permanent: true,
+      },
+      {
+        source: "/docs/agent-teams/cto",
+        destination: "/docs/agent-teams/steward",
+        permanent: true,
+      },
+      {
+        source: "/docs/agent-teams/senior-engineer",
+        destination: "/docs/agent-teams/engineer",
+        permanent: true,
+      },
+      {
+        source: "/docs/agent-teams/junior-engineer",
+        destination: "/docs/agent-teams/engineer",
+        permanent: true,
+      },
+      {
+        source: "/docs/agent-teams/shared-wiki",
+        destination: "/docs/agent-teams#soulmd-and-memorymd",
+        permanent: true,
+      },
+      {
+        source: "/docs/agent-teams/project-group-chats",
+        destination: "/docs/agent-teams#handoffs-questions-and-status-updates",
+        permanent: true,
+      },
+      {
         source: "/docs/hermes",
         destination: "/docs/agent-teams",
         permanent: true,
