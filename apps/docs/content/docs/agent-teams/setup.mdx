@@ -34,8 +34,9 @@ In Orca's sidebar, open **Bots**, select **+**, then **New bot**.
    Bots read issues, comments, and logs that other people write.
 4. Keep **Who can ask** limited to you until the pipeline has run for a while.
 
-Each bot now starts read-only: the first **Never** line in every template blocks changes outside
-its own chat.
+Each bot now starts in read-and-report mode. The first **Never** line in every template tells it to
+change nothing outside its own chat, and **Ask for approval** lets you catch a write it attempts
+anyway. The next step adds the limits that do not depend on the bot following instructions.
 
 ## 2. Connect GitHub and other services
 
@@ -48,6 +49,26 @@ its own chat.
 
 See Orca's [connector guide](https://orca.dev/docs/bots/connectors) for each service. GitHub work
 other than replies runs as your own account, so the bots' pull requests and merges appear as you.
+
+### What enforces the limits
+
+A `SOUL.md` is an instruction the bot's model follows, not a lock. These are the limits that hold
+even if a bot ignores its instructions:
+
+- **Orca's permission mode.** With **Ask for approval**, commands and edits wait for your approval.
+  Some agents have no approval modes and always run in **Full access**; see Orca's
+  [bot security](https://orca.dev/docs/bots/security#permissions) page.
+- **Branch protection.** Bots do other GitHub work with your `gh` sign-in on their computer, so each
+  bot can do what you can in every repository you can reach. The Orca app installation only limits
+  where bots are asked and which events reach them. Protect the default branch: require pull
+  requests, the CI checks, and an approving review, and do not allow bypassing the rules. Then no
+  bot can merge red or unreviewed work, whatever its instructions say.
+- **Who can ask.** Orca checks each Slack, GitHub, and Linear request against this list before it
+  reaches the bot.
+
+Because the four bots share your GitHub identity, the role split above branch protection is a
+working agreement the bots follow. For hard separation, run a bot on a paired Orca server signed in
+to a GitHub account that has only the access its role needs.
 
 ## 3. Tell Steward about your projects
 
@@ -69,6 +90,8 @@ Ask each bot in its chat to set up its automations. Each bot checks the availabl
 | --- | --- | --- | --- |
 | Engineer | `github.ci_failed subject=acme/app#<n>` | Wait per pull request | Fix a failing check |
 | Engineer | `github.pr_conflicted subject=acme/app#<n>` | Wait per pull request | Rebase on a conflict |
+| Engineer | `github.ci_passed subject=acme/app#<n>` | Wait per commit | Recheck readiness when every check passes |
+| Engineer | `github.review subject=acme/app#<n>` | Wait per pull request | Recheck readiness after a person's review |
 | Engineer | `github.pr_merged in=acme/app` | Standing | Close the worker's workspace after a merge |
 | Gatekeeper | `github.workflow_finished run=<link>` with `--once --by <deadline>` | Wait per merge | Check the deploy run a merge started |
 | Sentinel | `github.deploy_finished in=acme/app` | Standing | Investigate failed production deploys |
@@ -85,20 +108,33 @@ orca automations create --bot Sentinel --name "Production deploys" \
 Check the bots' panels in Orca: each automation should show as on. A rule from a source the bot has
 no connector for shows as "won't fire".
 
+Reviews from apps, such as an automated reviewer, and your own reviews never start a bot. Use a
+reviewer that also reports as a check, so `github.ci_passed` waits for its result. See
+[waiting on CI and review](/docs/agent-teams/engineer#waiting-on-ci-and-review).
+
 ## 5. Rehearse before you rely on it
 
-Exercise three paths on a low-stakes repository or issue:
+First, at stage 0, ask each bot what it would do with one of your existing issues or pull requests.
+Check that it reports without changing anything.
 
-1. **A small issue.** Ask Steward to file a small fix. Check that it sizes it small, hands it to
-   Engineer, and that Engineer's worker opens a pull request in its own worktree and brings it to
-   green and approved. Gatekeeper should post its risk call as a **Needs you** item.
+Then rehearse writes in a disposable repository, for example `acme/sandbox`:
+
+- give it the same branch protection, CI, and independent reviewer as `acme/app`;
+- add a manually started deploy workflow that targets an environment named `production` and fails
+  on purpose when you set an input, so it never touches a real deployment;
+- point Sentinel's watch at `acme/sandbox`, and grant [stage 1](#graduate-trust) for the sandbox only.
+
+Exercise three paths there:
+
+1. **A small issue.** Ask Steward to file a small fix. Check that it sizes it small and hands it to
+   Engineer, and that Engineer's worker opens a pull request in its own worktree, marks it ready,
+   and brings it to green and approved. Gatekeeper should post its risk call as a **Needs you** item.
 2. **An unclear request.** Ask Steward for something with an open product choice. Check that it
    files the issue and raises a decision gate instead of handing it to Engineer.
-3. **A failed deploy.** Fail a deploy to a test environment, or run Sentinel's automation by hand
-   with `orca automations run <id>` after a real failure; a manual run receives the last event.
-   Check that it files one issue with evidence.
+3. **A failed deploy.** Start the sandbox deploy workflow with the failure input. The environment is
+   named `production`, so Sentinel's filter matches. Check that it files one issue with evidence.
 
-Then allow the first real changes, as the next section describes.
+Then grant stage 1 on your real repositories, as the next section describes.
 
 ## Graduate trust
 
@@ -109,7 +145,7 @@ dated line in its `MEMORY.md`.
 | Stage | Steward | Engineer | Gatekeeper | Sentinel |
 | --- | --- | --- | --- | --- |
 | 0. Read and report | Reports what it would file | Reports what it would change | Reports its risk calls | Reports failures it sees |
-| 1. Act, you merge | Files issues and hands small ones to Engineer | Opens pull requests and fixes CI and review | Posts each call as Needs you; you merge | Files incident issues; asks you before any fix |
+| 1. Act, you merge | Files issues and hands small ones to Engineer | Opens pull requests, marks them ready, and fixes CI and review | Posts each call as Needs you; you merge | Files incident issues; asks you before any fix |
 | 2. Low-risk auto-merge | Same | Same | Merges low-risk pull requests that pass its checklist; high risk still asks | Same |
 | 3. Closed loop | Same | Same | Same | Hands bounded fixes to Engineer without asking |
 

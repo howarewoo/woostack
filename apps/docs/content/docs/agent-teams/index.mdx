@@ -38,14 +38,19 @@ the only loop in the pipeline.
 Each bot holds a different permission and fails in a different way, so splitting them keeps one
 mistake from passing through every stage unchecked.
 
-- **The writer does not decide whether its work merges.** Engineer can push branches but never
-  merges. Gatekeeper can merge but never writes the change it merges.
+- **The writer does not decide whether its work merges.** Engineer pushes branches and is told never
+  to merge. Gatekeeper merges and is told never to write the change it merges. Branch protection
+  makes every pull request wait for checks and review either way.
 - **Intake stays separate from implementation.** Steward can say "this needs a decision" without
   the pressure of already having code in progress.
 - **Production has its own watcher.** Sentinel reacts to deploy events whether or not the change
   came through the pipeline, and it reports evidence rather than repairing production itself.
 - **Each bot has one place to look.** Steward watches requests and issues, Engineer watches its own
   pull requests, Gatekeeper watches ready pull requests, and Sentinel watches deploys.
+
+These boundaries are instructions in each bot's `SOUL.md`. On one computer the bots share your
+GitHub sign-in, so Orca's permission mode and GitHub branch protection are what enforce them; see
+[what enforces the limits](/docs/agent-teams/setup#what-enforces-the-limits).
 
 You can run fewer bots. If you combine roles, keep the rule that the bot that writes a change is not
 the one that merges it.
@@ -124,6 +129,8 @@ Each bot lives in its own folder with two files that shape every run.
 
 **`SOUL.md` sets who the bot is and where it stops.** It says what the bot watches, what it does,
 where it reports, and a **Never** list of boundaries. A bot changes its `SOUL.md` only when you ask.
+It is an instruction to the bot's model, not an enforced permission, so pair it with the limits
+Orca and GitHub enforce.
 Every starter template here begins with the same safe boundary: change nothing outside its own chat
 until you say it can. Widen that one capability at a time.
 

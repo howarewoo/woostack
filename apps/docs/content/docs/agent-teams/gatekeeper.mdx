@@ -41,6 +41,7 @@ When a pull request mixes both, it is high risk. When Gatekeeper is unsure, it i
 Gatekeeper merges a low-risk pull request on its own only when all of these hold:
 
 - you have allowed low-risk auto-merge for this repository and target branch;
+- the pull request is out of draft;
 - CI passed on the latest commit and the independent review approved, with no unresolved threads;
 - no one has asked to hold it;
 - no deploy for the target branch is still running, so the merge does not supersede it;
