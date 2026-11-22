@@ -61,9 +61,10 @@ are guarantees:
   Pushes use the git login on that computer, and replies where a bot was asked go through the Orca
   app. The app installation also limits where bots are asked and which events reach them. A `gh`
   account without write access limits `gh` operations only. For a strictly read-only stage 0,
-  withhold write access on every path: the `gh` and git credentials on the bot's computer (for
-  example a paired Orca server), and leave the GitHub connector off, since it posts replies as
-  the Orca app.
+  withhold write access from both the `gh` and git credentials on the bot's computer (for example a
+  paired Orca server). The connector itself writes only replies as the Orca app, where someone
+  asked the bot or where an automation uses `--results-to thread`. Keep **Who can ask** limited to
+  you and send automation results to chat until stage 1.
 - **Branch protection gates merges.** Protect the default branch: require pull requests, the CI
   checks, and an approving review, and do not allow bypassing the rules. Then no bot can merge red
   or unreviewed work, whatever its instructions say. It cannot tell the bots apart, though, because
@@ -151,7 +152,8 @@ Then grant stage 1 on your real repositories, as the next section describes.
 
 Widen one capability at a time, after the bot has shown it handles the current one well. To grant a
 capability, tell the bot in its chat and ask it to update its `SOUL.md`. Each grant also becomes a
-dated line in its `MEMORY.md`.
+dated line in its `MEMORY.md`. If you ran stage 0 with read-only credentials, give the bot write
+credentials when you grant stage 1.
 
 | Stage | Steward | Engineer | Gatekeeper | Sentinel |
 | --- | --- | --- | --- | --- |
