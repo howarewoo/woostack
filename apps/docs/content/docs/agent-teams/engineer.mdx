@@ -51,9 +51,10 @@ does start `github.ci_failed`.
 So when Engineer wakes with CI green but no approval yet, it saves one bounded wait: a
 `github.review subject=acme/app#57` rule with `--once` and a `--by` deadline a little after the
 review usually lands. Whether a person's review or the deadline wakes it, Engineer rechecks both
-halves of readiness. If the approval is still missing at the deadline, it puts the pull request
-on an item as **Needs you** instead of waiting again. You can also resume Engineer by hand after
-the review arrives.
+halves of readiness. If a review wakes it early and the pull request is still not ready, it saves
+one more wait with the same original deadline, never a later one. If the approval is still missing
+at the deadline, it puts the pull request on an item as **Needs you** instead of waiting again.
+You can also resume Engineer by hand after the review arrives.
 
 One standing `github.pr_merged in=acme/app` automation closes the worker's workspace after each
 merge. Engineer removes a pull request's waits once Gatekeeper has it.

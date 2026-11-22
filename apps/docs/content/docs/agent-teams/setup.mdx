@@ -58,9 +58,12 @@ are guarantees:
 
 - **Credentials are the hard limit.** Bots do GitHub work other than replies with your `gh`
   sign-in on their computer, so each bot can do what you can in every repository you can reach.
-  The Orca app installation only limits where bots are asked and which events reach them. If stage
-  0 must be strictly read-only, run the bots where `gh` is signed in to an account without write
-  access, such as a paired Orca server.
+  Pushes use the git login on that computer, and replies where a bot was asked go through the Orca
+  app. The app installation also limits where bots are asked and which events reach them. A `gh`
+  account without write access limits `gh` operations only. For a strictly read-only stage 0,
+  withhold write access on every path: the `gh` and git credentials on the bot's computer (for
+  example a paired Orca server), and leave the GitHub connector off, since it posts replies as
+  the Orca app.
 - **Branch protection gates merges.** Protect the default branch: require pull requests, the CI
   checks, and an approving review, and do not allow bypassing the rules. Then no bot can merge red
   or unreviewed work, whatever its instructions say. It cannot tell the bots apart, though, because
