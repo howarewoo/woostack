@@ -162,7 +162,8 @@ Then grant stage 1 on your real repositories, as the next section describes.
 Widen one capability at a time, after the bot has shown it handles the current one well. To grant a
 capability, tell the bot in its chat and ask it to update its `SOUL.md`. Each grant also becomes a
 dated line in its `MEMORY.md`. If you ran stage 0 with read-only credentials, give the bot write
-credentials when you grant stage 1.
+credentials when you grant stage 1. A bot never widens its own stage; see
+[how the team improves over time](/docs/agent-teams#how-the-team-improves-over-time).
 
 | Stage | Steward | Engineer | Gatekeeper | Sentinel |
 | --- | --- | --- | --- | --- |
@@ -197,6 +198,7 @@ Gatekeeper never auto-merges these, at any stage:
 - CI, deploy, and other production-gating scripts and workflows;
 - infrastructure, secrets, and environment configuration;
 - release preparation, version bumps, and publishing;
+- agent instructions, skills, and extensions, such as `AGENTS.md` and skill files;
 - destructive operations, architecture shifts, and very large diffs.
 
 ### Step back after a miss

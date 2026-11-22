@@ -8,7 +8,7 @@ export function TeamOrganization() {
       title="Agent team pipeline"
       height={290}
       description="Work moves from Steward to Engineer to Gatekeeper to Sentinel. Steward files and sizes issues and hands small, settled ones to Engineer. Engineer has workers implement them and hands green, approved pull requests to Gatekeeper. Gatekeeper merges low-risk pull requests your policy allows. Sentinel watches production deploys and hands bounded fixes back to Engineer. Steward, Gatekeeper, and Sentinel raise owner decision gates as Needs you items for scope, high-risk merges, and incidents outside policy."
-      caption="Solid arrows are handoffs. Dashed lines are owner decision gates: Needs you items with a recommended choice. The fix handoff from Sentinel is the only loop."
+      caption="Solid arrows are handoffs. Dashed lines are owner decision gates: Needs you items with a recommended choice. The fix handoff from Sentinel is the only backward handoff."
     >
       <g
         fill="none"

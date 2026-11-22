@@ -116,7 +116,9 @@ records record decisions; they do not authorize new work or prove that code was 
 
 To run these skills from Orca bots, follow the
 [agent team setup guide](apps/docs/content/docs/agent-teams/setup.mdx) for roles, starter `SOUL.md`
-templates, event automations, owner decision gates, and graduated merge trust.
+templates, event automations, owner decision gates, and graduated merge trust. The overview explains
+how the team [improves over time](apps/docs/content/docs/agent-teams/index.mdx#how-the-team-improves-over-time)
+while every change to roles, trust, and shared tooling waits for you.
 
 ## Choose a development workflow
 
