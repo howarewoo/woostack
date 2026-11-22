@@ -49,7 +49,8 @@ mistake from passing through every stage unchecked.
   pull requests, Gatekeeper watches ready pull requests, and Sentinel watches deploys.
 
 These boundaries are instructions in each bot's `SOUL.md`. On one computer the bots share your
-GitHub sign-in, so Orca's permission mode and GitHub branch protection are what enforce them; see
+GitHub sign-in, so nothing stops one bot from doing another's job. Branch protection keeps every
+merge behind checks and review, but it cannot tell the bots apart. See
 [what enforces the limits](/docs/agent-teams/setup#what-enforces-the-limits).
 
 You can run fewer bots. If you combine roles, keep the rule that the bot that writes a change is not

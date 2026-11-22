@@ -35,8 +35,9 @@ In Orca's sidebar, open **Bots**, select **+**, then **New bot**.
 4. Keep **Who can ask** limited to you until the pipeline has run for a while.
 
 Each bot now starts in read-and-report mode. The first **Never** line in every template tells it to
-change nothing outside its own chat, and **Ask for approval** lets you catch a write it attempts
-anyway. The next step adds the limits that do not depend on the bot following instructions.
+change nothing outside its own chat, and **Ask for approval** can catch a write it attempts anyway,
+depending on the agent. The next step covers which limits hold even if a bot ignores its
+instructions.
 
 ## 2. Connect GitHub and other services
 
@@ -52,23 +53,28 @@ other than replies runs as your own account, so the bots' pull requests and merg
 
 ### What enforces the limits
 
-A `SOUL.md` is an instruction the bot's model follows, not a lock. These are the limits that hold
-even if a bot ignores its instructions:
+A `SOUL.md` is an instruction the bot's model follows, not a lock. Know which of the other controls
+are guarantees:
 
-- **Orca's permission mode.** With **Ask for approval**, commands and edits wait for your approval.
-  Some agents have no approval modes and always run in **Full access**; see Orca's
-  [bot security](https://orca.dev/docs/bots/security#permissions) page.
-- **Branch protection.** Bots do other GitHub work with your `gh` sign-in on their computer, so each
-  bot can do what you can in every repository you can reach. The Orca app installation only limits
-  where bots are asked and which events reach them. Protect the default branch: require pull
-  requests, the CI checks, and an approving review, and do not allow bypassing the rules. Then no
-  bot can merge red or unreviewed work, whatever its instructions say.
-- **Who can ask.** Orca checks each Slack, GitHub, and Linear request against this list before it
-  reaches the bot.
+- **Credentials are the hard limit.** Bots do GitHub work other than replies with your `gh`
+  sign-in on their computer, so each bot can do what you can in every repository you can reach.
+  The Orca app installation only limits where bots are asked and which events reach them. If stage
+  0 must be strictly read-only, run the bots where `gh` is signed in to an account without write
+  access, such as a paired Orca server.
+- **Branch protection gates merges.** Protect the default branch: require pull requests, the CI
+  checks, and an approving review, and do not allow bypassing the rules. Then no bot can merge red
+  or unreviewed work, whatever its instructions say. It cannot tell the bots apart, though, because
+  they all act as you.
+- **Ask for approval depends on the agent.** Orca passes the permission mode to the bot's agent, and
+  the agent decides what to ask about. Some agents have no approval modes and always run in **Full
+  access**. See Orca's [bot security](https://orca.dev/docs/bots/security#permissions) page.
+- **Who can ask gates direct requests only.** Orca checks each Slack, GitHub, and Linear request
+  against this list. Event automations start for anyone active in a place the rule listens to, so
+  scope each rule with `in=` and, where the event supports it, `from=`.
 
-Because the four bots share your GitHub identity, the role split above branch protection is a
-working agreement the bots follow. For hard separation, run a bot on a paired Orca server signed in
-to a GitHub account that has only the access its role needs.
+Because the four bots share your GitHub identity, the role split is a working agreement the bots
+follow. For hard separation, run a bot on a paired Orca server signed in to a GitHub account that
+has only the access its role needs.
 
 ## 3. Tell Steward about your projects
 
@@ -108,8 +114,8 @@ orca automations create --bot Sentinel --name "Production deploys" \
 Check the bots' panels in Orca: each automation should show as on. A rule from a source the bot has
 no connector for shows as "won't fire".
 
-Reviews from apps, such as an automated reviewer, and your own reviews never start a bot. Use a
-reviewer that also reports as a check, so `github.ci_passed` waits for its result. See
+Reviews from apps, such as an automated reviewer, and your own reviews never start a bot. When CI
+turns green before such a review arrives, Engineer needs a bounded wait or a manual resume; see
 [waiting on CI and review](/docs/agent-teams/engineer#waiting-on-ci-and-review).
 
 ## 5. Rehearse before you rely on it
@@ -122,6 +128,8 @@ Then rehearse writes in a disposable repository, for example `acme/sandbox`:
 - give it the same branch protection, CI, and independent reviewer as `acme/app`;
 - add a manually started deploy workflow that targets an environment named `production` and fails
   on purpose when you set an input, so it never touches a real deployment;
+- add `acme/sandbox` to the Orca GitHub app installation in each bot's **Connectors**, so its events
+  reach the bots;
 - point Sentinel's watch at `acme/sandbox`, and grant [stage 1](#graduate-trust) for the sandbox only.
 
 Exercise three paths there:

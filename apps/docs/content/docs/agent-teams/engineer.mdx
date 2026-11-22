@@ -44,9 +44,16 @@ Whichever of the last two fires, Engineer rechecks both halves of readiness for 
 commit: CI green and review approved. Then it hands off or keeps waiting.
 
 Reviews from apps and from you start nothing, because Orca ignores other apps' events and your own
-GitHub actions. Prefer an automated reviewer that reports as a check, so `github.ci_passed` fires
-only after the review check passes too. If your reviewer reports neither way, resume Engineer by
-hand after it reviews.
+GitHub actions. An automated reviewer's verdict check does not close that gap: `github.ci_passed`
+fires once per commit, and it can fire before the verdict check exists. A failing verdict check
+does start `github.ci_failed`.
+
+So when Engineer wakes with CI green but no approval yet, it saves one bounded wait: a
+`github.review subject=acme/app#57` rule with `--once` and a `--by` deadline a little after the
+review usually lands. Whether a person's review or the deadline wakes it, Engineer rechecks both
+halves of readiness. If the approval is still missing at the deadline, it puts the pull request
+on an item as **Needs you** instead of waiting again. You can also resume Engineer by hand after
+the review arrives.
 
 One standing `github.pr_merged in=acme/app` automation closes the worker's workspace after each
 merge. Engineer removes a pull request's waits once Gatekeeper has it.
