@@ -9,9 +9,9 @@ Users make product decisions and authorize work.
 
 ## Product Purpose
 
-WooStack brings together a recommended tech stack, skills for coding agents, and an autonomous
-agent setup in development. The skills guide assistants to inspect repository evidence and verify
-outcomes. The stack and skills can be adopted independently; neither requires the autonomous setup.
+WooStack brings together a recommended tech stack, skills for coding agents, and an agent team
+setup that runs on Orca bots. The skills guide assistants to inspect repository evidence and verify
+outcomes. The stack and skills can be adopted independently; neither requires the agent team.
 The [README](README.md) owns the project overview and skill installation instructions.
 
 ## Capabilities and Constraints
@@ -38,8 +38,9 @@ maintained from one canonical source. No sibling Woostack workflow is required.
 without external design skills. Optional guidance cannot expand its scope or permissions.
 
 The implemented repository contains the skills collection, stack documentation, and two supporting
-applications. The autonomous setup remains in development, with installation and configuration
-not yet documented. This repository is not a place to scaffold unrelated products.
+applications. The agent team pages document roles, starter templates, and setup for bots hosted
+by Orca; WooStack ships no bot runtime or installer. This repository is not a place to scaffold
+unrelated products.
 Application source is confined to `apps/docs/` and
 `apps/design/`; supporting skill assets live with their owning skills.
 A pnpm workspace and Turborepo coordinate the apps with a shared root lockfile,
