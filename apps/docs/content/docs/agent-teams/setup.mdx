@@ -41,6 +41,10 @@ instructions.
 
 ## 2. Connect GitHub and other services
 
+If you want the stage 0 check with no GitHub writes at all, do it first: ask each bot in its Orca
+chat, as the first part of [step 5](#5-rehearse-before-you-rely-on-it) describes, before you connect
+GitHub. Then continue here.
+
 1. In each bot's **Connectors** tab, add **GitHub**, install the Orca app on `acme/app`, and turn it on
    for the bot. Give each bot only the repositories it needs.
 2. Optionally add **Slack** or **Linear** to Steward if requests arrive there, and to Sentinel if
@@ -65,9 +69,8 @@ are guarantees:
   paired Orca server). That makes the bot's own commands read-only, not GitHub as a whole. While the
   connector is on, the Orca app can still reply or review where someone asked the bot, post a
   public note when it turns away someone not on **Who can ask**, and post results where an
-  automation uses `--results-to thread`. For a rehearsal with no GitHub writes at all, keep the
-  connector off, ask from the bot's Orca chat, and turn the connector on before you exercise
-  GitHub event rules.
+  automation uses `--results-to thread`. For a check with no GitHub writes at all, run it before
+  you connect GitHub, as the start of this step describes.
 - **Branch protection gates merges.** Protect the default branch: require pull requests, the CI
   checks, and an approving review, and do not allow bypassing the rules. Then no bot can merge red
   or unreviewed work, whatever its instructions say. It cannot tell the bots apart, though, because
@@ -128,7 +131,8 @@ turns green before such a review arrives, Engineer needs a bounded wait or a man
 ## 5. Rehearse before you rely on it
 
 First, at stage 0, ask each bot in its Orca chat what it would do with one of your existing issues
-or pull requests. Check that it reports without running any write command.
+or pull requests. Check that it reports without running any write command. If you ran this check
+before connecting GitHub in step 2, skip it here.
 
 Then rehearse writes in a disposable repository, for example `acme/sandbox`:
 
