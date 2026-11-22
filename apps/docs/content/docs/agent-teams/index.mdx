@@ -171,10 +171,11 @@ work, and each one passes through you before it changes what a bot may do.
 
 Sentinel's [deploy automation](/docs/agent-teams/setup#4-add-event-automations) starts a run when a
 production deploy finishes. When a deploy fails, Sentinel finds the root cause with
-[Debug](/docs/skills/woostack-debug) and files an issue with the evidence. The fix goes to Engineer
-and then through Gatekeeper like any other change, so nobody has to watch logs and no bot repairs
-production on its own. Until you grant [stage 3](/docs/agent-teams/setup#graduate-trust), Sentinel
-asks you before it hands off a fix.
+[Debug](/docs/skills/woostack-debug) and reports it with the evidence. From
+[stage 1](/docs/agent-teams/setup#graduate-trust), it files that report as an issue. The fix goes
+to Engineer and then through Gatekeeper like any other change, so nobody has to watch logs and no
+bot repairs production on its own. Until you grant stage 3, Sentinel asks you before it hands off a
+fix.
 
 ### Calibration loop: decisions to memory and trust
 
@@ -188,11 +189,11 @@ grant.
 
 ### Tooling loop: friction to better instructions
 
-When the same friction keeps coming back, [Reflect](/docs/skills/woostack-reflect) reviews a
-finished conversation and reports concrete instruction gaps. It files an upstream issue only after
-you accept a suggestion. [Learn](/docs/guides/learn) turns feedback or a repeated workflow into a
-new or improved skill. The fixes arrive as pull requests to shared skills, docs, and agent
-extensions, so every project that uses them benefits on its next run.
+When the same friction keeps coming back, you can ask for [Reflect](/docs/skills/woostack-reflect)
+to review a finished conversation and report concrete instruction gaps. It files an upstream issue
+only after you accept a suggestion. [Learn](/docs/guides/learn) turns feedback or a repeated
+workflow into a new or improved skill. The fixes arrive as pull requests to shared skills, docs, and
+agent extensions, and each project benefits once it adopts the updated versions.
 
 ### What it is not
 
@@ -207,8 +208,9 @@ shared tooling waits for your approval.
 - Changes to agent instructions, skills, and extensions are
   [always yours to merge](/docs/agent-teams/setup#what-always-stays-with-you).
 
-Like the role boundaries, these rules are instructions to each bot. Branch protection and the
-[enforced limits](/docs/agent-teams/setup#what-enforces-the-limits) back them up.
+Like the role boundaries, these rules are instructions to each bot, not enforced permissions. Branch
+protection keeps every merge behind checks and review, but it cannot tell a bot from you. See
+[what enforces the limits](/docs/agent-teams/setup#what-enforces-the-limits).
 
 ## Next steps
 
