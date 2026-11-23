@@ -48,8 +48,7 @@ Each review starts with one callout, chosen by what the author has to do next:
 After the callout, the review gives a one-line **Approach** verdict and a **Reviewed changes** list
 that covers the whole scope of the run. A concern with no line to anchor to, such as a wrong
 premise, a missing piece, or a decision only you can make, gets its own section. Every other
-finding is an inline note on the diff, posted with `orca bot reply --note path:line:text`, up to 30
-per review.
+finding is an inline note on the diff, up to 30 per review.
 
 Each section and each inline note that needs more than a sentence ends with a collapsed brief that
 Engineer can pass to a worker as it is:
@@ -90,8 +89,32 @@ Pull requests reach Reviewer in three ways:
   every bot pushes as you. A re-review after new commits arrives from Engineer's handoff or when
   you mention `@Reviewer` on the pull request.
 
-When an event or a mention wakes Reviewer on the pull request, `orca bot reply` posts the review
-there. When a handoff wakes it in Orca, it posts the same comment review with `gh`, as you.
+### Publish the review
+
+Whatever woke it, Reviewer publishes every review the same way: one `COMMENT` review through
+GitHub's reviews API, pinned to the head commit it read. It does not use `orca bot reply` for this,
+because that command creates a review only when it carries `--note` lines, so a clean review would
+become a plain comment, and neither it nor `gh pr review` can name the commit.
+
+```text
+gh api repos/acme/app/pulls/57/reviews --input /tmp/review-57.json --jq .html_url
+```
+
+A clean review needs only three fields:
+
+```json
+{
+  "commit_id": "<full head commit SHA Reviewer read>",
+  "event": "COMMENT",
+  "body": "> ✅ No new issues found.\n\n..."
+}
+```
+
+A review with findings adds a `comments` array, one
+`{"path": "src/auth/session.ts", "line": 84, "side": "RIGHT", "body": "..."}` entry per inline
+note. The command prints the review link that the handoff carries. Runs started by an event send
+their results to Reviewer's chat, so they post nothing else on the pull request. A run started by an
+`@Reviewer` mention ends with a reply that links the review.
 
 ### The clean handoff to Gatekeeper
 
@@ -146,8 +169,9 @@ posted as comment reviews with inline notes. I never write code, push, or merge.
 - Does: reads the full diff, or the commits since my last review, and checks the approach
   first. Asks read-only specialist subagents only questions that could change my verdict,
   and drops style nits and fixes that would add bloat
-- Posts: one comment review per run at an exact head commit, with a callout, inline notes,
-  and a Technical details brief on each finding that needs one
+- Posts: one COMMENT review per run with gh api repos/<owner>/<repo>/pulls/<n>/reviews,
+  with commit_id set to the head commit I read, even when it has no inline notes. It has a
+  callout, inline notes, and a Technical details brief on each finding that needs one
 - Hands off: findings to bot:Engineer with the review link and head commit. A clean review,
   with no new issues and no inline notes, on the current head goes to bot:Gatekeeper with the
   pull request link, the review link, and the exact head commit

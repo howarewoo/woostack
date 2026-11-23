@@ -132,13 +132,15 @@ orca automations create --bot Sentinel --name "Production deploys" \
   --prompt "If this deploy targeted production and failed, investigate it and file one issue with evidence. Otherwise end quietly."
 ```
 
-Reviewer's two events can share one automation. Because only GitHub events start it, its results
-go to the pull request, where `orca bot reply` posts the review:
+Reviewer's two events can share one automation. Reviewer
+[publishes the review itself](/docs/agent-teams/reviewer#publish-the-review), so the run's results
+go to its chat:
 
 ```text
 orca automations create --bot Reviewer --name "Review new pull requests" \
   --on "github.pr_opened in=acme/app from=me" \
   --on "github.pr_ready in=acme/app" \
+  --results-to chat \
   --prompt "Review this pull request at its current head commit and post one comment review."
 ```
 
@@ -172,7 +174,9 @@ Exercise three paths there:
    Engineer, and that Engineer's worker opens a pull request in its own worktree, marks it ready,
    and brings it to green. Check that Engineer hands it to Reviewer, that Reviewer posts one comment
    review, and that findings go back to Engineer until a clean review goes to Gatekeeper. Gatekeeper
-   should post its risk call as a **Needs you** item.
+   should post its risk call as a **Needs you** item. Open one clean pull request yourself too, so
+   the automation runs, and check that both clean reviews show on GitHub as reviews of the commit
+   in the handoff, not as plain comments.
 2. **An unclear request.** Ask Steward for something with an open product choice. Check that it
    files the issue and raises a decision gate instead of handing it to Engineer.
 3. **A failed deploy.** Start the sandbox deploy workflow with the failure input. The environment is
@@ -209,8 +213,8 @@ A grant can read like this:
 
 ```text
 You may auto-merge pull requests you call low risk into main on acme/app, as a squash with
-the pull request title, once your merge checklist passes. Keep sending high-risk pull
-requests to me. Update your SOUL.md Merges line and record this in memory.
+the pull request title, pinned to the head commit Reviewer handed you, once your merge
+checklist passes. Keep sending high-risk pull requests to me. Update your SOUL.md Merges line and record this in memory.
 ```
 
 ### What always stays with you
