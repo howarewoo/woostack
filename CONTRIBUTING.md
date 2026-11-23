@@ -79,8 +79,9 @@ and verify tasks); install from the root with `pnpm install --frozen-lockfile` u
   application code and app build configuration belong in `apps/docs/` or
   `apps/design/`. App manifests own their dependencies; the root owns pnpm workspace
   and Turborepo orchestration configuration and the shared `pnpm-lock.yaml`.
-- Pull-request review uses [Pullfrog](https://pullfrog.com/); the shipped workflow is
-  `.github/workflows/pullfrog.yml`.
+- Pull-request review uses the agent team's
+  [Reviewer](apps/docs/content/docs/agent-teams/reviewer.mdx) bot in Orca; no repository
+  workflow runs it.
 - Resolve selected or changed dependency versions from authoritative current registries.
   Preserve unrelated versions and lockfiles. Name frameworks without versions; document
   necessary incompatibility pins at the consuming owner under

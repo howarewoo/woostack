@@ -5,7 +5,7 @@ and an agent team setup that runs on Orca bots. Start with the part you need:
 
 - [Tech stack](apps/docs/content/docs/recommended-stack.mdx): recommended technologies and how they fit together.
 - [Agent skills](apps/docs/content/docs/getting-started.mdx): workflows for planning, building, and checking products inside a coding harness.
-- [Agent teams](apps/docs/content/docs/agent-teams/index.mdx): a four-bot pipeline on [Orca bots](https://orca.dev/docs/bots) (Steward, Engineer, Gatekeeper, and Sentinel) that takes work from request to monitored deploy, with a [setup guide](apps/docs/content/docs/agent-teams/setup.mdx). WooStack provides the roles and starter templates, not a bot runtime or installer.
+- [Agent teams](apps/docs/content/docs/agent-teams/index.mdx): a five-bot pipeline on [Orca bots](https://orca.dev/docs/bots) (Steward, Engineer, Reviewer, Gatekeeper, and Sentinel) that takes work from request to monitored deploy, with a [setup guide](apps/docs/content/docs/agent-teams/setup.mdx). WooStack provides the roles and starter templates, not a bot runtime or installer.
 
 You can adopt the tech stack or the skills independently. Using the skills does not require
 the recommended stack or the agent team. You make the product decisions and authorize work.
@@ -96,8 +96,8 @@ application, handle credentials, or create issues, branches, commits, or PRs. Se
 Skills require no Woostack setup or configuration files. They use your request, repository guidance,
 and available host capabilities. Keep credentials in your host's secret store.
 
-For pull-request review, use [Pullfrog](https://pullfrog.com/). This repository includes the
-Pullfrog workflow at [`.github/workflows/pullfrog.yml`](.github/workflows/pullfrog.yml).
+For pull-request review, use the agent team's [Reviewer](apps/docs/content/docs/agent-teams/reviewer.mdx)
+bot. It posts comment reviews with inline notes at each pull request's exact head commit.
 
 See the [workflow inputs reference](apps/docs/content/docs/configuration/index.mdx) for task scope,
 verification, branch selection, authentication, and output locations.
@@ -174,7 +174,7 @@ none of these workflows automatically starts another.
 | Plan a proved defect as issues | [/woostack-whiteboard](skills/woostack-whiteboard/SKILL.md) |
 | Find concrete improvements to instructions from this conversation | [/woostack-reflect](skills/woostack-reflect/SKILL.md) |
 
-Pullfrog handles pull-request review. QA remains report-only and does not fix source or post findings.
+The [Reviewer](apps/docs/content/docs/agent-teams/reviewer.mdx) bot handles pull-request review. QA remains report-only and does not fix source or post findings.
 
 Reports help you decide what to do next. They do not expand the agreed scope or replace
 Git/GitHub evidence. Agents never merge PRs; merging is a human decision.

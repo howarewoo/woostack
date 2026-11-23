@@ -1,13 +1,13 @@
 ---
 title: Agent team overview
-description: Run a four-bot Orca pipeline that takes work from request to monitored production deploy.
+description: Run a five-bot Orca pipeline that takes work from request to monitored production deploy.
 ---
 
 import { TeamOrganization } from "@/components/guides/team-organization";
 
-This section describes a four-bot engineering team that runs on [Orca bots](https://orca.dev/docs/bots):
-**Steward**, **Engineer**, **Gatekeeper**, and **Sentinel**. Each bot owns one stage of the path from
-an owner's request to a merged, deployed, and watched change. The bots install
+This section describes a five-bot engineering team that runs on [Orca bots](https://orca.dev/docs/bots):
+**Steward**, **Engineer**, **Reviewer**, **Gatekeeper**, and **Sentinel**. Each bot owns one stage
+of the path from an owner's request to a merged, deployed, and watched change. The bots install
 [WooStack agent skills](/docs/getting-started) in their coding agents and use them for planning,
 implementation, and delivery.
 
@@ -22,40 +22,45 @@ connectors, and automations. These pages give you the roles, the rules between t
 | Bot | Owns | Hands work to | Never |
 | --- | --- | --- | --- |
 | [Steward](/docs/agent-teams/steward) | Intake: requests, issues, sizing, and the project roster | Engineer, for small and settled issues; you, for scope decisions | Writes production code or merges |
-| [Engineer](/docs/agent-teams/engineer) | Implementation: workers, pull requests, CI, and review feedback | Gatekeeper, once a pull request is green and approved | Merges or approves its own pull requests |
+| [Engineer](/docs/agent-teams/engineer) | Implementation: workers, pull requests, CI, and review feedback | Reviewer, once a pull request is ready or updated | Merges or approves its own pull requests |
+| [Reviewer](/docs/agent-teams/reviewer) | Review: full and incremental comment reviews at an exact head commit | Gatekeeper, for clean reviews; Engineer, for findings | Writes code, pushes, or merges |
 | [Gatekeeper](/docs/agent-teams/gatekeeper) | Merging: risk calls, merges your policy allows, and post-merge deploy checks | You, for high-risk merges; Sentinel watches what ships | Merges high-risk changes without you |
 | [Sentinel](/docs/agent-teams/sentinel) | Production: failed deploys, root cause, and incident issues | Engineer, for bounded fixes your policy allows; you, for the rest | Rolls back, redeploys, or edits code on its own |
 
-A request moves in one direction. Steward turns it into a well-scoped GitHub issue and decides
-whether it is small enough to start. Engineer implements it in a worker's own worktree and sees the
-pull request through CI and independent review. Gatekeeper decides whether the pull request is low
-or high risk and merges only what your policy allows. Sentinel watches the production deploy and,
-when one fails, files an issue with evidence and returns a bounded fix to Engineer. That return is
-the only handoff that runs backward. The team still improves with use, through the
-[feedback loops](#how-the-team-improves-over-time) you steer.
+A request moves forward one stage at a time. Steward turns it into a well-scoped GitHub issue and
+decides whether it is small enough to start. Engineer implements it in a worker's own worktree and
+sees the pull request through CI. Reviewer reviews the exact head commit, sends findings back to
+Engineer, and hands a clean pull request to Gatekeeper. Gatekeeper decides whether the pull request
+is low or high risk and merges only what your policy allows. Sentinel watches the production deploy
+and, when one fails, files an issue with evidence and returns a bounded fix to Engineer. Reviewer's
+findings and Sentinel's fixes are the only handoffs that run backward. The team still improves with
+use, through the [feedback loops](#how-the-team-improves-over-time) you steer.
 
-## Why four bots
+## Why five bots
 
 Each bot holds a different permission and fails in a different way, so splitting them keeps one
 mistake from passing through every stage unchecked.
 
 - **The writer does not decide whether its work merges.** Engineer pushes branches and is told never
   to merge. Gatekeeper merges and is told never to write the change it merges. Branch protection
-  makes every pull request wait for checks and review either way.
+  makes every pull request wait for its checks either way.
+- **The writer does not review its own work.** Reviewer reads every pull request before Gatekeeper
+  sees it, and it cannot push a fix itself. Findings go back to Engineer.
 - **Intake stays separate from implementation.** Steward can say "this needs a decision" without
   the pressure of already having code in progress.
 - **Production has its own watcher.** Sentinel reacts to deploy events whether or not the change
   came through the pipeline, and it reports evidence rather than repairing production itself.
 - **Each bot has one place to look.** Steward watches requests and issues, Engineer watches its own
-  pull requests, Gatekeeper watches ready pull requests, and Sentinel watches deploys.
+  pull requests, Reviewer watches pull requests waiting for review, Gatekeeper watches reviewed
+  pull requests, and Sentinel watches deploys.
 
 These boundaries are instructions in each bot's `SOUL.md`. On one computer the bots share your
 GitHub sign-in, so nothing stops one bot from doing another's job. Branch protection keeps every
-merge behind checks and review, but it cannot tell the bots apart. See
+merge behind a pull request and its checks, but it cannot tell the bots apart. See
 [what enforces the limits](/docs/agent-teams/setup#what-enforces-the-limits).
 
 You can run fewer bots. If you combine roles, keep the rule that the bot that writes a change is not
-the one that merges it.
+the one that reviews or merges it.
 
 ## Handoffs, questions, and status updates
 
@@ -156,6 +161,8 @@ The bots use the same skills you would use in a coding session:
 - Engineer's workers use [Execute](/docs/skills/woostack-execute) to implement and verify, and
   [Deliver](/docs/skills/woostack-deliver) to open and update pull requests. For multi-issue work,
   Engineer uses [Orchestrate](/docs/guides/coordinate-work).
+- Reviewer needs no WooStack skill. It reads each diff itself and asks read-only specialist
+  subagents only the questions that could change its verdict.
 - Sentinel uses [Debug](/docs/skills/woostack-debug) for read-only root-cause analysis.
 
 A completed plan does not grant permission to implement, merge, or deploy. Those permissions come
@@ -173,9 +180,9 @@ Sentinel's [deploy automation](/docs/agent-teams/setup#4-add-event-automations) 
 production deploy finishes. When a deploy fails, Sentinel finds the root cause with
 [Debug](/docs/skills/woostack-debug) and reports it with the evidence. From
 [stage 1](/docs/agent-teams/setup#graduate-trust), it files that report as an issue. The fix goes
-to Engineer and then through Gatekeeper like any other change, so nobody has to watch logs and no
-bot repairs production on its own. Until you grant stage 3, Sentinel asks you before it hands off a
-fix.
+to Engineer and then through Reviewer and Gatekeeper like any other change, so nobody has to watch
+logs and no bot repairs production on its own. Until you grant stage 3, Sentinel asks you before it
+hands off a fix.
 
 ### Calibration loop: decisions to memory and trust
 
@@ -209,12 +216,13 @@ shared tooling waits for your approval.
   [always yours to merge](/docs/agent-teams/setup#what-always-stays-with-you).
 
 Like the role boundaries, these rules are instructions to each bot, not enforced permissions. Branch
-protection keeps merges into a protected branch behind checks and review, but it cannot tell a bot
-from you. See [what enforces the limits](/docs/agent-teams/setup#what-enforces-the-limits).
+protection keeps merges into a protected branch behind pull requests and checks, but it cannot tell
+a bot from you. See [what enforces the limits](/docs/agent-teams/setup#what-enforces-the-limits).
 
 ## Next steps
 
 - [Set up the team](/docs/agent-teams/setup) and graduate Gatekeeper to low-risk auto-merge.
 - Read each role: [Steward](/docs/agent-teams/steward), [Engineer](/docs/agent-teams/engineer),
-  [Gatekeeper](/docs/agent-teams/gatekeeper), and [Sentinel](/docs/agent-teams/sentinel).
+  [Reviewer](/docs/agent-teams/reviewer), [Gatekeeper](/docs/agent-teams/gatekeeper), and
+  [Sentinel](/docs/agent-teams/sentinel).
 - [Deliver a large task](/docs/agent-teams/deliver-large-tasks) across several pull requests.

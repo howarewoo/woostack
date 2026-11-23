@@ -1,4 +1,4 @@
 {
   "title": "Roles",
-  "pages": ["../steward", "../engineer", "../gatekeeper", "../sentinel"]
+  "pages": ["../steward", "../engineer", "../reviewer", "../gatekeeper", "../sentinel"]
 }

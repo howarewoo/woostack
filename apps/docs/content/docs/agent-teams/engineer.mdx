@@ -5,8 +5,8 @@ description: The implementation bot that dispatches workers in their own worktre
 
 Engineer is the second stage of the [agent team pipeline](/docs/agent-teams). It takes bounded
 work, has a worker implement it in an isolated worktree, and owns the resulting pull request through
-CI and independent review. When the pull request is green and approved, Engineer hands it to
-Gatekeeper. It never merges.
+CI and review. When the pull request is ready, Engineer hands it to Reviewer and has the worker fix
+whatever Reviewer finds. It never merges.
 
 ## Responsibilities
 
@@ -20,12 +20,13 @@ Gatekeeper. It never merges.
 - **Mark it ready for review.** Deliver opens new pull requests as drafts and leaves readiness
   alone unless asked. Engineer's worker spec asks the worker to mark the pull request ready for
   review once local verification passes. Your stage 1 grant, which lets Engineer open pull
-  requests, covers that step. A draft can be green and approved and still cannot merge.
-- **Own the pull request.** Engineer follows CI and the independent reviewer (for example an
-  automated reviewer such as Pullfrog) and has the worker fix failures, conflicts, and review
-  requests until CI passes and review approves.
-- **Hand off when ready.** A pull request that is out of draft, green, and approved goes to
-  Gatekeeper with a summary of what changed and how it was verified.
+  requests, covers that step. A draft can be green and reviewed and still cannot merge.
+- **Own the pull request.** Engineer follows CI and has the worker fix failures and conflicts until
+  every check passes on the latest commit.
+- **Hand off for review.** A pull request that is out of draft and green goes to
+  [Reviewer](/docs/agent-teams/reviewer) with its exact head commit. When Reviewer sends findings
+  back, the worker fixes them, and Engineer hands the new head to Reviewer for a re-review. Reviewer,
+  not Engineer, hands a clean pull request to Gatekeeper.
 - **Clean up after merge.** When the pull request merges, Engineer stops the worker and removes its
   worktree and branch.
 
@@ -36,28 +37,18 @@ that pull request:
 
 - `github.ci_failed subject=acme/app#57` to fix a failing check;
 - `github.pr_conflicted subject=acme/app#57` to rebase on a conflict;
-- `github.ci_passed subject=acme/app#57` to check readiness when every check on the latest commit
-  has passed;
+- `github.ci_passed subject=acme/app#57` to hand the latest commit to Reviewer once every check on
+  it has passed;
 - `github.review subject=acme/app#57` to read a review from a person.
 
-Whichever of the last two fires, Engineer rechecks both halves of readiness for the current
-commit: CI green and review approved. Then it hands off or keeps waiting.
-
-Reviews from apps and from you start nothing, because Orca ignores other apps' events and your own
-GitHub actions. An automated reviewer's verdict check does not close that gap: `github.ci_passed`
-fires once per commit, and it can fire before the verdict check exists. A failing verdict check
-does start `github.ci_failed`.
-
-So when Engineer wakes with CI green but no approval yet, it saves one bounded wait: a
-`github.review subject=acme/app#57` rule with `--once` and a `--by` deadline a little after the
-review usually lands. Whether a person's review or the deadline wakes it, Engineer rechecks both
-halves of readiness. If a review wakes it early and the pull request is still not ready, it saves
-one more wait with the same original deadline, never a later one. If the approval is still missing
-at the deadline, it puts the pull request on an item as **Needs you** instead of waiting again.
-You can also resume Engineer by hand after the review arrives.
+Reviewer's results do not arrive as GitHub events. Reviewer posts its comment reviews as you, and
+your own reviews start nothing. The results arrive as Orca mail instead: findings come back to
+Engineer as a `handoff`, and a clean result comes back as Reviewer's reply to Engineer's handoff,
+after Reviewer has handed the pull request to Gatekeeper. Engineer needs no timer for review.
 
 One standing `github.pr_merged in=acme/app` automation closes the worker's workspace after each
-merge. Engineer removes a pull request's waits once Gatekeeper has it.
+merge. Engineer removes a pull request's waits once Reviewer reports it clean, and saves new ones
+if Gatekeeper sends the pull request back.
 
 `github.ci_passed` and `github.pr_conflicted` fire at once if the pull request is already green or
 conflicted when the rule is saved. Act on that event. Save a new `ci_passed` wait only after a new
@@ -71,7 +62,8 @@ Engineer never:
 - starts a second worker for an issue that already has a worker, branch, or pull request;
 - edits files in your checkout or another bot's worktree;
 - widens a handoff's scope. New decisions go back to Steward or to you;
-- hands Gatekeeper a draft, or a pull request with failing checks or unresolved review.
+- hands Reviewer a draft or a pull request with failing checks;
+- hands a pull request to Gatekeeper itself. Clean reviews reach Gatekeeper only from Reviewer.
 
 ## Handoffs
 
@@ -79,8 +71,18 @@ Engineer never:
 | --- | --- | --- |
 | From Steward or Sentinel | A small, settled issue | `handoff` mail |
 | To a worker | One task with its spec, worktree, and acceptance | `orca orchestration worker-start` |
-| To Gatekeeper | A ready, green, approved pull request | `handoff` with the link, change summary, and verification |
+| To Reviewer | A ready, green pull request, or one updated after findings | `handoff` with the link, the exact head commit, and whether it needs a first review or a re-review |
+| From Reviewer | Findings, with the review link and the reviewed head commit | `handoff` mail |
+| From Gatekeeper | A reviewed pull request that needs changes before it can merge | `handoff` mail |
 | To Steward or you | A task that turned out larger or unclear | `question` or Needs you item |
+
+Example handoff to Reviewer:
+
+```text
+orca orchestration send --to bot:Reviewer --type handoff \
+  --subject "Review acme/app#57" \
+  --body-file /tmp/review-57.md
+```
 
 Make pull request titles final [Conventional Commits](https://www.conventionalcommits.org/) when
 Gatekeeper squash-merges with the title.
@@ -94,8 +96,7 @@ line tells it to stay read-only until you allow it to open pull requests.
 # Engineer
 
 I'm my owner's engineer: I fix small, well-bounded issues in their repositories, open
-pull requests for them, and see each one through CI and review before handing it to
-Gatekeeper.
+pull requests for them, and see each one through CI and review by Reviewer.
 
 ## How I work
 
@@ -104,10 +105,11 @@ Gatekeeper.
 - Does: scopes each issue with woostack-whiteboard, stopping to ask if it isn't small and
   clear. A worker in its own worktree implements and verifies it with woostack-execute,
   opens a pull request with woostack-deliver, and marks it ready for review
-- Follows through: waits on CI and review events, and has the worker fix failures,
-  conflicts, and review requests until CI passes and review approves. Then hands the ready
-  pull request to bot:Gatekeeper. When it merges, stops the worker and removes its worktree
-  and branch
+- Follows through: waits on CI events and has the worker fix failures and conflicts. Hands
+  each ready, green pull request to bot:Reviewer with its exact head commit, and has the
+  worker fix Reviewer's findings before handing the new head back for a re-review. Reviewer
+  hands clean pull requests to bot:Gatekeeper. When one merges, stops the worker and removes
+  its worktree and branch
 - Reports: each fix as an item in this chat, with the pull request link, what changed, and
   how it was verified
 
@@ -126,5 +128,5 @@ Gatekeeper.
 - **Skills:** [Whiteboard](/docs/skills/woostack-whiteboard),
   [Execute](/docs/skills/woostack-execute), [Deliver](/docs/skills/woostack-deliver), and
   [Orchestrate](/docs/skills/woostack-orchestrate) for multi-issue work.
-- **Review:** an independent reviewer on every pull request. The bot that wrote a change is not its
-  reviewer.
+- **Review:** [Reviewer](/docs/agent-teams/reviewer) on every pull request. The bot that wrote a
+  change is not its reviewer.
