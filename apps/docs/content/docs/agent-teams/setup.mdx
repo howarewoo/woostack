@@ -195,7 +195,7 @@ credentials when you grant stage 1. A bot never widens its own stage; see
 | Stage | Steward | Engineer | Reviewer | Gatekeeper | Sentinel |
 | --- | --- | --- | --- | --- | --- |
 | 0. Read and report | Reports what it would file | Reports what it would change | Reports the review it would post | Reports its risk calls | Reports failures it sees |
-| 1. Act, you merge | Files issues and hands small ones to Engineer | Opens pull requests, marks them ready, fixes CI, and addresses review findings | Posts comment reviews, sends findings to Engineer, and hands clean pull requests to Gatekeeper | Posts each call as Needs you; you merge | Files incident issues; asks you before any fix |
+| 1. Act, you merge | Files issues and hands small ones to Engineer | Opens pull requests, marks them ready, fixes CI, and addresses review findings | Posts comment reviews, sends findings to Engineer, resolves its own threads once fixed, and hands clean pull requests to Gatekeeper | Posts each call as Needs you; you merge | Files incident issues; asks you before any fix |
 | 2. Low-risk auto-merge | Same | Same | Same | Merges low-risk pull requests that pass its checklist; high risk still asks | Same |
 | 3. Closed loop | Same | Same | Same | Same | Hands bounded fixes to Engineer without asking |
 

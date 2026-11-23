@@ -50,7 +50,8 @@ Gatekeeper merges a low-risk pull request on its own only when all of these hold
 - the pull request is out of draft;
 - CI passed on the latest commit;
 - Reviewer's handoff names that same commit and links a clean review of it;
-- no review thread is unresolved;
+- no review thread is unresolved. Reviewer resolves its own threads once it confirms their fixes, so
+  any open thread, including one from a person, blocks the merge;
 - no one has asked to hold it;
 - no deploy for the target branch is still running, so the merge does not supersede it;
 - the merge method matches the repository, for example a squash with the final Conventional Commit
