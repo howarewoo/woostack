@@ -136,7 +136,7 @@ bot is waiting for, and keeps running after the work is done. Orca automations s
 something happens.
 
 - **Standing automations** run every time an event matches, for example
-  `--on "github.deploy_finished in=acme/app"` for Sentinel.
+  `--on 'github.deploy_finished in=acme/app contains="production: failure"'` for Sentinel.
 - **Waits** use `--once` with a deadline from `--by`, for example one pull request's CI result or one
   workflow run. They wake the bot once, on the matching event or at the deadline.
 - **Schedules** cover work with no event, such as a weekly roster review.

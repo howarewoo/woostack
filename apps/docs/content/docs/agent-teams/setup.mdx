@@ -121,7 +121,7 @@ Ask each bot in its chat to set up its automations. Each bot checks the availabl
 | Reviewer | `github.pr_opened in=acme/app from=me` | Standing | Review pull requests you open |
 | Reviewer | `github.pr_ready in=acme/app` | Standing | Review a draft once it is marked ready |
 | Gatekeeper | `github.workflow_finished run=<link>` with `--once --by <deadline>` | Wait per merge | Check the deploy run a merge started |
-| Sentinel | `github.deploy_finished in=acme/app contains="production: failure"` | Standing | Investigate failed production deploys |
+| Sentinel | `github.deploy_finished in=acme/app contains="production: failure"` and `contains="production: error"` | Standing | Investigate failed production deploys |
 
 For example, Sentinel's watch:
 
