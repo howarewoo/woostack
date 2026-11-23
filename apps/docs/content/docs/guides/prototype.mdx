@@ -44,7 +44,37 @@ simulate, or leave unresolved. An omitted control is not permission to remove it
 An existing defect can be corrected within agreed authority; it need not become a design constraint.
 Keep material unanswered choices explicit rather than letting demo defaults decide them.
 
-## 3. Refine the same prototype
+## 3. Compare directions when the choice is open
+
+When the direction itself is undecided, or you want alternatives, ask for a few distinct variants
+instead of one proposal. Skip this step when the direction is settled; refinements stay in one
+prototype.
+
+```text
+Show me three distinct directions for the notification preferences section only.
+Name each direction and the axis it explores before building. Keep the settings
+page around them identical, give every variant the same care, and let me switch
+between them full size. Finish with a tradeoff table without picking a favorite.
+```
+
+A broad brief is narrowed to the decision with the most leverage, with other surfaces offered as
+follow-ups. Expect 3 variants by default and at most 5, each with a descriptive name and a distinct
+axis such as layout, information hierarchy, density, interaction model, personality, or motion.
+Variants that differ only in accent color count as one direction, so a set can shrink when two
+converge.
+
+Each variant appears full size, one at a time, in the same realistic context. A small neutral picker
+switches between them: press `1` to `N` or the left and right arrow keys, and `R` to replay motion
+when any variant has it. The address keeps `?v=N`, so a reload or shared link reopens the same
+variant. The picker and variants live in the artifact workspace; nothing is added to your project.
+
+Every variant is exercised on its own before you review it. The tradeoff table lists each variant,
+its axis, when it is the right choice, and its cost. Select one to refine in place, or ask for a riff:
+a new round of variants around the one you favor. The earlier set is checkpointed first so you can
+return to it. Selecting a variant chooses the snapshot to refine or hand off; it does not change
+production code.
+
+## 4. Refine the same prototype
 
 Review a working prototype and give focused feedback. For example:
 
@@ -67,10 +97,10 @@ revision, keep a recoverable source checkpoint. A copy in the task-owned artifac
 you do not need Git or a version for every edit. Reuse still-valid observations rather than reviewing
 the full screenshot history each time.
 
-## 4. Approve a snapshot and collect the handoff
+## 5. Approve a snapshot and collect the handoff
 
-When the reference answers the experience question, identify the exact snapshot you approve and any
-remaining limits. Later variants do not inherit that approval. You can also stop with an honest draft.
+When the reference answers the experience question, identify the exact snapshot you approve,
+including the selected variant after a comparison, and any remaining limits. Later variants do not inherit that approval. You can also stop with an honest draft.
 Approval does not authorize production implementation, publication, or deployment.
 
 Ask for an inspectable handoff that includes:
@@ -90,7 +120,7 @@ For settings, the handoff might show that a simulated failed save preserves ente
 still requiring production verification of persistence, permissions, and retry behavior.
 See the [Prototype reference](/docs/skills/woostack-prototype#portable-handoff) for the full contract.
 
-## 5. Choose whether to plan or implement
+## 6. Choose whether to plan or implement
 
 A useful next step is [Whiteboard](/docs/guides/whiteboard) for an implementation plan based on the
 approved experience. Provide actual access to the reference and handoff, then request:

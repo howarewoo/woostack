@@ -87,6 +87,14 @@ product, not repeated generic decoration or forced monochrome minimalism. For la
 the promise, supporting content, and action hierarchy; never fabricate testimonials or product claims.
 Visual preference is not evidence of conversion, usability, or human authorship.
 
+## Compare variants fairly
+
+When comparing variants, inspect each at full size in the same realistic context, viewport, theme,
+and data rather than as thumbnails or side-by-side crops. Exercise each variant's own interactions
+and states; evidence from one variant does not carry to another. Compare every variant against the
+same product baseline, and keep the tradeoff summary to fit and cost. Preferring one variant is a
+design judgment, not usability evidence.
+
 ## Report what the evidence supports
 
 | Evidence | What it can establish | What it cannot establish alone |

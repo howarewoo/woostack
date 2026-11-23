@@ -81,8 +81,9 @@ or cancelled, preserving returned artifacts and describing any transient preview
 2. **Resolve flow and direction.** Work out information priority, navigation versus actions,
    completion, cancellation, and recovery before polishing. Research only consequential unknowns,
    using current primary sources for platform-dependent decisions. Use the smallest sketch or
-   representative surface that resolves uncertainty; explore distinct alternatives only for a real
-   unresolved choice. Distinguish consequential behavior to preserve, intentionally change, simulate,
+   representative surface that resolves uncertainty. Refine one prototype in place by default;
+   [explore variants](#explore-variants) only for open exploration, a real unresolved choice, or an
+   explicit request for alternatives. Distinguish consequential behavior to preserve, intentionally change, simulate,
    or leave unresolved; omission is not permission to remove it. Existing defects may be corrected
    within authority, not treated as immutable. Preserve approved decisions and seek agreement before
    broadening them.
@@ -115,6 +116,42 @@ or cancelled, preserving returned artifacts and describing any transient preview
    useful draft; no mandatory questionnaire, wireframe phase, document set, or live conversation is
    required. Review of a later production implementation is a separate request, not this endpoint.
 
+## Explore variants
+
+Compare variants only for open exploration of a direction, a real unresolved experience, visual, or
+interaction choice, or an explicit request for alternatives, a number of them, or a riff on one.
+Refining an approved direction and bounded usability or behavior changes stay in-place edits to one
+prototype.
+
+1. **Narrow the question.** When a brief spans several surfaces, such as a whole dashboard, explore
+   the one surface or decision with the most leverage, say why, and offer the rest as follow-ups.
+   Spreading variants across a whole product thins the craft of each.
+2. **Name variants and axes first.** Build 3 variants by default and at most 5 when requested or
+   warranted; more blurs the comparison. Before building, state each variant's descriptive name,
+   such as *Quiet*, *Editorial*, or *Dense*, never *Option A*, and the axis it explores: layout,
+   information hierarchy, density, interaction model, personality, or motion. Variants that differ
+   only in accent color or minor copy are one direction. If two converge while being built, drop one
+   and say so instead of padding the set. Sharing the product's tokens and character is expected.
+3. **Hold every variant to the same bar.** Each must stand on its own as a defensible answer with
+   realistic content, working interactions, relevant states, accessible behavior, and reduced motion.
+   Never build a weak variant to flatter another.
+4. **Show one at a time.** Read [variant picker](references/variant-picker.md) before building the
+   comparison. Present each variant full size in realistic context, switched by neutral picker
+   chrome. Variants, the picker, and checkpoints stay in the artifact workspace; never add prototype
+   routes or files to the target project.
+5. **Verify each variant.** Flip through every variant and inspect it as in
+   [Prototype and refine](#prototype-and-refine): clean console, working interactions and states, and
+   selective screenshots where browser tools are available. Evidence from one variant does not cover
+   another.
+6. **Report tradeoffs without leading.** Present a short table with the columns `Variant`, `Axis`,
+   `When it's the right choice`, and `Its cost`, giving each variant the same depth. Do not pre-pick a
+   favorite. State where to open the comparison and its keyboard shortcuts.
+7. **Select or riff.** The user may select one variant to refine in place, or ask for a riff: a
+   focused new round around a favored variant on newly named axes. Before a riff, checkpoint the
+   current set so it stays recoverable and its links keep their meaning. Selecting a variant makes
+   that exact snapshot the reference for refinement or the portable handoff. It never promotes
+   prototype code into production, edits the target project, or discards the compared set.
+
 ## Portable handoff
 
 Keep the result proportional: a concise note for a small change, or a Markdown handoff beside the
@@ -125,8 +162,9 @@ When transfer is unavailable, report that limit without publishing to a new serv
 
 Carry the important context into the result rather than requiring recovery from conversation:
 
-- **Reference and status:** the exact snapshot, proposed/approved/incomplete status, and the basis
-  for any approval or delegated decision; baseline provenance for existing products, including source
+- **Reference and status:** the exact snapshot, including the selected variant and its compared set
+  when variants were explored, proposed/approved/incomplete status, and the basis for any approval
+  or delegated decision; baseline provenance for existing products, including source
   revision/local modifications where available, inspected owning surfaces, and observation limits.
 - **Experience and reuse:** goal, scope/non-goals, preserved constraints, consequential decisions,
   preserved behavior and intentional differences from an existing product, unresolved behavior,
