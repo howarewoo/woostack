@@ -44,8 +44,11 @@ approval; approval names the exact set snapshot and variant.
 
 ## Reference wiring
 
-Adapt this standalone sketch; it needs no build step or dependency. Give each variant a
-`data-variant` attribute holding its name, and add `data-motion` to variants with motion to replay.
+Adapt this standalone sketch; it needs no build step or dependency. Give each variant's top-level
+container a `data-proto-variant` attribute holding its name, and add `data-proto-motion` to variants
+with motion to replay. The `proto` prefix keeps harness attributes apart from component attributes:
+many component libraries already render `data-variant` on buttons and badges, and those must never
+become picker entries or be hidden by it.
 Script-driven motion can restart on the `variant:replay` event. A variant that handles arrow or
 number keys itself should call `preventDefault()` so the picker leaves those keys alone.
 
@@ -59,7 +62,7 @@ number keys itself should call `preventDefault()` so the picker leaves those key
   <!-- The prototype's own styles go here. -->
   <style>
     /* Harness chrome: fixed neutral values, never project tokens. */
-    [data-variant][hidden] { display: none !important; }
+    [data-proto-variant][hidden] { display: none !important; }
     .proto-picker {
       all: initial; position: fixed; z-index: 2147483000; left: 50%;
       bottom: max(16px, env(safe-area-inset-bottom)); transform: translateX(-50%);
@@ -94,18 +97,18 @@ number keys itself should call `preventDefault()` so the picker leaves those key
 <body>
   <!-- Shared realistic context: the page each toast appears over. -->
   <main class="orders-page">
-    <section data-variant="Quiet">…</section>
-    <section data-variant="Editorial" hidden>…</section>
-    <section data-variant="Dense" data-motion hidden>…</section>
+    <section data-proto-variant="Quiet">…</section>
+    <section data-proto-variant="Editorial" hidden>…</section>
+    <section data-proto-variant="Dense" data-proto-motion hidden>…</section>
   </main>
   <!-- Add data-position="top" when a variant occupies the bottom center. -->
   <div class="proto-picker" role="group" aria-label="Prototype variants"></div>
   <script>
     (() => {
-      const variants = [...document.querySelectorAll("[data-variant]")];
+      const variants = [...document.querySelectorAll("[data-proto-variant]")];
       const picker = document.querySelector(".proto-picker");
       if (!picker || variants.length < 2) return;
-      const canReplay = variants.some((variant) => variant.hasAttribute("data-motion"));
+      const canReplay = variants.some((variant) => variant.hasAttribute("data-proto-motion"));
       const highlight = document.createElement("span");
       highlight.className = "proto-picker__highlight";
       picker.append(highlight);
@@ -116,7 +119,7 @@ number keys itself should call `preventDefault()` so the picker leaves those key
         const key = document.createElement("kbd");
         button.type = "button";
         key.textContent = String(index + 1);
-        button.append(key, variant.dataset.variant);
+        button.append(key, variant.dataset.protoVariant);
         button.addEventListener("click", () => show(index));
         picker.append(button);
         return button;
@@ -189,4 +192,6 @@ still works, but the address does not keep the selection.
 
 Before presenting, exercise every number key and both arrows, reload with `?v=N` for a variant other
 than the first, use replay when it is present, check the top position when used, and confirm a clean
-console. These checks prove only the harness. Each variant still needs its own design verification.
+console. Confirm the picker lists only the intended variants, and that components inside a variant
+that carry their own `data-variant` stay visible and add no entries. These checks prove only the
+harness. Each variant still needs its own design verification.
