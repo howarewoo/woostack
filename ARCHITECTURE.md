@@ -71,9 +71,9 @@ keeps cache files within the checkout.
 Deterministic generator, asset, and projection tests live in `apps/docs/scripts/`;
 workspace-runner tests live in `scripts/`. These checks do not establish that a
 host assistant followed a workflow. [AGENTS.md](AGENTS.md#validation) owns conditional
-verification, including separate workflow smoke recipes. The shipped
-[Pullfrog workflow](.github/workflows/pullfrog.yml) runs review agents, not a repository
-test pipeline.
+verification, including separate workflow smoke recipes. Pull-request review comes from
+the agent team's [Reviewer](apps/docs/content/docs/agent-teams/reviewer.mdx) bot in Orca,
+not a repository workflow.
 
 Publication and retained-data changes follow the canonical
 [artifact contract](shared/references/artifact-backends.md). Product scope belongs

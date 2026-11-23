@@ -1,6 +1,6 @@
 ---
 title: Deliver a large task with the agent team
-description: Take a multi-issue request through the four-bot pipeline with one accountable owner at each stage.
+description: Take a multi-issue request through the five-bot pipeline with one accountable owner at each stage.
 ---
 
 A large request, such as a new feature that spans several pull requests, moves through the same
@@ -33,19 +33,25 @@ the final report in its chat.
    allowed actions, verification, and done condition. One worker writes per worktree.
 3. Independent pull requests run in parallel. When a shared contract is uncertain, Engineer verifies
    a representative slice before starting the dependent work.
-4. Dispatch is not completion. Engineer waits on worker reports and CI and review events, inspects
-   the actual diffs and evidence, sends concrete corrections, and keeps independent review on every
-   pull request.
-5. It marks each pull request ready for review and hands it to Gatekeeper once it is green and
-   approved, bottom of the stack first.
+4. Dispatch is not completion. Engineer waits on worker reports, CI events, and Reviewer's findings,
+   inspects the actual diffs and evidence, and sends concrete corrections.
+5. It marks each pull request ready for review and hands it to Reviewer once it is green, bottom of
+   the stack first.
 
-## 3. Gatekeeper merges in order
+## 3. Reviewer reviews each pull request
+
+Reviewer reviews each pull request at its exact head commit. Findings go back to Engineer, and the
+worker's fix gets an incremental re-review. A clean pull request goes to Gatekeeper with the head
+commit Reviewer reviewed. Restacking gives the layers above new head commits, so each goes back to
+Reviewer before Gatekeeper takes it.
+
+## 4. Gatekeeper merges in order
 
 Gatekeeper calls each pull request's risk on its own. A stack merges bottom-up: Gatekeeper merges a
 layer, waits for its deploy, and only then takes the next layer. A high-risk layer waits for your
 merge, and the layers above it wait too. See the [merge checklist](/docs/agent-teams/gatekeeper#merge-checklist).
 
-## 4. Sentinel watches each deploy
+## 5. Sentinel watches each deploy
 
 Each merge can start a production deploy. Sentinel investigates any that fail and files one issue
 per failure. A fix goes back to Engineer as a new bounded handoff, not as a change to a pull request

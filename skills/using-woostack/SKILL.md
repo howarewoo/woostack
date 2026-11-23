@@ -42,7 +42,7 @@ For an explicit one-run model or effort request, apply the bundled
 | Implement an authorized bounded outcome, including initial project creation or user-facing documentation changes | `woostack-execute` |
 | Simplify selected existing code while preserving required behavior | `woostack-simplify` |
 | Commit existing changes, create or update a PR, rebase or restack published PRs, or change readiness | `woostack-deliver` |
-| Review a pull request | Use [Pullfrog](https://pullfrog.com/). |
+| Review a pull request | Use the Orca [Reviewer bot](https://github.com/howarewoo/woostack/blob/main/apps/docs/content/docs/agent-teams/reviewer.mdx). |
 | Render a supplied document or verified source as audience-tailored HTML | `woostack-visualize` in a native subagent or isolated task context, not the parent |
 | Explore UI directions or create and refine isolated interactive mockups | `woostack-prototype` |
 | Arrange existing multi-step screen flows without restyling their contents | `woostack-flow-layout` |
