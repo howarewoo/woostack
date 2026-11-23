@@ -121,16 +121,23 @@ Ask each bot in its chat to set up its automations. Each bot checks the availabl
 | Reviewer | `github.pr_opened in=acme/app from=me` | Standing | Review pull requests you open |
 | Reviewer | `github.pr_ready in=acme/app` | Standing | Review a draft once it is marked ready |
 | Gatekeeper | `github.workflow_finished run=<link>` with `--once --by <deadline>` | Wait per merge | Check the deploy run a merge started |
-| Sentinel | `github.deploy_finished in=acme/app` | Standing | Investigate failed production deploys |
+| Sentinel | `github.deploy_finished in=acme/app contains="production: failure"` | Standing | Investigate failed production deploys |
 
 For example, Sentinel's watch:
 
 ```text
 orca automations create --bot Sentinel --name "Production deploys" \
-  --on "github.deploy_finished in=acme/app" \
+  --on 'github.deploy_finished in=acme/app contains="production: failure"' \
+  --on 'github.deploy_finished in=acme/app contains="production: error"' \
   --results-to chat \
   --prompt "If this deploy targeted production and failed, investigate it and file one issue with evidence. Otherwise end quietly."
 ```
+
+The event fires for every deploy, in every environment, whether it succeeds or fails. The
+`contains=` filters keep successes and other environments from waking Sentinel at all. Check the
+text of a real failed production deploy event before you save them, and match its wording. The
+prompt's check stays as a backstop. See
+[events instead of polling](/docs/agent-teams#events-instead-of-polling).
 
 Reviewer's two events can share one automation. Reviewer
 [publishes the review itself](/docs/agent-teams/reviewer#publish-the-review), so the run's results

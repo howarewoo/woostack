@@ -11,7 +11,8 @@ stays quiet when deploys succeed.
 ## Responsibilities
 
 - **Watch production deploys.** A standing `github.deploy_finished` automation starts Sentinel when
-  a deploy finishes. Sentinel ignores successes and deploys to other environments.
+  a production deploy fails. Its trigger filters out successes and other environments, and Sentinel
+  ignores any that still get through.
 - **Investigate failures.** It reads the failed run, its logs, and the commits it shipped, and uses
   [Debug](/docs/skills/woostack-debug) to find the root cause from evidence.
 - **File one issue per failure.** After checking for duplicates, it files an issue with the
@@ -26,14 +27,17 @@ Ask Sentinel in its chat to watch your production deploys. It checks the availab
 
 ```text
 orca automations create --bot Sentinel --name "Production deploys" \
-  --on "github.deploy_finished in=acme/app" \
+  --on 'github.deploy_finished in=acme/app contains="production: failure"' \
+  --on 'github.deploy_finished in=acme/app contains="production: error"' \
   --results-to chat \
   --prompt "If this deploy targeted the production environment and failed, investigate it and file one issue with evidence. Otherwise end quietly."
 ```
 
-Keep the environment filter in the prompt, because the event fires for every environment. You can
-also start Sentinel from Orca's **Deploy watch** template, or call it from a deploy tool through a
-webhook. Record the automation's name and what it watches in `MEMORY.md`.
+The event fires for every deploy, in every environment, whether it succeeds or fails. Filter it at
+the trigger with `contains=` so only failed production deploys wake Sentinel. Check the text of a
+real failed production deploy event before you save the rule, and match its wording. Keep the
+environment check in the prompt as a backstop. You can also start Sentinel from Orca's
+**Deploy watch** template, or call it from a deploy tool through a webhook. Record the automation's name and what it watches in `MEMORY.md`.
 
 ## Boundaries
 
