@@ -83,6 +83,25 @@ Some rules keep handoffs safe:
   acceptance criteria, what the receiver may do, and what is still open.
 - **Mail about an item goes to the chat that owns it.** Use `--item <n>` so the update lands next to
   the work instead of in a new conversation.
+- **Send mail only when the receiver must act or decide.** Every message starts a model turn that
+  re-reads the receiver's chat, so mail it has no use for becomes a paid turn that does nothing. A
+  `status` message earns its turn when the receiver changes something because of it, such as
+  Steward updating its roster. When unsure, send it: a missed signal costs more than one quiet turn.
+
+### One chat per project
+
+Mail sent without `--chat` or `--item` lands in the receiving bot's Home chat. Each message in a chat
+starts a turn that reads that chat's whole history. A Home chat that collects every project's tasks,
+worker reports, and review replies grows without limit, and every later Home turn pays to re-read
+all of it. Route project work to a chat that belongs to it instead:
+
+- `--chat <id>` sends a project's task to the receiving bot's established chat for that project.
+  `orca bot chats --bot <name>` lists each chat's id.
+- `--chat new` starts a new chat on the receiving bot for an isolated task, titled from `--subject`.
+- `--item <n>` sends an update about an existing item to the chat that owns it.
+
+A bot works each handoff in the chat it arrived in, so the worker reports and review replies that
+follow stay there too. Keep Home for cross-project or unclear work.
 
 ## Owner decision gates
 
@@ -117,10 +136,16 @@ bot is waiting for, and keeps running after the work is done. Orca automations s
 something happens.
 
 - **Standing automations** run every time an event matches, for example
-  `--on "github.deploy_finished in=acme/app"` for Sentinel.
+  `--on 'github.deploy_finished in=acme/app contains="production: failure"'` for Sentinel.
 - **Waits** use `--once` with a deadline from `--by`, for example one pull request's CI result or one
   workflow run. They wake the bot once, on the matching event or at the deadline.
 - **Schedules** cover work with no event, such as a weekly roster review.
+
+Filter a trigger at the source, not in the prompt. Every matching event starts a paid run, by default
+in a new chat, even when the prompt then tells the bot to end quietly. Narrow the rule with the
+filters its event supports, such as `in=`, `subject=`, `from=`, `label=`, and `contains=` on GitHub
+events or `where=` on webhook calls, so events the bot would ignore never wake it. Keep the prompt
+check as a backstop for what the filter cannot express.
 
 Orca's **Look around** is a separate, read-only run a few times a day that lists suggested next
 steps under Suggestions. Treat a suggestion as a prompt for you to decide on, not as a handoff.

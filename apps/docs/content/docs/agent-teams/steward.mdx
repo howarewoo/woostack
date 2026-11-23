@@ -56,10 +56,14 @@ Steward never:
 Example handoff:
 
 ```text
-orca orchestration send --to bot:Engineer --type handoff \
+orca orchestration send --to bot:Engineer --type handoff --chat <id> \
   --subject "acme/app#57: fix empty-state copy on the projects page" \
   --body-file /tmp/handoff-57.md
 ```
+
+`--chat <id>` lands the handoff in Engineer's chat for `acme/app` instead of its Home chat, and
+`--chat new` starts a chat for an isolated task. See
+[one chat per project](/docs/agent-teams#one-chat-per-project).
 
 ## Starter SOUL.md
 
