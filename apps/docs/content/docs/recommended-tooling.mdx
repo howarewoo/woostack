@@ -57,6 +57,45 @@ Extensions execute code, so review their source before installing them.
 Subagents are not automatically isolated workspaces. Avoid concurrent edits to the same files;
 separate sessions alone do not prevent editing conflicts.
 
+### Compaction for long-running agents
+
+Pi compacts automatically when the context exceeds the model's context window minus
+`compaction.reserveTokens`, which defaults to `16384`. On a 1M-token model, that is about 984k
+tokens. An always-on agent's chat can grow to hundreds of thousands of tokens well before then,
+and every wake re-reads all of it.
+
+Give each long-running agent its own `<home>/.pi/settings.json`, where `<home>` is the working
+directory the agent runs in. Set `reserveTokens` per model with `compaction.modelOverrides`,
+keyed by the exact `provider/modelId`. Replace the placeholder keys below with your model IDs.
+These reserves make a 1M-token model and a 272k-token model both compact near 200k tokens:
+
+```json
+{
+  "compaction": {
+    "modelOverrides": {
+      "provider/model-with-1m-window": { "reserveTokens": 800000 },
+      "provider/model-with-272k-window": { "reserveTokens": 72000 }
+    }
+  }
+}
+```
+
+Do not set one large top-level `compaction.reserveTokens` instead. Pi does not clamp the
+threshold, so a reserve sized for a 1M-token model leaves a smaller-window model with a negative
+budget, and that model compacts on every turn.
+
+Pi reads settings when a session starts. A chat that is already running keeps its old threshold
+until it restarts, or until you run `/reload` in an interactive session. If the chat is already
+over the new threshold, it compacts on its next turn.
+
+Pi reads project settings only from `.pi` in the working directory, after you trust the project.
+Workers that run in a repository workspace do not inherit the agent home's settings. They use the
+global `~/.pi/agent/settings.json`, plus the repository's `.pi/settings.json` if it has one.
+
+Compaction replaces older messages with a summary. Keep durable state in files and tracked items,
+such as issues and task lists, not in the conversation, so compaction does not lose anything the
+agent needs.
+
 ## Optional design skills
 
 See [External skills](/docs/external-skills#design-and-interaction) for
