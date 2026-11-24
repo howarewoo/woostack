@@ -25,7 +25,8 @@ GitHub access, or dependency installation.
 For requested human-facing technical documents, load
 [documentation guidance](references/documentation.md) before planning or drafting. Apply it within
 the authoring steps and document schemas below, retaining this workflow's consultation and write
-boundaries. Keep `AGENTS.md` operational.
+boundaries. For visual design guidance, also load [design systems and tokens](references/design-tokens.md)
+to establish token ownership, coverage, and maintenance. Keep `AGENTS.md` operational.
 
 1. **Inspect the evidence.** Resolve the target and requested scope without changing it. Read relevant
    conversation decisions, existing root and scoped agent instructions, README/contributor guidance,

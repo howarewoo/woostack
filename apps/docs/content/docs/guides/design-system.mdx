@@ -11,6 +11,28 @@ You need [the skill installed](/docs/getting-started), repository access, and pe
 necessary catalog dependency changes. Send the examples below to your assistant using its
 [skill-loading mechanism](/docs/harnesses#native-skill-invocation).
 
+## Establish design guidance
+
+Use Init when the task is to create or maintain the project's design contract:
+
+```text
+/woostack-init Create or update our visual design guidance. Reuse existing tokens
+and components, identify the canonical token source, and cover the roles, states,
+themes, and maintenance steps our UI needs. Keep planned tokens distinct from
+implemented ones and ask about unresolved visual direction.
+```
+
+Expect `DESIGN.md` to explain how to use and maintain the system. It should link to authored tokens
+and components, or explicitly own planned token definitions when none exist. Color roles,
+typography, spacing, sizing, shape, depth, and motion need coverage only where the interface uses
+them. Existing library tokens can provide that coverage. Supported themes should preserve token
+meaning, and verification should check real color pairings, focus, and relevant component states.
+
+Init updates guidance. Creating or changing application tokens and their consumers is a separate
+implementation request; a documented token is not proof that the UI uses it. Existing themes and
+formats stay authoritative, and no new token generator or catalog is required to write guidance.
+See [Init's document responsibilities](/docs/skills/woostack-init#document-responsibilities).
+
 ## Create a catalog
 
 1. Request the coverage you need:
